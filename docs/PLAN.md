@@ -21,7 +21,8 @@ This ensures collaborative development and avoids rework.
 
 ## Overview
 
-**Kuuki** is a travel geek platform for flight tracking, visited places mapping, and social leaderboards.
+**Kuuki** is a flight stats vault for aviation enthusiasts — log your journeys,
+build your collection, discover patterns, and compare with others.
 
 | Attribute | Value |
 |-----------|-------|
@@ -33,13 +34,29 @@ This ensures collaborative development and avoids rework.
 
 ## Core Features
 
-1. **Flight Tracking** - AI (Gemini) + manual entry
-2. **Visited Places** - Auto-extracted from flights (countries, cities, airports)
-3. **Multi-Category Leaderboards** - Countries, cities, flights, distance, airlines (opt-in)
-4. **Public Profiles** - Shareable pages with stats, map, badges
-5. **Achievements** - Badge system for milestones
-6. **Pre-Login Showcase** - 2-3 modal walkthrough before login
-7. **Multi-Tier Stats** - For normal users, avia geeks, and country geeks
+1. **Flight Logging** - AI (Gemini) + manual entry for past flights
+2. **Stats Vault** - Your complete aviation history in one place
+3. **Visited Places** - Auto-extracted from flights (countries, cities, airports)
+4. **Multi-Category Leaderboards** - Countries, cities, flights, distance, airlines (opt-in)
+5. **Public Profiles** - Shareable pages with stats, map, badges
+6. **Achievements** - Badge system for milestones
+7. **Pre-Login Showcase** - 2-3 modal walkthrough before login
+8. **Multi-Tier Stats** - For normal users, frequent travelers, avia geeks, country geeks, and time geeks
+
+---
+
+## Internationalization
+
+| Language | Code | Status |
+|----------|------|--------|
+| English | en | Primary |
+| Russian | ru | Full support |
+
+**Implementation:**
+- Library: `react-i18next`
+- Translations: `packages/shared/src/i18n/{en,ru}.json`
+- Detection: Browser locale, with manual override in settings
+- RTL: Not needed for en/ru
 
 ---
 
@@ -49,11 +66,11 @@ Before the login screen, show a 3-modal feature walkthrough:
 
 | Modal | Content |
 |-------|---------|
-| 1. Track Flights | "Never forget a flight. Import from boarding passes or add manually." |
-| 2. See Your Stats | "Discover your travel patterns. Distance, countries, airlines, and more." |
-| 3. Compete & Share | "Join the leaderboard. Share your travel story with the world." |
+| 1. Log Your Journeys | "Build your flight collection. Every takeoff, every landing, remembered." |
+| 2. Discover Your Stats | "Distance flown, countries visited, airlines collected. See your patterns." |
+| 3. Compare & Share | "Join the leaderboard. Share your aviation story with the world." |
 
-- Skip button available
+- Skip button **always visible** on every modal
 - Remembered in localStorage (don't show again)
 - Clean, visual design with illustrations
 
@@ -66,8 +83,9 @@ Before the login screen, show a 3-modal feature walkthrough:
 | Tier | Target User | Focus |
 |------|-------------|-------|
 | **Overview** | Everyone | Clean summary: flights, countries, distance, airlines |
-| **Avia Geek** | Aviation enthusiasts | Aircraft types, seat positions, airlines, routes, manufacturers |
-| **Country Geek** | Geography lovers | Continents, regions, hemispheres, UN subregions, climate zones |
+| **Frequent Traveler** | Road warriors | Most-flown routes, flights per period, airline loyalty, travel streaks |
+| **Avia Geek** | Aviation enthusiasts | Aircraft types, manufacturers, engine types, widebody vs narrowbody |
+| **Country Geek** | Geography lovers | Continents, regions, hemispheres, UN subregions, completion % |
 | **Time Geek** | Pattern seekers | Hours in air, streaks, busiest months, day vs night, time zones |
 
 ### Stats Categories
@@ -80,7 +98,7 @@ Before the login screen, show a 3-modal feature walkthrough:
 **Aviation Deep Dive**
 - Aircraft breakdown (widebody vs narrowbody vs regional)
 - Top manufacturers (Boeing, Airbus, Embraer)
-- Seat class distribution (economy, business, first)
+- Engine types flown (jet, turboprop, piston)
 - Longest/shortest flights
 - Most flown routes
 
@@ -100,12 +118,67 @@ Before the login screen, show a 3-modal feature walkthrough:
 - Timezone crossings
 - Seasonal patterns
 
+### Fun Facts (Comparative)
+
+Auto-generated insights with comparative framing:
+- "Distance to the Moon: 42% complete" (384,400 km)
+- "You've flown X.X trips around Earth" (40,075 km each)
+- "Time in air: X days, Y hours"
+- "You've crossed X time zones"
+- "Furthest from home: X,XXX km (City, Country)"
+- "You've visited X% of all countries" (195 UN members)
+
 ### Comparison Stats
 - "You've flown further than X% of users"
 - "Top 10% in countries visited"
 - Personal bests and records
 
 *(UI layout decided via /interface-design)*
+
+---
+
+## Reference Data: Aircraft
+
+### Data Source
+Static JSON bundled in `packages/data/` (~50KB)
+
+**Primary:** OpenFlights planes.dat (173 common commercial aircraft)
+- Covers 90%+ of actual passenger flights
+- Free, curated, reliable
+
+**Future expansion:** ADS-B Exchange for rare aircraft
+
+### Schema (TypeScript)
+```typescript
+interface Aircraft {
+  icao: string;           // "B738" - primary key
+  iata: string | null;    // "738"
+  manufacturer: string;   // "Boeing"
+  model: string;          // "737-800"
+  name: string;           // "Boeing 737-800"
+  type: 'widebody' | 'narrowbody' | 'regional' | 'turboprop';
+  engineType: 'jet' | 'turboprop' | 'piston';
+  engineCount: number;
+  capacity: number | null;
+}
+```
+
+### File Location
+```
+packages/
+├── data/
+│   └── src/
+│       ├── aircraft.json    # 173 aircraft
+│       ├── airports.json    # existing
+│       └── airlines.json    # existing
+```
+
+### Usage
+```typescript
+import aircraft from '@kuuki/data/aircraft.json';
+
+const find = (icao: string) => aircraft.find(a => a.icao === icao);
+```
 
 ---
 
@@ -117,6 +190,7 @@ Before the login screen, show a 3-modal feature walkthrough:
 | Styling | Tailwind CSS + shadcn/ui (design via /interface-design later) |
 | State | Zustand + TanStack Query |
 | Maps | Mapbox GL JS or deck.gl |
+| i18n | react-i18next |
 | Hosting | Cloudflare Pages |
 | Edge API | Cloudflare Workers + KV (caching) |
 | Database | Supabase PostgreSQL |
@@ -140,7 +214,8 @@ profiles (
   home_airport TEXT,       -- IATA
   is_public BOOLEAN,
   show_on_leaderboards BOOLEAN,
-  gemini_api_key TEXT      -- encrypted
+  gemini_api_key TEXT,     -- encrypted
+  locale TEXT              -- 'en' | 'ru'
 )
 
 -- Flights
@@ -155,7 +230,6 @@ flights (
   aircraft_icao TEXT,
   distance_km NUMERIC,
   duration_minutes INT,
-  seat_class TEXT,
   source TEXT              -- 'manual' | 'ai_import'
 )
 
@@ -216,7 +290,15 @@ kuuki/
 │           └── stores/         # Zustand stores
 ├── packages/
 │   ├── shared/                 # Types, constants
-│   └── data/                   # Static airports/airlines JSON
+│   │   └── src/
+│   │       └── i18n/
+│   │           ├── en.json
+│   │           └── ru.json
+│   └── data/                   # Static reference data
+│       └── src/
+│           ├── aircraft.json
+│           ├── airports.json
+│           └── airlines.json
 ├── functions/                  # CF Workers (edge API)
 │   └── api/
 │       ├── leaderboard/[category].ts
@@ -375,12 +457,19 @@ mkdir -p apps/web packages/shared packages/data functions/api supabase/migration
 
 ## Implementation Phases
 
+### Phase 0.5: Reference Data
+- [ ] Download OpenFlights planes.dat
+- [ ] Parse and convert to aircraft.json
+- [ ] Add TypeScript types
+- [ ] Create aircraft lookup utilities
+
 ### Phase 1: Foundation
 - [ ] Create GitHub repo `indi256s/kuuki`
 - [ ] Initialize monorepo (pnpm + Turborepo)
 - [ ] Create Supabase project + apply schema
 - [ ] Set up Cloudflare Pages
 - [ ] Implement auth flow
+- [ ] Set up react-i18next with en/ru translations
 
 ### Phase 1.5: Onboarding & Landing
 - [ ] Pre-login modal showcase (3 slides)
@@ -407,9 +496,11 @@ mkdir -p apps/web packages/shared packages/data functions/api supabase/migration
 
 ### Phase 5: Advanced Stats
 - [ ] Basic stats dashboard
-- [ ] Avia geek stats (aircraft, airlines, routes)
-- [ ] Country geek stats (regions, continents, climate)
+- [ ] Frequent Traveler stats (routes, loyalty, streaks)
+- [ ] Avia geek stats (aircraft, manufacturers, engines)
+- [ ] Country geek stats (regions, continents, completion %)
 - [ ] Time stats (patterns, streaks)
+- [ ] Fun facts (Moon distance, Earth circumnavigations, etc.)
 - [ ] Comparison stats ("better than X%")
 
 ### Phase 6: Polish
@@ -429,3 +520,5 @@ mkdir -p apps/web packages/shared packages/data functions/api supabase/migration
 5. **Leaderboard**: Opt-in, verify ranking appears
 6. **Public Profile**: Visit `/u/{username}` logged out
 7. **Badges**: Add enough flights to trigger badge, verify earned
+8. **i18n**: Switch locale, verify all strings translated
+9. **Aircraft Data**: Add flight with aircraft, verify type/manufacturer displayed
