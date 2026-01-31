@@ -26,7 +26,6 @@ export interface Flight {
   aircraftIcao: string | null
   distanceKm: number | null
   durationMinutes: number | null
-  seatClass: 'economy' | 'business' | 'first' | null
   source: 'manual' | 'ai_import'
   createdAt: string
 }
@@ -98,3 +97,19 @@ export interface Airline {
   logoUrl: string | null
   primaryColor: string | null
 }
+
+// Aircraft reference
+export interface Aircraft {
+  icao: string                    // "B738" - primary key
+  iata: string | null             // "738"
+  manufacturer: string            // "Boeing"
+  model: string                   // "737-800"
+  name: string                    // "Boeing 737-800"
+  type: AircraftType
+  engineType: EngineType
+  engineCount: number
+  capacity: number | null
+}
+
+export type AircraftType = 'widebody' | 'narrowbody' | 'regional' | 'bizjet' | 'turboprop' | 'piston'
+export type EngineType = 'jet' | 'turboprop' | 'piston'

@@ -7,12 +7,16 @@
   "types": "./src/index.ts",
   "exports": {
     ".": "./src/index.ts",
+    "./aircraft": "./src/aircraft.json",
     "./airports": "./src/airports.json",
     "./airlines": "./src/airlines.json"
   },
   "scripts": {
     "build": "tsc",
     "lint": "eslint ."
+  },
+  "dependencies": {
+    "@kuuki/shared": "workspace:*"
   },
   "devDependencies": {
     "typescript": "^5.7.0"

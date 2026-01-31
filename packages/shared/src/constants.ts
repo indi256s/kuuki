@@ -9,9 +9,13 @@ export const LEADERBOARD_CATEGORIES = [
 
 export type LeaderboardCategory = typeof LEADERBOARD_CATEGORIES[number]
 
-// Seat classes
-export const SEAT_CLASSES = ['economy', 'business', 'first'] as const
-export type SeatClass = typeof SEAT_CLASSES[number]
+// Aircraft types
+export const AIRCRAFT_TYPES = ['widebody', 'narrowbody', 'regional', 'bizjet', 'turboprop', 'piston'] as const
+export type AircraftTypeConst = typeof AIRCRAFT_TYPES[number]
+
+// Engine types
+export const ENGINE_TYPES = ['jet', 'turboprop', 'piston'] as const
+export type EngineTypeConst = typeof ENGINE_TYPES[number]
 
 // Badge tiers
 export const BADGE_TIERS = ['bronze', 'silver', 'gold', 'platinum'] as const
