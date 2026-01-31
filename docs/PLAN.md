@@ -199,6 +199,64 @@ const find = (icao: string) => aircraft.find(a => a.icao === icao);
 
 ---
 
+## Current Implementation Status
+
+### Completed Features
+
+**Aircraft Reference Data (`@kuuki/data`)**
+- 173 commercial aircraft from OpenFlights
+- Classified by type: widebody (41), narrowbody (68), regional (34), turboprop (30)
+- Engine types: jet, turboprop, piston
+- TypeScript types with full schema
+
+**Authentication System**
+- Closed beta with invite codes
+- Email/password authentication via Supabase
+- Real-time invite code validation
+- SignInForm and SignUpForm components
+- useAuth hook with Zustand state management
+- Auto-profile creation via database trigger
+
+**Internationalization**
+- react-i18next with browser detection
+- English (en) and Russian (ru) translations
+- Language switcher component
+- Persistent language preference
+
+**Testing**
+- Vitest with jsdom environment
+- 26 tests passing:
+  - Auth functions: 10 tests
+  - SignInForm: 7 tests
+  - SignUpForm: 9 tests
+- Supabase mock utilities for isolated testing
+
+### Project Structure (Current)
+```
+kuuki/
+├── apps/
+│   └── web/                     # React SPA (Vite + TypeScript)
+│       └── src/
+│           ├── components/
+│           │   ├── auth/        # SignInForm, SignUpForm
+│           │   └── ProtectedRoute.tsx
+│           ├── hooks/           # useAuth, useLanguage
+│           ├── lib/             # supabase, auth, i18n, database.types
+│           ├── routes/          # AuthPage, DashboardPage
+│           ├── stores/          # authStore (Zustand)
+│           └── test/            # mocks, setup
+├── packages/
+│   ├── shared/                  # Shared code
+│   │   └── src/i18n/           # en.json, ru.json
+│   └── data/                    # Static reference data
+│       └── src/
+│           └── aircraft.json    # 173 aircraft
+└── docs/
+    └── PLAN.md                  # This file
+```
+
+---
+
 ## Database Schema
 
 ### Core Tables
@@ -260,6 +318,18 @@ user_badges (user_id, badge_id, earned_at)
 -- Reference data
 airports (iata, icao, name, city, country, country_code, lat, lng)
 airlines (iata, icao, name, logo_url)
+
+-- Beta invites (closed beta only)
+beta_invites (
+  id SERIAL PRIMARY KEY,
+  code TEXT UNIQUE NOT NULL,  -- 'KUUKI-XXXX-adjective-noun'
+  created_at TIMESTAMPTZ,
+  used_by UUID REFERENCES profiles(id),
+  used_at TIMESTAMPTZ,
+  max_uses INT DEFAULT 1,
+  uses INT DEFAULT 0,
+  note TEXT
+)
 ```
 
 ### Key Indexes
@@ -379,6 +449,24 @@ Badges evaluated via database trigger on flight insert.
 
 ## Authentication Flow
 
+### Closed Beta (Current)
+
+Invite-only access with password authentication:
+
+1. User receives invite code (format: `KUUKI-XXXX-adjective-noun`)
+2. Sign up with email + password + invite code
+3. Code validated in real-time on blur
+4. Profile auto-created via database trigger
+5. Redirect to dashboard
+
+**Invite Code System:**
+- Codes stored in `beta_invites` table
+- Format: `KUUKI-{4 chars}-{adjective}-{noun}` (e.g., `KUUKI-R5Y7-sharp-mist`)
+- Single-use by default, configurable `max_uses`
+- Generated via `SELECT generate_invite_code('note')` in Supabase
+
+### Public Launch (Future)
+
 1. User clicks "Sign in with Google"
 2. Supabase OAuth redirect
 3. Callback at `/auth/callback`
@@ -457,19 +545,20 @@ mkdir -p apps/web packages/shared packages/data functions/api supabase/migration
 
 ## Implementation Phases
 
-### Phase 0.5: Reference Data
-- [ ] Download OpenFlights planes.dat
-- [ ] Parse and convert to aircraft.json
-- [ ] Add TypeScript types
-- [ ] Create aircraft lookup utilities
+### Phase 0.5: Reference Data ✅
+- [x] Download OpenFlights planes.dat
+- [x] Parse and convert to aircraft.json (173 aircraft)
+- [x] Add TypeScript types with aircraft classification
+- [x] Create aircraft lookup utilities
 
-### Phase 1: Foundation
-- [ ] Create GitHub repo `indi256s/kuuki`
-- [ ] Initialize monorepo (pnpm + Turborepo)
-- [ ] Create Supabase project + apply schema
+### Phase 1: Foundation 🔄
+- [x] Create GitHub repo `indi256s/kuuki`
+- [x] Initialize monorepo (pnpm + Turborepo)
+- [x] Create Supabase project + apply schema
 - [ ] Set up Cloudflare Pages
-- [ ] Implement auth flow
-- [ ] Set up react-i18next with en/ru translations
+- [x] Implement auth flow (closed beta with invite codes)
+- [x] Set up react-i18next with en/ru translations
+- [x] Add comprehensive test suite (26 tests passing)
 
 ### Phase 1.5: Onboarding & Landing
 - [ ] Pre-login modal showcase (3 slides)
@@ -513,7 +602,21 @@ mkdir -p apps/web packages/shared packages/data functions/api supabase/migration
 
 ## Verification
 
-1. **Auth**: Sign in with Google, verify profile creation
+### Automated Tests (26 passing)
+
+```bash
+cd apps/web && pnpm test
+```
+
+| Test Suite | Tests | Status |
+|------------|-------|--------|
+| `src/lib/auth.test.ts` | 10 | ✅ |
+| `src/components/auth/SignInForm.test.tsx` | 7 | ✅ |
+| `src/components/auth/SignUpForm.test.tsx` | 9 | ✅ |
+
+### Manual Verification
+
+1. **Auth (Beta)**: Sign up with invite code, verify profile creation
 2. **Flights**: Add flight manually, verify appears in list
 3. **AI Import**: Paste boarding pass, verify extraction
 4. **Stats**: Check dashboard aggregations match flight data
