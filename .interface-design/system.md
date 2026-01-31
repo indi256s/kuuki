@@ -182,7 +182,7 @@ Inspired by departure boards / terminal wayfinding:
 
 **Name:** Kuuki Cloud
 
-![Kuuki Cloud](/apps/web/public/images/mascot.jpg)
+![Kuuki Cloud](/apps/web/public/images/mascot.webp)
 
 **Personality:**
 - Friendly, floating, and light
