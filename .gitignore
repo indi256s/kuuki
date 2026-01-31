@@ -11,6 +11,14 @@ dist/
 .env
 .env.local
 .env.*.local
+.env.production
+
+# Secrets & credentials
+*.pem
+*.key
+credentials.json
+serviceAccountKey.json
+**/secrets/
 
 # IDE
 .idea/
@@ -32,3 +40,8 @@ coverage/
 
 # Supabase
 .supabase/
+supabase/.env
+
+# Cloudflare
+.wrangler/
+.dev.vars
