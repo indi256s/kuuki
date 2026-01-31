@@ -1,11 +1,13 @@
 ---
-title: "Kuuki (空気) - Implementation Plan"
+title: "Kuuki - Implementation Plan"
 created: 2026-01-31
 tags: [project, kuuki, travel, flights, cloudflare, supabase]
 type: plan
 ---
 
-# Kuuki (空気) - Implementation Plan
+# Kuuki - Implementation Plan
+
+> **Full specification:** See [SPEC.md](./SPEC.md) for complete product requirements.
 
 ## Workflow Instructions
 
@@ -48,27 +50,8 @@ This ensures collaborative development and avoids rework.
 | Server | Capabilities |
 |--------|--------------|
 | `supabase` | DB schema, migrations, RLS policies, edge functions, TypeScript types |
-| `context7` | Up-to-date docs for libraries (Mapbox, deck.gl, Gemini SDK, etc.) |
+| `context7` | Up-to-date docs for libraries (Mapbox, react-map-gl, Gemini SDK, etc.) |
 | `playwright` | Browser automation — E2E tests, visual regression, screenshot generation |
-
-### When to Use Which
-
-**Design Skills:**
-- **`/frontend-design`**: User-facing pages that need to impress (landing, profiles, shareable content)
-- **`/interface-design`**: Functional app UI (dashboards, forms, settings, data views)
-- **`/playground`**: Rapid prototyping, interactive demos, feature exploration
-
-**Workflow Skills (apply to all phases):**
-- **`/superpowers:brainstorming`**: Starting any new feature — clarify requirements before coding
-- **`/superpowers:test-driven-development`**: Writing any new code — tests first, then implementation
-- **`/superpowers:systematic-debugging`**: Hit a bug — diagnose before fixing
-- **`/superpowers:verification-before-completion`**: Finishing work — verify before claiming done
-- **`/code-review:code-review`**: After completing a feature — review before merge
-
-**MCP Servers:**
-- **`supabase` MCP**: Any database work, auth, real-time, edge functions
-- **`context7` MCP**: When implementing with unfamiliar libraries or needing latest API docs
-- **`playwright` MCP**: Testing flows, generating OG images, responsive checks
 
 ---
 
@@ -79,176 +62,174 @@ build your collection, discover patterns, and compare with others.
 
 | Attribute | Value |
 |-----------|-------|
-| **Name** | Kuuki (空気) - "Air/Atmosphere" |
+| **Name** | Kuuki (display as "Kuuki" only, no kanji) |
 | **Domain** | kuuki.indi256.com |
-| **Architecture** | Cloudflare Pages/Workers + Supabase |
-
----
-
-## Core Features
-
-1. **Flight Logging** - AI (Gemini) + manual entry for past flights
-2. **Stats Vault** - Your complete aviation history in one place
-3. **Visited Places** - Auto-extracted from flights (countries, cities, airports)
-4. **Multi-Category Leaderboards** - Countries, cities, flights, distance, airlines (opt-in)
-5. **Public Profiles** - Shareable pages with stats, map, badges
-6. **Achievements** - Badge system for milestones
-7. **Pre-Login Showcase** - 2-3 modal walkthrough before login
-8. **Multi-Tier Stats** - For normal users, frequent travelers, avia geeks, country geeks, and time geeks
-
----
-
-## Internationalization
-
-| Language | Code | Status |
-|----------|------|--------|
-| English | en | Primary |
-| Russian | ru | Full support |
-
-**Implementation:**
-- Library: `react-i18next`
-- Translations: `packages/shared/src/i18n/{en,ru}.json`
-- Detection: Browser locale, with manual override in settings
-- RTL: Not needed for en/ru
-
----
-
-## Pre-Login Onboarding
-
-Before the login screen, show a 3-modal feature walkthrough:
-
-| Modal | Content |
-|-------|---------|
-| 1. Log Your Journeys | "Build your flight collection. Every takeoff, every landing, remembered." |
-| 2. Discover Your Stats | "Distance flown, countries visited, airlines collected. See your patterns." |
-| 3. Compare & Share | "Join the leaderboard. Share your aviation story with the world." |
-
-- Skip button **always visible** on every modal
-- Remembered in localStorage (don't show again)
-- Clean, visual design with illustrations
-
----
-
-## Stats System
-
-### User Tiers
-
-| Tier | Target User | Focus |
-|------|-------------|-------|
-| **Overview** | Everyone | Clean summary: flights, countries, distance, airlines |
-| **Frequent Traveler** | Road warriors | Most-flown routes, flights per period, airline loyalty, travel streaks |
-| **Avia Geek** | Aviation enthusiasts | Aircraft types, manufacturers, engine types, widebody vs narrowbody |
-| **Country Geek** | Geography lovers | Continents, regions, hemispheres, UN subregions, completion % |
-| **Time Geek** | Pattern seekers | Hours in air, streaks, busiest months, day vs night, time zones |
-
-### Stats Categories
-
-**Basic Stats**
-- Total flights, distance (km), time in air
-- Countries, cities, airports visited
-- Airlines, aircraft types flown
-
-**Aviation Deep Dive**
-- Aircraft breakdown (widebody vs narrowbody vs regional)
-- Top manufacturers (Boeing, Airbus, Embraer)
-- Engine types flown (jet, turboprop, piston)
-- Longest/shortest flights
-- Most flown routes
-
-**Geographic Deep Dive**
-- Continents visited (with completion %)
-- UN regions and subregions
-- Hemispheres (N/S, E/W)
-- Furthest point from home airport
-- Climate zones crossed
-- Countries by region map
-
-**Time & Patterns**
-- Total hours/days in the air
-- Longest travel streak
-- Busiest year/month/day of week
-- Morning vs evening flights
-- Timezone crossings
-- Seasonal patterns
-
-### Fun Facts (Comparative)
-
-Auto-generated insights with comparative framing:
-- "Distance to the Moon: 42% complete" (384,400 km)
-- "You've flown X.X trips around Earth" (40,075 km each)
-- "Time in air: X days, Y hours"
-- "You've crossed X time zones"
-- "Furthest from home: X,XXX km (City, Country)"
-- "You've visited X% of all countries" (195 UN members)
-
-### Comparison Stats
-- "You've flown further than X% of users"
-- "Top 10% in countries visited"
-- Personal bests and records
-
-*(UI layout decided via /interface-design)*
-
----
-
-## Reference Data: Aircraft
-
-### Data Source
-Static JSON bundled in `packages/data/` (~50KB)
-
-**Primary:** OpenFlights planes.dat (173 common commercial aircraft)
-- Covers 90%+ of actual passenger flights
-- Free, curated, reliable
-
-**Future expansion:** ADS-B Exchange for rare aircraft
-
-### Schema (TypeScript)
-```typescript
-interface Aircraft {
-  icao: string;           // "B738" - primary key
-  iata: string | null;    // "738"
-  manufacturer: string;   // "Boeing"
-  model: string;          // "737-800"
-  name: string;           // "Boeing 737-800"
-  type: 'widebody' | 'narrowbody' | 'regional' | 'turboprop';
-  engineType: 'jet' | 'turboprop' | 'piston';
-  engineCount: number;
-  capacity: number | null;
-}
-```
-
-### File Location
-```
-packages/
-├── data/
-│   └── src/
-│       ├── aircraft.json    # 173 aircraft
-│       ├── airports.json    # existing
-│       └── airlines.json    # existing
-```
-
-### Usage
-```typescript
-import aircraft from '@kuuki/data/aircraft.json';
-
-const find = (icao: string) => aircraft.find(a => a.icao === icao);
-```
+| **Scale** | 50-500 users (first 6 months) |
+| **Launch** | Feature-complete beta |
 
 ---
 
 ## Tech Stack
 
-| Layer | Technology |
-|-------|------------|
-| Frontend | React 19 + Vite + TypeScript |
-| Styling | Tailwind CSS + shadcn/ui (design via /interface-design later) |
-| State | Zustand + TanStack Query |
-| Maps | Mapbox GL JS or deck.gl |
-| i18n | react-i18next |
-| Hosting | Cloudflare Pages |
-| Edge API | Cloudflare Workers + KV (caching) |
-| Database | Supabase PostgreSQL |
-| Auth | Supabase Auth (Google OAuth) |
-| AI | Google Gemini (user's own key) |
+| Layer | Technology | Notes |
+|-------|------------|-------|
+| Frontend | React 19 + Vite + TypeScript | Strict mode |
+| Styling | Tailwind CSS + shadcn/ui | Dark mode via user toggle |
+| State | Zustand + TanStack Query | |
+| Maps | **Mapbox GL JS** + react-map-gl | Flat world map with great-circle arcs |
+| i18n | react-i18next | EN primary, RU via AI-assisted translation |
+| Forms | React Hook Form + Zod | Validation with TypeScript inference |
+| Dates | Luxon | Best timezone support for UTC + local display |
+| Charts | Recharts | React-native, good defaults |
+| Icons | Lucide + custom aviation icons | shadcn default + custom |
+| Hosting | Cloudflare Pages | |
+| Edge API | Cloudflare Workers | **AI parsing only** - all other CRUD direct to Supabase |
+| Database | Supabase PostgreSQL | |
+| Auth | Supabase Auth (email/password) | 30-day sessions, optional email verification |
+| AI | Google Gemini 3.0 Flash | Your key for beta, users bring their own post-launch |
+
+---
+
+## Core Features
+
+1. **Flight Logging** - AI (Gemini) + manual entry
+2. **Stats Vault** - Complete aviation history with progressive unlock tiers
+3. **Visited Places** - Auto-extracted from flights + manual additions
+4. **Leaderboards** - Countries, cities, flights, distance, airlines (opt-in, percentile-based)
+5. **Public Profiles** - Shareable stats + badges (map is private)
+6. **Badges** - Milestones + quirky achievements (minimal gamification)
+7. **Pre-Login Showcase** - 3 modal walkthrough
+
+---
+
+## Stats System (Progressive Unlock)
+
+| Tier | Unlock Criteria | Focus |
+|------|-----------------|-------|
+| **Overview** | Always visible | Flights, countries, distance, airlines |
+| **Avia Geek** | 5+ aircraft types | Aircraft types, manufacturers, engine types, widebody vs narrowbody |
+| **Country Geek** | 5+ countries | Continents, regions, hemispheres, UN subregions, completion % |
+| **Duration Stats** | 10+ flights | Cumulative hours in air, longest flight, average duration trends |
+
+### Fun Facts (Comparative)
+- "Distance to the Moon: 42% complete" (384,400 km)
+- "You've flown X.X trips around Earth" (40,075 km each)
+- "Time in air: X days, Y hours"
+- "You've visited X% of all countries" (195 UN members)
+
+---
+
+## Database Schema
+
+### Core Tables
+
+```sql
+-- User profiles (extends auth.users)
+profiles (
+  id UUID PRIMARY KEY,           -- = auth.uid
+  username TEXT UNIQUE,
+  display_name TEXT,
+  avatar_url TEXT,
+  bio TEXT CHECK (char_length(bio) <= 140),
+  is_public BOOLEAN DEFAULT FALSE,
+  show_on_leaderboards BOOLEAN DEFAULT FALSE,
+  gemini_api_key TEXT,           -- encrypted, for post-launch
+  locale TEXT DEFAULT 'en',      -- 'en' | 'ru'
+  theme TEXT DEFAULT 'system',   -- 'light' | 'dark' | 'system'
+  date_format TEXT DEFAULT 'ISO',
+  email_verified BOOLEAN DEFAULT FALSE,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+)
+
+-- Flights
+flights (
+  id SERIAL PRIMARY KEY,
+  user_id UUID REFERENCES profiles(id),
+  flight_number TEXT,
+  date DATE NOT NULL,
+  origin TEXT NOT NULL,          -- IATA
+  destination TEXT NOT NULL,     -- IATA
+  airline_iata TEXT NOT NULL,    -- Required
+  aircraft_icao TEXT,            -- Optional
+  distance_km NUMERIC,           -- Computed: great circle × 1.10
+  duration_minutes INT,          -- Computed or from times
+  departure_utc TIMESTAMPTZ,
+  arrival_utc TIMESTAMPTZ,
+  origin_tz TEXT,                -- e.g., 'America/New_York'
+  dest_tz TEXT,
+  source TEXT NOT NULL,          -- 'manual' | 'ai_import'
+  is_upcoming BOOLEAN DEFAULT FALSE,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+)
+
+-- Manual places (not from flights)
+manual_places (
+  id SERIAL PRIMARY KEY,
+  user_id UUID REFERENCES profiles(id),
+  country_code TEXT NOT NULL,
+  city TEXT NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+)
+
+-- Badges
+badge_definitions (code TEXT PRIMARY KEY, name TEXT, description TEXT, category TEXT, criteria JSONB)
+user_badges (user_id UUID, badge_code TEXT, earned_at TIMESTAMPTZ DEFAULT NOW())
+
+-- Beta invites (closed beta only)
+beta_invites (
+  id SERIAL PRIMARY KEY,
+  code TEXT UNIQUE NOT NULL,     -- 'KUUKI-XXXX-adjective-noun'
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  used_by UUID REFERENCES profiles(id),
+  used_at TIMESTAMPTZ,
+  max_uses INT DEFAULT 1,
+  uses INT DEFAULT 0,
+  note TEXT
+)
+```
+
+### Materialized Views (Stats)
+```sql
+-- Refresh on flight INSERT/UPDATE/DELETE via trigger
+user_stats_mv (
+  user_id UUID,
+  total_flights INT,
+  total_distance_km NUMERIC,
+  total_duration_minutes INT,
+  countries_count INT,
+  cities_count INT,
+  airlines_count INT,
+  aircraft_types_count INT,
+  updated_at TIMESTAMPTZ
+)
+```
+
+### Key Indexes
+```sql
+CREATE INDEX idx_flights_user_date ON flights(user_id, date DESC);
+CREATE INDEX idx_flights_user_upcoming ON flights(user_id, is_upcoming) WHERE is_upcoming = true;
+CREATE INDEX idx_profiles_username ON profiles(username);
+```
+
+### Row-Level Security
+- Flights: Owner-only CRUD
+- Profiles: Owner CRUD, public read if `is_public = true`
+- Leaderboard: Public read for opted-in users only
+
+---
+
+## Navigation
+
+### Desktop
+Left sidebar with grouped sections (collapsible):
+- **Personal:** Dashboard, Flights
+- **Explore:** Stats, Leaderboard
+- **Account:** Profile, Settings
+
+### Mobile
+Bottom tab bar with 5 items:
+- Dashboard | Flights | **Add** (center, prominent) | Stats | Profile
 
 ---
 
@@ -304,295 +285,15 @@ kuuki/
 │   └── data/                    # Static reference data
 │       └── src/
 │           └── aircraft.json    # 173 aircraft
-└── docs/
-    └── PLAN.md                  # This file
-```
-
----
-
-## Database Schema
-
-### Core Tables
-
-```sql
--- User profiles (extends auth.users)
-profiles (
-  id UUID PRIMARY KEY,     -- = auth.uid
-  username TEXT UNIQUE,
-  display_name TEXT,
-  avatar_url TEXT,
-  bio TEXT,
-  home_airport TEXT,       -- IATA
-  is_public BOOLEAN,
-  show_on_leaderboards BOOLEAN,
-  gemini_api_key TEXT,     -- encrypted
-  locale TEXT              -- 'en' | 'ru'
-)
-
--- Flights
-flights (
-  id SERIAL PRIMARY KEY,
-  user_id UUID,
-  flight_number TEXT,
-  date DATE,
-  origin TEXT,             -- IATA
-  destination TEXT,        -- IATA
-  airline_iata TEXT,
-  aircraft_icao TEXT,
-  distance_km NUMERIC,
-  duration_minutes INT,
-  source TEXT              -- 'manual' | 'ai_import'
-)
-
--- Visited places (computed from flights)
-visits (
-  user_id UUID,
-  country_code TEXT,
-  city TEXT,
-  airport_iata TEXT,
-  first_visit DATE,
-  last_visit DATE,
-  visit_count INT
-)
-
--- Leaderboard cache (materialized)
-leaderboard_cache (
-  category TEXT,           -- 'countries' | 'cities' | 'flights' | 'distance' | 'airlines'
-  user_id UUID,
-  rank INT,
-  value NUMERIC,
-  metadata JSONB
-)
-
--- Badges
-badge_definitions (code, name, description, category, criteria JSONB)
-user_badges (user_id, badge_id, earned_at)
-
--- Reference data
-airports (iata, icao, name, city, country, country_code, lat, lng)
-airlines (iata, icao, name, logo_url)
-
--- Beta invites (closed beta only)
-beta_invites (
-  id SERIAL PRIMARY KEY,
-  code TEXT UNIQUE NOT NULL,  -- 'KUUKI-XXXX-adjective-noun'
-  created_at TIMESTAMPTZ,
-  used_by UUID REFERENCES profiles(id),
-  used_at TIMESTAMPTZ,
-  max_uses INT DEFAULT 1,
-  uses INT DEFAULT 0,
-  note TEXT
-)
-```
-
-### Key Indexes
-```sql
-CREATE INDEX idx_flights_user_date ON flights(user_id, date DESC);
-CREATE INDEX idx_leaderboard_category_rank ON leaderboard_cache(category, rank);
-CREATE INDEX idx_profiles_username ON profiles(username);
-```
-
-### Row-Level Security
-- Flights: Private to owner
-- Profiles: Public if `is_public = true`
-- Leaderboard: Only shows opted-in users
-
----
-
-## Project Structure
-
-```
-kuuki/
-├── apps/
-│   └── web/                    # React SPA
-│       └── src/
-│           ├── routes/         # Pages (dashboard, flights, import, leaderboards, profile)
-│           ├── components/     # UI, flights, maps, charts, leaderboard
-│           ├── hooks/          # useAuth, useFlights, useStats
-│           ├── lib/            # supabase client, api helpers
-│           └── stores/         # Zustand stores
-├── packages/
-│   ├── shared/                 # Types, constants
-│   │   └── src/
-│   │       └── i18n/
-│   │           ├── en.json
-│   │           └── ru.json
-│   └── data/                   # Static reference data
-│       └── src/
-│           ├── aircraft.json
-│           ├── airports.json
-│           └── airlines.json
-├── functions/                  # CF Workers (edge API)
+├── functions/                   # CF Workers (edge API)
 │   └── api/
-│       ├── leaderboard/[category].ts
-│       ├── profile/[username].ts
-│       └── import/parse.ts
-└── supabase/
-    ├── migrations/             # SQL migrations
-    └── functions/              # Edge functions (leaderboard compute)
+│       └── import/parse.ts      # Gemini proxy only
+├── supabase/
+│   └── migrations/              # SQL migrations
+└── docs/
+    ├── PLAN.md                  # This file
+    └── SPEC.md                  # Full product specification
 ```
-
----
-
-## API Architecture
-
-### Edge Layer (Cloudflare Workers)
-- **GET /api/leaderboard/:category** - Cached in KV (5min TTL)
-- **GET /api/profile/:username** - Cached public profiles
-- **POST /api/import/parse** - AI parsing proxy
-
-### Direct Supabase (Authenticated)
-- Flight CRUD
-- User settings
-- Private stats
-
----
-
-## Leaderboard System
-
-### Categories
-| Category | Metric |
-|----------|--------|
-| countries | Unique countries visited |
-| cities | Unique cities visited |
-| flights | Total flight count |
-| distance | Total km flown |
-| airlines | Unique airlines |
-
-### Computation
-- PostgreSQL functions with `RANK() OVER`
-- Scheduled via pg_cron every 15 minutes
-- Results cached in `leaderboard_cache` table + Cloudflare KV
-
----
-
-## Public Profiles
-
-### URLs
-- `/u/{username}` - Profile page
-- `/u/{username}/map` - Full-screen travel map
-- `/u/{username}/badges` - Achievements
-
-### Exposed Data
-- Username, display name, avatar, bio
-- Stats: flights, distance, countries, cities, airlines
-- Visited countries map
-- Top airlines
-- Badges earned
-- Leaderboard rankings
-
----
-
-## Badge System
-
-### Examples
-| Badge | Criteria |
-|-------|----------|
-| First Flight | 1 flight |
-| Frequent Flyer | 50 flights |
-| Centurion | 100 flights |
-| Circumnavigator | 40,075 km total |
-| Globe Trotter | 10 countries |
-| Continental | 6 continents |
-| Airline Hopper | 10 airlines |
-
-Badges evaluated via database trigger on flight insert.
-
----
-
-## Authentication Flow
-
-### Closed Beta (Current)
-
-Invite-only access with password authentication:
-
-1. User receives invite code (format: `KUUKI-XXXX-adjective-noun`)
-2. Sign up with email + password + invite code
-3. Code validated in real-time on blur
-4. Profile auto-created via database trigger
-5. Redirect to dashboard
-
-**Invite Code System:**
-- Codes stored in `beta_invites` table
-- Format: `KUUKI-{4 chars}-{adjective}-{noun}` (e.g., `KUUKI-R5Y7-sharp-mist`)
-- Single-use by default, configurable `max_uses`
-- Generated via `SELECT generate_invite_code('note')` in Supabase
-
-### Public Launch (Future)
-
-1. User clicks "Sign in with Google"
-2. Supabase OAuth redirect
-3. Callback at `/auth/callback`
-4. If no profile → onboarding (pick username)
-5. Redirect to dashboard
-
----
-
-## Deployment
-
-### Cloudflare Pages
-```yaml
-# GitHub Actions
-- pnpm install
-- pnpm build
-- wrangler pages deploy apps/web/dist --project-name=kuuki
-```
-
-### Supabase
-```bash
-supabase link --project-ref <id>
-supabase db push
-supabase gen types typescript > packages/shared/src/database.types.ts
-```
-
-### Domain
-- Add `kuuki.indi256.com` CNAME to CF Pages
-- SSL automatic
-
----
-
-## Step 0: Project Setup
-
-### Create New Repository
-```bash
-# Create project directory
-mkdir ~/kuuki && cd ~/kuuki
-
-# Initialize git
-git init
-
-# Create GitHub repo
-gh repo create indi256s/kuuki --public --source=. --push
-```
-
-### Initialize Monorepo
-```bash
-# Initialize pnpm workspace
-pnpm init
-
-# Create workspace config
-echo 'packages:
-  - "apps/*"
-  - "packages/*"' > pnpm-workspace.yaml
-
-# Add Turborepo
-pnpm add -D turbo
-
-# Create initial structure
-mkdir -p apps/web packages/shared packages/data functions/api supabase/migrations
-```
-
-### Create Supabase Project
-1. Go to supabase.com → New Project
-2. Name: `kuuki`
-3. Region: Choose closest to target users
-4. Save project URL and anon key
-
-### Configure Cloudflare Pages
-1. CF Dashboard → Pages → Create project
-2. Connect to `indi256s/kuuki` repo
-3. Build settings: `pnpm build`, output: `apps/web/dist`
-4. Add custom domain: `kuuki.indi256.com`
 
 ---
 
@@ -623,89 +324,106 @@ mkdir -p apps/web packages/shared packages/data functions/api supabase/migration
 ### Phase 1.5: Onboarding & Landing
 - [ ] Pre-login modal showcase (3 slides)
   - **Skill**: `/frontend-design` — creative, eye-catching modal sequence
-  - **Skill**: `/playground` — prototype interactions before implementation
-- [ ] Landing page design
+- [ ] Landing page (feature highlights style)
   - **Skill**: `/frontend-design` — distinctive landing with aviation aesthetic
-- [ ] Post-login onboarding (username, home airport)
-  - **Skill**: `/interface-design` — form UX, validation feedback
-- [ ] Empty states for new users
-  - **Skill**: `/interface-design` — helpful empty states with CTAs
+- [ ] Post-login onboarding (username picker only, no home airport)
+  - **Skill**: `/interface-design` — username normalization, import CTA
+- [ ] Empty states for new users (sample data preview)
+  - **Skill**: `/interface-design` — "This could be you" with example data
 
-### Phase 2: Core
-- [ ] Flight CRUD
-  - **Workflow**: `/superpowers:test-driven-development` — critical data layer, test RLS policies
-  - **MCP**: `supabase` — migrations, RLS policies, edge functions
-  - **MCP**: `context7` — Supabase SDK docs for realtime subscriptions
-- [ ] Manual entry form
-  - **Skill**: `/interface-design` — flight entry with autocomplete (airports, airlines, aircraft)
-- [ ] Dashboard with stats
-  - **Skill**: `/interface-design` — data dashboard layout, stat cards
-- [ ] Route map visualization
-  - **Skill**: `/frontend-design` — interactive globe/map with flight arcs
-  - **MCP**: `context7` — Mapbox GL JS or deck.gl documentation
-  - **MCP**: `playwright` — visual regression testing for map
+### Phase 2: Core Flight Management
+- [ ] Flight CRUD with updated schema
+  - **Workflow**: `/superpowers:test-driven-development` — critical data layer
+  - **MCP**: `supabase` — migrations with new fields (is_upcoming, timezones)
+  - Required fields: date, origin, destination, airline
+  - Optional fields: aircraft, flight number, departure/arrival times
+- [ ] Flight entry form (modal with progressive disclosure)
+  - **Skill**: `/interface-design` — autocomplete for airports/airlines/aircraft
+  - "Add more details" expands optional fields
+- [ ] Future flights with countdown timers
+  - Exclude from stats until date passes
+- [ ] Duplicate detection (warn but allow)
+- [ ] Flight deletion with consequences warning
+- [ ] Dashboard with stats summary
+  - **Skill**: `/interface-design` — big numbers first, then map, then recent flights
+- [ ] Route map visualization (private, flat world map)
+  - **Skill**: `/frontend-design` — curved arcs, visited countries choropleth
+  - **MCP**: `context7` — Mapbox GL JS + react-map-gl documentation
 
 ### Phase 3: AI Import
-- [ ] Gemini integration
-  - **Workflow**: `/superpowers:systematic-debugging` — AI responses are unpredictable, debug methodically
-  - **MCP**: `context7` — Google Gemini SDK (vision API for boarding passes)
-  - **MCP**: `supabase` — edge function for AI proxy
-- [ ] Image/text upload
+- [ ] Cloudflare Worker for Gemini proxy
+  - **MCP**: `context7` — Google Gemini 3.0 Flash SDK
+  - Hides your API key during beta
+- [ ] Upload UI (PDF, screenshots, plain text)
   - **Skill**: `/interface-design` — drag-drop zone, paste support
-- [ ] Import review UI
-  - **Skill**: `/interface-design` — editable table with extracted data, confidence indicators
+  - Loading feedback: "Reading file..." → "Extracting text..." → "Finding flights..."
+- [ ] Import review (single list view, edit inline, save all)
+  - **Skill**: `/interface-design` — editable table with all extracted data
+  - Allow AI inferences (airline from flight number, etc.)
 
 ### Phase 4: Social
-- [ ] Public profiles
-  - **Workflow**: `/code-review:code-review` — security review before exposing public endpoints
-  - **Skill**: `/frontend-design` — shareable profile page (stats, map, badges)
-  - **MCP**: `playwright` — screenshot testing for OG images
-- [ ] Leaderboard system
-  - **Skill**: `/interface-design` — ranking tables, category tabs
-  - **MCP**: `supabase` — pg_cron jobs, materialized views, KV caching
+- [ ] Public profiles (`/u/{username}`)
+  - **Workflow**: `/code-review:code-review` — security review before exposing
+  - **Skill**: `/frontend-design` — shareable profile (stats + badges, no map)
+  - Stats: flights, distance, countries, cities, airlines
+  - Compare feature: curated comparison or full side-by-side
+- [ ] Leaderboard system (percentile-based, not exact rank)
+  - **Skill**: `/interface-design` — simple ranked list, category tabs
+  - **MCP**: `supabase` — materialized views with trigger refresh
 - [ ] Badge evaluation
-  - **MCP**: `supabase` — database triggers for badge criteria
-- [ ] Share functionality
-  - **Skill**: `/frontend-design` — share cards, OG meta generation
+  - **MCP**: `supabase` — database triggers on flight insert
+  - Display: earned badges only, no progress indicators
 
 ### Phase 5: Advanced Stats
-- [ ] Basic stats dashboard
-  - **Skill**: `/interface-design` — overview tier with key metrics
-- [ ] Frequent Traveler stats (routes, loyalty, streaks)
-  - **Skill**: `/interface-design` — route frequency charts, airline loyalty visualization
-- [ ] Avia geek stats (aircraft, manufacturers, engines)
-  - **Skill**: `/interface-design` — aircraft breakdown charts, manufacturer logos
-  - **Skill**: `/playground` — interactive aircraft type explorer
-- [ ] Country geek stats (regions, continents, completion %)
-  - **Skill**: `/interface-design` — choropleth maps, completion progress bars
-  - **MCP**: `context7` — deck.gl GeoJSON layers
-- [ ] Time stats (patterns, streaks)
-  - **Skill**: `/interface-design` — heatmaps, calendar views, streak visualizations
-- [ ] Fun facts (Moon distance, Earth circumnavigations, etc.)
-  - **Skill**: `/frontend-design` — playful comparative visualizations
-  - **Skill**: `/playground` — "distance to moon" interactive progress
-- [ ] Comparison stats ("better than X%")
-  - **Skill**: `/interface-design` — percentile gauges, peer comparison
+- [ ] Overview tier (always visible)
+  - **Skill**: `/interface-design` — stat cards with hover details
+- [ ] Avia Geek tier (unlocks at 5+ aircraft types)
+  - **Skill**: `/interface-design` — aircraft breakdown charts
+  - Aircraft types, manufacturers, engine types, widebody vs narrowbody
+- [ ] Country Geek tier (unlocks at 5+ countries)
+  - **Skill**: `/interface-design` — choropleth maps, completion progress
+  - Continents, UN regions, hemispheres, completion %
+- [ ] Duration Stats tier (unlocks at 10+ flights)
+  - **Skill**: `/interface-design` — time visualizations
+  - Total hours/days in air, longest flight, average duration
+- [ ] Fun facts (comparative framing)
+  - **Skill**: `/frontend-design` — playful visualizations
+  - Moon distance progress, Earth circumnavigations, country completion %
 
 ### Phase 6: Polish
-- [ ] Edge caching optimization
-  - **Workflow**: `/superpowers:verification-before-completion` — verify caching works before launch
-  - **MCP**: `supabase` — Cloudflare KV integration
-  - **MCP**: `context7` — Cloudflare Workers/KV docs
-- [ ] Mobile responsiveness
+- [ ] Dark mode toggle (light/dark/system)
+- [ ] Mobile responsiveness (distinct layouts)
   - **Skill**: `/interface-design:audit` — responsive breakpoint review
   - **MCP**: `playwright` — mobile viewport testing
-- [ ] Error handling
+- [ ] Error handling (aviation-themed messages)
   - **Skill**: `/interface-design` — error states, toast notifications
-- [ ] Design system (/interface-design)
-  - **Workflow**: `/code-review:code-review` — final review before public launch
+  - "Flight log delayed on the tarmac. We're working to clear it for takeoff."
+- [ ] CSV export
+- [ ] Account deletion (GDPR-style)
+- [ ] Design system finalization
   - **Skill**: `/interface-design:init` — establish tokens, patterns
   - **Skill**: `/interface-design:audit` — consistency check across app
-  - **Skill**: `/interface-design:extract` — document patterns for future
+- [ ] CI/CD pipeline (GitHub Actions)
+  - Lint → Type-check → Test → Deploy preview (PR) / production (main)
 
 ---
 
-## Verification
+## Verification Checklist
+
+From SPEC.md:
+
+1. **Auth:** Sign up with invite code, verify profile creation, 30-day session
+2. **Flights:** Add flight manually with required fields (date, route, airline)
+3. **AI Import:** Upload PDF/screenshot → preview → parse → review list → save
+4. **Stats:** Check dashboard aggregations, progressive tab unlock
+5. **Public Profile:** Visit `/u/{username}` logged out, verify stats-only (no map)
+6. **Compare:** Compare your stats with another user
+7. **Badges:** Add enough flights to trigger badge, verify earned (no progress shown)
+8. **Dark mode:** Toggle theme, verify persistence
+9. **i18n:** Switch to Russian, verify translations
+10. **Upcoming flights:** Add future date, verify countdown, verify exclusion from stats
+11. **Manual places:** Search and add city to "Also visited" section
+12. **CSV export:** Download flight data, verify format
 
 ### Automated Tests (26 passing)
 
@@ -718,15 +436,3 @@ cd apps/web && pnpm test
 | `src/lib/auth.test.ts` | 10 | ✅ |
 | `src/components/auth/SignInForm.test.tsx` | 7 | ✅ |
 | `src/components/auth/SignUpForm.test.tsx` | 9 | ✅ |
-
-### Manual Verification
-
-1. **Auth (Beta)**: Sign up with invite code, verify profile creation
-2. **Flights**: Add flight manually, verify appears in list
-3. **AI Import**: Paste boarding pass, verify extraction
-4. **Stats**: Check dashboard aggregations match flight data
-5. **Leaderboard**: Opt-in, verify ranking appears
-6. **Public Profile**: Visit `/u/{username}` logged out
-7. **Badges**: Add enough flights to trigger badge, verify earned
-8. **i18n**: Switch locale, verify all strings translated
-9. **Aircraft Data**: Add flight with aircraft, verify type/manufacturer displayed
