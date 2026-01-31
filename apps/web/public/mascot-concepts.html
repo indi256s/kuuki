@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kuuki - Mascot Reference</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+      color: #0f172a;
+      min-height: 100vh;
+      padding: 48px;
+    }
+
+    h1 {
+      font-size: 32px;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      margin-bottom: 8px;
+      color: #6BAED6;
+    }
+
+    .subtitle {
+      color: #64748b;
+      font-size: 15px;
+      margin-bottom: 48px;
+    }
+
+    .main-display {
+      display: flex;
+      gap: 48px;
+      align-items: flex-start;
+      flex-wrap: wrap;
+      margin-bottom: 64px;
+    }
+
+    .mascot-showcase {
+      background: #ffffff;
+      border-radius: 24px;
+      padding: 48px;
+      box-shadow:
+        0 1px 3px rgba(15, 23, 42, 0.04),
+        0 8px 24px rgba(15, 23, 42, 0.04);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 320px;
+      min-height: 320px;
+    }
+
+    .specs {
+      flex: 1;
+      min-width: 300px;
+    }
+
+    .spec-section {
+      margin-bottom: 32px;
+    }
+
+    .spec-section h2 {
+      font-size: 13px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #94a3b8;
+      margin-bottom: 12px;
+    }
+
+    .spec-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 8px 0;
+      font-size: 14px;
+      color: #475569;
+    }
+
+    .color-swatch {
+      width: 24px;
+      height: 24px;
+      border-radius: 6px;
+      border: 1px solid rgba(0,0,0,0.05);
+    }
+
+    .color-code {
+      font-family: ui-monospace, monospace;
+      font-size: 13px;
+      color: #64748b;
+    }
+
+    /* ============================================
+       KUUKI - Main Mascot
+       Spherical cloud with orbital rings
+    ============================================ */
+    .kuuki {
+      position: relative;
+      width: 200px;
+      height: 200px;
+    }
+
+    /* Orbital motion rings */
+    .kuuki-orbit {
+      position: absolute;
+      border: 2px solid rgba(197, 227, 242, 0.5);
+      border-radius: 50%;
+      animation: orbit-rotate 8s linear infinite;
+    }
+
+    .kuuki-orbit-1 {
+      width: 180px;
+      height: 180px;
+      top: 10px;
+      left: 10px;
+      transform: rotateX(70deg) rotateZ(0deg);
+    }
+
+    .kuuki-orbit-2 {
+      width: 160px;
+      height: 160px;
+      top: 20px;
+      left: 20px;
+      transform: rotateX(70deg) rotateZ(60deg);
+      animation-duration: 10s;
+      animation-direction: reverse;
+    }
+
+    .kuuki-orbit-3 {
+      width: 170px;
+      height: 170px;
+      top: 15px;
+      left: 15px;
+      transform: rotateX(70deg) rotateZ(120deg);
+      animation-duration: 12s;
+    }
+
+    @keyframes orbit-rotate {
+      from { transform: rotateX(70deg) rotateZ(0deg); }
+      to { transform: rotateX(70deg) rotateZ(360deg); }
+    }
+
+    /* Main spherical body */
+    .kuuki-body {
+      position: absolute;
+      width: 120px;
+      height: 120px;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: linear-gradient(180deg, #E8F4FC 0%, #B8DDF0 100%);
+      border-radius: 50%;
+      box-shadow:
+        0 8px 32px rgba(126, 184, 216, 0.25),
+        inset 0 -8px 16px rgba(126, 184, 216, 0.15),
+        inset 0 4px 8px rgba(255, 255, 255, 0.6);
+      border: 2px solid #7EB8D8;
+    }
+
+    /* Decorative swirl on top */
+    .kuuki-swirl {
+      position: absolute;
+      top: 25px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 30px;
+      height: 25px;
+    }
+
+    .kuuki-swirl::before {
+      content: '';
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      border: 3px solid #7EB8D8;
+      border-radius: 50%;
+      border-bottom-color: transparent;
+      border-left-color: transparent;
+      transform: rotate(-45deg);
+      top: 0;
+      left: 5px;
+    }
+
+    .kuuki-swirl::after {
+      content: '';
+      position: absolute;
+      width: 8px;
+      height: 8px;
+      background: linear-gradient(180deg, #E8F4FC 0%, #B8DDF0 100%);
+      border: 2px solid #7EB8D8;
+      border-radius: 50%;
+      top: -2px;
+      right: 2px;
+    }
+
+    /* Face - closed happy eyes (^◡^) */
+    .kuuki-face {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 60px;
+      height: 30px;
+    }
+
+    .kuuki-eye {
+      position: absolute;
+      width: 12px;
+      height: 6px;
+      border: 2.5px solid #7EB8D8;
+      border-radius: 12px 12px 0 0;
+      border-bottom: none;
+      top: 4px;
+    }
+
+    .kuuki-eye.left { left: 8px; }
+    .kuuki-eye.right { right: 8px; }
+
+    /* Gentle smile */
+    .kuuki-mouth {
+      position: absolute;
+      width: 14px;
+      height: 7px;
+      border: 2.5px solid #7EB8D8;
+      border-radius: 0 0 14px 14px;
+      border-top: none;
+      bottom: 4px;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+
+    /* Cloud puff hands */
+    .kuuki-hand {
+      position: absolute;
+      width: 28px;
+      height: 22px;
+      background: linear-gradient(180deg, #E8F4FC 0%, #B8DDF0 100%);
+      border: 2px solid #7EB8D8;
+      border-radius: 14px 14px 10px 10px;
+      top: 50%;
+      transform: translateY(-50%);
+    }
+
+    .kuuki-hand.left {
+      left: 28px;
+    }
+
+    .kuuki-hand.right {
+      right: 28px;
+    }
+
+    /* Small puff detail on hands */
+    .kuuki-hand::before {
+      content: '';
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      background: linear-gradient(180deg, #E8F4FC 0%, #B8DDF0 100%);
+      border: 2px solid #7EB8D8;
+      border-radius: 50%;
+      top: -4px;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+
+    /* ============================================
+       SIZE VARIATIONS
+    ============================================ */
+    .sizes-section {
+      margin-top: 48px;
+      padding-top: 48px;
+      border-top: 1px solid rgba(15, 23, 42, 0.06);
+    }
+
+    .sizes-section h2 {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .sizes-section .subtitle {
+      margin-bottom: 32px;
+    }
+
+    .size-grid {
+      display: flex;
+      gap: 32px;
+      align-items: flex-end;
+      flex-wrap: wrap;
+    }
+
+    .size-item {
+      background: #ffffff;
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+      text-align: center;
+    }
+
+    .size-item .label {
+      margin-top: 16px;
+      font-size: 12px;
+      color: #94a3b8;
+    }
+
+    /* Scaled versions */
+    .kuuki-sm {
+      transform: scale(0.4);
+      transform-origin: center;
+    }
+
+    .kuuki-md {
+      transform: scale(0.6);
+      transform-origin: center;
+    }
+
+    .kuuki-lg {
+      transform: scale(0.8);
+      transform-origin: center;
+    }
+
+    /* ============================================
+       USAGE EXAMPLES
+    ============================================ */
+    .usage-section {
+      margin-top: 48px;
+      padding-top: 48px;
+      border-top: 1px solid rgba(15, 23, 42, 0.06);
+    }
+
+    .usage-section h2 {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 24px;
+    }
+
+    .usage-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 24px;
+    }
+
+    .usage-card {
+      background: #ffffff;
+      border-radius: 16px;
+      padding: 32px;
+      box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+    }
+
+    .usage-card h3 {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: #6BAED6;
+    }
+
+    .usage-card p {
+      font-size: 13px;
+      color: #64748b;
+      margin-bottom: 20px;
+    }
+
+    .loading-demo {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 120px;
+      background: #f8fafc;
+      border-radius: 12px;
+      position: relative;
+    }
+
+    /* Animated loading version */
+    .kuuki-loading {
+      animation: float 2s ease-in-out infinite;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translate(-50%, -50%) translateY(0); }
+      50% { transform: translate(-50%, -50%) translateY(-8px); }
+    }
+
+    .kuuki-loading .kuuki-body {
+      animation: pulse-glow 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse-glow {
+      0%, 100% { box-shadow: 0 8px 32px rgba(126, 184, 216, 0.25), inset 0 -8px 16px rgba(126, 184, 216, 0.15), inset 0 4px 8px rgba(255, 255, 255, 0.6); }
+      50% { box-shadow: 0 12px 40px rgba(126, 184, 216, 0.35), inset 0 -8px 16px rgba(126, 184, 216, 0.2), inset 0 4px 8px rgba(255, 255, 255, 0.7); }
+    }
+
+    .loading-text {
+      position: absolute;
+      bottom: 16px;
+      font-size: 12px;
+      color: #6BAED6;
+      font-weight: 500;
+    }
+
+    /* Search state - excited eyes */
+    .kuuki-search .kuuki-eye {
+      height: 8px;
+      border-radius: 6px;
+      border: 2.5px solid #7EB8D8;
+      border-bottom: 2.5px solid #7EB8D8;
+      animation: blink 3s ease-in-out infinite;
+    }
+
+    @keyframes blink {
+      0%, 90%, 100% { height: 8px; border-radius: 6px; }
+      95% { height: 2px; border-radius: 12px 12px 0 0; }
+    }
+
+    /* Waiting state - sleepy */
+    .kuuki-sleepy .kuuki-eye {
+      width: 10px;
+      height: 2px;
+      border-radius: 2px;
+      border: none;
+      background: #7EB8D8;
+      top: 8px;
+    }
+
+    .kuuki-sleepy .kuuki-mouth {
+      width: 8px;
+      height: 4px;
+    }
+
+    /* Z letters for sleepy */
+    .zzz {
+      position: absolute;
+      top: 30px;
+      right: 40px;
+      font-size: 14px;
+      font-weight: 600;
+      color: #7EB8D8;
+      opacity: 0;
+      animation: zzz 2s ease-in-out infinite;
+    }
+
+    .zzz:nth-child(1) { animation-delay: 0s; top: 35px; right: 45px; font-size: 10px; }
+    .zzz:nth-child(2) { animation-delay: 0.5s; top: 25px; right: 35px; font-size: 12px; }
+    .zzz:nth-child(3) { animation-delay: 1s; top: 15px; right: 25px; font-size: 14px; }
+
+    @keyframes zzz {
+      0%, 100% { opacity: 0; transform: translateY(0); }
+      50% { opacity: 1; transform: translateY(-5px); }
+    }
+  </style>
+</head>
+<body>
+  <h1>Kuuki</h1>
+  <p class="subtitle">空気 — Main Mascot Reference Sheet</p>
+
+  <div class="main-display">
+    <div class="mascot-showcase">
+      <div class="kuuki">
+        <div class="kuuki-orbit kuuki-orbit-1"></div>
+        <div class="kuuki-orbit kuuki-orbit-2"></div>
+        <div class="kuuki-orbit kuuki-orbit-3"></div>
+        <div class="kuuki-hand left"></div>
+        <div class="kuuki-hand right"></div>
+        <div class="kuuki-body">
+          <div class="kuuki-swirl"></div>
+          <div class="kuuki-face">
+            <div class="kuuki-eye left"></div>
+            <div class="kuuki-eye right"></div>
+            <div class="kuuki-mouth"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="specs">
+      <div class="spec-section">
+        <h2>Shape Language</h2>
+        <div class="spec-item">Perfectly spherical cloud body</div>
+        <div class="spec-item">Single decorative swirl/curl on top</div>
+        <div class="spec-item">Orbital motion rings surrounding body</div>
+        <div class="spec-item">Small cloud puffs as "hands"</div>
+      </div>
+
+      <div class="spec-section">
+        <h2>Face</h2>
+        <div class="spec-item">Closed happy eyes (^◡^) — peaceful, content</div>
+        <div class="spec-item">Gentle smile curve — subtle, not too wide</div>
+        <div class="spec-item">NO nose — keep minimal</div>
+        <div class="spec-item">NO eyebrows in default state</div>
+      </div>
+
+      <div class="spec-section">
+        <h2>Color Specification</h2>
+        <div class="spec-item">
+          <div class="color-swatch" style="background: linear-gradient(180deg, #E8F4FC 0%, #B8DDF0 100%);"></div>
+          <span>Body gradient</span>
+          <span class="color-code">#E8F4FC → #B8DDF0</span>
+        </div>
+        <div class="spec-item">
+          <div class="color-swatch" style="background: #7EB8D8;"></div>
+          <span>Outline/details</span>
+          <span class="color-code">#7EB8D8</span>
+        </div>
+        <div class="spec-item">
+          <div class="color-swatch" style="background: rgba(197, 227, 242, 0.5);"></div>
+          <span>Motion rings</span>
+          <span class="color-code">#C5E3F2 @ 50%</span>
+        </div>
+        <div class="spec-item">
+          <div class="color-swatch" style="background: #6BAED6;"></div>
+          <span>Text "Kuuki"</span>
+          <span class="color-code">#6BAED6</span>
+        </div>
+      </div>
+
+      <div class="spec-section">
+        <h2>Usage Context</h2>
+        <div class="spec-item">Page loading states</div>
+        <div class="spec-item">Data fetching</div>
+        <div class="spec-item">Flight search in progress</div>
+        <div class="spec-item">"Please wait" moments</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sizes-section">
+    <h2>Size Variations</h2>
+    <p class="subtitle">Kuuki at different scales for various UI contexts</p>
+
+    <div class="size-grid">
+      <div class="size-item">
+        <div style="width: 80px; height: 80px; position: relative; margin: 0 auto;">
+          <div class="kuuki kuuki-sm">
+            <div class="kuuki-orbit kuuki-orbit-1"></div>
+            <div class="kuuki-hand left"></div>
+            <div class="kuuki-hand right"></div>
+            <div class="kuuki-body">
+              <div class="kuuki-face">
+                <div class="kuuki-eye left"></div>
+                <div class="kuuki-eye right"></div>
+                <div class="kuuki-mouth"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="label">Small (40px) — Inline loading</div>
+      </div>
+
+      <div class="size-item">
+        <div style="width: 120px; height: 120px; position: relative; margin: 0 auto;">
+          <div class="kuuki kuuki-md">
+            <div class="kuuki-orbit kuuki-orbit-1"></div>
+            <div class="kuuki-orbit kuuki-orbit-2"></div>
+            <div class="kuuki-hand left"></div>
+            <div class="kuuki-hand right"></div>
+            <div class="kuuki-body">
+              <div class="kuuki-swirl"></div>
+              <div class="kuuki-face">
+                <div class="kuuki-eye left"></div>
+                <div class="kuuki-eye right"></div>
+                <div class="kuuki-mouth"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="label">Medium (64px) — Card loading</div>
+      </div>
+
+      <div class="size-item">
+        <div style="width: 160px; height: 160px; position: relative; margin: 0 auto;">
+          <div class="kuuki kuuki-lg">
+            <div class="kuuki-orbit kuuki-orbit-1"></div>
+            <div class="kuuki-orbit kuuki-orbit-2"></div>
+            <div class="kuuki-orbit kuuki-orbit-3"></div>
+            <div class="kuuki-hand left"></div>
+            <div class="kuuki-hand right"></div>
+            <div class="kuuki-body">
+              <div class="kuuki-swirl"></div>
+              <div class="kuuki-face">
+                <div class="kuuki-eye left"></div>
+                <div class="kuuki-eye right"></div>
+                <div class="kuuki-mouth"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="label">Large (96px) — Page loading</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="usage-section">
+    <h2>Usage Examples</h2>
+
+    <div class="usage-grid">
+      <div class="usage-card">
+        <h3>Page Loading</h3>
+        <p>Full page loading state with floating animation</p>
+        <div class="loading-demo">
+          <div class="kuuki kuuki-loading kuuki-md">
+            <div class="kuuki-orbit kuuki-orbit-1"></div>
+            <div class="kuuki-orbit kuuki-orbit-2"></div>
+            <div class="kuuki-hand left"></div>
+            <div class="kuuki-hand right"></div>
+            <div class="kuuki-body">
+              <div class="kuuki-swirl"></div>
+              <div class="kuuki-face">
+                <div class="kuuki-eye left"></div>
+                <div class="kuuki-eye right"></div>
+                <div class="kuuki-mouth"></div>
+              </div>
+            </div>
+          </div>
+          <span class="loading-text">Loading flights...</span>
+        </div>
+      </div>
+
+      <div class="usage-card">
+        <h3>Flight Search</h3>
+        <p>Searching state with blinking eyes</p>
+        <div class="loading-demo">
+          <div class="kuuki kuuki-search kuuki-loading kuuki-md">
+            <div class="kuuki-orbit kuuki-orbit-1"></div>
+            <div class="kuuki-orbit kuuki-orbit-2"></div>
+            <div class="kuuki-hand left"></div>
+            <div class="kuuki-hand right"></div>
+            <div class="kuuki-body">
+              <div class="kuuki-swirl"></div>
+              <div class="kuuki-face">
+                <div class="kuuki-eye left"></div>
+                <div class="kuuki-eye right"></div>
+                <div class="kuuki-mouth"></div>
+              </div>
+            </div>
+          </div>
+          <span class="loading-text">Searching routes...</span>
+        </div>
+      </div>
+
+      <div class="usage-card">
+        <h3>Long Wait</h3>
+        <p>Sleepy state for extended loading</p>
+        <div class="loading-demo">
+          <div class="kuuki kuuki-sleepy kuuki-md">
+            <span class="zzz">z</span>
+            <span class="zzz">z</span>
+            <span class="zzz">z</span>
+            <div class="kuuki-orbit kuuki-orbit-1" style="animation-duration: 16s;"></div>
+            <div class="kuuki-hand left"></div>
+            <div class="kuuki-hand right"></div>
+            <div class="kuuki-body">
+              <div class="kuuki-swirl"></div>
+              <div class="kuuki-face">
+                <div class="kuuki-eye left"></div>
+                <div class="kuuki-eye right"></div>
+                <div class="kuuki-mouth"></div>
+              </div>
+            </div>
+          </div>
+          <span class="loading-text">Still working...</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
