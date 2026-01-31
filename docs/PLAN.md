@@ -11,7 +11,7 @@
 | Phase | Status | Details |
 |-------|--------|---------|
 | **0.5 Reference Data** | ✅ Done | 173 aircraft loaded |
-| **1 Foundation** | 🔄 In Progress | Auth, i18n, tests done. CF Pages pending. |
+| **1 Foundation** | ✅ Done | Auth, i18n, tests, CF Pages (kuuki.indi256.com) |
 | **1.5 Onboarding** | ⏳ Pending | Landing page, showcase modals |
 | **2 Core Flights** | ⏳ Pending | CRUD, dashboard, map |
 | **3 AI Import** | ⏳ Pending | Gemini proxy, upload UI |
@@ -27,10 +27,9 @@
 
 Aircraft, airports, airlines loaded as static JSON. See `packages/data/`.
 
-### Phase 1: Foundation 🔄
+### Phase 1: Foundation ✅
 
-Auth with invite codes, i18n (EN/RU), 26 tests passing.
-**Remaining:** Cloudflare Pages deployment.
+Auth with invite codes, i18n (EN/RU), 26 tests passing, Cloudflare Pages live.
 
 → [tasks/phase-1-foundation.md](./tasks/phase-1-foundation.md)
 
