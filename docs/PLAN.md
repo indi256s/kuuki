@@ -32,6 +32,17 @@ This ensures collaborative development and avoids rework.
 | `/interface-design:extract` | Extract patterns from existing code |
 | `/playground` | Interactive HTML prototypes — explorers, configurators |
 
+### Development Workflow Skills
+
+| Skill | Use Case |
+|-------|----------|
+| `/superpowers:brainstorming` | Before any feature work — explore intent, requirements, design before implementation |
+| `/superpowers:test-driven-development` | Before writing implementation — RED/GREEN/REFACTOR cycle |
+| `/superpowers:systematic-debugging` | When encountering bugs — structured diagnosis before proposing fixes |
+| `/superpowers:verification-before-completion` | Before claiming work is done — run tests, verify output, evidence before assertions |
+| `/code-review:code-review` | Review PRs against requirements and coding standards |
+| `/superpowers:writing-skills` | Creating or editing skills for this project |
+
 ### MCP Servers
 
 | Server | Capabilities |
@@ -42,9 +53,19 @@ This ensures collaborative development and avoids rework.
 
 ### When to Use Which
 
+**Design Skills:**
 - **`/frontend-design`**: User-facing pages that need to impress (landing, profiles, shareable content)
 - **`/interface-design`**: Functional app UI (dashboards, forms, settings, data views)
 - **`/playground`**: Rapid prototyping, interactive demos, feature exploration
+
+**Workflow Skills (apply to all phases):**
+- **`/superpowers:brainstorming`**: Starting any new feature — clarify requirements before coding
+- **`/superpowers:test-driven-development`**: Writing any new code — tests first, then implementation
+- **`/superpowers:systematic-debugging`**: Hit a bug — diagnose before fixing
+- **`/superpowers:verification-before-completion`**: Finishing work — verify before claiming done
+- **`/code-review:code-review`**: After completing a feature — review before merge
+
+**MCP Servers:**
 - **`supabase` MCP**: Any database work, auth, real-time, edge functions
 - **`context7` MCP**: When implementing with unfamiliar libraries or needing latest API docs
 - **`playwright` MCP**: Testing flows, generating OG images, responsive checks
@@ -577,6 +598,13 @@ mkdir -p apps/web packages/shared packages/data functions/api supabase/migration
 
 ## Implementation Phases
 
+**Cross-cutting workflow (applies to all phases):**
+- `/superpowers:brainstorming` before starting any feature
+- `/superpowers:test-driven-development` when writing implementation code
+- `/superpowers:systematic-debugging` when encountering failures
+- `/superpowers:verification-before-completion` before marking tasks done
+- `/code-review:code-review` after completing each phase
+
 ### Phase 0.5: Reference Data ✅
 - [x] Download OpenFlights planes.dat
 - [x] Parse and convert to aircraft.json (173 aircraft)
@@ -605,6 +633,7 @@ mkdir -p apps/web packages/shared packages/data functions/api supabase/migration
 
 ### Phase 2: Core
 - [ ] Flight CRUD
+  - **Workflow**: `/superpowers:test-driven-development` — critical data layer, test RLS policies
   - **MCP**: `supabase` — migrations, RLS policies, edge functions
   - **MCP**: `context7` — Supabase SDK docs for realtime subscriptions
 - [ ] Manual entry form
@@ -618,6 +647,7 @@ mkdir -p apps/web packages/shared packages/data functions/api supabase/migration
 
 ### Phase 3: AI Import
 - [ ] Gemini integration
+  - **Workflow**: `/superpowers:systematic-debugging` — AI responses are unpredictable, debug methodically
   - **MCP**: `context7` — Google Gemini SDK (vision API for boarding passes)
   - **MCP**: `supabase` — edge function for AI proxy
 - [ ] Image/text upload
@@ -627,6 +657,7 @@ mkdir -p apps/web packages/shared packages/data functions/api supabase/migration
 
 ### Phase 4: Social
 - [ ] Public profiles
+  - **Workflow**: `/code-review:code-review` — security review before exposing public endpoints
   - **Skill**: `/frontend-design` — shareable profile page (stats, map, badges)
   - **MCP**: `playwright` — screenshot testing for OG images
 - [ ] Leaderboard system
@@ -658,6 +689,7 @@ mkdir -p apps/web packages/shared packages/data functions/api supabase/migration
 
 ### Phase 6: Polish
 - [ ] Edge caching optimization
+  - **Workflow**: `/superpowers:verification-before-completion` — verify caching works before launch
   - **MCP**: `supabase` — Cloudflare KV integration
   - **MCP**: `context7` — Cloudflare Workers/KV docs
 - [ ] Mobile responsiveness
@@ -666,6 +698,7 @@ mkdir -p apps/web packages/shared packages/data functions/api supabase/migration
 - [ ] Error handling
   - **Skill**: `/interface-design` — error states, toast notifications
 - [ ] Design system (/interface-design)
+  - **Workflow**: `/code-review:code-review` — final review before public launch
   - **Skill**: `/interface-design:init` — establish tokens, patterns
   - **Skill**: `/interface-design:audit` — consistency check across app
   - **Skill**: `/interface-design:extract` — document patterns for future
