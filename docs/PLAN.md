@@ -12,7 +12,7 @@
 |-------|--------|---------|
 | **0.5 Reference Data** | ✅ Done | 173 aircraft loaded |
 | **1 Foundation** | ✅ Done | Auth, i18n, tests, CF Pages (kuuki.indi256.com) |
-| **1.5 Onboarding** | ⏳ Pending | Landing page, showcase modals |
+| **1.5 Onboarding** | ✅ Done | Landing page, showcase modal, username picker, empty states |
 | **2 Core Flights** | ⏳ Pending | CRUD, dashboard, map |
 | **3 AI Import** | ⏳ Pending | Gemini proxy, upload UI |
 | **4 Social** | ⏳ Pending | Profiles, leaderboards, badges |
@@ -33,7 +33,7 @@ Auth with invite codes, i18n (EN/RU), 26 tests passing, Cloudflare Pages live.
 
 → [tasks/phase-1-foundation.md](./tasks/phase-1-foundation.md)
 
-### Phase 1.5: Onboarding & Landing
+### Phase 1.5: Onboarding & Landing ✅
 
 Pre-login showcase, landing page, username picker, empty states.
 

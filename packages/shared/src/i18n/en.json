@@ -201,5 +201,69 @@
     "unauthorized": "Please sign in to continue.",
     "notFound": "Page not found.",
     "validation": "Please check your input."
+  },
+  "landing": {
+    "hero": {
+      "title": "Your Flight Stats Vault",
+      "subtitle": "Log every journey. Discover your patterns. Compare with fellow travelers.",
+      "signIn": "Sign In",
+      "requestInvite": "Request Invite"
+    },
+    "features": {
+      "log": {
+        "title": "Log Your Journeys",
+        "description": "Every takeoff, every landing. Build your personal aviation archive."
+      },
+      "stats": {
+        "title": "Discover Your Stats",
+        "description": "Distance flown, countries visited, airlines collected. See your patterns emerge."
+      },
+      "compete": {
+        "title": "Compare & Share",
+        "description": "Join the leaderboard. Share your aviation story with the world."
+      }
+    }
+  },
+  "onboarding": {
+    "slide1": {
+      "title": "Log Your Journeys",
+      "description": "Build your flight collection. Every takeoff, every landing, remembered."
+    },
+    "slide2": {
+      "title": "Discover Your Stats",
+      "description": "Distance flown, countries visited, airlines collected. See your patterns."
+    },
+    "slide3": {
+      "title": "Compare & Share",
+      "description": "Join the leaderboard. Share your aviation story with the world."
+    },
+    "username": {
+      "title": "Choose Your Username",
+      "subtitle": "This will be your public profile URL",
+      "placeholder": "your-username",
+      "preview": "Your profile will be at",
+      "taken": "This username is already taken",
+      "invalid": "Username can only contain letters, numbers, and hyphens",
+      "tooShort": "Username must be at least 3 characters",
+      "tooLong": "Username must be less than 30 characters",
+      "continue": "Continue"
+    },
+    "import": {
+      "title": "Add Your Flights",
+      "subtitle": "How would you like to get started?",
+      "importOption": "Import from Photo",
+      "importDescription": "Upload a boarding pass or flight confirmation",
+      "manualOption": "Add Manually",
+      "manualDescription": "Enter flight details by hand",
+      "skipOption": "I'll do this later",
+      "skipDescription": "Go to your empty dashboard"
+    }
+  },
+  "emptyState": {
+    "title": "Your Journey Awaits",
+    "subtitle": "This could be your dashboard",
+    "description": "Start logging flights to see your stats come to life.",
+    "addFlight": "Add Your First Flight",
+    "sampleLabel": "Sample Data"
   }
 }

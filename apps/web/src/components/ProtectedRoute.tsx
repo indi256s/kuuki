@@ -1,4 +1,4 @@
-import { Navigate } from 'react-router-dom'
+import { Navigate, useLocation } from 'react-router-dom'
 import { useAuth } from '@/hooks/useAuth'
 
 interface ProtectedRouteProps {
@@ -6,7 +6,8 @@ interface ProtectedRouteProps {
 }
 
 export function ProtectedRoute({ children }: ProtectedRouteProps) {
-  const { isAuthenticated, isLoading } = useAuth()
+  const { isAuthenticated, isLoading, profile } = useAuth()
+  const location = useLocation()
 
   if (isLoading) {
     return (
@@ -18,6 +19,15 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
 
   if (!isAuthenticated) {
     return <Navigate to="/auth" replace />
+  }
+
+  // Redirect to onboarding if user has no username
+  // (but not if already on onboarding page to prevent redirect loop)
+  const needsOnboarding = profile?.username === null
+  const isOnOnboarding = location.pathname === '/onboarding'
+
+  if (needsOnboarding && !isOnOnboarding) {
+    return <Navigate to="/onboarding" replace />
   }
 
   return <>{children}</>

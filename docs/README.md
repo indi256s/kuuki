@@ -13,20 +13,26 @@
 
 ## Current Status
 
-**Phase 1 (Foundation):** Nearly complete - auth, i18n, testing done. Cloudflare Pages pending.
+**Phase 1 (Foundation):** ✅ Complete - auth, i18n, testing, Cloudflare Pages live.
 
-**Next:** Phase 1.5 (Onboarding & Landing) or Phase 2 (Core Flights)
+**Phase 1.5 (Onboarding):** ✅ Complete - landing page, showcase modal, username picker, empty states.
+
+**Next:** Phase 2 (Core Flights) - CRUD, dashboard, route map.
 
 ## Project Structure (Key Paths)
 
 ```
 kuuki/
 ├── apps/web/src/           # React SPA source
-│   ├── components/         # UI components
-│   ├── hooks/              # Custom hooks (useAuth, useLanguage)
-│   ├── lib/                # Utilities (supabase, auth, i18n)
-│   ├── routes/             # Page components
-│   └── stores/             # Zustand stores
+│   ├── components/
+│   │   ├── auth/           # SignInForm, SignUpForm
+│   │   ├── dashboard/      # EmptyState
+│   │   ├── landing/        # HeroSection, FeatureGrid
+│   │   └── onboarding/     # ShowcaseModal, UsernamePicker, ImportCTA
+│   ├── hooks/              # useAuth, useLanguage, useShowcase
+│   ├── lib/                # supabase, auth, i18n, sampleData
+│   ├── routes/             # LandingPage, AuthPage, OnboardingPage, DashboardPage
+│   └── stores/             # Zustand stores (authStore)
 ├── packages/
 │   ├── shared/             # Shared code, i18n translations
 │   └── data/               # Static reference data (aircraft, airports)

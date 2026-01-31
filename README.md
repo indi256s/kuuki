@@ -9,14 +9,16 @@ A travel geek platform for flight tracking, visited places mapping, and social l
 - **Leaderboards** - Multi-category rankings (countries, cities, flights, distance, airlines)
 - **Public Profiles** - Shareable travel stats and maps
 - **Achievements** - Badge system for milestones
+- **Onboarding** - Showcase modal, username picker, guided first-flight experience
 
 ## Tech Stack
 
-- **Frontend**: React 19 + Vite + TypeScript + Tailwind CSS
+- **Frontend**: React 19 + Vite + TypeScript + Tailwind CSS v4
 - **Hosting**: Cloudflare Pages + Workers
 - **Database**: Supabase PostgreSQL
-- **Auth**: Supabase Auth (Google OAuth)
+- **Auth**: Supabase Auth (invite-code gated)
 - **AI**: Google Gemini (for flight parsing)
+- **i18n**: English + Russian
 
 ## Project Structure
 
@@ -24,11 +26,18 @@ A travel geek platform for flight tracking, visited places mapping, and social l
 kuuki/
 ├── apps/
 │   └── web/              # React SPA
+│       └── src/
+│           ├── components/   # UI (auth, dashboard, landing, onboarding)
+│           ├── hooks/        # useAuth, useLanguage, useShowcase
+│           ├── lib/          # supabase, auth, i18n, sampleData
+│           ├── routes/       # Page components
+│           └── stores/       # Zustand state
 ├── packages/
-│   ├── shared/           # Types and constants
-│   └── data/             # Static reference data
+│   ├── shared/           # Types, i18n translations
+│   └── data/             # Static reference data (aircraft, airports)
 ├── functions/            # Cloudflare Workers (edge API)
-└── supabase/             # Database migrations
+├── supabase/             # Database migrations
+└── docs/                 # Documentation and plans
 ```
 
 ## Development
@@ -42,7 +51,23 @@ pnpm dev
 
 # Build for production
 pnpm build
+
+# Run tests
+pnpm test
 ```
+
+## Routes
+
+| Path | Description |
+|------|-------------|
+| `/` | Landing page with showcase modal |
+| `/auth` | Sign in / Sign up |
+| `/onboarding` | Username picker + import CTA |
+| `/dashboard` | User dashboard (empty state if no flights) |
+
+## Documentation
+
+See [docs/](./docs/) for detailed specs, plans, and implementation guides.
 
 ## License
 
