@@ -13,9 +13,41 @@ type: plan
 1. Discuss and brainstorm the feature details with the user
 2. Clarify any design decisions, edge cases, or alternatives
 3. Get user approval before writing code
-4. Use `/interface-design` skill for UI/UX decisions
+4. Use the recommended skills and MCP servers listed in each phase
 
 This ensures collaborative development and avoids rework.
+
+---
+
+## Available Tools Reference
+
+### Skills (Claude Code)
+
+| Skill | Use Case |
+|-------|----------|
+| `/frontend-design` | Creative, distinctive UI — landing pages, shareable profiles, playful visualizations |
+| `/interface-design` | App interfaces — dashboards, forms, data tables, admin panels |
+| `/interface-design:init` | Initialize design system (tokens, patterns) |
+| `/interface-design:audit` | Check consistency against design system |
+| `/interface-design:extract` | Extract patterns from existing code |
+| `/playground` | Interactive HTML prototypes — explorers, configurators |
+
+### MCP Servers
+
+| Server | Capabilities |
+|--------|--------------|
+| `supabase` | DB schema, migrations, RLS policies, edge functions, TypeScript types |
+| `context7` | Up-to-date docs for libraries (Mapbox, deck.gl, Gemini SDK, etc.) |
+| `playwright` | Browser automation — E2E tests, visual regression, screenshot generation |
+
+### When to Use Which
+
+- **`/frontend-design`**: User-facing pages that need to impress (landing, profiles, shareable content)
+- **`/interface-design`**: Functional app UI (dashboards, forms, settings, data views)
+- **`/playground`**: Rapid prototyping, interactive demos, feature exploration
+- **`supabase` MCP**: Any database work, auth, real-time, edge functions
+- **`context7` MCP**: When implementing with unfamiliar libraries or needing latest API docs
+- **`playwright` MCP**: Testing flows, generating OG images, responsive checks
 
 ---
 
@@ -562,41 +594,81 @@ mkdir -p apps/web packages/shared packages/data functions/api supabase/migration
 
 ### Phase 1.5: Onboarding & Landing
 - [ ] Pre-login modal showcase (3 slides)
+  - **Skill**: `/frontend-design` — creative, eye-catching modal sequence
+  - **Skill**: `/playground` — prototype interactions before implementation
 - [ ] Landing page design
+  - **Skill**: `/frontend-design` — distinctive landing with aviation aesthetic
 - [ ] Post-login onboarding (username, home airport)
+  - **Skill**: `/interface-design` — form UX, validation feedback
 - [ ] Empty states for new users
+  - **Skill**: `/interface-design` — helpful empty states with CTAs
 
 ### Phase 2: Core
 - [ ] Flight CRUD
+  - **MCP**: `supabase` — migrations, RLS policies, edge functions
+  - **MCP**: `context7` — Supabase SDK docs for realtime subscriptions
 - [ ] Manual entry form
+  - **Skill**: `/interface-design` — flight entry with autocomplete (airports, airlines, aircraft)
 - [ ] Dashboard with stats
+  - **Skill**: `/interface-design` — data dashboard layout, stat cards
 - [ ] Route map visualization
+  - **Skill**: `/frontend-design` — interactive globe/map with flight arcs
+  - **MCP**: `context7` — Mapbox GL JS or deck.gl documentation
+  - **MCP**: `playwright` — visual regression testing for map
 
 ### Phase 3: AI Import
 - [ ] Gemini integration
+  - **MCP**: `context7` — Google Gemini SDK (vision API for boarding passes)
+  - **MCP**: `supabase` — edge function for AI proxy
 - [ ] Image/text upload
+  - **Skill**: `/interface-design` — drag-drop zone, paste support
 - [ ] Import review UI
+  - **Skill**: `/interface-design` — editable table with extracted data, confidence indicators
 
 ### Phase 4: Social
 - [ ] Public profiles
+  - **Skill**: `/frontend-design` — shareable profile page (stats, map, badges)
+  - **MCP**: `playwright` — screenshot testing for OG images
 - [ ] Leaderboard system
+  - **Skill**: `/interface-design` — ranking tables, category tabs
+  - **MCP**: `supabase` — pg_cron jobs, materialized views, KV caching
 - [ ] Badge evaluation
+  - **MCP**: `supabase` — database triggers for badge criteria
 - [ ] Share functionality
+  - **Skill**: `/frontend-design` — share cards, OG meta generation
 
 ### Phase 5: Advanced Stats
 - [ ] Basic stats dashboard
+  - **Skill**: `/interface-design` — overview tier with key metrics
 - [ ] Frequent Traveler stats (routes, loyalty, streaks)
+  - **Skill**: `/interface-design` — route frequency charts, airline loyalty visualization
 - [ ] Avia geek stats (aircraft, manufacturers, engines)
+  - **Skill**: `/interface-design` — aircraft breakdown charts, manufacturer logos
+  - **Skill**: `/playground` — interactive aircraft type explorer
 - [ ] Country geek stats (regions, continents, completion %)
+  - **Skill**: `/interface-design` — choropleth maps, completion progress bars
+  - **MCP**: `context7` — deck.gl GeoJSON layers
 - [ ] Time stats (patterns, streaks)
+  - **Skill**: `/interface-design` — heatmaps, calendar views, streak visualizations
 - [ ] Fun facts (Moon distance, Earth circumnavigations, etc.)
+  - **Skill**: `/frontend-design` — playful comparative visualizations
+  - **Skill**: `/playground` — "distance to moon" interactive progress
 - [ ] Comparison stats ("better than X%")
+  - **Skill**: `/interface-design` — percentile gauges, peer comparison
 
 ### Phase 6: Polish
 - [ ] Edge caching optimization
+  - **MCP**: `supabase` — Cloudflare KV integration
+  - **MCP**: `context7` — Cloudflare Workers/KV docs
 - [ ] Mobile responsiveness
+  - **Skill**: `/interface-design:audit` — responsive breakpoint review
+  - **MCP**: `playwright` — mobile viewport testing
 - [ ] Error handling
+  - **Skill**: `/interface-design` — error states, toast notifications
 - [ ] Design system (/interface-design)
+  - **Skill**: `/interface-design:init` — establish tokens, patterns
+  - **Skill**: `/interface-design:audit` — consistency check across app
+  - **Skill**: `/interface-design:extract` — document patterns for future
 
 ---
 
