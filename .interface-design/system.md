@@ -175,7 +175,28 @@ Inspired by departure boards / terminal wayfinding:
 - Current location prominently marked
 - Minimal chrome
 
+
 ---
+
+## Mascot
+
+**Name:** Kuuki Cloud
+
+![Kuuki Cloud](/apps/web/public/images/mascot.jpg)
+
+**Personality:**
+- Friendly, floating, and light
+- Represents the joy of flight and discovery
+- Always smiling, eager to explore
+
+**Usage:**
+- Use in empty states (e.g., "No flights logged yet")
+- Use in onboarding flows to guide the user
+- use in achievement unlocks
+- Do not overuse in dense data views
+
+---
+
 
 ## States
 
