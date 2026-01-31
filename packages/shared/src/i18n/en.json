@@ -1,0 +1,205 @@
+{
+  "common": {
+    "appName": "Kuuki",
+    "tagline": "Your Flight Stats Vault",
+    "loading": "Loading...",
+    "error": "Something went wrong",
+    "retry": "Try again",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "back": "Back",
+    "next": "Next",
+    "skip": "Skip",
+    "done": "Done",
+    "search": "Search",
+    "noResults": "No results found",
+    "learnMore": "Learn more"
+  },
+  "auth": {
+    "signIn": "Sign in",
+    "signOut": "Sign out",
+    "signInWithGoogle": "Sign in with Google",
+    "signingIn": "Signing in...",
+    "welcome": "Welcome back",
+    "newUser": "New to Kuuki?",
+    "createAccount": "Create an account",
+    "haveAccount": "Already have an account?",
+    "email": "Email",
+    "password": "Password",
+    "confirmPassword": "Confirm Password",
+    "inviteCode": "Invite Code",
+    "codeValid": "Valid invite code",
+    "codeInvalid": "Invalid or expired invite code",
+    "passwordMismatch": "Passwords do not match",
+    "passwordTooShort": "Password must be at least 8 characters"
+  },
+  "onboarding": {
+    "slide1": {
+      "title": "Log Your Journeys",
+      "description": "Build your flight collection. Every takeoff, every landing, remembered."
+    },
+    "slide2": {
+      "title": "Discover Your Stats",
+      "description": "Distance flown, countries visited, airlines collected. See your patterns."
+    },
+    "slide3": {
+      "title": "Compare & Share",
+      "description": "Join the leaderboard. Share your aviation story with the world."
+    }
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "flights": "Flights",
+    "stats": "Stats",
+    "leaderboard": "Leaderboard",
+    "profile": "Profile",
+    "settings": "Settings",
+    "import": "Import"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "welcome": "Welcome, {{name}}",
+    "totalFlights": "Total Flights",
+    "totalDistance": "Total Distance",
+    "countriesVisited": "Countries Visited",
+    "airlinesFlown": "Airlines Flown",
+    "recentFlights": "Recent Flights",
+    "viewAll": "View all",
+    "noFlights": "No flights yet",
+    "addFirstFlight": "Add your first flight"
+  },
+  "flights": {
+    "title": "Flights",
+    "addFlight": "Add Flight",
+    "editFlight": "Edit Flight",
+    "deleteFlight": "Delete Flight",
+    "flightNumber": "Flight Number",
+    "date": "Date",
+    "origin": "Origin",
+    "destination": "Destination",
+    "airline": "Airline",
+    "aircraft": "Aircraft",
+    "distance": "Distance",
+    "duration": "Duration",
+    "source": "Source",
+    "sourceManual": "Manual",
+    "sourceAiImport": "AI Import",
+    "noFlights": "No flights found",
+    "deleteConfirm": "Are you sure you want to delete this flight?",
+    "km": "km",
+    "minutes": "min",
+    "hours": "h"
+  },
+  "stats": {
+    "title": "Stats",
+    "overview": "Overview",
+    "frequentTraveler": "Frequent Traveler",
+    "aviaGeek": "Avia Geek",
+    "countryGeek": "Country Geek",
+    "timeGeek": "Time Geek",
+    "totalFlights": "Total Flights",
+    "totalDistance": "Total Distance",
+    "totalTime": "Time in Air",
+    "countries": "Countries",
+    "cities": "Cities",
+    "airports": "Airports",
+    "airlines": "Airlines",
+    "aircraftTypes": "Aircraft Types",
+    "mostFlownRoute": "Most Flown Route",
+    "longestFlight": "Longest Flight",
+    "shortestFlight": "Shortest Flight",
+    "topAirlines": "Top Airlines",
+    "topAircraft": "Top Aircraft",
+    "continents": "Continents",
+    "funFacts": {
+      "title": "Fun Facts",
+      "moonProgress": "Distance to the Moon: {{percent}}% complete",
+      "earthTrips": "You've flown {{count}} trips around Earth",
+      "timeInAir": "Time in air: {{days}} days, {{hours}} hours",
+      "timezoneCrossings": "You've crossed {{count}} time zones",
+      "furthestFromHome": "Furthest from home: {{distance}} km ({{city}}, {{country}})",
+      "countryCompletion": "You've visited {{percent}}% of all countries"
+    }
+  },
+  "leaderboard": {
+    "title": "Leaderboard",
+    "categories": {
+      "countries": "Countries",
+      "cities": "Cities",
+      "flights": "Flights",
+      "distance": "Distance",
+      "airlines": "Airlines"
+    },
+    "rank": "Rank",
+    "user": "User",
+    "value": "Value",
+    "yourRank": "Your Rank",
+    "notRanked": "Not ranked",
+    "optIn": "Join Leaderboard",
+    "optOut": "Leave Leaderboard"
+  },
+  "profile": {
+    "title": "Profile",
+    "publicProfile": "Public Profile",
+    "username": "Username",
+    "displayName": "Display Name",
+    "bio": "Bio",
+    "homeAirport": "Home Airport",
+    "visibility": "Profile Visibility",
+    "public": "Public",
+    "private": "Private",
+    "showOnLeaderboards": "Show on Leaderboards",
+    "badges": "Badges",
+    "noBadges": "No badges earned yet",
+    "memberSince": "Member since {{date}}"
+  },
+  "settings": {
+    "title": "Settings",
+    "language": "Language",
+    "languages": {
+      "en": "English",
+      "ru": "Russian"
+    },
+    "geminiApiKey": "Gemini API Key",
+    "geminiApiKeyDescription": "Used for AI-powered flight import",
+    "dangerZone": "Danger Zone",
+    "deleteAccount": "Delete Account",
+    "deleteAccountWarning": "This action cannot be undone. All your data will be permanently deleted."
+  },
+  "import": {
+    "title": "Import Flights",
+    "description": "Upload a photo of your boarding pass or paste flight details",
+    "uploadImage": "Upload Image",
+    "pasteText": "Paste Text",
+    "processing": "Processing...",
+    "review": "Review Import",
+    "confirm": "Confirm Import",
+    "flightsFound": "{{count}} flights found",
+    "noFlightsFound": "No flights found in the provided data",
+    "apiKeyRequired": "Gemini API key required. Add it in Settings."
+  },
+  "badges": {
+    "firstFlight": "First Flight",
+    "frequentFlyer": "Frequent Flyer",
+    "centurion": "Centurion",
+    "skyWarrior": "Sky Warrior",
+    "circumnavigator": "Circumnavigator",
+    "moonShot": "Moon Shot",
+    "globeTrotter": "Globe Trotter",
+    "worldExplorer": "World Explorer",
+    "continental": "Continental",
+    "airlineHopper": "Airline Hopper",
+    "airlineCollector": "Airline Collector",
+    "aircraftSpotter": "Aircraft Spotter",
+    "widebodyFan": "Widebody Fan"
+  },
+  "errors": {
+    "generic": "Something went wrong. Please try again.",
+    "network": "Network error. Please check your connection.",
+    "unauthorized": "Please sign in to continue.",
+    "notFound": "Page not found.",
+    "validation": "Please check your input."
+  }
+}

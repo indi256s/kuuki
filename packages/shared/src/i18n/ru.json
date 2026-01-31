@@ -1,0 +1,205 @@
+{
+  "common": {
+    "appName": "Kuuki",
+    "tagline": "Ваш архив авиастатистики",
+    "loading": "Загрузка...",
+    "error": "Что-то пошло не так",
+    "retry": "Попробовать снова",
+    "save": "Сохранить",
+    "cancel": "Отмена",
+    "delete": "Удалить",
+    "edit": "Редактировать",
+    "back": "Назад",
+    "next": "Далее",
+    "skip": "Пропустить",
+    "done": "Готово",
+    "search": "Поиск",
+    "noResults": "Ничего не найдено",
+    "learnMore": "Подробнее"
+  },
+  "auth": {
+    "signIn": "Войти",
+    "signOut": "Выйти",
+    "signInWithGoogle": "Войти через Google",
+    "signingIn": "Входим...",
+    "welcome": "С возвращением",
+    "newUser": "Впервые в Kuuki?",
+    "createAccount": "Создать аккаунт",
+    "haveAccount": "Уже есть аккаунт?",
+    "email": "Email",
+    "password": "Пароль",
+    "confirmPassword": "Подтвердите пароль",
+    "inviteCode": "Код приглашения",
+    "codeValid": "Код приглашения действителен",
+    "codeInvalid": "Недействительный или истёкший код приглашения",
+    "passwordMismatch": "Пароли не совпадают",
+    "passwordTooShort": "Пароль должен быть не менее 8 символов"
+  },
+  "onboarding": {
+    "slide1": {
+      "title": "Записывайте полёты",
+      "description": "Создайте свою коллекцию полётов. Каждый взлёт, каждая посадка — сохранены навсегда."
+    },
+    "slide2": {
+      "title": "Изучайте статистику",
+      "description": "Пройденное расстояние, посещённые страны, авиакомпании. Откройте свои паттерны."
+    },
+    "slide3": {
+      "title": "Сравнивайте и делитесь",
+      "description": "Присоединяйтесь к рейтингу. Поделитесь своей авиационной историей с миром."
+    }
+  },
+  "nav": {
+    "dashboard": "Главная",
+    "flights": "Полёты",
+    "stats": "Статистика",
+    "leaderboard": "Рейтинг",
+    "profile": "Профиль",
+    "settings": "Настройки",
+    "import": "Импорт"
+  },
+  "dashboard": {
+    "title": "Главная",
+    "welcome": "Привет, {{name}}",
+    "totalFlights": "Всего полётов",
+    "totalDistance": "Общее расстояние",
+    "countriesVisited": "Стран посещено",
+    "airlinesFlown": "Авиакомпаний",
+    "recentFlights": "Последние полёты",
+    "viewAll": "Смотреть все",
+    "noFlights": "Пока нет полётов",
+    "addFirstFlight": "Добавьте первый полёт"
+  },
+  "flights": {
+    "title": "Полёты",
+    "addFlight": "Добавить полёт",
+    "editFlight": "Редактировать полёт",
+    "deleteFlight": "Удалить полёт",
+    "flightNumber": "Номер рейса",
+    "date": "Дата",
+    "origin": "Откуда",
+    "destination": "Куда",
+    "airline": "Авиакомпания",
+    "aircraft": "Самолёт",
+    "distance": "Расстояние",
+    "duration": "Длительность",
+    "source": "Источник",
+    "sourceManual": "Вручную",
+    "sourceAiImport": "AI импорт",
+    "noFlights": "Полёты не найдены",
+    "deleteConfirm": "Вы уверены, что хотите удалить этот полёт?",
+    "km": "км",
+    "minutes": "мин",
+    "hours": "ч"
+  },
+  "stats": {
+    "title": "Статистика",
+    "overview": "Обзор",
+    "frequentTraveler": "Частый путешественник",
+    "aviaGeek": "Авиагик",
+    "countryGeek": "Географ",
+    "timeGeek": "Хронометрист",
+    "totalFlights": "Всего полётов",
+    "totalDistance": "Общее расстояние",
+    "totalTime": "Время в воздухе",
+    "countries": "Страны",
+    "cities": "Города",
+    "airports": "Аэропорты",
+    "airlines": "Авиакомпании",
+    "aircraftTypes": "Типы самолётов",
+    "mostFlownRoute": "Самый частый маршрут",
+    "longestFlight": "Самый длинный полёт",
+    "shortestFlight": "Самый короткий полёт",
+    "topAirlines": "Топ авиакомпаний",
+    "topAircraft": "Топ самолётов",
+    "continents": "Континенты",
+    "funFacts": {
+      "title": "Интересные факты",
+      "moonProgress": "Расстояние до Луны: {{percent}}% пройдено",
+      "earthTrips": "Вы облетели Землю {{count}} раз",
+      "timeInAir": "Время в воздухе: {{days}} дней, {{hours}} часов",
+      "timezoneCrossings": "Вы пересекли {{count}} часовых поясов",
+      "furthestFromHome": "Самая дальняя точка: {{distance}} км ({{city}}, {{country}})",
+      "countryCompletion": "Вы посетили {{percent}}% всех стран"
+    }
+  },
+  "leaderboard": {
+    "title": "Рейтинг",
+    "categories": {
+      "countries": "Страны",
+      "cities": "Города",
+      "flights": "Полёты",
+      "distance": "Расстояние",
+      "airlines": "Авиакомпании"
+    },
+    "rank": "Место",
+    "user": "Пользователь",
+    "value": "Значение",
+    "yourRank": "Ваше место",
+    "notRanked": "Не в рейтинге",
+    "optIn": "Участвовать в рейтинге",
+    "optOut": "Выйти из рейтинга"
+  },
+  "profile": {
+    "title": "Профиль",
+    "publicProfile": "Публичный профиль",
+    "username": "Имя пользователя",
+    "displayName": "Отображаемое имя",
+    "bio": "О себе",
+    "homeAirport": "Домашний аэропорт",
+    "visibility": "Видимость профиля",
+    "public": "Публичный",
+    "private": "Приватный",
+    "showOnLeaderboards": "Показывать в рейтинге",
+    "badges": "Достижения",
+    "noBadges": "Пока нет достижений",
+    "memberSince": "Участник с {{date}}"
+  },
+  "settings": {
+    "title": "Настройки",
+    "language": "Язык",
+    "languages": {
+      "en": "English",
+      "ru": "Русский"
+    },
+    "geminiApiKey": "API ключ Gemini",
+    "geminiApiKeyDescription": "Используется для AI-импорта полётов",
+    "dangerZone": "Опасная зона",
+    "deleteAccount": "Удалить аккаунт",
+    "deleteAccountWarning": "Это действие нельзя отменить. Все ваши данные будут удалены навсегда."
+  },
+  "import": {
+    "title": "Импорт полётов",
+    "description": "Загрузите фото посадочного талона или вставьте данные о рейсе",
+    "uploadImage": "Загрузить изображение",
+    "pasteText": "Вставить текст",
+    "processing": "Обработка...",
+    "review": "Проверка импорта",
+    "confirm": "Подтвердить импорт",
+    "flightsFound": "Найдено полётов: {{count}}",
+    "noFlightsFound": "Полёты не найдены в предоставленных данных",
+    "apiKeyRequired": "Требуется API ключ Gemini. Добавьте его в Настройках."
+  },
+  "badges": {
+    "firstFlight": "Первый полёт",
+    "frequentFlyer": "Частый летун",
+    "centurion": "Центурион",
+    "skyWarrior": "Воин неба",
+    "circumnavigator": "Кругосветка",
+    "moonShot": "До Луны",
+    "globeTrotter": "Путешественник",
+    "worldExplorer": "Исследователь мира",
+    "continental": "Континентальный",
+    "airlineHopper": "Коллекционер авиакомпаний",
+    "airlineCollector": "Знаток авиакомпаний",
+    "aircraftSpotter": "Споттер",
+    "widebodyFan": "Фанат широкофюзеляжных"
+  },
+  "errors": {
+    "generic": "Что-то пошло не так. Попробуйте ещё раз.",
+    "network": "Ошибка сети. Проверьте подключение.",
+    "unauthorized": "Пожалуйста, войдите в систему.",
+    "notFound": "Страница не найдена.",
+    "validation": "Проверьте введённые данные."
+  }
+}

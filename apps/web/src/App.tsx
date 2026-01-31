@@ -1,25 +1,26 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { AuthPage } from '@/routes/AuthPage'
+import { DashboardPage } from '@/routes/DashboardPage'
+import { ProtectedRoute } from '@/components/ProtectedRoute'
 
 const queryClient = new QueryClient()
-
-function HomePage() {
-  return (
-    <div className="min-h-screen flex items-center justify-center">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-2">Kuuki</h1>
-        <p className="text-lg text-gray-600">空気 - Coming Soon</p>
-      </div>
-    </div>
-  )
-}
 
 export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<HomePage />} />
+          <Route path="/" element={<Navigate to="/dashboard" replace />} />
+          <Route path="/auth" element={<AuthPage />} />
+          <Route
+            path="/dashboard"
+            element={
+              <ProtectedRoute>
+                <DashboardPage />
+              </ProtectedRoute>
+            }
+          />
         </Routes>
       </BrowserRouter>
     </QueryClientProvider>
