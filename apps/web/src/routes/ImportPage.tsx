@@ -5,7 +5,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '@/hooks/useAuth'
 import { useLanguage } from '@/hooks/useLanguage'
 import { useCreateFlight, useFlights } from '@/hooks/useFlights'
-import { useParseImport, type ExtractedFlight } from '@/hooks/useImport'
+import { useParseImport, type ExtractedFlight, type RejectedFlight } from '@/hooks/useImport'
 import { ImportUpload } from '@/components/import/ImportUpload'
 import { ImportReview } from '@/components/import/ImportReview'
 import { WindLoader } from '@/components/common/WindLoader'
@@ -14,7 +14,8 @@ import { findAirport, findAircraft } from '@kuuki/data'
 import { calculateFlightDistance, estimateFlightDuration } from '@/lib/geo'
 
 type ImportStep = 'upload' | 'parsing' | 'review' | 'saving' | 'success'
-type ParsingPhase = 'reading' | 'extracting' | 'finding'
+type ParsingPhase = 'reading' | 'cleaning' | 'extracting' | 'validating'
+type InputType = 'text' | 'pdf' | 'image'
 
 export function ImportPage() {
   const { t } = useTranslation()
@@ -29,7 +30,11 @@ export function ImportPage() {
 
   const [step, setStep] = useState<ImportStep>('upload')
   const [parsingPhase, setParsingPhase] = useState<ParsingPhase>('reading')
+  const [inputType, setInputType] = useState<InputType>('text')
   const [extractedFlights, setExtractedFlights] = useState<ExtractedFlight[]>([])
+  const [rejectedFlights, setRejectedFlights] = useState<RejectedFlight[]>([])
+  const [geminiCount, setGeminiCount] = useState<number | undefined>()
+  const [cleanedText, setCleanedText] = useState<string | undefined>()
   const [savedCount, setSavedCount] = useState(0)
   const [isFormOpen, setIsFormOpen] = useState(false)
 
@@ -45,12 +50,18 @@ export function ImportPage() {
     })
   })
 
-  // Simulate parsing phases for better UX
+  // Simulate parsing phases for better UX (different phases for text vs binary)
   useEffect(() => {
     if (step !== 'parsing') return
 
-    const phases: ParsingPhase[] = ['reading', 'extracting', 'finding']
+    // Text input: cleaning → extracting → validating (two-stage)
+    // Binary input: reading → extracting → validating (single-stage)
+    const phases: ParsingPhase[] = inputType === 'text'
+      ? ['cleaning', 'extracting', 'validating']
+      : ['reading', 'extracting', 'validating']
+
     let currentIndex = 0
+    setParsingPhase(phases[0])
 
     const interval = setInterval(() => {
       currentIndex++
@@ -60,7 +71,7 @@ export function ImportPage() {
     }, 1500)
 
     return () => clearInterval(interval)
-  }, [step])
+  }, [step, inputType])
 
   // Auto-submit text content if passed from EmptyState
   useEffect(() => {
@@ -72,16 +83,23 @@ export function ImportPage() {
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleUploadSubmit = useCallback(async (data: { type: 'pdf' | 'image' | 'text'; content: string }) => {
+    setInputType(data.type)
     setStep('parsing')
-    setParsingPhase('reading')
+    setParsingPhase(data.type === 'text' ? 'cleaning' : 'reading')
 
     try {
       const result = await parseMutation.mutateAsync(data)
       setExtractedFlights(result.flights)
+      setRejectedFlights(result.rejected || [])
+      setGeminiCount(result.gemini_count)
+      setCleanedText(result.cleaned_text)
       setStep('review')
     } catch (error) {
       console.error('Parse error:', error)
       setExtractedFlights([])
+      setRejectedFlights([])
+      setGeminiCount(undefined)
+      setCleanedText(undefined)
       setStep('review')
     }
   }, [parseMutation])
@@ -147,6 +165,9 @@ export function ImportPage() {
   const handleCancel = useCallback(() => {
     setStep('upload')
     setExtractedFlights([])
+    setRejectedFlights([])
+    setGeminiCount(undefined)
+    setCleanedText(undefined)
     parseMutation.reset()
   }, [parseMutation])
 
@@ -165,6 +186,9 @@ export function ImportPage() {
   const handleImportMore = useCallback(() => {
     setStep('upload')
     setExtractedFlights([])
+    setRejectedFlights([])
+    setGeminiCount(undefined)
+    setCleanedText(undefined)
     setSavedCount(0)
     parseMutation.reset()
   }, [parseMutation])
@@ -273,9 +297,18 @@ export function ImportPage() {
 
           {step === 'parsing' && (
             <div className="py-8 flex flex-col items-center">
-              <WindLoader step={parsingPhase} size="lg" />
-              <p className="mt-6 text-center text-ink-muted">
-                {t('import.parsing.hint', 'This usually takes a few seconds')}
+              <WindLoader step={parsingPhase} size="lg" hideMessage />
+              <p className="mt-4 text-center text-ink font-medium">
+                {parsingPhase === 'cleaning' && t('import.parsing.cleaning', 'Cleaning up your data...')}
+                {parsingPhase === 'reading' && t('import.parsing.reading', 'Reading document...')}
+                {parsingPhase === 'extracting' && t('import.parsing.extracting', 'Extracting flights...')}
+                {parsingPhase === 'validating' && t('import.parsing.validating', 'Validating flight codes...')}
+              </p>
+              <p className="mt-1 text-center text-ink-muted text-sm">
+                {parsingPhase === 'cleaning' && t('import.parsing.cleaningHint', 'Normalizing dates, codes, and formats')}
+                {parsingPhase === 'reading' && t('import.parsing.readingHint', 'Analyzing your document')}
+                {parsingPhase === 'extracting' && t('import.parsing.extractingHint', 'Finding flight information')}
+                {parsingPhase === 'validating' && t('import.parsing.validatingHint', 'Checking airport and airline codes')}
               </p>
             </div>
           )}
@@ -287,6 +320,9 @@ export function ImportPage() {
               onSave={handleSaveFlights}
               onCancel={handleCancel}
               onManualAdd={handleManualAdd}
+              rejected={rejectedFlights}
+              geminiCount={geminiCount}
+              cleanedText={cleanedText}
             />
           )}
 

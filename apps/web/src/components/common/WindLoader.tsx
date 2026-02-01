@@ -1,11 +1,12 @@
 import { useTranslation } from 'react-i18next'
 
 interface WindLoaderProps {
-  step?: 'reading' | 'extracting' | 'finding'
+  step?: 'reading' | 'cleaning' | 'extracting' | 'validating' | 'finding'
   size?: 'sm' | 'md' | 'lg'
+  hideMessage?: boolean
 }
 
-export function WindLoader({ step = 'reading', size = 'md' }: WindLoaderProps) {
+export function WindLoader({ step = 'reading', size = 'md', hideMessage = false }: WindLoaderProps) {
   const { t } = useTranslation()
 
   const sizeClasses = {
@@ -14,9 +15,11 @@ export function WindLoader({ step = 'reading', size = 'md' }: WindLoaderProps) {
     lg: 'w-64 h-48',
   }
 
-  const stepMessages = {
+  const stepMessages: Record<string, string> = {
     reading: t('import.parsing.reading', 'Reading file...'),
-    extracting: t('import.parsing.extracting', 'Extracting text...'),
+    cleaning: t('import.parsing.cleaning', 'Cleaning data...'),
+    extracting: t('import.parsing.extracting', 'Extracting flights...'),
+    validating: t('import.parsing.validating', 'Validating codes...'),
     finding: t('import.parsing.finding', 'Finding flights...'),
   }
 
@@ -125,23 +128,25 @@ export function WindLoader({ step = 'reading', size = 'md' }: WindLoaderProps) {
       </div>
 
       {/* Progress text */}
-      <div className="flex items-center gap-2 text-ink-muted">
-        <div className="flex gap-1">
-          <span
-            className="w-1.5 h-1.5 rounded-full bg-runway animate-bounce"
-            style={{ animationDelay: '0ms' }}
-          />
-          <span
-            className="w-1.5 h-1.5 rounded-full bg-runway animate-bounce"
-            style={{ animationDelay: '150ms' }}
-          />
-          <span
-            className="w-1.5 h-1.5 rounded-full bg-runway animate-bounce"
-            style={{ animationDelay: '300ms' }}
-          />
+      {!hideMessage && (
+        <div className="flex items-center gap-2 text-ink-muted">
+          <div className="flex gap-1">
+            <span
+              className="w-1.5 h-1.5 rounded-full bg-runway animate-bounce"
+              style={{ animationDelay: '0ms' }}
+            />
+            <span
+              className="w-1.5 h-1.5 rounded-full bg-runway animate-bounce"
+              style={{ animationDelay: '150ms' }}
+            />
+            <span
+              className="w-1.5 h-1.5 rounded-full bg-runway animate-bounce"
+              style={{ animationDelay: '300ms' }}
+            />
+          </div>
+          <span className="text-sm font-medium">{stepMessages[step] || stepMessages.reading}</span>
         </div>
-        <span className="text-sm font-medium">{stepMessages[step]}</span>
-      </div>
+      )}
 
       {/* CSS Animations */}
       <style>{`

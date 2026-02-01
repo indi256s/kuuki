@@ -22,10 +22,23 @@ export interface ExtractedFlight {
   }
 }
 
+export interface RejectedFlight {
+  index: number
+  date?: string
+  origin?: string
+  destination?: string
+  airline_iata?: string
+  reason: string
+}
+
 export interface ParseResult {
   flights: ExtractedFlight[]
   raw_text?: string
   error?: string
+  // Diagnostic info
+  rejected?: RejectedFlight[]
+  gemini_count?: number
+  cleaned_text?: string // Normalized text from Stage 1 (text input only)
 }
 
 export interface ParseRequest {

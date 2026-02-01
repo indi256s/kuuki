@@ -1,7 +1,7 @@
 import { useState, useCallback, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { FlightEditRow } from './FlightEditRow'
-import type { ExtractedFlight } from '../../hooks/useImport'
+import type { ExtractedFlight, RejectedFlight } from '../../hooks/useImport'
 
 interface ImportReviewProps {
   flights: ExtractedFlight[]
@@ -10,6 +10,11 @@ interface ImportReviewProps {
   onCancel: () => void
   onManualAdd: () => void
   saving?: boolean
+  // Diagnostic info for when flights are rejected
+  rejected?: RejectedFlight[]
+  geminiCount?: number
+  // Normalized text from two-stage parsing (text input only)
+  cleanedText?: string
 }
 
 export function ImportReview({
@@ -19,9 +24,13 @@ export function ImportReview({
   onCancel,
   onManualAdd,
   saving,
+  rejected,
+  geminiCount,
+  cleanedText,
 }: ImportReviewProps) {
   const { t } = useTranslation()
   const [flights, setFlights] = useState<ExtractedFlight[]>(initialFlights)
+  const [showCleanedText, setShowCleanedText] = useState(false)
   const [selectedIds, setSelectedIds] = useState<Set<number>>(() => {
     // Pre-select all valid flights
     return new Set(
@@ -112,9 +121,60 @@ export function ImportReview({
         <h3 className="text-lg font-medium text-ink mb-2">
           {t('import.noResults.title', 'No flights found')}
         </h3>
-        <p className="text-ink-muted mb-6">
+        <p className="text-ink-muted mb-4">
           {t('import.noResults.message', "We couldn't extract flights from this document")}
         </p>
+
+        {/* Diagnostic info when flights were found but rejected */}
+        {rejected && rejected.length > 0 && (
+          <div className="text-left bg-sky-sunken rounded-lg p-4 mb-6 max-w-md mx-auto">
+            <p className="text-sm text-ink-muted mb-3">
+              {t('import.noResults.diagnostic', 'AI found {{count}} flight(s), but all were rejected during validation:', {
+                count: geminiCount || rejected.length,
+              })}
+            </p>
+            <ul className="space-y-2 text-sm">
+              {rejected.slice(0, 5).map((r, i) => (
+                <li key={i} className="flex items-start gap-2 text-ink-muted">
+                  <svg className="w-4 h-4 text-holding mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                  </svg>
+                  <span>
+                    {r.date && <span className="text-ink">{r.date}</span>}
+                    {r.origin && r.destination && (
+                      <span className="text-ink"> {r.origin} → {r.destination}</span>
+                    )}
+                    {r.airline_iata && <span className="text-ink"> ({r.airline_iata})</span>}
+                    <span className="text-holding-dark">: {r.reason}</span>
+                  </span>
+                </li>
+              ))}
+              {rejected.length > 5 && (
+                <li className="text-ink-faint">
+                  {t('import.noResults.moreRejected', '...and {{count}} more', {
+                    count: rejected.length - 5,
+                  })}
+                </li>
+              )}
+            </ul>
+            <p className="text-xs text-ink-faint mt-3">
+              {t('import.noResults.hint', 'Tip: Make sure airline codes are 2 letters (e.g., "LY" not "El Al") and airport codes are 3 letters.')}
+            </p>
+          </div>
+        )}
+
+        {/* Show cleaned text for debugging */}
+        {cleanedText && (
+          <div className="text-left bg-sky-sunken rounded-lg p-4 mb-6 max-w-md mx-auto">
+            <p className="text-sm text-ink-muted mb-2">
+              {t('import.noResults.normalizedData', 'Normalized data (for debugging):')}
+            </p>
+            <pre className="text-xs text-ink-muted font-mono whitespace-pre-wrap overflow-x-auto max-h-32 overflow-y-auto">
+              {cleanedText}
+            </pre>
+          </div>
+        )}
+
         <div className="flex justify-center gap-3">
           <button
             onClick={onCancel}
@@ -179,6 +239,38 @@ export function ImportReview({
               count: duplicateIndices.size,
             })}
           </span>
+        </div>
+      )}
+
+      {/* Cleaned text toggle (for transparency) */}
+      {cleanedText && (
+        <div className="border border-edge rounded-lg overflow-hidden">
+          <button
+            onClick={() => setShowCleanedText(!showCleanedText)}
+            className="w-full flex items-center justify-between px-3 py-2 text-sm text-ink-muted hover:bg-sky-sunken transition-colors"
+          >
+            <span className="flex items-center gap-2">
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              {t('import.review.viewNormalized', 'View normalized data')}
+            </span>
+            <svg
+              className={`w-4 h-4 transition-transform ${showCleanedText ? 'rotate-180' : ''}`}
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+          {showCleanedText && (
+            <div className="px-3 py-2 border-t border-edge bg-sky-sunken">
+              <pre className="text-xs text-ink-muted font-mono whitespace-pre-wrap overflow-x-auto max-h-48 overflow-y-auto">
+                {cleanedText}
+              </pre>
+            </div>
+          )}
         </div>
       )}
 

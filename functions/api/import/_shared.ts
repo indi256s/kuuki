@@ -27,10 +27,23 @@ export interface ParseRequest {
   content: string // base64 for pdf/image, plain text for text
 }
 
+export interface RejectedFlight {
+  index: number
+  date?: string
+  origin?: string
+  destination?: string
+  airline_iata?: string
+  reason: string
+}
+
 export interface ParseResponse {
   flights: ExtractedFlight[]
   raw_text?: string
   error?: string
+  // Diagnostic info for debugging
+  rejected?: RejectedFlight[]
+  gemini_count?: number // How many flights Gemini found before validation
+  cleaned_text?: string // Normalized text from Stage 1 (text input only)
 }
 
 export function getMimeType(type: 'pdf' | 'image' | 'text'): string {
@@ -110,3 +123,59 @@ Return your response as a JSON object with this structure:
 }
 
 If no flights can be extracted, return: {"flights": [], "raw_text": "..."}`
+
+// Cleaning prompt for messy text input (Stage 1 of two-stage parsing)
+export const CLEANING_PROMPT = `You are a data cleaning assistant. Your job is to normalize messy flight data into a clean, consistent format.
+
+The input may contain:
+- Markdown formatting (**bold**, *italic*, tables, bullets)
+- Special arrow characters (➝, →, ->, =>, etc.)
+- Airline names instead of codes (e.g., "Turkish Airlines" instead of "TK")
+- Partial dates (e.g., "31 Dec" with year in a section header like "### 2024")
+- City names in parentheses like "KRR (Krasnodar)"
+- Passenger names, booking status, citation markers
+- Mixed formats (tables + bulleted lists)
+
+Your task:
+1. Extract each flight and output ONE LINE per flight in this exact format:
+   YYYY-MM-DD | FLIGHT_NUMBER | ORIGIN-DESTINATION | AIRLINE_CODE
+
+2. Rules:
+   - Dates: Always YYYY-MM-DD format. Infer year from context (section headers like "### 2024")
+   - Flight numbers: Include airline prefix and number (e.g., "LY5109", "TK 378")
+   - Airports: Use 3-letter IATA codes only (strip city names)
+   - Airlines: Convert names to 2-letter IATA codes:
+     * El Al, ELAL → LY
+     * Turkish Airlines, Turkish → TK
+     * Qatar Airways, Qatar → QR
+     * Aeroflot → SU
+     * S7 Airlines, S7 → S7
+     * Ural Airlines → U6
+     * Red Wings → WZ
+     * Georgian Airways → A9
+     * China Eastern → MU
+     * Thai Airways → TG
+     * Pegasus → PC
+     * Air Serbia → JU
+     * Wizz Air → W6
+     * Nordwind → N4
+     * Belavia → B2
+     * AirJapan, Air Japan → NQ
+     * FlyOne → 3F
+   - Skip cancelled flights
+   - Skip entries that aren't actual flights
+
+3. Special airport codes:
+   - MOW (Moscow) → use the specific airport if mentioned (SVO, DME, VKO), otherwise use SVO
+   - If only city name given, use main airport code
+
+Example input:
+### 2024
+* **31 Dec:** IST ➝ TBS | TK378 (Turkish Airlines) | *Sergei*
+| **2026-01-07** | LY5109 | TLV ➝ TBS | EL AL | Confirmed |
+
+Example output:
+2024-12-31 | TK 378 | IST-TBS | TK
+2026-01-07 | LY 5109 | TLV-TBS | LY
+
+Output ONLY the cleaned lines, one per flight. No headers, no explanations.`

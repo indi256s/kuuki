@@ -3,8 +3,10 @@ import {
   type ParseRequest,
   type ParseResponse,
   type ExtractedFlight,
+  type RejectedFlight,
   detectImageMimeType,
   EXTRACTION_PROMPT,
+  CLEANING_PROMPT,
 } from './_shared'
 
 interface Env {
@@ -12,6 +14,16 @@ interface Env {
 }
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10 MB
+
+// Helper to clean messy text using Gemini (Stage 1 of two-stage parsing)
+async function cleanTextWithGemini(ai: GoogleGenAI, rawText: string): Promise<string> {
+  const response = await ai.models.generateContent({
+    model: 'gemini-3.0-flash',
+    contents: [CLEANING_PROMPT, `\n\nRaw data to clean:\n${rawText}`],
+  })
+
+  return response.text || ''
+}
 
 // JSON schema for structured output
 const FLIGHT_RESPONSE_SCHEMA = {
@@ -129,9 +141,24 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     type ContentPart = string | { inlineData: { data: string; mimeType: string } }
     const contents: ContentPart[] = [EXTRACTION_PROMPT]
 
+    // Track cleaned text for transparency (only for text input)
+    let cleanedText: string | undefined
+
     if (type === 'text') {
-      contents.push(`\n\nDocument content:\n${content}`)
+      // Two-stage parsing for text: Clean first, then extract
+      console.log('Stage 1: Cleaning text input...')
+      cleanedText = await cleanTextWithGemini(ai, content)
+      console.log('Cleaned text:', cleanedText)
+
+      // If cleaning produced empty result, fall back to original
+      if (!cleanedText.trim()) {
+        console.log('Cleaning returned empty, using original text')
+        contents.push(`\n\nDocument content:\n${content}`)
+      } else {
+        contents.push(`\n\nDocument content:\n${cleanedText}`)
+      }
     } else {
+      // Single-stage parsing for PDF/image
       const mimeType = type === 'pdf' ? 'application/pdf' : detectImageMimeType(content)
       contents.push({
         inlineData: {
@@ -175,28 +202,47 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     // Debug: Log raw parsed flights from Gemini
     console.log('Gemini parsed flights:', JSON.stringify(parsedResponse.flights, null, 2))
 
-    // Validate and normalize flights
+    // Validate and normalize flights, collecting rejected ones for diagnostics
+    const rejectedFlights: RejectedFlight[] = []
+    const geminiCount = parsedResponse.flights?.length || 0
+
     const validFlights = (parsedResponse.flights || [])
       .filter((flight, index): flight is ExtractedFlight => {
-        const isValid =
-          typeof flight.date === 'string' &&
-          typeof flight.origin === 'string' &&
-          typeof flight.destination === 'string' &&
-          typeof flight.airline_iata === 'string' &&
-          flight.origin.length === 3 &&
-          flight.destination.length === 3 &&
-          flight.airline_iata.length === 2
+        const reasons: string[] = []
 
-        if (!isValid) {
-          console.log(`Flight ${index} rejected:`, {
-            date: flight.date,
-            origin: `${flight.origin} (len=${flight.origin?.length})`,
-            destination: `${flight.destination} (len=${flight.destination?.length})`,
-            airline_iata: `${flight.airline_iata} (len=${flight.airline_iata?.length})`,
-          })
+        if (typeof flight.date !== 'string' || !flight.date) {
+          reasons.push('missing date')
+        }
+        if (typeof flight.origin !== 'string') {
+          reasons.push('missing origin')
+        } else if (flight.origin.length !== 3) {
+          reasons.push(`origin "${flight.origin}" is not 3 letters`)
+        }
+        if (typeof flight.destination !== 'string') {
+          reasons.push('missing destination')
+        } else if (flight.destination.length !== 3) {
+          reasons.push(`destination "${flight.destination}" is not 3 letters`)
+        }
+        if (typeof flight.airline_iata !== 'string') {
+          reasons.push('missing airline code')
+        } else if (flight.airline_iata.length !== 2) {
+          reasons.push(`airline "${flight.airline_iata}" is not 2 letters`)
         }
 
-        return isValid
+        if (reasons.length > 0) {
+          rejectedFlights.push({
+            index,
+            date: flight.date,
+            origin: flight.origin,
+            destination: flight.destination,
+            airline_iata: flight.airline_iata,
+            reason: reasons.join(', '),
+          })
+          console.log(`Flight ${index} rejected:`, reasons.join(', '))
+          return false
+        }
+
+        return true
       })
       .map((flight) => ({
         ...flight,
@@ -210,12 +256,19 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
       }))
 
     // Debug: Log validation summary
-    console.log(`Validated ${validFlights.length} of ${parsedResponse.flights?.length || 0} flights`)
+    console.log(`Validated ${validFlights.length} of ${geminiCount} flights, rejected ${rejectedFlights.length}`)
 
     return Response.json(
       {
         flights: validFlights,
         raw_text: parsedResponse.raw_text,
+        // Include cleaned text for transparency (text input only)
+        ...(cleanedText && { cleaned_text: cleanedText }),
+        // Include diagnostic info when there are rejected flights
+        ...(rejectedFlights.length > 0 && {
+          rejected: rejectedFlights,
+          gemini_count: geminiCount,
+        }),
       } as ParseResponse,
       { headers: corsHeaders }
     )
