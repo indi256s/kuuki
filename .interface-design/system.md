@@ -2,179 +2,292 @@
 
 ## Direction
 
-**Feel:** Dawn departure — the focused calm of early morning flights. Quiet anticipation, soft predawn light, the world below still asleep.
+**Feel:** Nordic Skies — the quiet calm of Scandinavian minimalism. Soft, airy, inviting. Like the gentle light of a Nordic morning, unhurried and peaceful.
 
-**Temperature:** Cool neutrals (slate-blue, predawn gray) with warm accent moments (runway lighting, terminal glow).
+**Temperature:** Cool neutrals with subtle blue undertones (slate-blue, soft stone gray) creating a serene, spacious atmosphere.
 
-**Signature:** Great-circle arcs. The curved lines of flight paths inform decorative elements, progress indicators, and subtle UI curves.
+**Signature:** Generous whitespace, soft rounded corners, subtle hover animations. Clean typography that breathes.
 
-**Target:** Aviation enthusiasts who genuinely love flight, not just travelers who happen to fly.
+**Target:** Aviation enthusiasts who appreciate refined simplicity — modern travelers who value both function and aesthetics.
+
+---
+
+## Tech Stack
+
+**Component Library:** shadcn/ui (New York style)
+**CSS Framework:** Tailwind CSS v4
+**Color Space:** OKLCH for perceptually uniform colors
+**Typography:** DM Sans (display/body) + JetBrains Mono (data)
+**Icons:** Lucide React
 
 ---
 
 ## Depth Strategy
 
-**Layered shadows (altitude-inspired)**
+**Subtle shadows + borders**
 
-Surfaces sit at different elevations like cloud layers. Subtle, atmospheric depth — not dramatic.
+Surfaces float gently above the canvas. Shadows are atmospheric, not dramatic. Borders are barely visible, defining space without harsh lines.
 
 ```css
---shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.04);
---shadow-md: 0 2px 8px rgba(15, 23, 42, 0.06), 0 1px 2px rgba(15, 23, 42, 0.04);
---shadow-lg: 0 4px 16px rgba(15, 23, 42, 0.08), 0 2px 4px rgba(15, 23, 42, 0.04);
+/* Shadows are soft and minimal */
+hover:shadow-md /* Only on interaction */
+
+/* Borders are whisper-thin */
+border-border/50    /* Default - barely there */
+border-border       /* Hover - slightly stronger */
 ```
 
 ---
 
 ## Spacing
 
-**Base unit: 4px**
+**Base unit: 4px** (Tailwind default)
 
-Scale: 4, 8, 12, 16, 24, 32, 48, 64, 96
+Scale: 1 (4px), 2 (8px), 3 (12px), 4 (16px), 5 (20px), 6 (24px), 8 (32px), 10 (40px), 12 (48px)
 
-Use consistently. Random values signal no system.
+Prefer generous spacing. Let elements breathe.
 
 ---
 
-## Color Tokens
+## Color Tokens (OKLCH)
 
-### Foreground (Text)
+### Core Palette
 
 ```css
---ink: #0f172a;              /* Primary text - deep slate */
---ink-muted: #475569;        /* Secondary text */
---ink-faint: #94a3b8;        /* Tertiary, placeholders */
---ink-inverse: #f8fafc;      /* Text on dark surfaces */
+--background: oklch(0.985 0.002 240);  /* Soft off-white with blue tint */
+--foreground: oklch(0.25 0.01 260);    /* Deep warm gray */
+--card: oklch(1 0 0);                   /* Pure white */
+--muted: oklch(0.97 0.003 250);        /* Subtle background */
+--muted-foreground: oklch(0.55 0.01 260);
 ```
 
-### Background (Surfaces)
+### Primary (Nordic Blue)
 
 ```css
---sky: #f8fafc;              /* Base canvas - predawn light */
---sky-raised: #ffffff;       /* Cards, elevated surfaces */
---sky-sunken: #f1f5f9;       /* Inset areas, wells */
---sky-overlay: rgba(15, 23, 42, 0.5);  /* Modal backdrops */
+--primary: oklch(0.65 0.12 240);        /* Soft sky blue */
+--primary-foreground: oklch(0.99 0 0);
 ```
 
-### Border
+### Secondary (Warm Stone)
 
 ```css
---edge: rgba(15, 23, 42, 0.06);        /* Subtle divisions */
---edge-strong: rgba(15, 23, 42, 0.12); /* More prominent borders */
-```
-
-### Brand / Accent
-
-```css
---runway: #3b82f6;           /* Primary action - the blue of taxiway lights */
---runway-hover: #2563eb;
---runway-muted: rgba(59, 130, 246, 0.1);
+--secondary: oklch(0.96 0.005 260);
+--secondary-foreground: oklch(0.35 0.01 260);
 ```
 
 ### Semantic
 
 ```css
---cleared: #10b981;          /* Success - cleared for takeoff */
---cleared-muted: rgba(16, 185, 129, 0.1);
---holding: #f59e0b;          /* Warning - hold short */
---holding-muted: rgba(245, 158, 11, 0.1);
---emergency: #ef4444;        /* Error/destructive */
---emergency-muted: rgba(239, 68, 68, 0.1);
+--destructive: oklch(0.65 0.18 25);     /* Soft coral red */
+--success: oklch(0.72 0.14 160);        /* Calm green */
+--warning: oklch(0.82 0.12 85);         /* Warm amber */
+```
+
+### Legacy Mapping
+
+For backwards compatibility, legacy tokens map to new system:
+
+```css
+--color-runway → --primary
+--color-ink → --foreground
+--color-sky → --background
+--color-edge → --border
+--color-cleared → --success
+--color-emergency → --destructive
 ```
 
 ---
 
 ## Typography
 
-**Font stack:** System UI with aviation-inspired fallbacks
+**Font Family:**
 
 ```css
---font-sans: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
---font-mono: ui-monospace, "SF Mono", Monaco, "Cascadia Mono", monospace;
+--font-display: "DM Sans", system-ui, sans-serif;
+--font-sans: "DM Sans", system-ui, sans-serif;
+--font-mono: "JetBrains Mono", monospace;
+```
+
+**Letter Spacing:**
+
+```css
+--tracking-tight: -0.025em;   /* Headlines */
+--tracking-normal: -0.01em;   /* Body text */
 ```
 
 ### Scale
 
-| Role | Size | Weight | Tracking |
-|------|------|--------|----------|
-| Display | 48px | 600 | -0.02em |
-| Heading 1 | 32px | 600 | -0.015em |
-| Heading 2 | 24px | 600 | -0.01em |
-| Heading 3 | 18px | 600 | 0 |
-| Body | 15px | 400 | 0 |
-| Body small | 13px | 400 | 0 |
-| Label | 12px | 500 | 0.02em |
-| Mono (data) | 14px | 500 | 0 |
+| Role | Class | Weight | Notes |
+|------|-------|--------|-------|
+| Display | text-4xl to text-6xl | semibold | tracking-tight |
+| Heading | text-2xl to text-3xl | semibold | tracking-tight |
+| Subhead | text-lg | medium | |
+| Body | text-base | normal | |
+| Small | text-sm | normal | muted-foreground |
+| Caption | text-xs | normal | muted-foreground |
+| Data | font-data | medium | tabular-nums |
 
 ---
 
 ## Border Radius
 
-**Scale: 4, 6, 8, 12, 9999 (pill)**
+**Base: 0.875rem (14px)**
 
-- Small elements (badges, chips): 4px
-- Cards, inputs: 8px
-- Larger containers: 12px
-- Buttons, pills: 6px or full
+Using shadcn scale:
+
+```css
+--radius-sm: 8px    /* Badges, chips */
+--radius-md: 10px   /* Inputs */
+--radius-lg: 14px   /* Cards, buttons */
+--radius-xl: 18px   /* Large containers */
+--radius-2xl: 22px  /* Hero elements */
+```
+
+Prefer generous, soft corners. Scandinavian = rounded and inviting.
 
 ---
 
 ## Component Patterns
 
-### Cards (Flight Log Entry)
+### Card
+
+```tsx
+<Card className="border-border/50 hover:border-border hover:shadow-md transition-all">
+  <CardContent className="p-5">
+    {/* Content */}
+  </CardContent>
+</Card>
+```
+
+- Subtle border (50% opacity)
+- Shadow only on hover
+- Smooth transition
+
+### Button
+
+```tsx
+<Button>Primary Action</Button>
+<Button variant="outline">Secondary</Button>
+<Button variant="ghost">Tertiary</Button>
+```
+
+- Primary: Solid fill, high contrast
+- Outline: Border only, subtle
+- Ghost: Text only, minimal
+
+### Stats Card
+
+```tsx
+<Card className="group hover:shadow-md transition-all">
+  <CardContent className="p-5">
+    <div className="flex items-start justify-between">
+      <div>
+        <p className="text-3xl font-semibold font-data">{value}</p>
+        <p className="text-sm text-muted-foreground">{label}</p>
+      </div>
+      <div className="p-2.5 rounded-xl bg-secondary/50 group-hover:scale-110 transition-transform">
+        <Icon className="w-5 h-5 text-primary" />
+      </div>
+    </div>
+  </CardContent>
+</Card>
+```
+
+### Dialog/Modal
+
+```tsx
+<Dialog>
+  <DialogContent className="sm:max-w-md">
+    <DialogHeader>
+      <DialogTitle>{title}</DialogTitle>
+    </DialogHeader>
+    {/* Content */}
+  </DialogContent>
+</Dialog>
+```
+
+- Max width constrained
+- Rounded corners
+- Centered with backdrop blur
+
+---
+
+## Animation
+
+**Timing:**
 
 ```css
-.flight-card {
-  background: var(--sky-raised);
-  border: 1px solid var(--edge);
-  border-radius: 12px;
-  box-shadow: var(--shadow-sm);
-  padding: 16px;
-}
+--ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+--duration-fast: 150ms;
+--duration-normal: 250ms;
+--duration-slow: 400ms;
+```
 
-.flight-card:hover {
-  box-shadow: var(--shadow-md);
-  border-color: var(--edge-strong);
+**Utilities:**
+
+```css
+.animate-fade-in    /* Opacity 0 → 1 */
+.animate-fade-up    /* Opacity + translateY */
+.animate-scale-in   /* Opacity + scale */
+.stagger-children   /* Auto-delay children */
+```
+
+**Principles:**
+- Subtle, purposeful motion
+- No bounce or spring effects
+- Stagger page load animations
+- Scale icons on hover (group-hover:scale-110)
+
+---
+
+## Glassmorphism (Sparingly)
+
+```css
+.glass {
+  background: oklch(1 0 0 / 0.8);
+  backdrop-filter: blur(12px);
 }
 ```
 
-### Metric Display
+Use for:
+- Sticky headers
+- Overlays
 
-Use varied presentations based on context:
-- **Hero number:** Large, prominent, with subtle label below
-- **Inline stat:** Number and label on same line, compact
-- **Progress ring:** For completion percentages
-- **Comparison delta:** Show change with directional indicator
+Avoid overuse.
 
-Avoid the default "icon left, big number, small label" pattern.
+---
 
-### Route Line (Signature Element)
+## Dark Mode (Ready)
 
-SVG paths using quadratic curves to evoke great-circle routes:
+Full dark mode tokens defined in CSS. Toggle with `.dark` class on html/body.
 
-```jsx
-// Conceptual - curve between two points
-<path
-  d="M 0,20 Q 50,-10 100,20"
-  stroke="var(--runway)"
-  strokeWidth="2"
-  fill="none"
-/>
-```
+Dark theme shifts:
+- Background: Deep slate (oklch 0.16)
+- Foreground: Near white (oklch 0.95)
+- Cards: Elevated slate
+- Primary: Brighter blue for contrast
 
-Use as:
-- Decorative dividers
-- Progress indicators
-- Connection lines in data viz
-- Subtle background elements
+---
 
-### Navigation
+## Anti-patterns
 
-Inspired by departure boards / terminal wayfinding:
-- Clear, scannable labels
-- Current location prominently marked
-- Minimal chrome
+**Avoid:**
+- Harsh borders as primary structure
+- Multiple competing accent colors
+- Dense layouts without breathing room
+- Heavy shadows (keep it airy)
+- Generic Inter/Roboto fonts
+- Pure gray (add slight blue undertone)
+- Icon-heavy metric cards
+- Decorative gradients (except subtle bg-gradient-soft)
 
+**Prefer:**
+- Generous whitespace
+- Soft, rounded corners
+- Subtle hover states
+- Typography-driven hierarchy
+- Monochromatic with one accent color
+- Content-first layouts
 
 ---
 
@@ -182,68 +295,33 @@ Inspired by departure boards / terminal wayfinding:
 
 **Name:** Kuuki Cloud
 
-![Kuuki Cloud](/apps/web/public/images/mascot.webp)
-
-**Personality:**
-- Friendly, floating, and light
-- Represents the joy of flight and discovery
-- Always smiling, eager to explore
-
 **Usage:**
-- Use in empty states (e.g., "No flights logged yet")
-- Use in onboarding flows to guide the user
-- use in achievement unlocks
-- Do not overuse in dense data views
+- Empty states
+- Onboarding flows
+- Achievement unlocks
+
+Do not overuse in dense data views.
 
 ---
 
+## File Structure
 
-## States
-
-### Interactive Elements
-
-- **Default:** Base styling
-- **Hover:** Subtle lift (shadow increase) or color shift
-- **Active/Pressed:** Slight inset or darker shade
-- **Focus:** 2px ring in `--runway` with 2px offset
-- **Disabled:** 50% opacity, no pointer events
-
-### Data States
-
-- **Loading:** Skeleton with subtle pulse animation
-- **Empty:** Illustration + clear action prompt
-- **Error:** `--emergency-muted` background with message
-
----
-
-## Animation
-
-```css
---ease-out: cubic-bezier(0.22, 1, 0.36, 1);
---duration-fast: 150ms;
---duration-normal: 200ms;
+```
+apps/web/src/
+├── components/
+│   └── ui/           # shadcn components
+│       ├── button.tsx
+│       ├── card.tsx
+│       ├── dialog.tsx
+│       ├── input.tsx
+│       └── ...
+├── index.css         # Design tokens + utilities
+└── lib/
+    └── utils.ts      # cn() helper
 ```
 
-Keep transitions subtle. No bounce or spring effects.
-
 ---
 
-## Dark Mode (Future)
+## Last Updated
 
-When implemented, shift temperatures:
-- `--sky` becomes deep slate/navy
-- `--ink` becomes light values
-- Shadows become lighter overlays
-- Accent colors remain similar but may need brightness adjustment
-
----
-
-## Anti-patterns
-
-Avoid:
-- Harsh, visible borders as primary structure
-- Pure white cards on the gray canvas (use subtle difference)
-- Generic dashboard grids without hierarchy
-- Icon-heavy metric cards
-- Decorative gradients
-- Multiple competing accent colors
+2026-02-01 — Redesigned with shadcn/ui + Scandinavian aesthetic
