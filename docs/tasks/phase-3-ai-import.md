@@ -14,10 +14,18 @@
 
 **Location:** `functions/api/import/parse.ts`
 
+**Implementation:**
+- Uses official `@google/genai` SDK (v1.39+)
+- Model: `gemini-3.0-flash`
+- Structured JSON output via `responseSchema` with `Type` enum
+- Multimodal input: text, images (base64), PDFs
+
 **Features:**
 - Receive file/text from client
 - Call Gemini 3.0 Flash for OCR + semantic parsing
-- Return structured flight data
+- Return structured flight data with confidence scores
+- Validation: 3-letter airport codes, 2-letter airline codes
+- Normalization: uppercase codes, clamped confidence (0-1)
 - Error handling with aviation-themed messages
 
 **Secrets:**

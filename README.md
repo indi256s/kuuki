@@ -17,7 +17,7 @@ A travel geek platform for flight tracking, visited places mapping, and social l
 - **Hosting**: Cloudflare Pages + Workers
 - **Database**: Supabase PostgreSQL
 - **Auth**: Supabase Auth (invite-code gated)
-- **AI**: Google Gemini (for flight parsing)
+- **AI**: Google Gemini 3.0 Flash via @google/genai SDK
 - **i18n**: English + Russian
 
 ## Project Structure
