@@ -233,6 +233,7 @@ Prefer generous, soft corners. Scandinavian = rounded and inviting.
 ```
 
 **Principles:**
+
 - Subtle, purposeful motion
 - No bounce or spring effects
 - Stagger page load animations
@@ -250,6 +251,7 @@ Prefer generous, soft corners. Scandinavian = rounded and inviting.
 ```
 
 Use for:
+
 - Sticky headers
 - Overlays
 
@@ -257,21 +259,52 @@ Avoid overuse.
 
 ---
 
-## Dark Mode (Ready)
+## Dark Mode
 
-Full dark mode tokens defined in CSS. Toggle with `.dark` class on html/body.
+Full dark mode support with user preference persistence.
 
-Dark theme shifts:
-- Background: Deep slate (oklch 0.16)
-- Foreground: Near white (oklch 0.95)
-- Cards: Elevated slate
-- Primary: Brighter blue for contrast
+**Theme Hook:** `useTheme()` from `@/hooks/useTheme`
+
+```tsx
+const { theme, resolvedTheme, setTheme, toggleTheme } = useTheme()
+
+// theme: 'light' | 'dark' | 'system'
+// resolvedTheme: 'light' | 'dark' (actual applied theme)
+// setTheme: (theme) => void
+// toggleTheme: () => void
+```
+
+**Theme Toggle:** `<ThemeToggle />` from `@/components/common/ThemeToggle`
+
+- Sun/Moon icon button
+- Already integrated in `AppHeader` and `DashboardPage`
+
+**Storage:** `localStorage` key `kuuki-theme`
+
+**CSS:** `.dark` class on `<html>` element activates dark tokens.
+
+### Dark Palette
+
+```css
+--background: oklch(0.16 0.01 260);  /* Deep slate */
+--foreground: oklch(0.95 0.005 250); /* Near white */
+--card: oklch(0.2 0.01 260);          /* Elevated slate */
+--primary: oklch(0.7 0.12 240);       /* Brighter blue */
+--border: oklch(0.28 0.01 260);       /* Subtle edge */
+```
+
+**Best Practices:**
+
+- Use semantic tokens (`bg-background`, `text-foreground`) not raw colors
+- Test both themes during development
+- Use `dark:` variants for hardcoded colors
 
 ---
 
 ## Anti-patterns
 
 **Avoid:**
+
 - Harsh borders as primary structure
 - Multiple competing accent colors
 - Dense layouts without breathing room
@@ -282,6 +315,7 @@ Dark theme shifts:
 - Decorative gradients (except subtle bg-gradient-soft)
 
 **Prefer:**
+
 - Generous whitespace
 - Soft, rounded corners
 - Subtle hover states
@@ -296,6 +330,7 @@ Dark theme shifts:
 **Name:** Kuuki Cloud
 
 **Usage:**
+
 - Empty states
 - Onboarding flows
 - Achievement unlocks

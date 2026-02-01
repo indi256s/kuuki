@@ -10,6 +10,7 @@ import { RecentFlights } from '@/components/dashboard/RecentFlights'
 import { RouteMap } from '@/components/map/RouteMap'
 import { FlightForm } from '@/components/flights/FlightForm'
 import { EmptyState } from '@/components/dashboard/EmptyState'
+import { ThemeToggle } from '@/components/common/ThemeToggle'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -83,6 +84,8 @@ export function DashboardPage() {
                 <span className="hidden sm:inline">{t('flights.addFlight', 'Add Flight')}</span>
               </Button>
             )}
+
+            <ThemeToggle />
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
