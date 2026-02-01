@@ -17,12 +17,18 @@ const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10 MB
 
 // Helper to clean messy text using Gemini (Stage 1 of two-stage parsing)
 async function cleanTextWithGemini(ai: GoogleGenAI, rawText: string): Promise<string> {
-  const response = await ai.models.generateContent({
-    model: 'gemini-3.0-flash',
-    contents: [CLEANING_PROMPT, `\n\nRaw data to clean:\n${rawText}`],
-  })
+  try {
+    const response = await ai.models.generateContent({
+      model: 'gemini-3.0-flash',
+      contents: `${CLEANING_PROMPT}\n\nRaw data to clean:\n${rawText}`,
+    })
 
-  return response.text || ''
+    return response.text || ''
+  } catch (error) {
+    console.error('Stage 1 (cleaning) error:', error)
+    // Return empty to fall back to original text
+    return ''
+  }
 }
 
 // JSON schema for structured output
