@@ -1,10 +1,10 @@
+import { GoogleGenAI, Type } from '@google/genai'
 import {
   type ParseRequest,
   type ParseResponse,
   type ExtractedFlight,
   detectImageMimeType,
   EXTRACTION_PROMPT,
-  FLIGHT_SCHEMA,
 } from './_shared'
 
 interface Env {
@@ -12,6 +12,63 @@ interface Env {
 }
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10 MB
+
+// JSON schema for structured output
+const FLIGHT_RESPONSE_SCHEMA = {
+  type: Type.OBJECT,
+  properties: {
+    flights: {
+      type: Type.ARRAY,
+      items: {
+        type: Type.OBJECT,
+        properties: {
+          date: {
+            type: Type.STRING,
+            description: 'Flight date in YYYY-MM-DD format',
+          },
+          origin: {
+            type: Type.STRING,
+            description: '3-letter IATA airport code for departure',
+          },
+          destination: {
+            type: Type.STRING,
+            description: '3-letter IATA airport code for arrival',
+          },
+          airline_iata: {
+            type: Type.STRING,
+            description: '2-letter IATA airline code',
+          },
+          flight_number: {
+            type: Type.STRING,
+            description: 'Flight number (digits only)',
+          },
+          aircraft_icao: {
+            type: Type.STRING,
+            description: '4-letter ICAO aircraft type code',
+          },
+          departure_time: {
+            type: Type.STRING,
+            description: 'Departure time in HH:mm format',
+          },
+          arrival_time: {
+            type: Type.STRING,
+            description: 'Arrival time in HH:mm format',
+          },
+          confidence: {
+            type: Type.NUMBER,
+            description: 'Overall confidence score 0-1',
+          },
+        },
+        required: ['date', 'origin', 'destination', 'airline_iata', 'confidence'],
+      },
+    },
+    raw_text: {
+      type: Type.STRING,
+      description: 'Extracted text from the document',
+    },
+  },
+  required: ['flights'],
+}
 
 export const onRequestPost: PagesFunction<Env> = async (context) => {
   // CORS headers
@@ -65,73 +122,37 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
       }
     }
 
-    // Build Gemini API request
-    const parts: Array<{ text: string } | { inline_data: { mime_type: string; data: string } }> = []
+    // Initialize Google GenAI client
+    const ai = new GoogleGenAI({ apiKey: context.env.GEMINI_API_KEY })
 
-    // Add the extraction prompt first
-    parts.push({ text: EXTRACTION_PROMPT })
+    // Build content parts for the request
+    type ContentPart = string | { inlineData: { data: string; mimeType: string } }
+    const contents: ContentPart[] = [EXTRACTION_PROMPT]
 
-    // Add content based on type
     if (type === 'text') {
-      parts.push({ text: `\n\nDocument content:\n${content}` })
+      contents.push(`\n\nDocument content:\n${content}`)
     } else {
       const mimeType = type === 'pdf' ? 'application/pdf' : detectImageMimeType(content)
-      parts.push({
-        inline_data: {
-          mime_type: mimeType,
+      contents.push({
+        inlineData: {
           data: content,
+          mimeType,
         },
       })
     }
 
-    // Call Gemini API
-    const geminiResponse = await fetch(
-      'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.0-flash:generateContent',
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-goog-api-key': context.env.GEMINI_API_KEY,
-        },
-        body: JSON.stringify({
-          contents: [{ parts }],
-          generationConfig: {
-            responseMimeType: 'application/json',
-            responseSchema: FLIGHT_SCHEMA,
-          },
-        }),
-      }
-    )
-
-    if (!geminiResponse.ok) {
-      const errorText = await geminiResponse.text()
-      console.error('Gemini API error:', errorText)
-      return Response.json(
-        { error: 'Failed to process document', flights: [] } as ParseResponse,
-        { status: 502, headers: corsHeaders }
-      )
-    }
-
-    const geminiResult = await geminiResponse.json() as {
-      candidates?: Array<{
-        content?: {
-          parts?: Array<{ text?: string }>
-        }
-      }>
-      error?: { message: string }
-    }
-
-    // Check for API error
-    if (geminiResult.error) {
-      console.error('Gemini error:', geminiResult.error)
-      return Response.json(
-        { error: geminiResult.error.message, flights: [] } as ParseResponse,
-        { status: 502, headers: corsHeaders }
-      )
-    }
+    // Call Gemini API using the official SDK
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.0-flash',
+      contents,
+      config: {
+        responseMimeType: 'application/json',
+        responseSchema: FLIGHT_RESPONSE_SCHEMA,
+      },
+    })
 
     // Extract response text
-    const responseText = geminiResult.candidates?.[0]?.content?.parts?.[0]?.text
+    const responseText = response.text
     if (!responseText) {
       return Response.json(
         { error: 'No response from AI model', flights: [] } as ParseResponse,
