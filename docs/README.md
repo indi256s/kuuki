@@ -19,7 +19,9 @@
 
 **Phase 2 (Core Flights):** ✅ Complete - flight CRUD, dashboard with stats, route map, autocomplete.
 
-**Next:** Phase 3 (AI Import) - Gemini proxy, upload UI, import review.
+**Phase 3 (AI Import):** ✅ Complete - Gemini proxy, smart context-aware upload UI, import review.
+
+**Next:** Phase 4 (Social) - public profiles, leaderboards, badges.
 
 ## Project Structure (Key Paths)
 
@@ -30,6 +32,7 @@ kuuki/
 │   │   ├── auth/           # SignInForm, SignUpForm
 │   │   ├── dashboard/      # StatsCards, RecentFlights, EmptyState
 │   │   ├── flights/        # FlightForm, FlightList, FlightCard, FlightTable, Autocompletes
+│   │   ├── import/         # ImportUpload (smart mode), ImportReview, FlightEditRow
 │   │   ├── landing/        # HeroSection, FeatureGrid
 │   │   ├── map/            # RouteMap (SVG visualization)
 │   │   └── onboarding/     # ShowcaseModal, UsernamePicker, ImportCTA

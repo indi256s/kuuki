@@ -49,6 +49,12 @@ Flight CRUD with form modal, future flights with countdown, dashboard with stats
 
 Cloudflare Pages Function proxy for Gemini 3.0 Flash, drag-drop/paste upload, WindLoader animation, review with inline editing and confidence colors, duplicate detection.
 
+**Enhancement (v2):** Smart context-aware Import flow
+- New users: Text mode with Gemini prompt helper always visible (bulk import from Gmail/Calendar)
+- Returning users: File upload mode (quick boarding pass scans)
+- Auto mode switching when pasting text
+- Drag-drop works in both modes
+
 → [tasks/phase-3-ai-import.md](./tasks/phase-3-ai-import.md)
 
 ### Phase 4: Social

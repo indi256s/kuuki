@@ -1,6 +1,6 @@
 # Phase 3: AI Import
 
-**Status:** Pending
+**Status:** ✅ Complete
 **Depends on:** Phase 2 complete
 
 ## Tasks
@@ -30,19 +30,48 @@
 **Input types:**
 - PDF (boarding passes, itineraries)
 - Screenshots (PNG, JPG)
-- Plain text (copy-pasted flight info)
+- Plain text (copy-pasted flight info, Gemini output)
 
-**Features:**
-- Drag-drop zone
-- Paste support (Ctrl+V for images/text)
-- Preview before parsing
-- File size/type validation
+**Smart Context Detection (v2):**
+
+The Import UI adapts based on user context:
+
+| User Type | Default Mode | Primary Action |
+|-----------|--------------|----------------|
+| New user (no flights) | Text mode | Bulk import via Gemini prompt |
+| Returning user (has flights) | File mode | Quick boarding pass scan |
+
+**Text Mode Features:**
+- Gemini prompt helper always visible (not collapsed)
+- "Copy" button for the optimized prompt
+- Large textarea for pasting results
+- Auto-switch from file mode when text is pasted
+- Drag-drop files still works (shows overlay)
+
+**File Mode Features:**
+- Camera icon dropzone for boarding passes
+- Ctrl+V paste support for screenshots
+- "Or paste text" link to switch modes
+
+**Gemini Prompt (optimized for bulk extraction):**
+```
+@Gmail @Google Calendar Search for all flight bookings, boarding passes, itineraries, and travel confirmations.
+
+For each flight, try to find (include only what you can find):
+- Date (any format is fine)
+- Origin and destination airports (city names or airport codes)
+- Airline name or code
+- Flight number (if available)
+- Departure/arrival times (if available)
+
+Format: one flight per line, include whatever info you found.
+```
 
 **Loading feedback:**
 1. "Reading file..."
 2. "Extracting text..."
 3. "Finding flights..."
-- Animated plane + progress steps
+- WindLoader animation with phase indicators
 
 ### Import Review
 
