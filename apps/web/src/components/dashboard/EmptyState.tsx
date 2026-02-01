@@ -1,4 +1,5 @@
 import { useTranslation } from 'react-i18next'
+import { Link } from 'react-router-dom'
 import { sampleStats, sampleFlights, formatDistance, formatDuration } from '@/lib/sampleData'
 
 interface EmptyStateProps {
@@ -78,12 +79,24 @@ export function EmptyState({ onAddFlight }: EmptyStateProps) {
             {t('emptyState.description')}
           </p>
 
-          <button
-            onClick={onAddFlight}
-            className="px-6 py-3 bg-runway text-ink-inverse rounded-lg hover:bg-runway-hover transition-colors focus-ring font-medium"
-          >
-            {t('emptyState.addFlight')}
-          </button>
+          <div className="flex flex-col items-center gap-3">
+            <button
+              onClick={onAddFlight}
+              className="px-6 py-3 bg-runway text-ink-inverse rounded-lg hover:bg-runway-hover transition-colors focus-ring font-medium"
+            >
+              {t('emptyState.addFlight')}
+            </button>
+
+            <Link to="/import" className="text-sm text-runway hover:text-runway-hover transition-colors">
+              {t('emptyState.orImport', 'or import from document')}
+            </Link>
+          </div>
+
+          <div className="mt-6 p-3 bg-sky-sunken/50 rounded-lg">
+            <p className="text-xs text-ink-muted">
+              {t('emptyState.geminiTip', 'Have flight emails? Ask Google Gemini to search your Gmail and paste the results.')}
+            </p>
+          </div>
         </div>
       </div>
     </div>

@@ -1,6 +1,24 @@
 import { useState, useRef, useCallback, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 
+const GEMINI_PROMPT = `@Gmail @Google Calendar Search for all flight bookings, boarding passes, itineraries, and travel confirmations.
+
+For each flight, try to find (include only what you can find):
+- Date (any format is fine)
+- Origin and destination airports (city names or airport codes)
+- Airline name or code
+- Flight number (if available)
+- Departure/arrival times (if available)
+
+Format: one flight per line, include whatever info you found.
+
+Example outputs:
+2024-03-15 | JFK → LAX | American Airlines 123 | 08:30-11:45
+2024-03-20 | Los Angeles to New York | Delta
+March 25 | SVO-LED | Aeroflot
+
+List ALL flights. Partial info is OK - just include what's available.`
+
 interface ImportUploadProps {
   onSubmit: (data: { type: 'pdf' | 'image' | 'text'; content: string }) => void
   disabled?: boolean
@@ -21,7 +39,27 @@ export function ImportUpload({ onSubmit, disabled }: ImportUploadProps) {
   const [error, setError] = useState<string | null>(null)
   const [textInput, setTextInput] = useState('')
   const [showTextInput, setShowTextInput] = useState(false)
+  const [showTip, setShowTip] = useState(false)
+  const [showCopiedToast, setShowCopiedToast] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
+
+  const copyPrompt = useCallback(async () => {
+    try {
+      await navigator.clipboard.writeText(GEMINI_PROMPT)
+      setShowCopiedToast(true)
+      setTimeout(() => setShowCopiedToast(false), 2000)
+    } catch {
+      // Fallback for older browsers
+      const textarea = document.createElement('textarea')
+      textarea.value = GEMINI_PROMPT
+      document.body.appendChild(textarea)
+      textarea.select()
+      document.execCommand('copy')
+      document.body.removeChild(textarea)
+      setShowCopiedToast(true)
+      setTimeout(() => setShowCopiedToast(false), 2000)
+    }
+  }, [])
 
   // Handle paste events for images and text
   useEffect(() => {
@@ -249,7 +287,7 @@ export function ImportUpload({ onSubmit, disabled }: ImportUploadProps) {
           value={textInput}
           onChange={(e) => setTextInput(e.target.value)}
           placeholder={t('import.upload.textPlaceholder', 'Paste booking confirmation, itinerary, or flight details here...')}
-          className="w-full h-40 px-4 py-3 border border-edge-strong rounded-lg bg-sky-raised focus:outline-none focus:ring-2 focus:ring-runway resize-none text-sm"
+          className="w-full h-56 px-4 py-3 border border-edge-strong rounded-lg bg-sky-raised focus:outline-none focus:ring-2 focus:ring-runway resize-y text-sm font-mono"
           disabled={disabled}
           autoFocus
         />
@@ -259,6 +297,66 @@ export function ImportUpload({ onSubmit, disabled }: ImportUploadProps) {
             {error}
           </div>
         )}
+
+        {/* Gemini Tip Section */}
+        <div className="p-4 bg-sky-sunken rounded-lg">
+          <button
+            onClick={() => setShowTip(!showTip)}
+            className="flex items-center gap-2 text-sm font-medium text-ink w-full text-left"
+          >
+            <svg className="w-4 h-4 text-runway" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+            </svg>
+            {t('import.tip.title', 'Tip: Use Google Gemini to find your flights')}
+            <svg
+              className={`w-4 h-4 ml-auto transition-transform ${showTip ? 'rotate-180' : ''}`}
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+
+          {showTip && (
+            <div className="mt-3 space-y-3">
+              <p className="text-sm text-ink-muted">
+                {t('import.tip.description', 'Ask Gemini to search your Gmail or Calendar for flight bookings, then paste the result here.')}
+              </p>
+
+              <div className="relative">
+                <pre className="text-xs bg-sky-raised p-3 rounded border border-edge overflow-x-auto whitespace-pre-wrap font-mono text-ink-muted">
+                  {GEMINI_PROMPT}
+                </pre>
+                <button
+                  onClick={copyPrompt}
+                  className="absolute top-2 right-2 p-1.5 bg-sky-raised border border-edge rounded hover:bg-sky-sunken transition-colors"
+                  title="Copy to clipboard"
+                >
+                  {showCopiedToast ? (
+                    <svg className="w-4 h-4 text-runway" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                  ) : (
+                    <svg className="w-4 h-4 text-ink-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                    </svg>
+                  )}
+                </button>
+              </div>
+
+              {showCopiedToast && (
+                <p className="text-xs text-runway font-medium">
+                  {t('import.tip.copied', 'Copied to clipboard!')}
+                </p>
+              )}
+
+              <p className="text-xs text-ink-faint">
+                {t('import.tip.hint', 'Use with @Gmail and @Google Calendar in Google Gemini')}
+              </p>
+            </div>
+          )}
+        </div>
 
         <div className="flex gap-2">
           <button

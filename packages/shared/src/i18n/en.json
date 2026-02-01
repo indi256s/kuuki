@@ -226,6 +226,12 @@
       "fileTooLarge": "File too large. Maximum size is 10 MB.",
       "readError": "Failed to read file."
     },
+    "tip": {
+      "title": "Tip: Use Google Gemini to find your flights",
+      "description": "Ask Gemini to search your Gmail or Calendar for flight bookings, then paste the result here.",
+      "hint": "Use with @Gmail and @Google Calendar in Google Gemini",
+      "copied": "Copied to clipboard!"
+    },
     "parsing": {
       "reading": "Reading file...",
       "extracting": "Extracting text...",
@@ -354,6 +360,8 @@
     "subtitle": "This could be your dashboard",
     "description": "Start logging flights to see your stats come to life.",
     "addFlight": "Add Your First Flight",
-    "sampleLabel": "Sample Data"
+    "sampleLabel": "Sample Data",
+    "orImport": "or import from document",
+    "geminiTip": "Have flight emails? Ask Google Gemini to search your Gmail and paste the results."
   }
 }
