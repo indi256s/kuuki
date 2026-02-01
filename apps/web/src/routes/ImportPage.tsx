@@ -254,6 +254,7 @@ export function ImportPage() {
             <ImportUpload
               onSubmit={handleUploadSubmit}
               disabled={parseMutation.isPending}
+              hasExistingFlights={(existingFlightsData?.pages[0]?.flights.length ?? 0) > 0}
             />
           )}
 

@@ -19,7 +19,8 @@
     "loadMore": "Load more",
     "viewAll": "View all",
     "close": "Close",
-    "actions": "Actions"
+    "actions": "Actions",
+    "copy": "Copy"
   },
   "auth": {
     "signIn": "Sign in",
@@ -227,11 +228,16 @@
       "readError": "Failed to read file."
     },
     "tip": {
-      "title": "Tip: Use Google Gemini to find your flights",
-      "description": "Ask Gemini to search your Gmail or Calendar for flight bookings, then paste the result here.",
+      "title": "Use Google Gemini to find your flights",
+      "description": "Copy this prompt to Gemini, then paste the results below.",
       "hint": "Use with @Gmail and @Google Calendar in Google Gemini",
-      "copied": "Copied to clipboard!"
+      "copied": "Copied!"
     },
+    "dropFile": "Drop file here",
+    "dropzoneFile": "Upload boarding pass or itinerary",
+    "orUploadFile": "Or upload a file",
+    "pasteImage": "to paste from clipboard",
+    "parseFlights": "Parse Flights",
     "parsing": {
       "reading": "Reading file...",
       "extracting": "Extracting text...",
