@@ -14,7 +14,7 @@ import { findAirport, findAircraft } from '@kuuki/data'
 import { calculateFlightDistance, estimateFlightDuration } from '@/lib/geo'
 
 type ImportStep = 'upload' | 'parsing' | 'review' | 'saving' | 'success'
-type ParsingPhase = 'reading' | 'cleaning' | 'extracting' | 'validating'
+type ParsingPhase = 'cleaning' | 'extracting'
 type InputType = 'text' | 'pdf' | 'image'
 
 export function ImportPage() {
@@ -50,27 +50,11 @@ export function ImportPage() {
     })
   })
 
-  // Simulate parsing phases for better UX (different phases for text vs binary)
+  // Show parsing phase - just one phase since it's a single API call
   useEffect(() => {
     if (step !== 'parsing') return
-
-    // Text input: cleaning → extracting → validating (two-stage)
-    // Binary input: reading → extracting → validating (single-stage)
-    const phases: ParsingPhase[] = inputType === 'text'
-      ? ['cleaning', 'extracting', 'validating']
-      : ['reading', 'extracting', 'validating']
-
-    let currentIndex = 0
-    setParsingPhase(phases[0])
-
-    const interval = setInterval(() => {
-      currentIndex++
-      if (currentIndex < phases.length) {
-        setParsingPhase(phases[currentIndex])
-      }
-    }, 1500)
-
-    return () => clearInterval(interval)
+    // Text: two-stage (cleaning first), Binary: single-stage (extracting)
+    setParsingPhase(inputType === 'text' ? 'cleaning' : 'extracting')
   }, [step, inputType])
 
   // Auto-submit text content if passed from EmptyState
@@ -299,16 +283,12 @@ export function ImportPage() {
             <div className="py-8 flex flex-col items-center">
               <WindLoader step={parsingPhase} size="lg" hideMessage />
               <p className="mt-4 text-center text-ink font-medium">
-                {parsingPhase === 'cleaning' && t('import.parsing.cleaning', 'Cleaning up your data...')}
-                {parsingPhase === 'reading' && t('import.parsing.reading', 'Reading document...')}
-                {parsingPhase === 'extracting' && t('import.parsing.extracting', 'Extracting flights...')}
-                {parsingPhase === 'validating' && t('import.parsing.validating', 'Validating flight codes...')}
+                {inputType === 'text'
+                  ? t('import.parsing.analyzingText', 'Analyzing your flight data...')
+                  : t('import.parsing.analyzingDocument', 'Reading your document...')}
               </p>
               <p className="mt-1 text-center text-ink-muted text-sm">
-                {parsingPhase === 'cleaning' && t('import.parsing.cleaningHint', 'Normalizing dates, codes, and formats')}
-                {parsingPhase === 'reading' && t('import.parsing.readingHint', 'Analyzing your document')}
-                {parsingPhase === 'extracting' && t('import.parsing.extractingHint', 'Finding flight information')}
-                {parsingPhase === 'validating' && t('import.parsing.validatingHint', 'Checking airport and airline codes')}
+                {t('import.parsing.aiHint', 'AI is extracting flight details. This may take 10-20 seconds.')}
               </p>
             </div>
           )}
