@@ -1,5 +1,8 @@
 import { useState, useMemo, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Card, CardContent } from '@/components/ui/card'
 
 interface UsernamePickerProps {
   initialValue?: string
@@ -92,10 +95,10 @@ export function UsernamePicker({ initialValue = '', onSubmit }: UsernamePickerPr
   return (
     <div className="w-full max-w-md mx-auto">
       <div className="text-center mb-8">
-        <h1 className="text-2xl font-semibold text-ink mb-2">
+        <h1 className="text-2xl font-semibold tracking-tight mb-2">
           {t('onboarding.username.title')}
         </h1>
-        <p className="text-ink-muted">
+        <p className="text-muted-foreground">
           {t('onboarding.username.subtitle')}
         </p>
       </div>
@@ -106,7 +109,7 @@ export function UsernamePicker({ initialValue = '', onSubmit }: UsernamePickerPr
           <label htmlFor="username" className="sr-only">
             {t('profile.username')}
           </label>
-          <input
+          <Input
             id="username"
             type="text"
             value={rawInput}
@@ -114,14 +117,12 @@ export function UsernamePicker({ initialValue = '', onSubmit }: UsernamePickerPr
             placeholder={t('onboarding.username.placeholder')}
             autoFocus
             autoComplete="username"
-            className={`w-full px-4 py-3 bg-sky-raised border rounded-lg text-ink placeholder:text-ink-faint focus-ring ${
-              hasError ? 'border-emergency' : 'border-edge'
-            }`}
+            className={hasError ? 'border-destructive' : ''}
           />
 
           {/* Error message */}
           {hasError && (
-            <p className="mt-2 text-sm text-emergency">
+            <p className="mt-2 text-sm text-destructive">
               {validationError || serverError}
             </p>
           )}
@@ -129,31 +130,33 @@ export function UsernamePicker({ initialValue = '', onSubmit }: UsernamePickerPr
 
         {/* Preview */}
         {normalizedUsername && !validationError && (
-          <div className="bg-sky-sunken border border-edge rounded-lg p-4">
-            <p className="text-sm text-ink-muted mb-1">
-              {t('onboarding.username.preview')}
-            </p>
-            <p className="font-mono text-ink">
-              kuuki.app/@{normalizedUsername}
-            </p>
-          </div>
+          <Card className="border-border/50 bg-muted/50">
+            <CardContent className="p-4">
+              <p className="text-sm text-muted-foreground mb-1">
+                {t('onboarding.username.preview')}
+              </p>
+              <p className="font-mono">
+                kuuki.app/@{normalizedUsername}
+              </p>
+            </CardContent>
+          </Card>
         )}
 
         {/* Live normalization preview */}
         {rawInput && normalizedUsername !== rawInput.toLowerCase().trim() && (
-          <p className="text-sm text-ink-muted">
-            Will be saved as: <span className="font-mono text-ink">{normalizedUsername}</span>
+          <p className="text-sm text-muted-foreground">
+            Will be saved as: <span className="font-mono">{normalizedUsername}</span>
           </p>
         )}
 
         {/* Submit button */}
-        <button
+        <Button
           type="submit"
           disabled={!canSubmit}
-          className="w-full px-4 py-3 bg-runway text-ink-inverse rounded-lg hover:bg-runway-hover transition-colors focus-ring font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full"
         >
           {isSubmitting ? t('common.loading') : t('onboarding.username.continue')}
-        </button>
+        </Button>
       </form>
     </div>
   )

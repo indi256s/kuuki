@@ -1,11 +1,13 @@
 import { useState, useCallback } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '@/hooks/useAuth'
 import { useLanguage } from '@/hooks/useLanguage'
 import { UsernamePicker } from '@/components/onboarding/UsernamePicker'
 import { ImportCTA } from '@/components/onboarding/ImportCTA'
 import { updateProfile } from '@/lib/auth'
+import { Button } from '@/components/ui/button'
+import { Plane, Languages } from 'lucide-react'
 
 type OnboardingStep = 'username' | 'import'
 
@@ -38,12 +40,10 @@ export function OnboardingPage() {
   )
 
   const handleImport = useCallback(() => {
-    // Navigate to import page (to be implemented)
-    navigate('/dashboard')
+    navigate('/import')
   }, [navigate])
 
   const handleManual = useCallback(() => {
-    // Navigate to add flight page (to be implemented)
     navigate('/dashboard')
   }, [navigate])
 
@@ -52,45 +52,50 @@ export function OnboardingPage() {
   }, [navigate])
 
   return (
-    <div className="min-h-screen bg-sky flex flex-col">
+    <div className="min-h-screen bg-gradient-soft flex flex-col">
       {/* Header */}
-      <header className="p-4 flex justify-between items-center">
-        <div className="text-xl font-semibold text-ink">
-          {t('common.appName')}
-        </div>
-        <button
-          onClick={toggleLanguage}
-          className="text-sm text-ink-muted hover:text-ink transition-colors focus-ring rounded px-2 py-1"
-        >
+      <header className="px-6 py-4 flex justify-between items-center">
+        <Link to="/" className="flex items-center gap-2 group">
+          <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+            <Plane className="w-4 h-4 text-primary" strokeWidth={2} />
+          </div>
+          <span className="text-lg font-semibold tracking-tight">
+            {t('common.appName')}
+          </span>
+        </Link>
+        <Button variant="ghost" size="sm" onClick={toggleLanguage} className="gap-2">
+          <Languages className="w-4 h-4" />
           {currentLanguage === 'en' ? 'RU' : 'EN'}
-        </button>
+        </Button>
       </header>
 
       {/* Main content */}
       <main className="flex-1 flex items-center justify-center p-4">
-        {step === 'username' && (
-          <UsernamePicker onSubmit={handleUsernameSubmit} />
-        )}
-        {step === 'import' && (
-          <ImportCTA
-            onImport={handleImport}
-            onManual={handleManual}
-            onSkip={handleSkip}
-          />
-        )}
+        <div className="animate-fade-up">
+          {step === 'username' && (
+            <UsernamePicker onSubmit={handleUsernameSubmit} />
+          )}
+          {step === 'import' && (
+            <ImportCTA
+              onImport={handleImport}
+              onManual={handleManual}
+              onSkip={handleSkip}
+            />
+          )}
+        </div>
       </main>
 
       {/* Step indicator */}
       <footer className="p-4">
         <div className="flex justify-center gap-2">
           <div
-            className={`w-2 h-2 rounded-full ${
-              step === 'username' ? 'bg-runway' : 'bg-edge-strong'
+            className={`w-2 h-2 rounded-full transition-colors ${
+              step === 'username' ? 'bg-primary' : 'bg-border'
             }`}
           />
           <div
-            className={`w-2 h-2 rounded-full ${
-              step === 'import' ? 'bg-runway' : 'bg-edge-strong'
+            className={`w-2 h-2 rounded-full transition-colors ${
+              step === 'import' ? 'bg-primary' : 'bg-border'
             }`}
           />
         </div>

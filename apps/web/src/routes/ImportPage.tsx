@@ -1,17 +1,19 @@
 import { useState, useCallback, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link, useNavigate, useLocation } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
-import { useAuth } from '@/hooks/useAuth'
-import { useLanguage } from '@/hooks/useLanguage'
 import { useCreateFlight, useFlights } from '@/hooks/useFlights'
 import { useParseImport, type ExtractedFlight, type RejectedFlight } from '@/hooks/useImport'
+import { AppHeader } from '@/components/common/AppHeader'
 import { ImportUpload } from '@/components/import/ImportUpload'
 import { ImportReview } from '@/components/import/ImportReview'
 import { WindLoader } from '@/components/common/WindLoader'
 import { FlightForm } from '@/components/flights/FlightForm'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
 import { findAirport, findAircraft } from '@kuuki/data'
 import { calculateFlightDistance, estimateFlightDuration } from '@/lib/geo'
+import { Check, Plane, ArrowRight } from 'lucide-react'
 
 type ImportStep = 'upload' | 'parsing' | 'review' | 'saving' | 'success'
 type ParsingPhase = 'cleaning' | 'extracting'
@@ -22,8 +24,6 @@ export function ImportPage() {
   const navigate = useNavigate()
   const location = useLocation()
   const queryClient = useQueryClient()
-  const { signOut } = useAuth()
-  const { currentLanguage, toggleLanguage } = useLanguage()
 
   // Check for text content passed from EmptyState
   const initialTextContent = (location.state as { textContent?: string } | null)?.textContent
@@ -177,90 +177,58 @@ export function ImportPage() {
     parseMutation.reset()
   }, [parseMutation])
 
+  // Progress steps for stepper
+  const steps = [
+    { key: 'upload', label: t('import.steps.upload', 'Upload') },
+    { key: 'parsing', label: t('import.steps.parsing', 'Parse') },
+    { key: 'review', label: t('import.steps.review', 'Review') },
+    { key: 'saving', label: t('import.steps.save', 'Save') },
+  ]
+
+  const currentStepIndex = steps.findIndex(s => s.key === step)
+
   return (
-    <div className="min-h-screen bg-sky">
-      {/* Header */}
-      <header className="bg-sky-raised border-b border-edge">
-        <div className="max-w-3xl mx-auto px-4 py-3 flex justify-between items-center">
-          <div className="flex items-center gap-6">
-            <Link to="/dashboard" className="text-xl font-semibold text-ink">
-              {t('common.appName')}
-            </Link>
-            <nav className="flex items-center gap-4">
-              <Link
-                to="/dashboard"
-                className="text-sm text-ink-muted hover:text-ink transition-colors"
-              >
-                {t('nav.dashboard', 'Dashboard')}
-              </Link>
-              <Link
-                to="/flights"
-                className="text-sm text-ink-muted hover:text-ink transition-colors"
-              >
-                {t('nav.flights', 'Flights')}
-              </Link>
-              <span className="text-sm text-runway font-medium">
-                {t('nav.import', 'Import')}
-              </span>
-            </nav>
-          </div>
-          <div className="flex items-center gap-4">
-            <button
-              onClick={toggleLanguage}
-              className="text-sm text-ink-muted hover:text-ink transition-colors"
-            >
-              {currentLanguage === 'en' ? 'RU' : 'EN'}
-            </button>
-            <button
-              onClick={signOut}
-              className="text-sm text-ink-muted hover:text-ink transition-colors"
-            >
-              {t('auth.signOut')}
-            </button>
-          </div>
-        </div>
-      </header>
+    <div className="min-h-screen bg-gradient-soft">
+      <AppHeader />
 
       {/* Main content */}
-      <main className="max-w-3xl mx-auto px-4 py-8">
+      <main className="max-w-3xl mx-auto px-6 py-8">
         {/* Page header */}
-        <div className="mb-8">
-          <h1 className="text-2xl font-semibold text-ink">
+        <div className="mb-8 animate-fade-up">
+          <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">
             {t('import.title', 'Import Flights')}
           </h1>
-          <p className="text-ink-muted mt-1">
+          <p className="text-muted-foreground mt-1">
             {t('import.description', 'Upload a photo of your boarding pass or paste flight details')}
           </p>
         </div>
 
         {/* Progress indicator */}
         {step !== 'upload' && step !== 'success' && (
-          <div className="mb-8">
+          <div className="mb-8 animate-fade-up" style={{ animationDelay: '50ms' }}>
             <div className="flex items-center gap-2">
-              {['upload', 'parsing', 'review', 'saving'].map((s, i) => (
-                <div key={s} className="flex items-center">
+              {steps.map((s, i) => (
+                <div key={s.key} className="flex items-center">
                   <div
-                    className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
-                      step === s
-                        ? 'bg-runway text-ink-inverse'
-                        : ['parsing', 'review', 'saving'].indexOf(step) > i
-                        ? 'bg-cleared text-ink-inverse'
-                        : 'bg-sky-sunken text-ink-muted'
+                    className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors ${
+                      step === s.key
+                        ? 'bg-primary text-primary-foreground'
+                        : currentStepIndex > i
+                        ? 'bg-success text-primary-foreground'
+                        : 'bg-muted text-muted-foreground'
                     }`}
                   >
-                    {['parsing', 'review', 'saving'].indexOf(step) > i ? (
-                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                      </svg>
+                    {currentStepIndex > i ? (
+                      <Check className="w-4 h-4" />
                     ) : (
                       i + 1
                     )}
                   </div>
-                  {i < 3 && (
-                    <div className={`w-12 h-0.5 ${
-                      ['parsing', 'review', 'saving'].indexOf(step) > i
-                        ? 'bg-cleared'
-                        : 'bg-sky-sunken'
+                  {i < steps.length - 1 && (
+                    <div className={`w-12 h-0.5 transition-colors ${
+                      currentStepIndex > i
+                        ? 'bg-success'
+                        : 'bg-muted'
                     }`} />
                   )}
                 </div>
@@ -270,89 +238,81 @@ export function ImportPage() {
         )}
 
         {/* Step content */}
-        <div className="bg-sky-raised rounded-xl border border-edge p-6">
-          {step === 'upload' && (
-            <ImportUpload
-              onSubmit={handleUploadSubmit}
-              disabled={parseMutation.isPending}
-              hasExistingFlights={(existingFlightsData?.pages[0]?.flights.length ?? 0) > 0}
-            />
-          )}
+        <Card className="border-border/50 animate-fade-up" style={{ animationDelay: '100ms' }}>
+          <CardContent className="p-6">
+            {step === 'upload' && (
+              <ImportUpload
+                onSubmit={handleUploadSubmit}
+                disabled={parseMutation.isPending}
+                hasExistingFlights={(existingFlightsData?.pages[0]?.flights.length ?? 0) > 0}
+              />
+            )}
 
-          {step === 'parsing' && (
-            <div className="py-8 flex flex-col items-center">
-              <WindLoader step={parsingPhase} size="lg" hideMessage />
-              <p className="mt-4 text-center text-ink font-medium">
-                {inputType === 'text'
-                  ? t('import.parsing.analyzingText', 'Analyzing your flight data...')
-                  : t('import.parsing.analyzingDocument', 'Reading your document...')}
-              </p>
-              <p className="mt-1 text-center text-ink-muted text-sm">
-                {t('import.parsing.aiHint', 'AI is extracting flight details. This may take 10-20 seconds.')}
-              </p>
-            </div>
-          )}
-
-          {step === 'review' && (
-            <ImportReview
-              flights={extractedFlights}
-              existingRoutes={existingRoutes}
-              onSave={handleSaveFlights}
-              onCancel={handleCancel}
-              onManualAdd={handleManualAdd}
-              rejected={rejectedFlights}
-              geminiCount={geminiCount}
-              cleanedText={cleanedText}
-            />
-          )}
-
-          {step === 'saving' && (
-            <div className="py-8 flex flex-col items-center">
-              <div className="w-16 h-16 mb-4">
-                <svg className="w-full h-full animate-spin text-runway" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                </svg>
+            {step === 'parsing' && (
+              <div className="py-8 flex flex-col items-center">
+                <WindLoader step={parsingPhase} size="lg" hideMessage />
+                <p className="mt-4 text-center font-medium">
+                  {inputType === 'text'
+                    ? t('import.parsing.analyzingText', 'Analyzing your flight data...')
+                    : t('import.parsing.analyzingDocument', 'Reading your document...')}
+                </p>
+                <p className="mt-1 text-center text-muted-foreground text-sm">
+                  {t('import.parsing.aiHint', 'AI is extracting flight details. This may take 10-20 seconds.')}
+                </p>
               </div>
-              <p className="text-ink font-medium">
-                {t('import.saving.progress', 'Saving flight {{current}} of {{total}}...', {
-                  current: savedCount + 1,
-                  total: extractedFlights.filter((_, i) => i < savedCount || i === savedCount).length || extractedFlights.length,
-                })}
-              </p>
-            </div>
-          )}
+            )}
 
-          {step === 'success' && (
-            <div className="py-8 text-center">
-              <div className="w-16 h-16 mx-auto mb-4 bg-cleared-muted rounded-full flex items-center justify-center">
-                <svg className="w-8 h-8 text-cleared" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
+            {step === 'review' && (
+              <ImportReview
+                flights={extractedFlights}
+                existingRoutes={existingRoutes}
+                onSave={handleSaveFlights}
+                onCancel={handleCancel}
+                onManualAdd={handleManualAdd}
+                rejected={rejectedFlights}
+                geminiCount={geminiCount}
+                cleanedText={cleanedText}
+              />
+            )}
+
+            {step === 'saving' && (
+              <div className="py-8 flex flex-col items-center">
+                <div className="w-16 h-16 mb-4">
+                  <Plane className="w-full h-full text-primary animate-pulse" />
+                </div>
+                <p className="font-medium">
+                  {t('import.saving.progress', 'Saving flight {{current}} of {{total}}...', {
+                    current: savedCount + 1,
+                    total: extractedFlights.filter((_, i) => i < savedCount || i === savedCount).length || extractedFlights.length,
+                  })}
+                </p>
               </div>
-              <h3 className="text-xl font-semibold text-ink mb-2">
-                {t('import.success.title', 'Flights imported!')}
-              </h3>
-              <p className="text-ink-muted mb-6">
-                {t('import.success.count', '{{count}} flight(s) added to your log', { count: savedCount })}
-              </p>
-              <div className="flex justify-center gap-3">
-                <button
-                  onClick={handleImportMore}
-                  className="px-4 py-2 border border-edge-strong rounded-lg text-ink-muted hover:bg-sky-sunken transition-colors"
-                >
-                  {t('import.success.importMore', 'Import more')}
-                </button>
-                <button
-                  onClick={handleGoToFlights}
-                  className="px-4 py-2 bg-runway text-ink-inverse rounded-lg hover:bg-runway-hover transition-colors font-medium"
-                >
-                  {t('import.success.viewFlights', 'View flights')}
-                </button>
+            )}
+
+            {step === 'success' && (
+              <div className="py-8 text-center">
+                <div className="w-16 h-16 mx-auto mb-4 bg-success/10 rounded-full flex items-center justify-center">
+                  <Check className="w-8 h-8 text-success" />
+                </div>
+                <h3 className="text-xl font-semibold tracking-tight mb-2">
+                  {t('import.success.title', 'Flights imported!')}
+                </h3>
+                <p className="text-muted-foreground mb-6">
+                  {t('import.success.count', '{{count}} flight(s) added to your log', { count: savedCount })}
+                </p>
+                <div className="flex justify-center gap-3">
+                  <Button variant="outline" onClick={handleImportMore}>
+                    {t('import.success.importMore', 'Import more')}
+                  </Button>
+                  <Button onClick={handleGoToFlights} className="gap-2">
+                    {t('import.success.viewFlights', 'View flights')}
+                    <ArrowRight className="w-4 h-4" />
+                  </Button>
+                </div>
               </div>
-            </div>
-          )}
-        </div>
+            )}
+          </CardContent>
+        </Card>
       </main>
 
       {/* Manual flight form modal */}

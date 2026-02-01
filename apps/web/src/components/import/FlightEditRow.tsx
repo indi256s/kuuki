@@ -4,6 +4,14 @@ import { findAirport, findAirline } from '@kuuki/data'
 import { AirportAutocomplete } from '../flights/AirportAutocomplete'
 import { AirlineAutocomplete } from '../flights/AirlineAutocomplete'
 import { AircraftAutocomplete } from '../flights/AircraftAutocomplete'
+import { Card, CardContent } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
+import { Badge } from '@/components/ui/badge'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { ChevronDown, X, ArrowRight, AlertTriangle } from 'lucide-react'
 import type { ExtractedFlight } from '../../hooks/useImport'
 
 interface FlightEditRowProps {
@@ -38,7 +46,7 @@ export function FlightEditRow({
     return getFieldConfidence(field) < LOW_CONFIDENCE_THRESHOLD
   }
 
-  const lowConfidenceClass = 'border-holding ring-1 ring-holding/30'
+  const lowConfidenceClass = 'border-yellow-500 ring-1 ring-yellow-500/30'
 
   const handleFieldChange = useCallback((field: keyof ExtractedFlight, value: string) => {
     onChange({
@@ -61,45 +69,41 @@ export function FlightEditRow({
     flight.origin !== flight.destination
 
   return (
-    <div className={`border rounded-lg transition-colors ${
-      selected ? 'border-runway bg-runway-muted/30' : 'border-edge-strong bg-sky-raised'
+    <Card className={`transition-colors ${
+      selected ? 'border-primary bg-primary/5' : 'border-border/50'
     }`}>
       {/* Compact view */}
-      <div className="p-3">
+      <CardContent className="p-3">
         <div className="flex items-center gap-3">
           {/* Checkbox */}
-          <input
-            type="checkbox"
+          <Checkbox
             checked={selected}
-            onChange={(e) => onSelect(e.target.checked)}
-            className="w-4 h-4 rounded border-edge-strong text-runway focus:ring-runway"
+            onCheckedChange={(checked) => onSelect(checked === true)}
           />
 
           {/* Row number */}
-          <span className="text-xs text-ink-muted w-5">#{index + 1}</span>
+          <span className="text-xs text-muted-foreground w-5">#{index + 1}</span>
 
           {/* Date */}
-          <input
+          <Input
             type="date"
             value={flight.date}
             onChange={(e) => handleFieldChange('date', e.target.value)}
-            className={`w-32 px-2 py-1 text-sm border rounded bg-sky-raised focus:outline-none focus:ring-2 focus:ring-runway ${
-              isLowConfidence('date') ? lowConfidenceClass : 'border-edge-strong'
+            className={`w-32 h-8 text-sm ${
+              isLowConfidence('date') ? lowConfidenceClass : ''
             }`}
           />
 
           {/* Route display */}
           <div className="flex items-center gap-1.5 flex-1 min-w-0">
             <span className={`font-mono font-medium text-sm px-1.5 py-0.5 rounded ${
-              isLowConfidence('origin') ? 'bg-holding-muted text-holding' : 'bg-sky-sunken'
+              isLowConfidence('origin') ? 'bg-yellow-500/20 text-yellow-600 dark:text-yellow-400' : 'bg-muted'
             }`}>
               {flight.origin || '???'}
             </span>
-            <svg className="w-4 h-4 text-ink-muted flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-            </svg>
+            <ArrowRight className="w-4 h-4 text-muted-foreground flex-shrink-0" />
             <span className={`font-mono font-medium text-sm px-1.5 py-0.5 rounded ${
-              isLowConfidence('destination') ? 'bg-holding-muted text-holding' : 'bg-sky-sunken'
+              isLowConfidence('destination') ? 'bg-yellow-500/20 text-yellow-600 dark:text-yellow-400' : 'bg-muted'
             }`}>
               {flight.destination || '???'}
             </span>
@@ -107,7 +111,7 @@ export function FlightEditRow({
 
           {/* Airline */}
           <span className={`font-mono text-sm px-1.5 py-0.5 rounded ${
-            isLowConfidence('airline_iata') ? 'bg-holding-muted text-holding' : 'bg-sky-sunken'
+            isLowConfidence('airline_iata') ? 'bg-yellow-500/20 text-yellow-600 dark:text-yellow-400' : 'bg-muted'
           }`}>
             {flight.airline_iata || '??'}
           </span>
@@ -115,88 +119,81 @@ export function FlightEditRow({
           {/* Badges */}
           <div className="flex items-center gap-1.5">
             {isDuplicate && (
-              <span className="px-2 py-0.5 text-xs font-medium bg-holding-muted text-holding rounded-full">
+              <Badge variant="secondary" className="bg-yellow-500/20 text-yellow-600 dark:text-yellow-400">
                 {t('import.review.duplicate', 'Duplicate')}
-              </span>
+              </Badge>
             )}
             {!isValid && (
-              <span className="px-2 py-0.5 text-xs font-medium bg-emergency-muted text-emergency rounded-full">
+              <Badge variant="destructive">
                 {t('import.review.invalid', 'Invalid')}
-              </span>
+              </Badge>
             )}
           </div>
 
           {/* Expand button */}
-          <button
+          <Button
+            variant="ghost"
+            size="icon"
             onClick={() => setExpanded(!expanded)}
-            className="p-1.5 rounded hover:bg-sky-sunken transition-colors"
+            className="h-8 w-8"
             aria-label={expanded ? 'Collapse' : 'Expand'}
           >
-            <svg
-              className={`w-4 h-4 text-ink-muted transition-transform ${expanded ? 'rotate-180' : ''}`}
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-            </svg>
-          </button>
+            <ChevronDown className={`w-4 h-4 transition-transform ${expanded ? 'rotate-180' : ''}`} />
+          </Button>
 
           {/* Delete button */}
-          <button
+          <Button
+            variant="ghost"
+            size="icon"
             onClick={onDelete}
-            className="p-1.5 rounded hover:bg-emergency-muted text-ink-muted hover:text-emergency transition-colors"
+            className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
             aria-label="Delete"
           >
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
+            <X className="w-4 h-4" />
+          </Button>
         </div>
 
         {/* Summary line */}
-        <div className="mt-1.5 ml-12 text-xs text-ink-muted truncate">
+        <div className="mt-1.5 ml-12 text-xs text-muted-foreground truncate">
           {originAirport ? `${originAirport.city}` : flight.origin}
           {' → '}
           {destAirport ? `${destAirport.city}` : flight.destination}
           {airline && ` · ${airline.name}`}
           {flight.flight_number && ` ${flight.airline_iata}${flight.flight_number}`}
         </div>
-      </div>
+      </CardContent>
 
       {/* Expanded edit form */}
       {expanded && (
-        <div className="border-t border-edge px-3 py-4 space-y-4 bg-sky-sunken/30">
+        <div className="border-t border-border px-3 py-4 space-y-4 bg-muted/30">
           {/* Low confidence warning */}
           {flight.confidence < LOW_CONFIDENCE_THRESHOLD && (
-            <div className="flex items-center gap-2 text-xs text-holding bg-holding-muted px-3 py-2 rounded-lg">
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-              </svg>
-              <span>{t('import.review.lowConfidence', 'Some fields may need verification')}</span>
-            </div>
+            <Alert className="border-yellow-500/50 bg-yellow-500/10">
+              <AlertTriangle className="w-4 h-4 text-yellow-500" />
+              <AlertDescription className="text-yellow-600 dark:text-yellow-400">
+                {t('import.review.lowConfidence', 'Some fields may need verification')}
+              </AlertDescription>
+            </Alert>
           )}
 
           {/* Row 1: Date and Route */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
-              <label className="block text-xs font-medium text-ink-muted mb-1">
+              <Label className="text-xs mb-1">
                 {t('flights.date', 'Date')}
-              </label>
-              <input
+              </Label>
+              <Input
                 type="date"
                 value={flight.date}
                 onChange={(e) => handleFieldChange('date', e.target.value)}
-                className={`w-full px-3 py-2 border rounded-lg bg-sky-raised focus:outline-none focus:ring-2 focus:ring-runway ${
-                  isLowConfidence('date') ? lowConfidenceClass : 'border-edge-strong'
-                }`}
+                className={isLowConfidence('date') ? lowConfidenceClass : ''}
               />
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-ink-muted mb-1">
+              <Label className="text-xs mb-1">
                 {t('flights.origin', 'From')}
-              </label>
+              </Label>
               <AirportAutocomplete
                 value={flight.origin}
                 onChange={(iata) => handleFieldChange('origin', iata)}
@@ -205,9 +202,9 @@ export function FlightEditRow({
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-ink-muted mb-1">
+              <Label className="text-xs mb-1">
                 {t('flights.destination', 'To')}
-              </label>
+              </Label>
               <AirportAutocomplete
                 value={flight.destination}
                 onChange={(iata) => handleFieldChange('destination', iata)}
@@ -219,9 +216,9 @@ export function FlightEditRow({
           {/* Row 2: Airline and Aircraft */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
-              <label className="block text-xs font-medium text-ink-muted mb-1">
+              <Label className="text-xs mb-1">
                 {t('flights.airline', 'Airline')}
-              </label>
+              </Label>
               <AirlineAutocomplete
                 value={flight.airline_iata}
                 onChange={(iata) => handleFieldChange('airline_iata', iata)}
@@ -230,24 +227,22 @@ export function FlightEditRow({
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-ink-muted mb-1">
+              <Label className="text-xs mb-1">
                 {t('flights.flightNumber', 'Flight Number')}
-              </label>
-              <input
+              </Label>
+              <Input
                 type="text"
                 value={flight.flight_number || ''}
                 onChange={(e) => handleFieldChange('flight_number', e.target.value)}
                 placeholder="123"
-                className={`w-full px-3 py-2 border rounded-lg bg-sky-raised focus:outline-none focus:ring-2 focus:ring-runway font-mono ${
-                  isLowConfidence('flight_number') ? lowConfidenceClass : 'border-edge-strong'
-                }`}
+                className={`font-mono ${isLowConfidence('flight_number') ? lowConfidenceClass : ''}`}
               />
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-ink-muted mb-1">
+              <Label className="text-xs mb-1">
                 {t('flights.aircraft', 'Aircraft')}
-              </label>
+              </Label>
               <AircraftAutocomplete
                 value={flight.aircraft_icao || ''}
                 onChange={(icao) => handleFieldChange('aircraft_icao', icao)}
@@ -259,38 +254,34 @@ export function FlightEditRow({
           {/* Row 3: Times */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             <div>
-              <label className="block text-xs font-medium text-ink-muted mb-1">
+              <Label className="text-xs mb-1">
                 {t('flights.departureTime', 'Departure')}
-              </label>
-              <input
+              </Label>
+              <Input
                 type="time"
                 value={flight.departure_time || ''}
                 onChange={(e) => handleFieldChange('departure_time', e.target.value)}
-                className={`w-full px-3 py-2 border rounded-lg bg-sky-raised focus:outline-none focus:ring-2 focus:ring-runway ${
-                  isLowConfidence('departure_time') ? lowConfidenceClass : 'border-edge-strong'
-                }`}
+                className={isLowConfidence('departure_time') ? lowConfidenceClass : ''}
               />
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-ink-muted mb-1">
+              <Label className="text-xs mb-1">
                 {t('flights.arrivalTime', 'Arrival')}
-              </label>
-              <input
+              </Label>
+              <Input
                 type="time"
                 value={flight.arrival_time || ''}
                 onChange={(e) => handleFieldChange('arrival_time', e.target.value)}
-                className={`w-full px-3 py-2 border rounded-lg bg-sky-raised focus:outline-none focus:ring-2 focus:ring-runway ${
-                  isLowConfidence('arrival_time') ? lowConfidenceClass : 'border-edge-strong'
-                }`}
+                className={isLowConfidence('arrival_time') ? lowConfidenceClass : ''}
               />
             </div>
 
             {/* Confidence display */}
             <div className="sm:col-span-2 flex items-end">
-              <div className="text-xs text-ink-muted">
+              <div className="text-xs text-muted-foreground">
                 <span className="font-medium">{t('import.review.confidence', 'Confidence')}:</span>{' '}
-                <span className={flight.confidence >= 0.8 ? 'text-cleared' : 'text-holding'}>
+                <span className={flight.confidence >= 0.8 ? 'text-green-600 dark:text-green-400' : 'text-yellow-600 dark:text-yellow-400'}>
                   {Math.round(flight.confidence * 100)}%
                 </span>
               </div>
@@ -298,6 +289,6 @@ export function FlightEditRow({
           </div>
         </div>
       )}
-    </div>
+    </Card>
   )
 }

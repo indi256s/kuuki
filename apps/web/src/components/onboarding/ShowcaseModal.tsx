@@ -1,14 +1,20 @@
 import { useState, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
+import {
+  Dialog,
+  DialogContent,
+} from '@/components/ui/dialog'
+import { Button } from '@/components/ui/button'
+import { Plane, BarChart3, Trophy } from 'lucide-react'
 
 interface ShowcaseModalProps {
   onComplete: () => void
 }
 
 const SLIDES = [
-  { key: 'slide1', icon: '✈️' },
-  { key: 'slide2', icon: '📊' },
-  { key: 'slide3', icon: '🏆' },
+  { key: 'slide1', icon: Plane },
+  { key: 'slide2', icon: BarChart3 },
+  { key: 'slide3', icon: Trophy },
 ] as const
 
 export function ShowcaseModal({ onComplete }: ShowcaseModalProps) {
@@ -33,24 +39,25 @@ export function ShowcaseModal({ onComplete }: ShowcaseModalProps) {
 
   const slide = SLIDES[currentSlide]
   const isLastSlide = currentSlide === SLIDES.length - 1
+  const Icon = slide.icon
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-sky-overlay">
-      <div className="bg-sky-raised border border-edge rounded-xl shadow-lg w-full max-w-md mx-4 overflow-hidden">
+    <Dialog open onOpenChange={(open) => !open && onComplete()}>
+      <DialogContent className="sm:max-w-md gap-0 p-0 overflow-hidden">
         {/* Content */}
         <div className="p-8 text-center">
           {/* Icon */}
-          <div className="text-5xl mb-6" role="img" aria-label={t(`onboarding.${slide.key}.title`)}>
-            {slide.icon}
+          <div className="w-20 h-20 mx-auto mb-6 rounded-2xl bg-primary/10 flex items-center justify-center">
+            <Icon className="w-10 h-10 text-primary" strokeWidth={1.5} />
           </div>
 
           {/* Title */}
-          <h2 className="text-2xl font-semibold text-ink mb-3">
+          <h2 className="text-2xl font-semibold tracking-tight mb-3">
             {t(`onboarding.${slide.key}.title`)}
           </h2>
 
           {/* Description */}
-          <p className="text-ink-muted leading-relaxed">
+          <p className="text-muted-foreground leading-relaxed">
             {t(`onboarding.${slide.key}.description`)}
           </p>
         </div>
@@ -63,10 +70,10 @@ export function ShowcaseModal({ onComplete }: ShowcaseModalProps) {
               <button
                 key={index}
                 onClick={() => handleDotClick(index)}
-                className={`w-2 h-2 rounded-full transition-colors focus-ring ${
+                className={`w-2 h-2 rounded-full transition-colors ${
                   index === currentSlide
-                    ? 'bg-runway'
-                    : 'bg-edge-strong hover:bg-ink-faint'
+                    ? 'bg-primary'
+                    : 'bg-border hover:bg-muted-foreground/50'
                 }`}
                 aria-label={`Go to slide ${index + 1}`}
                 aria-current={index === currentSlide ? 'step' : undefined}
@@ -76,21 +83,22 @@ export function ShowcaseModal({ onComplete }: ShowcaseModalProps) {
 
           {/* Buttons */}
           <div className="flex gap-3">
-            <button
+            <Button
+              variant="ghost"
               onClick={handleSkip}
-              className="flex-1 px-4 py-2.5 text-ink-muted hover:text-ink transition-colors focus-ring rounded-lg"
+              className="flex-1"
             >
               {t('common.skip')}
-            </button>
-            <button
+            </Button>
+            <Button
               onClick={handleNext}
-              className="flex-1 px-4 py-2.5 bg-runway text-ink-inverse rounded-lg hover:bg-runway-hover transition-colors focus-ring font-medium"
+              className="flex-1"
             >
               {isLastSlide ? t('common.done') : t('common.next')}
-            </button>
+            </Button>
           </div>
         </div>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   )
 }

@@ -1,6 +1,8 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 import { searchAircraft, findAircraft } from '@kuuki/data'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import type { Aircraft } from '@kuuki/shared/types'
 
 interface AircraftAutocompleteProps {
@@ -149,13 +151,13 @@ export function AircraftAutocomplete({
   return (
     <div className="relative">
       {label && (
-        <label htmlFor={id} className="block text-sm font-medium text-ink mb-1">
+        <Label htmlFor={id} className="mb-1">
           {label}
-          {required && <span className="text-emergency ml-1">*</span>}
-        </label>
+          {required && <span className="text-destructive ml-1">*</span>}
+        </Label>
       )}
 
-      <input
+      <Input
         ref={inputRef}
         id={id}
         type="text"
@@ -168,27 +170,25 @@ export function AircraftAutocomplete({
         required={required}
         disabled={disabled}
         autoComplete="off"
-        className={`w-full px-3 py-2 border rounded-lg bg-sky-raised focus:outline-none focus:ring-2 focus:ring-runway font-mono text-sm uppercase ${
-          error ? 'border-emergency' : 'border-edge-strong'
-        }`}
+        className={`font-mono text-sm uppercase ${error ? 'border-destructive' : ''}`}
       />
 
       {/* Selected aircraft display */}
       {selectedAircraft && inputValue === value && (
-        <div className="mt-1 text-xs text-ink-muted">
+        <div className="mt-1 text-xs text-muted-foreground">
           {selectedAircraft.name} ({getTypeLabel(selectedAircraft.type)})
         </div>
       )}
 
       {error && (
-        <p className="mt-1 text-xs text-emergency">{error}</p>
+        <p className="mt-1 text-xs text-destructive">{error}</p>
       )}
 
       {/* Dropdown */}
       {isOpen && results.length > 0 && (
         <ul
           ref={listRef}
-          className="absolute z-50 w-full mt-1 bg-sky border border-edge rounded-lg shadow-lg max-h-60 overflow-y-auto"
+          className="absolute z-50 w-full mt-1 bg-popover border border-border rounded-lg shadow-lg max-h-60 overflow-y-auto"
         >
           {results.map((aircraft, index) => (
             <li
@@ -196,8 +196,8 @@ export function AircraftAutocomplete({
               onClick={() => handleSelect(aircraft)}
               className={`px-3 py-2 cursor-pointer ${
                 index === selectedIndex
-                  ? 'bg-runway text-ink-inverse'
-                  : 'hover:bg-sky-raised'
+                  ? 'bg-primary text-primary-foreground'
+                  : 'hover:bg-muted'
               }`}
             >
               <div className="flex items-center justify-between">

@@ -1,6 +1,11 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '@/hooks/useAuth'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { AlertCircle } from 'lucide-react'
 
 interface SignInFormProps {
   onSuccess?: () => void
@@ -31,58 +36,49 @@ export function SignInForm({ onSuccess, onSignUpClick }: SignInFormProps) {
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       {error && (
-        <div className="p-3 bg-emergency-muted text-emergency rounded-lg text-sm">
-          {error}
-        </div>
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
       )}
 
-      <div>
-        <label htmlFor="email" className="block text-sm font-medium text-ink mb-1">
-          {t('auth.email', 'Email')}
-        </label>
-        <input
+      <div className="space-y-2">
+        <Label htmlFor="email">{t('auth.email', 'Email')}</Label>
+        <Input
           id="email"
           type="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           placeholder="you@example.com"
-          className="w-full px-3 py-2 border border-edge-strong rounded-lg bg-sky-raised focus:outline-none focus:ring-2 focus:ring-runway"
           required
           disabled={isLoading}
         />
       </div>
 
-      <div>
-        <label htmlFor="password" className="block text-sm font-medium text-ink mb-1">
-          {t('auth.password', 'Password')}
-        </label>
-        <input
+      <div className="space-y-2">
+        <Label htmlFor="password">{t('auth.password', 'Password')}</Label>
+        <Input
           id="password"
           type="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           placeholder="••••••••"
-          className="w-full px-3 py-2 border border-edge-strong rounded-lg bg-sky-raised focus:outline-none focus:ring-2 focus:ring-runway"
           required
           disabled={isLoading}
         />
       </div>
 
-      <button
-        type="submit"
-        disabled={isLoading}
-        className="w-full py-2 px-4 bg-runway text-ink-inverse font-medium rounded-lg hover:bg-runway-hover disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-      >
+      <Button type="submit" disabled={isLoading} className="w-full">
         {isLoading ? t('auth.signingIn') : t('auth.signIn')}
-      </button>
+      </Button>
 
       {onSignUpClick && (
-        <p className="text-center text-sm text-ink-muted">
+        <p className="text-center text-sm text-muted-foreground">
           {t('auth.newUser')}{' '}
           <button
             type="button"
             onClick={onSignUpClick}
-            className="text-runway hover:underline"
+            className="text-primary hover:underline"
           >
             {t('auth.createAccount')}
           </button>

@@ -2,6 +2,10 @@ import { useState, useRef, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 import { sampleStats, sampleFlights, formatDistance, formatDuration } from '@/lib/sampleData'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Textarea } from '@/components/ui/textarea'
+import { Lightbulb, Copy, Check, X, Plus, Upload, Pencil } from 'lucide-react'
 
 const GEMINI_PROMPT = `@Gmail @Google Calendar Search for all flight bookings, boarding passes, itineraries, and travel confirmations.
 
@@ -84,53 +88,52 @@ export function EmptyState({ onAddFlight }: EmptyStateProps) {
         </div>
 
         {/* Recent flights */}
-        <div className="bg-sky-raised border border-edge rounded-xl overflow-hidden">
-          <div className="px-4 py-3 border-b border-edge">
-            <h3 className="font-medium text-ink">{t('dashboard.recentFlights')}</h3>
-          </div>
-          <div className="divide-y divide-edge">
-            {sampleFlights.slice(0, 3).map((flight) => (
-              <div key={flight.id} className="px-4 py-3 flex items-center gap-4">
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 text-ink font-medium">
-                    <span>{flight.origin}</span>
-                    <span className="text-ink-faint">→</span>
-                    <span>{flight.destination}</span>
+        <Card className="border-border/50">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base">{t('dashboard.recentFlights')}</CardTitle>
+          </CardHeader>
+          <CardContent className="pt-0">
+            <div className="divide-y divide-border">
+              {sampleFlights.slice(0, 3).map((flight) => (
+                <div key={flight.id} className="py-3 first:pt-0 last:pb-0 flex items-center gap-4">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 font-medium">
+                      <span>{flight.origin}</span>
+                      <span className="text-muted-foreground">→</span>
+                      <span>{flight.destination}</span>
+                    </div>
+                    <div className="text-sm text-muted-foreground truncate">
+                      {flight.airline} · {flight.flightNumber}
+                    </div>
                   </div>
-                  <div className="text-sm text-ink-muted truncate">
-                    {flight.airline} · {flight.flightNumber}
+                  <div className="text-right text-sm">
+                    <div className="font-data">{formatDistance(flight.distanceKm)}</div>
+                    <div className="text-muted-foreground">{formatDuration(flight.durationMinutes)}</div>
                   </div>
                 </div>
-                <div className="text-right text-sm">
-                  <div className="text-ink font-data">{formatDistance(flight.distanceKm)}</div>
-                  <div className="text-ink-muted">{formatDuration(flight.durationMinutes)}</div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Overlay - Import card or simple CTA */}
       <div className="absolute inset-0 flex items-center justify-center">
         {isDismissed ? (
           /* Simple CTA after dismissing */
-          <div className="bg-sky-raised border border-edge rounded-xl p-6 text-center shadow-lg">
-            <button
-              onClick={onAddFlight}
-              className="flex items-center gap-2 px-6 py-3 bg-runway text-ink-inverse font-medium rounded-lg hover:bg-runway-hover transition-colors"
-            >
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-              </svg>
-              {t('emptyState.addFlight')}
-            </button>
-          </div>
+          <Card className="border-border/50 shadow-lg">
+            <CardContent className="p-6 text-center">
+              <Button onClick={onAddFlight} className="gap-2">
+                <Plus className="w-5 h-5" />
+                {t('emptyState.addFlight')}
+              </Button>
+            </CardContent>
+          </Card>
         ) : (
           /* Import-focused card */
-          <div className="bg-sky-raised border border-edge rounded-xl shadow-lg w-full max-w-lg mx-4">
+          <Card className="border-border/50 shadow-lg w-full max-w-lg mx-4">
             {/* Header with close button */}
-            <div className="flex items-center justify-between px-5 py-4 border-b border-edge">
+            <CardHeader className="pb-4 flex flex-row items-start justify-between space-y-0">
               <div className="flex items-center gap-3">
                 <img
                   src="/images/mascot.webp"
@@ -138,105 +141,108 @@ export function EmptyState({ onAddFlight }: EmptyStateProps) {
                   className="w-10 h-10 object-contain"
                 />
                 <div>
-                  <h2 className="font-semibold text-ink">
+                  <CardTitle className="text-base">
                     {t('emptyState.importTitle', 'Import Your Flights')}
-                  </h2>
-                  <p className="text-sm text-ink-muted">
+                  </CardTitle>
+                  <p className="text-sm text-muted-foreground">
                     {t('emptyState.importSubtitle', 'Get started in seconds with Gemini')}
                   </p>
                 </div>
               </div>
-              <button
+              <Button
+                variant="ghost"
+                size="icon"
                 onClick={() => setIsDismissed(true)}
-                className="p-2 text-ink-muted hover:text-ink hover:bg-sky-sunken rounded-lg transition-colors"
-                aria-label={t('common.close')}
+                className="h-8 w-8 -mr-2 -mt-2"
               >
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
+                <X className="w-4 h-4" />
+              </Button>
+            </CardHeader>
 
             {/* Content */}
-            <div className="p-5 space-y-4">
+            <CardContent className="space-y-4">
               {/* Step 1: Copy prompt */}
               <div className="space-y-2">
-                <div className="flex items-center gap-2 text-sm font-medium text-ink">
-                  <span className="w-5 h-5 rounded-full bg-runway text-ink-inverse text-xs flex items-center justify-center">1</span>
+                <div className="flex items-center gap-2 text-sm font-medium">
+                  <span className="w-5 h-5 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center">1</span>
                   {t('emptyState.step1', 'Copy this prompt to Google Gemini')}
                 </div>
                 <div className="relative">
-                  <pre className="text-xs bg-sky-sunken p-3 pr-16 rounded-lg border border-edge overflow-x-auto whitespace-pre-wrap font-mono text-ink-muted max-h-24 overflow-y-auto">
+                  <pre className="text-xs bg-muted p-3 pr-16 rounded-lg border border-border overflow-x-auto whitespace-pre-wrap font-mono text-muted-foreground max-h-24 overflow-y-auto">
                     {GEMINI_PROMPT}
                   </pre>
-                  <button
+                  <Button
+                    size="sm"
                     onClick={copyPrompt}
-                    className="absolute top-2 right-2 px-2.5 py-1.5 bg-runway text-ink-inverse text-xs font-medium rounded-md hover:bg-runway-hover transition-colors flex items-center gap-1.5"
+                    className="absolute top-2 right-2 h-7 gap-1.5"
                   >
                     {showCopiedToast ? (
                       <>
-                        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                        </svg>
+                        <Check className="w-3.5 h-3.5" />
                         {t('import.tip.copied', 'Copied!')}
                       </>
                     ) : (
                       <>
-                        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                        </svg>
+                        <Copy className="w-3.5 h-3.5" />
                         {t('common.copy', 'Copy')}
                       </>
                     )}
-                  </button>
+                  </Button>
                 </div>
-                <p className="text-xs text-ink-faint">
+                <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+                  <Lightbulb className="w-3.5 h-3.5" />
                   {t('import.tip.hint', 'Use with @Gmail and @Google Calendar in Google Gemini')}
                 </p>
               </div>
 
               {/* Step 2: Paste results */}
               <div className="space-y-2">
-                <div className="flex items-center gap-2 text-sm font-medium text-ink">
-                  <span className="w-5 h-5 rounded-full bg-runway text-ink-inverse text-xs flex items-center justify-center">2</span>
+                <div className="flex items-center gap-2 text-sm font-medium">
+                  <span className="w-5 h-5 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center">2</span>
                   {t('emptyState.step2', 'Paste the results here')}
                 </div>
-                <textarea
+                <Textarea
                   ref={textareaRef}
                   value={textInput}
                   onChange={(e) => setTextInput(e.target.value)}
                   placeholder={t('import.upload.textPlaceholder', 'Paste Gemini output, booking confirmations, or flight details here...')}
-                  className="w-full h-28 px-3 py-2.5 border border-edge-strong rounded-lg bg-sky-raised focus:outline-none focus:ring-2 focus:ring-runway focus:border-transparent resize-none text-sm font-mono"
+                  className="h-28 font-mono text-sm resize-none"
                 />
               </div>
 
               {/* Primary action */}
-              <button
+              <Button
                 onClick={handleParseFlights}
                 disabled={textInput.trim().length < 10 || isSubmitting}
-                className="w-full px-4 py-3 bg-runway text-ink-inverse rounded-lg hover:bg-runway-hover transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full"
               >
                 {t('import.parseFlights', 'Parse Flights')}
-              </button>
+              </Button>
 
               {/* Secondary options */}
               <div className="flex items-center justify-center gap-4 pt-1">
-                <button
+                <Button
+                  variant="link"
+                  size="sm"
                   onClick={() => navigate('/import')}
-                  className="text-sm text-ink-muted hover:text-ink transition-colors"
+                  className="text-muted-foreground hover:text-foreground gap-1.5"
                 >
+                  <Upload className="w-3.5 h-3.5" />
                   {t('emptyState.uploadFile', 'Upload file')}
-                </button>
-                <span className="text-ink-faint">·</span>
-                <button
+                </Button>
+                <span className="text-muted-foreground">·</span>
+                <Button
+                  variant="link"
+                  size="sm"
                   onClick={onAddFlight}
-                  className="text-sm text-ink-muted hover:text-ink transition-colors"
+                  className="text-muted-foreground hover:text-foreground gap-1.5"
                 >
+                  <Pencil className="w-3.5 h-3.5" />
                   {t('emptyState.addManually', 'Add manually')}
-                </button>
+                </Button>
               </div>
-            </div>
-          </div>
+            </CardContent>
+          </Card>
         )}
       </div>
     </div>
@@ -245,9 +251,11 @@ export function EmptyState({ onAddFlight }: EmptyStateProps) {
 
 function SampleStatCard({ label, value }: { label: string; value: string }) {
   return (
-    <div className="bg-sky-raised border border-edge rounded-xl p-4">
-      <div className="text-2xl font-semibold text-ink font-data">{value}</div>
-      <div className="text-sm text-ink-muted">{label}</div>
-    </div>
+    <Card className="border-border/50">
+      <CardContent className="p-4">
+        <div className="text-2xl font-semibold font-data">{value}</div>
+        <div className="text-sm text-muted-foreground">{label}</div>
+      </CardContent>
+    </Card>
   )
 }
