@@ -167,6 +167,28 @@
       "timezoneCrossings": "You've crossed {{count}} time zones",
       "furthestFromHome": "Furthest from home: {{distance}} km ({{city}}, {{country}})",
       "countryCompletion": "You've visited {{percent}}% of all countries"
+    },
+    "locked": {
+      "signature": "Your Flight Stats AI",
+      "aviaGeek": {
+        "1": "Oh, you want aircraft insights? How ambitious. Only {{remaining}} more types to go.",
+        "2": "Aircraft analytics await. {{remaining}} more aircraft types and they're yours. No pressure.",
+        "3": "The Avia Geek tier observes your progress with mild interest. {{remaining}} more to go."
+      },
+      "countryGeek": {
+        "1": "Country analytics require 5 countries. You've managed {{current}}. Impressive.",
+        "2": "Globe-trotting statistics unlock at 5 countries. Only {{remaining}} more continents... I mean countries... to conquer.",
+        "3": "Your passport seems rather... underfilled. {{remaining}} more countries will remedy that."
+      },
+      "duration": {
+        "1": "Duration stats unlock at 10 flights. You're at {{current}}. The anticipation must be overwhelming.",
+        "2": "{{remaining}} more flights until time analytics. Science demands patience. And more flying.",
+        "3": "Flight duration insights are {{remaining}} flights away. The clock is ticking. Metaphorically."
+      }
+    },
+    "unlock": {
+      "title": "New tier unlocked!",
+      "nowAvailable": "is now available"
     }
   },
   "leaderboard": {

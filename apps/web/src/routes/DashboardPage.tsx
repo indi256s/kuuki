@@ -5,7 +5,7 @@ import { useAuth } from '@/hooks/useAuth'
 import { useLanguage } from '@/hooks/useLanguage'
 import { useFlightStats } from '@/hooks/useStats'
 import { useSyncUpcomingFlights } from '@/hooks/useFlights'
-import { StatsCards } from '@/components/dashboard/StatsCards'
+import { AdvancedStats } from '@/components/stats/AdvancedStats'
 import { RecentFlights } from '@/components/dashboard/RecentFlights'
 import { RouteMap } from '@/components/map/RouteMap'
 import { FlightForm } from '@/components/flights/FlightForm'
@@ -165,8 +165,8 @@ export function DashboardPage() {
 
         {hasFlights ? (
           <div className="space-y-8">
-            {/* Stats grid */}
-            <StatsCards />
+            {/* Advanced Stats - Tiered stats with unlock system */}
+            <AdvancedStats />
 
             {/* Route map */}
             <div className="animate-fade-up" style={{ animationDelay: '100ms' }}>

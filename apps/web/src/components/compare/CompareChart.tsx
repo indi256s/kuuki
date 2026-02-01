@@ -110,8 +110,8 @@ export function CompareChart({ yourStats, theirStats, yourName, theirName }: Com
   ]
 
   // Count wins
-  const yourWins = comparisons.filter(c => c.yourValue > c.theirValue).length
-  const theirWins = comparisons.filter(c => c.theirValue > c.yourValue).length
+  const yourWins = comparisons.filter(c => (c.yourValue ?? 0) > (c.theirValue ?? 0)).length
+  const theirWins = comparisons.filter(c => (c.theirValue ?? 0) > (c.yourValue ?? 0)).length
 
   return (
     <div className="space-y-6">
@@ -134,8 +134,8 @@ export function CompareChart({ yourStats, theirStats, yourName, theirName }: Com
           <StatBar
             key={comparison.label}
             label={comparison.label}
-            yourValue={comparison.yourValue}
-            theirValue={comparison.theirValue}
+            yourValue={comparison.yourValue ?? 0}
+            theirValue={comparison.theirValue ?? 0}
             yourName={yourName}
             theirName={theirName}
             formatFn={comparison.formatFn}
