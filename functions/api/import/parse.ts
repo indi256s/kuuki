@@ -19,7 +19,7 @@ const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10 MB
 async function cleanTextWithGemini(ai: GoogleGenAI, rawText: string): Promise<string> {
   try {
     const response = await ai.models.generateContent({
-      model: 'gemini-3.0-flash',
+      model: 'gemini-3-flash-preview',
       contents: `${CLEANING_PROMPT}\n\nRaw data to clean:\n${rawText}`,
     })
 
@@ -176,7 +176,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
 
     // Call Gemini API using the official SDK
     const response = await ai.models.generateContent({
-      model: 'gemini-3.0-flash',
+      model: 'gemini-3-flash-preview',
       contents,
       config: {
         responseMimeType: 'application/json',
