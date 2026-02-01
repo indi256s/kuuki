@@ -6,6 +6,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Pencil, Trash2, Plane } from 'lucide-react'
+import { AircraftPendingBadge } from './AircraftPendingBadge'
 
 interface FlightCardProps {
   flight: Flight
@@ -33,6 +34,9 @@ export function FlightCard({ flight, onEdit, onDelete }: FlightCardProps) {
       year: 'numeric',
     })
   }
+
+  const hasFlightNumber = flight.flight_number && flight.airline_iata
+  const hasTimes = flight.departure_time || flight.arrival_time
 
   return (
     <Card className={`border-border/50 hover:shadow-md transition-all ${isUpcoming ? 'border-l-4 border-l-primary' : ''}`}>
@@ -68,7 +72,7 @@ export function FlightCard({ flight, onEdit, onDelete }: FlightCardProps) {
         </div>
 
         {/* Route */}
-        <div className="flex items-center gap-3 mb-3">
+        <div className="flex items-center gap-3 mb-2">
           <div className="text-center">
             <div className="font-mono font-bold text-lg">{flight.origin}</div>
             <div className="text-xs text-muted-foreground truncate max-w-20">
@@ -90,6 +94,24 @@ export function FlightCard({ flight, onEdit, onDelete }: FlightCardProps) {
           </div>
         </div>
 
+        {/* Flight number and Times - more prominent placement */}
+        {(hasFlightNumber || hasTimes) && (
+          <div className="flex items-center justify-between text-sm text-muted-foreground mb-3">
+            {hasFlightNumber ? (
+              <span className="font-mono">{flight.airline_iata}{flight.flight_number}</span>
+            ) : (
+              <span />
+            )}
+            {hasTimes && (
+              <div className="font-mono">
+                {flight.departure_time || '—'}
+                <span className="mx-1">→</span>
+                {flight.arrival_time || '—'}
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Details */}
         <div className="flex flex-wrap gap-2 text-xs">
           {airline && (
@@ -104,15 +126,15 @@ export function FlightCard({ flight, onEdit, onDelete }: FlightCardProps) {
             </Badge>
           )}
 
-          {flight.flight_number && (
-            <Badge variant="secondary" className="font-mono">
-              {flight.flight_number}
-            </Badge>
-          )}
-
-          {aircraft && (
+          {aircraft ? (
             <Badge variant="secondary">
               {aircraft.name}
+            </Badge>
+          ) : !flight.aircraft_icao ? (
+            <AircraftPendingBadge flightId={flight.id} />
+          ) : (
+            <Badge variant="secondary" className="font-mono">
+              {flight.aircraft_icao}
             </Badge>
           )}
 
@@ -128,22 +150,6 @@ export function FlightCard({ flight, onEdit, onDelete }: FlightCardProps) {
             </Badge>
           )}
         </div>
-
-        {/* Times */}
-        {(flight.departure_time || flight.arrival_time) && (
-          <div className="mt-3 pt-3 border-t border-border flex items-center justify-between text-sm text-muted-foreground">
-            <div>
-              {flight.departure_time && (
-                <span>{flight.departure_time}</span>
-              )}
-            </div>
-            <div>
-              {flight.arrival_time && (
-                <span>{flight.arrival_time}</span>
-              )}
-            </div>
-          </div>
-        )}
       </CardContent>
     </Card>
   )

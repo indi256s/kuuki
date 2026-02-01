@@ -10,11 +10,15 @@ import {
   getUpcomingFlights,
   getFlightYears,
   getFlightAirlines,
+  getFlightAircraft,
   syncUpcomingFlights,
   type Flight,
   type FlightInsert,
   type FlightUpdate,
   type FlightFilters,
+  type SortConfig,
+  type SortField,
+  type SortOrder,
 } from '@/lib/flights'
 import { useAuthStore } from '@/stores/authStore'
 import { useEffect } from 'react'
@@ -25,21 +29,23 @@ const RECENT_FLIGHTS_KEY = 'recentFlights'
 const UPCOMING_FLIGHTS_KEY = 'upcomingFlights'
 const FLIGHT_YEARS_KEY = 'flightYears'
 const FLIGHT_AIRLINES_KEY = 'flightAirlines'
+const FLIGHT_AIRCRAFT_KEY = 'flightAircraft'
 
 /**
  * Hook for paginated flight list with infinite scroll
  */
-export function useFlights(filters?: FlightFilters, pageSize = 20) {
+export function useFlights(filters?: FlightFilters, sort?: SortConfig, pageSize = 20) {
   const userId = useAuthStore((state) => state.user?.id)
 
   return useInfiniteQuery({
-    queryKey: [FLIGHTS_KEY, userId, filters],
+    queryKey: [FLIGHTS_KEY, userId, filters, sort],
     queryFn: async ({ pageParam = 0 }) => {
       if (!userId) throw new Error('Not authenticated')
       return getFlights(userId, {
         limit: pageSize,
         offset: pageParam,
         filters,
+        sort,
       })
     },
     initialPageParam: 0,
@@ -225,6 +231,22 @@ export function useFlightAirlines() {
 }
 
 /**
+ * Hook to get aircraft for filter dropdown
+ */
+export function useFlightAircraft() {
+  const userId = useAuthStore((state) => state.user?.id)
+
+  return useQuery({
+    queryKey: [FLIGHT_AIRCRAFT_KEY, userId],
+    queryFn: () => {
+      if (!userId) return []
+      return getFlightAircraft(userId)
+    },
+    enabled: !!userId,
+  })
+}
+
+/**
  * Hook to sync upcoming flights on mount
  * Converts past upcoming flights to completed
  */
@@ -247,4 +269,4 @@ export function useSyncUpcomingFlights() {
 }
 
 // Re-export types
-export type { Flight, FlightInsert, FlightUpdate, FlightFilters }
+export type { Flight, FlightInsert, FlightUpdate, FlightFilters, SortConfig, SortField, SortOrder }

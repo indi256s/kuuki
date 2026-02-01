@@ -120,9 +120,19 @@
     "keyboardHint": "Press Ctrl+S to save, Esc to close",
     "allYears": "All years",
     "allAirlines": "All airlines",
+    "allAircraft": "All aircraft",
+    "allFlights": "All flights",
+    "upcoming": "Upcoming",
+    "past": "Past",
+    "times": "Times",
+    "originFilter": "Origin (e.g. SFO)",
+    "destFilter": "Dest (e.g. JFK)",
     "count": "{{count}} flights",
     "clearFilters": "Clear filters",
-    "addFirstFlight": "Add your first flight"
+    "addFirstFlight": "Add your first flight",
+    "pending": "Pending",
+    "setAircraft": "Set Aircraft",
+    "pendingDescription": "We couldn't identify the aircraft. You can set it manually."
   },
   "stats": {
     "title": "Stats",

@@ -2,9 +2,20 @@ import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { FlightCard } from './FlightCard'
 import { FlightTable } from './FlightTable'
-import { useFlights, useDeleteFlight, useFlightYears, useFlightAirlines, type Flight, type FlightFilters } from '@/hooks/useFlights'
+import {
+  useFlights,
+  useDeleteFlight,
+  useFlightYears,
+  useFlightAirlines,
+  useFlightAircraft,
+  type Flight,
+  type FlightFilters,
+  type SortConfig,
+} from '@/hooks/useFlights'
+import { findAircraft } from '@kuuki/data'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import {
   Select,
   SelectContent,
@@ -21,7 +32,8 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { Skeleton } from '@/components/ui/skeleton'
-import { Plane } from 'lucide-react'
+import { Plane, Search, X } from 'lucide-react'
+import { cn } from '@/lib/utils'
 
 interface FlightListProps {
   onEdit: (flight: Flight) => void
@@ -32,10 +44,16 @@ export function FlightList({ onEdit }: FlightListProps) {
   const deleteFlight = useDeleteFlight()
   const { data: years = [] } = useFlightYears()
   const { data: airlines = [] } = useFlightAirlines()
+  const { data: aircraftCodes = [] } = useFlightAircraft()
 
   // Filters
   const [filters, setFilters] = useState<FlightFilters>({})
+  const [sort, setSort] = useState<SortConfig>({ field: 'date', order: 'desc' })
   const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null)
+
+  // Airport search inputs
+  const [originSearch, setOriginSearch] = useState('')
+  const [destSearch, setDestSearch] = useState('')
 
   // Responsive view detection
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768)
@@ -54,7 +72,7 @@ export function FlightList({ onEdit }: FlightListProps) {
     hasNextPage,
     fetchNextPage,
     error,
-  } = useFlights(filters)
+  } = useFlights(filters, sort)
 
   // Flatten pages into single array
   const flights = data?.pages.flatMap((page) => page.flights) ?? []
@@ -89,10 +107,69 @@ export function FlightList({ onEdit }: FlightListProps) {
     }))
   }
 
+  const handleAircraftFilter = (aircraft: string) => {
+    setFilters((prev) => ({
+      ...prev,
+      aircraftIcao: aircraft && aircraft !== 'all' ? aircraft : undefined,
+    }))
+  }
+
+  const handleUpcomingFilter = (value: string) => {
+    setFilters((prev) => ({
+      ...prev,
+      isUpcoming: value === 'upcoming' ? true : value === 'past' ? false : undefined,
+    }))
+  }
+
+  const handleOriginSearch = (e: React.FormEvent) => {
+    e.preventDefault()
+    const code = originSearch.toUpperCase().trim()
+    if (code.length === 3 || code.length === 0) {
+      setFilters((prev) => ({
+        ...prev,
+        origin: code || undefined,
+      }))
+    }
+  }
+
+  const handleDestSearch = (e: React.FormEvent) => {
+    e.preventDefault()
+    const code = destSearch.toUpperCase().trim()
+    if (code.length === 3 || code.length === 0) {
+      setFilters((prev) => ({
+        ...prev,
+        destination: code || undefined,
+      }))
+    }
+  }
+
+  const clearOriginFilter = () => {
+    setOriginSearch('')
+    setFilters((prev) => ({ ...prev, origin: undefined }))
+  }
+
+  const clearDestFilter = () => {
+    setDestSearch('')
+    setFilters((prev) => ({ ...prev, destination: undefined }))
+  }
+
+  const handleSortChange = (newSort: SortConfig) => {
+    setSort(newSort)
+  }
+
+  const hasActiveFilters = Object.keys(filters).some((k) => filters[k as keyof FlightFilters] !== undefined)
+
+  const clearAllFilters = () => {
+    setFilters({})
+    setOriginSearch('')
+    setDestSearch('')
+  }
+
   if (isLoading) {
     return (
       <div className="space-y-4">
-        <div className="flex gap-3">
+        <div className="flex gap-3 flex-wrap">
+          <Skeleton className="h-10 w-32" />
           <Skeleton className="h-10 w-32" />
           <Skeleton className="h-10 w-32" />
         </div>
@@ -119,13 +196,13 @@ export function FlightList({ onEdit }: FlightListProps) {
 
   return (
     <div className="space-y-4">
-      {/* Filters */}
+      {/* Filters - Row 1 */}
       <div className="flex flex-wrap gap-3 items-center">
         <Select
           value={filters.year?.toString() || 'all'}
           onValueChange={handleYearFilter}
         >
-          <SelectTrigger className="w-32">
+          <SelectTrigger className="w-28">
             <SelectValue placeholder={t('flights.allYears', 'All years')} />
           </SelectTrigger>
           <SelectContent>
@@ -142,7 +219,7 @@ export function FlightList({ onEdit }: FlightListProps) {
           value={filters.airlineIata || 'all'}
           onValueChange={handleAirlineFilter}
         >
-          <SelectTrigger className="w-32">
+          <SelectTrigger className="w-28">
             <SelectValue placeholder={t('flights.allAirlines', 'All airlines')} />
           </SelectTrigger>
           <SelectContent>
@@ -155,9 +232,105 @@ export function FlightList({ onEdit }: FlightListProps) {
           </SelectContent>
         </Select>
 
+        <Select
+          value={filters.aircraftIcao || 'all'}
+          onValueChange={handleAircraftFilter}
+        >
+          <SelectTrigger className="w-32">
+            <SelectValue placeholder={t('flights.allAircraft', 'All aircraft')} />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">{t('flights.allAircraft', 'All aircraft')}</SelectItem>
+            {aircraftCodes.map((code) => {
+              const aircraft = findAircraft(code)
+              return (
+                <SelectItem key={code} value={code}>
+                  {aircraft ? aircraft.model : code}
+                </SelectItem>
+              )
+            })}
+          </SelectContent>
+        </Select>
+
+        <Select
+          value={filters.isUpcoming === true ? 'upcoming' : filters.isUpcoming === false ? 'past' : 'all'}
+          onValueChange={handleUpcomingFilter}
+        >
+          <SelectTrigger className="w-32">
+            <SelectValue placeholder={t('flights.allFlights', 'All flights')} />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">{t('flights.allFlights', 'All flights')}</SelectItem>
+            <SelectItem value="upcoming">{t('flights.upcoming', 'Upcoming')}</SelectItem>
+            <SelectItem value="past">{t('flights.past', 'Past')}</SelectItem>
+          </SelectContent>
+        </Select>
+
         <div className="ml-auto text-sm text-muted-foreground">
           {t('flights.count', { count: totalCount })}
         </div>
+      </div>
+
+      {/* Filters - Row 2: Airport search */}
+      <div className="flex flex-wrap gap-3 items-center">
+        <form onSubmit={handleOriginSearch} className="relative">
+          <Input
+            value={originSearch}
+            onChange={(e) => setOriginSearch(e.target.value.toUpperCase())}
+            placeholder={t('flights.originFilter', 'Origin (e.g. SFO)')}
+            className={cn(
+              'w-36 font-mono text-sm uppercase pr-8',
+              filters.origin && 'border-primary'
+            )}
+            maxLength={3}
+          />
+          {filters.origin ? (
+            <button
+              type="button"
+              onClick={clearOriginFilter}
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          ) : (
+            <Search className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+          )}
+        </form>
+
+        <form onSubmit={handleDestSearch} className="relative">
+          <Input
+            value={destSearch}
+            onChange={(e) => setDestSearch(e.target.value.toUpperCase())}
+            placeholder={t('flights.destFilter', 'Dest (e.g. JFK)')}
+            className={cn(
+              'w-36 font-mono text-sm uppercase pr-8',
+              filters.destination && 'border-primary'
+            )}
+            maxLength={3}
+          />
+          {filters.destination ? (
+            <button
+              type="button"
+              onClick={clearDestFilter}
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          ) : (
+            <Search className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+          )}
+        </form>
+
+        {hasActiveFilters && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={clearAllFilters}
+            className="text-muted-foreground"
+          >
+            {t('flights.clearFilters', 'Clear filters')}
+          </Button>
+        )}
       </div>
 
       {/* Empty state */}
@@ -168,10 +341,10 @@ export function FlightList({ onEdit }: FlightListProps) {
               <Plane className="w-6 h-6 text-muted-foreground" />
             </div>
             <p className="text-muted-foreground">{t('flights.noFlights', 'No flights found')}</p>
-            {Object.keys(filters).some((k) => filters[k as keyof FlightFilters]) && (
+            {hasActiveFilters && (
               <Button
                 variant="link"
-                onClick={() => setFilters({})}
+                onClick={clearAllFilters}
                 className="mt-2"
               >
                 {t('flights.clearFilters', 'Clear filters')}
@@ -200,6 +373,8 @@ export function FlightList({ onEdit }: FlightListProps) {
               flights={flights}
               onEdit={onEdit}
               onDelete={handleDelete}
+              sort={sort}
+              onSortChange={handleSortChange}
             />
           )}
 

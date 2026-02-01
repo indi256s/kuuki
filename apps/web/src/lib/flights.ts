@@ -11,6 +11,16 @@ export interface FlightFilters {
   airlineIata?: string
   aircraftIcao?: string
   isUpcoming?: boolean
+  origin?: string
+  destination?: string
+}
+
+export type SortField = 'date' | 'origin' | 'destination' | 'airline_iata' | 'aircraft_icao' | 'distance_km' | 'duration_minutes'
+export type SortOrder = 'asc' | 'desc'
+
+export interface SortConfig {
+  field: SortField
+  order: SortOrder
 }
 
 export interface FlightStats {
@@ -31,16 +41,22 @@ export async function getFlights(
     limit?: number
     offset?: number
     filters?: FlightFilters
+    sort?: SortConfig
   } = {}
 ): Promise<{ flights: Flight[]; total: number }> {
-  const { limit = 20, offset = 0, filters = {} } = options
+  const { limit = 20, offset = 0, filters = {}, sort } = options
 
   let query = supabase
     .from('flights')
     .select('*', { count: 'exact' })
     .eq('user_id', userId)
-    .order('date', { ascending: false })
-    .order('id', { ascending: false })
+
+  // Apply sorting
+  const sortField = sort?.field ?? 'date'
+  const sortAscending = sort?.order === 'asc'
+  query = query.order(sortField, { ascending: sortAscending })
+  // Secondary sort by id for stable ordering
+  query = query.order('id', { ascending: sortAscending })
 
   // Apply filters
   if (filters.year) {
@@ -59,6 +75,14 @@ export async function getFlights(
 
   if (filters.isUpcoming !== undefined) {
     query = query.eq('is_upcoming', filters.isUpcoming)
+  }
+
+  if (filters.origin) {
+    query = query.eq('origin', filters.origin.toUpperCase())
+  }
+
+  if (filters.destination) {
+    query = query.eq('destination', filters.destination.toUpperCase())
   }
 
   // Apply pagination
@@ -326,6 +350,30 @@ export async function getFlightAirlines(userId: string): Promise<string[]> {
   }
 
   return Array.from(airlines).sort()
+}
+
+/**
+ * Get unique aircraft from user's flights (for filter dropdown)
+ */
+export async function getFlightAircraft(userId: string): Promise<string[]> {
+  const { data, error } = await supabase
+    .from('flights')
+    .select('aircraft_icao')
+    .eq('user_id', userId)
+    .not('aircraft_icao', 'is', null)
+
+  if (error) {
+    throw new Error(`Failed to fetch flight aircraft: ${error.message}`)
+  }
+
+  const aircraft = new Set<string>()
+  for (const flight of data ?? []) {
+    if (flight.aircraft_icao) {
+      aircraft.add(flight.aircraft_icao)
+    }
+  }
+
+  return Array.from(aircraft).sort()
 }
 
 /**

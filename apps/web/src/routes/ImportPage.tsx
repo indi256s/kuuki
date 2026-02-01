@@ -42,7 +42,7 @@ export function ImportPage() {
   const createFlightMutation = useCreateFlight()
 
   // Get existing flights for duplicate detection
-  const { data: existingFlightsData } = useFlights(undefined, 1000)
+  const { data: existingFlightsData } = useFlights(undefined, undefined, 1000)
   const existingRoutes = new Set<string>()
   existingFlightsData?.pages.forEach(page => {
     page.flights.forEach(flight => {

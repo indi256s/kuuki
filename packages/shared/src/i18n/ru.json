@@ -119,9 +119,19 @@
     "keyboardHint": "Ctrl+S для сохранения, Esc для закрытия",
     "allYears": "Все годы",
     "allAirlines": "Все авиакомпании",
+    "allAircraft": "Все самолёты",
+    "allFlights": "Все полёты",
+    "upcoming": "Предстоящие",
+    "past": "Прошедшие",
+    "times": "Время",
+    "originFilter": "Откуда (напр. SVO)",
+    "destFilter": "Куда (напр. LED)",
     "count": "{{count}} полётов",
     "clearFilters": "Сбросить фильтры",
-    "addFirstFlight": "Добавьте первый полёт"
+    "addFirstFlight": "Добавьте первый полёт",
+    "pending": "Ожидание",
+    "setAircraft": "Указать самолёт",
+    "pendingDescription": "Не удалось определить тип самолёта. Вы можете указать его вручную."
   },
   "stats": {
     "title": "Статистика",
