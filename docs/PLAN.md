@@ -17,7 +17,7 @@
 | **2 Core Flights** | ✅ Done | Flight CRUD, dashboard with stats, route map, autocomplete |
 | **3 AI Import** | ✅ Done | Gemini 3 Flash proxy, upload/paste UI, review with confidence |
 | **3.5 UI Redesign** | ✅ Done | shadcn/ui components, Scandinavian aesthetic, dark mode ready |
-| **4 Social** | ⏳ Pending | Profiles, leaderboards, badges |
+| **4 Social** | ✅ Done | Public profiles, leaderboards, compare, 20 badges |
 | **5 Advanced Stats** | ⏳ Pending | Progressive unlock tiers |
 | **6 Polish** | ⏳ Pending | Dark mode toggle, mobile, CI/CD |
 
@@ -77,9 +77,24 @@ Complete UI overhaul with modern component library and refined aesthetics:
 
 → See [../.interface-design/system.md](../.interface-design/system.md) for full design system
 
-### Phase 4: Social
+### Phase 4: Social ✅
 
-Public profiles, compare feature, leaderboards, badges.
+Public profiles, compare feature, leaderboards, and 20 badges with space-themed tiers.
+
+**Features:**
+- Public profiles at `/fly/{username}` with stats, badges, and rankings
+- Leaderboards with 5 categories (flights, distance, countries, cities, airlines)
+- Compare feature for side-by-side stat comparison
+- 20 badges across 6 categories (flights, distance, airlines, aircraft, achievement, secret)
+- 10 theme color presets with visual density scaling
+- Privacy controls (public/private profiles, leaderboard opt-in)
+- 10 flight minimum for leaderboard eligibility
+
+**Tech:**
+- Denormalized `user_stats` table with database triggers for instant updates
+- Badge evaluation via trigger chain (flight → stats → badges)
+- Pre-computed percentiles for fast leaderboard loads
+- Row Level Security for privacy enforcement
 
 → [tasks/phase-4-social.md](./tasks/phase-4-social.md)
 

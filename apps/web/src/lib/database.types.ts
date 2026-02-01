@@ -194,6 +194,7 @@ export type Database = {
           category: string
           id: number
           metadata: Json | null
+          percentile: number | null
           rank: number
           updated_at: string | null
           user_id: string
@@ -203,6 +204,7 @@ export type Database = {
           category: string
           id?: number
           metadata?: Json | null
+          percentile?: number | null
           rank: number
           updated_at?: string | null
           user_id: string
@@ -212,6 +214,7 @@ export type Database = {
           category?: string
           id?: number
           metadata?: Json | null
+          percentile?: number | null
           rank?: number
           updated_at?: string | null
           user_id?: string
@@ -239,6 +242,7 @@ export type Database = {
           is_public: boolean | null
           locale: string | null
           show_on_leaderboards: boolean | null
+          theme_color: string | null
           updated_at: string | null
           username: string | null
         }
@@ -253,6 +257,7 @@ export type Database = {
           is_public?: boolean | null
           locale?: string | null
           show_on_leaderboards?: boolean | null
+          theme_color?: string | null
           updated_at?: string | null
           username?: string | null
         }
@@ -267,6 +272,7 @@ export type Database = {
           is_public?: boolean | null
           locale?: string | null
           show_on_leaderboards?: boolean | null
+          theme_color?: string | null
           updated_at?: string | null
           username?: string | null
         }
@@ -303,6 +309,56 @@ export type Database = {
             foreignKeyName: "user_badges_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_stats: {
+        Row: {
+          user_id: string
+          total_flights: number
+          total_distance_km: number
+          countries_count: number
+          cities_count: number
+          airlines_count: number
+          aircraft_count: number
+          continents_count: number
+          longest_flight_minutes: number
+          has_night_departure: boolean
+          updated_at: string | null
+        }
+        Insert: {
+          user_id: string
+          total_flights?: number
+          total_distance_km?: number
+          countries_count?: number
+          cities_count?: number
+          airlines_count?: number
+          aircraft_count?: number
+          continents_count?: number
+          longest_flight_minutes?: number
+          has_night_departure?: boolean
+          updated_at?: string | null
+        }
+        Update: {
+          user_id?: string
+          total_flights?: number
+          total_distance_km?: number
+          countries_count?: number
+          cities_count?: number
+          airlines_count?: number
+          aircraft_count?: number
+          continents_count?: number
+          longest_flight_minutes?: number
+          has_night_departure?: boolean
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_stats_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -355,7 +411,10 @@ export type Database = {
     }
     Functions: {
       check_invite_code: { Args: { p_code: string }; Returns: boolean }
+      evaluate_badges: { Args: { p_user_id: string }; Returns: void }
       generate_invite_code: { Args: { p_note?: string }; Returns: string }
+      recalculate_user_stats: { Args: { p_user_id: string }; Returns: void }
+      refresh_leaderboards: { Args: Record<string, never>; Returns: void }
       use_invite_code: {
         Args: { p_code: string; p_user_id: string }
         Returns: boolean

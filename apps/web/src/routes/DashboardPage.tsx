@@ -10,6 +10,8 @@ import { RecentFlights } from '@/components/dashboard/RecentFlights'
 import { RouteMap } from '@/components/map/RouteMap'
 import { FlightForm } from '@/components/flights/FlightForm'
 import { EmptyState } from '@/components/dashboard/EmptyState'
+import { ProfileSettingsDialog } from '@/components/profile/ProfileSettingsDialog'
+import { CompareModal } from '@/components/compare/CompareModal'
 import { ThemeToggle } from '@/components/common/ThemeToggle'
 import { Button } from '@/components/ui/button'
 import {
@@ -19,7 +21,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { Plus, Plane, LogOut, Languages } from 'lucide-react'
+import { Plus, Plane, LogOut, Languages, User, Trophy, GitCompare } from 'lucide-react'
 
 export function DashboardPage() {
   const { t } = useTranslation()
@@ -27,6 +29,8 @@ export function DashboardPage() {
   const { currentLanguage, toggleLanguage } = useLanguage()
   const { data: stats } = useFlightStats()
   const [isFormOpen, setIsFormOpen] = useState(false)
+  const [isProfileOpen, setIsProfileOpen] = useState(false)
+  const [isCompareOpen, setIsCompareOpen] = useState(false)
 
   // Sync upcoming flights on dashboard load
   useSyncUpcomingFlights()
@@ -101,6 +105,29 @@ export function DashboardPage() {
                   <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
                 </div>
                 <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => setIsProfileOpen(true)}>
+                  <User className="w-4 h-4 mr-2" />
+                  {t('nav.profile', 'Profile')}
+                </DropdownMenuItem>
+                {profile?.username && (
+                  <DropdownMenuItem asChild>
+                    <Link to={`/fly/${profile.username}`}>
+                      <Trophy className="w-4 h-4 mr-2" />
+                      {t('profile.viewPublic', 'View Public Profile')}
+                    </Link>
+                  </DropdownMenuItem>
+                )}
+                <DropdownMenuItem onClick={() => setIsCompareOpen(true)}>
+                  <GitCompare className="w-4 h-4 mr-2" />
+                  {t('compare.title', 'Compare Stats')}
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to="/leaderboard">
+                    <Trophy className="w-4 h-4 mr-2" />
+                    {t('nav.leaderboard', 'Leaderboard')}
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={toggleLanguage}>
                   <Languages className="w-4 h-4 mr-2" />
                   {currentLanguage === 'en' ? 'Русский' : 'English'}
@@ -156,6 +183,18 @@ export function DashboardPage() {
       <FlightForm
         isOpen={isFormOpen}
         onClose={handleCloseForm}
+      />
+
+      {/* Profile settings modal */}
+      <ProfileSettingsDialog
+        isOpen={isProfileOpen}
+        onClose={() => setIsProfileOpen(false)}
+      />
+
+      {/* Compare modal */}
+      <CompareModal
+        isOpen={isCompareOpen}
+        onClose={() => setIsCompareOpen(false)}
       />
     </div>
   )

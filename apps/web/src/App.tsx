@@ -6,6 +6,8 @@ import { DashboardPage } from '@/routes/DashboardPage'
 import { FlightsPage } from '@/routes/FlightsPage'
 import { ImportPage } from '@/routes/ImportPage'
 import { OnboardingPage } from '@/routes/OnboardingPage'
+import { ProfilePage } from '@/routes/ProfilePage'
+import { LeaderboardPage } from '@/routes/LeaderboardPage'
 import { ProtectedRoute } from '@/components/ProtectedRoute'
 
 const queryClient = new QueryClient()
@@ -49,6 +51,9 @@ export default function App() {
               </ProtectedRoute>
             }
           />
+          {/* Public routes */}
+          <Route path="/fly/:username" element={<ProfilePage />} />
+          <Route path="/leaderboard" element={<LeaderboardPage />} />
         </Routes>
       </BrowserRouter>
     </QueryClientProvider>

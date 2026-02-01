@@ -20,7 +20,8 @@
     "viewAll": "View all",
     "close": "Close",
     "actions": "Actions",
-    "copy": "Copy"
+    "copy": "Copy",
+    "more": "more"
   },
   "auth": {
     "signIn": "Sign in",
@@ -167,6 +168,7 @@
   },
   "leaderboard": {
     "title": "Leaderboard",
+    "subtitle": "See how you rank against other travelers",
     "categories": {
       "countries": "Countries",
       "cities": "Cities",
@@ -180,7 +182,15 @@
     "yourRank": "Your Rank",
     "notRanked": "Not ranked",
     "optIn": "Join Leaderboard",
-    "optOut": "Leave Leaderboard"
+    "optOut": "Leave Leaderboard",
+    "empty": "No rankings yet. Be the first!",
+    "totalUsers": "{{count}} travelers ranked",
+    "notEligible": "Not yet eligible",
+    "needMoreFlights": "Log {{count}} more flights to appear on leaderboards",
+    "optedOut": "Leaderboards disabled",
+    "enableInSettings": "Enable in profile settings",
+    "joinCta": "Join the rankings",
+    "joinCtaDescription": "Sign up and log 10 flights to appear on the leaderboard"
   },
   "profile": {
     "title": "Profile",
@@ -188,14 +198,25 @@
     "username": "Username",
     "displayName": "Display Name",
     "bio": "Bio",
+    "bioPlaceholder": "Tell us about yourself...",
     "homeAirport": "Home Airport",
-    "visibility": "Profile Visibility",
+    "visibility": "Visibility",
     "public": "Public",
     "private": "Private",
     "showOnLeaderboards": "Show on Leaderboards",
+    "showOnLeaderboardsDescription": "Appear in public rankings (requires 10+ flights)",
+    "publicProfileDescription": "Anyone can view your stats and badges",
     "badges": "Badges",
     "noBadges": "No badges earned yet",
-    "memberSince": "Member since {{date}}"
+    "memberSince": "Member since {{date}}",
+    "you": "You",
+    "notFound": "Profile not found",
+    "notFoundDescription": "This user doesn't exist or has a private profile.",
+    "prefersPrivacy": "This user prefers privacy",
+    "viewPublic": "View Public Profile",
+    "themeColor": "Theme Color",
+    "settingsDescription": "Customize your public profile",
+    "profileUrl": "Profile URL"
   },
   "settings": {
     "title": "Settings",
@@ -286,6 +307,10 @@
     }
   },
   "badges": {
+    "title": "Badges",
+    "progress": "Badge Progress",
+    "earnedCount": "{{earned}} of {{total}} badges earned",
+    "secretHint": "Keep exploring to unlock",
     "firstFlight": "First Flight",
     "frequentFlyer": "Frequent Flyer",
     "centurion": "Centurion",
@@ -298,7 +323,33 @@
     "airlineHopper": "Airline Hopper",
     "airlineCollector": "Airline Collector",
     "aircraftSpotter": "Aircraft Spotter",
-    "widebodyFan": "Widebody Fan"
+    "widebodyFan": "Widebody Fan",
+    "launchPad": "Launch Pad",
+    "lowOrbit": "Low Orbit",
+    "highOrbit": "High Orbit",
+    "moonMission": "Moon Mission",
+    "marsMission": "Mars Mission",
+    "sputnik": "Sputnik",
+    "vostok": "Vostok",
+    "apollo": "Apollo",
+    "voyager": "Voyager",
+    "newHorizons": "New Horizons",
+    "loyal": "Loyal",
+    "diverse": "Diverse",
+    "collector": "Collector",
+    "spotter": "Spotter",
+    "enthusiast": "Enthusiast",
+    "fleetMaster": "Fleet Master",
+    "nightOwl": "Night Owl",
+    "marathon": "Marathon",
+    "testSubject": "Test Subject"
+  },
+  "compare": {
+    "title": "Compare Stats",
+    "description": "See how your travel stats stack up against another traveler",
+    "searchPlaceholder": "Search for a traveler to compare...",
+    "emptyState": "Search for another traveler to compare your stats",
+    "noData": "Unable to load comparison data"
   },
   "errors": {
     "generic": "Something went wrong. Please try again.",

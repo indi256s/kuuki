@@ -1,3 +1,6 @@
+// Theme color options for profiles
+export type ThemeColor = 'teal' | 'red' | 'coral' | 'olive' | 'yellow' | 'orange' | 'purple' | 'blue' | 'gray' | 'green'
+
 // User profile
 export interface Profile {
   id: string
@@ -8,8 +11,39 @@ export interface Profile {
   homeAirport: string | null
   isPublic: boolean
   showOnLeaderboards: boolean
+  themeColor: ThemeColor
   createdAt: string
   updatedAt: string
+}
+
+// User stats (denormalized for performance)
+export interface UserStats {
+  userId: string
+  totalFlights: number
+  totalDistanceKm: number
+  countriesCount: number
+  citiesCount: number
+  airlinesCount: number
+  aircraftCount: number
+  continentsCount: number
+  longestFlightMinutes: number
+  hasNightDeparture: boolean
+  updatedAt: string
+}
+
+// Public profile data (for /fly/:username pages)
+export interface PublicProfile {
+  username: string
+  displayName: string | null
+  avatarUrl: string | null
+  bio: string | null
+  themeColor: ThemeColor
+  isPublic: boolean
+  showOnLeaderboards: boolean
+  stats: UserStats | null
+  badges: UserBadge[]
+  rankings: LeaderboardRanking[]
+  memberSince: string
 }
 
 // Flight record
@@ -42,12 +76,16 @@ export interface Visit {
   visitCount: number
 }
 
+// Leaderboard categories
+export type LeaderboardCategory = 'countries' | 'cities' | 'flights' | 'distance' | 'airlines'
+
 // Leaderboard entry
 export interface LeaderboardEntry {
-  category: 'countries' | 'cities' | 'flights' | 'distance' | 'airlines'
+  category: LeaderboardCategory
   userId: string
   rank: number
   value: number
+  percentile: number
   metadata: {
     username: string
     displayName: string | null
@@ -55,16 +93,32 @@ export interface LeaderboardEntry {
   }
 }
 
+// User's ranking in a specific category
+export interface LeaderboardRanking {
+  category: LeaderboardCategory
+  rank: number
+  value: number
+  percentile: number
+}
+
+// Badge categories
+export type BadgeCategory = 'flights' | 'distance' | 'airlines' | 'aircraft' | 'achievement' | 'secret'
+
+// Badge tiers
+export type BadgeTier = 'bronze' | 'silver' | 'gold' | 'platinum' | 'diamond' | null
+
 // Badge definition
 export interface Badge {
   id: number
   code: string
   name: string
   description: string
-  category: 'milestone' | 'geographic' | 'airline' | 'aircraft' | 'special'
+  category: BadgeCategory
   icon: string
-  tier: 'bronze' | 'silver' | 'gold' | 'platinum'
+  tier: BadgeTier
   points: number
+  isSecret: boolean
+  flavorText?: string
 }
 
 // User's earned badge

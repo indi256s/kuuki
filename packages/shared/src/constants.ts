@@ -1,13 +1,13 @@
+import type { LeaderboardCategory, BadgeTier } from './types'
+
 // Leaderboard categories
-export const LEADERBOARD_CATEGORIES = [
+export const LEADERBOARD_CATEGORIES: readonly LeaderboardCategory[] = [
   'countries',
   'cities',
   'flights',
   'distance',
   'airlines',
 ] as const
-
-export type LeaderboardCategory = typeof LEADERBOARD_CATEGORIES[number]
 
 // Aircraft types
 export const AIRCRAFT_TYPES = ['widebody', 'narrowbody', 'regional', 'bizjet', 'turboprop', 'piston'] as const
@@ -18,8 +18,7 @@ export const ENGINE_TYPES = ['jet', 'turboprop', 'piston'] as const
 export type EngineTypeConst = typeof ENGINE_TYPES[number]
 
 // Badge tiers
-export const BADGE_TIERS = ['bronze', 'silver', 'gold', 'platinum'] as const
-export type BadgeTier = typeof BADGE_TIERS[number]
+export const BADGE_TIERS: readonly NonNullable<BadgeTier>[] = ['bronze', 'silver', 'gold', 'platinum', 'diamond'] as const
 
 // Earth's circumference in km
 export const EARTH_CIRCUMFERENCE_KM = 40075
