@@ -7,6 +7,8 @@ export type Json =
   | Json[]
 
 export type Database = {
+  // Allows to automatically instantiate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "14.1"
   }
@@ -118,15 +120,20 @@ export type Database = {
           aircraft_icao: string | null
           airline_iata: string | null
           arrival_time: string | null
+          arrival_utc: string | null
           created_at: string | null
           date: string
           departure_time: string | null
+          departure_utc: string | null
+          dest_tz: string | null
           destination: string
           distance_km: number | null
           duration_minutes: number | null
           flight_number: string | null
           id: number
+          is_upcoming: boolean | null
           origin: string
+          origin_tz: string | null
           source: string | null
           user_id: string
         }
@@ -134,15 +141,20 @@ export type Database = {
           aircraft_icao?: string | null
           airline_iata?: string | null
           arrival_time?: string | null
+          arrival_utc?: string | null
           created_at?: string | null
           date: string
           departure_time?: string | null
+          departure_utc?: string | null
+          dest_tz?: string | null
           destination: string
           distance_km?: number | null
           duration_minutes?: number | null
           flight_number?: string | null
           id?: number
+          is_upcoming?: boolean | null
           origin: string
+          origin_tz?: string | null
           source?: string | null
           user_id: string
         }
@@ -150,15 +162,20 @@ export type Database = {
           aircraft_icao?: string | null
           airline_iata?: string | null
           arrival_time?: string | null
+          arrival_utc?: string | null
           created_at?: string | null
           date?: string
           departure_time?: string | null
+          departure_utc?: string | null
+          dest_tz?: string | null
           destination?: string
           distance_km?: number | null
           duration_minutes?: number | null
           flight_number?: string | null
           id?: number
+          is_upcoming?: boolean | null
           origin?: string
+          origin_tz?: string | null
           source?: string | null
           user_id?: string
         }

@@ -3,6 +3,8 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { LandingPage } from '@/routes/LandingPage'
 import { AuthPage } from '@/routes/AuthPage'
 import { DashboardPage } from '@/routes/DashboardPage'
+import { FlightsPage } from '@/routes/FlightsPage'
+import { ImportPage } from '@/routes/ImportPage'
 import { OnboardingPage } from '@/routes/OnboardingPage'
 import { ProtectedRoute } from '@/components/ProtectedRoute'
 
@@ -28,6 +30,22 @@ export default function App() {
             element={
               <ProtectedRoute>
                 <DashboardPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/flights"
+            element={
+              <ProtectedRoute>
+                <FlightsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/import"
+            element={
+              <ProtectedRoute>
+                <ImportPage />
               </ProtectedRoute>
             }
           />

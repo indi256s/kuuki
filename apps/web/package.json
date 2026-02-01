@@ -13,6 +13,7 @@
     "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
+    "@kuuki/data": "workspace:*",
     "@kuuki/shared": "workspace:*",
     "@supabase/supabase-js": "^2.47.0",
     "@tanstack/react-query": "^5.62.0",

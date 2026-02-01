@@ -15,7 +15,11 @@
     "done": "Done",
     "search": "Search",
     "noResults": "No results found",
-    "learnMore": "Learn more"
+    "learnMore": "Learn more",
+    "loadMore": "Load more",
+    "viewAll": "View all",
+    "close": "Close",
+    "actions": "Actions"
   },
   "auth": {
     "signIn": "Sign in",
@@ -62,13 +66,17 @@
     "title": "Dashboard",
     "welcome": "Welcome, {{name}}",
     "totalFlights": "Total Flights",
-    "totalDistance": "Total Distance",
-    "countriesVisited": "Countries Visited",
-    "airlinesFlown": "Airlines Flown",
+    "totalDistance": "Distance",
+    "countriesVisited": "Countries",
+    "airlinesFlown": "Airlines",
     "recentFlights": "Recent Flights",
+    "upcomingFlights": "Upcoming Flights",
     "viewAll": "View all",
     "noFlights": "No flights yet",
-    "addFirstFlight": "Add your first flight"
+    "noFlightsYet": "No flights logged yet",
+    "addFirstFlight": "Add your first flight",
+    "inDays": "in {{days}}d",
+    "noRouteData": "Add flights to see your route map"
   },
   "flights": {
     "title": "Flights",
@@ -77,20 +85,43 @@
     "deleteFlight": "Delete Flight",
     "flightNumber": "Flight Number",
     "date": "Date",
-    "origin": "Origin",
-    "destination": "Destination",
+    "origin": "From",
+    "destination": "To",
+    "route": "Route",
     "airline": "Airline",
     "aircraft": "Aircraft",
     "distance": "Distance",
     "duration": "Duration",
+    "departureTime": "Departure",
+    "arrivalTime": "Arrival",
     "source": "Source",
     "sourceManual": "Manual",
     "sourceAiImport": "AI Import",
     "noFlights": "No flights found",
     "deleteConfirm": "Are you sure you want to delete this flight?",
+    "deleteConfirmTitle": "Delete Flight?",
+    "deleteConfirmMessage": "This action cannot be undone. The flight will be permanently removed from your log.",
     "km": "km",
     "minutes": "min",
-    "hours": "h"
+    "hours": "h",
+    "airportPlaceholder": "Search by code or city...",
+    "airlinePlaceholder": "Search by code or name...",
+    "aircraftPlaceholder": "Search by type code or name...",
+    "requiredFields": "Please fill in all required fields",
+    "invalidAirportCode": "Airport codes must be 3 letters",
+    "sameAirport": "Origin and destination cannot be the same",
+    "duplicateWarning": "You already have a flight on this date with the same route. You can still save it.",
+    "upcomingFlight": "This flight is {{days}} days away. It will be marked as upcoming.",
+    "daysUntil": "{{days}} days away",
+    "inDays": "in {{days}}d",
+    "hideDetails": "Hide details",
+    "addDetails": "Add more details",
+    "keyboardHint": "Press Ctrl+S to save, Esc to close",
+    "allYears": "All years",
+    "allAirlines": "All airlines",
+    "count": "{{count}} flights",
+    "clearFilters": "Clear filters",
+    "addFirstFlight": "Add your first flight"
   },
   "stats": {
     "title": "Stats",
@@ -178,7 +209,59 @@
     "confirm": "Confirm Import",
     "flightsFound": "{{count}} flights found",
     "noFlightsFound": "No flights found in the provided data",
-    "apiKeyRequired": "Gemini API key required. Add it in Settings."
+    "apiKeyRequired": "Gemini API key required. Add it in Settings.",
+    "upload": {
+      "dropzone": "Drag and drop or click to upload",
+      "paste": "Or paste an image (Ctrl+V)",
+      "formats": "Supports PDF, PNG, JPG",
+      "maxSize": "Max 10 MB",
+      "pasteHint": "to paste an image",
+      "orPasteText": "Or paste text instead",
+      "pasteFlightDetails": "Paste flight details",
+      "textPlaceholder": "Paste booking confirmation, itinerary, or flight details here...",
+      "textPreview": "Text preview",
+      "textTooShort": "Please enter more text to analyze.",
+      "parse": "Parse",
+      "invalidFormat": "Invalid file format. Please use PDF, PNG, or JPG.",
+      "fileTooLarge": "File too large. Maximum size is 10 MB.",
+      "readError": "Failed to read file."
+    },
+    "parsing": {
+      "reading": "Reading file...",
+      "extracting": "Extracting text...",
+      "finding": "Finding flights...",
+      "hint": "This usually takes a few seconds"
+    },
+    "review": {
+      "title": "Review extracted flights",
+      "selectAll": "Select all",
+      "deselectAll": "Deselect all",
+      "saveSelected": "Save {{count}} flight(s)",
+      "saving": "Saving...",
+      "duplicate": "Duplicate",
+      "duplicatesFound": "{{count}} possible duplicate(s) found",
+      "invalid": "Invalid",
+      "lowConfidence": "Some fields may need verification",
+      "verify": "Verify",
+      "confidence": "Confidence",
+      "addManually": "Add manually instead",
+      "count": "{{selected}} of {{total}} flights selected"
+    },
+    "noResults": {
+      "title": "No flights found",
+      "message": "We couldn't extract flights from this document",
+      "manual": "Add manually",
+      "tryAgain": "Try another file"
+    },
+    "saving": {
+      "progress": "Saving flight {{current}} of {{total}}..."
+    },
+    "success": {
+      "title": "Flights imported!",
+      "count": "{{count}} flight(s) added to your log",
+      "importMore": "Import more",
+      "viewFlights": "View flights"
+    }
   },
   "badges": {
     "firstFlight": "First Flight",
@@ -200,7 +283,14 @@
     "network": "Network error. Please check your connection.",
     "unauthorized": "Please sign in to continue.",
     "notFound": "Page not found.",
-    "validation": "Please check your input."
+    "validation": "Please check your input.",
+    "loadingStats": "Failed to load stats"
+  },
+  "map": {
+    "byAirline": "Airline",
+    "byRoute": "Route",
+    "routes": "routes",
+    "airports": "airports"
   },
   "landing": {
     "hero": {

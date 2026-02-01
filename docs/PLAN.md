@@ -10,10 +10,10 @@
 
 | Phase | Status | Details |
 |-------|--------|---------|
-| **0.5 Reference Data** | ✅ Done | 173 aircraft loaded |
+| **0.5 Reference Data** | ✅ Done | 173 aircraft, 115 airports, 90+ airlines loaded |
 | **1 Foundation** | ✅ Done | Auth, i18n, tests, CF Pages (kuuki.indi256.com) |
 | **1.5 Onboarding** | ✅ Done | Landing page, showcase modal, username picker, empty states |
-| **2 Core Flights** | ⏳ Pending | CRUD, dashboard, map |
+| **2 Core Flights** | ✅ Done | Flight CRUD, dashboard with stats, route map, autocomplete |
 | **3 AI Import** | ⏳ Pending | Gemini proxy, upload UI |
 | **4 Social** | ⏳ Pending | Profiles, leaderboards, badges |
 | **5 Advanced Stats** | ⏳ Pending | Progressive unlock tiers |
@@ -39,9 +39,9 @@ Pre-login showcase, landing page, username picker, empty states.
 
 → [tasks/phase-1.5-onboarding.md](./tasks/phase-1.5-onboarding.md)
 
-### Phase 2: Core Flight Management
+### Phase 2: Core Flight Management ✅
 
-Flight CRUD, entry form, future flights, dashboard, route map.
+Flight CRUD with form modal, future flights with countdown, dashboard with stats cards, route map visualization, autocomplete for airports/airlines/aircraft.
 
 → [tasks/phase-2-core-flights.md](./tasks/phase-2-core-flights.md)
 

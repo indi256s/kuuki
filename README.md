@@ -27,14 +27,14 @@ kuuki/
 ├── apps/
 │   └── web/              # React SPA
 │       └── src/
-│           ├── components/   # UI (auth, dashboard, landing, onboarding)
-│           ├── hooks/        # useAuth, useLanguage, useShowcase
-│           ├── lib/          # supabase, auth, i18n, sampleData
+│           ├── components/   # UI (auth, dashboard, flights, landing, map, onboarding)
+│           ├── hooks/        # useAuth, useLanguage, useShowcase, useFlights, useStats
+│           ├── lib/          # supabase, auth, i18n, flights, geo
 │           ├── routes/       # Page components
 │           └── stores/       # Zustand state
 ├── packages/
 │   ├── shared/           # Types, i18n translations
-│   └── data/             # Static reference data (aircraft, airports)
+│   └── data/             # Static reference data (aircraft, airports, airlines)
 ├── functions/            # Cloudflare Workers (edge API)
 ├── supabase/             # Database migrations
 └── docs/                 # Documentation and plans
@@ -63,7 +63,8 @@ pnpm test
 | `/` | Landing page with showcase modal |
 | `/auth` | Sign in / Sign up |
 | `/onboarding` | Username picker + import CTA |
-| `/dashboard` | User dashboard (empty state if no flights) |
+| `/dashboard` | User dashboard with stats, route map, recent flights |
+| `/flights` | Flight management (add, edit, delete, filter) |
 
 ## Documentation
 

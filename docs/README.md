@@ -17,7 +17,9 @@
 
 **Phase 1.5 (Onboarding):** ✅ Complete - landing page, showcase modal, username picker, empty states.
 
-**Next:** Phase 2 (Core Flights) - CRUD, dashboard, route map.
+**Phase 2 (Core Flights):** ✅ Complete - flight CRUD, dashboard with stats, route map, autocomplete.
+
+**Next:** Phase 3 (AI Import) - Gemini proxy, upload UI, import review.
 
 ## Project Structure (Key Paths)
 
@@ -26,16 +28,18 @@ kuuki/
 ├── apps/web/src/           # React SPA source
 │   ├── components/
 │   │   ├── auth/           # SignInForm, SignUpForm
-│   │   ├── dashboard/      # EmptyState
+│   │   ├── dashboard/      # StatsCards, RecentFlights, EmptyState
+│   │   ├── flights/        # FlightForm, FlightList, FlightCard, FlightTable, Autocompletes
 │   │   ├── landing/        # HeroSection, FeatureGrid
+│   │   ├── map/            # RouteMap (SVG visualization)
 │   │   └── onboarding/     # ShowcaseModal, UsernamePicker, ImportCTA
-│   ├── hooks/              # useAuth, useLanguage, useShowcase
-│   ├── lib/                # supabase, auth, i18n, sampleData
-│   ├── routes/             # LandingPage, AuthPage, OnboardingPage, DashboardPage
+│   ├── hooks/              # useAuth, useLanguage, useShowcase, useFlights, useStats
+│   ├── lib/                # supabase, auth, i18n, sampleData, flights, geo
+│   ├── routes/             # LandingPage, AuthPage, OnboardingPage, DashboardPage, FlightsPage
 │   └── stores/             # Zustand stores (authStore)
 ├── packages/
 │   ├── shared/             # Shared code, i18n translations
-│   └── data/               # Static reference data (aircraft, airports)
+│   └── data/               # Static reference data (aircraft, airports, airlines)
 ├── functions/              # Cloudflare Workers
 ├── supabase/migrations/    # Database migrations
 └── docs/                   # You are here

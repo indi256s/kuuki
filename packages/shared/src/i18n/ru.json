@@ -15,7 +15,11 @@
     "done": "Готово",
     "search": "Поиск",
     "noResults": "Ничего не найдено",
-    "learnMore": "Подробнее"
+    "learnMore": "Подробнее",
+    "loadMore": "Загрузить ещё",
+    "viewAll": "Смотреть все",
+    "close": "Закрыть",
+    "actions": "Действия"
   },
   "auth": {
     "signIn": "Войти",
@@ -62,13 +66,17 @@
     "title": "Главная",
     "welcome": "Привет, {{name}}",
     "totalFlights": "Всего полётов",
-    "totalDistance": "Общее расстояние",
-    "countriesVisited": "Стран посещено",
-    "airlinesFlown": "Авиакомпаний",
+    "totalDistance": "Расстояние",
+    "countriesVisited": "Страны",
+    "airlinesFlown": "Авиакомпании",
     "recentFlights": "Последние полёты",
+    "upcomingFlights": "Предстоящие полёты",
     "viewAll": "Смотреть все",
     "noFlights": "Пока нет полётов",
-    "addFirstFlight": "Добавьте первый полёт"
+    "noFlightsYet": "Полёты ещё не добавлены",
+    "addFirstFlight": "Добавьте первый полёт",
+    "inDays": "через {{days}}д",
+    "noRouteData": "Добавьте полёты, чтобы увидеть карту маршрутов"
   },
   "flights": {
     "title": "Полёты",
@@ -79,18 +87,40 @@
     "date": "Дата",
     "origin": "Откуда",
     "destination": "Куда",
+    "route": "Маршрут",
     "airline": "Авиакомпания",
     "aircraft": "Самолёт",
     "distance": "Расстояние",
     "duration": "Длительность",
+    "departureTime": "Вылет",
+    "arrivalTime": "Прилёт",
     "source": "Источник",
     "sourceManual": "Вручную",
     "sourceAiImport": "AI импорт",
     "noFlights": "Полёты не найдены",
     "deleteConfirm": "Вы уверены, что хотите удалить этот полёт?",
+    "deleteConfirmTitle": "Удалить полёт?",
+    "deleteConfirmMessage": "Это действие нельзя отменить. Полёт будет удалён из вашего журнала.",
     "km": "км",
     "minutes": "мин",
-    "hours": "ч"
+    "hours": "ч",
+    "airportPlaceholder": "Поиск по коду или городу...",
+    "airlinePlaceholder": "Поиск по коду или названию...",
+    "aircraftPlaceholder": "Поиск по коду или названию...",
+    "requiredFields": "Пожалуйста, заполните все обязательные поля",
+    "invalidAirportCode": "Код аэропорта должен состоять из 3 букв",
+    "sameAirport": "Вылет и прилёт не могут быть в одном аэропорту",
+    "duplicateWarning": "У вас уже есть полёт в этот день по этому маршруту. Вы всё равно можете сохранить его.",
+    "upcomingFlight": "Этот полёт через {{days}} дней. Он будет отмечен как предстоящий.",
+    "daysUntil": "через {{days}} дней",
+    "hideDetails": "Скрыть детали",
+    "addDetails": "Добавить детали",
+    "keyboardHint": "Ctrl+S для сохранения, Esc для закрытия",
+    "allYears": "Все годы",
+    "allAirlines": "Все авиакомпании",
+    "count": "{{count}} полётов",
+    "clearFilters": "Сбросить фильтры",
+    "addFirstFlight": "Добавьте первый полёт"
   },
   "stats": {
     "title": "Статистика",
@@ -178,7 +208,59 @@
     "confirm": "Подтвердить импорт",
     "flightsFound": "Найдено полётов: {{count}}",
     "noFlightsFound": "Полёты не найдены в предоставленных данных",
-    "apiKeyRequired": "Требуется API ключ Gemini. Добавьте его в Настройках."
+    "apiKeyRequired": "Требуется API ключ Gemini. Добавьте его в Настройках.",
+    "upload": {
+      "dropzone": "Перетащите файл или нажмите для загрузки",
+      "paste": "Или вставьте изображение (Ctrl+V)",
+      "formats": "Поддерживаются PDF, PNG, JPG",
+      "maxSize": "Максимум 10 МБ",
+      "pasteHint": "чтобы вставить изображение",
+      "orPasteText": "Или вставьте текст",
+      "pasteFlightDetails": "Вставьте данные о рейсе",
+      "textPlaceholder": "Вставьте подтверждение бронирования, маршрутную квитанцию или данные о рейсе...",
+      "textPreview": "Предпросмотр текста",
+      "textTooShort": "Введите больше текста для анализа.",
+      "parse": "Распознать",
+      "invalidFormat": "Неверный формат файла. Используйте PDF, PNG или JPG.",
+      "fileTooLarge": "Файл слишком большой. Максимальный размер 10 МБ.",
+      "readError": "Не удалось прочитать файл."
+    },
+    "parsing": {
+      "reading": "Чтение файла...",
+      "extracting": "Извлечение текста...",
+      "finding": "Поиск полётов...",
+      "hint": "Обычно это занимает несколько секунд"
+    },
+    "review": {
+      "title": "Проверьте найденные полёты",
+      "selectAll": "Выбрать все",
+      "deselectAll": "Снять выбор",
+      "saveSelected": "Сохранить {{count}} полёт(ов)",
+      "saving": "Сохранение...",
+      "duplicate": "Дубликат",
+      "duplicatesFound": "Найдено {{count}} возможных дубликатов",
+      "invalid": "Ошибка",
+      "lowConfidence": "Некоторые поля требуют проверки",
+      "verify": "Проверить",
+      "confidence": "Уверенность",
+      "addManually": "Добавить вручную",
+      "count": "Выбрано {{selected}} из {{total}} полётов"
+    },
+    "noResults": {
+      "title": "Полёты не найдены",
+      "message": "Не удалось извлечь данные о полётах из этого документа",
+      "manual": "Добавить вручную",
+      "tryAgain": "Попробовать другой файл"
+    },
+    "saving": {
+      "progress": "Сохранение полёта {{current}} из {{total}}..."
+    },
+    "success": {
+      "title": "Полёты импортированы!",
+      "count": "{{count}} полёт(ов) добавлено в журнал",
+      "importMore": "Импортировать ещё",
+      "viewFlights": "Посмотреть полёты"
+    }
   },
   "badges": {
     "firstFlight": "Первый полёт",
@@ -200,7 +282,14 @@
     "network": "Ошибка сети. Проверьте подключение.",
     "unauthorized": "Пожалуйста, войдите в систему.",
     "notFound": "Страница не найдена.",
-    "validation": "Проверьте введённые данные."
+    "validation": "Проверьте введённые данные.",
+    "loadingStats": "Не удалось загрузить статистику"
+  },
+  "map": {
+    "byAirline": "По авиакомпании",
+    "byRoute": "По маршруту",
+    "routes": "маршрутов",
+    "airports": "аэропортов"
   },
   "landing": {
     "hero": {
