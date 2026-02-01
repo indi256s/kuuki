@@ -184,8 +184,8 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
         destination: flight.destination.toUpperCase(),
         airline_iata: flight.airline_iata.toUpperCase(),
         aircraft_icao: flight.aircraft_icao?.toUpperCase(),
-        // Ensure confidence is a number between 0 and 1
-        confidence: Math.min(1, Math.max(0, flight.confidence || 0.5)),
+        // Ensure confidence is a number between 0 and 1 (use ?? to preserve explicit 0)
+        confidence: Math.min(1, Math.max(0, flight.confidence ?? 0.5)),
       }))
 
     // Debug: Log validation summary
