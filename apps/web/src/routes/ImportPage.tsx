@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '@/hooks/useAuth'
 import { useLanguage } from '@/hooks/useLanguage'
@@ -19,9 +19,13 @@ type ParsingPhase = 'reading' | 'extracting' | 'finding'
 export function ImportPage() {
   const { t } = useTranslation()
   const navigate = useNavigate()
+  const location = useLocation()
   const queryClient = useQueryClient()
   const { signOut } = useAuth()
   const { currentLanguage, toggleLanguage } = useLanguage()
+
+  // Check for text content passed from EmptyState
+  const initialTextContent = (location.state as { textContent?: string } | null)?.textContent
 
   const [step, setStep] = useState<ImportStep>('upload')
   const [parsingPhase, setParsingPhase] = useState<ParsingPhase>('reading')
@@ -57,6 +61,15 @@ export function ImportPage() {
 
     return () => clearInterval(interval)
   }, [step])
+
+  // Auto-submit text content if passed from EmptyState
+  useEffect(() => {
+    if (initialTextContent && step === 'upload') {
+      handleUploadSubmit({ type: 'text', content: initialTextContent })
+      // Clear the location state to prevent re-submission on refresh
+      navigate(location.pathname, { replace: true, state: {} })
+    }
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleUploadSubmit = useCallback(async (data: { type: 'pdf' | 'image' | 'text'; content: string }) => {
     setStep('parsing')

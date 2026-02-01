@@ -368,6 +368,12 @@
     "addFlight": "Add Your First Flight",
     "sampleLabel": "Sample Data",
     "orImport": "or import from document",
-    "geminiTip": "Have flight emails? Ask Google Gemini to search your Gmail and paste the results."
+    "geminiTip": "Have flight emails? Ask Google Gemini to search your Gmail and paste the results.",
+    "importTitle": "Import Your Flights",
+    "importSubtitle": "Get started in seconds with Gemini",
+    "step1": "Copy this prompt to Google Gemini",
+    "step2": "Paste the results here",
+    "uploadFile": "Upload file",
+    "addManually": "Add manually"
   }
 }
