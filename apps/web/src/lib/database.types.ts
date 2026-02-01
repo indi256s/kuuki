@@ -360,7 +360,9 @@ export type Database = {
           duration_unlocked: boolean
           manufacturer_breakdown: Json | null
           aircraft_breakdown: Json | null
+          aircraft_type_breakdown: Json | null
           continent_breakdown: Json | null
+          region_breakdown: Json | null
           duration_stats: Json | null
           patterns: Json | null
           featured_fact: string | null
@@ -374,7 +376,9 @@ export type Database = {
           duration_unlocked?: boolean
           manufacturer_breakdown?: Json | null
           aircraft_breakdown?: Json | null
+          aircraft_type_breakdown?: Json | null
           continent_breakdown?: Json | null
+          region_breakdown?: Json | null
           duration_stats?: Json | null
           patterns?: Json | null
           featured_fact?: string | null
@@ -388,7 +392,9 @@ export type Database = {
           duration_unlocked?: boolean
           manufacturer_breakdown?: Json | null
           aircraft_breakdown?: Json | null
+          aircraft_type_breakdown?: Json | null
           continent_breakdown?: Json | null
+          region_breakdown?: Json | null
           duration_stats?: Json | null
           patterns?: Json | null
           featured_fact?: string | null

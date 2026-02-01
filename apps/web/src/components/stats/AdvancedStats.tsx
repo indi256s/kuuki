@@ -6,47 +6,8 @@ import { useUnlockProgress } from '@/hooks/useAdvancedStats'
 import { OverviewTier } from './OverviewTier'
 import { TierContainer } from './TierContainer'
 import { UnlockToast } from './UnlockToast'
-
-// Placeholder tiers for Phase 5b/5c - will be replaced with actual implementations
-function AviaGeekPlaceholder() {
-  return (
-    <div className="space-y-4">
-      <p className="text-sm text-muted-foreground">
-        Aircraft insights coming in Phase 5b...
-      </p>
-      <div className="flex gap-2">
-        {['Airbus', 'Boeing', 'Embraer'].map((name) => (
-          <div
-            key={name}
-            className="px-3 py-1.5 rounded-lg bg-muted/50 text-xs font-medium"
-          >
-            {name}
-          </div>
-        ))}
-      </div>
-    </div>
-  )
-}
-
-function CountryGeekPlaceholder() {
-  return (
-    <div className="space-y-4">
-      <p className="text-sm text-muted-foreground">
-        Country analytics coming in Phase 5b...
-      </p>
-      <div className="grid grid-cols-3 gap-2">
-        {['EU', 'AS', 'NA', 'SA', 'AF', 'OC'].map((code) => (
-          <div
-            key={code}
-            className="px-3 py-2 rounded-lg bg-muted/50 text-center"
-          >
-            <span className="text-xs font-mono text-muted-foreground">{code}</span>
-          </div>
-        ))}
-      </div>
-    </div>
-  )
-}
+import { AviaGeekTier } from './AviaGeekTier'
+import { CountryGeekTier } from './CountryGeekTier'
 
 function DurationPlaceholder() {
   return (
@@ -131,7 +92,7 @@ export function AdvancedStats() {
           progress={unlockProgress?.aviaGeek}
           delay={200}
         >
-          <AviaGeekPlaceholder />
+          <AviaGeekTier />
         </TierContainer>
 
         {/* Country Geek Tier */}
@@ -143,7 +104,7 @@ export function AdvancedStats() {
           progress={unlockProgress?.countryGeek}
           delay={275}
         >
-          <CountryGeekPlaceholder />
+          <CountryGeekTier />
         </TierContainer>
       </div>
 

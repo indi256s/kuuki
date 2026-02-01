@@ -189,6 +189,73 @@
     "unlock": {
       "title": "New tier unlocked!",
       "nowAvailable": "is now available"
+    },
+    "aviaGeek": {
+      "mostFlown": "Most Flown",
+      "flightCount": "{{count}} flights ({{percentage}}% of total)",
+      "manufacturers": "Manufacturers",
+      "widebodyRatio": "Widebody Ratio",
+      "narrowbody": "Narrowbody",
+      "widebody": "Widebody",
+      "fact": {
+        "1": "Your {{manufacturer}} loyalty is noted. They'll appreciate the business.",
+        "2": "The {{aircraft}} appears {{count}} times in your logs. It's either reliable or you lack imagination.",
+        "3": "{{percentage}}% widebody ratio. Your comfort preferences are showing.",
+        "4": "{{count}} manufacturers in your collection. An eclectic taste.",
+        "5": "I've analyzed your fleet preferences. The data is... revealing."
+      }
+    },
+    "countryGeek": {
+      "viewAll": "View All",
+      "globalProgress": "Global Progress",
+      "completion": "{{percentage}}% of all territories",
+      "allCountries": "All Countries",
+      "fact": {
+        "1": "{{count}} countries. That's {{percentage}}% of Earth. The other {{remaining}}% awaits your arrival.",
+        "2": "{{continent}} appears to be your preferred hemisphere. {{count}} countries there alone.",
+        "3": "{{continent}} seems... neglected. Only {{visited}} of {{total}} explored.",
+        "4": "{{remaining}} territories remain unconquered. I admire your ambition. Or pity your schedule.",
+        "5": "Your geographical distribution is... revealing."
+      }
+    },
+    "aircraftTypes": {
+      "widebody": "Widebody",
+      "narrowbody": "Narrowbody",
+      "regional": "Regional",
+      "bizjet": "Business Jet",
+      "turboprop": "Turboprop",
+      "piston": "Piston"
+    },
+    "continents": {
+      "europe": "Europe",
+      "asia": "Asia",
+      "americas": "Americas",
+      "africa": "Africa",
+      "oceania": "Oceania"
+    },
+    "regions": {
+      "Northern Africa": "Northern Africa",
+      "Eastern Africa": "Eastern Africa",
+      "Middle Africa": "Middle Africa",
+      "Southern Africa": "Southern Africa",
+      "Western Africa": "Western Africa",
+      "Caribbean": "Caribbean",
+      "Central America": "Central America",
+      "South America": "South America",
+      "Northern America": "Northern America",
+      "Central Asia": "Central Asia",
+      "Eastern Asia": "Eastern Asia",
+      "South-eastern Asia": "South-eastern Asia",
+      "Southern Asia": "Southern Asia",
+      "Western Asia": "Western Asia",
+      "Eastern Europe": "Eastern Europe",
+      "Northern Europe": "Northern Europe",
+      "Southern Europe": "Southern Europe",
+      "Western Europe": "Western Europe",
+      "Australia and New Zealand": "Australia and New Zealand",
+      "Melanesia": "Melanesia",
+      "Micronesia": "Micronesia",
+      "Polynesia": "Polynesia"
     }
   },
   "leaderboard": {

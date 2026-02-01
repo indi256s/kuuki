@@ -1,4 +1,4 @@
-import { ReactNode } from 'react'
+import { ReactNode, useEffect, useRef, useState } from 'react'
 import { cn } from '@/lib/utils'
 import { LockedTierTeaser } from './LockedTierTeaser'
 
@@ -14,6 +14,25 @@ interface TierContainerProps {
   delay?: number
 }
 
+// Custom hook to detect when isUnlocked changes from false to true
+function useUnlockTransition(isUnlocked: boolean) {
+  const wasUnlocked = useRef(isUnlocked)
+  const [justUnlocked, setJustUnlocked] = useState(false)
+
+  useEffect(() => {
+    // Detect transition from locked to unlocked
+    if (isUnlocked && !wasUnlocked.current) {
+      setJustUnlocked(true)
+      // Clear the animation state after animation completes
+      const timer = setTimeout(() => setJustUnlocked(false), 600)
+      return () => clearTimeout(timer)
+    }
+    wasUnlocked.current = isUnlocked
+  }, [isUnlocked])
+
+  return justUnlocked
+}
+
 export function TierContainer({
   tier,
   title,
@@ -23,6 +42,8 @@ export function TierContainer({
   children,
   delay = 0,
 }: TierContainerProps) {
+  const justUnlocked = useUnlockTransition(isUnlocked)
+
   return (
     <div
       className={cn(
@@ -79,7 +100,14 @@ export function TierContainer({
       {/* Content */}
       <div className="relative">
         {isUnlocked ? (
-          <div className="p-5">{children}</div>
+          <div
+            className={cn(
+              'p-5',
+              justUnlocked && 'animate-tier-reveal'
+            )}
+          >
+            {children}
+          </div>
         ) : (
           <LockedTierTeaser tier={tier} progress={progress} />
         )}

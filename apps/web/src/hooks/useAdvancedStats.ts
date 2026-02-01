@@ -2,6 +2,18 @@ import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/stores/authStore'
 
+export interface MostFlownAircraft {
+  icao: string
+  name: string
+  count: number
+  total_flights: number
+}
+
+export interface AircraftTypeBreakdown {
+  types: Record<string, number>  // {widebody: 5, narrowbody: 20, ...}
+  most_flown: MostFlownAircraft | null
+}
+
 export interface AdvancedStats {
   userId: string
   // Unlock flags
@@ -11,7 +23,9 @@ export interface AdvancedStats {
   // Pre-computed analytics
   manufacturerBreakdown: Record<string, number> | null
   aircraftBreakdown: Record<string, number> | null
+  aircraftTypeBreakdown: AircraftTypeBreakdown | null  // NEW for Phase 5b
   continentBreakdown: Record<string, number> | null
+  regionBreakdown: Record<string, number> | null  // NEW for Phase 5b
   durationStats: {
     total_minutes: number
     avg_minutes: number
@@ -67,7 +81,9 @@ export function useAdvancedStats() {
         durationUnlocked: data.duration_unlocked ?? false,
         manufacturerBreakdown: data.manufacturer_breakdown as Record<string, number> | null,
         aircraftBreakdown: data.aircraft_breakdown as Record<string, number> | null,
+        aircraftTypeBreakdown: data.aircraft_type_breakdown as AircraftTypeBreakdown | null,
         continentBreakdown: data.continent_breakdown as Record<string, number> | null,
+        regionBreakdown: data.region_breakdown as Record<string, number> | null,
         durationStats: data.duration_stats as AdvancedStats['durationStats'],
         patterns: data.patterns as Record<string, unknown> | null,
         featuredFact: data.featured_fact ?? null,

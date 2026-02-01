@@ -392,6 +392,20 @@
   }
 }
 
+/* Tier unlock reveal animation - blur to clear */
+@keyframes tier-reveal {
+  from {
+    filter: blur(8px);
+    opacity: 0.5;
+    transform: scale(0.98);
+  }
+  to {
+    filter: blur(0);
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
 @layer utilities {
   .animate-fade-in {
     animation: fade-in var(--duration-normal) var(--ease-smooth) forwards;
@@ -421,6 +435,11 @@
   .stagger-children > *:nth-child(4) { animation-delay: 150ms; }
   .stagger-children > *:nth-child(5) { animation-delay: 200ms; }
   .stagger-children > *:nth-child(6) { animation-delay: 250ms; }
+
+  /* Tier unlock reveal animation */
+  .animate-tier-reveal {
+    animation: tier-reveal 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
 }
 
 /* Custom scrollbar - minimal */
