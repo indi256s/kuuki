@@ -22,6 +22,27 @@
 
 ---
 
+## Breakpoints
+
+Standard Tailwind breakpoints plus custom additions for large displays:
+
+| Breakpoint | Width | Use case |
+|------------|-------|----------|
+| `sm` | 640px | Tablets, large phones |
+| `md` | 768px | Small laptops |
+| `lg` | 1024px | Laptops |
+| `xl` | 1280px | Desktop monitors |
+| `2xl` | 1536px | Large monitors |
+| `3xl` | 1920px | Full HD+ / 1080p monitors |
+| `4xl` | 2560px | 4K / WQHD displays |
+
+**Large display considerations:**
+- Users sit further from large monitors — UI elements can be larger
+- Dialogs and forms benefit from extra width
+- Maintain the "floating card" feel — don't go full-screen
+
+---
+
 ## Depth Strategy
 
 **Subtle shadows + borders**
@@ -195,9 +216,11 @@ Prefer generous, soft corners. Scandinavian = rounded and inviting.
 
 ### Dialog/Modal
 
+Dialogs use responsive sizing that scales with viewport. Use the `size` prop for explicit control:
+
 ```tsx
 <Dialog>
-  <DialogContent className="sm:max-w-md">
+  <DialogContent size="md"> {/* Default - scales with breakpoints */}
     <DialogHeader>
       <DialogTitle>{title}</DialogTitle>
     </DialogHeader>
@@ -206,9 +229,52 @@ Prefer generous, soft corners. Scandinavian = rounded and inviting.
 </Dialog>
 ```
 
-- Max width constrained
-- Rounded corners
-- Centered with backdrop blur
+**Size variants:**
+
+| Size | When to use |
+|------|-------------|
+| `sm` | Confirmations, simple prompts |
+| `md` | Default — general purpose, scales with viewport |
+| `lg` | Forms with multiple fields (like FlightForm) |
+| `xl` | Complex multi-step content |
+| `full` | Import review, data-heavy views |
+
+**Responsive behavior (size="md"):**
+
+| Breakpoint | Max width |
+|------------|-----------|
+| Mobile | `calc(100% - 2rem)` |
+| `sm` | 512px (max-w-lg) |
+| `lg` | 576px (max-w-xl) |
+| `xl` | 672px (max-w-2xl) |
+| `3xl` | 768px (max-w-3xl) |
+| `4xl` | 896px (max-w-4xl) |
+
+- Padding also scales: `p-6` → `lg:p-8` → `xl:p-10`
+- Close button position adjusts for larger padding
+- Rounded corners, centered with backdrop blur
+
+### Sheet (Side Panel)
+
+Slide-over panels for content that benefits from full height:
+
+```tsx
+<Sheet>
+  <SheetTrigger asChild>
+    <Button>Open</Button>
+  </SheetTrigger>
+  <SheetContent side="right" size="md">
+    <SheetHeader>
+      <SheetTitle>{title}</SheetTitle>
+    </SheetHeader>
+    {/* Content */}
+  </SheetContent>
+</Sheet>
+```
+
+- Same `size` variants as Dialog
+- `side` prop: `"left"` | `"right"` | `"top"` | `"bottom"`
+- Best for: settings panels, filter drawers, detail views
 
 ---
 

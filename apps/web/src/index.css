@@ -10,6 +10,10 @@
  */
 
 @theme {
+  /* Custom breakpoints for large displays */
+  --breakpoint-3xl: 1920px;  /* Full HD+ monitors */
+  --breakpoint-4xl: 2560px;  /* 4K / WQHD displays */
+
   /* Typography - Distinctive yet readable */
   --font-display: "DM Sans", ui-sans-serif, system-ui, sans-serif;
   --font-sans: "DM Sans", ui-sans-serif, system-ui, sans-serif;

@@ -200,15 +200,15 @@ export function FlightForm({ isOpen, onClose, editFlight }: FlightFormProps) {
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-md gap-0 p-0 overflow-hidden">
-        <DialogHeader className="px-6 pt-6 pb-4">
+      <DialogContent size="lg" className="gap-0 p-0 overflow-hidden">
+        <DialogHeader className="px-6 pt-6 pb-4 lg:px-8 lg:pt-8 xl:px-10 xl:pt-10">
           <DialogTitle className="flex items-center gap-2 text-lg">
             <Plane className="w-5 h-5 text-primary" />
             {isEditing ? t('flights.editFlight', 'Edit Flight') : t('flights.addFlight', 'Add Flight')}
           </DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="px-6 pb-6">
+        <form onSubmit={handleSubmit} className="px-6 pb-6 lg:px-8 lg:pb-8 xl:px-10 xl:pb-10">
           {/* Error display */}
           {error && (
             <div className="mb-4 p-3 rounded-lg bg-destructive/10 border border-destructive/20 flex items-start gap-2">
