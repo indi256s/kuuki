@@ -169,3 +169,79 @@ export interface Aircraft {
 
 export type AircraftType = 'widebody' | 'narrowbody' | 'regional' | 'bizjet' | 'turboprop' | 'piston'
 export type EngineType = 'jet' | 'turboprop' | 'piston'
+
+// ============================================================================
+// Passport Feature Types
+// ============================================================================
+
+// Continent identifier
+export type Continent = 'europe' | 'asia' | 'americas' | 'africa' | 'oceania' | 'antarctica'
+
+// Stamp shape (regional variation)
+export type StampShape = 'circle' | 'rectangle'
+
+// Entry method for manual claims
+export type EntryMethod = 'land' | 'sea' | null
+
+// Country data from countries.json
+export interface CountryData {
+  name: string
+  nativeName: string
+  continent: Continent
+  flagColors: string[]
+  dominantColor: string
+  stampShape: StampShape
+  timezone: string
+}
+
+// Manual country claim (for ground travel)
+export interface CountryClaim {
+  id: string
+  userId: string
+  countryCode: string
+  claimedAt: string
+  visitYear: number | null
+  note: string | null
+  entryMethod: EntryMethod
+}
+
+// Unified passport entry (from flights or claims)
+export interface PassportEntry {
+  countryCode: string
+  countryName: string
+  nativeName: string
+  continent: Continent
+  stampShape: StampShape
+  dominantColor: string
+  flagColors: string[]
+  firstVisit: string        // ISO date
+  lastVisit: string         // ISO date
+  visitCount: number
+  source: 'flight' | 'claim' | 'both'  // How this country was added
+  airports: string[]        // Airport IATA codes visited (empty for claims-only)
+}
+
+// Stats for individual country popup
+export interface CountryStats {
+  countryCode: string
+  countryName: string
+  firstVisit: string
+  lastVisit: string
+  totalVisits: number
+  airports: Array<{
+    iata: string
+    name: string
+    city: string
+    visitCount: number
+  }>
+  note: string | null       // From claim, if any
+  entryMethod: EntryMethod  // From claim, if any
+}
+
+// Extended user stats (passport-related fields)
+export interface ExtendedUserStats extends UserStats {
+  timeZonesCount: number
+  mostVisitedCountry: string | null
+  mostVisitedCount: number
+  worldCompletionPct: number
+}

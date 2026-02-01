@@ -9,7 +9,8 @@
     ".": "./src/index.ts",
     "./aircraft": "./src/aircraft.json",
     "./airports": "./src/airports.json",
-    "./airlines": "./src/airlines.json"
+    "./airlines": "./src/airlines.json",
+    "./countries.json": "./src/countries.json"
   },
   "scripts": {
     "build": "tsc",

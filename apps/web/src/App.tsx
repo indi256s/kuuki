@@ -8,6 +8,7 @@ import { ImportPage } from '@/routes/ImportPage'
 import { OnboardingPage } from '@/routes/OnboardingPage'
 import { ProfilePage } from '@/routes/ProfilePage'
 import { LeaderboardPage } from '@/routes/LeaderboardPage'
+import { PassportPage } from '@/routes/PassportPage'
 import { ProtectedRoute } from '@/components/ProtectedRoute'
 
 const queryClient = new QueryClient()
@@ -48,6 +49,14 @@ export default function App() {
             element={
               <ProtectedRoute>
                 <ImportPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/passport"
+            element={
+              <ProtectedRoute>
+                <PassportPage />
               </ProtectedRoute>
             }
           />

@@ -18,6 +18,7 @@
 | **3 AI Import** | ✅ Done | Gemini 3 Flash proxy, upload/paste UI, review with confidence |
 | **3.5 UI Redesign** | ✅ Done | shadcn/ui components, Scandinavian aesthetic, dark mode ready |
 | **4 Social** | ✅ Done | Public profiles, leaderboards, compare, 20 badges |
+| **4.5 Passport** | ✅ Done | Country stamps, manual claims, 246 countries, 31 tests |
 | **5 Advanced Stats** | ⏳ Pending | Progressive unlock tiers |
 | **6 Polish** | ⏳ Pending | Dark mode toggle, mobile, CI/CD |
 
@@ -97,6 +98,29 @@ Public profiles, compare feature, leaderboards, and 20 badges with space-themed 
 - Row Level Security for privacy enforcement
 
 → [tasks/phase-4-social.md](./tasks/phase-4-social.md)
+
+### Phase 4.5: Passport ✅
+
+Personal "Nomad Passport" view with country stamps representing all visited countries.
+
+**Features:**
+- Dedicated `/passport` route with virtualized stamp grid
+- Country stamps with regional shapes (circle for Asia, rectangle for EU/Americas)
+- Native script country names + flag colors as accents
+- Manual country claims for ground travel (land/sea entry methods)
+- Interactive claim map with country search
+- Stamp popup with detailed stats (first visit, last visit, total visits, airports)
+- 5 continent achievement badges (Europhile, Asianaut, Americas Wanderer, etc.)
+- 246 countries/territories with ISO 3166-1 codes
+
+**Tech:**
+- `country_claims` table with RLS for manual entries
+- Extended `user_stats` with world completion %, time zones, most visited country
+- Static country data in `@kuuki/data/countries.json`
+- Combines flight visits + manual claims into unified passport entries
+- 31 unit tests covering all passport API functions
+
+→ [tasks/phase-4.5-passport.md](./tasks/phase-4.5-passport.md)
 
 ### Phase 5: Advanced Stats
 

@@ -280,6 +280,82 @@ Users can:
 
 ---
 
+## Passport Feature
+
+### Overview
+
+A personal "Nomad Passport" view at `/passport` with country stamps representing all visited countries. Countries are tracked from two sources:
+- **Flight data:** Auto-derived from airport country codes (all touched airports, including layovers)
+- **Manual claims:** For ground travel (land/sea entry methods)
+
+**Visibility:** Always private (owner-only view)
+
+### Stamp Design
+
+| Element | Implementation |
+|---------|----------------|
+| **Shape** | Regional variation (circle for Asia, rectangle for EU/Americas/Africa/Oceania) |
+| **Colors** | Flag colors as border/accent |
+| **Text** | Native script name + English name |
+| **Date** | Relative format ("2 years ago") |
+| **Visit count** | Ink-stamped corner (×5) |
+| **Background** | User's theme color as subtle tint |
+
+### Stamp Interaction
+
+- **Click/tap:** Mini popup with stats (first visit, last visit, total visits, airports)
+- **No navigation:** Stays on passport view
+
+### Country Claiming
+
+Users can manually claim countries visited by ground travel:
+
+1. Click "Add Country" button
+2. Interactive map opens with country search
+3. Select country from map or search
+4. Optional: Add note, entry method (land/sea), visit year
+5. Country appears as stamp in passport
+
+### Data Model
+
+**`country_claims` table:**
+- `user_id` - Owner
+- `country_code` - ISO 3166-1 alpha-2
+- `claimed_at` - Timestamp
+- `visit_year` - Optional approximate year
+- `note` - Optional user note
+- `entry_method` - 'land' | 'sea' | null
+
+### Country Data
+
+Static JSON with 246 countries/territories:
+- ISO 3166-1 alpha-2 codes
+- English and native names
+- Flag colors (dominant + palette)
+- Continent classification
+- Stamp shape (circle/rectangle)
+- Primary timezone
+
+### Stats
+
+Passport contributes to user stats:
+- Countries count (visits + claims deduplicated)
+- Continents count
+- World completion % (countries / 246 × 100)
+- Time zones crossed
+- Most visited country
+
+### Badges
+
+Continent achievements (3+ countries required):
+- **Europhile** - Europe
+- **Asianaut** - Asia
+- **Americas Wanderer** - Americas
+- **Africa Explorer** - Africa
+- **Pacific Voyager** - Oceania
+
+---
+
 ## Map Visualization
 
 ### Library: Mapbox GL JS
@@ -527,6 +603,8 @@ After core flight logging works:
 10. **Upcoming flights:** Add future date, verify countdown, verify exclusion from stats
 11. **Manual places:** Search and add city to "Also visited" section
 12. **CSV export:** Download flight data, verify format
+13. **Passport:** Navigate to `/passport`, verify stamps from flights, click stamp for popup
+14. **Country claim:** Add country manually via map, verify stamp appears with note
 
 ---
 
@@ -546,7 +624,7 @@ After core flight logging works:
 ### Navigation
 
 **Desktop:** Left sidebar with grouped sections
-- Personal: Dashboard, Flights
+- Personal: Dashboard, Flights, Passport
 - Explore: Stats, Leaderboard
 - Account: Profile, Settings
 

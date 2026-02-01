@@ -115,6 +115,44 @@ export type Database = {
           },
         ]
       }
+      country_claims: {
+        Row: {
+          claimed_at: string | null
+          country_code: string
+          entry_method: string | null
+          id: string
+          note: string | null
+          user_id: string
+          visit_year: number | null
+        }
+        Insert: {
+          claimed_at?: string | null
+          country_code: string
+          entry_method?: string | null
+          id?: string
+          note?: string | null
+          user_id: string
+          visit_year?: number | null
+        }
+        Update: {
+          claimed_at?: string | null
+          country_code?: string
+          entry_method?: string | null
+          id?: string
+          note?: string | null
+          user_id?: string
+          visit_year?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "country_claims_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       flights: {
         Row: {
           aircraft_icao: string | null
@@ -326,6 +364,10 @@ export type Database = {
           continents_count: number
           longest_flight_minutes: number
           has_night_departure: boolean
+          time_zones_count: number | null
+          most_visited_country: string | null
+          most_visited_count: number | null
+          world_completion_pct: number | null
           updated_at: string | null
         }
         Insert: {
@@ -339,6 +381,10 @@ export type Database = {
           continents_count?: number
           longest_flight_minutes?: number
           has_night_departure?: boolean
+          time_zones_count?: number | null
+          most_visited_country?: string | null
+          most_visited_count?: number | null
+          world_completion_pct?: number | null
           updated_at?: string | null
         }
         Update: {
@@ -352,6 +398,10 @@ export type Database = {
           continents_count?: number
           longest_flight_minutes?: number
           has_night_departure?: boolean
+          time_zones_count?: number | null
+          most_visited_country?: string | null
+          most_visited_count?: number | null
+          world_completion_pct?: number | null
           updated_at?: string | null
         }
         Relationships: [

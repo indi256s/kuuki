@@ -21,7 +21,9 @@
     "close": "Закрыть",
     "actions": "Действия",
     "copy": "Копировать",
-    "more": "ещё"
+    "more": "ещё",
+    "optional": "необязательно",
+    "saving": "Сохранение..."
   },
   "auth": {
     "signIn": "Войти",
@@ -58,6 +60,7 @@
   "nav": {
     "dashboard": "Главная",
     "flights": "Полёты",
+    "passport": "Паспорт",
     "stats": "Статистика",
     "leaderboard": "Рейтинг",
     "profile": "Профиль",
@@ -419,6 +422,47 @@
       "manualDescription": "Введите данные о полёте вручную",
       "skipOption": "Сделаю это позже",
       "skipDescription": "Перейти к пустой панели"
+    }
+  },
+  "passport": {
+    "title": "Паспорт",
+    "subtitle": "Ваша коллекция посещённых стран",
+    "emptyTitle": "Ваш паспорт ждёт",
+    "emptyDescription": "Начните собирать штампы из каждой страны, которую вы посетили. Полёты отслеживаются автоматически, или добавьте страны, которые вы достигли по суше или морю.",
+    "addCountry": "Добавить страну",
+    "importFlights": "Импортировать полёты",
+    "hint": "Страны из ваших полётов появятся автоматически",
+    "countriesLabel": "стран",
+    "continentsLabel": "континентов",
+    "worldCompletion": "мира",
+    "firstVisit": "Первый визит",
+    "lastVisit": "Последний визит",
+    "totalVisits": "Всего визитов",
+    "airportsVisited": "Посещённые аэропорты",
+    "entryMethod": "Способ въезда",
+    "land": "Суша",
+    "sea": "Море",
+    "note": "Заметка",
+    "claimCountry": "Добавить страну",
+    "claimDescription": "Добавьте страну, которую вы посетили по суше или морю.",
+    "country": "Страна",
+    "selectCountry": "Выберите страну...",
+    "searchCountry": "Поиск страны...",
+    "visitYear": "Год посещения",
+    "selectYear": "Выберите год...",
+    "dontRemember": "Не помню",
+    "howDidYouEnter": "Как вы въехали?",
+    "notePlaceholder": "Воспоминания об этой поездке...",
+    "addStamp": "Добавить штамп",
+    "mapInstructions": "Отметьте страны, которые вы посетили",
+    "mapInstructionsDetail": "Найдите страну в списке ниже, чтобы добавить её в паспорт. Страны из ваших полётов отслеживаются автоматически.",
+    "visitedCountries": "{{count}} стран посещено",
+    "continentBadges": {
+      "europhile": "Европеец",
+      "asianaut": "Азианавт",
+      "americasWanderer": "Покоритель Америк",
+      "africaExplorer": "Исследователь Африки",
+      "pacificVoyager": "Тихоокеанский путешественник"
     }
   },
   "emptyState": {

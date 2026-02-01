@@ -21,7 +21,9 @@
     "close": "Close",
     "actions": "Actions",
     "copy": "Copy",
-    "more": "more"
+    "more": "more",
+    "optional": "optional",
+    "saving": "Saving..."
   },
   "auth": {
     "signIn": "Sign in",
@@ -58,6 +60,7 @@
   "nav": {
     "dashboard": "Dashboard",
     "flights": "Flights",
+    "passport": "Passport",
     "stats": "Stats",
     "leaderboard": "Leaderboard",
     "profile": "Profile",
@@ -420,6 +423,47 @@
       "manualDescription": "Enter flight details by hand",
       "skipOption": "I'll do this later",
       "skipDescription": "Go to your empty dashboard"
+    }
+  },
+  "passport": {
+    "title": "Passport",
+    "subtitle": "Your collection of visited countries",
+    "emptyTitle": "Your Passport Awaits",
+    "emptyDescription": "Start collecting stamps from every country you visit. Flights are automatically tracked, or add countries you've reached by land or sea.",
+    "addCountry": "Add a Country",
+    "importFlights": "Import Flights",
+    "hint": "Countries from your flights will appear automatically",
+    "countriesLabel": "countries",
+    "continentsLabel": "continents",
+    "worldCompletion": "of the world",
+    "firstVisit": "First Visit",
+    "lastVisit": "Last Visit",
+    "totalVisits": "Total Visits",
+    "airportsVisited": "Airports Visited",
+    "entryMethod": "Entry Method",
+    "land": "Land",
+    "sea": "Sea",
+    "note": "Note",
+    "claimCountry": "Claim a Country",
+    "claimDescription": "Add a country you've visited by land or sea.",
+    "country": "Country",
+    "selectCountry": "Select a country...",
+    "searchCountry": "Search country...",
+    "visitYear": "Year Visited",
+    "selectYear": "Select year...",
+    "dontRemember": "I don't remember",
+    "howDidYouEnter": "How did you enter?",
+    "notePlaceholder": "Any memories from this trip...",
+    "addStamp": "Add Stamp",
+    "mapInstructions": "Check in countries you've visited",
+    "mapInstructionsDetail": "Search below or browse the list to add countries you've reached by land or sea. Countries from your flights are already tracked automatically.",
+    "visitedCountries": "{{count}} countries visited",
+    "continentBadges": {
+      "europhile": "Europhile",
+      "asianaut": "Asianaut",
+      "americasWanderer": "Americas Wanderer",
+      "africaExplorer": "Africa Explorer",
+      "pacificVoyager": "Pacific Voyager"
     }
   },
   "emptyState": {
