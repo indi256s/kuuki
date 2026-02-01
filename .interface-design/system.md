@@ -278,7 +278,7 @@ Slide-over panels for content that benefits from full height:
 
 ### Route Visualization
 
-Flight routes use a distinctive visual pattern with gradient lines and centered plane icon:
+Flight routes use a distinctive visual pattern with gradient lines and duration badge centered:
 
 ```tsx
 <div className="flex items-center gap-3">
@@ -288,14 +288,15 @@ Flight routes use a distinctive visual pattern with gradient lines and centered 
     <div className="text-xs text-muted-foreground">{city}</div>
   </div>
 
-  {/* Flight path */}
+  {/* Flight path with duration */}
   <div className="flex items-center flex-1">
     <div className="w-2 h-2 rounded-full bg-primary/60" />
-    <div className="flex-1 h-px bg-gradient-to-r from-primary/60 via-primary/30 to-primary/60" />
-    <div className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center">
-      <PlaneIcon className="w-3 h-3 text-primary rotate-90" />
+    <div className="flex-1 h-px bg-gradient-to-r from-primary/60 via-primary/20 to-transparent" />
+    {/* Duration badge */}
+    <div className="px-2 py-0.5 rounded-full bg-muted/80 border border-border/50">
+      <span className="text-xs font-mono text-muted-foreground">{duration}</span>
     </div>
-    <div className="flex-1 h-px bg-gradient-to-r from-primary/60 via-primary/30 to-primary/60" />
+    <div className="flex-1 h-px bg-gradient-to-l from-primary/60 via-primary/20 to-transparent" />
     <div className="w-2 h-2 rounded-full bg-primary/60" />
   </div>
 
@@ -308,9 +309,9 @@ Flight routes use a distinctive visual pattern with gradient lines and centered 
 ```
 
 - Airport codes in `font-mono` for data clarity
-- Gradient line creates depth and movement
+- Gradient lines fade toward the center for depth
+- Duration badge replaces plane icon — more informative
 - Dots at endpoints represent airports
-- Plane icon centered on the route
 
 ---
 
@@ -398,20 +399,28 @@ Dual-mode component that renders as horizontal bar or vertical sidebar:
 
 ### FlightTable
 
-Data tables with progressive column visibility:
+Data tables with horizontal scroll and sticky columns:
 
-| Column | Visible at |
-|--------|------------|
-| Date, Route, Actions | Always |
-| Airline | `lg` (1024px+) |
-| Times, Aircraft | `xl` (1280px+) |
-| Distance, Duration | `3xl` (1920px+) |
+```tsx
+<Card className="overflow-hidden">
+  <div className="overflow-x-auto">
+    <Table className="min-w-[900px]">
+      {/* All columns always visible, scrollable on smaller screens */}
+    </Table>
+  </div>
+</Card>
+```
+
+**Sticky columns:**
+- Date column: `sticky left-0` — always visible when scrolling
+- Actions column: `sticky right-0` — always accessible
 
 **Row styling:**
 - Alternating backgrounds: `index % 2 === 0 && 'bg-muted/20'`
 - Upcoming flights: `bg-primary/[0.02]` subtle tint
 - Actions fade until hover: `opacity-50 group-hover:opacity-100`
 - Generous row padding: `py-4`
+- Sticky cells need explicit background to prevent overlap
 
 ---
 
