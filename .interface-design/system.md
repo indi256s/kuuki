@@ -276,6 +276,143 @@ Slide-over panels for content that benefits from full height:
 - `side` prop: `"left"` | `"right"` | `"top"` | `"bottom"`
 - Best for: settings panels, filter drawers, detail views
 
+### Route Visualization
+
+Flight routes use a distinctive visual pattern with gradient lines and centered plane icon:
+
+```tsx
+<div className="flex items-center gap-3">
+  {/* Origin */}
+  <div>
+    <div className="font-mono font-semibold text-base">{origin}</div>
+    <div className="text-xs text-muted-foreground">{city}</div>
+  </div>
+
+  {/* Flight path */}
+  <div className="flex items-center flex-1">
+    <div className="w-2 h-2 rounded-full bg-primary/60" />
+    <div className="flex-1 h-px bg-gradient-to-r from-primary/60 via-primary/30 to-primary/60" />
+    <div className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center">
+      <PlaneIcon className="w-3 h-3 text-primary rotate-90" />
+    </div>
+    <div className="flex-1 h-px bg-gradient-to-r from-primary/60 via-primary/30 to-primary/60" />
+    <div className="w-2 h-2 rounded-full bg-primary/60" />
+  </div>
+
+  {/* Destination */}
+  <div className="text-right">
+    <div className="font-mono font-semibold text-base">{destination}</div>
+    <div className="text-xs text-muted-foreground">{city}</div>
+  </div>
+</div>
+```
+
+- Airport codes in `font-mono` for data clarity
+- Gradient line creates depth and movement
+- Dots at endpoints represent airports
+- Plane icon centered on the route
+
+---
+
+## Page Layouts
+
+### Responsive Two-Column Layout
+
+For data-heavy pages on large screens (3xl+), use sidebar + content layout:
+
+```tsx
+// Detect large screen
+const [isLargeScreen, setIsLargeScreen] = useState(false)
+
+useEffect(() => {
+  const mq = window.matchMedia('(min-width: 1920px)')
+  setIsLargeScreen(mq.matches)
+  mq.addEventListener('change', (e) => setIsLargeScreen(e.matches))
+}, [])
+
+// Render layout
+<main className="max-w-6xl 3xl:max-w-[1600px] 4xl:max-w-[1800px] mx-auto px-6">
+  {isLargeScreen ? (
+    <div className="flex gap-8">
+      <aside className="w-72 flex-shrink-0">
+        <FilterSidebar /> {/* Sticky */}
+      </aside>
+      <div className="flex-1 min-w-0">
+        <ContentArea />
+      </div>
+    </div>
+  ) : (
+    <>
+      <HorizontalFilters />
+      <ContentArea />
+    </>
+  )}
+</main>
+```
+
+**Key principles:**
+- Sidebar width: `w-72` (288px) — enough for filters, not too wide
+- Sidebar position: `sticky top-24` — stays visible while scrolling
+- Main content: `flex-1 min-w-0` — fills remaining space, allows shrinking
+- Gap: `gap-8` (32px) — generous separation
+
+### Page Max Widths
+
+| Breakpoint | Max width | Use case |
+|------------|-----------|----------|
+| Default | `max-w-6xl` (1152px) | Standard content |
+| `3xl` | `max-w-[1600px]` | Two-column layouts |
+| `4xl` | `max-w-[1800px]` | Extra wide content |
+
+---
+
+## Filter Patterns
+
+### FlightFilters Component
+
+Dual-mode component that renders as horizontal bar or vertical sidebar:
+
+```tsx
+<FlightFilters
+  layout="horizontal" // or "vertical"
+  filters={filters}
+  onFiltersChange={setFilters}
+  // ... other props
+/>
+```
+
+**Horizontal mode (mobile/tablet):**
+- Dropdowns in a row with wrapping
+- Airport search inputs below
+- Count displayed on the right
+
+**Vertical mode (3xl+ sidebar):**
+- Stacked sections with labels
+- Flight count summary card at top
+- Separators between filter groups
+- Icons for visual hierarchy
+
+---
+
+## Table Patterns
+
+### FlightTable
+
+Data tables with progressive column visibility:
+
+| Column | Visible at |
+|--------|------------|
+| Date, Route, Actions | Always |
+| Airline | `lg` (1024px+) |
+| Times, Aircraft | `xl` (1280px+) |
+| Distance, Duration | `3xl` (1920px+) |
+
+**Row styling:**
+- Alternating backgrounds: `index % 2 === 0 && 'bg-muted/20'`
+- Upcoming flights: `bg-primary/[0.02]` subtle tint
+- Actions fade until hover: `opacity-50 group-hover:opacity-100`
+- Generous row padding: `py-4`
+
 ---
 
 ## Animation
@@ -425,4 +562,4 @@ apps/web/src/
 
 ## Last Updated
 
-2026-02-01 — Redesigned with shadcn/ui + Scandinavian aesthetic
+2026-02-01 — Added 4K support, responsive layouts, route visualization patterns
