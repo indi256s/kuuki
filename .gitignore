@@ -49,3 +49,6 @@ supabase/.env
 # Cloudflare
 .wrangler/
 .dev.vars
+
+# Raw data files (downloaded for import scripts)
+scripts/*.dat

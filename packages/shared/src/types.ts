@@ -96,6 +96,8 @@ export interface Airline {
   country: string
   logoUrl: string | null
   primaryColor: string | null
+  alliance: 'star_alliance' | 'oneworld' | 'skyteam' | null
+  callsign: string | null
 }
 
 // Aircraft reference

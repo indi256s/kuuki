@@ -66,6 +66,20 @@ pnpm test
 | `/dashboard` | User dashboard with stats, route map, recent flights |
 | `/flights` | Flight management (add, edit, delete, filter) |
 
+## Reference Data
+
+Static bundled data for offline operation (~220KB total):
+
+| Type | Count | Coverage |
+|------|-------|----------|
+| Airports | 512 | Global major hubs, strong Russia/CIS/Asia coverage |
+| Airlines | 162 | Major carriers + regional, with alliance data |
+| Aircraft | 726 | Commercial fleet types |
+
+Airlines include alliance membership (Star Alliance, OneWorld, SkyTeam) and callsigns.
+
+Data sourced from [OpenFlights](https://openflights.org/data.html) with manual curation.
+
 ## Documentation
 
 See [docs/](./docs/) for detailed specs, plans, and implementation guides.
