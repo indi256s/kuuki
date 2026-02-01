@@ -14,7 +14,7 @@
 | **1 Foundation** | ✅ Done | Auth, i18n, tests, CF Pages (kuuki.indi256.com) |
 | **1.5 Onboarding** | ✅ Done | Landing page, showcase modal, username picker, empty states |
 | **2 Core Flights** | ✅ Done | Flight CRUD, dashboard with stats, route map, autocomplete |
-| **3 AI Import** | ⏳ Pending | Gemini proxy, upload UI |
+| **3 AI Import** | ✅ Done | Gemini 3.0 Flash proxy, upload/paste UI, review with confidence |
 | **4 Social** | ⏳ Pending | Profiles, leaderboards, badges |
 | **5 Advanced Stats** | ⏳ Pending | Progressive unlock tiers |
 | **6 Polish** | ⏳ Pending | Dark mode, mobile, CI/CD |
@@ -45,9 +45,9 @@ Flight CRUD with form modal, future flights with countdown, dashboard with stats
 
 → [tasks/phase-2-core-flights.md](./tasks/phase-2-core-flights.md)
 
-### Phase 3: AI Import
+### Phase 3: AI Import ✅
 
-Cloudflare Worker proxy for Gemini, upload UI, import review.
+Cloudflare Pages Function proxy for Gemini 3.0 Flash, drag-drop/paste upload, WindLoader animation, review with inline editing and confidence colors, duplicate detection.
 
 → [tasks/phase-3-ai-import.md](./tasks/phase-3-ai-import.md)
 
