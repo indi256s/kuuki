@@ -1,6 +1,9 @@
 import { useTranslation } from 'react-i18next'
 import { useFlightStats } from '@/hooks/useStats'
 import { formatDistance } from '@/lib/geo'
+import { Card, CardContent } from '@/components/ui/card'
+import { Skeleton } from '@/components/ui/skeleton'
+import { Plane, TrendingUp, Globe2, Building2 } from 'lucide-react'
 
 export function StatsCards() {
   const { t } = useTranslation()
@@ -8,12 +11,14 @@ export function StatsCards() {
 
   if (isLoading) {
     return (
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {[...Array(4)].map((_, i) => (
-          <div key={i} className="bg-sky-raised border border-edge rounded-xl p-4 animate-pulse">
-            <div className="h-7 w-16 bg-edge rounded mb-2" />
-            <div className="h-4 w-20 bg-edge rounded" />
-          </div>
+          <Card key={i} className="overflow-hidden">
+            <CardContent className="p-5">
+              <Skeleton className="h-8 w-20 mb-2" />
+              <Skeleton className="h-4 w-24" />
+            </CardContent>
+          </Card>
         ))}
       </div>
     )
@@ -21,9 +26,13 @@ export function StatsCards() {
 
   if (error) {
     return (
-      <div className="p-4 bg-emergency-muted text-emergency rounded-lg text-sm">
-        {t('errors.loadingStats', 'Failed to load stats')}
-      </div>
+      <Card className="border-destructive/30 bg-destructive/5">
+        <CardContent className="p-4">
+          <p className="text-sm text-destructive">
+            {t('errors.loadingStats', 'Failed to load stats')}
+          </p>
+        </CardContent>
+      </Card>
     )
   }
 
@@ -31,54 +40,59 @@ export function StatsCards() {
     {
       label: t('dashboard.totalFlights', 'Total Flights'),
       value: stats?.totalFlights.toString() || '0',
-      icon: (
-        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-          <path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 00-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z" />
-        </svg>
-      ),
+      icon: Plane,
+      gradient: 'from-primary/10 to-primary/5',
+      iconColor: 'text-primary',
     },
     {
       label: t('dashboard.totalDistance', 'Distance'),
       value: stats?.totalDistance ? formatDistance(stats.totalDistance) : '0 km',
-      icon: (
-        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-        </svg>
-      ),
+      icon: TrendingUp,
+      gradient: 'from-chart-2/10 to-chart-2/5',
+      iconColor: 'text-chart-2',
     },
     {
       label: t('dashboard.countriesVisited', 'Countries'),
       value: stats?.countriesVisited.toString() || '0',
-      icon: (
-        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
-      ),
+      icon: Globe2,
+      gradient: 'from-chart-3/10 to-chart-3/5',
+      iconColor: 'text-chart-3',
     },
     {
       label: t('dashboard.airlinesFlown', 'Airlines'),
       value: stats?.airlinesFlown.toString() || '0',
-      icon: (
-        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-        </svg>
-      ),
+      icon: Building2,
+      gradient: 'from-chart-4/10 to-chart-4/5',
+      iconColor: 'text-chart-4',
     },
   ]
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 stagger-children">
       {statItems.map((stat) => (
-        <div
+        <Card
           key={stat.label}
-          className="bg-sky-raised border border-edge rounded-xl p-4 hover:border-edge-strong transition-colors"
+          className="group relative overflow-hidden border-border/50 hover:border-border hover:shadow-md transition-all duration-300"
         >
-          <div className="flex items-start justify-between mb-2">
-            <div className="text-2xl font-semibold text-ink font-data">{stat.value}</div>
-            <div className="text-ink-muted">{stat.icon}</div>
-          </div>
-          <div className="text-sm text-ink-muted">{stat.label}</div>
-        </div>
+          {/* Subtle gradient background */}
+          <div className={`absolute inset-0 bg-gradient-to-br ${stat.gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-300`} />
+
+          <CardContent className="relative p-5">
+            <div className="flex items-start justify-between mb-3">
+              <div className="space-y-1">
+                <p className="text-3xl font-semibold tracking-tight font-data">
+                  {stat.value}
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  {stat.label}
+                </p>
+              </div>
+              <div className={`p-2.5 rounded-xl bg-secondary/50 ${stat.iconColor} group-hover:scale-110 transition-transform duration-300`}>
+                <stat.icon className="w-5 h-5" strokeWidth={1.5} />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       ))}
     </div>
   )

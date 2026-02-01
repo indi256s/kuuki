@@ -6,6 +6,17 @@ import { AircraftAutocomplete } from './AircraftAutocomplete'
 import { useCreateFlight, useUpdateFlight, useCheckDuplicate, type Flight } from '@/hooks/useFlights'
 import { findAirport, findAircraft } from '@kuuki/data'
 import { calculateFlightDistance, estimateFlightDuration, isUpcomingFlight, daysUntilFlight } from '@/lib/geo'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Separator } from '@/components/ui/separator'
+import { AlertCircle, ChevronRight, Plane, Calendar } from 'lucide-react'
 
 interface FlightFormProps {
   isOpen: boolean
@@ -86,9 +97,7 @@ export function FlightForm({ isOpen, onClose, editFlight }: FlightFormProps) {
     if (!isOpen) return
 
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        onClose()
-      } else if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
         e.preventDefault()
         handleSubmit(new Event('submit') as unknown as React.FormEvent)
       }
@@ -189,71 +198,62 @@ export function FlightForm({ isOpen, onClose, editFlight }: FlightFormProps) {
   const isFutureFlight = date && isUpcomingFlight(date)
   const daysUntil = date && isFutureFlight ? daysUntilFlight(date) : 0
 
-  if (!isOpen) return null
-
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={onClose}>
-      <div
-        className="bg-sky w-full max-w-md mx-4 rounded-xl shadow-xl max-h-[90vh] overflow-y-auto"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* Header */}
-        <div className="sticky top-0 bg-sky px-6 py-4 border-b border-edge flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-ink">
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="sm:max-w-md gap-0 p-0 overflow-hidden">
+        <DialogHeader className="px-6 pt-6 pb-4">
+          <DialogTitle className="flex items-center gap-2 text-lg">
+            <Plane className="w-5 h-5 text-primary" />
             {isEditing ? t('flights.editFlight', 'Edit Flight') : t('flights.addFlight', 'Add Flight')}
-          </h2>
-          <button
-            onClick={onClose}
-            className="p-1 text-ink-muted hover:text-ink"
-            aria-label={t('common.close')}
-          >
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-        </div>
+          </DialogTitle>
+        </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+        <form onSubmit={handleSubmit} className="px-6 pb-6">
           {/* Error display */}
           {error && (
-            <div className="p-3 bg-emergency-muted text-emergency rounded-lg text-sm">
-              {error}
+            <div className="mb-4 p-3 rounded-lg bg-destructive/10 border border-destructive/20 flex items-start gap-2">
+              <AlertCircle className="w-4 h-4 text-destructive mt-0.5 shrink-0" />
+              <p className="text-sm text-destructive">{error}</p>
             </div>
           )}
 
           {/* Duplicate warning */}
           {duplicateWarning && (
-            <div className="p-3 bg-caution-muted text-caution rounded-lg text-sm">
-              {t('flights.duplicateWarning', 'You already have a flight on this date with the same route. You can still save it.')}
+            <div className="mb-4 p-3 rounded-lg bg-warning/10 border border-warning/20">
+              <p className="text-sm text-warning">
+                {t('flights.duplicateWarning', 'You already have a flight on this date with the same route. You can still save it.')}
+              </p>
             </div>
           )}
 
           {/* Future flight notice */}
           {isFutureFlight && (
-            <div className="p-3 bg-runway/10 text-runway rounded-lg text-sm">
-              {t('flights.upcomingFlight', { days: daysUntil })}
+            <div className="mb-4 p-3 rounded-lg bg-primary/10 border border-primary/20 flex items-center gap-2">
+              <Calendar className="w-4 h-4 text-primary shrink-0" />
+              <p className="text-sm text-primary">
+                {t('flights.upcomingFlight', { days: daysUntil })}
+              </p>
             </div>
           )}
 
           {/* Required fields */}
           <div className="space-y-4">
-            <div>
-              <label htmlFor="date" className="block text-sm font-medium text-ink mb-1">
+            <div className="space-y-2">
+              <Label htmlFor="date">
                 {t('flights.date', 'Date')}
-                <span className="text-emergency ml-1">*</span>
-              </label>
-              <input
+                <span className="text-destructive ml-1">*</span>
+              </Label>
+              <Input
                 id="date"
                 type="date"
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
                 required
                 disabled={isSubmitting}
-                className="w-full px-3 py-2 border border-edge-strong rounded-lg bg-sky-raised focus:outline-none focus:ring-2 focus:ring-runway"
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-3">
               <AirportAutocomplete
                 id="origin"
                 value={origin}
@@ -290,16 +290,11 @@ export function FlightForm({ isOpen, onClose, editFlight }: FlightFormProps) {
           <button
             type="button"
             onClick={() => setShowOptional(!showOptional)}
-            className="flex items-center gap-2 text-sm text-runway hover:underline"
+            className="mt-4 flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
           >
-            <svg
+            <ChevronRight
               className={`w-4 h-4 transition-transform ${showOptional ? 'rotate-90' : ''}`}
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-            </svg>
+            />
             {showOptional
               ? t('flights.hideDetails', 'Hide details')
               : t('flights.addDetails', 'Add more details')}
@@ -307,88 +302,90 @@ export function FlightForm({ isOpen, onClose, editFlight }: FlightFormProps) {
 
           {/* Optional fields */}
           {showOptional && (
-            <div className="space-y-4 pt-2 border-t border-edge">
-              <AircraftAutocomplete
-                id="aircraft"
-                value={aircraftIcao}
-                onChange={(icao) => setAircraftIcao(icao)}
-                label={t('flights.aircraft', 'Aircraft')}
-                placeholder="B738"
-                disabled={isSubmitting}
-              />
-
-              <div>
-                <label htmlFor="flightNumber" className="block text-sm font-medium text-ink mb-1">
-                  {t('flights.flightNumber', 'Flight Number')}
-                </label>
-                <input
-                  id="flightNumber"
-                  type="text"
-                  value={flightNumber}
-                  onChange={(e) => setFlightNumber(e.target.value.toUpperCase())}
-                  placeholder="AA123"
+            <>
+              <Separator className="my-4" />
+              <div className="space-y-4">
+                <AircraftAutocomplete
+                  id="aircraft"
+                  value={aircraftIcao}
+                  onChange={(icao) => setAircraftIcao(icao)}
+                  label={t('flights.aircraft', 'Aircraft')}
+                  placeholder="B738"
                   disabled={isSubmitting}
-                  className="w-full px-3 py-2 border border-edge-strong rounded-lg bg-sky-raised focus:outline-none focus:ring-2 focus:ring-runway font-mono text-sm uppercase"
                 />
-              </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label htmlFor="departureTime" className="block text-sm font-medium text-ink mb-1">
-                    {t('flights.departureTime', 'Departure')}
-                  </label>
-                  <input
-                    id="departureTime"
-                    type="time"
-                    value={departureTime}
-                    onChange={(e) => setDepartureTime(e.target.value)}
+                <div className="space-y-2">
+                  <Label htmlFor="flightNumber">
+                    {t('flights.flightNumber', 'Flight Number')}
+                  </Label>
+                  <Input
+                    id="flightNumber"
+                    type="text"
+                    value={flightNumber}
+                    onChange={(e) => setFlightNumber(e.target.value.toUpperCase())}
+                    placeholder="AA123"
                     disabled={isSubmitting}
-                    className="w-full px-3 py-2 border border-edge-strong rounded-lg bg-sky-raised focus:outline-none focus:ring-2 focus:ring-runway"
+                    className="font-mono uppercase"
                   />
                 </div>
 
-                <div>
-                  <label htmlFor="arrivalTime" className="block text-sm font-medium text-ink mb-1">
-                    {t('flights.arrivalTime', 'Arrival')}
-                  </label>
-                  <input
-                    id="arrivalTime"
-                    type="time"
-                    value={arrivalTime}
-                    onChange={(e) => setArrivalTime(e.target.value)}
-                    disabled={isSubmitting}
-                    className="w-full px-3 py-2 border border-edge-strong rounded-lg bg-sky-raised focus:outline-none focus:ring-2 focus:ring-runway"
-                  />
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-2">
+                    <Label htmlFor="departureTime">
+                      {t('flights.departureTime', 'Departure')}
+                    </Label>
+                    <Input
+                      id="departureTime"
+                      type="time"
+                      value={departureTime}
+                      onChange={(e) => setDepartureTime(e.target.value)}
+                      disabled={isSubmitting}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="arrivalTime">
+                      {t('flights.arrivalTime', 'Arrival')}
+                    </Label>
+                    <Input
+                      id="arrivalTime"
+                      type="time"
+                      value={arrivalTime}
+                      onChange={(e) => setArrivalTime(e.target.value)}
+                      disabled={isSubmitting}
+                    />
+                  </div>
                 </div>
               </div>
-            </div>
+            </>
           )}
 
-          {/* Submit button */}
-          <div className="flex gap-3 pt-4">
-            <button
+          {/* Submit buttons */}
+          <div className="flex gap-3 mt-6">
+            <Button
               type="button"
+              variant="outline"
               onClick={onClose}
               disabled={isSubmitting}
-              className="flex-1 py-2 px-4 border border-edge-strong text-ink font-medium rounded-lg hover:bg-sky-raised disabled:opacity-50 transition-colors"
+              className="flex-1"
             >
               {t('common.cancel')}
-            </button>
-            <button
+            </Button>
+            <Button
               type="submit"
               disabled={isSubmitting}
-              className="flex-1 py-2 px-4 bg-runway text-ink-inverse font-medium rounded-lg hover:bg-runway-hover disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="flex-1"
             >
               {isSubmitting ? t('common.loading') : isEditing ? t('common.save') : t('flights.addFlight', 'Add Flight')}
-            </button>
+            </Button>
           </div>
 
           {/* Keyboard hint */}
-          <p className="text-xs text-ink-muted text-center">
+          <p className="mt-3 text-xs text-center text-muted-foreground">
             {t('flights.keyboardHint', 'Press Ctrl+S to save, Esc to close')}
           </p>
         </form>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   )
 }

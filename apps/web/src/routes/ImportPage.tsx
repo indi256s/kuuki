@@ -29,7 +29,7 @@ export function ImportPage() {
   const initialTextContent = (location.state as { textContent?: string } | null)?.textContent
 
   const [step, setStep] = useState<ImportStep>('upload')
-  const [parsingPhase, setParsingPhase] = useState<ParsingPhase>('reading')
+  const [parsingPhase, setParsingPhase] = useState<ParsingPhase>('cleaning')
   const [inputType, setInputType] = useState<InputType>('text')
   const [extractedFlights, setExtractedFlights] = useState<ExtractedFlight[]>([])
   const [rejectedFlights, setRejectedFlights] = useState<RejectedFlight[]>([])
@@ -69,7 +69,7 @@ export function ImportPage() {
   const handleUploadSubmit = useCallback(async (data: { type: 'pdf' | 'image' | 'text'; content: string }) => {
     setInputType(data.type)
     setStep('parsing')
-    setParsingPhase(data.type === 'text' ? 'cleaning' : 'reading')
+    setParsingPhase(data.type === 'text' ? 'cleaning' : 'extracting')
 
     try {
       const result = await parseMutation.mutateAsync(data)

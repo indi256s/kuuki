@@ -10,6 +10,15 @@ import { RecentFlights } from '@/components/dashboard/RecentFlights'
 import { RouteMap } from '@/components/map/RouteMap'
 import { FlightForm } from '@/components/flights/FlightForm'
 import { EmptyState } from '@/components/dashboard/EmptyState'
+import { Button } from '@/components/ui/button'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import { Plus, Plane, LogOut, Languages } from 'lucide-react'
 
 export function DashboardPage() {
   const { t } = useTranslation()
@@ -24,6 +33,7 @@ export function DashboardPage() {
   const hasFlights = (stats?.totalFlights ?? 0) > 0 || (stats?.upcomingFlights ?? 0) > 0
 
   const displayName = profile?.display_name || profile?.username || user?.email?.split('@')[0] || 'User'
+  const initials = displayName.slice(0, 2).toUpperCase()
 
   const handleAddFlight = useCallback(() => {
     setIsFormOpen(true)
@@ -34,59 +44,87 @@ export function DashboardPage() {
   }, [])
 
   return (
-    <div className="min-h-screen bg-sky">
-      {/* Header */}
-      <header className="bg-sky-raised border-b border-edge">
-        <div className="max-w-5xl mx-auto px-4 py-3 flex justify-between items-center">
-          <div className="text-xl font-semibold text-ink">
-            {t('common.appName')}
+    <div className="min-h-screen bg-gradient-soft">
+      {/* Header - clean, minimal */}
+      <header className="sticky top-0 z-40 bg-background/80 backdrop-blur-xl border-b border-border/50">
+        <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+          {/* Logo & Nav */}
+          <div className="flex items-center gap-8">
+            <Link to="/dashboard" className="flex items-center gap-2 group">
+              <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+                <Plane className="w-4 h-4 text-primary" strokeWidth={2} />
+              </div>
+              <span className="text-lg font-semibold tracking-tight">
+                {t('common.appName')}
+              </span>
+            </Link>
+
+            <nav className="hidden md:flex items-center gap-1">
+              <Link
+                to="/flights"
+                className="px-3 py-2 text-sm text-muted-foreground hover:text-foreground rounded-lg hover:bg-secondary/50 transition-colors"
+              >
+                {t('nav.flights', 'Flights')}
+              </Link>
+              <Link
+                to="/import"
+                className="px-3 py-2 text-sm text-muted-foreground hover:text-foreground rounded-lg hover:bg-secondary/50 transition-colors"
+              >
+                {t('nav.import', 'Import')}
+              </Link>
+            </nav>
           </div>
-          <div className="flex items-center gap-4">
-            <Link
-              to="/flights"
-              className="text-sm text-ink-muted hover:text-ink transition-colors focus-ring rounded px-2 py-1"
-            >
-              {t('nav.flights', 'Flights')}
-            </Link>
-            <Link
-              to="/import"
-              className="text-sm text-ink-muted hover:text-ink transition-colors focus-ring rounded px-2 py-1"
-            >
-              {t('nav.import', 'Import')}
-            </Link>
-            <button
-              onClick={toggleLanguage}
-              className="text-sm text-ink-muted hover:text-ink transition-colors focus-ring rounded px-2 py-1"
-            >
-              {currentLanguage === 'en' ? 'RU' : 'EN'}
-            </button>
-            <button
-              onClick={signOut}
-              className="text-sm text-ink-muted hover:text-ink transition-colors focus-ring rounded px-2 py-1"
-            >
-              {t('auth.signOut')}
-            </button>
+
+          {/* Actions */}
+          <div className="flex items-center gap-2">
+            {hasFlights && (
+              <Button onClick={handleAddFlight} size="sm" className="gap-2">
+                <Plus className="w-4 h-4" />
+                <span className="hidden sm:inline">{t('flights.addFlight', 'Add Flight')}</span>
+              </Button>
+            )}
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="relative w-9 h-9 rounded-full">
+                  <div className="w-full h-full rounded-full bg-secondary flex items-center justify-center text-xs font-medium">
+                    {initials}
+                  </div>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                <div className="px-2 py-1.5">
+                  <p className="text-sm font-medium">{displayName}</p>
+                  <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
+                </div>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={toggleLanguage}>
+                  <Languages className="w-4 h-4 mr-2" />
+                  {currentLanguage === 'en' ? 'Русский' : 'English'}
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={signOut} className="text-destructive focus:text-destructive">
+                  <LogOut className="w-4 h-4 mr-2" />
+                  {t('auth.signOut')}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
       </header>
 
       {/* Main content */}
-      <main className="max-w-5xl mx-auto px-4 py-8">
-        <div className="flex items-center justify-between mb-6">
-          <h1 className="text-2xl font-semibold text-ink">
+      <main className="max-w-6xl mx-auto px-6 py-8">
+        {/* Welcome section */}
+        <div className="mb-8 animate-fade-up">
+          <h1 className="text-2xl md:text-3xl font-semibold tracking-tight text-balance">
             {t('dashboard.welcome', { name: displayName })}
           </h1>
-          {hasFlights && (
-            <button
-              onClick={handleAddFlight}
-              className="flex items-center gap-2 px-4 py-2 bg-runway text-ink-inverse font-medium rounded-lg hover:bg-runway-hover transition-colors"
-            >
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-              </svg>
-              {t('flights.addFlight', 'Add Flight')}
-            </button>
-          )}
+          <p className="mt-1 text-muted-foreground">
+            {hasFlights
+              ? t('dashboard.subtitle', 'Here\'s your travel overview')
+              : t('dashboard.emptySubtitle', 'Start tracking your flights')}
+          </p>
         </div>
 
         {hasFlights ? (
@@ -95,12 +133,16 @@ export function DashboardPage() {
             <StatsCards />
 
             {/* Route map */}
-            <div className="relative">
-              <RouteMap height="300px" />
+            <div className="animate-fade-up" style={{ animationDelay: '100ms' }}>
+              <div className="rounded-2xl overflow-hidden border border-border/50 bg-card shadow-sm">
+                <RouteMap height="320px" />
+              </div>
             </div>
 
             {/* Recent & upcoming flights */}
-            <RecentFlights onAddFlight={handleAddFlight} />
+            <div className="animate-fade-up" style={{ animationDelay: '150ms' }}>
+              <RecentFlights onAddFlight={handleAddFlight} />
+            </div>
           </div>
         ) : (
           <EmptyState onAddFlight={handleAddFlight} />
