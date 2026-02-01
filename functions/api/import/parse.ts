@@ -151,10 +151,13 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
       )
     }
 
+    // Debug: Log raw parsed flights from Gemini
+    console.log('Gemini parsed flights:', JSON.stringify(parsedResponse.flights, null, 2))
+
     // Validate and normalize flights
     const validFlights = (parsedResponse.flights || [])
-      .filter((flight): flight is ExtractedFlight => {
-        return (
+      .filter((flight, index): flight is ExtractedFlight => {
+        const isValid =
           typeof flight.date === 'string' &&
           typeof flight.origin === 'string' &&
           typeof flight.destination === 'string' &&
@@ -162,7 +165,17 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
           flight.origin.length === 3 &&
           flight.destination.length === 3 &&
           flight.airline_iata.length === 2
-        )
+
+        if (!isValid) {
+          console.log(`Flight ${index} rejected:`, {
+            date: flight.date,
+            origin: `${flight.origin} (len=${flight.origin?.length})`,
+            destination: `${flight.destination} (len=${flight.destination?.length})`,
+            airline_iata: `${flight.airline_iata} (len=${flight.airline_iata?.length})`,
+          })
+        }
+
+        return isValid
       })
       .map((flight) => ({
         ...flight,
@@ -174,6 +187,9 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
         // Ensure confidence is a number between 0 and 1
         confidence: Math.min(1, Math.max(0, flight.confidence || 0.5)),
       }))
+
+    // Debug: Log validation summary
+    console.log(`Validated ${validFlights.length} of ${parsedResponse.flights?.length || 0} flights`)
 
     return Response.json(
       {

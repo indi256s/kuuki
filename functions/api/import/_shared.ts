@@ -57,9 +57,13 @@ export const EXTRACTION_PROMPT = `You are a flight data extraction assistant. Ex
 
 For EACH flight found, extract:
 - date: Flight date in YYYY-MM-DD format
-- origin: 3-letter IATA airport code for departure
+- origin: 3-letter IATA airport code for departure (e.g., JFK, LAX, TLV)
 - destination: 3-letter IATA airport code for arrival
-- airline_iata: 2-letter IATA airline code
+- airline_iata: 2-letter IATA airline code. CONVERT airline names to codes:
+  "El Al" → "LY", "Qatar Airways" → "QR", "Turkish Airlines" → "TK",
+  "Aeroflot" → "SU", "Lufthansa" → "LH", "Georgian Airways" → "A9",
+  "China Eastern" → "MU", "Thai Airways" → "TG", "Pegasus" → "PC",
+  "Air Serbia" → "JU", "Wizz Air" → "W6", "Yakutia" → "R3", etc.
 - flight_number: Flight number (digits only, no airline prefix)
 - aircraft_icao: 4-letter ICAO aircraft type code if visible (e.g., B738, A320)
 - departure_time: Departure time in HH:mm 24-hour format
@@ -69,12 +73,13 @@ Also provide confidence scores (0.0 to 1.0) for each field based on how clearly 
 
 Important rules:
 1. Extract ALL flights if multiple are present (round trips, connections)
-2. Use IATA codes for airports (3 letters) and airlines (2 letters)
-3. Use ICAO codes for aircraft (4 letters)
-4. If a field is not visible or unclear, omit it rather than guessing
-5. Dates should be in YYYY-MM-DD format
-6. Times should be in HH:mm 24-hour format
-7. Overall confidence should reflect how certain you are about the extraction
+2. ALWAYS use IATA codes: airports (3 letters like TLV, TBS) and airlines (2 letters like LY, QR)
+3. If you see an airline NAME, you MUST convert it to its 2-letter IATA code using your knowledge
+4. Use ICAO codes for aircraft (4 letters)
+5. If a field is not visible or unclear, omit it rather than guessing
+6. Dates should be in YYYY-MM-DD format
+7. Times should be in HH:mm 24-hour format
+8. Overall confidence should reflect how certain you are about the extraction
 
 Return your response as a JSON object with this structure:
 {
