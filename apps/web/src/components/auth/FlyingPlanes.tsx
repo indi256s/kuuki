@@ -5,6 +5,8 @@ import { Plane } from 'lucide-react'
  * Simple straight-line ascent at 45 degrees from bottom-left to top-right.
  */
 
+type PlaneSize = 'S' | 'M' | 'L'
+
 interface PlaneConfig {
   left: string
   duration: number
@@ -13,14 +15,31 @@ interface PlaneConfig {
   size: number
 }
 
-// Generate 20 planes with varied positions, speeds, and sizes
-const planes: PlaneConfig[] = Array.from({ length: 20 }, (_, i) => ({
-  left: `${(i * 5) % 100}%`,
-  duration: 12 + Math.random() * 10,
-  delay: Math.random() * 15,
-  opacity: 0.04 + Math.random() * 0.08,
-  size: 10 + Math.random() * 8,
-}))
+// Size groups: S (small/distant), M (medium), L (large/close)
+const sizeConfig: Record<PlaneSize, { size: number; opacity: number }> = {
+  S: { size: 12, opacity: 0.06 },
+  M: { size: 16, opacity: 0.10 },
+  L: { size: 22, opacity: 0.14 },
+}
+
+// Distribute 20 planes across size groups: 8 small, 7 medium, 5 large
+const sizeDistribution: PlaneSize[] = [
+  ...Array(8).fill('S' as PlaneSize),
+  ...Array(7).fill('M' as PlaneSize),
+  ...Array(5).fill('L' as PlaneSize),
+]
+
+// Generate 20 planes with grouped sizes and increased visibility
+const planes: PlaneConfig[] = sizeDistribution.map((sizeGroup, i) => {
+  const { size, opacity } = sizeConfig[sizeGroup]
+  return {
+    left: `${(i * 5) % 100}%`,
+    duration: 12 + Math.random() * 10,
+    delay: Math.random() * 15,
+    opacity: opacity + Math.random() * 0.04, // slight variation within group
+    size,
+  }
+})
 
 export function FlyingPlanes() {
   return (
