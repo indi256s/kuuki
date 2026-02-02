@@ -20,7 +20,7 @@
 | **4 Social** | ✅ Done | Public profiles, leaderboards, compare, 20 badges |
 | **4.5 Passport** | ✅ Done | Country stamps, manual claims, 246 countries, 31 tests |
 | **5 Advanced Stats** | ✅ Done | 4 tiers: Overview, Avia Geek, Country Geek, Time Geek |
-| **6 Polish** | 🔄 In Progress | Dark mode ✅, Mobile 6a ✅, 6b-d & CI/CD pending |
+| **6 Polish** | 🔄 In Progress | Dark mode ✅, Mobile 6a ✅, 6c ✅, 6b/6d & CI/CD pending |
 
 ---
 
@@ -154,10 +154,10 @@ Dark mode, mobile-first responsive design, error handling, CI/CD.
 **Completed:**
 - ✅ **Dark Mode** — 3-way toggle (Light/Dark/System), localStorage persistence
 - ✅ **Phase 6a: Core Navigation** — Bottom tab bar, mobile header, FAB, safe area CSS
+- ✅ **Phase 6c: Content Pages** — Map collapsible, country sheet with letter accordion, profile mini-header, collapsible sections, vertical stats grid
 
 **In Progress:**
 - ⏳ **Phase 6b: Flight Management** — CSS card/table switch, bottom drawer forms
-- ⏳ **Phase 6c: Content Pages** — Map collapse, passport hybrid, collapsible sections
 - ⏳ **Phase 6d: Polish** — Touch targets, animations, Lighthouse audit, Playwright tests
 
 **Pending:**

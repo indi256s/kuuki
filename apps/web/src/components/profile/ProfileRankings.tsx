@@ -27,17 +27,21 @@ const CATEGORY_COLORS: Record<string, string> = {
 interface ProfileRankingsProps {
   rankings: LeaderboardEntry[]
   isLoading?: boolean
+  /** Whether to hide the section title (useful when wrapped in ProfileSection) */
+  hideTitle?: boolean
 }
 
-export function ProfileRankings({ rankings, isLoading }: ProfileRankingsProps) {
+export function ProfileRankings({ rankings, isLoading, hideTitle = false }: ProfileRankingsProps) {
   const { t } = useTranslation()
 
   if (isLoading) {
     return (
       <div className="space-y-4">
-        <h2 className="text-lg font-semibold">
-          {t('leaderboard.title', 'Rankings')}
-        </h2>
+        {!hideTitle && (
+          <h2 className="text-lg font-semibold">
+            {t('leaderboard.title', 'Rankings')}
+          </h2>
+        )}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {[...Array(4)].map((_, i) => (
             <Skeleton key={i} className="h-20 rounded-xl" />
@@ -56,12 +60,14 @@ export function ProfileRankings({ rankings, isLoading }: ProfileRankingsProps) {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-2">
-        <Trophy className="w-5 h-5 text-amber-500" />
-        <h2 className="text-lg font-semibold">
-          {t('leaderboard.title', 'Rankings')}
-        </h2>
-      </div>
+      {!hideTitle && (
+        <div className="flex items-center gap-2">
+          <Trophy className="w-5 h-5 text-amber-500" />
+          <h2 className="text-lg font-semibold">
+            {t('leaderboard.title', 'Rankings')}
+          </h2>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         {sortedRankings.map((ranking) => {

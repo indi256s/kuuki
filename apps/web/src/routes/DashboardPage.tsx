@@ -8,6 +8,7 @@ import { useSyncUpcomingFlights } from '@/hooks/useFlights'
 import { AdvancedStats } from '@/components/stats/AdvancedStats'
 import { RecentFlights } from '@/components/dashboard/RecentFlights'
 import { RouteMap } from '@/components/map/RouteMap'
+import { MapCollapsible } from '@/components/map/MapCollapsible'
 import { FlightForm } from '@/components/flights/FlightForm'
 import { EmptyState } from '@/components/dashboard/EmptyState'
 import { ProfileSettingsDialog } from '@/components/profile/ProfileSettingsDialog'
@@ -187,7 +188,13 @@ export function DashboardPage() {
 
             {/* Route map */}
             <div className="animate-fade-up" style={{ animationDelay: '100ms' }}>
-              <div className="rounded-2xl overflow-hidden border border-border/50 bg-card shadow-sm">
+              {/* Mobile: Collapsed preview card */}
+              <div className="sm:hidden">
+                <MapCollapsible />
+              </div>
+
+              {/* Desktop: Inline map */}
+              <div className="hidden sm:block rounded-2xl overflow-hidden border border-border/50 bg-card shadow-sm">
                 <RouteMap height="320px" />
               </div>
             </div>

@@ -53,12 +53,27 @@
 - Bottom drawer forms (Sheet component)
 - Simplified import wizard
 
-#### Phase 6c: Content Pages ⏳
+#### Phase 6c: Content Pages ✅
 
-- Dashboard map collapse on mobile
-- Passport hybrid (search + map)
-- Stats vertical stack
-- Profile collapsible sections
+**New Components:**
+- `CollapsibleCard.tsx` — Reusable card with expand/collapse trigger
+- `MapCollapsible.tsx` — Dashboard map preview → fullscreen dialog
+- `ProfileMiniHeader.tsx` — Sticky mini-header that appears on scroll
+- `ProfileSection.tsx` — Collapsible wrapper for profile sections
+- `CountryListSheet.tsx` — Mobile sheet with letter accordion (A-C, D-F, etc.)
+- `accordion.tsx`, `collapsible.tsx` — shadcn primitives added
+
+**Route Changes:**
+- Dashboard: MapCollapsible on mobile, inline map on desktop
+- Profile: Mini-header + collapsible sections with IntersectionObserver scroll detection
+- Passport: CountryListSheet on mobile, Dialog on desktop
+- CountryGeekTier: Vertical stack on mobile with compact progress bars
+
+**i18n Keys Added:**
+- `dashboard.routeMap`, `dashboard.tapToExpand`
+- `passport.claimHint`
+- `leaderboard.rankingsEmpty`
+- `badges.empty`
 
 #### Phase 6d: Polish & Performance ⏳
 
@@ -169,5 +184,7 @@ From SPEC.md checklist:
 - [ ] i18n: Switch to Russian, verify translations
 - [ ] CSV export: Download flight data, verify format
 - [x] Mobile 6a: Bottom tab bar, mobile header, FAB on Flights page
-- [ ] Mobile 6b-d: Card/table switch, bottom drawers, content pages, polish
+- [ ] Mobile 6b: Card/table switch, bottom drawer forms
+- [x] Mobile 6c: Map collapsible, country sheet, profile sections, vertical stats
+- [ ] Mobile 6d: Touch targets, animations, Lighthouse audit
 - [ ] Error states: Trigger errors, verify messages

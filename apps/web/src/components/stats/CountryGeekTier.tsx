@@ -163,32 +163,57 @@ export function CountryGeekTier() {
 
   return (
     <div className="space-y-5">
-      {/* Continent cards grid */}
-      <div className="grid grid-cols-3 gap-2">
-        {continentStats.slice(0, 3).map((continent) => (
-          <ContinentCard key={continent.key} continent={continent} />
+      {/* Mobile: Vertical stack of all continents */}
+      <div className="flex flex-col gap-2 sm:hidden">
+        {continentStats.map((continent) => (
+          <ContinentCard key={continent.key} continent={continent} compact />
         ))}
-      </div>
-      <div className="grid grid-cols-2 gap-2">
-        {continentStats.slice(3, 5).map((continent) => (
-          <ContinentCard key={continent.key} continent={continent} />
-        ))}
-        {/* Expand button */}
+        {/* Expand button - full width on mobile */}
         <button
           onClick={() => setShowExpandedView(true)}
           className={cn(
-            'flex flex-col items-center justify-center p-3 rounded-xl border',
+            'flex items-center justify-center gap-2 p-3 rounded-xl border',
             'bg-muted/30 border-border/50 transition-all',
             'hover:bg-muted/50 hover:border-border',
             'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
           )}
         >
-          <Globe2 className="w-5 h-5 text-muted-foreground mb-1" />
-          <span className="text-xs font-medium text-muted-foreground">
+          <Globe2 className="w-5 h-5 text-muted-foreground" />
+          <span className="text-sm font-medium text-muted-foreground">
             {t('stats.countryGeek.viewAll', 'View All')}
           </span>
-          <ChevronRight className="w-4 h-4 text-muted-foreground mt-1" />
+          <ChevronRight className="w-4 h-4 text-muted-foreground" />
         </button>
+      </div>
+
+      {/* Desktop: 3+2 grid layout */}
+      <div className="hidden sm:block space-y-2">
+        <div className="grid grid-cols-3 gap-2">
+          {continentStats.slice(0, 3).map((continent) => (
+            <ContinentCard key={continent.key} continent={continent} />
+          ))}
+        </div>
+        <div className="grid grid-cols-3 gap-2">
+          {continentStats.slice(3, 5).map((continent) => (
+            <ContinentCard key={continent.key} continent={continent} />
+          ))}
+          {/* Expand button */}
+          <button
+            onClick={() => setShowExpandedView(true)}
+            className={cn(
+              'flex flex-col items-center justify-center p-3 rounded-xl border',
+              'bg-muted/30 border-border/50 transition-all',
+              'hover:bg-muted/50 hover:border-border',
+              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
+            )}
+          >
+            <Globe2 className="w-5 h-5 text-muted-foreground mb-1" />
+            <span className="text-xs font-medium text-muted-foreground">
+              {t('stats.countryGeek.viewAll', 'View All')}
+            </span>
+            <ChevronRight className="w-4 h-4 text-muted-foreground mt-1" />
+          </button>
+        </div>
       </div>
 
       {/* Global progress */}
@@ -304,9 +329,11 @@ export function CountryGeekTier() {
 
 interface ContinentCardProps {
   continent: ContinentStats
+  /** Whether to hide the fraction text (e.g., "12/50") - mobile density optimization */
+  compact?: boolean
 }
 
-function ContinentCard({ continent }: ContinentCardProps) {
+function ContinentCard({ continent, compact = false }: ContinentCardProps) {
   const percentage = continent.total > 0
     ? Math.round((continent.visited / continent.total) * 100)
     : 0
@@ -318,10 +345,21 @@ function ContinentCard({ continent }: ContinentCardProps) {
         CONTINENT_BG_COLORS[continent.key]
       )}
     >
-      <span className="text-xs font-medium truncate">{continent.name}</span>
-      <span className="text-lg font-semibold font-mono mt-1">
-        {continent.visited}/{continent.total}
-      </span>
+      <div className="flex items-center justify-between">
+        <span className="text-xs font-medium truncate">{continent.name}</span>
+        {/* Show fraction only when not in compact mode */}
+        {!compact && (
+          <span className="text-sm font-semibold font-mono">
+            {continent.visited}/{continent.total}
+          </span>
+        )}
+        {/* Show percentage in compact mode */}
+        {compact && (
+          <span className="text-xs font-mono text-muted-foreground">
+            {percentage}%
+          </span>
+        )}
+      </div>
       <div className="mt-2 h-1.5 bg-black/10 dark:bg-white/10 rounded-full overflow-hidden">
         <div
           className={cn('h-full rounded-full transition-all', CONTINENT_COLORS[continent.key])}

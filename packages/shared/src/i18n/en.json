@@ -91,7 +91,9 @@
     "noFlightsYet": "No flights logged yet",
     "addFirstFlight": "Add your first flight",
     "inDays": "in {{days}}d",
-    "noRouteData": "Add flights to see your route map"
+    "noRouteData": "Add flights to see your route map",
+    "routeMap": "Route Map",
+    "tapToExpand": "Tap to view full map"
   },
   "flights": {
     "title": "Flights",
@@ -316,6 +318,7 @@
     "user": "User",
     "value": "Value",
     "yourRank": "Your Rank",
+    "rankingsEmpty": "Add more flights to appear on leaderboards",
     "notRanked": "Not ranked",
     "optIn": "Join Leaderboard",
     "optOut": "Leave Leaderboard",
@@ -446,6 +449,7 @@
     "title": "Badges",
     "progress": "Badge Progress",
     "earnedCount": "{{earned}} of {{total}} badges earned",
+    "empty": "Keep flying to unlock badges",
     "secretHint": "Keep exploring to unlock",
     "firstFlight": "First Flight",
     "frequentFlyer": "Frequent Flyer",
@@ -591,6 +595,7 @@
     "mapInstructions": "Check in countries you've visited",
     "mapInstructionsDetail": "Search below or browse the list to add countries you've reached by land or sea. Countries from your flights are already tracked automatically.",
     "visitedCountries": "{{count}} countries visited",
+    "claimHint": "Tap a country to claim it",
     "continentBadges": {
       "europhile": "Europhile",
       "asianaut": "Asianaut",

@@ -3,11 +3,13 @@ import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 import { useAuth } from '@/hooks/useAuth'
 import { useLanguage } from '@/hooks/useLanguage'
+import { useIsMobile } from '@/hooks/useIsMobile'
 import { usePassportCountries, usePassportStats } from '@/hooks/usePassport'
 import { PassportStamps } from '@/components/passport/PassportStamps'
 import { EmptyPassport } from '@/components/passport/EmptyPassport'
 import { ClaimDialog } from '@/components/passport/ClaimDialog'
 import { CountryClaimMap } from '@/components/passport/CountryClaimMap'
+import { CountryListSheet } from '@/components/passport/CountryListSheet'
 import { ThemeToggle } from '@/components/common/ThemeToggle'
 import { MobileHeader } from '@/components/layout/MobileHeader'
 import { MobileTabBar } from '@/components/layout/MobileTabBar'
@@ -36,6 +38,7 @@ export function PassportPage() {
   const { t } = useTranslation()
   const { user, profile, signOut } = useAuth()
   const { currentLanguage, toggleLanguage } = useLanguage()
+  const isMobile = useIsMobile()
   const { data: countries, isLoading: countriesLoading } = usePassportCountries()
   const { data: stats } = usePassportStats()
   const [isClaimDialogOpen, setIsClaimDialogOpen] = useState(false)
@@ -281,12 +284,20 @@ export function PassportPage() {
         )}
       </main>
 
-      {/* Country selection map */}
-      <CountryClaimMap
-        isOpen={isMapOpen}
-        onClose={() => setIsMapOpen(false)}
-        onSelectCountry={handleSelectCountryFromMap}
-      />
+      {/* Country selection: Sheet on mobile, Dialog on desktop */}
+      {isMobile ? (
+        <CountryListSheet
+          isOpen={isMapOpen}
+          onClose={() => setIsMapOpen(false)}
+          onSelectCountry={handleSelectCountryFromMap}
+        />
+      ) : (
+        <CountryClaimMap
+          isOpen={isMapOpen}
+          onClose={() => setIsMapOpen(false)}
+          onSelectCountry={handleSelectCountryFromMap}
+        />
+      )}
 
       {/* Claim dialog */}
       <ClaimDialog

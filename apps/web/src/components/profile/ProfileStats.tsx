@@ -8,9 +8,11 @@ import type { UserStats } from '@/lib/profiles'
 interface ProfileStatsProps {
   stats: UserStats | null
   isLoading?: boolean
+  /** Whether to hide the section title (useful when wrapped in ProfileSection) */
+  hideTitle?: boolean
 }
 
-export function ProfileStats({ stats, isLoading }: ProfileStatsProps) {
+export function ProfileStats({ stats, isLoading, hideTitle = false }: ProfileStatsProps) {
   const { t } = useTranslation()
 
   if (isLoading) {
@@ -89,9 +91,11 @@ export function ProfileStats({ stats, isLoading }: ProfileStatsProps) {
 
   return (
     <div className="space-y-4">
-      <h2 className="text-lg font-semibold">
-        {t('stats.title', 'Stats')}
-      </h2>
+      {!hideTitle && (
+        <h2 className="text-lg font-semibold">
+          {t('stats.title', 'Stats')}
+        </h2>
+      )}
 
       <div className={`grid gap-4 ${showExtended ? 'grid-cols-2 md:grid-cols-3' : 'grid-cols-2 md:grid-cols-4'}`}>
         {allStats.map((stat) => (

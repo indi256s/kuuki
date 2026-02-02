@@ -46,17 +46,21 @@ interface ProfileBadgesProps {
   badges: Array<UserBadge & { badge: BadgeDefinition }>
   isLoading?: boolean
   showAll?: boolean
+  /** Whether to hide the section title (useful when wrapped in ProfileSection) */
+  hideTitle?: boolean
 }
 
-export function ProfileBadges({ badges, isLoading, showAll = false }: ProfileBadgesProps) {
+export function ProfileBadges({ badges, isLoading, showAll = false, hideTitle = false }: ProfileBadgesProps) {
   const { t } = useTranslation()
 
   if (isLoading) {
     return (
       <div className="space-y-4">
-        <h2 className="text-lg font-semibold">
-          {t('profile.badges', 'Badges')}
-        </h2>
+        {!hideTitle && (
+          <h2 className="text-lg font-semibold">
+            {t('profile.badges', 'Badges')}
+          </h2>
+        )}
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
           {[...Array(4)].map((_, i) => (
             <Skeleton key={i} className="h-24 rounded-xl" />
@@ -69,9 +73,11 @@ export function ProfileBadges({ badges, isLoading, showAll = false }: ProfileBad
   if (!badges || badges.length === 0) {
     return (
       <div className="space-y-4">
-        <h2 className="text-lg font-semibold">
-          {t('profile.badges', 'Badges')}
-        </h2>
+        {!hideTitle && (
+          <h2 className="text-lg font-semibold">
+            {t('profile.badges', 'Badges')}
+          </h2>
+        )}
         <Card className="border-dashed">
           <CardContent className="p-6 text-center text-muted-foreground">
             <Award className="w-8 h-8 mx-auto mb-2 opacity-50" />
@@ -93,16 +99,18 @@ export function ProfileBadges({ badges, isLoading, showAll = false }: ProfileBad
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold">
-          {t('profile.badges', 'Badges')}
-        </h2>
-        {badges.length > 8 && !showAll && (
-          <Badge variant="secondary">
-            +{badges.length - 8} {t('common.more', 'more')}
-          </Badge>
-        )}
-      </div>
+      {!hideTitle && (
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-semibold">
+            {t('profile.badges', 'Badges')}
+          </h2>
+          {badges.length > 8 && !showAll && (
+            <Badge variant="secondary">
+              +{badges.length - 8} {t('common.more', 'more')}
+            </Badge>
+          )}
+        </div>
+      )}
 
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
         {displayBadges.map(({ badge, earned_at }) => {
