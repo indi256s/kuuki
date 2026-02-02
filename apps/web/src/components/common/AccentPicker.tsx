@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import { cn } from '@/lib/utils'
-import { Palette } from 'lucide-react'
 
 // Curated 4-color palette
 const ACCENT_COLORS = [
@@ -39,17 +38,15 @@ export function AccentPicker({ value = 'amber', onChange, className }: AccentPic
         type="button"
         onClick={() => setIsOpen(!isOpen)}
         className={cn(
-          'flex items-center gap-2 px-2.5 py-1.5 rounded-lg transition-all duration-200',
-          'bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10',
-          'text-foreground/70 hover:text-foreground',
+          'flex items-center justify-center p-1 rounded-full transition-all duration-200',
+          'hover:bg-black/5 dark:hover:bg-white/10',
           isOpen && 'bg-black/10 dark:bg-white/10'
         )}
         aria-expanded={isOpen}
         aria-label="Choose accent color"
       >
-        <Palette className="w-4 h-4" />
         <div
-          className="w-4 h-4 rounded-full ring-1 ring-black/10 dark:ring-white/20"
+          className="w-6 h-6 rounded-full ring-2 ring-white/50 dark:ring-white/20 shadow-sm"
           style={{ backgroundColor: currentColor?.value }}
         />
       </button>

@@ -41,7 +41,9 @@ export function AuthPage() {
       <div className="lg:hidden absolute inset-0 pointer-events-none overflow-hidden">
         {/* Horizontal katakana for mobile */}
         <div className="absolute top-16 left-1/2 -translate-x-1/2 z-0">
-          <span className="text-4xl font-bold text-neutral-900/[0.06] dark:text-white/[0.05] font-display tracking-[0.3em] select-none">
+          <span
+            className="text-4xl font-bold font-display tracking-[0.3em] select-none bg-clip-text text-transparent bg-[radial-gradient(circle_at_top_left,color-mix(in_srgb,var(--primary),transparent_30%),rgba(23,23,23,0.1))] dark:bg-[radial-gradient(circle_at_top_left,color-mix(in_srgb,var(--primary),transparent_20%),rgba(255,255,255,0.1))]"
+          >
             クウキ
           </span>
         </div>
@@ -77,7 +79,9 @@ export function AuthPage() {
 
           {/* Center Visual Feature - Japanese Typography (Hero opacity) */}
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-0 pointer-events-none select-none">
-            <span className="text-[12rem] font-bold leading-none text-neutral-900/[0.10] dark:text-white/[0.08] writing-vertical select-none font-display tracking-widest">
+            <span
+              className="text-[12rem] font-bold leading-none writing-vertical select-none font-display tracking-widest bg-clip-text text-transparent bg-[radial-gradient(circle_at_top_left,color-mix(in_srgb,var(--primary),transparent_40%),rgba(23,23,23,0.15))] dark:bg-[radial-gradient(circle_at_top_left,color-mix(in_srgb,var(--primary),transparent_30%),rgba(255,255,255,0.12))]"
+            >
               クウキ
             </span>
           </div>
@@ -88,11 +92,11 @@ export function AuthPage() {
           {/* Top Right Controls */}
           <div className="absolute top-6 right-6 flex items-center gap-2 z-20">
             <AccentPicker value={accentColor} onChange={setAccentColor} />
-            <div className="w-px h-5 bg-neutral-300 dark:bg-white/10" />
+            <div className="hidden lg:block w-px h-5 bg-neutral-300 dark:bg-white/10" />
             <Button
               variant="ghost"
               onClick={toggleLanguage}
-              className="text-neutral-500 dark:text-white/60 hover:text-neutral-800 dark:hover:text-white h-9 w-9 p-0 rounded-full hover:bg-neutral-100 dark:hover:bg-white/5"
+              className="hidden lg:flex text-neutral-500 dark:text-white/60 hover:text-neutral-800 dark:hover:text-white h-9 w-9 p-0 rounded-full hover:bg-neutral-100 dark:hover:bg-white/5"
             >
               <Languages className="w-4 h-4" />
             </Button>

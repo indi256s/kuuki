@@ -29,10 +29,10 @@ export function RotatingTagline({ items, interval = 6000, className }: RotatingT
   return (
     <div className="space-y-2.5">
       {/* Rotating text - horizontal slide synced with progress */}
-      <div className="relative h-5 overflow-hidden">
+      <div className="relative h-5 overflow-hidden w-full">
         <p
           className={cn(
-            "transition-all ease-out whitespace-nowrap",
+            "absolute inset-0 flex items-center transition-all ease-out whitespace-nowrap",
             className,
             phase === 'visible' && "translate-x-0 opacity-100 duration-200",
             phase === 'exit' && "-translate-x-8 opacity-0 duration-150",
@@ -56,8 +56,8 @@ export function RotatingTagline({ items, interval = 6000, className }: RotatingT
                 i === currentIndex
                   ? "bg-primary/70 w-full"
                   : i < currentIndex
-                  ? "bg-primary/30 w-full"
-                  : "bg-transparent w-0"
+                    ? "bg-primary/30 w-full"
+                    : "bg-transparent w-0"
               )}
               style={i === currentIndex ? {
                 animation: `progress-fill ${interval}ms linear`
