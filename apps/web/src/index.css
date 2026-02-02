@@ -512,13 +512,35 @@
   }
 }
 
-/* Progress bar fill animation for rotating tagline */
+/* Progress indicator animations for rotating tagline */
 @keyframes progress-fill {
   0% {
     width: 0%;
   }
   100% {
     width: 100%;
+  }
+}
+
+/* Circular progress ring animation */
+@keyframes progress-ring {
+  0% {
+    stroke-dashoffset: 31.4;
+  }
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* Subtle glow pulse for active indicator */
+@keyframes pulse-glow {
+  0%, 100% {
+    opacity: 0.4;
+    transform: scale(1.5);
+  }
+  50% {
+    opacity: 0.6;
+    transform: scale(1.8);
   }
 }
 

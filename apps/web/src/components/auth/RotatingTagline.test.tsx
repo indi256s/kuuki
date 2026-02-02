@@ -107,35 +107,37 @@ describe('RotatingTagline', () => {
   })
 
   describe('progress indicators', () => {
-    it('renders correct number of progress bars for items', () => {
+    it('renders correct number of progress indicators for items', () => {
       render(<RotatingTagline items={englishTaglines} />)
 
-      // Progress bars should match number of taglines
-      const progressBars = document.querySelectorAll('.flex.gap-1 > div')
-      expect(progressBars.length).toBe(englishTaglines.length)
+      // Progress dots should match number of taglines (one per item)
+      const progressDots = document.querySelectorAll('.gap-2 > div')
+      expect(progressDots.length).toBe(englishTaglines.length)
     })
 
-    it('highlights the current progress bar', () => {
+    it('highlights the current progress indicator', () => {
       render(<RotatingTagline items={englishTaglines} />)
 
-      const progressFills = document.querySelectorAll('.flex.gap-1 > div > div')
-      // First bar should be active (primary color, full width)
-      expect(progressFills[0].classList.contains('bg-primary/70')).toBe(true)
-      expect(progressFills[0].classList.contains('w-full')).toBe(true)
+      // Find the dot elements (w-1.5 h-1.5 rounded-full)
+      const dots = document.querySelectorAll('.w-1\\.5.h-1\\.5.rounded-full')
+      // First dot should be active (bg-primary, scale-125)
+      expect(dots[0].classList.contains('bg-primary')).toBe(true)
+      expect(dots[0].classList.contains('scale-125')).toBe(true)
     })
 
-    it('updates highlighted bar when rotating', async () => {
+    it('updates highlighted indicator when rotating', async () => {
       render(<RotatingTagline items={englishTaglines} interval={1000} />)
 
       await act(async () => {
         vi.advanceTimersByTime(1300)
       })
 
-      const progressFills = document.querySelectorAll('.flex.gap-1 > div > div')
-      // Second bar should now be active
-      expect(progressFills[1].classList.contains('bg-primary/70')).toBe(true)
-      // First bar should be completed (lighter color)
-      expect(progressFills[0].classList.contains('bg-primary/30')).toBe(true)
+      const dots = document.querySelectorAll('.w-1\\.5.h-1\\.5.rounded-full')
+      // Second dot should now be active
+      expect(dots[1].classList.contains('bg-primary')).toBe(true)
+      expect(dots[1].classList.contains('scale-125')).toBe(true)
+      // First dot should be past (lighter color)
+      expect(dots[0].classList.contains('bg-primary/50')).toBe(true)
     })
   })
 

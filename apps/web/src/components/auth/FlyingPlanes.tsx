@@ -16,28 +16,28 @@ interface PlaneConfig {
 }
 
 // Size groups: S (small/distant), M (medium), L (large/close)
-// Increased opacity for better visibility
+// More saturated for better visibility
 const sizeConfig: Record<PlaneSize, { size: number; opacity: number }> = {
-  S: { size: 12, opacity: 0.12 },
-  M: { size: 16, opacity: 0.18 },
-  L: { size: 22, opacity: 0.25 },
+  S: { size: 12, opacity: 0.25 },
+  M: { size: 16, opacity: 0.35 },
+  L: { size: 22, opacity: 0.45 },
 }
 
-// Distribute 20 planes across size groups: 8 small, 7 medium, 5 large
+// Distribute 30 planes across size groups: 12 small, 10 medium, 8 large
 const sizeDistribution: PlaneSize[] = [
-  ...Array(8).fill('S' as PlaneSize),
-  ...Array(7).fill('M' as PlaneSize),
-  ...Array(5).fill('L' as PlaneSize),
+  ...Array(12).fill('S' as PlaneSize),
+  ...Array(10).fill('M' as PlaneSize),
+  ...Array(8).fill('L' as PlaneSize),
 ]
 
-// Generate 20 planes with grouped sizes and increased visibility
+// Generate 30 planes with grouped sizes and saturated visibility
 const planes: PlaneConfig[] = sizeDistribution.map((sizeGroup, i) => {
   const { size, opacity } = sizeConfig[sizeGroup]
   return {
-    left: `${(i * 5) % 100}%`,
-    duration: 12 + Math.random() * 10,
-    delay: Math.random() * 15,
-    opacity: opacity + Math.random() * 0.04, // slight variation within group
+    left: `${(i * 3.3) % 100}%`,
+    duration: 10 + Math.random() * 12,
+    delay: Math.random() * 18,
+    opacity: opacity + Math.random() * 0.08, // slight variation within group
     size,
   }
 })
