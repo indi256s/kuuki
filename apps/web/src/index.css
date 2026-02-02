@@ -592,10 +592,9 @@
   }
 
   /* Plane ascend animation for auth page */
+  /* All properties in single shorthand to avoid cascade issues */
   .animate-plane-ascend {
-    animation: plane-ascend var(--plane-duration, 15s) linear infinite;
-    animation-delay: var(--plane-delay, 0s);
-    animation-fill-mode: backwards;
+    animation: plane-ascend var(--plane-duration, 15s) linear var(--plane-delay, 0s) infinite backwards;
   }
 }
 
