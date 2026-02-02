@@ -47,11 +47,19 @@
 **i18n Keys Added:**
 - `nav.home`, `nav.addFlight` in EN/RU
 
-#### Phase 6b: Flight Management ⏳
+#### Phase 6b: Flight Management ✅
 
-- CSS-only card/table switch (md: breakpoint)
-- Bottom drawer forms (Sheet component)
-- Simplified import wizard
+**New Components:**
+- `FlightCardActions.tsx` — Overflow menu for Edit/Delete actions
+- `useIsMobile.ts` — Viewport detection hook with matchMedia
+- `useKeyboardHeight.ts` — Virtual keyboard height detection for bottom sheets
+
+**Changes:**
+- CSS-only card/table switch at 640px breakpoint (no JS hydration flash)
+- FlightForm uses Sheet (bottom drawer) on mobile, Dialog on desktop
+- Sheet component enhanced with keyboard-aware max-height adjustment
+- FlightCard redesigned with 2-line route hero and overflow menu
+- FlightList with responsive table headers (hidden on mobile)
 
 #### Phase 6c: Content Pages ✅
 
@@ -184,7 +192,7 @@ From SPEC.md checklist:
 - [ ] i18n: Switch to Russian, verify translations
 - [ ] CSV export: Download flight data, verify format
 - [x] Mobile 6a: Bottom tab bar, mobile header, FAB on Flights page
-- [ ] Mobile 6b: Card/table switch, bottom drawer forms
+- [x] Mobile 6b: Card/table switch, bottom drawer forms, keyboard-aware resize
 - [x] Mobile 6c: Map collapsible, country sheet, profile sections, vertical stats
 - [ ] Mobile 6d: Touch targets, animations, Lighthouse audit
 - [ ] Error states: Trigger errors, verify messages
