@@ -6,109 +6,114 @@ import { Button } from '@/components/ui/button'
 import { Languages, Plane, Globe2, BarChart3, Shield } from 'lucide-react'
 import { RegisterForm } from '@/components/auth/RegisterForm'
 import { SignInForm } from '@/components/auth'
-import { ThemeToggle } from '@/components/common/ThemeToggle'
+import { AccentPicker } from '@/components/common/AccentPicker'
 
 type AuthMode = 'register' | 'signin'
 
 export function AuthPage() {
   const { t } = useTranslation()
   const navigate = useNavigate()
-  const { toggleLanguage } = useLanguage()
+  const { currentLanguage, toggleLanguage } = useLanguage()
   const [mode, setMode] = useState<AuthMode>('register')
 
   const handleSuccess = () => {
     navigate('/dashboard')
   }
 
-  // Feature cards data - embodies Kuuki's soul
+  // Human-centric features with updated copy
   const features = [
     {
       icon: Plane,
-      title: t('landing.features.tracking.title', 'Flight Tracking'),
-      description: t('auth.features.tracking', 'AI-powered import from boarding passes'),
+      title: t('landing.features.tracking.title', 'Effortless Tracking'),
+      description: t('auth.features.tracking', 'Just drop your boarding pass. We handle the rest.'),
     },
     {
       icon: Globe2,
-      title: t('landing.features.places.title', 'Visited Places'),
-      description: t('auth.features.places', 'Build your personal nomad passport'),
+      title: t('landing.features.places.title', 'World Map'),
+      description: t('auth.features.places', 'See your world map fill up, flight by flight.'),
     },
     {
       icon: BarChart3,
-      title: t('landing.features.stats.title', 'Travel Stats'),
-      description: t('auth.features.stats', 'Percentiles, not pressure'),
+      title: t('landing.features.stats.title', 'Deep Insights'),
+      description: t('auth.features.stats', 'Uncover patterns in how you travel.'),
     },
     {
       icon: Shield,
       title: t('auth.features.privacy.title', 'Private by Default'),
-      description: t('auth.features.privacy.description', 'Your journeys, your control'),
+      description: t('auth.features.privacy.description', 'Your data stays yours. No ads, no tracking.'),
     },
   ]
 
   return (
-    <div className="min-h-screen bg-[#09090b] flex items-center justify-center p-4 relative overflow-hidden font-sans">
-      {/* Background Ambience */}
-      <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-primary/20 blur-[120px] rounded-full pointer-events-none opacity-40" />
-      <div className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] bg-primary/10 blur-[120px] rounded-full pointer-events-none opacity-30" />
+    <div className="min-h-screen bg-background flex items-center justify-center p-4 relative overflow-hidden font-sans text-foreground transition-colors duration-500">
+      {/* Background Ambience - Dynamic Accent */}
+      <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-primary/10 blur-[120px] rounded-full pointer-events-none opacity-60" />
+      <div className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] bg-primary/5 blur-[120px] rounded-full pointer-events-none opacity-60" />
 
       {/* Main Glass Card */}
-      <div className="w-full max-w-[1100px] min-h-[600px] lg:h-[700px] glass-card rounded-[32px] grid lg:grid-cols-[40%_60%] overflow-hidden shadow-2xl relative z-10 transition-all duration-500">
+      <div className="w-full max-w-[1200px] min-h-[650px] lg:h-[750px] glass-card rounded-[32px] grid lg:grid-cols-[45%_55%] overflow-hidden shadow-2xl relative z-10 transition-all duration-500 bg-white/40 ring-1 ring-black/5">
 
         {/* Left Side: Visual / Brand */}
-        <div className="relative hidden lg:flex flex-col justify-between p-12 overflow-hidden group">
-          {/* Dynamic Background for Left Panel */}
-          <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-transparent opacity-50 z-0" />
-          <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 z-0 mix-blend-overlay" />
+        <div className="relative hidden lg:flex flex-col justify-between p-12 overflow-hidden bg-white/40">
+          {/* Subtle Grid Pattern */}
+          <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.03] z-0" />
+          <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] pointer-events-none" />
 
           {/* Top Branding */}
           <div className="relative z-10">
-            <h1 className="text-4xl font-bold tracking-tighter text-white/90 mb-2">
-              <span className="text-primary">Ku</span>uki
+            <h1 className="text-4xl font-bold tracking-tighter text-foreground mb-2 flex items-center gap-2">
+              <span className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center text-primary">
+                <Plane className="w-5 h-5" />
+              </span>
+              Kuuki
             </h1>
-            <p className="text-white/50 text-sm font-medium tracking-wide uppercase">
-              Flight Vault
+            <p className="text-muted-foreground font-medium tracking-wide">
+              Atmosphere for your journeys
             </p>
           </div>
 
-          {/* Center Visual Feature - Japanese Typography */}
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-0 pointer-events-none select-none">
-            <span className="text-[12rem] font-bold leading-none text-white/[0.03] writing-vertical select-none font-display tracking-widest">
-              クウキ
-            </span>
-          </div>
-
-          {/* Bottom Features Carousel */}
-          <div className="relative z-10 grid gap-4">
+          {/* Center Visual - Features List (Bigger & Human) */}
+          <div className="relative z-10 flex flex-col gap-6 max-w-md">
             {features.map((feature, i) => (
               <div
                 key={feature.title}
-                className="group/item flex items-center gap-4 p-4 rounded-xl bg-white/5 border border-white/5 backdrop-blur-sm hover:bg-white/10 transition-all duration-300 transform hover:-translate-y-1"
+                className="group flex gap-5 items-start p-4 rounded-2xl hover:bg-white/60 transition-all duration-300"
                 style={{ transitionDelay: `${i * 100}ms` }}
               >
-                <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                  <feature.icon className="w-5 h-5 text-primary" strokeWidth={1.5} />
+                <div className="w-12 h-12 rounded-2xl bg-white shadow-sm ring-1 ring-black/5 flex items-center justify-center shrink-0 group-hover:scale-110 group-hover:shadow-md transition-all duration-300">
+                  <feature.icon className="w-6 h-6 text-primary" strokeWidth={1.5} />
                 </div>
                 <div>
-                  <h3 className="font-medium text-white/90 text-sm leading-tight mb-0.5">{feature.title}</h3>
-                  <p className="text-xs text-white/50">{feature.description}</p>
+                  <h3 className="font-semibold text-foreground text-lg mb-1">{feature.title}</h3>
+                  <p className="text-muted-foreground leading-relaxed">{feature.description}</p>
                 </div>
               </div>
             ))}
           </div>
+
+          {/* Bottom copyright/tag */}
+          <div className="relative z-10 opacity-40">
+            <span className="text-[5rem] font-bold leading-none text-foreground/[0.05] absolute bottom-[-2rem] left-[-2rem] select-none font-display tracking-widest pointer-events-none">
+              クウキ
+            </span>
+          </div>
         </div>
 
         {/* Right Side: Auth Form */}
-        <div className="relative flex flex-col justify-center px-8 py-12 lg:px-16 lg:py-12 bg-black/20 backdrop-blur-xl">
-          {/* Top Right Controls */}
-          <div className="absolute top-6 right-6 flex items-center gap-2 z-20">
-            <ThemeToggle />
-            <Button variant="ghost" onClick={toggleLanguage} className="text-white/60 hover:text-white h-9 w-9 p-0 rounded-full hover:bg-white/5">
-              <Languages className="w-4 h-4" />
-            </Button>
+        <div className="relative flex flex-col justify-center px-8 py-12 lg:px-24 lg:py-12 bg-white/60 backdrop-blur-xl">
+          {/* Top Right Controls - Accent Picker */}
+          <div className="absolute top-8 right-8 flex items-center gap-3 z-20">
+            <div className="flex items-center gap-2 bg-white/50 px-2 py-1 rounded-full border border-black/5 shadow-sm">
+              <Button variant="ghost" onClick={toggleLanguage} className="text-muted-foreground hover:text-foreground h-7 px-2 text-xs font-medium rounded-full hover:bg-black/5">
+                {currentLanguage === 'en' ? 'EN' : 'RU'}
+              </Button>
+            </div>
+            <AccentPicker />
           </div>
 
-          <div className="w-full max-w-md mx-auto space-y-8 animate-fade-in">
+          <div className="w-full max-w-md mx-auto space-y-8 animate-fade-in relative z-10">
             <div className="space-y-2 text-center lg:text-left">
-              <h2 className="text-3xl font-bold tracking-tight text-white aura-gradient-text inline-block">
+              <h2 className="text-3xl font-bold tracking-tight text-foreground inline-block">
                 {mode === 'register' ? t('auth.joinKuuki', 'Join Kuuki') : t('auth.welcomeBack', 'Welcome back')}
               </h2>
               <p className="text-muted-foreground text-base">
@@ -131,9 +136,9 @@ export function AuthPage() {
               />
             )}
 
-            <div className="pt-8 border-t border-white/5 text-center lg:text-left">
-              <p className="text-xs text-white/30">
-                {t('common.tagline')} • v1.0.0
+            <div className="pt-8 border-t border-black/5 text-center lg:text-left">
+              <p className="text-xs text-muted-foreground/50">
+                © 2026 Kuuki Flight Vault • v1.0.0
               </p>
             </div>
           </div>
