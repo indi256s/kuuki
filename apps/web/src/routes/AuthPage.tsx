@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Languages, Plane, Globe2, BarChart3, Shield } from 'lucide-react'
 import { RegisterForm } from '@/components/auth/RegisterForm'
 import { SignInForm } from '@/components/auth'
+import { ThemeToggle } from '@/components/common/ThemeToggle'
 
 type AuthMode = 'register' | 'signin'
 
@@ -46,8 +47,9 @@ export function AuthPage() {
 
   return (
     <div className="min-h-screen bg-gradient-soft flex flex-col">
-      {/* Minimal header - just language toggle */}
-      <header className="absolute top-0 right-0 p-4 z-10">
+      {/* Minimal header - theme and language toggles */}
+      <header className="absolute top-0 right-0 p-4 z-10 flex items-center gap-1">
+        <ThemeToggle />
         <Button variant="ghost" onClick={toggleLanguage} className="gap-2 text-muted-foreground hover:text-foreground h-9 px-3">
           <Languages className="w-4 h-4" />
           {currentLanguage === 'en' ? 'RU' : 'EN'}
