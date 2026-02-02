@@ -23,8 +23,8 @@ export function PassportStamps({ entries, isLoading, themeColor }: PassportStamp
 
     if (containerRect) {
       // Calculate position relative to container
-      let left = rect.left - containerRect.left + rect.width / 2
-      let top = rect.bottom - containerRect.top + 8
+      const left = rect.left - containerRect.left + rect.width / 2
+      const top = rect.bottom - containerRect.top + 8
 
       // Ensure popup doesn't go off screen (basic check)
       // We'll refine this if needed

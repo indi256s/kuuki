@@ -1,0 +1,45 @@
+name: Auto-Revert on Main Failure
+
+on:
+  workflow_run:
+    workflows: ["CI/CD"]
+    types: [completed]
+    branches: [main]
+
+jobs:
+  revert:
+    if: github.event.workflow_run.conclusion == 'failure'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Get failed commit SHA
+        id: failed
+        env:
+          FAILED_SHA: ${{ github.event.workflow_run.head_sha }}
+        run: echo "sha=$FAILED_SHA" >> $GITHUB_OUTPUT
+
+      - name: Revert commit
+        env:
+          FAILED_SHA: ${{ steps.failed.outputs.sha }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git revert --no-edit "$FAILED_SHA"
+          git push origin main
+
+      - name: Notify via Telegram
+        if: success()
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          FAILED_SHA: ${{ steps.failed.outputs.sha }}
+        run: |
+          curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+            -d chat_id="$TELEGRAM_CHAT_ID" \
+            -d text="⚠️ Kuuki CI failed on main. Auto-reverted commit ${FAILED_SHA:0:7}"
