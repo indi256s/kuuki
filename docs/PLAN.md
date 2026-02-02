@@ -160,9 +160,13 @@ Dark mode, mobile-first responsive design, error handling, CI/CD.
 - ✅ **Phase 6e: Error Handling** — Route-level boundaries, toast notifications with aviation personality, auto-retry with exponential backoff, i18n messages (EN/RU)
 
 **Pending:**
-- CSV export
-- Account deletion
 - CI/CD pipeline (GitHub Actions)
+
+**Completed in Phase 6f: Settings Page:**
+- ✅ **Settings Page** — New `/settings` route with language, export, and danger zone sections
+- ✅ **CSV Export** — Portable (9 cols) + enriched (17 cols) formats, 5/day rate limit, UTF-8 BOM for Excel
+- ✅ **Account Deletion** — Multi-step dialog with password verification, optional data export, hard delete
+- ✅ **Navigation Updates** — Settings in header dropdown + mobile tab bar (replaced Profile tab)
 
 → [tasks/phase-6-polish.md](./tasks/phase-6-polish.md)
 

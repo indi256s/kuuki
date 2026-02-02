@@ -156,24 +156,64 @@ apps/web/src/
 - Tracks failed save indices for partial success messaging
 - New i18n key: `import.success.partialFail`
 
-### CSV Export
+### Phase 6f: Settings Page ✅
 
-**Format:** Standard CSV with all flight fields
+**New Route:** `/settings` — Account and data management
 
-**Fields:**
-```csv
-date,origin,destination,airline,aircraft,flight_number,distance_km,duration_minutes,source
+#### Settings Page Structure
+```
+apps/web/src/
+├── routes/
+│   └── SettingsPage.tsx          ✅ Main settings page
+├── components/settings/
+│   ├── index.ts                   ✅ Barrel export
+│   ├── LanguageSection.tsx        ✅ EN/RU toggle
+│   ├── DataExportSection.tsx      ✅ CSV export UI
+│   ├── DeleteAccountSection.tsx   ✅ Danger zone card
+│   └── DeleteAccountDialog.tsx    ✅ Multi-step deletion flow
+├── lib/
+│   └── export.ts                  ✅ CSV generation utilities
+└── hooks/
+    └── useExportRateLimit.ts      ✅ 5/day rate limit
 ```
 
-### Account Deletion
+#### CSV Export ✅
 
-**Style:** GDPR-compliant
+**Two formats:**
+- **Portable** (9 columns): date, origin, destination, airline_iata, aircraft_icao, flight_number, distance_km, duration_minutes, source
+- **Enriched** (17 columns): + origin_name, origin_city, origin_country, destination_*, airline_name, aircraft_name
+
+**Features:**
+- Client-side generation (Blob API)
+- UTF-8 BOM for Excel compatibility
+- Timestamped filenames: `kuuki-flights-2024-01-15.csv`
+- Toggle for enriched data (adds country/city/names)
+- Separate export for country claims
+
+**Rate Limiting:**
+- 5 exports per day (localStorage)
+- Automatic daily reset
+- Disabled button + tooltip when limit reached
+
+#### Account Deletion ✅
 
 **Flow:**
-1. User clicks "Delete Account" in settings
-2. Confirmation dialog with consequences
-3. Type username to confirm
-4. Hard delete all user data
+1. Click "Delete Account" in Danger Zone
+2. Preview: Show flight/country counts + GLaDOS farewell
+3. Export prompt: Optional data download before deletion
+4. Password verification: Re-authenticate via `signInWithPassword`
+5. Hard delete: flights → country_claims → visits → user_stats → profile
+6. Sign out + redirect to landing
+
+**Tone:** Friendly GLaDOS (sassy flight attendant, not menacing)
+- "Well, this is it. Your final approach."
+- "Thank you for flying with us. Or don't. Your call."
+
+#### Navigation Updates ✅
+
+- AppHeader: Settings link added to dropdown menu (before language toggle)
+- MobileTabBar: Settings tab replaced Profile tab (profile accessible via settings/header)
+- i18n: `nav.settings` already existed, added full `settings.export.*` and `settings.delete.*` keys
 
 ### Design System Finalization
 
@@ -234,13 +274,29 @@ packages/shared/src/i18n/
 └── ru.json                ✅ (error messages added)
 ```
 
-**Pending:**
+**Phase 6f Settings Page (Complete):**
 ```
 apps/web/src/
+├── routes/
+│   └── SettingsPage.tsx           ✅
 ├── components/settings/
-│   ├── DeleteAccount.tsx
-│   └── ExportData.tsx
+│   ├── index.ts                   ✅
+│   ├── LanguageSection.tsx        ✅
+│   ├── DataExportSection.tsx      ✅
+│   ├── DeleteAccountSection.tsx   ✅
+│   └── DeleteAccountDialog.tsx    ✅
+├── lib/
+│   └── export.ts                  ✅
+└── hooks/
+    └── useExportRateLimit.ts      ✅
 
+packages/shared/src/i18n/
+├── en.json                        ✅ (settings.export.*, settings.delete.* added)
+└── ru.json                        ✅ (Russian translations with GLaDOS personality)
+```
+
+**Pending:**
+```
 .github/
 └── workflows/
     └── ci.yml
@@ -251,9 +307,12 @@ apps/web/src/
 From SPEC.md checklist:
 - [x] Dark mode: Toggle theme, verify persistence
 - [x] i18n: Switch to Russian, verify translations (error messages added)
-- [ ] CSV export: Download flight data, verify format
+- [x] CSV export: Download flight data, verify format (portable + enriched)
+- [x] Account deletion: Password verification, data export prompt, hard delete
+- [x] Settings page: Language selector, export section, danger zone
 - [x] Mobile 6a: Bottom tab bar, mobile header, FAB on Flights page
 - [x] Mobile 6b: Card/table switch, bottom drawer forms, keyboard-aware resize
 - [x] Mobile 6c: Map collapsible, country sheet, profile sections, vertical stats
 - [x] Mobile 6d: Touch targets (44px), reduced motion, Lighthouse checklist created
 - [x] Error states: Route boundaries, toast system, aviation personality messages
+- [ ] CI/CD: GitHub Actions workflow for lint, typecheck, test, deploy
