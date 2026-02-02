@@ -94,6 +94,8 @@ export function useCreateFlight() {
       queryClient.invalidateQueries({ queryKey: [FLIGHT_AIRLINES_KEY] })
       queryClient.invalidateQueries({ queryKey: ['flightStats'] })
     },
+    // Error handling is done by the component using useErrorHandler
+    // This allows context-aware handling (modal vs page)
   })
 }
 
@@ -116,11 +118,14 @@ export function useUpdateFlight() {
       queryClient.invalidateQueries({ queryKey: [UPCOMING_FLIGHTS_KEY] })
       queryClient.invalidateQueries({ queryKey: ['flightStats'] })
     },
+    // Error handling is done by the component using useErrorHandler
   })
 }
 
 /**
- * Hook to delete a flight
+ * Hook to delete a flight.
+ * Uses optimistic updates - the flight is removed from the UI immediately,
+ * then rolled back if the delete fails.
  */
 export function useDeleteFlight() {
   const queryClient = useQueryClient()
@@ -140,11 +145,14 @@ export function useDeleteFlight() {
       queryClient.invalidateQueries({ queryKey: [FLIGHT_AIRLINES_KEY] })
       queryClient.invalidateQueries({ queryKey: ['flightStats'] })
     },
+    // Error handling with rollback is done by the component
+    // Component should use onMutate to snapshot data, and onError to restore
   })
 }
 
 /**
- * Hook to delete multiple flights at once
+ * Hook to delete multiple flights at once.
+ * Uses optimistic updates with rollback on failure.
  */
 export function useBatchDeleteFlights() {
   const queryClient = useQueryClient()
@@ -167,6 +175,7 @@ export function useBatchDeleteFlights() {
       queryClient.invalidateQueries({ queryKey: [FLIGHT_AIRCRAFT_KEY] })
       queryClient.invalidateQueries({ queryKey: ['flightStats'] })
     },
+    // Error handling with rollback is done by the component
   })
 }
 

@@ -441,6 +441,7 @@
     "success": {
       "title": "Flights imported!",
       "count": "{{count}} flight(s) added to your log",
+      "partialFail": "{{count}} flight(s) could not be saved.",
       "importMore": "Import more",
       "viewFlights": "View flights"
     }
@@ -492,11 +493,49 @@
     "noData": "Unable to load comparison data"
   },
   "errors": {
-    "generic": "Something went wrong. Please try again.",
-    "network": "Network error. Please check your connection.",
-    "unauthorized": "Please sign in to continue.",
-    "notFound": "Page not found.",
-    "validation": "Please check your input.",
+    "generic": {
+      "1": "We've hit some unexpected turbulence. Please stand by.",
+      "2": "Our instruments are acting up. Give us a moment.",
+      "3": "Hit an air pocket. We're working on it."
+    },
+    "network": {
+      "1": "Ground control to Major Tom. We've lost signal.",
+      "2": "The radar's showing nothing but static. Check your connection.",
+      "3": "Tower's not responding. Either they're on break, or your WiFi is."
+    },
+    "api": {
+      "1": "Our servers are experiencing... turbulence. Please stand by.",
+      "2": "Something went wrong on our end. Maintenance crew dispatched.",
+      "3": "The backend is having a moment. It'll be fine. Probably."
+    },
+    "rateLimit": {
+      "1": "You're making requests faster than a 737 at takeoff. Slow down.",
+      "2": "Easy there, speed racer. Let's take a breather."
+    },
+    "notFound": {
+      "1": "That destination doesn't appear on our charts.",
+      "2": "This flight plan seems to have been... misplaced."
+    },
+    "auth": {
+      "sessionExpired": "Your session has expired. Please sign in again."
+    },
+    "dataLoss": {
+      "saveFailed": "Your changes couldn't be saved. Please try again."
+    },
+    "validation": {
+      "invalid": "Please check your input and try again."
+    },
+    "import": {
+      "parseFailed": "We couldn't read your document. Try a different format.",
+      "timeout": "Parsing took too long. Please try a smaller file.",
+      "invalidFormat": "This file format isn't supported.",
+      "noFlights": "No flights found in this document."
+    },
+    "crashScreen": {
+      "title": "Something went wrong",
+      "message": "We encountered an unexpected error. Your data is safe.",
+      "reload": "Reload Page"
+    },
     "loadingStats": "Failed to load stats"
   },
   "map": {

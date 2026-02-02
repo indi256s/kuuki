@@ -4,6 +4,7 @@ import { useNavigate, useLocation } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
 import { useCreateFlight, useFlights } from '@/hooks/useFlights'
 import { useParseImport, type ExtractedFlight, type RejectedFlight } from '@/hooks/useImport'
+import { useToast } from '@/hooks/useToast'
 import { AppHeader } from '@/components/common/AppHeader'
 import { MobileHeader } from '@/components/layout/MobileHeader'
 import { MobileTabBar } from '@/components/layout/MobileTabBar'
@@ -13,9 +14,11 @@ import { WindLoader } from '@/components/common/WindLoader'
 import { FlightForm } from '@/components/flights/FlightForm'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
+import { Alert, AlertDescription } from '@/components/ui/alert'
 import { findAirport, findAircraft } from '@kuuki/data'
 import { calculateFlightDistance, estimateFlightDuration } from '@/lib/geo'
-import { Check, Plane, ArrowRight } from 'lucide-react'
+import { getMessageKeyForCategory } from '@/lib/errors'
+import { Check, Plane, ArrowRight, AlertCircle } from 'lucide-react'
 
 type ImportStep = 'upload' | 'parsing' | 'review' | 'saving' | 'success'
 type ParsingPhase = 'cleaning' | 'extracting'
@@ -39,9 +42,12 @@ export function ImportPage() {
   const [cleanedText, setCleanedText] = useState<string | undefined>()
   const [savedCount, setSavedCount] = useState(0)
   const [isFormOpen, setIsFormOpen] = useState(false)
+  const [parseError, setParseError] = useState<string | null>(null)
+  const [saveErrors, setSaveErrors] = useState<number[]>([]) // Track failed flight indices
 
   const parseMutation = useParseImport()
   const createFlightMutation = useCreateFlight()
+  const { showError } = useToast()
 
   // Get existing flights for duplicate detection
   const { data: existingFlightsData } = useFlights(undefined, undefined, 1000)
@@ -72,6 +78,7 @@ export function ImportPage() {
     setInputType(data.type)
     setStep('parsing')
     setParsingPhase(data.type === 'text' ? 'cleaning' : 'extracting')
+    setParseError(null) // Clear any previous error
 
     try {
       const result = await parseMutation.mutateAsync(data)
@@ -82,6 +89,19 @@ export function ImportPage() {
       setStep('review')
     } catch (error) {
       console.error('Parse error:', error)
+
+      // Determine error type for inline display
+      const errorMessage = error instanceof Error ? error.message : ''
+      let errorKey = getMessageKeyForCategory('import')
+
+      // Check for specific error types
+      if (errorMessage.includes('timed out') || errorMessage.includes('timeout')) {
+        errorKey = 'errors.import.timeout'
+      } else if (errorMessage.includes('format') || errorMessage.includes('Invalid')) {
+        errorKey = 'errors.import.invalidFormat'
+      }
+
+      setParseError(errorKey)
       setExtractedFlights([])
       setRejectedFlights([])
       setGeminiCount(undefined)
@@ -93,10 +113,13 @@ export function ImportPage() {
   const handleSaveFlights = useCallback(async (flights: ExtractedFlight[]) => {
     setStep('saving')
     setSavedCount(0)
+    setSaveErrors([])
 
     let successCount = 0
+    const failedIndices: number[] = []
 
-    for (const flight of flights) {
+    for (let i = 0; i < flights.length; i++) {
+      const flight = flights[i]
       try {
         // Look up airport coordinates for distance calculation
         const originAirport = findAirport(flight.origin)
@@ -136,17 +159,28 @@ export function ImportPage() {
         setSavedCount(successCount)
       } catch (error) {
         console.error('Failed to save flight:', error)
-        // Continue with other flights
+        failedIndices.push(i)
+        // Continue with other flights - don't block on individual failures
       }
     }
+
+    // Track failed saves for potential retry
+    setSaveErrors(failedIndices)
 
     // Invalidate queries to refresh data
     await queryClient.invalidateQueries({ queryKey: ['flights'] })
     await queryClient.invalidateQueries({ queryKey: ['flightStats'] })
 
+    // Show toast if some flights failed (data loss risk scenario)
+    if (failedIndices.length > 0 && successCount > 0) {
+      showError(new Error('Some flights could not be saved'), {
+        context: 'save-partial',
+      })
+    }
+
     setSavedCount(successCount)
     setStep('success')
-  }, [createFlightMutation, queryClient])
+  }, [createFlightMutation, queryClient, showError])
 
   const handleCancel = useCallback(() => {
     setStep('upload')
@@ -154,6 +188,8 @@ export function ImportPage() {
     setRejectedFlights([])
     setGeminiCount(undefined)
     setCleanedText(undefined)
+    setParseError(null)
+    setSaveErrors([])
     parseMutation.reset()
   }, [parseMutation])
 
@@ -176,6 +212,8 @@ export function ImportPage() {
     setGeminiCount(undefined)
     setCleanedText(undefined)
     setSavedCount(0)
+    setParseError(null)
+    setSaveErrors([])
     parseMutation.reset()
   }, [parseMutation])
 
@@ -276,16 +314,27 @@ export function ImportPage() {
             )}
 
             {step === 'review' && (
-              <ImportReview
-                flights={extractedFlights}
-                existingRoutes={existingRoutes}
-                onSave={handleSaveFlights}
-                onCancel={handleCancel}
-                onManualAdd={handleManualAdd}
-                rejected={rejectedFlights}
-                geminiCount={geminiCount}
-                cleanedText={cleanedText}
-              />
+              <>
+                {/* Parse error alert - shown inline in wizard */}
+                {parseError && (
+                  <Alert variant="destructive" className="mb-4">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription>
+                      {t(parseError)}
+                    </AlertDescription>
+                  </Alert>
+                )}
+                <ImportReview
+                  flights={extractedFlights}
+                  existingRoutes={existingRoutes}
+                  onSave={handleSaveFlights}
+                  onCancel={handleCancel}
+                  onManualAdd={handleManualAdd}
+                  rejected={rejectedFlights}
+                  geminiCount={geminiCount}
+                  cleanedText={cleanedText}
+                />
+              </>
             )}
 
             {step === 'saving' && (
@@ -313,6 +362,17 @@ export function ImportPage() {
                 <p className="text-muted-foreground mb-6">
                   {t('import.success.count', '{{count}} flight(s) added to your log', { count: savedCount })}
                 </p>
+
+                {/* Show warning if some flights failed to save */}
+                {saveErrors.length > 0 && (
+                  <Alert variant="destructive" className="mb-6 text-left max-w-sm mx-auto">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription>
+                      {t('import.success.partialFail', '{{count}} flight(s) could not be saved.', { count: saveErrors.length })}
+                    </AlertDescription>
+                  </Alert>
+                )}
+
                 <div className="flex justify-center gap-3">
                   <Button variant="outline" onClick={handleImportMore}>
                     {t('import.success.importMore', 'Import more')}
