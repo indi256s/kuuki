@@ -7,6 +7,7 @@ import { Languages, Plane, Globe2, BarChart3, Shield } from 'lucide-react'
 import { RegisterForm } from '@/components/auth/RegisterForm'
 import { SignInForm } from '@/components/auth'
 import { ThemeToggle } from '@/components/common/ThemeToggle'
+import { AccentPicker, type AccentColor } from '@/components/common/AccentPicker'
 
 type AuthMode = 'register' | 'signin'
 
@@ -15,32 +16,33 @@ export function AuthPage() {
   const navigate = useNavigate()
   const { toggleLanguage } = useLanguage()
   const [mode, setMode] = useState<AuthMode>('register')
+  const [accentColor, setAccentColor] = useState<AccentColor>('terracotta')
 
   const handleSuccess = () => {
     navigate('/dashboard')
   }
 
-  // Feature cards data - embodies Kuuki's soul
+  // Feature cards data - human-centric copy
   const features = [
     {
       icon: Plane,
-      title: t('landing.features.tracking.title', 'Flight Tracking'),
-      description: t('auth.features.tracking', 'AI-powered import from boarding passes'),
+      title: t('auth.features.import.title', 'Drop & Done'),
+      description: t('auth.features.import.description', 'Just drop your boarding pass. We handle the rest.'),
     },
     {
       icon: Globe2,
-      title: t('landing.features.places.title', 'Visited Places'),
-      description: t('auth.features.places', 'Build your personal nomad passport'),
+      title: t('auth.features.map.title', 'Your World Map'),
+      description: t('auth.features.map.description', 'Watch it fill up, flight by flight.'),
     },
     {
       icon: BarChart3,
-      title: t('landing.features.stats.title', 'Travel Stats'),
-      description: t('auth.features.stats', 'Percentiles, not pressure'),
+      title: t('auth.features.stats.title', 'Friendly Stats'),
+      description: t('auth.features.stats.description', 'Interesting numbers, no bragging rights.'),
     },
     {
       icon: Shield,
-      title: t('auth.features.privacy.title', 'Private by Default'),
-      description: t('auth.features.privacy.description', 'Your journeys, your control'),
+      title: t('auth.features.privacy.title', 'Truly Yours'),
+      description: t('auth.features.privacy.description', 'Your data stays yours. No ads, no tracking.'),
     },
   ]
 
@@ -64,8 +66,8 @@ export function AuthPage() {
             <h1 className="text-4xl font-bold tracking-tighter text-white/90 mb-2">
               <span className="text-primary">Ku</span>uki
             </h1>
-            <p className="text-white/50 text-sm font-medium tracking-wide uppercase">
-              Flight Vault
+            <p className="text-white/50 text-sm font-medium tracking-wide">
+              {t('common.tagline', 'Every journey, remembered')}
             </p>
           </div>
 
@@ -99,7 +101,9 @@ export function AuthPage() {
         {/* Right Side: Auth Form */}
         <div className="relative flex flex-col justify-center px-8 py-12 lg:px-16 lg:py-12 bg-black/20 backdrop-blur-xl">
           {/* Top Right Controls */}
-          <div className="absolute top-6 right-6 flex items-center gap-2 z-20">
+          <div className="absolute top-6 right-6 flex items-center gap-3 z-20">
+            <AccentPicker value={accentColor} onChange={setAccentColor} />
+            <div className="w-px h-5 bg-white/10" />
             <ThemeToggle />
             <Button variant="ghost" onClick={toggleLanguage} className="text-white/60 hover:text-white h-9 w-9 p-0 rounded-full hover:bg-white/5">
               <Languages className="w-4 h-4" />

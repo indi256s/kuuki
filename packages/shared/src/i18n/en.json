@@ -1,7 +1,7 @@
 {
   "common": {
     "appName": "Kuuki",
-    "tagline": "Your Flight Stats Vault",
+    "tagline": "Every journey, remembered",
     "loading": "Loading...",
     "error": "Something went wrong",
     "retry": "Try again",
@@ -52,10 +52,21 @@
     "features": {
       "tracking": "AI-powered import from boarding passes",
       "places": "Build your personal nomad passport",
-      "stats": "Percentiles, not pressure",
+      "import": {
+        "title": "Drop & Done",
+        "description": "Just drop your boarding pass. We handle the rest."
+      },
+      "map": {
+        "title": "Your World Map",
+        "description": "Watch it fill up, flight by flight."
+      },
+      "stats": {
+        "title": "Friendly Stats",
+        "description": "Interesting numbers, no bragging rights."
+      },
       "privacy": {
-        "title": "Private by Default",
-        "description": "Your journeys, your control"
+        "title": "Truly Yours",
+        "description": "Your data stays yours. No ads, no tracking."
       }
     }
   },
