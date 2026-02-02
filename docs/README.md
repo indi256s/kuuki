@@ -1,27 +1,49 @@
 # Kuuki Documentation
 
-**For AI agents: Start here before exploring the codebase.**
+**For AI agents: Start with [DNA](./dna/) before exploring the codebase.**
 
 ## Quick Reference
 
 | Document | Purpose | When to Read |
 |----------|---------|--------------|
-| [SPEC.md](./SPEC.md) | Product requirements, tech stack, data models, UI/UX specs | Before any implementation work |
-| [PLAN.md](./PLAN.md) | High-level phases, status, available tools | To understand current progress and next steps |
+| **[dna/](./dna/)** | **Source of truth for all decisions** | **Always read first** |
+| [PLAN.md](./PLAN.md) | Implementation roadmap and phase status | To understand current progress |
+| [SPEC.md](./SPEC.md) | Original interview-derived specification | Historical reference (archival) |
 | [tasks/](./tasks/) | Detailed implementation tasks per phase | When working on a specific phase |
 | [plans/](./plans/) | Ad-hoc design documents | When referenced by tasks |
 
+## DNA (Start Here)
+
+The `dna/` folder contains LLM-optimized documentation organized for quick lookup:
+
+| File | Purpose |
+|------|---------|
+| [dna/PRINCIPLES.md](./dna/PRINCIPLES.md) | Core beliefs, privacy philosophy, gamification stance |
+| [dna/features.md](./dna/features.md) | Feature-specific decisions |
+| [dna/boundaries.md](./dna/boundaries.md) | What we DON'T do |
+| [dna/architecture.md](./dna/architecture.md) | Stack, database, data flow |
+| [dna/patterns.md](./dna/patterns.md) | Code patterns, testing |
+| [dna/design.md](./dna/design.md) | Design philosophy, component selection |
+| [dna/infrastructure.md](./dna/infrastructure.md) | Deployment, CI/CD |
+
 ## Current Status
 
-**Phase 1 (Foundation):** ✅ Complete - auth, i18n, testing, Cloudflare Pages live.
+**🎉 MVP COMPLETE** — All 6 phases done, CI/CD deployed, ready for users.
 
-**Phase 1.5 (Onboarding):** ✅ Complete - landing page, showcase modal, username picker, empty states.
+| Phase | Status |
+|-------|--------|
+| Phase 0.5: Reference Data | ✅ Complete |
+| Phase 1: Foundation | ✅ Complete |
+| Phase 1.5: Onboarding | ✅ Complete |
+| Phase 2: Core Flights | ✅ Complete |
+| Phase 3: AI Import | ✅ Complete |
+| Phase 3.5: UI Redesign | ✅ Complete |
+| Phase 4: Social | ✅ Complete |
+| Phase 4.5: Passport | ✅ Complete |
+| Phase 5: Advanced Stats | ✅ Complete |
+| Phase 6: Polish | ✅ Complete |
 
-**Phase 2 (Core Flights):** ✅ Complete - flight CRUD, dashboard with stats, route map, autocomplete.
-
-**Phase 3 (AI Import):** ✅ Complete - Gemini proxy, smart context-aware upload UI, import review.
-
-**Next:** Phase 4 (Social) - public profiles, leaderboards, badges.
+**Live:** https://kuuki.indi256.com
 
 ## Project Structure (Key Paths)
 
@@ -29,23 +51,25 @@
 kuuki/
 ├── apps/web/src/           # React SPA source
 │   ├── components/
-│   │   ├── auth/           # SignInForm, SignUpForm
-│   │   ├── dashboard/      # StatsCards, RecentFlights, EmptyState
-│   │   ├── flights/        # FlightForm, FlightList, FlightCard, FlightTable, Autocompletes
-│   │   ├── import/         # ImportUpload (smart mode), ImportReview, FlightEditRow
-│   │   ├── landing/        # HeroSection, FeatureGrid
-│   │   ├── map/            # RouteMap (SVG visualization)
-│   │   └── onboarding/     # ShowcaseModal, UsernamePicker, ImportCTA
-│   ├── hooks/              # useAuth, useLanguage, useShowcase, useFlights, useStats
-│   ├── lib/                # supabase, auth, i18n, sampleData, flights, geo
-│   ├── routes/             # LandingPage, AuthPage, OnboardingPage, DashboardPage, FlightsPage
-│   └── stores/             # Zustand stores (authStore)
+│   │   ├── ui/             # shadcn/ui components
+│   │   ├── auth/           # Login, signup, invite
+│   │   ├── dashboard/      # Dashboard, stats cards
+│   │   ├── flights/        # Flight list, forms
+│   │   ├── import/         # AI import flow
+│   │   ├── passport/       # Country stamps
+│   │   └── social/         # Profiles, leaderboards
+│   ├── hooks/              # Custom React hooks
+│   ├── lib/                # Utilities, supabase client
+│   ├── pages/              # Route components
+│   └── stores/             # Zustand stores
 ├── packages/
 │   ├── shared/             # Shared code, i18n translations
-│   └── data/               # Static reference data (aircraft, airports, airlines)
-├── functions/              # Cloudflare Workers
+│   └── data/               # Static reference data
+├── functions/              # Cloudflare Workers (Gemini proxy)
 ├── supabase/migrations/    # Database migrations
+├── .interface-design/      # Design system tokens
 └── docs/                   # You are here
+    └── dna/                # Source of truth
 ```
 
 ## Available Tools
@@ -53,14 +77,12 @@ kuuki/
 ### Skills (Claude Code)
 
 **Design:**
-- `/frontend-design` - Creative UI (landing pages, profiles, visualizations)
-- `/interface-design` - App interfaces (dashboards, forms, data tables)
-- `/playground` - Interactive HTML prototypes
+- `/frontend-design` - Creative UI (landing pages, profiles)
+- `/interface-design` - App interfaces (dashboards, forms)
 
 **Cloudflare:**
-- `/cloudflare:cloudflare` - Platform overview (Workers, Pages, storage, AI)
-- `/cloudflare:wrangler` - Deployment and management
-- `/cloudflare:web-perf` - Core Web Vitals auditing
+- `/cloudflare:cloudflare` - Platform overview
+- `/cloudflare:wrangler` - Deployment
 
 **Workflow:**
 - `/superpowers:brainstorming` - Before feature work
@@ -71,13 +93,14 @@ kuuki/
 
 | Server | Use For |
 |--------|---------|
-| `supabase` | DB schema, migrations, RLS, edge functions, TypeScript types |
-| `context7` | Library docs (Mapbox, react-map-gl, Gemini SDK) |
-| `playwright` | E2E tests, visual regression |
+| `supabase` | DB schema, migrations, RLS, types |
+| `context7` | Library docs |
+| `shadcn` | Component registry |
 | `cloudflare-docs` | Cloudflare documentation |
 
 ## Do Not
 
-- Scan the entire repo when docs answer the question
-- Skip reading SPEC.md before implementing features
-- Implement without checking current phase status in PLAN.md
+- Skip reading `dna/PRINCIPLES.md` before feature work
+- Scan the entire repo when DNA answers the question
+- Add features that violate `dna/boundaries.md`
+- Ignore the design system in `dna/design.md`
