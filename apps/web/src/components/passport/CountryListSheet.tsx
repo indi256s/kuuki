@@ -277,7 +277,7 @@ export function CountryListSheet({ isOpen, onClose, onSelectCountry }: CountryLi
               count: visitedCountryCodes.size,
             })}
           </p>
-          <Button variant="outline" size="sm" onClick={onClose}>
+          <Button variant="outline" onClick={onClose}>
             {t('common.cancel', 'Cancel')}
           </Button>
         </div>

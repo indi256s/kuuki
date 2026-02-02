@@ -115,9 +115,8 @@ export function FlightFilters({
             {hasActiveFilters && (
               <Button
                 variant="ghost"
-                size="sm"
                 onClick={clearAllFilters}
-                className="h-7 px-2 text-xs text-muted-foreground hover:text-foreground"
+                className="h-8 px-2 text-xs text-muted-foreground hover:text-foreground"
               >
                 {t('flights.clearAll', 'Clear all')}
               </Button>
@@ -433,7 +432,6 @@ export function FlightFilters({
         {hasActiveFilters && (
           <Button
             variant="ghost"
-            size="sm"
             onClick={clearAllFilters}
             className="h-9 text-muted-foreground"
           >

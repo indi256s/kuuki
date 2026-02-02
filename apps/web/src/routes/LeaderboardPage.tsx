@@ -48,7 +48,7 @@ export function LeaderboardPage() {
 
           <div className="flex items-center gap-2">
             {user && (
-              <Button variant="ghost" size="sm" asChild>
+              <Button variant="ghost" asChild>
                 <Link to="/dashboard">
                   {t('nav.dashboard', 'Dashboard')}
                 </Link>

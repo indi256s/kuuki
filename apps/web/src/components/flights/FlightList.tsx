@@ -307,7 +307,6 @@ export function FlightList({ onEdit, showSidebar = false }: FlightListProps) {
                       <AircraftEnrichButton
                         flights={flightsMissingAircraft.slice(0, 20)}
                         variant="outline"
-                        size="sm"
                         className="mt-3 w-full"
                       />
                     </div>
@@ -325,7 +324,6 @@ export function FlightList({ onEdit, showSidebar = false }: FlightListProps) {
                 {!selectionMode ? (
                   <Button
                     variant="outline"
-                    size="sm"
                     onClick={toggleSelectionMode}
                   >
                     <CheckSquare className="w-4 h-4 mr-2" />
@@ -335,7 +333,6 @@ export function FlightList({ onEdit, showSidebar = false }: FlightListProps) {
                   <>
                     <Button
                       variant="ghost"
-                      size="sm"
                       onClick={toggleSelectionMode}
                     >
                       <X className="w-4 h-4 mr-2" />
@@ -350,7 +347,6 @@ export function FlightList({ onEdit, showSidebar = false }: FlightListProps) {
 
                     <Button
                       variant="destructive"
-                      size="sm"
                       onClick={handleBatchDeleteClick}
                       disabled={selectedIds.size === 0}
                     >
@@ -451,7 +447,6 @@ export function FlightList({ onEdit, showSidebar = false }: FlightListProps) {
                   <AircraftEnrichButton
                     flights={flightsMissingAircraft.slice(0, 20)}
                     variant="outline"
-                    size="sm"
                   />
                 </>
               )}
@@ -460,7 +455,6 @@ export function FlightList({ onEdit, showSidebar = false }: FlightListProps) {
               {flights.length > 0 && (
                 <Button
                   variant="outline"
-                  size="sm"
                   onClick={toggleSelectionMode}
                   className="hidden sm:flex"
                 >
@@ -475,7 +469,6 @@ export function FlightList({ onEdit, showSidebar = false }: FlightListProps) {
           <div className="flex items-center gap-3 w-full">
             <Button
               variant="ghost"
-              size="sm"
               onClick={toggleSelectionMode}
             >
               <X className="w-4 h-4 mr-2" />
@@ -490,7 +483,6 @@ export function FlightList({ onEdit, showSidebar = false }: FlightListProps) {
 
             <Button
               variant="destructive"
-              size="sm"
               onClick={handleBatchDeleteClick}
               disabled={selectedIds.size === 0}
             >

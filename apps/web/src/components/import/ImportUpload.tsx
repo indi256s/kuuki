@@ -289,9 +289,8 @@ export function ImportUpload({ onSubmit, disabled, hasExistingFlights = false }:
                 {GEMINI_PROMPT}
               </pre>
               <Button
-                size="sm"
                 onClick={copyPrompt}
-                className="absolute top-2 right-2 h-7 gap-1.5"
+                className="absolute top-2 right-2 h-8 gap-1.5"
               >
                 {showCopiedToast ? (
                   <>

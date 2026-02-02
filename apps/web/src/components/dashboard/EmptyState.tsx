@@ -172,9 +172,8 @@ export function EmptyState({ onAddFlight }: EmptyStateProps) {
                     {GEMINI_PROMPT}
                   </pre>
                   <Button
-                    size="sm"
                     onClick={copyPrompt}
-                    className="absolute top-2 right-2 h-7 gap-1.5"
+                    className="absolute top-2 right-2 h-8 gap-1.5"
                   >
                     {showCopiedToast ? (
                       <>
@@ -223,7 +222,6 @@ export function EmptyState({ onAddFlight }: EmptyStateProps) {
               <div className="flex items-center justify-center gap-4 pt-1">
                 <Button
                   variant="link"
-                  size="sm"
                   onClick={() => navigate('/import')}
                   className="text-muted-foreground hover:text-foreground gap-1.5"
                 >
@@ -233,7 +231,6 @@ export function EmptyState({ onAddFlight }: EmptyStateProps) {
                 <span className="text-muted-foreground">·</span>
                 <Button
                   variant="link"
-                  size="sm"
                   onClick={onAddFlight}
                   className="text-muted-foreground hover:text-foreground gap-1.5"
                 >

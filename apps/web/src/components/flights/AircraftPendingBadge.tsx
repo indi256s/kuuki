@@ -73,11 +73,10 @@ export function AircraftPendingBadge({ flightId, className }: AircraftPendingBad
           />
 
           <div className="flex justify-end gap-2">
-            <Button variant="ghost" size="sm" onClick={handleCancel}>
+            <Button variant="ghost" onClick={handleCancel}>
               {t('common.cancel')}
             </Button>
             <Button
-              size="sm"
               onClick={handleSave}
               disabled={!selectedAircraft || updateFlight.isPending}
             >

@@ -195,7 +195,6 @@ export function ClaimDialog({ isOpen, onClose, preselectedCountry }: ClaimDialog
               <Button
                 type="button"
                 variant={entryMethod === 'land' ? 'default' : 'outline'}
-                size="sm"
                 className="flex-1 gap-2"
                 onClick={() => setEntryMethod(entryMethod === 'land' ? null : 'land')}
               >
@@ -205,7 +204,6 @@ export function ClaimDialog({ isOpen, onClose, preselectedCountry }: ClaimDialog
               <Button
                 type="button"
                 variant={entryMethod === 'sea' ? 'default' : 'outline'}
-                size="sm"
                 className="flex-1 gap-2"
                 onClick={() => setEntryMethod(entryMethod === 'sea' ? null : 'sea')}
               >

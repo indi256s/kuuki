@@ -99,7 +99,7 @@ export function PassportPage() {
       <MobileHeader
         action={
           hasCountries ? (
-            <Button onClick={handleAddCountry} size="sm" className="gap-1.5">
+            <Button onClick={handleAddCountry} className="gap-1.5">
               <Plus className="w-4 h-4" />
               <span>{t('passport.addCountry', 'Add')}</span>
             </Button>
@@ -149,7 +149,7 @@ export function PassportPage() {
           {/* Actions */}
           <div className="flex items-center gap-2">
             {hasCountries && (
-              <Button onClick={handleAddCountry} size="sm" className="gap-2">
+              <Button onClick={handleAddCountry} className="gap-2">
                 <Plus className="w-4 h-4" />
                 <span className="hidden sm:inline">{t('passport.addCountry', 'Add Country')}</span>
               </Button>

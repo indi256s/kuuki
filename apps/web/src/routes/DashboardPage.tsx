@@ -57,7 +57,7 @@ export function DashboardPage() {
       <MobileHeader
         action={
           hasFlights ? (
-            <Button onClick={handleAddFlight} size="sm" className="gap-1.5">
+            <Button onClick={handleAddFlight} className="gap-1.5">
               <Plus className="w-4 h-4" />
               <span>{t('nav.addFlight')}</span>
             </Button>
@@ -107,7 +107,7 @@ export function DashboardPage() {
           {/* Actions */}
           <div className="flex items-center gap-2">
             {hasFlights && (
-              <Button onClick={handleAddFlight} size="sm" className="gap-2">
+              <Button onClick={handleAddFlight} className="gap-2">
                 <Plus className="w-4 h-4" />
                 <span>{t('flights.addFlight', 'Add Flight')}</span>
               </Button>

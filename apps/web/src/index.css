@@ -30,6 +30,7 @@
   /* Smooth, organic animations */
   --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
   --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --duration-micro: 100ms;  /* Button press, toggles, checkboxes */
   --duration-fast: 150ms;
   --duration-normal: 250ms;
   --duration-slow: 400ms;
@@ -492,5 +493,62 @@
 
   .dark ::-webkit-scrollbar-thumb:hover {
     background: oklch(0.45 0.01 260);
+  }
+}
+
+/* ==========================================================================
+   Touch Target Accessibility (WCAG 2.5.5 - 44px minimum)
+   ========================================================================== */
+
+@media (pointer: coarse) {
+  /* Ensure minimum 44px touch targets on touch devices */
+  button:not([data-slot="accordion-trigger"]):not([class*="p-0"]):not([class*="h-auto"]),
+  [role="button"]:not([class*="p-0"]):not([class*="h-auto"]),
+  input[type="checkbox"],
+  input[type="radio"],
+  select {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Links that are primary navigation/actions */
+  a[class*="button"],
+  nav a {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+  }
+
+  /* Minimum 8px gaps between adjacent interactive elements */
+  button + button,
+  [role="button"] + [role="button"] {
+    margin-left: 8px;
+  }
+}
+
+/* ==========================================================================
+   Reduced Motion Accessibility (Vestibular disorders)
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  /* Preserve visibility of animated elements */
+  .animate-fade-in,
+  .animate-fade-up,
+  .animate-scale-in,
+  .animate-slide-in-right,
+  .animate-tier-reveal,
+  .stagger-children > * {
+    opacity: 1 !important;
+    transform: none !important;
+    filter: none !important;
   }
 }

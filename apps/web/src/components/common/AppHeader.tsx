@@ -71,7 +71,7 @@ export function AppHeader({ onAddFlight, showAddButton = false }: AppHeaderProps
         {/* Actions */}
         <div className="flex items-center gap-2">
           {showAddButton && onAddFlight && (
-            <Button onClick={onAddFlight} size="sm" className="gap-2">
+            <Button onClick={onAddFlight} className="gap-2">
               <Plus className="w-4 h-4" />
               <span className="hidden sm:inline">{t('flights.addFlight', 'Add Flight')}</span>
             </Button>

@@ -210,7 +210,6 @@ export function ImportReview({
         <div className="flex items-center gap-2">
           <Button
             variant="link"
-            size="sm"
             onClick={handleSelectAll}
             disabled={selectedCount === totalCount}
             className="p-0 h-auto"
@@ -220,7 +219,6 @@ export function ImportReview({
           <span className="text-muted-foreground">|</span>
           <Button
             variant="link"
-            size="sm"
             onClick={handleDeselectAll}
             disabled={selectedCount === 0}
             className="p-0 h-auto"

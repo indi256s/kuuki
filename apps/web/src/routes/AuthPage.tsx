@@ -31,7 +31,7 @@ export function AuthPage() {
             {t('common.appName')}
           </span>
         </Link>
-        <Button variant="ghost" size="sm" onClick={toggleLanguage} className="gap-2">
+        <Button variant="ghost" onClick={toggleLanguage} className="gap-2">
           <Languages className="w-4 h-4" />
           {currentLanguage === 'en' ? 'RU' : 'EN'}
         </Button>

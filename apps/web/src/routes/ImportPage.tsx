@@ -267,7 +267,6 @@ export function ImportPage() {
                 </p>
                 <Button
                   variant="ghost"
-                  size="sm"
                   onClick={handleCancel}
                   className="mt-4 text-muted-foreground"
                 >

@@ -109,7 +109,7 @@ export function RecentFlights({ onAddFlight }: RecentFlightsProps) {
                 <Plane className="w-6 h-6 text-muted-foreground" />
               </div>
               <p className="text-muted-foreground mb-4">{t('dashboard.noFlightsYet', 'No flights logged yet')}</p>
-              <Button onClick={onAddFlight} size="sm" className="gap-2">
+              <Button onClick={onAddFlight} className="gap-2">
                 <Plus className="w-4 h-4" />
                 {t('flights.addFirstFlight', 'Add your first flight')}
               </Button>

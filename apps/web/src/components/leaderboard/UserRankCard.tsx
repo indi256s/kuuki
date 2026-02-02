@@ -91,7 +91,7 @@ export function UserRankCard({
                 </p>
               </div>
             </div>
-            <Button variant="outline" size="sm" asChild>
+            <Button variant="outline" asChild>
               <Link to="/settings">
                 {t('settings.title', 'Settings')}
                 <ArrowRight className="w-4 h-4 ml-1" />
