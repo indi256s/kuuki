@@ -595,6 +595,7 @@
   .animate-plane-ascend {
     animation: plane-ascend var(--plane-duration, 15s) linear infinite;
     animation-delay: var(--plane-delay, 0s);
+    animation-fill-mode: backwards;
   }
 }
 
