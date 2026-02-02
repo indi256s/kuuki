@@ -7,7 +7,6 @@
     "dev": "turbo dev",
     "build": "turbo build",
     "lint": "turbo lint",
-    "typecheck": "turbo typecheck",
     "clean": "turbo clean"
   },
   "devDependencies": {
