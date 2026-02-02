@@ -1,8 +1,12 @@
 import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
+import { Plus } from 'lucide-react'
 import { FlightList } from '@/components/flights/FlightList'
 import { FlightForm } from '@/components/flights/FlightForm'
 import { AppHeader } from '@/components/common/AppHeader'
+import { MobileHeader } from '@/components/layout/MobileHeader'
+import { MobileTabBar } from '@/components/layout/MobileTabBar'
+import { FloatingActionButton } from '@/components/common/FloatingActionButton'
 import { useSyncUpcomingFlights, type Flight } from '@/hooks/useFlights'
 
 export function FlightsPage() {
@@ -43,10 +47,14 @@ export function FlightsPage() {
 
   return (
     <div className="min-h-screen bg-gradient-soft">
+      {/* Mobile header */}
+      <MobileHeader />
+
+      {/* Desktop header */}
       <AppHeader onAddFlight={handleAddFlight} showAddButton />
 
-      {/* Content - wider on large screens */}
-      <main className="max-w-6xl 3xl:max-w-[1600px] 4xl:max-w-[1800px] mx-auto px-6 3xl:px-8 py-8 3xl:py-10">
+      {/* Content - wider on large screens, bottom padding for mobile tab bar */}
+      <main className="max-w-6xl 3xl:max-w-[1600px] 4xl:max-w-[1800px] mx-auto px-6 3xl:px-8 py-8 3xl:py-10 pb-safe sm:pb-8 3xl:pb-10">
         {/* Page header */}
         <div className="mb-8 3xl:mb-10 animate-fade-up">
           <h1 className="text-2xl md:text-3xl 3xl:text-4xl font-semibold tracking-tight">
@@ -72,6 +80,16 @@ export function FlightsPage() {
         onClose={handleCloseForm}
         editFlight={editingFlight}
       />
+
+      {/* Mobile FAB for adding flights */}
+      <FloatingActionButton
+        icon={Plus}
+        onClick={handleAddFlight}
+        label={t('nav.addFlight')}
+      />
+
+      {/* Mobile tab bar */}
+      <MobileTabBar />
     </div>
   )
 }

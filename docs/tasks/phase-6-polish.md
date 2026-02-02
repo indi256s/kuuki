@@ -1,36 +1,71 @@
 # Phase 6: Polish
 
-**Status:** Pending
+**Status:** In Progress
 **Depends on:** Phase 5 complete
 
 ## Tasks
 
-### Dark Mode Toggle
+### Dark Mode Toggle ✅
 
 **Options:** Light / Dark / System
 
-**Storage:** `profiles.theme` field
+**Storage:** localStorage (`kuuki-theme` key)
 
 **Implementation:**
-- Tailwind dark mode classes
-- System preference detection
-- Persistent user choice
+- ✅ Tailwind dark mode classes (full OKLCH palette)
+- ✅ System preference detection
+- ✅ Persistent user choice (localStorage)
+- ✅ 3-way dropdown switcher (Light / Dark / System)
+- ✅ i18n translations (EN/RU)
 
 ### Mobile Responsiveness
 
 **Skill:** `/interface-design:audit`, `/cloudflare:web-perf`
 **MCP:** `playwright`
 
-**Approach:** Distinct layouts (not just scaling)
+**Approach:** Distinct layouts (not just scaling), broken into 4 sub-phases.
 
-**Desktop:**
-- Left sidebar navigation
-- Table view for flight list
+#### Phase 6a: Core Navigation ✅
 
-**Mobile:**
-- Bottom tab bar (5 items)
-- Card view for flight list
-- Collapsible sections
+**Breakpoint:** 640px (sm:) separates mobile and desktop
+
+**New Components:**
+- `MobileTabBar.tsx` — Bottom tab bar with 5 tabs (Dashboard, Flights, Import, Passport, Profile)
+- `MobileHeader.tsx` — Minimal sticky header with logo + action slot
+- `FloatingActionButton.tsx` — 56x56px FAB for primary actions
+
+**CSS Utilities Added:**
+- `pb-safe` — Bottom padding for tab bar + safe area
+- `h-tab-bar` — Tab bar height (64px + safe area)
+- `bottom-safe-fab` — FAB positioning above tab bar
+
+**Route Pages Updated:**
+- All 6 protected routes now have mobile header, tab bar, and safe padding
+- Desktop headers hidden on mobile via `hidden sm:block`
+- Profile tab dynamically links to `/fly/{username}`
+
+**i18n Keys Added:**
+- `nav.home`, `nav.addFlight` in EN/RU
+
+#### Phase 6b: Flight Management ⏳
+
+- CSS-only card/table switch (md: breakpoint)
+- Bottom drawer forms (Sheet component)
+- Simplified import wizard
+
+#### Phase 6c: Content Pages ⏳
+
+- Dashboard map collapse on mobile
+- Passport hybrid (search + map)
+- Stats vertical stack
+- Profile collapsible sections
+
+#### Phase 6d: Polish & Performance ⏳
+
+- Touch target audit (44px minimum)
+- Animations (200-300ms, respects prefers-reduced-motion)
+- Lighthouse audit (Performance >90, Accessibility >95)
+- Playwright viewport tests
 
 **Testing:**
 - Core Web Vitals audit (FCP, LCP, TBT, CLS)
@@ -130,8 +165,9 @@ apps/web/src/
 ## Verification
 
 From SPEC.md checklist:
-- [ ] Dark mode: Toggle theme, verify persistence
+- [x] Dark mode: Toggle theme, verify persistence
 - [ ] i18n: Switch to Russian, verify translations
 - [ ] CSV export: Download flight data, verify format
-- [ ] Mobile: Test all views on mobile viewport
+- [x] Mobile 6a: Bottom tab bar, mobile header, FAB on Flights page
+- [ ] Mobile 6b-d: Card/table switch, bottom drawers, content pages, polish
 - [ ] Error states: Trigger errors, verify messages

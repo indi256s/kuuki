@@ -5,6 +5,8 @@ import { useQueryClient } from '@tanstack/react-query'
 import { useCreateFlight, useFlights } from '@/hooks/useFlights'
 import { useParseImport, type ExtractedFlight, type RejectedFlight } from '@/hooks/useImport'
 import { AppHeader } from '@/components/common/AppHeader'
+import { MobileHeader } from '@/components/layout/MobileHeader'
+import { MobileTabBar } from '@/components/layout/MobileTabBar'
 import { ImportUpload } from '@/components/import/ImportUpload'
 import { ImportReview } from '@/components/import/ImportReview'
 import { WindLoader } from '@/components/common/WindLoader'
@@ -189,10 +191,14 @@ export function ImportPage() {
 
   return (
     <div className="min-h-screen bg-gradient-soft">
+      {/* Mobile header */}
+      <MobileHeader />
+
+      {/* Desktop header */}
       <AppHeader />
 
-      {/* Main content */}
-      <main className="max-w-3xl mx-auto px-6 py-8">
+      {/* Main content - pb-safe adds bottom padding for mobile tab bar */}
+      <main className="max-w-3xl mx-auto px-6 py-8 pb-safe sm:pb-8">
         {/* Page header */}
         <div className="mb-8 animate-fade-up">
           <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">
@@ -328,6 +334,9 @@ export function ImportPage() {
         isOpen={isFormOpen}
         onClose={handleFormClose}
       />
+
+      {/* Mobile tab bar */}
+      <MobileTabBar />
     </div>
   )
 }

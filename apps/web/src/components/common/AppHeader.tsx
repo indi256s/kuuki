@@ -36,7 +36,10 @@ export function AppHeader({ onAddFlight, showAddButton = false }: AppHeaderProps
   const isActive = (path: string) => location.pathname === path
 
   return (
-    <header className="sticky top-0 z-40 bg-background/80 backdrop-blur-xl border-b border-border/50">
+    <header
+      data-testid="desktop-header"
+      className="hidden sm:block sticky top-0 z-40 bg-background/80 backdrop-blur-xl border-b border-border/50"
+    >
       <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
         {/* Logo & Nav */}
         <div className="flex items-center gap-8">
@@ -49,7 +52,7 @@ export function AppHeader({ onAddFlight, showAddButton = false }: AppHeaderProps
             </span>
           </Link>
 
-          <nav className="hidden md:flex items-center gap-1">
+          <nav className="hidden sm:flex items-center gap-1">
             {navItems.map((item) => (
               <Link
                 key={item.path}

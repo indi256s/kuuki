@@ -7,6 +7,7 @@ import { ProfileHeader } from '@/components/profile/ProfileHeader'
 import { ProfileStats } from '@/components/profile/ProfileStats'
 import { ProfileBadges } from '@/components/profile/ProfileBadges'
 import { ProfileRankings } from '@/components/profile/ProfileRankings'
+import { MobileTabBar } from '@/components/layout/MobileTabBar'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -25,7 +26,7 @@ export function ProfilePage() {
     return (
       <div className="min-h-screen bg-gradient-soft">
         <Header />
-        <main className="max-w-3xl mx-auto px-6 py-8">
+        <main className="max-w-3xl mx-auto px-6 py-8 pb-safe sm:pb-8">
           <Card className="overflow-hidden">
             <Skeleton className="h-40 rounded-none" />
             <div className="p-6 space-y-6">
@@ -53,7 +54,7 @@ export function ProfilePage() {
     return (
       <div className="min-h-screen bg-gradient-soft">
         <Header />
-        <main className="max-w-3xl mx-auto px-6 py-8">
+        <main className="max-w-3xl mx-auto px-6 py-8 pb-safe sm:pb-8">
           <Card className="overflow-hidden">
             <CardContent className="p-12 text-center">
               <UserX className="w-16 h-16 mx-auto mb-4 text-muted-foreground/50" />
@@ -83,7 +84,7 @@ export function ProfilePage() {
     return (
       <div className="min-h-screen bg-gradient-soft">
         <Header />
-        <main className="max-w-3xl mx-auto px-6 py-8">
+        <main className="max-w-3xl mx-auto px-6 py-8 pb-safe sm:pb-8">
           <Card className="overflow-hidden">
             <ProfileHeader profile={profile} isOwnProfile={isOwnProfile} />
           </Card>
@@ -96,7 +97,7 @@ export function ProfilePage() {
   return (
     <div className="min-h-screen bg-gradient-soft">
       <Header />
-      <main className="max-w-3xl mx-auto px-6 py-8">
+      <main className="max-w-3xl mx-auto px-6 py-8 pb-safe sm:pb-8">
         <Card className="overflow-hidden animate-fade-up">
           <ProfileHeader profile={profile} isOwnProfile={isOwnProfile} />
         </Card>
@@ -120,6 +121,9 @@ export function ProfilePage() {
           <ProfileBadges badges={badges} />
         </div>
       </main>
+
+      {/* Mobile tab bar - only show for logged-in users */}
+      {user && <MobileTabBar />}
     </div>
   )
 }

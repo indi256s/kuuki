@@ -8,22 +8,7 @@ import { TierContainer } from './TierContainer'
 import { UnlockToast } from './UnlockToast'
 import { AviaGeekTier } from './AviaGeekTier'
 import { CountryGeekTier } from './CountryGeekTier'
-
-function DurationPlaceholder() {
-  return (
-    <div className="space-y-4">
-      <p className="text-sm text-muted-foreground">
-        Duration stats coming in Phase 5c...
-      </p>
-      <div className="flex items-center gap-4">
-        <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
-          <div className="h-full w-3/4 bg-primary/40 rounded-full" />
-        </div>
-        <span className="text-xs font-mono text-muted-foreground">0h</span>
-      </div>
-    </div>
-  )
-}
+import { DurationStatsTier } from './DurationStatsTier'
 
 export function AdvancedStats() {
   const { t } = useTranslation()
@@ -117,7 +102,7 @@ export function AdvancedStats() {
         progress={unlockProgress?.duration}
         delay={350}
       >
-        <DurationPlaceholder />
+        <DurationStatsTier />
       </TierContainer>
 
       {/* Unlock celebration toast */}

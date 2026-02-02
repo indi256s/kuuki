@@ -9,6 +9,8 @@ import { EmptyPassport } from '@/components/passport/EmptyPassport'
 import { ClaimDialog } from '@/components/passport/ClaimDialog'
 import { CountryClaimMap } from '@/components/passport/CountryClaimMap'
 import { ThemeToggle } from '@/components/common/ThemeToggle'
+import { MobileHeader } from '@/components/layout/MobileHeader'
+import { MobileTabBar } from '@/components/layout/MobileTabBar'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import {
@@ -90,8 +92,23 @@ export function PassportPage() {
 
   return (
     <div className="min-h-screen bg-gradient-soft">
-      {/* Header */}
-      <header className="sticky top-0 z-40 bg-background/80 backdrop-blur-xl border-b border-border/50">
+      {/* Mobile header */}
+      <MobileHeader
+        action={
+          hasCountries ? (
+            <Button onClick={handleAddCountry} size="sm" className="gap-1.5">
+              <Plus className="w-4 h-4" />
+              <span>{t('passport.addCountry', 'Add')}</span>
+            </Button>
+          ) : undefined
+        }
+      />
+
+      {/* Desktop header - hidden on mobile */}
+      <header
+        data-testid="desktop-header"
+        className="hidden sm:block sticky top-0 z-40 bg-background/80 backdrop-blur-xl border-b border-border/50"
+      >
         <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
           {/* Logo & Nav */}
           <div className="flex items-center gap-8">
@@ -104,7 +121,7 @@ export function PassportPage() {
               </span>
             </Link>
 
-            <nav className="hidden md:flex items-center gap-1">
+            <nav className="flex items-center gap-1">
               <Link
                 to="/dashboard"
                 className="px-3 py-2 text-sm text-muted-foreground hover:text-foreground rounded-lg hover:bg-secondary/50 transition-colors"
@@ -187,8 +204,8 @@ export function PassportPage() {
         </div>
       </header>
 
-      {/* Main content */}
-      <main className="max-w-6xl mx-auto px-6 py-8">
+      {/* Main content - pb-safe adds bottom padding for mobile tab bar */}
+      <main className="max-w-6xl mx-auto px-6 py-8 pb-safe sm:pb-8">
         {/* Page header */}
         <div className="mb-8 animate-fade-up">
           <div className="flex items-center justify-between">
@@ -277,6 +294,9 @@ export function PassportPage() {
         onClose={handleClaimDialogClose}
         preselectedCountry={preselectedCountry}
       />
+
+      {/* Mobile tab bar */}
+      <MobileTabBar />
     </div>
   )
 }

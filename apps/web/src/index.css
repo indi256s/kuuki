@@ -442,6 +442,30 @@
   }
 }
 
+/* Mobile safe area support */
+@layer utilities {
+  /* Safe area padding for bottom tab bar */
+  .pb-safe {
+    padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px));
+  }
+
+  /* Just the safe area inset without tab bar height */
+  .pb-safe-inset {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  /* FAB positioning above tab bar */
+  .bottom-safe-fab {
+    bottom: calc(64px + env(safe-area-inset-bottom, 0px) + 16px);
+  }
+
+  /* Tab bar height accounting for safe area */
+  .h-tab-bar {
+    height: calc(64px + env(safe-area-inset-bottom, 0px));
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+}
+
 /* Custom scrollbar - minimal */
 @layer base {
   ::-webkit-scrollbar {

@@ -254,7 +254,9 @@ describe('useAdvancedStats', () => {
       duration_unlocked: true,
       manufacturer_breakdown: { Airbus: 5, Boeing: 3 },
       aircraft_breakdown: { A320: 3, '737': 2 },
+      aircraft_type_breakdown: { types: { widebody: 5, narrowbody: 10 }, most_flown: null },
       continent_breakdown: { EU: 10, AS: 5 },
+      region_breakdown: { europe: 10, asia: 5 },
       duration_stats: {
         total_minutes: 5000,
         avg_minutes: 120,
@@ -264,6 +266,8 @@ describe('useAdvancedStats', () => {
         shortest_flight_id: 'flight-2',
         flight_count: 42,
       },
+      departure_patterns: { red_eye: 5, early: 10, business: 20, evening: 7, total_with_time: 42 },
+      duration_coverage: 95.5,
       patterns: { favorite_route: 'IST-TBS' },
       featured_fact: "You've flown the length of the Amazon 3 times",
       featured_fact_index: 2,
@@ -296,7 +300,9 @@ describe('useAdvancedStats', () => {
       durationUnlocked: true,
       manufacturerBreakdown: { Airbus: 5, Boeing: 3 },
       aircraftBreakdown: { A320: 3, '737': 2 },
+      aircraftTypeBreakdown: { types: { widebody: 5, narrowbody: 10 }, most_flown: null },
       continentBreakdown: { EU: 10, AS: 5 },
+      regionBreakdown: { europe: 10, asia: 5 },
       durationStats: {
         total_minutes: 5000,
         avg_minutes: 120,
@@ -306,6 +312,8 @@ describe('useAdvancedStats', () => {
         shortest_flight_id: 'flight-2',
         flight_count: 42,
       },
+      departurePatterns: { red_eye: 5, early: 10, business: 20, evening: 7, total_with_time: 42 },
+      durationCoverage: 95.5,
       patterns: { favorite_route: 'IST-TBS' },
       featuredFact: "You've flown the length of the Amazon 3 times",
       featuredFactIndex: 2,
@@ -321,8 +329,12 @@ describe('useAdvancedStats', () => {
       duration_unlocked: false,
       manufacturer_breakdown: null,
       aircraft_breakdown: null,
+      aircraft_type_breakdown: null,
       continent_breakdown: null,
+      region_breakdown: null,
       duration_stats: null,
+      departure_patterns: null,
+      duration_coverage: null,
       patterns: null,
       featured_fact: null,
       featured_fact_index: 0,
@@ -350,8 +362,12 @@ describe('useAdvancedStats', () => {
 
     expect(result.current.data?.manufacturerBreakdown).toBeNull()
     expect(result.current.data?.aircraftBreakdown).toBeNull()
+    expect(result.current.data?.aircraftTypeBreakdown).toBeNull()
     expect(result.current.data?.continentBreakdown).toBeNull()
+    expect(result.current.data?.regionBreakdown).toBeNull()
     expect(result.current.data?.durationStats).toBeNull()
+    expect(result.current.data?.departurePatterns).toBeNull()
+    expect(result.current.data?.durationCoverage).toBe(0)
     expect(result.current.data?.patterns).toBeNull()
     expect(result.current.data?.featuredFact).toBeNull()
   })

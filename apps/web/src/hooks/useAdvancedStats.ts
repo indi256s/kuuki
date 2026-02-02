@@ -14,6 +14,14 @@ export interface AircraftTypeBreakdown {
   most_flown: MostFlownAircraft | null
 }
 
+export interface DeparturePatterns {
+  red_eye: number
+  early: number
+  business: number
+  evening: number
+  total_with_time: number
+}
+
 export interface AdvancedStats {
   userId: string
   // Unlock flags
@@ -30,11 +38,13 @@ export interface AdvancedStats {
     total_minutes: number
     avg_minutes: number
     longest_minutes: number
-    longest_flight_id: string | null
+    longest_flight_id: number | null
     shortest_minutes: number
-    shortest_flight_id: string | null
+    shortest_flight_id: number | null
     flight_count: number
   } | null
+  departurePatterns: DeparturePatterns | null  // NEW for Phase 5c
+  durationCoverage: number  // NEW for Phase 5c - percentage 0-100
   patterns: Record<string, unknown> | null
   featuredFact: string | null
   featuredFactIndex: number
@@ -85,6 +95,9 @@ export function useAdvancedStats() {
         continentBreakdown: data.continent_breakdown as Record<string, number> | null,
         regionBreakdown: data.region_breakdown as Record<string, number> | null,
         durationStats: data.duration_stats as AdvancedStats['durationStats'],
+        // Phase 5c fields - use type assertion for backward compatibility until migration runs
+        departurePatterns: (data as Record<string, unknown>).departure_patterns as DeparturePatterns | null,
+        durationCoverage: ((data as Record<string, unknown>).duration_coverage as number) ?? 0,
         patterns: data.patterns as Record<string, unknown> | null,
         featuredFact: data.featured_fact ?? null,
         featuredFactIndex: data.featured_fact_index ?? 0,

@@ -20,7 +20,7 @@
 | **4 Social** | ✅ Done | Public profiles, leaderboards, compare, 20 badges |
 | **4.5 Passport** | ✅ Done | Country stamps, manual claims, 246 countries, 31 tests |
 | **5 Advanced Stats** | ⏳ Pending | Progressive unlock tiers |
-| **6 Polish** | ⏳ Pending | Dark mode toggle, mobile, CI/CD |
+| **6 Polish** | 🔄 In Progress | Dark mode ✅, Mobile 6a ✅, CI/CD pending |
 
 ---
 

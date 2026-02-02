@@ -13,6 +13,8 @@ import { EmptyState } from '@/components/dashboard/EmptyState'
 import { ProfileSettingsDialog } from '@/components/profile/ProfileSettingsDialog'
 import { CompareModal } from '@/components/compare/CompareModal'
 import { ThemeToggle } from '@/components/common/ThemeToggle'
+import { MobileHeader } from '@/components/layout/MobileHeader'
+import { MobileTabBar } from '@/components/layout/MobileTabBar'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -50,8 +52,23 @@ export function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-gradient-soft">
-      {/* Header - clean, minimal */}
-      <header className="sticky top-0 z-40 bg-background/80 backdrop-blur-xl border-b border-border/50">
+      {/* Mobile header */}
+      <MobileHeader
+        action={
+          hasFlights ? (
+            <Button onClick={handleAddFlight} size="sm" className="gap-1.5">
+              <Plus className="w-4 h-4" />
+              <span>{t('nav.addFlight')}</span>
+            </Button>
+          ) : undefined
+        }
+      />
+
+      {/* Desktop header - hidden on mobile */}
+      <header
+        data-testid="desktop-header"
+        className="hidden sm:block sticky top-0 z-40 bg-background/80 backdrop-blur-xl border-b border-border/50"
+      >
         <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
           {/* Logo & Nav */}
           <div className="flex items-center gap-8">
@@ -64,7 +81,7 @@ export function DashboardPage() {
               </span>
             </Link>
 
-            <nav className="hidden md:flex items-center gap-1">
+            <nav className="flex items-center gap-1">
               <Link
                 to="/flights"
                 className="px-3 py-2 text-sm text-muted-foreground hover:text-foreground rounded-lg hover:bg-secondary/50 transition-colors"
@@ -91,7 +108,7 @@ export function DashboardPage() {
             {hasFlights && (
               <Button onClick={handleAddFlight} size="sm" className="gap-2">
                 <Plus className="w-4 h-4" />
-                <span className="hidden sm:inline">{t('flights.addFlight', 'Add Flight')}</span>
+                <span>{t('flights.addFlight', 'Add Flight')}</span>
               </Button>
             )}
 
@@ -149,8 +166,8 @@ export function DashboardPage() {
         </div>
       </header>
 
-      {/* Main content */}
-      <main className="max-w-6xl mx-auto px-6 py-8">
+      {/* Main content - pb-safe adds bottom padding for mobile tab bar */}
+      <main className="max-w-6xl mx-auto px-6 py-8 pb-safe sm:pb-8">
         {/* Welcome section */}
         <div className="mb-8 animate-fade-up">
           <h1 className="text-2xl md:text-3xl font-semibold tracking-tight text-balance">
@@ -202,6 +219,9 @@ export function DashboardPage() {
         isOpen={isCompareOpen}
         onClose={() => setIsCompareOpen(false)}
       />
+
+      {/* Mobile tab bar */}
+      <MobileTabBar />
     </div>
   )
 }

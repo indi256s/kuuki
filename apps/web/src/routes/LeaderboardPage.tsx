@@ -8,6 +8,8 @@ import { useAuth } from '@/hooks/useAuth'
 import { CategoryTabs } from '@/components/leaderboard/CategoryTabs'
 import { LeaderboardTable } from '@/components/leaderboard/LeaderboardTable'
 import { UserRankCard } from '@/components/leaderboard/UserRankCard'
+import { MobileHeader } from '@/components/layout/MobileHeader'
+import { MobileTabBar } from '@/components/layout/MobileTabBar'
 import { ThemeToggle } from '@/components/common/ThemeToggle'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -26,8 +28,14 @@ export function LeaderboardPage() {
 
   return (
     <div className="min-h-screen bg-gradient-soft">
-      {/* Header */}
-      <header className="sticky top-0 z-40 bg-background/80 backdrop-blur-xl border-b border-border/50">
+      {/* Mobile header */}
+      <MobileHeader />
+
+      {/* Desktop header - hidden on mobile */}
+      <header
+        data-testid="desktop-header"
+        className="hidden sm:block sticky top-0 z-40 bg-background/80 backdrop-blur-xl border-b border-border/50"
+      >
         <div className="max-w-4xl mx-auto px-6 h-14 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2 group">
             <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
@@ -51,8 +59,8 @@ export function LeaderboardPage() {
         </div>
       </header>
 
-      {/* Main content */}
-      <main className="max-w-4xl mx-auto px-6 py-8">
+      {/* Main content - pb-safe adds bottom padding for mobile tab bar */}
+      <main className="max-w-4xl mx-auto px-6 py-8 pb-safe sm:pb-8">
         {/* Page header */}
         <div className="mb-8 animate-fade-up">
           <div className="flex items-center gap-3 mb-2">
@@ -129,6 +137,9 @@ export function LeaderboardPage() {
           </div>
         )}
       </main>
+
+      {/* Mobile tab bar - only show for logged-in users */}
+      {user && <MobileTabBar />}
     </div>
   )
 }

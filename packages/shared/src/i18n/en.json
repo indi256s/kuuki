@@ -59,13 +59,22 @@
   },
   "nav": {
     "dashboard": "Dashboard",
+    "home": "Home",
     "flights": "Flights",
     "passport": "Passport",
     "stats": "Stats",
     "leaderboard": "Leaderboard",
     "profile": "Profile",
     "settings": "Settings",
-    "import": "Import"
+    "import": "Import",
+    "addFlight": "Add Flight"
+  },
+  "theme": {
+    "toggle": "Change theme",
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System",
+    "currentlyUsing": "Currently: {{mode}}"
   },
   "dashboard": {
     "title": "Dashboard",
@@ -224,6 +233,32 @@
         "3": "{{continent}} seems... neglected. Only {{visited}} of {{total}} explored.",
         "4": "{{remaining}} territories remain unconquered. I admire your ambition. Or pity your schedule.",
         "5": "Your geographical distribution is... revealing."
+      }
+    },
+    "timeGeek": {
+      "hero": "{{count}} flights, averaging {{avg}}",
+      "totalTime": "Total Flight Time",
+      "longestFlight": "Longest Flight",
+      "shortestFlight": "Shortest Flight",
+      "departurePattern": "Departure Pattern",
+      "pattern": {
+        "redEye": "Night Owl",
+        "early": "Early Bird",
+        "business": "Business Hours",
+        "evening": "Evening Traveler"
+      },
+      "haul": {
+        "short": "Short-haul",
+        "medium": "Medium-haul",
+        "long": "Long-haul",
+        "specialist": "You're a {{type}} specialist"
+      },
+      "fact": {
+        "1": "{{days}} days airborne. That's {{days}} days you weren't doing anything productive on the ground either.",
+        "2": "{{percent}}% {{bucket}} departures. Your circadian rhythm has been noted. And judged.",
+        "3": "{{total}} total, {{avg}} average. The math checks out. Your life choices remain unexamined.",
+        "4": "Your longest flight: {{duration}}. I hope the in-flight entertainment was adequate. I have my doubts.",
+        "5": "You have spent 100% of your recorded flights sitting. The rest was also sitting. But faster."
       }
     },
     "aircraftTypes": {
