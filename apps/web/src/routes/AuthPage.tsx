@@ -31,7 +31,7 @@ export function AuthPage() {
   const taglines = t('auth.taglines', { returnObjects: true }) as string[]
 
   return (
-    <div className="min-h-screen bg-neutral-50 dark:bg-[#09090b] flex items-center justify-center p-4 relative overflow-hidden font-sans transition-colors duration-300">
+    <div className="min-h-screen bg-neutral-50 dark:bg-[#08090A] flex items-center justify-center p-4 relative overflow-hidden font-sans transition-colors duration-300">
 
       {/* Background Ambience */}
       <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-primary/10 dark:bg-primary/20 blur-[120px] rounded-full pointer-events-none opacity-60 dark:opacity-40" />
