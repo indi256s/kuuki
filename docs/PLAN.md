@@ -157,9 +157,9 @@ Dark mode, mobile-first responsive design, error handling, CI/CD.
 - ✅ **Phase 6b: Flight Management** — CSS card/table switch, bottom sheet forms, keyboard-aware resize
 - ✅ **Phase 6c: Content Pages** — Map collapsible, country sheet with letter accordion, profile mini-header, collapsible sections, vertical stats grid
 - ✅ **Phase 6d: Polish & Performance** — 44px touch targets (WCAG 2.5.5), `--duration-micro` token, `prefers-reduced-motion` support, Lighthouse checklist
+- ✅ **Phase 6e: Error Handling** — Route-level boundaries, toast notifications with aviation personality, auto-retry with exponential backoff, i18n messages (EN/RU)
 
 **Pending:**
-- Error handling with aviation-themed messages
 - CSV export
 - Account deletion
 - CI/CD pipeline (GitHub Actions)

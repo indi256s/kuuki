@@ -99,21 +99,62 @@
 - Test touch targets on mobile device or Chrome DevTools emulation
 - Test reduced motion with OS accessibility setting enabled
 
-### Error Handling
+### Error Handling ✅
 
-**Skill:** `/interface-design`
+**Skill:** `/interface-design`, `/frontend-design`
 
-**Tone:** Aviation-themed messages
+**Tone:** Aviation-themed messages with GLaDOS-lite personality for mild errors, neutral for serious errors (data loss risk).
 
-**Examples:**
-- "Flight log delayed on the tarmac. We're working to clear it for takeoff."
-- "Looks like we hit some turbulence. Please try again."
-- "Your connection was lost. Attempting to reconnect..."
+**Key Decisions:**
+- Context-dependent severity: same error can be mild (network) or serious (failed save)
+- Hybrid display: validation errors inline, API/network errors via toast
+- Auto-retry: 3 silent retries with exponential backoff (1s → 2s → 4s → max 30s)
+- Toast: 5 seconds, top-right (desktop), top-center (mobile)
+- Import errors: inline within wizard, not toasts
+- Auth expiry: silent re-auth attempt before redirect
 
-**Implementation:**
-- Per-route error boundaries
-- Toast notifications for recoverable errors
-- Full-page error state for critical failures
+**New Files Created:**
+```
+apps/web/src/
+├── lib/errors/
+│   ├── types.ts         # ErrorCategory, ClassifiedError types
+│   ├── classify.ts      # Error classification by status/message
+│   ├── messages.ts      # Aviation-themed message key selection
+│   └── index.ts
+├── stores/
+│   └── errorStore.ts    # Zustand store for 3s deduplication
+├── components/error/
+│   ├── ToastProvider.tsx   # Sonner config, responsive positioning
+│   ├── CrashScreen.tsx     # Minimal crash UI (no illustration)
+│   ├── ErrorBoundary.tsx   # Route-level boundary, keyed by pathname
+│   └── index.ts
+└── hooks/
+    ├── useToast.ts         # i18n-aware toast hook
+    └── useErrorHandler.ts  # Central handler with silent re-auth
+```
+
+**Dependencies Added:**
+- `sonner` — Toast library
+
+**i18n Messages Added (EN/RU):**
+- 3 network error variants ("Ground control to Major Tom...")
+- 3 API error variants ("Servers experiencing turbulence...")
+- 2 rate limit variants
+- 2 not found variants
+- 3 generic fallback variants
+- Neutral messages for auth, data loss, validation
+- Crash screen strings
+
+**React Query Configuration:**
+- `retry: 3` with exponential backoff for queries
+- `retry: false` for mutations (user-triggered retry)
+- `staleTime: 30_000` (30 seconds)
+- `refetchOnWindowFocus: false`
+
+**ImportPage Updates:**
+- Parse errors shown inline with Alert component
+- Tracks failed save indices for partial success messaging
+- New i18n key: `import.success.partialFail`
 
 ### CSV Export
 
@@ -169,20 +210,36 @@ jobs:
 
 ## Files to Create/Update
 
+**Phase 6e Error Handling (Complete):**
 ```
 apps/web/src/
-├── components/
-│   ├── ui/
-│   │   └── ErrorBoundary.tsx
-│   ├── settings/
-│   │   ├── ThemeToggle.tsx
-│   │   ├── DeleteAccount.tsx
-│   │   └── ExportData.tsx
-│   └── layout/
-│       ├── MobileNav.tsx
-│       └── DesktopSidebar.tsx
-└── styles/
-    └── themes/
+├── lib/errors/
+│   ├── types.ts           ✅
+│   ├── classify.ts        ✅
+│   ├── messages.ts        ✅
+│   └── index.ts           ✅
+├── stores/
+│   └── errorStore.ts      ✅
+├── components/error/
+│   ├── ToastProvider.tsx  ✅
+│   ├── CrashScreen.tsx    ✅
+│   ├── ErrorBoundary.tsx  ✅
+│   └── index.ts           ✅
+└── hooks/
+    ├── useToast.ts        ✅
+    └── useErrorHandler.ts ✅
+
+packages/shared/src/i18n/
+├── en.json                ✅ (error messages added)
+└── ru.json                ✅ (error messages added)
+```
+
+**Pending:**
+```
+apps/web/src/
+├── components/settings/
+│   ├── DeleteAccount.tsx
+│   └── ExportData.tsx
 
 .github/
 └── workflows/
@@ -193,10 +250,10 @@ apps/web/src/
 
 From SPEC.md checklist:
 - [x] Dark mode: Toggle theme, verify persistence
-- [ ] i18n: Switch to Russian, verify translations
+- [x] i18n: Switch to Russian, verify translations (error messages added)
 - [ ] CSV export: Download flight data, verify format
 - [x] Mobile 6a: Bottom tab bar, mobile header, FAB on Flights page
 - [x] Mobile 6b: Card/table switch, bottom drawer forms, keyboard-aware resize
 - [x] Mobile 6c: Map collapsible, country sheet, profile sections, vertical stats
 - [x] Mobile 6d: Touch targets (44px), reduced motion, Lighthouse checklist created
-- [ ] Error states: Trigger errors, verify messages
+- [x] Error states: Route boundaries, toast system, aviation personality messages
