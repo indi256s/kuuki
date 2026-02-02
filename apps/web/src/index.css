@@ -417,7 +417,7 @@
   }
 }
 
-/* Flowing shimmer animation for Katakana branding (like wind - 空気) */
+/* Flowing shimmer animation for hiragana branding (like wind - くうき) */
 @keyframes text-flow {
   0%, 100% {
     background-position: 0% 50%;

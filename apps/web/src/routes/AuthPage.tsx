@@ -39,12 +39,12 @@ export function AuthPage() {
 
       {/* Mobile: Atmospheric background elements */}
       <div className="lg:hidden absolute inset-0 pointer-events-none overflow-hidden">
-        {/* Horizontal katakana for mobile */}
+        {/* Horizontal hiragana for mobile */}
         <div className="absolute top-16 left-1/2 -translate-x-1/2 z-0">
           <span
             className="text-4xl font-bold font-display tracking-[0.3em] select-none bg-clip-text text-transparent bg-[radial-gradient(circle_at_top_left,color-mix(in_srgb,var(--primary),transparent_65%),rgba(23,23,23,0.1))] dark:bg-[radial-gradient(circle_at_top_left,color-mix(in_srgb,var(--primary),transparent_60%),rgba(255,255,255,0.1))]"
           >
-            クウキ
+            くうき
           </span>
         </div>
         {/* Planes behind form on mobile */}
@@ -77,7 +77,7 @@ export function AuthPage() {
             <span
               className="text-[12rem] font-bold leading-none writing-vertical select-none font-display tracking-widest bg-clip-text text-transparent bg-[radial-gradient(circle_at_top_left,color-mix(in_srgb,var(--primary),transparent_70%),rgba(23,23,23,0.15))] dark:bg-[radial-gradient(circle_at_top_left,color-mix(in_srgb,var(--primary),transparent_65%),rgba(255,255,255,0.12))]"
             >
-              クウキ
+              くうき
             </span>
           </div>
         </div>
