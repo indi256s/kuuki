@@ -19,8 +19,8 @@
 | **3.5 UI Redesign** | ✅ Done | shadcn/ui components, Scandinavian aesthetic, dark mode ready |
 | **4 Social** | ✅ Done | Public profiles, leaderboards, compare, 20 badges |
 | **4.5 Passport** | ✅ Done | Country stamps, manual claims, 246 countries, 31 tests |
-| **5 Advanced Stats** | ⏳ Pending | Progressive unlock tiers |
-| **6 Polish** | 🔄 In Progress | Dark mode ✅, Mobile 6a ✅, CI/CD pending |
+| **5 Advanced Stats** | ✅ Done | 4 tiers: Overview, Avia Geek, Country Geek, Time Geek |
+| **6 Polish** | 🔄 In Progress | Dark mode ✅, Mobile 6a ✅, 6b-d & CI/CD pending |
 
 ---
 
@@ -122,15 +122,49 @@ Personal "Nomad Passport" view with country stamps representing all visited coun
 
 → [tasks/phase-4.5-passport.md](./tasks/phase-4.5-passport.md)
 
-### Phase 5: Advanced Stats
+### Phase 5: Advanced Stats ✅
 
-Progressive unlock tiers: Overview, Avia Geek, Country Geek, Duration.
+Progressive unlock system with 4 specialized stat tiers and sarcastic AI commentary.
+
+**Tiers:**
+- **Overview** (always visible) — Total flights, distance, countries, airlines with animated stat cards
+- **Avia Geek** (5+ aircraft) — Aircraft breakdown, manufacturers, widebody/narrowbody ratio
+- **Country Geek** (5+ countries) — Continent coverage, world completion %, regional progress
+- **Time Geek** (10+ flights) — Total flight time, longest/shortest flights, departure patterns
+
+**Features:**
+- Tier unlock celebration toast with blur-to-clear reveal animation
+- Sarcastic AI "Flight Stats AI" commentary with randomized quips
+- Flight popover for viewing individual flight details
+- Duration formatting utility with localized output
+- Departure pattern analysis (Night Owl, Early Bird, Business Hours, Evening)
+
+**Tech:**
+- `useUnlockProgress` hook for tier state management
+- `formatDuration` utility with comprehensive test coverage
+- Database migration for departure pattern tracking
+- Responsive grid layout (2-col on desktop, stacked on mobile)
 
 → [tasks/phase-5-advanced-stats.md](./tasks/phase-5-advanced-stats.md)
 
-### Phase 6: Polish
+### Phase 6: Polish 🔄
 
-Dark mode toggle, mobile responsiveness, error handling, CI/CD.
+Dark mode, mobile-first responsive design, error handling, CI/CD.
+
+**Completed:**
+- ✅ **Dark Mode** — 3-way toggle (Light/Dark/System), localStorage persistence
+- ✅ **Phase 6a: Core Navigation** — Bottom tab bar, mobile header, FAB, safe area CSS
+
+**In Progress:**
+- ⏳ **Phase 6b: Flight Management** — CSS card/table switch, bottom drawer forms
+- ⏳ **Phase 6c: Content Pages** — Map collapse, passport hybrid, collapsible sections
+- ⏳ **Phase 6d: Polish** — Touch targets, animations, Lighthouse audit, Playwright tests
+
+**Pending:**
+- Error handling with aviation-themed messages
+- CSV export
+- Account deletion
+- CI/CD pipeline (GitHub Actions)
 
 → [tasks/phase-6-polish.md](./tasks/phase-6-polish.md)
 

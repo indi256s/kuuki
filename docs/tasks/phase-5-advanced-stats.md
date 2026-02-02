@@ -1,95 +1,99 @@
 # Phase 5: Advanced Stats
 
-**Status:** Pending
+**Status:** ✅ Complete
 **Depends on:** Phase 4 complete
 
 ## Tasks
 
-### Overview Tier (Always Visible)
-
-**Skill:** `/interface-design`
+### Overview Tier (Always Visible) ✅
 
 **Stats:**
-- Total flights
-- Total distance (km)
-- Countries visited
-- Airlines flown
+- Total flights with animated counter
+- Total distance (km) with Moon progress visualization
+- Countries visited with world completion %
+- Airlines flown count
 
-**Interaction:** Hover to reveal additional details/breakdown
+**Implementation:**
+- `OverviewTier.tsx` with 4 stat cards in responsive grid
+- Hover states reveal additional context
+- Staggered entrance animations
 
-### Avia Geek Tier
+### Avia Geek Tier ✅
 
-**Skill:** `/interface-design`
 **Unlock:** 5+ aircraft types flown
 
 **Stats:**
-- Aircraft types breakdown
-- Manufacturers (Boeing vs Airbus vs others)
-- Engine types (jet, turboprop, piston)
-- Widebody vs narrowbody ratio
-- Most flown aircraft
+- Most flown aircraft with flight count and percentage
+- Manufacturer breakdown (Boeing, Airbus, Embraer, etc.)
+- Widebody vs narrowbody ratio with visual bar
+- Total unique aircraft types
 
-**Display:** Aircraft breakdown charts
+**Implementation:**
+- `AviaGeekTier.tsx` with aircraft analytics
+- Sarcastic AI commentary with randomized quips
+- Progress ring for widebody ratio
 
-### Country Geek Tier
+### Country Geek Tier ✅
 
-**Skill:** `/interface-design`
 **Unlock:** 5+ countries visited
 
 **Stats:**
-- Continents visited
-- UN regions/subregions
-- Hemispheres (N/S, E/W)
-- Country completion % (out of 195)
-- Regional completion (Europe: X%, Asia: Y%)
+- Global completion percentage (out of 195 UN countries)
+- Continent breakdown with visit counts
+- Most visited continent identification
+- Regional progress indicators
 
-**Display:** Choropleth maps, completion progress bars
+**Implementation:**
+- `CountryGeekTier.tsx` with geographic analytics
+- Continent badges with flag colors
+- Progress bars for each continent
 
-### Duration Stats Tier
+### Time Geek Tier ✅
 
-**Skill:** `/interface-design`
 **Unlock:** 10+ flights
 
 **Stats:**
 - Total time in air (days, hours, minutes)
-- Longest single flight
-- Shortest flight
+- Longest single flight with route details
+- Shortest flight with route details
 - Average flight duration
-- Duration trends over time
+- Departure pattern analysis (Night Owl, Early Bird, Business Hours, Evening)
 
-**Display:** Time visualizations, trend charts
+**Implementation:**
+- `DurationStatsTier.tsx` with time analytics
+- `FlightPopover.tsx` for viewing flight details on click
+- `formatDuration.ts` utility with full test coverage
+- Departure pattern badges with percentage breakdown
 
-### Fun Facts
+### Fun Facts (Integrated) ✅
 
-**Skill:** `/frontend-design`
+Comparative framing built into Overview tier:
+- "Distance to the Moon: X% complete" (384,400 km)
+- "X.X trips around Earth" (40,075 km each)
+- AI commentary with sarcastic personality
 
-**Comparative framing:**
-- "Distance to the Moon: 42% complete" (384,400 km)
-- "You've flown X.X trips around Earth" (40,075 km each)
-- "Time in air: X days, Y hours"
-- "You've visited X% of all countries"
-
-**Style:** Playful visualizations, delightful moments
-
-## Files to Create
+## Files Created
 
 ```
 apps/web/src/
 ├── components/
 │   └── stats/
-│       ├── StatsPage.tsx
-│       ├── OverviewTier.tsx
-│       ├── AviaGeekTier.tsx
-│       ├── CountryGeekTier.tsx
-│       ├── DurationStatsTier.tsx
-│       ├── FunFacts.tsx
-│       ├── AircraftChart.tsx
-│       ├── CountryMap.tsx
-│       └── DurationChart.tsx
+│       ├── AdvancedStats.tsx      # Main container with tier grid
+│       ├── OverviewTier.tsx       # Always-visible stats
+│       ├── AviaGeekTier.tsx       # Aircraft analytics
+│       ├── CountryGeekTier.tsx    # Geographic analytics
+│       ├── DurationStatsTier.tsx  # Time analytics
+│       ├── TierContainer.tsx      # Unlock wrapper with locked state
+│       ├── UnlockToast.tsx        # Celebration toast on unlock
+│       ├── FlightPopover.tsx      # Flight details popover
+│       └── index.ts               # Barrel exports
 ├── hooks/
-│   └── useAdvancedStats.ts
-└── routes/
-    └── StatsPage.tsx
+│   ├── useAdvancedStats.ts        # Unlock progress hook
+│   └── __tests__/
+│       └── useAdvancedStats.test.ts
+└── lib/
+    ├── formatDuration.ts          # Duration formatting utility
+    └── formatDuration.test.ts
 ```
 
 ## Unlock Logic
@@ -111,3 +115,15 @@ const statsTiers = {
   }
 };
 ```
+
+## Verification
+
+- [x] Overview tier shows on dashboard with flights
+- [x] Locked tiers show progress toward unlock
+- [x] Avia Geek unlocks at 5 aircraft types
+- [x] Country Geek unlocks at 5 countries
+- [x] Time Geek unlocks at 10 flights
+- [x] Unlock toast appears on first unlock
+- [x] AI commentary displays with personality
+- [x] Flight popover shows details on click
+- [x] Duration formatting works for all ranges
