@@ -494,22 +494,48 @@
   }
 }
 
-/* Matrix-style ascending planes animation for auth page */
-@keyframes plane-ascend {
-  0% {
-    transform: translateY(700px) translateX(0) rotate(-45deg);
-    opacity: 0;
-  }
-  8% {
-    opacity: var(--plane-opacity, 0.1);
-  }
-  92% {
-    opacity: var(--plane-opacity, 0.1);
-  }
-  100% {
-    transform: translateY(-100px) translateX(40px) rotate(-45deg);
-    opacity: 0;
-  }
+/* Orbital planes animation for auth page - curved arcs around katakana center */
+
+/* Orbit 1: Close/tight curve — fast, prominent */
+@keyframes orbit-close {
+  0%   { transform: translate(-50px, 700px) rotate(-45deg); opacity: 0; }
+  10%  { opacity: var(--plane-opacity, 0.1); }
+  30%  { transform: translate(100px, 400px) rotate(-45deg); opacity: var(--plane-opacity, 0.1); }
+  50%  { transform: translate(150px, 250px) rotate(-45deg); opacity: var(--plane-opacity, 0.1); }
+  70%  { transform: translate(100px, 100px) rotate(-45deg); opacity: var(--plane-opacity, 0.1); }
+  90%  { opacity: var(--plane-opacity, 0.1); }
+  100% { transform: translate(-20px, -100px) rotate(-45deg); opacity: 0; }
+}
+
+/* Orbit 2: Medium curve */
+@keyframes orbit-medium {
+  0%   { transform: translate(-100px, 700px) rotate(-45deg); opacity: 0; }
+  10%  { opacity: var(--plane-opacity, 0.08); }
+  35%  { transform: translate(50px, 400px) rotate(-45deg); opacity: var(--plane-opacity, 0.08); }
+  50%  { transform: translate(120px, 300px) rotate(-45deg); opacity: var(--plane-opacity, 0.08); }
+  65%  { transform: translate(80px, 150px) rotate(-45deg); opacity: var(--plane-opacity, 0.08); }
+  90%  { opacity: var(--plane-opacity, 0.08); }
+  100% { transform: translate(-60px, -100px) rotate(-45deg); opacity: 0; }
+}
+
+/* Orbit 3: Wide/gentle curve — slow, subtle */
+@keyframes orbit-wide {
+  0%   { transform: translate(-150px, 700px) rotate(-45deg); opacity: 0; }
+  10%  { opacity: var(--plane-opacity, 0.06); }
+  40%  { transform: translate(-50px, 400px) rotate(-45deg); opacity: var(--plane-opacity, 0.06); }
+  50%  { transform: translate(30px, 320px) rotate(-45deg); opacity: var(--plane-opacity, 0.06); }
+  60%  { transform: translate(0px, 200px) rotate(-45deg); opacity: var(--plane-opacity, 0.06); }
+  90%  { opacity: var(--plane-opacity, 0.06); }
+  100% { transform: translate(-100px, -100px) rotate(-45deg); opacity: 0; }
+}
+
+/* Orbit 4: Very wide — distant, ghostly */
+@keyframes orbit-far {
+  0%   { transform: translate(-200px, 700px) rotate(-45deg); opacity: 0; }
+  10%  { opacity: var(--plane-opacity, 0.04); }
+  50%  { transform: translate(-80px, 350px) rotate(-45deg); opacity: var(--plane-opacity, 0.04); }
+  90%  { opacity: var(--plane-opacity, 0.04); }
+  100% { transform: translate(-180px, -100px) rotate(-45deg); opacity: 0; }
 }
 
 @layer utilities {
@@ -581,10 +607,25 @@
     animation: tier-reveal 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   }
 
-  /* Ascending plane animation for auth page */
-  .animate-plane-ascend {
-    animation: plane-ascend var(--plane-duration, 20s) linear infinite;
-    animation-delay: var(--plane-delay, 0s);
+  /* Orbital plane animations for auth page */
+  .animate-orbit-close {
+    animation: orbit-close var(--orbit-duration, 12s) linear infinite;
+    animation-delay: var(--orbit-delay, 0s);
+  }
+
+  .animate-orbit-medium {
+    animation: orbit-medium var(--orbit-duration, 16s) linear infinite;
+    animation-delay: var(--orbit-delay, 0s);
+  }
+
+  .animate-orbit-wide {
+    animation: orbit-wide var(--orbit-duration, 20s) linear infinite;
+    animation-delay: var(--orbit-delay, 0s);
+  }
+
+  .animate-orbit-far {
+    animation: orbit-far var(--orbit-duration, 25s) linear infinite;
+    animation-delay: var(--orbit-delay, 0s);
   }
 }
 
@@ -708,8 +749,11 @@
     color: oklch(0.72 0.14 55 / 0.75) !important;
   }
 
-  /* Static fallback for flying planes animation */
-  .animate-plane-ascend {
+  /* Static fallback for orbital planes animation */
+  .animate-orbit-close,
+  .animate-orbit-medium,
+  .animate-orbit-wide,
+  .animate-orbit-far {
     animation: none !important;
     opacity: 0.03 !important;
   }
