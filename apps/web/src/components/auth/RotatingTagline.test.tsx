@@ -7,7 +7,10 @@ const englishTaglines = [
   "Snap a boarding pass. We'll figure it out.",
   "Flights, countries, airports — all the nerdy stuff.",
   "Halfway to the Moon, apparently.",
-  "23 countries down, 172 to go.",
+  "Your flight data is safe with us. Probably.",
+  "Logging your progress. For science.",
+  "We do what we must. Airfare was non-refundable.",
+  "You've been busy. We appreciate that.",
 ]
 
 // Russian taglines (actual content from i18n)
@@ -15,7 +18,10 @@ const russianTaglines = [
   "Сфоткай посадочный. Мы разберёмся.",
   "Рейсы, страны, аэропорты — вся нёрдятина.",
   "Полпути до Луны, между прочим.",
-  "23 страны позади, ещё 172 впереди.",
+  "Твои данные в безопасности. Наверное.",
+  "Записываем твой прогресс. Для науки.",
+  "Делаем что должны. Билеты невозвратные.",
+  "Ты был занят. Мы это ценим.",
 ]
 
 describe('RotatingTagline', () => {
@@ -50,15 +56,11 @@ describe('RotatingTagline', () => {
     it('cycles back to first tagline after showing all', async () => {
       render(<RotatingTagline items={englishTaglines} interval={1000} />)
 
-      // Cycle through all 4 taglines and back to first
-      // Each cycle: interval (1000ms) + exit animation (200ms) + enter animation (50ms)
-      for (let i = 0; i < 4; i++) {
-        await act(async () => {
-          vi.advanceTimersByTime(1000) // interval triggers
-          vi.advanceTimersByTime(200)  // exit phase
-          vi.advanceTimersByTime(50)   // enter phase snaps to visible
-        })
-      }
+      // Advance through all taglines: (n items * interval) + animation buffer
+      // This triggers n intervals, wrapping index back to 0
+      await act(async () => {
+        vi.advanceTimersByTime(englishTaglines.length * 1000 + 300)
+      })
 
       expect(screen.getByText(englishTaglines[0])).toBeInTheDocument()
     })
@@ -108,9 +110,9 @@ describe('RotatingTagline', () => {
     it('renders correct number of progress bars for items', () => {
       render(<RotatingTagline items={englishTaglines} />)
 
-      // 4 progress bars (containers) for 4 taglines - the outer wrapper divs
+      // Progress bars should match number of taglines
       const progressBars = document.querySelectorAll('.flex.gap-1 > div')
-      expect(progressBars.length).toBe(4)
+      expect(progressBars.length).toBe(englishTaglines.length)
     })
 
     it('highlights the current progress bar', () => {
