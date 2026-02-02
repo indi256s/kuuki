@@ -1,15 +1,9 @@
-import { useEffect } from 'react'
-
 /**
- * Simplified theme hook — dark mode only.
- * Light and system themes removed for now.
+ * Theme hook — dark mode only.
+ * The 'dark' class is set in index.html.
+ * This hook exists for compatibility if any code still imports it.
  */
 export function useTheme() {
-    // Apply dark mode on mount
-    useEffect(() => {
-        document.documentElement.classList.add('dark')
-    }, [])
-
     return {
         theme: 'dark' as const,
         resolvedTheme: 'dark' as const,
