@@ -4,9 +4,9 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
- * Kuuki Design System - Nordic Skies
- * Inspired by Scandinavian minimalism: soft, airy, calm
- * Like the quiet beauty of a Nordic morning
+ * Kuuki Design System - Warm Japanese Minimalism
+ * Terracotta vermillion in light, amber in dark
+ * Calm, refined, like weathered torii gates and autumn leaves
  */
 
 @theme {
@@ -52,8 +52,8 @@
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.25 0.01 260);
 
-  /* Primary - soft sky blue, Nordic waters */
-  --primary: oklch(0.65 0.12 240);
+  /* Primary - calm terracotta vermillion, Japanese torii gates */
+  --primary: oklch(0.55 0.12 25);
   --primary-foreground: oklch(0.99 0 0);
 
   /* Secondary - warm stone gray */
@@ -74,31 +74,31 @@
   /* Borders - barely there */
   --border: oklch(0.92 0.005 260);
   --input: oklch(0.94 0.005 260);
-  --ring: oklch(0.65 0.12 240);
+  --ring: oklch(0.55 0.12 25);
 
   /* Semantic colors */
   --success: oklch(0.72 0.14 160);
   --success-foreground: oklch(0.25 0.06 160);
   --warning: oklch(0.82 0.12 85);
   --warning-foreground: oklch(0.45 0.15 85);
-  --info: oklch(0.65 0.12 240);
+  --info: oklch(0.55 0.10 200);
 
-  /* Chart colors - soft pastels */
-  --chart-1: oklch(0.65 0.12 240);
+  /* Chart colors - warm earth tones */
+  --chart-1: oklch(0.55 0.12 25);
   --chart-2: oklch(0.72 0.14 160);
-  --chart-3: oklch(0.75 0.1 300);
+  --chart-3: oklch(0.68 0.10 50);
   --chart-4: oklch(0.82 0.12 85);
-  --chart-5: oklch(0.65 0.18 25);
+  --chart-5: oklch(0.55 0.10 200);
 
   /* Sidebar */
   --sidebar: oklch(0.99 0 0);
   --sidebar-foreground: oklch(0.25 0.01 260);
-  --sidebar-primary: oklch(0.65 0.12 240);
+  --sidebar-primary: oklch(0.55 0.12 25);
   --sidebar-primary-foreground: oklch(0.99 0 0);
   --sidebar-accent: oklch(0.96 0.005 260);
   --sidebar-accent-foreground: oklch(0.35 0.01 260);
   --sidebar-border: oklch(0.94 0.005 260);
-  --sidebar-ring: oklch(0.65 0.12 240);
+  --sidebar-ring: oklch(0.55 0.12 25);
 
   /* Legacy Kuuki tokens mapped to new system */
   --color-ink: oklch(0.25 0.01 260);
@@ -111,9 +111,9 @@
   --color-sky-overlay: oklch(0.25 0.01 260 / 0.4);
   --color-edge: oklch(0.92 0.005 260);
   --color-edge-strong: oklch(0.88 0.008 260);
-  --color-runway: oklch(0.65 0.12 240);
-  --color-runway-hover: oklch(0.58 0.14 240);
-  --color-runway-muted: oklch(0.65 0.12 240 / 0.1);
+  --color-runway: oklch(0.55 0.12 25);
+  --color-runway-hover: oklch(0.48 0.14 25);
+  --color-runway-muted: oklch(0.55 0.12 25 / 0.1);
   --color-cleared: oklch(0.72 0.14 160);
   --color-cleared-muted: oklch(0.72 0.14 160 / 0.1);
   --color-holding: oklch(0.82 0.12 85);
@@ -129,7 +129,7 @@
   --card-foreground: oklch(0.95 0.005 250);
   --popover: oklch(0.2 0.01 260);
   --popover-foreground: oklch(0.95 0.005 250);
-  --primary: oklch(0.7 0.12 240);
+  --primary: oklch(0.72 0.14 55);
   --primary-foreground: oklch(0.15 0.01 260);
   --secondary: oklch(0.25 0.01 260);
   --secondary-foreground: oklch(0.9 0.005 250);
@@ -144,15 +144,15 @@
   --warning-foreground: oklch(0.88 0.1 85);
   --border: oklch(0.28 0.01 260);
   --input: oklch(0.25 0.01 260);
-  --ring: oklch(0.7 0.12 240);
+  --ring: oklch(0.72 0.14 55);
   --sidebar: oklch(0.18 0.01 260);
   --sidebar-foreground: oklch(0.95 0.005 250);
-  --sidebar-primary: oklch(0.7 0.12 240);
+  --sidebar-primary: oklch(0.72 0.14 55);
   --sidebar-primary-foreground: oklch(0.15 0.01 260);
   --sidebar-accent: oklch(0.25 0.01 260);
   --sidebar-accent-foreground: oklch(0.95 0.005 250);
   --sidebar-border: oklch(0.28 0.01 260);
-  --sidebar-ring: oklch(0.7 0.12 240);
+  --sidebar-ring: oklch(0.72 0.14 55);
 
   /* Legacy dark tokens */
   --color-ink: oklch(0.95 0.005 250);
@@ -165,9 +165,9 @@
   --color-sky-overlay: oklch(0 0 0 / 0.6);
   --color-edge: oklch(0.28 0.01 260);
   --color-edge-strong: oklch(0.35 0.01 260);
-  --color-runway: oklch(0.7 0.12 240);
-  --color-runway-hover: oklch(0.75 0.12 240);
-  --color-runway-muted: oklch(0.7 0.12 240 / 0.15);
+  --color-runway: oklch(0.72 0.14 55);
+  --color-runway-hover: oklch(0.78 0.14 55);
+  --color-runway-muted: oklch(0.72 0.14 55 / 0.15);
 }
 
 /* Map shadcn radius variables */
@@ -236,7 +236,11 @@
 
   /* Beautiful selection */
   ::selection {
-    background: oklch(0.65 0.12 240 / 0.2);
+    background: oklch(0.55 0.12 25 / 0.2);
+  }
+
+  .dark ::selection {
+    background: oklch(0.72 0.14 55 / 0.25);
   }
 
   /* Smooth focus states */
@@ -446,13 +450,13 @@
     animation: slide-in-right var(--duration-normal) var(--ease-smooth) forwards;
   }
 
-  /* Flowing shimmer for branding text */
+  /* Flowing shimmer for branding text - warm vermillion/amber */
   .animate-text-flow {
     background: linear-gradient(
       135deg,
-      oklch(0.65 0.12 240 / 0.3),
-      oklch(0.65 0.12 240 / 0.6),
-      oklch(0.65 0.12 240 / 0.3)
+      oklch(0.55 0.12 25 / 0.35),
+      oklch(0.55 0.12 25 / 0.7),
+      oklch(0.55 0.12 25 / 0.35)
     );
     background-size: 200% 200%;
     -webkit-background-clip: text;
@@ -464,9 +468,9 @@
   .dark .animate-text-flow {
     background: linear-gradient(
       135deg,
-      oklch(0.7 0.14 240 / 0.4),
-      oklch(0.7 0.14 240 / 0.8),
-      oklch(0.7 0.14 240 / 0.4)
+      oklch(0.72 0.14 55 / 0.45),
+      oklch(0.72 0.14 55 / 0.85),
+      oklch(0.72 0.14 55 / 0.45)
     );
     background-size: 200% 200%;
     -webkit-background-clip: text;
@@ -612,10 +616,10 @@
   /* Static fallback for text-flow animation */
   .animate-text-flow {
     background: none !important;
-    color: oklch(0.65 0.12 240 / 0.6) !important;
+    color: oklch(0.55 0.12 25 / 0.65) !important;
   }
 
   .dark .animate-text-flow {
-    color: oklch(0.7 0.14 240 / 0.7) !important;
+    color: oklch(0.72 0.14 55 / 0.75) !important;
   }
 }
