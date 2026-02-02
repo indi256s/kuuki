@@ -70,11 +70,6 @@ export function AuthPage() {
             <h1 className="text-4xl font-bold tracking-tighter text-neutral-800 dark:text-white/90 mb-3">
               <span className="text-primary">Ku</span>uki
             </h1>
-            <RotatingTagline
-              items={taglines}
-              interval={6000}
-              className="text-neutral-500 dark:text-white/50 text-sm font-medium tracking-wide"
-            />
           </div>
 
           {/* Center Visual Feature - Japanese Typography (Hero opacity) */}
@@ -123,8 +118,8 @@ export function AuthPage() {
             )}
           </div>
 
-          {/* Mobile: Tagline below form */}
-          <div className="lg:hidden mt-8 text-center px-4">
+          {/* Tagline below form (Visible on all screens) */}
+          <div className="mt-8 text-center px-4">
             <RotatingTagline
               items={taglines}
               interval={6000}
