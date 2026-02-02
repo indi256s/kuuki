@@ -78,7 +78,9 @@
 
   /* Semantic colors */
   --success: oklch(0.72 0.14 160);
+  --success-foreground: oklch(0.25 0.06 160);
   --warning: oklch(0.82 0.12 85);
+  --warning-foreground: oklch(0.45 0.15 85);
   --info: oklch(0.65 0.12 240);
 
   /* Chart colors - soft pastels */
@@ -136,6 +138,10 @@
   --accent: oklch(0.28 0.015 260);
   --accent-foreground: oklch(0.95 0.005 250);
   --destructive: oklch(0.6 0.2 25);
+  --success: oklch(0.65 0.14 160);
+  --success-foreground: oklch(0.85 0.08 160);
+  --warning: oklch(0.75 0.12 85);
+  --warning-foreground: oklch(0.88 0.1 85);
   --border: oklch(0.28 0.01 260);
   --input: oklch(0.25 0.01 260);
   --ring: oklch(0.7 0.12 240);
@@ -188,6 +194,10 @@
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
   --color-destructive: var(--destructive);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
@@ -342,6 +352,18 @@
   }
 }
 
+/* Flowing shimmer animation for Katakana branding (like wind - 空気) */
+@keyframes text-flow {
+  0%, 100% {
+    background-position: 0% 50%;
+    opacity: 0.4;
+  }
+  50% {
+    background-position: 100% 50%;
+    opacity: 0.7;
+  }
+}
+
 @keyframes toast-slide-up {
   from {
     opacity: 0;
@@ -422,6 +444,40 @@
 
   .animate-slide-in-right {
     animation: slide-in-right var(--duration-normal) var(--ease-smooth) forwards;
+  }
+
+  /* Flowing shimmer for branding text */
+  .animate-text-flow {
+    background: linear-gradient(
+      135deg,
+      oklch(0.65 0.12 240 / 0.3),
+      oklch(0.65 0.12 240 / 0.6),
+      oklch(0.65 0.12 240 / 0.3)
+    );
+    background-size: 200% 200%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    animation: text-flow 4s ease-in-out infinite;
+  }
+
+  .dark .animate-text-flow {
+    background: linear-gradient(
+      135deg,
+      oklch(0.7 0.14 240 / 0.4),
+      oklch(0.7 0.14 240 / 0.8),
+      oklch(0.7 0.14 240 / 0.4)
+    );
+    background-size: 200% 200%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  /* Vertical text for Japanese/CJK */
+  .writing-vertical {
+    writing-mode: vertical-rl;
+    text-orientation: upright;
   }
 
   /* Staggered children animations */
@@ -546,9 +602,20 @@
   .animate-scale-in,
   .animate-slide-in-right,
   .animate-tier-reveal,
+  .animate-text-flow,
   .stagger-children > * {
     opacity: 1 !important;
     transform: none !important;
     filter: none !important;
+  }
+
+  /* Static fallback for text-flow animation */
+  .animate-text-flow {
+    background: none !important;
+    color: oklch(0.65 0.12 240 / 0.6) !important;
+  }
+
+  .dark .animate-text-flow {
+    color: oklch(0.7 0.14 240 / 0.7) !important;
   }
 }

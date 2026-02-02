@@ -27,14 +27,14 @@ export function WindLoader({ step = 'reading', size = 'md', hideMessage = false 
     <div className="flex flex-col items-center gap-4">
       <div className={`relative ${sizeClasses[size]} overflow-hidden`}>
         {/* Sky gradient background */}
-        <div className="absolute inset-0 bg-gradient-to-b from-sky-sunken to-sky rounded-xl" />
+        <div className="absolute inset-0 bg-gradient-to-b from-muted to-background rounded-xl" />
 
         {/* Wind streaks - fast horizontal lines */}
         <div className="absolute inset-0">
           {[...Array(6)].map((_, i) => (
             <div
               key={`streak-${i}`}
-              className="absolute h-px bg-gradient-to-r from-transparent via-runway/30 to-transparent"
+              className="absolute h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent"
               style={{
                 top: `${15 + i * 15}%`,
                 left: '-100%',
@@ -115,7 +115,7 @@ export function WindLoader({ step = 'reading', size = 'md', hideMessage = false 
           {[...Array(8)].map((_, i) => (
             <div
               key={`particle-${i}`}
-              className="absolute w-1 h-1 rounded-full bg-runway/20"
+              className="absolute w-1 h-1 rounded-full bg-primary/20"
               style={{
                 top: `${Math.random() * 100}%`,
                 left: '-5%',
@@ -129,18 +129,18 @@ export function WindLoader({ step = 'reading', size = 'md', hideMessage = false 
 
       {/* Progress text */}
       {!hideMessage && (
-        <div className="flex items-center gap-2 text-ink-muted">
+        <div className="flex items-center gap-2 text-muted-foreground">
           <div className="flex gap-1">
             <span
-              className="w-1.5 h-1.5 rounded-full bg-runway animate-bounce"
+              className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce"
               style={{ animationDelay: '0ms' }}
             />
             <span
-              className="w-1.5 h-1.5 rounded-full bg-runway animate-bounce"
+              className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce"
               style={{ animationDelay: '150ms' }}
             />
             <span
-              className="w-1.5 h-1.5 rounded-full bg-runway animate-bounce"
+              className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce"
               style={{ animationDelay: '300ms' }}
             />
           </div>

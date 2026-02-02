@@ -709,5 +709,18 @@
     "acceptSelected": "Accept {{count}} Selected",
     "notFound": "Not found",
     "noResults": "Could not identify any aircraft. Try again or set manually."
+  },
+  "toasts": {
+    "flightCreated": "Flight added to your log",
+    "flightUpdated": "Flight updated successfully",
+    "flightDeleted": "Flight removed from your log",
+    "flightsDeleted": "{{count}} flights removed",
+    "flightSaveFailed": "Couldn't save flight. Please try again.",
+    "flightDeleteFailed": "Couldn't delete flight. Please try again.",
+    "countryClaimed": "Added {{country}} to your passport",
+    "countryUnclaimed": "Removed {{country}} from your passport",
+    "passportSaveFailed": "Couldn't update your passport. Please try again.",
+    "importSuccess": "{{count}} flights imported successfully",
+    "importFailed": "Import failed. Please try again."
   }
 }

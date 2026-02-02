@@ -12,6 +12,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { ChevronDown, X, ArrowRight, AlertTriangle } from 'lucide-react'
+import { cn } from '@/lib/utils'
 import type { ExtractedFlight } from '../../hooks/useImport'
 
 interface FlightEditRowProps {
@@ -69,9 +70,10 @@ export function FlightEditRow({
     flight.origin !== flight.destination
 
   return (
-    <Card className={`transition-colors ${
+    <Card className={cn(
+      'transition-colors',
       selected ? 'border-primary bg-primary/5' : 'border-border/50'
-    }`}>
+    )}>
       {/* Compact view */}
       <CardContent className="p-3">
         <div className="flex items-center gap-3">
@@ -89,37 +91,41 @@ export function FlightEditRow({
             type="date"
             value={flight.date}
             onChange={(e) => handleFieldChange('date', e.target.value)}
-            className={`w-32 h-8 text-sm ${
-              isLowConfidence('date') ? lowConfidenceClass : ''
-            }`}
+            className={cn(
+              'w-32 h-8 text-sm',
+              isLowConfidence('date') && lowConfidenceClass
+            )}
           />
 
           {/* Route display */}
           <div className="flex items-center gap-1.5 flex-1 min-w-0">
-            <span className={`font-mono font-medium text-sm px-1.5 py-0.5 rounded ${
-              isLowConfidence('origin') ? 'bg-yellow-500/20 text-yellow-600 dark:text-yellow-400' : 'bg-muted'
-            }`}>
+            <span className={cn(
+              'font-data font-medium text-sm px-1.5 py-0.5 rounded',
+              isLowConfidence('origin') ? 'bg-warning/20 text-warning-foreground' : 'bg-muted'
+            )}>
               {flight.origin || '???'}
             </span>
             <ArrowRight className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-            <span className={`font-mono font-medium text-sm px-1.5 py-0.5 rounded ${
-              isLowConfidence('destination') ? 'bg-yellow-500/20 text-yellow-600 dark:text-yellow-400' : 'bg-muted'
-            }`}>
+            <span className={cn(
+              'font-data font-medium text-sm px-1.5 py-0.5 rounded',
+              isLowConfidence('destination') ? 'bg-warning/20 text-warning-foreground' : 'bg-muted'
+            )}>
               {flight.destination || '???'}
             </span>
           </div>
 
           {/* Airline */}
-          <span className={`font-mono text-sm px-1.5 py-0.5 rounded ${
-            isLowConfidence('airline_iata') ? 'bg-yellow-500/20 text-yellow-600 dark:text-yellow-400' : 'bg-muted'
-          }`}>
+          <span className={cn(
+            'font-data text-sm px-1.5 py-0.5 rounded',
+            isLowConfidence('airline_iata') ? 'bg-warning/20 text-warning-foreground' : 'bg-muted'
+          )}>
             {flight.airline_iata || '??'}
           </span>
 
           {/* Badges */}
           <div className="flex items-center gap-1.5">
             {isDuplicate && (
-              <Badge variant="secondary" className="bg-yellow-500/20 text-yellow-600 dark:text-yellow-400">
+              <Badge variant="secondary" className="bg-warning/20 text-warning-foreground">
                 {t('import.review.duplicate', 'Duplicate')}
               </Badge>
             )}
@@ -168,9 +174,9 @@ export function FlightEditRow({
         <div className="border-t border-border px-3 py-4 space-y-4 bg-muted/30">
           {/* Low confidence warning */}
           {flight.confidence < LOW_CONFIDENCE_THRESHOLD && (
-            <Alert className="border-yellow-500/50 bg-yellow-500/10">
-              <AlertTriangle className="w-4 h-4 text-yellow-500" />
-              <AlertDescription className="text-yellow-600 dark:text-yellow-400">
+            <Alert className="border-warning/50 bg-warning/10">
+              <AlertTriangle className="w-4 h-4 text-warning" />
+              <AlertDescription className="text-warning-foreground">
                 {t('import.review.lowConfidence', 'Some fields may need verification')}
               </AlertDescription>
             </Alert>
@@ -186,7 +192,7 @@ export function FlightEditRow({
                 type="date"
                 value={flight.date}
                 onChange={(e) => handleFieldChange('date', e.target.value)}
-                className={isLowConfidence('date') ? lowConfidenceClass : ''}
+                className={cn(isLowConfidence('date') && lowConfidenceClass)}
               />
             </div>
 
@@ -235,7 +241,7 @@ export function FlightEditRow({
                 value={flight.flight_number || ''}
                 onChange={(e) => handleFieldChange('flight_number', e.target.value)}
                 placeholder="123"
-                className={`font-mono ${isLowConfidence('flight_number') ? lowConfidenceClass : ''}`}
+                className={cn('font-data', isLowConfidence('flight_number') && lowConfidenceClass)}
               />
             </div>
 
@@ -261,7 +267,7 @@ export function FlightEditRow({
                 type="time"
                 value={flight.departure_time || ''}
                 onChange={(e) => handleFieldChange('departure_time', e.target.value)}
-                className={isLowConfidence('departure_time') ? lowConfidenceClass : ''}
+                className={cn(isLowConfidence('departure_time') && lowConfidenceClass)}
               />
             </div>
 
@@ -273,7 +279,7 @@ export function FlightEditRow({
                 type="time"
                 value={flight.arrival_time || ''}
                 onChange={(e) => handleFieldChange('arrival_time', e.target.value)}
-                className={isLowConfidence('arrival_time') ? lowConfidenceClass : ''}
+                className={cn(isLowConfidence('arrival_time') && lowConfidenceClass)}
               />
             </div>
 

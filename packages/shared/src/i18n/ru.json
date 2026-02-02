@@ -708,5 +708,18 @@
     "acceptSelected": "Принять выбранные ({{count}})",
     "notFound": "Не найден",
     "noResults": "Не удалось определить самолёты. Попробуйте ещё раз или укажите вручную."
+  },
+  "toasts": {
+    "flightCreated": "Полёт добавлен в журнал",
+    "flightUpdated": "Полёт успешно обновлён",
+    "flightDeleted": "Полёт удалён из журнала",
+    "flightsDeleted": "Удалено полётов: {{count}}",
+    "flightSaveFailed": "Не удалось сохранить полёт. Попробуйте ещё раз.",
+    "flightDeleteFailed": "Не удалось удалить полёт. Попробуйте ещё раз.",
+    "countryClaimed": "{{country}} добавлена в паспорт",
+    "countryUnclaimed": "{{country}} удалена из паспорта",
+    "passportSaveFailed": "Не удалось обновить паспорт. Попробуйте ещё раз.",
+    "importSuccess": "Импортировано полётов: {{count}}",
+    "importFailed": "Ошибка импорта. Попробуйте ещё раз."
   }
 }

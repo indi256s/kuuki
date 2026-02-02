@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { toast } from 'sonner'
 import {
   getUserCountries,
   getUserClaims,
@@ -107,7 +108,7 @@ export function useClaimCountry() {
       if (!userId) throw new Error('Not authenticated')
       return claimCountry(userId, countryCode, { visitYear, note, entryMethod })
     },
-    onSuccess: () => {
+    onSuccess: (_, { countryCode }) => {
       // Invalidate all passport-related queries
       queryClient.invalidateQueries({ queryKey: [PASSPORT_COUNTRIES_KEY] })
       queryClient.invalidateQueries({ queryKey: [PASSPORT_CLAIMS_KEY] })
@@ -115,6 +116,11 @@ export function useClaimCountry() {
       // Also invalidate user stats since countries_count will change
       queryClient.invalidateQueries({ queryKey: ['userStats'] })
       queryClient.invalidateQueries({ queryKey: ['flightStats'] })
+      toast.success(`Added ${countryCode} to your passport`)
+    },
+    onError: (error) => {
+      console.error('Claim country failed:', error)
+      toast.error("Couldn't update your passport. Please try again.")
     },
   })
 }
@@ -140,6 +146,11 @@ export function useUnclaimCountry() {
       // Also invalidate user stats
       queryClient.invalidateQueries({ queryKey: ['userStats'] })
       queryClient.invalidateQueries({ queryKey: ['flightStats'] })
+      toast.success(`Removed ${countryCode} from your passport`)
+    },
+    onError: (error) => {
+      console.error('Unclaim country failed:', error)
+      toast.error("Couldn't update your passport. Please try again.")
     },
   })
 }

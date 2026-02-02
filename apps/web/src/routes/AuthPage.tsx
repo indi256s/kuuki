@@ -37,33 +37,62 @@ export function AuthPage() {
         </Button>
       </header>
 
-      {/* Main content */}
+      {/* Main content - Split layout */}
       <main className="flex-1 flex items-center justify-center p-4">
-        <div className="w-full max-w-sm animate-fade-up">
-          <Card className="border-border/50">
-            <CardHeader className="text-center pb-4">
-              <CardTitle className="text-2xl tracking-tight">
-                {mode === 'signin' ? t('auth.signIn') : t('auth.createAccount')}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {mode === 'signin' ? (
-                <SignInForm
-                  onSuccess={handleSuccess}
-                  onSignUpClick={() => setMode('signup')}
-                />
-              ) : (
-                <SignUpForm
-                  onSuccess={handleSuccess}
-                  onSignInClick={() => setMode('signin')}
-                />
-              )}
-            </CardContent>
-          </Card>
+        <div className="w-full max-w-4xl grid lg:grid-cols-[1fr_auto_1fr] gap-8 lg:gap-12 items-center">
 
-          <p className="text-center text-xs text-muted-foreground mt-4">
-            {t('common.tagline')}
-          </p>
+          {/* Branding side - Katakana */}
+          <div className="flex flex-col items-center lg:items-end justify-center">
+            {/* Mobile: horizontal layout */}
+            <div className="lg:hidden flex flex-col items-center gap-2 mb-6">
+              <span className="text-5xl font-bold tracking-wider animate-text-flow">
+                クウキ
+              </span>
+              <span className="text-sm text-muted-foreground tracking-wide">
+                {t('common.tagline')}
+              </span>
+            </div>
+
+            {/* Desktop: vertical layout */}
+            <div className="hidden lg:flex flex-col items-end gap-4">
+              <span className="writing-vertical text-7xl font-bold tracking-wider animate-text-flow leading-tight">
+                クウキ
+              </span>
+              <span className="text-sm text-muted-foreground max-w-[120px] text-right leading-relaxed">
+                {t('common.tagline')}
+              </span>
+            </div>
+          </div>
+
+          {/* Auth card */}
+          <div className="w-full max-w-sm animate-fade-up">
+            <Card className="border-border/50">
+              <CardHeader className="text-center pb-4">
+                <div className="mx-auto w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-4">
+                  <Plane className="w-6 h-6 text-primary" strokeWidth={2} />
+                </div>
+                <CardTitle className="text-2xl tracking-tight">
+                  {mode === 'signin' ? t('auth.signIn') : t('auth.createAccount')}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {mode === 'signin' ? (
+                  <SignInForm
+                    onSuccess={handleSuccess}
+                    onSignUpClick={() => setMode('signup')}
+                  />
+                ) : (
+                  <SignUpForm
+                    onSuccess={handleSuccess}
+                    onSignInClick={() => setMode('signin')}
+                  />
+                )}
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Empty spacer for desktop grid balance */}
+          <div className="hidden lg:block" />
         </div>
       </main>
     </div>

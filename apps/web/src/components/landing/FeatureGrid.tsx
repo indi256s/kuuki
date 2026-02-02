@@ -15,7 +15,7 @@ export function FeatureGrid() {
         {FEATURES.map((feature) => (
           <div
             key={feature.key}
-            className="bg-sky-raised border border-edge rounded-xl p-6 text-center"
+            className="bg-card border border-border rounded-xl p-6 text-center"
           >
             {/* Icon */}
             <div
@@ -27,12 +27,12 @@ export function FeatureGrid() {
             </div>
 
             {/* Title */}
-            <h3 className="text-lg font-semibold text-ink mb-2">
+            <h3 className="text-lg font-semibold text-foreground mb-2">
               {t(`landing.features.${feature.key}.title`)}
             </h3>
 
             {/* Description */}
-            <p className="text-sm text-ink-muted leading-relaxed">
+            <p className="text-sm text-muted-foreground leading-relaxed">
               {t(`landing.features.${feature.key}.description`)}
             </p>
           </div>

@@ -91,10 +91,10 @@ export function RouteMap({ flights: propFlights, height = '300px' }: RouteMapPro
   if (flights.length === 0) {
     return (
       <div
-        className="bg-sky-raised border border-edge rounded-xl flex items-center justify-center"
+        className="bg-card border border-border rounded-xl flex items-center justify-center"
         style={{ height }}
       >
-        <div className="text-center text-ink-muted">
+        <div className="text-center text-muted-foreground">
           <svg className="w-10 h-10 mx-auto mb-2 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
           </svg>
@@ -105,15 +105,15 @@ export function RouteMap({ flights: propFlights, height = '300px' }: RouteMapPro
   }
 
   return (
-    <div className="bg-sky-raised border border-edge rounded-xl overflow-hidden" style={{ height }}>
+    <div className="bg-card border border-border rounded-xl overflow-hidden" style={{ height }}>
       {/* Color toggle */}
-      <div className="absolute top-2 right-2 z-10 flex gap-1 bg-sky/80 backdrop-blur rounded-lg p-1">
+      <div className="absolute top-2 right-2 z-10 flex gap-1 bg-background/80 backdrop-blur rounded-lg p-1">
         <button
           onClick={() => setColorMode('airline')}
           className={`px-2 py-1 text-xs rounded ${
             colorMode === 'airline'
-              ? 'bg-runway text-ink-inverse'
-              : 'text-ink-muted hover:text-ink'
+              ? 'bg-primary text-primary-foreground'
+              : 'text-muted-foreground hover:text-foreground'
           }`}
         >
           {t('map.byAirline', 'Airline')}
@@ -122,8 +122,8 @@ export function RouteMap({ flights: propFlights, height = '300px' }: RouteMapPro
           onClick={() => setColorMode('route')}
           className={`px-2 py-1 text-xs rounded ${
             colorMode === 'route'
-              ? 'bg-runway text-ink-inverse'
-              : 'text-ink-muted hover:text-ink'
+              ? 'bg-primary text-primary-foreground'
+              : 'text-muted-foreground hover:text-foreground'
           }`}
         >
           {t('map.byRoute', 'Route')}
@@ -233,12 +233,12 @@ export function RouteMap({ flights: propFlights, height = '300px' }: RouteMapPro
       </svg>
 
       {/* Stats overlay */}
-      <div className="absolute bottom-2 left-2 bg-sky/80 backdrop-blur rounded-lg px-3 py-1.5 text-xs text-ink">
+      <div className="absolute bottom-2 left-2 bg-background/80 backdrop-blur rounded-lg px-3 py-1.5 text-xs text-foreground">
         <span className="font-medium">{arcs.length}</span>
-        <span className="text-ink-muted ml-1">{t('map.routes', 'routes')}</span>
-        <span className="mx-2 text-ink-faint">·</span>
+        <span className="text-muted-foreground ml-1">{t('map.routes', 'routes')}</span>
+        <span className="mx-2 text-muted-foreground/50">·</span>
         <span className="font-medium">{airports.length}</span>
-        <span className="text-ink-muted ml-1">{t('map.airports', 'airports')}</span>
+        <span className="text-muted-foreground ml-1">{t('map.airports', 'airports')}</span>
       </div>
     </div>
   )

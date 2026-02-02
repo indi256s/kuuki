@@ -1,12 +1,35 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { z } from 'zod'
 import { useAuth } from '@/hooks/useAuth'
 import { checkInviteCode } from '@/lib/auth'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import { Alert, AlertDescription } from '@/components/ui/alert'
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form'
 import { AlertCircle, Check } from 'lucide-react'
+import { cn } from '@/lib/utils'
+
+const signUpSchema = z.object({
+  inviteCode: z.string().min(1, 'Invite code is required'),
+  email: z.string().email('Invalid email address'),
+  password: z.string().min(8, 'Password must be at least 8 characters'),
+  confirmPassword: z.string().min(1, 'Please confirm your password'),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: 'Passwords do not match',
+  path: ['confirmPassword'],
+})
+
+type SignUpFormData = z.infer<typeof signUpSchema>
 
 interface SignUpFormProps {
   onSuccess?: () => void
@@ -16,17 +39,22 @@ interface SignUpFormProps {
 export function SignUpForm({ onSuccess, onSignInClick }: SignUpFormProps) {
   const { t } = useTranslation()
   const { signUp, isLoading } = useAuth()
-
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [confirmPassword, setConfirmPassword] = useState('')
-  const [inviteCode, setInviteCode] = useState('')
-  const [error, setError] = useState<string | null>(null)
   const [isCheckingCode, setIsCheckingCode] = useState(false)
   const [codeValid, setCodeValid] = useState<boolean | null>(null)
 
+  const form = useForm<SignUpFormData>({
+    resolver: zodResolver(signUpSchema),
+    defaultValues: {
+      inviteCode: '',
+      email: '',
+      password: '',
+      confirmPassword: '',
+    },
+  })
+
   // Validate invite code on blur
   const handleCodeBlur = async () => {
+    const inviteCode = form.getValues('inviteCode')
     if (!inviteCode.trim()) {
       setCodeValid(null)
       return
@@ -38,134 +66,149 @@ export function SignUpForm({ onSuccess, onSignInClick }: SignUpFormProps) {
     setIsCheckingCode(false)
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError(null)
+  const onSubmit = async (data: SignUpFormData) => {
+    form.clearErrors('root')
 
-    // Validate passwords match
-    if (password !== confirmPassword) {
-      setError(t('auth.passwordMismatch', 'Passwords do not match'))
-      return
-    }
-
-    // Validate password length
-    if (password.length < 8) {
-      setError(t('auth.passwordTooShort', 'Password must be at least 8 characters'))
-      return
-    }
-
-    const result = await signUp(email, password, inviteCode)
+    const result = await signUp(data.email, data.password, data.inviteCode)
 
     if (result.success) {
       onSuccess?.()
     } else {
-      setError(result.error || t('errors.generic'))
+      form.setError('root', {
+        message: result.error || t('errors.generic'),
+      })
     }
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      {error && (
-        <Alert variant="destructive">
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
-      )}
-
-      <div className="space-y-2">
-        <Label htmlFor="inviteCode">{t('auth.inviteCode', 'Invite Code')}</Label>
-        <Input
-          id="inviteCode"
-          type="text"
-          value={inviteCode}
-          onChange={(e) => {
-            setInviteCode(e.target.value.toUpperCase())
-            setCodeValid(null)
-          }}
-          onBlur={handleCodeBlur}
-          placeholder="KUUKI-XXXX-word-word"
-          className={`font-mono text-sm ${
-            codeValid === true
-              ? 'border-success'
-              : codeValid === false
-              ? 'border-destructive'
-              : ''
-          }`}
-          required
-          disabled={isLoading}
-        />
-        {isCheckingCode && (
-          <p className="text-xs text-muted-foreground">{t('common.loading')}</p>
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        {form.formState.errors.root && (
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>{form.formState.errors.root.message}</AlertDescription>
+          </Alert>
         )}
-        {codeValid === true && (
-          <p className="text-xs text-success flex items-center gap-1">
-            <Check className="w-3 h-3" />
-            {t('auth.codeValid', 'Valid invite code')}
+
+        <FormField
+          control={form.control}
+          name="inviteCode"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>{t('auth.inviteCode', 'Invite Code')}</FormLabel>
+              <FormControl>
+                <Input
+                  placeholder="KUUKI-XXXX-word-word"
+                  disabled={isLoading}
+                  className={cn(
+                    'font-mono text-sm',
+                    codeValid === true && 'border-success',
+                    codeValid === false && 'border-destructive'
+                  )}
+                  {...field}
+                  onChange={(e) => {
+                    field.onChange(e.target.value.toUpperCase())
+                    setCodeValid(null)
+                  }}
+                  onBlur={() => {
+                    field.onBlur()
+                    handleCodeBlur()
+                  }}
+                />
+              </FormControl>
+              {isCheckingCode && (
+                <p className="text-xs text-muted-foreground">{t('common.loading')}</p>
+              )}
+              {codeValid === true && (
+                <p className="text-xs text-success flex items-center gap-1">
+                  <Check className="w-3 h-3" />
+                  {t('auth.codeValid', 'Valid invite code')}
+                </p>
+              )}
+              {codeValid === false && (
+                <p className="text-xs text-destructive">
+                  {t('auth.codeInvalid', 'Invalid or expired invite code')}
+                </p>
+              )}
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="email"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>{t('auth.email', 'Email')}</FormLabel>
+              <FormControl>
+                <Input
+                  type="email"
+                  placeholder="you@example.com"
+                  disabled={isLoading}
+                  {...field}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="password"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>{t('auth.password', 'Password')}</FormLabel>
+              <FormControl>
+                <Input
+                  type="password"
+                  placeholder="••••••••"
+                  disabled={isLoading}
+                  {...field}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="confirmPassword"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>{t('auth.confirmPassword', 'Confirm Password')}</FormLabel>
+              <FormControl>
+                <Input
+                  type="password"
+                  placeholder="••••••••"
+                  disabled={isLoading}
+                  {...field}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <Button type="submit" disabled={isLoading || codeValid === false} className="w-full">
+          {isLoading ? t('common.loading') : t('auth.createAccount')}
+        </Button>
+
+        {onSignInClick && (
+          <p className="text-center text-sm text-muted-foreground">
+            {t('auth.haveAccount', 'Already have an account?')}{' '}
+            <button
+              type="button"
+              onClick={onSignInClick}
+              className="text-primary hover:underline"
+            >
+              {t('auth.signIn')}
+            </button>
           </p>
         )}
-        {codeValid === false && (
-          <p className="text-xs text-destructive">
-            {t('auth.codeInvalid', 'Invalid or expired invite code')}
-          </p>
-        )}
-      </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="email">{t('auth.email', 'Email')}</Label>
-        <Input
-          id="email"
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          placeholder="you@example.com"
-          required
-          disabled={isLoading}
-        />
-      </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="password">{t('auth.password', 'Password')}</Label>
-        <Input
-          id="password"
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          placeholder="••••••••"
-          required
-          minLength={8}
-          disabled={isLoading}
-        />
-      </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="confirmPassword">{t('auth.confirmPassword', 'Confirm Password')}</Label>
-        <Input
-          id="confirmPassword"
-          type="password"
-          value={confirmPassword}
-          onChange={(e) => setConfirmPassword(e.target.value)}
-          placeholder="••••••••"
-          required
-          disabled={isLoading}
-        />
-      </div>
-
-      <Button type="submit" disabled={isLoading || codeValid === false} className="w-full">
-        {isLoading ? t('common.loading') : t('auth.createAccount')}
-      </Button>
-
-      {onSignInClick && (
-        <p className="text-center text-sm text-muted-foreground">
-          {t('auth.haveAccount', 'Already have an account?')}{' '}
-          <button
-            type="button"
-            onClick={onSignInClick}
-            className="text-primary hover:underline"
-          >
-            {t('auth.signIn')}
-          </button>
-        </p>
-      )}
-    </form>
+      </form>
+    </Form>
   )
 }

@@ -1,11 +1,27 @@
-import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { z } from 'zod'
 import { useAuth } from '@/hooks/useAuth'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import { Alert, AlertDescription } from '@/components/ui/alert'
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form'
 import { AlertCircle } from 'lucide-react'
+
+const signInSchema = z.object({
+  email: z.string().email('Invalid email address'),
+  password: z.string().min(1, 'Password is required'),
+})
+
+type SignInFormData = z.infer<typeof signInSchema>
 
 interface SignInFormProps {
   onSuccess?: () => void
@@ -16,74 +32,93 @@ export function SignInForm({ onSuccess, onSignUpClick }: SignInFormProps) {
   const { t } = useTranslation()
   const { signIn, isLoading } = useAuth()
 
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [error, setError] = useState<string | null>(null)
+  const form = useForm<SignInFormData>({
+    resolver: zodResolver(signInSchema),
+    defaultValues: {
+      email: '',
+      password: '',
+    },
+  })
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError(null)
+  const onSubmit = async (data: SignInFormData) => {
+    form.clearErrors('root')
 
-    const result = await signIn(email, password)
+    const result = await signIn(data.email, data.password)
 
     if (result.success) {
       onSuccess?.()
     } else {
-      setError(result.error || t('errors.generic'))
+      form.setError('root', {
+        message: result.error || t('errors.generic'),
+      })
     }
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      {error && (
-        <Alert variant="destructive">
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
-      )}
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        {form.formState.errors.root && (
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>{form.formState.errors.root.message}</AlertDescription>
+          </Alert>
+        )}
 
-      <div className="space-y-2">
-        <Label htmlFor="email">{t('auth.email', 'Email')}</Label>
-        <Input
-          id="email"
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          placeholder="you@example.com"
-          required
-          disabled={isLoading}
+        <FormField
+          control={form.control}
+          name="email"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>{t('auth.email', 'Email')}</FormLabel>
+              <FormControl>
+                <Input
+                  type="email"
+                  placeholder="you@example.com"
+                  disabled={isLoading}
+                  {...field}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
         />
-      </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="password">{t('auth.password', 'Password')}</Label>
-        <Input
-          id="password"
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          placeholder="••••••••"
-          required
-          disabled={isLoading}
+        <FormField
+          control={form.control}
+          name="password"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>{t('auth.password', 'Password')}</FormLabel>
+              <FormControl>
+                <Input
+                  type="password"
+                  placeholder="••••••••"
+                  disabled={isLoading}
+                  {...field}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
         />
-      </div>
 
-      <Button type="submit" disabled={isLoading} className="w-full">
-        {isLoading ? t('auth.signingIn') : t('auth.signIn')}
-      </Button>
+        <Button type="submit" disabled={isLoading} className="w-full">
+          {isLoading ? t('auth.signingIn') : t('auth.signIn')}
+        </Button>
 
-      {onSignUpClick && (
-        <p className="text-center text-sm text-muted-foreground">
-          {t('auth.newUser')}{' '}
-          <button
-            type="button"
-            onClick={onSignUpClick}
-            className="text-primary hover:underline"
-          >
-            {t('auth.createAccount')}
-          </button>
-        </p>
-      )}
-    </form>
+        {onSignUpClick && (
+          <p className="text-center text-sm text-muted-foreground">
+            {t('auth.newUser')}{' '}
+            <button
+              type="button"
+              onClick={onSignUpClick}
+              className="text-primary hover:underline"
+            >
+              {t('auth.createAccount')}
+            </button>
+          </p>
+        )}
+      </form>
+    </Form>
   )
 }

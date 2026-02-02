@@ -1,5 +1,8 @@
 import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { z } from 'zod'
 import { AirportAutocomplete } from './AirportAutocomplete'
 import { AirlineAutocomplete } from './AirlineAutocomplete'
 import { AircraftAutocomplete } from './AircraftAutocomplete'
@@ -19,11 +22,34 @@ import {
   SheetHeader,
   SheetTitle,
 } from '@/components/ui/sheet'
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
 import { AlertCircle, ChevronRight, Plane, Calendar } from 'lucide-react'
+
+const flightSchema = z.object({
+  date: z.string().min(1, 'Date is required'),
+  origin: z.string().length(3, 'Must be 3-letter IATA code'),
+  destination: z.string().length(3, 'Must be 3-letter IATA code'),
+  airlineIata: z.string().min(2, 'Airline is required'),
+  aircraftIcao: z.string().optional(),
+  flightNumber: z.string().optional(),
+  departureTime: z.string().optional(),
+  arrivalTime: z.string().optional(),
+}).refine((data) => data.origin !== data.destination, {
+  message: 'Origin and destination cannot be the same',
+  path: ['destination'],
+})
+
+type FlightFormData = z.infer<typeof flightSchema>
 
 interface FlightFormProps {
   isOpen: boolean
@@ -38,57 +64,67 @@ export function FlightForm({ isOpen, onClose, editFlight }: FlightFormProps) {
   const updateFlight = useUpdateFlight()
   const checkDuplicate = useCheckDuplicate()
 
-  // Form state
-  const [date, setDate] = useState('')
-  const [origin, setOrigin] = useState('')
-  const [destination, setDestination] = useState('')
-  const [airlineIata, setAirlineIata] = useState('')
-  const [aircraftIcao, setAircraftIcao] = useState('')
-  const [flightNumber, setFlightNumber] = useState('')
-  const [departureTime, setDepartureTime] = useState('')
-  const [arrivalTime, setArrivalTime] = useState('')
-
   // UI state
   const [showOptional, setShowOptional] = useState(false)
   const [duplicateWarning, setDuplicateWarning] = useState(false)
-  const [error, setError] = useState<string | null>(null)
   const isEditing = !!editFlight
+
+  const form = useForm<FlightFormData>({
+    resolver: zodResolver(flightSchema),
+    defaultValues: {
+      date: new Date().toISOString().split('T')[0],
+      origin: '',
+      destination: '',
+      airlineIata: '',
+      aircraftIcao: '',
+      flightNumber: '',
+      departureTime: '',
+      arrivalTime: '',
+    },
+  })
 
   // Reset form when opened/closed or edit flight changes
   useEffect(() => {
     if (isOpen) {
       if (editFlight) {
-        setDate(editFlight.date)
-        setOrigin(editFlight.origin)
-        setDestination(editFlight.destination)
-        setAirlineIata(editFlight.airline_iata || '')
-        setAircraftIcao(editFlight.aircraft_icao || '')
-        setFlightNumber(editFlight.flight_number || '')
-        setDepartureTime(editFlight.departure_time || '')
-        setArrivalTime(editFlight.arrival_time || '')
+        form.reset({
+          date: editFlight.date,
+          origin: editFlight.origin,
+          destination: editFlight.destination,
+          airlineIata: editFlight.airline_iata || '',
+          aircraftIcao: editFlight.aircraft_icao || '',
+          flightNumber: editFlight.flight_number || '',
+          departureTime: editFlight.departure_time || '',
+          arrivalTime: editFlight.arrival_time || '',
+        })
         setShowOptional(!!(editFlight.aircraft_icao || editFlight.flight_number || editFlight.departure_time || editFlight.arrival_time))
       } else {
-        // Reset for new flight
-        setDate(new Date().toISOString().split('T')[0])
-        setOrigin('')
-        setDestination('')
-        setAirlineIata('')
-        setAircraftIcao('')
-        setFlightNumber('')
-        setDepartureTime('')
-        setArrivalTime('')
+        form.reset({
+          date: new Date().toISOString().split('T')[0],
+          origin: '',
+          destination: '',
+          airlineIata: '',
+          aircraftIcao: '',
+          flightNumber: '',
+          departureTime: '',
+          arrivalTime: '',
+        })
         setShowOptional(false)
       }
-      setError(null)
+      form.clearErrors()
       setDuplicateWarning(false)
     }
-  }, [isOpen, editFlight])
+  }, [isOpen, editFlight, form])
 
-  // Check for duplicates when route changes
+  // Watch for route changes to check duplicates
+  const watchDate = form.watch('date')
+  const watchOrigin = form.watch('origin')
+  const watchDestination = form.watch('destination')
+
   useEffect(() => {
-    if (date && origin && destination && origin.length === 3 && destination.length === 3) {
+    if (watchDate && watchOrigin && watchDestination && watchOrigin.length === 3 && watchDestination.length === 3) {
       checkDuplicate.mutate(
-        { date, origin, destination, excludeId: editFlight?.id },
+        { date: watchDate, origin: watchOrigin, destination: watchDestination, excludeId: editFlight?.id },
         {
           onSuccess: (isDuplicate) => {
             setDuplicateWarning(isDuplicate)
@@ -98,7 +134,7 @@ export function FlightForm({ isOpen, onClose, editFlight }: FlightFormProps) {
     } else {
       setDuplicateWarning(false)
     }
-  }, [date, origin, destination, editFlight?.id])
+  }, [watchDate, watchOrigin, watchDestination, editFlight?.id, checkDuplicate])
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -107,38 +143,21 @@ export function FlightForm({ isOpen, onClose, editFlight }: FlightFormProps) {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key === 's') {
         e.preventDefault()
-        handleSubmit(new Event('submit') as unknown as React.FormEvent)
+        form.handleSubmit(onSubmit)()
       }
     }
 
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [isOpen, onClose])
+  }, [isOpen, form])
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError(null)
-
-    // Validation
-    if (!date || !origin || !destination || !airlineIata) {
-      setError(t('flights.requiredFields', 'Please fill in all required fields'))
-      return
-    }
-
-    if (origin.length !== 3 || destination.length !== 3) {
-      setError(t('flights.invalidAirportCode', 'Airport codes must be 3 letters'))
-      return
-    }
-
-    if (origin === destination) {
-      setError(t('flights.sameAirport', 'Origin and destination cannot be the same'))
-      return
-    }
+  const onSubmit = async (data: FlightFormData) => {
+    form.clearErrors('root')
 
     // Calculate distance and duration
-    const originAirport = findAirport(origin)
-    const destAirport = findAirport(destination)
-    const aircraft = aircraftIcao ? findAircraft(aircraftIcao) : null
+    const originAirport = findAirport(data.origin)
+    const destAirport = findAirport(data.destination)
+    const aircraft = data.aircraftIcao ? findAircraft(data.aircraftIcao) : null
 
     let distanceKm: number | null = null
     let durationMinutes: number | null = null
@@ -152,15 +171,15 @@ export function FlightForm({ isOpen, onClose, editFlight }: FlightFormProps) {
       )
 
       // Estimate duration if times not provided
-      if (!departureTime || !arrivalTime) {
+      if (!data.departureTime || !data.arrivalTime) {
         durationMinutes = estimateFlightDuration(distanceKm, aircraft?.type)
       }
     }
 
     // Calculate actual duration from times if provided
-    if (departureTime && arrivalTime) {
-      const depParts = departureTime.split(':').map(Number)
-      const arrParts = arrivalTime.split(':').map(Number)
+    if (data.departureTime && data.arrivalTime) {
+      const depParts = data.departureTime.split(':').map(Number)
+      const arrParts = data.arrivalTime.split(':').map(Number)
       const depMinutes = depParts[0] * 60 + depParts[1]
       let arrMinutes = arrParts[0] * 60 + arrParts[1]
 
@@ -173,14 +192,14 @@ export function FlightForm({ isOpen, onClose, editFlight }: FlightFormProps) {
     }
 
     const flightData = {
-      date,
-      origin: origin.toUpperCase(),
-      destination: destination.toUpperCase(),
-      airline_iata: airlineIata.toUpperCase(),
-      aircraft_icao: aircraftIcao || null,
-      flight_number: flightNumber || null,
-      departure_time: departureTime || null,
-      arrival_time: arrivalTime || null,
+      date: data.date,
+      origin: data.origin.toUpperCase(),
+      destination: data.destination.toUpperCase(),
+      airline_iata: data.airlineIata.toUpperCase(),
+      aircraft_icao: data.aircraftIcao || null,
+      flight_number: data.flightNumber || null,
+      departure_time: data.departureTime || null,
+      arrival_time: data.arrivalTime || null,
       distance_km: distanceKm,
       duration_minutes: durationMinutes,
       origin_tz: originAirport?.timezone || null,
@@ -198,193 +217,260 @@ export function FlightForm({ isOpen, onClose, editFlight }: FlightFormProps) {
       }
       onClose()
     } catch (err) {
-      setError(err instanceof Error ? err.message : t('errors.generic'))
+      form.setError('root', {
+        message: err instanceof Error ? err.message : t('errors.generic'),
+      })
     }
   }
 
   const isSubmitting = createFlight.isPending || updateFlight.isPending
-  const isFutureFlight = date && isUpcomingFlight(date)
-  const daysUntil = date && isFutureFlight ? daysUntilFlight(date) : 0
+  const isFutureFlight = watchDate && isUpcomingFlight(watchDate)
+  const daysUntil = watchDate && isFutureFlight ? daysUntilFlight(watchDate) : 0
 
   // Shared form content rendered in both Sheet and Dialog
   const formContent = (
-    <form onSubmit={handleSubmit} className="px-4 pb-6 sm:px-6 lg:px-8 lg:pb-8 xl:px-10 xl:pb-10">
-      {/* Error display */}
-      {error && (
-        <div className="mb-4 p-3 rounded-lg bg-destructive/10 border border-destructive/20 flex items-start gap-2">
-          <AlertCircle className="w-4 h-4 text-destructive mt-0.5 shrink-0" />
-          <p className="text-sm text-destructive">{error}</p>
-        </div>
-      )}
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="px-4 pb-6 sm:px-6 lg:px-8 lg:pb-8 xl:px-10 xl:pb-10">
+        {/* Error display */}
+        {form.formState.errors.root && (
+          <div className="mb-4 p-3 rounded-lg bg-destructive/10 border border-destructive/20 flex items-start gap-2">
+            <AlertCircle className="w-4 h-4 text-destructive mt-0.5 shrink-0" />
+            <p className="text-sm text-destructive">{form.formState.errors.root.message}</p>
+          </div>
+        )}
 
-      {/* Duplicate warning */}
-      {duplicateWarning && (
-        <div className="mb-4 p-3 rounded-lg bg-warning/10 border border-warning/20">
-          <p className="text-sm text-warning">
-            {t('flights.duplicateWarning', 'You already have a flight on this date with the same route. You can still save it.')}
-          </p>
-        </div>
-      )}
+        {/* Duplicate warning */}
+        {duplicateWarning && (
+          <div className="mb-4 p-3 rounded-lg bg-warning/10 border border-warning/20">
+            <p className="text-sm text-warning">
+              {t('flights.duplicateWarning', 'You already have a flight on this date with the same route. You can still save it.')}
+            </p>
+          </div>
+        )}
 
-      {/* Future flight notice */}
-      {isFutureFlight && (
-        <div className="mb-4 p-3 rounded-lg bg-primary/10 border border-primary/20 flex items-center gap-2">
-          <Calendar className="w-4 h-4 text-primary shrink-0" />
-          <p className="text-sm text-primary">
-            {t('flights.upcomingFlight', { days: daysUntil })}
-          </p>
-        </div>
-      )}
+        {/* Future flight notice */}
+        {isFutureFlight && (
+          <div className="mb-4 p-3 rounded-lg bg-primary/10 border border-primary/20 flex items-center gap-2">
+            <Calendar className="w-4 h-4 text-primary shrink-0" />
+            <p className="text-sm text-primary">
+              {t('flights.upcomingFlight', { days: daysUntil })}
+            </p>
+          </div>
+        )}
 
-      {/* Required fields */}
-      <div className="space-y-4">
-        <div className="space-y-2">
-          <Label htmlFor="date">
-            {t('flights.date', 'Date')}
-            <span className="text-destructive ml-1">*</span>
-          </Label>
-          <Input
-            id="date"
-            type="date"
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
-            required
-            disabled={isSubmitting}
-          />
-        </div>
-
-        <div className="grid grid-cols-2 gap-3">
-          <AirportAutocomplete
-            id="origin"
-            value={origin}
-            onChange={(iata) => setOrigin(iata)}
-            label={t('flights.origin', 'From')}
-            placeholder="JFK"
-            required
-            disabled={isSubmitting}
+        {/* Required fields */}
+        <div className="space-y-4">
+          <FormField
+            control={form.control}
+            name="date"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>
+                  {t('flights.date', 'Date')}
+                  <span className="text-destructive ml-1">*</span>
+                </FormLabel>
+                <FormControl>
+                  <Input
+                    type="date"
+                    disabled={isSubmitting}
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
           />
 
-          <AirportAutocomplete
-            id="destination"
-            value={destination}
-            onChange={(iata) => setDestination(iata)}
-            label={t('flights.destination', 'To')}
-            placeholder="LAX"
-            required
-            disabled={isSubmitting}
-          />
-        </div>
-
-        <AirlineAutocomplete
-          id="airline"
-          value={airlineIata}
-          onChange={(iata) => setAirlineIata(iata)}
-          label={t('flights.airline', 'Airline')}
-          placeholder="AA"
-          required
-          disabled={isSubmitting}
-        />
-      </div>
-
-      {/* Optional fields toggle */}
-      <button
-        type="button"
-        onClick={() => setShowOptional(!showOptional)}
-        className="mt-4 flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
-      >
-        <ChevronRight
-          className={`w-4 h-4 transition-transform ${showOptional ? 'rotate-90' : ''}`}
-        />
-        {showOptional
-          ? t('flights.hideDetails', 'Hide details')
-          : t('flights.addDetails', 'Add more details')}
-      </button>
-
-      {/* Optional fields */}
-      {showOptional && (
-        <>
-          <Separator className="my-4" />
-          <div className="space-y-4">
-            <AircraftAutocomplete
-              id="aircraft"
-              value={aircraftIcao}
-              onChange={(icao) => setAircraftIcao(icao)}
-              label={t('flights.aircraft', 'Aircraft')}
-              placeholder="B738"
-              disabled={isSubmitting}
+          <div className="grid grid-cols-2 gap-3">
+            <FormField
+              control={form.control}
+              name="origin"
+              render={({ field }) => (
+                <FormItem>
+                  <AirportAutocomplete
+                    id="origin"
+                    value={field.value}
+                    onChange={field.onChange}
+                    label={t('flights.origin', 'From')}
+                    placeholder="JFK"
+                    required
+                    disabled={isSubmitting}
+                  />
+                  <FormMessage />
+                </FormItem>
+              )}
             />
 
-            <div className="space-y-2">
-              <Label htmlFor="flightNumber">
-                {t('flights.flightNumber', 'Flight Number')}
-              </Label>
-              <Input
-                id="flightNumber"
-                type="text"
-                value={flightNumber}
-                onChange={(e) => setFlightNumber(e.target.value.toUpperCase())}
-                placeholder="AA123"
-                disabled={isSubmitting}
-                className="font-mono uppercase"
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-2">
-                <Label htmlFor="departureTime">
-                  {t('flights.departureTime', 'Departure')}
-                </Label>
-                <Input
-                  id="departureTime"
-                  type="time"
-                  value={departureTime}
-                  onChange={(e) => setDepartureTime(e.target.value)}
-                  disabled={isSubmitting}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="arrivalTime">
-                  {t('flights.arrivalTime', 'Arrival')}
-                </Label>
-                <Input
-                  id="arrivalTime"
-                  type="time"
-                  value={arrivalTime}
-                  onChange={(e) => setArrivalTime(e.target.value)}
-                  disabled={isSubmitting}
-                />
-              </div>
-            </div>
+            <FormField
+              control={form.control}
+              name="destination"
+              render={({ field }) => (
+                <FormItem>
+                  <AirportAutocomplete
+                    id="destination"
+                    value={field.value}
+                    onChange={field.onChange}
+                    label={t('flights.destination', 'To')}
+                    placeholder="LAX"
+                    required
+                    disabled={isSubmitting}
+                  />
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
           </div>
-        </>
-      )}
 
-      {/* Submit buttons */}
-      <div className="flex gap-3 mt-6">
-        <Button
+          <FormField
+            control={form.control}
+            name="airlineIata"
+            render={({ field }) => (
+              <FormItem>
+                <AirlineAutocomplete
+                  id="airline"
+                  value={field.value}
+                  onChange={field.onChange}
+                  label={t('flights.airline', 'Airline')}
+                  placeholder="AA"
+                  required
+                  disabled={isSubmitting}
+                />
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+
+        {/* Optional fields toggle */}
+        <button
           type="button"
-          variant="outline"
-          onClick={onClose}
-          disabled={isSubmitting}
-          className="flex-1"
+          onClick={() => setShowOptional(!showOptional)}
+          className="mt-4 flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
         >
-          {t('common.cancel')}
-        </Button>
-        <Button
-          type="submit"
-          disabled={isSubmitting}
-          className="flex-1"
-        >
-          {isSubmitting ? t('common.loading') : isEditing ? t('common.save') : t('flights.addFlight', 'Add Flight')}
-        </Button>
-      </div>
+          <ChevronRight
+            className={`w-4 h-4 transition-transform ${showOptional ? 'rotate-90' : ''}`}
+          />
+          {showOptional
+            ? t('flights.hideDetails', 'Hide details')
+            : t('flights.addDetails', 'Add more details')}
+        </button>
 
-      {/* Keyboard hint - hide on mobile */}
-      <p className="mt-3 text-xs text-center text-muted-foreground hidden sm:block">
-        {t('flights.keyboardHint', 'Press Ctrl+S to save, Esc to close')}
-      </p>
-    </form>
+        {/* Optional fields */}
+        {showOptional && (
+          <>
+            <Separator className="my-4" />
+            <div className="space-y-4">
+              <FormField
+                control={form.control}
+                name="aircraftIcao"
+                render={({ field }) => (
+                  <FormItem>
+                    <AircraftAutocomplete
+                      id="aircraft"
+                      value={field.value || ''}
+                      onChange={field.onChange}
+                      label={t('flights.aircraft', 'Aircraft')}
+                      placeholder="B738"
+                      disabled={isSubmitting}
+                    />
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="flightNumber"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>
+                      {t('flights.flightNumber', 'Flight Number')}
+                    </FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="AA123"
+                        disabled={isSubmitting}
+                        className="font-mono uppercase"
+                        {...field}
+                        onChange={(e) => field.onChange(e.target.value.toUpperCase())}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <div className="grid grid-cols-2 gap-3">
+                <FormField
+                  control={form.control}
+                  name="departureTime"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>
+                        {t('flights.departureTime', 'Departure')}
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          type="time"
+                          disabled={isSubmitting}
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="arrivalTime"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>
+                        {t('flights.arrivalTime', 'Arrival')}
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          type="time"
+                          disabled={isSubmitting}
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </div>
+          </>
+        )}
+
+        {/* Submit buttons */}
+        <div className="flex gap-3 mt-6">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onClose}
+            disabled={isSubmitting}
+            className="flex-1"
+          >
+            {t('common.cancel')}
+          </Button>
+          <Button
+            type="submit"
+            disabled={isSubmitting}
+            className="flex-1"
+          >
+            {isSubmitting ? t('common.loading') : isEditing ? t('common.save') : t('flights.addFlight', 'Add Flight')}
+          </Button>
+        </div>
+
+        {/* Keyboard hint - hide on mobile */}
+        <p className="mt-3 text-xs text-center text-muted-foreground hidden sm:block">
+          {t('flights.keyboardHint', 'Press Ctrl+S to save, Esc to close')}
+        </p>
+      </form>
+    </Form>
   )
 
   const title = (

@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient, useInfiniteQuery } from '@tanstack/react-query'
+import { toast } from 'sonner'
 import {
   getFlights,
   getFlight,
@@ -93,9 +94,12 @@ export function useCreateFlight() {
       queryClient.invalidateQueries({ queryKey: [FLIGHT_YEARS_KEY] })
       queryClient.invalidateQueries({ queryKey: [FLIGHT_AIRLINES_KEY] })
       queryClient.invalidateQueries({ queryKey: ['flightStats'] })
+      toast.success('Flight added to your log')
     },
-    // Error handling is done by the component using useErrorHandler
-    // This allows context-aware handling (modal vs page)
+    onError: (error) => {
+      console.error('Create flight failed:', error)
+      toast.error("Couldn't save flight. Please try again.")
+    },
   })
 }
 
@@ -117,8 +121,12 @@ export function useUpdateFlight() {
       queryClient.invalidateQueries({ queryKey: [RECENT_FLIGHTS_KEY] })
       queryClient.invalidateQueries({ queryKey: [UPCOMING_FLIGHTS_KEY] })
       queryClient.invalidateQueries({ queryKey: ['flightStats'] })
+      toast.success('Flight updated successfully')
     },
-    // Error handling is done by the component using useErrorHandler
+    onError: (error) => {
+      console.error('Update flight failed:', error)
+      toast.error("Couldn't save flight. Please try again.")
+    },
   })
 }
 
@@ -144,9 +152,12 @@ export function useDeleteFlight() {
       queryClient.invalidateQueries({ queryKey: [FLIGHT_YEARS_KEY] })
       queryClient.invalidateQueries({ queryKey: [FLIGHT_AIRLINES_KEY] })
       queryClient.invalidateQueries({ queryKey: ['flightStats'] })
+      toast.success('Flight removed from your log')
     },
-    // Error handling with rollback is done by the component
-    // Component should use onMutate to snapshot data, and onError to restore
+    onError: (error) => {
+      console.error('Delete flight failed:', error)
+      toast.error("Couldn't delete flight. Please try again.")
+    },
   })
 }
 
@@ -174,8 +185,12 @@ export function useBatchDeleteFlights() {
       queryClient.invalidateQueries({ queryKey: [FLIGHT_AIRLINES_KEY] })
       queryClient.invalidateQueries({ queryKey: [FLIGHT_AIRCRAFT_KEY] })
       queryClient.invalidateQueries({ queryKey: ['flightStats'] })
+      toast.success(`${flightIds.length} flights removed`)
     },
-    // Error handling with rollback is done by the component
+    onError: (error) => {
+      console.error('Batch delete flights failed:', error)
+      toast.error("Couldn't delete flights. Please try again.")
+    },
   })
 }
 
