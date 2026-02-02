@@ -43,8 +43,8 @@ Linear does not use pure black (`#000000`). It uses deep, cool grays to reduce e
 - **Error (Red):** `#E5484D` (Failed, Off track)
 - **Info (Blue):** `#0091FF`
 
-**Decoration Colors (Tags, Graphs & Illustrations)**
-From the "decoration" palette (10-tone scale):
+**Data Visualization & Decoration Colors**
+Primary palette for charts, graphs, tags, and illustrations (10-tone scale):
 
 1. **Cyan:** `#26B5CE`
 2. **Red:** `#E54D5A`
