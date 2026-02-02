@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useLanguage } from '@/hooks/useLanguage'
@@ -15,7 +15,13 @@ export function AuthPage() {
   const navigate = useNavigate()
   const { toggleLanguage } = useLanguage()
   const [mode, setMode] = useState<AuthMode>('register')
-  const [accentColor, setAccentColor] = useState<AccentColor>('amber')
+  const [accentColor, setAccentColor] = useState<AccentColor>('coral')
+
+  // Set coral as default accent color on mount
+  useEffect(() => {
+    document.documentElement.style.setProperty('--primary', '#F76B6E')
+    document.documentElement.style.setProperty('--ring', '#F76B6E')
+  }, [])
 
   const handleSuccess = () => {
     navigate('/dashboard')
@@ -26,6 +32,13 @@ export function AuthPage() {
 
   return (
     <div className="min-h-screen bg-neutral-50 dark:bg-[#09090b] flex items-center justify-center p-4 relative overflow-hidden font-sans transition-colors duration-300">
+      {/* Closed Beta Chevron */}
+      <div className="absolute top-0 left-0 z-50 overflow-hidden w-32 h-32 pointer-events-none">
+        <div className="absolute -left-8 top-6 w-40 bg-primary text-primary-foreground text-xs font-semibold py-1.5 text-center -rotate-45 shadow-md">
+          Closed Beta
+        </div>
+      </div>
+
       {/* Background Ambience */}
       <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-primary/10 dark:bg-primary/20 blur-[120px] rounded-full pointer-events-none opacity-60 dark:opacity-40" />
       <div className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] bg-primary/5 dark:bg-primary/10 blur-[120px] rounded-full pointer-events-none opacity-50 dark:opacity-30" />
@@ -53,7 +66,7 @@ export function AuthPage() {
           <div className="absolute inset-0 bg-gradient-to-br from-primary/5 dark:from-primary/10 to-transparent opacity-80 dark:opacity-50 z-0" />
           <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.15] dark:opacity-20 z-0 mix-blend-overlay" />
 
-          {/* Orbital planes animation */}
+          {/* Planes animation */}
           <FlyingPlanes />
 
           {/* Top Branding with Rotating Tagline */}
@@ -104,18 +117,6 @@ export function AuthPage() {
           </div>
 
           <div className="w-full max-w-md mx-auto space-y-8 animate-fade-in">
-            <div className="space-y-2 text-center lg:text-left">
-              <h2 className="text-3xl font-bold tracking-tight text-neutral-900 dark:text-white">
-                {mode === 'register' ? t('auth.joinKuuki', 'Join Kuuki') : t('auth.welcomeBack', 'Welcome back')}
-              </h2>
-              <p className="text-neutral-500 dark:text-neutral-400 text-base">
-                {mode === 'register'
-                  ? t('auth.inviteRequired', 'Enter your invite code to begin.')
-                  : t('auth.signInSubtitle', 'Sign in to access your flight history.')
-                }
-              </p>
-            </div>
-
             {mode === 'register' ? (
               <RegisterForm
                 onSuccess={handleSuccess}
@@ -127,12 +128,6 @@ export function AuthPage() {
                 onSignUpClick={() => setMode('register')}
               />
             )}
-
-            <div className="pt-8 border-t border-neutral-200 dark:border-white/5 text-center lg:text-left">
-              <p className="text-xs text-neutral-400 dark:text-white/30">
-                A personal flight log • v1.0.0
-              </p>
-            </div>
           </div>
         </div>
       </div>

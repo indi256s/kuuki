@@ -1,8 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { render } from '@testing-library/react'
 import { FlyingPlanes } from './FlyingPlanes'
-import fs from 'fs'
-import path from 'path'
 
 describe('FlyingPlanes', () => {
   it('renders 20 planes', () => {
@@ -15,60 +13,46 @@ describe('FlyingPlanes', () => {
     expect(svgPlanes?.length).toBe(20)
   })
 
-  it('assigns orbital animation classes to all planes', () => {
+  it('assigns plane-ascend animation class to all planes', () => {
     render(<FlyingPlanes />)
 
     const container = document.querySelector('.absolute.inset-0')
     const planes = container?.querySelectorAll('svg')
 
     planes?.forEach((plane) => {
-      const hasOrbitClass =
-        plane.classList.contains('animate-orbit-close') ||
-        plane.classList.contains('animate-orbit-medium') ||
-        plane.classList.contains('animate-orbit-wide') ||
-        plane.classList.contains('animate-orbit-far')
-
-      expect(hasOrbitClass).toBe(true)
+      expect(plane.classList.contains('animate-plane-ascend')).toBe(true)
     })
   })
-})
 
-describe('Orbital CSS Keyframes', () => {
-  // Read the CSS file to verify animation starting positions
-  const cssPath = path.resolve(__dirname, '../../index.css')
-  const cssContent = fs.readFileSync(cssPath, 'utf-8')
+  it('sets CSS custom properties for animation timing', () => {
+    render(<FlyingPlanes />)
 
-  const orbitKeyframes = ['orbit-close', 'orbit-medium', 'orbit-wide', 'orbit-far']
+    const container = document.querySelector('.absolute.inset-0')
+    const plane = container?.querySelector('svg')
 
-  orbitKeyframes.forEach((orbitName) => {
-    it(`${orbitName} animation starts from bottom (700px Y position)`, () => {
-      // Extract the keyframe definition
-      const keyframeRegex = new RegExp(
-        `@keyframes\\s+${orbitName}\\s*\\{[^}]*0%\\s*\\{([^}]+)\\}`,
-        's'
-      )
-      const match = cssContent.match(keyframeRegex)
+    // Check that CSS custom properties are set
+    const style = plane?.getAttribute('style')
+    expect(style).toContain('--plane-duration')
+    expect(style).toContain('--plane-delay')
+    expect(style).toContain('--plane-opacity')
+  })
 
-      expect(match).not.toBeNull()
+  it('distributes planes across different horizontal positions', () => {
+    render(<FlyingPlanes />)
 
-      const initialFrame = match![1]
-      // Should contain translateY(700px) or translate(Xpx, 700px)
-      expect(initialFrame).toMatch(/translate\([^,]+,\s*700px\)/)
+    const container = document.querySelector('.absolute.inset-0')
+    const planes = container?.querySelectorAll('svg')
+
+    const leftPositions = new Set<string>()
+    planes?.forEach((plane) => {
+      const style = plane.getAttribute('style')
+      const leftMatch = style?.match(/left:\s*(\d+%)/)
+      if (leftMatch) {
+        leftPositions.add(leftMatch[1])
+      }
     })
 
-    it(`${orbitName} animation does not start at top (Y should not be 0 or negative at 0%)`, () => {
-      const keyframeRegex = new RegExp(
-        `@keyframes\\s+${orbitName}\\s*\\{[^}]*0%\\s*\\{([^}]+)\\}`,
-        's'
-      )
-      const match = cssContent.match(keyframeRegex)
-
-      expect(match).not.toBeNull()
-
-      const initialFrame = match![1]
-      // Should NOT have Y position of 0 or negative at start
-      expect(initialFrame).not.toMatch(/translate\([^,]+,\s*0px\)/)
-      expect(initialFrame).not.toMatch(/translate\([^,]+,\s*-\d+px\)/)
-    })
+    // Should have multiple different left positions (distributed)
+    expect(leftPositions.size).toBeGreaterThan(5)
   })
 })
