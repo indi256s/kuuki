@@ -17,7 +17,7 @@ interface AircraftEnrichButtonProps {
   /** Variant for different contexts */
   variant?: 'default' | 'outline' | 'ghost'
   /** Size of the button */
-  size?: 'default' | 'sm' | 'lg'
+  size?: 'default' | 'lg'
   /** Additional class names */
   className?: string
   /** Called after successful enrichment */
@@ -27,7 +27,7 @@ interface AircraftEnrichButtonProps {
 export function AircraftEnrichButton({
   flights,
   variant = 'outline',
-  size = 'sm',
+  size = 'default',
   className,
   onComplete,
 }: AircraftEnrichButtonProps) {

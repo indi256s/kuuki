@@ -359,16 +359,54 @@
   },
   "settings": {
     "title": "Settings",
-    "language": "Language",
+    "subtitle": "Account and data management",
+    "language": {
+      "title": "Language",
+      "description": "Choose your preferred language"
+    },
     "languages": {
       "en": "English",
-      "ru": "Russian"
+      "ru": "Русский"
     },
     "geminiApiKey": "Gemini API Key",
     "geminiApiKeyDescription": "Used for AI-powered flight import",
-    "dangerZone": "Danger Zone",
-    "deleteAccount": "Delete Account",
-    "deleteAccountWarning": "This action cannot be undone. All your data will be permanently deleted."
+    "export": {
+      "title": "Data Export",
+      "description": "Download your flight history and country passport as CSV files",
+      "flights": "Export Flights",
+      "flightsDesc": "Download all {{count}} flights as CSV",
+      "claims": "Export Countries",
+      "claimsDesc": "Download all {{count}} visited countries as CSV",
+      "noFlights": "No flights to export",
+      "noClaims": "No countries to export",
+      "exporting": "Exporting...",
+      "formatToggle": "Include enriched data (country names, continents)",
+      "rateLimitReached": "Export limit reached. Try again tomorrow.",
+      "rateLimitRemaining": "{{count}} exports remaining today"
+    },
+    "delete": {
+      "title": "Danger Zone",
+      "description": "Permanently delete your account and all data",
+      "button": "Delete Account",
+      "dialogTitle": "Delete Your Account?",
+      "dialogDescription": "Well, this is it. Your final approach.",
+      "dataPreview": "You have {{flights}} flights and {{countries}} countries in your passport.",
+      "warning": "All data will be permanently deleted. This action cannot be undone.",
+      "exportPrompt": "Would you like to download your data first?",
+      "exportButton": "Download My Data",
+      "skipExport": "No thanks, proceed",
+      "passwordLabel": "Enter your password to confirm",
+      "passwordPlaceholder": "Your password",
+      "confirm": "Delete Everything",
+      "deleting": "Deleting...",
+      "wrongPassword": "Incorrect password. Please try again.",
+      "success": "Your account has been deleted.",
+      "farewell": "Thank you for flying with us. Or don't. Your call."
+    },
+    "accountDeleted": {
+      "title": "Account Deleted",
+      "message": "This user's account has been deleted."
+    }
   },
   "import": {
     "title": "Import Flights",

@@ -395,6 +395,24 @@ export async function getFlightAircraft(userId: string): Promise<string[]> {
 }
 
 /**
+ * Get all flights for a user (for export)
+ * No pagination - returns everything
+ */
+export async function getAllFlights(userId: string): Promise<Flight[]> {
+  const { data, error } = await supabase
+    .from('flights')
+    .select('*')
+    .eq('user_id', userId)
+    .order('date', { ascending: false })
+
+  if (error) {
+    throw new Error(`Failed to fetch all flights: ${error.message}`)
+  }
+
+  return data ?? []
+}
+
+/**
  * Convert upcoming flights to completed when their date has passed
  * Call this on app load or periodically
  */

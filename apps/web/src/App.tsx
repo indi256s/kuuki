@@ -9,6 +9,7 @@ import { OnboardingPage } from '@/routes/OnboardingPage'
 import { ProfilePage } from '@/routes/ProfilePage'
 import { LeaderboardPage } from '@/routes/LeaderboardPage'
 import { PassportPage } from '@/routes/PassportPage'
+import { SettingsPage } from '@/routes/SettingsPage'
 import { ProtectedRoute } from '@/components/ProtectedRoute'
 import { ToastProvider, ErrorBoundary } from '@/components/error'
 
@@ -102,6 +103,14 @@ function AppRoutes() {
           element={
             <ProtectedRoute>
               <PassportPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/settings"
+          element={
+            <ProtectedRoute>
+              <SettingsPage />
             </ProtectedRoute>
           }
         />

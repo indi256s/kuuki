@@ -11,7 +11,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { ThemeToggle } from '@/components/common/ThemeToggle'
-import { Plane, Plus, LogOut, Languages } from 'lucide-react'
+import { Plane, Plus, LogOut, Languages, Settings } from 'lucide-react'
 
 interface AppHeaderProps {
   onAddFlight?: () => void
@@ -93,6 +93,12 @@ export function AppHeader({ onAddFlight, showAddButton = false }: AppHeaderProps
                 <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
               </div>
               <DropdownMenuSeparator />
+              <DropdownMenuItem asChild>
+                <Link to="/settings">
+                  <Settings className="w-4 h-4 mr-2" />
+                  {t('nav.settings')}
+                </Link>
+              </DropdownMenuItem>
               <DropdownMenuItem onClick={toggleLanguage}>
                 <Languages className="w-4 h-4 mr-2" />
                 {currentLanguage === 'en' ? 'Русский' : 'English'}

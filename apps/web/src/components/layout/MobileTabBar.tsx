@@ -1,12 +1,11 @@
 import { Link, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { useAuth } from '@/hooks/useAuth'
 import {
   LayoutDashboard,
   Plane,
   Upload,
   Globe2,
-  User,
+  Settings,
   type LucideIcon,
 } from 'lucide-react'
 
@@ -28,30 +27,20 @@ interface TabItem {
 export function MobileTabBar() {
   const { t } = useTranslation()
   const location = useLocation()
-  const { profile } = useAuth()
 
-  // Build tabs array with dynamic profile path
+  // Build tabs array - replaced Profile with Settings since profile is accessible via settings
   const tabs: TabItem[] = [
     { path: '/dashboard', icon: LayoutDashboard, labelKey: 'nav.dashboard' },
     { path: '/flights', icon: Plane, labelKey: 'nav.flights' },
     { path: '/import', icon: Upload, labelKey: 'nav.import' },
     { path: '/passport', icon: Globe2, labelKey: 'nav.passport' },
-    {
-      // Link to user's own public profile if they have a username, else dashboard
-      path: profile?.username ? `/fly/${profile.username}` : '/dashboard',
-      icon: User,
-      labelKey: 'nav.profile',
-    },
+    { path: '/settings', icon: Settings, labelKey: 'nav.settings' },
   ]
 
   const isActive = (path: string) => {
-    // Handle exact match for dashboard
-    if (path === '/dashboard') {
-      return location.pathname === '/dashboard'
-    }
-    // Handle profile - check both /fly/ prefix and exact match
-    if (path.startsWith('/fly/')) {
-      return location.pathname.startsWith('/fly/')
+    // Handle exact match for dashboard and settings
+    if (path === '/dashboard' || path === '/settings') {
+      return location.pathname === path
     }
     return location.pathname.startsWith(path)
   }
