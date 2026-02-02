@@ -1,6 +1,6 @@
 # Phase 6: Polish
 
-**Status:** Complete
+**Status:** In Progress
 **Depends on:** Phase 5 complete
 
 ## Tasks
@@ -225,53 +225,28 @@ apps/web/src/
 - Consistency audit across all pages
 - Create theme variations (3 colorful themes)
 
-### Phase 6g: CI/CD Pipeline ✅
+### CI/CD Pipeline
 
 **Skill:** `/cloudflare:wrangler`
+**MCP:** `cloudflare-workers-builds`
 
-**Files Created:**
+**GitHub Actions workflow:**
+
+```yaml
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    steps:
+      - Lint (pnpm lint)
+      - Type-check (pnpm typecheck)
+      - Test (pnpm test)
+      - Deploy preview (PR) / production (main)
 ```
-.github/
-├── workflows/
-│   ├── ci.yml              # Main CI/CD workflow
-│   └── auto-revert.yml     # Revert on main failure
-└── pull_request_template.md
-```
-
-**CI Workflow Features:**
-- **Triggers:** Push to main/dev, PRs to main/dev
-- **Skip CI:** `[skip ci]` in commit message
-- **AI Agent Gate:** PRs from `github-actions[bot]` require `ci:approved` label
-- **Parallel Jobs:** lint, typecheck, test, build (fast-fail on first failure)
-- **Tests Non-Blocking:** `continue-on-error: true` — tests don't block merge
-- **Build Artifacts:** web-dist uploaded for deploy jobs to reuse
-- **Staging:** PRs deploy to `kuuki-staging` Cloudflare Pages project
-- **Production:** main branch deploys to `kuuki` Cloudflare Pages project
-
-**Auto-Revert Workflow:**
-- Triggers on CI/CD workflow failure on main
-- Automatically reverts the breaking commit
-- Sends Telegram notification with short SHA
-
-**Required GitHub Secrets:**
-| Secret | Purpose |
-|--------|---------|
-| `CLOUDFLARE_API_TOKEN` | Wrangler deploy |
-| `CLOUDFLARE_ACCOUNT_ID` | Account identifier |
-| `VITE_SUPABASE_URL` | Build env var |
-| `VITE_SUPABASE_ANON_KEY` | Build env var |
-| `TELEGRAM_BOT_TOKEN` | Auto-revert notifications |
-| `TELEGRAM_CHAT_ID` | Your Telegram chat ID |
-
-**Typecheck Scripts Added:**
-- Root: `pnpm typecheck` → turbo typecheck
-- turbo.json: `typecheck` task with `dependsOn: ["^build"]`
-- apps/web: `tsc -b --noEmit`
-
-**One-Time Setup Required:**
-1. Create Cloudflare Pages project: `wrangler pages project create kuuki-staging`
-2. Add all 6 secrets to GitHub Settings → Secrets → Actions
-3. (Optional) Configure custom domain: staging.kuuki.indi256.com → kuuki-staging.pages.dev
 
 ## Files to Create/Update
 
@@ -320,13 +295,11 @@ packages/shared/src/i18n/
 └── ru.json                        ✅ (Russian translations with GLaDOS personality)
 ```
 
-**Phase 6g CI/CD (Complete):**
+**Pending:**
 ```
 .github/
-├── workflows/
-│   ├── ci.yml              ✅ Main CI/CD workflow
-│   └── auto-revert.yml     ✅ Auto-revert on main failure
-└── pull_request_template.md ✅ PR template with labels guidance
+└── workflows/
+    └── ci.yml
 ```
 
 ## Verification
@@ -342,4 +315,4 @@ From SPEC.md checklist:
 - [x] Mobile 6c: Map collapsible, country sheet, profile sections, vertical stats
 - [x] Mobile 6d: Touch targets (44px), reduced motion, Lighthouse checklist created
 - [x] Error states: Route boundaries, toast system, aviation personality messages
-- [x] CI/CD: GitHub Actions workflow for lint, typecheck, test, deploy
+- [ ] CI/CD: GitHub Actions workflow for lint, typecheck, test, deploy
