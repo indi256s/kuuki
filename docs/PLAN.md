@@ -277,6 +277,38 @@ git push origin main
 
 All planned phases are complete. The app is feature-complete for MVP launch.
 
+---
+
+## Post-MVP: Consistency Refactor ✅
+
+Code cleanup to ensure codebase consistency with DNA documentation patterns.
+
+**Completed 2026-02-02:**
+
+| Area | Status | Changes |
+|------|--------|---------|
+| **Login Page Redesign** | ✅ Done | Split layout with vertical Katakana (クウキ) branding, flowing shimmer animation |
+| **Form Migration** | ✅ Done | SignInForm, SignUpForm, FlightForm migrated to React Hook Form + Zod |
+| **Error Handling** | ✅ Done | Added onSuccess/onError with toast notifications to all mutations |
+| **Design Tokens** | ✅ Done | Migrated legacy tokens (bg-sky-raised → bg-card, text-ink → text-foreground) |
+| **Code Style** | ✅ Done | FlightEditRow uses cn() helper, font-data for IATA codes, warning semantic tokens |
+
+**Files Modified:**
+- `routes/AuthPage.tsx` — Complete redesign with vertical katakana branding
+- `components/auth/SignInForm.tsx` — RHF + Zod migration
+- `components/auth/SignUpForm.tsx` — RHF + Zod migration
+- `components/flights/FlightForm.tsx` — RHF + Zod migration
+- `components/ui/form.tsx` — Added shadcn form component
+- `hooks/useFlights.ts` — Added toast error handlers
+- `hooks/usePassport.ts` — Added toast error handlers
+- `components/landing/FeatureGrid.tsx` — Token migration
+- `components/landing/HeroSection.tsx` — Token migration
+- `components/common/WindLoader.tsx` — Token migration
+- `components/map/RouteMap.tsx` — Token migration
+- `components/import/FlightEditRow.tsx` — cn() helper, font-data, warning tokens
+- `index.css` — Added text-flow animation, writing-vertical utility, warning tokens
+- `packages/shared/src/i18n/*.json` — Added toast message translations
+
 **Live URLs:**
 - Production: https://kuuki.indi256.com
 - Staging: https://kuuki-staging.pages.dev (PR previews)
