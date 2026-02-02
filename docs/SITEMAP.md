@@ -4,8 +4,10 @@
 
 | Route | Page | Description |
 |-------|------|-------------|
-| `/` | Landing Page | Marketing page, sign up/sign in CTAs |
-| `/auth` | Auth Page | Sign in / sign up forms |
+| `/` | Auth Page | Sign in / sign up entry point (Default route) |
+| `/landing` | Landing Page | Marketing page |
+| `/fly/:username` | Public Profile | Public view of user's flight stats and passport |
+| `/leaderboard` | Leaderboard | Global rankings and stats |
 
 ## Authenticated Routes
 
@@ -13,43 +15,64 @@ All routes below require authentication (wrapped in `ProtectedRoute`).
 
 | Route | Page | Description |
 |-------|------|-------------|
-| `/onboarding` | Onboarding | First-time user setup |
-| `/dashboard` | Dashboard | Stats overview, route map, recent flights |
-| `/flights` | Flights | Full flight list with edit/delete |
-| `/import` | Import | AI-powered flight import from text/PDF/image |
-
-## Navigation Structure
-
-```
-Header (authenticated pages)
-├── Logo → /dashboard
-├── Nav Links
-│   ├── Dashboard → /dashboard
-│   ├── Flights → /flights
-│   └── Import → /import
-├── Theme Toggle (sun/moon icon)
-└── User Menu (avatar dropdown)
-    ├── Language Toggle
-    └── Sign Out
-```
+| `/dashboard` | Dashboard | Personal stats overview, map, and recent activity |
+| `/flights` | Flights | Full flight log with search, filter, and edit capabilities |
+| `/passport` | Passport | Visual passport representation of travel history & badges |
+| `/import` | Import | AI-powered flight import tool |
+| `/settings` | Settings | Account preferences and configuration |
+| `/onboarding` | Onboarding | First-time user setup wizard |
 
 ## Component Structure
 
 ```
 routes/
-├── LandingPage.tsx      # Public landing
-├── AuthPage.tsx         # Sign in/up
-├── OnboardingPage.tsx   # First-time setup
-├── DashboardPage.tsx    # Main dashboard
-├── FlightsPage.tsx      # Flight list
-└── ImportPage.tsx       # AI import flow
+├── AuthPage.tsx         # / (Home/Login)
+├── LandingPage.tsx      # /landing
+├── DashboardPage.tsx    # /dashboard
+├── FlightsPage.tsx      # /flights
+├── PassportPage.tsx     # /passport
+├── ImportPage.tsx       # /import
+├── SettingsPage.tsx     # /settings
+├── ProfilePage.tsx      # /fly/:username
+├── LeaderboardPage.tsx  # /leaderboard
+└── OnboardingPage.tsx   # /onboarding
 
 components/
-├── common/
-│   ├── AppHeader.tsx    # Shared nav header
-│   └── ThemeToggle.tsx  # Dark mode toggle
-├── dashboard/           # Dashboard widgets
-├── flights/             # Flight list & forms
-├── import/              # Import flow steps
-└── ui/                  # shadcn components
+├── auth/                # Authentication forms
+├── badges/              # Gamification badges
+├── common/              # Shared headers, toggles, generic UI
+├── compare/             # User comparison tools
+├── dashboard/           # Dashboard-specific widgets
+├── error/               # Error boundaries and toast providers
+├── flights/             # Flight lists, filters, and forms
+├── import/              # Import flow logic and UI
+├── landing/             # Marketing page sections
+├── layout/              # Layout wrappers
+├── leaderboard/         # Ranking tables and pods
+├── map/                 # Interactive flight maps
+├── onboarding/          # Setup wizard steps
+├── passport/            # Visual passport book components
+├── profile/             # Public profile views
+├── settings/            # User settings forms
+├── stats/               # Visualization components (charts, graphs)
+└── ui/                  # shadcn/ui base primitives
 ```
+
+## Navigation Hierarchy
+
+**Primary Navigation (Header/Sidebar):**
+
+1. **Dashboard** (`/dashboard`)
+2. **Flights** (`/flights`)
+3. **Passport** (`/passport`)
+4. **Leaderboard** (`/leaderboard`)
+
+**Secondary/Action:**
+
+- **Import** (`/import`) - Often a distinct action button
+
+**User Menu:**
+
+- **Public Profile** (`/fly/:username`)
+- **Settings** (`/settings`)
+- **Sign Out**

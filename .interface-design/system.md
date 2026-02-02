@@ -43,6 +43,20 @@ Linear does not use pure black (`#000000`). It uses deep, cool grays to reduce e
 - **Error (Red):** `#E5484D` (Failed, Off track)
 - **Info (Blue):** `#0091FF`
 
+**Decoration Colors (Tags, Graphs & Illustrations)**
+From the "decoration" palette (10-tone scale):
+
+1. **Cyan:** `#26B5CE`
+2. **Red:** `#E54D5A`
+3. **Salmon:** `#F76B6E`
+4. **Olive:** `#8F710A`
+5. **Yellow:** `#EBCB4B`
+6. **Orange:** `#F3904F`
+7. **Purple:** `#AF7AF2`
+8. **Blue:** `#4EA7F5`
+9. **Slate:** `#939BA5`
+10. **Green:** `#50C086`
+
 ### 1.2 Typography
 
 **Font:** Inter (or similar neo-grotesque).
