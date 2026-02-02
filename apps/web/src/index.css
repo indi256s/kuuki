@@ -11,10 +11,8 @@
 
 @theme {
   /* Custom breakpoints for large displays */
-  --breakpoint-3xl: 1920px;
-  /* Full HD+ monitors */
-  --breakpoint-4xl: 2560px;
-  /* 4K / WQHD displays */
+  --breakpoint-3xl: 1920px;  /* Full HD+ monitors */
+  --breakpoint-4xl: 2560px;  /* 4K / WQHD displays */
 
   /* Typography - Distinctive yet readable */
   --font-display: "DM Sans", ui-sans-serif, system-ui, sans-serif;
@@ -32,8 +30,7 @@
   /* Smooth, organic animations */
   --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
   --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
-  --duration-micro: 100ms;
-  /* Button press, toggles, checkboxes */
+  --duration-micro: 100ms;  /* Button press, toggles, checkboxes */
   --duration-fast: 150ms;
   --duration-normal: 250ms;
   --duration-slow: 400ms;
@@ -123,38 +120,7 @@
   --color-holding-muted: oklch(0.82 0.12 85 / 0.1);
   --color-emergency: oklch(0.65 0.18 25);
   --color-emergency-muted: oklch(0.65 0.18 25 / 0.1);
-  --color-emergency: oklch(0.65 0.18 25);
-  --color-emergency-muted: oklch(0.65 0.18 25 / 0.1);
 }
-
-/* Dynamic Accent Colors */
-:root[data-accent="indigo"] {
-  --primary: oklch(0.55 0.12 25);
-  --primary-foreground: oklch(0.99 0 0);
-}
-
-:root[data-accent="teal"] {
-  --primary: oklch(0.64 0.15 160);
-  --primary-foreground: oklch(0.99 0 0);
-}
-
-:root[data-accent="amber"] {
-  --primary: oklch(0.72 0.16 70);
-  --primary-foreground: oklch(0.99 0 0);
-}
-
-:root[data-accent="rose"] {
-  --primary: oklch(0.6 0.2 20);
-  --primary-foreground: oklch(0.99 0 0);
-}
-
-:root[data-accent="blue"] {
-  --primary: oklch(0.6 0.15 250);
-  --primary-foreground: oklch(0.99 0 0);
-}
-
-/* Force Light Theme Logic (Override automatic dark mode or manual dark class if needed, but keeping .dark available just in case) */
-/* We want to make sure standard variables are used by default */
 
 .dark {
   --background: oklch(0.16 0.01 260);
@@ -314,9 +280,11 @@
 
   /* Subtle gradient backgrounds */
   .bg-gradient-soft {
-    background: linear-gradient(180deg,
-        oklch(0.985 0.002 240) 0%,
-        oklch(0.97 0.005 250) 100%);
+    background: linear-gradient(
+      180deg,
+      oklch(0.985 0.002 240) 0%,
+      oklch(0.97 0.005 250) 100%
+    );
   }
 
   /* Aura Design System Adaptations */
@@ -338,7 +306,7 @@
     backdrop-filter: blur(10px);
     transition: all 0.2s ease;
   }
-
+  
   .aura-input:focus-within {
     background: rgba(0, 0, 0, 0.3);
     border-color: var(--primary);
@@ -359,7 +327,7 @@
     left: 0;
     width: 100%;
     height: 100%;
-    background: linear-gradient(to bottom, rgba(255, 255, 255, 0.1) 0%, transparent 100%);
+    background: linear-gradient(to bottom, rgba(255,255,255,0.1) 0%, transparent 100%);
     opacity: 0;
     transition: opacity 0.3s ease;
   }
@@ -374,13 +342,15 @@
   }
 
   .dark .bg-gradient-soft {
-    background: linear-gradient(180deg,
-        oklch(0.16 0.01 260) 0%,
-        oklch(0.14 0.01 260) 100%);
+    background: linear-gradient(
+      180deg,
+      oklch(0.16 0.01 260) 0%,
+      oklch(0.14 0.01 260) 100%
+    );
   }
-
+  
   .aura-gradient-text {
-    background: linear-gradient(135deg, #FFF 30%, rgba(255, 255, 255, 0.5) 100%);
+    background: linear-gradient(135deg, #FFF 30%, rgba(255,255,255,0.5) 100%);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
@@ -398,13 +368,8 @@
 
 /* Animation keyframes */
 @keyframes fade-in {
-  from {
-    opacity: 0;
-  }
-
-  to {
-    opacity: 1;
-  }
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 @keyframes fade-up {
@@ -412,7 +377,6 @@
     opacity: 0;
     transform: translateY(8px);
   }
-
   to {
     opacity: 1;
     transform: translateY(0);
@@ -424,7 +388,6 @@
     opacity: 0;
     transform: scale(0.96);
   }
-
   to {
     opacity: 1;
     transform: scale(1);
@@ -436,7 +399,6 @@
     opacity: 0;
     transform: translateX(16px);
   }
-
   to {
     opacity: 1;
     transform: translateX(0);
@@ -449,7 +411,6 @@
     opacity: 0;
     transform: translateY(12px);
   }
-
   to {
     opacity: 1;
     transform: translateY(0);
@@ -458,13 +419,10 @@
 
 /* Flowing shimmer animation for Katakana branding (like wind - 空気) */
 @keyframes text-flow {
-
-  0%,
-  100% {
+  0%, 100% {
     background-position: 0% 50%;
     opacity: 0.4;
   }
-
   50% {
     background-position: 100% 50%;
     opacity: 0.7;
@@ -476,7 +434,6 @@
     opacity: 0;
     transform: translate(-50%, 20px);
   }
-
   to {
     opacity: 1;
     transform: translate(-50%, 0);
@@ -488,7 +445,6 @@
     opacity: 1;
     transform: translate(-50%, 0);
   }
-
   to {
     opacity: 0;
     transform: translate(-50%, 20px);
@@ -499,20 +455,16 @@
   from {
     width: 100%;
   }
-
   to {
     width: 0%;
   }
 }
 
 @keyframes sparkle {
-
-  0%,
-  100% {
+  0%, 100% {
     opacity: 1;
     transform: scale(1) rotate(0deg);
   }
-
   50% {
     opacity: 0.6;
     transform: scale(1.2) rotate(15deg);
@@ -520,12 +472,9 @@
 }
 
 @keyframes glow-pulse {
-
-  0%,
-  100% {
+  0%, 100% {
     box-shadow: 0 0 20px rgba(var(--primary), 0.3);
   }
-
   50% {
     box-shadow: 0 0 40px rgba(var(--primary), 0.5);
   }
@@ -538,7 +487,6 @@
     opacity: 0.5;
     transform: scale(0.98);
   }
-
   to {
     filter: blur(0);
     opacity: 1;
@@ -565,10 +513,12 @@
 
   /* Flowing shimmer for branding text - warm vermillion/amber */
   .animate-text-flow {
-    background: linear-gradient(135deg,
-        oklch(0.55 0.12 25 / 0.35),
-        oklch(0.55 0.12 25 / 0.7),
-        oklch(0.55 0.12 25 / 0.35));
+    background: linear-gradient(
+      135deg,
+      oklch(0.55 0.12 25 / 0.35),
+      oklch(0.55 0.12 25 / 0.7),
+      oklch(0.55 0.12 25 / 0.35)
+    );
     background-size: 200% 200%;
     -webkit-background-clip: text;
     background-clip: text;
@@ -577,10 +527,12 @@
   }
 
   .dark .animate-text-flow {
-    background: linear-gradient(135deg,
-        oklch(0.72 0.14 55 / 0.45),
-        oklch(0.72 0.14 55 / 0.85),
-        oklch(0.72 0.14 55 / 0.45));
+    background: linear-gradient(
+      135deg,
+      oklch(0.72 0.14 55 / 0.45),
+      oklch(0.72 0.14 55 / 0.85),
+      oklch(0.72 0.14 55 / 0.45)
+    );
     background-size: 200% 200%;
     -webkit-background-clip: text;
     background-clip: text;
@@ -594,34 +546,17 @@
   }
 
   /* Staggered children animations */
-  .stagger-children>* {
+  .stagger-children > * {
     opacity: 0;
     animation: fade-up var(--duration-normal) var(--ease-smooth) forwards;
   }
 
-  .stagger-children>*:nth-child(1) {
-    animation-delay: 0ms;
-  }
-
-  .stagger-children>*:nth-child(2) {
-    animation-delay: 50ms;
-  }
-
-  .stagger-children>*:nth-child(3) {
-    animation-delay: 100ms;
-  }
-
-  .stagger-children>*:nth-child(4) {
-    animation-delay: 150ms;
-  }
-
-  .stagger-children>*:nth-child(5) {
-    animation-delay: 200ms;
-  }
-
-  .stagger-children>*:nth-child(6) {
-    animation-delay: 250ms;
-  }
+  .stagger-children > *:nth-child(1) { animation-delay: 0ms; }
+  .stagger-children > *:nth-child(2) { animation-delay: 50ms; }
+  .stagger-children > *:nth-child(3) { animation-delay: 100ms; }
+  .stagger-children > *:nth-child(4) { animation-delay: 150ms; }
+  .stagger-children > *:nth-child(5) { animation-delay: 200ms; }
+  .stagger-children > *:nth-child(6) { animation-delay: 250ms; }
 
   /* Tier unlock reveal animation */
   .animate-tier-reveal {
@@ -631,7 +566,6 @@
 
 /* Mobile safe area support */
 @layer utilities {
-
   /* Safe area padding for bottom tab bar */
   .pb-safe {
     padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px));
@@ -688,7 +622,6 @@
    ========================================================================== */
 
 @media (pointer: coarse) {
-
   /* Ensure minimum 44px touch targets on touch devices */
   button:not([data-slot="accordion-trigger"]):not([class*="p-0"]):not([class*="h-auto"]),
   [role="button"]:not([class*="p-0"]):not([class*="h-auto"]),
@@ -708,8 +641,8 @@
   }
 
   /* Minimum 8px gaps between adjacent interactive elements */
-  button+button,
-  [role="button"]+[role="button"] {
+  button + button,
+  [role="button"] + [role="button"] {
     margin-left: 8px;
   }
 }
@@ -719,7 +652,6 @@
    ========================================================================== */
 
 @media (prefers-reduced-motion: reduce) {
-
   *,
   *::before,
   *::after {
@@ -736,7 +668,7 @@
   .animate-slide-in-right,
   .animate-tier-reveal,
   .animate-text-flow,
-  .stagger-children>* {
+  .stagger-children > * {
     opacity: 1 !important;
     transform: none !important;
     filter: none !important;
