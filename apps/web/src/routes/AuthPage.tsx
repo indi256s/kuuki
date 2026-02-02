@@ -42,7 +42,7 @@ export function AuthPage() {
         {/* Horizontal katakana for mobile */}
         <div className="absolute top-16 left-1/2 -translate-x-1/2 z-0">
           <span
-            className="text-4xl font-bold font-display tracking-[0.3em] select-none bg-clip-text text-transparent bg-[radial-gradient(circle_at_top_left,color-mix(in_srgb,var(--primary),transparent_30%),rgba(23,23,23,0.1))] dark:bg-[radial-gradient(circle_at_top_left,color-mix(in_srgb,var(--primary),transparent_20%),rgba(255,255,255,0.1))]"
+            className="text-4xl font-bold font-display tracking-[0.3em] select-none bg-clip-text text-transparent bg-[radial-gradient(circle_at_top_left,color-mix(in_srgb,var(--primary),transparent_65%),rgba(23,23,23,0.1))] dark:bg-[radial-gradient(circle_at_top_left,color-mix(in_srgb,var(--primary),transparent_60%),rgba(255,255,255,0.1))]"
           >
             クウキ
           </span>
@@ -80,7 +80,7 @@ export function AuthPage() {
           {/* Center Visual Feature - Japanese Typography (Hero opacity) */}
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-0 pointer-events-none select-none">
             <span
-              className="text-[12rem] font-bold leading-none writing-vertical select-none font-display tracking-widest bg-clip-text text-transparent bg-[radial-gradient(circle_at_top_left,color-mix(in_srgb,var(--primary),transparent_40%),rgba(23,23,23,0.15))] dark:bg-[radial-gradient(circle_at_top_left,color-mix(in_srgb,var(--primary),transparent_30%),rgba(255,255,255,0.12))]"
+              className="text-[12rem] font-bold leading-none writing-vertical select-none font-display tracking-widest bg-clip-text text-transparent bg-[radial-gradient(circle_at_top_left,color-mix(in_srgb,var(--primary),transparent_70%),rgba(23,23,23,0.15))] dark:bg-[radial-gradient(circle_at_top_left,color-mix(in_srgb,var(--primary),transparent_65%),rgba(255,255,255,0.12))]"
             >
               クウキ
             </span>
@@ -107,11 +107,6 @@ export function AuthPage() {
             <h1 className="text-3xl font-bold tracking-tighter text-neutral-800 dark:text-white/90 mb-3">
               <span className="text-primary">Ku</span>uki
             </h1>
-            <RotatingTagline
-              items={taglines}
-              interval={6000}
-              className="text-neutral-500 dark:text-white/50 text-sm font-medium tracking-wide justify-center"
-            />
           </div>
 
           <div className="w-full max-w-md mx-auto space-y-8 animate-fade-in">
@@ -126,6 +121,15 @@ export function AuthPage() {
                 onSignUpClick={() => setMode('register')}
               />
             )}
+          </div>
+
+          {/* Mobile: Tagline below form */}
+          <div className="lg:hidden mt-8 text-center px-4">
+            <RotatingTagline
+              items={taglines}
+              interval={6000}
+              className="text-neutral-500 dark:text-white/50 text-sm font-medium tracking-wide justify-center"
+            />
           </div>
         </div>
       </div>
