@@ -7,7 +7,6 @@ import { Languages, Plane, Globe2, BarChart3, Shield } from 'lucide-react'
 import { RegisterForm } from '@/components/auth/RegisterForm'
 import { SignInForm } from '@/components/auth'
 import { FlyingPlanes } from '@/components/auth/FlyingPlanes'
-import { ThemeToggle } from '@/components/common/ThemeToggle'
 import { AccentPicker, type AccentColor } from '@/components/common/AccentPicker'
 
 type AuthMode = 'register' | 'signin'
@@ -23,27 +22,27 @@ export function AuthPage() {
     navigate('/dashboard')
   }
 
-  // Feature cards data - human-centric copy
+  // Feature cards - actual human language, not marketing speak
   const features = [
     {
       icon: Plane,
-      title: t('auth.features.import.title', 'Drop & Done'),
-      description: t('auth.features.import.description', 'Just drop your boarding pass. We handle the rest.'),
+      title: t('auth.features.import.title', 'Drop a boarding pass'),
+      description: t('auth.features.import.description', 'Screenshot, PDF, whatever. It just works.'),
     },
     {
       icon: Globe2,
-      title: t('auth.features.map.title', 'Your World Map'),
-      description: t('auth.features.map.description', 'Watch it fill up, flight by flight.'),
+      title: t('auth.features.map.title', 'See where you\'ve been'),
+      description: t('auth.features.map.description', 'A map that fills up as you fly more.'),
     },
     {
       icon: BarChart3,
-      title: t('auth.features.stats.title', 'Friendly Stats'),
-      description: t('auth.features.stats.description', 'Interesting numbers, no bragging rights.'),
+      title: t('auth.features.stats.title', 'Nerdy flight stats'),
+      description: t('auth.features.stats.description', 'Total distance, favorite airports, that stuff.'),
     },
     {
       icon: Shield,
-      title: t('auth.features.privacy.title', 'Truly Yours'),
-      description: t('auth.features.privacy.description', 'Your data stays yours. No ads, no tracking.'),
+      title: t('auth.features.privacy.title', 'Just for you'),
+      description: t('auth.features.privacy.description', 'No ads, no tracking, no selling your data.'),
     },
   ]
 
@@ -71,7 +70,7 @@ export function AuthPage() {
               <span className="text-primary">Ku</span>uki
             </h1>
             <p className="text-neutral-500 dark:text-white/50 text-sm font-medium tracking-wide">
-              {t('common.tagline', 'Every journey, remembered')}
+              {t('common.tagline', 'Keep track of your flights')}
             </p>
           </div>
 
@@ -108,7 +107,7 @@ export function AuthPage() {
           <div className="absolute top-6 right-6 flex items-center gap-2 z-20">
             <AccentPicker value={accentColor} onChange={setAccentColor} />
             <div className="w-px h-5 bg-neutral-300 dark:bg-white/10" />
-            <ThemeToggle />
+            {/* ThemeToggle disabled — dark mode only for now */}
             <Button
               variant="ghost"
               onClick={toggleLanguage}
@@ -145,7 +144,7 @@ export function AuthPage() {
 
             <div className="pt-8 border-t border-neutral-200 dark:border-white/5 text-center lg:text-left">
               <p className="text-xs text-neutral-400 dark:text-white/30">
-                {t('common.tagline')} • v1.0.0
+                A personal flight log • v1.0.0
               </p>
             </div>
           </div>

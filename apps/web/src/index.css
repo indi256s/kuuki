@@ -497,17 +497,17 @@
 /* Matrix-style ascending planes animation for auth page */
 @keyframes plane-ascend {
   0% {
-    transform: translateY(100%) translateX(0) rotate(-45deg);
+    transform: translateY(700px) translateX(0) rotate(-45deg);
     opacity: 0;
   }
-  5% {
-    opacity: var(--plane-opacity, 0.04);
+  8% {
+    opacity: var(--plane-opacity, 0.1);
   }
-  95% {
-    opacity: var(--plane-opacity, 0.04);
+  92% {
+    opacity: var(--plane-opacity, 0.1);
   }
   100% {
-    transform: translateY(-120%) translateX(30px) rotate(-45deg);
+    transform: translateY(-100px) translateX(40px) rotate(-45deg);
     opacity: 0;
   }
 }

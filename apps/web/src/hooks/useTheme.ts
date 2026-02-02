@@ -11,12 +11,13 @@ function getSystemTheme(): ResolvedTheme {
 }
 
 function getStoredTheme(): Theme {
-    if (typeof window === 'undefined') return 'system'
+    if (typeof window === 'undefined') return 'dark'
     const stored = localStorage.getItem(STORAGE_KEY)
-    if (stored === 'light' || stored === 'dark' || stored === 'system') {
+    // Force dark mode for now - light theme disabled
+    if (stored === 'dark') {
         return stored
     }
-    return 'system'
+    return 'dark'
 }
 
 function applyTheme(theme: ResolvedTheme) {
