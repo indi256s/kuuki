@@ -13,8 +13,7 @@
     "./countries.json": "./src/countries.json"
   },
   "scripts": {
-    "build": "tsc",
-    "lint": "eslint ."
+    "build": "tsc"
   },
   "dependencies": {
     "@kuuki/shared": "workspace:*"
