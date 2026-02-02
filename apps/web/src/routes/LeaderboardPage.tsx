@@ -128,7 +128,7 @@ export function LeaderboardPage() {
                   {t('leaderboard.joinCtaDescription', 'Sign up and log 10 flights to appear on the leaderboard')}
                 </p>
                 <Button asChild>
-                  <Link to="/auth">
+                  <Link to="/">
                     {t('auth.signIn', 'Sign in')}
                   </Link>
                 </Button>

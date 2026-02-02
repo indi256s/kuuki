@@ -19,7 +19,7 @@ export function HeroSection() {
       {/* CTA buttons */}
       <div className="flex flex-col sm:flex-row gap-4 justify-center">
         <Link
-          to="/auth"
+          to="/"
           className="px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors focus-ring font-medium text-lg"
         >
           {t('landing.hero.signIn')}

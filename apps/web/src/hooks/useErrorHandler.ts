@@ -87,7 +87,7 @@ export function useErrorHandler() {
         // Refresh failed - redirect to auth page
         if (!silent) {
           // Navigate to auth with return URL
-          navigate('/auth', {
+          navigate('/', {
             state: { from: window.location.pathname },
             replace: true,
           })
@@ -148,7 +148,7 @@ export function createGlobalErrorHandler(navigate: (path: string) => void) {
 
     // Auth errors redirect to login
     if (classified.category === 'auth' && !silent) {
-      navigate('/auth')
+      navigate('/')
     }
   }
 }

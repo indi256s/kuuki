@@ -81,7 +81,7 @@ export function LandingPage() {
           {/* CTA buttons */}
           <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center animate-fade-up" style={{ animationDelay: '100ms' }}>
             <Button asChild size="lg" className="text-base px-8 gap-2">
-              <Link to="/auth">
+              <Link to="/">
                 {t('landing.hero.signIn')}
                 <ArrowRight className="w-4 h-4" />
               </Link>

@@ -64,8 +64,8 @@ function AppRoutes() {
   return (
     <RouteErrorBoundary>
       <Routes>
-        <Route path="/" element={<LandingPage />} />
-        <Route path="/auth" element={<AuthPage />} />
+        <Route path="/" element={<AuthPage />} />
+        <Route path="/landing" element={<LandingPage />} />
         <Route
           path="/onboarding"
           element={
