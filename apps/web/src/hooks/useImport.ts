@@ -49,20 +49,35 @@ export interface ParseRequest {
 export function useParseImport() {
   return useMutation({
     mutationFn: async (request: ParseRequest): Promise<ParseResult> => {
-      const response = await fetch('/api/import/parse', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(request),
-      })
+      // Add timeout to prevent indefinite hanging
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 60000) // 60 second timeout
 
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}))
-        throw new Error(errorData.error || 'Failed to parse document')
+      try {
+        const response = await fetch('/api/import/parse', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(request),
+          signal: controller.signal,
+        })
+
+        clearTimeout(timeoutId)
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}))
+          throw new Error(errorData.error || 'Failed to parse document')
+        }
+
+        return response.json()
+      } catch (error) {
+        clearTimeout(timeoutId)
+        if (error instanceof Error && error.name === 'AbortError') {
+          throw new Error('Request timed out. Please try again.')
+        }
+        throw error
       }
-
-      return response.json()
     },
   })
 }

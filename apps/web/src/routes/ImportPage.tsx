@@ -259,6 +259,14 @@ export function ImportPage() {
                 <p className="mt-1 text-center text-muted-foreground text-sm">
                   {t('import.parsing.aiHint', 'AI is extracting flight details. This may take 10-20 seconds.')}
                 </p>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleCancel}
+                  className="mt-4 text-muted-foreground"
+                >
+                  {t('common.cancel')}
+                </Button>
               </div>
             )}
 
