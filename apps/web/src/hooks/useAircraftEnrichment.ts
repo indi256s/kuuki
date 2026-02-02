@@ -1,0 +1,94 @@
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useAuthStore } from '@/stores/authStore'
+import { supabase } from '@/lib/supabase'
+
+// Keys for cache invalidation
+const FLIGHTS_KEY = 'flights'
+const FLIGHT_AIRCRAFT_KEY = 'flightAircraft'
+
+export interface FlightToEnrich {
+  id: string
+  flight_number: string | null
+  airline_iata: string | null
+  date: string
+  origin: string
+  destination: string
+}
+
+export interface EnrichmentResult {
+  flight_id: string
+  aircraft_icao: string | null
+  aircraft_name: string | null
+  confidence: number
+}
+
+export interface EnrichmentResponse {
+  results: EnrichmentResult[]
+  error?: string
+}
+
+/**
+ * Hook to enrich flights with aircraft information using Gemini AI.
+ * Sends a batch of flights to the API and returns identified aircraft types.
+ */
+export function useAircraftEnrichment() {
+  return useMutation({
+    mutationFn: async (flights: FlightToEnrich[]): Promise<EnrichmentResponse> => {
+      const response = await fetch('/api/enrich/aircraft', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ flights }),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.error || `Request failed with status ${response.status}`)
+      }
+
+      return response.json()
+    },
+  })
+}
+
+/**
+ * Hook to update flight aircraft after user accepts enrichment results.
+ * Accepts multiple flights at once for batch update.
+ */
+export function useUpdateFlightAircraft() {
+  const queryClient = useQueryClient()
+  const userId = useAuthStore((state) => state.user?.id)
+
+  return useMutation({
+    mutationFn: async (updates: { id: number; aircraft_icao: string }[]) => {
+      if (!userId) throw new Error('Not authenticated')
+
+      // Use Supabase to update each flight
+      // We do individual updates to ensure proper ownership checks
+      const results = await Promise.all(
+        updates.map(async ({ id, aircraft_icao }) => {
+          const { data, error } = await supabase
+            .from('flights')
+            .update({ aircraft_icao })
+            .eq('id', id)
+            .eq('user_id', userId)
+            .select()
+            .single()
+
+          if (error) throw error
+          return data
+        })
+      )
+
+      return results
+    },
+    onSuccess: () => {
+      // Invalidate flight-related queries to refresh the UI
+      queryClient.invalidateQueries({ queryKey: [FLIGHTS_KEY] })
+      queryClient.invalidateQueries({ queryKey: [FLIGHT_AIRCRAFT_KEY] })
+      queryClient.invalidateQueries({ queryKey: ['flightStats'] })
+    },
+  })
+}
+
+// Re-export types for convenience
+export type { FlightToEnrich as EnrichmentFlightInput }

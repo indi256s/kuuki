@@ -4,6 +4,7 @@ import { findAirport, findAirline, findAircraft } from '@kuuki/data'
 import { formatDistance, formatDuration, daysUntilFlight } from '@/lib/geo'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
 import {
   Table,
   TableBody,
@@ -23,6 +24,10 @@ interface FlightTableProps {
   onDelete: (flight: Flight) => void
   sort?: SortConfig
   onSortChange?: (sort: SortConfig) => void
+  // Selection support
+  selectedIds?: Set<number>
+  onSelectionChange?: (selectedIds: Set<number>) => void
+  selectionEnabled?: boolean
 }
 
 // Sortable column header component
@@ -116,7 +121,16 @@ function RouteCell({ flight }: { flight: Flight }) {
   )
 }
 
-export function FlightTable({ flights, onEdit, onDelete, sort, onSortChange }: FlightTableProps) {
+export function FlightTable({
+  flights,
+  onEdit,
+  onDelete,
+  sort,
+  onSortChange,
+  selectedIds = new Set(),
+  onSelectionChange,
+  selectionEnabled = false,
+}: FlightTableProps) {
   const { t } = useTranslation()
 
   const formatDate = (dateStr: string) => {
@@ -133,6 +147,36 @@ export function FlightTable({ flights, onEdit, onDelete, sort, onSortChange }: F
     return time
   }
 
+  // Selection handlers
+  const allSelected = flights.length > 0 && flights.every(f => selectedIds.has(f.id))
+  const someSelected = flights.some(f => selectedIds.has(f.id)) && !allSelected
+
+  const toggleSelectAll = () => {
+    if (!onSelectionChange) return
+    if (allSelected) {
+      // Deselect all visible flights
+      const newSet = new Set(selectedIds)
+      flights.forEach(f => newSet.delete(f.id))
+      onSelectionChange(newSet)
+    } else {
+      // Select all visible flights
+      const newSet = new Set(selectedIds)
+      flights.forEach(f => newSet.add(f.id))
+      onSelectionChange(newSet)
+    }
+  }
+
+  const toggleSelect = (flightId: number) => {
+    if (!onSelectionChange) return
+    const newSet = new Set(selectedIds)
+    if (newSet.has(flightId)) {
+      newSet.delete(flightId)
+    } else {
+      newSet.add(flightId)
+    }
+    onSelectionChange(newSet)
+  }
+
   return (
     <Card className="border-border/50 overflow-hidden shadow-sm">
       <CardContent className="p-0">
@@ -141,11 +185,28 @@ export function FlightTable({ flights, onEdit, onDelete, sort, onSortChange }: F
           <Table className="min-w-[900px]">
             <TableHeader>
               <TableRow className="hover:bg-transparent border-b-2">
+                {/* Selection checkbox column */}
+                {selectionEnabled && (
+                  <TableHead className="w-10 sticky left-0 bg-card z-10">
+                    <Checkbox
+                      checked={allSelected}
+                      ref={(el) => {
+                        if (el) {
+                          // Set indeterminate state for partial selection
+                          (el as unknown as HTMLInputElement).indeterminate = someSelected
+                        }
+                      }}
+                      onCheckedChange={toggleSelectAll}
+                      aria-label={t('flights.selectAll', 'Select all')}
+                      className="data-[state=checked]:bg-primary"
+                    />
+                  </TableHead>
+                )}
                 <SortableHeader
                   field="date"
                   currentSort={sort}
                   onSort={onSortChange}
-                  className="w-28 sticky left-0 bg-card z-10"
+                  className={cn('w-28', !selectionEnabled && 'sticky left-0 bg-card z-10')}
                 >
                   {t('flights.date', 'Date')}
                 </SortableHeader>
@@ -196,19 +257,37 @@ export function FlightTable({ flights, onEdit, onDelete, sort, onSortChange }: F
                 const depTime = formatTime(flight.departure_time)
                 const arrTime = formatTime(flight.arrival_time)
 
+                const isSelected = selectedIds.has(flight.id)
+
                 return (
                   <TableRow
                     key={flight.id}
                     className={cn(
                       'group transition-colors',
                       isUpcoming && 'bg-primary/[0.02]',
-                      index % 2 === 0 && !isUpcoming && 'bg-muted/20'
+                      index % 2 === 0 && !isUpcoming && 'bg-muted/20',
+                      isSelected && 'bg-primary/5'
                     )}
                   >
-                    {/* Date - sticky on scroll */}
+                    {/* Selection checkbox */}
+                    {selectionEnabled && (
+                      <TableCell className={cn(
+                        'py-4 sticky left-0 z-10',
+                        isSelected ? 'bg-primary/5' : isUpcoming ? 'bg-primary/[0.02]' : index % 2 === 0 ? 'bg-muted/20' : 'bg-card'
+                      )}>
+                        <Checkbox
+                          checked={isSelected}
+                          onCheckedChange={() => toggleSelect(flight.id)}
+                          aria-label={t('flights.selectFlight', 'Select flight')}
+                          className="data-[state=checked]:bg-primary"
+                        />
+                      </TableCell>
+                    )}
+                    {/* Date - sticky on scroll when no selection */}
                     <TableCell className={cn(
-                      'py-4 sticky left-0 z-10',
-                      isUpcoming ? 'bg-primary/[0.02]' : index % 2 === 0 ? 'bg-muted/20' : 'bg-card'
+                      'py-4',
+                      !selectionEnabled && 'sticky left-0 z-10',
+                      isSelected ? 'bg-primary/5' : isUpcoming ? 'bg-primary/[0.02]' : index % 2 === 0 ? 'bg-muted/20' : 'bg-card'
                     )}>
                       <div className={cn('font-medium', isUpcoming && 'text-primary')}>
                         {formatDate(flight.date)}
@@ -297,7 +376,7 @@ export function FlightTable({ flights, onEdit, onDelete, sort, onSortChange }: F
                     {/* Actions - sticky on scroll */}
                     <TableCell className={cn(
                       'py-4 text-right sticky right-0 z-10',
-                      isUpcoming ? 'bg-primary/[0.02]' : index % 2 === 0 ? 'bg-muted/20' : 'bg-card'
+                      isSelected ? 'bg-primary/5' : isUpcoming ? 'bg-primary/[0.02]' : index % 2 === 0 ? 'bg-muted/20' : 'bg-card'
                     )}>
                       <div className="flex gap-1 justify-end opacity-50 group-hover:opacity-100 transition-opacity">
                         <Button

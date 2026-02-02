@@ -135,7 +135,15 @@
     "addFirstFlight": "Добавьте первый полёт",
     "pending": "Ожидание",
     "setAircraft": "Указать самолёт",
-    "pendingDescription": "Не удалось определить тип самолёта. Вы можете указать его вручную."
+    "pendingDescription": "Не удалось определить тип самолёта. Вы можете указать его вручную.",
+    "select": "Выбрать",
+    "selectAll": "Выбрать все",
+    "selectFlight": "Выбрать полёт",
+    "selectedCount": "Выбрано: {{count}}",
+    "deleteSelected": "Удалить выбранные",
+    "deleteCount": "Удалить {{count}}",
+    "batchDeleteTitle": "Удалить {{count}} полётов?",
+    "batchDeleteMessage": "Это действие нельзя отменить. Все выбранные полёты будут удалены из вашего журнала."
   },
   "stats": {
     "title": "Статистика",
@@ -568,5 +576,19 @@
     "step2": "Вставьте результат сюда",
     "uploadFile": "Загрузить файл",
     "addManually": "Добавить вручную"
+  },
+  "enrich": {
+    "findAircraft": "Найти самолёт",
+    "findAircraftCount": "Найти самолёт ({{count}})",
+    "searching": "Поиск...",
+    "missingAircraft": "Нет данных о самолёте",
+    "missingAircraftDesc": "У {{count}} полётов не указан тип самолёта",
+    "missingCount": "{{count}} без самолёта",
+    "resultsTitle": "Результаты идентификации самолётов",
+    "resultsDescription": "Определено {{identified}} из {{total}} самолётов",
+    "selectedCount": "Выбрано: {{selected}}",
+    "acceptSelected": "Принять выбранные ({{count}})",
+    "notFound": "Не найден",
+    "noResults": "Не удалось определить самолёты. Попробуйте ещё раз или укажите вручную."
   }
 }

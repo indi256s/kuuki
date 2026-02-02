@@ -181,6 +181,24 @@ export async function deleteFlight(flightId: number): Promise<void> {
 }
 
 /**
+ * Delete multiple flights at once
+ */
+export async function deleteFlights(flightIds: number[]): Promise<number> {
+  if (flightIds.length === 0) return 0
+
+  const { error, count } = await supabase
+    .from('flights')
+    .delete({ count: 'exact' })
+    .in('id', flightIds)
+
+  if (error) {
+    throw new Error(`Failed to delete flights: ${error.message}`)
+  }
+
+  return count ?? 0
+}
+
+/**
  * Check for duplicate flights (same date + origin + destination)
  */
 export async function checkDuplicateFlight(

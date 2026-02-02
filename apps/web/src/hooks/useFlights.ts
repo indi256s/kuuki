@@ -5,6 +5,7 @@ import {
   createFlight,
   updateFlight,
   deleteFlight,
+  deleteFlights,
   checkDuplicateFlight,
   getRecentFlights,
   getUpcomingFlights,
@@ -137,6 +138,33 @@ export function useDeleteFlight() {
       queryClient.invalidateQueries({ queryKey: [UPCOMING_FLIGHTS_KEY] })
       queryClient.invalidateQueries({ queryKey: [FLIGHT_YEARS_KEY] })
       queryClient.invalidateQueries({ queryKey: [FLIGHT_AIRLINES_KEY] })
+      queryClient.invalidateQueries({ queryKey: ['flightStats'] })
+    },
+  })
+}
+
+/**
+ * Hook to delete multiple flights at once
+ */
+export function useBatchDeleteFlights() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (flightIds: number[]) => {
+      return deleteFlights(flightIds)
+    },
+    onSuccess: (_, flightIds) => {
+      // Remove each flight from cache
+      flightIds.forEach(id => {
+        queryClient.removeQueries({ queryKey: [FLIGHT_KEY, id] })
+      })
+      // Invalidate all lists
+      queryClient.invalidateQueries({ queryKey: [FLIGHTS_KEY] })
+      queryClient.invalidateQueries({ queryKey: [RECENT_FLIGHTS_KEY] })
+      queryClient.invalidateQueries({ queryKey: [UPCOMING_FLIGHTS_KEY] })
+      queryClient.invalidateQueries({ queryKey: [FLIGHT_YEARS_KEY] })
+      queryClient.invalidateQueries({ queryKey: [FLIGHT_AIRLINES_KEY] })
+      queryClient.invalidateQueries({ queryKey: [FLIGHT_AIRCRAFT_KEY] })
       queryClient.invalidateQueries({ queryKey: ['flightStats'] })
     },
   })

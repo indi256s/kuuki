@@ -136,7 +136,15 @@
     "addFirstFlight": "Add your first flight",
     "pending": "Pending",
     "setAircraft": "Set Aircraft",
-    "pendingDescription": "We couldn't identify the aircraft. You can set it manually."
+    "pendingDescription": "We couldn't identify the aircraft. You can set it manually.",
+    "select": "Select",
+    "selectAll": "Select all",
+    "selectFlight": "Select flight",
+    "selectedCount": "{{count}} selected",
+    "deleteSelected": "Delete Selected",
+    "deleteCount": "Delete {{count}}",
+    "batchDeleteTitle": "Delete {{count}} Flights?",
+    "batchDeleteMessage": "This action cannot be undone. All selected flights will be permanently removed from your log."
   },
   "stats": {
     "title": "Stats",
@@ -569,5 +577,19 @@
     "step2": "Paste the results here",
     "uploadFile": "Upload file",
     "addManually": "Add manually"
+  },
+  "enrich": {
+    "findAircraft": "Find Aircraft",
+    "findAircraftCount": "Find Aircraft ({{count}})",
+    "searching": "Searching...",
+    "missingAircraft": "Missing Aircraft",
+    "missingAircraftDesc": "{{count}} flights have no aircraft type",
+    "missingCount": "{{count}} missing",
+    "resultsTitle": "Aircraft Identification Results",
+    "resultsDescription": "{{identified}} of {{total}} aircraft identified",
+    "selectedCount": "{{selected}} selected",
+    "acceptSelected": "Accept {{count}} Selected",
+    "notFound": "Not found",
+    "noResults": "Could not identify any aircraft. Try again or set manually."
   }
 }
