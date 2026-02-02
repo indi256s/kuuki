@@ -512,6 +512,16 @@
   }
 }
 
+/* Progress bar fill animation for rotating tagline */
+@keyframes progress-fill {
+  0% {
+    width: 0%;
+  }
+  100% {
+    width: 100%;
+  }
+}
+
 @layer utilities {
   .animate-fade-in {
     animation: fade-in var(--duration-normal) var(--ease-smooth) forwards;

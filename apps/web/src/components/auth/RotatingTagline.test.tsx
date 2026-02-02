@@ -51,9 +51,12 @@ describe('RotatingTagline', () => {
       render(<RotatingTagline items={englishTaglines} interval={1000} />)
 
       // Cycle through all 4 taglines and back to first
+      // Each cycle: interval (1000ms) + exit animation (200ms) + enter animation (50ms)
       for (let i = 0; i < 4; i++) {
         await act(async () => {
-          vi.advanceTimersByTime(1300)
+          vi.advanceTimersByTime(1000) // interval triggers
+          vi.advanceTimersByTime(200)  // exit phase
+          vi.advanceTimersByTime(50)   // enter phase snaps to visible
         })
       }
 
@@ -101,36 +104,36 @@ describe('RotatingTagline', () => {
     })
   })
 
-  describe('dot indicators', () => {
-    it('renders correct number of dots for items', () => {
+  describe('progress indicators', () => {
+    it('renders correct number of progress bars for items', () => {
       render(<RotatingTagline items={englishTaglines} />)
 
-      // 4 dots for 4 taglines
-      const dots = document.querySelectorAll('.rounded-full')
-      expect(dots.length).toBe(4)
+      // 4 progress bars (containers) for 4 taglines - the outer wrapper divs
+      const progressBars = document.querySelectorAll('.flex.gap-1 > div')
+      expect(progressBars.length).toBe(4)
     })
 
-    it('highlights the current dot', () => {
+    it('highlights the current progress bar', () => {
       render(<RotatingTagline items={englishTaglines} />)
 
-      const dots = document.querySelectorAll('.rounded-full')
-      // First dot should be wider (active)
-      expect(dots[0].classList.contains('w-2')).toBe(true)
-      // Other dots should be w-1 (inactive)
-      expect(dots[1].classList.contains('w-1')).toBe(true)
+      const progressFills = document.querySelectorAll('.flex.gap-1 > div > div')
+      // First bar should be active (primary color, full width)
+      expect(progressFills[0].classList.contains('bg-primary/70')).toBe(true)
+      expect(progressFills[0].classList.contains('w-full')).toBe(true)
     })
 
-    it('updates highlighted dot when rotating', async () => {
+    it('updates highlighted bar when rotating', async () => {
       render(<RotatingTagline items={englishTaglines} interval={1000} />)
 
       await act(async () => {
         vi.advanceTimersByTime(1300)
       })
 
-      const dots = document.querySelectorAll('.rounded-full')
-      // Second dot should now be active
-      expect(dots[1].classList.contains('w-2')).toBe(true)
-      expect(dots[0].classList.contains('w-1')).toBe(true)
+      const progressFills = document.querySelectorAll('.flex.gap-1 > div > div')
+      // Second bar should now be active
+      expect(progressFills[1].classList.contains('bg-primary/70')).toBe(true)
+      // First bar should be completed (lighter color)
+      expect(progressFills[0].classList.contains('bg-primary/30')).toBe(true)
     })
   })
 

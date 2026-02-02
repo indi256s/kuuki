@@ -94,6 +94,24 @@ export function RegisterForm({ onSuccess, onSignInClick }: RegisterFormProps) {
           </Alert>
         )}
 
+        {/* Closed Beta Badge */}
+        <div className="flex justify-center mb-2">
+          <span
+            className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold tracking-wide"
+            style={{
+              backgroundColor: '#21341E',
+              color: 'white',
+              boxShadow: '0 0 12px rgba(44, 144, 28, 0.3)'
+            }}
+          >
+            <span
+              className="w-1.5 h-1.5 rounded-full animate-pulse"
+              style={{ backgroundColor: '#2C901C' }}
+            />
+            Closed Beta
+          </span>
+        </div>
+
         {/* Invite Code - The gate to the community */}
         <FormField
           control={form.control}
@@ -196,9 +214,6 @@ export function RegisterForm({ onSuccess, onSignInClick }: RegisterFormProps) {
                   {...field}
                 />
               </FormControl>
-              <p className="text-xs text-white/40">
-                {t('auth.passwordHint', 'At least 8 characters')}
-              </p>
               <FormMessage />
             </FormItem>
           )}

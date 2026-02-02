@@ -32,12 +32,6 @@ export function AuthPage() {
 
   return (
     <div className="min-h-screen bg-neutral-50 dark:bg-[#09090b] flex items-center justify-center p-4 relative overflow-hidden font-sans transition-colors duration-300">
-      {/* Closed Beta Chevron */}
-      <div className="absolute top-0 left-0 z-50 overflow-hidden w-32 h-32 pointer-events-none">
-        <div className="absolute -left-8 top-6 w-40 bg-primary text-primary-foreground text-xs font-semibold py-1.5 text-center -rotate-45 shadow-md">
-          Closed Beta
-        </div>
-      </div>
 
       {/* Background Ambience */}
       <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-primary/10 dark:bg-primary/20 blur-[120px] rounded-full pointer-events-none opacity-60 dark:opacity-40" />
@@ -76,7 +70,7 @@ export function AuthPage() {
             </h1>
             <RotatingTagline
               items={taglines}
-              interval={8000}
+              interval={6000}
               className="text-neutral-500 dark:text-white/50 text-sm font-medium tracking-wide"
             />
           </div>
@@ -111,7 +105,7 @@ export function AuthPage() {
             </h1>
             <RotatingTagline
               items={taglines}
-              interval={8000}
+              interval={6000}
               className="text-neutral-500 dark:text-white/50 text-sm font-medium tracking-wide justify-center"
             />
           </div>
