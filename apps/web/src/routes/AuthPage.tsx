@@ -3,10 +3,9 @@ import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useLanguage } from '@/hooks/useLanguage'
 import { Button } from '@/components/ui/button'
-import { Languages, Plane, Globe2, BarChart3, Shield } from 'lucide-react'
+import { Languages } from 'lucide-react'
 import { RegisterForm } from '@/components/auth/RegisterForm'
-import { SignInForm } from '@/components/auth'
-import { FlyingPlanes } from '@/components/auth/FlyingPlanes'
+import { SignInForm, FlyingPlanes, RotatingTagline } from '@/components/auth'
 import { AccentPicker, type AccentColor } from '@/components/common/AccentPicker'
 
 type AuthMode = 'register' | 'signin'
@@ -22,29 +21,8 @@ export function AuthPage() {
     navigate('/dashboard')
   }
 
-  // Feature cards - actual human language, not marketing speak
-  const features = [
-    {
-      icon: Plane,
-      title: t('auth.features.import.title', 'Drop a boarding pass'),
-      description: t('auth.features.import.description', 'Screenshot, PDF, whatever. It just works.'),
-    },
-    {
-      icon: Globe2,
-      title: t('auth.features.map.title', 'See where you\'ve been'),
-      description: t('auth.features.map.description', 'A map that fills up as you fly more.'),
-    },
-    {
-      icon: BarChart3,
-      title: t('auth.features.stats.title', 'Nerdy flight stats'),
-      description: t('auth.features.stats.description', 'Total distance, favorite airports, that stuff.'),
-    },
-    {
-      icon: Shield,
-      title: t('auth.features.privacy.title', 'Just for you'),
-      description: t('auth.features.privacy.description', 'No ads, no tracking, no selling your data.'),
-    },
-  ]
+  // Get taglines array from i18n
+  const taglines = t('auth.taglines', { returnObjects: true }) as string[]
 
   return (
     <div className="min-h-screen bg-neutral-50 dark:bg-[#09090b] flex items-center justify-center p-4 relative overflow-hidden font-sans transition-colors duration-300">
@@ -52,52 +30,49 @@ export function AuthPage() {
       <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-primary/10 dark:bg-primary/20 blur-[120px] rounded-full pointer-events-none opacity-60 dark:opacity-40" />
       <div className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] bg-primary/5 dark:bg-primary/10 blur-[120px] rounded-full pointer-events-none opacity-50 dark:opacity-30" />
 
-      {/* Main Card */}
-      <div className="w-full max-w-[1100px] min-h-[600px] lg:h-[700px] rounded-[32px] grid lg:grid-cols-[40%_60%] overflow-hidden shadow-xl dark:shadow-2xl relative z-10 transition-all duration-500 bg-white/80 dark:bg-white/[0.03] backdrop-blur-xl border border-neutral-200/50 dark:border-white/[0.06]">
+      {/* Mobile: Atmospheric background elements */}
+      <div className="lg:hidden absolute inset-0 pointer-events-none overflow-hidden">
+        {/* Horizontal katakana for mobile */}
+        <div className="absolute top-16 left-1/2 -translate-x-1/2 z-0">
+          <span className="text-4xl font-bold text-neutral-900/[0.06] dark:text-white/[0.05] font-display tracking-[0.3em] select-none">
+            クウキ
+          </span>
+        </div>
+        {/* Planes behind form on mobile */}
+        <div className="opacity-50">
+          <FlyingPlanes />
+        </div>
+      </div>
 
-        {/* Left Side: Visual / Brand */}
-        <div className="relative hidden lg:flex flex-col justify-between p-12 overflow-hidden group bg-neutral-100/50 dark:bg-transparent">
+      {/* Main Card */}
+      <div className="w-full max-w-[1100px] min-h-[600px] lg:h-[700px] rounded-[32px] grid lg:grid-cols-[40%_60%] overflow-hidden shadow-xl dark:shadow-2xl relative z-10 transition-all duration-500 bg-white/90 dark:bg-white/[0.03] lg:bg-white/80 backdrop-blur-xl border border-neutral-200/50 dark:border-white/[0.06]">
+
+        {/* Left Side: Visual / Brand (Desktop only) */}
+        <div className="relative hidden lg:flex flex-col justify-start p-12 overflow-hidden group bg-neutral-100/50 dark:bg-transparent">
           {/* Dynamic Background for Left Panel */}
           <div className="absolute inset-0 bg-gradient-to-br from-primary/5 dark:from-primary/10 to-transparent opacity-80 dark:opacity-50 z-0" />
           <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.15] dark:opacity-20 z-0 mix-blend-overlay" />
 
-          {/* Ascending planes animation - Matrix departures board effect */}
+          {/* Orbital planes animation */}
           <FlyingPlanes />
 
-          {/* Top Branding */}
+          {/* Top Branding with Rotating Tagline */}
           <div className="relative z-10">
-            <h1 className="text-4xl font-bold tracking-tighter text-neutral-800 dark:text-white/90 mb-2">
+            <h1 className="text-4xl font-bold tracking-tighter text-neutral-800 dark:text-white/90 mb-3">
               <span className="text-primary">Ku</span>uki
             </h1>
-            <p className="text-neutral-500 dark:text-white/50 text-sm font-medium tracking-wide">
-              {t('common.tagline', 'Keep track of your flights')}
-            </p>
+            <RotatingTagline
+              items={taglines}
+              interval={8000}
+              className="text-neutral-500 dark:text-white/50 text-sm font-medium tracking-wide"
+            />
           </div>
 
-          {/* Center Visual Feature - Japanese Typography */}
+          {/* Center Visual Feature - Japanese Typography (Hero opacity) */}
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-0 pointer-events-none select-none">
-            <span className="text-[12rem] font-bold leading-none text-neutral-900/[0.03] dark:text-white/[0.03] writing-vertical select-none font-display tracking-widest">
+            <span className="text-[12rem] font-bold leading-none text-neutral-900/[0.10] dark:text-white/[0.08] writing-vertical select-none font-display tracking-widest">
               クウキ
             </span>
-          </div>
-
-          {/* Bottom Features Carousel */}
-          <div className="relative z-10 grid gap-3">
-            {features.map((feature, i) => (
-              <div
-                key={feature.title}
-                className="group/item flex items-center gap-4 p-4 rounded-xl bg-white/60 dark:bg-white/5 border border-neutral-200/50 dark:border-white/5 backdrop-blur-sm hover:bg-white/80 dark:hover:bg-white/10 hover:border-neutral-300/50 dark:hover:border-white/10 transition-all duration-300 transform hover:-translate-y-0.5 shadow-sm dark:shadow-none"
-                style={{ transitionDelay: `${i * 50}ms` }}
-              >
-                <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                  <feature.icon className="w-5 h-5 text-primary" strokeWidth={1.5} />
-                </div>
-                <div>
-                  <h3 className="font-medium text-neutral-800 dark:text-white/90 text-sm leading-tight mb-0.5">{feature.title}</h3>
-                  <p className="text-xs text-neutral-500 dark:text-white/50">{feature.description}</p>
-                </div>
-              </div>
-            ))}
           </div>
         </div>
 
@@ -114,6 +89,18 @@ export function AuthPage() {
             >
               <Languages className="w-4 h-4" />
             </Button>
+          </div>
+
+          {/* Mobile: Brand header inside form area */}
+          <div className="lg:hidden mb-8 text-center">
+            <h1 className="text-3xl font-bold tracking-tighter text-neutral-800 dark:text-white/90 mb-3">
+              <span className="text-primary">Ku</span>uki
+            </h1>
+            <RotatingTagline
+              items={taglines}
+              interval={8000}
+              className="text-neutral-500 dark:text-white/50 text-sm font-medium tracking-wide justify-center"
+            />
           </div>
 
           <div className="w-full max-w-md mx-auto space-y-8 animate-fade-in">

@@ -68,7 +68,13 @@
         "title": "Truly Yours",
         "description": "Your data stays yours. No ads, no tracking."
       }
-    }
+    },
+    "taglines": [
+      "Snap a boarding pass. We'll figure it out.",
+      "Flights, countries, airports — all the nerdy stuff.",
+      "Halfway to the Moon, apparently.",
+      "23 countries down, 172 to go."
+    ]
   },
   "onboarding": {
     "slide1": {
