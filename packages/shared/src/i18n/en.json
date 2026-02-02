@@ -32,6 +32,7 @@
     "signInWithGoogle": "Sign in with Google",
     "signingIn": "Signing in...",
     "welcome": "Welcome back",
+    "welcomeBack": "Welcome Back",
     "newUser": "New to Kuuki?",
     "createAccount": "Create an account",
     "haveAccount": "Already have an account?",
@@ -42,7 +43,21 @@
     "codeValid": "Valid invite code",
     "codeInvalid": "Invalid or expired invite code",
     "passwordMismatch": "Passwords do not match",
-    "passwordTooShort": "Password must be at least 8 characters"
+    "passwordTooShort": "Password must be at least 8 characters",
+    "passwordHint": "At least 8 characters",
+    "joinKuuki": "Join Kuuki",
+    "inviteRequired": "Invite code required",
+    "signInSubtitle": "Sign in to your flight vault",
+    "inviteOnlyNote": "Kuuki is invite-only to maintain a quality community",
+    "features": {
+      "tracking": "AI-powered import from boarding passes",
+      "places": "Build your personal nomad passport",
+      "stats": "Percentiles, not pressure",
+      "privacy": {
+        "title": "Private by Default",
+        "description": "Your journeys, your control"
+      }
+    }
   },
   "onboarding": {
     "slide1": {
@@ -55,7 +70,7 @@
     },
     "slide3": {
       "title": "Compare & Share",
-      "description": "Join the leaderboard. Share your aviation story with the world."
+      "description": "Join the leaderboard. Compare stats with fellow enthusiasts."
     }
   },
   "nav": {
@@ -590,17 +605,29 @@
       "requestInvite": "Request Invite"
     },
     "features": {
+      "tracking": {
+        "title": "Flight Tracking",
+        "description": "Log your flights with AI-powered import from boarding passes and itineraries"
+      },
+      "places": {
+        "title": "Visited Places",
+        "description": "Automatically track countries and cities from your flight history"
+      },
+      "stats": {
+        "title": "Travel Stats",
+        "description": "Discover insights about your travel patterns and achievements"
+      },
+      "social": {
+        "title": "Social",
+        "description": "Share profiles and compete on leaderboards with friends"
+      },
       "log": {
         "title": "Log Your Journeys",
         "description": "Every takeoff, every landing. Build your personal aviation archive."
       },
-      "stats": {
-        "title": "Discover Your Stats",
-        "description": "Distance flown, countries visited, airlines collected. See your patterns emerge."
-      },
       "compete": {
         "title": "Compare & Share",
-        "description": "Join the leaderboard. Share your aviation story with the world."
+        "description": "Join the leaderboard. Compare stats with fellow enthusiasts."
       }
     }
   },
@@ -615,7 +642,7 @@
     },
     "slide3": {
       "title": "Compare & Share",
-      "description": "Join the leaderboard. Share your aviation story with the world."
+      "description": "Join the leaderboard. Compare stats with fellow enthusiasts."
     },
     "username": {
       "title": "Choose Your Username",
