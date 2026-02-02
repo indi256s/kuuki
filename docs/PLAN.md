@@ -9,6 +9,8 @@
 
 ## Current Status
 
+**🎉 MVP COMPLETE** — All phases done, CI/CD deployed, ready for users.
+
 | Phase | Status | Details |
 |-------|--------|---------|
 | **0.5 Reference Data** | ✅ Done | 726 aircraft, 512 airports, 162 airlines loaded |
@@ -16,11 +18,11 @@
 | **1.5 Onboarding** | ✅ Done | Landing page, showcase modal, username picker, empty states |
 | **2 Core Flights** | ✅ Done | Flight CRUD, dashboard with stats, route map, autocomplete |
 | **3 AI Import** | ✅ Done | Gemini 3 Flash proxy, upload/paste UI, review with confidence |
-| **3.5 UI Redesign** | ✅ Done | shadcn/ui components, Scandinavian aesthetic, dark mode ready |
+| **3.5 UI Redesign** | ✅ Done | shadcn/ui components, Scandinavian aesthetic, dark mode |
 | **4 Social** | ✅ Done | Public profiles, leaderboards, compare, 20 badges |
 | **4.5 Passport** | ✅ Done | Country stamps, manual claims, 246 countries, 31 tests |
 | **5 Advanced Stats** | ✅ Done | 4 tiers: Overview, Avia Geek, Country Geek, Time Geek |
-| **6 Polish** | ✅ Done | Dark mode, Mobile 6a-d, Error handling 6e, Settings 6f, CI/CD 6g |
+| **6 Polish** | ✅ Done | Dark mode, mobile responsive, errors, settings, CI/CD |
 
 ---
 
@@ -68,7 +70,7 @@ Complete UI overhaul with modern component library and refined aesthetics:
 - Soft, airy color palette with blue undertones
 - Generous whitespace and rounded corners
 - Subtle hover states and smooth animations
-- Dark mode tokens ready (toggle pending)
+- Full dark mode support with 3-way toggle
 
 **Components Rebuilt:**
 - Dashboard with sticky header, dropdown menu, animated stats cards
@@ -147,26 +149,27 @@ Progressive unlock system with 4 specialized stat tiers and sarcastic AI comment
 
 → [tasks/phase-5-advanced-stats.md](./tasks/phase-5-advanced-stats.md)
 
-### Phase 6: Polish 🔄
+### Phase 6: Polish ✅
 
-Dark mode, mobile-first responsive design, error handling, CI/CD.
+Dark mode, mobile-first responsive design, error handling, settings, CI/CD.
 
-**Completed:**
+**Sub-phases:**
 - ✅ **Dark Mode** — 3-way toggle (Light/Dark/System), localStorage persistence
 - ✅ **Phase 6a: Core Navigation** — Bottom tab bar, mobile header, FAB, safe area CSS
 - ✅ **Phase 6b: Flight Management** — CSS card/table switch, bottom sheet forms, keyboard-aware resize
 - ✅ **Phase 6c: Content Pages** — Map collapsible, country sheet with letter accordion, profile mini-header, collapsible sections, vertical stats grid
 - ✅ **Phase 6d: Polish & Performance** — 44px touch targets (WCAG 2.5.5), `--duration-micro` token, `prefers-reduced-motion` support, Lighthouse checklist
 - ✅ **Phase 6e: Error Handling** — Route-level boundaries, toast notifications with aviation personality, auto-retry with exponential backoff, i18n messages (EN/RU)
+- ✅ **Phase 6f: Settings Page** — `/settings` route with language, CSV export (portable + enriched), account deletion with password verification
+- ✅ **Phase 6g: CI/CD Pipeline** — GitHub Actions with lint/typecheck/build, auto-revert on main failure, Telegram notifications
 
-**Pending:**
-- CI/CD pipeline (GitHub Actions)
-
-**Completed in Phase 6f: Settings Page:**
-- ✅ **Settings Page** — New `/settings` route with language, export, and danger zone sections
-- ✅ **CSV Export** — Portable (9 cols) + enriched (17 cols) formats, 5/day rate limit, UTF-8 BOM for Excel
-- ✅ **Account Deletion** — Multi-step dialog with password verification, optional data export, hard delete
-- ✅ **Navigation Updates** — Settings in header dropdown + mobile tab bar (replaced Profile tab)
+**CI/CD Features:**
+- Parallel jobs: lint, typecheck, test, build
+- Tests non-blocking (`continue-on-error`)
+- Staging deploys for PRs → `kuuki-staging.pages.dev`
+- Production deploys on main → `kuuki.indi256.com`
+- Auto-revert breaking commits + Telegram alerts
+- AI agent PRs require `ci:approved` label
 
 → [tasks/phase-6-polish.md](./tasks/phase-6-polish.md)
 
@@ -257,6 +260,8 @@ cd ~/kuuki
 pnpm dev          # Start dev server (port 5173)
 pnpm build        # Production build
 pnpm test         # Run tests
+pnpm lint         # Run ESLint
+pnpm typecheck    # Run TypeScript checks
 
 # Add shadcn components
 cd apps/web
@@ -265,3 +270,41 @@ npx shadcn@latest add <component>
 # Deploy (auto on push to main)
 git push origin main
 ```
+
+---
+
+## MVP Complete 🎉
+
+All planned phases are complete. The app is feature-complete for MVP launch.
+
+**Live URLs:**
+- Production: https://kuuki.indi256.com
+- Staging: https://kuuki-staging.pages.dev (PR previews)
+
+---
+
+## What's Next (Future Ideas)
+
+These are **not planned** — just ideas for post-MVP based on user feedback:
+
+| Feature | Description |
+|---------|-------------|
+| **Trip Grouping** | Group flights into trips (vacation, business, etc.) |
+| **Seat Tracking** | Record seat numbers, window/aisle preferences |
+| **Loyalty Programs** | Track miles across airline programs |
+| **Flight Reviews** | Rate flights, add notes about experience |
+| **Social Sharing** | Share flight maps/stats to social media |
+| **Mobile App** | React Native or PWA with offline support |
+| **OpenClaw Integration** | AI code review on PRs via webhook |
+| **Separate Staging DB** | Dedicated Supabase project for staging |
+
+---
+
+## Deferred CI/CD Enhancements
+
+| Item | Reason |
+|------|--------|
+| `dev` + `main` branch strategy | MVP simplicity; add when team grows |
+| OpenClaw webhook for code review | Requires webhook setup; manual review for now |
+| Rich Telegram notifications | Basic alerts sufficient for solo dev |
+| Lighthouse CI | Manual testing sufficient for MVP |
