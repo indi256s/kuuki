@@ -108,7 +108,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
 
     // Call Gemini API with grounded web search
     const response = await ai.models.generateContent({
-      model: 'gemini-2.0-flash',
+      model: 'gemini-3-flash-preview',
       contents: prompt,
       config: {
         tools: [
@@ -171,8 +171,11 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     )
   } catch (error) {
     console.error('Enrichment error:', error)
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+    const errorStack = error instanceof Error ? error.stack : undefined
+    console.error('Error details:', { message: errorMessage, stack: errorStack })
     return Response.json(
-      { error: 'Internal server error', results: [] } as EnrichmentResponse,
+      { error: `Internal server error: ${errorMessage}`, results: [] } as EnrichmentResponse,
       { status: 500, headers: corsHeaders }
     )
   }
