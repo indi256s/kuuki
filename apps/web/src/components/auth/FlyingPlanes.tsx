@@ -16,10 +16,11 @@ interface PlaneConfig {
 }
 
 // Size groups: S (small/distant), M (medium), L (large/close)
+// Increased opacity for better visibility
 const sizeConfig: Record<PlaneSize, { size: number; opacity: number }> = {
-  S: { size: 12, opacity: 0.06 },
-  M: { size: 16, opacity: 0.10 },
-  L: { size: 22, opacity: 0.14 },
+  S: { size: 12, opacity: 0.12 },
+  M: { size: 16, opacity: 0.18 },
+  L: { size: 22, opacity: 0.25 },
 }
 
 // Distribute 20 planes across size groups: 8 small, 7 medium, 5 large

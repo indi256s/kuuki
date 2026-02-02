@@ -94,20 +94,9 @@ export function RegisterForm({ onSuccess, onSignInClick }: RegisterFormProps) {
           </Alert>
         )}
 
-        {/* Closed Beta Badge */}
+        {/* Closed Beta Badge - Linear style: airy, subtle */}
         <div className="flex justify-center mb-2">
-          <span
-            className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold tracking-wide"
-            style={{
-              backgroundColor: '#21341E',
-              color: 'white',
-              boxShadow: '0 0 12px rgba(44, 144, 28, 0.3)'
-            }}
-          >
-            <span
-              className="w-1.5 h-1.5 rounded-full animate-pulse"
-              style={{ backgroundColor: '#2C901C' }}
-            />
+          <span className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium tracking-wide text-white/60 bg-white/[0.04] border border-white/[0.08]">
             Closed Beta
           </span>
         </div>

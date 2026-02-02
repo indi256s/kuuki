@@ -13,7 +13,7 @@ export function RotatingTagline({ items, interval = 6000, className }: RotatingT
 
   useEffect(() => {
     const timer = setInterval(() => {
-      // Quick exit
+      // Quick exit to the left
       setPhase('exit')
       setTimeout(() => {
         setCurrentIndex((prev) => (prev + 1) % items.length)
@@ -28,15 +28,15 @@ export function RotatingTagline({ items, interval = 6000, className }: RotatingT
 
   return (
     <div className="space-y-2.5">
-      {/* Rotating text with snappy animation */}
+      {/* Rotating text - horizontal slide synced with progress */}
       <div className="relative h-5 overflow-hidden">
         <p
           className={cn(
             "transition-all ease-out whitespace-nowrap",
             className,
-            phase === 'visible' && "translate-y-0 opacity-100 duration-200",
-            phase === 'exit' && "-translate-y-full opacity-0 duration-150",
-            phase === 'enter' && "translate-y-3 opacity-0 duration-0"
+            phase === 'visible' && "translate-x-0 opacity-100 duration-200",
+            phase === 'exit' && "-translate-x-8 opacity-0 duration-150",
+            phase === 'enter' && "translate-x-4 opacity-0 duration-0"
           )}
         >
           {items[currentIndex]}
