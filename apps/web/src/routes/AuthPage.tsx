@@ -107,7 +107,6 @@ export function AuthPage() {
           <div className="absolute top-6 right-6 flex items-center gap-2 z-20">
             <AccentPicker value={accentColor} onChange={setAccentColor} />
             <div className="w-px h-5 bg-neutral-300 dark:bg-white/10" />
-            {/* ThemeToggle disabled — dark mode only for now */}
             <Button
               variant="ghost"
               onClick={toggleLanguage}

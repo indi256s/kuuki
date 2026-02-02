@@ -10,7 +10,6 @@ import { LeaderboardTable } from '@/components/leaderboard/LeaderboardTable'
 import { UserRankCard } from '@/components/leaderboard/UserRankCard'
 import { MobileHeader } from '@/components/layout/MobileHeader'
 import { MobileTabBar } from '@/components/layout/MobileTabBar'
-import { ThemeToggle } from '@/components/common/ThemeToggle'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 
@@ -54,7 +53,6 @@ export function LeaderboardPage() {
                 </Link>
               </Button>
             )}
-            <ThemeToggle />
           </div>
         </div>
       </header>

@@ -14,8 +14,6 @@ import { MobileTabBar } from '@/components/layout/MobileTabBar'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
-import { ThemeToggle } from '@/components/common/ThemeToggle'
-
 export function ProfilePage() {
   const { username } = useParams<{ username: string }>()
   const { t } = useTranslation()
@@ -200,7 +198,6 @@ function Header() {
           </span>
         </Link>
 
-        <ThemeToggle />
       </div>
     </header>
   )

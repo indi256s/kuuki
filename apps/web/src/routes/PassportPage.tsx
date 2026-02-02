@@ -10,7 +10,6 @@ import { EmptyPassport } from '@/components/passport/EmptyPassport'
 import { ClaimDialog } from '@/components/passport/ClaimDialog'
 import { CountryClaimMap } from '@/components/passport/CountryClaimMap'
 import { CountryListSheet } from '@/components/passport/CountryListSheet'
-import { ThemeToggle } from '@/components/common/ThemeToggle'
 import { MobileHeader } from '@/components/layout/MobileHeader'
 import { MobileTabBar } from '@/components/layout/MobileTabBar'
 import { Button } from '@/components/ui/button'
@@ -154,8 +153,6 @@ export function PassportPage() {
                 <span className="hidden sm:inline">{t('passport.addCountry', 'Add Country')}</span>
               </Button>
             )}
-
-            <ThemeToggle />
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>

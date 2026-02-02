@@ -10,7 +10,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { ThemeToggle } from '@/components/common/ThemeToggle'
 import { Plane, Plus, LogOut, Languages, Settings } from 'lucide-react'
 
 interface AppHeaderProps {
@@ -76,8 +75,6 @@ export function AppHeader({ onAddFlight, showAddButton = false }: AppHeaderProps
               <span className="hidden sm:inline">{t('flights.addFlight', 'Add Flight')}</span>
             </Button>
           )}
-
-          <ThemeToggle />
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>

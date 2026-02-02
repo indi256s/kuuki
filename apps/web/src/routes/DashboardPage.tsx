@@ -13,7 +13,6 @@ import { FlightForm } from '@/components/flights/FlightForm'
 import { EmptyState } from '@/components/dashboard/EmptyState'
 import { ProfileSettingsDialog } from '@/components/profile/ProfileSettingsDialog'
 import { CompareModal } from '@/components/compare/CompareModal'
-import { ThemeToggle } from '@/components/common/ThemeToggle'
 import { MobileHeader } from '@/components/layout/MobileHeader'
 import { MobileTabBar } from '@/components/layout/MobileTabBar'
 import { Button } from '@/components/ui/button'
@@ -112,8 +111,6 @@ export function DashboardPage() {
                 <span>{t('flights.addFlight', 'Add Flight')}</span>
               </Button>
             )}
-
-            <ThemeToggle />
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
