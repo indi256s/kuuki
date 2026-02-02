@@ -14,7 +14,7 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form'
-import { AlertCircle } from 'lucide-react'
+import { AlertCircle, Mail, Lock } from 'lucide-react'
 
 const signInSchema = z.object({
   email: z.string().email('Invalid email address'),
@@ -69,12 +69,16 @@ export function SignInForm({ onSuccess, onSignUpClick }: SignInFormProps) {
           name="email"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>{t('auth.email', 'Email')}</FormLabel>
+              <FormLabel className="flex items-center gap-2">
+                <Mail className="w-4 h-4 text-white/50" />
+                <span className="text-white/80">{t('auth.email', 'Email')}</span>
+              </FormLabel>
               <FormControl>
                 <Input
                   type="email"
                   placeholder="you@example.com"
                   disabled={isLoading}
+                  className="h-12 aura-input border-0 focus-visible:ring-1 focus-visible:ring-primary/50 text-white placeholder:text-white/20"
                   {...field}
                 />
               </FormControl>
@@ -88,12 +92,16 @@ export function SignInForm({ onSuccess, onSignUpClick }: SignInFormProps) {
           name="password"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>{t('auth.password', 'Password')}</FormLabel>
+              <FormLabel className="flex items-center gap-2">
+                <Lock className="w-4 h-4 text-white/50" />
+                <span className="text-white/80">{t('auth.password', 'Password')}</span>
+              </FormLabel>
               <FormControl>
                 <Input
                   type="password"
                   placeholder="••••••••"
                   disabled={isLoading}
+                  className="h-12 aura-input border-0 focus-visible:ring-1 focus-visible:ring-primary/50 text-white placeholder:text-white/20"
                   {...field}
                 />
               </FormControl>
@@ -102,17 +110,17 @@ export function SignInForm({ onSuccess, onSignUpClick }: SignInFormProps) {
           )}
         />
 
-        <Button type="submit" disabled={isLoading} className="w-full">
+        <Button type="submit" disabled={isLoading} className="w-full h-12 aura-button rounded-xl text-white font-medium text-base shadow-lg shadow-primary/20 hover:shadow-primary/40 border-0">
           {isLoading ? t('auth.signingIn') : t('auth.signIn')}
         </Button>
 
         {onSignUpClick && (
-          <p className="text-center text-sm text-muted-foreground">
+          <p className="text-center text-sm text-white/50">
             {t('auth.newUser')}{' '}
             <button
               type="button"
               onClick={onSignUpClick}
-              className="text-primary hover:underline"
+              className="text-primary hover:text-primary-foreground transition-colors font-medium ml-1 hover:underline underline-offset-4"
             >
               {t('auth.createAccount')}
             </button>

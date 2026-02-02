@@ -101,8 +101,8 @@ export function RegisterForm({ onSuccess, onSignInClick }: RegisterFormProps) {
           render={({ field }) => (
             <FormItem>
               <FormLabel className="flex items-center gap-2">
-                <Ticket className="w-3.5 h-3.5 text-muted-foreground" />
-                {t('auth.inviteCode', 'Invite Code')}
+                <Ticket className="w-4 h-4 text-white/50" />
+                <span className="text-white/80">{t('auth.inviteCode', 'Invite Code')}</span>
               </FormLabel>
               <FormControl>
                 <div className="relative">
@@ -110,9 +110,9 @@ export function RegisterForm({ onSuccess, onSignInClick }: RegisterFormProps) {
                     placeholder="KUUKI-XXXX-XXXX"
                     disabled={isLoading}
                     className={cn(
-                      'font-mono text-sm uppercase tracking-wider pr-10',
-                      codeValid === true && 'border-success focus-visible:ring-success',
-                      codeValid === false && 'border-destructive focus-visible:ring-destructive'
+                      'h-12 pl-3 font-mono text-lg uppercase tracking-wider pr-10 aura-input border-0 focus-visible:ring-1 focus-visible:ring-primary/50 text-white placeholder:text-white/20',
+                      codeValid === true && 'border-success/50 focus-visible:ring-success/50',
+                      codeValid === false && 'border-destructive/50 focus-visible:ring-destructive/50'
                     )}
                     {...field}
                     onChange={(e) => {
@@ -160,14 +160,15 @@ export function RegisterForm({ onSuccess, onSignInClick }: RegisterFormProps) {
           render={({ field }) => (
             <FormItem>
               <FormLabel className="flex items-center gap-2">
-                <Mail className="w-3.5 h-3.5 text-muted-foreground" />
-                {t('auth.email', 'Email')}
+                <Mail className="w-4 h-4 text-white/50" />
+                <span className="text-white/80">{t('auth.email', 'Email')}</span>
               </FormLabel>
               <FormControl>
                 <Input
                   type="email"
                   placeholder="you@example.com"
                   disabled={isLoading}
+                  className="h-12 aura-input border-0 focus-visible:ring-1 focus-visible:ring-primary/50 text-white placeholder:text-white/20"
                   {...field}
                 />
               </FormControl>
@@ -183,18 +184,19 @@ export function RegisterForm({ onSuccess, onSignInClick }: RegisterFormProps) {
           render={({ field }) => (
             <FormItem>
               <FormLabel className="flex items-center gap-2">
-                <Lock className="w-3.5 h-3.5 text-muted-foreground" />
-                {t('auth.password', 'Password')}
+                <Lock className="w-4 h-4 text-white/50" />
+                <span className="text-white/80">{t('auth.password', 'Password')}</span>
               </FormLabel>
               <FormControl>
                 <Input
                   type="password"
                   placeholder="••••••••"
                   disabled={isLoading}
+                  className="h-12 aura-input border-0 focus-visible:ring-1 focus-visible:ring-primary/50 text-white placeholder:text-white/20"
                   {...field}
                 />
               </FormControl>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-xs text-white/40">
                 {t('auth.passwordHint', 'At least 8 characters')}
               </p>
               <FormMessage />
@@ -205,18 +207,18 @@ export function RegisterForm({ onSuccess, onSignInClick }: RegisterFormProps) {
         <Button
           type="submit"
           disabled={isLoading || codeValid === false}
-          className="w-full"
+          className="w-full h-12 aura-button rounded-xl text-white font-medium text-base shadow-lg shadow-primary/20 hover:shadow-primary/40 border-0"
         >
           {isLoading ? t('common.loading') : t('auth.createAccount')}
         </Button>
 
         {onSignInClick && (
-          <p className="text-center text-sm text-muted-foreground">
+          <p className="text-center text-sm text-white/50">
             {t('auth.haveAccount', 'Already have an account?')}{' '}
             <button
               type="button"
               onClick={onSignInClick}
-              className="text-primary hover:underline font-medium"
+              className="text-primary hover:text-primary-foreground transition-colors font-medium ml-1 hover:underline underline-offset-4"
             >
               {t('auth.signIn')}
             </button>

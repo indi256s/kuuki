@@ -287,12 +287,73 @@
     );
   }
 
+  /* Aura Design System Adaptations */
+  .glass-card {
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  .dark .glass-card {
+    background: rgba(20, 20, 23, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  .aura-input {
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    transition: all 0.2s ease;
+  }
+  
+  .aura-input:focus-within {
+    background: rgba(0, 0, 0, 0.3);
+    border-color: var(--primary);
+    box-shadow: 0 0 0 1px var(--primary);
+  }
+
+  .aura-button {
+    background: linear-gradient(135deg, var(--primary) 0%, oklch(from var(--primary) l c h / 0.8) 100%);
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+  }
+
+  .aura-button::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(to bottom, rgba(255,255,255,0.1) 0%, transparent 100%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  .aura-button:hover::after {
+    opacity: 1;
+  }
+
+  .aura-button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 20px -6px rgba(var(--primary), 0.5);
+  }
+
   .dark .bg-gradient-soft {
     background: linear-gradient(
       180deg,
       oklch(0.16 0.01 260) 0%,
       oklch(0.14 0.01 260) 100%
     );
+  }
+  
+  .aura-gradient-text {
+    background: linear-gradient(135deg, #FFF 30%, rgba(255,255,255,0.5) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
   }
 
   /* Focus ring - legacy support */

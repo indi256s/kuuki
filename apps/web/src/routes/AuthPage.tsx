@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useLanguage } from '@/hooks/useLanguage'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Languages, Plane, Globe2, BarChart3, Shield } from 'lucide-react'
 import { RegisterForm } from '@/components/auth/RegisterForm'
 import { SignInForm } from '@/components/auth'
@@ -14,7 +13,7 @@ type AuthMode = 'register' | 'signin'
 export function AuthPage() {
   const { t } = useTranslation()
   const navigate = useNavigate()
-  const { currentLanguage, toggleLanguage } = useLanguage()
+  const { toggleLanguage } = useLanguage()
   const [mode, setMode] = useState<AuthMode>('register')
 
   const handleSuccess = () => {
@@ -46,106 +45,100 @@ export function AuthPage() {
   ]
 
   return (
-    <div className="min-h-screen bg-gradient-soft flex flex-col">
-      {/* Minimal header - theme and language toggles */}
-      <header className="absolute top-0 right-0 p-4 z-10 flex items-center gap-1">
-        <ThemeToggle />
-        <Button variant="ghost" onClick={toggleLanguage} className="gap-2 text-muted-foreground hover:text-foreground h-9 px-3">
-          <Languages className="w-4 h-4" />
-          {currentLanguage === 'en' ? 'RU' : 'EN'}
-        </Button>
-      </header>
+    <div className="min-h-screen bg-[#09090b] flex items-center justify-center p-4 relative overflow-hidden font-sans">
+      {/* Background Ambience */}
+      <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-primary/20 blur-[120px] rounded-full pointer-events-none opacity-40" />
+      <div className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] bg-primary/10 blur-[120px] rounded-full pointer-events-none opacity-30" />
 
-      {/* Main content */}
-      <main className="flex-1 flex flex-col items-center justify-center px-4 py-12">
-        {/* Branding + Form section */}
-        <div className="w-full max-w-4xl grid lg:grid-cols-[1fr_auto_1fr] gap-8 lg:gap-16 items-center mb-12 lg:mb-16">
+      {/* Main Glass Card */}
+      <div className="w-full max-w-[1100px] min-h-[600px] lg:h-[700px] glass-card rounded-[32px] grid lg:grid-cols-[40%_60%] overflow-hidden shadow-2xl relative z-10 transition-all duration-500">
 
-          {/* Branding side - Katakana */}
-          <div className="flex flex-col items-center lg:items-end justify-center">
-            {/* Mobile: horizontal layout */}
-            <div className="lg:hidden flex flex-col items-center gap-3 mb-4">
-              <span className="text-6xl font-bold tracking-wider animate-text-flow">
-                クウキ
-              </span>
-              <span className="text-sm text-muted-foreground tracking-wide">
-                {t('common.tagline')}
-              </span>
-            </div>
+        {/* Left Side: Visual / Brand */}
+        <div className="relative hidden lg:flex flex-col justify-between p-12 overflow-hidden group">
+          {/* Dynamic Background for Left Panel */}
+          <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-transparent opacity-50 z-0" />
+          <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 z-0 mix-blend-overlay" />
 
-            {/* Desktop: vertical layout with more presence */}
-            <div className="hidden lg:flex flex-col items-end gap-6">
-              <span className="writing-vertical text-8xl font-bold tracking-wider animate-text-flow leading-tight">
-                クウキ
-              </span>
-              <span className="text-sm text-muted-foreground max-w-[140px] text-right leading-relaxed">
-                {t('common.tagline')}
-              </span>
-            </div>
+          {/* Top Branding */}
+          <div className="relative z-10">
+            <h1 className="text-4xl font-bold tracking-tighter text-white/90 mb-2">
+              <span className="text-primary">Ku</span>uki
+            </h1>
+            <p className="text-white/50 text-sm font-medium tracking-wide uppercase">
+              Flight Vault
+            </p>
           </div>
 
-          {/* Auth card */}
-          <div className="w-full max-w-sm animate-fade-up">
-            <Card className="border-border/50 shadow-lg shadow-primary/5">
-              <CardHeader className="text-center pb-2">
-                <div className="mx-auto w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-3 group-hover:bg-primary/20 transition-colors">
-                  <Plane className="w-6 h-6 text-primary" strokeWidth={2} />
-                </div>
-                <CardTitle className="text-xl tracking-tight">
-                  {mode === 'register' ? t('auth.joinKuuki', 'Join Kuuki') : t('auth.welcomeBack', 'Welcome Back')}
-                </CardTitle>
-                <p className="text-sm text-muted-foreground mt-1">
-                  {mode === 'register'
-                    ? t('auth.inviteRequired', 'Invite code required')
-                    : t('auth.signInSubtitle', 'Sign in to your flight vault')
-                  }
-                </p>
-              </CardHeader>
-              <CardContent className="pt-2">
-                {mode === 'register' ? (
-                  <RegisterForm
-                    onSuccess={handleSuccess}
-                    onSignInClick={() => setMode('signin')}
-                  />
-                ) : (
-                  <SignInForm
-                    onSuccess={handleSuccess}
-                    onSignUpClick={() => setMode('register')}
-                  />
-                )}
-              </CardContent>
-            </Card>
+          {/* Center Visual Feature - Japanese Typography */}
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-0 pointer-events-none select-none">
+            <span className="text-[12rem] font-bold leading-none text-white/[0.03] writing-vertical select-none font-display tracking-widest">
+              クウキ
+            </span>
           </div>
 
-          {/* Empty spacer for desktop grid balance */}
-          <div className="hidden lg:block" />
-        </div>
-
-        {/* Feature cards - philosophy showcase */}
-        <div className="w-full max-w-3xl">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 stagger-children">
-            {features.map((feature) => (
+          {/* Bottom Features Carousel */}
+          <div className="relative z-10 grid gap-4">
+            {features.map((feature, i) => (
               <div
                 key={feature.title}
-                className="group p-4 rounded-xl bg-card/50 border border-border/30 hover:border-border/60 hover:bg-card transition-all duration-200"
+                className="group/item flex items-center gap-4 p-4 rounded-xl bg-white/5 border border-white/5 backdrop-blur-sm hover:bg-white/10 transition-all duration-300 transform hover:-translate-y-1"
+                style={{ transitionDelay: `${i * 100}ms` }}
               >
-                <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center mb-3 group-hover:bg-primary/15 group-hover:scale-105 transition-all duration-200">
-                  <feature.icon className="w-[18px] h-[18px] text-primary" strokeWidth={1.5} />
+                <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                  <feature.icon className="w-5 h-5 text-primary" strokeWidth={1.5} />
                 </div>
-                <h3 className="font-medium text-sm mb-1 tracking-tight">{feature.title}</h3>
-                <p className="text-xs text-muted-foreground leading-relaxed">{feature.description}</p>
+                <div>
+                  <h3 className="font-medium text-white/90 text-sm leading-tight mb-0.5">{feature.title}</h3>
+                  <p className="text-xs text-white/50">{feature.description}</p>
+                </div>
               </div>
             ))}
           </div>
         </div>
-      </main>
 
-      {/* Minimal footer */}
-      <footer className="py-4 text-center">
-        <p className="text-xs text-muted-foreground/60">
-          {t('auth.inviteOnlyNote', 'Kuuki is invite-only to maintain a quality community')}
-        </p>
-      </footer>
+        {/* Right Side: Auth Form */}
+        <div className="relative flex flex-col justify-center px-8 py-12 lg:px-16 lg:py-12 bg-black/20 backdrop-blur-xl">
+          {/* Top Right Controls */}
+          <div className="absolute top-6 right-6 flex items-center gap-2 z-20">
+            <ThemeToggle />
+            <Button variant="ghost" onClick={toggleLanguage} className="text-white/60 hover:text-white h-9 w-9 p-0 rounded-full hover:bg-white/5">
+              <Languages className="w-4 h-4" />
+            </Button>
+          </div>
+
+          <div className="w-full max-w-md mx-auto space-y-8 animate-fade-in">
+            <div className="space-y-2 text-center lg:text-left">
+              <h2 className="text-3xl font-bold tracking-tight text-white aura-gradient-text inline-block">
+                {mode === 'register' ? t('auth.joinKuuki', 'Join Kuuki') : t('auth.welcomeBack', 'Welcome back')}
+              </h2>
+              <p className="text-muted-foreground text-base">
+                {mode === 'register'
+                  ? t('auth.inviteRequired', 'Enter your invite code to begin.')
+                  : t('auth.signInSubtitle', 'Sign in to access your flight history.')
+                }
+              </p>
+            </div>
+
+            {mode === 'register' ? (
+              <RegisterForm
+                onSuccess={handleSuccess}
+                onSignInClick={() => setMode('signin')}
+              />
+            ) : (
+              <SignInForm
+                onSuccess={handleSuccess}
+                onSignUpClick={() => setMode('register')}
+              />
+            )}
+
+            <div className="pt-8 border-t border-white/5 text-center lg:text-left">
+              <p className="text-xs text-white/30">
+                {t('common.tagline')} • v1.0.0
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   )
 }
