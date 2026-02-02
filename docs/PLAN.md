@@ -20,7 +20,7 @@
 | **4 Social** | ✅ Done | Public profiles, leaderboards, compare, 20 badges |
 | **4.5 Passport** | ✅ Done | Country stamps, manual claims, 246 countries, 31 tests |
 | **5 Advanced Stats** | ✅ Done | 4 tiers: Overview, Avia Geek, Country Geek, Time Geek |
-| **6 Polish** | 🔄 In Progress | Dark mode ✅, Mobile 6a-d ✅, CI/CD pending |
+| **6 Polish** | ✅ Done | Dark mode, Mobile 6a-d, Error handling 6e, Settings 6f, CI/CD 6g |
 
 ---
 

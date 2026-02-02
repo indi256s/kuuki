@@ -1,6 +1,6 @@
 # Phase 6: Polish
 
-**Status:** In Progress
+**Status:** Complete
 **Depends on:** Phase 5 complete
 
 ## Tasks
@@ -225,28 +225,54 @@ apps/web/src/
 - Consistency audit across all pages
 - Create theme variations (3 colorful themes)
 
-### CI/CD Pipeline
+### Phase 6g: CI/CD Pipeline ✅
 
 **Skill:** `/cloudflare:wrangler`
-**MCP:** `cloudflare-workers-builds`
 
-**GitHub Actions workflow:**
-
-```yaml
-on:
-  pull_request:
-    branches: [main]
-  push:
-    branches: [main]
-
-jobs:
-  build:
-    steps:
-      - Lint (pnpm lint)
-      - Type-check (pnpm typecheck)
-      - Test (pnpm test)
-      - Deploy preview (PR) / production (main)
+**Files Created:**
 ```
+.github/
+├── workflows/
+│   ├── ci.yml              # Main CI/CD workflow
+│   └── auto-revert.yml     # Revert on main failure
+└── pull_request_template.md
+```
+
+**CI Workflow Features:**
+- **Triggers:** Push to main/dev, PRs to main/dev
+- **Skip CI:** `[skip ci]` in commit message
+- **AI Agent Gate:** PRs from `github-actions[bot]` require `ci:approved` label
+- **Parallel Jobs:** lint, typecheck, test, build (fast-fail on first failure)
+- **Tests Non-Blocking:** `continue-on-error: true`
+- **Build Artifacts:** web-dist uploaded for deploy jobs
+- **Staging:** PRs deploy to `kuuki-staging.pages.dev`
+- **Production:** main branch deploys to `kuuki.indi256.com`
+- **Deploy Jobs:** Use npm instead of pnpm for wrangler-action compatibility
+
+**Auto-Revert Workflow:**
+- Triggers on CI/CD workflow failure on main
+- Automatically reverts the breaking commit
+- Sends Telegram notification with short SHA
+
+**GitHub Secrets Configured:**
+| Secret | Purpose |
+|--------|---------|
+| `CLOUDFLARE_API_TOKEN` | Wrangler deploy |
+| `CLOUDFLARE_ACCOUNT_ID` | Account identifier |
+| `VITE_SUPABASE_URL` | Build env var |
+| `VITE_SUPABASE_ANON_KEY` | Build env var |
+| `TELEGRAM_BOT_TOKEN` | Auto-revert notifications |
+| `TELEGRAM_CHAT_ID` | Telegram chat ID |
+
+**Typecheck Scripts Added:**
+- Root: `pnpm typecheck` → turbo typecheck
+- turbo.json: `typecheck` task with `dependsOn: ["^build"]`
+- apps/web: `tsc -b --noEmit`
+
+**ESLint Configuration Added:**
+- apps/web/eslint.config.js with React hooks support
+- Warnings-only for existing code (no breaking changes)
+- React Compiler rules disabled (not using React Compiler)
 
 ## Files to Create/Update
 
@@ -295,11 +321,14 @@ packages/shared/src/i18n/
 └── ru.json                        ✅ (Russian translations with GLaDOS personality)
 ```
 
-**Pending:**
+**Phase 6g CI/CD (Complete):**
 ```
 .github/
-└── workflows/
-    └── ci.yml
+├── workflows/
+│   ├── ci.yml              ✅ Main CI/CD workflow
+│   └── auto-revert.yml     ✅ Auto-revert on main failure
+└── pull_request_template.md ✅ PR template with labels
+apps/web/eslint.config.js    ✅ ESLint configuration
 ```
 
 ## Verification
@@ -315,4 +344,4 @@ From SPEC.md checklist:
 - [x] Mobile 6c: Map collapsible, country sheet, profile sections, vertical stats
 - [x] Mobile 6d: Touch targets (44px), reduced motion, Lighthouse checklist created
 - [x] Error states: Route boundaries, toast system, aviation personality messages
-- [ ] CI/CD: GitHub Actions workflow for lint, typecheck, test, deploy
+- [x] CI/CD: GitHub Actions workflow for lint, typecheck, test, deploy
