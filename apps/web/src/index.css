@@ -494,6 +494,24 @@
   }
 }
 
+/* Matrix-style ascending planes animation for auth page */
+@keyframes plane-ascend {
+  0% {
+    transform: translateY(100%) translateX(0) rotate(-45deg);
+    opacity: 0;
+  }
+  5% {
+    opacity: var(--plane-opacity, 0.04);
+  }
+  95% {
+    opacity: var(--plane-opacity, 0.04);
+  }
+  100% {
+    transform: translateY(-120%) translateX(30px) rotate(-45deg);
+    opacity: 0;
+  }
+}
+
 @layer utilities {
   .animate-fade-in {
     animation: fade-in var(--duration-normal) var(--ease-smooth) forwards;
@@ -561,6 +579,12 @@
   /* Tier unlock reveal animation */
   .animate-tier-reveal {
     animation: tier-reveal 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  /* Ascending plane animation for auth page */
+  .animate-plane-ascend {
+    animation: plane-ascend var(--plane-duration, 20s) linear infinite;
+    animation-delay: var(--plane-delay, 0s);
   }
 }
 
@@ -682,5 +706,11 @@
 
   .dark .animate-text-flow {
     color: oklch(0.72 0.14 55 / 0.75) !important;
+  }
+
+  /* Static fallback for flying planes animation */
+  .animate-plane-ascend {
+    animation: none !important;
+    opacity: 0.03 !important;
   }
 }

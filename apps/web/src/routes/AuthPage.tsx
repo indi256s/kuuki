@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Languages, Plane, Globe2, BarChart3, Shield } from 'lucide-react'
 import { RegisterForm } from '@/components/auth/RegisterForm'
 import { SignInForm } from '@/components/auth'
+import { FlyingPlanes } from '@/components/auth/FlyingPlanes'
 import { ThemeToggle } from '@/components/common/ThemeToggle'
 import { AccentPicker, type AccentColor } from '@/components/common/AccentPicker'
 
@@ -60,6 +61,9 @@ export function AuthPage() {
           {/* Dynamic Background for Left Panel */}
           <div className="absolute inset-0 bg-gradient-to-br from-primary/5 dark:from-primary/10 to-transparent opacity-80 dark:opacity-50 z-0" />
           <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.15] dark:opacity-20 z-0 mix-blend-overlay" />
+
+          {/* Ascending planes animation - Matrix departures board effect */}
+          <FlyingPlanes />
 
           {/* Top Branding */}
           <div className="relative z-10">
