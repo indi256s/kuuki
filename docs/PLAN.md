@@ -20,7 +20,7 @@
 | **4 Social** | ✅ Done | Public profiles, leaderboards, compare, 20 badges |
 | **4.5 Passport** | ✅ Done | Country stamps, manual claims, 246 countries, 31 tests |
 | **5 Advanced Stats** | ✅ Done | 4 tiers: Overview, Avia Geek, Country Geek, Time Geek |
-| **6 Polish** | 🔄 In Progress | Dark mode ✅, Mobile 6a-d ✅, CI/CD pending |
+| **6 Polish** | ✅ Done | Dark mode, Mobile 6a-d, Error handling 6e, Settings 6f, CI/CD 6g |
 
 ---
 
@@ -147,7 +147,7 @@ Progressive unlock system with 4 specialized stat tiers and sarcastic AI comment
 
 → [tasks/phase-5-advanced-stats.md](./tasks/phase-5-advanced-stats.md)
 
-### Phase 6: Polish 🔄
+### Phase 6: Polish ✅
 
 Dark mode, mobile-first responsive design, error handling, CI/CD.
 
@@ -158,15 +158,22 @@ Dark mode, mobile-first responsive design, error handling, CI/CD.
 - ✅ **Phase 6c: Content Pages** — Map collapsible, country sheet with letter accordion, profile mini-header, collapsible sections, vertical stats grid
 - ✅ **Phase 6d: Polish & Performance** — 44px touch targets (WCAG 2.5.5), `--duration-micro` token, `prefers-reduced-motion` support, Lighthouse checklist
 - ✅ **Phase 6e: Error Handling** — Route-level boundaries, toast notifications with aviation personality, auto-retry with exponential backoff, i18n messages (EN/RU)
-
-**Pending:**
-- CI/CD pipeline (GitHub Actions)
+- ✅ **Phase 6f: Settings Page** — New `/settings` route with language, export, and danger zone sections
+- ✅ **Phase 6g: CI/CD Pipeline** — GitHub Actions with lint/typecheck/build, staging deploys, auto-revert on main failure
 
 **Completed in Phase 6f: Settings Page:**
 - ✅ **Settings Page** — New `/settings` route with language, export, and danger zone sections
 - ✅ **CSV Export** — Portable (9 cols) + enriched (17 cols) formats, 5/day rate limit, UTF-8 BOM for Excel
 - ✅ **Account Deletion** — Multi-step dialog with password verification, optional data export, hard delete
 - ✅ **Navigation Updates** — Settings in header dropdown + mobile tab bar (replaced Profile tab)
+
+**Completed in Phase 6g: CI/CD Pipeline:**
+- ✅ **GitHub Actions** — Lint, typecheck, build run in parallel with fast-fail
+- ✅ **Staging Deploys** — PRs deploy to kuuki-staging.pages.dev
+- ✅ **Production Deploys** — Merge to main auto-deploys to kuuki.indi256.com
+- ✅ **Auto-Revert** — Breaking commits on main are automatically reverted
+- ✅ **AI Agent Gates** — PRs from bots require `ci:approved` label
+- ✅ **Telegram Notifications** — Auto-revert alerts sent to Telegram
 
 → [tasks/phase-6-polish.md](./tasks/phase-6-polish.md)
 
