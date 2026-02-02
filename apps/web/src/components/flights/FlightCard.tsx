@@ -3,9 +3,9 @@ import type { Flight } from '@/hooks/useFlights'
 import { findAirport, findAirline, findAircraft } from '@kuuki/data'
 import { formatDistance, formatDuration, daysUntilFlight } from '@/lib/geo'
 import { Card, CardContent } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Pencil, Trash2, Clock, Calendar } from 'lucide-react'
+import { Clock, Calendar, ArrowRight } from 'lucide-react'
+import { FlightCardActions } from './FlightCardActions'
 import { AircraftPendingBadge } from './AircraftPendingBadge'
 import { cn } from '@/lib/utils'
 
@@ -47,7 +47,7 @@ export function FlightCard({ flight, onEdit, onDelete }: FlightCardProps) {
       )}
     >
       <CardContent className="p-0">
-        {/* Header bar */}
+        {/* Header: Date + Actions */}
         <div className={cn(
           'px-4 py-2.5 flex items-center justify-between border-b border-border/50',
           isUpcoming ? 'bg-primary/5' : 'bg-muted/30'
@@ -63,81 +63,52 @@ export function FlightCard({ flight, onEdit, onDelete }: FlightCardProps) {
               </Badge>
             )}
           </div>
-          <div className="flex gap-1">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-7 w-7"
-              onClick={() => onEdit(flight)}
-            >
-              <Pencil className="w-3.5 h-3.5" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-7 w-7 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
-              onClick={() => onDelete(flight)}
-            >
-              <Trash2 className="w-3.5 h-3.5" />
-            </Button>
+          {/* Overflow menu for actions */}
+          <FlightCardActions
+            onEdit={() => onEdit(flight)}
+            onDelete={() => onDelete(flight)}
+          />
+        </div>
+
+        {/* Route - 2-line Hero Section */}
+        <div className="px-4 py-4">
+          {/* Primary: Airport codes with arrow */}
+          <div className="flex items-center gap-2">
+            <span className="font-mono font-bold text-xl tracking-tight">{flight.origin}</span>
+            <ArrowRight className="w-5 h-5 text-muted-foreground" />
+            <span className="font-mono font-bold text-xl tracking-tight">{flight.destination}</span>
+          </div>
+          {/* Secondary: City names */}
+          <div className="flex items-center gap-1 text-sm text-muted-foreground mt-0.5">
+            <span className="truncate">
+              {originAirport?.city || t('flights.unknownCity', 'Unknown')}
+            </span>
+            <span className="text-muted-foreground/50 flex-shrink-0">→</span>
+            <span className="truncate">
+              {destAirport?.city || t('flights.unknownCity', 'Unknown')}
+            </span>
+          </div>
+
+          {/* Flight info row */}
+          <div className="flex items-center gap-3 mt-3 text-sm text-muted-foreground">
+            {hasFlightNumber && (
+              <span className="font-mono font-medium">{flight.airline_iata}{flight.flight_number}</span>
+            )}
+            {hasTimes && (
+              <div className="flex items-center gap-1.5 font-mono">
+                <Clock className="w-3.5 h-3.5" />
+                {flight.departure_time || '—'}
+                <span className="text-muted-foreground/50">→</span>
+                {flight.arrival_time || '—'}
+              </div>
+            )}
+            {flight.duration_minutes && (
+              <span className="font-mono">{formatDuration(flight.duration_minutes)}</span>
+            )}
           </div>
         </div>
 
-        {/* Route - Hero section */}
-        <div className="px-4 py-5">
-          <div className="flex items-center gap-4">
-            {/* Origin */}
-            <div className="flex-1 min-w-0">
-              <div className="font-mono font-bold text-xl tracking-tight">{flight.origin}</div>
-              <div className="text-sm text-muted-foreground truncate">
-                {originAirport?.city || t('flights.unknownCity', 'Unknown')}
-              </div>
-            </div>
-
-            {/* Flight path visualization with duration */}
-            <div className="flex items-center flex-shrink-0 w-28">
-              <div className="w-2.5 h-2.5 rounded-full bg-primary/60" />
-              <div className="flex-1 h-px bg-gradient-to-r from-primary/60 via-primary/20 to-transparent mx-1" />
-              {/* Duration badge in the center */}
-              <div className="px-2 py-0.5 rounded-full bg-muted/80 border border-border/50 flex-shrink-0">
-                <span className="text-xs font-mono text-muted-foreground">
-                  {flight.duration_minutes ? formatDuration(flight.duration_minutes) : '—'}
-                </span>
-              </div>
-              <div className="flex-1 h-px bg-gradient-to-l from-primary/60 via-primary/20 to-transparent mx-1" />
-              <div className="w-2.5 h-2.5 rounded-full bg-primary/60" />
-            </div>
-
-            {/* Destination */}
-            <div className="flex-1 min-w-0 text-right">
-              <div className="font-mono font-bold text-xl tracking-tight">{flight.destination}</div>
-              <div className="text-sm text-muted-foreground truncate">
-                {destAirport?.city || t('flights.unknownCity', 'Unknown')}
-              </div>
-            </div>
-          </div>
-
-          {/* Flight number and Times */}
-          {(hasFlightNumber || hasTimes) && (
-            <div className="flex items-center justify-between text-sm text-muted-foreground mt-4 pt-3 border-t border-border/30">
-              {hasFlightNumber ? (
-                <span className="font-mono font-medium">{flight.airline_iata}{flight.flight_number}</span>
-              ) : (
-                <span />
-              )}
-              {hasTimes && (
-                <div className="flex items-center gap-1.5 font-mono">
-                  <Clock className="w-3.5 h-3.5" />
-                  {flight.departure_time || '—'}
-                  <span className="text-muted-foreground/50">→</span>
-                  {flight.arrival_time || '—'}
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-
-        {/* Footer: Details */}
+        {/* Footer: Details badges */}
         <div className="px-4 py-3 bg-muted/20 border-t border-border/30">
           <div className="flex flex-wrap gap-2">
             {airline && (
@@ -167,12 +138,6 @@ export function FlightCard({ flight, onEdit, onDelete }: FlightCardProps) {
             {flight.distance_km && (
               <Badge variant="outline" className="bg-background font-data font-normal">
                 {formatDistance(flight.distance_km)}
-              </Badge>
-            )}
-
-            {flight.duration_minutes && (
-              <Badge variant="outline" className="bg-background font-normal">
-                {formatDuration(flight.duration_minutes)}
               </Badge>
             )}
           </div>

@@ -3,6 +3,7 @@ import * as SheetPrimitive from "@radix-ui/react-dialog"
 import { XIcon } from "lucide-react"
 
 import { cn } from "@/lib/utils"
+import { useKeyboardHeight } from "@/hooks/useKeyboardHeight"
 
 function Sheet({ ...props }: React.ComponentProps<typeof SheetPrimitive.Root>) {
   return <SheetPrimitive.Root data-slot="sheet" {...props} />
@@ -54,6 +55,9 @@ function SheetContent({
   size?: "sm" | "md" | "lg" | "xl" | "full"
   showCloseButton?: boolean
 }) {
+  // Keyboard height detection for bottom sheets
+  const keyboardHeight = useKeyboardHeight()
+
   // Size classes for left/right sheets - progressive widths for large screens
   const sizeClasses = {
     sm: "sm:max-w-sm",
@@ -62,6 +66,17 @@ function SheetContent({
     xl: "sm:max-w-lg lg:max-w-xl xl:max-w-2xl 3xl:max-w-3xl 4xl:max-w-4xl",
     full: "sm:max-w-xl lg:max-w-2xl xl:max-w-3xl 3xl:max-w-4xl 4xl:max-w-5xl",
   }
+
+  // For bottom sheets: dynamically adjust max-height based on keyboard
+  // When keyboard is open, reduce max-height to keep content visible
+  const bottomSheetStyle: React.CSSProperties | undefined =
+    side === "bottom"
+      ? {
+          maxHeight: keyboardHeight > 0
+            ? `calc(100vh - ${keyboardHeight}px - env(safe-area-inset-top, 0px))`
+            : '85vh',
+        }
+      : undefined
 
   return (
     <SheetPortal>
@@ -77,13 +92,20 @@ function SheetContent({
           side === "top" &&
             "data-[state=closed]:slide-out-to-top data-[state=open]:slide-in-from-top inset-x-0 top-0 h-auto border-b",
           side === "bottom" &&
-            "data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom inset-x-0 bottom-0 h-auto border-t",
+            "data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom inset-x-0 bottom-0 border-t rounded-t-2xl overflow-y-auto",
           className
         )}
+        style={bottomSheetStyle}
         {...props}
       >
+        {/* Drag handle for bottom sheets */}
+        {side === "bottom" && (
+          <div className="flex justify-center pt-3 pb-1 sticky top-0 bg-background z-10">
+            <div className="w-10 h-1 rounded-full bg-muted-foreground/30" />
+          </div>
+        )}
         {children}
-        {showCloseButton && (
+        {showCloseButton && side !== "bottom" && (
           <SheetPrimitive.Close className="ring-offset-background focus:ring-ring data-[state=open]:bg-secondary absolute top-4 right-4 lg:top-6 lg:right-6 rounded-xs opacity-70 transition-opacity hover:opacity-100 focus:ring-2 focus:ring-offset-2 focus:outline-hidden disabled:pointer-events-none">
             <XIcon className="size-4" />
             <span className="sr-only">Close</span>

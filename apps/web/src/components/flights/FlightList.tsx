@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { FlightCard } from './FlightCard'
 import { FlightTable } from './FlightTable'
@@ -56,15 +56,6 @@ export function FlightList({ onEdit, showSidebar = false }: FlightListProps) {
   // Airport search inputs
   const [originSearch, setOriginSearch] = useState('')
   const [destSearch, setDestSearch] = useState('')
-
-  // Responsive view detection
-  const [isMobile, setIsMobile] = useState(window.innerWidth < 768)
-
-  useEffect(() => {
-    const handleResize = () => setIsMobile(window.innerWidth < 768)
-    window.addEventListener('resize', handleResize)
-    return () => window.removeEventListener('resize', handleResize)
-  }, [])
 
   // Fetch flights with infinite scroll
   const {
@@ -225,21 +216,23 @@ export function FlightList({ onEdit, showSidebar = false }: FlightListProps) {
         </Card>
       )}
 
-      {/* Flight list */}
+      {/* Flight list - CSS-only card/table switch at sm (640px) breakpoint */}
       {flights.length > 0 && (
         <>
-          {isMobile ? (
-            <div className="space-y-3">
-              {flights.map((flight) => (
-                <FlightCard
-                  key={flight.id}
-                  flight={flight}
-                  onEdit={onEdit}
-                  onDelete={handleDelete}
-                />
-              ))}
-            </div>
-          ) : (
+          {/* Cards: visible on mobile (<640px) */}
+          <div className="sm:hidden space-y-3">
+            {flights.map((flight) => (
+              <FlightCard
+                key={flight.id}
+                flight={flight}
+                onEdit={onEdit}
+                onDelete={handleDelete}
+              />
+            ))}
+          </div>
+
+          {/* Table: visible on desktop (≥640px) */}
+          <div className="hidden sm:block">
             <FlightTable
               flights={flights}
               onEdit={onEdit}
@@ -250,7 +243,7 @@ export function FlightList({ onEdit, showSidebar = false }: FlightListProps) {
               selectedIds={selectedIds}
               onSelectionChange={setSelectedIds}
             />
-          )}
+          </div>
 
           {/* Load more */}
           {hasNextPage && (
@@ -463,12 +456,13 @@ export function FlightList({ onEdit, showSidebar = false }: FlightListProps) {
                 </>
               )}
 
-              {/* Select mode toggle */}
-              {flights.length > 0 && !isMobile && (
+              {/* Select mode toggle - hidden on mobile */}
+              {flights.length > 0 && (
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={toggleSelectionMode}
+                  className="hidden sm:flex"
                 >
                   <CheckSquare className="w-4 h-4 mr-2" />
                   {t('flights.select', 'Select')}
