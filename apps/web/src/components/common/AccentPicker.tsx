@@ -69,46 +69,50 @@ export function AccentPicker({ value = 'red', onChange, className }: AccentPicke
           {/* Color picker dropdown */}
           <div className={cn(
             'absolute top-full right-0 mt-2 z-50',
-            'p-1.5 rounded-lg flex gap-1',
-            'bg-white dark:bg-[#121417]',
-            'border border-neutral-200/50 dark:border-white/[0.08]',
-            'shadow-xl shadow-black/10 dark:shadow-black/40',
-            'animate-in fade-in-0 zoom-in-95 duration-100 ease-out'
+            'p-3 rounded-xl',
+            'bg-white dark:bg-neutral-900',
+            'border border-black/10 dark:border-white/10',
+            'shadow-lg shadow-black/10 dark:shadow-black/40',
+            'animate-in fade-in-0 zoom-in-95 duration-150',
+            'w-[max-content] max-w-[200px]'
           )}>
-            {ACCENT_COLORS.map((color) => {
-              const isActive = value === color.name
-              return (
-                <button
-                  key={color.name}
-                  type="button"
-                  onClick={() => {
-                    handleSelect(color.name)
-                    setIsOpen(false)
-                  }}
-                  className={cn(
-                    'group relative w-6 h-6 rounded-md flex items-center justify-center transition-all duration-150',
-                    'hover:bg-neutral-100 dark:hover:bg-white/5'
-                  )}
-                  title={color.label}
-                  aria-label={`Select ${color.label} accent color`}
-                >
-                  <div
-                    className={cn(
-                      "w-3 h-3 rounded-full transition-all duration-200",
-                      isActive ? "w-3 h-3 ring-1 ring-offset-1 dark:ring-offset-[#121417]" : "group-hover:scale-110"
-                    )}
-                    style={{
-                      backgroundColor: color.value,
-                      boxShadow: !isActive ? '0 0 0 1px rgba(255,255,255,0.1) inset' : undefined,
-                      ['--tw-ring-color' as string]: color.value
+            <p className="text-xs text-muted-foreground mb-2 font-medium">Accent Color</p>
+            <div className="grid grid-cols-4 gap-2">
+              {ACCENT_COLORS.map((color) => {
+                const isActive = value === color.name
+                return (
+                  <button
+                    key={color.name}
+                    type="button"
+                    onClick={() => {
+                      handleSelect(color.name)
+                      setIsOpen(false)
                     }}
-                  />
-                  {isActive && (
-                    <div className="absolute inset-x-1 -bottom-1 h-px bg-current opacity-0" />
-                  )}
-                </button>
-              )
-            })}
+                    className={cn(
+                      'group relative w-6 h-6 rounded-md flex items-center justify-center transition-all duration-150',
+                      'hover:bg-neutral-100 dark:hover:bg-white/5'
+                    )}
+                    title={color.label}
+                    aria-label={`Select ${color.label} accent color`}
+                  >
+                    <div
+                      className={cn(
+                        "w-3 h-3 rounded-full transition-all duration-200",
+                        isActive ? "w-3 h-3 ring-1 ring-offset-1 dark:ring-offset-[#121417]" : "group-hover:scale-110"
+                      )}
+                      style={{
+                        backgroundColor: color.value,
+                        boxShadow: !isActive ? '0 0 0 1px rgba(255,255,255,0.1) inset' : undefined,
+                        ['--tw-ring-color' as string]: color.value
+                      }}
+                    />
+                    {isActive && (
+                      <div className="absolute inset-x-1 -bottom-1 h-px bg-current opacity-0" />
+                    )}
+                  </button>
+                )
+              })}
+            </div>
           </div>
         </>
       )}

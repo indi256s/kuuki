@@ -15,12 +15,12 @@ export function AuthPage() {
   const navigate = useNavigate()
   const { toggleLanguage } = useLanguage()
   const [mode, setMode] = useState<AuthMode>('register')
-  const [accentColor, setAccentColor] = useState<AccentColor>('red')
+  const [accentColor, setAccentColor] = useState<AccentColor>('coral')
 
-  // Set red as default accent color on mount
+  // Set coral as default accent color on mount
   useEffect(() => {
-    document.documentElement.style.setProperty('--primary', '#E54D5A')
-    document.documentElement.style.setProperty('--ring', '#E54D5A')
+    document.documentElement.style.setProperty('--primary', '#F76B6E')
+    document.documentElement.style.setProperty('--ring', '#F76B6E')
   }, [])
 
   const handleSuccess = () => {
@@ -39,16 +39,16 @@ export function AuthPage() {
 
       {/* Mobile: Atmospheric background elements */}
       <div className="lg:hidden absolute inset-0 pointer-events-none overflow-hidden">
-        {/* Horizontal hiragana for mobile - centered backdrop */}
-        <div className="absolute top-[8%] left-1/2 -translate-x-1/2 z-0 opacity-20">
+        {/* Horizontal hiragana for mobile - High contrast */}
+        <div className="absolute top-16 left-1/2 -translate-x-1/2 z-0">
           <span
-            className="text-5xl font-bold font-display tracking-[0.3em] select-none bg-clip-text text-transparent bg-[radial-gradient(circle_at_top_left,color-mix(in_srgb,var(--primary),transparent_65%),rgba(23,23,23,0.1))] dark:bg-[radial-gradient(circle_at_top_left,color-mix(in_srgb,var(--primary),transparent_60%),rgba(255,255,255,0.1))]"
+            className="text-4xl font-bold font-display tracking-[0.3em] select-none bg-clip-text text-transparent bg-[radial-gradient(circle_at_top_left,color-mix(in_srgb,var(--primary),transparent_20%),rgba(23,23,23,0.3))] dark:bg-[radial-gradient(circle_at_top_left,color-mix(in_srgb,var(--primary),transparent_10%),rgba(255,255,255,0.3))]"
           >
             くうき
           </span>
         </div>
-        {/* Planes behind form on mobile */}
-        <div className="opacity-15">
+        {/* Planes behind form on mobile - Higher opacity */}
+        <div className="opacity-90">
           <FlyingPlanes />
         </div>
       </div>
@@ -57,7 +57,7 @@ export function AuthPage() {
       <div className="w-full max-w-[1100px] min-h-[600px] lg:h-[700px] rounded-[32px] grid lg:grid-cols-[40%_60%] overflow-hidden shadow-xl dark:shadow-2xl relative z-10 transition-all duration-500 bg-white/90 dark:bg-white/[0.03] lg:bg-white/80 backdrop-blur-xl border border-neutral-200/50 dark:border-white/[0.06]">
 
         {/* Left Side: Visual / Brand (Desktop only) */}
-        <div className="relative hidden lg:flex flex-col justify-start p-6 overflow-hidden group bg-neutral-100/50 dark:bg-transparent">
+        <div className="relative hidden lg:flex flex-col justify-start p-12 overflow-hidden group bg-neutral-100/50 dark:bg-transparent">
           {/* Dynamic Background for Left Panel */}
           <div className="absolute inset-0 bg-gradient-to-br from-primary/5 dark:from-primary/10 to-transparent opacity-80 dark:opacity-50 z-0" />
           <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.15] dark:opacity-20 z-0 mix-blend-overlay" />
@@ -83,30 +83,28 @@ export function AuthPage() {
         </div>
 
         {/* Right Side: Auth Form */}
-        <div className="relative flex flex-col justify-center px-8 pt-16 pb-32 lg:px-16 lg:pt-12 lg:pb-40 bg-white/50 dark:bg-black/20 backdrop-blur-xl">
-          {/* Header Controls */}
-          <div className="absolute top-6 left-6 right-6 flex items-center z-20">
-            {/* Centered Mobile Logo */}
-            <div className="lg:hidden absolute left-1/2 -translate-x-1/2">
-              <h1 className="text-2xl font-bold tracking-tighter text-neutral-800 dark:text-white/90">
-                <span className="text-primary">Ku</span>uki
-              </h1>
-            </div>
-
-            <div className="ml-auto flex items-center gap-3">
-              <AccentPicker value={accentColor} onChange={setAccentColor} />
-              <div className="hidden lg:block w-px h-5 bg-neutral-300 dark:bg-white/10" />
-              <Button
-                variant="ghost"
-                onClick={toggleLanguage}
-                className="hidden lg:flex text-neutral-500 dark:text-white/60 hover:text-neutral-800 dark:hover:text-white h-9 w-9 p-0 rounded-full hover:bg-neutral-100 dark:hover:bg-white/5"
-              >
-                <Languages className="w-4 h-4" />
-              </Button>
-            </div>
+        <div className="relative flex flex-col justify-center px-8 py-12 lg:px-16 lg:py-12 bg-white/50 dark:bg-black/20 backdrop-blur-xl">
+          {/* Top Right Controls */}
+          <div className="absolute top-6 right-6 flex items-center gap-2 z-20">
+            <AccentPicker value={accentColor} onChange={setAccentColor} />
+            <div className="hidden lg:block w-px h-5 bg-neutral-300 dark:bg-white/10" />
+            <Button
+              variant="ghost"
+              onClick={toggleLanguage}
+              className="hidden lg:flex text-neutral-500 dark:text-white/60 hover:text-neutral-800 dark:hover:text-white h-9 w-9 p-0 rounded-full hover:bg-neutral-100 dark:hover:bg-white/5"
+            >
+              <Languages className="w-4 h-4" />
+            </Button>
           </div>
 
-          <div className="w-full max-w-md mx-auto space-y-6 lg:space-y-8 animate-fade-in">
+          {/* Mobile: Brand header inside form area */}
+          <div className="lg:hidden mb-8 text-center">
+            <h1 className="text-3xl font-bold tracking-tighter text-neutral-800 dark:text-white/90 mb-3">
+              <span className="text-primary">Ku</span>uki
+            </h1>
+          </div>
+
+          <div className="w-full max-w-md mx-auto space-y-8 animate-fade-in">
             {mode === 'register' ? (
               <RegisterForm
                 onSuccess={handleSuccess}
@@ -121,10 +119,10 @@ export function AuthPage() {
           </div>
 
           {/* Tagline below form (Visible on all screens) */}
-          <div className="absolute bottom-12 left-0 right-0 text-center px-8 pointer-events-none">
+          <div className="mt-8 text-center px-4">
             <RotatingTagline
               items={taglines}
-              interval={4000}
+              interval={6000}
               className="text-neutral-500 dark:text-white/50 text-sm font-medium tracking-wide justify-center"
             />
           </div>
