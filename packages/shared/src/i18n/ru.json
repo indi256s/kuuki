@@ -459,7 +459,7 @@
   "import": {
     "title": "Импорт",
     "description": "Импортируйте из файлов или вставьте данные",
-    "breadcrumb": "Шаг 1 из 3",
+    "breadcrumb": "Шаг {{current}} из 3",
     "uploadImage": "Загрузить изображение",
     "pasteText": "Вставить текст",
     "processing": "Обработка...",

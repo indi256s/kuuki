@@ -460,7 +460,7 @@
   "import": {
     "title": "Import",
     "description": "Import from files or paste details",
-    "breadcrumb": "Step 1 of 3",
+    "breadcrumb": "Step {{current}} of 3",
     "uploadImage": "Upload Image",
     "pasteText": "Paste Text",
     "processing": "Processing...",

@@ -210,15 +210,19 @@ export function ImportPage() {
     parseMutation.reset()
   }, [parseMutation])
 
-  // Progress steps for stepper
-  const steps = [
-    { key: 'upload', label: t('import.steps.upload', 'Upload') },
-    { key: 'parsing', label: t('import.steps.parsing', 'Parse') },
-    { key: 'review', label: t('import.steps.review', 'Review') },
-    { key: 'saving', label: t('import.steps.save', 'Save') },
-  ]
-
-  const currentStepIndex = steps.findIndex(s => s.key === step)
+  // Map step to user-facing step number (parsing/saving are transient states)
+  const getStepNumber = (currentStep: ImportStep): number => {
+    switch (currentStep) {
+      case 'upload':
+      case 'parsing':
+        return 1
+      case 'review':
+      case 'saving':
+        return 2
+      case 'success':
+        return 3
+    }
+  }
 
   return (
     <div className="min-h-screen bg-gradient-soft relative overflow-hidden">
@@ -233,53 +237,19 @@ export function ImportPage() {
 
       {/* Main content - pb-safe adds bottom padding for mobile tab bar */}
       <main className="max-w-3xl mx-auto px-6 py-8 pb-safe sm:pb-8 relative z-10">
-        {/* Page header */}
+        {/* Page header with consistent minimal breadcrumb */}
         <div className="mb-8">
           <div className="flex items-baseline gap-3">
             <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">
               {t('import.title', 'Import')}
             </h1>
-            {step === 'upload' && (
+            {step !== 'success' && (
               <span className="text-sm text-muted-foreground">
-                {t('import.breadcrumb', 'Step 1 of 3')}
+                {t('import.breadcrumb', 'Step {{current}} of 3', { current: getStepNumber(step) })}
               </span>
             )}
           </div>
         </div>
-
-        {/* Progress indicator - only for non-upload steps */}
-        {step !== 'upload' && step !== 'success' && (
-          <div className="mb-8" style={{ animationDelay: '50ms' }}>
-            <div className="flex items-center gap-2">
-              {steps.map((s, i) => (
-                <div key={s.key} className="flex items-center">
-                  <div
-                    className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors ${
-                      step === s.key
-                        ? 'bg-primary text-primary-foreground'
-                        : currentStepIndex > i
-                        ? 'bg-success text-primary-foreground'
-                        : 'bg-muted text-muted-foreground'
-                    }`}
-                  >
-                    {currentStepIndex > i ? (
-                      <Check className="w-4 h-4" />
-                    ) : (
-                      i + 1
-                    )}
-                  </div>
-                  {i < steps.length - 1 && (
-                    <div className={`w-12 h-0.5 transition-colors ${
-                      currentStepIndex > i
-                        ? 'bg-success'
-                        : 'bg-muted'
-                    }`} />
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
 
         {/* Step content */}
         {step === 'upload' && (
