@@ -1,14 +1,21 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
+import { MapPin, Plane as PlaneIcon, Ruler, Users } from 'lucide-react'
+
 import { useAuth } from '@/hooks/useAuth'
 import { useFlightStats } from '@/hooks/useStats'
 import { useSyncUpcomingFlights } from '@/hooks/useFlights'
-import { AdvancedStats } from '@/components/stats/AdvancedStats'
-import { RecentFlights } from '@/components/dashboard/RecentFlights'
-import { RouteMap } from '@/components/map/RouteMap'
-import { MapCollapsible } from '@/components/map/MapCollapsible'
+import { useDashboardStore } from '@/stores/dashboardStore'
+import {
+  DashboardGrid,
+  YearFilter,
+  TravelSummaryCard,
+  UpcomingFlightsCard,
+  LeaderboardCard,
+  MilestoneCards,
+  EmptyState
+} from '@/components/dashboard'
 import { FlightForm } from '@/components/flights/FlightForm'
-import { EmptyState } from '@/components/dashboard/EmptyState'
 import { AppHeader } from '@/components/common/AppHeader'
 import { MobileHeader } from '@/components/layout/MobileHeader'
 import { MobileTabBar } from '@/components/layout/MobileTabBar'
@@ -20,6 +27,7 @@ export function DashboardPage() {
   const { profile } = useAuth()
   const { data: stats } = useFlightStats()
   const [isFormOpen, setIsFormOpen] = useState(false)
+  const setAvailableYears = useDashboardStore((state) => state.setAvailableYears)
 
   // Sync upcoming flights on dashboard load
   useSyncUpcomingFlights()
@@ -35,6 +43,13 @@ export function DashboardPage() {
   const handleCloseForm = useCallback(() => {
     setIsFormOpen(false)
   }, [])
+
+  // TODO: Fetch available years from flights and populate dashboard store
+  useEffect(() => {
+    // Placeholder - will be implemented when we have year filtering in backend
+    const currentYear = new Date().getFullYear()
+    setAvailableYears([currentYear, currentYear - 1])
+  }, [setAvailableYears])
 
   return (
     <div className="min-h-screen bg-gradient-soft">
@@ -72,26 +87,35 @@ export function DashboardPage() {
         </div>
 
         {hasFlights ? (
-          <div className="space-y-8">
-            {/* Advanced Stats - Tiered stats with unlock system */}
-            <AdvancedStats />
-
-            {/* Route map */}
-            <div className="animate-fade-up" style={{ animationDelay: '100ms' }}>
-              {/* Mobile: Collapsed preview card */}
-              <div className="sm:hidden">
-                <MapCollapsible />
-              </div>
-
-              {/* Desktop: Inline map */}
-              <div className="hidden sm:block rounded-2xl overflow-hidden border border-border/50 bg-card shadow-sm">
-                <RouteMap height="320px" />
-              </div>
+          <div className="space-y-6">
+            {/* Year filter */}
+            <div className="animate-fade-up">
+              <YearFilter />
             </div>
 
-            {/* Recent & upcoming flights */}
-            <div className="animate-fade-up" style={{ animationDelay: '150ms' }}>
-              <RecentFlights onAddFlight={handleAddFlight} />
+            {/* Dashboard cards */}
+            <div className="animate-fade-up" style={{ animationDelay: '50ms' }}>
+              <DashboardGrid>
+                {/* Travel Summary - 2 column span */}
+                <TravelSummaryCard />
+
+                {/* Upcoming Flights - 2 column span */}
+                <UpcomingFlightsCard />
+
+                {/* Leaderboard cards */}
+                <LeaderboardCard category="countries" icon={MapPin} />
+                <LeaderboardCard category="cities" icon={MapPin} />
+                <LeaderboardCard category="flights" icon={PlaneIcon} />
+                <LeaderboardCard category="distance" icon={Ruler} />
+                <LeaderboardCard category="airlines" icon={Users} />
+
+                {/* Milestone cards */}
+                <MilestoneCards />
+
+                {/* TODO: Progressive unlock cards will be added here */}
+                {/* TODO: Badge showcase card */}
+                {/* TODO: Favorites card */}
+              </DashboardGrid>
             </div>
           </div>
         ) : (
