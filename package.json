@@ -5,7 +5,6 @@
   "description": "Kuuki (空気) - Travel geek platform for flight tracking and leaderboards",
   "scripts": {
     "dev": "turbo dev",
-    "dev:pages": "wrangler pages dev --compatibility-date=2024-01-01 --ip 0.0.0.0 --proxy 5173 -- pnpm --filter @kuuki/web dev",
     "dev:lan": "pnpm --filter @kuuki/web dev:lan",
     "build": "turbo build",
     "lint": "turbo lint",
@@ -14,8 +13,7 @@
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20260131.0",
-    "turbo": "^2.4.0",
-    "wrangler": "^4.62.0"
+    "turbo": "^2.4.0"
   },
   "packageManager": "pnpm@9.15.0",
   "dependencies": {
