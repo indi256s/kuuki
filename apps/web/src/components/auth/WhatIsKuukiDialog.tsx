@@ -3,8 +3,10 @@ import {
     Dialog,
     DialogContent,
     DialogTitle,
+    DialogClose,
 } from '@/components/ui/dialog'
-import { Note, NoteContent, NoteHeader } from '@/components/ui/note'
+import { Note, NoteContent } from '@/components/ui/note'
+import { X } from 'lucide-react'
 
 
 interface WhatIsKuukiDialogProps {
@@ -33,36 +35,41 @@ export function WhatIsKuukiDialog({ open, onOpenChange }: WhatIsKuukiDialogProps
         },
     ]
 
+    // Helper to parse markdown-like bold syntax (**text**)
+    const renderDescription = (text: string) => {
+        const parts = text.split(/(\*\*.*?\*\*)/g)
+        return parts.map((part, index) => {
+            if (part.startsWith('**') && part.endsWith('**')) {
+                return <span key={index} className="font-bold text-foreground">{part.slice(2, -2)}</span>
+            }
+            return part
+        })
+    }
+
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="max-w-2xl p-0 gap-0 overflow-hidden bg-transparent border-none shadow-none sm:max-w-xl">
+            <DialogContent showCloseButton={false} className="max-w-2xl p-0 gap-0 overflow-hidden bg-transparent border-none shadow-none sm:max-w-xl">
                 <DialogTitle className="sr-only">{t('about.title')}</DialogTitle>
 
-                <Note variant="glass" className="w-full">
-                    <NoteHeader className="px-2 pt-2">
-                        <div className="flex items-center justify-center pb-4 text-center">
-                            <span className="text-sm font-medium text-muted-foreground/60 tracking-wide">
-                                {t('about.title')}...
-                            </span>
-                        </div>
-                    </NoteHeader>
-                    <NoteContent className="space-y-6">
+                <Note variant="glass" className="w-full relative">
+                    <DialogClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-hidden focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground z-10">
+                        <X className="h-4 w-4" />
+                        <span className="sr-only">Close</span>
+                    </DialogClose>
+
+                    <NoteContent className="space-y-6 pt-6">
                         {features.map((feature, index) => (
                             <div key={feature.key}>
                                 <h3 className="font-semibold text-foreground text-base mb-1">
                                     {index + 1}. {t(`about.features.${feature.key}.title`)}
                                 </h3>
                                 <ul>
-                                    <li>
-                                        {t(`about.features.${feature.key}.description`)}
+                                    <li className="text-foreground/90">
+                                        {renderDescription(t(`about.features.${feature.key}.description`))}
                                     </li>
                                 </ul>
                             </div>
                         ))}
-
-                        <div className="pt-4 mt-8 border-t border-border/10 flex justify-center text-[10px] text-muted-foreground font-mono opacity-50">
-                            {t('about.footer_chars', { defaultValue: '1 246 characters' })}
-                        </div>
                     </NoteContent>
                 </Note>
             </DialogContent>
