@@ -56,25 +56,14 @@ describe('WhatIsKuukiDialog', () => {
     it('renders correctly when open is true', () => {
         render(<WhatIsKuukiDialog open={true} onOpenChange={vi.fn()} />)
 
-        // Check header
+        // Check header (sr-only title)
         expect(screen.getAllByText('What is Kuuki?')[0]).toBeInTheDocument()
 
-
-
-        // Check features
-        expect(screen.getByText('1. Smart Import')).toBeInTheDocument()
+        // Check feature descriptions are rendered (no titles/numbers anymore)
         expect(screen.getByText('AI extraction')).toBeInTheDocument()
-
-        expect(screen.getByText('2. Digital Impressions')).toBeInTheDocument()
         expect(screen.getByText('Unique stamps')).toBeInTheDocument()
-
-        expect(screen.getByText('3. Stress-free Gamification')).toBeInTheDocument()
         expect(screen.getByText('Badges')).toBeInTheDocument()
-
-        expect(screen.getByText('4. Privacy by Design')).toBeInTheDocument()
         expect(screen.getByText('Hidden routes')).toBeInTheDocument()
-
-        expect(screen.getByText('5. Community Driven')).toBeInTheDocument()
         expect(screen.getByText('Feedback')).toBeInTheDocument()
     })
 })
