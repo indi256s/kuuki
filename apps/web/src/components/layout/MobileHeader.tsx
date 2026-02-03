@@ -1,6 +1,8 @@
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { KuukiIcon } from '@/components/common/KuukiIcon'
+import { AccentPicker } from '@/components/common/AccentPicker'
+import { useAccentColor } from '@/hooks/useAccentColor'
 
 interface MobileHeaderProps {
   /** Optional title to show instead of/alongside the logo */
@@ -19,6 +21,7 @@ interface MobileHeaderProps {
  */
 export function MobileHeader({ title, action }: MobileHeaderProps) {
   const { t } = useTranslation()
+  const { accentColor, setAccentColor } = useAccentColor()
 
   return (
     <header
@@ -36,12 +39,14 @@ export function MobileHeader({ title, action }: MobileHeaderProps) {
           </span>
         </Link>
 
-        {/* Action slot */}
-        {action && (
-          <div className="flex items-center gap-2">
-            {action}
-          </div>
-        )}
+        {/* Actions */}
+        <div className="flex items-center gap-2">
+          <AccentPicker
+            value={accentColor}
+            onChange={setAccentColor}
+          />
+          {action}
+        </div>
       </div>
     </header>
   )
