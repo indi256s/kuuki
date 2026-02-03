@@ -96,6 +96,20 @@ npx shadcn@latest view @shadcn
 - `docs/tasks/` - Per-phase task lists
 - `.interface-design/system.md` - Design tokens and patterns
 
+## Skills (for AI Agents)
+
+Reusable skills are in `docs/skills/`. Key skills for Kuuki development:
+
+| Skill | Purpose |
+|-------|---------|
+| `frontend-design` | High-quality UI with distinctive aesthetics |
+| `webapp-testing` | Test strategies and Playwright automation |
+| `brand-guidelines` | Consistent branding and visual identity |
+| `canvas-design` | Visual design generation |
+| `nano-banana-pro` | Image generation via Gemini |
+
+Use these in Claude Code via `/skill-name` or in Antigravity by referencing `docs/skills/<name>/SKILL.md`.
+
 ## Feature Completion Checklist
 
 **REQUIRED:** After completing any feature or phase, always update documentation as the final step:
