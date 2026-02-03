@@ -3,10 +3,12 @@ import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useLanguage } from '@/hooks/useLanguage'
 import { Button } from '@/components/ui/button'
-import { Languages } from 'lucide-react'
+import { Languages, HelpCircle } from 'lucide-react'
 import { RegisterForm } from '@/components/auth/RegisterForm'
-import { SignInForm, FlyingPlanes, RotatingTagline } from '@/components/auth'
+import { SignInForm, RotatingTagline } from '@/components/auth'
+import { PlaneAnimation } from '@/components/common/PlaneAnimation'
 import { AccentPicker, type AccentColor } from '@/components/common/AccentPicker'
+import { WhatIsKuukiDialog } from '@/components/auth/WhatIsKuukiDialog'
 
 type AuthMode = 'register' | 'signin'
 
@@ -16,6 +18,7 @@ export function AuthPage() {
   const { toggleLanguage } = useLanguage()
   const [mode, setMode] = useState<AuthMode>('register')
   const [accentColor, setAccentColor] = useState<AccentColor>('coral')
+  const [showAbout, setShowAbout] = useState(false)
 
   // Set coral as default accent color on mount
   useEffect(() => {
@@ -49,7 +52,7 @@ export function AuthPage() {
         </div>
         {/* Planes behind form on mobile - Higher opacity */}
         <div className="opacity-90">
-          <FlyingPlanes />
+          <PlaneAnimation />
         </div>
       </div>
 
@@ -63,7 +66,7 @@ export function AuthPage() {
           <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.15] dark:opacity-20 z-0 mix-blend-overlay" />
 
           {/* Planes animation */}
-          <FlyingPlanes />
+          <PlaneAnimation />
 
           {/* Top Branding with Rotating Tagline */}
           <div className="relative z-10">
@@ -88,6 +91,17 @@ export function AuthPage() {
           <div className="absolute top-6 right-6 flex items-center gap-2 z-20">
             <AccentPicker value={accentColor} onChange={setAccentColor} />
             <div className="hidden lg:block w-px h-5 bg-neutral-300 dark:bg-white/10" />
+
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setShowAbout(true)}
+              className="text-neutral-500 dark:text-white/60 hover:text-primary dark:hover:text-primary h-9 w-9 rounded-full hover:bg-neutral-100 dark:hover:bg-white/5 transition-colors"
+              aria-label="What is Kuuki?"
+            >
+              <HelpCircle className="w-4 h-4" />
+            </Button>
+
             <Button
               variant="ghost"
               onClick={toggleLanguage}
@@ -128,6 +142,8 @@ export function AuthPage() {
           </div>
         </div>
       </div>
+
+      <WhatIsKuukiDialog open={showAbout} onOpenChange={setShowAbout} />
     </div>
   )
 }

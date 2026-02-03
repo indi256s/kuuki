@@ -7,22 +7,25 @@
 
 ## Design Direction
 
-**Name:** Nordic Skies
+**Name:** Warm Japanese Minimalism
 
-**Feel:** Scandinavian minimalism in light mode, Linear-inspired technical precision in dark mode.
+**Feel:** Traditional Japanese aesthetics (Ma, Shibui) in light mode, high-precision instrumentation in dark mode.
 
 **Temperature:**
-- Light mode: Cool neutrals with subtle blue undertones — serene, spacious
-- Dark mode: Deep navy-charcoal with vibrant functional accents — focused, technical
+
+- Light mode: Warm paper-like neutrals (Washi) — breathable, organic
+- Dark mode: Deep ink/charcoal with warm lantern accents — focused, atmospheric
 
 **Signature elements:**
-- Generous whitespace
-- Soft rounded corners (14-16px for containers)
-- Subtle hover animations with glow effects
-- Typography-driven hierarchy
-- Monochromatic palette with one accent color
 
-**Target aesthetic:** Modern travelers who value both function and aesthetics. Think: Scandinavian airline lounge, not budget terminal.
+- **Hiragana (くうき):** Atmospheric branding
+- Generous whitespace ('Ma')
+- Soft rounded corners (16-32px for containers)
+- Subtle "lantern" glows (Coral/Warm light)
+- Typography-driven hierarchy
+- Monochromatic palette with Coral/Terracotta accent
+
+**Target aesthetic:** Modern travelers who value mindfulness and precision. Think: Kyoto design studio meets cockpit avionics.
 
 ---
 
@@ -101,6 +104,7 @@ Design for mobile, enhance for desktop.
 ### Card Patterns
 
 **Stats card:**
+
 ```
 ┌─────────────────────────────┐
 │  [Icon]          Top right  │
@@ -111,6 +115,7 @@ Design for mobile, enhance for desktop.
 ```
 
 **Flight card:**
+
 ```
 ┌─────────────────────────────┐
 │  JFK ●────[2h 30m]────● LHR │  ← Route visualization
@@ -147,6 +152,7 @@ Design for mobile, enhance for desktop.
 ### Data Visualization
 
 Use the 10-color chart palette for multi-category displays:
+
 - `chart-1` through `chart-10`
 - Primary category: `chart-1` (teal)
 - Limit to 4-6 colors per chart for readability
@@ -178,6 +184,7 @@ Use the 10-color chart palette for multi-category displays:
 ### Data Display
 
 Always use `font-mono` for:
+
 - Flight numbers
 - IATA codes
 - Distances
@@ -301,6 +308,7 @@ box-shadow: 0 0 15px oklch(0.55 0.22 275 / 0.3);
 ```
 
 Use sparingly — only on:
+
 - Input focus
 - Active card states
 - Selected items

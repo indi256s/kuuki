@@ -26,6 +26,34 @@
     "optional": "optional",
     "saving": "Saving..."
   },
+  "about": {
+    "title": "What is Kuuki?",
+    "description": "Kuuki means \"Air\" or \"Atmosphere\" in Japanese.",
+    "meaning": "In Japan, \"Kuuki wo yomu\" (reading the air) means understanding the context without words.",
+    "meaningDetail": "Kuuki \"feels\" your journeys, turning dry data into a beautiful flight history.",
+    "features": {
+      "import": {
+        "title": "Smart Import (AI Import)",
+        "description": "Don't type manually. Just drop a ticket screenshot, PDF, or email text. AI extracts flight, airline, and aircraft data. It's the **laziest** way to keep a flight log."
+      },
+      "passport": {
+        "title": "Digital Impressions (Passport & Stats)",
+        "description": "Unique stamps for every country and detailed stats (from aircraft types to moon progress). It's not just a list, but your **progress as a world explorer**."
+      },
+      "gamification": {
+        "title": "Stress-free Gamification",
+        "description": "Badges for achievements (like \"Night Owl\" or \"Equator Hopper\") and percentile leaderboards. No pressure. You're always in the \"top 15%\", never at \"145th place\"."
+      },
+      "privacy": {
+        "title": "Privacy by Design",
+        "description": "Share your public profile, but **your exact routes and map are always hidden**. Only stats and badges are visible. You choose what to share."
+      },
+      "community": {
+        "title": "Community Driven",
+        "description": "Built for a small circle (50-500 aviation enthusiasts). Suggest features boldly. Direct feedback shapes the final product."
+      }
+    }
+  },
   "auth": {
     "signIn": "Sign in",
     "signOut": "Sign out",

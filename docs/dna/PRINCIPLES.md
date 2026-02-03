@@ -11,7 +11,7 @@
 
 **What Kuuki is NOT:** A social network, a booking tool, a loyalty program tracker, or a travel planning app.
 
-**Name:** Always "Kuuki" — no kanji (空気) in UI, just the romanized name.
+**Name:** "Kuuki" for text. Hiragana (くうき) allowed for atmospheric branding/watermarks. No Kanji in functional UI.
 
 **Scale assumption:** 50-500 users in first 6 months. This is a personal project, not a startup. Decisions optimize for craft over growth.
 
@@ -32,6 +32,7 @@
 | Passport stamps | Always private | Personal travel visualization only |
 
 **Rules:**
+
 - NEVER show individual flight details on public profiles
 - NEVER show the map visualization publicly
 - ALWAYS require explicit opt-in for leaderboard participation
@@ -46,12 +47,14 @@
 **Philosophy:** Celebrate achievements, don't manufacture anxiety.
 
 **What we DO:**
+
 - Award badges for genuine milestones (first flight, 100 flights, circumnavigator distance)
 - Show percentile rankings ("Top 15%") instead of exact positions
 - Use duration milestones (hours in air) as progress markers
 - Display only earned badges — never locked ones
 
 **What we DON'T do:**
+
 - NO daily streaks (creates anxiety, punishes breaks)
 - NO progress bars toward next badge (creates pressure)
 - NO "X more flights to unlock..." prompts
@@ -67,6 +70,7 @@
 ## Technical Philosophy
 
 **Minimal server footprint:**
+
 - Cloudflare Worker ONLY for Gemini API proxy (hides API key)
 - All flight CRUD goes direct from client to Supabase
 - Supabase RLS handles all security
@@ -75,12 +79,14 @@
 **Why:** Less infrastructure = less maintenance = more time for features.
 
 **Data accuracy over completeness:**
+
 - Allow inferences (airline from flight number format)
 - Require user confirmation before saving AI-parsed data
 - Warn on duplicates but let user decide
 - Computed fields (distance, duration) use sensible defaults
 
 **Progressive disclosure:**
+
 - Stats tabs appear as user accumulates data
 - Don't show empty sections — show sample data or hide
 - Onboarding teaches through example, not tutorials
@@ -92,12 +98,14 @@
 **Target user:** Aviation enthusiast who flies 5-50 times per year. Cares about their flight history. Enjoys stats and comparisons. Values both function and aesthetics.
 
 **Emotional goals:**
+
 - Pride in collection ("Look at all these flights")
 - Curiosity about patterns ("I had no idea I flew that much distance")
 - Friendly competition ("Top 15% of countries visited")
 - Nostalgia ("My first international flight was 8 years ago")
 
 **NOT optimizing for:**
+
 - Daily engagement (this isn't social media)
 - Viral growth (quality community over quantity)
 - Monetization (personal project)
@@ -114,7 +122,7 @@ When making new product decisions, apply these filters in order:
 2. **Anxiety check:** Does this create pressure, guilt, or FOMO?
 3. **Complexity check:** Does this require server-side logic we don't have?
 4. **Scale check:** Does this make sense for 50-500 users?
-5. **Craft check:** Does this align with the Nordic Skies aesthetic?
+5. **Craft check:** Does this align with the Warm Japanese Minimalism aesthetic?
 
 If any check fails, reconsider the feature or find an alternative approach.
 

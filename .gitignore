@@ -23,6 +23,7 @@ dist/
 credentials.json
 serviceAccountKey.json
 **/secrets/
+.mcp.json
 
 # IDE
 .idea/

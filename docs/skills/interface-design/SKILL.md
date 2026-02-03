@@ -1,3 +1,8 @@
+---
+name: Interface Design
+description: A method for implementing a Linear-inspired interface design system.
+---
+
 # Linear-Inspired Design System (Kuuki Final)
 
 ## 0. Philosophy
@@ -32,12 +37,12 @@ Linear does not use pure black (`#000000`). It uses deep, cool grays to reduce e
 - **Border Subtle:** `rgba(255, 255, 255, 0.06)` (Layout dividers)
 - **Border Default:** `rgba(255, 255, 255, 0.08)` (Card borders)
 - **Border Strong:** `rgba(255, 255, 255, 0.12)` (Inputs, active elements)
-- **Border Focus:** `rgba(94, 106, 210, 0.5)` (Indigo glow)
+- **Border Focus:** `rgba(247, 107, 110, 0.5)` (Coral glow)
 
 **Functional Accents (The "Lights")**
 
-- **Primary (Indigo):** `#5E6AD2` (Brand, Links, Focus)
-  - *Glow:* `box-shadow: 0 0 16px rgba(94, 106, 210, 0.4)`
+- **Primary (Coral):** `#F76B6E` (Brand, Links, Focus)
+  - *Glow:* `box-shadow: 0 0 16px rgba(247, 107, 110, 0.4)`
 - **Success (Teal/Green):** `#2EB88A` (On track, Done)
 - **Warning (Amber):** `#E5A000` (At risk)
 - **Error (Red):** `#E5484D` (Failed, Off track)
@@ -109,7 +114,7 @@ Linear relies on "inner light" rather than just drop shadows.
 **Glows:**
 Used for active states (focus rings, active tabs).
 
-- `box-shadow: 0 0 0 1px #5E6AD2, 0 0 12px -2px rgba(94, 106, 210, 0.6)`
+- `box-shadow: 0 0 0 1px #F76B6E, 0 0 12px -2px rgba(247, 107, 110, 0.6)`
 
 ### 2.2 Glassmorphism
 
