@@ -6,6 +6,7 @@ on:
   pull_request:
     branches: [main, dev]
     types: [opened, synchronize, reopened, labeled]
+  workflow_dispatch:
 
 # Cancel in-progress runs on same branch
 concurrency:
