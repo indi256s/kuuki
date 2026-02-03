@@ -6,9 +6,8 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Clock, Calendar, ArrowRight } from 'lucide-react'
 import { FlightCardActions } from './FlightCardActions'
-import { AircraftShimmerBadge } from './AircraftShimmerBadge'
+import { AircraftPendingBadge } from './AircraftPendingBadge'
 import { cn } from '@/lib/utils'
-import type { EnrichmentStatus } from '@kuuki/shared/types'
 
 interface FlightCardProps {
   flight: Flight
@@ -129,10 +128,7 @@ export function FlightCard({ flight, onEdit, onDelete }: FlightCardProps) {
                 {aircraft.name}
               </Badge>
             ) : !flight.aircraft_icao ? (
-              <AircraftShimmerBadge
-                flightId={flight.id}
-                enrichmentStatus={(flight as { enrichment_status?: EnrichmentStatus }).enrichment_status ?? 'pending'}
-              />
+              <AircraftPendingBadge flightId={flight.id} />
             ) : (
               <Badge variant="outline" className="font-mono bg-background font-normal">
                 {flight.aircraft_icao}

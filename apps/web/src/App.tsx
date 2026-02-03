@@ -10,7 +10,6 @@ import { ProfilePage } from '@/routes/ProfilePage'
 import { LeaderboardPage } from '@/routes/LeaderboardPage'
 import { PassportPage } from '@/routes/PassportPage'
 import { SettingsPage } from '@/routes/SettingsPage'
-import { DevResetPage } from '@/routes/DevResetPage'
 import { ProtectedRoute } from '@/components/ProtectedRoute'
 import { ToastProvider, ErrorBoundary } from '@/components/error'
 
@@ -112,15 +111,6 @@ function AppRoutes() {
           element={
             <ProtectedRoute>
               <SettingsPage />
-            </ProtectedRoute>
-          }
-        />
-        {/* Dev tools */}
-        <Route
-          path="/dev/reset"
-          element={
-            <ProtectedRoute>
-              <DevResetPage />
             </ProtectedRoute>
           }
         />

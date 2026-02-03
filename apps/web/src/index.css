@@ -495,70 +495,6 @@
   }
 }
 
-/* ==========================================================================
-   Flight Progress Modal Animations
-   Three-stage plane animation: Depart → Cruise → Arrive
-   ========================================================================== */
-
-/* Stage 1: Departure - plane tilts up and climbs from ground */
-@keyframes flight-depart {
-  0% {
-    transform: translateX(-20px) translateY(40px) rotate(0deg);
-    opacity: 0.6;
-  }
-  30% {
-    opacity: 1;
-  }
-  100% {
-    transform: translateX(60px) translateY(-10px) rotate(-12deg);
-    opacity: 1;
-  }
-}
-
-/* Stage 2: Cruise - gentle bobbing at altitude */
-@keyframes flight-cruise {
-  0% {
-    transform: translateX(60px) translateY(-10px) rotate(0deg);
-  }
-  25% {
-    transform: translateX(70px) translateY(-14px) rotate(-2deg);
-  }
-  50% {
-    transform: translateX(80px) translateY(-8px) rotate(1deg);
-  }
-  75% {
-    transform: translateX(90px) translateY(-12px) rotate(-1deg);
-  }
-  100% {
-    transform: translateX(100px) translateY(-10px) rotate(0deg);
-  }
-}
-
-/* Stage 3: Arrival - descends and lands */
-@keyframes flight-arrive {
-  0% {
-    transform: translateX(100px) translateY(-10px) rotate(0deg);
-    opacity: 1;
-  }
-  70% {
-    opacity: 1;
-  }
-  100% {
-    transform: translateX(140px) translateY(40px) rotate(12deg);
-    opacity: 0.6;
-  }
-}
-
-/* Shimmer animation for loading badges */
-@keyframes shimmer {
-  0% {
-    transform: translateX(-100%);
-  }
-  100% {
-    transform: translateX(200%);
-  }
-}
-
 /* Simple straight-line plane animation - bottom to top at 45 degrees */
 @keyframes plane-ascend {
   0% {
@@ -683,24 +619,6 @@
   .animate-plane-ascend {
     animation: plane-ascend var(--plane-duration, 15s) linear var(--plane-delay, 0s) infinite backwards;
   }
-
-  /* Flight progress modal animations */
-  .animate-flight-depart {
-    animation: flight-depart 2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-  }
-
-  .animate-flight-cruise {
-    animation: flight-cruise 6s ease-in-out infinite;
-  }
-
-  .animate-flight-arrive {
-    animation: flight-arrive 2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-  }
-
-  /* Shimmer animation for loading states */
-  .animate-shimmer {
-    animation: shimmer 2s ease-in-out infinite;
-  }
 }
 
 /* Mobile safe area support */
@@ -807,10 +725,6 @@
   .animate-slide-in-right,
   .animate-tier-reveal,
   .animate-text-flow,
-  .animate-flight-depart,
-  .animate-flight-cruise,
-  .animate-flight-arrive,
-  .animate-shimmer,
   .stagger-children > * {
     opacity: 1 !important;
     transform: none !important;

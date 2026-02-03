@@ -1,7 +1,5 @@
 // Shared types and utilities for import API
 
-export type EnrichmentStatus = 'pending' | 'enriched' | 'failed' | 'skipped'
-
 export interface ExtractedFlight {
   date: string // YYYY-MM-DD
   origin: string // IATA code
@@ -12,7 +10,6 @@ export interface ExtractedFlight {
   departure_time?: string // HH:mm
   arrival_time?: string // HH:mm
   confidence: number // 0-1 overall confidence
-  enrichment_status?: EnrichmentStatus // Aircraft enrichment state
   field_confidence?: {
     date?: number
     origin?: number
