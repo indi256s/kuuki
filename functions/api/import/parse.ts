@@ -8,6 +8,9 @@ import {
   detectImageMimeType,
   EXTRACTION_PROMPT,
   CLEANING_PROMPT,
+  createJob,
+  updateJob,
+  ASYNC_THRESHOLD,
 } from './_shared'
 
 interface Env {
@@ -31,7 +34,6 @@ async function cleanTextWithGemini(ai: GoogleGenAI, rawText: string): Promise<st
     return ''
   }
 }
-
 
 // JSON schema for structured output
 const FLIGHT_RESPONSE_SCHEMA = {
@@ -90,6 +92,134 @@ const FLIGHT_RESPONSE_SCHEMA = {
   required: ['flights'],
 }
 
+// Count estimated flights from cleaned text (one flight per line)
+function estimateFlightCount(cleanedText: string): number {
+  return cleanedText.trim().split('\n').filter(line => line.trim()).length
+}
+
+// Core extraction logic (Stage 2) - shared between sync and async paths
+async function extractFlights(
+  ai: GoogleGenAI,
+  contents: (string | { inlineData: { data: string; mimeType: string } })[],
+  cleanedText?: string
+): Promise<{
+  flights: ExtractedFlight[]
+  raw_text?: string
+  rejected?: RejectedFlight[]
+  gemini_count?: number
+  cleaned_text?: string
+}> {
+  // Call Gemini API using the official SDK
+  const response = await ai.models.generateContent({
+    model: 'gemini-3-flash-preview',
+    contents,
+    config: {
+      responseMimeType: 'application/json',
+      responseSchema: FLIGHT_RESPONSE_SCHEMA,
+    },
+  })
+
+  // Extract response text
+  const responseText = response.text
+  if (!responseText) {
+    throw new Error('No response from AI model')
+  }
+
+  // Parse JSON response
+  let parsedResponse: { flights: ExtractedFlight[]; raw_text?: string }
+  try {
+    parsedResponse = JSON.parse(responseText)
+  } catch {
+    console.error('Failed to parse Gemini response:', responseText)
+    throw new Error('Invalid response format from AI model')
+  }
+
+  // Debug: Log raw parsed flights from Gemini
+  console.log('Gemini parsed flights:', JSON.stringify(parsedResponse.flights, null, 2))
+
+  // Validate and normalize flights, collecting rejected ones for diagnostics
+  const rejectedFlights: RejectedFlight[] = []
+  const geminiCount = parsedResponse.flights?.length || 0
+
+  const validFlights = (parsedResponse.flights || [])
+    .filter((flight, index): flight is ExtractedFlight => {
+      const reasons: string[] = []
+
+      if (typeof flight.date !== 'string' || !flight.date) {
+        reasons.push('missing date')
+      }
+      if (typeof flight.origin !== 'string') {
+        reasons.push('missing origin')
+      } else if (flight.origin.length !== 3) {
+        reasons.push(`origin "${flight.origin}" is not 3 letters`)
+      }
+      if (typeof flight.destination !== 'string') {
+        reasons.push('missing destination')
+      } else if (flight.destination.length !== 3) {
+        reasons.push(`destination "${flight.destination}" is not 3 letters`)
+      }
+      if (typeof flight.airline_iata !== 'string') {
+        reasons.push('missing airline code')
+      } else if (flight.airline_iata.length !== 2) {
+        reasons.push(`airline "${flight.airline_iata}" is not 2 letters`)
+      }
+
+      if (reasons.length > 0) {
+        rejectedFlights.push({
+          index,
+          date: flight.date,
+          origin: flight.origin,
+          destination: flight.destination,
+          airline_iata: flight.airline_iata,
+          reason: reasons.join(', '),
+        })
+        console.log(`Flight ${index} rejected:`, reasons.join(', '))
+        return false
+      }
+
+      return true
+    })
+    .map((flight) => {
+      // Normalize codes to uppercase
+      const normalizedFlight = {
+        ...flight,
+        origin: flight.origin.toUpperCase(),
+        destination: flight.destination.toUpperCase(),
+        airline_iata: flight.airline_iata.toUpperCase(),
+        aircraft_icao: flight.aircraft_icao?.toUpperCase(),
+        // Ensure confidence is a number between 0 and 1 (use ?? to preserve explicit 0)
+        confidence: Math.min(1, Math.max(0, flight.confidence ?? 0.5)),
+      }
+
+      // Determine enrichment_status based on aircraft data
+      // - 'skipped' if aircraft_icao is present with high confidence
+      // - 'pending' if we need to enrich it later
+      const aircraftConfidence = flight.field_confidence?.aircraft_icao ?? 0
+      const enrichmentStatus: EnrichmentStatus =
+        normalizedFlight.aircraft_icao && aircraftConfidence >= 0.8
+          ? 'skipped'
+          : 'pending'
+
+      return {
+        ...normalizedFlight,
+        enrichment_status: enrichmentStatus,
+      }
+    })
+
+  // Debug: Log validation summary
+  console.log(`Validated ${validFlights.length} of ${geminiCount} flights, rejected ${rejectedFlights.length}`)
+
+  return {
+    flights: validFlights,
+    raw_text: parsedResponse.raw_text,
+    ...(cleanedText && { cleaned_text: cleanedText }),
+    ...(rejectedFlights.length > 0 && {
+      rejected: rejectedFlights,
+      gemini_count: geminiCount,
+    }),
+  }
+}
+
 export const onRequestPost: PagesFunction<Env> = async (context) => {
   // CORS headers
   const corsHeaders = {
@@ -107,7 +237,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     // Check API key
     if (!context.env.GEMINI_API_KEY) {
       return Response.json(
-        { error: 'Gemini API key not configured' } as ParseResponse,
+        { error: 'Gemini API key not configured', flights: [] } as ParseResponse,
         { status: 500, headers: corsHeaders }
       )
     }
@@ -165,8 +295,51 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
       } else {
         contents.push(`\n\nDocument content:\n${cleanedText}`)
       }
+
+      // Check if we should go async (10+ estimated flights)
+      const estimatedCount = estimateFlightCount(cleanedText || content)
+      console.log(`Estimated flight count: ${estimatedCount}`)
+
+      if (estimatedCount >= ASYNC_THRESHOLD) {
+        // Create a job and return immediately
+        const job = createJob()
+        console.log(`Async mode: Created job ${job.id} for ${estimatedCount} flights`)
+
+        // Use waitUntil to continue processing after response
+        context.waitUntil(
+          (async () => {
+            try {
+              const result = await extractFlights(ai, contents, cleanedText)
+              updateJob(job.id, {
+                status: 'completed',
+                flights: result.flights,
+                rejected: result.rejected,
+                gemini_count: result.gemini_count,
+                cleaned_text: result.cleaned_text,
+              })
+              console.log(`Job ${job.id} completed with ${result.flights.length} flights`)
+            } catch (error) {
+              console.error(`Job ${job.id} failed:`, error)
+              updateJob(job.id, {
+                status: 'failed',
+                error: error instanceof Error ? error.message : 'Unknown error',
+              })
+            }
+          })()
+        )
+
+        // Return immediately with job ID
+        return Response.json(
+          {
+            flights: [],
+            jobId: job.id,
+            status: 'processing',
+          } as ParseResponse,
+          { headers: corsHeaders }
+        )
+      }
     } else {
-      // Single-stage parsing for PDF/image
+      // Single-stage parsing for PDF/image (no async for now - harder to estimate)
       const mimeType = type === 'pdf' ? 'application/pdf' : detectImageMimeType(content)
       contents.push({
         inlineData: {
@@ -176,123 +349,12 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
       })
     }
 
-    // Call Gemini API using the official SDK
-    const response = await ai.models.generateContent({
-      model: 'gemini-3-flash-preview',
-      contents,
-      config: {
-        responseMimeType: 'application/json',
-        responseSchema: FLIGHT_RESPONSE_SCHEMA,
-      },
-    })
-
-    // Extract response text
-    const responseText = response.text
-    if (!responseText) {
-      return Response.json(
-        { error: 'No response from AI model', flights: [] } as ParseResponse,
-        { status: 502, headers: corsHeaders }
-      )
-    }
-
-    // Parse JSON response
-    let parsedResponse: { flights: ExtractedFlight[]; raw_text?: string }
-    try {
-      parsedResponse = JSON.parse(responseText)
-    } catch {
-      console.error('Failed to parse Gemini response:', responseText)
-      return Response.json(
-        { error: 'Invalid response format from AI model', flights: [] } as ParseResponse,
-        { status: 502, headers: corsHeaders }
-      )
-    }
-
-    // Debug: Log raw parsed flights from Gemini
-    console.log('Gemini parsed flights:', JSON.stringify(parsedResponse.flights, null, 2))
-
-    // Validate and normalize flights, collecting rejected ones for diagnostics
-    const rejectedFlights: RejectedFlight[] = []
-    const geminiCount = parsedResponse.flights?.length || 0
-
-    const validFlights = (parsedResponse.flights || [])
-      .filter((flight, index): flight is ExtractedFlight => {
-        const reasons: string[] = []
-
-        if (typeof flight.date !== 'string' || !flight.date) {
-          reasons.push('missing date')
-        }
-        if (typeof flight.origin !== 'string') {
-          reasons.push('missing origin')
-        } else if (flight.origin.length !== 3) {
-          reasons.push(`origin "${flight.origin}" is not 3 letters`)
-        }
-        if (typeof flight.destination !== 'string') {
-          reasons.push('missing destination')
-        } else if (flight.destination.length !== 3) {
-          reasons.push(`destination "${flight.destination}" is not 3 letters`)
-        }
-        if (typeof flight.airline_iata !== 'string') {
-          reasons.push('missing airline code')
-        } else if (flight.airline_iata.length !== 2) {
-          reasons.push(`airline "${flight.airline_iata}" is not 2 letters`)
-        }
-
-        if (reasons.length > 0) {
-          rejectedFlights.push({
-            index,
-            date: flight.date,
-            origin: flight.origin,
-            destination: flight.destination,
-            airline_iata: flight.airline_iata,
-            reason: reasons.join(', '),
-          })
-          console.log(`Flight ${index} rejected:`, reasons.join(', '))
-          return false
-        }
-
-        return true
-      })
-      .map((flight) => {
-        // Normalize codes to uppercase
-        const normalizedFlight = {
-          ...flight,
-          origin: flight.origin.toUpperCase(),
-          destination: flight.destination.toUpperCase(),
-          airline_iata: flight.airline_iata.toUpperCase(),
-          aircraft_icao: flight.aircraft_icao?.toUpperCase(),
-          // Ensure confidence is a number between 0 and 1 (use ?? to preserve explicit 0)
-          confidence: Math.min(1, Math.max(0, flight.confidence ?? 0.5)),
-        }
-
-        // Determine enrichment_status based on aircraft data
-        // - 'skipped' if aircraft_icao is present with high confidence
-        // - 'pending' if we need to enrich it later
-        const aircraftConfidence = flight.field_confidence?.aircraft_icao ?? 0
-        const enrichmentStatus: EnrichmentStatus =
-          normalizedFlight.aircraft_icao && aircraftConfidence >= 0.8
-            ? 'skipped'
-            : 'pending'
-
-        return {
-          ...normalizedFlight,
-          enrichment_status: enrichmentStatus,
-        }
-      })
-
-    // Debug: Log validation summary
-    console.log(`Validated ${validFlights.length} of ${geminiCount} flights, rejected ${rejectedFlights.length}`)
+    // Sync path: extract and return immediately
+    const result = await extractFlights(ai, contents, cleanedText)
 
     return Response.json(
       {
-        flights: validFlights,
-        raw_text: parsedResponse.raw_text,
-        // Include cleaned text for transparency (text input only)
-        ...(cleanedText && { cleaned_text: cleanedText }),
-        // Include diagnostic info when there are rejected flights
-        ...(rejectedFlights.length > 0 && {
-          rejected: rejectedFlights,
-          gemini_count: geminiCount,
-        }),
+        ...result,
       } as ParseResponse,
       { headers: corsHeaders }
     )
