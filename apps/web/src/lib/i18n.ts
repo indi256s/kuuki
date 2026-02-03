@@ -43,7 +43,8 @@ export function changeLanguage(lang: SupportedLanguage) {
   localStorage.setItem('kuuki-language', lang)
 }
 
-// Get current language
+// Get current language - strictly return 'ru' only if detected, otherwise 'en'
 export function getCurrentLanguage(): SupportedLanguage {
-  return (i18n.language?.split('-')[0] as SupportedLanguage) || 'en'
+  const detected = i18n.language?.split('-')[0]
+  return detected === 'ru' ? 'ru' : 'en'
 }
