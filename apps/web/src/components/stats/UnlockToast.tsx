@@ -22,19 +22,19 @@ const TIER_CONFIG: Record<
     icon: Plane,
     colorClass: 'from-primary to-primary/80',
     glowClass: 'shadow-[0_0_60px_rgba(var(--primary),0.4)]',
-    titleKey: 'stats.aviaGeek',
+    titleKey: 'stats.aviaGeekLabel',
   },
   countryGeek: {
     icon: Globe2,
     colorClass: 'from-chart-2 to-chart-2/80',
     glowClass: 'shadow-[0_0_60px_rgba(34,197,94,0.4)]',
-    titleKey: 'stats.countryGeek',
+    titleKey: 'stats.countryGeekLabel',
   },
   duration: {
     icon: Clock,
     colorClass: 'from-chart-4 to-chart-4/80',
     glowClass: 'shadow-[0_0_60px_rgba(234,179,8,0.4)]',
-    titleKey: 'stats.timeGeek',
+    titleKey: 'stats.timeGeekLabel',
   },
 }
 

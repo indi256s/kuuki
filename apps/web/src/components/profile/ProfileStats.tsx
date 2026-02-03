@@ -79,7 +79,7 @@ export function ProfileStats({ stats, isLoading, hideTitle = false }: ProfileSta
       iconColor: 'text-chart-5',
     },
     {
-      label: t('stats.aircraftTypes', 'Aircraft'),
+      label: t('stats.aircraftTypesLabel', 'Aircraft'),
       value: (stats.aircraft_count ?? 0).toString(),
       icon: Layers,
       gradient: 'from-chart-1/10 to-chart-1/5',

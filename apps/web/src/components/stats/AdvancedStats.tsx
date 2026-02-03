@@ -71,7 +71,7 @@ export function AdvancedStats() {
         {/* Avia Geek Tier */}
         <TierContainer
           tier="aviaGeek"
-          title={t('stats.aviaGeek', 'Avia Geek')}
+          title={t('stats.aviaGeekLabel', 'Avia Geek')}
           icon={Plane}
           isUnlocked={unlockProgress?.aviaGeek.unlocked ?? false}
           progress={unlockProgress?.aviaGeek}
@@ -83,7 +83,7 @@ export function AdvancedStats() {
         {/* Country Geek Tier */}
         <TierContainer
           tier="countryGeek"
-          title={t('stats.countryGeek', 'Country Geek')}
+          title={t('stats.countryGeekLabel', 'Country Geek')}
           icon={Globe2}
           isUnlocked={unlockProgress?.countryGeek.unlocked ?? false}
           progress={unlockProgress?.countryGeek}
@@ -96,7 +96,7 @@ export function AdvancedStats() {
       {/* Duration Tier - Full width */}
       <TierContainer
         tier="duration"
-        title={t('stats.timeGeek', 'Time Geek')}
+        title={t('stats.timeGeekLabel', 'Time Geek')}
         icon={Clock}
         isUnlocked={unlockProgress?.duration.unlocked ?? false}
         progress={unlockProgress?.duration}

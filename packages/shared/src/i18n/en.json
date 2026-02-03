@@ -79,20 +79,6 @@
       "You've been busy. We appreciate that."
     ]
   },
-  "onboarding": {
-    "slide1": {
-      "title": "Log Your Journeys",
-      "description": "Build your flight collection. Every takeoff, every landing, remembered."
-    },
-    "slide2": {
-      "title": "Discover Your Stats",
-      "description": "Distance flown, countries visited, airlines collected. See your patterns."
-    },
-    "slide3": {
-      "title": "Compare & Share",
-      "description": "Join the leaderboard. Compare stats with fellow enthusiasts."
-    }
-  },
   "nav": {
     "dashboard": "Dashboard",
     "home": "Home",
@@ -196,10 +182,10 @@
   "stats": {
     "title": "Stats",
     "overview": "Overview",
-    "frequentTraveler": "Frequent Traveler",
-    "aviaGeek": "Avia Geek",
-    "countryGeek": "Country Geek",
-    "timeGeek": "Time Geek",
+    "frequentTravelerLabel": "Frequent Traveler",
+    "aviaGeekLabel": "Avia Geek",
+    "countryGeekLabel": "Country Geek",
+    "timeGeekLabel": "Time Geek",
     "totalFlights": "Total Flights",
     "totalDistance": "Total Distance",
     "totalTime": "Time in Air",
@@ -207,13 +193,13 @@
     "cities": "Cities",
     "airports": "Airports",
     "airlines": "Airlines",
-    "aircraftTypes": "Aircraft Types",
+    "aircraftTypesLabel": "Aircraft Types",
     "mostFlownRoute": "Most Flown Route",
     "longestFlight": "Longest Flight",
     "shortestFlight": "Shortest Flight",
     "topAirlines": "Top Airlines",
     "topAircraft": "Top Aircraft",
-    "continents": "Continents",
+    "continentsLabel": "Continents",
     "funFacts": {
       "title": "Fun Facts",
       "moonProgress": "Distance to the Moon: {{percent}}% complete",
@@ -449,7 +435,7 @@
     "uploadImage": "Upload Image",
     "pasteText": "Paste Text",
     "processing": "Processing...",
-    "review": "Review Import",
+    "reviewLabel": "Import Review",
     "confirm": "Confirm Import",
     "flightsFound": "{{count}} flights found",
     "noFlightsFound": "No flights found in the provided data",
@@ -530,6 +516,7 @@
     "centurion": "Centurion",
     "skyWarrior": "Sky Warrior",
     "circumnavigator": "Circumnavigator",
+    "equatorHopper": "Equator Hopper",
     "moonShot": "Moon Shot",
     "globeTrotter": "Globe Trotter",
     "worldExplorer": "World Explorer",

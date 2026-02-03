@@ -120,7 +120,7 @@ export function SignInForm({ onSuccess, onSignUpClick }: SignInFormProps) {
             <button
               type="button"
               onClick={onSignUpClick}
-              className="text-primary hover:text-primary-foreground transition-colors font-medium ml-1 hover:underline underline-offset-4"
+              className="text-primary hover:opacity-80 transition-opacity font-medium ml-1 hover:underline underline-offset-4"
             >
               {t('auth.createAccount')}
             </button>
