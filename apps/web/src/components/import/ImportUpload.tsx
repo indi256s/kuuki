@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Note, NoteContent } from '@/components/ui/note'
-import { Copy, Check, ChevronDown, Upload, X, FileType } from 'lucide-react'
+import { Copy, Check, Upload, X, FileType } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const GEMINI_PROMPT = `@Gmail @Google Calendar Search for all flight bookings, boarding passes, itineraries, and travel confirmations.
@@ -48,7 +48,7 @@ export function ImportUpload({ onSubmit, disabled }: ImportUploadProps) {
   const [textInput, setTextInput] = useState('')
   const [textareaHeight, setTextareaHeight] = useState('96px') // min-h-24
   const [showCopiedToast, setShowCopiedToast] = useState(false)
-  const [tipExpanded, setTipExpanded] = useState(false)
+  const [showPromptEasterEgg, setShowPromptEasterEgg] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
@@ -173,11 +173,31 @@ export function ImportUpload({ onSubmit, disabled }: ImportUploadProps) {
     e.target.value = ''
   }, [processFile])
 
+  // Check if text looks like our prompt (Easter egg detection)
+  const looksLikeOurPrompt = useCallback((text: string) => {
+    const promptSignatures = [
+      '@Gmail @Google Calendar',
+      'flight bookings, boarding passes',
+      'Origin and destination airports',
+      'one flight per line',
+    ]
+    const matchCount = promptSignatures.filter(sig => text.includes(sig)).length
+    return matchCount >= 2 // At least 2 matches = probably our prompt
+  }, [])
+
   // Auto-grow textarea
   const handleTextChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const value = e.target.value
     setTextInput(value)
     setTextError(null)
+
+    // Easter egg: detect if user pasted our prompt
+    if (looksLikeOurPrompt(value)) {
+      setShowPromptEasterEgg(true)
+      setTextError(t('import.tip.easterEgg', "This is the prompt FOR your AI assistant. Copy it to Gemini or Claude, get the results, then paste THOSE here. I believe in you."))
+    } else {
+      setShowPromptEasterEgg(false)
+    }
 
     // Auto-grow logic
     const textarea = e.target
@@ -190,7 +210,7 @@ export function ImportUpload({ onSubmit, disabled }: ImportUploadProps) {
       setFilePreview(null)
       setFileError(null)
     }
-  }, [filePreview])
+  }, [filePreview, looksLikeOurPrompt, t])
 
   // Clear handlers
   const clearText = useCallback(() => {
@@ -226,62 +246,41 @@ export function ImportUpload({ onSubmit, disabled }: ImportUploadProps) {
 
   return (
     <div className="space-y-4">
-      {/* Card 1: AI Tip (Collapsible Note) */}
-      <Note
-        accent="info"
-        size="sm"
-        className="cursor-pointer select-none"
-        onClick={() => setTipExpanded(!tipExpanded)}
-      >
-        <div className="flex items-center justify-between gap-3">
+      {/* Card 1: AI Tip (Always visible) */}
+      <Note accent="info" size="sm">
+        <div className="flex items-center justify-between gap-3 mb-3">
           <span className="text-sm font-medium">
-            {t('import.tip.teaser', 'Copy prompt for AI')}
+            {t('import.tip.teaser', 'Let AI find all your flights from Gmail & Calendar')}
           </span>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="secondary"
-              onClick={copyPrompt}
-              className="h-7 px-3 gap-1.5 text-xs"
-            >
-              {showCopiedToast ? (
-                <>
-                  <Check className="w-3.5 h-3.5" />
-                  {t('import.tip.copied', 'Copied!')}
-                </>
-              ) : (
-                <>
-                  <Copy className="w-3.5 h-3.5" />
-                  {t('common.copy', 'Copy')}
-                </>
-              )}
-            </Button>
-            <ChevronDown
-              className={cn(
-                'w-4 h-4 text-muted-foreground transition-transform duration-200',
-                tipExpanded && 'rotate-180'
-              )}
-            />
-          </div>
+          <Button
+            variant="secondary"
+            onClick={copyPrompt}
+            className="h-7 px-3 gap-1.5 text-xs flex-shrink-0"
+          >
+            {showCopiedToast ? (
+              <>
+                <Check className="w-3.5 h-3.5" />
+                {t('import.tip.copied', 'Copied!')}
+              </>
+            ) : (
+              <>
+                <Copy className="w-3.5 h-3.5" />
+                {t('common.copy', 'Copy')}
+              </>
+            )}
+          </Button>
         </div>
-
-        {/* Expanded content */}
-        <div
-          className={cn(
-            'grid transition-all duration-200 ease-out',
-            tipExpanded ? 'grid-rows-[1fr] opacity-100 mt-3' : 'grid-rows-[0fr] opacity-0'
-          )}
-        >
-          <div className="overflow-hidden">
-            <NoteContent>
-              <p className="text-sm text-muted-foreground mb-3 italic">
-                {t('import.tip.recommendation', "Use Gemini (native Calendar integration) or Claude. Don't use ChatGPT (it sucks)")}
-              </p>
-              <pre className="text-xs bg-muted/50 p-3 rounded-lg font-mono overflow-x-auto whitespace-pre-wrap text-foreground/80 border border-border/50">
-                {GEMINI_PROMPT}
-              </pre>
-            </NoteContent>
-          </div>
-        </div>
+        <NoteContent>
+          <p className="text-sm text-muted-foreground mb-3">
+            {t('import.tip.description', 'Copy this prompt → paste to Gemini or Claude → paste AI response below')}
+          </p>
+          <p className="text-xs text-muted-foreground/70 mb-3 italic">
+            {t('import.tip.recommendation', "Use Gemini (native Calendar integration) or Claude. Don't use ChatGPT (it sucks)")}
+          </p>
+          <pre className="text-xs bg-muted/50 p-3 rounded-lg font-mono overflow-x-auto whitespace-pre-wrap text-foreground/80 border border-border/50">
+            {GEMINI_PROMPT}
+          </pre>
+        </NoteContent>
       </Note>
 
       {/* Card 2: Text Input */}
@@ -317,7 +316,7 @@ export function ImportUpload({ onSubmit, disabled }: ImportUploadProps) {
             disabled={disabled}
           />
           {textError && (
-            <Alert variant="destructive" className="mt-3">
+            <Alert variant={showPromptEasterEgg ? "default" : "destructive"} className="mt-3">
               <AlertDescription>{textError}</AlertDescription>
             </Alert>
           )}

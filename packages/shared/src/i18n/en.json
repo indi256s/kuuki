@@ -489,11 +489,12 @@
     },
     "tip": {
       "title": "Use Google Gemini to find your flights",
-      "teaser": "Copy prompt for AI",
-      "description": "Copy this prompt to Gemini, then paste the results below.",
+      "teaser": "Let AI find all your flights from Gmail & Calendar",
+      "description": "Copy this prompt → paste to Gemini or Claude → paste AI response below",
       "recommendation": "Use Gemini (native Calendar integration) or Claude. Don't use ChatGPT (it sucks)",
       "hint": "Use with @Gmail and @Google Calendar in Google Gemini",
-      "copied": "Copied!"
+      "copied": "Copied!",
+      "easterEgg": "This is the prompt FOR your AI. Copy it to Gemini or Claude, get the flight list, then paste THAT here. I believe in you."
     },
     "dropFile": "Drop file here",
     "dropzoneFile": "Upload boarding pass or itinerary",

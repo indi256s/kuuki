@@ -19,6 +19,7 @@ import { findAirport, findAircraft } from '@kuuki/data'
 import { calculateFlightDistance, estimateFlightDuration } from '@/lib/geo'
 import { getMessageKeyForCategory } from '@/lib/errors'
 import { Check, Plane, ArrowRight, AlertCircle } from 'lucide-react'
+import { PlaneAnimation } from '@/components/common/PlaneAnimation'
 
 type ImportStep = 'upload' | 'parsing' | 'review' | 'saving' | 'success'
 type InputType = 'text' | 'pdf' | 'image'
@@ -220,7 +221,10 @@ export function ImportPage() {
   const currentStepIndex = steps.findIndex(s => s.key === step)
 
   return (
-    <div className="min-h-screen bg-gradient-soft">
+    <div className="min-h-screen bg-gradient-soft relative overflow-hidden">
+      {/* Background plane animation - z-0 to stay behind content */}
+      <PlaneAnimation className="z-0" variant="subtle" count={20} />
+
       {/* Mobile header */}
       <MobileHeader />
 
@@ -228,7 +232,7 @@ export function ImportPage() {
       <AppHeader />
 
       {/* Main content - pb-safe adds bottom padding for mobile tab bar */}
-      <main className="max-w-3xl mx-auto px-6 py-8 pb-safe sm:pb-8">
+      <main className="max-w-3xl mx-auto px-6 py-8 pb-safe sm:pb-8 relative z-10">
         {/* Page header */}
         <div className="mb-8">
           <div className="flex items-baseline gap-3">
