@@ -5,6 +5,7 @@
   "description": "Kuuki (空気) - Travel geek platform for flight tracking and leaderboards",
   "scripts": {
     "dev": "turbo dev",
+    "dev:lan": "pnpm --filter @kuuki/web dev:lan",
     "build": "turbo build",
     "lint": "turbo lint",
     "typecheck": "turbo typecheck",
