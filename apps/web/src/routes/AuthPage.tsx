@@ -83,7 +83,7 @@ export function AuthPage() {
         </div>
 
         {/* Right Side: Auth Form */}
-        <div className="relative flex flex-col justify-center px-8 pt-16 pb-10 lg:px-16 lg:py-12 bg-white/50 dark:bg-black/20 backdrop-blur-xl">
+        <div className="relative flex flex-col justify-center px-8 pt-16 pb-32 lg:px-16 lg:pt-12 lg:pb-40 bg-white/50 dark:bg-black/20 backdrop-blur-xl">
           {/* Header Controls */}
           <div className="absolute top-6 left-6 right-6 flex items-center z-20">
             {/* Centered Mobile Logo */}
@@ -121,11 +121,11 @@ export function AuthPage() {
           </div>
 
           {/* Tagline below form (Visible on all screens) */}
-          <div className="absolute bottom-8 left-0 right-0 text-center px-8 pointer-events-none">
+          <div className="absolute bottom-12 left-0 right-0 text-center px-8 pointer-events-none">
             <RotatingTagline
               items={taglines}
               interval={4000}
-              className="text-neutral-500 dark:text-white/50 text-base lg:text-lg font-medium tracking-wide justify-center"
+              className="text-neutral-500 dark:text-white/50 text-sm font-medium tracking-wide justify-center"
             />
           </div>
         </div>
