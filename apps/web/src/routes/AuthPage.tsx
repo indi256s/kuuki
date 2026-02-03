@@ -31,7 +31,7 @@ export function AuthPage() {
   const taglines = t('auth.taglines', { returnObjects: true }) as string[]
 
   return (
-    <div className="min-h-screen bg-neutral-50 dark:bg-[#08090A] flex items-center justify-center p-4 relative overflow-hidden font-sans transition-colors duration-300">
+    <div className="min-h-screen bg-neutral-50 dark:bg-[#08090A] flex lg:items-center justify-center items-start lg:pt-0 pt-12 p-4 relative overflow-hidden font-sans transition-colors duration-300">
 
       {/* Background Ambience */}
       <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-primary/10 dark:bg-primary/20 blur-[120px] rounded-full pointer-events-none opacity-60 dark:opacity-40" />
@@ -39,8 +39,8 @@ export function AuthPage() {
 
       {/* Mobile: Atmospheric background elements */}
       <div className="lg:hidden absolute inset-0 pointer-events-none overflow-hidden">
-        {/* Horizontal hiragana for mobile */}
-        <div className="absolute top-16 left-1/2 -translate-x-1/2 z-0">
+        {/* Horizontal hiragana for mobile - moved higher and more subtle */}
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-0 opacity-30">
           <span
             className="text-4xl font-bold font-display tracking-[0.3em] select-none bg-clip-text text-transparent bg-[radial-gradient(circle_at_top_left,color-mix(in_srgb,var(--primary),transparent_65%),rgba(23,23,23,0.1))] dark:bg-[radial-gradient(circle_at_top_left,color-mix(in_srgb,var(--primary),transparent_60%),rgba(255,255,255,0.1))]"
           >
@@ -48,7 +48,7 @@ export function AuthPage() {
           </span>
         </div>
         {/* Planes behind form on mobile */}
-        <div className="opacity-50">
+        <div className="opacity-20">
           <FlyingPlanes />
         </div>
       </div>
@@ -83,28 +83,28 @@ export function AuthPage() {
         </div>
 
         {/* Right Side: Auth Form */}
-        <div className="relative flex flex-col justify-center px-8 py-12 lg:px-16 lg:py-12 bg-white/50 dark:bg-black/20 backdrop-blur-xl">
-          {/* Top Right Controls */}
-          <div className="absolute top-6 right-6 flex items-center gap-2 z-20">
-            <AccentPicker value={accentColor} onChange={setAccentColor} />
-            <div className="hidden lg:block w-px h-5 bg-neutral-300 dark:bg-white/10" />
-            <Button
-              variant="ghost"
-              onClick={toggleLanguage}
-              className="hidden lg:flex text-neutral-500 dark:text-white/60 hover:text-neutral-800 dark:hover:text-white h-9 w-9 p-0 rounded-full hover:bg-neutral-100 dark:hover:bg-white/5"
-            >
-              <Languages className="w-4 h-4" />
-            </Button>
-          </div>
-
-          {/* Mobile: Brand header inside form area */}
-          <div className="lg:hidden mb-8 text-center">
-            <h1 className="text-3xl font-bold tracking-tighter text-neutral-800 dark:text-white/90 mb-3">
+        <div className="relative flex flex-col justify-center px-8 pt-16 pb-10 lg:px-16 lg:py-12 bg-white/50 dark:bg-black/20 backdrop-blur-xl">
+          {/* Header Controls (Logo + Picker) */}
+          <div className="absolute top-5 left-6 right-6 flex items-center justify-between z-20">
+            {/* Mobile Logo */}
+            <h1 className="lg:hidden text-2xl font-bold tracking-tighter text-neutral-800 dark:text-white/90">
               <span className="text-primary">Ku</span>uki
             </h1>
+
+            <div className="flex items-center gap-3">
+              <AccentPicker value={accentColor} onChange={setAccentColor} />
+              <div className="hidden lg:block w-px h-5 bg-neutral-300 dark:bg-white/10" />
+              <Button
+                variant="ghost"
+                onClick={toggleLanguage}
+                className="hidden lg:flex text-neutral-500 dark:text-white/60 hover:text-neutral-800 dark:hover:text-white h-9 w-9 p-0 rounded-full hover:bg-neutral-100 dark:hover:bg-white/5"
+              >
+                <Languages className="w-4 h-4" />
+              </Button>
+            </div>
           </div>
 
-          <div className="w-full max-w-md mx-auto space-y-8 animate-fade-in">
+          <div className="w-full max-w-md mx-auto space-y-6 lg:space-y-8 animate-fade-in">
             {mode === 'register' ? (
               <RegisterForm
                 onSuccess={handleSuccess}
