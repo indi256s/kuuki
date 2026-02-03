@@ -29,10 +29,10 @@ export function RotatingTagline({ items, interval = 6000, className }: RotatingT
   return (
     <div className="flex flex-col items-center gap-3">
       {/* Rotating text - horizontal slide synced with progress */}
-      <div className="relative h-5 overflow-hidden w-full">
+      <div className="relative min-h-[3rem] flex items-center justify-center w-full">
         <p
           className={cn(
-            "absolute inset-0 flex items-center transition-all ease-out whitespace-nowrap",
+            "text-center transition-all ease-out",
             className,
             phase === 'visible' && "translate-x-0 opacity-100 duration-200",
             phase === 'exit' && "-translate-x-8 opacity-0 duration-150",
