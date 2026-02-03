@@ -2,7 +2,6 @@ import { Link, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '@/hooks/useAuth'
 import { useLanguage } from '@/hooks/useLanguage'
-import { useAccentColor } from '@/hooks/useAccentColor'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -13,7 +12,6 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Plus, LogOut, Languages, Settings } from 'lucide-react'
 import { KuukiIcon } from '@/components/common/KuukiIcon'
-import { AccentPicker } from '@/components/common/AccentPicker'
 
 interface AppHeaderProps {
   onAddFlight?: () => void
@@ -25,7 +23,6 @@ export function AppHeader({ onAddFlight, showAddButton = false }: AppHeaderProps
   const location = useLocation()
   const { user, profile, signOut } = useAuth()
   const { currentLanguage, toggleLanguage } = useLanguage()
-  const { accentColor, setAccentColor } = useAccentColor()
 
   const displayName = profile?.display_name || profile?.username || user?.email?.split('@')[0] || 'User'
   const initials = displayName.slice(0, 2).toUpperCase()
@@ -79,12 +76,6 @@ export function AppHeader({ onAddFlight, showAddButton = false }: AppHeaderProps
               <span className="hidden sm:inline">{t('flights.addFlight', 'Add Flight')}</span>
             </Button>
           )}
-
-          {/* Accent color picker */}
-          <AccentPicker
-            value={accentColor}
-            onChange={setAccentColor}
-          />
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
