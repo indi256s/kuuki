@@ -1,6 +1,7 @@
 import { useMutation } from '@tanstack/react-query'
 
 export type EnrichmentStatus = 'pending' | 'enriched' | 'failed' | 'skipped'
+export type JobStatus = 'processing' | 'completed' | 'failed'
 
 export interface ExtractedFlight {
   date: string
@@ -42,6 +43,9 @@ export interface ParseResult {
   rejected?: RejectedFlight[]
   gemini_count?: number
   cleaned_text?: string // Normalized text from Stage 1 (text input only)
+  // Async mode fields
+  jobId?: string
+  status?: JobStatus
 }
 
 export interface ParseRequest {
@@ -49,12 +53,52 @@ export interface ParseRequest {
   content: string
 }
 
+// Polling configuration
+const POLL_INTERVAL_MS = 2500 // Poll every 2.5 seconds
+const MAX_POLL_ATTEMPTS = 120 // Max 5 minutes of polling (120 * 2.5s)
+
+// Helper to poll for job status
+async function pollJobStatus(jobId: string, signal?: AbortSignal): Promise<ParseResult> {
+  let attempts = 0
+
+  while (attempts < MAX_POLL_ATTEMPTS) {
+    if (signal?.aborted) {
+      throw new Error('Request cancelled')
+    }
+
+    const response = await fetch(`/api/import/status/${jobId}`, {
+      signal,
+    })
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}))
+      throw new Error(errorData.error || 'Failed to check job status')
+    }
+
+    const result: ParseResult = await response.json()
+
+    // Check if job is complete
+    if (result.status === 'completed') {
+      return result
+    }
+
+    if (result.status === 'failed') {
+      throw new Error(result.error || 'Import processing failed')
+    }
+
+    // Still processing - wait and try again
+    await new Promise(resolve => setTimeout(resolve, POLL_INTERVAL_MS))
+    attempts++
+  }
+
+  throw new Error('Import timed out. Please try again with fewer flights.')
+}
+
 export function useParseImport() {
   return useMutation({
     mutationFn: async (request: ParseRequest): Promise<ParseResult> => {
-      // Add timeout to prevent indefinite hanging
+      // No timeout for the initial request since we handle async mode
       const controller = new AbortController()
-      const timeoutId = setTimeout(() => controller.abort(), 60000) // 60 second timeout
 
       try {
         const response = await fetch('/api/import/parse', {
@@ -66,18 +110,24 @@ export function useParseImport() {
           signal: controller.signal,
         })
 
-        clearTimeout(timeoutId)
-
         if (!response.ok) {
           const errorData = await response.json().catch(() => ({}))
           throw new Error(errorData.error || 'Failed to parse document')
         }
 
-        return response.json()
+        const result: ParseResult = await response.json()
+
+        // Check if this is async mode
+        if (result.status === 'processing' && result.jobId) {
+          console.log(`Async import started, polling job ${result.jobId}...`)
+          return await pollJobStatus(result.jobId, controller.signal)
+        }
+
+        // Sync mode - return result directly
+        return result
       } catch (error) {
-        clearTimeout(timeoutId)
         if (error instanceof Error && error.name === 'AbortError') {
-          throw new Error('Request timed out. Please try again.')
+          throw new Error('Request cancelled')
         }
         throw error
       }
