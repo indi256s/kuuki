@@ -1,13 +1,11 @@
 import { useState } from 'react'
 import { cn } from '@/lib/utils'
 
-// Curated 4-color palette
-// Curated palette from .interface-design/system.md
+// Curated 8-color accent palette
 const ACCENT_COLORS = [
   { name: 'blue', value: '#4EA7F5', label: 'Blue' },
   { name: 'cyan', value: '#26B5CE', label: 'Cyan' },
   { name: 'teal', value: '#2EB88A', label: 'Teal' },
-  { name: 'green', value: '#50C086', label: 'Green' },
   { name: 'yellow', value: '#EBCB4B', label: 'Yellow' },
   { name: 'orange', value: '#F3904F', label: 'Orange' },
   { name: 'coral', value: '#F76B6E', label: 'Coral' },
