@@ -125,12 +125,18 @@ export async function createFlight(flight: Omit<FlightInsert, 'id' | 'created_at
   // Auto-detect upcoming flights
   const isUpcoming = isUpcomingFlight(flight.date)
 
+  // Use provided enrichment_status or default based on aircraft presence
+  // - 'skipped' if aircraft_icao is already provided
+  // - 'pending' if we need to enrich it later
+  const enrichmentStatus = flight.enrichment_status ?? (flight.aircraft_icao ? 'skipped' : 'pending')
+
   const { data, error } = await supabase
     .from('flights')
     .insert({
       ...flight,
       is_upcoming: isUpcoming,
       source: flight.source ?? 'manual',
+      enrichment_status: enrichmentStatus,
     })
     .select()
     .single()

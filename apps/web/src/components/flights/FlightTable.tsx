@@ -16,7 +16,8 @@ import {
 import { Badge } from '@/components/ui/badge'
 import { Pencil, Trash2, ArrowUp, ArrowDown, ArrowUpDown, Clock, MapPin } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { AircraftPendingBadge } from './AircraftPendingBadge'
+import { AircraftShimmerBadge } from './AircraftShimmerBadge'
+import type { EnrichmentStatus } from '@kuuki/shared/types'
 
 interface FlightTableProps {
   flights: Flight[]
@@ -354,7 +355,10 @@ export function FlightTable({
                       ) : flight.aircraft_icao ? (
                         <span className="font-mono text-sm">{flight.aircraft_icao}</span>
                       ) : (
-                        <AircraftPendingBadge flightId={flight.id} />
+                        <AircraftShimmerBadge
+                          flightId={flight.id}
+                          enrichmentStatus={(flight as { enrichment_status?: EnrichmentStatus }).enrichment_status ?? 'pending'}
+                        />
                       )}
                     </TableCell>
 

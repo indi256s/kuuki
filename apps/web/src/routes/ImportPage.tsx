@@ -10,7 +10,7 @@ import { MobileHeader } from '@/components/layout/MobileHeader'
 import { MobileTabBar } from '@/components/layout/MobileTabBar'
 import { ImportUpload } from '@/components/import/ImportUpload'
 import { ImportReview } from '@/components/import/ImportReview'
-import { WindLoader } from '@/components/common/WindLoader'
+import { FlightProgressModal } from '@/components/import/FlightProgressModal'
 import { FlightForm } from '@/components/flights/FlightForm'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -21,7 +21,6 @@ import { getMessageKeyForCategory } from '@/lib/errors'
 import { Check, Plane, ArrowRight, AlertCircle } from 'lucide-react'
 
 type ImportStep = 'upload' | 'parsing' | 'review' | 'saving' | 'success'
-type ParsingPhase = 'cleaning' | 'extracting'
 type InputType = 'text' | 'pdf' | 'image'
 
 export function ImportPage() {
@@ -34,7 +33,6 @@ export function ImportPage() {
   const initialTextContent = (location.state as { textContent?: string } | null)?.textContent
 
   const [step, setStep] = useState<ImportStep>('upload')
-  const [parsingPhase, setParsingPhase] = useState<ParsingPhase>('cleaning')
   const [inputType, setInputType] = useState<InputType>('text')
   const [extractedFlights, setExtractedFlights] = useState<ExtractedFlight[]>([])
   const [rejectedFlights, setRejectedFlights] = useState<RejectedFlight[]>([])
@@ -58,13 +56,6 @@ export function ImportPage() {
     })
   })
 
-  // Show parsing phase - just one phase since it's a single API call
-  useEffect(() => {
-    if (step !== 'parsing') return
-    // Text: two-stage (cleaning first), Binary: single-stage (extracting)
-    setParsingPhase(inputType === 'text' ? 'cleaning' : 'extracting')
-  }, [step, inputType])
-
   // Auto-submit text content if passed from EmptyState
   useEffect(() => {
     if (initialTextContent && step === 'upload') {
@@ -77,7 +68,6 @@ export function ImportPage() {
   const handleUploadSubmit = useCallback(async (data: { type: 'pdf' | 'image' | 'text'; content: string }) => {
     setInputType(data.type)
     setStep('parsing')
-    setParsingPhase(data.type === 'text' ? 'cleaning' : 'extracting')
     setParseError(null) // Clear any previous error
 
     try {
@@ -153,6 +143,8 @@ export function ImportPage() {
           origin_tz: originAirport?.timezone || null,
           dest_tz: destAirport?.timezone || null,
           source: 'ai_import',
+          // Pass enrichment status from parse result (or default based on aircraft presence)
+          enrichment_status: flight.enrichment_status || (flight.aircraft_icao ? 'skipped' : 'pending'),
         })
 
         successCount++
@@ -293,23 +285,8 @@ export function ImportPage() {
             )}
 
             {step === 'parsing' && (
-              <div className="py-8 flex flex-col items-center">
-                <WindLoader step={parsingPhase} size="lg" hideMessage />
-                <p className="mt-4 text-center font-medium">
-                  {inputType === 'text'
-                    ? t('import.parsing.analyzingText', 'Analyzing your flight data...')
-                    : t('import.parsing.analyzingDocument', 'Reading your document...')}
-                </p>
-                <p className="mt-1 text-center text-muted-foreground text-sm">
-                  {t('import.parsing.aiHint', 'AI is extracting flight details. This may take 10-20 seconds.')}
-                </p>
-                <Button
-                  variant="ghost"
-                  onClick={handleCancel}
-                  className="mt-4 text-muted-foreground"
-                >
-                  {t('common.cancel')}
-                </Button>
+              <div className="py-8 flex flex-col items-center text-center text-muted-foreground">
+                <p>{t('import.parsing.redirectHint', 'Processing in overlay...')}</p>
               </div>
             )}
 
@@ -396,6 +373,13 @@ export function ImportPage() {
 
       {/* Mobile tab bar */}
       <MobileTabBar />
+
+      {/* Flight progress modal - shown during parsing */}
+      <FlightProgressModal
+        isOpen={step === 'parsing'}
+        onCancel={handleCancel}
+        inputType={inputType}
+      />
     </div>
   )
 }

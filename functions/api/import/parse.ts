@@ -4,6 +4,7 @@ import {
   type ParseResponse,
   type ExtractedFlight,
   type RejectedFlight,
+  type EnrichmentStatus,
   detectImageMimeType,
   EXTRACTION_PROMPT,
   CLEANING_PROMPT,
@@ -30,6 +31,7 @@ async function cleanTextWithGemini(ai: GoogleGenAI, rawText: string): Promise<st
     return ''
   }
 }
+
 
 // JSON schema for structured output
 const FLIGHT_RESPONSE_SCHEMA = {
@@ -250,16 +252,32 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
 
         return true
       })
-      .map((flight) => ({
-        ...flight,
+      .map((flight) => {
         // Normalize codes to uppercase
-        origin: flight.origin.toUpperCase(),
-        destination: flight.destination.toUpperCase(),
-        airline_iata: flight.airline_iata.toUpperCase(),
-        aircraft_icao: flight.aircraft_icao?.toUpperCase(),
-        // Ensure confidence is a number between 0 and 1 (use ?? to preserve explicit 0)
-        confidence: Math.min(1, Math.max(0, flight.confidence ?? 0.5)),
-      }))
+        const normalizedFlight = {
+          ...flight,
+          origin: flight.origin.toUpperCase(),
+          destination: flight.destination.toUpperCase(),
+          airline_iata: flight.airline_iata.toUpperCase(),
+          aircraft_icao: flight.aircraft_icao?.toUpperCase(),
+          // Ensure confidence is a number between 0 and 1 (use ?? to preserve explicit 0)
+          confidence: Math.min(1, Math.max(0, flight.confidence ?? 0.5)),
+        }
+
+        // Determine enrichment_status based on aircraft data
+        // - 'skipped' if aircraft_icao is present with high confidence
+        // - 'pending' if we need to enrich it later
+        const aircraftConfidence = flight.field_confidence?.aircraft_icao ?? 0
+        const enrichmentStatus: EnrichmentStatus =
+          normalizedFlight.aircraft_icao && aircraftConfidence >= 0.8
+            ? 'skipped'
+            : 'pending'
+
+        return {
+          ...normalizedFlight,
+          enrichment_status: enrichmentStatus,
+        }
+      })
 
     // Debug: Log validation summary
     console.log(`Validated ${validFlights.length} of ${geminiCount} flights, rejected ${rejectedFlights.length}`)
