@@ -458,8 +458,9 @@
     }
   },
   "import": {
-    "title": "Import Flights",
+    "title": "Import",
     "description": "Import from files or paste details",
+    "breadcrumb": "Step 1 of 3",
     "uploadImage": "Upload Image",
     "pasteText": "Paste Text",
     "processing": "Processing...",
@@ -476,17 +477,21 @@
       "pasteHint": "to paste an image",
       "orPasteText": "Or paste text instead",
       "pasteFlightDetails": "Paste flight details",
-      "textPlaceholder": "Paste booking confirmation, itinerary, or flight details here...",
+      "textPlaceholder": "Paste booking confirmations, itineraries...",
       "textPreview": "Text preview",
       "textTooShort": "Please enter more text to analyze.",
       "parse": "Parse",
       "invalidFormat": "Invalid file format. Please use PDF, PNG, or JPG.",
       "fileTooLarge": "File too large. Maximum size is 10 MB.",
-      "readError": "Failed to read file."
+      "readError": "Failed to read file.",
+      "clearText": "Clear text",
+      "clearFile": "Clear file"
     },
     "tip": {
       "title": "Use Google Gemini to find your flights",
+      "teaser": "Copy prompt for AI",
       "description": "Copy this prompt to Gemini, then paste the results below.",
+      "recommendation": "Use Gemini (native Calendar integration) or Claude. Don't use ChatGPT (it sucks)",
       "hint": "Use with @Gmail and @Google Calendar in Google Gemini",
       "copied": "Copied!"
     },

@@ -230,18 +230,22 @@ export function ImportPage() {
       {/* Main content - pb-safe adds bottom padding for mobile tab bar */}
       <main className="max-w-3xl mx-auto px-6 py-8 pb-safe sm:pb-8">
         {/* Page header */}
-        <div className="mb-8 animate-fade-up">
-          <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">
-            {t('import.title', 'Import Flights')}
-          </h1>
-          <p className="text-muted-foreground mt-1">
-            {t('import.description', 'Upload a photo of your boarding pass or paste flight details')}
-          </p>
+        <div className="mb-8">
+          <div className="flex items-baseline gap-3">
+            <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">
+              {t('import.title', 'Import')}
+            </h1>
+            {step === 'upload' && (
+              <span className="text-sm text-muted-foreground">
+                {t('import.breadcrumb', 'Step 1 of 3')}
+              </span>
+            )}
+          </div>
         </div>
 
-        {/* Progress indicator */}
+        {/* Progress indicator - only for non-upload steps */}
         {step !== 'upload' && step !== 'success' && (
-          <div className="mb-8 animate-fade-up" style={{ animationDelay: '50ms' }}>
+          <div className="mb-8" style={{ animationDelay: '50ms' }}>
             <div className="flex items-center gap-2">
               {steps.map((s, i) => (
                 <div key={s.key} className="flex items-center">
@@ -274,95 +278,97 @@ export function ImportPage() {
         )}
 
         {/* Step content */}
-        <Card className="border-border/50 animate-fade-up" style={{ animationDelay: '100ms' }}>
-          <CardContent className="p-6">
-            {step === 'upload' && (
-              <ImportUpload
-                onSubmit={handleUploadSubmit}
-                disabled={parseMutation.isPending}
-                hasExistingFlights={(existingFlightsData?.pages[0]?.flights.length ?? 0) > 0}
-              />
-            )}
+        {step === 'upload' && (
+          <ImportUpload
+            onSubmit={handleUploadSubmit}
+            disabled={parseMutation.isPending}
+            hasExistingFlights={(existingFlightsData?.pages[0]?.flights.length ?? 0) > 0}
+          />
+        )}
 
-            {step === 'parsing' && (
-              <div className="py-8 flex flex-col items-center text-center text-muted-foreground">
-                <p>{t('import.parsing.redirectHint', 'Processing in overlay...')}</p>
-              </div>
-            )}
-
-            {step === 'review' && (
-              <>
-                {/* Parse error alert - shown inline in wizard */}
-                {parseError && (
-                  <Alert variant="destructive" className="mb-4">
-                    <AlertCircle className="h-4 w-4" />
-                    <AlertDescription>
-                      {t(parseError)}
-                    </AlertDescription>
-                  </Alert>
-                )}
-                <ImportReview
-                  flights={extractedFlights}
-                  existingRoutes={existingRoutes}
-                  onSave={handleSaveFlights}
-                  onCancel={handleCancel}
-                  onManualAdd={handleManualAdd}
-                  rejected={rejectedFlights}
-                  geminiCount={geminiCount}
-                  cleanedText={cleanedText}
-                />
-              </>
-            )}
-
-            {step === 'saving' && (
-              <div className="py-8 flex flex-col items-center">
-                <div className="w-16 h-16 mb-4">
-                  <Plane className="w-full h-full text-primary animate-pulse" />
+        {step !== 'upload' && (
+          <Card className="border-border/50" style={{ animationDelay: '100ms' }}>
+            <CardContent className="p-6">
+              {step === 'parsing' && (
+                <div className="py-8 flex flex-col items-center text-center text-muted-foreground">
+                  <p>{t('import.parsing.redirectHint', 'Processing in overlay...')}</p>
                 </div>
-                <p className="font-medium">
-                  {t('import.saving.progress', 'Saving flight {{current}} of {{total}}...', {
-                    current: savedCount + 1,
-                    total: extractedFlights.filter((_, i) => i < savedCount || i === savedCount).length || extractedFlights.length,
-                  })}
-                </p>
-              </div>
-            )}
+              )}
 
-            {step === 'success' && (
-              <div className="py-8 text-center">
-                <div className="w-16 h-16 mx-auto mb-4 bg-success/10 rounded-full flex items-center justify-center">
-                  <Check className="w-8 h-8 text-success" />
+              {step === 'review' && (
+                <>
+                  {/* Parse error alert - shown inline in wizard */}
+                  {parseError && (
+                    <Alert variant="destructive" className="mb-4">
+                      <AlertCircle className="h-4 w-4" />
+                      <AlertDescription>
+                        {t(parseError)}
+                      </AlertDescription>
+                    </Alert>
+                  )}
+                  <ImportReview
+                    flights={extractedFlights}
+                    existingRoutes={existingRoutes}
+                    onSave={handleSaveFlights}
+                    onCancel={handleCancel}
+                    onManualAdd={handleManualAdd}
+                    rejected={rejectedFlights}
+                    geminiCount={geminiCount}
+                    cleanedText={cleanedText}
+                  />
+                </>
+              )}
+
+              {step === 'saving' && (
+                <div className="py-8 flex flex-col items-center">
+                  <div className="w-16 h-16 mb-4">
+                    <Plane className="w-full h-full text-primary animate-pulse" />
+                  </div>
+                  <p className="font-medium">
+                    {t('import.saving.progress', 'Saving flight {{current}} of {{total}}...', {
+                      current: savedCount + 1,
+                      total: extractedFlights.filter((_, i) => i < savedCount || i === savedCount).length || extractedFlights.length,
+                    })}
+                  </p>
                 </div>
-                <h3 className="text-xl font-semibold tracking-tight mb-2">
-                  {t('import.success.title', 'Flights imported!')}
-                </h3>
-                <p className="text-muted-foreground mb-6">
-                  {t('import.success.count', '{{count}} flight(s) added to your log', { count: savedCount })}
-                </p>
+              )}
 
-                {/* Show warning if some flights failed to save */}
-                {saveErrors.length > 0 && (
-                  <Alert variant="destructive" className="mb-6 text-left max-w-sm mx-auto">
-                    <AlertCircle className="h-4 w-4" />
-                    <AlertDescription>
-                      {t('import.success.partialFail', '{{count}} flight(s) could not be saved.', { count: saveErrors.length })}
-                    </AlertDescription>
-                  </Alert>
-                )}
+              {step === 'success' && (
+                <div className="py-8 text-center">
+                  <div className="w-16 h-16 mx-auto mb-4 bg-success/10 rounded-full flex items-center justify-center">
+                    <Check className="w-8 h-8 text-success" />
+                  </div>
+                  <h3 className="text-xl font-semibold tracking-tight mb-2">
+                    {t('import.success.title', 'Flights imported!')}
+                  </h3>
+                  <p className="text-muted-foreground mb-6">
+                    {t('import.success.count', '{{count}} flight(s) added to your log', { count: savedCount })}
+                  </p>
 
-                <div className="flex justify-center gap-3">
-                  <Button variant="outline" onClick={handleImportMore}>
-                    {t('import.success.importMore', 'Import more')}
-                  </Button>
-                  <Button onClick={handleGoToFlights} className="gap-2">
-                    {t('import.success.viewFlights', 'View flights')}
-                    <ArrowRight className="w-4 h-4" />
-                  </Button>
+                  {/* Show warning if some flights failed to save */}
+                  {saveErrors.length > 0 && (
+                    <Alert variant="destructive" className="mb-6 text-left max-w-sm mx-auto">
+                      <AlertCircle className="h-4 w-4" />
+                      <AlertDescription>
+                        {t('import.success.partialFail', '{{count}} flight(s) could not be saved.', { count: saveErrors.length })}
+                      </AlertDescription>
+                    </Alert>
+                  )}
+
+                  <div className="flex justify-center gap-3">
+                    <Button variant="outline" onClick={handleImportMore}>
+                      {t('import.success.importMore', 'Import more')}
+                    </Button>
+                    <Button onClick={handleGoToFlights} className="gap-2">
+                      {t('import.success.viewFlights', 'View flights')}
+                      <ArrowRight className="w-4 h-4" />
+                    </Button>
+                  </div>
                 </div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+              )}
+            </CardContent>
+          </Card>
+        )}
       </main>
 
       {/* Manual flight form modal */}
