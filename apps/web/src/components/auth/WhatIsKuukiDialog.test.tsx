@@ -42,6 +42,7 @@ vi.mock('@/components/ui/dialog', () => ({
 vi.mock('@/components/ui/note', () => ({
     Note: ({ children, className }: { children: React.ReactNode; className?: string }) => <div className={className}>{children}</div>,
     NoteContent: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+    NoteHeader: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
 }))
 
 
@@ -57,15 +58,22 @@ describe('WhatIsKuukiDialog', () => {
         // Check header
         expect(screen.getAllByText('What is Kuuki?')[0]).toBeInTheDocument()
 
-        // Check description parts
-        expect(screen.getByText('Kuuki means Air')).toBeInTheDocument()
-        expect(screen.getByText('Reading the air')).toBeInTheDocument()
+
 
         // Check features
-        expect(screen.getByText('Smart Import')).toBeInTheDocument()
-        expect(screen.getByText('Digital Impressions')).toBeInTheDocument()
-        expect(screen.getByText('Stress-free Gamification')).toBeInTheDocument()
-        expect(screen.getByText('Privacy by Design')).toBeInTheDocument()
-        expect(screen.getByText('Community Driven')).toBeInTheDocument()
+        expect(screen.getByText('1. Smart Import')).toBeInTheDocument()
+        expect(screen.getByText('AI extraction')).toBeInTheDocument()
+
+        expect(screen.getByText('2. Digital Impressions')).toBeInTheDocument()
+        expect(screen.getByText('Unique stamps')).toBeInTheDocument()
+
+        expect(screen.getByText('3. Stress-free Gamification')).toBeInTheDocument()
+        expect(screen.getByText('Badges')).toBeInTheDocument()
+
+        expect(screen.getByText('4. Privacy by Design')).toBeInTheDocument()
+        expect(screen.getByText('Hidden routes')).toBeInTheDocument()
+
+        expect(screen.getByText('5. Community Driven')).toBeInTheDocument()
+        expect(screen.getByText('Feedback')).toBeInTheDocument()
     })
 })
