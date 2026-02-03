@@ -156,7 +156,7 @@ jobs:
 
   deploy-production:
     needs: [lint, typecheck, build]
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
     runs-on: ubuntu-latest
     timeout-minutes: 20
     continue-on-error: true  # Deploy failures don't trigger auto-revert
