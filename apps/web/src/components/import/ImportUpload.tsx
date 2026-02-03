@@ -1,11 +1,11 @@
 import { useState, useRef, useCallback, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Note, NoteContent } from '@/components/ui/note'
-import { Copy, Check, Upload, X, FileType } from 'lucide-react'
+import { Copy, Check, Upload, X, FileType, ChevronDown } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const GEMINI_PROMPT = `@Gmail @Google Calendar Search for all flight bookings, boarding passes, itineraries, and travel confirmations.
@@ -49,6 +49,7 @@ export function ImportUpload({ onSubmit, disabled }: ImportUploadProps) {
   const [textareaHeight, setTextareaHeight] = useState('96px') // min-h-24
   const [showCopiedToast, setShowCopiedToast] = useState(false)
   const [showPromptEasterEgg, setShowPromptEasterEgg] = useState(false)
+  const [tipExpanded, setTipExpanded] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
@@ -246,10 +247,11 @@ export function ImportUpload({ onSubmit, disabled }: ImportUploadProps) {
 
   return (
     <div className="space-y-4">
-      {/* Card 1: AI Tip (Always visible) */}
-      <Note accent="info" size="sm">
-        <div className="flex items-center justify-between gap-3 mb-3">
-          <span className="text-sm font-medium">
+      {/* Card 1: AI Tip (Collapsible) */}
+      <Note accent="primary" size="sm" className="select-none">
+        {/* Row 1: Title + Copy + Chevron */}
+        <div className="flex items-center gap-3">
+          <span className="text-sm font-medium flex-1">
             {t('import.tip.teaser', 'Let AI find all your flights from Gmail & Calendar')}
           </span>
           <Button
@@ -269,40 +271,65 @@ export function ImportUpload({ onSubmit, disabled }: ImportUploadProps) {
               </>
             )}
           </Button>
+          <button
+            type="button"
+            onClick={() => setTipExpanded(!tipExpanded)}
+            className="p-1 -mr-1 rounded-md hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+            aria-expanded={tipExpanded}
+            aria-label={tipExpanded ? 'Collapse prompt' : 'Expand prompt'}
+          >
+            <ChevronDown
+              className={cn(
+                'w-4 h-4 text-muted-foreground transition-transform duration-200',
+                tipExpanded && 'rotate-180'
+              )}
+            />
+          </button>
         </div>
-        <NoteContent>
-          <p className="text-sm text-muted-foreground mb-3">
-            {t('import.tip.description', 'Copy this prompt → paste to Gemini or Claude → paste AI response below')}
-          </p>
-          <p className="text-xs text-muted-foreground/70 mb-3 italic">
-            {t('import.tip.recommendation', "Use Gemini (native Calendar integration) or Claude. Don't use ChatGPT (it sucks)")}
-          </p>
-          <pre className="text-xs bg-muted/50 p-3 rounded-lg font-mono overflow-x-auto whitespace-pre-wrap text-foreground/80 border border-border/50">
-            {GEMINI_PROMPT}
-          </pre>
-        </NoteContent>
+
+        {/* Row 2: Description (always visible) */}
+        <p className="text-sm text-muted-foreground mt-2">
+          {t('import.tip.description', 'Copy this prompt → paste to Gemini or Claude → paste AI response below')}
+        </p>
+
+        {/* Collapsed section: Recommendation + Prompt */}
+        <div
+          className={cn(
+            'grid transition-all duration-200 ease-out',
+            tipExpanded ? 'grid-rows-[1fr] opacity-100 mt-3' : 'grid-rows-[0fr] opacity-0'
+          )}
+        >
+          <div className="overflow-hidden">
+            <NoteContent>
+              <p className="text-xs text-muted-foreground/70 mb-3 italic">
+                {t('import.tip.recommendation', "Use Gemini (native Calendar integration) or Claude. Don't use ChatGPT (it sucks)")}
+              </p>
+              <pre className="text-xs bg-muted/50 p-3 rounded-lg font-mono overflow-x-auto whitespace-pre-wrap text-foreground/80 border border-border/50">
+                {GEMINI_PROMPT}
+              </pre>
+            </NoteContent>
+          </div>
+        </div>
       </Note>
 
-      {/* Card 2: Text Input */}
-      <Card className="border-border/50">
-        <CardHeader className="pb-3">
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-base font-medium">
+      {/* Card 2: Text Input - Compact */}
+      <Card className="border-border/50 py-4 gap-2">
+        <CardContent>
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-sm font-medium text-muted-foreground">
               {t('import.upload.pasteFlightDetails', 'Paste flight details')}
-            </CardTitle>
-            {filePreview && !textInput && (
+            </span>
+            {textInput && (
               <Button
                 variant="ghost"
                 onClick={clearText}
-                className="h-7 w-7 p-0 text-muted-foreground hover:text-foreground"
+                className="h-6 w-6 p-0 text-muted-foreground hover:text-foreground"
                 title={t('import.upload.clearText', 'Clear text')}
               >
-                <X className="w-4 h-4" />
+                <X className="w-3.5 h-3.5" />
               </Button>
             )}
           </div>
-        </CardHeader>
-        <CardContent className="pt-0">
           <Textarea
             ref={textareaRef}
             value={textInput}
@@ -316,17 +343,17 @@ export function ImportUpload({ onSubmit, disabled }: ImportUploadProps) {
             disabled={disabled}
           />
           {textError && (
-            <Alert variant={showPromptEasterEgg ? "default" : "destructive"} className="mt-3">
+            <Alert variant={showPromptEasterEgg ? "default" : "destructive"} className="mt-2">
               <AlertDescription>{textError}</AlertDescription>
             </Alert>
           )}
         </CardContent>
       </Card>
 
-      {/* Card 3: File Upload (Icon-Centered) */}
+      {/* Card 3: File Upload - Compact horizontal layout */}
       <Card
         className={cn(
-          'border-border/50 cursor-pointer transition-colors',
+          'border-border/50 py-3 cursor-pointer transition-colors',
           isDragging && 'border-primary bg-primary/5',
           disabled && 'opacity-50 cursor-not-allowed'
         )}
@@ -343,21 +370,21 @@ export function ImportUpload({ onSubmit, disabled }: ImportUploadProps) {
           className="hidden"
           disabled={disabled}
         />
-        <CardContent className="py-6 flex flex-col items-center justify-center gap-3">
+        <CardContent className="flex items-center gap-3">
           {filePreview ? (
-            // File preview
-            <div className="flex items-center gap-3 w-full">
+            // File preview - horizontal
+            <>
               <div className={cn(
-                'w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0',
+                'w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0',
                 filePreview.type === 'pdf' ? 'bg-destructive/10' : 'bg-primary/10'
               )}>
                 {filePreview.type === 'pdf' ? (
-                  <FileType className="w-6 h-6 text-destructive" />
+                  <FileType className="w-5 h-5 text-destructive" />
                 ) : (
                   <img
                     src={`data:image/jpeg;base64,${filePreview.content}`}
                     alt="Preview"
-                    className="w-full h-full rounded-xl object-cover"
+                    className="w-full h-full rounded-lg object-cover"
                   />
                 )}
               </div>
@@ -366,7 +393,7 @@ export function ImportUpload({ onSubmit, disabled }: ImportUploadProps) {
                   {filePreview.fileName || (filePreview.type === 'pdf' ? 'Document.pdf' : 'Image')}
                 </div>
                 <div className="text-xs text-muted-foreground">
-                  {filePreview.type === 'pdf' ? 'PDF Document' : 'Image'}
+                  {filePreview.type === 'pdf' ? 'PDF' : 'Image'}
                 </div>
               </div>
               <Button
@@ -375,45 +402,33 @@ export function ImportUpload({ onSubmit, disabled }: ImportUploadProps) {
                   e.stopPropagation()
                   clearFile()
                 }}
-                className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
+                className="h-7 w-7 p-0 text-muted-foreground hover:text-foreground flex-shrink-0"
                 title={t('import.upload.clearFile', 'Clear file')}
               >
                 <X className="w-4 h-4" />
               </Button>
-            </div>
+            </>
           ) : (
-            // Empty drop zone
+            // Empty drop zone - horizontal
             <>
               <div className={cn(
-                'w-12 h-12 rounded-xl flex items-center justify-center transition-colors',
+                'w-10 h-10 rounded-lg flex items-center justify-center transition-colors flex-shrink-0',
                 isDragging ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
               )}>
-                <Upload className="w-6 h-6" />
+                <Upload className="w-5 h-5" />
               </div>
-              <span className="text-sm text-muted-foreground">
+              <span className="text-sm text-muted-foreground flex-1">
                 {t('import.dropFile', 'Drop file here')}
               </span>
-              {textInput && (
-                <Button
-                  variant="ghost"
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    clearFile()
-                  }}
-                  className="h-7 w-7 p-0 text-muted-foreground hover:text-foreground"
-                >
-                  <X className="w-4 h-4" />
-                </Button>
-              )}
             </>
           )}
         </CardContent>
         {fileError && (
-          <div className="px-6 pb-4">
+          <CardContent className="pt-2">
             <Alert variant="destructive">
               <AlertDescription>{fileError}</AlertDescription>
             </Alert>
-          </div>
+          </CardContent>
         )}
       </Card>
 

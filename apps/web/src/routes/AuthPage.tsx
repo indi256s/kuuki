@@ -1,13 +1,14 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useLanguage } from '@/hooks/useLanguage'
+import { useAccentColor } from '@/hooks/useAccentColor'
 import { Button } from '@/components/ui/button'
 import { Languages, HelpCircle } from 'lucide-react'
 import { RegisterForm } from '@/components/auth/RegisterForm'
 import { SignInForm, RotatingTagline } from '@/components/auth'
 import { PlaneAnimation } from '@/components/common/PlaneAnimation'
-import { AccentPicker, type AccentColor } from '@/components/common/AccentPicker'
+import { AccentPicker } from '@/components/common/AccentPicker'
 import { WhatIsKuukiDialog } from '@/components/auth/WhatIsKuukiDialog'
 
 type AuthMode = 'register' | 'signin'
@@ -16,15 +17,9 @@ export function AuthPage() {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const { toggleLanguage } = useLanguage()
+  const { accentColor, setAccentColor } = useAccentColor()
   const [mode, setMode] = useState<AuthMode>('register')
-  const [accentColor, setAccentColor] = useState<AccentColor>('coral')
   const [showAbout, setShowAbout] = useState(false)
-
-  // Set coral as default accent color on mount
-  useEffect(() => {
-    document.documentElement.style.setProperty('--primary', '#F76B6E')
-    document.documentElement.style.setProperty('--ring', '#F76B6E')
-  }, [])
 
   const handleSuccess = () => {
     navigate('/dashboard')
