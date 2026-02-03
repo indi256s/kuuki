@@ -31,7 +31,7 @@ export function AuthPage() {
   const taglines = t('auth.taglines', { returnObjects: true }) as string[]
 
   return (
-    <div className="min-h-screen bg-neutral-50 dark:bg-[#08090A] flex lg:items-center justify-center items-start lg:pt-0 pt-12 p-4 relative overflow-hidden font-sans transition-colors duration-300">
+    <div className="min-h-screen bg-neutral-50 dark:bg-[#08090A] flex items-center justify-center p-4 relative overflow-hidden font-sans transition-colors duration-300">
 
       {/* Background Ambience */}
       <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-primary/10 dark:bg-primary/20 blur-[120px] rounded-full pointer-events-none opacity-60 dark:opacity-40" />
@@ -39,16 +39,16 @@ export function AuthPage() {
 
       {/* Mobile: Atmospheric background elements */}
       <div className="lg:hidden absolute inset-0 pointer-events-none overflow-hidden">
-        {/* Horizontal hiragana for mobile - moved higher and more subtle */}
-        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-0 opacity-30">
+        {/* Horizontal hiragana for mobile - centered backdrop */}
+        <div className="absolute top-[8%] left-1/2 -translate-x-1/2 z-0 opacity-20">
           <span
-            className="text-4xl font-bold font-display tracking-[0.3em] select-none bg-clip-text text-transparent bg-[radial-gradient(circle_at_top_left,color-mix(in_srgb,var(--primary),transparent_65%),rgba(23,23,23,0.1))] dark:bg-[radial-gradient(circle_at_top_left,color-mix(in_srgb,var(--primary),transparent_60%),rgba(255,255,255,0.1))]"
+            className="text-5xl font-bold font-display tracking-[0.3em] select-none bg-clip-text text-transparent bg-[radial-gradient(circle_at_top_left,color-mix(in_srgb,var(--primary),transparent_65%),rgba(23,23,23,0.1))] dark:bg-[radial-gradient(circle_at_top_left,color-mix(in_srgb,var(--primary),transparent_60%),rgba(255,255,255,0.1))]"
           >
             くうき
           </span>
         </div>
         {/* Planes behind form on mobile */}
-        <div className="opacity-20">
+        <div className="opacity-15">
           <FlyingPlanes />
         </div>
       </div>
@@ -84,14 +84,16 @@ export function AuthPage() {
 
         {/* Right Side: Auth Form */}
         <div className="relative flex flex-col justify-center px-8 pt-16 pb-10 lg:px-16 lg:py-12 bg-white/50 dark:bg-black/20 backdrop-blur-xl">
-          {/* Header Controls (Logo + Picker) */}
-          <div className="absolute top-5 left-6 right-6 flex items-center justify-between z-20">
-            {/* Mobile Logo */}
-            <h1 className="lg:hidden text-2xl font-bold tracking-tighter text-neutral-800 dark:text-white/90">
-              <span className="text-primary">Ku</span>uki
-            </h1>
+          {/* Header Controls */}
+          <div className="absolute top-6 left-6 right-6 flex items-center z-20">
+            {/* Centered Mobile Logo */}
+            <div className="lg:hidden absolute left-1/2 -translate-x-1/2">
+              <h1 className="text-2xl font-bold tracking-tighter text-neutral-800 dark:text-white/90">
+                <span className="text-primary">Ku</span>uki
+              </h1>
+            </div>
 
-            <div className="flex items-center gap-3">
+            <div className="ml-auto flex items-center gap-3">
               <AccentPicker value={accentColor} onChange={setAccentColor} />
               <div className="hidden lg:block w-px h-5 bg-neutral-300 dark:bg-white/10" />
               <Button
