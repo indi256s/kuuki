@@ -121,11 +121,11 @@ export function AuthPage() {
           </div>
 
           {/* Tagline below form (Visible on all screens) */}
-          <div className="mt-8 text-center px-4">
+          <div className="absolute bottom-8 left-0 right-0 text-center px-8 pointer-events-none">
             <RotatingTagline
               items={taglines}
-              interval={6000}
-              className="text-neutral-500 dark:text-white/50 text-sm font-medium tracking-wide justify-center"
+              interval={4000}
+              className="text-neutral-500 dark:text-white/50 text-base lg:text-lg font-medium tracking-wide justify-center"
             />
           </div>
         </div>

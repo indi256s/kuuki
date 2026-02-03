@@ -36,8 +36,8 @@ export function RotatingTagline({ items, interval = 6000, className }: RotatingT
             // Linear-style snappy but smooth easing
             "[transition-timing-function:cubic-bezier(0.2,0.8,0.2,1)]",
             className,
-            phase === 'visible' && "translate-y-0 opacity-100 blur-0 duration-700",
-            phase === 'exit' && "-translate-y-2 opacity-0 blur-sm duration-300",
+            phase === 'visible' && "translate-y-0 opacity-100 blur-0 duration-500",
+            phase === 'exit' && "-translate-y-2 opacity-0 blur-sm duration-200",
             phase === 'enter' && "translate-y-2 opacity-0 blur-sm duration-0"
           )}
         >
