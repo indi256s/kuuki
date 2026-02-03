@@ -36,9 +36,7 @@ export function AirportAutocomplete({
 
   // Sync input with external value changes
   useEffect(() => {
-    if (value !== inputValue) {
-      setInputValue(value)
-    }
+    setInputValue(value)
   }, [value])
 
   // Scroll selected item into view
@@ -177,11 +175,10 @@ export function AirportAutocomplete({
             <li
               key={airport.iata}
               onClick={() => handleSelect(airport)}
-              className={`px-3 py-2 cursor-pointer ${
-                index === selectedIndex
+              className={`px-3 py-2 cursor-pointer ${index === selectedIndex
                   ? 'bg-primary text-primary-foreground'
                   : 'hover:bg-muted'
-              }`}
+                }`}
             >
               <div className="flex items-center justify-between">
                 <span className="font-mono font-medium">{airport.iata}</span>

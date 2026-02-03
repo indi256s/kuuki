@@ -10,12 +10,13 @@ import { useState, useEffect } from 'react'
  * @param breakpoint - Tailwind breakpoint name ('sm' = 640px, 'md' = 768px, 'lg' = 1024px)
  * @returns boolean indicating if viewport is below the breakpoint, or undefined during SSR
  */
+const breakpoints = {
+  sm: 640,
+  md: 768,
+  lg: 1024,
+}
+
 export function useIsMobile(breakpoint: 'sm' | 'md' | 'lg' = 'sm'): boolean {
-  const breakpoints = {
-    sm: 640,
-    md: 768,
-    lg: 1024,
-  }
 
   const [isMobile, setIsMobile] = useState(() => {
     // Check if we're in a browser environment

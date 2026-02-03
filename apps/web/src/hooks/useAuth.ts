@@ -7,7 +7,7 @@ export function useAuth() {
   // Initialize auth on first use
   useEffect(() => {
     store.initialize()
-  }, [])
+  }, [store.initialize])
 
   return {
     user: store.user,

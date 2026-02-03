@@ -68,7 +68,7 @@ export function FlightList({ onEdit, showSidebar = false }: FlightListProps) {
   } = useFlights(filters, sort)
 
   // Flatten pages into single array
-  const flights = data?.pages.flatMap((page) => page.flights) ?? []
+  const flights = useMemo(() => data?.pages.flatMap((page) => page.flights) ?? [], [data])
   const totalCount = data?.pages[0]?.total ?? 0
 
   // Find flights missing aircraft info (for enrichment button)

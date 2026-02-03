@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Plane, Globe2, Clock, Sparkles, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -43,6 +43,15 @@ export function UnlockToast({ tier, onDismiss }: UnlockToastProps) {
   const [isVisible, setIsVisible] = useState(false)
   const [isExiting, setIsExiting] = useState(false)
 
+  const handleDismiss = useCallback(() => {
+    setIsExiting(true)
+    setTimeout(() => {
+      setIsVisible(false)
+      setIsExiting(false)
+      onDismiss()
+    }, 300)
+  }, [onDismiss])
+
   useEffect(() => {
     if (tier) {
       // Check localStorage to avoid showing twice for same unlock
@@ -65,16 +74,8 @@ export function UnlockToast({ tier, onDismiss }: UnlockToastProps) {
     } else {
       setIsVisible(false)
     }
-  }, [tier])
+  }, [tier, handleDismiss, onDismiss])
 
-  const handleDismiss = () => {
-    setIsExiting(true)
-    setTimeout(() => {
-      setIsVisible(false)
-      setIsExiting(false)
-      onDismiss()
-    }, 300)
-  }
 
   if (!tier || !isVisible) return null
 

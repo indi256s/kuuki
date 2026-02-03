@@ -84,7 +84,7 @@ export function ProfileSettingsDialog({ isOpen, onClose }: ProfileSettingsDialog
 
       await refreshProfile()
       onClose()
-    } catch (err) {
+    } catch {
       setError('An unexpected error occurred')
     } finally {
       setIsSaving(false)

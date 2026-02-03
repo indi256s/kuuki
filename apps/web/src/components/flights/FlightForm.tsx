@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -136,22 +136,7 @@ export function FlightForm({ isOpen, onClose, editFlight }: FlightFormProps) {
     }
   }, [watchDate, watchOrigin, watchDestination, editFlight?.id, checkDuplicate])
 
-  // Keyboard shortcuts
-  useEffect(() => {
-    if (!isOpen) return
-
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
-        e.preventDefault()
-        form.handleSubmit(onSubmit)()
-      }
-    }
-
-    window.addEventListener('keydown', handleKeyDown)
-    return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [isOpen, form])
-
-  const onSubmit = async (data: FlightFormData) => {
+  const onSubmit = useCallback(async (data: FlightFormData) => {
     form.clearErrors('root')
 
     // Calculate distance and duration
@@ -221,7 +206,23 @@ export function FlightForm({ isOpen, onClose, editFlight }: FlightFormProps) {
         message: err instanceof Error ? err.message : t('errors.generic'),
       })
     }
-  }
+  }, [form, t, isEditing, editFlight, updateFlight, createFlight, onClose])
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    if (!isOpen) return
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+        e.preventDefault()
+        form.handleSubmit(onSubmit)()
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [isOpen, form, onSubmit])
+
 
   const isSubmitting = createFlight.isPending || updateFlight.isPending
   const isFutureFlight = watchDate && isUpcomingFlight(watchDate)

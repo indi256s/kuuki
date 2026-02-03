@@ -1,7 +1,6 @@
 import * as React from "react"
 import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
-import { Slot } from "@radix-ui/react-slot"
 
 const noteVariants = cva(
     "relative w-full rounded-2xl border p-6 text-sm transition-all duration-200",
