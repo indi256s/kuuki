@@ -4,14 +4,11 @@ import { findAirport, findAirline } from '@kuuki/data'
 import { AirportAutocomplete } from '../flights/AirportAutocomplete'
 import { AirlineAutocomplete } from '../flights/AirlineAutocomplete'
 import { AircraftAutocomplete } from '../flights/AircraftAutocomplete'
-import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
-import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import { ChevronDown, X, ArrowRight, AlertTriangle } from 'lucide-react'
+import { ChevronDown, Trash2, AlertCircle, Plane } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { ExtractedFlight } from '../../hooks/useImport'
 
@@ -47,8 +44,6 @@ export function FlightEditRow({
     return getFieldConfidence(field) < LOW_CONFIDENCE_THRESHOLD
   }
 
-  const lowConfidenceClass = 'border-yellow-500 ring-1 ring-yellow-500/30'
-
   const handleFieldChange = useCallback((field: keyof ExtractedFlight, value: string) => {
     onChange({
       ...flight,
@@ -69,232 +64,258 @@ export function FlightEditRow({
     flight.airline_iata?.length === 2 &&
     flight.origin !== flight.destination
 
+  // Format date for display
+  const formatDate = (dateStr: string) => {
+    if (!dateStr) return '—'
+    const date = new Date(dateStr + 'T00:00:00')
+    return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
+  }
+
+  const hasWarning = isDuplicate || !isValid || flight.confidence < LOW_CONFIDENCE_THRESHOLD
+
   return (
-    <Card className={cn(
-      'transition-colors',
-      selected ? 'border-primary bg-primary/5' : 'border-border/50'
-    )}>
-      {/* Compact view */}
-      <CardContent className="p-3">
-        <div className="flex items-center gap-3">
-          {/* Checkbox */}
-          <Checkbox
-            checked={selected}
-            onCheckedChange={(checked) => onSelect(checked === true)}
-          />
+    <div
+      className={cn(
+        "group rounded-xl border transition-all duration-200",
+        selected
+          ? "border-primary/40 bg-primary/[0.03] shadow-sm"
+          : "border-border/60 bg-card hover:border-border hover:bg-card/80",
+        hasWarning && selected && "border-warning/40 bg-warning/[0.03]",
+        hasWarning && !selected && "border-warning/30"
+      )}
+    >
+      {/* Main row - clean, scannable */}
+      <div className="flex items-center gap-4 px-4 py-3.5">
+        {/* Checkbox with smooth interaction */}
+        <Checkbox
+          checked={selected}
+          onCheckedChange={(checked) => onSelect(checked === true)}
+          className="data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+        />
 
-          {/* Row number */}
-          <span className="text-xs text-muted-foreground w-5">#{index + 1}</span>
+        {/* Flight icon + number */}
+        <div className="flex items-center gap-2 w-16 flex-shrink-0">
+          <Plane className="w-4 h-4 text-muted-foreground/60" />
+          <span className="text-xs text-muted-foreground font-mono">#{index + 1}</span>
+        </div>
 
-          {/* Date */}
-          <Input
-            type="date"
-            value={flight.date}
-            onChange={(e) => handleFieldChange('date', e.target.value)}
-            className={cn(
-              'w-32 h-8 text-sm',
-              isLowConfidence('date') && lowConfidenceClass
-            )}
-          />
+        {/* Date - prominent */}
+        <div className="w-28 flex-shrink-0">
+          <span className="text-sm font-medium">{formatDate(flight.date)}</span>
+        </div>
 
-          {/* Route display */}
-          <div className="flex items-center gap-1.5 flex-1 min-w-0">
-            <span className={cn(
-              'font-data font-medium text-sm px-1.5 py-0.5 rounded',
-              isLowConfidence('origin') ? 'bg-warning/20 text-warning-foreground' : 'bg-muted'
-            )}>
+        {/* Route - the hero */}
+        <div className="flex-1 min-w-0 flex items-center gap-3">
+          <div className="flex items-baseline gap-1.5">
+            <span className="font-mono font-semibold text-base tracking-wide">
               {flight.origin || '???'}
             </span>
-            <ArrowRight className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-            <span className={cn(
-              'font-data font-medium text-sm px-1.5 py-0.5 rounded',
-              isLowConfidence('destination') ? 'bg-warning/20 text-warning-foreground' : 'bg-muted'
-            )}>
-              {flight.destination || '???'}
+            <span className="text-muted-foreground text-xs">
+              {originAirport?.city || ''}
             </span>
           </div>
 
-          {/* Airline */}
-          <span className={cn(
-            'font-data text-sm px-1.5 py-0.5 rounded',
-            isLowConfidence('airline_iata') ? 'bg-warning/20 text-warning-foreground' : 'bg-muted'
-          )}>
-            {flight.airline_iata || '??'}
-          </span>
-
-          {/* Badges */}
-          <div className="flex items-center gap-1.5">
-            {isDuplicate && (
-              <Badge variant="secondary" className="bg-warning/20 text-warning-foreground">
-                {t('import.review.duplicate', 'Duplicate')}
-              </Badge>
-            )}
-            {!isValid && (
-              <Badge variant="destructive">
-                {t('import.review.invalid', 'Invalid')}
-              </Badge>
-            )}
+          <div className="flex items-center gap-1 text-muted-foreground/50">
+            <div className="w-8 h-px bg-border" />
+            <Plane className="w-3 h-3 rotate-90" />
+            <div className="w-8 h-px bg-border" />
           </div>
 
-          {/* Expand button */}
+          <div className="flex items-baseline gap-1.5">
+            <span className="font-mono font-semibold text-base tracking-wide">
+              {flight.destination || '???'}
+            </span>
+            <span className="text-muted-foreground text-xs">
+              {destAirport?.city || ''}
+            </span>
+          </div>
+        </div>
+
+        {/* Airline badge */}
+        <div className="flex items-center gap-2 w-24 flex-shrink-0">
+          <span className="font-mono text-sm text-muted-foreground">{flight.airline_iata}</span>
+          {airline && (
+            <span className="text-xs text-muted-foreground/70 truncate">{airline.name}</span>
+          )}
+        </div>
+
+        {/* Status indicators */}
+        <div className="flex items-center gap-2 w-24 flex-shrink-0 justify-end">
+          {isDuplicate && (
+            <span className="text-xs px-2 py-0.5 rounded-full bg-warning/10 text-warning-foreground border border-warning/20">
+              {t('import.review.duplicate', 'Duplicate')}
+            </span>
+          )}
+          {!isValid && (
+            <span className="text-xs px-2 py-0.5 rounded-full bg-destructive/10 text-destructive border border-destructive/20">
+              {t('import.review.invalid', 'Invalid')}
+            </span>
+          )}
+          {flight.confidence < LOW_CONFIDENCE_THRESHOLD && !isDuplicate && isValid && (
+            <AlertCircle className="w-4 h-4 text-warning" />
+          )}
+        </div>
+
+        {/* Actions */}
+        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
           <Button
             variant="ghost"
             size="icon"
             onClick={() => setExpanded(!expanded)}
-            className="h-8 w-8"
-            aria-label={expanded ? 'Collapse' : 'Expand'}
+            className="h-8 w-8 rounded-lg"
           >
-            <ChevronDown className={`w-4 h-4 transition-transform ${expanded ? 'rotate-180' : ''}`} />
+            <ChevronDown className={cn(
+              "w-4 h-4 transition-transform duration-200",
+              expanded && "rotate-180"
+            )} />
           </Button>
-
-          {/* Delete button */}
           <Button
             variant="ghost"
             size="icon"
             onClick={onDelete}
-            className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
-            aria-label="Delete"
+            className="h-8 w-8 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10"
           >
-            <X className="w-4 h-4" />
+            <Trash2 className="w-4 h-4" />
           </Button>
         </div>
+      </div>
 
-        {/* Summary line */}
-        <div className="mt-1.5 ml-12 text-xs text-muted-foreground truncate">
-          {originAirport ? `${originAirport.city}` : flight.origin}
-          {' → '}
-          {destAirport ? `${destAirport.city}` : flight.destination}
-          {airline && ` · ${airline.name}`}
-          {flight.flight_number && ` ${flight.airline_iata}${flight.flight_number}`}
-        </div>
-      </CardContent>
-
-      {/* Expanded edit form */}
-      {expanded && (
-        <div className="border-t border-border px-3 py-4 space-y-4 bg-muted/30">
-          {/* Low confidence warning */}
+      {/* Expanded edit form with smooth animation */}
+      <div className={cn(
+        "overflow-hidden transition-all duration-300 ease-out",
+        expanded ? "max-h-[400px] opacity-100" : "max-h-0 opacity-0"
+      )}>
+        <div className="px-4 pb-4 pt-2 border-t border-border/50 bg-muted/30 space-y-4">
+          {/* Low confidence note */}
           {flight.confidence < LOW_CONFIDENCE_THRESHOLD && (
-            <Alert className="border-warning/50 bg-warning/10">
-              <AlertTriangle className="w-4 h-4 text-warning" />
-              <AlertDescription className="text-warning-foreground">
-                {t('import.review.lowConfidence', 'Some fields may need verification')}
-              </AlertDescription>
-            </Alert>
+            <div className="flex items-center gap-2 text-sm text-warning-foreground bg-warning/10 rounded-lg px-3 py-2">
+              <AlertCircle className="w-4 h-4 flex-shrink-0" />
+              <span>{t('import.review.lowConfidence', 'Some fields may need verification')}</span>
+            </div>
           )}
 
-          {/* Row 1: Date and Route */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <div>
-              <Label className="text-xs mb-1">
+          {/* Edit grid - clean columns */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            <div className="space-y-1.5">
+              <Label className="text-xs text-muted-foreground">
                 {t('flights.date', 'Date')}
               </Label>
               <Input
                 type="date"
                 value={flight.date}
                 onChange={(e) => handleFieldChange('date', e.target.value)}
-                className={cn(isLowConfidence('date') && lowConfidenceClass)}
+                className={cn(
+                  "h-9",
+                  isLowConfidence('date') && "border-warning ring-1 ring-warning/20"
+                )}
               />
             </div>
 
-            <div>
-              <Label className="text-xs mb-1">
+            <div className="space-y-1.5">
+              <Label className="text-xs text-muted-foreground">
                 {t('flights.origin', 'From')}
               </Label>
               <AirportAutocomplete
                 value={flight.origin}
                 onChange={(iata) => handleFieldChange('origin', iata)}
-                error={isLowConfidence('origin') ? t('import.review.verify', 'Verify') : undefined}
               />
             </div>
 
-            <div>
-              <Label className="text-xs mb-1">
+            <div className="space-y-1.5">
+              <Label className="text-xs text-muted-foreground">
                 {t('flights.destination', 'To')}
               </Label>
               <AirportAutocomplete
                 value={flight.destination}
                 onChange={(iata) => handleFieldChange('destination', iata)}
-                error={isLowConfidence('destination') ? t('import.review.verify', 'Verify') : undefined}
               />
             </div>
-          </div>
 
-          {/* Row 2: Airline and Aircraft */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <div>
-              <Label className="text-xs mb-1">
+            <div className="space-y-1.5">
+              <Label className="text-xs text-muted-foreground">
                 {t('flights.airline', 'Airline')}
               </Label>
               <AirlineAutocomplete
                 value={flight.airline_iata}
                 onChange={(iata) => handleFieldChange('airline_iata', iata)}
-                error={isLowConfidence('airline_iata') ? t('import.review.verify', 'Verify') : undefined}
               />
             </div>
+          </div>
 
-            <div>
-              <Label className="text-xs mb-1">
-                {t('flights.flightNumber', 'Flight Number')}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            <div className="space-y-1.5">
+              <Label className="text-xs text-muted-foreground">
+                {t('flights.flightNumber', 'Flight #')}
               </Label>
               <Input
                 type="text"
                 value={flight.flight_number || ''}
                 onChange={(e) => handleFieldChange('flight_number', e.target.value)}
                 placeholder="123"
-                className={cn('font-data', isLowConfidence('flight_number') && lowConfidenceClass)}
+                className="h-9 font-mono"
               />
             </div>
 
-            <div>
-              <Label className="text-xs mb-1">
+            <div className="space-y-1.5">
+              <Label className="text-xs text-muted-foreground">
                 {t('flights.aircraft', 'Aircraft')}
               </Label>
               <AircraftAutocomplete
                 value={flight.aircraft_icao || ''}
                 onChange={(icao) => handleFieldChange('aircraft_icao', icao)}
-                error={isLowConfidence('aircraft_icao') ? t('import.review.verify', 'Verify') : undefined}
               />
             </div>
-          </div>
 
-          {/* Row 3: Times */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <div>
-              <Label className="text-xs mb-1">
+            <div className="space-y-1.5">
+              <Label className="text-xs text-muted-foreground">
                 {t('flights.departureTime', 'Departure')}
               </Label>
               <Input
                 type="time"
                 value={flight.departure_time || ''}
                 onChange={(e) => handleFieldChange('departure_time', e.target.value)}
-                className={cn(isLowConfidence('departure_time') && lowConfidenceClass)}
+                className="h-9"
               />
             </div>
 
-            <div>
-              <Label className="text-xs mb-1">
+            <div className="space-y-1.5">
+              <Label className="text-xs text-muted-foreground">
                 {t('flights.arrivalTime', 'Arrival')}
               </Label>
               <Input
                 type="time"
                 value={flight.arrival_time || ''}
                 onChange={(e) => handleFieldChange('arrival_time', e.target.value)}
-                className={cn(isLowConfidence('arrival_time') && lowConfidenceClass)}
+                className="h-9"
               />
             </div>
+          </div>
 
-            {/* Confidence display */}
-            <div className="sm:col-span-2 flex items-end">
-              <div className="text-xs text-muted-foreground">
-                <span className="font-medium">{t('import.review.confidence', 'Confidence')}:</span>{' '}
-                <span className={flight.confidence >= 0.8 ? 'text-green-600 dark:text-green-400' : 'text-yellow-600 dark:text-yellow-400'}>
-                  {Math.round(flight.confidence * 100)}%
-                </span>
+          {/* Confidence indicator */}
+          <div className="flex items-center justify-between pt-2 border-t border-border/30">
+            <span className="text-xs text-muted-foreground">
+              {t('import.review.confidence', 'AI Confidence')}
+            </span>
+            <div className="flex items-center gap-2">
+              <div className="w-24 h-1.5 bg-muted rounded-full overflow-hidden">
+                <div
+                  className={cn(
+                    "h-full rounded-full transition-all",
+                    flight.confidence >= 0.8 ? "bg-success" : "bg-warning"
+                  )}
+                  style={{ width: `${flight.confidence * 100}%` }}
+                />
               </div>
+              <span className={cn(
+                "text-xs font-mono",
+                flight.confidence >= 0.8 ? "text-success" : "text-warning"
+              )}>
+                {Math.round(flight.confidence * 100)}%
+              </span>
             </div>
           </div>
         </div>
-      )}
-    </Card>
+      </div>
+    </div>
   )
 }

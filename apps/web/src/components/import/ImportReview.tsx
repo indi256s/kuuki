@@ -1,10 +1,9 @@
 import { useState, useCallback, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { FlightEditRow } from './FlightEditRow'
-import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Plane, AlertTriangle, FileText, ChevronDown, Loader2 } from 'lucide-react'
+import { Plane, AlertTriangle, FileText, ChevronDown, Loader2, CheckSquare, Square, Plus } from 'lucide-react'
+import { cn } from '@/lib/utils'
 import type { ExtractedFlight, RejectedFlight } from '../../hooks/useImport'
 
 interface ImportReviewProps {
@@ -114,76 +113,90 @@ export function ImportReview({
   const selectedCount = selectedIds.size
   const totalCount = flights.length
 
+  // Empty state - no flights found
   if (flights.length === 0) {
     return (
-      <div className="text-center py-8">
-        <div className="w-16 h-16 mx-auto mb-4 bg-muted rounded-full flex items-center justify-center">
-          <Plane className="w-8 h-8 text-muted-foreground" />
+      <div className="text-center py-16">
+        {/* Elegant empty icon */}
+        <div className="relative w-20 h-20 mx-auto mb-6">
+          <div className="absolute inset-0 bg-gradient-to-br from-muted to-muted/50 rounded-2xl rotate-6" />
+          <div className="absolute inset-0 bg-card border border-border/60 rounded-2xl flex items-center justify-center shadow-sm">
+            <Plane className="w-8 h-8 text-muted-foreground/60" />
+          </div>
         </div>
-        <h3 className="text-lg font-medium mb-2">
+
+        <h3 className="text-xl font-semibold mb-2 tracking-tight">
           {t('import.noResults.title', 'No flights found')}
         </h3>
-        <p className="text-muted-foreground mb-4">
+        <p className="text-muted-foreground max-w-sm mx-auto mb-8">
           {t('import.noResults.message', "We couldn't extract flights from this document")}
         </p>
 
         {/* Diagnostic info when flights were found but rejected */}
         {rejected && rejected.length > 0 && (
-          <Card className="text-left border-border/50 mb-6 max-w-md mx-auto">
-            <CardContent className="p-4">
-              <p className="text-sm text-muted-foreground mb-3">
-                {t('import.noResults.diagnostic', 'AI found {{count}} flight(s), but all were rejected during validation:', {
-                  count: geminiCount || rejected.length,
-                })}
-              </p>
-              <ul className="space-y-2 text-sm">
-                {rejected.slice(0, 5).map((r, i) => (
-                  <li key={i} className="flex items-start gap-2 text-muted-foreground">
-                    <AlertTriangle className="w-4 h-4 text-yellow-500 mt-0.5 flex-shrink-0" />
-                    <span>
-                      {r.date && <span className="text-foreground">{r.date}</span>}
+          <div className="text-left max-w-md mx-auto mb-8 rounded-xl border border-warning/30 bg-warning/[0.03] overflow-hidden">
+            <div className="px-4 py-3 border-b border-warning/20 bg-warning/[0.05]">
+              <div className="flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4 text-warning" />
+                <span className="text-sm font-medium text-warning-foreground">
+                  {t('import.noResults.diagnostic', 'AI found {{count}} flight(s), but all were rejected during validation:', {
+                    count: geminiCount || rejected.length,
+                  })}
+                </span>
+              </div>
+            </div>
+            <div className="p-4 space-y-2">
+              {rejected.slice(0, 5).map((r, i) => (
+                <div key={i} className="flex items-start gap-2 text-sm">
+                  <span className="text-warning/60 mt-0.5">•</span>
+                  <div className="min-w-0">
+                    <span className="font-mono text-foreground">
+                      {r.date && <span>{r.date}</span>}
                       {r.origin && r.destination && (
-                        <span className="text-foreground"> {r.origin} → {r.destination}</span>
+                        <span> {r.origin}→{r.destination}</span>
                       )}
-                      {r.airline_iata && <span className="text-foreground"> ({r.airline_iata})</span>}
-                      <span className="text-yellow-600 dark:text-yellow-400">: {r.reason}</span>
+                      {r.airline_iata && <span> ({r.airline_iata})</span>}
                     </span>
-                  </li>
-                ))}
-                {rejected.length > 5 && (
-                  <li className="text-muted-foreground">
-                    {t('import.noResults.moreRejected', '...and {{count}} more', {
-                      count: rejected.length - 5,
-                    })}
-                  </li>
-                )}
-              </ul>
-              <p className="text-xs text-muted-foreground mt-3">
-                {t('import.noResults.hint', 'Tip: Make sure airline codes are 2 letters (e.g., "LY" not "El Al") and airport codes are 3 letters.')}
+                    <span className="text-muted-foreground ml-2">{r.reason}</span>
+                  </div>
+                </div>
+              ))}
+              {rejected.length > 5 && (
+                <p className="text-sm text-muted-foreground pl-4">
+                  {t('import.noResults.moreRejected', '...and {{count}} more', {
+                    count: rejected.length - 5,
+                  })}
+                </p>
+              )}
+            </div>
+            <div className="px-4 py-3 bg-muted/30 border-t border-border/30">
+              <p className="text-xs text-muted-foreground">
+                💡 {t('import.noResults.hint', 'Tip: Make sure airline codes are 2 letters (e.g., "LY" not "El Al") and airport codes are 3 letters.')}
               </p>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         )}
 
         {/* Show cleaned text for debugging */}
         {cleanedText && (
-          <Card className="text-left border-border/50 mb-6 max-w-md mx-auto">
-            <CardContent className="p-4">
-              <p className="text-sm text-muted-foreground mb-2">
+          <div className="text-left max-w-md mx-auto mb-8 rounded-xl border border-border/60 bg-card overflow-hidden">
+            <div className="px-4 py-3 border-b border-border/50 bg-muted/30">
+              <span className="text-sm text-muted-foreground">
                 {t('import.noResults.normalizedData', 'Normalized data (for debugging):')}
-              </p>
-              <pre className="text-xs text-muted-foreground font-mono whitespace-pre-wrap overflow-x-auto max-h-32 overflow-y-auto">
-                {cleanedText}
-              </pre>
-            </CardContent>
-          </Card>
+              </span>
+            </div>
+            <pre className="p-4 text-xs text-muted-foreground font-mono whitespace-pre-wrap overflow-x-auto max-h-32 overflow-y-auto">
+              {cleanedText}
+            </pre>
+          </div>
         )}
 
-        <div className="flex justify-center gap-3">
-          <Button variant="outline" onClick={onCancel}>
+        <div className="flex items-center justify-center gap-3">
+          <Button variant="outline" onClick={onCancel} className="rounded-xl">
             {t('import.noResults.tryAgain', 'Try another file')}
           </Button>
-          <Button onClick={onManualAdd}>
+          <Button onClick={onManualAdd} className="rounded-xl">
+            <Plus className="w-4 h-4 mr-2" />
             {t('import.noResults.manual', 'Add manually')}
           </Button>
         </div>
@@ -192,79 +205,100 @@ export function ImportReview({
   }
 
   return (
-    <div className="space-y-4">
-      {/* Header */}
-      <div className="flex items-center justify-between">
+    <div className="space-y-6">
+      {/* Header - Flight Manifest style */}
+      <div className="flex items-start justify-between gap-4">
         <div>
-          <h3 className="font-medium">
+          <h2 className="text-2xl font-semibold tracking-tight mb-1">
             {t('import.review.title', 'Review extracted flights')}
-          </h3>
-          <p className="text-sm text-muted-foreground">
-            {t('import.review.count', '{{selected}} of {{total}} flights selected', {
-              selected: selectedCount,
-              total: totalCount,
-            })}
+          </h2>
+          <p className="text-muted-foreground">
+            {t('import.review.subtitle', 'Verify and select which flights to import')}
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
-          <Button
-            variant="link"
-            onClick={handleSelectAll}
-            disabled={selectedCount === totalCount}
-            className="p-0 h-auto"
-          >
-            {t('import.review.selectAll', 'Select all')}
-          </Button>
-          <span className="text-muted-foreground">|</span>
-          <Button
-            variant="link"
-            onClick={handleDeselectAll}
-            disabled={selectedCount === 0}
-            className="p-0 h-auto"
-          >
-            {t('import.review.deselectAll', 'Deselect all')}
-          </Button>
+        {/* Selection summary badge */}
+        <div className="flex-shrink-0 px-4 py-2 rounded-xl bg-primary/[0.08] border border-primary/20">
+          <span className="text-sm font-medium">
+            <span className="text-primary">{selectedCount}</span>
+            <span className="text-muted-foreground"> / {totalCount}</span>
+          </span>
+          <span className="text-xs text-muted-foreground ml-2">
+            {t('import.review.selected', 'selected')}
+          </span>
         </div>
       </div>
 
-      {/* Duplicate warning */}
-      {duplicateIndices.size > 0 && (
-        <Alert className="border-yellow-500/50 bg-yellow-500/10">
-          <AlertTriangle className="w-4 h-4 text-yellow-500" />
-          <AlertDescription className="text-yellow-600 dark:text-yellow-400">
-            {t('import.review.duplicatesFound', '{{count}} possible duplicate(s) found', {
-              count: duplicateIndices.size,
-            })}
-          </AlertDescription>
-        </Alert>
-      )}
+      {/* Toolbar */}
+      <div className="flex items-center justify-between gap-4 px-4 py-3 rounded-xl bg-muted/30 border border-border/50">
+        {/* Selection controls */}
+        <div className="flex items-center gap-1">
+          <Button
+            variant="ghost"
+            onClick={handleSelectAll}
+            disabled={selectedCount === totalCount}
+            className="h-8 px-3 rounded-lg gap-2 text-sm"
+          >
+            <CheckSquare className="w-4 h-4" />
+            <span className="hidden sm:inline">{t('import.review.selectAll', 'Select all')}</span>
+          </Button>
+          <Button
+            variant="ghost"
+            onClick={handleDeselectAll}
+            disabled={selectedCount === 0}
+            className="h-8 px-3 rounded-lg gap-2 text-sm"
+          >
+            <Square className="w-4 h-4" />
+            <span className="hidden sm:inline">{t('import.review.deselectAll', 'Clear')}</span>
+          </Button>
+        </div>
+
+        {/* Warnings summary */}
+        <div className="flex items-center gap-3 text-sm">
+          {duplicateIndices.size > 0 && (
+            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-warning/10 border border-warning/20">
+              <AlertTriangle className="w-3.5 h-3.5 text-warning" />
+              <span className="text-warning-foreground text-xs font-medium">
+                {t('import.review.duplicatesCount', '{{count}} possible duplicates', {
+                  count: duplicateIndices.size,
+                })}
+              </span>
+            </div>
+          )}
+        </div>
+      </div>
 
       {/* Cleaned text toggle (for transparency) */}
       {cleanedText && (
-        <Card className="border-border/50 overflow-hidden">
+        <div className="rounded-xl border border-border/50 bg-card/50 overflow-hidden">
           <button
             onClick={() => setShowCleanedText(!showCleanedText)}
-            className="w-full flex items-center justify-between px-3 py-2 text-sm text-muted-foreground hover:bg-muted transition-colors"
+            className="w-full flex items-center justify-between px-4 py-3 text-sm text-muted-foreground hover:text-foreground hover:bg-muted/30 transition-colors"
           >
             <span className="flex items-center gap-2">
               <FileText className="w-4 h-4" />
               {t('import.review.viewNormalized', 'View normalized data')}
             </span>
-            <ChevronDown className={`w-4 h-4 transition-transform ${showCleanedText ? 'rotate-180' : ''}`} />
+            <ChevronDown className={cn(
+              "w-4 h-4 transition-transform duration-200",
+              showCleanedText && "rotate-180"
+            )} />
           </button>
-          {showCleanedText && (
-            <CardContent className="px-3 py-2 border-t border-border bg-muted">
+          <div className={cn(
+            "overflow-hidden transition-all duration-300 ease-out",
+            showCleanedText ? "max-h-64 opacity-100" : "max-h-0 opacity-0"
+          )}>
+            <div className="px-4 py-3 border-t border-border/50 bg-muted/30">
               <pre className="text-xs text-muted-foreground font-mono whitespace-pre-wrap overflow-x-auto max-h-48 overflow-y-auto">
                 {cleanedText}
               </pre>
-            </CardContent>
-          )}
-        </Card>
+            </div>
+          </div>
+        </div>
       )}
 
-      {/* Flight list */}
-      <div className="space-y-2">
+      {/* Flight list - with subtle container */}
+      <div className="space-y-3">
         {flights.map((flight, index) => (
           <FlightEditRow
             key={index}
@@ -279,26 +313,44 @@ export function ImportReview({
         ))}
       </div>
 
-      {/* Actions */}
-      <div className="flex items-center justify-between pt-4 border-t border-border">
-        <Button variant="link" onClick={onManualAdd} className="p-0 h-auto">
-          {t('import.review.addManually', 'Add manually instead')}
-        </Button>
+      {/* Action footer - sticky */}
+      <div className="sticky bottom-0 -mx-6 px-6 py-4 mt-8 bg-gradient-to-t from-background via-background to-transparent">
+        <div className="flex items-center justify-between gap-4 p-4 rounded-2xl bg-card/80 backdrop-blur-sm border border-border/60 shadow-lg">
+          <button
+            onClick={onManualAdd}
+            className="text-sm text-muted-foreground hover:text-foreground transition-colors flex items-center gap-2"
+          >
+            <Plus className="w-4 h-4" />
+            {t('import.review.addManually', 'Add manually')}
+          </button>
 
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={onCancel} disabled={saving}>
-            {t('common.cancel', 'Cancel')}
-          </Button>
-          <Button onClick={handleSave} disabled={saving || selectedCount === 0}>
-            {saving ? (
-              <span className="flex items-center gap-2">
-                <Loader2 className="w-4 h-4 animate-spin" />
-                {t('import.review.saving', 'Saving...')}
-              </span>
-            ) : (
-              t('import.review.saveSelected', 'Save {{count}} flight(s)', { count: selectedCount })
-            )}
-          </Button>
+          <div className="flex items-center gap-3">
+            <Button
+              variant="outline"
+              onClick={onCancel}
+              disabled={saving}
+              className="rounded-xl"
+            >
+              {t('common.cancel', 'Cancel')}
+            </Button>
+            <Button
+              onClick={handleSave}
+              disabled={saving || selectedCount === 0}
+              className="rounded-xl min-w-[140px]"
+            >
+              {saving ? (
+                <span className="flex items-center gap-2">
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  {t('import.review.saving', 'Saving...')}
+                </span>
+              ) : (
+                <span className="flex items-center gap-2">
+                  <Plane className="w-4 h-4" />
+                  {t('import.review.saveSelected', 'Import {{count}}', { count: selectedCount })}
+                </span>
+              )}
+            </Button>
+          </div>
         </div>
       </div>
     </div>

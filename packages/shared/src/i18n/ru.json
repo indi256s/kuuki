@@ -508,17 +508,21 @@
     },
     "review": {
       "title": "Проверьте найденные полёты",
+      "subtitle": "Проверьте и выберите рейсы для импорта",
       "selectAll": "Выбрать все",
       "deselectAll": "Снять выбор",
-      "saveSelected": "Сохранить {{count}} полёт(ов)",
+      "selected": "выбрано",
+      "saveSelected": "Импортировать {{count}}",
       "saving": "Сохранение...",
       "duplicate": "Дубликат",
       "duplicatesFound": "Найдено {{count}} возможных дубликатов",
+      "duplicatesCount": "{{count}} возможных дубликатов",
       "invalid": "Ошибка",
       "lowConfidence": "Некоторые поля требуют проверки",
       "verify": "Проверить",
-      "confidence": "Уверенность",
+      "confidence": "Уверенность ИИ",
       "addManually": "Добавить вручную",
+      "viewNormalized": "Показать нормализованные данные",
       "count": "Выбрано {{selected}} из {{total}} полётов"
     },
     "noResults": {
