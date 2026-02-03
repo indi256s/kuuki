@@ -167,6 +167,7 @@ export type Database = {
           destination: string
           distance_km: number | null
           duration_minutes: number | null
+          enrichment_status: string | null
           flight_number: string | null
           id: number
           is_upcoming: boolean | null
@@ -188,6 +189,7 @@ export type Database = {
           destination: string
           distance_km?: number | null
           duration_minutes?: number | null
+          enrichment_status?: string | null
           flight_number?: string | null
           id?: number
           is_upcoming?: boolean | null
@@ -209,6 +211,7 @@ export type Database = {
           destination?: string
           distance_km?: number | null
           duration_minutes?: number | null
+          enrichment_status?: string | null
           flight_number?: string | null
           id?: number
           is_upcoming?: boolean | null

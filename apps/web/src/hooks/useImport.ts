@@ -1,5 +1,7 @@
 import { useMutation } from '@tanstack/react-query'
 
+export type EnrichmentStatus = 'pending' | 'enriched' | 'failed' | 'skipped'
+
 export interface ExtractedFlight {
   date: string
   origin: string
@@ -10,6 +12,7 @@ export interface ExtractedFlight {
   departure_time?: string
   arrival_time?: string
   confidence: number
+  enrichment_status?: EnrichmentStatus // Aircraft enrichment state
   field_confidence?: {
     date?: number
     origin?: number

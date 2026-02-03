@@ -46,6 +46,9 @@ export interface PublicProfile {
   memberSince: string
 }
 
+// Aircraft enrichment status
+export type EnrichmentStatus = 'pending' | 'enriched' | 'failed' | 'skipped'
+
 // Flight record
 export interface Flight {
   id: number
@@ -61,6 +64,7 @@ export interface Flight {
   distanceKm: number | null
   durationMinutes: number | null
   source: 'manual' | 'ai_import'
+  enrichmentStatus: EnrichmentStatus | null
   createdAt: string
 }
 
