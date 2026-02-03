@@ -18,21 +18,11 @@ export function WhatIsKuukiDialog({ open, onOpenChange }: WhatIsKuukiDialogProps
     const { t } = useTranslation()
 
     const features = [
-        {
-            key: 'import',
-        },
-        {
-            key: 'passport',
-        },
-        {
-            key: 'gamification',
-        },
-        {
-            key: 'privacy',
-        },
-        {
-            key: 'community',
-        },
+        { key: 'import' },
+        { key: 'passport' },
+        { key: 'gamification' },
+        { key: 'privacy' },
+        { key: 'community' },
     ]
 
     // Helper to parse markdown-like bold syntax (**text**)
