@@ -15,12 +15,12 @@ export function AuthPage() {
   const navigate = useNavigate()
   const { toggleLanguage } = useLanguage()
   const [mode, setMode] = useState<AuthMode>('register')
-  const [accentColor, setAccentColor] = useState<AccentColor>('coral')
+  const [accentColor, setAccentColor] = useState<AccentColor>('red')
 
-  // Set coral as default accent color on mount
+  // Set red as default accent color on mount
   useEffect(() => {
-    document.documentElement.style.setProperty('--primary', '#F76B6E')
-    document.documentElement.style.setProperty('--ring', '#F76B6E')
+    document.documentElement.style.setProperty('--primary', '#E54D5A')
+    document.documentElement.style.setProperty('--ring', '#E54D5A')
   }, [])
 
   const handleSuccess = () => {

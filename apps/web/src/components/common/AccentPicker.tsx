@@ -2,11 +2,17 @@ import { useState } from 'react'
 import { cn } from '@/lib/utils'
 
 // Curated 4-color palette
+// Curated palette from .interface-design/system.md
 const ACCENT_COLORS = [
-  { name: 'amber', value: '#E78A45', label: 'Amber' },
-  { name: 'teal', value: '#2CB88A', label: 'Teal' },
+  { name: 'blue', value: '#4EA7F5', label: 'Blue' },
+  { name: 'cyan', value: '#26B5CE', label: 'Cyan' },
+  { name: 'teal', value: '#2EB88A', label: 'Teal' },
+  { name: 'green', value: '#50C086', label: 'Green' },
+  { name: 'yellow', value: '#EBCB4B', label: 'Yellow' },
+  { name: 'orange', value: '#F3904F', label: 'Orange' },
   { name: 'coral', value: '#F76B6E', label: 'Coral' },
-  { name: 'burgundy', value: '#AC524C', label: 'Burgundy' },
+  { name: 'red', value: '#E54D5A', label: 'Red' },
+  { name: 'purple', value: '#AF7AF2', label: 'Purple' },
 ] as const
 
 type AccentColor = (typeof ACCENT_COLORS)[number]['name']
@@ -17,7 +23,7 @@ interface AccentPickerProps {
   className?: string
 }
 
-export function AccentPicker({ value = 'amber', onChange, className }: AccentPickerProps) {
+export function AccentPicker({ value = 'red', onChange, className }: AccentPickerProps) {
   const [isOpen, setIsOpen] = useState(false)
 
   const handleSelect = (color: AccentColor) => {
@@ -33,25 +39,25 @@ export function AccentPicker({ value = 'amber', onChange, className }: AccentPic
 
   return (
     <div className={cn('relative', className)}>
-      {/* Trigger button */}
+      {/* Trigger button - Compact & Precise */}
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
         className={cn(
-          'flex items-center justify-center p-1 rounded-full transition-all duration-200',
-          'hover:bg-black/5 dark:hover:bg-white/10',
-          isOpen && 'bg-black/10 dark:bg-white/10'
+          'group flex items-center justify-center w-8 h-8 rounded-full transition-all duration-200',
+          'hover:bg-neutral-100 dark:hover:bg-white/5',
+          isOpen && 'bg-neutral-100 dark:bg-white/5'
         )}
         aria-expanded={isOpen}
         aria-label="Choose accent color"
       >
         <div
-          className="w-6 h-6 rounded-full ring-2 ring-white/50 dark:ring-white/20 shadow-sm"
+          className="w-3.5 h-3.5 rounded-full shadow-[0_0_0_1px_rgba(0,0,0,0.08)] dark:shadow-[0_0_0_1px_rgba(255,255,255,0.1)] transition-transform group-hover:scale-110"
           style={{ backgroundColor: currentColor?.value }}
         />
       </button>
 
-      {/* Dropdown */}
+      {/* Dropdown - Minimalist Float */}
       {isOpen && (
         <>
           {/* Backdrop */}
@@ -63,15 +69,15 @@ export function AccentPicker({ value = 'amber', onChange, className }: AccentPic
           {/* Color picker dropdown */}
           <div className={cn(
             'absolute top-full right-0 mt-2 z-50',
-            'p-3 rounded-xl',
-            'bg-white dark:bg-neutral-900',
-            'border border-black/10 dark:border-white/10',
-            'shadow-lg shadow-black/10 dark:shadow-black/40',
-            'animate-in fade-in-0 zoom-in-95 duration-150'
+            'p-1.5 rounded-lg flex gap-1',
+            'bg-white dark:bg-[#121417]',
+            'border border-neutral-200/50 dark:border-white/[0.08]',
+            'shadow-xl shadow-black/10 dark:shadow-black/40',
+            'animate-in fade-in-0 zoom-in-95 duration-100 ease-out'
           )}>
-            <p className="text-xs text-muted-foreground mb-2 font-medium">Accent Color</p>
-            <div className="flex gap-2">
-              {ACCENT_COLORS.map((color) => (
+            {ACCENT_COLORS.map((color) => {
+              const isActive = value === color.name
+              return (
                 <button
                   key={color.name}
                   type="button"
@@ -80,19 +86,29 @@ export function AccentPicker({ value = 'amber', onChange, className }: AccentPic
                     setIsOpen(false)
                   }}
                   className={cn(
-                    'w-8 h-8 rounded-full transition-all duration-150',
-                    'hover:scale-110 ring-offset-background',
-                    value === color.name && 'ring-2 ring-offset-2 scale-110'
+                    'group relative w-6 h-6 rounded-md flex items-center justify-center transition-all duration-150',
+                    'hover:bg-neutral-100 dark:hover:bg-white/5'
                   )}
-                  style={{
-                    backgroundColor: color.value,
-                    ['--tw-ring-color' as string]: color.value,
-                  }}
                   title={color.label}
                   aria-label={`Select ${color.label} accent color`}
-                />
-              ))}
-            </div>
+                >
+                  <div
+                    className={cn(
+                      "w-3 h-3 rounded-full transition-all duration-200",
+                      isActive ? "w-3 h-3 ring-1 ring-offset-1 dark:ring-offset-[#121417]" : "group-hover:scale-110"
+                    )}
+                    style={{
+                      backgroundColor: color.value,
+                      boxShadow: !isActive ? '0 0 0 1px rgba(255,255,255,0.1) inset' : undefined,
+                      ['--tw-ring-color' as string]: color.value
+                    }}
+                  />
+                  {isActive && (
+                    <div className="absolute inset-x-1 -bottom-1 h-px bg-current opacity-0" />
+                  )}
+                </button>
+              )
+            })}
           </div>
         </>
       )}
