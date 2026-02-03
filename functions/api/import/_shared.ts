@@ -2,66 +2,6 @@
 
 export type EnrichmentStatus = 'pending' | 'enriched' | 'failed' | 'skipped'
 
-// ============================================================================
-// Async Job System
-// ============================================================================
-
-export type JobStatus = 'processing' | 'completed' | 'failed'
-
-export interface ImportJob {
-  id: string
-  status: JobStatus
-  createdAt: number
-  flights?: ExtractedFlight[]
-  error?: string
-  // Diagnostic info
-  rejected?: RejectedFlight[]
-  gemini_count?: number
-  cleaned_text?: string
-}
-
-// In-memory job store (lives for Worker lifetime)
-// Jobs auto-expire after 10 minutes
-const JOB_TTL_MS = 10 * 60 * 1000
-const jobs = new Map<string, ImportJob>()
-
-// Cleanup expired jobs periodically
-function cleanupExpiredJobs() {
-  const now = Date.now()
-  for (const [id, job] of jobs) {
-    if (now - job.createdAt > JOB_TTL_MS) {
-      jobs.delete(id)
-    }
-  }
-}
-
-export function createJob(): ImportJob {
-  cleanupExpiredJobs()
-  const id = crypto.randomUUID()
-  const job: ImportJob = {
-    id,
-    status: 'processing',
-    createdAt: Date.now(),
-  }
-  jobs.set(id, job)
-  return job
-}
-
-export function getJob(id: string): ImportJob | undefined {
-  cleanupExpiredJobs()
-  return jobs.get(id)
-}
-
-export function updateJob(id: string, updates: Partial<ImportJob>) {
-  const job = jobs.get(id)
-  if (job) {
-    Object.assign(job, updates)
-  }
-}
-
-// Threshold for async mode
-export const ASYNC_THRESHOLD = 10
-
 export interface ExtractedFlight {
   date: string // YYYY-MM-DD
   origin: string // IATA code
@@ -107,9 +47,6 @@ export interface ParseResponse {
   rejected?: RejectedFlight[]
   gemini_count?: number // How many flights Gemini found before validation
   cleaned_text?: string // Normalized text from Stage 1 (text input only)
-  // Async mode fields
-  jobId?: string
-  status?: JobStatus
 }
 
 export function getMimeType(type: 'pdf' | 'image' | 'text'): string {
