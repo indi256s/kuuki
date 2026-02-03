@@ -57,7 +57,7 @@ export function AuthPage() {
       <div className="w-full max-w-[1100px] min-h-[600px] lg:h-[700px] rounded-[32px] grid lg:grid-cols-[40%_60%] overflow-hidden shadow-xl dark:shadow-2xl relative z-10 transition-all duration-500 bg-white/90 dark:bg-white/[0.03] lg:bg-white/80 backdrop-blur-xl border border-neutral-200/50 dark:border-white/[0.06]">
 
         {/* Left Side: Visual / Brand (Desktop only) */}
-        <div className="relative hidden lg:flex flex-col justify-start p-12 overflow-hidden group bg-neutral-100/50 dark:bg-transparent">
+        <div className="relative hidden lg:flex flex-col justify-start p-6 overflow-hidden group bg-neutral-100/50 dark:bg-transparent">
           {/* Dynamic Background for Left Panel */}
           <div className="absolute inset-0 bg-gradient-to-br from-primary/5 dark:from-primary/10 to-transparent opacity-80 dark:opacity-50 z-0" />
           <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.15] dark:opacity-20 z-0 mix-blend-overlay" />
