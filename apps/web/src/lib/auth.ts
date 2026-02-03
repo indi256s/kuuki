@@ -74,8 +74,8 @@ export async function signUp(
 export async function signIn(
   email: string,
   password: string
-): Promise<{ success: boolean; error?: string }> {
-  const { error } = await supabase.auth.signInWithPassword({
+): Promise<{ success: boolean; error?: string; user?: User }> {
+  const { data, error } = await supabase.auth.signInWithPassword({
     email,
     password,
   })
@@ -84,7 +84,7 @@ export async function signIn(
     return { success: false, error: error.message }
   }
 
-  return { success: true }
+  return { success: true, user: data.user }
 }
 
 // Sign out

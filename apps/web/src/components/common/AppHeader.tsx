@@ -33,6 +33,8 @@ export function AppHeader({ onAddFlight, showAddButton = false }: AppHeaderProps
   const navItems = [
     { path: '/dashboard', label: t('nav.dashboard', 'Dashboard') },
     { path: '/flights', label: t('nav.flights', 'Flights') },
+    { path: '/passport', label: t('nav.passport', 'Passport') },
+    { path: '/leaderboard', label: t('nav.leaderboard', 'Leaderboard') },
     { path: '/import', label: t('nav.import', 'Import') },
   ]
 

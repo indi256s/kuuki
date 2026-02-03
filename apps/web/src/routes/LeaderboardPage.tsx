@@ -1,13 +1,14 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { Plane, Trophy, Users } from 'lucide-react'
+import { Trophy, Users } from 'lucide-react'
 import { useLeaderboard, useUserLeaderboardPositions, useTotalRankedUsers, type LeaderboardCategory } from '@/hooks/useLeaderboard'
 import { useFlightStats } from '@/hooks/useStats'
 import { useAuth } from '@/hooks/useAuth'
 import { CategoryTabs } from '@/components/leaderboard/CategoryTabs'
 import { LeaderboardTable } from '@/components/leaderboard/LeaderboardTable'
 import { UserRankCard } from '@/components/leaderboard/UserRankCard'
+import { AppHeader } from '@/components/common/AppHeader'
 import { MobileHeader } from '@/components/layout/MobileHeader'
 import { MobileTabBar } from '@/components/layout/MobileTabBar'
 import { Button } from '@/components/ui/button'
@@ -27,35 +28,12 @@ export function LeaderboardPage() {
 
   return (
     <div className="min-h-screen bg-gradient-soft">
+
       {/* Mobile header */}
       <MobileHeader />
 
-      {/* Desktop header - hidden on mobile */}
-      <header
-        data-testid="desktop-header"
-        className="hidden sm:block sticky top-0 z-40 bg-background/80 backdrop-blur-xl border-b border-border/50"
-      >
-        <div className="max-w-4xl mx-auto px-6 h-14 flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2 group">
-            <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
-              <Plane className="w-4 h-4 text-primary" strokeWidth={2} />
-            </div>
-            <span className="text-lg font-semibold tracking-tight">
-              {t('common.appName')}
-            </span>
-          </Link>
-
-          <div className="flex items-center gap-2">
-            {user && (
-              <Button variant="ghost" asChild>
-                <Link to="/dashboard">
-                  {t('nav.dashboard', 'Dashboard')}
-                </Link>
-              </Button>
-            )}
-          </div>
-        </div>
-      </header>
+      {/* Desktop header */}
+      <AppHeader />
 
       {/* Main content - pb-safe adds bottom padding for mobile tab bar */}
       <main className="max-w-4xl mx-auto px-6 py-8 pb-safe sm:pb-8">

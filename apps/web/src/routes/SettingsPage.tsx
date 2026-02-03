@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next'
 import { MobileHeader } from '@/components/layout/MobileHeader'
 import { MobileTabBar } from '@/components/layout/MobileTabBar'
 import { AppHeader } from '@/components/common/AppHeader'
+import { PlaneAnimation } from '@/components/common/PlaneAnimation'
 import {
   LanguageSection,
   DataExportSection,
@@ -12,7 +13,10 @@ export function SettingsPage() {
   const { t } = useTranslation()
 
   return (
-    <div className="min-h-screen bg-gradient-soft">
+    <div className="min-h-screen bg-gradient-soft relative overflow-hidden">
+      {/* Background plane animation */}
+      <PlaneAnimation className="z-0" variant="subtle" count={20} />
+
       {/* Mobile header */}
       <MobileHeader />
 
@@ -20,7 +24,7 @@ export function SettingsPage() {
       <AppHeader />
 
       {/* Main content */}
-      <main className="max-w-2xl mx-auto px-6 py-8 pb-safe sm:pb-8">
+      <main className="max-w-2xl mx-auto px-6 py-8 pb-safe sm:pb-8 relative z-10">
         {/* Page title */}
         <div className="mb-8 animate-fade-up">
           <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">

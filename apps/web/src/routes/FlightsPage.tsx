@@ -47,6 +47,7 @@ export function FlightsPage() {
 
   return (
     <div className="min-h-screen bg-gradient-soft">
+
       {/* Mobile header */}
       <MobileHeader />
 

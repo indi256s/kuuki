@@ -1,8 +1,6 @@
 import { useState, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link } from 'react-router-dom'
 import { useAuth } from '@/hooks/useAuth'
-import { useLanguage } from '@/hooks/useLanguage'
 import { useFlightStats } from '@/hooks/useStats'
 import { useSyncUpcomingFlights } from '@/hooks/useFlights'
 import { AdvancedStats } from '@/components/stats/AdvancedStats'
@@ -11,36 +9,24 @@ import { RouteMap } from '@/components/map/RouteMap'
 import { MapCollapsible } from '@/components/map/MapCollapsible'
 import { FlightForm } from '@/components/flights/FlightForm'
 import { EmptyState } from '@/components/dashboard/EmptyState'
-import { ProfileSettingsDialog } from '@/components/profile/ProfileSettingsDialog'
-import { CompareModal } from '@/components/compare/CompareModal'
+import { AppHeader } from '@/components/common/AppHeader'
 import { MobileHeader } from '@/components/layout/MobileHeader'
 import { MobileTabBar } from '@/components/layout/MobileTabBar'
 import { Button } from '@/components/ui/button'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
-import { Plus, Plane, LogOut, Languages, User, Trophy, GitCompare } from 'lucide-react'
+import { Plus } from 'lucide-react'
 
 export function DashboardPage() {
   const { t } = useTranslation()
-  const { user, profile, signOut } = useAuth()
-  const { currentLanguage, toggleLanguage } = useLanguage()
+  const { profile } = useAuth()
   const { data: stats } = useFlightStats()
   const [isFormOpen, setIsFormOpen] = useState(false)
-  const [isProfileOpen, setIsProfileOpen] = useState(false)
-  const [isCompareOpen, setIsCompareOpen] = useState(false)
 
   // Sync upcoming flights on dashboard load
   useSyncUpcomingFlights()
 
   const hasFlights = (stats?.totalFlights ?? 0) > 0 || (stats?.upcomingFlights ?? 0) > 0
 
-  const displayName = profile?.display_name || profile?.username || user?.email?.split('@')[0] || 'User'
-  const initials = displayName.slice(0, 2).toUpperCase()
+  const displayName = profile?.display_name || profile?.username || 'User'
 
   const handleAddFlight = useCallback(() => {
     setIsFormOpen(true)
@@ -52,6 +38,7 @@ export function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-gradient-soft">
+
       {/* Mobile header */}
       <MobileHeader
         action={
@@ -64,105 +51,11 @@ export function DashboardPage() {
         }
       />
 
-      {/* Desktop header - hidden on mobile */}
-      <header
-        data-testid="desktop-header"
-        className="hidden sm:block sticky top-0 z-40 bg-background/80 backdrop-blur-xl border-b border-border/50"
-      >
-        <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
-          {/* Logo & Nav */}
-          <div className="flex items-center gap-8">
-            <Link to="/dashboard" className="flex items-center gap-2 group">
-              <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
-                <Plane className="w-4 h-4 text-primary" strokeWidth={2} />
-              </div>
-              <span className="text-lg font-semibold tracking-tight">
-                {t('common.appName')}
-              </span>
-            </Link>
-
-            <nav className="flex items-center gap-1">
-              <Link
-                to="/flights"
-                className="px-3 py-2 text-sm text-muted-foreground hover:text-foreground rounded-lg hover:bg-secondary/50 transition-colors"
-              >
-                {t('nav.flights', 'Flights')}
-              </Link>
-              <Link
-                to="/passport"
-                className="px-3 py-2 text-sm text-muted-foreground hover:text-foreground rounded-lg hover:bg-secondary/50 transition-colors"
-              >
-                {t('nav.passport', 'Passport')}
-              </Link>
-              <Link
-                to="/import"
-                className="px-3 py-2 text-sm text-muted-foreground hover:text-foreground rounded-lg hover:bg-secondary/50 transition-colors"
-              >
-                {t('nav.import', 'Import')}
-              </Link>
-            </nav>
-          </div>
-
-          {/* Actions */}
-          <div className="flex items-center gap-2">
-            {hasFlights && (
-              <Button onClick={handleAddFlight} className="gap-2">
-                <Plus className="w-4 h-4" />
-                <span>{t('flights.addFlight', 'Add Flight')}</span>
-              </Button>
-            )}
-
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="relative w-9 h-9 rounded-full">
-                  <div className="w-full h-full rounded-full bg-secondary flex items-center justify-center text-xs font-medium">
-                    {initials}
-                  </div>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48">
-                <div className="px-2 py-1.5">
-                  <p className="text-sm font-medium">{displayName}</p>
-                  <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
-                </div>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => setIsProfileOpen(true)}>
-                  <User className="w-4 h-4 mr-2" />
-                  {t('nav.profile', 'Profile')}
-                </DropdownMenuItem>
-                {profile?.username && (
-                  <DropdownMenuItem asChild>
-                    <Link to={`/fly/${profile.username}`}>
-                      <Trophy className="w-4 h-4 mr-2" />
-                      {t('profile.viewPublic', 'View Public Profile')}
-                    </Link>
-                  </DropdownMenuItem>
-                )}
-                <DropdownMenuItem onClick={() => setIsCompareOpen(true)}>
-                  <GitCompare className="w-4 h-4 mr-2" />
-                  {t('compare.title', 'Compare Stats')}
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link to="/leaderboard">
-                    <Trophy className="w-4 h-4 mr-2" />
-                    {t('nav.leaderboard', 'Leaderboard')}
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={toggleLanguage}>
-                  <Languages className="w-4 h-4 mr-2" />
-                  {currentLanguage === 'en' ? 'Русский' : 'English'}
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={signOut} className="text-destructive focus:text-destructive">
-                  <LogOut className="w-4 h-4 mr-2" />
-                  {t('auth.signOut')}
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        </div>
-      </header>
+      {/* Desktop header */}
+      <AppHeader
+        onAddFlight={handleAddFlight}
+        showAddButton={hasFlights}
+      />
 
       {/* Main content - pb-safe adds bottom padding for mobile tab bar */}
       <main className="max-w-6xl mx-auto px-6 py-8 pb-safe sm:pb-8">
@@ -210,18 +103,6 @@ export function DashboardPage() {
       <FlightForm
         isOpen={isFormOpen}
         onClose={handleCloseForm}
-      />
-
-      {/* Profile settings modal */}
-      <ProfileSettingsDialog
-        isOpen={isProfileOpen}
-        onClose={() => setIsProfileOpen(false)}
-      />
-
-      {/* Compare modal */}
-      <CompareModal
-        isOpen={isCompareOpen}
-        onClose={() => setIsCompareOpen(false)}
       />
 
       {/* Mobile tab bar */}

@@ -74,7 +74,15 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
   signIn: async (email, password) => {
     set({ isLoading: true })
     const result = await authSignIn(email, password)
-    set({ isLoading: false })
+
+    // Set user immediately to avoid race condition with navigation
+    if (result.success && result.user) {
+      const profile = await getProfile(result.user.id)
+      set({ user: result.user, profile, isLoading: false })
+    } else {
+      set({ isLoading: false })
+    }
+
     return result
   },
 
