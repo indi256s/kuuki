@@ -30,7 +30,7 @@ export async function signUp(
   email: string,
   password: string,
   inviteCode: string
-): Promise<{ success: boolean; error?: string }> {
+): Promise<{ success: boolean; error?: string; user?: User }> {
   // First validate the invite code
   const isValidCode = await checkInviteCode(inviteCode)
   if (!isValidCode) {
@@ -67,7 +67,7 @@ export async function signUp(
     // User is created but code wasn't marked as used - not critical
   }
 
-  return { success: true }
+  return { success: true, user: data.user }
 }
 
 // Sign in with email and password

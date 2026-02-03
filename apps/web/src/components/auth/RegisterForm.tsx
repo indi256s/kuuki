@@ -1,10 +1,8 @@
-import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useAuth } from '@/hooks/useAuth'
-import { checkInviteCode } from '@/lib/auth'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Alert, AlertDescription } from '@/components/ui/alert'
@@ -16,8 +14,7 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form'
-import { AlertCircle, Check, Ticket, Mail, Lock } from 'lucide-react'
-import { cn } from '@/lib/utils'
+import { AlertCircle, Ticket, Mail, Lock } from 'lucide-react'
 
 const registerSchema = z.object({
   inviteCode: z.string().min(1, 'Invite code is required'),
@@ -44,8 +41,6 @@ interface RegisterFormProps {
 export function RegisterForm({ onSuccess, onSignInClick }: RegisterFormProps) {
   const { t } = useTranslation()
   const { signUp, isLoading } = useAuth()
-  const [isCheckingCode, setIsCheckingCode] = useState(false)
-  const [codeValid, setCodeValid] = useState<boolean | null>(null)
 
   const form = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
@@ -55,20 +50,6 @@ export function RegisterForm({ onSuccess, onSignInClick }: RegisterFormProps) {
       password: '',
     },
   })
-
-  // Validate invite code on blur
-  const handleCodeBlur = async () => {
-    const inviteCode = form.getValues('inviteCode')
-    if (!inviteCode.trim()) {
-      setCodeValid(null)
-      return
-    }
-
-    setIsCheckingCode(true)
-    const valid = await checkInviteCode(inviteCode)
-    setCodeValid(valid)
-    setIsCheckingCode(false)
-  }
 
   const onSubmit = async (data: RegisterFormData) => {
     form.clearErrors('root')
@@ -112,49 +93,14 @@ export function RegisterForm({ onSuccess, onSignInClick }: RegisterFormProps) {
                 <span className="text-white/80">{t('auth.inviteCode', 'Invite Code')}</span>
               </FormLabel>
               <FormControl>
-                <div className="relative">
-                  <Input
-                    placeholder="KUUKI-XXXX-XXXX"
-                    disabled={isLoading}
-                    className={cn(
-                      'h-12 pl-3 font-mono text-lg uppercase tracking-wider pr-10 aura-input border-0 focus-visible:ring-1 focus-visible:ring-primary/50 text-white placeholder:text-white/20',
-                      codeValid === true && 'border-success/50 focus-visible:ring-success/50',
-                      codeValid === false && 'border-destructive/50 focus-visible:ring-destructive/50'
-                    )}
-                    {...field}
-                    onChange={(e) => {
-                      field.onChange(e.target.value.toUpperCase())
-                      setCodeValid(null)
-                    }}
-                    onBlur={() => {
-                      field.onBlur()
-                      handleCodeBlur()
-                    }}
-                  />
-                  {/* Validation indicator */}
-                  <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                    {isCheckingCode && (
-                      <div className="w-4 h-4 rounded-full border-2 border-primary border-t-transparent animate-spin" />
-                    )}
-                    {codeValid === true && (
-                      <Check className="w-4 h-4 text-success" />
-                    )}
-                    {codeValid === false && (
-                      <AlertCircle className="w-4 h-4 text-destructive" />
-                    )}
-                  </div>
-                </div>
+                <Input
+                  placeholder="KUUKI-XXXX-XXXX"
+                  disabled={isLoading}
+                  className="h-12 pl-3 font-mono text-lg uppercase tracking-wider aura-input border-0 focus-visible:ring-1 focus-visible:ring-primary/50 text-white placeholder:text-white/20"
+                  {...field}
+                  onChange={(e) => field.onChange(e.target.value.toUpperCase())}
+                />
               </FormControl>
-              {codeValid === true && (
-                <p className="text-xs text-success">
-                  {t('auth.codeValid', 'Valid invite code')}
-                </p>
-              )}
-              {codeValid === false && (
-                <p className="text-xs text-destructive">
-                  {t('auth.codeInvalid', 'Invalid or expired invite code')}
-                </p>
-              )}
               <FormMessage />
             </FormItem>
           )}
@@ -210,7 +156,7 @@ export function RegisterForm({ onSuccess, onSignInClick }: RegisterFormProps) {
 
         <Button
           type="submit"
-          disabled={isLoading || codeValid === false}
+          disabled={isLoading}
           className="w-full h-12 aura-button rounded-xl text-white font-medium text-base shadow-lg shadow-primary/20 hover:shadow-primary/40 border-0"
         >
           {isLoading ? t('common.loading') : t('auth.createAccount')}

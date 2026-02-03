@@ -10,7 +10,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { Plane, Plus, LogOut, Languages, Settings } from 'lucide-react'
+import { Plus, LogOut, Languages, Settings } from 'lucide-react'
+import { KuukiIcon } from '@/components/common/KuukiIcon'
 
 interface AppHeaderProps {
   onAddFlight?: () => void
@@ -44,7 +45,7 @@ export function AppHeader({ onAddFlight, showAddButton = false }: AppHeaderProps
         <div className="flex items-center gap-8">
           <Link to="/dashboard" className="flex items-center gap-2 group">
             <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
-              <Plane className="w-4 h-4 text-primary" strokeWidth={2} />
+              <KuukiIcon className="w-5 h-5 text-primary" />
             </div>
             <span className="text-lg font-semibold tracking-tight">
               {t('common.appName')}

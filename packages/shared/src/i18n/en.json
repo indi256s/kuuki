@@ -459,7 +459,7 @@
   },
   "import": {
     "title": "Import Flights",
-    "description": "Upload a photo of your boarding pass or paste flight details",
+    "description": "Import from files or paste details",
     "uploadImage": "Upload Image",
     "pasteText": "Paste Text",
     "processing": "Processing...",
@@ -693,8 +693,8 @@
     "import": {
       "title": "Add Your Flights",
       "subtitle": "How would you like to get started?",
-      "importOption": "Import from Photo",
-      "importDescription": "Upload a boarding pass or flight confirmation",
+      "importOption": "Import from File",
+      "importDescription": "Upload boarding pass (PDF/image) or flight details",
       "manualOption": "Add Manually",
       "manualDescription": "Enter flight details by hand",
       "skipOption": "I'll do this later",

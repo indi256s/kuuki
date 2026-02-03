@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { Plane } from 'lucide-react'
+import { KuukiIcon } from '@/components/common/KuukiIcon'
 
 interface MobileHeaderProps {
   /** Optional title to show instead of/alongside the logo */
@@ -29,7 +29,7 @@ export function MobileHeader({ title, action }: MobileHeaderProps) {
         {/* Logo / Title */}
         <Link to="/dashboard" className="flex items-center gap-2 group">
           <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
-            <Plane className="w-4 h-4 text-primary" strokeWidth={2} />
+            <KuukiIcon className="w-5 h-5 text-primary" />
           </div>
           <span className="text-lg font-semibold tracking-tight">
             {title || t('common.appName')}

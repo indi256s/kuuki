@@ -1,10 +1,8 @@
-import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useAuth } from '@/hooks/useAuth'
-import { checkInviteCode } from '@/lib/auth'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Alert, AlertDescription } from '@/components/ui/alert'
@@ -16,8 +14,7 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form'
-import { AlertCircle, Check } from 'lucide-react'
-import { cn } from '@/lib/utils'
+import { AlertCircle } from 'lucide-react'
 
 const signUpSchema = z.object({
   inviteCode: z.string().min(1, 'Invite code is required'),
@@ -39,8 +36,6 @@ interface SignUpFormProps {
 export function SignUpForm({ onSuccess, onSignInClick }: SignUpFormProps) {
   const { t } = useTranslation()
   const { signUp, isLoading } = useAuth()
-  const [isCheckingCode, setIsCheckingCode] = useState(false)
-  const [codeValid, setCodeValid] = useState<boolean | null>(null)
 
   const form = useForm<SignUpFormData>({
     resolver: zodResolver(signUpSchema),
@@ -51,20 +46,6 @@ export function SignUpForm({ onSuccess, onSignInClick }: SignUpFormProps) {
       confirmPassword: '',
     },
   })
-
-  // Validate invite code on blur
-  const handleCodeBlur = async () => {
-    const inviteCode = form.getValues('inviteCode')
-    if (!inviteCode.trim()) {
-      setCodeValid(null)
-      return
-    }
-
-    setIsCheckingCode(true)
-    const valid = await checkInviteCode(inviteCode)
-    setCodeValid(valid)
-    setIsCheckingCode(false)
-  }
 
   const onSubmit = async (data: SignUpFormData) => {
     form.clearErrors('root')
@@ -100,36 +81,11 @@ export function SignUpForm({ onSuccess, onSignInClick }: SignUpFormProps) {
                 <Input
                   placeholder="KUUKI-XXXX-word-word"
                   disabled={isLoading}
-                  className={cn(
-                    'font-mono text-sm',
-                    codeValid === true && 'border-success',
-                    codeValid === false && 'border-destructive'
-                  )}
+                  className="font-mono text-sm"
                   {...field}
-                  onChange={(e) => {
-                    field.onChange(e.target.value.toUpperCase())
-                    setCodeValid(null)
-                  }}
-                  onBlur={() => {
-                    field.onBlur()
-                    handleCodeBlur()
-                  }}
+                  onChange={(e) => field.onChange(e.target.value.toUpperCase())}
                 />
               </FormControl>
-              {isCheckingCode && (
-                <p className="text-xs text-muted-foreground">{t('common.loading')}</p>
-              )}
-              {codeValid === true && (
-                <p className="text-xs text-success flex items-center gap-1">
-                  <Check className="w-3 h-3" />
-                  {t('auth.codeValid', 'Valid invite code')}
-                </p>
-              )}
-              {codeValid === false && (
-                <p className="text-xs text-destructive">
-                  {t('auth.codeInvalid', 'Invalid or expired invite code')}
-                </p>
-              )}
               <FormMessage />
             </FormItem>
           )}
@@ -192,7 +148,7 @@ export function SignUpForm({ onSuccess, onSignInClick }: SignUpFormProps) {
           )}
         />
 
-        <Button type="submit" disabled={isLoading || codeValid === false} className="w-full">
+        <Button type="submit" disabled={isLoading} className="w-full">
           {isLoading ? t('common.loading') : t('auth.createAccount')}
         </Button>
 
