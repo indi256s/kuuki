@@ -102,12 +102,12 @@ export function DashboardPage() {
               <UpcomingFlightsCard />
             </div>
 
-            {/* Hero row - Map + Travel Summary */}
-            <div className="grid grid-cols-1 gap-6 animate-fade-up" style={{ animationDelay: '100ms' }}>
-              {/* Route Map - full width hero */}
-              <MapCard />
+            {/* Hero row - Map + Travel Summary side by side */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 animate-fade-up" style={{ animationDelay: '100ms' }}>
+              {/* Route Map - 2 columns */}
+              <MapCard className="lg:col-span-2" />
 
-              {/* Travel Summary - full width */}
+              {/* Travel Summary - 1 column, vertical on desktop */}
               <TravelSummaryCard className="lg:col-span-1" />
             </div>
 
