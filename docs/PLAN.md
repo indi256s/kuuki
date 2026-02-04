@@ -3,7 +3,7 @@
 > **Start here:** Check [README.md](./README.md) for quick reference and project structure.
 > **Specs:** See [SPEC.md](./SPEC.md) for complete product requirements.
 > **Tasks:** See [tasks/](./tasks/) for detailed implementation per phase.
-> **Design System:** See [../.interface-design/system.md](../.interface-design/system.md) for UI guidelines.
+> **Design System:** See [FRONTEND_GUIDELINES.md](./FRONTEND_GUIDELINES.md) for UI guidelines.
 
 ---
 
@@ -78,7 +78,7 @@ Complete UI overhaul with modern component library and refined aesthetics:
 - Landing page with feature cards and staggered animations
 - Import page with cleaner parsing states
 
-→ See [../.interface-design/system.md](../.interface-design/system.md) for full design system
+→ See [FRONTEND_GUIDELINES.md](./FRONTEND_GUIDELINES.md) for full design system
 
 ### Phase 4: Social ✅
 
@@ -197,7 +197,7 @@ Dark mode, mobile-first responsive design, error handling, settings, CI/CD.
 - `stagger-children` — auto-delay for lists
 - `group-hover:scale-110` — icon hover effect
 
-→ Full details: [../.interface-design/system.md](../.interface-design/system.md)
+→ Full details: [FRONTEND_GUIDELINES.md](./FRONTEND_GUIDELINES.md)
 
 ---
 

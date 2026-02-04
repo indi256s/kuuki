@@ -43,8 +43,7 @@ http://indi-ubuntu-8gb-nbg1-1:5173/
 - `packages/data/` - Static reference data (airports, airlines, aircraft)
 - `functions/` - Cloudflare Workers API (Gemini proxy)
 - `supabase/` - Database migrations
-- `docs/` - Specs and implementation plans
-- `.interface-design/` - Design system documentation
+- `docs/` - Canonical documentation (PRD, APP_FLOW, TECH_STACK, etc.)
 
 ## i18n
 
@@ -96,7 +95,7 @@ Uses both shadcn tokens and legacy Kuuki tokens:
 - `stagger-children` - Auto-delay for lists
 - `group-hover:scale-110` - Icon hover effect
 
-**Full design system:** `.interface-design/system.md`
+**Full design system:** `docs/FRONTEND_GUIDELINES.md`
 
 ## Adding Components
 
@@ -111,10 +110,14 @@ npx shadcn@latest view @shadcn
 
 ## Documentation
 
-- `docs/PLAN.md` - Implementation roadmap and phase status
-- `docs/SPEC.md` - Product requirements
-- `docs/tasks/` - Per-phase task lists
-- `.interface-design/system.md` - Design tokens and patterns
+Start with `docs/README.md` for the full index. Key documents:
+
+- `docs/PRD.md` - Product requirements and philosophy
+- `docs/APP_FLOW.md` - User navigation paths
+- `docs/TECH_STACK.md` - Dependencies with exact versions
+- `docs/FRONTEND_GUIDELINES.md` - Design system, components, patterns
+- `docs/BACKEND_STRUCTURE.md` - Database schema, RLS, API
+- `docs/PLAN.md` - Implementation roadmap and status
 
 ## Skills (for AI Agents)
 

@@ -1,51 +1,58 @@
 # Kuuki Documentation
 
-**For AI agents: Start with [DNA](./dna/) before exploring the codebase.**
+**For AI agents: Start with [PRD.md](./PRD.md) before exploring the codebase.**
 
-## Quick Reference
+## Canonical Documentation
 
 | Document | Purpose | When to Read |
 |----------|---------|--------------|
-| **[dna/](./dna/)** | **Source of truth for all decisions** | **Always read first** |
-| [PLAN.md](./PLAN.md) | Implementation roadmap and phase status | To understand current progress |
-| [SPEC.md](./SPEC.md) | Original interview-derived specification | Historical reference (archival) |
-| [tasks/](./tasks/) | Detailed implementation tasks per phase | When working on a specific phase |
-| [plans/](./plans/) | Ad-hoc design documents | When referenced by tasks |
+| **[PRD.md](./PRD.md)** | **Product requirements, features, philosophy** | **Always read first** |
+| [APP_FLOW.md](./APP_FLOW.md) | User navigation paths, screen inventory | Building UI or flows |
+| [TECH_STACK.md](./TECH_STACK.md) | Dependencies with exact versions | Installing packages |
+| [FRONTEND_GUIDELINES.md](./FRONTEND_GUIDELINES.md) | Design system, components, patterns | Writing UI code |
+| [BACKEND_STRUCTURE.md](./BACKEND_STRUCTURE.md) | Database schema, RLS, API contracts | Working with data |
+| [PLAN.md](./PLAN.md) | Implementation roadmap and status | Understanding progress |
 
-## DNA (Start Here)
+## Quick Reference
 
-The `dna/` folder contains LLM-optimized documentation organized for quick lookup:
+| I need to... | Read this |
+|--------------|-----------|
+| Understand what we're building | [PRD.md](./PRD.md) |
+| See user navigation flows | [APP_FLOW.md](./APP_FLOW.md) |
+| Know exact package versions | [TECH_STACK.md](./TECH_STACK.md) |
+| Build UI components | [FRONTEND_GUIDELINES.md](./FRONTEND_GUIDELINES.md) |
+| Work with database | [BACKEND_STRUCTURE.md](./BACKEND_STRUCTURE.md) |
+| Check project status | [PLAN.md](./PLAN.md) |
 
-| File | Purpose |
-|------|---------|
-| [dna/PRINCIPLES.md](./dna/PRINCIPLES.md) | Core beliefs, privacy philosophy, gamification stance |
-| [dna/features.md](./dna/features.md) | Feature-specific decisions |
-| [dna/boundaries.md](./dna/boundaries.md) | What we DON'T do |
-| [dna/architecture.md](./dna/architecture.md) | Stack, database, data flow |
-| [dna/patterns.md](./dna/patterns.md) | Code patterns, testing |
-| [dna/design.md](./dna/design.md) | Design philosophy, component selection |
-| [dna/infrastructure.md](./dna/infrastructure.md) | Deployment, CI/CD |
+## Additional Documentation
+
+| Document | Purpose |
+|----------|---------|
+| [SPEC.md](./SPEC.md) | Original interview-derived specification (archival) |
+| [SITEMAP.md](./SITEMAP.md) | Route inventory |
+| [tasks/](./tasks/) | Detailed implementation tasks per phase |
+| [plans/](./plans/) | Ad-hoc design documents |
 
 ## Current Status
 
-**🎉 MVP COMPLETE** — All 6 phases done, CI/CD deployed, ready for users.
+**MVP COMPLETE** — All 6 phases done, CI/CD deployed, ready for users.
 
 | Phase | Status |
 |-------|--------|
-| Phase 0.5: Reference Data | ✅ Complete |
-| Phase 1: Foundation | ✅ Complete |
-| Phase 1.5: Onboarding | ✅ Complete |
-| Phase 2: Core Flights | ✅ Complete |
-| Phase 3: AI Import | ✅ Complete |
-| Phase 3.5: UI Redesign | ✅ Complete |
-| Phase 4: Social | ✅ Complete |
-| Phase 4.5: Passport | ✅ Complete |
-| Phase 5: Advanced Stats | ✅ Complete |
-| Phase 6: Polish | ✅ Complete |
+| Phase 0.5: Reference Data | Complete |
+| Phase 1: Foundation | Complete |
+| Phase 1.5: Onboarding | Complete |
+| Phase 2: Core Flights | Complete |
+| Phase 3: AI Import | Complete |
+| Phase 3.5: UI Redesign | Complete |
+| Phase 4: Social | Complete |
+| Phase 4.5: Passport | Complete |
+| Phase 5: Advanced Stats | Complete |
+| Phase 6: Polish | Complete |
 
 **Live:** https://kuuki.indi256.com
 
-## Project Structure (Key Paths)
+## Project Structure
 
 ```
 kuuki/
@@ -60,16 +67,14 @@ kuuki/
 │   │   └── social/         # Profiles, leaderboards
 │   ├── hooks/              # Custom React hooks
 │   ├── lib/                # Utilities, supabase client
-│   ├── pages/              # Route components
+│   ├── routes/             # Route components
 │   └── stores/             # Zustand stores
 ├── packages/
 │   ├── shared/             # Shared code, i18n translations
 │   └── data/               # Static reference data
 ├── functions/              # Cloudflare Workers (Gemini proxy)
 ├── supabase/migrations/    # Database migrations
-├── .interface-design/      # Design system tokens
 └── docs/                   # You are here
-    └── dna/                # Source of truth
 ```
 
 ## Available Tools
@@ -100,7 +105,7 @@ kuuki/
 
 ## Do Not
 
-- Skip reading `dna/PRINCIPLES.md` before feature work
-- Scan the entire repo when DNA answers the question
-- Add features that violate `dna/boundaries.md`
-- Ignore the design system in `dna/design.md`
+- Skip reading `PRD.md` before feature work
+- Scan the entire repo when docs answer the question
+- Add features that violate the PRD non-goals
+- Ignore the design system in `FRONTEND_GUIDELINES.md`
