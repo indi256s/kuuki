@@ -8,6 +8,8 @@ import { EnrichmentFieldShimmer } from './EnrichmentShimmer'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
+import { DateInput } from '@/components/ui/date-input'
+import { TimeInput } from '@/components/ui/time-input'
 import { Label } from '@/components/ui/label'
 import { ChevronDown, Trash2, AlertCircle, Plane, Loader2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -210,10 +212,9 @@ export function FlightEditRow({
               <Label className="text-xs text-muted-foreground">
                 {t('flights.date', 'Date')}
               </Label>
-              <Input
-                type="date"
+              <DateInput
                 value={flight.date}
-                onChange={(e) => handleFieldChange('date', e.target.value)}
+                onChange={(value) => handleFieldChange('date', value)}
                 className={cn(
                   "h-9",
                   isLowConfidence('date') && "border-warning ring-1 ring-warning/20"
@@ -293,10 +294,9 @@ export function FlightEditRow({
               {isEnriching && !flight.departure_time ? (
                 <EnrichmentFieldShimmer />
               ) : (
-                <Input
-                  type="time"
+                <TimeInput
                   value={flight.departure_time || ''}
-                  onChange={(e) => handleFieldChange('departure_time', e.target.value)}
+                  onChange={(value) => handleFieldChange('departure_time', value)}
                   className="h-9"
                 />
               )}
@@ -312,10 +312,9 @@ export function FlightEditRow({
               {isEnriching && !flight.arrival_time ? (
                 <EnrichmentFieldShimmer />
               ) : (
-                <Input
-                  type="time"
+                <TimeInput
                   value={flight.arrival_time || ''}
-                  onChange={(e) => handleFieldChange('arrival_time', e.target.value)}
+                  onChange={(value) => handleFieldChange('arrival_time', value)}
                   className="h-9"
                 />
               )}

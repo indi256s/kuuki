@@ -32,6 +32,8 @@ import {
 } from '@/components/ui/form'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { DateInput } from '@/components/ui/date-input'
+import { TimeInput } from '@/components/ui/time-input'
 import { Separator } from '@/components/ui/separator'
 import { AlertCircle, ChevronRight, Plane, Calendar } from 'lucide-react'
 
@@ -271,10 +273,10 @@ export function FlightForm({ isOpen, onClose, editFlight }: FlightFormProps) {
                   <span className="text-destructive ml-1">*</span>
                 </FormLabel>
                 <FormControl>
-                  <Input
-                    type="date"
+                  <DateInput
+                    value={field.value}
+                    onChange={field.onChange}
                     disabled={isSubmitting}
-                    {...field}
                   />
                 </FormControl>
                 <FormMessage />
@@ -416,10 +418,10 @@ export function FlightForm({ isOpen, onClose, editFlight }: FlightFormProps) {
                         {t('flights.departureTime', 'Departure')}
                       </FormLabel>
                       <FormControl>
-                        <Input
-                          type="time"
+                        <TimeInput
+                          value={field.value}
+                          onChange={field.onChange}
                           disabled={isSubmitting}
-                          {...field}
                         />
                       </FormControl>
                       <FormMessage />
@@ -436,10 +438,10 @@ export function FlightForm({ isOpen, onClose, editFlight }: FlightFormProps) {
                         {t('flights.arrivalTime', 'Arrival')}
                       </FormLabel>
                       <FormControl>
-                        <Input
-                          type="time"
+                        <TimeInput
+                          value={field.value}
+                          onChange={field.onChange}
                           disabled={isSubmitting}
-                          {...field}
                         />
                       </FormControl>
                       <FormMessage />
