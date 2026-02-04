@@ -76,7 +76,6 @@ export function SignInForm({ onSuccess, onSignUpClick }: SignInFormProps) {
               <FormControl>
                 <Input
                   type="email"
-                  name="email"
                   autoComplete="email"
                   placeholder="you@example.com"
                   disabled={isLoading}
@@ -101,7 +100,6 @@ export function SignInForm({ onSuccess, onSignUpClick }: SignInFormProps) {
               <FormControl>
                 <Input
                   type="password"
-                  name="password"
                   autoComplete="current-password"
                   placeholder="••••••••"
                   disabled={isLoading}
