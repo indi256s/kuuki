@@ -1,18 +1,18 @@
 import { useState } from 'react'
 import { cn } from '@/lib/utils'
 
-// Curated 4-color palette
 // Curated palette from .interface-design/system.md
+// Each color includes foreground for proper button text contrast
 const ACCENT_COLORS = [
-  { name: 'blue', value: '#4EA7F5', label: 'Blue' },
-  { name: 'cyan', value: '#26B5CE', label: 'Cyan' },
-  { name: 'teal', value: '#2EB88A', label: 'Teal' },
-  { name: 'green', value: '#50C086', label: 'Green' },
-  { name: 'yellow', value: '#EBCB4B', label: 'Yellow' },
-  { name: 'orange', value: '#F3904F', label: 'Orange' },
-  { name: 'coral', value: '#F76B6E', label: 'Coral' },
-  { name: 'red', value: '#E54D5A', label: 'Red' },
-  { name: 'purple', value: '#AF7AF2', label: 'Purple' },
+  { name: 'blue', bg: '#4EA7F5', fg: '#ffffff', label: 'Blue' },
+  { name: 'cyan', bg: '#26B5CE', fg: '#0a2e35', label: 'Cyan' },
+  { name: 'teal', bg: '#2EB88A', fg: '#0a2e1f', label: 'Teal' },
+  { name: 'green', bg: '#50C086', fg: '#0a2e1a', label: 'Green' },
+  { name: 'yellow', bg: '#EBCB4B', fg: '#3d3314', label: 'Yellow' },
+  { name: 'orange', bg: '#F3904F', fg: '#ffffff', label: 'Orange' },
+  { name: 'coral', bg: '#F76B6E', fg: '#ffffff', label: 'Coral' },
+  { name: 'red', bg: '#E54D5A', fg: '#ffffff', label: 'Red' },
+  { name: 'purple', bg: '#AF7AF2', fg: '#ffffff', label: 'Purple' },
 ] as const
 
 type AccentColor = (typeof ACCENT_COLORS)[number]['name']
@@ -29,8 +29,9 @@ export function AccentPicker({ value = 'red', onChange, className }: AccentPicke
   const handleSelect = (color: AccentColor) => {
     const colorObj = ACCENT_COLORS.find(c => c.name === color)
     if (colorObj) {
-      document.documentElement.style.setProperty('--primary', colorObj.value)
-      document.documentElement.style.setProperty('--ring', colorObj.value)
+      document.documentElement.style.setProperty('--primary', colorObj.bg)
+      document.documentElement.style.setProperty('--primary-foreground', colorObj.fg)
+      document.documentElement.style.setProperty('--ring', colorObj.bg)
     }
     onChange?.(color)
   }
@@ -53,7 +54,7 @@ export function AccentPicker({ value = 'red', onChange, className }: AccentPicke
       >
         <div
           className="w-3.5 h-3.5 rounded-full shadow-[0_0_0_1px_rgba(0,0,0,0.08)] dark:shadow-[0_0_0_1px_rgba(255,255,255,0.1)] transition-transform group-hover:scale-110"
-          style={{ backgroundColor: currentColor?.value }}
+          style={{ backgroundColor: currentColor?.bg }}
         />
       </button>
 
@@ -101,9 +102,9 @@ export function AccentPicker({ value = 'red', onChange, className }: AccentPicke
                         isActive ? "w-3 h-3 ring-1 ring-offset-1 dark:ring-offset-[#121417]" : "group-hover:scale-110"
                       )}
                       style={{
-                        backgroundColor: color.value,
+                        backgroundColor: color.bg,
                         boxShadow: !isActive ? '0 0 0 1px rgba(255,255,255,0.1) inset' : undefined,
-                        ['--tw-ring-color' as string]: color.value
+                        ['--tw-ring-color' as string]: color.bg
                       }}
                     />
                     {isActive && (

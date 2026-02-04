@@ -1,16 +1,17 @@
 import { useState, useCallback, useEffect } from 'react'
 
 // Must match AccentPicker colors
+// Each color includes foreground for proper contrast on buttons
 const ACCENT_COLORS = {
-  blue: '#4EA7F5',
-  cyan: '#26B5CE',
-  teal: '#2EB88A',
-  green: '#50C086',
-  yellow: '#EBCB4B',
-  orange: '#F3904F',
-  coral: '#F76B6E',
-  red: '#E54D5A',
-  purple: '#AF7AF2',
+  blue: { bg: '#4EA7F5', fg: '#ffffff' },
+  cyan: { bg: '#26B5CE', fg: '#0a2e35' },      // Light bg needs dark text
+  teal: { bg: '#2EB88A', fg: '#0a2e1f' },      // Light bg needs dark text
+  green: { bg: '#50C086', fg: '#0a2e1a' },     // Light bg needs dark text
+  yellow: { bg: '#EBCB4B', fg: '#3d3314' },    // Light bg needs dark text
+  orange: { bg: '#F3904F', fg: '#ffffff' },
+  coral: { bg: '#F76B6E', fg: '#ffffff' },
+  red: { bg: '#E54D5A', fg: '#ffffff' },
+  purple: { bg: '#AF7AF2', fg: '#ffffff' },
 } as const
 
 export type AccentColorName = keyof typeof ACCENT_COLORS
@@ -20,12 +21,14 @@ const DEFAULT_COLOR: AccentColorName = 'coral'
 
 /**
  * Apply accent color to CSS custom properties
+ * Sets both background and foreground for proper button contrast
  */
 function applyAccentColor(colorName: AccentColorName) {
-  const colorValue = ACCENT_COLORS[colorName]
-  if (colorValue) {
-    document.documentElement.style.setProperty('--primary', colorValue)
-    document.documentElement.style.setProperty('--ring', colorValue)
+  const color = ACCENT_COLORS[colorName]
+  if (color) {
+    document.documentElement.style.setProperty('--primary', color.bg)
+    document.documentElement.style.setProperty('--primary-foreground', color.fg)
+    document.documentElement.style.setProperty('--ring', color.bg)
   }
 }
 
