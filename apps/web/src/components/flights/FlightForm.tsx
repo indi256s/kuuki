@@ -234,8 +234,8 @@ export function FlightForm({ isOpen, onClose, editFlight }: FlightFormProps) {
       <form onSubmit={form.handleSubmit(onSubmit)} className="px-4 pb-6 sm:px-6 lg:px-8 lg:pb-8 xl:px-10 xl:pb-10">
         {/* Error display */}
         {form.formState.errors.root && (
-          <div className="mb-4 p-3 rounded-lg bg-destructive/10 border border-destructive/20 flex items-start gap-2">
-            <AlertCircle className="w-4 h-4 text-destructive mt-0.5 shrink-0" />
+          <div className="mb-4 p-3 rounded-lg bg-destructive/10 border border-destructive/20 flex items-start gap-2" role="alert">
+            <AlertCircle className="w-4 h-4 text-destructive mt-0.5 shrink-0" aria-hidden="true" />
             <p className="text-sm text-destructive">{form.formState.errors.root.message}</p>
           </div>
         )}
@@ -252,7 +252,7 @@ export function FlightForm({ isOpen, onClose, editFlight }: FlightFormProps) {
         {/* Future flight notice */}
         {isFutureFlight && (
           <div className="mb-4 p-3 rounded-lg bg-primary/10 border border-primary/20 flex items-center gap-2">
-            <Calendar className="w-4 h-4 text-primary shrink-0" />
+            <Calendar className="w-4 h-4 text-primary shrink-0" aria-hidden="true" />
             <p className="text-sm text-primary">
               {t('flights.upcomingFlight', { days: daysUntil })}
             </p>
@@ -347,9 +347,14 @@ export function FlightForm({ isOpen, onClose, editFlight }: FlightFormProps) {
           type="button"
           onClick={() => setShowOptional(!showOptional)}
           className="mt-4 flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+          aria-expanded={showOptional}
+          aria-label={showOptional
+            ? t('flights.hideDetails', 'Hide details')
+            : t('flights.addDetails', 'Add more details')}
         >
           <ChevronRight
             className={`w-4 h-4 transition-transform ${showOptional ? 'rotate-90' : ''}`}
+            aria-hidden="true"
           />
           {showOptional
             ? t('flights.hideDetails', 'Hide details')
@@ -476,7 +481,7 @@ export function FlightForm({ isOpen, onClose, editFlight }: FlightFormProps) {
 
   const title = (
     <span className="flex items-center gap-2 text-lg">
-      <Plane className="w-5 h-5 text-primary" />
+      <Plane className="w-5 h-5 text-primary" aria-hidden="true" />
       {isEditing ? t('flights.editFlight', 'Edit Flight') : t('flights.addFlight', 'Add Flight')}
     </span>
   )

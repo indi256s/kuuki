@@ -88,7 +88,7 @@ export function StatsCards() {
                 </p>
               </div>
               <div className={`p-2.5 rounded-xl bg-secondary/50 ${stat.iconColor} group-hover:scale-110 transition-transform duration-300`}>
-                <stat.icon className="w-5 h-5" strokeWidth={1.5} />
+                <stat.icon className="w-5 h-5" strokeWidth={1.5} aria-hidden="true" />
               </div>
             </div>
           </CardContent>

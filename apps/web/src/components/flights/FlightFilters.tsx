@@ -109,7 +109,7 @@ export function FlightFilters({
           {/* Header with count */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 text-sm font-medium">
-              <Filter className="w-4 h-4 text-muted-foreground" />
+              <Filter className="w-4 h-4 text-muted-foreground" aria-hidden="true" />
               {t('flights.filters', 'Filters')}
             </div>
             {hasActiveFilters && (
@@ -127,7 +127,7 @@ export function FlightFilters({
           <div className="p-4 rounded-xl bg-primary/5 border border-primary/10">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                <Plane className="w-5 h-5 text-primary" />
+                <Plane className="w-5 h-5 text-primary" aria-hidden="true" />
               </div>
               <div>
                 <div className="text-2xl font-semibold font-data tracking-tight">
@@ -145,7 +145,7 @@ export function FlightFilters({
           {/* Time filter */}
           <div className="space-y-2">
             <Label className="text-xs text-muted-foreground flex items-center gap-1.5">
-              <Calendar className="w-3.5 h-3.5" />
+              <Calendar className="w-3.5 h-3.5" aria-hidden="true" />
               {t('flights.timeFilter', 'Time period')}
             </Label>
             <Select
@@ -191,7 +191,7 @@ export function FlightFilters({
           {/* Route filters */}
           <div className="space-y-3">
             <Label className="text-xs text-muted-foreground flex items-center gap-1.5">
-              <PlaneTakeoff className="w-3.5 h-3.5" />
+              <PlaneTakeoff className="w-3.5 h-3.5" aria-hidden="true" />
               {t('flights.route', 'Route')}
             </Label>
 
@@ -211,11 +211,12 @@ export function FlightFilters({
                   type="button"
                   onClick={clearOriginFilter}
                   className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                  aria-label={t('flights.clearOrigin', 'Clear origin filter')}
                 >
-                  <X className="w-4 h-4" />
+                  <X className="w-4 h-4" aria-hidden="true" />
                 </button>
               ) : (
-                <Search className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+                <Search className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" aria-hidden="true" />
               )}
             </form>
 
@@ -235,11 +236,12 @@ export function FlightFilters({
                   type="button"
                   onClick={clearDestFilter}
                   className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                  aria-label={t('flights.clearDest', 'Clear destination filter')}
                 >
-                  <X className="w-4 h-4" />
+                  <X className="w-4 h-4" aria-hidden="true" />
                 </button>
               ) : (
-                <Search className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+                <Search className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" aria-hidden="true" />
               )}
             </form>
           </div>
@@ -249,7 +251,7 @@ export function FlightFilters({
           {/* Airline filter */}
           <div className="space-y-2">
             <Label className="text-xs text-muted-foreground flex items-center gap-1.5">
-              <Building2 className="w-3.5 h-3.5" />
+              <Building2 className="w-3.5 h-3.5" aria-hidden="true" />
               {t('flights.airline', 'Airline')}
             </Label>
             <Select
@@ -273,7 +275,7 @@ export function FlightFilters({
           {/* Aircraft filter */}
           <div className="space-y-2">
             <Label className="text-xs text-muted-foreground flex items-center gap-1.5">
-              <Plane className="w-3.5 h-3.5" />
+              <Plane className="w-3.5 h-3.5" aria-hidden="true" />
               {t('flights.aircraft', 'Aircraft')}
             </Label>
             <Select
@@ -397,11 +399,12 @@ export function FlightFilters({
               type="button"
               onClick={clearOriginFilter}
               className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+              aria-label={t('flights.clearOrigin', 'Clear origin filter')}
             >
-              <X className="w-4 h-4" />
+              <X className="w-4 h-4" aria-hidden="true" />
             </button>
           ) : (
-            <Search className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+            <Search className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" aria-hidden="true" />
           )}
         </form>
 
@@ -421,11 +424,12 @@ export function FlightFilters({
               type="button"
               onClick={clearDestFilter}
               className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+              aria-label={t('flights.clearDest', 'Clear destination filter')}
             >
-              <X className="w-4 h-4" />
+              <X className="w-4 h-4" aria-hidden="true" />
             </button>
           ) : (
-            <Search className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+            <Search className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" aria-hidden="true" />
           )}
         </form>
 

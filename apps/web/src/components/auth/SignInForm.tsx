@@ -70,12 +70,14 @@ export function SignInForm({ onSuccess, onSignUpClick }: SignInFormProps) {
           render={({ field }) => (
             <FormItem>
               <FormLabel className="flex items-center gap-2">
-                <Mail className="w-4 h-4 text-muted-foreground" />
+                <Mail className="w-4 h-4 text-muted-foreground" aria-hidden="true" />
                 <span className="text-foreground/80">{t('auth.email', 'Email')}</span>
               </FormLabel>
               <FormControl>
                 <Input
                   type="email"
+                  name="email"
+                  autoComplete="email"
                   placeholder="you@example.com"
                   disabled={isLoading}
                   className="h-12 aura-input border-0 focus-visible:ring-1 focus-visible:ring-primary/50 text-foreground placeholder:text-muted-foreground/50"
@@ -93,12 +95,14 @@ export function SignInForm({ onSuccess, onSignUpClick }: SignInFormProps) {
           render={({ field }) => (
             <FormItem>
               <FormLabel className="flex items-center gap-2">
-                <Lock className="w-4 h-4 text-muted-foreground" />
+                <Lock className="w-4 h-4 text-muted-foreground" aria-hidden="true" />
                 <span className="text-foreground/80">{t('auth.password', 'Password')}</span>
               </FormLabel>
               <FormControl>
                 <Input
                   type="password"
+                  name="password"
+                  autoComplete="current-password"
                   placeholder="••••••••"
                   disabled={isLoading}
                   className="h-12 aura-input border-0 focus-visible:ring-1 focus-visible:ring-primary/50 text-foreground placeholder:text-muted-foreground/50"

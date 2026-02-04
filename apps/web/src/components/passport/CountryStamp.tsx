@@ -51,14 +51,16 @@ function CircleStamp({ entry, themeColor, onClick, isSelected }: CountryStampPro
   return (
     <button
       onClick={onClick}
+      aria-label={`${entry.countryName} - ${entry.nativeName}, visited ${relativeDate}`}
       className={cn(
-        'group relative w-full aspect-square transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded-full',
+        'group relative w-full aspect-square transition-shadow duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded-full',
         isSelected && 'ring-2 ring-primary ring-offset-2'
       )}
     >
       <svg
         viewBox="0 0 120 120"
-        className="w-full h-full drop-shadow-sm group-hover:drop-shadow-md transition-all duration-200 group-hover:scale-105"
+        className="w-full h-full drop-shadow-sm group-hover:drop-shadow-md transition-[filter,transform] duration-200 group-hover:scale-105"
+        aria-hidden="true"
       >
         {/* Background circle with theme tint */}
         <circle
@@ -156,14 +158,16 @@ function RectangleStamp({ entry, themeColor, onClick, isSelected }: CountryStamp
   return (
     <button
       onClick={onClick}
+      aria-label={`${entry.countryName} - ${entry.nativeName}, visited ${relativeDate}`}
       className={cn(
-        'group relative w-full aspect-[4/3] transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded-lg',
+        'group relative w-full aspect-[4/3] transition-shadow duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded-lg',
         isSelected && 'ring-2 ring-primary ring-offset-2'
       )}
     >
       <svg
         viewBox="0 0 160 120"
-        className="w-full h-full drop-shadow-sm group-hover:drop-shadow-md transition-all duration-200 group-hover:scale-105"
+        className="w-full h-full drop-shadow-sm group-hover:drop-shadow-md transition-[filter,transform] duration-200 group-hover:scale-105"
+        aria-hidden="true"
       >
         {/* Background rectangle with theme tint */}
         <rect
