@@ -129,6 +129,7 @@
   "dashboard": {
     "title": "Dashboard",
     "welcome": "Welcome, {{name}}",
+    "welcomePrefix": "Welcome,",
     "totalFlights": "Total Flights",
     "totalDistance": "Distance",
     "countriesVisited": "Countries",

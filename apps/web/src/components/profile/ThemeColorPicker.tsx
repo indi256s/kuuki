@@ -27,7 +27,8 @@ export function ThemeColorPicker({ value, onChange }: ThemeColorPickerProps) {
             className={cn(
               'w-10 h-10 rounded-xl transition-all duration-200 flex items-center justify-center',
               'ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
-              value === colorKey ? 'ring-2 ring-offset-2 ring-foreground' : 'hover:scale-110'
+              'relative overflow-hidden text-white/80', // For ripple containment
+              value === colorKey ? 'ring-2 ring-offset-2 ring-foreground after:animate-ripple' : 'hover:scale-110'
             )}
             style={{ backgroundColor: colorValue }}
             title={colorKey.charAt(0).toUpperCase() + colorKey.slice(1)}

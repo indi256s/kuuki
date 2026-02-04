@@ -21,6 +21,7 @@ import { calculateFlightDistance, estimateFlightDuration } from '@/lib/geo'
 import { getMessageKeyForCategory } from '@/lib/errors'
 import { Check, Plane, ArrowRight, AlertCircle } from 'lucide-react'
 import { PlaneAnimation } from '@/components/common/PlaneAnimation'
+import { useCountUp } from '@/hooks/useCountUp'
 
 type ImportStep = 'upload' | 'parsing' | 'review' | 'saving' | 'success'
 type InputType = 'text' | 'pdf' | 'image'
@@ -53,6 +54,9 @@ export function ImportPage() {
   const [cleanedText, setCleanedText] = useState<string | undefined>()
   const [savedCount, setSavedCount] = useState(0)
   const [isFormOpen, setIsFormOpen] = useState(false)
+
+  // Animated count for success screen - only animates when step becomes 'success'
+  const animatedSavedCount = useCountUp(step === 'success' ? savedCount : 0, 800)
   const [parseError, setParseError] = useState<string | null>(null)
   const [saveErrors, setSaveErrors] = useState<number[]>([]) // Track failed flight indices
   const [enrichmentJobId, setEnrichmentJobId] = useState<string | undefined>()
@@ -403,7 +407,7 @@ export function ImportPage() {
                   {t('import.success.title', 'Flights imported!')}
                 </h3>
                 <p className="text-muted-foreground mb-6">
-                  {t('import.success.count', '{{count}} flight(s) added to your log', { count: savedCount })}
+                  {t('import.success.count', '{{count}} flight(s) added to your log', { count: animatedSavedCount })}
                 </p>
 
                 {/* Show warning if some flights failed to save */}

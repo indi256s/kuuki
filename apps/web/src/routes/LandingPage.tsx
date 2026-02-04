@@ -77,9 +77,17 @@ export function LandingPage() {
       {/* Hero */}
       <main className="flex-1 flex flex-col justify-center px-6 py-12">
         <div className="max-w-4xl mx-auto text-center">
-          {/* Main headline */}
-          <h1 className="text-4xl sm:text-5xl md:text-6xl font-semibold tracking-tight text-balance animate-fade-up">
-            {t('landing.hero.title')}
+          {/* Main headline - word-by-word reveal for premium feel */}
+          <h1 className="text-4xl sm:text-5xl md:text-6xl font-semibold tracking-tight text-balance">
+            {t('landing.hero.title').split(' ').map((word, i) => (
+              <span
+                key={i}
+                className="inline-block animate-fade-up"
+                style={{ animationDelay: `${i * 80}ms` }}
+              >
+                {word}{' '}
+              </span>
+            ))}
           </h1>
 
           {/* Subtitle */}

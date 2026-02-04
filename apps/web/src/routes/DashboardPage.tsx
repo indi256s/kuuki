@@ -84,7 +84,10 @@ export function DashboardPage() {
         <div className="mb-6 animate-fade-up flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
           <div>
             <h1 className="text-2xl md:text-3xl font-semibold tracking-tight text-balance">
-              {t('dashboard.welcome', { name: displayName })}
+              {t('dashboard.welcomePrefix', 'Welcome,')}{' '}
+              <span className="text-primary animate-name-highlight inline-block">
+                {displayName}
+              </span>
             </h1>
             <p className="mt-1 text-muted-foreground">
               {hasFlights

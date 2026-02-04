@@ -129,6 +129,7 @@
   "dashboard": {
     "title": "Главная",
     "welcome": "Привет, {{name}}",
+    "welcomePrefix": "Привет,",
     "totalFlights": "Всего полётов",
     "totalDistance": "Дистанция",
     "countriesVisited": "Страны",
