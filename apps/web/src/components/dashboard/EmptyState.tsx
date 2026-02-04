@@ -1,18 +1,21 @@
 import { useTranslation } from 'react-i18next'
+import { Link } from 'react-router-dom'
+import { Plus, Upload } from 'lucide-react'
 import { sampleStats, sampleFlights, formatDistance, formatDuration } from '@/lib/sampleData'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
 
 interface EmptyStateProps {
   onAddFlight: () => void
 }
 
-export function EmptyState({ onAddFlight: _onAddFlight }: EmptyStateProps) {
+export function EmptyState({ onAddFlight }: EmptyStateProps) {
   const { t } = useTranslation()
 
   return (
     <div className="relative">
-      {/* Sample dashboard preview (faded) - shows what the dashboard will look like */}
-      <div className="opacity-40 pointer-events-none select-none" aria-hidden="true">
+      {/* Sample dashboard preview (faded) */}
+      <div className="opacity-30 pointer-events-none select-none blur-[2px]" aria-hidden="true">
         {/* Stats grid */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           <SampleStatCard
@@ -61,6 +64,30 @@ export function EmptyState({ onAddFlight: _onAddFlight }: EmptyStateProps) {
             </div>
           </CardContent>
         </Card>
+      </div>
+
+      {/* CTA Overlay */}
+      <div className="absolute inset-0 flex flex-col items-center justify-center">
+        <div className="text-center max-w-md px-4">
+          <h2 className="text-2xl font-semibold mb-2">
+            {t('dashboard.emptyTitle', 'Start Your Journey')}
+          </h2>
+          <p className="text-muted-foreground mb-6">
+            {t('dashboard.emptyDescription', 'Add your first flight to see your stats come to life')}
+          </p>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <Button onClick={onAddFlight} size="lg" className="gap-2">
+              <Plus className="w-4 h-4" />
+              {t('flights.addFlight', 'Add Flight')}
+            </Button>
+            <Button variant="outline" size="lg" asChild className="gap-2">
+              <Link to="/import">
+                <Upload className="w-4 h-4" />
+                {t('nav.import', 'Import')}
+              </Link>
+            </Button>
+          </div>
+        </div>
       </div>
     </div>
   )

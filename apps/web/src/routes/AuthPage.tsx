@@ -29,7 +29,7 @@ export function AuthPage() {
   const taglines = t('auth.taglines', { returnObjects: true }) as string[]
 
   return (
-    <div className="min-h-screen bg-neutral-50 dark:bg-[#08090A] flex items-center justify-center p-4 relative overflow-hidden font-sans transition-colors duration-300">
+    <div className="min-h-screen bg-background flex items-center justify-center p-4 relative overflow-hidden font-sans transition-colors duration-300">
 
       {/* Background Ambience */}
       <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-primary/10 dark:bg-primary/20 blur-[120px] rounded-full pointer-events-none opacity-60 dark:opacity-40" />
@@ -52,20 +52,19 @@ export function AuthPage() {
       </div>
 
       {/* Main Card */}
-      <div className="w-full max-w-[1100px] min-h-[600px] lg:h-[700px] rounded-[32px] grid lg:grid-cols-[40%_60%] overflow-hidden shadow-xl dark:shadow-2xl relative z-10 transition-all duration-500 bg-white/90 dark:bg-white/[0.03] lg:bg-white/80 backdrop-blur-xl border border-neutral-200/50 dark:border-white/[0.06]">
+      <div className="w-full max-w-[1100px] min-h-[600px] lg:h-[700px] rounded-[32px] grid lg:grid-cols-[40%_60%] overflow-hidden shadow-xl dark:shadow-2xl relative z-10 transition-all duration-500 bg-card/90 lg:bg-card/80 backdrop-blur-xl border border-border/50">
 
         {/* Left Side: Visual / Brand (Desktop only) */}
-        <div className="relative hidden lg:flex flex-col justify-start p-12 overflow-hidden group bg-neutral-100/50 dark:bg-transparent">
+        <div className="relative hidden lg:flex flex-col justify-start p-12 overflow-hidden group bg-muted/50 dark:bg-transparent">
           {/* Dynamic Background for Left Panel */}
           <div className="absolute inset-0 bg-gradient-to-br from-primary/5 dark:from-primary/10 to-transparent opacity-80 dark:opacity-50 z-0" />
-          <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.15] dark:opacity-20 z-0 mix-blend-overlay" />
 
           {/* Planes animation */}
           <PlaneAnimation />
 
           {/* Top Branding with Rotating Tagline */}
           <div className="relative z-10">
-            <h1 className="text-4xl font-bold tracking-tighter text-neutral-800 dark:text-white/90 mb-3">
+            <h1 className="text-4xl font-bold tracking-tighter text-foreground mb-3">
               <span className="text-primary">Ku</span>uki
             </h1>
           </div>
@@ -81,17 +80,17 @@ export function AuthPage() {
         </div>
 
         {/* Right Side: Auth Form */}
-        <div className="relative flex flex-col justify-center px-8 py-12 lg:px-16 lg:py-12 bg-white/50 dark:bg-black/20 backdrop-blur-xl">
+        <div className="relative flex flex-col justify-center px-8 py-12 lg:px-16 lg:py-12 bg-card/50 backdrop-blur-xl">
           {/* Top Right Controls */}
           <div className="absolute top-6 right-6 flex items-center gap-2 z-20">
             <AccentPicker value={accentColor} onChange={setAccentColor} />
-            <div className="hidden lg:block w-px h-5 bg-neutral-300 dark:bg-white/10" />
+            <div className="hidden lg:block w-px h-5 bg-border" />
 
             <Button
               variant="ghost"
               size="icon"
               onClick={() => setShowAbout(true)}
-              className="text-neutral-500 dark:text-white/60 hover:text-primary dark:hover:text-primary h-9 w-9 rounded-full hover:bg-neutral-100 dark:hover:bg-white/5 transition-colors"
+              className="text-muted-foreground hover:text-primary h-9 w-9 rounded-full hover:bg-muted transition-colors"
               aria-label="What is Kuuki?"
             >
               <HelpCircle className="w-4 h-4" />
@@ -101,7 +100,7 @@ export function AuthPage() {
               variant="ghost"
               onClick={toggleLanguage}
               aria-label={t('settings.toggleLanguage', 'Toggle language')}
-              className="hidden lg:flex text-neutral-500 dark:text-white/60 hover:text-neutral-800 dark:hover:text-white h-9 w-9 p-0 rounded-full hover:bg-neutral-100 dark:hover:bg-white/5 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+              className="hidden lg:flex text-muted-foreground hover:text-foreground h-9 w-9 p-0 rounded-full hover:bg-muted focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
             >
               <Languages className="w-4 h-4" />
             </Button>
@@ -109,7 +108,7 @@ export function AuthPage() {
 
           {/* Mobile: Brand header inside form area */}
           <div className="lg:hidden mb-8 text-center">
-            <h1 className="text-3xl font-bold tracking-tighter text-neutral-800 dark:text-white/90 mb-3">
+            <h1 className="text-3xl font-bold tracking-tighter text-foreground mb-3">
               <span className="text-primary">Ku</span>uki
             </h1>
           </div>
@@ -133,7 +132,7 @@ export function AuthPage() {
             <RotatingTagline
               items={taglines}
               interval={6000}
-              className="text-neutral-500 dark:text-white/50 text-sm font-medium tracking-wide justify-center"
+              className="text-muted-foreground text-sm font-medium tracking-wide justify-center"
             />
           </div>
         </div>
