@@ -47,7 +47,7 @@ export function ProfilePage() {
     return (
       <div className="min-h-screen bg-gradient-soft">
         <Header />
-        <main className="max-w-3xl mx-auto px-6 py-8 pb-safe sm:pb-8">
+        <main className="max-w-5xl mx-auto px-6 py-8 pb-safe sm:pb-8">
           <Card className="overflow-hidden">
             <Skeleton className="h-40 rounded-none" />
             <div className="p-6 space-y-6">
@@ -75,7 +75,7 @@ export function ProfilePage() {
     return (
       <div className="min-h-screen bg-gradient-soft">
         <Header />
-        <main className="max-w-3xl mx-auto px-6 py-8 pb-safe sm:pb-8">
+        <main className="max-w-5xl mx-auto px-6 py-8 pb-safe sm:pb-8">
           <Card className="overflow-hidden">
             <CardContent className="p-12 text-center">
               <UserX className="w-16 h-16 mx-auto mb-4 text-muted-foreground/50" />
@@ -110,7 +110,7 @@ export function ProfilePage() {
     return (
       <div className="min-h-screen bg-gradient-soft">
         <Header />
-        <main className="max-w-3xl mx-auto px-6 py-8 pb-safe sm:pb-8">
+        <main className="max-w-5xl mx-auto px-6 py-8 pb-safe sm:pb-8">
           <Card className="overflow-hidden">
             <ProfileHeader profile={profile} isOwnProfile={isOwnProfile} />
           </Card>
@@ -131,7 +131,7 @@ export function ProfilePage() {
 
       <Header />
 
-      <main className="max-w-3xl mx-auto px-6 py-8 pb-safe sm:pb-8">
+      <main className="max-w-5xl mx-auto px-6 py-8 pb-safe sm:pb-8">
         <Card className="overflow-hidden animate-fade-up">
           <ProfileHeader profile={profile} isOwnProfile={isOwnProfile} />
         </Card>
@@ -188,7 +188,7 @@ function Header() {
 
   return (
     <header className="sticky top-0 z-40 bg-background/80 backdrop-blur-xl border-b border-border/50">
-      <div className="max-w-3xl mx-auto px-6 h-14 flex items-center justify-between">
+      <div className="max-w-5xl mx-auto px-6 h-14 flex items-center justify-between">
         <Link to="/" className="flex items-center gap-2 group">
           <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
             <Plane className="w-4 h-4 text-primary" strokeWidth={2} />

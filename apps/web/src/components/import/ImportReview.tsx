@@ -165,6 +165,8 @@ export function ImportReview({
   }, [])
 
   const handleSave = useCallback(() => {
+    // Scroll to top for better UX during save
+    window.scrollTo({ top: 0, behavior: 'smooth' })
     const selectedFlights = flights.filter((_, i) => selectedIds.has(i))
     onSave(selectedFlights)
   }, [flights, selectedIds, onSave])
@@ -288,6 +290,45 @@ export function ImportReview({
         </div>
       </div>
 
+      {/* Action toolbar - minimal floating buttons */}
+      <div className="flex items-center justify-between gap-4 py-2">
+        <button
+          onClick={onManualAdd}
+          className="text-sm text-muted-foreground hover:text-foreground transition-colors flex items-center gap-2"
+        >
+          <Plus className="w-4 h-4" />
+          {t('import.review.addManually', 'Add manually')}
+        </button>
+
+        <div className="flex items-center gap-3">
+          <Button
+            variant="outline"
+            onClick={onCancel}
+            disabled={saving}
+            className="rounded-xl"
+          >
+            {t('common.cancel', 'Cancel')}
+          </Button>
+          <Button
+            onClick={handleSave}
+            disabled={saving || selectedCount === 0}
+            className="rounded-xl min-w-[140px]"
+          >
+            {saving ? (
+              <span className="flex items-center gap-2">
+                <Loader2 className="w-4 h-4 animate-spin" />
+                {t('import.review.saving', 'Saving...')}
+              </span>
+            ) : (
+              <span className="flex items-center gap-2">
+                <Plane className="w-4 h-4" />
+                {t('import.review.saveSelected', 'Import {{count}}', { count: selectedCount })}
+              </span>
+            )}
+          </Button>
+        </div>
+      </div>
+
       {/* Toolbar */}
       <div className="flex items-center justify-between gap-4 px-4 py-3 rounded-xl bg-muted/30 border border-border/50">
         {/* Selection controls */}
@@ -395,46 +436,6 @@ export function ImportReview({
         ))}
       </div>
 
-      {/* Action footer - sticky */}
-      <div className="sticky bottom-0 -mx-6 px-6 py-4 mt-8 bg-gradient-to-t from-background via-background to-transparent">
-        <div className="flex items-center justify-between gap-4 p-4 rounded-2xl bg-card/80 backdrop-blur-sm border border-border/60 shadow-lg">
-          <button
-            onClick={onManualAdd}
-            className="text-sm text-muted-foreground hover:text-foreground transition-colors flex items-center gap-2"
-          >
-            <Plus className="w-4 h-4" />
-            {t('import.review.addManually', 'Add manually')}
-          </button>
-
-          <div className="flex items-center gap-3">
-            <Button
-              variant="outline"
-              onClick={onCancel}
-              disabled={saving}
-              className="rounded-xl"
-            >
-              {t('common.cancel', 'Cancel')}
-            </Button>
-            <Button
-              onClick={handleSave}
-              disabled={saving || selectedCount === 0}
-              className="rounded-xl min-w-[140px]"
-            >
-              {saving ? (
-                <span className="flex items-center gap-2">
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  {t('import.review.saving', 'Saving...')}
-                </span>
-              ) : (
-                <span className="flex items-center gap-2">
-                  <Plane className="w-4 h-4" />
-                  {t('import.review.saveSelected', 'Import {{count}}', { count: selectedCount })}
-                </span>
-              )}
-            </Button>
-          </div>
-        </div>
-      </div>
     </div>
   )
 }
