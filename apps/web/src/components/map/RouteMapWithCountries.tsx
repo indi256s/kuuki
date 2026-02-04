@@ -56,7 +56,6 @@ export function RouteMapWithCountries({
   const { data: recentFlights = [] } = useRecentFlights(50)
 
   const flights = propFlights ?? recentFlights
-  const visitedSet = useMemo(() => new Set(visitedCountries), [visitedCountries])
 
   const arcs = useMemo<ArcData[]>(() => {
     const result: ArcData[] = []
@@ -91,6 +90,27 @@ export function RouteMapWithCountries({
     }
     return Array.from(airportMap.values())
   }, [arcs])
+
+  // Derive visited countries from flight airports
+  const flightCountries = useMemo(() => {
+    const countries = new Set<string>()
+    for (const flight of flights) {
+      const origin = findAirport(flight.origin)
+      const dest = findAirport(flight.destination)
+      if (origin?.country) countries.add(origin.country)
+      if (dest?.country) countries.add(dest.country)
+    }
+    return countries
+  }, [flights])
+
+  // Combine explicit visitedCountries with countries derived from flights
+  const visitedSet = useMemo(() => {
+    const combined = new Set(visitedCountries)
+    for (const country of flightCountries) {
+      combined.add(country)
+    }
+    return combined
+  }, [visitedCountries, flightCountries])
 
   // Calculate weighted viewport - focuses on most visited region
   const viewport = useMemo(() => {
@@ -235,7 +255,7 @@ export function RouteMapWithCountries({
                     geography={geo}
                     fill={getCountryColor(geo)}
                     stroke="#334155"
-                    strokeWidth={0.3}
+                    strokeWidth={0.3 / position.zoom}
                     style={{
                       default: {
                         outline: 'none',
@@ -255,31 +275,31 @@ export function RouteMapWithCountries({
             }
           </Geographies>
 
-          {/* Flight routes - simple lines, no animation */}
+          {/* Flight routes - scale inversely with zoom */}
           {arcs.map((arc) => (
             <Line
               key={arc.id}
               from={[arc.origin.lon, arc.origin.lat]}
               to={[arc.destination.lon, arc.destination.lat]}
               stroke={arc.airlineColor}
-              strokeWidth={1.5}
+              strokeWidth={1.5 / position.zoom}
               strokeLinecap="round"
               strokeOpacity={0.7}
             />
           ))}
 
-          {/* Airport markers */}
+          {/* Airport markers - scale inversely with zoom */}
           {airports.map((airport) => (
             <Marker key={airport.iata} coordinates={[airport.lon, airport.lat]}>
-              <circle r={2.5} fill="white" opacity={0.9} aria-hidden="true" />
+              <circle r={2.5 / position.zoom} fill="white" opacity={0.9} aria-hidden="true" />
               {airports.length < 30 && (
                 <text
                   textAnchor="middle"
-                  y={-6}
+                  y={-6 / position.zoom}
                   aria-hidden="true"
                   style={{
                     fontFamily: 'ui-monospace, monospace',
-                    fontSize: '6px',
+                    fontSize: `${6 / position.zoom}px`,
                     fontWeight: 600,
                     fill: 'white',
                     opacity: 0.8,
