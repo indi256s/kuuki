@@ -106,7 +106,7 @@ export function LandingPage() {
         {/* Features grid */}
         <div className="max-w-5xl mx-auto mt-24 grid sm:grid-cols-2 lg:grid-cols-4 gap-4 stagger-children">
           {features.map((feature) => (
-            <Card key={feature.title} className="border-border/50 hover:border-border hover:shadow-md transition-[border-color,box-shadow] duration-300 group">
+            <Card key={feature.title} className="border-border/50 hover:border-primary/30 transition-[border-color] duration-200 group">
               <CardContent className="p-5">
                 <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center mb-4 group-hover:bg-primary/20 group-hover:scale-110 transition-[background-color,transform] duration-300">
                   <feature.icon className="w-5 h-5 text-primary" strokeWidth={1.5} />

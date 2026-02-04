@@ -461,6 +461,11 @@
     "title": "Import",
     "description": "Import from files or paste details",
     "breadcrumb": "Step {{current}} of 3",
+    "steps": {
+      "upload": "Upload",
+      "review": "Review",
+      "done": "Done"
+    },
     "uploadImage": "Upload Image",
     "pasteText": "Paste Text",
     "processing": "Processing...",

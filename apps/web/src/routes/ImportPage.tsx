@@ -292,16 +292,39 @@ export function ImportPage() {
 
       {/* Main content - pb-safe adds bottom padding for mobile tab bar */}
       <main className="max-w-5xl mx-auto px-6 py-8 pb-safe sm:pb-8 relative z-10">
-        {/* Page header with consistent minimal breadcrumb */}
-        <div className="mb-8">
-          <div className="flex items-baseline gap-3">
+        {/* Page header with step indicator */}
+        <div className="mb-8 animate-fade-up">
+          <div className="flex items-center justify-between">
             <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">
               {t('import.title', 'Import')}
             </h1>
+            {/* Visual step indicator */}
             {step !== 'success' && (
-              <span className="text-sm text-muted-foreground">
-                {t('import.breadcrumb', 'Step {{current}} of 3', { current: getStepNumber(step) })}
-              </span>
+              <div className="flex items-center gap-2">
+                {[1, 2, 3].map((stepNum) => {
+                  const currentStep = getStepNumber(step)
+                  const isComplete = stepNum < currentStep
+                  const isCurrent = stepNum === currentStep
+                  return (
+                    <div
+                      key={stepNum}
+                      className={`w-2 h-2 rounded-full transition-all duration-200 ${
+                        isComplete
+                          ? 'bg-primary'
+                          : isCurrent
+                            ? 'bg-primary scale-125'
+                            : 'bg-border'
+                      }`}
+                      aria-hidden="true"
+                    />
+                  )
+                })}
+                <span className="ml-2 text-xs text-muted-foreground hidden sm:inline">
+                  {getStepNumber(step) === 1 && t('import.steps.upload', 'Upload')}
+                  {getStepNumber(step) === 2 && t('import.steps.review', 'Review')}
+                  {getStepNumber(step) === 3 && t('import.steps.done', 'Done')}
+                </span>
+              </div>
             )}
           </div>
         </div>
