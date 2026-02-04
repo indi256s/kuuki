@@ -136,30 +136,11 @@ export function PassportPage() {
         {countriesLoading ? (
           <PassportStamps entries={[]} isLoading themeColor={themeColor} />
         ) : hasCountries ? (
-          <div className="space-y-4">
-            {!hasCountries && (
-              // Fallback title if map hidden (empty state handled below)
-              <div className="flex items-center gap-3 mb-6">
-                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                  <Stamp className="w-5 h-5 text-primary" />
-                </div>
-                <div>
-                  <h1 className="text-2xl font-semibold tracking-tight">
-                    {t('passport.title', 'Passport')}
-                  </h1>
-                  <p className="text-sm text-muted-foreground">
-                    {t('passport.subtitle', 'Your collection of visited countries')}
-                  </p>
-                </div>
-              </div>
-            )}
-
-            <div className="animate-fade-up" style={{ animationDelay: '200ms' }}>
-              <PassportStamps
-                entries={countries ?? []}
-                themeColor={themeColor}
-              />
-            </div>
+          <div className="space-y-4 animate-fade-up" style={{ animationDelay: '200ms' }}>
+            <PassportStamps
+              entries={countries ?? []}
+              themeColor={themeColor}
+            />
           </div>
         ) : (
           <EmptyPassport onAddCountry={handleAddCountry} />

@@ -63,7 +63,12 @@ export function OnboardingPage() {
             {t('common.appName')}
           </span>
         </Link>
-        <Button variant="ghost" onClick={toggleLanguage} className="gap-2">
+        <Button
+          variant="ghost"
+          onClick={toggleLanguage}
+          aria-label={t('settings.toggleLanguage', 'Toggle language')}
+          className="gap-2"
+        >
           <Languages className="w-4 h-4" />
           {currentLanguage === 'en' ? 'RU' : 'EN'}
         </Button>
@@ -87,16 +92,25 @@ export function OnboardingPage() {
 
       {/* Step indicator */}
       <footer className="p-4">
-        <div className="flex justify-center gap-2">
+        <div
+          className="flex justify-center gap-2"
+          role="progressbar"
+          aria-valuenow={step === 'username' ? 1 : 2}
+          aria-valuemin={1}
+          aria-valuemax={2}
+          aria-label={t('onboarding.progress', 'Step {{current}} of 2', { current: step === 'username' ? 1 : 2 })}
+        >
           <div
             className={`w-2 h-2 rounded-full transition-colors ${
               step === 'username' ? 'bg-primary' : 'bg-border'
             }`}
+            aria-hidden="true"
           />
           <div
             className={`w-2 h-2 rounded-full transition-colors ${
               step === 'import' ? 'bg-primary' : 'bg-border'
             }`}
+            aria-hidden="true"
           />
         </div>
       </footer>

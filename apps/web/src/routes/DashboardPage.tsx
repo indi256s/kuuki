@@ -136,13 +136,13 @@ export function DashboardPage() {
       </main>
 
       {/* Flight form modal */}
-      < FlightForm
+      <FlightForm
         isOpen={isFormOpen}
         onClose={handleCloseForm}
       />
 
       {/* Mobile tab bar */}
-      < MobileTabBar />
+      <MobileTabBar />
     </div >
   )
 }

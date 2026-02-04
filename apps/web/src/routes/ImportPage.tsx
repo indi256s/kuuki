@@ -356,7 +356,7 @@ export function ImportPage() {
             <CardContent className="p-6">
               <div className="py-8 flex flex-col items-center">
                 <div className="w-16 h-16 mb-4">
-                  <Plane className="w-full h-full text-primary animate-pulse" />
+                  <Plane className="w-full h-full text-primary animate-pulse" aria-hidden="true" />
                 </div>
                 <p className="font-medium">
                   {t('import.saving.progress', 'Saving flight {{current}} of {{total}}...', {

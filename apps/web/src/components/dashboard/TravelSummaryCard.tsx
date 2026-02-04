@@ -14,8 +14,6 @@ export function TravelSummaryCard({ className }: TravelSummaryCardProps) {
 
   if (!stats) return null
 
-  if (!stats) return null
-
   return (
     <div
       className={cn(

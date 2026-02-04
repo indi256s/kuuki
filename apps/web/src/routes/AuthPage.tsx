@@ -100,7 +100,8 @@ export function AuthPage() {
             <Button
               variant="ghost"
               onClick={toggleLanguage}
-              className="hidden lg:flex text-neutral-500 dark:text-white/60 hover:text-neutral-800 dark:hover:text-white h-9 w-9 p-0 rounded-full hover:bg-neutral-100 dark:hover:bg-white/5"
+              aria-label={t('settings.toggleLanguage', 'Toggle language')}
+              className="hidden lg:flex text-neutral-500 dark:text-white/60 hover:text-neutral-800 dark:hover:text-white h-9 w-9 p-0 rounded-full hover:bg-neutral-100 dark:hover:bg-white/5 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
             >
               <Languages className="w-4 h-4" />
             </Button>

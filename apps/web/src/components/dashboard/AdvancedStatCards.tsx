@@ -47,7 +47,7 @@ function StatCard({
       {/* Header */}
       <div className="flex items-center gap-3 mb-4">
         <div className={cn('w-9 h-9 rounded-lg flex items-center justify-center', iconColor)}>
-          <Icon className="w-4.5 h-4.5" />
+          <Icon className="w-[18px] h-[18px]" />
         </div>
         <h4 className="font-medium text-sm">{title}</h4>
         {isLocked && <Lock className="w-3.5 h-3.5 text-muted-foreground ml-auto" />}

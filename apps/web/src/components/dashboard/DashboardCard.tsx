@@ -66,6 +66,7 @@ export function DashboardCard({
                 className
             )}
             onClick={isInteractive ? onClick : undefined}
+            onKeyDown={isInteractive ? (e) => e.key === 'Enter' && onClick?.() : undefined}
             role={isInteractive ? 'button' : undefined}
             tabIndex={isInteractive ? 0 : undefined}
         >

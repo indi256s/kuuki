@@ -28,11 +28,14 @@ export function YearFilter() {
                         <button
                             key={year}
                             onClick={() => setSelectedYear(year)}
+                            aria-pressed={isSelected}
                             className={cn(
                                 // Base styles
                                 'px-4 py-2 rounded-lg text-sm font-medium',
                                 'transition-all duration-200',
                                 'whitespace-nowrap',
+                                // Focus state
+                                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2',
 
                                 // Selected state
                                 isSelected ? [

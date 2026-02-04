@@ -16,7 +16,11 @@ export function LandingPage() {
   if (hasSeen === null) {
     return (
       <div className="min-h-screen bg-gradient-soft flex items-center justify-center">
-        <div className="w-6 h-6 rounded-full border-2 border-primary border-t-transparent animate-spin" />
+        <div
+          className="w-6 h-6 rounded-full border-2 border-primary border-t-transparent animate-spin"
+          role="status"
+          aria-label={t('common.loading', 'Loading')}
+        />
       </div>
     )
   }
@@ -59,7 +63,12 @@ export function LandingPage() {
             {t('common.appName')}
           </span>
         </div>
-        <Button variant="ghost" onClick={toggleLanguage} className="gap-2">
+        <Button
+          variant="ghost"
+          onClick={toggleLanguage}
+          aria-label={t('settings.toggleLanguage', 'Toggle language')}
+          className="gap-2"
+        >
           <Languages className="w-4 h-4" />
           {currentLanguage === 'en' ? 'RU' : 'EN'}
         </Button>

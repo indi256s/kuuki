@@ -59,7 +59,7 @@ export function FlightsPage() {
         {/* Page header - compact single line */}
         <div className="flex items-center gap-3 mb-4 animate-fade-up">
           <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-            <Plane className="w-4.5 h-4.5 text-primary" />
+            <Plane className="w-[18px] h-[18px] text-primary" />
           </div>
           <div className="flex items-baseline gap-2">
             <h1 className="text-xl sm:text-2xl font-semibold tracking-tight">

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Plane, Clock } from 'lucide-react'
 import { useDashboardStats } from '@/hooks/useDashboardStats'
+import { useFlight } from '@/hooks/useFlights'
 import { useTranslation } from 'react-i18next'
 import { FlightForm } from '@/components/flights/FlightForm'
 import { cn } from '@/lib/utils'
@@ -9,6 +10,7 @@ export function UpcomingFlightsCard({ className }: { className?: string }) {
     const { t } = useTranslation()
     const { data: stats } = useDashboardStats()
     const [selectedFlightId, setSelectedFlightId] = useState<number | null>(null)
+    const { data: selectedFlight } = useFlight(selectedFlightId)
 
     const upcomingFlights = stats?.upcomingFlights || []
 
@@ -56,6 +58,7 @@ export function UpcomingFlightsCard({ className }: { className?: string }) {
                 <div className="flex-1 flex flex-col justify-center z-10">
                     <button
                         onClick={() => setSelectedFlightId(upcomingFlights[0].id)}
+                        aria-label={`View flight from ${upcomingFlights[0].origin} to ${upcomingFlights[0].destination}`}
                         className="text-left w-full group"
                     >
                         <div className="flex items-center justify-between gap-2 mb-2">
@@ -88,10 +91,11 @@ export function UpcomingFlightsCard({ className }: { className?: string }) {
             </div>
 
             {/* Flight edit dialog */}
-            {selectedFlightId && (
+            {selectedFlightId && selectedFlight && (
                 <FlightForm
                     isOpen={true}
                     onClose={() => setSelectedFlightId(null)}
+                    editFlight={selectedFlight}
                 />
             )}
         </>
