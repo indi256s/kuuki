@@ -2,7 +2,6 @@ import { useTranslation } from 'react-i18next'
 import type { Flight, SortConfig, SortField } from '@/hooks/useFlights'
 import { findAirport, findAirline, findAircraft } from '@kuuki/data'
 import { formatDistance, formatDuration, daysUntilFlight } from '@/lib/geo'
-import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import {
@@ -13,8 +12,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { Badge } from '@/components/ui/badge'
-import { Pencil, Trash2, ArrowUp, ArrowDown, ArrowUpDown, Clock, MapPin } from 'lucide-react'
+import { Pencil, Trash2, ArrowUp, ArrowDown, ArrowUpDown } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { AircraftShimmerBadge } from './AircraftShimmerBadge'
 import type { EnrichmentStatus } from '@kuuki/shared/types'
@@ -31,7 +29,7 @@ interface FlightTableProps {
   selectionEnabled?: boolean
 }
 
-// Sortable column header component
+// Linear-style sortable column header
 function SortableHeader({
   field,
   currentSort,
@@ -57,67 +55,55 @@ function SortableHeader({
   return (
     <TableHead
       className={cn(
-        'cursor-pointer select-none hover:bg-muted/50 transition-colors whitespace-nowrap',
-        isActive && 'bg-muted/30',
+        'cursor-pointer select-none transition-colors whitespace-nowrap',
+        'text-xs font-medium tracking-wide uppercase text-muted-foreground',
+        'hover:text-foreground',
+        isActive && 'text-foreground',
         className
       )}
       onClick={handleClick}
     >
-      <div className="flex items-center gap-1.5">
+      <div className="flex items-center gap-1">
         {children}
-        {isActive ? (
-          isAsc ? (
-            <ArrowUp className="w-3.5 h-3.5" />
+        <span className={cn('transition-opacity', isActive ? 'opacity-100' : 'opacity-0 group-hover:opacity-40')}>
+          {isActive ? (
+            isAsc ? (
+              <ArrowUp className="w-3 h-3" />
+            ) : (
+              <ArrowDown className="w-3 h-3" />
+            )
           ) : (
-            <ArrowDown className="w-3.5 h-3.5" />
-          )
-        ) : (
-          <ArrowUpDown className="w-3.5 h-3.5 opacity-30" />
-        )}
+            <ArrowUpDown className="w-3 h-3" />
+          )}
+        </span>
       </div>
     </TableHead>
   )
 }
 
-// Route visualization component with duration in the center
+// Linear-style minimal route cell - single line with cities inline
 function RouteCell({ flight }: { flight: Flight }) {
   const originAirport = findAirport(flight.origin)
   const destAirport = findAirport(flight.destination)
-  const duration = flight.duration_minutes ? formatDuration(flight.duration_minutes) : null
 
   return (
-    <div className="flex items-center gap-3 py-1">
-      {/* Origin */}
-      <div className="min-w-[4.5rem]">
-        <div className="font-mono font-semibold text-base tracking-tight">{flight.origin}</div>
-        <div className="text-xs text-muted-foreground truncate max-w-[5rem]">
-          {originAirport?.city || ''}
-        </div>
-      </div>
+    <div className="flex items-baseline gap-1.5">
+      {/* Origin code */}
+      <span className="font-data font-semibold text-sm">{flight.origin}</span>
+      {/* Origin city */}
+      <span className="text-[11px] text-muted-foreground truncate max-w-[4rem]">
+        {originAirport?.city || ''}
+      </span>
 
-      {/* Flight path visualization with duration */}
-      <div className="flex items-center flex-1 min-w-[7rem] max-w-[11rem]">
-        <div className="w-2 h-2 rounded-full bg-primary/60 flex-shrink-0" />
-        <div className="flex-1 h-px bg-gradient-to-r from-primary/60 via-primary/20 to-transparent mx-1" />
+      {/* Arrow */}
+      <span className="text-muted-foreground/40 text-xs px-0.5">→</span>
 
-        {/* Duration badge in the center */}
-        <div className="px-2 py-0.5 rounded-full bg-muted/80 border border-border/50 flex-shrink-0">
-          <span className="text-xs font-mono text-muted-foreground">
-            {duration || '—'}
-          </span>
-        </div>
-
-        <div className="flex-1 h-px bg-gradient-to-l from-primary/60 via-primary/20 to-transparent mx-1" />
-        <div className="w-2 h-2 rounded-full bg-primary/60 flex-shrink-0" />
-      </div>
-
-      {/* Destination */}
-      <div className="min-w-[4.5rem] text-right">
-        <div className="font-mono font-semibold text-base tracking-tight">{flight.destination}</div>
-        <div className="text-xs text-muted-foreground truncate max-w-[5rem] ml-auto">
-          {destAirport?.city || ''}
-        </div>
-      </div>
+      {/* Destination code */}
+      <span className="font-data font-semibold text-sm">{flight.destination}</span>
+      {/* Destination city */}
+      <span className="text-[11px] text-muted-foreground truncate max-w-[4rem]">
+        {destAirport?.city || ''}
+      </span>
     </div>
   )
 }
@@ -134,18 +120,13 @@ export function FlightTable({
 }: FlightTableProps) {
   const { t } = useTranslation()
 
+  // Compact date: dd.mm.yy
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr)
-    return date.toLocaleDateString(undefined, {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-    })
-  }
-
-  const formatTime = (time: string | null) => {
-    if (!time) return null
-    return time
+    const day = String(date.getDate()).padStart(2, '0')
+    const month = String(date.getMonth() + 1).padStart(2, '0')
+    const year = String(date.getFullYear()).slice(-2)
+    return `${day}.${month}.${year}`
   }
 
   // Selection handlers
@@ -179,235 +160,219 @@ export function FlightTable({
   }
 
   return (
-    <Card className="border-border/50 overflow-hidden shadow-sm">
-      <CardContent className="p-0">
-        {/* Horizontally scrollable table wrapper */}
-        <div className="overflow-x-auto">
-          <Table className="min-w-[900px]">
-            <TableHeader>
-              <TableRow className="hover:bg-transparent border-b-2">
-                {/* Selection checkbox column */}
-                {selectionEnabled && (
-                  <TableHead className="w-10 sticky left-0 bg-card z-10">
-                    <Checkbox
-                      checked={allSelected}
-                      ref={(el) => {
-                        if (el) {
-                          // Set indeterminate state for partial selection
-                          (el as unknown as HTMLInputElement).indeterminate = someSelected
-                        }
-                      }}
-                      onCheckedChange={toggleSelectAll}
-                      aria-label={t('flights.selectAll', 'Select all')}
-                      className="data-[state=checked]:bg-primary"
-                    />
-                  </TableHead>
-                )}
-                <SortableHeader
-                  field="date"
-                  currentSort={sort}
-                  onSort={onSortChange}
-                  className={cn('w-28', !selectionEnabled && 'sticky left-0 bg-card z-10')}
-                >
-                  {t('flights.date', 'Date')}
-                </SortableHeader>
-                <SortableHeader
-                  field="origin"
-                  currentSort={sort}
-                  onSort={onSortChange}
-                  className="min-w-[16rem]"
-                >
-                  {t('flights.route', 'Route')}
-                </SortableHeader>
-                <TableHead className="w-28">
-                  {t('flights.times', 'Times')}
+    <div className="rounded-xl border border-border/40 overflow-hidden bg-card/50">
+      {/* Horizontally scrollable table wrapper */}
+      <div className="overflow-x-auto">
+        <Table className="min-w-[800px]">
+          <TableHeader>
+            <TableRow className="group hover:bg-transparent border-b border-border/40 bg-muted/30">
+              {/* Selection checkbox column */}
+              {selectionEnabled && (
+                <TableHead className="w-10 pl-4 sticky left-0 bg-muted/30 z-10">
+                  <Checkbox
+                    checked={allSelected}
+                    ref={(el) => {
+                      if (el) {
+                        (el as unknown as HTMLInputElement).indeterminate = someSelected
+                      }
+                    }}
+                    onCheckedChange={toggleSelectAll}
+                    aria-label={t('flights.selectAll', 'Select all')}
+                    className="data-[state=checked]:bg-primary"
+                  />
                 </TableHead>
-                <SortableHeader
-                  field="airline_iata"
-                  currentSort={sort}
-                  onSort={onSortChange}
-                >
-                  {t('flights.airline', 'Airline')}
-                </SortableHeader>
-                <SortableHeader
-                  field="aircraft_icao"
-                  currentSort={sort}
-                  onSort={onSortChange}
-                >
-                  {t('flights.aircraft', 'Aircraft')}
-                </SortableHeader>
-                <SortableHeader
-                  field="distance_km"
-                  currentSort={sort}
-                  onSort={onSortChange}
-                  className="text-right"
-                >
-                  {t('flights.distance', 'Distance')}
-                </SortableHeader>
-                <TableHead className="w-20 text-right sticky right-0 bg-card z-10">
-                  {t('common.actions', 'Actions')}
-                </TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {flights.map((flight, index) => {
-                const airline = flight.airline_iata ? findAirline(flight.airline_iata) : null
-                const aircraft = flight.aircraft_icao ? findAircraft(flight.aircraft_icao) : null
-                const isUpcoming = flight.is_upcoming
-                const daysAway = isUpcoming ? daysUntilFlight(flight.date) : 0
-                const depTime = formatTime(flight.departure_time)
-                const arrTime = formatTime(flight.arrival_time)
+              )}
+              <SortableHeader
+                field="date"
+                currentSort={sort}
+                onSort={onSortChange}
+                className={cn('w-24', !selectionEnabled && 'pl-4')}
+              >
+                {t('flights.date', 'Date')}
+              </SortableHeader>
+              <SortableHeader
+                field="origin"
+                currentSort={sort}
+                onSort={onSortChange}
+                className="min-w-[11rem]"
+              >
+                {t('flights.route', 'Route')}
+              </SortableHeader>
+              <SortableHeader
+                field="duration_minutes"
+                currentSort={sort}
+                onSort={onSortChange}
+                className="w-20"
+              >
+                {t('flights.duration', 'Duration')}
+              </SortableHeader>
+              <SortableHeader
+                field="airline_iata"
+                currentSort={sort}
+                onSort={onSortChange}
+              >
+                {t('flights.airline', 'Airline')}
+              </SortableHeader>
+              <SortableHeader
+                field="aircraft_icao"
+                currentSort={sort}
+                onSort={onSortChange}
+              >
+                {t('flights.aircraft', 'Aircraft')}
+              </SortableHeader>
+              <SortableHeader
+                field="distance_km"
+                currentSort={sort}
+                onSort={onSortChange}
+                className="text-right"
+              >
+                {t('flights.distance', 'Distance')}
+              </SortableHeader>
+              <TableHead className="w-16 pr-4 text-right text-xs font-medium tracking-wide uppercase text-muted-foreground">
+                <span className="sr-only">{t('common.actions', 'Actions')}</span>
+              </TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {flights.map((flight) => {
+              const airline = flight.airline_iata ? findAirline(flight.airline_iata) : null
+              const aircraft = flight.aircraft_icao ? findAircraft(flight.aircraft_icao) : null
+              const isUpcoming = flight.is_upcoming
+              const daysAway = isUpcoming ? daysUntilFlight(flight.date) : 0
+              const duration = flight.duration_minutes ? formatDuration(flight.duration_minutes) : null
 
-                const isSelected = selectedIds.has(flight.id)
+              const isSelected = selectedIds.has(flight.id)
 
-                return (
-                  <TableRow
-                    key={flight.id}
-                    className={cn(
-                      'group transition-colors',
-                      isUpcoming && 'bg-primary/[0.02]',
-                      index % 2 === 0 && !isUpcoming && 'bg-muted/20',
-                      isSelected && 'bg-primary/5'
-                    )}
-                  >
-                    {/* Selection checkbox */}
-                    {selectionEnabled && (
-                      <TableCell className={cn(
-                        'py-4 sticky left-0 z-10',
-                        isSelected ? 'bg-primary/5' : isUpcoming ? 'bg-primary/[0.02]' : index % 2 === 0 ? 'bg-muted/20' : 'bg-card'
+              return (
+                <TableRow
+                  key={flight.id}
+                  className={cn(
+                    'group transition-colors border-b border-border/30 last:border-b-0',
+                    'hover:bg-muted/40',
+                    isUpcoming && 'bg-primary/[0.02]',
+                    isSelected && 'bg-primary/5 hover:bg-primary/8'
+                  )}
+                >
+                  {/* Selection checkbox */}
+                  {selectionEnabled && (
+                    <TableCell className="py-2.5 pl-4">
+                      <Checkbox
+                        checked={isSelected}
+                        onCheckedChange={() => toggleSelect(flight.id)}
+                        aria-label={t('flights.selectFlight', 'Select flight')}
+                        className="data-[state=checked]:bg-primary"
+                      />
+                    </TableCell>
+                  )}
+
+                  {/* Date */}
+                  <TableCell className={cn('py-2.5 align-top', !selectionEnabled && 'pl-4')}>
+                    <div className="flex items-baseline gap-1.5">
+                      <span className={cn(
+                        'font-data text-sm tabular-nums',
+                        isUpcoming ? 'text-primary font-medium' : 'text-foreground'
                       )}>
-                        <Checkbox
-                          checked={isSelected}
-                          onCheckedChange={() => toggleSelect(flight.id)}
-                          aria-label={t('flights.selectFlight', 'Select flight')}
-                          className="data-[state=checked]:bg-primary"
-                        />
-                      </TableCell>
-                    )}
-                    {/* Date - sticky on scroll when no selection */}
-                    <TableCell className={cn(
-                      'py-4',
-                      !selectionEnabled && 'sticky left-0 z-10',
-                      isSelected ? 'bg-primary/5' : isUpcoming ? 'bg-primary/[0.02]' : index % 2 === 0 ? 'bg-muted/20' : 'bg-card'
-                    )}>
-                      <div className={cn('font-medium', isUpcoming && 'text-primary')}>
                         {formatDate(flight.date)}
-                      </div>
+                      </span>
                       {isUpcoming && (
-                        <Badge variant="secondary" className="mt-1 text-xs bg-primary/10 text-primary border-primary/20">
-                          {t('flights.inDays', { days: daysAway })}
-                        </Badge>
+                        <span className="text-[10px] text-primary/70">
+                          +{daysAway}d
+                        </span>
                       )}
-                    </TableCell>
+                    </div>
+                  </TableCell>
 
-                    {/* Route with duration in center */}
-                    <TableCell className="py-4">
-                      <RouteCell flight={flight} />
-                    </TableCell>
+                  {/* Route */}
+                  <TableCell className="py-2.5 align-top">
+                    <RouteCell flight={flight} />
+                  </TableCell>
 
-                    {/* Times */}
-                    <TableCell className="py-4">
-                      {depTime || arrTime ? (
-                        <div className="flex items-center gap-1.5 text-sm">
-                          <Clock className="w-3.5 h-3.5 text-muted-foreground" />
-                          <span className="font-mono">{depTime || '—'}</span>
-                          <span className="text-muted-foreground">→</span>
-                          <span className="font-mono">{arrTime || '—'}</span>
-                        </div>
-                      ) : (
-                        <span className="text-muted-foreground text-sm">—</span>
-                      )}
-                    </TableCell>
+                  {/* Duration */}
+                  <TableCell className="py-2.5 align-top">
+                    {duration ? (
+                      <span className="font-data text-sm text-muted-foreground">{duration}</span>
+                    ) : (
+                      <span className="text-muted-foreground/40 text-sm">—</span>
+                    )}
+                  </TableCell>
 
-                    {/* Airline */}
-                    <TableCell className="py-4">
-                      {airline ? (
-                        <div className="flex items-center gap-2">
-                          {airline.primaryColor && (
-                            <span
-                              className="w-3 h-3 rounded-full flex-shrink-0 ring-1 ring-border/50"
-                              style={{ backgroundColor: airline.primaryColor }}
-                            />
-                          )}
-                          <div>
-                            <span className="truncate max-w-32 block text-sm">{airline.name}</span>
-                            {flight.flight_number && (
-                              <span className="text-xs text-muted-foreground font-mono">
-                                {flight.airline_iata}{flight.flight_number}
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                      ) : flight.airline_iata ? (
-                        <span className="font-mono text-sm">{flight.airline_iata}</span>
-                      ) : (
-                        <span className="text-muted-foreground text-sm">—</span>
-                      )}
-                    </TableCell>
-
-                    {/* Aircraft */}
-                    <TableCell className="py-4">
-                      {aircraft ? (
-                        <div>
-                          <span className="truncate max-w-32 block text-sm">{aircraft.model}</span>
-                          <span className="text-xs text-muted-foreground">{aircraft.manufacturer}</span>
-                        </div>
-                      ) : flight.aircraft_icao ? (
-                        <span className="font-mono text-sm">{flight.aircraft_icao}</span>
-                      ) : (
-                        <AircraftShimmerBadge
-                          flightId={flight.id}
-                          enrichmentStatus={(flight as { enrichment_status?: EnrichmentStatus }).enrichment_status ?? 'pending'}
-                        />
-                      )}
-                    </TableCell>
-
-                    {/* Distance */}
-                    <TableCell className="py-4 text-right">
-                      {flight.distance_km ? (
-                        <div>
-                          <span className="font-data text-sm">{formatDistance(flight.distance_km)}</span>
-                          <div className="flex items-center justify-end gap-1 text-xs text-muted-foreground mt-0.5">
-                            <MapPin className="w-3 h-3" />
-                            {Math.round(flight.distance_km / 1.852).toLocaleString()} nm
-                          </div>
-                        </div>
-                      ) : (
-                        <span className="text-muted-foreground text-sm">—</span>
-                      )}
-                    </TableCell>
-
-                    {/* Actions - sticky on scroll */}
-                    <TableCell className={cn(
-                      'py-4 text-right sticky right-0 z-10',
-                      isSelected ? 'bg-primary/5' : isUpcoming ? 'bg-primary/[0.02]' : index % 2 === 0 ? 'bg-muted/20' : 'bg-card'
-                    )}>
-                      <div className="flex gap-1 justify-end opacity-50 group-hover:opacity-100 transition-opacity">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8"
-                          onClick={() => onEdit(flight)}
-                        >
-                          <Pencil className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
-                          onClick={() => onDelete(flight)}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
+                  {/* Airline */}
+                  <TableCell className="py-2.5 align-top">
+                    {airline ? (
+                      <div className="flex items-baseline gap-1.5">
+                        {airline.primaryColor && (
+                          <span
+                            className="w-2 h-2 rounded-full flex-shrink-0 relative top-[3px]"
+                            style={{ backgroundColor: airline.primaryColor }}
+                          />
+                        )}
+                        <span className="truncate text-sm max-w-[7rem]">{airline.name}</span>
+                        {flight.flight_number && (
+                          <span className="text-[11px] text-muted-foreground font-data">
+                            {flight.airline_iata}{flight.flight_number}
+                          </span>
+                        )}
                       </div>
-                    </TableCell>
-                  </TableRow>
-                )
-              })}
-            </TableBody>
-          </Table>
-        </div>
-      </CardContent>
-    </Card>
+                    ) : flight.airline_iata ? (
+                      <span className="font-data text-sm">{flight.airline_iata}</span>
+                    ) : (
+                      <span className="text-muted-foreground/40 text-sm">—</span>
+                    )}
+                  </TableCell>
+
+                  {/* Aircraft */}
+                  <TableCell className="py-2.5 align-top">
+                    {aircraft ? (
+                      <div className="flex items-baseline gap-1.5">
+                        <span className="truncate text-sm max-w-[6rem]">{aircraft.model}</span>
+                        <span className="text-[11px] text-muted-foreground">{aircraft.manufacturer}</span>
+                      </div>
+                    ) : flight.aircraft_icao ? (
+                      <span className="font-data text-sm">{flight.aircraft_icao}</span>
+                    ) : (
+                      <AircraftShimmerBadge
+                        flightId={flight.id}
+                        enrichmentStatus={(flight as { enrichment_status?: EnrichmentStatus }).enrichment_status ?? 'pending'}
+                      />
+                    )}
+                  </TableCell>
+
+                  {/* Distance */}
+                  <TableCell className="py-2.5 align-top text-right">
+                    {flight.distance_km ? (
+                      <span className="font-data text-sm tabular-nums">{formatDistance(flight.distance_km)}</span>
+                    ) : (
+                      <span className="text-muted-foreground/40 text-sm">—</span>
+                    )}
+                  </TableCell>
+
+                  {/* Actions - hidden until hover */}
+                  <TableCell className="py-2.5 pr-4 align-top text-right">
+                    <div className="flex gap-0.5 justify-end opacity-0 group-hover:opacity-100 transition-opacity duration-150">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-6 w-6 text-muted-foreground hover:text-foreground"
+                        onClick={() => onEdit(flight)}
+                      >
+                        <Pencil className="w-3 h-3" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-6 w-6 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                        onClick={() => onDelete(flight)}
+                      >
+                        <Trash2 className="w-3 h-3" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              )
+            })}
+          </TableBody>
+        </Table>
+      </div>
+    </div>
   )
 }

@@ -26,22 +26,22 @@ export function FlightCardActions({ onEdit, onDelete }: FlightCardActionsProps) 
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <button
-          className="p-2.5 -m-2 rounded-full hover:bg-muted/50 active:bg-muted transition-colors touch-manipulation"
+          className="p-2 -m-1 rounded-md hover:bg-muted/50 active:bg-muted transition-colors touch-manipulation"
           aria-label={t('common.moreActions', 'More actions')}
         >
-          <MoreVertical className="w-5 h-5 text-muted-foreground" />
+          <MoreVertical className="w-4 h-4 text-muted-foreground" />
         </button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="min-w-[160px]">
-        <DropdownMenuItem onClick={onEdit} className="gap-2 cursor-pointer">
-          <Pencil className="w-4 h-4" />
+      <DropdownMenuContent align="end" className="min-w-[140px]">
+        <DropdownMenuItem onClick={onEdit} className="gap-2 cursor-pointer text-sm">
+          <Pencil className="w-3.5 h-3.5" />
           {t('common.edit', 'Edit')}
         </DropdownMenuItem>
         <DropdownMenuItem
           onClick={onDelete}
-          className="gap-2 cursor-pointer text-destructive focus:text-destructive focus:bg-destructive/10"
+          className="gap-2 cursor-pointer text-sm text-destructive focus:text-destructive focus:bg-destructive/10"
         >
-          <Trash2 className="w-4 h-4" />
+          <Trash2 className="w-3.5 h-3.5" />
           {t('common.delete', 'Delete')}
         </DropdownMenuItem>
       </DropdownMenuContent>

@@ -192,12 +192,10 @@ export function daysUntilFlight(date: string): number {
 
 /**
  * Format distance for display
+ * Shows full number with thousand separators: "1,542 km"
  */
 export function formatDistance(km: number): string {
-  if (km >= 1000) {
-    return `${(km / 1000).toFixed(1)}k km`
-  }
-  return `${Math.round(km)} km`
+  return `${Math.round(km).toLocaleString()} km`
 }
 
 /**

@@ -188,39 +188,37 @@ export function FlightList({ onEdit, showSidebar = false }: FlightListProps) {
   // Main content (table or cards)
   const flightContent = (
     <>
-      {/* Empty state */}
+      {/* Empty state - Linear-style minimal */}
       {flights.length === 0 && (
-        <Card className="border-border/50">
-          <CardContent className="py-16 text-center">
-            <div className="w-14 h-14 mx-auto mb-4 rounded-2xl bg-muted/50 flex items-center justify-center">
-              <Plane className="w-7 h-7 text-muted-foreground" />
-            </div>
-            <p className="text-lg font-medium text-foreground mb-1">
-              {t('flights.noFlightsTitle', 'No flights found')}
-            </p>
-            <p className="text-muted-foreground text-sm">
-              {hasActiveFilters
-                ? t('flights.noFlightsFiltered', 'Try adjusting your filters')
-                : t('flights.noFlightsYet', 'Add your first flight to get started')}
-            </p>
-            {hasActiveFilters && (
-              <Button
-                variant="outline"
-                onClick={clearAllFilters}
-                className="mt-4"
-              >
-                {t('flights.clearFilters', 'Clear filters')}
-              </Button>
-            )}
-          </CardContent>
-        </Card>
+        <div className="py-16 text-center">
+          <div className="w-12 h-12 mx-auto mb-4 rounded-xl bg-muted/40 flex items-center justify-center">
+            <Plane className="w-5 h-5 text-muted-foreground" />
+          </div>
+          <p className="text-sm font-medium text-foreground mb-1">
+            {t('flights.noFlightsTitle', 'No flights found')}
+          </p>
+          <p className="text-muted-foreground text-sm">
+            {hasActiveFilters
+              ? t('flights.noFlightsFiltered', 'Try adjusting your filters')
+              : t('flights.noFlightsYet', 'Add your first flight to get started')}
+          </p>
+          {hasActiveFilters && (
+            <Button
+              variant="ghost"
+              onClick={clearAllFilters}
+              className="mt-3 text-sm"
+            >
+              {t('flights.clearFilters', 'Clear filters')}
+            </Button>
+          )}
+        </div>
       )}
 
       {/* Flight list - CSS-only card/table switch at sm (640px) breakpoint */}
       {flights.length > 0 && (
         <>
           {/* Cards: visible on mobile (<640px) */}
-          <div className="sm:hidden space-y-3">
+          <div className="sm:hidden space-y-2">
             {flights.map((flight) => (
               <FlightCard
                 key={flight.id}
@@ -245,17 +243,16 @@ export function FlightList({ onEdit, showSidebar = false }: FlightListProps) {
             />
           </div>
 
-          {/* Load more */}
+          {/* Load more - Linear-style subtle */}
           {hasNextPage && (
-            <div className="text-center pt-6">
+            <div className="text-center pt-4">
               <Button
-                variant="outline"
-                size="lg"
+                variant="ghost"
                 onClick={() => fetchNextPage()}
                 disabled={isFetchingNextPage}
-                className="min-w-[200px]"
+                className="text-muted-foreground hover:text-foreground"
               >
-                {isFetchingNextPage ? t('common.loading') : t('common.loadMore', 'Load more flights')}
+                {isFetchingNextPage ? t('common.loading') : t('common.loadMore', 'Load more')}
               </Button>
             </div>
           )}
@@ -415,8 +412,8 @@ export function FlightList({ onEdit, showSidebar = false }: FlightListProps) {
   // Horizontal filters layout (default)
   return (
     <div className="space-y-4">
-      {/* Horizontal filters and toolbar */}
-      <div className="flex flex-wrap items-center gap-3">
+      {/* Horizontal filters and toolbar - Linear-style minimal */}
+      <div className="flex flex-wrap items-center gap-2">
         {!selectionMode ? (
           <>
             <FlightFilters
@@ -435,59 +432,57 @@ export function FlightList({ onEdit, showSidebar = false }: FlightListProps) {
               onDestSubmit={handleDestSubmit}
             />
 
-            {/* Action buttons */}
-            <div className="flex items-center gap-2 ml-auto">
-              {/* Aircraft enrichment */}
+            {/* Action buttons - right aligned, subtle */}
+            <div className="flex items-center gap-1.5 ml-auto">
+              {/* Aircraft enrichment - compact */}
               {flightsMissingAircraft.length > 0 && (
-                <>
-                  <Badge variant="outline" className="text-xs bg-primary/5 text-primary border-primary/20">
-                    <Sparkles className="w-3 h-3 mr-1" />
-                    {t('enrich.missingCount', '{{count}} missing', { count: flightsMissingAircraft.length })}
-                  </Badge>
-                  <AircraftEnrichButton
-                    flights={flightsMissingAircraft.slice(0, 20)}
-                    variant="outline"
-                  />
-                </>
+                <AircraftEnrichButton
+                  flights={flightsMissingAircraft.slice(0, 20)}
+                  variant="ghost"
+                />
               )}
 
-              {/* Select mode toggle - hidden on mobile */}
+              {/* Select mode toggle - icon only on smaller screens */}
               {flights.length > 0 && (
                 <Button
-                  variant="outline"
+                  variant="ghost"
                   onClick={toggleSelectionMode}
-                  className="hidden sm:flex"
+                  className="hidden sm:flex h-8 px-2.5 text-muted-foreground hover:text-foreground"
                 >
-                  <CheckSquare className="w-4 h-4 mr-2" />
-                  {t('flights.select', 'Select')}
+                  <CheckSquare className="w-4 h-4 sm:mr-1.5" />
+                  <span className="hidden md:inline text-sm">{t('flights.select', 'Select')}</span>
                 </Button>
               )}
             </div>
           </>
         ) : (
-          /* Selection mode toolbar */
-          <div className="flex items-center gap-3 w-full">
-            <Button
-              variant="ghost"
-              onClick={toggleSelectionMode}
-            >
-              <X className="w-4 h-4 mr-2" />
-              {t('common.cancel')}
-            </Button>
-
-            <Badge variant="secondary" className="text-sm">
-              {t('flights.selectedCount', '{{count}} selected', { count: selectedIds.size })}
-            </Badge>
+          /* Selection mode toolbar - Linear-style inline */
+          <div className="flex items-center gap-2 w-full py-1 px-3 -mx-3 bg-muted/30 rounded-lg">
+            <span className="text-sm text-muted-foreground font-data">
+              {selectedIds.size}
+            </span>
+            <span className="text-sm text-muted-foreground">
+              {t('flights.selected', 'selected')}
+            </span>
 
             <div className="flex-1" />
 
             <Button
-              variant="destructive"
+              variant="ghost"
               onClick={handleBatchDeleteClick}
               disabled={selectedIds.size === 0}
+              className="h-8 px-2.5 text-sm text-destructive hover:text-destructive hover:bg-destructive/10"
             >
-              <Trash2 className="w-4 h-4 mr-2" />
-              {t('flights.deleteSelected', 'Delete Selected')}
+              <Trash2 className="w-3.5 h-3.5 mr-1.5" />
+              {t('common.delete', 'Delete')}
+            </Button>
+
+            <Button
+              variant="ghost"
+              onClick={toggleSelectionMode}
+              className="h-8 px-2.5 text-sm text-muted-foreground"
+            >
+              {t('common.cancel')}
             </Button>
           </div>
         )}

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Plus } from 'lucide-react'
+import { Plus, Plane } from 'lucide-react'
 import { FlightList } from '@/components/flights/FlightList'
 import { FlightForm } from '@/components/flights/FlightForm'
 import { AppHeader } from '@/components/common/AppHeader'
@@ -54,16 +54,21 @@ export function FlightsPage() {
       {/* Desktop header */}
       <AppHeader onAddFlight={handleAddFlight} showAddButton />
 
-      {/* Content - wider on large screens, bottom padding for mobile tab bar */}
-      <main className="max-w-6xl 3xl:max-w-[1600px] 4xl:max-w-[1800px] mx-auto px-6 3xl:px-8 py-8 3xl:py-10 pb-safe sm:pb-8 3xl:pb-10">
-        {/* Page header */}
-        <div className="mb-8 3xl:mb-10 animate-fade-up">
-          <h1 className="text-2xl md:text-3xl 3xl:text-4xl font-semibold tracking-tight">
-            {t('nav.flights', 'Flights')}
-          </h1>
-          <p className="mt-1 text-muted-foreground 3xl:text-lg">
-            {t('flights.pageSubtitle', 'Your complete flight history')}
-          </p>
+      {/* Content - wider container, tighter spacing */}
+      <main className="max-w-7xl 3xl:max-w-[1800px] mx-auto px-4 sm:px-6 py-4 sm:py-6 pb-safe sm:pb-6">
+        {/* Page header - compact single line */}
+        <div className="flex items-center gap-3 mb-4 animate-fade-up">
+          <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+            <Plane className="w-4.5 h-4.5 text-primary" />
+          </div>
+          <div className="flex items-baseline gap-2">
+            <h1 className="text-xl sm:text-2xl font-semibold tracking-tight">
+              {t('nav.flights', 'Flights')}
+            </h1>
+            <span className="text-sm text-muted-foreground hidden sm:inline">
+              {t('flights.pageSubtitle', 'Your complete flight history')}
+            </span>
+          </div>
         </div>
 
         {/* Flight list with conditional sidebar */}
