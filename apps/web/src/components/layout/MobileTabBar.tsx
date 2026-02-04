@@ -59,7 +59,7 @@ export function MobileTabBar() {
             <Link
               key={tab.path}
               to={tab.path}
-              className={`flex flex-col items-center justify-center gap-1 min-w-[64px] h-full px-2 transition-colors ${
+              className={`flex flex-col items-center justify-center gap-1 min-w-[64px] min-h-[44px] h-full px-2 transition-colors ${
                 active
                   ? 'text-primary'
                   : 'text-muted-foreground active:text-foreground'

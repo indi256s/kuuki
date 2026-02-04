@@ -190,7 +190,7 @@ function Header() {
     <header className="sticky top-0 z-40 bg-background/80 backdrop-blur-xl border-b border-border/50">
       <div className="max-w-5xl mx-auto px-6 h-14 flex items-center justify-between">
         <Link to="/" className="flex items-center gap-2 group">
-          <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+          <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-[background-color] duration-150">
             <Plane className="w-4 h-4 text-primary" strokeWidth={2} />
           </div>
           <span className="text-lg font-semibold tracking-tight">
