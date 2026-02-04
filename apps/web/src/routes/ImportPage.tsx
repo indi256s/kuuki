@@ -361,7 +361,7 @@ export function ImportPage() {
                 <p className="font-medium">
                   {t('import.saving.progress', 'Saving flight {{current}} of {{total}}...', {
                     current: savedCount + 1,
-                    total: extractedFlights.filter((_, i) => i < savedCount || i === savedCount).length || extractedFlights.length,
+                    total: extractedFlights.length,
                   })}
                 </p>
               </div>

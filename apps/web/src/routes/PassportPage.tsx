@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from 'react'
+import { useState, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '@/hooks/useAuth'
 import { useIsMobile } from '@/hooks/useIsMobile'
@@ -12,11 +12,9 @@ import { AppHeader } from '@/components/common/AppHeader'
 import { MobileHeader } from '@/components/layout/MobileHeader'
 import { MobileTabBar } from '@/components/layout/MobileTabBar'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
+import { MapCard } from '@/components/dashboard/MapCard'
 import {
   Stamp,
-  Globe2,
-  Map,
   Plus,
 } from 'lucide-react'
 
@@ -31,7 +29,6 @@ export function PassportPage() {
   const [preselectedCountry, setPreselectedCountry] = useState<string | null>(null)
 
   const themeColor = profile?.theme_color || 'teal'
-
   const hasCountries = (countries?.length ?? 0) > 0
 
   const handleAddCountry = useCallback(() => {
@@ -48,33 +45,6 @@ export function PassportPage() {
     setIsClaimDialogOpen(false)
     setPreselectedCountry(null)
   }, [])
-
-  // Calculate continent distribution for display
-  const continentDistribution = useMemo(() => {
-    if (!countries) return []
-
-    const continentCounts: Record<string, number> = {}
-    for (const country of countries) {
-      continentCounts[country.continent] = (continentCounts[country.continent] || 0) + 1
-    }
-
-    const continentNames: Record<string, string> = {
-      europe: 'Europe',
-      asia: 'Asia',
-      americas: 'Americas',
-      africa: 'Africa',
-      oceania: 'Oceania',
-      antarctica: 'Antarctica',
-    }
-
-    return Object.entries(continentCounts)
-      .map(([continent, count]) => ({
-        continent,
-        name: continentNames[continent] || continent,
-        count,
-      }))
-      .sort((a, b) => b.count - a.count)
-  }, [countries])
 
   return (
     <div className="min-h-screen bg-gradient-soft">
@@ -94,77 +64,102 @@ export function PassportPage() {
       {/* Desktop header */}
       <AppHeader />
 
-      {/* Main content - pb-safe adds bottom padding for mobile tab bar */}
+      {/* Main content */}
       <main className="max-w-7xl 3xl:max-w-[1800px] mx-auto px-4 sm:px-6 py-4 sm:py-6 pb-safe sm:pb-6">
-        {/* Page header */}
-        <div className="mb-8 animate-fade-up">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                <Stamp className="w-5 h-5 text-primary" />
-              </div>
-              <div>
-                <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">
-                  {t('passport.title', 'Passport')}
-                </h1>
-                <p className="text-sm text-muted-foreground">
-                  {t('passport.subtitle', 'Your collection of visited countries')}
-                </p>
+
+        {/* Hero Section: Map & Stats */}
+        {hasCountries && (
+          <div className="mb-8 grid grid-cols-1 lg:grid-cols-3 gap-6 animate-fade-up">
+            {/* Map Card - Spans 2 columns */}
+            <MapCard className="lg:col-span-2 min-h-[300px]" />
+
+            {/* Stats Summary - Spans 1 column */}
+            <div className="space-y-4">
+              <div className="h-full rounded-2xl border border-border/50 bg-card p-6 flex flex-col justify-between hover:border-primary/30 transition-colors">
+                <div>
+                  <div className="flex items-center gap-3 mb-6">
+                    <div className="w-10 h-10 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
+                      <Stamp className="w-5 h-5" />
+                    </div>
+                    <h1 className="text-xl font-semibold tracking-tight">
+                      {t('passport.title', 'Passport')}
+                    </h1>
+                  </div>
+
+                  <div className="space-y-6">
+                    {/* Metric 1: Countries */}
+                    <div>
+                      <div className="text-sm text-muted-foreground mb-1">{t('passport.countriesLabel', 'Countries')}</div>
+                      <div className="font-mono text-3xl font-semibold">
+                        {stats?.countriesCount ?? 0}
+                      </div>
+                    </div>
+
+                    {/* Metric 2: Continents */}
+                    <div>
+                      <div className="text-sm text-muted-foreground mb-1">{t('passport.continentsLabel', 'Continents')}</div>
+                      <div className="font-mono text-3xl font-semibold">
+                        {stats?.continentsCount ?? 0}
+                        <span className="text-lg text-muted-foreground/50 ml-1 font-normal">/ 7</span>
+                      </div>
+                    </div>
+
+                    {/* Metric 3: World % */}
+                    <div>
+                      <div className="text-sm text-muted-foreground mb-1">{t('passport.worldCompletion', 'World Explored')}</div>
+                      <div className="flex items-baseline gap-2">
+                        <div className="font-mono text-3xl font-semibold">
+                          {stats?.worldCompletion.toFixed(1)}%
+                        </div>
+                      </div>
+                      {/* Progress Bar */}
+                      <div className="mt-2 h-1.5 w-full bg-muted rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-primary rounded-full transition-all duration-1000 ease-out"
+                          style={{ width: `${Math.min(100, stats?.worldCompletion ?? 0)}%` }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <Button className="w-full mt-8" onClick={handleAddCountry} variant="outline">
+                  <Plus className="w-4 h-4 mr-2" />
+                  {t('passport.addCountry', 'Add Country')}
+                </Button>
               </div>
             </div>
           </div>
+        )}
 
-          {/* Stats summary */}
-          {hasCountries && stats && (
-            <div className="mt-6 flex flex-wrap items-center gap-4">
-              <div className="flex items-center gap-2">
-                <Globe2 className="w-4 h-4 text-muted-foreground" />
-                <span className="text-sm">
-                  <span className="font-semibold">{stats.countriesCount}</span>
-                  <span className="text-muted-foreground"> {t('passport.countriesLabel', 'countries')}</span>
-                </span>
-              </div>
-              <span className="text-muted-foreground">·</span>
-              <div className="flex items-center gap-2">
-                <Map className="w-4 h-4 text-muted-foreground" />
-                <span className="text-sm">
-                  <span className="font-semibold">{stats.continentsCount}</span>
-                  <span className="text-muted-foreground"> {t('passport.continentsLabel', 'continents')}</span>
-                </span>
-              </div>
-              <span className="text-muted-foreground">·</span>
-              <div className="flex items-center gap-2">
-                <span className="text-sm">
-                  <span className="font-semibold">{stats.worldCompletion.toFixed(1)}%</span>
-                  <span className="text-muted-foreground"> {t('passport.worldCompletion', 'of the world')}</span>
-                </span>
-              </div>
-
-              {/* Continent badges */}
-              <div className="hidden md:flex items-center gap-1.5 ml-auto">
-                {continentDistribution.map(({ continent, name, count }) => (
-                  <Badge
-                    key={continent}
-                    variant="secondary"
-                    className="text-xs"
-                  >
-                    {name}: {count}
-                  </Badge>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Passport content */}
+        {/* Passport Grid */}
         {countriesLoading ? (
           <PassportStamps entries={[]} isLoading themeColor={themeColor} />
         ) : hasCountries ? (
-          <div className="animate-fade-up" style={{ animationDelay: '100ms' }}>
-            <PassportStamps
-              entries={countries ?? []}
-              themeColor={themeColor}
-            />
+          <div className="space-y-4">
+            {!hasCountries && (
+              // Fallback title if map hidden (empty state handled below)
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                  <Stamp className="w-5 h-5 text-primary" />
+                </div>
+                <div>
+                  <h1 className="text-2xl font-semibold tracking-tight">
+                    {t('passport.title', 'Passport')}
+                  </h1>
+                  <p className="text-sm text-muted-foreground">
+                    {t('passport.subtitle', 'Your collection of visited countries')}
+                  </p>
+                </div>
+              </div>
+            )}
+
+            <div className="animate-fade-up" style={{ animationDelay: '200ms' }}>
+              <PassportStamps
+                entries={countries ?? []}
+                themeColor={themeColor}
+              />
+            </div>
           </div>
         ) : (
           <EmptyPassport onAddCountry={handleAddCountry} />

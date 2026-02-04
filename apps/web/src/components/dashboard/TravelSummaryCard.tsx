@@ -3,7 +3,11 @@ import { useDashboardStats } from '@/hooks/useDashboardStats'
 import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/utils'
 
-export function TravelSummaryCard() {
+interface TravelSummaryCardProps {
+    className?: string
+}
+
+export function TravelSummaryCard({ className }: TravelSummaryCardProps) {
     const { t } = useTranslation()
     const { data: stats } = useDashboardStats()
 
@@ -36,10 +40,9 @@ export function TravelSummaryCard() {
                 // Base card styles
                 'rounded-2xl border border-border/50 bg-card p-6',
                 'transition-all duration-300',
-                // 2-column span on desktop
-                'lg:col-span-2',
                 // Hover effect
-                'hover:border-primary/30 hover:shadow-glow-sm'
+                'hover:border-primary/30 hover:shadow-glow-sm',
+                className
             )}
         >
             <h3 className="text-lg font-semibold mb-6">

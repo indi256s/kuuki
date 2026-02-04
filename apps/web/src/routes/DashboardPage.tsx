@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
-import { MapPin, Plane as PlaneIcon, Ruler, Users } from 'lucide-react'
+import { Plus } from 'lucide-react'
 
 import { useAuth } from '@/hooks/useAuth'
 import { useFlightStats } from '@/hooks/useStats'
@@ -9,10 +9,15 @@ import { useDashboardStore } from '@/stores/dashboardStore'
 import {
   DashboardGrid,
   YearFilter,
+  MapCard,
   TravelSummaryCard,
   UpcomingFlightsCard,
-  LeaderboardCard,
-  MilestoneCards,
+  ConsolidatedMilestonesCard,
+  AircraftTypesCard,
+  ManufacturerCard,
+  ContinentProgressCard,
+  DeparturePatternCard,
+  DurationStatsCard,
   EmptyState
 } from '@/components/dashboard'
 import { FlightForm } from '@/components/flights/FlightForm'
@@ -20,7 +25,6 @@ import { AppHeader } from '@/components/common/AppHeader'
 import { MobileHeader } from '@/components/layout/MobileHeader'
 import { MobileTabBar } from '@/components/layout/MobileTabBar'
 import { Button } from '@/components/ui/button'
-import { Plus } from 'lucide-react'
 
 export function DashboardPage() {
   const { t } = useTranslation()
@@ -93,28 +97,32 @@ export function DashboardPage() {
               <YearFilter />
             </div>
 
-            {/* Dashboard cards */}
+            {/* Upcoming flights - full width, hides when empty */}
             <div className="animate-fade-up" style={{ animationDelay: '50ms' }}>
+              <UpcomingFlightsCard />
+            </div>
+
+            {/* Hero row - Map + Travel Summary */}
+            <div className="grid grid-cols-1 gap-6 animate-fade-up" style={{ animationDelay: '100ms' }}>
+              {/* Route Map - full width hero */}
+              <MapCard />
+
+              {/* Travel Summary - full width */}
+              <TravelSummaryCard className="lg:col-span-1" />
+            </div>
+
+            {/* Stats grid - 3 columns desktop, 1 mobile */}
+            <div className="animate-fade-up" style={{ animationDelay: '150ms' }}>
               <DashboardGrid>
-                {/* Travel Summary - 2 column span */}
-                <TravelSummaryCard />
+                {/* Row 1: Aircraft stats */}
+                <AircraftTypesCard />
+                <ManufacturerCard />
+                <ContinentProgressCard />
 
-                {/* Upcoming Flights - 2 column span */}
-                <UpcomingFlightsCard />
-
-                {/* Leaderboard cards */}
-                <LeaderboardCard category="countries" icon={MapPin} />
-                <LeaderboardCard category="cities" icon={MapPin} />
-                <LeaderboardCard category="flights" icon={PlaneIcon} />
-                <LeaderboardCard category="distance" icon={Ruler} />
-                <LeaderboardCard category="airlines" icon={Users} />
-
-                {/* Milestone cards */}
-                <MilestoneCards />
-
-                {/* TODO: Progressive unlock cards will be added here */}
-                {/* TODO: Badge showcase card */}
-                {/* TODO: Favorites card */}
+                {/* Row 2: Time stats + Milestones */}
+                <DeparturePatternCard />
+                <DurationStatsCard />
+                <ConsolidatedMilestonesCard />
               </DashboardGrid>
             </div>
           </div>

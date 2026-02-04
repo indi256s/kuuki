@@ -3,6 +3,7 @@ import type { Aircraft, Airport, Airline } from '@kuuki/shared/types'
 import aircraftData from './aircraft.json' with { type: 'json' }
 import airportsData from './airports.json' with { type: 'json' }
 import airlinesData from './airlines.json' with { type: 'json' }
+import countriesData from './countries.json' with { type: 'json' }
 
 // Aircraft data from OpenFlights
 export const aircraft: Aircraft[] = aircraftData as Aircraft[]
@@ -70,4 +71,32 @@ export function searchAirlines(query: string): Airline[] {
     a.name.toLowerCase().includes(q) ||
     a.country.toLowerCase().includes(q)
   )
+}
+
+// Country data
+export interface CountryData {
+  name: string
+  nativeName: string
+  continent: string
+  flagColors: string[]
+  dominantColor: string
+  stampShape: 'circle' | 'rectangle'
+  timezone: string
+  region: string
+  subregion: string
+}
+
+export const countries = countriesData as Record<string, CountryData>
+
+// Country lookup helpers
+export function findCountry(code: string): CountryData | undefined {
+  return countries[code.toUpperCase()]
+}
+
+export function getCountryName(code: string): string {
+  return countries[code.toUpperCase()]?.name || code
+}
+
+export function getCountryColor(code: string): string {
+  return countries[code.toUpperCase()]?.dominantColor || '#6b7280'
 }

@@ -9,264 +9,282 @@ interface CountryStampProps {
   isSelected?: boolean
 }
 
-// Format relative date (e.g., "2 years ago")
+// Format relative date (e.g., "2y ago")
 function formatRelativeDate(dateString: string): string {
   const date = new Date(dateString)
   const now = new Date()
   const diffMs = now.getTime() - date.getTime()
   const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
 
-  if (diffDays < 7) {
-    return diffDays === 0 ? 'Today' : diffDays === 1 ? '1 day ago' : `${diffDays} days ago`
-  }
-  if (diffDays < 30) {
-    const weeks = Math.floor(diffDays / 7)
-    return weeks === 1 ? '1 week ago' : `${weeks} weeks ago`
-  }
-  if (diffDays < 365) {
-    const months = Math.floor(diffDays / 30)
-    return months === 1 ? '1 month ago' : `${months} months ago`
-  }
-  const years = Math.floor(diffDays / 365)
-  return years === 1 ? '1 year ago' : `${years} years ago`
+  if (diffDays < 7) return diffDays === 0 ? 'Today' : `${diffDays}d ago`
+  if (diffDays < 30) return `${Math.floor(diffDays / 7)}w ago`
+  if (diffDays < 365) return `${Math.floor(diffDays / 30)}mo ago`
+  return `${Math.floor(diffDays / 365)}y ago`
 }
 
-// Get color with opacity for SVG
-function colorWithOpacity(color: string, opacity: number): string {
-  // If hex color, convert to rgba
-  if (color.startsWith('#')) {
-    const r = parseInt(color.slice(1, 3), 16)
-    const g = parseInt(color.slice(3, 5), 16)
-    const b = parseInt(color.slice(5, 7), 16)
-    return `rgba(${r}, ${g}, ${b}, ${opacity})`
-  }
-  return color
-}
-
-function CircleStamp({ entry, themeColor, onClick, isSelected }: CountryStampProps) {
+function CircleStamp({ entry, onClick, isSelected }: CountryStampProps) {
   const relativeDate = formatRelativeDate(entry.firstVisit)
-  const bgTint = themeColor ? colorWithOpacity(themeColor, 0.05) : 'rgba(0,0,0,0.02)'
-  const borderColor = entry.flagColors[0] || entry.dominantColor
+  const borderColor = entry.dominantColor
 
   return (
     <button
       onClick={onClick}
       aria-label={`${entry.countryName} - ${entry.nativeName}, visited ${relativeDate}`}
       className={cn(
-        'group relative w-full aspect-square transition-shadow duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded-full',
-        isSelected && 'ring-2 ring-primary ring-offset-2'
+        'group relative w-full aspect-square',
+        'rounded-full transition-all duration-300',
+        'focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2',
+        isSelected && 'ring-2 ring-primary ring-offset-2 scale-105'
       )}
     >
+      {/* Outer glow "Lantern" effect - subtle by default, stronger on hover */}
+      <div
+        className="absolute inset-0 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+        style={{
+          boxShadow: `0 0 20px ${borderColor}40`, // 40 = 25% opacity
+          background: `radial-gradient(circle, ${borderColor}10 0%, transparent 70%)`
+        }}
+      />
+
       <svg
         viewBox="0 0 120 120"
-        className="w-full h-full drop-shadow-sm group-hover:drop-shadow-md transition-[filter,transform] duration-200 group-hover:scale-105"
+        className="w-full h-full drop-shadow-sm transition-transform duration-300 group-hover:scale-[1.02] group-active:scale-[0.98]"
         aria-hidden="true"
       >
-        {/* Background circle with theme tint */}
+        <defs>
+          <filter id="ink-bleed">
+            <feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="3" result="noise" />
+            <feDisplacementMap in="SourceGraphic" in2="noise" scale="0.5" />
+          </filter>
+        </defs>
+
+        {/* Background - Washi paper feel */}
+        <circle
+          cx="60"
+          cy="60"
+          r="58"
+          fill="var(--card)"
+          className="transition-colors duration-300"
+        />
+
+        {/* Outer Ring - Precision machined look */}
         <circle
           cx="60"
           cy="60"
           r="56"
-          fill={bgTint}
+          fill="none"
           stroke={borderColor}
-          strokeWidth="3"
-          strokeDasharray="8 4"
-          className="transition-colors"
+          strokeWidth="1.5"
+          opacity="0.8"
+          strokeDasharray="1 3" // Micro-dashing for technical feel
+          strokeLinecap="round"
         />
 
-        {/* Inner decorative border */}
+        {/* Inner Ring - Solid anchor */}
         <circle
           cx="60"
           cy="60"
-          r="48"
+          r="46"
           fill="none"
-          stroke={colorWithOpacity(borderColor, 0.3)}
-          strokeWidth="1"
+          stroke={borderColor}
+          strokeWidth="0.5"
+          opacity="0.4"
         />
 
-        {/* Native name */}
+        {/* Native name - The Hero */}
         <text
           x="60"
-          y="40"
+          y="56"
           textAnchor="middle"
-          className="fill-foreground font-medium"
-          fontSize="11"
-          fontFamily="system-ui, sans-serif"
+          fill="var(--foreground)"
+          fontSize="13"
+          fontWeight="500"
+          style={{ fontFamily: 'var(--font-sans)', letterSpacing: '-0.02em' }}
         >
-          {entry.nativeName.length > 12 ? entry.nativeName.slice(0, 10) + '…' : entry.nativeName}
+          {entry.nativeName.length > 10 ? entry.nativeName.slice(0, 9) + '…' : entry.nativeName}
         </text>
 
-        {/* English name */}
+        {/* English name - Metadata */}
         <text
           x="60"
-          y="55"
+          y="70"
           textAnchor="middle"
-          className="fill-muted-foreground"
-          fontSize="9"
-          fontFamily="system-ui, sans-serif"
-        >
-          {entry.countryName.toUpperCase()}
-        </text>
-
-        {/* Relative date */}
-        <text
-          x="60"
-          y="72"
-          textAnchor="middle"
-          className="fill-muted-foreground/70"
+          fill="var(--muted-foreground)"
           fontSize="8"
-          fontFamily="system-ui, sans-serif"
+          fontWeight="500"
+          style={{ fontFamily: 'var(--font-mono)', letterSpacing: '0.05em' }}
         >
-          {relativeDate}
+          {entry.countryName.toUpperCase().slice(0, 16)}
         </text>
 
-        {/* Visit count badge */}
+        {/* Visit count - Instrumentation style */}
         {entry.visitCount > 1 && (
-          <g transform="translate(85, 95)">
+          <g transform="translate(60, 92)">
             <rect
-              x="-12"
-              y="-8"
-              width="24"
-              height="16"
-              rx="3"
-              fill={entry.dominantColor}
-              className="opacity-90"
+              x="-10"
+              y="-6"
+              width="20"
+              height="12"
+              rx="2"
+              fill={borderColor}
+              fillOpacity="0.1"
             />
             <text
               x="0"
-              y="4"
+              y="2.5"
               textAnchor="middle"
-              fill="white"
-              fontSize="9"
+              fill={borderColor}
+              fontSize="7"
               fontWeight="600"
-              fontFamily="monospace"
+              style={{ fontFamily: 'var(--font-mono)' }}
             >
               ×{entry.visitCount}
             </text>
           </g>
         )}
+
+        {/* Date - Top arc metadata */}
+        <path
+          id="topCurve"
+          d="M 30,60 A 30,30 0 0,1 90,60"
+          fill="none"
+        />
+        <text
+          fill="var(--muted-foreground)"
+          fontSize="6"
+          style={{ fontFamily: 'var(--font-mono)', opacity: 0.7 }}
+        >
+          <textPath href="#topCurve" startOffset="50%" textAnchor="middle">
+            {relativeDate.toUpperCase()}
+          </textPath>
+        </text>
       </svg>
     </button>
   )
 }
 
-function RectangleStamp({ entry, themeColor, onClick, isSelected }: CountryStampProps) {
+function RectangleStamp({ entry, onClick, isSelected }: CountryStampProps) {
   const relativeDate = formatRelativeDate(entry.firstVisit)
-  const bgTint = themeColor ? colorWithOpacity(themeColor, 0.05) : 'rgba(0,0,0,0.02)'
-  const borderColor = entry.flagColors[0] || entry.dominantColor
+  const borderColor = entry.dominantColor
 
   return (
     <button
       onClick={onClick}
       aria-label={`${entry.countryName} - ${entry.nativeName}, visited ${relativeDate}`}
       className={cn(
-        'group relative w-full aspect-[4/3] transition-shadow duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded-lg',
-        isSelected && 'ring-2 ring-primary ring-offset-2'
+        'group relative w-full aspect-[4/3] rounded-lg',
+        'transition-all duration-300',
+        'focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2',
+        isSelected && 'ring-2 ring-primary ring-offset-2 scale-105'
       )}
     >
+      {/* Outer glow */}
+      <div
+        className="absolute inset-0 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+        style={{
+          boxShadow: `0 0 20px ${borderColor}40`,
+          background: `linear-gradient(135deg, ${borderColor}10 0%, transparent 70%)`
+        }}
+      />
+
       <svg
         viewBox="0 0 160 120"
-        className="w-full h-full drop-shadow-sm group-hover:drop-shadow-md transition-[filter,transform] duration-200 group-hover:scale-105"
+        className="w-full h-full drop-shadow-sm transition-transform duration-300 group-hover:scale-[1.02] group-active:scale-[0.98]"
         aria-hidden="true"
       >
-        {/* Background rectangle with theme tint */}
+        {/* Background */}
         <rect
           x="4"
           y="4"
           width="152"
           height="112"
-          rx="8"
-          fill={bgTint}
-          stroke={borderColor}
-          strokeWidth="3"
-          strokeDasharray="10 5"
-          className="transition-colors"
+          rx="6"
+          fill="var(--card)"
+          className="transition-colors duration-300"
         />
 
-        {/* Inner decorative border */}
+        {/* Technical Border */}
         <rect
-          x="12"
-          y="12"
-          width="136"
-          height="96"
+          x="8"
+          y="8"
+          width="144"
+          height="104"
           rx="4"
           fill="none"
-          stroke={colorWithOpacity(borderColor, 0.3)}
-          strokeWidth="1"
+          stroke={borderColor}
+          strokeWidth="1.5"
+          opacity="0.8"
+          strokeDasharray="1 4"
+          strokeLinecap="round"
         />
 
-        {/* Flag color accent bar */}
+        {/* Accent Bar */}
         <rect
-          x="12"
-          y="12"
-          width="136"
-          height="8"
-          rx="4"
-          fill={entry.dominantColor}
-          className="opacity-60"
+          x="14"
+          y="14"
+          width="4"
+          height="92"
+          rx="2"
+          fill={borderColor}
+          fillOpacity="0.2"
         />
 
         {/* Native name */}
         <text
-          x="80"
-          y="48"
+          x="88"
+          y="58"
           textAnchor="middle"
-          className="fill-foreground font-medium"
-          fontSize="14"
-          fontFamily="system-ui, sans-serif"
+          fill="var(--foreground)"
+          fontSize="16"
+          fontWeight="500"
+          style={{ fontFamily: 'var(--font-sans)', letterSpacing: '-0.02em' }}
         >
-          {entry.nativeName.length > 16 ? entry.nativeName.slice(0, 14) + '…' : entry.nativeName}
+          {entry.nativeName.length > 14 ? entry.nativeName.slice(0, 13) + '…' : entry.nativeName}
         </text>
 
         {/* English name */}
         <text
-          x="80"
-          y="66"
+          x="88"
+          y="76"
           textAnchor="middle"
-          className="fill-muted-foreground"
+          fill="var(--muted-foreground)"
           fontSize="10"
-          fontFamily="system-ui, sans-serif"
+          fontWeight="500"
+          style={{ fontFamily: 'var(--font-mono)', letterSpacing: '0.05em' }}
         >
           {entry.countryName.toUpperCase()}
         </text>
 
-        {/* Relative date */}
-        <text
-          x="80"
-          y="86"
-          textAnchor="middle"
-          className="fill-muted-foreground/70"
-          fontSize="9"
-          fontFamily="system-ui, sans-serif"
-        >
-          {relativeDate}
-        </text>
+        {/* Metadata Row */}
+        <g transform="translate(88, 96)">
+          <text
+            x="-2"
+            y="0"
+            textAnchor="end"
+            fill="var(--muted-foreground)"
+            fontSize="8"
+            style={{ fontFamily: 'var(--font-mono)', opacity: 0.7 }}
+          >
+            {relativeDate}
+          </text>
 
-        {/* Visit count badge */}
-        {entry.visitCount > 1 && (
-          <g transform="translate(130, 95)">
-            <rect
-              x="-14"
-              y="-9"
-              width="28"
-              height="18"
-              rx="4"
-              fill={entry.dominantColor}
-              className="opacity-90"
-            />
-            <text
-              x="0"
-              y="4"
-              textAnchor="middle"
-              fill="white"
-              fontSize="10"
-              fontWeight="600"
-              fontFamily="monospace"
-            >
-              ×{entry.visitCount}
-            </text>
-          </g>
-        )}
+          {entry.visitCount > 1 && (
+            <>
+              <circle cx="0" cy="-2" r="1.5" fill={borderColor} opacity="0.5" />
+              <text
+                x="4"
+                y="0"
+                textAnchor="start"
+                fill={borderColor}
+                fontSize="8"
+                fontWeight="600"
+                style={{ fontFamily: 'var(--font-mono)' }}
+              >
+                ×{entry.visitCount}
+              </text>
+            </>
+          )}
+        </g>
       </svg>
     </button>
   )
@@ -275,7 +293,6 @@ function RectangleStamp({ entry, themeColor, onClick, isSelected }: CountryStamp
 export const CountryStamp = memo(function CountryStamp(props: CountryStampProps) {
   const { entry } = props
 
-  // Use regional stamp shape
   if (entry.stampShape === 'circle') {
     return <CircleStamp {...props} />
   }
@@ -283,7 +300,6 @@ export const CountryStamp = memo(function CountryStamp(props: CountryStampProps)
   return <RectangleStamp {...props} />
 })
 
-// Also export a simple version for use in lists
 export const CountryStampMini = memo(function CountryStampMini({
   entry,
   size = 'sm',
@@ -298,15 +314,16 @@ export const CountryStampMini = memo(function CountryStampMini({
       className={cn(
         dimension,
         'rounded-full flex items-center justify-center text-xs font-medium',
-        'border-2'
+        'border border-border/50 bg-card shadow-sm'
       )}
       style={{
-        backgroundColor: colorWithOpacity(entry.dominantColor, 0.1),
-        borderColor: entry.dominantColor,
+        boxShadow: `0 0 0 1px ${entry.dominantColor}20`
       }}
       title={entry.countryName}
     >
-      {entry.countryCode}
+      <span className="font-mono" style={{ color: entry.dominantColor }}>
+        {entry.countryCode}
+      </span>
     </div>
   )
 })

@@ -3,6 +3,7 @@ import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/stores/authStore'
 import { useDashboardStore } from '@/stores/dashboardStore'
 import { useUnlockProgress } from './useAdvancedStats'
+import { findAirport } from '@kuuki/data'
 
 export interface DashboardStats {
     // Basic stats
@@ -13,6 +14,9 @@ export interface DashboardStats {
     uniqueCities: number
     uniqueAirlines: number
     uniqueAircraft: number
+
+    // Visited country codes (for map)
+    visitedCountries: string[]
 
     // Unlock status
     unlocks: {
@@ -87,22 +91,23 @@ export function useDashboardStats() {
                 throw statsError
             }
 
-            // Fetch upcoming flights
+            // Fetch upcoming flights (up to 5 for dashboard display)
             const { data: upcoming, error: upcomingError } = await supabase
                 .from('flights')
                 .select('id, date, origin, destination, airline_iata, flight_number')
                 .eq('user_id', userId)
                 .eq('is_upcoming', true)
                 .order('date', { ascending: true })
-                .limit(3)
+                .limit(5)
 
             if (upcomingError) throw upcomingError
 
-            // Fetch year-filtered flights for favorites calculation
+            // Fetch year-filtered flights for favorites and countries calculation
             let favoritesQuery = supabase
                 .from('flights')
-                .select('airline_iata, aircraft_icao')
+                .select('airline_iata, aircraft_icao, origin, destination')
                 .eq('user_id', userId)
+                .eq('is_upcoming', false)
 
             if (yearFilter) {
                 favoritesQuery = favoritesQuery
@@ -113,6 +118,20 @@ export function useDashboardStats() {
             const { data: flights, error: flightsError } = await favoritesQuery
 
             if (flightsError) throw flightsError
+
+            // Extract visited countries from airport codes
+            const visitedCountryCodes = new Set<string>()
+            for (const flight of flights || []) {
+                const originAirport = findAirport(flight.origin)
+                const destAirport = findAirport(flight.destination)
+                if (originAirport?.countryCode) {
+                    visitedCountryCodes.add(originAirport.countryCode)
+                }
+                if (destAirport?.countryCode) {
+                    visitedCountryCodes.add(destAirport.countryCode)
+                }
+            }
+            const visitedCountries = Array.from(visitedCountryCodes)
 
             // Calculate favorites (≥30% threshold)
             const totalFlights = flights?.length || 0
@@ -178,6 +197,7 @@ export function useDashboardStats() {
                 uniqueCities: stats?.cities_count || 0,
                 uniqueAirlines: stats?.airlines_count || 0,
                 uniqueAircraft: stats?.aircraft_count || 0,
+                visitedCountries,
 
                 unlocks: {
                     aviaGeek: unlockProgress?.aviaGeek.unlocked || false,
