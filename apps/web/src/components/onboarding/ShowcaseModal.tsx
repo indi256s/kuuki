@@ -3,6 +3,8 @@ import { useTranslation } from 'react-i18next'
 import {
   Dialog,
   DialogContent,
+  DialogTitle,
+  DialogDescription,
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Plane, BarChart3, Trophy } from 'lucide-react'
@@ -44,6 +46,14 @@ export function ShowcaseModal({ onComplete }: ShowcaseModalProps) {
   return (
     <Dialog open onOpenChange={(open) => !open && onComplete()}>
       <DialogContent className="sm:max-w-md gap-0 p-0 overflow-hidden">
+        {/* Accessible title and description for screen readers */}
+        <DialogTitle className="sr-only">
+          {t(`onboarding.${slide.key}.title`)}
+        </DialogTitle>
+        <DialogDescription className="sr-only">
+          {t(`onboarding.${slide.key}.description`)}
+        </DialogDescription>
+
         {/* Content */}
         <div className="p-8 text-center">
           {/* Icon */}
