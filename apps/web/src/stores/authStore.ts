@@ -35,23 +35,34 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
 
     set({ isLoading: true })
 
-    // Get initial user
-    const user = await getUser()
+    try {
+      // Get initial user
+      const user = await getUser()
 
-    if (user) {
-      const profile = await getProfile(user.id)
-      set({ user, profile, isLoading: false, isInitialized: true })
-    } else {
+      if (user) {
+        const profile = await getProfile(user.id)
+        set({ user, profile, isLoading: false, isInitialized: true })
+      } else {
+        set({ user: null, profile: null, isLoading: false, isInitialized: true })
+      }
+    } catch (error) {
+      // Network errors, timeouts, etc. - don't leave loading state stuck
+      console.error('Auth initialization failed:', error)
       set({ user: null, profile: null, isLoading: false, isInitialized: true })
     }
 
     // Subscribe to auth changes
     onAuthStateChange(async (user) => {
-      if (user) {
-        const profile = await getProfile(user.id)
-        set({ user, profile, isLoading: false })
-      } else {
-        set({ user: null, profile: null, isLoading: false })
+      try {
+        if (user) {
+          const profile = await getProfile(user.id)
+          set({ user, profile, isLoading: false })
+        } else {
+          set({ user: null, profile: null, isLoading: false })
+        }
+      } catch (error) {
+        console.error('Auth state change failed:', error)
+        set({ isLoading: false })
       }
     })
   },
