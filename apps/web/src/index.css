@@ -441,6 +441,192 @@
   }
 }
 
+/* Kuuki icon breathing animation - organic, air-like motion */
+@keyframes kuuki-breathe {
+  0%,
+  100% {
+    transform: scale(1) translateY(0);
+    opacity: 0.85;
+  }
+
+  50% {
+    transform: scale(1.08) translateY(-1px);
+    opacity: 1;
+  }
+}
+
+/* Breathing animation class - slow, meditative, GPU-accelerated */
+.kuuki-breathe {
+  animation: kuuki-breathe 4s ease-in-out infinite;
+  will-change: transform, opacity;
+}
+
+/* ==========================================================================
+   Kuuki Icon Animation Variants
+   ========================================================================== */
+
+/* Method 1: Wave - breathing ripple through stacked characters */
+@keyframes kuuki-wave {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.5;
+  }
+
+  50% {
+    transform: scale(1.15);
+    opacity: 1;
+  }
+}
+
+.kuuki-wave {
+  animation: kuuki-wave 2s ease-in-out infinite;
+  will-change: transform, opacity;
+}
+
+/* Method 2: Glow - traveling highlight */
+@keyframes kuuki-glow {
+  0%,
+  100% {
+    opacity: 0.4;
+    text-shadow: none;
+  }
+
+  50% {
+    opacity: 1;
+    text-shadow: 0 0 8px currentColor;
+  }
+}
+
+.kuuki-glow {
+  animation: kuuki-glow 1.5s ease-in-out infinite;
+  will-change: opacity, text-shadow;
+}
+
+/* Method 3: Crossfade - characters fade in/out in sequence */
+/* Smooth, overlapping transitions like breath appearing and disappearing */
+@keyframes kuuki-crossfade {
+  0% {
+    opacity: 0;
+  }
+
+  /* Gentle fade in */
+  8% {
+    opacity: 0;
+  }
+
+  20% {
+    opacity: 1;
+  }
+
+  /* Hold at full */
+  30% {
+    opacity: 1;
+  }
+
+  /* Gentle fade out */
+  42% {
+    opacity: 0;
+  }
+
+  100% {
+    opacity: 0;
+  }
+}
+
+.kuuki-crossfade {
+  opacity: 0;
+  animation: kuuki-crossfade 7.5s ease-in-out infinite;
+  will-change: opacity;
+}
+
+/* Method 4: Orbit - characters rotate together */
+@keyframes kuuki-orbit {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.kuuki-orbit-container {
+  animation: kuuki-orbit 12s linear infinite;
+  will-change: transform;
+}
+
+.kuuki-orbit-char {
+  animation: kuuki-breathe 3s ease-in-out infinite;
+}
+
+/* Method 5: Reveal - typewriter appear, then fade */
+@keyframes kuuki-reveal {
+  0%,
+  10% {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+
+  20%,
+  70% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  85%,
+  100% {
+    opacity: 0;
+    transform: translateY(-2px);
+  }
+}
+
+.kuuki-reveal {
+  opacity: 0;
+  animation: kuuki-reveal 4s ease-out infinite;
+  will-change: transform, opacity;
+}
+
+/* Method 6: Split-Flap - airport departure board flip */
+@keyframes kuuki-splitflap {
+  0%,
+  22% {
+    transform: translateY(0);
+  }
+
+  25%,
+  47% {
+    transform: translateY(-100%);
+  }
+
+  50%,
+  72% {
+    transform: translateY(-200%);
+  }
+
+  75%,
+  97% {
+    transform: translateY(-300%);
+  }
+
+  100% {
+    transform: translateY(-300%);
+  }
+}
+
+.kuuki-splitflap {
+  animation: kuuki-splitflap 6s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  will-change: transform;
+}
+
+.kuuki-splitflap>div {
+  backface-visibility: hidden;
+}
+
+.perspective-500 {
+  perspective: 500px;
+}
+
 @keyframes toast-slide-up {
   from {
     opacity: 0;
@@ -947,6 +1133,8 @@
   .animate-flight-cruise,
   .animate-flight-arrive,
   .animate-shimmer,
+  .kuuki-breathe,
+  .kuuki-crossfade,
   .stagger-children>* {
     opacity: 1 !important;
     transform: none !important;
@@ -967,5 +1155,10 @@
   .animate-plane-ascend {
     animation: none !important;
     opacity: 0.03 !important;
+  }
+
+  /* Kuuki icon: show only first character (く) when reduced motion */
+  .kuuki-crossfade:not(:first-child) {
+    opacity: 0 !important;
   }
 }

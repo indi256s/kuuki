@@ -11,6 +11,7 @@ import { LeaderboardPage } from '@/routes/LeaderboardPage'
 import { PassportPage } from '@/routes/PassportPage'
 import { SettingsPage } from '@/routes/SettingsPage'
 import { DevResetPage } from '@/routes/DevResetPage'
+import { DevIconsPage } from '@/routes/DevIconsPage'
 import { ProtectedRoute } from '@/components/ProtectedRoute'
 import { ToastProvider, ErrorBoundary } from '@/components/error'
 import { ImportNotificationManager } from '@/components/import/ImportNotificationManager'
@@ -122,6 +123,14 @@ function AppRoutes() {
           element={
             <ProtectedRoute>
               <DevResetPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/dev/icons"
+          element={
+            <ProtectedRoute>
+              <DevIconsPage />
             </ProtectedRoute>
           }
         />
