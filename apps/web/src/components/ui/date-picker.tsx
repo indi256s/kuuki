@@ -19,10 +19,6 @@ interface DatePickerProps {
   value?: string
   /** Called with value in YYYY-MM-DD format */
   onChange?: (value: string) => void
-  /** Optional label for the input */
-  label?: string
-  /** Placeholder text */
-  placeholder?: string
   /** Whether the input is disabled */
   disabled?: boolean
   /** Additional class names for the wrapper */
@@ -77,7 +73,7 @@ function DatePicker({
             <CalendarIcon className="h-4 w-4 text-muted-foreground" />
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-auto p-0" align="end">
+        <PopoverContent className="w-auto p-0" align="end" sideOffset={8}>
           <Calendar
             mode="single"
             selected={dateValue}

@@ -11,7 +11,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover"
-import { ScrollArea } from "@/components/ui/scroll-area"
 
 interface TimePickerProps {
   /** Value in HH:MM format (24-hour) */
@@ -24,13 +23,17 @@ interface TimePickerProps {
   className?: string
 }
 
-// Generate hours 00-23 and minutes 00-59
-const HOURS = Array.from({ length: 24 }, (_, i) => i.toString().padStart(2, "0"))
-const MINUTES = Array.from({ length: 12 }, (_, i) => (i * 5).toString().padStart(2, "0"))
+// Quick time presets for common flight times
+const TIME_PRESETS = [
+  { label: "Morning", times: ["06:00", "07:00", "08:00", "09:00", "10:00", "11:00"] },
+  { label: "Afternoon", times: ["12:00", "13:00", "14:00", "15:00", "16:00", "17:00"] },
+  { label: "Evening", times: ["18:00", "19:00", "20:00", "21:00", "22:00", "23:00"] },
+  { label: "Night", times: ["00:00", "01:00", "02:00", "03:00", "04:00", "05:00"] },
+]
 
 /**
- * Time picker combining manual input (HH:MM) with a visual time selector.
- * Uses 24-hour format throughout.
+ * Time picker with intuitive grid layout.
+ * Select hour from grid, then fine-tune minutes.
  */
 function TimePicker({
   value,
@@ -39,6 +42,7 @@ function TimePicker({
   className,
 }: TimePickerProps) {
   const [open, setOpen] = React.useState(false)
+  const [mode, setMode] = React.useState<"hour" | "minute">("hour")
 
   // Parse current value
   const [selectedHour, selectedMinute] = React.useMemo(() => {
@@ -47,30 +51,22 @@ function TimePicker({
     return [h || "12", m || "00"]
   }, [value])
 
+  // Reset to hour mode when opening
+  React.useEffect(() => {
+    if (open) setMode("hour")
+  }, [open])
+
   const handleHourSelect = (hour: string) => {
     const newValue = `${hour}:${selectedMinute}`
     onChange?.(newValue)
+    setMode("minute")
   }
 
   const handleMinuteSelect = (minute: string) => {
     const newValue = `${selectedHour}:${minute}`
     onChange?.(newValue)
-    setOpen(false) // Close after minute selection
+    setOpen(false)
   }
-
-  // Scroll selected values into view when opening
-  const hourRef = React.useRef<HTMLDivElement>(null)
-  const minuteRef = React.useRef<HTMLDivElement>(null)
-
-  React.useEffect(() => {
-    if (open) {
-      // Small delay to ensure popover is rendered
-      setTimeout(() => {
-        hourRef.current?.querySelector(`[data-hour="${selectedHour}"]`)?.scrollIntoView({ block: "center" })
-        minuteRef.current?.querySelector(`[data-minute="${selectedMinute}"]`)?.scrollIntoView({ block: "center" })
-      }, 50)
-    }
-  }, [open, selectedHour, selectedMinute])
 
   return (
     <div className={cn("flex gap-1.5", className)}>
@@ -93,58 +89,103 @@ function TimePicker({
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-auto p-0" align="end">
-          <div className="flex">
-            {/* Hours column */}
-            <div className="border-r border-border">
-              <div className="px-3 py-2 text-xs font-medium text-muted-foreground text-center border-b border-border">
-                Hour
-              </div>
-              <ScrollArea className="h-[200px]" ref={hourRef}>
-                <div className="flex flex-col p-1">
-                  {HOURS.map((hour) => (
-                    <Button
-                      key={hour}
-                      variant={hour === selectedHour ? "default" : "ghost"}
-                      size="default"
-                      data-hour={hour}
-                      className={cn(
-                        "w-12 justify-center font-mono",
-                        hour === selectedHour && "bg-primary text-primary-foreground"
-                      )}
-                      onClick={() => handleHourSelect(hour)}
-                    >
-                      {hour}
-                    </Button>
-                  ))}
-                </div>
-              </ScrollArea>
+          <div className="p-3 space-y-3">
+            {/* Mode indicator */}
+            <div className="flex items-center justify-between">
+              <button
+                type="button"
+                onClick={() => setMode("hour")}
+                className={cn(
+                  "text-2xl font-mono tracking-tight transition-colors",
+                  mode === "hour" ? "text-foreground" : "text-muted-foreground/50 hover:text-muted-foreground"
+                )}
+              >
+                {selectedHour}
+              </button>
+              <span className="text-2xl font-mono text-muted-foreground/30">:</span>
+              <button
+                type="button"
+                onClick={() => setMode("minute")}
+                className={cn(
+                  "text-2xl font-mono tracking-tight transition-colors",
+                  mode === "minute" ? "text-foreground" : "text-muted-foreground/50 hover:text-muted-foreground"
+                )}
+              >
+                {selectedMinute}
+              </button>
             </div>
 
-            {/* Minutes column */}
-            <div>
-              <div className="px-3 py-2 text-xs font-medium text-muted-foreground text-center border-b border-border">
-                Min
+            {/* Divider */}
+            <div className="h-px bg-border" />
+
+            {mode === "hour" ? (
+              /* Hour selection - 4 rows of 6 hours */
+              <div className="space-y-2">
+                {TIME_PRESETS.map(({ label, times }) => (
+                  <div key={label}>
+                    <div className="text-[10px] uppercase tracking-widest text-muted-foreground/60 mb-1.5 px-0.5">
+                      {label}
+                    </div>
+                    <div className="grid grid-cols-6 gap-1">
+                      {times.map((time) => {
+                        const hour = time.split(":")[0]
+                        const isSelected = hour === selectedHour
+                        return (
+                          <button
+                            key={time}
+                            type="button"
+                            onClick={() => handleHourSelect(hour)}
+                            className={cn(
+                              "h-9 rounded-lg font-mono text-sm transition-all duration-150",
+                              isSelected
+                                ? "bg-primary text-primary-foreground shadow-sm"
+                                : "hover:bg-accent/60 text-foreground/80"
+                            )}
+                          >
+                            {hour}
+                          </button>
+                        )
+                      })}
+                    </div>
+                  </div>
+                ))}
               </div>
-              <ScrollArea className="h-[200px]" ref={minuteRef}>
-                <div className="flex flex-col p-1">
-                  {MINUTES.map((minute) => (
-                    <Button
-                      key={minute}
-                      variant={minute === selectedMinute ? "default" : "ghost"}
-                      size="default"
-                      data-minute={minute}
-                      className={cn(
-                        "w-12 justify-center font-mono",
-                        minute === selectedMinute && "bg-primary text-primary-foreground"
-                      )}
-                      onClick={() => handleMinuteSelect(minute)}
-                    >
-                      {minute}
-                    </Button>
-                  ))}
+            ) : (
+              /* Minute selection - 2 rows of 6 */
+              <div className="space-y-2">
+                <div className="text-[10px] uppercase tracking-widest text-muted-foreground/60 px-0.5">
+                  Minutes
                 </div>
-              </ScrollArea>
-            </div>
+                <div className="grid grid-cols-6 gap-1">
+                  {["00", "05", "10", "15", "20", "25", "30", "35", "40", "45", "50", "55"].map((minute) => {
+                    const isSelected = minute === selectedMinute
+                    return (
+                      <button
+                        key={minute}
+                        type="button"
+                        onClick={() => handleMinuteSelect(minute)}
+                        className={cn(
+                          "h-9 rounded-lg font-mono text-sm transition-all duration-150",
+                          isSelected
+                            ? "bg-primary text-primary-foreground shadow-sm"
+                            : "hover:bg-accent/60 text-foreground/80"
+                        )}
+                      >
+                        {minute}
+                      </button>
+                    )
+                  })}
+                </div>
+                {/* Quick confirm current selection */}
+                <button
+                  type="button"
+                  onClick={() => setOpen(false)}
+                  className="w-full h-8 rounded-lg text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-accent/40 transition-colors"
+                >
+                  Done
+                </button>
+              </div>
+            )}
           </div>
         </PopoverContent>
       </Popover>
