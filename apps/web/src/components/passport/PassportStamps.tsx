@@ -71,18 +71,47 @@ export function PassportStamps({ entries, isLoading, themeColor }: PassportStamp
     return () => document.removeEventListener('keydown', handleEscape)
   }, [selectedEntry])
 
-  // Group entries by year for potential section headers (future enhancement)
-  // For now, just display chronologically (oldest first)
-  const sortedEntries = useMemo(() => {
-    return [...entries].sort(
-      (a, b) => new Date(a.firstVisit).getTime() - new Date(b.firstVisit).getTime()
-    )
+  // Group entries by continent, sorted by count (most stamps first)
+  const groupedByContinent = useMemo(() => {
+    // Group by continent
+    const groups: Record<string, PassportEntry[]> = {}
+    for (const entry of entries) {
+      const continent = entry.continent || 'Other'
+      if (!groups[continent]) groups[continent] = []
+      groups[continent].push(entry)
+    }
+
+    // Sort entries within each continent chronologically (oldest first)
+    for (const continent of Object.keys(groups)) {
+      groups[continent].sort(
+        (a, b) => new Date(a.firstVisit).getTime() - new Date(b.firstVisit).getTime()
+      )
+    }
+
+    // Sort continents by count (most stamps first)
+    const sortedContinents = Object.entries(groups)
+      .sort(([, a], [, b]) => b.length - a.length)
+      .map(([continent, stamps]) => ({ continent, stamps }))
+
+    return sortedContinents
   }, [entries])
+
+  // Continent display names
+  const continentNames: Record<string, string> = {
+    europe: 'Europe',
+    asia: 'Asia',
+    africa: 'Africa',
+    'north-america': 'North America',
+    'south-america': 'South America',
+    oceania: 'Oceania',
+    antarctica: 'Antarctica',
+    Other: 'Other',
+  }
 
   if (isLoading) {
     return (
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-        {[...Array(8)].map((_, i) => (
+      <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
+        {[...Array(12)].map((_, i) => (
           <Skeleton key={i} className="aspect-[4/3] rounded-lg" />
         ))}
       </div>
@@ -90,23 +119,34 @@ export function PassportStamps({ entries, isLoading, themeColor }: PassportStamp
   }
 
   return (
-    <div ref={containerRef} className="relative">
-      {/* Stamp grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-        {sortedEntries.map((entry) => (
-          <div
-            key={entry.countryCode}
-            className="animate-fade-up"
-            onClick={(e) => handleStampClick(entry, e)}
-          >
-            <CountryStamp
-              entry={entry}
-              themeColor={themeColor}
-              isSelected={selectedEntry?.countryCode === entry.countryCode}
-            />
+    <div ref={containerRef} className="relative space-y-6">
+      {groupedByContinent.map(({ continent, stamps }, groupIndex) => (
+        <section key={continent} className="animate-fade-up" style={{ animationDelay: `${groupIndex * 50}ms` }}>
+          {/* Continent header */}
+          <h2 className="text-sm font-medium text-muted-foreground mb-3 flex items-center gap-2">
+            {continentNames[continent] || continent}
+            <span className="text-xs bg-muted px-1.5 py-0.5 rounded-full font-mono">
+              {stamps.length}
+            </span>
+          </h2>
+
+          {/* Stamp grid */}
+          <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
+            {stamps.map((entry) => (
+              <div
+                key={entry.countryCode}
+                onClick={(e) => handleStampClick(entry, e)}
+              >
+                <CountryStamp
+                  entry={entry}
+                  themeColor={themeColor}
+                  isSelected={selectedEntry?.countryCode === entry.countryCode}
+                />
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
+        </section>
+      ))}
 
       {/* Popup overlay */}
       {selectedEntry && popupPosition && (
