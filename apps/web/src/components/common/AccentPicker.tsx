@@ -46,14 +46,14 @@ export function AccentPicker({ value = 'red', onChange, className }: AccentPicke
         onClick={() => setIsOpen(!isOpen)}
         className={cn(
           'group flex items-center justify-center w-8 h-8 rounded-full transition-all duration-200',
-          'hover:bg-neutral-100 dark:hover:bg-white/5',
-          isOpen && 'bg-neutral-100 dark:bg-white/5'
+          'hover:bg-muted',
+          isOpen && 'bg-muted'
         )}
         aria-expanded={isOpen}
         aria-label="Choose accent color"
       >
         <div
-          className="w-3.5 h-3.5 rounded-full shadow-[0_0_0_1px_rgba(0,0,0,0.08)] dark:shadow-[0_0_0_1px_rgba(255,255,255,0.1)] transition-transform group-hover:scale-110"
+          className="w-3.5 h-3.5 rounded-full ring-1 ring-border/50 transition-transform group-hover:scale-110"
           style={{ backgroundColor: currentColor?.bg }}
         />
       </button>
@@ -71,9 +71,9 @@ export function AccentPicker({ value = 'red', onChange, className }: AccentPicke
           <div className={cn(
             'absolute top-full right-0 mt-2 z-50',
             'p-3 rounded-xl',
-            'bg-white dark:bg-neutral-900',
-            'border border-black/10 dark:border-white/10',
-            'shadow-lg shadow-black/10 dark:shadow-black/40',
+            'bg-popover',
+            'border border-border',
+            'shadow-lg shadow-black/10 dark:shadow-black/30',
             'animate-in fade-in-0 zoom-in-95 duration-150',
             'w-[max-content] max-w-[200px]'
           )}>
@@ -91,7 +91,7 @@ export function AccentPicker({ value = 'red', onChange, className }: AccentPicke
                     }}
                     className={cn(
                       'group relative w-6 h-6 rounded-md flex items-center justify-center transition-all duration-150',
-                      'hover:bg-neutral-100 dark:hover:bg-white/5'
+                      'hover:bg-muted'
                     )}
                     title={color.label}
                     aria-label={`Select ${color.label} accent color`}
@@ -99,11 +99,10 @@ export function AccentPicker({ value = 'red', onChange, className }: AccentPicke
                     <div
                       className={cn(
                         "w-3 h-3 rounded-full transition-all duration-200",
-                        isActive ? "w-3 h-3 ring-1 ring-offset-1 dark:ring-offset-[#121417]" : "group-hover:scale-110"
+                        isActive ? "w-3 h-3 ring-1 ring-offset-1 ring-offset-popover" : "group-hover:scale-110"
                       )}
                       style={{
                         backgroundColor: color.bg,
-                        boxShadow: !isActive ? '0 0 0 1px rgba(255,255,255,0.1) inset' : undefined,
                         ['--tw-ring-color' as string]: color.bg
                       }}
                     />

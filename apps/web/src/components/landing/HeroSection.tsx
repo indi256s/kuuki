@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
+import { Button } from '@/components/ui/button'
 
 export function HeroSection() {
   const { t } = useTranslation()
@@ -18,18 +19,16 @@ export function HeroSection() {
 
       {/* CTA buttons */}
       <div className="flex flex-col sm:flex-row gap-4 justify-center">
-        <Link
-          to="/"
-          className="px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors focus-ring font-medium text-lg"
-        >
-          {t('landing.hero.signIn')}
-        </Link>
-        <a
-          href="mailto:invite@kuuki.app?subject=Kuuki%20Invite%20Request"
-          className="px-6 py-3 border border-border text-foreground rounded-lg hover:bg-muted transition-colors focus-ring font-medium text-lg"
-        >
-          {t('landing.hero.requestInvite')}
-        </a>
+        <Button asChild size="lg" className="text-lg">
+          <Link to="/">
+            {t('landing.hero.signIn')}
+          </Link>
+        </Button>
+        <Button asChild variant="outline" size="lg" className="text-lg">
+          <a href="mailto:invite@kuuki.app?subject=Kuuki%20Invite%20Request">
+            {t('landing.hero.requestInvite')}
+          </a>
+        </Button>
       </div>
     </section>
   )
