@@ -32,8 +32,8 @@ import {
 } from '@/components/ui/form'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { DateInput } from '@/components/ui/date-input'
-import { TimeInput } from '@/components/ui/time-input'
+import { DatePicker } from '@/components/ui/date-picker'
+import { TimePicker } from '@/components/ui/time-picker'
 import { Separator } from '@/components/ui/separator'
 import { AlertCircle, ChevronRight, Plane, Calendar } from 'lucide-react'
 
@@ -273,7 +273,7 @@ export function FlightForm({ isOpen, onClose, editFlight }: FlightFormProps) {
                   <span className="text-destructive ml-1">*</span>
                 </FormLabel>
                 <FormControl>
-                  <DateInput
+                  <DatePicker
                     value={field.value}
                     onChange={field.onChange}
                     disabled={isSubmitting}
@@ -418,7 +418,7 @@ export function FlightForm({ isOpen, onClose, editFlight }: FlightFormProps) {
                         {t('flights.departureTime', 'Departure')}
                       </FormLabel>
                       <FormControl>
-                        <TimeInput
+                        <TimePicker
                           value={field.value}
                           onChange={field.onChange}
                           disabled={isSubmitting}
@@ -438,7 +438,7 @@ export function FlightForm({ isOpen, onClose, editFlight }: FlightFormProps) {
                         {t('flights.arrivalTime', 'Arrival')}
                       </FormLabel>
                       <FormControl>
-                        <TimeInput
+                        <TimePicker
                           value={field.value}
                           onChange={field.onChange}
                           disabled={isSubmitting}
