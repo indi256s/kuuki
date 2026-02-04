@@ -7,7 +7,6 @@ const ACCENT_COLORS = [
   { name: 'blue', bg: '#4EA7F5', fg: '#ffffff', label: 'Blue' },
   { name: 'cyan', bg: '#26B5CE', fg: '#0a2e35', label: 'Cyan' },
   { name: 'teal', bg: '#2EB88A', fg: '#0a2e1f', label: 'Teal' },
-  { name: 'green', bg: '#50C086', fg: '#0a2e1a', label: 'Green' },
   { name: 'yellow', bg: '#EBCB4B', fg: '#3d3314', label: 'Yellow' },
   { name: 'orange', bg: '#F3904F', fg: '#ffffff', label: 'Orange' },
   { name: 'coral', bg: '#F76B6E', fg: '#ffffff', label: 'Coral' },
