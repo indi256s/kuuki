@@ -1,11 +1,13 @@
+import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
-import { Trophy, ArrowRight, AlertCircle } from 'lucide-react'
+import { Trophy, ArrowRight, AlertCircle, TrendingUp } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
 import { Skeleton } from '@/components/ui/skeleton'
 import { formatDistance } from '@/lib/geo'
+import { cn } from '@/lib/utils'
 import type { LeaderboardEntry } from '@/lib/profiles'
 import type { LeaderboardCategory } from '@/hooks/useLeaderboard'
 
@@ -18,6 +20,28 @@ interface UserRankCardProps {
 }
 
 const MIN_FLIGHTS = 10
+const RANK_STORAGE_KEY = 'kuuki_last_rank'
+
+// Get stored ranks from localStorage
+function getStoredRanks(): Record<string, number> {
+  try {
+    const stored = localStorage.getItem(RANK_STORAGE_KEY)
+    return stored ? JSON.parse(stored) : {}
+  } catch {
+    return {}
+  }
+}
+
+// Store rank for a category
+function storeRank(category: string, rank: number): void {
+  try {
+    const ranks = getStoredRanks()
+    ranks[category] = rank
+    localStorage.setItem(RANK_STORAGE_KEY, JSON.stringify(ranks))
+  } catch {
+    // Ignore storage errors
+  }
+}
 
 export function UserRankCard({
   position,
@@ -27,6 +51,29 @@ export function UserRankCard({
   totalFlights = 0,
 }: UserRankCardProps) {
   const { t } = useTranslation()
+  const [isImproved, setIsImproved] = useState(false)
+  const [improvement, setImprovement] = useState(0)
+
+  // Check for rank improvement
+  useEffect(() => {
+    if (!position || isLoading) return
+
+    const storedRanks = getStoredRanks()
+    const previousRank = storedRanks[category]
+
+    if (previousRank !== undefined && position.rank < previousRank) {
+      // Rank improved! Trigger celebration
+      setIsImproved(true)
+      setImprovement(previousRank - position.rank)
+
+      // Clear celebration after animation
+      const timer = setTimeout(() => setIsImproved(false), 3000)
+      return () => clearTimeout(timer)
+    }
+
+    // Store current rank
+    storeRank(category, position.rank)
+  }, [position, category, isLoading])
 
   if (isLoading) {
     return (
@@ -117,7 +164,12 @@ export function UserRankCard({
   const isTopTen = position.rank <= 10
 
   return (
-    <Card className={isTopTen ? 'ring-1 ring-amber-400/50' : undefined}>
+    <Card
+      className={cn(
+        isTopTen && 'ring-1 ring-amber-400/50',
+        isImproved && 'animate-perimeter-glow motion-reduce:animate-none'
+      )}
+    >
       <CardContent className="p-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -128,9 +180,18 @@ export function UserRankCard({
               <p className="text-sm text-muted-foreground">
                 {t('leaderboard.yourRank', 'Your Rank')}
               </p>
-              <p className="text-2xl font-semibold font-data">
-                #{position.rank}
-              </p>
+              <div className="flex items-center gap-2">
+                <p className="text-2xl font-semibold font-data">
+                  #{position.rank}
+                </p>
+                {/* Rank improvement badge */}
+                {isImproved && improvement > 0 && (
+                  <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-success/10 text-success text-xs font-medium animate-fade-up">
+                    <TrendingUp className="w-3 h-3" />
+                    +{improvement}
+                  </span>
+                )}
+              </div>
             </div>
           </div>
 

@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
-import { Stamp, Plane, MapPin } from 'lucide-react'
+import { Globe2, Plane, MapPin, Compass } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 
@@ -12,49 +12,49 @@ export function EmptyPassport({ onAddCountry }: EmptyPassportProps) {
   const { t } = useTranslation()
 
   return (
-    <Card className="border-dashed border-2 border-border/50 bg-card/50">
-      <CardContent className="py-16 px-8">
-        <div className="max-w-md mx-auto text-center space-y-6">
-          {/* Decorative passport pages */}
-          <div className="relative w-32 h-40 mx-auto mb-8">
-            {/* Background pages */}
-            <div className="absolute inset-0 bg-secondary/30 rounded-lg transform rotate-3" />
-            <div className="absolute inset-0 bg-secondary/50 rounded-lg transform -rotate-2" />
+    <Card className="border-dashed border-2 border-border/50 bg-card/50 overflow-hidden">
+      <CardContent className="py-16 px-8 relative">
+        {/* Background globe - subtle, inspiring */}
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+          <Globe2
+            className="w-[400px] h-[400px] text-muted-foreground/[0.03] motion-reduce:opacity-100"
+            strokeWidth={0.5}
+            aria-hidden="true"
+          />
+        </div>
 
-            {/* Main page */}
-            <div className="absolute inset-0 bg-card rounded-lg border border-border/50 shadow-sm flex flex-col items-center justify-center gap-3">
-              {/* Stamp outlines (empty) */}
-              <div className="flex gap-2">
-                <div className="w-8 h-8 rounded-full border-2 border-dashed border-muted-foreground/30" />
-                <div className="w-10 h-7 rounded border-2 border-dashed border-muted-foreground/30" />
-              </div>
-              <div className="flex gap-2">
-                <div className="w-10 h-7 rounded border-2 border-dashed border-muted-foreground/30" />
-                <div className="w-8 h-8 rounded-full border-2 border-dashed border-muted-foreground/30" />
-              </div>
-
-              {/* Stamp icon overlay */}
-              <Stamp className="absolute w-12 h-12 text-muted-foreground/20" />
-            </div>
+        <div className="max-w-md mx-auto text-center space-y-6 relative z-10">
+          {/* Compass icon with subtle animation */}
+          <div className="relative w-24 h-24 mx-auto mb-4">
+            <div className="absolute inset-0 rounded-full bg-primary/5 animate-pulse motion-reduce:animate-none" />
+            <div className="absolute inset-2 rounded-full bg-primary/10" />
+            <Compass
+              className="absolute inset-0 w-full h-full p-5 text-primary/60"
+              strokeWidth={1.5}
+              aria-hidden="true"
+            />
           </div>
 
-          {/* Title & description */}
-          <div className="space-y-2">
-            <h3 className="text-xl font-semibold">
-              {t('passport.emptyTitle', 'Your Passport Awaits')}
+          {/* Inspirational title */}
+          <div className="space-y-3">
+            <p className="text-sm font-medium text-primary/80 tracking-wide uppercase">
+              {t('passport.emptyTagline', '246 countries await')}
+            </p>
+            <h3 className="text-2xl font-semibold tracking-tight">
+              {t('passport.emptyTitle', 'Your Journey Begins Here')}
             </h3>
-            <p className="text-muted-foreground text-sm">
-              {t('passport.emptyDescription', 'Start collecting stamps from every country you visit. Flights are automatically tracked, or add countries you\'ve reached by land or sea.')}
+            <p className="text-muted-foreground">
+              {t('passport.emptyDescription', 'Every stamp tells a story. Start collecting memories from every corner of the world.')}
             </p>
           </div>
 
           {/* Action buttons */}
           <div className="flex flex-col sm:flex-row gap-3 justify-center pt-4">
-            <Button onClick={onAddCountry} className="gap-2">
+            <Button onClick={onAddCountry} size="lg" className="gap-2">
               <MapPin className="w-4 h-4" />
-              {t('passport.addCountry', 'Add a Country')}
+              {t('passport.addFirstCountry', 'Add Your First Country')}
             </Button>
-            <Button variant="outline" asChild className="gap-2">
+            <Button variant="outline" size="lg" asChild className="gap-2">
               <Link to="/import">
                 <Plane className="w-4 h-4" />
                 {t('passport.importFlights', 'Import Flights')}
@@ -64,7 +64,7 @@ export function EmptyPassport({ onAddCountry }: EmptyPassportProps) {
 
           {/* Hint */}
           <p className="text-xs text-muted-foreground/70 pt-2">
-            {t('passport.hint', 'Countries from your flights will appear automatically')}
+            {t('passport.hint', 'Flights automatically add countries to your passport')}
           </p>
         </div>
       </CardContent>
