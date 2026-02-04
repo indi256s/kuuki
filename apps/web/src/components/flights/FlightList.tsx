@@ -27,7 +27,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { Skeleton } from '@/components/ui/skeleton'
-import { Plane, Sparkles, CheckSquare, Trash2, X } from 'lucide-react'
+import { Plane, Sparkles, CheckSquare, CheckCheck, Trash2, X } from 'lucide-react'
 
 interface FlightListProps {
   onEdit: (flight: Flight) => void
@@ -133,6 +133,22 @@ export function FlightList({ onEdit, showSidebar = false }: FlightListProps) {
       setSelectedIds(new Set())
     }
     setSelectionMode(!selectionMode)
+  }
+
+  // Select/Deselect all visible flights
+  const allSelected = flights.length > 0 && flights.every(f => selectedIds.has(f.id))
+  const toggleSelectAll = () => {
+    if (allSelected) {
+      // Deselect all visible flights
+      const newSet = new Set(selectedIds)
+      flights.forEach(f => newSet.delete(f.id))
+      setSelectedIds(newSet)
+    } else {
+      // Select all visible flights
+      const newSet = new Set(selectedIds)
+      flights.forEach(f => newSet.add(f.id))
+      setSelectedIds(newSet)
+    }
   }
 
   const handleBatchDeleteClick = () => {
@@ -336,6 +352,16 @@ export function FlightList({ onEdit, showSidebar = false }: FlightListProps) {
                       {t('common.cancel')}
                     </Button>
 
+                    <Button
+                      variant="outline"
+                      onClick={toggleSelectAll}
+                    >
+                      <CheckCheck className="w-4 h-4 mr-2" />
+                      {allSelected
+                        ? t('flights.deselectAll', 'Deselect All')
+                        : t('flights.selectAll', 'Select All')}
+                    </Button>
+
                     <Badge variant="secondary" className="text-sm">
                       {t('flights.selectedCount', '{{count}} selected', { count: selectedIds.size })}
                     </Badge>
@@ -457,13 +483,23 @@ export function FlightList({ onEdit, showSidebar = false }: FlightListProps) {
           </>
         ) : (
           /* Selection mode toolbar - Linear-style inline */
-          <div className="flex items-center gap-2 w-full py-1 px-3 -mx-3 bg-muted/30 rounded-lg">
+          <div className="flex items-center gap-2 w-full py-1.5 px-3 -mx-3 bg-muted/30 rounded-lg">
             <span className="text-sm text-muted-foreground font-data">
               {selectedIds.size}
             </span>
             <span className="text-sm text-muted-foreground">
               {t('flights.selected', 'selected')}
             </span>
+
+            <button
+              type="button"
+              onClick={toggleSelectAll}
+              className="text-sm text-primary hover:text-primary/80 font-medium transition-colors"
+            >
+              {allSelected
+                ? t('flights.deselectAll', 'Deselect All')
+                : t('flights.selectAll', 'Select All')}
+            </button>
 
             <div className="flex-1" />
 
