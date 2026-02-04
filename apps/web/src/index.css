@@ -126,48 +126,48 @@
 }
 
 .dark {
-  --background: oklch(0.16 0.01 260);
+  --background: oklch(0.21 0.005 260);
   --foreground: oklch(0.95 0.005 250);
-  --card: oklch(0.2 0.01 260);
+  --card: oklch(0.25 0.005 260);
   --card-foreground: oklch(0.95 0.005 250);
-  --popover: oklch(0.2 0.01 260);
+  --popover: oklch(0.25 0.005 260);
   --popover-foreground: oklch(0.95 0.005 250);
   --primary: oklch(0.72 0.14 55);
   --primary-foreground: oklch(0.15 0.01 260);
-  --secondary: oklch(0.25 0.01 260);
+  --secondary: oklch(0.28 0.005 260);
   --secondary-foreground: oklch(0.9 0.005 250);
-  --muted: oklch(0.22 0.01 260);
+  --muted: oklch(0.26 0.005 260);
   --muted-foreground: oklch(0.65 0.01 260);
-  --accent: oklch(0.28 0.015 260);
+  --accent: oklch(0.30 0.01 260);
   --accent-foreground: oklch(0.95 0.005 250);
   --destructive: oklch(0.6 0.2 25);
   --success: oklch(0.65 0.14 160);
   --success-foreground: oklch(0.85 0.08 160);
   --warning: oklch(0.75 0.12 85);
   --warning-foreground: oklch(0.88 0.1 85);
-  --border: oklch(0.28 0.01 260);
-  --input: oklch(0.25 0.01 260);
+  --border: oklch(0.32 0.005 260);
+  --input: oklch(0.28 0.005 260);
   --ring: oklch(0.72 0.14 55);
-  --sidebar: oklch(0.18 0.01 260);
+  --sidebar: oklch(0.23 0.005 260);
   --sidebar-foreground: oklch(0.95 0.005 250);
   --sidebar-primary: oklch(0.72 0.14 55);
   --sidebar-primary-foreground: oklch(0.15 0.01 260);
-  --sidebar-accent: oklch(0.25 0.01 260);
+  --sidebar-accent: oklch(0.28 0.005 260);
   --sidebar-accent-foreground: oklch(0.95 0.005 250);
-  --sidebar-border: oklch(0.28 0.01 260);
+  --sidebar-border: oklch(0.32 0.005 260);
   --sidebar-ring: oklch(0.72 0.14 55);
 
   /* Legacy dark tokens */
   --color-ink: oklch(0.95 0.005 250);
   --color-ink-muted: oklch(0.7 0.01 260);
   --color-ink-faint: oklch(0.5 0.005 260);
-  --color-ink-inverse: oklch(0.16 0.01 260);
-  --color-sky: oklch(0.16 0.01 260);
-  --color-sky-raised: oklch(0.2 0.01 260);
-  --color-sky-sunken: oklch(0.14 0.01 260);
-  --color-sky-overlay: oklch(0 0 0 / 0.6);
-  --color-edge: oklch(0.28 0.01 260);
-  --color-edge-strong: oklch(0.35 0.01 260);
+  --color-ink-inverse: oklch(0.21 0.005 260);
+  --color-sky: oklch(0.21 0.005 260);
+  --color-sky-raised: oklch(0.25 0.005 260);
+  --color-sky-sunken: oklch(0.18 0.005 260);
+  --color-sky-overlay: oklch(0 0 0 / 0.5);
+  --color-edge: oklch(0.32 0.005 260);
+  --color-edge-strong: oklch(0.38 0.005 260);
   --color-runway: oklch(0.72 0.14 55);
   --color-runway-hover: oklch(0.78 0.14 55);
   --color-runway-muted: oklch(0.72 0.14 55 / 0.15);
@@ -443,6 +443,7 @@
 
 /* Kuuki icon breathing animation - organic, air-like motion */
 @keyframes kuuki-breathe {
+
   0%,
   100% {
     transform: scale(1) translateY(0);

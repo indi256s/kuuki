@@ -95,7 +95,7 @@ export function PassportPage() {
       <AppHeader />
 
       {/* Main content - pb-safe adds bottom padding for mobile tab bar */}
-      <main className="max-w-6xl mx-auto px-6 py-8 pb-safe sm:pb-8">
+      <main className="max-w-7xl 3xl:max-w-[1800px] mx-auto px-4 sm:px-6 py-4 sm:py-6 pb-safe sm:pb-6">
         {/* Page header */}
         <div className="mb-8 animate-fade-up">
           <div className="flex items-center justify-between">
