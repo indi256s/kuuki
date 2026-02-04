@@ -13,6 +13,7 @@ import { MobileHeader } from '@/components/layout/MobileHeader'
 import { MobileTabBar } from '@/components/layout/MobileTabBar'
 import { Button } from '@/components/ui/button'
 import { MapCard } from '@/components/dashboard/MapCard'
+import { cn } from '@/lib/utils'
 import {
   Stamp,
   Plus,
@@ -26,6 +27,7 @@ export function PassportPage() {
   const { data: stats } = usePassportStats()
   const [isClaimDialogOpen, setIsClaimDialogOpen] = useState(false)
   const [isMapOpen, setIsMapOpen] = useState(false)
+  const [mapExpanded, setMapExpanded] = useState(false)
   const [preselectedCountry, setPreselectedCountry] = useState<string | null>(null)
 
   const themeColor = profile?.theme_color || 'teal'
@@ -69,12 +71,27 @@ export function PassportPage() {
 
         {/* Hero Section: Map & Stats */}
         {hasCountries && (
-          <div className="mb-8 grid grid-cols-1 lg:grid-cols-3 gap-6 animate-fade-up">
-            {/* Map Card - Spans 2 columns */}
-            <MapCard className="lg:col-span-2 min-h-[300px]" />
+          <div className={cn(
+            'mb-8 grid grid-cols-1 gap-6 animate-fade-up transition-all duration-300',
+            mapExpanded ? 'lg:grid-cols-1' : 'lg:grid-cols-3'
+          )}>
+            {/* Map Card - Spans 2 columns normally, full width when expanded */}
+            <div className={cn(
+              'transition-all duration-300',
+              mapExpanded ? 'lg:col-span-1 min-h-[500px]' : 'lg:col-span-2 min-h-[300px]'
+            )}>
+              <MapCard
+                className="h-full"
+                isExpanded={mapExpanded}
+                onExpandChange={setMapExpanded}
+              />
+            </div>
 
-            {/* Stats Summary - Spans 1 column */}
-            <div className="space-y-4">
+            {/* Stats Summary - Spans 1 column (hidden when map expanded) */}
+            <div className={cn(
+              'space-y-4 transition-all duration-300',
+              mapExpanded && 'hidden'
+            )}>
               <div className="h-full rounded-2xl border border-border/50 bg-card p-6 flex flex-col justify-between hover:border-primary/30 transition-colors">
                 <div>
                   <div className="flex items-center gap-3 mb-6">

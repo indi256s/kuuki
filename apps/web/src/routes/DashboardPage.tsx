@@ -25,12 +25,14 @@ import { AppHeader } from '@/components/common/AppHeader'
 import { MobileHeader } from '@/components/layout/MobileHeader'
 import { MobileTabBar } from '@/components/layout/MobileTabBar'
 import { Button } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
 
 export function DashboardPage() {
   const { t } = useTranslation()
   const { profile } = useAuth()
   const { data: stats } = useFlightStats()
   const [isFormOpen, setIsFormOpen] = useState(false)
+  const [mapExpanded, setMapExpanded] = useState(false)
   const setAvailableYears = useDashboardStore((state) => state.setAvailableYears)
 
   // Sync upcoming flights on dashboard load
@@ -96,9 +98,18 @@ export function DashboardPage() {
 
         {hasFlights ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 animate-fade-up">
-            {/* Cell 1: Hero Map (2x2) */}
-            <div className="col-span-1 md:col-span-2 row-span-2 h-[400px] md:h-auto">
-              <MapCard className="h-full w-full" />
+            {/* Cell 1: Hero Map (2x2 normally, 4x3 when expanded) */}
+            <div className={cn(
+              'row-span-2 h-[400px] md:h-auto transition-all duration-300',
+              mapExpanded
+                ? 'col-span-1 md:col-span-4 row-span-3'
+                : 'col-span-1 md:col-span-2'
+            )}>
+              <MapCard
+                className="h-full w-full"
+                isExpanded={mapExpanded}
+                onExpandChange={setMapExpanded}
+              />
             </div>
 
             {/* Cell 2: Scoreboard / Travel Summary (2x1) */}

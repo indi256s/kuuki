@@ -1,4 +1,4 @@
-import { useMemo, useCallback, memo } from 'react'
+import { useMemo, useCallback, memo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
   ComposableMap,
@@ -6,6 +6,7 @@ import {
   Geography,
   Line,
   Marker,
+  ZoomableGroup,
 } from 'react-simple-maps'
 import { useRecentFlights } from '@/hooks/useFlights'
 import { findAirport, findAirline } from '@kuuki/data'
@@ -21,8 +22,6 @@ interface RouteMapWithCountriesProps {
   visitedCountries?: string[]
   height?: string
   className?: string
-  interactive?: boolean
-  onExpand?: () => void
   onCountryClick?: (countryCode: string) => void
 }
 
@@ -51,8 +50,6 @@ export function RouteMapWithCountries({
   visitedCountries = [],
   height = '220px',
   className,
-  interactive = false,
-  onExpand,
   onCountryClick,
 }: RouteMapWithCountriesProps) {
   const { t } = useTranslation()
@@ -95,43 +92,58 @@ export function RouteMapWithCountries({
     return Array.from(airportMap.values())
   }, [arcs])
 
-  // Calculate dynamic viewport based on flight data
+  // Calculate weighted viewport - focuses on most visited region
   const viewport = useMemo(() => {
-    if (airports.length === 0) {
+    if (flights.length === 0) {
       // Default world view
       return { center: [10, 30] as [number, number], scale: 120 }
     }
 
-    let minLat = 90, maxLat = -90, minLon = 180, maxLon = -180
-    for (const airport of airports) {
-      minLat = Math.min(minLat, airport.lat)
-      maxLat = Math.max(maxLat, airport.lat)
-      minLon = Math.min(minLon, airport.lon)
-      maxLon = Math.max(maxLon, airport.lon)
+    // Count touchpoints per airport (more visits = higher weight)
+    const airportWeight = new Map<string, number>()
+    for (const flight of flights) {
+      airportWeight.set(flight.origin, (airportWeight.get(flight.origin) || 0) + 1)
+      airportWeight.set(flight.destination, (airportWeight.get(flight.destination) || 0) + 1)
     }
 
-    // Add padding (10% of the bounds)
-    const latPadding = (maxLat - minLat) * 0.15 || 10
-    const lonPadding = (maxLon - minLon) * 0.15 || 10
-    minLat = Math.max(-85, minLat - latPadding)
-    maxLat = Math.min(85, maxLat + latPadding)
-    minLon = Math.max(-180, minLon - lonPadding)
-    maxLon = Math.min(180, maxLon + lonPadding)
+    // Calculate weighted center
+    let totalWeight = 0
+    let weightedLat = 0
+    let weightedLon = 0
 
-    const centerLon = (minLon + maxLon) / 2
-    const centerLat = (minLat + maxLat) / 2
+    for (const [iata, weight] of airportWeight) {
+      const airport = findAirport(iata)
+      if (!airport) continue
+      weightedLat += airport.latitude * weight
+      weightedLon += airport.longitude * weight
+      totalWeight += weight
+    }
 
-    // Calculate scale based on the span (larger span = smaller scale)
-    const latSpan = maxLat - minLat
-    const lonSpan = maxLon - minLon
-    const maxSpan = Math.max(latSpan, lonSpan)
+    if (totalWeight === 0) {
+      return { center: [10, 30] as [number, number], scale: 120 }
+    }
 
-    // Map span to scale (heuristic: 10° span -> scale ~400, 180° span -> scale ~100)
-    // Scale = 4000 / maxSpan, clamped between 100 and 800
-    const scale = Math.min(800, Math.max(100, 3500 / Math.max(maxSpan, 5)))
+    const centerLat = weightedLat / totalWeight
+    const centerLon = weightedLon / totalWeight
+
+    // Calculate spread of weighted airports for scale calculation
+    let maxDistanceSq = 0
+    for (const [iata, weight] of airportWeight) {
+      const airport = findAirport(iata)
+      if (!airport) continue
+      // Weight affects how much we care about including this airport
+      const distSq = Math.pow(airport.latitude - centerLat, 2) + Math.pow(airport.longitude - centerLon, 2)
+      // Scale distance by inverse of weight - frequently visited airports matter more
+      maxDistanceSq = Math.max(maxDistanceSq, distSq * Math.min(1, 2 / weight))
+    }
+
+    // Convert distance to scale (tighter zoom for concentrated activity)
+    const spread = Math.sqrt(maxDistanceSq)
+    // Heuristic: 5° spread -> scale ~500, 90° spread -> scale ~120
+    const scale = Math.min(600, Math.max(120, 2500 / Math.max(spread, 5)))
 
     return { center: [centerLon, centerLat] as [number, number], scale }
-  }, [airports])
+  }, [flights])
 
   const handleCountryClick = useCallback((geo: { properties: { ISO_A2?: string; ISO_N3?: string } }) => {
     if (!onCountryClick) return
@@ -153,9 +165,23 @@ export function RouteMapWithCountries({
     return '#1e293b'
   }, [visitedSet])
 
-  const handleClick = useCallback(() => {
-    if (onExpand) onExpand()
-  }, [onExpand])
+  // ZoomableGroup state for interactive pan/zoom
+  const [position, setPosition] = useState({
+    center: viewport.center,
+    zoom: 1,
+  })
+
+  // Sync position with viewport when viewport changes (e.g., new flights loaded)
+  const initialCenter = viewport.center
+  const [lastInitialCenter, setLastInitialCenter] = useState(initialCenter)
+  if (initialCenter[0] !== lastInitialCenter[0] || initialCenter[1] !== lastInitialCenter[1]) {
+    setLastInitialCenter(initialCenter)
+    setPosition({ center: initialCenter, zoom: 1 })
+  }
+
+  const handleMoveEnd = useCallback(({ coordinates, zoom }: { coordinates: [number, number]; zoom: number }) => {
+    setPosition({ center: coordinates, zoom })
+  }, [])
 
   // Empty state
   if (flights.length === 0 && visitedCountries.length === 0) {
@@ -175,15 +201,9 @@ export function RouteMapWithCountries({
     <div
       className={cn(
         'relative overflow-hidden bg-[#0a0f18] rounded-xl',
-        !interactive && onExpand && 'cursor-pointer group',
         className
       )}
       style={{ height }}
-      onClick={!interactive ? handleClick : undefined}
-      onKeyDown={!interactive && onExpand ? (e) => e.key === 'Enter' && handleClick() : undefined}
-      role={!interactive && onExpand ? 'button' : undefined}
-      tabIndex={!interactive && onExpand ? 0 : undefined}
-      aria-label={!interactive && onExpand ? t('dashboard.expandMap', 'Expand map') : undefined}
     >
       <ComposableMap
         projection="geoMercator"
@@ -193,76 +213,84 @@ export function RouteMapWithCountries({
         }}
         style={{ width: '100%', height: '100%' }}
       >
-        {/* Countries */}
-        <Geographies geography={GEO_URL}>
-          {({ geographies }) =>
-            geographies.map((geo) => {
-              const alpha2 = geo.properties.ISO_A2 !== '-99'
-                ? geo.properties.ISO_A2
-                : numericToAlpha2[geo.properties.ISO_N3]
-              const isVisited = alpha2 && visitedSet.has(alpha2)
+        <ZoomableGroup
+          center={position.center}
+          zoom={position.zoom}
+          minZoom={0.5}
+          maxZoom={8}
+          onMoveEnd={handleMoveEnd}
+        >
+          {/* Countries */}
+          <Geographies geography={GEO_URL}>
+            {({ geographies }) =>
+              geographies.map((geo) => {
+                const alpha2 = geo.properties.ISO_A2 !== '-99'
+                  ? geo.properties.ISO_A2
+                  : numericToAlpha2[geo.properties.ISO_N3]
+                const isVisited = alpha2 && visitedSet.has(alpha2)
 
-              return (
-                <Geography
-                  key={geo.rsmKey}
-                  geography={geo}
-                  fill={getCountryColor(geo)}
-                  stroke="#334155"
-                  strokeWidth={0.3}
+                return (
+                  <Geography
+                    key={geo.rsmKey}
+                    geography={geo}
+                    fill={getCountryColor(geo)}
+                    stroke="#334155"
+                    strokeWidth={0.3}
+                    style={{
+                      default: {
+                        outline: 'none',
+                        opacity: isVisited ? 0.85 : 0.6,
+                      },
+                      hover: {
+                        outline: 'none',
+                        opacity: 1,
+                        fill: isVisited ? getCountryColor(geo) : '#334155',
+                      },
+                      pressed: { outline: 'none' },
+                    }}
+                    onClick={() => handleCountryClick(geo)}
+                  />
+                )
+              })
+            }
+          </Geographies>
+
+          {/* Flight routes - simple lines, no animation */}
+          {arcs.map((arc) => (
+            <Line
+              key={arc.id}
+              from={[arc.origin.lon, arc.origin.lat]}
+              to={[arc.destination.lon, arc.destination.lat]}
+              stroke={arc.airlineColor}
+              strokeWidth={1.5}
+              strokeLinecap="round"
+              strokeOpacity={0.7}
+            />
+          ))}
+
+          {/* Airport markers */}
+          {airports.map((airport) => (
+            <Marker key={airport.iata} coordinates={[airport.lon, airport.lat]}>
+              <circle r={2.5} fill="white" opacity={0.9} aria-hidden="true" />
+              {airports.length < 30 && (
+                <text
+                  textAnchor="middle"
+                  y={-6}
+                  aria-hidden="true"
                   style={{
-                    default: {
-                      outline: 'none',
-                      opacity: isVisited ? 0.85 : 0.6,
-                    },
-                    hover: {
-                      outline: 'none',
-                      opacity: 1,
-                      fill: isVisited ? getCountryColor(geo) : '#334155',
-                    },
-                    pressed: { outline: 'none' },
+                    fontFamily: 'ui-monospace, monospace',
+                    fontSize: '6px',
+                    fontWeight: 600,
+                    fill: 'white',
+                    opacity: 0.8,
                   }}
-                  onClick={() => handleCountryClick(geo)}
-                />
-              )
-            })
-          }
-        </Geographies>
-
-        {/* Flight routes - simple lines, no animation */}
-        {arcs.map((arc) => (
-          <Line
-            key={arc.id}
-            from={[arc.origin.lon, arc.origin.lat]}
-            to={[arc.destination.lon, arc.destination.lat]}
-            stroke={arc.airlineColor}
-            strokeWidth={1.5}
-            strokeLinecap="round"
-            strokeOpacity={0.7}
-          />
-        ))}
-
-        {/* Airport markers */}
-        {airports.map((airport) => (
-          <Marker key={airport.iata} coordinates={[airport.lon, airport.lat]}>
-            <circle r={2.5} fill="white" opacity={0.9} aria-hidden="true" />
-            {(interactive || airports.length < 15) && (
-              <text
-                textAnchor="middle"
-                y={-6}
-                aria-hidden="true"
-                style={{
-                  fontFamily: 'ui-monospace, monospace',
-                  fontSize: '6px',
-                  fontWeight: 600,
-                  fill: 'white',
-                  opacity: 0.8,
-                }}
-              >
-                {airport.iata}
-              </text>
-            )}
-          </Marker>
-        ))}
+                >
+                  {airport.iata}
+                </text>
+              )}
+            </Marker>
+          ))}
+        </ZoomableGroup>
       </ComposableMap>
 
       {/* Stats overlay */}
@@ -278,17 +306,6 @@ export function RouteMapWithCountries({
         )}
       </div>
 
-      {/* Expand hint */}
-      {onExpand && !interactive && (
-        <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-          <div className="flex items-center gap-1 px-2 py-1 bg-white/10 backdrop-blur rounded text-[9px] text-white/70 uppercase tracking-wider">
-            <svg className="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
-            </svg>
-            expand
-          </div>
-        </div>
-      )}
     </div>
   )
 }
