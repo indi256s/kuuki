@@ -2,7 +2,6 @@ import { Plane, Globe2, Ruler } from 'lucide-react'
 import { useDashboardStats } from '@/hooks/useDashboardStats'
 import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/utils'
-import { formatDistance } from '@/lib/geo'
 
 interface TravelSummaryCardProps {
   className?: string
@@ -14,60 +13,64 @@ export function TravelSummaryCard({ className }: TravelSummaryCardProps) {
 
   if (!stats) return null
 
-  if (!stats) return null
+  const metrics = [
+    {
+      icon: Plane,
+      value: stats.totalFlights,
+      label: t('stats.flights', 'Flights'),
+      percentile: stats.percentiles.flights,
+    },
+    {
+      icon: Globe2,
+      value: stats.uniqueCountries,
+      label: t('stats.countries', 'Countries'),
+      percentile: stats.percentiles.countries,
+    },
+    {
+      icon: Ruler,
+      value: `${(stats.totalDistance / 1000).toFixed(0)}k`,
+      sublabel: 'km',
+      label: t('stats.distance', 'Distance'),
+      percentile: stats.percentiles.distance,
+    },
+  ]
 
   return (
     <div
       className={cn(
-        'rounded-2xl border border-border/50 bg-card p-6',
+        'rounded-2xl border border-border/50 bg-card p-4 h-[200px]',
         'transition-all duration-200',
         'hover:border-primary/30',
-        'flex flex-col justify-center h-full',
+        'flex flex-col justify-between',
         className
       )}
     >
-      <div className="grid grid-cols-3 gap-4 divide-x divide-border/30">
-
-        {/* Metric 1: Flights */}
-        <div className="flex flex-col items-center justify-center text-center px-2">
-          <div className="mb-2 p-2 rounded-lg bg-primary/10 text-primary">
-            <Plane className="w-5 h-5" />
+      {metrics.map((metric, index) => {
+        const Icon = metric.icon
+        return (
+          <div key={index} className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-lg bg-primary/10 text-primary flex items-center justify-center flex-shrink-0">
+              <Icon className="w-4 h-4" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-baseline gap-1">
+                <span className="font-mono text-lg font-semibold tracking-tight">
+                  {metric.value}
+                </span>
+                {metric.sublabel && (
+                  <span className="text-[10px] text-muted-foreground">{metric.sublabel}</span>
+                )}
+              </div>
+              <div className="text-[11px] text-muted-foreground">
+                {metric.label}
+                {metric.percentile !== null && (
+                  <span className="ml-1.5 text-primary/70">Top {metric.percentile}%</span>
+                )}
+              </div>
+            </div>
           </div>
-          <div className="text-3xl font-bold font-mono tracking-tight text-foreground">
-            {stats.totalFlights}
-          </div>
-          <div className="text-xs uppercase tracking-wider text-muted-foreground mt-1">
-            {t('dashboard.flights', 'Experiments')}
-          </div>
-        </div>
-
-        {/* Metric 2: Countries */}
-        <div className="flex flex-col items-center justify-center text-center px-2">
-          <div className="mb-2 p-2 rounded-lg bg-primary/10 text-primary">
-            <Globe2 className="w-5 h-5" />
-          </div>
-          <div className="text-3xl font-bold font-mono tracking-tight text-foreground">
-            {stats.uniqueCountries}
-          </div>
-          <div className="text-xs uppercase tracking-wider text-muted-foreground mt-1">
-            {t('dashboard.countries', 'Territories')}
-          </div>
-        </div>
-
-        {/* Metric 3: Distance */}
-        <div className="flex flex-col items-center justify-center text-center px-2">
-          <div className="mb-2 p-2 rounded-lg bg-primary/10 text-primary">
-            <Ruler className="w-5 h-5" />
-          </div>
-          <div className="text-3xl font-bold font-mono tracking-tight text-foreground">
-            {formatDistance(stats.totalDistance)}
-            <span className="text-sm text-muted-foreground ml-1 font-normal">km</span>
-          </div>
-          <div className="text-xs uppercase tracking-wider text-muted-foreground mt-1">
-            {t('dashboard.distance', 'Displacement')}
-          </div>
-        </div>
-      </div>
-    </div >
+        )
+      })}
+    </div>
   )
 }

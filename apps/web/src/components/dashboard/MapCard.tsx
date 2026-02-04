@@ -20,26 +20,16 @@ export function MapCard({ className }: MapCardProps) {
   const { data: stats } = useDashboardStats()
 
   const visitedCountries = stats?.visitedCountries || []
-  const hasData = flights.length > 0
 
   return (
     <>
-      <div
-        className={cn(
-          // Base card styles
-          'rounded-2xl border border-border/50 bg-card overflow-hidden h-full w-full flex flex-col',
-          'transition-all duration-300',
-          // Hover effect
-          hasData && 'hover:border-primary/30 hover:shadow-glow-sm cursor-pointer',
-          className
-        )}
-      >
+      <div className={cn('overflow-hidden', className)}>
         <Suspense fallback={<MapSkeleton />}>
           <RouteMapWithCountries
             flights={flights}
             visitedCountries={visitedCountries}
-            height="100%" // Use 100% height for the map to fill the container
-            className="h-full w-full" // Ensure the map component itself takes full height/width
+            height="200px"
+            className="rounded-2xl border border-border/50"
             onExpand={() => setIsExpanded(true)}
           />
         </Suspense>

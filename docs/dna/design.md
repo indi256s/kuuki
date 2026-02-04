@@ -9,23 +9,23 @@
 
 **Name:** Warm Japanese Minimalism
 
-**Feel:** Traditional Japanese aesthetics (Ma, Shibui) in light mode, **Mad Scientist / Laboratory** in dark mode.
+**Feel:** Traditional Japanese aesthetics (Ma, Shibui) in light mode, high-precision instrumentation in dark mode.
 
 **Temperature:**
 
 - Light mode: Warm paper-like neutrals (Washi) — breathable, organic
-- Dark mode: Deep ink/charcoal with vibrant experimental accents — focused, energetic
+- Dark mode: Deep ink/charcoal with warm lantern accents — focused, atmospheric
 
 **Signature elements:**
 
 - **Hiragana (くうき):** Atmospheric branding
 - Generous whitespace ('Ma')
 - Soft rounded corners (16-32px for containers)
-- **Experimental Glows:** Dynamic, pulse-like energy (Science/Magic)
+- Subtle "lantern" glows (Coral/Warm light)
 - Typography-driven hierarchy
-- **Data Density:** High (Bento/Grid layouts)
+- Monochromatic palette with Coral/Terracotta accent
 
-**Target aesthetic:** Modern travelers who feel like crazy scientists analyzing their own life data. Think: Kyoto design studio meets Portal's GLaDOS (but friendly).
+**Target aesthetic:** Modern travelers who value mindfulness and precision. Think: Kyoto design studio meets cockpit avionics.
 
 ---
 
@@ -623,7 +623,6 @@ Prevent scroll "bleed" through modals:
 ### AutoFocus
 
 Use sparingly:
-
 - ✅ Single primary input on desktop
 - ❌ Never on mobile (opens keyboard unexpectedly)
 - ❌ Never multiple elements
@@ -671,7 +670,6 @@ const locale = navigator.language || 'en-US'
 Before building UI for a new feature:
 
 **Design**
-
 - [ ] Does it follow content-first principle?
 - [ ] Is it calm, not flashy?
 - [ ] Does it use progressive disclosure?
@@ -682,7 +680,6 @@ Before building UI for a new feature:
 - [ ] Works in dark mode?
 
 **Accessibility**
-
 - [ ] All buttons have visible text OR `aria-label`
 - [ ] All inputs have associated `<label>`
 - [ ] Focus states visible (`focus-visible:ring-*`)
@@ -690,20 +687,17 @@ Before building UI for a new feature:
 - [ ] Uses semantic HTML (`<button>`, `<a>`, not `<div onClick>`)
 
 **Forms**
-
 - [ ] Inputs have `name` and `autocomplete` attributes
 - [ ] Correct input `type` (email, tel, password)
 - [ ] Errors displayed inline, first error focused
 - [ ] Unsaved changes warning if applicable
 
 **Animation**
-
 - [ ] No `transition-all` — specific properties only
 - [ ] Only animates `transform`/`opacity`
 - [ ] Respects `prefers-reduced-motion`
 
 **Touch & Mobile**
-
 - [ ] Touch targets minimum 44×44px
 - [ ] Safe area insets for full-bleed
 - [ ] No `autoFocus` on mobile
@@ -713,7 +707,6 @@ Before building UI for a new feature:
 When generating UI code:
 
 **Components & Styling**
-
 1. **Use shadcn components** — Don't reinvent buttons, cards, dialogs
 2. **Use design tokens** — `bg-background`, not `bg-white`; `text-foreground`, not `text-gray-900`
 3. **Use cn() helper** — For conditional classes
