@@ -203,6 +203,10 @@ export function RouteMapWithCountries({
     setPosition({ center: coordinates, zoom })
   }, [])
 
+  // Adaptive scaling factor - uses square root for smoother scaling
+  // At zoom 1: factor = 1, zoom 4: factor = 2, zoom 8: factor = 2.83
+  const scaleFactor = Math.pow(position.zoom, 0.5)
+
   // Empty state
   if (flights.length === 0 && visitedCountries.length === 0) {
     return (
@@ -255,7 +259,7 @@ export function RouteMapWithCountries({
                     geography={geo}
                     fill={getCountryColor(geo)}
                     stroke="#334155"
-                    strokeWidth={0.3 / position.zoom}
+                    strokeWidth={0.3 / scaleFactor}
                     style={{
                       default: {
                         outline: 'none',
@@ -275,31 +279,31 @@ export function RouteMapWithCountries({
             }
           </Geographies>
 
-          {/* Flight routes - scale inversely with zoom */}
+          {/* Flight routes - adaptive scaling */}
           {arcs.map((arc) => (
             <Line
               key={arc.id}
               from={[arc.origin.lon, arc.origin.lat]}
               to={[arc.destination.lon, arc.destination.lat]}
               stroke={arc.airlineColor}
-              strokeWidth={1.5 / position.zoom}
+              strokeWidth={1.5 / scaleFactor}
               strokeLinecap="round"
               strokeOpacity={0.7}
             />
           ))}
 
-          {/* Airport markers - scale inversely with zoom */}
+          {/* Airport markers - adaptive scaling */}
           {airports.map((airport) => (
             <Marker key={airport.iata} coordinates={[airport.lon, airport.lat]}>
-              <circle r={2.5 / position.zoom} fill="white" opacity={0.9} aria-hidden="true" />
+              <circle r={3 / scaleFactor} fill="white" opacity={0.9} aria-hidden="true" />
               {airports.length < 30 && (
                 <text
                   textAnchor="middle"
-                  y={-6 / position.zoom}
+                  y={-8 / scaleFactor}
                   aria-hidden="true"
                   style={{
                     fontFamily: 'ui-monospace, monospace',
-                    fontSize: `${6 / position.zoom}px`,
+                    fontSize: `${7 / scaleFactor}px`,
                     fontWeight: 600,
                     fill: 'white',
                     opacity: 0.8,
