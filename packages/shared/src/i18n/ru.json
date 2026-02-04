@@ -24,12 +24,7 @@
     "more": "ещё",
     "moreActions": "Действия",
     "optional": "необязательно",
-    "saving": "Сохранение...",
-    "dismiss": "Скрыть"
-  },
-  "app": {
-    "updateAvailable": "Доступна новая версия",
-    "reload": "Обновить"
+    "saving": "Сохранение..."
   },
   "about": {
     "title": "Что такое Kuuki?",

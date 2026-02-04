@@ -13,7 +13,6 @@ import { SettingsPage } from '@/routes/SettingsPage'
 import { DevResetPage } from '@/routes/DevResetPage'
 import { ProtectedRoute } from '@/components/ProtectedRoute'
 import { ToastProvider, ErrorBoundary } from '@/components/error'
-import { ReloadPrompt } from '@/components/common/ReloadPrompt'
 
 /**
  * React Query configuration with:
@@ -139,7 +138,6 @@ export default function App() {
       <BrowserRouter>
         <AppRoutes />
         <ToastProvider />
-        <ReloadPrompt />
       </BrowserRouter>
     </QueryClientProvider>
   )

@@ -24,12 +24,7 @@
     "more": "more",
     "moreActions": "More actions",
     "optional": "optional",
-    "saving": "Saving...",
-    "dismiss": "Dismiss"
-  },
-  "app": {
-    "updateAvailable": "New version available",
-    "reload": "Reload"
+    "saving": "Saving..."
   },
   "about": {
     "title": "What is Kuuki?",
