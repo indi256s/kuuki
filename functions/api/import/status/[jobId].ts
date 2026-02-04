@@ -1,6 +1,10 @@
 import { getJob, type ParseResponse } from '../_shared'
 
-export const onRequestGet: PagesFunction = async (context) => {
+interface Env {
+  IMPORT_JOBS: KVNamespace
+}
+
+export const onRequestGet: PagesFunction<Env> = async (context) => {
   const corsHeaders = {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Methods': 'GET, OPTIONS',
@@ -20,7 +24,8 @@ export const onRequestGet: PagesFunction = async (context) => {
     )
   }
 
-  const job = getJob(jobId)
+  const kv = context.env.IMPORT_JOBS
+  const job = await getJob(kv, jobId)
 
   if (!job) {
     return Response.json(

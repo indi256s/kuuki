@@ -11,3 +11,8 @@ compatibility_flags = ["nodejs_compat"]
 # Environment variables for Functions
 [vars]
 # Add any non-secret environment variables here
+
+# KV Namespaces
+[[kv_namespaces]]
+binding = "IMPORT_JOBS"
+id = "15bad9e7dfa44f8382883513c8bff292"

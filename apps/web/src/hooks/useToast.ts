@@ -17,6 +17,13 @@ interface ToastErrorOptions {
 interface ToastSuccessOptions {
   /** Optional description below the title */
   description?: string
+  /** Optional action button */
+  action?: {
+    label: string
+    onClick: () => void
+  }
+  /** Duration in ms (default: 4000) */
+  duration?: number
 }
 
 /**
@@ -91,12 +98,20 @@ export function useToast() {
    * Show a success toast with i18n messages.
    */
   const showSuccess = useCallback(
-    (messageKey: string, options: ToastSuccessOptions = {}) => {
-      const message = t(messageKey)
+    (message: string, options: ToastSuccessOptions = {}) => {
+      // If message looks like a translation key, translate it
+      const displayMessage = message.includes('.') ? t(message) : message
       const description = options.description ? t(options.description) : undefined
 
-      toast.success(message, {
+      toast.success(displayMessage, {
         description,
+        duration: options.duration,
+        ...(options.action && {
+          action: {
+            label: options.action.label,
+            onClick: options.action.onClick,
+          },
+        }),
       })
     },
     [t]

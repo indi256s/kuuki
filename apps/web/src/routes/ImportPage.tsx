@@ -5,6 +5,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { useCreateFlight, useFlights } from '@/hooks/useFlights'
 import { useParseImport, type ExtractedFlight, type RejectedFlight } from '@/hooks/useImport'
 import { useToast } from '@/hooks/useToast'
+import { useImportStore } from '@/stores/importStore'
 import { AppHeader } from '@/components/common/AppHeader'
 import { MobileHeader } from '@/components/layout/MobileHeader'
 import { MobileTabBar } from '@/components/layout/MobileTabBar'
@@ -24,14 +25,25 @@ import { PlaneAnimation } from '@/components/common/PlaneAnimation'
 type ImportStep = 'upload' | 'parsing' | 'review' | 'saving' | 'success'
 type InputType = 'text' | 'pdf' | 'image'
 
+// Location state for resuming from background
+interface BackgroundState {
+  textContent?: string
+  enrichedFlights?: ExtractedFlight[]
+  basicFlights?: ExtractedFlight[]
+  fromBackground?: boolean
+  enrichmentFailed?: boolean
+  jobId?: string
+}
+
 export function ImportPage() {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const location = useLocation()
   const queryClient = useQueryClient()
 
-  // Check for text content passed from EmptyState
-  const initialTextContent = (location.state as { textContent?: string } | null)?.textContent
+  // Background state from location (resume from toast notification)
+  const locationState = location.state as BackgroundState | null
+  const initialTextContent = locationState?.textContent
 
   const [step, setStep] = useState<ImportStep>('upload')
   const [inputType, setInputType] = useState<InputType>('text')
@@ -43,10 +55,12 @@ export function ImportPage() {
   const [isFormOpen, setIsFormOpen] = useState(false)
   const [parseError, setParseError] = useState<string | null>(null)
   const [saveErrors, setSaveErrors] = useState<number[]>([]) // Track failed flight indices
+  const [enrichmentJobId, setEnrichmentJobId] = useState<string | undefined>()
 
   const parseMutation = useParseImport()
   const createFlightMutation = useCreateFlight()
   const { showError } = useToast()
+  const { addBackgroundJob, removeBackgroundJob } = useImportStore()
 
   // Get existing flights for duplicate detection
   const { data: existingFlightsData } = useFlights(undefined, undefined, 1000)
@@ -57,11 +71,31 @@ export function ImportPage() {
     })
   })
 
-  // Auto-submit text content if passed from EmptyState
+  // Handle initial state: text content from EmptyState or resuming from background
   useEffect(() => {
+    // Resume from background notification
+    if (locationState?.fromBackground) {
+      if (locationState.enrichedFlights) {
+        // Enrichment completed - show enriched flights
+        setExtractedFlights(locationState.enrichedFlights)
+        setStep('review')
+      } else if (locationState.basicFlights) {
+        // Enrichment failed - show basic flights
+        setExtractedFlights(locationState.basicFlights)
+        setStep('review')
+      }
+      // Remove the background job
+      if (locationState.jobId) {
+        removeBackgroundJob(locationState.jobId)
+      }
+      // Clear location state
+      navigate(location.pathname, { replace: true, state: {} })
+      return
+    }
+
+    // Auto-submit text content from EmptyState
     if (initialTextContent && step === 'upload') {
       handleUploadSubmit({ type: 'text', content: initialTextContent })
-      // Clear the location state to prevent re-submission on refresh
       navigate(location.pathname, { replace: true, state: {} })
     }
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
@@ -70,6 +104,7 @@ export function ImportPage() {
     setInputType(data.type)
     setStep('parsing')
     setParseError(null) // Clear any previous error
+    setEnrichmentJobId(undefined)
 
     try {
       const result = await parseMutation.mutateAsync(data)
@@ -77,6 +112,8 @@ export function ImportPage() {
       setRejectedFlights(result.rejected || [])
       setGeminiCount(result.gemini_count)
       setCleanedText(result.cleaned_text)
+      // Track enrichment job ID for two-phase import
+      setEnrichmentJobId(result.enrichmentJobId)
       setStep('review')
     } catch (error) {
       console.error('Parse error:', error)
@@ -183,8 +220,25 @@ export function ImportPage() {
     setCleanedText(undefined)
     setParseError(null)
     setSaveErrors([])
+    setEnrichmentJobId(undefined)
     parseMutation.reset()
   }, [parseMutation])
+
+  // Handle "Continue in Background" - save job to store and navigate away
+  const handleContinueInBackground = useCallback(() => {
+    if (enrichmentJobId && extractedFlights.length > 0) {
+      // Save to background store for later notification
+      addBackgroundJob({
+        jobId: enrichmentJobId,
+        basicFlights: extractedFlights,
+        startedAt: Date.now(),
+        returnPath: '/import',
+      })
+
+      // Navigate to flights list
+      navigate('/flights')
+    }
+  }, [enrichmentJobId, extractedFlights, addBackgroundJob, navigate])
 
   const handleManualAdd = useCallback(() => {
     setIsFormOpen(true)
@@ -207,6 +261,7 @@ export function ImportPage() {
     setSavedCount(0)
     setParseError(null)
     setSaveErrors([])
+    setEnrichmentJobId(undefined)
     parseMutation.reset()
   }, [parseMutation])
 
@@ -289,6 +344,8 @@ export function ImportPage() {
                     rejected={rejectedFlights}
                     geminiCount={geminiCount}
                     cleanedText={cleanedText}
+                    enrichmentJobId={enrichmentJobId}
+                    onEnrichmentComplete={(enrichedFlights) => setExtractedFlights(enrichedFlights)}
                   />
                 </>
               )}
@@ -358,6 +415,7 @@ export function ImportPage() {
       <FlightProgressModal
         isOpen={step === 'parsing'}
         onCancel={handleCancel}
+        onContinueInBackground={enrichmentJobId ? handleContinueInBackground : undefined}
         inputType={inputType}
       />
     </div>

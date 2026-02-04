@@ -8,6 +8,7 @@ import {
   detectImageMimeType,
   EXTRACTION_PROMPT,
   CLEANING_PROMPT,
+  parseCleanedText,
   createJob,
   updateJob,
   ASYNC_THRESHOLD,
@@ -15,6 +16,7 @@ import {
 
 interface Env {
   GEMINI_API_KEY: string
+  IMPORT_JOBS: KVNamespace
 }
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10 MB
@@ -23,7 +25,7 @@ const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10 MB
 async function cleanTextWithGemini(ai: GoogleGenAI, rawText: string): Promise<string> {
   try {
     const response = await ai.models.generateContent({
-      model: 'gemini-3-flash-preview',
+      model: 'gemini-2.0-flash',
       contents: `${CLEANING_PROMPT}\n\nRaw data to clean:\n${rawText}`,
     })
 
@@ -35,7 +37,7 @@ async function cleanTextWithGemini(ai: GoogleGenAI, rawText: string): Promise<st
   }
 }
 
-// JSON schema for structured output
+// JSON schema for structured output (full extraction with aircraft/times)
 const FLIGHT_RESPONSE_SCHEMA = {
   type: Type.OBJECT,
   properties: {
@@ -97,8 +99,8 @@ function estimateFlightCount(cleanedText: string): number {
   return cleanedText.trim().split('\n').filter(line => line.trim()).length
 }
 
-// Core extraction logic (Stage 2) - shared between sync and async paths
-async function extractFlights(
+// Core extraction logic (Phase 2 - full Gemini extraction with aircraft/times)
+async function extractFlightsWithGemini(
   ai: GoogleGenAI,
   contents: (string | { inlineData: { data: string; mimeType: string } })[],
   cleanedText?: string
@@ -111,7 +113,7 @@ async function extractFlights(
 }> {
   // Call Gemini API using the official SDK
   const response = await ai.models.generateContent({
-    model: 'gemini-3-flash-preview',
+    model: 'gemini-2.0-flash',
     contents,
     config: {
       responseMimeType: 'application/json',
@@ -274,8 +276,9 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
 
     // Initialize Google GenAI client
     const ai = new GoogleGenAI({ apiKey: context.env.GEMINI_API_KEY })
+    const kv = context.env.IMPORT_JOBS
 
-    // Build content parts for the request
+    // Build content parts for full extraction
     type ContentPart = string | { inlineData: { data: string; mimeType: string } }
     const contents: ContentPart[] = [EXTRACTION_PROMPT]
 
@@ -283,44 +286,50 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     let cleanedText: string | undefined
 
     if (type === 'text') {
-      // Two-stage parsing for text: Clean first, then extract
-      console.log('Stage 1: Cleaning text input...')
+      // ========================================================================
+      // TWO-PHASE IMPORT FOR TEXT
+      // Phase 1: Clean → Regex parse → Return basic flights immediately
+      // Phase 2: Full Gemini extraction in background → Update via polling
+      // ========================================================================
+
+      console.log('Phase 1: Cleaning text input...')
       cleanedText = await cleanTextWithGemini(ai, content)
       console.log('Cleaned text:', cleanedText)
 
-      // If cleaning produced empty result, fall back to original
-      if (!cleanedText.trim()) {
-        console.log('Cleaning returned empty, using original text')
-        contents.push(`\n\nDocument content:\n${content}`)
-      } else {
-        contents.push(`\n\nDocument content:\n${cleanedText}`)
-      }
+      // If cleaning produced empty result, fall back to original text
+      const textForExtraction = cleanedText.trim() ? cleanedText : content
+      contents.push(`\n\nDocument content:\n${textForExtraction}`)
 
-      // Check if we should go async (10+ estimated flights)
-      const estimatedCount = estimateFlightCount(cleanedText || content)
+      // Estimate flight count
+      const estimatedCount = estimateFlightCount(textForExtraction)
       console.log(`Estimated flight count: ${estimatedCount}`)
 
-      if (estimatedCount >= ASYNC_THRESHOLD) {
-        // Create a job and return immediately
-        const job = createJob()
-        console.log(`Async mode: Created job ${job.id} for ${estimatedCount} flights`)
+      // Phase 1: Parse cleaned text with regex for basic flights
+      const basicFlights = parseCleanedText(textForExtraction)
+      console.log(`Phase 1: Regex parsed ${basicFlights.length} basic flights`)
 
-        // Use waitUntil to continue processing after response
+      // For large imports (10+), use two-phase approach
+      if (estimatedCount >= ASYNC_THRESHOLD && basicFlights.length > 0) {
+        // Create enrichment job in KV
+        const job = await createJob(kv, 'enrichment')
+        console.log(`Two-phase mode: Created enrichment job ${job.id} for ${basicFlights.length} flights`)
+
+        // Phase 2: Background Gemini extraction
         context.waitUntil(
           (async () => {
             try {
-              const result = await extractFlights(ai, contents, cleanedText)
-              updateJob(job.id, {
+              const result = await extractFlightsWithGemini(ai, contents, cleanedText)
+              await updateJob(kv, job.id, {
                 status: 'completed',
                 flights: result.flights,
                 rejected: result.rejected,
                 gemini_count: result.gemini_count,
                 cleaned_text: result.cleaned_text,
               })
-              console.log(`Job ${job.id} completed with ${result.flights.length} flights`)
+              console.log(`Enrichment job ${job.id} completed with ${result.flights.length} flights`)
             } catch (error) {
-              console.error(`Job ${job.id} failed:`, error)
-              updateJob(job.id, {
+              console.error(`Enrichment job ${job.id} failed:`, error)
+              await updateJob(kv, job.id, {
                 status: 'failed',
                 error: error instanceof Error ? error.message : 'Unknown error',
               })
@@ -328,18 +337,22 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
           })()
         )
 
-        // Return immediately with job ID
+        // Return basic flights immediately with enrichment job ID
         return Response.json(
           {
-            flights: [],
-            jobId: job.id,
-            status: 'processing',
+            flights: basicFlights,
+            enrichmentJobId: job.id,
+            enrichmentStatus: 'pending',
+            cleaned_text: cleanedText,
           } as ParseResponse,
           { headers: corsHeaders }
         )
       }
+
+      // For small imports (<10 flights), do synchronous full extraction
+      // This is faster overall than two-phase for small batches
     } else {
-      // Single-stage parsing for PDF/image (no async for now - harder to estimate)
+      // Single-stage parsing for PDF/image (no two-phase for now - harder to estimate)
       const mimeType = type === 'pdf' ? 'application/pdf' : detectImageMimeType(content)
       contents.push({
         inlineData: {
@@ -349,12 +362,13 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
       })
     }
 
-    // Sync path: extract and return immediately
-    const result = await extractFlights(ai, contents, cleanedText)
+    // Sync path: full extraction and return immediately
+    const result = await extractFlightsWithGemini(ai, contents, cleanedText)
 
     return Response.json(
       {
         ...result,
+        enrichmentStatus: 'completed', // Mark as complete since we did full extraction
       } as ParseResponse,
       { headers: corsHeaders }
     )

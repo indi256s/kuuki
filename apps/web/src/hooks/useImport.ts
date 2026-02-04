@@ -1,7 +1,9 @@
 import { useMutation } from '@tanstack/react-query'
+import { useEffect, useRef, useCallback } from 'react'
 
 export type EnrichmentStatus = 'pending' | 'enriched' | 'failed' | 'skipped'
 export type JobStatus = 'processing' | 'completed' | 'failed'
+export type EnrichmentStatusType = 'pending' | 'completed' | 'failed'
 
 export interface ExtractedFlight {
   date: string
@@ -43,9 +45,12 @@ export interface ParseResult {
   rejected?: RejectedFlight[]
   gemini_count?: number
   cleaned_text?: string // Normalized text from Stage 1 (text input only)
-  // Async mode fields
+  // Legacy async mode fields
   jobId?: string
   status?: JobStatus
+  // Two-phase import fields
+  enrichmentJobId?: string
+  enrichmentStatus?: EnrichmentStatusType
 }
 
 export interface ParseRequest {
@@ -53,11 +58,18 @@ export interface ParseRequest {
   content: string
 }
 
+// Enrichment response from /api/import/enrichment/[jobId]
+interface EnrichmentResponse {
+  status: EnrichmentStatusType
+  flights?: ExtractedFlight[]
+  error?: string
+}
+
 // Polling configuration
 const POLL_INTERVAL_MS = 2500 // Poll every 2.5 seconds
 const MAX_POLL_ATTEMPTS = 120 // Max 5 minutes of polling (120 * 2.5s)
 
-// Helper to poll for job status
+// Helper to poll for legacy job status (backwards compatibility)
 async function pollJobStatus(jobId: string, signal?: AbortSignal): Promise<ParseResult> {
   let attempts = 0
 
@@ -117,13 +129,14 @@ export function useParseImport() {
 
         const result: ParseResult = await response.json()
 
-        // Check if this is async mode
-        if (result.status === 'processing' && result.jobId) {
-          console.log(`Async import started, polling job ${result.jobId}...`)
+        // Check if this is legacy async mode (no flights returned, just jobId)
+        if (result.status === 'processing' && result.jobId && result.flights.length === 0) {
+          console.log(`Legacy async import started, polling job ${result.jobId}...`)
           return await pollJobStatus(result.jobId, controller.signal)
         }
 
-        // Sync mode - return result directly
+        // Two-phase mode: return result with basic flights and enrichmentJobId
+        // The UI will handle polling for enrichment separately
         return result
       } catch (error) {
         if (error instanceof Error && error.name === 'AbortError') {
@@ -133,4 +146,95 @@ export function useParseImport() {
       }
     },
   })
+}
+
+/**
+ * Hook for polling enrichment status in two-phase import.
+ *
+ * @param jobId - The enrichment job ID to poll
+ * @param onComplete - Called when enrichment completes with enriched flights
+ * @param onError - Called when enrichment fails
+ * @param enabled - Whether polling is active (default: true if jobId is provided)
+ */
+export function useEnrichmentPolling(
+  jobId: string | null | undefined,
+  onComplete: (flights: ExtractedFlight[]) => void,
+  onError?: (error: string) => void,
+  enabled = true
+) {
+  const attemptsRef = useRef(0)
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const onCompleteRef = useRef(onComplete)
+  const onErrorRef = useRef(onError)
+
+  // Keep callbacks fresh without triggering effect
+  onCompleteRef.current = onComplete
+  onErrorRef.current = onError
+
+  const stopPolling = useCallback(() => {
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current)
+      intervalRef.current = null
+    }
+    attemptsRef.current = 0
+  }, [])
+
+  useEffect(() => {
+    if (!jobId || !enabled) {
+      stopPolling()
+      return
+    }
+
+    const poll = async () => {
+      if (attemptsRef.current >= MAX_POLL_ATTEMPTS) {
+        stopPolling()
+        onErrorRef.current?.('Enrichment timed out. You can still save the basic flights.')
+        return
+      }
+
+      try {
+        const response = await fetch(`/api/import/enrichment/${jobId}`)
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}))
+          if (response.status === 404) {
+            // Job expired or not found
+            stopPolling()
+            onErrorRef.current?.('Enrichment job expired. You can still save the basic flights.')
+            return
+          }
+          throw new Error(errorData.error || 'Failed to check enrichment status')
+        }
+
+        const data: EnrichmentResponse = await response.json()
+
+        if (data.status === 'completed' && data.flights) {
+          stopPolling()
+          onCompleteRef.current(data.flights)
+          return
+        }
+
+        if (data.status === 'failed') {
+          stopPolling()
+          onErrorRef.current?.(data.error || 'Enrichment failed')
+          return
+        }
+
+        // Still pending, continue polling
+        attemptsRef.current++
+      } catch (error) {
+        console.error('Enrichment poll error:', error)
+        attemptsRef.current++
+        // Don't stop polling on transient errors
+      }
+    }
+
+    // Start polling immediately
+    poll()
+    intervalRef.current = setInterval(poll, POLL_INTERVAL_MS)
+
+    return stopPolling
+  }, [jobId, enabled, stopPolling])
+
+  return { stopPolling }
 }

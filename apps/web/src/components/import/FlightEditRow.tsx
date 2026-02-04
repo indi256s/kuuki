@@ -4,11 +4,12 @@ import { findAirport, findAirline } from '@kuuki/data'
 import { AirportAutocomplete } from '../flights/AirportAutocomplete'
 import { AirlineAutocomplete } from '../flights/AirlineAutocomplete'
 import { AircraftAutocomplete } from '../flights/AircraftAutocomplete'
+import { EnrichmentFieldShimmer } from './EnrichmentShimmer'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { ChevronDown, Trash2, AlertCircle, Plane } from 'lucide-react'
+import { ChevronDown, Trash2, AlertCircle, Plane, Loader2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { ExtractedFlight } from '../../hooks/useImport'
 
@@ -17,6 +18,8 @@ interface FlightEditRowProps {
   index: number
   selected: boolean
   isDuplicate?: boolean
+  /** Whether enrichment is in progress (shows shimmer for aircraft/times) */
+  isEnriching?: boolean
   onSelect: (selected: boolean) => void
   onChange: (flight: ExtractedFlight) => void
   onDelete: () => void
@@ -29,6 +32,7 @@ export function FlightEditRow({
   index,
   selected,
   isDuplicate,
+  isEnriching = false,
   onSelect,
   onChange,
   onDelete,
@@ -140,7 +144,13 @@ export function FlightEditRow({
         </div>
 
         {/* Status indicators */}
-        <div className="flex items-center gap-2 w-24 flex-shrink-0 justify-end">
+        <div className="flex items-center gap-2 w-28 flex-shrink-0 justify-end">
+          {isEnriching && (
+            <span className="text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20 flex items-center gap-1">
+              <Loader2 className="w-3 h-3 animate-spin" />
+              {t('import.review.enriching', 'Enriching')}
+            </span>
+          )}
           {isDuplicate && (
             <span className="text-xs px-2 py-0.5 rounded-full bg-warning/10 text-warning-foreground border border-warning/20">
               {t('import.review.duplicate', 'Duplicate')}
@@ -151,7 +161,7 @@ export function FlightEditRow({
               {t('import.review.invalid', 'Invalid')}
             </span>
           )}
-          {flight.confidence < LOW_CONFIDENCE_THRESHOLD && !isDuplicate && isValid && (
+          {flight.confidence < LOW_CONFIDENCE_THRESHOLD && !isDuplicate && isValid && !isEnriching && (
             <AlertCircle className="w-4 h-4 text-warning" />
           )}
         </div>
@@ -257,37 +267,58 @@ export function FlightEditRow({
             </div>
 
             <div className="space-y-1.5">
-              <Label className="text-xs text-muted-foreground">
+              <Label className="text-xs text-muted-foreground flex items-center gap-1.5">
                 {t('flights.aircraft', 'Aircraft')}
+                {isEnriching && !flight.aircraft_icao && (
+                  <Loader2 className="w-3 h-3 animate-spin text-muted-foreground" />
+                )}
               </Label>
-              <AircraftAutocomplete
-                value={flight.aircraft_icao || ''}
-                onChange={(icao) => handleFieldChange('aircraft_icao', icao)}
-              />
+              {isEnriching && !flight.aircraft_icao ? (
+                <EnrichmentFieldShimmer />
+              ) : (
+                <AircraftAutocomplete
+                  value={flight.aircraft_icao || ''}
+                  onChange={(icao) => handleFieldChange('aircraft_icao', icao)}
+                />
+              )}
             </div>
 
             <div className="space-y-1.5">
-              <Label className="text-xs text-muted-foreground">
+              <Label className="text-xs text-muted-foreground flex items-center gap-1.5">
                 {t('flights.departureTime', 'Departure')}
+                {isEnriching && !flight.departure_time && (
+                  <Loader2 className="w-3 h-3 animate-spin text-muted-foreground" />
+                )}
               </Label>
-              <Input
-                type="time"
-                value={flight.departure_time || ''}
-                onChange={(e) => handleFieldChange('departure_time', e.target.value)}
-                className="h-9"
-              />
+              {isEnriching && !flight.departure_time ? (
+                <EnrichmentFieldShimmer />
+              ) : (
+                <Input
+                  type="time"
+                  value={flight.departure_time || ''}
+                  onChange={(e) => handleFieldChange('departure_time', e.target.value)}
+                  className="h-9"
+                />
+              )}
             </div>
 
             <div className="space-y-1.5">
-              <Label className="text-xs text-muted-foreground">
+              <Label className="text-xs text-muted-foreground flex items-center gap-1.5">
                 {t('flights.arrivalTime', 'Arrival')}
+                {isEnriching && !flight.arrival_time && (
+                  <Loader2 className="w-3 h-3 animate-spin text-muted-foreground" />
+                )}
               </Label>
-              <Input
-                type="time"
-                value={flight.arrival_time || ''}
-                onChange={(e) => handleFieldChange('arrival_time', e.target.value)}
-                className="h-9"
-              />
+              {isEnriching && !flight.arrival_time ? (
+                <EnrichmentFieldShimmer />
+              ) : (
+                <Input
+                  type="time"
+                  value={flight.arrival_time || ''}
+                  onChange={(e) => handleFieldChange('arrival_time', e.target.value)}
+                  className="h-9"
+                />
+              )}
             </div>
           </div>
 

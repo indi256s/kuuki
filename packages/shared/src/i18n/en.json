@@ -505,7 +505,12 @@
       "reading": "Reading file...",
       "extracting": "Extracting text...",
       "finding": "Finding flights...",
-      "hint": "This usually takes a few seconds"
+      "hint": "This usually takes a few seconds",
+      "analyzingText": "Analyzing flight data",
+      "analyzingDocument": "Reading document",
+      "continueInBackground": "Continue in background",
+      "inProgress": "in progress",
+      "redirectHint": "Processing in overlay..."
     },
     "review": {
       "title": "Review extracted flights",
@@ -524,7 +529,18 @@
       "confidence": "AI Confidence",
       "addManually": "Add manually",
       "viewNormalized": "View normalized data",
-      "count": "{{selected}} of {{total}} flights selected"
+      "count": "{{selected}} of {{total}} flights selected",
+      "enriching": "Enriching",
+      "enrichingFlights": "Fetching aircraft and timing details..."
+    },
+    "background": {
+      "ready": "{{count}} flights ready to review",
+      "review": "Review"
+    },
+    "enrichment": {
+      "failed": "Could not fetch aircraft and timing details",
+      "retry": "Try again",
+      "skip": "Skip and add later"
     },
     "noResults": {
       "title": "No flights found",

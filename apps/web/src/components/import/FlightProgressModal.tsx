@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/utils'
-import { Check, Loader2 } from 'lucide-react'
+import { Check, Loader2, ArrowRight } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 
 // Import stages with timing estimates
 const STAGES = [
@@ -37,10 +38,19 @@ const FUN_FACTS = [
 interface FlightProgressModalProps {
   isOpen: boolean
   onCancel?: () => void
+  onContinueInBackground?: () => void
   inputType?: 'text' | 'pdf' | 'image'
+  /** Show "Continue in Background" after this many ms (default: 7000) */
+  showBackgroundAfterMs?: number
 }
 
-export function FlightProgressModal({ isOpen, onCancel, inputType = 'text' }: FlightProgressModalProps) {
+export function FlightProgressModal({
+  isOpen,
+  onCancel,
+  onContinueInBackground,
+  inputType = 'text',
+  showBackgroundAfterMs = 7000,
+}: FlightProgressModalProps) {
   const { t, i18n } = useTranslation()
   const [elapsedMs, setElapsedMs] = useState(0)
   const [factIndex, setFactIndex] = useState(0)
@@ -218,15 +228,30 @@ export function FlightProgressModal({ isOpen, onCancel, inputType = 'text' }: Fl
           </div>
         </div>
 
-        {/* Cancel button - below card */}
-        {onCancel && (
-          <button
-            onClick={onCancel}
-            className="w-full mt-4 px-4 py-2.5 text-sm text-muted-foreground hover:text-foreground hover:bg-card/50 rounded-xl transition-colors border border-transparent hover:border-border/30"
-          >
-            {t('common.cancel')}
-          </button>
-        )}
+        {/* Action buttons - below card */}
+        <div className="mt-4 space-y-2">
+          {/* Continue in Background - shown after threshold */}
+          {onContinueInBackground && elapsedMs >= showBackgroundAfterMs && (
+            <Button
+              onClick={onContinueInBackground}
+              className="w-full gap-2 rounded-xl"
+              variant="default"
+            >
+              {t('import.parsing.continueInBackground', 'Continue in background')}
+              <ArrowRight className="w-4 h-4" />
+            </Button>
+          )}
+
+          {/* Cancel button */}
+          {onCancel && (
+            <button
+              onClick={onCancel}
+              className="w-full px-4 py-2.5 text-sm text-muted-foreground hover:text-foreground hover:bg-card/50 rounded-xl transition-colors border border-transparent hover:border-border/30"
+            >
+              {t('common.cancel')}
+            </button>
+          )}
+        </div>
       </div>
     </div>
   )

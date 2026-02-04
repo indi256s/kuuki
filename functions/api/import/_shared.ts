@@ -3,13 +3,15 @@
 export type EnrichmentStatus = 'pending' | 'enriched' | 'failed' | 'skipped'
 
 // ============================================================================
-// Async Job System
+// Async Job System (KV-backed for persistence across Worker instances)
 // ============================================================================
 
 export type JobStatus = 'processing' | 'completed' | 'failed'
+export type JobType = 'parse' | 'enrichment'
 
 export interface ImportJob {
   id: string
+  type: JobType
   status: JobStatus
   createdAt: number
   flights?: ExtractedFlight[]
@@ -20,42 +22,33 @@ export interface ImportJob {
   cleaned_text?: string
 }
 
-// In-memory job store (lives for Worker lifetime)
-// Jobs auto-expire after 10 minutes
-const JOB_TTL_MS = 10 * 60 * 1000
-const jobs = new Map<string, ImportJob>()
+// KV TTL in seconds (10 minutes)
+const JOB_TTL_SECONDS = 10 * 60
 
-// Cleanup expired jobs periodically
-function cleanupExpiredJobs() {
-  const now = Date.now()
-  for (const [id, job] of jobs) {
-    if (now - job.createdAt > JOB_TTL_MS) {
-      jobs.delete(id)
-    }
-  }
-}
-
-export function createJob(): ImportJob {
-  cleanupExpiredJobs()
+// KV-backed job functions
+export async function createJob(kv: KVNamespace, type: JobType = 'parse'): Promise<ImportJob> {
   const id = crypto.randomUUID()
   const job: ImportJob = {
     id,
+    type,
     status: 'processing',
     createdAt: Date.now(),
   }
-  jobs.set(id, job)
+  await kv.put(`job:${id}`, JSON.stringify(job), { expirationTtl: JOB_TTL_SECONDS })
   return job
 }
 
-export function getJob(id: string): ImportJob | undefined {
-  cleanupExpiredJobs()
-  return jobs.get(id)
+export async function getJob(kv: KVNamespace, id: string): Promise<ImportJob | undefined> {
+  const data = await kv.get(`job:${id}`)
+  if (!data) return undefined
+  return JSON.parse(data) as ImportJob
 }
 
-export function updateJob(id: string, updates: Partial<ImportJob>) {
-  const job = jobs.get(id)
+export async function updateJob(kv: KVNamespace, id: string, updates: Partial<ImportJob>): Promise<void> {
+  const job = await getJob(kv, id)
   if (job) {
-    Object.assign(job, updates)
+    const updated = { ...job, ...updates }
+    await kv.put(`job:${id}`, JSON.stringify(updated), { expirationTtl: JOB_TTL_SECONDS })
   }
 }
 
@@ -99,6 +92,8 @@ export interface RejectedFlight {
   reason: string
 }
 
+export type EnrichmentStatusType = 'pending' | 'completed' | 'failed'
+
 export interface ParseResponse {
   flights: ExtractedFlight[]
   raw_text?: string
@@ -107,9 +102,12 @@ export interface ParseResponse {
   rejected?: RejectedFlight[]
   gemini_count?: number // How many flights Gemini found before validation
   cleaned_text?: string // Normalized text from Stage 1 (text input only)
-  // Async mode fields
+  // Legacy async mode fields (for backwards compatibility)
   jobId?: string
   status?: JobStatus
+  // Two-phase import fields
+  enrichmentJobId?: string // Job ID for polling enrichment status
+  enrichmentStatus?: EnrichmentStatusType // 'pending' | 'completed' | 'failed'
 }
 
 export function getMimeType(type: 'pdf' | 'image' | 'text'): string {
@@ -189,6 +187,57 @@ Return your response as a JSON object with this structure:
 }
 
 If no flights can be extracted, return: {"flights": [], "raw_text": "..."}`
+
+// ============================================================================
+// Regex Parser for Cleaned Text (Two-Phase Import - Phase 1)
+// ============================================================================
+
+// Parses the cleaned text output from Gemini into basic ExtractedFlight objects
+// Format: YYYY-MM-DD | FLIGHT_NUMBER | ORIGIN-DESTINATION | AIRLINE_CODE
+const CLEANED_LINE_REGEX = /^(\d{4}-\d{2}-\d{2})\s*\|\s*([A-Z0-9]{2,3}\s*\d+)?\s*\|\s*([A-Z]{3})-([A-Z]{3})\s*\|\s*([A-Z0-9]{2})$/i
+
+export function parseCleanedText(cleanedText: string): ExtractedFlight[] {
+  const lines = cleanedText.trim().split('\n')
+  const flights: ExtractedFlight[] = []
+
+  for (const line of lines) {
+    const trimmed = line.trim()
+    if (!trimmed) continue
+
+    const match = trimmed.match(CLEANED_LINE_REGEX)
+    if (match) {
+      const [, date, flightNumberRaw, origin, destination, airlineIata] = match
+
+      // Parse flight number - extract just the digits if present
+      let flightNumber: string | undefined
+      if (flightNumberRaw) {
+        const digits = flightNumberRaw.replace(/[^0-9]/g, '')
+        if (digits) flightNumber = digits
+      }
+
+      flights.push({
+        date,
+        origin: origin.toUpperCase(),
+        destination: destination.toUpperCase(),
+        airline_iata: airlineIata.toUpperCase(),
+        flight_number: flightNumber,
+        // Phase 1 flights have no aircraft/times - marked for enrichment
+        confidence: 0.7, // Lower confidence since no full AI extraction yet
+        enrichment_status: 'pending',
+      })
+    } else {
+      // Log unparseable lines for debugging
+      console.log(`[parseCleanedText] Could not parse line: "${trimmed}"`)
+    }
+  }
+
+  console.log(`[parseCleanedText] Parsed ${flights.length} flights from ${lines.length} lines`)
+  return flights
+}
+
+// ============================================================================
+// Cleaning Prompt (Stage 1 of two-stage parsing)
+// ============================================================================
 
 // Cleaning prompt for messy text input (Stage 1 of two-stage parsing)
 export const CLEANING_PROMPT = `You are a data cleaning assistant. Your job is to normalize messy flight data into a clean, consistent format.

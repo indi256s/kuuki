@@ -1,10 +1,11 @@
 import { useState, useCallback, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { FlightEditRow } from './FlightEditRow'
+import { EnrichmentErrorBanner } from './EnrichmentErrorBanner'
 import { Button } from '@/components/ui/button'
 import { Plane, AlertTriangle, FileText, ChevronDown, Loader2, CheckSquare, Square, Plus } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import type { ExtractedFlight, RejectedFlight } from '../../hooks/useImport'
+import { useEnrichmentPolling, type ExtractedFlight, type RejectedFlight } from '../../hooks/useImport'
 
 interface ImportReviewProps {
   flights: ExtractedFlight[]
@@ -18,6 +19,10 @@ interface ImportReviewProps {
   geminiCount?: number
   // Normalized text from two-stage parsing (text input only)
   cleanedText?: string
+  // Two-phase import: enrichment job ID for polling
+  enrichmentJobId?: string
+  // Callback when enrichment completes (to update parent state)
+  onEnrichmentComplete?: (flights: ExtractedFlight[]) => void
 }
 
 export function ImportReview({
@@ -30,10 +35,14 @@ export function ImportReview({
   rejected,
   geminiCount,
   cleanedText,
+  enrichmentJobId,
+  onEnrichmentComplete,
 }: ImportReviewProps) {
   const { t } = useTranslation()
   const [flights, setFlights] = useState<ExtractedFlight[]>(initialFlights)
   const [showCleanedText, setShowCleanedText] = useState(false)
+  const [isEnriching, setIsEnriching] = useState(!!enrichmentJobId)
+  const [enrichmentError, setEnrichmentError] = useState<string | null>(null)
   const [selectedIds, setSelectedIds] = useState<Set<number>>(() => {
     // Pre-select all valid flights
     return new Set(
@@ -51,6 +60,56 @@ export function ImportReview({
         })
     )
   })
+
+  // Handle enrichment completion - merge enriched data into flights
+  const handleEnrichmentComplete = useCallback((enrichedFlights: ExtractedFlight[]) => {
+    setIsEnriching(false)
+    setEnrichmentError(null)
+
+    // Merge enriched flights with current flights (match by date + route)
+    setFlights(prev => {
+      return prev.map(basicFlight => {
+        // Find matching enriched flight
+        const enriched = enrichedFlights.find(
+          ef => ef.date === basicFlight.date &&
+                ef.origin === basicFlight.origin &&
+                ef.destination === basicFlight.destination
+        )
+
+        if (enriched) {
+          // Merge enriched data, keeping any user edits
+          return {
+            ...basicFlight,
+            // Only update fields that weren't manually edited (still have original values)
+            aircraft_icao: basicFlight.aircraft_icao || enriched.aircraft_icao,
+            departure_time: basicFlight.departure_time || enriched.departure_time,
+            arrival_time: basicFlight.arrival_time || enriched.arrival_time,
+            confidence: enriched.confidence,
+            enrichment_status: enriched.enrichment_status,
+            field_confidence: enriched.field_confidence,
+          }
+        }
+        return basicFlight
+      })
+    })
+
+    // Notify parent
+    onEnrichmentComplete?.(enrichedFlights)
+  }, [onEnrichmentComplete])
+
+  // Handle enrichment error
+  const handleEnrichmentError = useCallback((error: string) => {
+    setIsEnriching(false)
+    setEnrichmentError(error)
+  }, [])
+
+  // Poll for enrichment completion
+  useEnrichmentPolling(
+    enrichmentJobId,
+    handleEnrichmentComplete,
+    handleEnrichmentError,
+    isEnriching
+  )
 
   // Check for duplicates
   const duplicateIndices = useMemo(() => {
@@ -297,6 +356,28 @@ export function ImportReview({
         </div>
       )}
 
+      {/* Enrichment error banner */}
+      {enrichmentError && (
+        <EnrichmentErrorBanner
+          error={enrichmentError}
+          onRetry={() => {
+            // Can't retry without re-parsing - just dismiss the error
+            setEnrichmentError(null)
+          }}
+          onSkip={() => setEnrichmentError(null)}
+        />
+      )}
+
+      {/* Enrichment progress indicator */}
+      {isEnriching && (
+        <div className="flex items-center gap-2 px-4 py-3 rounded-xl bg-primary/5 border border-primary/20">
+          <Loader2 className="w-4 h-4 animate-spin text-primary" />
+          <span className="text-sm text-primary">
+            {t('import.review.enrichingFlights', 'Fetching aircraft and timing details...')}
+          </span>
+        </div>
+      )}
+
       {/* Flight list - with subtle container */}
       <div className="space-y-3">
         {flights.map((flight, index) => (
@@ -306,6 +387,7 @@ export function ImportReview({
             index={index}
             selected={selectedIds.has(index)}
             isDuplicate={duplicateIndices.has(index)}
+            isEnriching={isEnriching}
             onSelect={(selected) => handleToggleSelect(index, selected)}
             onChange={(f) => handleFlightChange(index, f)}
             onDelete={() => handleDelete(index)}
