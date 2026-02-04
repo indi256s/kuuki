@@ -321,6 +321,24 @@ Borders are more visible in dark mode. Use `/50` opacity:
 className="border-border/50 dark:border-border/30"
 ```
 
+### Always-Dark Sections (Auth Pages)
+
+Some sections like login/signup have a dark atmospheric background regardless of system theme.
+
+**Still use semantic tokens** — they work because the wrapper has `dark` class:
+
+```tsx
+// ❌ Don't: Hardcode white for dark backgrounds
+<span className="text-white/80">Email</span>
+<Input className="text-white placeholder:text-white/20" />
+
+// ✅ Do: Use semantic tokens (they resolve correctly in dark context)
+<span className="text-foreground/80">Email</span>
+<Input className="text-foreground placeholder:text-muted-foreground/50" />
+```
+
+The auth page wrapper should have `className="dark"` to force dark mode tokens.
+
 ---
 
 ## Anti-Patterns
@@ -335,6 +353,33 @@ className="border-border/50 dark:border-border/30"
 | Icon-heavy designs | Cluttered | Typography-driven |
 | Pure gray backgrounds | Cold, sterile | Blue-tinted neutrals |
 | Dense layouts | Overwhelming | Generous whitespace |
+
+### Code Anti-Patterns
+
+**Never use these Tailwind classes** — they bypass the design system:
+
+| Don't | Why | Do instead |
+|-------|-----|------------|
+| `text-white`, `text-black` | Hardcoded, breaks themes | `text-foreground`, `text-primary-foreground` |
+| `bg-white`, `bg-black` | Hardcoded, breaks themes | `bg-background`, `bg-card`, `bg-popover` |
+| `bg-neutral-*`, `text-neutral-*` | Not in our token system | `bg-muted`, `text-muted-foreground` |
+| `border-black/*`, `border-white/*` | Hardcoded borders | `border-border`, `border-border/50` |
+| `shadow-[rgba(...)]` | Inline shadows | `shadow-sm`, `ring-1 ring-border/50` |
+| Custom styled `<a>`/`<Link>` as button | Inconsistent states | `<Button asChild>` |
+
+**Example — Button as Link:**
+
+```tsx
+// ❌ Don't: Custom styled link
+<Link to="/" className="px-6 py-3 bg-primary text-primary-foreground rounded-lg...">
+  Sign In
+</Link>
+
+// ✅ Do: Button with asChild
+<Button asChild size="lg">
+  <Link to="/">Sign In</Link>
+</Button>
+```
 
 ### UX Anti-Patterns
 
@@ -369,7 +414,9 @@ Before building UI for a new feature:
 When generating UI code:
 
 1. **Use shadcn components** — Don't reinvent buttons, cards, dialogs
-2. **Use design tokens** — `bg-background`, not `bg-white`
+2. **Use design tokens** — `bg-background`, not `bg-white`; `text-foreground`, not `text-gray-900`
 3. **Use cn() helper** — For conditional classes
 4. **Mobile-first** — Write base styles for mobile, add breakpoint modifiers
-5. **Check system.md** — For exact token values and component examples
+5. **Button for all button-like elements** — Use `<Button asChild>` for links that look like buttons
+6. **No hardcoded colors** — If you type `white`, `black`, `neutral`, or `gray` in a class, stop and use a token
+7. **Check Code Anti-Patterns above** — Common violations are listed there
