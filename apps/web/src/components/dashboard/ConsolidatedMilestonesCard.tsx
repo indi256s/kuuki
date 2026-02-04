@@ -3,17 +3,6 @@ import { useDashboardStats } from '@/hooks/useDashboardStats'
 import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/utils'
 
-interface MilestoneRowProps {
-  icon: React.ElementType
-  iconColor: string
-  label: string
-  value: string
-  detail: string
-  progress?: number
-}
-
-// Unused component removed
-
 export function ConsolidatedMilestonesCard() {
   const { t } = useTranslation()
   const { data: stats } = useDashboardStats()
