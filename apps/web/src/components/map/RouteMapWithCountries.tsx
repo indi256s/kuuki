@@ -95,6 +95,44 @@ export function RouteMapWithCountries({
     return Array.from(airportMap.values())
   }, [arcs])
 
+  // Calculate dynamic viewport based on flight data
+  const viewport = useMemo(() => {
+    if (airports.length === 0) {
+      // Default world view
+      return { center: [10, 30] as [number, number], scale: 120 }
+    }
+
+    let minLat = 90, maxLat = -90, minLon = 180, maxLon = -180
+    for (const airport of airports) {
+      minLat = Math.min(minLat, airport.lat)
+      maxLat = Math.max(maxLat, airport.lat)
+      minLon = Math.min(minLon, airport.lon)
+      maxLon = Math.max(maxLon, airport.lon)
+    }
+
+    // Add padding (10% of the bounds)
+    const latPadding = (maxLat - minLat) * 0.15 || 10
+    const lonPadding = (maxLon - minLon) * 0.15 || 10
+    minLat = Math.max(-85, minLat - latPadding)
+    maxLat = Math.min(85, maxLat + latPadding)
+    minLon = Math.max(-180, minLon - lonPadding)
+    maxLon = Math.min(180, maxLon + lonPadding)
+
+    const centerLon = (minLon + maxLon) / 2
+    const centerLat = (minLat + maxLat) / 2
+
+    // Calculate scale based on the span (larger span = smaller scale)
+    const latSpan = maxLat - minLat
+    const lonSpan = maxLon - minLon
+    const maxSpan = Math.max(latSpan, lonSpan)
+
+    // Map span to scale (heuristic: 10° span -> scale ~400, 180° span -> scale ~100)
+    // Scale = 4000 / maxSpan, clamped between 100 and 800
+    const scale = Math.min(800, Math.max(100, 3500 / Math.max(maxSpan, 5)))
+
+    return { center: [centerLon, centerLat] as [number, number], scale }
+  }, [airports])
+
   const handleCountryClick = useCallback((geo: { properties: { ISO_A2?: string; ISO_N3?: string } }) => {
     if (!onCountryClick) return
     const alpha2 = geo.properties.ISO_A2 !== '-99'
@@ -146,8 +184,8 @@ export function RouteMapWithCountries({
       <ComposableMap
         projection="geoMercator"
         projectionConfig={{
-          scale: 120,
-          center: [10, 30],
+          scale: viewport.scale,
+          center: viewport.center,
         }}
         style={{ width: '100%', height: '100%' }}
       >

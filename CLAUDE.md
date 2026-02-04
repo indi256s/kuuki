@@ -123,6 +123,7 @@ Reusable skills are in `docs/skills/`. Key skills for Kuuki development:
 | Skill | Purpose |
 |-------|---------|
 | `frontend-design` | High-quality UI with distinctive aesthetics |
+| `glados-copy` | UI copy with GLaDOS persona variants |
 | `webapp-testing` | Test strategies and Playwright automation |
 | `brand-guidelines` | Consistent branding and visual identity |
 | `canvas-design` | Visual design generation |

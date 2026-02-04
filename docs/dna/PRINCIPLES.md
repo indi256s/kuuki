@@ -95,7 +95,7 @@
 
 ## User Psychology
 
-**Target user:** Aviation enthusiast who flies 5-50 times per year. Cares about their flight history. Enjoys stats and comparisons. Values both function and aesthetics.
+**Target user:** Aviation enthusiast who flies 5-50 times per year. Cares about flight history. Enjoys stats, experiments, and a bit of chaos. Values both function and personality.
 
 **Emotional goals:**
 
