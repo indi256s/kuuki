@@ -419,6 +419,55 @@ export async function getAllFlights(userId: string): Promise<Flight[]> {
 }
 
 /**
+ * Get all flight IDs for a user (for bulk selection)
+ * Lightweight query - only returns IDs, respects filters
+ */
+export async function getAllFlightIds(
+  userId: string,
+  filters?: FlightFilters
+): Promise<number[]> {
+  let query = supabase
+    .from('flights')
+    .select('id')
+    .eq('user_id', userId)
+
+  // Apply filters (same as getFlights)
+  if (filters?.year) {
+    const startDate = `${filters.year}-01-01`
+    const endDate = `${filters.year}-12-31`
+    query = query.gte('date', startDate).lte('date', endDate)
+  }
+
+  if (filters?.airlineIata) {
+    query = query.eq('airline_iata', filters.airlineIata)
+  }
+
+  if (filters?.aircraftIcao) {
+    query = query.eq('aircraft_icao', filters.aircraftIcao)
+  }
+
+  if (filters?.isUpcoming !== undefined) {
+    query = query.eq('is_upcoming', filters.isUpcoming)
+  }
+
+  if (filters?.origin) {
+    query = query.eq('origin', filters.origin.toUpperCase())
+  }
+
+  if (filters?.destination) {
+    query = query.eq('destination', filters.destination.toUpperCase())
+  }
+
+  const { data, error } = await query
+
+  if (error) {
+    throw new Error(`Failed to fetch flight IDs: ${error.message}`)
+  }
+
+  return (data ?? []).map(f => f.id)
+}
+
+/**
  * Convert upcoming flights to completed when their date has passed
  * Call this on app load or periodically
  */

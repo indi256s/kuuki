@@ -11,6 +11,7 @@ import {
   useFlightYears,
   useFlightAirlines,
   useFlightAircraft,
+  useAllFlightIds,
   type Flight,
   type FlightFilters as FiltersType,
   type SortConfig,
@@ -66,6 +67,9 @@ export function FlightList({ onEdit, showSidebar = false }: FlightListProps) {
     fetchNextPage,
     error,
   } = useFlights(filters, sort)
+
+  // For "Select All" - fetch all IDs matching current filters
+  const { refetch: fetchAllIds, isFetching: isFetchingAllIds } = useAllFlightIds(filters)
 
   // Flatten pages into single array
   const flights = useMemo(() => data?.pages.flatMap((page) => page.flights) ?? [], [data])
@@ -135,19 +139,18 @@ export function FlightList({ onEdit, showSidebar = false }: FlightListProps) {
     setSelectionMode(!selectionMode)
   }
 
-  // Select/Deselect all visible flights
-  const allSelected = flights.length > 0 && flights.every(f => selectedIds.has(f.id))
-  const toggleSelectAll = () => {
+  // Select/Deselect all flights (not just visible)
+  const allSelected = totalCount > 0 && selectedIds.size === totalCount
+  const toggleSelectAll = async () => {
     if (allSelected) {
-      // Deselect all visible flights
-      const newSet = new Set(selectedIds)
-      flights.forEach(f => newSet.delete(f.id))
-      setSelectedIds(newSet)
+      // Deselect all
+      setSelectedIds(new Set())
     } else {
-      // Select all visible flights
-      const newSet = new Set(selectedIds)
-      flights.forEach(f => newSet.add(f.id))
-      setSelectedIds(newSet)
+      // Select ALL flights matching current filters (fetch IDs from server)
+      const result = await fetchAllIds()
+      if (result.data) {
+        setSelectedIds(new Set(result.data))
+      }
     }
   }
 
@@ -355,11 +358,14 @@ export function FlightList({ onEdit, showSidebar = false }: FlightListProps) {
                     <Button
                       variant="outline"
                       onClick={toggleSelectAll}
+                      disabled={isFetchingAllIds}
                     >
                       <CheckCheck className="w-4 h-4 mr-2" />
-                      {allSelected
-                        ? t('flights.deselectAll', 'Deselect All')
-                        : t('flights.selectAll', 'Select All')}
+                      {isFetchingAllIds
+                        ? t('common.loading')
+                        : allSelected
+                          ? t('flights.deselectAll', 'Deselect All')
+                          : t('flights.selectAll', 'Select All ({count})', { count: totalCount })}
                     </Button>
 
                     <Badge variant="secondary" className="text-sm">
@@ -494,11 +500,14 @@ export function FlightList({ onEdit, showSidebar = false }: FlightListProps) {
             <button
               type="button"
               onClick={toggleSelectAll}
-              className="text-sm text-primary hover:text-primary/80 font-medium transition-colors"
+              disabled={isFetchingAllIds}
+              className="text-sm text-primary hover:text-primary/80 font-medium transition-colors disabled:opacity-50"
             >
-              {allSelected
-                ? t('flights.deselectAll', 'Deselect All')
-                : t('flights.selectAll', 'Select All')}
+              {isFetchingAllIds
+                ? t('common.loading')
+                : allSelected
+                  ? t('flights.deselectAll', 'Deselect All')
+                  : t('flights.selectAll', 'Select All ({count})', { count: totalCount })}
             </button>
 
             <div className="flex-1" />

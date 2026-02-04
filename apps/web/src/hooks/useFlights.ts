@@ -13,6 +13,7 @@ import {
   getFlightYears,
   getFlightAirlines,
   getFlightAircraft,
+  getAllFlightIds,
   syncUpcomingFlights,
   type Flight,
   type FlightInsert,
@@ -295,6 +296,23 @@ export function useFlightAircraft() {
       return getFlightAircraft(userId)
     },
     enabled: !!userId,
+  })
+}
+
+/**
+ * Hook to get all flight IDs (for bulk selection)
+ * Only fetches IDs, respects current filters
+ */
+export function useAllFlightIds(filters?: FlightFilters) {
+  const userId = useAuthStore((state) => state.user?.id)
+
+  return useQuery({
+    queryKey: ['allFlightIds', userId, filters],
+    queryFn: () => {
+      if (!userId) return []
+      return getAllFlightIds(userId, filters)
+    },
+    enabled: false, // Only fetch when explicitly requested via refetch()
   })
 }
 
