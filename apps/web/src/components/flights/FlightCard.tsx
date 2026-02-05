@@ -62,7 +62,7 @@ export function FlightCard({ flight, onEdit }: FlightCardProps) {
           {/* Meta line: Date, flight number */}
           <div className="flex items-baseline gap-3 mt-2">
             <span className={cn(
-              'font-data text-sm tabular-nums',
+              'font-mono text-sm tabular-nums',
               isUpcoming ? 'text-primary font-medium' : 'text-muted-foreground'
             )}>
               {formatDate(flight.date)}
@@ -71,7 +71,7 @@ export function FlightCard({ flight, onEdit }: FlightCardProps) {
               <span className="text-[10px] text-primary/70 font-medium">+{daysAway}d</span>
             )}
             {hasFlightNumber && (
-              <span className="text-xs text-muted-foreground font-data">
+              <span className="text-xs text-muted-foreground font-mono">
                 {flight.airline_iata}{flight.flight_number}
               </span>
             )}
@@ -86,7 +86,7 @@ export function FlightCard({ flight, onEdit }: FlightCardProps) {
       <div className="flex flex-wrap items-center gap-2 mt-3 pt-3 border-t border-border/30 text-sm">
         {/* Duration */}
         {duration && (
-          <span className="font-data text-foreground">{duration}</span>
+          <span className="font-mono text-foreground">{duration}</span>
         )}
 
         {/* Airline badge */}
@@ -115,7 +115,7 @@ export function FlightCard({ flight, onEdit }: FlightCardProps) {
 
         {/* Distance - pushed right */}
         {flight.distance_km && (
-          <span className="font-data tabular-nums ml-auto text-foreground">
+          <span className="font-mono tabular-nums ml-auto text-foreground">
             {formatDistance(flight.distance_km)}
           </span>
         )}

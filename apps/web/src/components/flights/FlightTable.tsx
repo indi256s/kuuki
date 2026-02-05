@@ -265,7 +265,7 @@ export function FlightTable({
                   <TableCell className={cn('py-4 align-top', !selectionEnabled && 'pl-6')}>
                     <div className="flex items-baseline gap-1.5">
                       <span className={cn(
-                        'font-data text-base tabular-nums',
+                        'font-mono text-base tabular-nums',
                         isUpcoming ? 'text-primary font-medium' : 'text-foreground'
                       )}>
                         {formatDate(flight.date)}
@@ -286,7 +286,7 @@ export function FlightTable({
                   {/* Duration */}
                   <TableCell className="py-3 align-top">
                     {duration ? (
-                      <span className="font-data text-base">{duration}</span>
+                      <span className="font-mono text-base">{duration}</span>
                     ) : (
                       <span className="text-muted-foreground/40 text-sm">—</span>
                     )}
@@ -337,7 +337,7 @@ export function FlightTable({
                   {/* Distance */}
                   <TableCell className="py-3 align-top text-right">
                     {flight.distance_km ? (
-                      <span className="font-data text-base tabular-nums">{formatDistance(flight.distance_km)}</span>
+                      <span className="font-mono text-base tabular-nums">{formatDistance(flight.distance_km)}</span>
                     ) : (
                       <span className="text-muted-foreground/40 text-sm">—</span>
                     )}
