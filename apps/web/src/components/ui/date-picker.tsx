@@ -7,7 +7,6 @@ import { CalendarIcon } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Calendar } from "@/components/ui/calendar"
-import { DateInput } from "@/components/ui/date-input"
 import {
   Popover,
   PopoverContent,
@@ -26,7 +25,7 @@ interface DatePickerProps {
 }
 
 /**
- * Date picker combining manual input (dd.mm.yyyy) with a calendar popover.
+ * Unified date picker with single clickable button that opens a calendar.
  * Stores dates in YYYY-MM-DD format internally.
  */
 function DatePicker({
@@ -54,35 +53,31 @@ function DatePicker({
   }
 
   return (
-    <div className={cn("flex gap-1.5", className)}>
-      <DateInput
-        value={value}
-        onChange={onChange}
-        disabled={disabled}
-        className="flex-1"
-      />
-      <Popover open={open} onOpenChange={setOpen}>
-        <PopoverTrigger asChild>
-          <Button
-            variant="outline"
-            size="icon"
-            disabled={disabled}
-            className="h-10 w-10 shrink-0"
-            aria-label="Pick date from calendar"
-          >
-            <CalendarIcon className="h-4 w-4 text-muted-foreground" />
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent className="w-auto p-0" align="end" sideOffset={8}>
-          <Calendar
-            mode="single"
-            selected={dateValue}
-            onSelect={handleSelect}
-            initialFocus
-          />
-        </PopoverContent>
-      </Popover>
-    </div>
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          variant="outline"
+          disabled={disabled}
+          className={cn(
+            "w-full h-10 justify-start text-left font-mono",
+            !dateValue && "text-muted-foreground",
+            className
+          )}
+          aria-label="Pick date from calendar"
+        >
+          <CalendarIcon className="mr-2 h-4 w-4 text-muted-foreground shrink-0" />
+          {dateValue ? format(dateValue, "MMM d, yyyy") : "Pick a date"}
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-auto p-0" align="start" sideOffset={8}>
+        <Calendar
+          mode="single"
+          selected={dateValue}
+          onSelect={handleSelect}
+          initialFocus
+        />
+      </PopoverContent>
+    </Popover>
   )
 }
 DatePicker.displayName = "DatePicker"

@@ -264,7 +264,7 @@ export function FlightForm({ isOpen, onClose, editFlight, onDelete }: FlightForm
 
         {/* Route section */}
         <div className="space-y-4">
-          <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+          <h3 className="text-[10px] font-medium text-muted-foreground/60 uppercase tracking-widest">
             {t('flights.routeSection', 'Route')}
           </h3>
           <div className="grid grid-cols-2 gap-3">
@@ -312,7 +312,7 @@ export function FlightForm({ isOpen, onClose, editFlight, onDelete }: FlightForm
 
         {/* Flight details section */}
         <div className="space-y-4">
-          <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+          <h3 className="text-[10px] font-medium text-muted-foreground/60 uppercase tracking-widest">
             {t('flights.detailsSection', 'Flight Details')}
           </h3>
           <FormField
@@ -380,7 +380,7 @@ export function FlightForm({ isOpen, onClose, editFlight, onDelete }: FlightForm
           <>
             <Separator className="my-5" />
             <div className="space-y-4">
-              <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+              <h3 className="text-[10px] font-medium text-muted-foreground/60 uppercase tracking-widest">
                 {t('flights.aircraftSection', 'Aircraft & Times')}
               </h3>
 
@@ -491,20 +491,6 @@ export function FlightForm({ isOpen, onClose, editFlight, onDelete }: FlightForm
           </Button>
         </div>
 
-        {/* Delete button - only show when editing */}
-        {isEditing && editFlight && onDelete && (
-          <Button
-            type="button"
-            variant="ghost"
-            onClick={() => onDelete(editFlight)}
-            disabled={isSubmitting}
-            className="w-full mt-3 text-destructive hover:text-destructive hover:bg-destructive/10"
-          >
-            <Trash2 className="w-4 h-4 mr-2" />
-            {t('flights.deleteFlight', 'Delete Flight')}
-          </Button>
-        )}
-
         {/* Keyboard hint - hide on mobile */}
         <p className="mt-3 text-xs text-center text-muted-foreground hidden sm:block">
           {t('flights.keyboardHint', 'Press Ctrl+S to save, Esc to close')}
@@ -520,13 +506,30 @@ export function FlightForm({ isOpen, onClose, editFlight, onDelete }: FlightForm
     </span>
   )
 
+  const deleteButton = isEditing && editFlight && onDelete && (
+    <Button
+      type="button"
+      variant="ghost"
+      size="icon"
+      onClick={() => onDelete(editFlight)}
+      disabled={isSubmitting}
+      className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+      aria-label={t('flights.deleteFlight', 'Delete Flight')}
+    >
+      <Trash2 className="w-4 h-4" />
+    </Button>
+  )
+
   // Mobile: Bottom sheet
   if (isMobile) {
     return (
       <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
         <SheetContent side="bottom" showCloseButton={false}>
           <SheetHeader className="px-4 pt-2 pb-4">
-            <SheetTitle>{title}</SheetTitle>
+            <div className="flex items-center justify-between">
+              <SheetTitle>{title}</SheetTitle>
+              {deleteButton}
+            </div>
           </SheetHeader>
           {formContent}
         </SheetContent>
@@ -539,7 +542,10 @@ export function FlightForm({ isOpen, onClose, editFlight, onDelete }: FlightForm
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent size="lg" className="gap-0 p-0 overflow-hidden">
         <DialogHeader className="px-6 pt-6 pb-4 lg:px-8 lg:pt-8 xl:px-10 xl:pt-10">
-          <DialogTitle>{title}</DialogTitle>
+          <div className="flex items-center justify-between">
+            <DialogTitle>{title}</DialogTitle>
+            {deleteButton}
+          </div>
         </DialogHeader>
         {formContent}
       </DialogContent>
