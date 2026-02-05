@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Clock } from 'lucide-react'
+import { Plus } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
+import { cn } from '@/lib/utils'
 import {
   Popover,
   PopoverContent,
@@ -50,18 +51,25 @@ export function AircraftPendingBadge({ flightId, className }: AircraftPendingBad
     <Popover open={isOpen} onOpenChange={setIsOpen}>
       <PopoverTrigger asChild>
         <Badge
-          variant="outline"
-          className={`cursor-pointer hover:bg-muted gap-1 text-muted-foreground ${className}`}
+          variant="secondary"
+          className={cn(
+            'cursor-pointer border border-dashed border-border',
+            'hover:bg-secondary hover:border-primary/40',
+            'transition-colors duration-150',
+            'text-muted-foreground',
+            'px-2.5 py-1',
+            className
+          )}
         >
-          <Clock className="w-3 h-3" />
-          {t('flights.pending', 'Pending')}
+          <Plus className="w-3.5 h-3.5" />
+          {t('flights.addAircraft', 'Add aircraft')}
         </Badge>
       </PopoverTrigger>
       <PopoverContent className="w-80" align="start">
         <PopoverHeader className="mb-3">
           <PopoverTitle>{t('flights.setAircraft', 'Set Aircraft')}</PopoverTitle>
           <PopoverDescription>
-            {t('flights.pendingDescription', "We couldn't identify the aircraft. You can set it manually.")}
+            {t('flights.aircraftPickerDescription', 'Select the aircraft type for this flight.')}
           </PopoverDescription>
         </PopoverHeader>
 

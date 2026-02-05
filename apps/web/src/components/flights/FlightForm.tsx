@@ -5,7 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { AirportAutocomplete } from './AirportAutocomplete'
 import { AirlineAutocomplete } from './AirlineAutocomplete'
-import { AircraftAutocomplete } from './AircraftAutocomplete'
+import { AircraftPicker } from './AircraftPicker'
 import { useCreateFlight, useUpdateFlight, useCheckDuplicate, type Flight } from '@/hooks/useFlights'
 import { useIsMobile } from '@/hooks/useIsMobile'
 import { findAirport, findAircraft } from '@kuuki/data'
@@ -390,12 +390,12 @@ export function FlightForm({ isOpen, onClose, editFlight, onDelete }: FlightForm
                   name="aircraftIcao"
                   render={({ field }) => (
                     <FormItem>
-                      <AircraftAutocomplete
+                      <AircraftPicker
                         id="aircraft"
                         value={field.value || ''}
                         onChange={field.onChange}
                         label={t('flights.aircraft', 'Aircraft')}
-                        placeholder="B738"
+                        placeholder={t('flights.selectAircraft', 'Select aircraft...')}
                         disabled={isSubmitting}
                       />
                       <FormMessage />

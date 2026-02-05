@@ -15,7 +15,6 @@ import {
 import { Pencil, ArrowUp, ArrowDown, ArrowUpDown } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { AircraftShimmerBadge } from './AircraftShimmerBadge'
-import type { EnrichmentStatus } from '@kuuki/shared/types'
 
 interface FlightTableProps {
   flights: Flight[]
@@ -320,17 +319,13 @@ export function FlightTable({
                   {/* Aircraft */}
                   <TableCell className="py-3 align-top">
                     {aircraft ? (
-                      <div className="flex flex-col">
-                        <span className="text-base text-foreground">{aircraft.model}</span>
-                        <span className="text-sm text-muted-foreground">{aircraft.manufacturer}</span>
-                      </div>
+                      <span className="text-base text-foreground">
+                        {aircraft.manufacturer} {aircraft.model}
+                      </span>
                     ) : flight.aircraft_icao ? (
                       <span className="font-mono text-base text-foreground">{flight.aircraft_icao}</span>
                     ) : (
-                      <AircraftShimmerBadge
-                        flightId={flight.id}
-                        enrichmentStatus={(flight as { enrichment_status?: EnrichmentStatus }).enrichment_status ?? 'pending'}
-                      />
+                      <AircraftShimmerBadge flightId={flight.id} />
                     )}
                   </TableCell>
 

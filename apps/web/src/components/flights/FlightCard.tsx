@@ -4,7 +4,6 @@ import { formatDistance, formatDuration, daysUntilFlight } from '@/lib/geo'
 import { FlightCardActions } from './FlightCardActions'
 import { AircraftShimmerBadge } from './AircraftShimmerBadge'
 import { cn } from '@/lib/utils'
-import type { EnrichmentStatus } from '@kuuki/shared/types'
 
 interface FlightCardProps {
   flight: Flight
@@ -107,10 +106,7 @@ export function FlightCard({ flight, onEdit }: FlightCardProps) {
         ) : flight.aircraft_icao ? (
           <span className="font-mono text-foreground">{flight.aircraft_icao}</span>
         ) : (
-          <AircraftShimmerBadge
-            flightId={flight.id}
-            enrichmentStatus={(flight as { enrichment_status?: EnrichmentStatus }).enrichment_status ?? 'pending'}
-          />
+          <AircraftShimmerBadge flightId={flight.id} />
         )}
 
         {/* Distance - pushed right */}
