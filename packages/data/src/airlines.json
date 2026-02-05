@@ -25,7 +25,7 @@
     "name": "Cebu Pacific",
     "country": "Philippines",
     "logoUrl": null,
-    "primaryColor": null,
+    "primaryColor": "#FDB913",
     "alliance": null,
     "callsign": "CEBU AIR"
   },
@@ -365,7 +365,7 @@
     "name": "AirAsia X",
     "country": "Malaysia",
     "logoUrl": null,
-    "primaryColor": null,
+    "primaryColor": "#FF0000",
     "alliance": null,
     "callsign": "XANADU"
   },
@@ -385,7 +385,7 @@
     "name": "Nok Air",
     "country": "Thailand",
     "logoUrl": null,
-    "primaryColor": null,
+    "primaryColor": "#8B4789",
     "alliance": null,
     "callsign": "NOK AIR"
   },
@@ -505,7 +505,7 @@
     "name": "Thai AirAsia",
     "country": "Thailand",
     "logoUrl": null,
-    "primaryColor": null,
+    "primaryColor": "#FF0000",
     "alliance": null,
     "callsign": "THAI ASIA"
   },
@@ -565,7 +565,7 @@
     "name": "Allegiant Air",
     "country": "United States",
     "logoUrl": null,
-    "primaryColor": null,
+    "primaryColor": "#003E7E",
     "alliance": null,
     "callsign": "ALLEGIANT"
   },
@@ -785,7 +785,7 @@
     "name": "Lion Mentari Airlines",
     "country": "Indonesia",
     "logoUrl": null,
-    "primaryColor": null,
+    "primaryColor": "#ED1C24",
     "alliance": null,
     "callsign": "LION INTER"
   },
@@ -855,7 +855,7 @@
     "name": "Kuwait Airways",
     "country": "Kuwait",
     "logoUrl": null,
-    "primaryColor": null,
+    "primaryColor": "#00539F",
     "alliance": null,
     "callsign": "KUWAITI"
   },
@@ -935,7 +935,7 @@
     "name": "Middle East Airlines",
     "country": "Lebanon",
     "logoUrl": null,
-    "primaryColor": null,
+    "primaryColor": "#C8102E",
     "alliance": "skyteam",
     "callsign": "CEDAR JET"
   },
@@ -1095,7 +1095,7 @@
     "name": "Bangkok Airways",
     "country": "Thailand",
     "logoUrl": null,
-    "primaryColor": null,
+    "primaryColor": "#1E3A8A",
     "alliance": null,
     "callsign": "BANGKOK AIR"
   },
@@ -1105,7 +1105,7 @@
     "name": "Pakistan International Airlines",
     "country": "Pakistan",
     "logoUrl": null,
-    "primaryColor": null,
+    "primaryColor": "#00843D",
     "alliance": null,
     "callsign": "PAKISTAN"
   },
@@ -1145,7 +1145,7 @@
     "name": "Citilink Indonesia",
     "country": "Indonesia",
     "logoUrl": null,
-    "primaryColor": null,
+    "primaryColor": "#8CC63F",
     "alliance": null,
     "callsign": "SUPERGREEN"
   },
@@ -1195,7 +1195,7 @@
     "name": "Royal Jordanian",
     "country": "Jordan",
     "logoUrl": null,
-    "primaryColor": null,
+    "primaryColor": "#8B1A1A",
     "alliance": "oneworld",
     "callsign": "JORDANIAN"
   },
