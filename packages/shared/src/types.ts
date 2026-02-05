@@ -214,7 +214,7 @@ export interface GroundVisit {
   visitYear: number | null
   entryMethod: EntryMethod
   note: string | null
-  createdAt: string
+  createdAt: string | null
 }
 
 // Unified passport entry (from flights or claims)
