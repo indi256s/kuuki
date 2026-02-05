@@ -67,7 +67,7 @@ export function ClaimDialog({ isOpen, onClose, preselectedCountry }: ClaimDialog
     try {
       await claimCountry.mutateAsync({
         countryCode: selectedCountry,
-        visitYear: visitYear ? parseInt(visitYear, 10) : null,
+        visitYear: visitYear && visitYear !== 'unknown' ? parseInt(visitYear, 10) : null,
         note: note.trim() || null,
         entryMethod,
       })
@@ -178,7 +178,7 @@ export function ClaimDialog({ isOpen, onClose, preselectedCountry }: ClaimDialog
                 <SelectValue placeholder={t('passport.selectYear', 'Select year...')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">{t('passport.dontRemember', "I don't remember")}</SelectItem>
+                <SelectItem value="unknown">{t('passport.dontRemember', "I don't remember")}</SelectItem>
                 {yearOptions.map((year) => (
                   <SelectItem key={year} value={year.toString()}>
                     {year}
