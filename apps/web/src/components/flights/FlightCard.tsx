@@ -37,39 +37,39 @@ export function FlightCard({ flight, onEdit, onDelete }: FlightCardProps) {
   return (
     <div
       className={cn(
-        'group rounded-xl border border-border/40 bg-card/50 p-4 sm:p-5',
+        'group rounded-lg border border-border/40 bg-card/50 p-3',
         'transition-[transform,box-shadow,background-color] duration-200',
-        'hover:-translate-y-1 hover:shadow-lg hover:border-border/60',
-        'active:-translate-y-0.5 active:shadow-md active:bg-muted/40',
-        isUpcoming && 'border-primary/30 bg-primary/[0.03]'
+        'hover:-translate-y-0.5 hover:shadow-md',
+        'active:translate-y-0 active:shadow-sm active:bg-muted/40',
+        isUpcoming && 'border-primary/20 bg-primary/[0.02]'
       )}
     >
       {/* Top row: Route + Actions */}
-      <div className="flex items-start justify-between gap-3">
+      <div className="flex items-start justify-between gap-2">
         <div className="flex-1 min-w-0">
           {/* Route - primary content */}
-          <div className="flex items-baseline gap-2 flex-wrap">
-            <span className="font-data font-semibold text-lg">{flight.origin}</span>
-            <span className="text-xs text-muted-foreground">
+          <div className="flex items-baseline gap-1.5">
+            <span className="font-data font-semibold text-base">{flight.origin}</span>
+            <span className="text-[11px] text-muted-foreground truncate max-w-[4rem]">
               {originAirport?.city || ''}
             </span>
-            <span className="text-muted-foreground/30 text-sm">→</span>
-            <span className="font-data font-semibold text-lg">{flight.destination}</span>
-            <span className="text-xs text-muted-foreground">
+            <span className="text-muted-foreground/40 text-xs">→</span>
+            <span className="font-data font-semibold text-base">{flight.destination}</span>
+            <span className="text-[11px] text-muted-foreground truncate max-w-[4rem]">
               {destAirport?.city || ''}
             </span>
           </div>
 
           {/* Meta line: Date, flight number */}
-          <div className="flex items-baseline gap-3 mt-2">
+          <div className="flex items-baseline gap-2 mt-1">
             <span className={cn(
-              'font-data text-sm tabular-nums',
-              isUpcoming ? 'text-primary font-medium' : 'text-muted-foreground'
+              'font-data text-xs tabular-nums',
+              isUpcoming ? 'text-primary' : 'text-muted-foreground'
             )}>
               {formatDate(flight.date)}
             </span>
             {isUpcoming && (
-              <span className="text-[10px] text-primary/70 font-medium">+{daysAway}d</span>
+              <span className="text-[10px] text-primary/70">+{daysAway}d</span>
             )}
             {hasFlightNumber && (
               <span className="text-xs text-muted-foreground font-data">
@@ -87,40 +87,40 @@ export function FlightCard({ flight, onEdit, onDelete }: FlightCardProps) {
       </div>
 
       {/* Bottom row: Details - all baseline aligned */}
-      <div className="flex items-baseline gap-3 mt-3 pt-3 border-t border-border/30 text-sm">
+      <div className="flex items-baseline gap-2 mt-2 pt-2 border-t border-border/20 text-xs text-muted-foreground">
         {/* Duration */}
         {duration && (
-          <span className="font-data text-foreground">{duration}</span>
+          <span className="font-data">{duration}</span>
         )}
 
         {/* Airline with color dot */}
         {airline && (
-          <span className="flex items-baseline gap-1.5">
+          <span className="flex items-baseline gap-1">
             {airline.primaryColor && (
               <span
-                className="w-2 h-2 rounded-full flex-shrink-0 relative top-[1px]"
+                className="w-1.5 h-1.5 rounded-full flex-shrink-0 relative top-[1px]"
                 style={{ backgroundColor: airline.primaryColor }}
               />
             )}
-            <span>{airline.name}</span>
+            <span className="truncate max-w-[5rem]">{airline.name}</span>
           </span>
         )}
 
         {/* Aircraft */}
         {aircraft ? (
-          <span className="text-muted-foreground">{aircraft.model}</span>
+          <span className="truncate max-w-[5rem]">{aircraft.model}</span>
         ) : !flight.aircraft_icao ? (
           <AircraftShimmerBadge
             flightId={flight.id}
             enrichmentStatus={(flight as { enrichment_status?: EnrichmentStatus }).enrichment_status ?? 'pending'}
           />
         ) : (
-          <span className="font-data text-muted-foreground">{flight.aircraft_icao}</span>
+          <span className="font-data">{flight.aircraft_icao}</span>
         )}
 
         {/* Distance - pushed right */}
         {flight.distance_km && (
-          <span className="font-data tabular-nums ml-auto text-foreground">
+          <span className="font-data tabular-nums ml-auto">
             {formatDistance(flight.distance_km)}
           </span>
         )}

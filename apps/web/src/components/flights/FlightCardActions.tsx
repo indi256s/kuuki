@@ -26,7 +26,7 @@ export function FlightCardActions({ onEdit, onDelete }: FlightCardActionsProps) 
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <button
-          className="p-2 -m-1 rounded-md hover:bg-muted/50 active:bg-muted active:scale-95 transition-all duration-100 touch-manipulation focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+          className="p-2 -m-1 rounded-md hover:bg-muted/50 active:bg-muted transition-colors touch-manipulation"
           aria-label={t('common.moreActions', 'More actions')}
         >
           <MoreVertical className="w-4 h-4 text-muted-foreground" />

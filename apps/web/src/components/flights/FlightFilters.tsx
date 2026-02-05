@@ -210,7 +210,7 @@ export function FlightFilters({
                 <button
                   type="button"
                   onClick={clearOriginFilter}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground active:scale-95 transition-transform duration-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                   aria-label={t('flights.clearOrigin', 'Clear origin filter')}
                 >
                   <X className="w-4 h-4" aria-hidden="true" />
@@ -307,12 +307,12 @@ export function FlightFilters({
   return (
     <div className={cn('space-y-3', className)}>
       {/* Row 1: Dropdowns */}
-      <div className="flex flex-wrap gap-3 items-center">
+      <div className="flex flex-wrap gap-2 items-center">
         <Select
           value={filters.year?.toString() || 'all'}
           onValueChange={handleYearFilter}
         >
-          <SelectTrigger className="w-28 h-10">
+          <SelectTrigger className="w-28 h-9">
             <SelectValue placeholder={t('flights.allYears', 'All years')} />
           </SelectTrigger>
           <SelectContent>
@@ -329,7 +329,7 @@ export function FlightFilters({
           value={filters.airlineIata || 'all'}
           onValueChange={handleAirlineFilter}
         >
-          <SelectTrigger className="w-28 h-10">
+          <SelectTrigger className="w-28 h-9">
             <SelectValue placeholder={t('flights.allAirlines', 'All airlines')} />
           </SelectTrigger>
           <SelectContent>
@@ -346,7 +346,7 @@ export function FlightFilters({
           value={filters.aircraftIcao || 'all'}
           onValueChange={handleAircraftFilter}
         >
-          <SelectTrigger className="w-32 h-10">
+          <SelectTrigger className="w-32 h-9">
             <SelectValue placeholder={t('flights.allAircraft', 'All aircraft')} />
           </SelectTrigger>
           <SelectContent>
@@ -366,7 +366,7 @@ export function FlightFilters({
           value={filters.isUpcoming === true ? 'upcoming' : filters.isUpcoming === false ? 'past' : 'all'}
           onValueChange={handleUpcomingFilter}
         >
-          <SelectTrigger className="w-32 h-10">
+          <SelectTrigger className="w-32 h-9">
             <SelectValue placeholder={t('flights.allFlights', 'All flights')} />
           </SelectTrigger>
           <SelectContent>
@@ -382,15 +382,15 @@ export function FlightFilters({
       </div>
 
       {/* Row 2: Airport search */}
-      <div className="flex flex-wrap gap-3 items-center">
+      <div className="flex flex-wrap gap-2 items-center">
         <form onSubmit={(e) => { e.preventDefault(); onOriginSubmit() }} className="relative">
           <Input
             value={originSearch}
             onChange={(e) => onOriginSearchChange(e.target.value.toUpperCase())}
             placeholder={t('flights.originFilter', 'Origin (e.g. SFO)')}
             className={cn(
-              'w-36 h-10 font-mono text-sm uppercase pr-8',
-              filters.origin && 'border-primary ring-1 ring-primary/20'
+              'w-36 h-9 font-mono text-sm uppercase pr-8',
+              filters.origin && 'border-primary'
             )}
             maxLength={3}
           />
@@ -414,8 +414,8 @@ export function FlightFilters({
             onChange={(e) => onDestSearchChange(e.target.value.toUpperCase())}
             placeholder={t('flights.destFilter', 'Dest (e.g. JFK)')}
             className={cn(
-              'w-36 h-10 font-mono text-sm uppercase pr-8',
-              filters.destination && 'border-primary ring-1 ring-primary/20'
+              'w-36 h-9 font-mono text-sm uppercase pr-8',
+              filters.destination && 'border-primary'
             )}
             maxLength={3}
           />
@@ -423,7 +423,7 @@ export function FlightFilters({
             <button
               type="button"
               onClick={clearDestFilter}
-              className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground active:scale-95 transition-transform duration-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
               aria-label={t('flights.clearDest', 'Clear destination filter')}
             >
               <X className="w-4 h-4" aria-hidden="true" />
@@ -437,7 +437,7 @@ export function FlightFilters({
           <Button
             variant="ghost"
             onClick={clearAllFilters}
-            className="h-10 text-muted-foreground"
+            className="h-9 text-muted-foreground"
           >
             {t('flights.clearFilters', 'Clear filters')}
           </Button>
