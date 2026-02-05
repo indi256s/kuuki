@@ -198,15 +198,23 @@ export interface CountryData {
   timezone: string
 }
 
-// Manual country claim (for ground travel)
+// Manual country claim (lightweight stamp - "I've been here")
 export interface CountryClaim {
   id: string
   userId: string
   countryCode: string
   claimedAt: string
+}
+
+// Individual ground visit record (trip details)
+export interface GroundVisit {
+  id: string
+  userId: string
+  countryCode: string
   visitYear: number | null
-  note: string | null
   entryMethod: EntryMethod
+  note: string | null
+  createdAt: string | null
 }
 
 // Unified passport entry (from flights or claims)
@@ -238,8 +246,8 @@ export interface CountryStats {
     city: string
     visitCount: number
   }>
-  note: string | null       // From claim, if any
-  entryMethod: EntryMethod  // From claim, if any
+  isClaimed: boolean
+  groundVisits: GroundVisit[]
 }
 
 // Extended user stats (passport-related fields)

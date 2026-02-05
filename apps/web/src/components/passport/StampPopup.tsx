@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Badge } from '@/components/ui/badge'
-import type { PassportEntry } from '@kuuki/shared'
+import type { PassportEntry, GroundVisit } from '@kuuki/shared'
 
 interface StampPopupProps {
   entry: PassportEntry
@@ -20,6 +20,33 @@ function formatDate(dateString: string): string {
     month: 'short',
     day: 'numeric',
   })
+}
+
+function GroundVisitItem({ visit }: { visit: GroundVisit }) {
+  const { t } = useTranslation()
+
+  return (
+    <div className="flex items-start gap-2 py-1.5">
+      {visit.entryMethod && (
+        <Badge variant="outline" className="text-xs gap-1 shrink-0">
+          {visit.entryMethod === 'land' ? (
+            <><Car className="w-3 h-3" />{t('passport.land', 'Land')}</>
+          ) : (
+            <><Ship className="w-3 h-3" />{t('passport.sea', 'Sea')}</>
+          )}
+        </Badge>
+      )}
+      {visit.visitYear && (
+        <span className="text-xs text-muted-foreground font-mono shrink-0">{visit.visitYear}</span>
+      )}
+      {visit.note && (
+        <span className="text-xs italic text-muted-foreground/80 line-clamp-2">"{visit.note}"</span>
+      )}
+      {!visit.entryMethod && !visit.visitYear && !visit.note && (
+        <span className="text-xs text-muted-foreground">{t('passport.groundVisits', 'Ground visit')}</span>
+      )}
+    </div>
+  )
 }
 
 export function StampPopup({ entry, onClose }: StampPopupProps) {
@@ -108,7 +135,7 @@ export function StampPopup({ entry, onClose }: StampPopupProps) {
                     >
                       {airport.iata}
                       {airport.visitCount > 1 && (
-                        <span className="ml-1 text-muted-foreground">×{airport.visitCount}</span>
+                        <span className="ml-1 text-muted-foreground">x{airport.visitCount}</span>
                       )}
                     </Badge>
                   ))}
@@ -116,37 +143,17 @@ export function StampPopup({ entry, onClose }: StampPopupProps) {
               </div>
             )}
 
-            {/* Entry method (for claims) */}
-            {stats.entryMethod && (
-              <div className="flex items-center gap-2 py-2 border-t border-border/50">
-                <span className="text-xs text-muted-foreground">
-                  {t('passport.entryMethod', 'Entry Method')}
-                </span>
-                <Badge variant="outline" className="text-xs gap-1">
-                  {stats.entryMethod === 'land' ? (
-                    <>
-                      <Car className="w-3 h-3" />
-                      {t('passport.land', 'Land')}
-                    </>
-                  ) : (
-                    <>
-                      <Ship className="w-3 h-3" />
-                      {t('passport.sea', 'Sea')}
-                    </>
-                  )}
-                </Badge>
-              </div>
-            )}
-
-            {/* Note */}
-            {stats.note && (
-              <div className="pt-2 border-t border-border/50">
-                <p className="text-xs text-muted-foreground mb-1">
-                  {t('passport.note', 'Note')}
+            {/* Ground visits list */}
+            {stats.groundVisits.length > 0 && (
+              <div className="space-y-1.5 pt-2 border-t border-border/50">
+                <p className="text-xs text-muted-foreground">
+                  {t('passport.groundVisits', 'Ground Visits')} ({stats.groundVisits.length})
                 </p>
-                <p className="text-sm italic text-muted-foreground/80">
-                  "{stats.note}"
-                </p>
+                <div className="space-y-0.5">
+                  {stats.groundVisits.map((visit) => (
+                    <GroundVisitItem key={visit.id} visit={visit} />
+                  ))}
+                </div>
               </div>
             )}
           </>

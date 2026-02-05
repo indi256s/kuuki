@@ -1,6 +1,6 @@
 import { supabase } from './supabase'
 import type { Tables, TablesInsert } from './database.types'
-import type { PassportEntry, CountryStats, Continent, EntryMethod } from '@kuuki/shared'
+import type { PassportEntry, CountryStats, GroundVisit, Continent, EntryMethod } from '@kuuki/shared'
 import countriesData from '@kuuki/data/countries.json'
 
 // Re-export types from database
@@ -24,8 +24,8 @@ const countries = countriesData as CountryDataMap
  * Get all passport entries for a user (combining visits from flights + manual claims)
  */
 export async function getUserCountries(userId: string): Promise<PassportEntry[]> {
-  // Fetch visits (from flights) and country claims in parallel
-  const [visitsResult, claimsResult] = await Promise.all([
+  // Fetch visits (from flights), country claims, and ground visits in parallel
+  const [visitsResult, claimsResult, groundVisitsResult] = await Promise.all([
     supabase
       .from('visits')
       .select('country_code, first_visit, last_visit, visit_count, airport_iata')
@@ -33,6 +33,10 @@ export async function getUserCountries(userId: string): Promise<PassportEntry[]>
     supabase
       .from('country_claims')
       .select('country_code, claimed_at')
+      .eq('user_id', userId),
+    supabase
+      .from('ground_visits')
+      .select('country_code')
       .eq('user_id', userId),
   ])
 
@@ -42,9 +46,19 @@ export async function getUserCountries(userId: string): Promise<PassportEntry[]>
   if (claimsResult.error) {
     throw new Error(`Failed to fetch claims: ${claimsResult.error.message}`)
   }
+  if (groundVisitsResult.error) {
+    throw new Error(`Failed to fetch ground visits: ${groundVisitsResult.error.message}`)
+  }
 
   const visits = visitsResult.data ?? []
   const claims = claimsResult.data ?? []
+  const groundVisits = groundVisitsResult.data ?? []
+
+  // Count ground visits per country
+  const groundVisitCounts = new Map<string, number>()
+  for (const gv of groundVisits) {
+    groundVisitCounts.set(gv.country_code, (groundVisitCounts.get(gv.country_code) ?? 0) + 1)
+  }
 
   // Build a map of country code -> passport entry
   const countryMap = new Map<string, PassportEntry>()
@@ -97,12 +111,15 @@ export async function getUserCountries(userId: string): Promise<PassportEntry[]>
     if (existing) {
       // Country was also visited by flight - mark as 'both'
       existing.source = 'both'
+      // Add ground visit count
+      existing.visitCount += groundVisitCounts.get(countryCode) ?? 0
       // If claim is older, update first visit
       if (claim.claimed_at && claim.claimed_at < existing.firstVisit) {
         existing.firstVisit = claim.claimed_at
       }
     } else {
       // Country only from claim
+      const gvCount = groundVisitCounts.get(countryCode) ?? 0
       countryMap.set(countryCode, {
         countryCode,
         countryName: countryInfo.name,
@@ -113,7 +130,7 @@ export async function getUserCountries(userId: string): Promise<PassportEntry[]>
         flagColors: countryInfo.flagColors,
         firstVisit: claim.claimed_at ?? new Date().toISOString(),
         lastVisit: claim.claimed_at ?? new Date().toISOString(),
-        visitCount: 1,
+        visitCount: Math.max(1, gvCount),
         source: 'claim',
         airports: [],
       })
@@ -144,9 +161,32 @@ export async function getUserClaims(userId: string): Promise<CountryClaim[]> {
 }
 
 /**
- * Claim a country manually (for ground travel)
+ * Claim a country (upsert stamp only — no visit details)
  */
 export async function claimCountry(
+  userId: string,
+  countryCode: string,
+): Promise<CountryClaim> {
+  const { data: claim, error } = await supabase
+    .from('country_claims')
+    .upsert({
+      user_id: userId,
+      country_code: countryCode,
+    }, { onConflict: 'user_id,country_code' })
+    .select()
+    .single()
+
+  if (error) {
+    throw new Error(`Failed to claim country: ${error.message}`)
+  }
+
+  return claim
+}
+
+/**
+ * Add a ground visit record for a country
+ */
+export async function addGroundVisit(
   userId: string,
   countryCode: string,
   data: {
@@ -154,9 +194,9 @@ export async function claimCountry(
     note?: string | null
     entryMethod?: EntryMethod
   } = {}
-): Promise<CountryClaim> {
-  const { data: claim, error } = await supabase
-    .from('country_claims')
+): Promise<GroundVisit> {
+  const { data: visit, error } = await supabase
+    .from('ground_visits')
     .insert({
       user_id: userId,
       country_code: countryCode,
@@ -168,48 +208,75 @@ export async function claimCountry(
     .single()
 
   if (error) {
-    if (error.code === '23505') {
-      throw new Error('You have already claimed this country')
-    }
-    throw new Error(`Failed to claim country: ${error.message}`)
+    throw new Error(`Failed to add ground visit: ${error.message}`)
   }
 
-  return claim
+  return {
+    id: visit.id,
+    userId: visit.user_id,
+    countryCode: visit.country_code,
+    visitYear: visit.visit_year,
+    entryMethod: visit.entry_method as EntryMethod,
+    note: visit.note,
+    createdAt: visit.created_at,
+  }
 }
 
 /**
- * Update a country claim
+ * Get ground visits for a specific country
  */
-export async function updateClaim(
-  claimId: string,
-  updates: {
-    visitYear?: number | null
-    note?: string | null
-    entryMethod?: EntryMethod
-  }
-): Promise<CountryClaim> {
+export async function getGroundVisits(userId: string, countryCode: string): Promise<GroundVisit[]> {
   const { data, error } = await supabase
-    .from('country_claims')
-    .update({
-      visit_year: updates.visitYear,
-      note: updates.note,
-      entry_method: updates.entryMethod,
-    })
-    .eq('id', claimId)
-    .select()
-    .single()
+    .from('ground_visits')
+    .select('*')
+    .eq('user_id', userId)
+    .eq('country_code', countryCode)
+    .order('created_at', { ascending: false })
 
   if (error) {
-    throw new Error(`Failed to update claim: ${error.message}`)
+    throw new Error(`Failed to fetch ground visits: ${error.message}`)
   }
 
-  return data
+  return (data ?? []).map(v => ({
+    id: v.id,
+    userId: v.user_id,
+    countryCode: v.country_code,
+    visitYear: v.visit_year,
+    entryMethod: v.entry_method as EntryMethod,
+    note: v.note,
+    createdAt: v.created_at,
+  }))
 }
 
 /**
- * Remove a claimed country
+ * Delete a single ground visit
+ */
+export async function deleteGroundVisit(visitId: string): Promise<void> {
+  const { error } = await supabase
+    .from('ground_visits')
+    .delete()
+    .eq('id', visitId)
+
+  if (error) {
+    throw new Error(`Failed to delete ground visit: ${error.message}`)
+  }
+}
+
+/**
+ * Remove a claimed country (stamp + all ground visits)
  */
 export async function unclaimCountry(userId: string, countryCode: string): Promise<void> {
+  // Delete ground visits first, then the claim
+  const { error: gvError } = await supabase
+    .from('ground_visits')
+    .delete()
+    .eq('user_id', userId)
+    .eq('country_code', countryCode)
+
+  if (gvError) {
+    throw new Error(`Failed to delete ground visits: ${gvError.message}`)
+  }
+
   const { error } = await supabase
     .from('country_claims')
     .delete()
@@ -230,8 +297,8 @@ export async function getCountryStats(userId: string, countryCode: string): Prom
     throw new Error(`Unknown country code: ${countryCode}`)
   }
 
-  // Fetch visits and claims in parallel
-  const [visitsResult, claimResult] = await Promise.all([
+  // Fetch visits, claim, and ground visits in parallel
+  const [visitsResult, claimResult, groundVisitsResult] = await Promise.all([
     supabase
       .from('visits')
       .select('first_visit, last_visit, visit_count, airport_iata, city')
@@ -239,10 +306,16 @@ export async function getCountryStats(userId: string, countryCode: string): Prom
       .eq('country_code', countryCode),
     supabase
       .from('country_claims')
-      .select('note, entry_method')
+      .select('id')
       .eq('user_id', userId)
       .eq('country_code', countryCode)
       .maybeSingle(),
+    supabase
+      .from('ground_visits')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('country_code', countryCode)
+      .order('created_at', { ascending: false }),
   ])
 
   if (visitsResult.error) {
@@ -251,9 +324,13 @@ export async function getCountryStats(userId: string, countryCode: string): Prom
   if (claimResult.error) {
     throw new Error(`Failed to fetch claim: ${claimResult.error.message}`)
   }
+  if (groundVisitsResult.error) {
+    throw new Error(`Failed to fetch ground visits: ${groundVisitsResult.error.message}`)
+  }
 
   const visits = visitsResult.data ?? []
-  const claim = claimResult.data
+  const isClaimed = !!claimResult.data
+  const rawGroundVisits = groundVisitsResult.data ?? []
 
   // Calculate totals
   let totalVisits = 0
@@ -280,7 +357,7 @@ export async function getCountryStats(userId: string, countryCode: string): Prom
         existing.visitCount += visit.visit_count ?? 1
       } else {
         airportStats.set(visit.airport_iata, {
-          name: visit.airport_iata, // Would need airport data for full name
+          name: visit.airport_iata,
           city: visit.city ?? '',
           visitCount: visit.visit_count ?? 1,
         })
@@ -288,12 +365,25 @@ export async function getCountryStats(userId: string, countryCode: string): Prom
     }
   }
 
-  // If no flights but has claim, use claim date
-  if (!firstVisit && claim) {
+  // Add ground visit count
+  totalVisits += rawGroundVisits.length
+
+  // If no flights but has claim/ground visits, use current date
+  if (!firstVisit && (isClaimed || rawGroundVisits.length > 0)) {
     firstVisit = new Date().toISOString()
     lastVisit = new Date().toISOString()
-    totalVisits = 1
+    if (totalVisits === 0) totalVisits = 1
   }
+
+  const groundVisits: GroundVisit[] = rawGroundVisits.map(v => ({
+    id: v.id,
+    userId: v.user_id,
+    countryCode: v.country_code,
+    visitYear: v.visit_year,
+    entryMethod: v.entry_method as EntryMethod,
+    note: v.note,
+    createdAt: v.created_at,
+  }))
 
   return {
     countryCode,
@@ -307,8 +397,8 @@ export async function getCountryStats(userId: string, countryCode: string): Prom
       city: stats.city,
       visitCount: stats.visitCount,
     })).sort((a, b) => b.visitCount - a.visitCount),
-    note: claim?.note ?? null,
-    entryMethod: (claim?.entry_method as EntryMethod) ?? null,
+    isClaimed,
+    groundVisits,
   }
 }
 

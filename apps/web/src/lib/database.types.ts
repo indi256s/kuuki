@@ -38,6 +38,66 @@ export type Database = {
         }
         Relationships: []
       }
+      aircraft_reference: {
+        Row: {
+          engine_count: number
+          engine_type: string
+          iata: string | null
+          icao: string
+          manufacturer: string
+          model: string
+          name: string
+          type: string
+        }
+        Insert: {
+          engine_count: number
+          engine_type: string
+          iata?: string | null
+          icao: string
+          manufacturer: string
+          model: string
+          name: string
+          type: string
+        }
+        Update: {
+          engine_count?: number
+          engine_type?: string
+          iata?: string | null
+          icao?: string
+          manufacturer?: string
+          model?: string
+          name?: string
+          type?: string
+        }
+        Relationships: []
+      }
+      airports_reference: {
+        Row: {
+          city: string
+          country: string
+          country_code: string
+          iata: string
+          icao: string | null
+          name: string
+        }
+        Insert: {
+          city: string
+          country: string
+          country_code: string
+          iata: string
+          icao?: string | null
+          name: string
+        }
+        Update: {
+          city?: string
+          country?: string
+          country_code?: string
+          iata?: string
+          icao?: string | null
+          name?: string
+        }
+        Relationships: []
+      }
       badge_definitions: {
         Row: {
           category: string | null
@@ -119,29 +179,20 @@ export type Database = {
         Row: {
           claimed_at: string | null
           country_code: string
-          entry_method: string | null
           id: string
-          note: string | null
           user_id: string
-          visit_year: number | null
         }
         Insert: {
           claimed_at?: string | null
           country_code: string
-          entry_method?: string | null
           id?: string
-          note?: string | null
           user_id: string
-          visit_year?: number | null
         }
         Update: {
           claimed_at?: string | null
           country_code?: string
-          entry_method?: string | null
           id?: string
-          note?: string | null
           user_id?: string
-          visit_year?: number | null
         }
         Relationships: [
           {
@@ -223,6 +274,44 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "flights_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ground_visits: {
+        Row: {
+          country_code: string
+          created_at: string | null
+          entry_method: string | null
+          id: string
+          note: string | null
+          user_id: string
+          visit_year: number | null
+        }
+        Insert: {
+          country_code: string
+          created_at?: string | null
+          entry_method?: string | null
+          id?: string
+          note?: string | null
+          user_id: string
+          visit_year?: number | null
+        }
+        Update: {
+          country_code?: string
+          created_at?: string | null
+          entry_method?: string | null
+          id?: string
+          note?: string | null
+          user_id?: string
+          visit_year?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ground_visits_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
@@ -319,6 +408,68 @@ export type Database = {
         }
         Relationships: []
       }
+      user_advanced_stats: {
+        Row: {
+          aircraft_breakdown: Json | null
+          aircraft_type_breakdown: Json | null
+          avia_geek_unlocked: boolean | null
+          continent_breakdown: Json | null
+          country_geek_unlocked: boolean | null
+          created_at: string | null
+          duration_stats: Json | null
+          duration_unlocked: boolean | null
+          featured_fact: string | null
+          featured_fact_index: number | null
+          manufacturer_breakdown: Json | null
+          patterns: Json | null
+          region_breakdown: Json | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          aircraft_breakdown?: Json | null
+          aircraft_type_breakdown?: Json | null
+          avia_geek_unlocked?: boolean | null
+          continent_breakdown?: Json | null
+          country_geek_unlocked?: boolean | null
+          created_at?: string | null
+          duration_stats?: Json | null
+          duration_unlocked?: boolean | null
+          featured_fact?: string | null
+          featured_fact_index?: number | null
+          manufacturer_breakdown?: Json | null
+          patterns?: Json | null
+          region_breakdown?: Json | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          aircraft_breakdown?: Json | null
+          aircraft_type_breakdown?: Json | null
+          avia_geek_unlocked?: boolean | null
+          continent_breakdown?: Json | null
+          country_geek_unlocked?: boolean | null
+          created_at?: string | null
+          duration_stats?: Json | null
+          duration_unlocked?: boolean | null
+          featured_fact?: string | null
+          featured_fact_index?: number | null
+          manufacturer_breakdown?: Json | null
+          patterns?: Json | null
+          region_breakdown?: Json | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_advanced_stats_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_badges: {
         Row: {
           badge_id: number
@@ -355,116 +506,57 @@ export type Database = {
           },
         ]
       }
-      user_advanced_stats: {
-        Row: {
-          user_id: string
-          avia_geek_unlocked: boolean
-          country_geek_unlocked: boolean
-          duration_unlocked: boolean
-          manufacturer_breakdown: Json | null
-          aircraft_breakdown: Json | null
-          aircraft_type_breakdown: Json | null
-          continent_breakdown: Json | null
-          region_breakdown: Json | null
-          duration_stats: Json | null
-          patterns: Json | null
-          featured_fact: string | null
-          featured_fact_index: number
-          updated_at: string | null
-        }
-        Insert: {
-          user_id: string
-          avia_geek_unlocked?: boolean
-          country_geek_unlocked?: boolean
-          duration_unlocked?: boolean
-          manufacturer_breakdown?: Json | null
-          aircraft_breakdown?: Json | null
-          aircraft_type_breakdown?: Json | null
-          continent_breakdown?: Json | null
-          region_breakdown?: Json | null
-          duration_stats?: Json | null
-          patterns?: Json | null
-          featured_fact?: string | null
-          featured_fact_index?: number
-          updated_at?: string | null
-        }
-        Update: {
-          user_id?: string
-          avia_geek_unlocked?: boolean
-          country_geek_unlocked?: boolean
-          duration_unlocked?: boolean
-          manufacturer_breakdown?: Json | null
-          aircraft_breakdown?: Json | null
-          aircraft_type_breakdown?: Json | null
-          continent_breakdown?: Json | null
-          region_breakdown?: Json | null
-          duration_stats?: Json | null
-          patterns?: Json | null
-          featured_fact?: string | null
-          featured_fact_index?: number
-          updated_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "user_advanced_stats_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: true
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       user_stats: {
         Row: {
-          user_id: string
-          total_flights: number | null
-          total_distance_km: number | null
-          countries_count: number | null
-          cities_count: number | null
-          airlines_count: number | null
           aircraft_count: number | null
+          airlines_count: number | null
+          cities_count: number | null
           continents_count: number | null
-          longest_flight_minutes: number | null
+          countries_count: number | null
           has_night_departure: boolean | null
-          time_zones_count: number | null
-          most_visited_country: string | null
+          longest_flight_minutes: number | null
           most_visited_count: number | null
-          world_completion_pct: number | null
+          most_visited_country: string | null
+          time_zones_count: number | null
+          total_distance_km: number | null
+          total_flights: number | null
           updated_at: string | null
+          user_id: string
+          world_completion_pct: number | null
         }
         Insert: {
-          user_id: string
-          total_flights?: number
-          total_distance_km?: number
-          countries_count?: number
-          cities_count?: number
-          airlines_count?: number
-          aircraft_count?: number
-          continents_count?: number
-          longest_flight_minutes?: number
-          has_night_departure?: boolean
-          time_zones_count?: number | null
-          most_visited_country?: string | null
+          aircraft_count?: number | null
+          airlines_count?: number | null
+          cities_count?: number | null
+          continents_count?: number | null
+          countries_count?: number | null
+          has_night_departure?: boolean | null
+          longest_flight_minutes?: number | null
           most_visited_count?: number | null
-          world_completion_pct?: number | null
+          most_visited_country?: string | null
+          time_zones_count?: number | null
+          total_distance_km?: number | null
+          total_flights?: number | null
           updated_at?: string | null
+          user_id: string
+          world_completion_pct?: number | null
         }
         Update: {
-          user_id?: string
-          total_flights?: number
-          total_distance_km?: number
-          countries_count?: number
-          cities_count?: number
-          airlines_count?: number
-          aircraft_count?: number
-          continents_count?: number
-          longest_flight_minutes?: number
-          has_night_departure?: boolean
-          time_zones_count?: number | null
-          most_visited_country?: string | null
+          aircraft_count?: number | null
+          airlines_count?: number | null
+          cities_count?: number | null
+          continents_count?: number | null
+          countries_count?: number | null
+          has_night_departure?: boolean | null
+          longest_flight_minutes?: number | null
           most_visited_count?: number | null
-          world_completion_pct?: number | null
+          most_visited_country?: string | null
+          time_zones_count?: number | null
+          total_distance_km?: number | null
+          total_flights?: number | null
           updated_at?: string | null
+          user_id?: string
+          world_completion_pct?: number | null
         }
         Relationships: [
           {
@@ -523,11 +615,27 @@ export type Database = {
     }
     Functions: {
       check_invite_code: { Args: { p_code: string }; Returns: boolean }
-      evaluate_badges: { Args: { p_user_id: string }; Returns: void }
+      compute_aircraft_breakdown: { Args: { p_user_id: string }; Returns: Json }
+      compute_aircraft_type_breakdown: {
+        Args: { p_user_id: string }
+        Returns: Json
+      }
+      compute_continent_breakdown: {
+        Args: { p_user_id: string }
+        Returns: Json
+      }
+      compute_duration_stats: { Args: { p_user_id: string }; Returns: Json }
+      compute_region_breakdown: { Args: { p_user_id: string }; Returns: Json }
       generate_invite_code: { Args: { p_note?: string }; Returns: string }
-      recalculate_user_stats: { Args: { p_user_id: string }; Returns: void }
-      refresh_advanced_stats: { Args: { p_user_id: string }; Returns: void }
-      refresh_leaderboards: { Args: Record<string, never>; Returns: void }
+      recalculate_user_stats: {
+        Args: { p_user_id: string }
+        Returns: undefined
+      }
+      refresh_advanced_stats: {
+        Args: { p_user_id: string }
+        Returns: undefined
+      }
+      refresh_leaderboards: { Args: never; Returns: undefined }
       use_invite_code: {
         Args: { p_code: string; p_user_id: string }
         Returns: boolean
@@ -658,3 +766,9 @@ export type CompositeTypes<
   : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
     ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
     : never
+
+export const Constants = {
+  public: {
+    Enums: {},
+  },
+} as const

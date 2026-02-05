@@ -29,6 +29,7 @@ export function PassportPage() {
   const [isMapOpen, setIsMapOpen] = useState(false)
   const [mapExpanded, setMapExpanded] = useState(false)
   const [preselectedCountry, setPreselectedCountry] = useState<string | null>(null)
+  const [isAlreadyClaimed, setIsAlreadyClaimed] = useState(false)
 
   const themeColor = profile?.theme_color || 'teal'
   const hasCountries = (countries?.length ?? 0) > 0
@@ -38,14 +39,18 @@ export function PassportPage() {
   }, [])
 
   const handleSelectCountryFromMap = useCallback((countryCode: string) => {
+    const existingEntry = countries?.find(c => c.countryCode === countryCode)
+    const alreadyClaimed = existingEntry?.source === 'claim' || existingEntry?.source === 'both'
     setPreselectedCountry(countryCode)
+    setIsAlreadyClaimed(alreadyClaimed)
     setIsMapOpen(false)
     setIsClaimDialogOpen(true)
-  }, [])
+  }, [countries])
 
   const handleClaimDialogClose = useCallback(() => {
     setIsClaimDialogOpen(false)
     setPreselectedCountry(null)
+    setIsAlreadyClaimed(false)
   }, [])
 
   return (
@@ -184,6 +189,7 @@ export function PassportPage() {
         isOpen={isClaimDialogOpen}
         onClose={handleClaimDialogClose}
         preselectedCountry={preselectedCountry}
+        isAlreadyClaimed={isAlreadyClaimed}
       />
 
       {/* Mobile tab bar */}
