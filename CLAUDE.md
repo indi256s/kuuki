@@ -68,7 +68,7 @@ Key component directories in `apps/web/src/components/`:
 
 ## Design System
 
-**Direction:** Warm Japanese Minimalism — Modern travelers analyzing their life data
+**Direction:** Nordic Skies — Scandinavian minimalism
 
 **UI Library:** shadcn/ui (New York style)
 
