@@ -1,13 +1,13 @@
 # Phase 1: Foundation
 
-**Status:** Nearly complete
+**Status:** ✅ Complete
 
 ## Tasks
 
 - [x] Create GitHub repo `indi256s/kuuki`
 - [x] Initialize monorepo (pnpm + Turborepo)
 - [x] Create Supabase project + apply schema
-- [ ] Set up Cloudflare Pages
+- [x] Set up Cloudflare Pages
 - [x] Implement auth flow (closed beta with invite codes)
 - [x] Set up react-i18next with en/ru translations
 - [x] Add comprehensive test suite (26 tests passing)
@@ -30,6 +30,7 @@ See [plans/2026-01-31-cloudflare-pages-design.md](../plans/2026-01-31-cloudflare
 ## Completed: Authentication System
 
 **Files:**
+
 - `apps/web/src/lib/auth.ts` - Auth functions
 - `apps/web/src/components/auth/SignInForm.tsx`
 - `apps/web/src/components/auth/SignUpForm.tsx`
@@ -37,6 +38,7 @@ See [plans/2026-01-31-cloudflare-pages-design.md](../plans/2026-01-31-cloudflare
 - `apps/web/src/hooks/useAuth.ts`
 
 **Features:**
+
 - Closed beta with invite codes (`KUUKI-XXXX-adjective-noun`)
 - Email/password via Supabase Auth
 - Real-time invite code validation
@@ -48,11 +50,13 @@ See [plans/2026-01-31-cloudflare-pages-design.md](../plans/2026-01-31-cloudflare
 ## Completed: Internationalization
 
 **Files:**
+
 - `apps/web/src/lib/i18n.ts` - Configuration
 - `packages/shared/src/i18n/en.json`
 - `packages/shared/src/i18n/ru.json`
 
 **Features:**
+
 - Browser language detection
 - EN/RU translations
 - Language switcher component

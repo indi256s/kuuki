@@ -1,38 +1,42 @@
 # Phase 4: Social
 
-**Status:** Pending
+**Status:** ✅ Complete
 **Depends on:** Phase 3 complete
 
 ## Tasks
 
-### Public Profiles
+### Public Profiles ✅
 
 **Skill:** `/frontend-design`
 **Workflow:** `/code-review:code-review` (security review before exposing)
 
-**URL:** `/u/{username}`
+**URL:** `/u/{username}` (aliased to `/fly/{username}`)
 
 **What's public:**
-- Username, display name, avatar, bio (140 chars)
-- Stats: flights, distance, countries, cities, airlines
-- Badges earned
-- Leaderboard percentile rankings
+
+- [x] Username, display name, avatar, bio (140 chars)
+- [x] Stats: flights, distance, countries, cities, airlines
+- [x] Badges earned
+- [x] Leaderboard percentile rankings
 
 **What's private:**
-- All individual flights
-- Route map
 
-**Compare feature:**
-- Curated comparison (top 5 most interesting stats)
-- Option for full side-by-side ("You vs Them")
-- Overlaid bar charts
+- [x] All individual flights
+- [x] Route map
 
-### Leaderboard System
+**Compare feature:** ✅
+
+- [x] Curated comparison (top 5 most interesting stats)
+- [x] Option for full side-by-side ("You vs Them")
+- [x] Overlaid bar charts
+
+### Leaderboard System ✅
 
 **Skill:** `/interface-design`
 **MCP:** `supabase` (materialized views with trigger refresh)
 
 **Categories:**
+
 | Category | Metric |
 |----------|--------|
 | countries | Unique countries visited |
@@ -41,17 +45,16 @@
 | distance | Total km flown |
 | airlines | Unique airlines |
 
-**Display:** Percentile only ("You're in the top 15%")
+- [x] **Display:** Percentile only ("You're in the top 15%")
+- [x] **Opt-in:** User must enable `show_on_leaderboards` in settings
+- [x] **Anti-gaming:** Community trust, public profiles, reporting
 
-**Opt-in:** User must enable `show_on_leaderboards` in settings
-
-**Anti-gaming:** Community trust, public profiles, reporting
-
-### Badge Evaluation
+### Badge Evaluation ✅
 
 **MCP:** `supabase` (database triggers on flight insert)
 
 **Categories:**
+
 | Type | Examples |
 |------|----------|
 | Milestones | First Flight, Frequent Flyer (50), Centurion (100), Circumnavigator |
@@ -59,7 +62,7 @@
 | Collector | Fleet Master, Alliance Ace, Retro |
 | Achievement | Iron Butt (12+ hr), Night Owl, Jet Setter |
 
-**Display:** Earned badges only, no progress indicators
+- [x] **Display:** Earned badges only, no progress indicators
 
 ## Files to Create
 
