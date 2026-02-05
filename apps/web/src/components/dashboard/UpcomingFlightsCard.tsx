@@ -14,11 +14,6 @@ export function UpcomingFlightsCard({ className }: { className?: string }) {
 
     const upcomingFlights = stats?.upcomingFlights || []
 
-    // Return null if no upcoming flights - hide the card entirely
-    if (upcomingFlights.length === 0) {
-        return null
-    }
-
     // Calculate countdown
     const getCountdown = (dateStr: string) => {
         const flightDate = new Date(dateStr)
@@ -37,7 +32,7 @@ export function UpcomingFlightsCard({ className }: { className?: string }) {
                 className={cn(
                     // Base card styles
                     'rounded-2xl border border-border/50 bg-card p-5 h-full',
-                    'transition-all duration-300',
+                    'transition-all duration-200',
                     'hover:border-primary/30 hover:shadow-glow-sm',
                     'flex flex-col relative overflow-hidden',
                     className
@@ -48,35 +43,46 @@ export function UpcomingFlightsCard({ className }: { className?: string }) {
                     <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
                         {t('dashboard.nextMission', 'Next Assignment')}
                     </h3>
-                    <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-primary/10 text-primary text-[10px] font-bold uppercase">
-                        <Clock className="w-3 h-3" />
-                        {getCountdown(upcomingFlights[0].date)}
-                    </div>
+                    {upcomingFlights.length > 0 && (
+                        <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-primary/10 text-primary text-[10px] font-bold uppercase">
+                            <Clock className="w-3 h-3" />
+                            {getCountdown(upcomingFlights[0].date)}
+                        </div>
+                    )}
                 </div>
 
                 {/* Main Content - Centered */}
                 <div className="flex-1 flex flex-col justify-center z-10">
-                    <button
-                        onClick={() => setSelectedFlightId(upcomingFlights[0].id)}
-                        aria-label={`View flight from ${upcomingFlights[0].origin} to ${upcomingFlights[0].destination}`}
-                        className="text-left w-full group"
-                    >
-                        <div className="flex items-center justify-between gap-2 mb-2">
-                            <div className="text-3xl font-bold font-mono tracking-tighter group-hover:text-primary transition-colors">
-                                {upcomingFlights[0].origin}
+                    {upcomingFlights.length > 0 ? (
+                        <button
+                            onClick={() => setSelectedFlightId(upcomingFlights[0].id)}
+                            aria-label={`View flight from ${upcomingFlights[0].origin} to ${upcomingFlights[0].destination}`}
+                            className="text-left w-full group cursor-pointer"
+                        >
+                            <div className="flex items-center justify-between gap-2 mb-2">
+                                <div className="text-3xl font-bold font-mono tracking-tight group-hover:text-primary transition-colors">
+                                    {upcomingFlights[0].origin}
+                                </div>
+                                <Plane className="w-5 h-5 text-muted-foreground/50 rotate-90" />
+                                <div className="text-3xl font-bold font-mono tracking-tight group-hover:text-primary transition-colors">
+                                    {upcomingFlights[0].destination}
+                                </div>
                             </div>
-                            <Plane className="w-5 h-5 text-muted-foreground/50 rotate-90" />
-                            <div className="text-3xl font-bold font-mono tracking-tighter group-hover:text-primary transition-colors">
-                                {upcomingFlights[0].destination}
+                            <div className="text-xs text-muted-foreground flex items-center justify-between">
+                                <span>{upcomingFlights[0].airline_iata} {upcomingFlights[0].flight_number}</span>
+                                <span className="opacity-0 group-hover:opacity-100 transition-opacity text-primary text-[10px] uppercase tracking-wider">
+                                    View Data &rarr;
+                                </span>
                             </div>
+                        </button>
+                    ) : (
+                        <div className="text-center">
+                            <Plane className="w-8 h-8 text-muted-foreground/30 mx-auto mb-2" />
+                            <p className="text-sm text-muted-foreground">
+                                {t('dashboard.noUpcoming', 'No upcoming flights')}
+                            </p>
                         </div>
-                        <div className="text-xs text-muted-foreground flex items-center justify-between">
-                            <span>{upcomingFlights[0].airline_iata} {upcomingFlights[0].flight_number}</span>
-                            <span className="opacity-0 group-hover:opacity-100 transition-opacity text-primary text-[10px] uppercase tracking-wider">
-                                View Data &rarr;
-                            </span>
-                        </div>
-                    </button>
+                    )}
                 </div>
 
                 {/* Footer / Count */}

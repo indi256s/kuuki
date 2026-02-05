@@ -81,7 +81,7 @@ export function DashboardPage() {
       {/* Main content - pb-safe adds bottom padding for mobile tab bar */}
       <main className="max-w-7xl 3xl:max-w-[1800px] mx-auto px-4 sm:px-6 py-4 sm:py-6 pb-safe sm:pb-6">
         {/* Welcome section + Year filter (same line) */}
-        <div className="mb-6 animate-fade-up flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+        <div className="mb-8 animate-fade-up flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
           <div>
             <h1 className="text-2xl md:text-3xl font-semibold tracking-tight text-balance">
               {t('dashboard.welcomePrefix', 'Welcome,')}{' '}
@@ -89,7 +89,7 @@ export function DashboardPage() {
                 {displayName}
               </span>
             </h1>
-            <p className="mt-1 text-muted-foreground">
+            <p className="mt-1 text-sm text-muted-foreground">
               {hasFlights
                 ? t('dashboard.subtitle', 'Here\'s your travel overview')
                 : t('dashboard.emptySubtitle', 'Start tracking your flights')}
@@ -100,10 +100,10 @@ export function DashboardPage() {
         </div>
 
         {hasFlights ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 animate-fade-up">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 animate-fade-up stagger-children">
             {/* Cell 1: Hero Map (2x2 normally, 4x3 when expanded) */}
             <div className={cn(
-              'row-span-2 h-[400px] md:h-auto transition-all duration-300',
+              'row-span-2 min-h-[400px] md:h-auto transition-all duration-300',
               mapExpanded
                 ? 'col-span-1 md:col-span-4 row-span-3'
                 : 'col-span-1 md:col-span-2'
@@ -116,22 +116,22 @@ export function DashboardPage() {
             </div>
 
             {/* Cell 2: Scoreboard / Travel Summary (2x1) */}
-            <div className="col-span-1 md:col-span-2 row-span-1 h-[200px]">
+            <div className="col-span-1 md:col-span-2 row-span-1 min-h-[200px]">
               <TravelSummaryCard className="h-full" />
             </div>
 
             {/* Cell 3: Next Mission / Upcoming (1x1) */}
-            <div className="col-span-1 row-span-1 h-[200px]">
+            <div className="col-span-1 row-span-1 min-h-[200px]">
               <UpcomingFlightsCard />
             </div>
 
             {/* Cell 4: Achievements / Milestones (1x1) */}
-            <div className="col-span-1 row-span-1 h-[200px]">
+            <div className="col-span-1 row-span-1 min-h-[200px]">
               <ConsolidatedMilestonesCard />
             </div>
 
             {/* Row 3: Analysis Deck (Full Width) */}
-            <div className="col-span-1 md:col-span-2 lg:col-span-4 animate-fade-up" style={{ animationDelay: '100ms' }}>
+            <div className="col-span-1 md:col-span-2 lg:col-span-4 animate-fade-up">
               <DashboardGrid>
                 {/* Row 1: Aircraft stats */}
                 <AircraftTypesCard />

@@ -17,19 +17,19 @@ export function TravelSummaryCard({ className }: TravelSummaryCardProps) {
   return (
     <div
       className={cn(
-        'rounded-2xl border border-border/50 bg-card p-6',
+        'rounded-2xl border border-border/50 bg-card p-5',
         'transition-all duration-200',
         'hover:border-primary/30',
         'flex flex-col justify-center h-full',
         className
       )}
     >
-      <div className="grid grid-cols-3 gap-4 divide-x divide-border/30">
+      <div className="grid grid-cols-3 gap-4 divide-x divide-border/50">
 
         {/* Metric 1: Flights */}
         <div className="flex flex-col items-center justify-center text-center px-2">
           <div className="mb-2 p-2 rounded-lg bg-primary/10 text-primary">
-            <Plane className="w-5 h-5" />
+            <Plane className="w-[18px] h-[18px]" />
           </div>
           <div className="text-3xl font-bold font-mono tracking-tight text-foreground">
             {stats.totalFlights}
@@ -42,7 +42,7 @@ export function TravelSummaryCard({ className }: TravelSummaryCardProps) {
         {/* Metric 2: Countries */}
         <div className="flex flex-col items-center justify-center text-center px-2">
           <div className="mb-2 p-2 rounded-lg bg-primary/10 text-primary">
-            <Globe2 className="w-5 h-5" />
+            <Globe2 className="w-[18px] h-[18px]" />
           </div>
           <div className="text-3xl font-bold font-mono tracking-tight text-foreground">
             {stats.uniqueCountries}
@@ -55,7 +55,7 @@ export function TravelSummaryCard({ className }: TravelSummaryCardProps) {
         {/* Metric 3: Distance */}
         <div className="flex flex-col items-center justify-center text-center px-2">
           <div className="mb-2 p-2 rounded-lg bg-primary/10 text-primary">
-            <Ruler className="w-5 h-5" />
+            <Ruler className="w-[18px] h-[18px]" />
           </div>
           <div className="text-3xl font-bold font-mono tracking-tight text-foreground">
             {formatDistance(stats.totalDistance)}

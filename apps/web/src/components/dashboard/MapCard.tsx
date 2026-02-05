@@ -26,6 +26,7 @@ export function MapCard({ className, isExpanded = false, onExpandChange }: MapCa
         // Base card styles
         'relative rounded-2xl border border-border/50 bg-card overflow-hidden h-full w-full flex flex-col',
         'transition-all duration-300',
+        'shadow-glow-sm',
         className
       )}
     >
@@ -48,7 +49,8 @@ export function MapCard({ className, isExpanded = false, onExpandChange }: MapCa
             'bg-white/10 hover:bg-white/20 backdrop-blur',
             'flex items-center justify-center',
             'text-white/70 hover:text-white',
-            'transition-all duration-200'
+            'transition-all duration-200',
+            'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50'
           )}
           aria-label={isExpanded ? 'Collapse map' : 'Expand map'}
         >
@@ -65,7 +67,7 @@ export function MapCard({ className, isExpanded = false, onExpandChange }: MapCa
 
 function MapSkeleton() {
   return (
-    <div className="h-[200px] bg-[#0a0f18] rounded-2xl border border-border/50 animate-pulse flex items-center justify-center">
+    <div className="h-[200px] bg-card rounded-2xl border border-border/50 animate-pulse flex items-center justify-center">
       <div className="w-6 h-6 rounded-full border-2 border-slate-700 border-t-slate-500 animate-spin" />
     </div>
   )

@@ -15,7 +15,7 @@ export function EmptyState({ onAddFlight }: EmptyStateProps) {
   return (
     <div className="relative">
       {/* Sample dashboard preview (faded) */}
-      <div className="opacity-30 pointer-events-none select-none blur-[2px]" aria-hidden="true">
+      <div className="opacity-40 pointer-events-none select-none blur-[1px]" aria-hidden="true">
         {/* Stats grid */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           <SampleStatCard
@@ -96,7 +96,7 @@ export function EmptyState({ onAddFlight }: EmptyStateProps) {
 function SampleStatCard({ label, value }: { label: string; value: string }) {
   return (
     <Card className="border-border/50">
-      <CardContent className="p-4">
+      <CardContent className="p-5">
         <div className="text-2xl font-semibold font-data">{value}</div>
         <div className="text-sm text-muted-foreground">{label}</div>
       </CardContent>

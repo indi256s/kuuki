@@ -35,7 +35,7 @@ export function YearFilter() {
                                 'transition-all duration-200',
                                 'whitespace-nowrap',
                                 // Focus state
-                                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2',
+                                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background',
 
                                 // Selected state
                                 isSelected ? [

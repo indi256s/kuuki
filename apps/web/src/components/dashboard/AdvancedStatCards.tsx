@@ -50,7 +50,12 @@ function StatCard({
           <Icon className="w-[18px] h-[18px]" />
         </div>
         <h4 className="font-medium text-sm">{title}</h4>
-        {isLocked && <Lock className="w-3.5 h-3.5 text-muted-foreground ml-auto" />}
+        {isLocked && (
+          <Lock
+            className="w-3.5 h-3.5 text-muted-foreground ml-auto"
+            aria-label={unlockProgress ? `Unlocks after ${unlockProgress.required} ${unlockProgress.label}` : 'Locked'}
+          />
+        )}
       </div>
 
       {/* Content */}
@@ -118,9 +123,9 @@ export function AircraftTypesCard() {
   }, [typeBreakdown])
 
   const types = [
-    { key: 'widebody', label: t('stats.aircraft.widebody', 'Widebody'), color: 'bg-blue-500' },
-    { key: 'narrowbody', label: t('stats.aircraft.narrowbody', 'Narrowbody'), color: 'bg-emerald-500' },
-    { key: 'regional', label: t('stats.aircraft.regional', 'Regional'), color: 'bg-amber-500' },
+    { key: 'widebody', label: t('stats.aircraft.widebody', 'Widebody'), color: 'bg-chart-1' },
+    { key: 'narrowbody', label: t('stats.aircraft.narrowbody', 'Narrowbody'), color: 'bg-chart-2' },
+    { key: 'regional', label: t('stats.aircraft.regional', 'Regional'), color: 'bg-chart-3' },
   ]
 
   return (
@@ -155,11 +160,11 @@ export function AircraftTypesCard() {
 // ============================================================================
 
 const MANUFACTURER_COLORS: Record<string, string> = {
-  Airbus: 'bg-blue-500',
-  Boeing: 'bg-sky-500',
-  Embraer: 'bg-emerald-500',
-  Bombardier: 'bg-red-500',
-  ATR: 'bg-orange-500',
+  Airbus: 'bg-chart-1',
+  Boeing: 'bg-chart-4',
+  Embraer: 'bg-chart-2',
+  Bombardier: 'bg-chart-5',
+  ATR: 'bg-chart-3',
 }
 
 export function ManufacturerCard() {
@@ -213,11 +218,11 @@ export function ManufacturerCard() {
 // ============================================================================
 
 const CONTINENT_COLORS: Record<string, string> = {
-  europe: 'bg-blue-500',
-  asia: 'bg-red-500',
-  americas: 'bg-emerald-500',
-  africa: 'bg-amber-500',
-  oceania: 'bg-purple-500',
+  europe: 'bg-chart-1',
+  asia: 'bg-chart-5',
+  americas: 'bg-chart-2',
+  africa: 'bg-chart-3',
+  oceania: 'bg-chart-4',
 }
 
 const CONTINENT_TOTALS: Record<string, number> = {
@@ -280,10 +285,10 @@ export function ContinentProgressCard() {
 // ============================================================================
 
 const PATTERN_COLORS: Record<DepartureBucket, string> = {
-  red_eye: 'bg-indigo-500',
-  early: 'bg-amber-500',
-  business: 'bg-blue-500',
-  evening: 'bg-orange-500',
+  red_eye: 'bg-chart-4',
+  early: 'bg-chart-3',
+  business: 'bg-chart-1',
+  evening: 'bg-chart-2',
 }
 
 export function DeparturePatternCard() {

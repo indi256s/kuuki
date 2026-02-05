@@ -21,7 +21,7 @@ export function ConsolidatedMilestonesCard() {
       className={cn(
         // Base card styles
         'rounded-2xl border border-border/50 bg-card p-5 h-full',
-        'transition-all duration-300',
+        'transition-all duration-200',
         // Hover effect
         'hover:border-primary/30 hover:shadow-glow-sm',
         'flex flex-col'
@@ -32,7 +32,7 @@ export function ConsolidatedMilestonesCard() {
         <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
           {t('dashboard.milestones', 'Achievements')}
         </h3>
-        <Sparkles className="w-4 h-4 text-purple-500" />
+        <Sparkles className="w-4 h-4 text-chart-1" />
       </div>
 
       {/* Content */}
@@ -40,26 +40,36 @@ export function ConsolidatedMilestonesCard() {
         {/* Moon Progress - Primary Stat */}
         <div>
           <div className="flex justify-between items-end mb-1">
-            <span className="text-xs font-medium text-purple-500">{t('stats.milestones.moon', 'Lunar Trajectory')}</span>
+            <span className="text-xs font-medium text-chart-1">{t('stats.milestones.moon', 'Lunar Trajectory')}</span>
             <span className="text-xs font-mono text-muted-foreground">{milestones.moonProgress.toFixed(1)}%</span>
           </div>
           <div className="h-2 bg-muted/50 rounded-full overflow-hidden">
             <div
-              className="h-full bg-purple-500/80 rounded-full transition-all duration-1000 ease-out"
+              className="h-full bg-chart-1/80 rounded-full transition-all duration-1000 ease-out"
               style={{ width: `${Math.min(100, milestones.moonProgress)}%` }}
             />
           </div>
         </div>
 
-        {/* Earth Loops & Time - Secondary Stats (Grid) */}
-        <div className="grid grid-cols-2 gap-2 pt-1">
-          <div className="bg-muted/20 rounded-lg p-2 text-center">
-            <Globe className="w-3 h-3 text-blue-500 mx-auto mb-1 opacity-70" />
-            <div className="font-mono font-bold text-sm">{milestones.earthTrips.toFixed(1)}x</div>
+        {/* Earth Loops & Time - Secondary Stats (Vertical Stack) */}
+        <div className="space-y-2 pt-1">
+          <div className="flex items-center gap-2 p-2 rounded-lg bg-muted/20">
+            <div className="p-2 rounded-lg bg-chart-5/10 text-chart-5 w-8 h-8 flex items-center justify-center">
+              <Globe className="w-4 h-4" />
+            </div>
+            <div className="flex-1">
+              <div className="font-mono font-bold text-sm">{milestones.earthTrips.toFixed(1)}x</div>
+              <div className="text-[10px] text-muted-foreground uppercase tracking-wider">Earth Loops</div>
+            </div>
           </div>
-          <div className="bg-muted/20 rounded-lg p-2 text-center">
-            <Clock className="w-3 h-3 text-amber-500 mx-auto mb-1 opacity-70" />
-            <div className="font-mono font-bold text-sm">{timeDisplay}</div>
+          <div className="flex items-center gap-2 p-2 rounded-lg bg-muted/20">
+            <div className="p-2 rounded-lg bg-chart-3/10 text-chart-3 w-8 h-8 flex items-center justify-center">
+              <Clock className="w-4 h-4" />
+            </div>
+            <div className="flex-1">
+              <div className="font-mono font-bold text-sm">{timeDisplay}</div>
+              <div className="text-[10px] text-muted-foreground uppercase tracking-wider">Time in Air</div>
+            </div>
           </div>
         </div>
       </div>
