@@ -99,14 +99,14 @@ export function AircraftEnrichDialog({
     // Only showing ≥0.7 confidence results, so only two tiers needed
     if (confidence >= 0.9) {
       return (
-        <Badge variant="secondary" className="text-xs bg-green-500/10 text-green-600 border-green-500/20">
+        <Badge variant="secondary" className="text-xs bg-success/10 text-success border-success/20">
           {Math.round(confidence * 100)}%
         </Badge>
       )
     }
     // 0.7-0.89
     return (
-      <Badge variant="secondary" className="text-xs bg-yellow-500/10 text-yellow-600 border-yellow-500/20">
+      <Badge variant="secondary" className="text-xs bg-warning/10 text-warning border-warning/20">
         {Math.round(confidence * 100)}%
       </Badge>
     )
@@ -117,7 +117,7 @@ export function AircraftEnrichDialog({
       <DialogContent size="lg" className="gap-0 p-0 overflow-hidden max-h-[85vh] flex flex-col">
         <DialogHeader className="px-6 pt-6 pb-4 border-b border-border/50">
           <DialogTitle className="flex items-center gap-2 text-lg">
-            <Sparkles className="w-5 h-5 text-primary" />
+            <Sparkles aria-hidden="true" className="w-5 h-5 text-primary" />
             {t('enrich.resultsTitle', 'Aircraft Identification Results')}
           </DialogTitle>
           <DialogDescription>
@@ -171,7 +171,7 @@ export function AircraftEnrichDialog({
                     <div
                       key={flight.id}
                       className={cn(
-                        'flex items-center gap-3 p-3 rounded-lg border transition-colors',
+                        'flex items-center gap-3 p-3 rounded-lg border transition-colors duration-150',
                         isSelected
                           ? 'border-primary/30 bg-primary/5'
                           : 'border-border/50 bg-card hover:bg-muted/30'
@@ -217,7 +217,7 @@ export function AircraftEnrichDialog({
                           </div>
                         </div>
                         {getConfidenceBadge(result.confidence)}
-                        <Check className="w-4 h-4 text-green-600" />
+                        <Check aria-hidden="true" className="w-4 h-4 text-success" />
                       </div>
                     </div>
                   )
@@ -227,7 +227,7 @@ export function AircraftEnrichDialog({
             {/* Empty state */}
             {identifiedCount === 0 && (
               <div className="flex flex-col items-center justify-center py-8 text-center">
-                <AlertCircle className="w-10 h-10 text-muted-foreground mb-3" />
+                <AlertCircle aria-hidden="true" className="w-10 h-10 text-muted-foreground mb-3" />
                 <p className="text-muted-foreground">
                   {t('enrich.noResults', 'Could not identify any aircraft. Try again or set manually.')}
                 </p>

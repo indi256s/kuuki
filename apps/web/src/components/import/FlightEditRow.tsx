@@ -159,7 +159,7 @@ export function FlightEditRow({
   return (
     <div
       className={cn(
-        "group rounded-xl border transition-all duration-200",
+        "group rounded-xl border transition-[border-color,background-color] duration-200",
         selected
           ? "border-primary/40 bg-primary/[0.03] shadow-sm"
           : "border-border/60 bg-card hover:border-border hover:bg-card/80",
@@ -178,7 +178,7 @@ export function FlightEditRow({
 
         {/* Flight icon + number */}
         <div className="flex items-center gap-2 w-16 flex-shrink-0">
-          <Plane className="w-4 h-4 text-muted-foreground/60" />
+          <Plane aria-hidden="true" className="w-4 h-4 text-muted-foreground/60" />
           <span className="text-xs text-muted-foreground font-mono">#{index + 1}</span>
         </div>
 
@@ -190,18 +190,18 @@ export function FlightEditRow({
                 <button
                   type="button"
                   className={cn(
-                    "flex items-center gap-1.5 text-sm font-medium px-2 py-1 -mx-2 -my-1 rounded-md",
+                    "flex items-center gap-1.5 text-sm font-medium px-2.5 py-1.5 rounded-md",
                     "border border-warning/50 bg-warning/10 hover:bg-warning/20 transition-colors"
                   )}
                 >
-                  <Calendar className="w-3.5 h-3.5 text-warning" />
+                  <Calendar aria-hidden="true" className="w-3.5 h-3.5 text-warning" />
                   <span>{formatDate(flight.date)}</span>
                 </button>
               </PopoverTrigger>
               <PopoverContent className="w-64" align="start">
                 <PopoverHeader>
                   <PopoverTitle className="flex items-center gap-2">
-                    <Calendar className="w-4 h-4 text-warning" />
+                    <Calendar aria-hidden="true" className="w-4 h-4 text-warning" />
                     {t('import.review.yearInferred', 'Year not found')}
                   </PopoverTitle>
                   <PopoverDescription>
@@ -242,7 +242,7 @@ export function FlightEditRow({
 
           <div className="flex items-center gap-1 text-muted-foreground/50">
             <div className="w-8 h-px bg-border" />
-            <Plane className="w-3 h-3 rotate-90" />
+            <Plane aria-hidden="true" className="w-3 h-3 rotate-90" />
             <div className="w-8 h-px bg-border" />
           </div>
 
@@ -283,20 +283,20 @@ export function FlightEditRow({
             </span>
           )}
           {flight.confidence < LOW_CONFIDENCE_THRESHOLD && !isDuplicate && isValid && !isEnriching && (
-            <AlertCircle className="w-4 h-4 text-warning" />
+            <AlertCircle aria-hidden="true" className="w-4 h-4 text-warning" />
           )}
         </div>
 
         {/* Actions */}
-        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+        <div className="flex items-center gap-1 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
           <Button
             variant="ghost"
             size="icon"
             onClick={() => setExpanded(!expanded)}
             className="h-8 w-8 rounded-lg"
           >
-            <ChevronDown className={cn(
-              "w-4 h-4 transition-transform duration-200",
+            <ChevronDown aria-hidden="true" className={cn(
+              "w-4 h-4 transition-transform duration-200 ease-out",
               expanded && "rotate-180"
             )} />
           </Button>
@@ -313,14 +313,14 @@ export function FlightEditRow({
 
       {/* Expanded edit form with smooth animation */}
       <div className={cn(
-        "overflow-hidden transition-all duration-300 ease-out",
+        "overflow-hidden transition-[max-height,opacity] duration-300 ease-out",
         expanded ? "max-h-[400px] opacity-100" : "max-h-0 opacity-0"
       )}>
         <div className="px-4 pb-4 pt-2 border-t border-border/50 bg-muted/30 space-y-4">
           {/* Low confidence note */}
           {flight.confidence < LOW_CONFIDENCE_THRESHOLD && (
             <div className="flex items-center gap-2 text-sm text-warning-foreground bg-warning/10 rounded-lg px-3 py-2">
-              <AlertCircle className="w-4 h-4 flex-shrink-0" />
+              <AlertCircle aria-hidden="true" className="w-4 h-4 flex-shrink-0" />
               <span>{t('import.review.lowConfidence', 'Some fields may need verification')}</span>
             </div>
           )}
@@ -329,7 +329,7 @@ export function FlightEditRow({
           {isYearInferred && (
             <div className="flex items-center justify-between gap-2 text-sm text-warning-foreground bg-warning/10 rounded-lg px-3 py-2">
               <div className="flex items-center gap-2">
-                <Calendar className="w-4 h-4 flex-shrink-0" />
+                <Calendar aria-hidden="true" className="w-4 h-4 flex-shrink-0" />
                 <span>{t('import.review.yearNotInDocument', 'Year was not found in document')}</span>
               </div>
               {yearSuggestion && (
@@ -350,7 +350,7 @@ export function FlightEditRow({
               <Label className="text-xs text-muted-foreground flex items-center gap-1.5">
                 {t('flights.date', 'Date')}
                 {isYearInferred && (
-                  <Calendar className="w-3 h-3 text-warning" />
+                  <Calendar aria-hidden="true" className="w-3 h-3 text-warning" />
                 )}
               </Label>
               <DateInput

@@ -379,8 +379,8 @@ export function ImportReview({
               <FileText className="w-4 h-4" />
               {t('import.review.viewNormalized', 'View normalized data')}
             </span>
-            <ChevronDown className={cn(
-              "w-4 h-4 transition-transform duration-200",
+            <ChevronDown aria-hidden="true" className={cn(
+              "w-4 h-4 transition-transform duration-200 ease-out",
               showCleanedText && "rotate-180"
             )} />
           </button>
@@ -411,7 +411,7 @@ export function ImportReview({
 
       {/* Enrichment progress indicator with skip option */}
       {isEnriching && (
-        <div className="flex items-center justify-between gap-4 px-4 py-3 rounded-xl bg-primary/5 border border-primary/20">
+        <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between sm:gap-4 px-4 py-3 rounded-xl bg-primary/5 border border-primary/20">
           <div className="flex items-center gap-2">
             <Loader2 className="w-4 h-4 animate-spin text-primary" />
             <span className="text-sm text-primary">
