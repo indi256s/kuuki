@@ -39,21 +39,16 @@ export function LeaderboardPage() {
       <main className="max-w-4xl mx-auto px-6 py-8 pb-safe sm:pb-8">
         {/* Page header */}
         <div className="mb-8 animate-fade-up">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="p-2.5 rounded-xl bg-amber-100 dark:bg-amber-900/30">
-              <Trophy className="w-6 h-6 text-amber-500" />
-            </div>
-            <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">
-              {t('leaderboard.title', 'Leaderboard')}
-            </h1>
-          </div>
-          <p className="text-muted-foreground">
-            {t('leaderboard.subtitle', 'See how you rank against other travelers')}
-          </p>
+          <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">
+            {t('leaderboard.title', 'Leaderboard')}
+            <span className="ml-3 text-sm font-normal text-muted-foreground hidden sm:inline">
+              {t('leaderboard.subtitle', 'See how you rank against other travelers')}
+            </span>
+          </h1>
 
           {/* Total users badge */}
           {totalUsers !== undefined && totalUsers > 0 && (
-            <div className="mt-4 inline-flex items-center gap-2 text-sm text-muted-foreground bg-secondary/50 px-3 py-1.5 rounded-full">
+            <div className="mt-3 inline-flex items-center gap-2 text-sm text-muted-foreground bg-secondary/50 px-3 py-1.5 rounded-full">
               <Users className="w-4 h-4" />
               {t('leaderboard.totalUsers', '{{count}} travelers ranked', { count: totalUsers })}
             </div>

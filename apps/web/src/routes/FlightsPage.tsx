@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Plus, Plane } from 'lucide-react'
+import { Plus } from 'lucide-react'
 import { FlightList } from '@/components/flights/FlightList'
 import { FlightForm } from '@/components/flights/FlightForm'
 import { AppHeader } from '@/components/common/AppHeader'
@@ -74,19 +74,14 @@ export function FlightsPage() {
 
       {/* Content - wider container, generous spacing */}
       <main className="max-w-7xl 3xl:max-w-[1800px] mx-auto px-4 sm:px-8 py-6 sm:py-10 pb-safe sm:pb-10">
-        {/* Page header - strong hierarchy with breathing room */}
+        {/* Page header */}
         <div className="mb-8 animate-fade-up">
-          <div className="flex items-center gap-4 mb-2">
-            <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
-              <Plane className="w-5 h-5 text-primary" />
-            </div>
-            <h1 className="text-3xl sm:text-4xl font-semibold tracking-tight">
-              {t('nav.flights', 'Flights')}
-            </h1>
-          </div>
-          <p className="text-sm text-muted-foreground pl-[60px] hidden sm:block">
-            {t('flights.pageSubtitle', 'Your complete flight history')}
-          </p>
+          <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">
+            {t('nav.flights', 'Flights')}
+            <span className="ml-3 text-sm font-normal text-muted-foreground hidden sm:inline">
+              {t('flights.pageSubtitle', 'Your complete flight history')}
+            </span>
+          </h1>
         </div>
 
         {/* Flight list */}

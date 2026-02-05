@@ -296,13 +296,7 @@ export function FlightTable({
                   <TableCell className="py-3 align-middle">
                     {airline ? (
                       <div className="flex items-center gap-2">
-                        <span
-                          className="inline-flex items-center px-2 py-0.5 rounded-md text-sm font-medium"
-                          style={{
-                            backgroundColor: airline.primaryColor ? `${airline.primaryColor}15` : undefined,
-                            color: airline.primaryColor || undefined,
-                          }}
-                        >
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-muted text-foreground">
                           {airline.name}
                         </span>
                         {flight.flight_number && (

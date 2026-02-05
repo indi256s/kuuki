@@ -89,15 +89,9 @@ export function FlightCard({ flight, onEdit }: FlightCardProps) {
           <span className="font-data text-foreground">{duration}</span>
         )}
 
-        {/* Airline with tinted badge */}
+        {/* Airline badge */}
         {airline && (
-          <span
-            className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium"
-            style={{
-              backgroundColor: airline.primaryColor ? `${airline.primaryColor}15` : undefined,
-              color: airline.primaryColor || undefined,
-            }}
-          >
+          <span className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-muted text-foreground">
             {airline.name}
           </span>
         )}

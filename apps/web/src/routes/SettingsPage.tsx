@@ -30,10 +30,10 @@ export function SettingsPage() {
         <div className="mb-8 animate-fade-up">
           <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">
             {t('settings.title')}
+            <span className="ml-3 text-sm font-normal text-muted-foreground hidden sm:inline">
+              {t('settings.subtitle')}
+            </span>
           </h1>
-          <p className="mt-1 text-muted-foreground">
-            {t('settings.subtitle')}
-          </p>
         </div>
 
         {/* Settings sections */}

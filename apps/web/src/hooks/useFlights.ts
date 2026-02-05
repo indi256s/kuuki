@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient, useInfiniteQuery } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient, useInfiniteQuery, keepPreviousData } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import {
   getFlights,
@@ -58,6 +58,8 @@ export function useFlights(filters?: FlightFilters, sort?: SortConfig, pageSize 
       return totalFetched
     },
     enabled: !!userId,
+    placeholderData: keepPreviousData,
+    staleTime: 30_000,
   })
 }
 

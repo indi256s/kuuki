@@ -13,6 +13,11 @@ export interface FlightFilters {
   isUpcoming?: boolean
   origin?: string
   destination?: string
+  // For fuzzy search - array of matching IATA codes
+  originCodes?: string[]
+  destinationCodes?: string[]
+  // For alliance filter - array of airline IATA codes
+  airlineIataCodes?: string[]
 }
 
 export type SortField = 'date' | 'origin' | 'destination' | 'airline_iata' | 'aircraft_icao' | 'distance_km' | 'duration_minutes'
@@ -65,7 +70,10 @@ export async function getFlights(
     query = query.gte('date', startDate).lte('date', endDate)
   }
 
-  if (filters.airlineIata) {
+  // Airline filter - support both single code and array of codes (alliance filter)
+  if (filters.airlineIataCodes && filters.airlineIataCodes.length > 0) {
+    query = query.in('airline_iata', filters.airlineIataCodes)
+  } else if (filters.airlineIata) {
     query = query.eq('airline_iata', filters.airlineIata)
   }
 
@@ -77,11 +85,17 @@ export async function getFlights(
     query = query.eq('is_upcoming', filters.isUpcoming)
   }
 
-  if (filters.origin) {
+  // Origin filter - support both single code and array of codes (fuzzy search)
+  if (filters.originCodes && filters.originCodes.length > 0) {
+    query = query.in('origin', filters.originCodes.map(c => c.toUpperCase()))
+  } else if (filters.origin) {
     query = query.eq('origin', filters.origin.toUpperCase())
   }
 
-  if (filters.destination) {
+  // Destination filter - support both single code and array of codes (fuzzy search)
+  if (filters.destinationCodes && filters.destinationCodes.length > 0) {
+    query = query.in('destination', filters.destinationCodes.map(c => c.toUpperCase()))
+  } else if (filters.destination) {
     query = query.eq('destination', filters.destination.toUpperCase())
   }
 
@@ -438,7 +452,10 @@ export async function getAllFlightIds(
     query = query.gte('date', startDate).lte('date', endDate)
   }
 
-  if (filters?.airlineIata) {
+  // Airline filter - support both single code and array of codes (alliance filter)
+  if (filters?.airlineIataCodes && filters.airlineIataCodes.length > 0) {
+    query = query.in('airline_iata', filters.airlineIataCodes)
+  } else if (filters?.airlineIata) {
     query = query.eq('airline_iata', filters.airlineIata)
   }
 
@@ -450,11 +467,17 @@ export async function getAllFlightIds(
     query = query.eq('is_upcoming', filters.isUpcoming)
   }
 
-  if (filters?.origin) {
+  // Origin filter - support both single code and array of codes (fuzzy search)
+  if (filters?.originCodes && filters.originCodes.length > 0) {
+    query = query.in('origin', filters.originCodes.map(c => c.toUpperCase()))
+  } else if (filters?.origin) {
     query = query.eq('origin', filters.origin.toUpperCase())
   }
 
-  if (filters?.destination) {
+  // Destination filter - support both single code and array of codes (fuzzy search)
+  if (filters?.destinationCodes && filters.destinationCodes.length > 0) {
+    query = query.in('destination', filters.destinationCodes.map(c => c.toUpperCase()))
+  } else if (filters?.destination) {
     query = query.eq('destination', filters.destination.toUpperCase())
   }
 

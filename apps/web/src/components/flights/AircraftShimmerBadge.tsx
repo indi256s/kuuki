@@ -29,29 +29,17 @@ export function AircraftShimmerBadge({
     return <AircraftPendingBadge flightId={flightId} className={className} />
   }
 
-  // For 'pending' status, show shimmer animation
+  // For 'pending' status, show loading badge with pulse animation
   // (This shouldn't render for 'enriched' or 'skipped' as aircraft would be set)
   return (
     <Badge
-      variant="outline"
       className={cn(
-        'relative overflow-hidden gap-1.5 text-muted-foreground border-dashed',
+        'gap-1.5 text-primary/70 bg-primary/5 border-primary/20 animate-pulse',
         className
       )}
     >
-      {/* Shimmer overlay */}
-      <div
-        className="absolute inset-0 -translate-x-full animate-shimmer bg-gradient-to-r from-transparent via-muted/40 to-transparent"
-        aria-hidden="true"
-      />
-
-      {/* Icon - plane for pending, refresh for retrying */}
-      <Plane className="w-3 h-3 animate-pulse" />
-
-      {/* Text */}
-      <span className="relative">
-        {t('flights.enriching', 'Looking up...')}
-      </span>
+      <Plane className="w-3 h-3" />
+      <span>{t('flights.enriching', 'Looking up...')}</span>
     </Badge>
   )
 }

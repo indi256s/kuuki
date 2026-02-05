@@ -1,9 +1,10 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 import { FlightCard } from './FlightCard'
 import { FlightTable } from './FlightTable'
 import { FlightFilters } from './FlightFilters'
 import { AircraftEnrichButton } from './AircraftEnrichButton'
+import { searchAirports } from '@kuuki/data'
 import {
   useFlights,
   useBatchDeleteFlights,
@@ -52,6 +53,64 @@ export function FlightList({ onEdit }: FlightListProps) {
   const [originSearch, setOriginSearch] = useState('')
   const [destSearch, setDestSearch] = useState('')
 
+  // Resolve search query to matching IATA codes
+  const resolveAirportCodes = useCallback((query: string): string[] => {
+    const trimmed = query.trim()
+    if (!trimmed) return []
+
+    // Search airports by code, city, or name
+    const matches = searchAirports(trimmed)
+    return matches.map(a => a.iata)
+  }, [])
+
+  // Auto-apply origin filter when 1+ chars typed or cleared (with debounce)
+  useEffect(() => {
+    const trimmed = originSearch.trim()
+
+    if (trimmed.length === 0) {
+      // Clear filter when empty
+      setFilters((prev) => ({ ...prev, origin: undefined, originCodes: undefined }))
+      return
+    }
+
+    // Debounce the search
+    const timer = setTimeout(() => {
+      const codes = resolveAirportCodes(trimmed)
+      if (codes.length > 0) {
+        setFilters((prev) => ({ ...prev, origin: undefined, originCodes: codes }))
+      } else {
+        // No matches - clear filter to show all (or could show "no results")
+        setFilters((prev) => ({ ...prev, origin: undefined, originCodes: undefined }))
+      }
+    }, 150)
+
+    return () => clearTimeout(timer)
+  }, [originSearch, resolveAirportCodes])
+
+  // Auto-apply destination filter when 1+ chars typed or cleared (with debounce)
+  useEffect(() => {
+    const trimmed = destSearch.trim()
+
+    if (trimmed.length === 0) {
+      // Clear filter when empty
+      setFilters((prev) => ({ ...prev, destination: undefined, destinationCodes: undefined }))
+      return
+    }
+
+    // Debounce the search
+    const timer = setTimeout(() => {
+      const codes = resolveAirportCodes(trimmed)
+      if (codes.length > 0) {
+        setFilters((prev) => ({ ...prev, destination: undefined, destinationCodes: codes }))
+      } else {
+        // No matches - clear filter to show all
+        setFilters((prev) => ({ ...prev, destination: undefined, destinationCodes: undefined }))
+      }
+    }, 150)
+
+    return () => clearTimeout(timer)
+  }, [destSearch, resolveAirportCodes])
+
   // Fetch flights with infinite scroll
   const {
     data,
@@ -75,32 +134,17 @@ export function FlightList({ onEdit }: FlightListProps) {
     [flights]
   )
 
-  const handleOriginSubmit = () => {
-    const code = originSearch.toUpperCase().trim()
-    if (code.length === 3 || code.length === 0) {
-      setFilters((prev) => ({
-        ...prev,
-        origin: code || undefined,
-      }))
-    }
-  }
-
-  const handleDestSubmit = () => {
-    const code = destSearch.toUpperCase().trim()
-    if (code.length === 3 || code.length === 0) {
-      setFilters((prev) => ({
-        ...prev,
-        destination: code || undefined,
-      }))
-    }
-  }
-
   const handleSortChange = (newSort: SortConfig) => {
     setSort(newSort)
   }
 
   const hasActiveFilters = Object.keys(filters).some(
-    (k) => filters[k as keyof FiltersType] !== undefined
+    (k) => {
+      const val = filters[k as keyof FiltersType]
+      // Check for undefined, or empty arrays
+      if (Array.isArray(val)) return val.length > 0
+      return val !== undefined
+    }
   )
 
   const clearAllFilters = () => {
@@ -266,15 +310,13 @@ export function FlightList({ onEdit }: FlightListProps) {
               filters={filters}
               onFiltersChange={setFilters}
               years={years}
-              airlines={airlines}
+              airlineCodes={airlines}
               aircraftCodes={aircraftCodes}
               totalCount={totalCount}
               originSearch={originSearch}
               destSearch={destSearch}
               onOriginSearchChange={setOriginSearch}
               onDestSearchChange={setDestSearch}
-              onOriginSubmit={handleOriginSubmit}
-              onDestSubmit={handleDestSubmit}
             />
 
             {/* Action buttons - right aligned */}
