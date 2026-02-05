@@ -47,12 +47,12 @@
   --background: oklch(0.985 0.002 240);
   --foreground: oklch(0.25 0.01 260);
 
-  /* Cards - subtle lift */
-  --card: oklch(1 0 0);
+  /* Cards - subtle lift, warm paper */
+  --card: oklch(0.99 0.003 240);
   --card-foreground: oklch(0.25 0.01 260);
 
   /* Popovers */
-  --popover: oklch(1 0 0);
+  --popover: oklch(0.99 0.003 240);
   --popover-foreground: oklch(0.25 0.01 260);
 
   /* Primary - calm terracotta vermillion, Japanese torii gates */
@@ -75,9 +75,9 @@
   --destructive: oklch(0.65 0.18 25);
   --destructive-foreground: oklch(0.99 0 0);
 
-  /* Borders - barely there */
-  --border: oklch(0.92 0.005 260);
-  --input: oklch(0.94 0.005 260);
+  /* Borders - soft but visible */
+  --border: oklch(0.88 0.008 260);
+  --input: oklch(0.90 0.008 260);
   --ring: oklch(0.55 0.12 25);
 
   /* Semantic colors */
@@ -95,7 +95,7 @@
   --chart-5: oklch(0.55 0.10 200);
 
   /* Sidebar */
-  --sidebar: oklch(0.99 0 0);
+  --sidebar: oklch(0.99 0.003 240);
   --sidebar-foreground: oklch(0.25 0.01 260);
   --sidebar-primary: oklch(0.55 0.12 25);
   --sidebar-primary-foreground: oklch(0.99 0 0);
@@ -110,10 +110,10 @@
   --color-ink-faint: oklch(0.7 0.005 260);
   --color-ink-inverse: oklch(0.99 0 0);
   --color-sky: oklch(0.985 0.002 240);
-  --color-sky-raised: oklch(1 0 0);
+  --color-sky-raised: oklch(0.99 0.003 240);
   --color-sky-sunken: oklch(0.97 0.003 250);
   --color-sky-overlay: oklch(0.25 0.01 260 / 0.4);
-  --color-edge: oklch(0.92 0.005 260);
+  --color-edge: oklch(0.88 0.008 260);
   --color-edge-strong: oklch(0.88 0.008 260);
   --color-runway: oklch(0.55 0.12 25);
   --color-runway-hover: oklch(0.48 0.14 25);
@@ -254,6 +254,18 @@
   :focus-visible {
     outline: 2px solid var(--ring);
     outline-offset: 2px;
+  }
+
+  /* Respect reduced motion preference */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
   }
 }
 

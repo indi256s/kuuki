@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Plus, LogOut, Languages, Settings } from 'lucide-react'
 import { KuukiIcon } from '@/components/common/KuukiIcon'
+import { ThemeSwitcher } from '@/components/common/ThemeSwitcher'
 import { AccentPicker } from '@/components/common/AccentPicker'
 
 interface AppHeaderProps {
@@ -81,6 +82,9 @@ export function AppHeader({ onAddFlight, showAddButton = false }: AppHeaderProps
               <span className="hidden sm:inline">{t('flights.addFlight', 'Add Flight')}</span>
             </Button>
           )}
+
+          {/* Theme switcher */}
+          <ThemeSwitcher />
 
           {/* Accent color picker */}
           <AccentPicker

@@ -24,7 +24,7 @@ export function MapCard({ className, isExpanded = false, onExpandChange }: MapCa
     <div
       className={cn(
         // Base card styles
-        'relative rounded-2xl border border-border/50 bg-card overflow-hidden h-full w-full flex flex-col',
+        'relative rounded-2xl border border-border bg-card overflow-hidden h-full w-full flex flex-col',
         'transition-all duration-300',
         'shadow-glow-sm',
         className
@@ -67,8 +67,8 @@ export function MapCard({ className, isExpanded = false, onExpandChange }: MapCa
 
 function MapSkeleton() {
   return (
-    <div className="h-[200px] bg-card rounded-2xl border border-border/50 animate-pulse flex items-center justify-center">
-      <div className="w-6 h-6 rounded-full border-2 border-slate-700 border-t-slate-500 animate-spin" />
+    <div className="h-[200px] bg-card rounded-2xl border border-border animate-pulse flex items-center justify-center">
+      <div className="w-6 h-6 rounded-full border-2 border-muted-foreground border-t-primary animate-spin" />
     </div>
   )
 }

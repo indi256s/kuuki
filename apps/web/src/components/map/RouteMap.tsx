@@ -1,6 +1,7 @@
 import { useState, useMemo, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useRecentFlights } from '@/hooks/useFlights'
+import { useTheme } from '@/hooks/useTheme'
 import { findAirport, findAirline } from '@kuuki/data'
 import { generateGreatCircleArc } from '@/lib/geo'
 import type { Flight } from '@/hooks/useFlights'
@@ -25,10 +26,20 @@ interface ArcData {
 
 export function RouteMap({ flights: propFlights, height = '300px' }: RouteMapProps) {
   const { t } = useTranslation()
+  const { resolvedTheme } = useTheme()
   const { data: recentFlights = [] } = useRecentFlights(50)
   const [colorMode, setColorMode] = useState<'airline' | 'route'>('airline')
 
   const flights = propFlights ?? recentFlights
+
+  // Theme-aware colors
+  const isLight = resolvedTheme === 'light'
+  const bgGradient = isLight
+    ? 'linear-gradient(180deg, #e0e7f0 0%, #f5f7fa 100%)' // soft blue-gray gradient
+    : 'linear-gradient(180deg, #1e3a5f 0%, #0f172a 100%)' // deep blue gradient
+  const gridColor = isLight ? '#cbd5e1' : '#64748b'
+  const labelColor = isLight ? '#334155' : '#ffffff'
+  const dotColor = isLight ? '#334155' : '#ffffff'
 
   // Process flights into arc data
   const arcs = useMemo<ArcData[]>(() => {
@@ -134,12 +145,12 @@ export function RouteMap({ flights: propFlights, height = '300px' }: RouteMapPro
       <svg
         viewBox="0 0 800 400"
         className="w-full h-full"
-        style={{ background: 'linear-gradient(180deg, #1e3a5f 0%, #0f172a 100%)' }}
+        style={{ background: bgGradient }}
       >
         {/* Simple world outline */}
         <g className="opacity-20">
           {/* Continents rough outlines */}
-          <ellipse cx="400" cy="200" rx="380" ry="180" fill="none" stroke="#64748b" strokeWidth="0.5" />
+          <ellipse cx="400" cy="200" rx="380" ry="180" fill="none" stroke={gridColor} strokeWidth="0.5" />
         </g>
 
         {/* Grid lines */}
@@ -148,14 +159,14 @@ export function RouteMap({ flights: propFlights, height = '300px' }: RouteMapPro
           {[-60, -30, 0, 30, 60].map((lat) => {
             const [, y] = toSvgCoords(lat, 0)
             return (
-              <line key={lat} x1="0" y1={y} x2="800" y2={y} stroke="#64748b" strokeWidth="0.5" />
+              <line key={lat} x1="0" y1={y} x2="800" y2={y} stroke={gridColor} strokeWidth="0.5" />
             )
           })}
           {/* Longitude lines */}
           {[-120, -60, 0, 60, 120].map((lon) => {
             const [x] = toSvgCoords(0, lon)
             return (
-              <line key={lon} x1={x} y1="0" x2={x} y2="400" stroke="#64748b" strokeWidth="0.5" />
+              <line key={lon} x1={x} y1="0" x2={x} y2="400" stroke={gridColor} strokeWidth="0.5" />
             )
           })}
         </g>
@@ -211,15 +222,15 @@ export function RouteMap({ flights: propFlights, height = '300px' }: RouteMapPro
             return (
               <g key={airport.iata}>
                 {/* Glow */}
-                <circle cx={x} cy={y} r="6" fill="white" opacity="0.2" />
+                <circle cx={x} cy={y} r="6" fill={dotColor} opacity="0.2" />
                 {/* Dot */}
-                <circle cx={x} cy={y} r="3" fill="white" />
+                <circle cx={x} cy={y} r="3" fill={dotColor} />
                 {/* Label */}
                 <text
                   x={x}
                   y={y - 8}
                   textAnchor="middle"
-                  fill="white"
+                  fill={labelColor}
                   fontSize="8"
                   fontFamily="monospace"
                   opacity="0.8"

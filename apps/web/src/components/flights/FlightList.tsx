@@ -211,7 +211,7 @@ export function FlightList({ onEdit, showSidebar = false }: FlightListProps) {
       {flights.length === 0 && (
         <div className="py-16 text-center">
           <div className="w-12 h-12 mx-auto mb-4 rounded-xl bg-muted/40 flex items-center justify-center">
-            <Plane className="w-5 h-5 text-muted-foreground" />
+            <Plane className="w-6 h-6 text-muted-foreground" />
           </div>
           <p className="text-sm font-medium text-foreground mb-1">
             {t('flights.noFlightsTitle', 'No flights found')}

@@ -9,6 +9,7 @@ import {
   ZoomableGroup,
 } from 'react-simple-maps'
 import { useRecentFlights } from '@/hooks/useFlights'
+import { useTheme } from '@/hooks/useTheme'
 import { findAirport, findAirline } from '@kuuki/data'
 import { getCountryData } from '@/lib/countries'
 import type { Flight } from '@/hooks/useFlights'
@@ -53,9 +54,18 @@ export function RouteMapWithCountries({
   onCountryClick,
 }: RouteMapWithCountriesProps) {
   const { t } = useTranslation()
+  const { resolvedTheme } = useTheme()
   const { data: recentFlights = [] } = useRecentFlights(50)
 
   const flights = propFlights ?? recentFlights
+
+  // Theme-aware colors
+  const isLight = resolvedTheme === 'light'
+  const mapBg = isLight ? '#f5f7fa' : '#0a0f18'
+  const unvisitedCountry = isLight ? '#e2e8f0' : '#1e293b'
+  const countryStroke = isLight ? '#cbd5e1' : '#334155'
+  const emptyIconColor = isLight ? 'text-slate-400' : 'text-slate-700'
+  const emptyTextColor = isLight ? 'text-slate-500' : 'text-slate-500'
 
   const arcs = useMemo<ArcData[]>(() => {
     const result: ArcData[] = []
@@ -182,8 +192,8 @@ export function RouteMapWithCountries({
       const data = getCountryData(alpha2)
       return data?.dominantColor || '#3b82f6'
     }
-    return '#1e293b'
-  }, [visitedSet])
+    return unvisitedCountry
+  }, [visitedSet, unvisitedCountry])
 
   // ZoomableGroup state for interactive pan/zoom
   const [position, setPosition] = useState({
@@ -210,12 +220,12 @@ export function RouteMapWithCountries({
   // Empty state
   if (flights.length === 0 && visitedCountries.length === 0) {
     return (
-      <div className={cn('relative overflow-hidden flex items-center justify-center bg-[#0a0f18] rounded-xl', className)} style={{ height }}>
+      <div className={cn('relative overflow-hidden flex items-center justify-center rounded-xl', className)} style={{ height, backgroundColor: mapBg }}>
         <div className="text-center">
-          <svg className="w-10 h-10 mx-auto mb-2 text-slate-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1} aria-hidden="true">
+          <svg className={cn('w-10 h-10 mx-auto mb-2', emptyIconColor)} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1} aria-hidden="true">
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 21a9.004 9.004 0 008.716-6.747M12 21a9.004 9.004 0 01-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 017.843 4.582M12 3a8.997 8.997 0 00-7.843 4.582m15.686 0A11.953 11.953 0 0112 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0121 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0112 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 013 12c0-1.605.42-3.113 1.157-4.418" />
           </svg>
-          <p className="text-xs text-slate-500">{t('dashboard.noRouteData', 'Add flights to see your map')}</p>
+          <p className={cn('text-xs', emptyTextColor)}>{t('dashboard.noRouteData', 'Add flights to see your map')}</p>
         </div>
       </div>
     )
@@ -224,10 +234,10 @@ export function RouteMapWithCountries({
   return (
     <div
       className={cn(
-        'relative overflow-hidden bg-[#0a0f18] rounded-xl',
+        'relative overflow-hidden rounded-xl',
         className
       )}
-      style={{ height }}
+      style={{ height, backgroundColor: mapBg }}
     >
       <ComposableMap
         projection="geoMercator"
@@ -258,7 +268,7 @@ export function RouteMapWithCountries({
                     key={geo.rsmKey}
                     geography={geo}
                     fill={getCountryColor(geo)}
-                    stroke="#334155"
+                    stroke={countryStroke}
                     strokeWidth={0.3 / scaleFactor}
                     style={{
                       default: {
@@ -268,7 +278,7 @@ export function RouteMapWithCountries({
                       hover: {
                         outline: 'none',
                         opacity: 1,
-                        fill: isVisited ? getCountryColor(geo) : '#334155',
+                        fill: isVisited ? getCountryColor(geo) : countryStroke,
                       },
                       pressed: { outline: 'none' },
                     }}

@@ -16,7 +16,7 @@ const ACCENT_COLORS = {
 export type AccentColorName = keyof typeof ACCENT_COLORS
 
 const STORAGE_KEY = 'kuuki-accent-color'
-const DEFAULT_COLOR: AccentColorName = 'coral'
+const DEFAULT_COLOR: AccentColorName = 'red'
 
 /**
  * Apply accent color to CSS custom properties

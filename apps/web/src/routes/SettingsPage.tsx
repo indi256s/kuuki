@@ -4,6 +4,7 @@ import { MobileTabBar } from '@/components/layout/MobileTabBar'
 import { AppHeader } from '@/components/common/AppHeader'
 import { PlaneAnimation } from '@/components/common/PlaneAnimation'
 import {
+  AppearanceSection,
   LanguageSection,
   DataExportSection,
   DeleteAccountSection,
@@ -37,18 +38,23 @@ export function SettingsPage() {
 
         {/* Settings sections */}
         <div className="space-y-6">
+          {/* Appearance selector */}
+          <div className="animate-fade-up" style={{ animationDelay: '0ms' }}>
+            <AppearanceSection />
+          </div>
+
           {/* Language selector */}
-          <div className="animate-fade-up" style={{ animationDelay: '50ms' }}>
+          <div className="animate-fade-up" style={{ animationDelay: '75ms' }}>
             <LanguageSection />
           </div>
 
           {/* Data export */}
-          <div className="animate-fade-up" style={{ animationDelay: '100ms' }}>
+          <div className="animate-fade-up" style={{ animationDelay: '150ms' }}>
             <DataExportSection />
           </div>
 
           {/* Delete account (Danger Zone) */}
-          <div className="animate-fade-up" style={{ animationDelay: '150ms' }}>
+          <div className="animate-fade-up" style={{ animationDelay: '225ms' }}>
             <DeleteAccountSection />
           </div>
         </div>

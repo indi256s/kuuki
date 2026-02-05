@@ -418,6 +418,28 @@
       "en": "English",
       "ru": "Русский"
     },
+    "theme": {
+      "title": "Theme",
+      "description": "Choose your preferred color scheme",
+      "modes": {
+        "light": "Light",
+        "dark": "Dark",
+        "system": "System"
+      },
+      "systemNote": "Following your system preference"
+    },
+    "appearance": {
+      "title": "Appearance",
+      "description": "Choose your theme and accent color",
+      "themeLabel": "Theme",
+      "accentLabel": "Accent Color",
+      "modes": {
+        "light": "Light",
+        "dark": "Dark",
+        "system": "System"
+      },
+      "systemNote": "Following your system preference"
+    },
     "geminiApiKey": "Gemini API Key",
     "geminiApiKeyDescription": "Used for AI-powered flight import",
     "export": {

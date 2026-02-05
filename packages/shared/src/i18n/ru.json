@@ -417,6 +417,28 @@
       "en": "English",
       "ru": "Русский"
     },
+    "theme": {
+      "title": "Тема",
+      "description": "Выберите предпочитаемую цветовую схему",
+      "modes": {
+        "light": "Светлая",
+        "dark": "Тёмная",
+        "system": "Системная"
+      },
+      "systemNote": "Следует системным настройкам"
+    },
+    "appearance": {
+      "title": "Внешний вид",
+      "description": "Выберите тему и акцентный цвет",
+      "themeLabel": "Тема",
+      "accentLabel": "Акцентный цвет",
+      "modes": {
+        "light": "Светлая",
+        "dark": "Тёмная",
+        "system": "Системная"
+      },
+      "systemNote": "Следует системным настройкам"
+    },
     "geminiApiKey": "API ключ Gemini",
     "geminiApiKeyDescription": "Используется для AI-импорта полётов",
     "export": {

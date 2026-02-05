@@ -46,6 +46,7 @@ export function AccentPicker({ value = 'red', onChange, className }: AccentPicke
         className={cn(
           'group flex items-center justify-center w-8 h-8 rounded-full transition-all duration-200',
           'hover:bg-muted',
+          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
           isOpen && 'bg-muted'
         )}
         aria-expanded={isOpen}
@@ -90,7 +91,8 @@ export function AccentPicker({ value = 'red', onChange, className }: AccentPicke
                     }}
                     className={cn(
                       'group relative w-6 h-6 rounded-md flex items-center justify-center transition-all duration-150',
-                      'hover:bg-muted'
+                      'hover:bg-muted active:scale-95',
+                      'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1'
                     )}
                     title={color.label}
                     aria-label={`Select ${color.label} accent color`}
