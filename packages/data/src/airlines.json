@@ -446,7 +446,7 @@
     "country": "Italy",
     "logoUrl": null,
     "primaryColor": "#1E3264",
-    "alliance": null,
+    "alliance": "star_alliance",
     "callsign": "DOLOMOTI"
   },
   {
@@ -526,7 +526,7 @@
     "country": "China",
     "logoUrl": null,
     "primaryColor": "#E31837",
-    "alliance": null,
+    "alliance": "skyteam",
     "callsign": "SHANGHAI AIR"
   },
   {
@@ -946,7 +946,7 @@
     "country": "China",
     "logoUrl": null,
     "primaryColor": "#003399",
-    "alliance": null,
+    "alliance": "skyteam",
     "callsign": "XIAMEN AIR"
   },
   {
@@ -1565,7 +1565,7 @@
     "name": "Red Wings",
     "country": "Russia",
     "logoUrl": null,
-    "primaryColor": null,
+    "primaryColor": "#CD252B",
     "alliance": null,
     "callsign": "AIR RED"
   },
