@@ -178,15 +178,15 @@ export function FlightList({ onEdit, showSidebar = false }: FlightListProps) {
       <div className="space-y-4">
         {!showSidebar && (
           <div className="flex gap-3 flex-wrap">
-            <Skeleton className="h-9 w-28" />
-            <Skeleton className="h-9 w-28" />
-            <Skeleton className="h-9 w-32" />
+            <Skeleton className="h-10 w-28" />
+            <Skeleton className="h-10 w-28" />
+            <Skeleton className="h-10 w-32" />
           </div>
         )}
         <Card className="border-border/50">
           <CardContent className="p-6 space-y-4">
             {[...Array(5)].map((_, i) => (
-              <Skeleton key={i} className="h-20" />
+              <Skeleton key={i} className="h-24 rounded-xl" />
             ))}
           </CardContent>
         </Card>
@@ -207,25 +207,26 @@ export function FlightList({ onEdit, showSidebar = false }: FlightListProps) {
   // Main content (table or cards)
   const flightContent = (
     <>
-      {/* Empty state - Linear-style minimal */}
+      {/* Empty state - Refined visual language */}
       {flights.length === 0 && (
-        <div className="py-16 text-center">
-          <div className="w-12 h-12 mx-auto mb-4 rounded-xl bg-muted/40 flex items-center justify-center">
-            <Plane className="w-6 h-6 text-muted-foreground" />
+        <div className="py-24 text-center">
+          <div className="w-16 h-16 mx-auto mb-6 rounded-2xl bg-muted/30 flex items-center justify-center">
+            <Plane className="w-7 h-7 text-muted-foreground/60" />
           </div>
-          <p className="text-sm font-medium text-foreground mb-1">
+          <p className="text-base font-semibold mb-1">
             {t('flights.noFlightsTitle', 'No flights found')}
           </p>
-          <p className="text-muted-foreground text-sm">
+          <p className="text-sm text-muted-foreground">
             {hasActiveFilters
-              ? t('flights.noFlightsFiltered', 'Try adjusting your filters')
-              : t('flights.noFlightsYet', 'Add your first flight to get started')}
+              ? t('flights.noFlightsFiltered', 'Try adjusting your filters to see more flights')
+              : t('flights.noFlightsYet', 'Add your first flight to start building your history')}
           </p>
           {hasActiveFilters && (
             <Button
               variant="ghost"
+              size="sm"
               onClick={clearAllFilters}
-              className="mt-3 text-sm"
+              className="mt-4"
             >
               {t('flights.clearFilters', 'Clear filters')}
             </Button>

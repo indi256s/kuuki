@@ -55,24 +55,24 @@ export function FlightsPage() {
       <AppHeader onAddFlight={handleAddFlight} showAddButton />
 
       {/* Content - wider container, tighter spacing */}
-      <main className="max-w-7xl 3xl:max-w-[1800px] mx-auto px-4 sm:px-6 py-4 sm:py-6 pb-safe sm:pb-6">
-        {/* Page header - compact single line */}
-        <div className="flex items-center gap-3 mb-4 animate-fade-up">
-          <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-            <Plane className="w-[18px] h-[18px] text-primary" />
-          </div>
-          <div className="flex items-baseline gap-2">
-            <h1 className="text-xl sm:text-2xl font-semibold tracking-tight">
+      <main className="max-w-7xl 3xl:max-w-[1800px] mx-auto px-4 sm:px-8 py-6 sm:py-10 pb-safe sm:pb-10">
+        {/* Page header - strong hierarchy with breathing room */}
+        <div className="mb-8 animate-fade-up">
+          <div className="flex items-center gap-4 mb-2">
+            <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
+              <Plane className="w-5 h-5 text-primary" />
+            </div>
+            <h1 className="text-3xl sm:text-4xl font-semibold tracking-tight">
               {t('nav.flights', 'Flights')}
             </h1>
-            <span className="text-sm text-muted-foreground hidden sm:inline">
-              {t('flights.pageSubtitle', 'Your complete flight history')}
-            </span>
           </div>
+          <p className="text-sm text-muted-foreground pl-[60px] hidden sm:block">
+            {t('flights.pageSubtitle', 'Your complete flight history')}
+          </p>
         </div>
 
         {/* Flight list with conditional sidebar */}
-        <div className="animate-fade-up" style={{ animationDelay: '50ms' }}>
+        <div className="animate-fade-up" style={{ animationDelay: '100ms' }}>
           <FlightList
             onEdit={handleEditFlight}
             showSidebar={isLargeScreen}
