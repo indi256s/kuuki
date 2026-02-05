@@ -3,7 +3,7 @@ import type { User } from '@supabase/supabase-js'
 import {
   type Profile,
   getProfile,
-  getUser,
+  getSession,
   onAuthStateChange,
   signIn as authSignIn,
   signUp as authSignUp,
@@ -36,8 +36,10 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
     set({ isLoading: true })
 
     try {
-      // Get initial user
-      const user = await getUser()
+      // CRITICAL: Restore session from storage first (not getUser!)
+      // getSession() reads from localStorage and triggers token refresh if needed
+      const session = await getSession()
+      const user = session?.user ?? null
 
       if (user) {
         const profile = await getProfile(user.id)
