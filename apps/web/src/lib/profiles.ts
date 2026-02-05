@@ -18,7 +18,6 @@ export const THEME_COLORS = {
   purple: '#A98ED9',
   blue: '#4A9FF5',
   gray: '#95999E',
-  green: '#5DBF8A',
 } as const
 
 export type ThemeColorKey = keyof typeof THEME_COLORS

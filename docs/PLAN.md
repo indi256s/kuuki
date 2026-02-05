@@ -18,7 +18,7 @@
 | **1.5 Onboarding** | ✅ Done | Landing page, showcase modal, username picker, empty states |
 | **2 Core Flights** | ✅ Done | Flight CRUD, dashboard with stats, route map, autocomplete |
 | **3 AI Import** | ✅ Done | Gemini 3 Flash proxy, upload/paste UI, review with confidence |
-| **3.5 UI Redesign** | ✅ Done | shadcn/ui components, Scandinavian aesthetic, dark mode |
+| **3.5 UI Redesign** | ✅ Done | shadcn/ui components, Warm Japanese aesthetic, dark mode |
 | **4 Social** | ✅ Done | Public profiles, leaderboards, compare, 20 badges |
 | **4.5 Passport** | ✅ Done | Country stamps, manual claims, 246 countries, 31 tests |
 | **5 Advanced Stats** | ✅ Done | 4 tiers: Overview, Avia Geek, Country Geek, Time Geek |
@@ -66,9 +66,10 @@ Complete UI overhaul with modern component library and refined aesthetics:
 - DM Sans + JetBrains Mono typography
 - Lucide React icons
 
-**Design Direction:** Minimal Scandinavian
-- Soft, airy color palette with blue undertones
-- Generous whitespace and rounded corners
+**Design Direction:** Warm Japanese Minimalism
+- Light mode: Warm paper-like neutrals (Washi) — breathable, organic
+- Dark mode: Deep ink/charcoal with amber accents — focused, energetic
+- Generous whitespace (Ma) and rounded corners
 - Subtle hover states and smooth animations
 - Full dark mode support with 3-way toggle
 
@@ -177,12 +178,12 @@ Dark mode, mobile-first responsive design, error handling, settings, CI/CD.
 
 ## Design System
 
-**Direction:** Nordic Skies — Scandinavian minimalism, soft and airy
+**Direction:** Warm Japanese Minimalism — Modern travelers who feel like crazy scientists analyzing their own life data
 
 **Colors (OKLCH):**
-- Background: `oklch(0.985 0.002 240)` — soft off-white with blue tint
-- Primary: `oklch(0.65 0.12 240)` — Nordic sky blue
-- Foreground: `oklch(0.25 0.01 260)` — warm slate
+- Background: `oklch(0.985 0.002 240)` — soft washi paper with blue tint
+- Primary: `oklch(0.55 0.12 25)` — warm amber accent
+- Foreground: `oklch(0.25 0.01 260)` — ink charcoal
 
 **Typography:**
 - Display/Body: DM Sans
