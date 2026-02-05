@@ -1,18 +1,45 @@
 import { useState } from 'react'
 import { Plane, Clock } from 'lucide-react'
 import { useDashboardStats } from '@/hooks/useDashboardStats'
-import { useFlight } from '@/hooks/useFlights'
+import { useFlight, useDeleteFlight, type Flight } from '@/hooks/useFlights'
 import { useTranslation } from 'react-i18next'
 import { FlightForm } from '@/components/flights/FlightForm'
+import { Button } from '@/components/ui/button'
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog'
 import { cn } from '@/lib/utils'
 
 export function UpcomingFlightsCard({ className }: { className?: string }) {
     const { t } = useTranslation()
     const { data: stats } = useDashboardStats()
     const [selectedFlightId, setSelectedFlightId] = useState<number | null>(null)
+    const [deleteConfirmFlight, setDeleteConfirmFlight] = useState<Flight | null>(null)
     const { data: selectedFlight } = useFlight(selectedFlightId)
+    const deleteFlight = useDeleteFlight()
 
     const upcomingFlights = stats?.upcomingFlights || []
+
+    const handleDeleteClick = (flight: Flight) => {
+        setSelectedFlightId(null)
+        setDeleteConfirmFlight(flight)
+    }
+
+    const confirmDelete = async () => {
+        if (deleteConfirmFlight) {
+            await deleteFlight.mutateAsync(deleteConfirmFlight.id)
+            setDeleteConfirmFlight(null)
+        }
+    }
+
+    const cancelDelete = () => {
+        setDeleteConfirmFlight(null)
+    }
 
     // Calculate countdown
     const getCountdown = (dateStr: string) => {
@@ -102,8 +129,33 @@ export function UpcomingFlightsCard({ className }: { className?: string }) {
                     isOpen={true}
                     onClose={() => setSelectedFlightId(null)}
                     editFlight={selectedFlight}
+                    onDelete={handleDeleteClick}
                 />
             )}
+
+            {/* Delete confirmation dialog */}
+            <Dialog open={deleteConfirmFlight !== null} onOpenChange={(open) => !open && cancelDelete()}>
+                <DialogContent size="sm">
+                    <DialogHeader>
+                        <DialogTitle>{t('flights.deleteConfirmTitle', 'Delete Flight?')}</DialogTitle>
+                        <DialogDescription>
+                            {t('flights.deleteConfirmMessage', 'This action cannot be undone. The flight will be permanently removed from your log.')}
+                        </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={cancelDelete}>
+                            {t('common.cancel')}
+                        </Button>
+                        <Button
+                            variant="destructive"
+                            onClick={confirmDelete}
+                            disabled={deleteFlight.isPending}
+                        >
+                            {deleteFlight.isPending ? t('common.loading') : t('common.delete')}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </>
     )
 }

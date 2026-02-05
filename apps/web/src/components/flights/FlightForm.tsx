@@ -35,7 +35,7 @@ import { Input } from '@/components/ui/input'
 import { DatePicker } from '@/components/ui/date-picker'
 import { TimePicker } from '@/components/ui/time-picker'
 import { Separator } from '@/components/ui/separator'
-import { AlertCircle, ChevronRight, Plane, Calendar } from 'lucide-react'
+import { AlertCircle, ChevronRight, Plane, Calendar, Trash2 } from 'lucide-react'
 
 const flightSchema = z.object({
   date: z.string().min(1, 'Date is required'),
@@ -57,9 +57,10 @@ interface FlightFormProps {
   isOpen: boolean
   onClose: () => void
   editFlight?: Flight | null
+  onDelete?: (flight: Flight) => void
 }
 
-export function FlightForm({ isOpen, onClose, editFlight }: FlightFormProps) {
+export function FlightForm({ isOpen, onClose, editFlight, onDelete }: FlightFormProps) {
   const { t } = useTranslation()
   const isMobile = useIsMobile()
   const createFlight = useCreateFlight()
@@ -261,29 +262,11 @@ export function FlightForm({ isOpen, onClose, editFlight }: FlightFormProps) {
           </div>
         )}
 
-        {/* Required fields */}
+        {/* Route section */}
         <div className="space-y-4">
-          <FormField
-            control={form.control}
-            name="date"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>
-                  {t('flights.date', 'Date')}
-                  <span className="text-destructive ml-1">*</span>
-                </FormLabel>
-                <FormControl>
-                  <DatePicker
-                    value={field.value}
-                    onChange={field.onChange}
-                    disabled={isSubmitting}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
+          <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+            {t('flights.routeSection', 'Route')}
+          </h3>
           <div className="grid grid-cols-2 gap-3">
             <FormField
               control={form.control}
@@ -323,6 +306,35 @@ export function FlightForm({ isOpen, onClose, editFlight }: FlightFormProps) {
               )}
             />
           </div>
+        </div>
+
+        <Separator className="my-5" />
+
+        {/* Flight details section */}
+        <div className="space-y-4">
+          <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+            {t('flights.detailsSection', 'Flight Details')}
+          </h3>
+          <FormField
+            control={form.control}
+            name="date"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>
+                  {t('flights.date', 'Date')}
+                  <span className="text-destructive ml-1">*</span>
+                </FormLabel>
+                <FormControl>
+                  <DatePicker
+                    value={field.value}
+                    onChange={field.onChange}
+                    disabled={isSubmitting}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
           <FormField
             control={form.control}
@@ -363,50 +375,56 @@ export function FlightForm({ isOpen, onClose, editFlight }: FlightFormProps) {
             : t('flights.addDetails', 'Add more details')}
         </button>
 
-        {/* Optional fields */}
+        {/* Optional fields - Aircraft & Times */}
         {showOptional && (
           <>
-            <Separator className="my-4" />
+            <Separator className="my-5" />
             <div className="space-y-4">
-              <FormField
-                control={form.control}
-                name="aircraftIcao"
-                render={({ field }) => (
-                  <FormItem>
-                    <AircraftAutocomplete
-                      id="aircraft"
-                      value={field.value || ''}
-                      onChange={field.onChange}
-                      label={t('flights.aircraft', 'Aircraft')}
-                      placeholder="B738"
-                      disabled={isSubmitting}
-                    />
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                {t('flights.aircraftSection', 'Aircraft & Times')}
+              </h3>
 
-              <FormField
-                control={form.control}
-                name="flightNumber"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>
-                      {t('flights.flightNumber', 'Flight Number')}
-                    </FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="AA123"
+              <div className="grid grid-cols-2 gap-3">
+                <FormField
+                  control={form.control}
+                  name="aircraftIcao"
+                  render={({ field }) => (
+                    <FormItem>
+                      <AircraftAutocomplete
+                        id="aircraft"
+                        value={field.value || ''}
+                        onChange={field.onChange}
+                        label={t('flights.aircraft', 'Aircraft')}
+                        placeholder="B738"
                         disabled={isSubmitting}
-                        className="font-mono uppercase"
-                        {...field}
-                        onChange={(e) => field.onChange(e.target.value.toUpperCase())}
                       />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="flightNumber"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>
+                        {t('flights.flightNumber', 'Flight #')}
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="123"
+                          disabled={isSubmitting}
+                          className="font-mono uppercase"
+                          {...field}
+                          onChange={(e) => field.onChange(e.target.value.toUpperCase())}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <FormField
@@ -472,6 +490,20 @@ export function FlightForm({ isOpen, onClose, editFlight }: FlightFormProps) {
             {isSubmitting ? t('common.loading') : isEditing ? t('common.save') : t('flights.addFlight', 'Add Flight')}
           </Button>
         </div>
+
+        {/* Delete button - only show when editing */}
+        {isEditing && editFlight && onDelete && (
+          <Button
+            type="button"
+            variant="ghost"
+            onClick={() => onDelete(editFlight)}
+            disabled={isSubmitting}
+            className="w-full mt-3 text-destructive hover:text-destructive hover:bg-destructive/10"
+          >
+            <Trash2 className="w-4 h-4 mr-2" />
+            {t('flights.deleteFlight', 'Delete Flight')}
+          </Button>
+        )}
 
         {/* Keyboard hint - hide on mobile */}
         <p className="mt-3 text-xs text-center text-muted-foreground hidden sm:block">

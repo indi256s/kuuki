@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Plus, Plane } from 'lucide-react'
 import { FlightList } from '@/components/flights/FlightList'
@@ -7,25 +7,25 @@ import { AppHeader } from '@/components/common/AppHeader'
 import { MobileHeader } from '@/components/layout/MobileHeader'
 import { MobileTabBar } from '@/components/layout/MobileTabBar'
 import { FloatingActionButton } from '@/components/common/FloatingActionButton'
-import { useSyncUpcomingFlights, type Flight } from '@/hooks/useFlights'
+import { useSyncUpcomingFlights, useDeleteFlight, type Flight } from '@/hooks/useFlights'
+import { Button } from '@/components/ui/button'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 
 export function FlightsPage() {
   const { t } = useTranslation()
   const [isFormOpen, setIsFormOpen] = useState(false)
   const [editingFlight, setEditingFlight] = useState<Flight | null>(null)
+  const [deleteConfirmFlight, setDeleteConfirmFlight] = useState<Flight | null>(null)
 
-  // Detect large screen for sidebar layout
-  const [isLargeScreen, setIsLargeScreen] = useState(false)
-
-  useEffect(() => {
-    // 3xl breakpoint = 1920px
-    const mediaQuery = window.matchMedia('(min-width: 1920px)')
-    setIsLargeScreen(mediaQuery.matches)
-
-    const handleChange = (e: MediaQueryListEvent) => setIsLargeScreen(e.matches)
-    mediaQuery.addEventListener('change', handleChange)
-    return () => mediaQuery.removeEventListener('change', handleChange)
-  }, [])
+  // Delete mutation
+  const deleteFlight = useDeleteFlight()
 
   // Sync upcoming flights on page load
   useSyncUpcomingFlights()
@@ -43,6 +43,24 @@ export function FlightsPage() {
   const handleCloseForm = () => {
     setIsFormOpen(false)
     setEditingFlight(null)
+  }
+
+  const handleDeleteClick = (flight: Flight) => {
+    // Close the edit form and show delete confirmation
+    setIsFormOpen(false)
+    setDeleteConfirmFlight(flight)
+  }
+
+  const confirmDelete = async () => {
+    if (deleteConfirmFlight) {
+      await deleteFlight.mutateAsync(deleteConfirmFlight.id)
+      setDeleteConfirmFlight(null)
+      setEditingFlight(null)
+    }
+  }
+
+  const cancelDelete = () => {
+    setDeleteConfirmFlight(null)
   }
 
   return (
@@ -71,12 +89,9 @@ export function FlightsPage() {
           </p>
         </div>
 
-        {/* Flight list with conditional sidebar */}
+        {/* Flight list */}
         <div className="animate-fade-up" style={{ animationDelay: '100ms' }}>
-          <FlightList
-            onEdit={handleEditFlight}
-            showSidebar={isLargeScreen}
-          />
+          <FlightList onEdit={handleEditFlight} />
         </div>
       </main>
 
@@ -85,7 +100,32 @@ export function FlightsPage() {
         isOpen={isFormOpen}
         onClose={handleCloseForm}
         editFlight={editingFlight}
+        onDelete={handleDeleteClick}
       />
+
+      {/* Delete confirmation dialog */}
+      <Dialog open={deleteConfirmFlight !== null} onOpenChange={(open) => !open && cancelDelete()}>
+        <DialogContent size="sm">
+          <DialogHeader>
+            <DialogTitle>{t('flights.deleteConfirmTitle', 'Delete Flight?')}</DialogTitle>
+            <DialogDescription>
+              {t('flights.deleteConfirmMessage', 'This action cannot be undone. The flight will be permanently removed from your log.')}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={cancelDelete}>
+              {t('common.cancel')}
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={confirmDelete}
+              disabled={deleteFlight.isPending}
+            >
+              {deleteFlight.isPending ? t('common.loading') : t('common.delete')}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Mobile FAB for adding flights */}
       <FloatingActionButton

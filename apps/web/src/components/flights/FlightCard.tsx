@@ -9,10 +9,9 @@ import type { EnrichmentStatus } from '@kuuki/shared/types'
 interface FlightCardProps {
   flight: Flight
   onEdit: (flight: Flight) => void
-  onDelete: (flight: Flight) => void
 }
 
-export function FlightCard({ flight, onEdit, onDelete }: FlightCardProps) {
+export function FlightCard({ flight, onEdit }: FlightCardProps) {
 
   const originAirport = findAirport(flight.origin)
   const destAirport = findAirport(flight.destination)
@@ -37,7 +36,7 @@ export function FlightCard({ flight, onEdit, onDelete }: FlightCardProps) {
   return (
     <div
       className={cn(
-        'group rounded-xl border border-border/40 bg-card/50 p-4 sm:p-5',
+        'group rounded-xl border border-border/60 bg-card shadow-sm p-4 sm:p-5',
         'transition-[transform,box-shadow,background-color] duration-200',
         'hover:-translate-y-1 hover:shadow-lg hover:border-border/60',
         'active:-translate-y-0.5 active:shadow-md active:bg-muted/40',
@@ -79,30 +78,27 @@ export function FlightCard({ flight, onEdit, onDelete }: FlightCardProps) {
           </div>
         </div>
 
-        {/* Actions menu */}
-        <FlightCardActions
-          onEdit={() => onEdit(flight)}
-          onDelete={() => onDelete(flight)}
-        />
+        {/* Edit button - delete moved to edit modal */}
+        <FlightCardActions onEdit={() => onEdit(flight)} />
       </div>
 
-      {/* Bottom row: Details - all baseline aligned */}
-      <div className="flex items-baseline gap-3 mt-3 pt-3 border-t border-border/30 text-sm">
+      {/* Bottom row: Details */}
+      <div className="flex flex-wrap items-center gap-2 mt-3 pt-3 border-t border-border/30 text-sm">
         {/* Duration */}
         {duration && (
           <span className="font-data text-foreground">{duration}</span>
         )}
 
-        {/* Airline with color dot */}
+        {/* Airline with tinted badge */}
         {airline && (
-          <span className="flex items-baseline gap-1.5">
-            {airline.primaryColor && (
-              <span
-                className="w-2 h-2 rounded-full flex-shrink-0 relative top-[1px]"
-                style={{ backgroundColor: airline.primaryColor }}
-              />
-            )}
-            <span>{airline.name}</span>
+          <span
+            className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium"
+            style={{
+              backgroundColor: airline.primaryColor ? `${airline.primaryColor}15` : undefined,
+              color: airline.primaryColor || undefined,
+            }}
+          >
+            {airline.name}
           </span>
         )}
 

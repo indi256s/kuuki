@@ -6,7 +6,6 @@ import { FlightFilters } from './FlightFilters'
 import { AircraftEnrichButton } from './AircraftEnrichButton'
 import {
   useFlights,
-  useDeleteFlight,
   useBatchDeleteFlights,
   useFlightYears,
   useFlightAirlines,
@@ -18,7 +17,6 @@ import {
 } from '@/hooks/useFlights'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 import {
   Dialog,
   DialogContent,
@@ -28,17 +26,14 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { Skeleton } from '@/components/ui/skeleton'
-import { Plane, Sparkles, CheckSquare, CheckCheck, Trash2, X } from 'lucide-react'
+import { Plane, CheckSquare, Trash2 } from 'lucide-react'
 
 interface FlightListProps {
   onEdit: (flight: Flight) => void
-  // Layout mode for different screen sizes
-  showSidebar?: boolean
 }
 
-export function FlightList({ onEdit, showSidebar = false }: FlightListProps) {
+export function FlightList({ onEdit }: FlightListProps) {
   const { t } = useTranslation()
-  const deleteFlight = useDeleteFlight()
   const batchDeleteFlights = useBatchDeleteFlights()
   const { data: years = [] } = useFlightYears()
   const { data: airlines = [] } = useFlightAirlines()
@@ -47,7 +42,6 @@ export function FlightList({ onEdit, showSidebar = false }: FlightListProps) {
   // Filters
   const [filters, setFilters] = useState<FiltersType>({})
   const [sort, setSort] = useState<SortConfig>({ field: 'date', order: 'desc' })
-  const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null)
 
   // Selection state for batch operations
   const [selectionMode, setSelectionMode] = useState(false)
@@ -80,21 +74,6 @@ export function FlightList({ onEdit, showSidebar = false }: FlightListProps) {
     () => flights.filter(f => !f.aircraft_icao && f.airline_iata && f.flight_number),
     [flights]
   )
-
-  const handleDelete = (flight: Flight) => {
-    setDeleteConfirmId(flight.id)
-  }
-
-  const confirmDelete = async () => {
-    if (deleteConfirmId) {
-      await deleteFlight.mutateAsync(deleteConfirmId)
-      setDeleteConfirmId(null)
-    }
-  }
-
-  const cancelDelete = () => {
-    setDeleteConfirmId(null)
-  }
 
   const handleOriginSubmit = () => {
     const code = originSearch.toUpperCase().trim()
@@ -176,17 +155,15 @@ export function FlightList({ onEdit, showSidebar = false }: FlightListProps) {
   if (isLoading) {
     return (
       <div className="space-y-4">
-        {!showSidebar && (
-          <div className="flex gap-3 flex-wrap">
-            <Skeleton className="h-10 w-28" />
-            <Skeleton className="h-10 w-28" />
-            <Skeleton className="h-10 w-32" />
-          </div>
-        )}
-        <Card className="border-border/50">
+        <div className="flex gap-3 flex-wrap">
+          <Skeleton className="h-10 w-28" />
+          <Skeleton className="h-10 w-28" />
+          <Skeleton className="h-10 w-32" />
+        </div>
+        <Card className="border-border/60 shadow-sm">
           <CardContent className="p-6 space-y-4">
             {[...Array(5)].map((_, i) => (
-              <Skeleton key={i} className="h-24 rounded-xl" />
+              <Skeleton key={i} className="h-20 rounded-xl" />
             ))}
           </CardContent>
         </Card>
@@ -207,7 +184,7 @@ export function FlightList({ onEdit, showSidebar = false }: FlightListProps) {
   // Main content (table or cards)
   const flightContent = (
     <>
-      {/* Empty state - Refined visual language */}
+      {/* Empty state - Kuuki branded */}
       {flights.length === 0 && (
         <div className="py-24 text-center">
           <div className="w-16 h-16 mx-auto mb-6 rounded-2xl bg-muted/30 flex items-center justify-center">
@@ -216,7 +193,7 @@ export function FlightList({ onEdit, showSidebar = false }: FlightListProps) {
           <p className="text-base font-semibold mb-1">
             {t('flights.noFlightsTitle', 'No flights found')}
           </p>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm text-muted-foreground max-w-sm mx-auto">
             {hasActiveFilters
               ? t('flights.noFlightsFiltered', 'Try adjusting your filters to see more flights')
               : t('flights.noFlightsYet', 'Add your first flight to start building your history')}
@@ -243,7 +220,6 @@ export function FlightList({ onEdit, showSidebar = false }: FlightListProps) {
                 key={flight.id}
                 flight={flight}
                 onEdit={onEdit}
-                onDelete={handleDelete}
               />
             ))}
           </div>
@@ -253,7 +229,6 @@ export function FlightList({ onEdit, showSidebar = false }: FlightListProps) {
             <FlightTable
               flights={flights}
               onEdit={onEdit}
-              onDelete={handleDelete}
               sort={sort}
               onSortChange={handleSortChange}
               selectionEnabled={selectionMode}
@@ -262,7 +237,7 @@ export function FlightList({ onEdit, showSidebar = false }: FlightListProps) {
             />
           </div>
 
-          {/* Load more - Linear-style subtle */}
+          {/* Load more */}
           {hasNextPage && (
             <div className="text-center pt-4">
               <Button
@@ -280,171 +255,9 @@ export function FlightList({ onEdit, showSidebar = false }: FlightListProps) {
     </>
   )
 
-  // Two-column layout with sidebar
-  if (showSidebar) {
-    return (
-      <>
-        <div className="flex gap-8">
-          {/* Sidebar filters */}
-          <aside className="w-72 flex-shrink-0">
-            <FlightFilters
-              layout="vertical"
-              filters={filters}
-              onFiltersChange={setFilters}
-              years={years}
-              airlines={airlines}
-              aircraftCodes={aircraftCodes}
-              totalCount={totalCount}
-              originSearch={originSearch}
-              destSearch={destSearch}
-              onOriginSearchChange={setOriginSearch}
-              onDestSearchChange={setDestSearch}
-              onOriginSubmit={handleOriginSubmit}
-              onDestSubmit={handleDestSubmit}
-            />
-
-            {/* Aircraft enrichment section */}
-            {flightsMissingAircraft.length > 0 && (
-              <Card className="mt-4 border-border/50 bg-primary/[0.02]">
-                <CardContent className="p-4">
-                  <div className="flex items-start gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-                      <Sparkles className="w-4 h-4 text-primary" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium">
-                        {t('enrich.missingAircraft', 'Missing Aircraft')}
-                      </p>
-                      <p className="text-xs text-muted-foreground mt-0.5">
-                        {t('enrich.missingAircraftDesc', '{{count}} flights have no aircraft type', {
-                          count: flightsMissingAircraft.length,
-                        })}
-                      </p>
-                      <AircraftEnrichButton
-                        flights={flightsMissingAircraft.slice(0, 20)}
-                        variant="outline"
-                        className="mt-3 w-full"
-                      />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-          </aside>
-
-          {/* Main content */}
-          <div className="flex-1 min-w-0">
-            {/* Selection toolbar for sidebar layout */}
-            {flights.length > 0 && (
-              <div className="flex items-center gap-3 mb-4">
-                {!selectionMode ? (
-                  <Button
-                    variant="outline"
-                    onClick={toggleSelectionMode}
-                  >
-                    <CheckSquare className="w-4 h-4 mr-2" />
-                    {t('flights.select', 'Select')}
-                  </Button>
-                ) : (
-                  <>
-                    <Button
-                      variant="ghost"
-                      onClick={toggleSelectionMode}
-                    >
-                      <X className="w-4 h-4 mr-2" />
-                      {t('common.cancel')}
-                    </Button>
-
-                    <Button
-                      variant="outline"
-                      onClick={toggleSelectAll}
-                      disabled={isFetchingAllIds}
-                    >
-                      <CheckCheck className="w-4 h-4 mr-2" />
-                      {isFetchingAllIds
-                        ? t('common.loading')
-                        : allSelected
-                          ? t('flights.deselectAll', 'Deselect All')
-                          : t('flights.selectAll', 'Select All ({count})', { count: totalCount })}
-                    </Button>
-
-                    <Badge variant="secondary" className="text-sm">
-                      {t('flights.selectedCount', '{{count}} selected', { count: selectedIds.size })}
-                    </Badge>
-
-                    <div className="flex-1" />
-
-                    <Button
-                      variant="destructive"
-                      onClick={handleBatchDeleteClick}
-                      disabled={selectedIds.size === 0}
-                    >
-                      <Trash2 className="w-4 h-4 mr-2" />
-                      {t('flights.deleteSelected', 'Delete Selected')}
-                    </Button>
-                  </>
-                )}
-              </div>
-            )}
-            {flightContent}
-          </div>
-        </div>
-
-        {/* Delete confirmation dialog */}
-        <Dialog open={deleteConfirmId !== null} onOpenChange={(open) => !open && cancelDelete()}>
-          <DialogContent size="sm">
-            <DialogHeader>
-              <DialogTitle>{t('flights.deleteConfirmTitle', 'Delete Flight?')}</DialogTitle>
-              <DialogDescription>
-                {t('flights.deleteConfirmMessage', 'This action cannot be undone. The flight will be permanently removed from your log.')}
-              </DialogDescription>
-            </DialogHeader>
-            <DialogFooter>
-              <Button variant="outline" onClick={cancelDelete}>
-                {t('common.cancel')}
-              </Button>
-              <Button
-                variant="destructive"
-                onClick={confirmDelete}
-                disabled={deleteFlight.isPending}
-              >
-                {deleteFlight.isPending ? t('common.loading') : t('common.delete')}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-
-        {/* Batch delete confirmation dialog */}
-        <Dialog open={batchDeleteConfirm} onOpenChange={(open) => !open && cancelBatchDelete()}>
-          <DialogContent size="sm">
-            <DialogHeader>
-              <DialogTitle>{t('flights.batchDeleteTitle', 'Delete {{count}} Flights?', { count: selectedIds.size })}</DialogTitle>
-              <DialogDescription>
-                {t('flights.batchDeleteMessage', 'This action cannot be undone. All selected flights will be permanently removed from your log.')}
-              </DialogDescription>
-            </DialogHeader>
-            <DialogFooter>
-              <Button variant="outline" onClick={cancelBatchDelete}>
-                {t('common.cancel')}
-              </Button>
-              <Button
-                variant="destructive"
-                onClick={confirmBatchDelete}
-                disabled={batchDeleteFlights.isPending}
-              >
-                {batchDeleteFlights.isPending ? t('common.loading') : t('flights.deleteCount', 'Delete {{count}}', { count: selectedIds.size })}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      </>
-    )
-  }
-
-  // Horizontal filters layout (default)
   return (
     <div className="space-y-4">
-      {/* Horizontal filters and toolbar - Linear-style minimal */}
+      {/* Filters and toolbar */}
       <div className="flex flex-wrap items-center gap-2">
         {!selectionMode ? (
           <>
@@ -464,7 +277,7 @@ export function FlightList({ onEdit, showSidebar = false }: FlightListProps) {
               onDestSubmit={handleDestSubmit}
             />
 
-            {/* Action buttons - right aligned, subtle */}
+            {/* Action buttons - right aligned */}
             <div className="flex items-center gap-1.5 ml-auto">
               {/* Aircraft enrichment - compact */}
               {flightsMissingAircraft.length > 0 && (
@@ -474,7 +287,7 @@ export function FlightList({ onEdit, showSidebar = false }: FlightListProps) {
                 />
               )}
 
-              {/* Select mode toggle - icon only on smaller screens */}
+              {/* Select mode toggle */}
               {flights.length > 0 && (
                 <Button
                   variant="ghost"
@@ -488,7 +301,7 @@ export function FlightList({ onEdit, showSidebar = false }: FlightListProps) {
             </div>
           </>
         ) : (
-          /* Selection mode toolbar - Linear-style inline */
+          /* Selection mode toolbar */
           <div className="flex items-center gap-2 w-full py-1.5 px-3 -mx-3 bg-muted/30 rounded-lg">
             <span className="text-sm text-muted-foreground font-data">
               {selectedIds.size}
@@ -534,30 +347,6 @@ export function FlightList({ onEdit, showSidebar = false }: FlightListProps) {
       </div>
 
       {flightContent}
-
-      {/* Delete confirmation dialog */}
-      <Dialog open={deleteConfirmId !== null} onOpenChange={(open) => !open && cancelDelete()}>
-        <DialogContent size="sm">
-          <DialogHeader>
-            <DialogTitle>{t('flights.deleteConfirmTitle', 'Delete Flight?')}</DialogTitle>
-            <DialogDescription>
-              {t('flights.deleteConfirmMessage', 'This action cannot be undone. The flight will be permanently removed from your log.')}
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button variant="outline" onClick={cancelDelete}>
-              {t('common.cancel')}
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={confirmDelete}
-              disabled={deleteFlight.isPending}
-            >
-              {deleteFlight.isPending ? t('common.loading') : t('common.delete')}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
 
       {/* Batch delete confirmation dialog */}
       <Dialog open={batchDeleteConfirm} onOpenChange={(open) => !open && cancelBatchDelete()}>

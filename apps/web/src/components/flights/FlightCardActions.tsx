@@ -1,50 +1,27 @@
 import { useTranslation } from 'react-i18next'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
-import { MoreVertical, Pencil, Trash2 } from 'lucide-react'
+import { Pencil } from 'lucide-react'
 
 interface FlightCardActionsProps {
   onEdit: () => void
-  onDelete: () => void
 }
 
 /**
- * Overflow menu for FlightCard actions (Edit, Delete).
+ * Edit button for FlightCard.
  *
- * Renders as a vertical ellipsis (⋮) button that opens a dropdown
- * menu with action options. Designed for mobile-friendly touch targets
- * with 44x44px minimum tap area.
+ * Simple edit button - delete is now handled in the edit modal
+ * for a cleaner row experience and to prevent accidental deletions.
+ * Designed for mobile-friendly touch targets with 44x44px minimum tap area.
  */
-export function FlightCardActions({ onEdit, onDelete }: FlightCardActionsProps) {
+export function FlightCardActions({ onEdit }: FlightCardActionsProps) {
   const { t } = useTranslation()
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <button
-          className="p-2 -m-1 rounded-md hover:bg-muted/50 active:bg-muted active:scale-95 transition-all duration-100 touch-manipulation focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-          aria-label={t('common.moreActions', 'More actions')}
-        >
-          <MoreVertical className="w-4 h-4 text-muted-foreground" />
-        </button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="min-w-[140px]">
-        <DropdownMenuItem onClick={onEdit} className="gap-2 cursor-pointer text-sm">
-          <Pencil className="w-3.5 h-3.5" />
-          {t('common.edit', 'Edit')}
-        </DropdownMenuItem>
-        <DropdownMenuItem
-          onClick={onDelete}
-          className="gap-2 cursor-pointer text-sm text-destructive focus:text-destructive focus:bg-destructive/10"
-        >
-          <Trash2 className="w-3.5 h-3.5" />
-          {t('common.delete', 'Delete')}
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <button
+      onClick={onEdit}
+      className="p-2 -m-1 rounded-md hover:bg-muted/50 active:bg-muted active:scale-95 transition-all duration-100 touch-manipulation focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+      aria-label={t('common.edit', 'Edit')}
+    >
+      <Pencil className="w-4 h-4 text-muted-foreground" />
+    </button>
   )
 }

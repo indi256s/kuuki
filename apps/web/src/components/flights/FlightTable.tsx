@@ -12,7 +12,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { Pencil, Trash2, ArrowUp, ArrowDown, ArrowUpDown } from 'lucide-react'
+import { Pencil, ArrowUp, ArrowDown, ArrowUpDown } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { AircraftShimmerBadge } from './AircraftShimmerBadge'
 import type { EnrichmentStatus } from '@kuuki/shared/types'
@@ -20,7 +20,6 @@ import type { EnrichmentStatus } from '@kuuki/shared/types'
 interface FlightTableProps {
   flights: Flight[]
   onEdit: (flight: Flight) => void
-  onDelete: (flight: Flight) => void
   sort?: SortConfig
   onSortChange?: (sort: SortConfig) => void
   // Selection support
@@ -111,7 +110,6 @@ function RouteCell({ flight }: { flight: Flight }) {
 export function FlightTable({
   flights,
   onEdit,
-  onDelete,
   sort,
   onSortChange,
   selectedIds = new Set(),
@@ -160,7 +158,7 @@ export function FlightTable({
   }
 
   return (
-    <div className="rounded-2xl border border-border/40 overflow-hidden bg-card/50">
+    <div className="rounded-2xl border border-border/60 overflow-hidden bg-card shadow-sm">
       {/* Horizontally scrollable table wrapper */}
       <div className="overflow-x-auto">
         <Table className="min-w-[900px]">
@@ -253,7 +251,7 @@ export function FlightTable({
                 >
                   {/* Selection checkbox */}
                   {selectionEnabled && (
-                    <TableCell className="py-4 pl-6">
+                    <TableCell className="py-3 pl-6">
                       <Checkbox
                         checked={isSelected}
                         onCheckedChange={() => toggleSelect(flight.id)}
@@ -281,12 +279,12 @@ export function FlightTable({
                   </TableCell>
 
                   {/* Route */}
-                  <TableCell className="py-4 align-top">
+                  <TableCell className="py-3 align-top">
                     <RouteCell flight={flight} />
                   </TableCell>
 
                   {/* Duration */}
-                  <TableCell className="py-4 align-top">
+                  <TableCell className="py-3 align-top">
                     {duration ? (
                       <span className="font-data text-base">{duration}</span>
                     ) : (
@@ -295,16 +293,18 @@ export function FlightTable({
                   </TableCell>
 
                   {/* Airline */}
-                  <TableCell className="py-4 align-top">
+                  <TableCell className="py-3 align-middle">
                     {airline ? (
-                      <div className="flex items-baseline gap-2">
-                        {airline.primaryColor && (
-                          <span
-                            className="w-2 h-2 rounded-full flex-shrink-0 relative top-[3px]"
-                            style={{ backgroundColor: airline.primaryColor }}
-                          />
-                        )}
-                        <span className="text-sm">{airline.name}</span>
+                      <div className="flex items-center gap-2">
+                        <span
+                          className="inline-flex items-center px-2 py-0.5 rounded-md text-sm font-medium"
+                          style={{
+                            backgroundColor: airline.primaryColor ? `${airline.primaryColor}15` : undefined,
+                            color: airline.primaryColor || undefined,
+                          }}
+                        >
+                          {airline.name}
+                        </span>
                         {flight.flight_number && (
                           <span className="text-xs text-muted-foreground font-data">
                             {flight.airline_iata}{flight.flight_number}
@@ -319,7 +319,7 @@ export function FlightTable({
                   </TableCell>
 
                   {/* Aircraft */}
-                  <TableCell className="py-4 align-top">
+                  <TableCell className="py-3 align-top">
                     {aircraft ? (
                       <div className="flex items-baseline gap-2">
                         <span className="text-sm text-muted-foreground">{aircraft.model}</span>
@@ -336,7 +336,7 @@ export function FlightTable({
                   </TableCell>
 
                   {/* Distance */}
-                  <TableCell className="py-4 align-top text-right">
+                  <TableCell className="py-3 align-top text-right">
                     {flight.distance_km ? (
                       <span className="font-data text-base tabular-nums">{formatDistance(flight.distance_km)}</span>
                     ) : (
@@ -344,26 +344,16 @@ export function FlightTable({
                     )}
                   </TableCell>
 
-                  {/* Actions - always visible */}
-                  <TableCell className="py-4 pr-6 align-top text-right">
-                    <div className="flex gap-1 justify-end transition-opacity duration-150">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 text-muted-foreground hover:text-foreground active:scale-95 transition-transform duration-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                        onClick={() => onEdit(flight)}
-                      >
-                        <Pencil className="w-3.5 h-3.5" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10 active:scale-95 transition-transform duration-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                        onClick={() => onDelete(flight)}
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </Button>
-                    </div>
+                  {/* Actions - edit only, delete moved to modal */}
+                  <TableCell className="py-3 pr-6 align-top text-right">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-muted-foreground hover:text-foreground active:scale-95 transition-transform duration-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                      onClick={() => onEdit(flight)}
+                    >
+                      <Pencil className="w-3.5 h-3.5" />
+                    </Button>
                   </TableCell>
                 </TableRow>
               )
