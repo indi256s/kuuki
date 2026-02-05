@@ -1,13 +1,12 @@
 import { useState } from 'react'
 import { cn } from '@/lib/utils'
 
-// Curated palette from .interface-design/system.md
+// Curated palette from Nordic Skies design system
 // Each color includes foreground for proper button text contrast
 const ACCENT_COLORS = [
   { name: 'blue', bg: '#4EA7F5', fg: '#ffffff', label: 'Blue' },
   { name: 'cyan', bg: '#26B5CE', fg: '#0a2e35', label: 'Cyan' },
   { name: 'teal', bg: '#2EB88A', fg: '#0a2e1f', label: 'Teal' },
-  { name: 'green', bg: '#50C086', fg: '#0a2e1a', label: 'Green' },
   { name: 'yellow', bg: '#EBCB4B', fg: '#3d3314', label: 'Yellow' },
   { name: 'orange', bg: '#F3904F', fg: '#ffffff', label: 'Orange' },
   { name: 'coral', bg: '#F76B6E', fg: '#ffffff', label: 'Coral' },
@@ -75,7 +74,7 @@ export function AccentPicker({ value = 'red', onChange, className }: AccentPicke
             'border border-border',
             'shadow-lg shadow-black/10 dark:shadow-black/30',
             'animate-in fade-in-0 zoom-in-95 duration-150',
-            'w-[max-content] max-w-[200px]'
+            'w-[max-content]'
           )}>
             <p className="text-xs text-muted-foreground mb-2 font-medium">Accent Color</p>
             <div className="grid grid-cols-4 gap-2">
