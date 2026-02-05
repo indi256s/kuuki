@@ -11,7 +11,7 @@ import {
   PopoverDescription,
 } from '@/components/ui/popover'
 import { Button } from '@/components/ui/button'
-import { AircraftAutocomplete } from './AircraftAutocomplete'
+import { AircraftPicker } from './AircraftPicker'
 import { useUpdateFlight } from '@/hooks/useFlights'
 import type { Aircraft } from '@kuuki/shared/types'
 
@@ -66,10 +66,10 @@ export function AircraftPendingBadge({ flightId, className }: AircraftPendingBad
         </PopoverHeader>
 
         <div className="space-y-3">
-          <AircraftAutocomplete
+          <AircraftPicker
             value={selectedAircraft}
             onChange={handleAircraftChange}
-            placeholder={t('flights.aircraftPlaceholder', 'Search by type code or name...')}
+            placeholder={t('flights.selectAircraft', 'Select aircraft...')}
           />
 
           <div className="flex justify-end gap-2">
