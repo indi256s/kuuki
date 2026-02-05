@@ -6,7 +6,6 @@ const ACCENT_COLORS = {
   blue: { bg: '#4EA7F5', fg: '#ffffff' },
   cyan: { bg: '#26B5CE', fg: '#0a2e35' },      // Light bg needs dark text
   teal: { bg: '#2EB88A', fg: '#0a2e1f' },      // Light bg needs dark text
-  green: { bg: '#50C086', fg: '#0a2e1a' },     // Light bg needs dark text
   yellow: { bg: '#EBCB4B', fg: '#3d3314' },    // Light bg needs dark text
   orange: { bg: '#F3904F', fg: '#ffffff' },
   coral: { bg: '#F76B6E', fg: '#ffffff' },
