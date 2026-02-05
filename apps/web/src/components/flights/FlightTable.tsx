@@ -80,7 +80,7 @@ function SortableHeader({
   )
 }
 
-// Linear-style minimal route cell - single line with cities inline
+// Single line route cell - compact and scannable
 function RouteCell({ flight }: { flight: Flight }) {
   const originAirport = findAirport(flight.origin)
   const destAirport = findAirport(flight.destination)
@@ -88,17 +88,17 @@ function RouteCell({ flight }: { flight: Flight }) {
   return (
     <div className="flex items-baseline gap-2">
       {/* Origin code */}
-      <span className="font-data font-semibold text-base">{flight.origin}</span>
+      <span className="font-mono font-medium text-base">{flight.origin}</span>
       {/* Origin city */}
       <span className="text-xs text-muted-foreground">
         {originAirport?.city || ''}
       </span>
 
       {/* Arrow */}
-      <span className="text-muted-foreground/30 text-sm px-0.5">→</span>
+      <span className="text-muted-foreground/40">→</span>
 
       {/* Destination code */}
-      <span className="font-data font-semibold text-base">{flight.destination}</span>
+      <span className="font-mono font-medium text-base">{flight.destination}</span>
       {/* Destination city */}
       <span className="text-xs text-muted-foreground">
         {destAirport?.city || ''}
@@ -296,17 +296,22 @@ export function FlightTable({
                   <TableCell className="py-3 align-middle">
                     {airline ? (
                       <div className="flex items-center gap-2">
-                        <span className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-muted text-foreground">
+                        <span
+                          className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium text-white"
+                          style={{
+                            backgroundColor: airline.primaryColor || 'oklch(0.97 0.003 250)'
+                          }}
+                        >
                           {airline.name}
                         </span>
                         {flight.flight_number && (
-                          <span className="text-xs text-muted-foreground font-data">
+                          <span className="text-xs text-muted-foreground font-mono">
                             {flight.airline_iata}{flight.flight_number}
                           </span>
                         )}
                       </div>
                     ) : flight.airline_iata ? (
-                      <span className="font-data text-sm">{flight.airline_iata}</span>
+                      <span className="font-mono text-sm">{flight.airline_iata}</span>
                     ) : (
                       <span className="text-muted-foreground/40 text-sm">—</span>
                     )}
@@ -315,12 +320,12 @@ export function FlightTable({
                   {/* Aircraft */}
                   <TableCell className="py-3 align-top">
                     {aircraft ? (
-                      <div className="flex items-baseline gap-2">
-                        <span className="text-sm text-muted-foreground">{aircraft.model}</span>
-                        <span className="text-xs text-muted-foreground/70">{aircraft.manufacturer}</span>
+                      <div className="flex flex-col">
+                        <span className="text-base text-foreground">{aircraft.model}</span>
+                        <span className="text-sm text-muted-foreground">{aircraft.manufacturer}</span>
                       </div>
                     ) : flight.aircraft_icao ? (
-                      <span className="font-data text-sm">{flight.aircraft_icao}</span>
+                      <span className="font-mono text-base text-foreground">{flight.aircraft_icao}</span>
                     ) : (
                       <AircraftShimmerBadge
                         flightId={flight.id}

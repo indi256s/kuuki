@@ -48,12 +48,12 @@ export function FlightCard({ flight, onEdit }: FlightCardProps) {
         <div className="flex-1 min-w-0">
           {/* Route - primary content */}
           <div className="flex items-baseline gap-2 flex-wrap">
-            <span className="font-data font-semibold text-lg">{flight.origin}</span>
+            <span className="font-mono font-semibold text-lg">{flight.origin}</span>
             <span className="text-xs text-muted-foreground">
               {originAirport?.city || ''}
             </span>
-            <span className="text-muted-foreground/30 text-sm">→</span>
-            <span className="font-data font-semibold text-lg">{flight.destination}</span>
+            <span className="text-muted-foreground/40">→</span>
+            <span className="font-mono font-semibold text-lg">{flight.destination}</span>
             <span className="text-xs text-muted-foreground">
               {destAirport?.city || ''}
             </span>
@@ -91,21 +91,26 @@ export function FlightCard({ flight, onEdit }: FlightCardProps) {
 
         {/* Airline badge */}
         {airline && (
-          <span className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-muted text-foreground">
+          <span
+            className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium text-white"
+            style={{
+              backgroundColor: airline.primaryColor || 'oklch(0.97 0.003 250)'
+            }}
+          >
             {airline.name}
           </span>
         )}
 
         {/* Aircraft */}
         {aircraft ? (
-          <span className="text-muted-foreground">{aircraft.model}</span>
-        ) : !flight.aircraft_icao ? (
+          <span className="text-foreground">{aircraft.model}</span>
+        ) : flight.aircraft_icao ? (
+          <span className="font-mono text-foreground">{flight.aircraft_icao}</span>
+        ) : (
           <AircraftShimmerBadge
             flightId={flight.id}
             enrichmentStatus={(flight as { enrichment_status?: EnrichmentStatus }).enrichment_status ?? 'pending'}
           />
-        ) : (
-          <span className="font-data text-muted-foreground">{flight.aircraft_icao}</span>
         )}
 
         {/* Distance - pushed right */}
