@@ -1,5 +1,6 @@
 export { AppearanceSection } from './AppearanceSection'
 export { LanguageSection } from './LanguageSection'
+export { ProfileSection } from './ProfileSection'
 export { DataExportSection } from './DataExportSection'
 export { DeleteAccountSection } from './DeleteAccountSection'
 export { DeleteAccountDialog } from './DeleteAccountDialog'

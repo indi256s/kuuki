@@ -6,6 +6,7 @@ import { PlaneAnimation } from '@/components/common/PlaneAnimation'
 import {
   AppearanceSection,
   LanguageSection,
+  ProfileSection,
   DataExportSection,
   DeleteAccountSection,
 } from '@/components/settings'
@@ -48,13 +49,18 @@ export function SettingsPage() {
             <LanguageSection />
           </div>
 
-          {/* Data export */}
+          {/* Profile & Privacy */}
           <div className="animate-fade-up" style={{ animationDelay: '150ms' }}>
+            <ProfileSection />
+          </div>
+
+          {/* Data export */}
+          <div className="animate-fade-up" style={{ animationDelay: '225ms' }}>
             <DataExportSection />
           </div>
 
           {/* Delete account (Danger Zone) */}
-          <div className="animate-fade-up" style={{ animationDelay: '225ms' }}>
+          <div className="animate-fade-up" style={{ animationDelay: '300ms' }}>
             <DeleteAccountSection />
           </div>
         </div>
