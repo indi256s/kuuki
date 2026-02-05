@@ -12,7 +12,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Checkbox } from '@/components/ui/checkbox'
-import { AlertCircle, Check, Sparkles, X } from 'lucide-react'
+import { AlertCircle, Check, Sparkles } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { Flight } from '@/hooks/useFlights'
 import type { EnrichmentResult } from '@/hooks/useAircraftEnrichment'
@@ -37,13 +37,14 @@ export function AircraftEnrichDialog({
   const { t } = useTranslation()
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
 
-  // Initialize selection with all results that have aircraft identified
+  // Filter results to only show ≥0.7 confidence (hide low-confidence entirely)
+  const displayableResults = results.filter(r => r.aircraft_icao && r.confidence >= 0.7)
+
+  // Initialize selection with all displayable results
   useEffect(() => {
-    if (isOpen && results.length > 0) {
+    if (isOpen && displayableResults.length > 0) {
       const identifiedIds = new Set(
-        results
-          .filter(r => r.aircraft_icao && r.confidence >= 0.5)
-          .map(r => r.flight_id)
+        displayableResults.map(r => r.flight_id)
       )
       setSelectedIds(identifiedIds)
     }
@@ -52,10 +53,10 @@ export function AircraftEnrichDialog({
   // Build a map of results by flight ID for quick lookup
   const resultMap = new Map(results.map(r => [r.flight_id, r]))
 
-  // Count statistics
-  const identifiedCount = results.filter(r => r.aircraft_icao).length
+  // Count statistics - only count displayable (≥0.7 confidence) results
+  const identifiedCount = displayableResults.length
   const selectedCount = selectedIds.size
-  const selectableCount = results.filter(r => r.aircraft_icao).length
+  const selectableCount = displayableResults.length
 
   const toggleSelection = (flightId: string) => {
     const newSet = new Set(selectedIds)
@@ -72,7 +73,7 @@ export function AircraftEnrichDialog({
       setSelectedIds(new Set())
     } else {
       const allSelectable = new Set(
-        results.filter(r => r.aircraft_icao).map(r => r.flight_id)
+        displayableResults.map(r => r.flight_id)
       )
       setSelectedIds(allSelectable)
     }
@@ -95,6 +96,7 @@ export function AircraftEnrichDialog({
   }
 
   const getConfidenceBadge = (confidence: number) => {
+    // Only showing ≥0.7 confidence results, so only two tiers needed
     if (confidence >= 0.9) {
       return (
         <Badge variant="secondary" className="text-xs bg-green-500/10 text-green-600 border-green-500/20">
@@ -102,22 +104,9 @@ export function AircraftEnrichDialog({
         </Badge>
       )
     }
-    if (confidence >= 0.7) {
-      return (
-        <Badge variant="secondary" className="text-xs bg-yellow-500/10 text-yellow-600 border-yellow-500/20">
-          {Math.round(confidence * 100)}%
-        </Badge>
-      )
-    }
-    if (confidence >= 0.5) {
-      return (
-        <Badge variant="secondary" className="text-xs bg-orange-500/10 text-orange-600 border-orange-500/20">
-          {Math.round(confidence * 100)}%
-        </Badge>
-      )
-    }
+    // 0.7-0.89
     return (
-      <Badge variant="secondary" className="text-xs bg-muted text-muted-foreground">
+      <Badge variant="secondary" className="text-xs bg-yellow-500/10 text-yellow-600 border-yellow-500/20">
         {Math.round(confidence * 100)}%
       </Badge>
     )
@@ -163,85 +152,76 @@ export function AircraftEnrichDialog({
               </div>
             )}
 
-            {/* Results list */}
+            {/* Results list - only show flights with high-confidence results */}
             <div className="space-y-2">
-              {flights.map((flight) => {
-                const result = resultMap.get(String(flight.id))
-                const hasAircraft = !!result?.aircraft_icao
-                const isSelected = selectedIds.has(String(flight.id))
-                const aircraft = result?.aircraft_icao ? findAircraft(result.aircraft_icao) : null
-                const originAirport = findAirport(flight.origin)
-                const destAirport = findAirport(flight.destination)
+              {flights
+                .filter((flight) => {
+                  const result = resultMap.get(String(flight.id))
+                  // Only show flights with displayable results (≥0.7 confidence)
+                  return result?.aircraft_icao && result.confidence >= 0.7
+                })
+                .map((flight) => {
+                  const result = resultMap.get(String(flight.id))!
+                  const isSelected = selectedIds.has(String(flight.id))
+                  const aircraft = findAircraft(result.aircraft_icao!)
+                  const originAirport = findAirport(flight.origin)
+                  const destAirport = findAirport(flight.destination)
 
-                return (
-                  <div
-                    key={flight.id}
-                    className={cn(
-                      'flex items-center gap-3 p-3 rounded-lg border transition-colors',
-                      hasAircraft
-                        ? isSelected
+                  return (
+                    <div
+                      key={flight.id}
+                      className={cn(
+                        'flex items-center gap-3 p-3 rounded-lg border transition-colors',
+                        isSelected
                           ? 'border-primary/30 bg-primary/5'
                           : 'border-border/50 bg-card hover:bg-muted/30'
-                        : 'border-border/30 bg-muted/20 opacity-60'
-                    )}
-                  >
-                    {/* Checkbox */}
-                    <Checkbox
-                      checked={isSelected}
-                      onCheckedChange={() => hasAircraft && toggleSelection(String(flight.id))}
-                      disabled={!hasAircraft}
-                      className={cn(
-                        'flex-shrink-0',
-                        isSelected && 'data-[state=checked]:bg-primary'
                       )}
-                    />
+                    >
+                      {/* Checkbox */}
+                      <Checkbox
+                        checked={isSelected}
+                        onCheckedChange={() => toggleSelection(String(flight.id))}
+                        className={cn(
+                          'flex-shrink-0',
+                          isSelected && 'data-[state=checked]:bg-primary'
+                        )}
+                      />
 
-                    {/* Flight info */}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <span className="font-mono text-sm font-medium">
-                          {flight.airline_iata}{flight.flight_number || ''}
-                        </span>
-                        <span className="text-muted-foreground text-sm">
-                          {flight.origin} → {flight.destination}
-                        </span>
-                      </div>
-                      <div className="text-xs text-muted-foreground mt-0.5 truncate">
-                        {originAirport?.city || flight.origin} to {destAirport?.city || flight.destination}
-                        {' · '}
-                        {new Date(flight.date).toLocaleDateString(undefined, {
-                          month: 'short',
-                          day: 'numeric',
-                          year: 'numeric',
-                        })}
-                      </div>
-                    </div>
-
-                    {/* Result */}
-                    <div className="flex items-center gap-2 flex-shrink-0">
-                      {hasAircraft ? (
-                        <>
-                          <div className="text-right">
-                            <div className="font-mono text-sm font-medium">{result?.aircraft_icao}</div>
-                            <div className="text-xs text-muted-foreground truncate max-w-32">
-                              {aircraft?.model || result?.aircraft_name || ''}
-                            </div>
-                          </div>
-                          {getConfidenceBadge(result?.confidence || 0)}
-                          <Check className="w-4 h-4 text-green-600" />
-                        </>
-                      ) : (
-                        <>
-                          <span className="text-sm text-muted-foreground">
-                            {t('enrich.notFound', 'Not found')}
+                      {/* Flight info */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className="font-mono text-sm font-medium">
+                            {flight.airline_iata}{flight.flight_number || ''}
                           </span>
-                          <X className="w-4 h-4 text-muted-foreground" />
-                        </>
-                      )}
+                          <span className="text-muted-foreground text-sm">
+                            {flight.origin} → {flight.destination}
+                          </span>
+                        </div>
+                        <div className="text-xs text-muted-foreground mt-0.5 truncate">
+                          {originAirport?.city || flight.origin} to {destAirport?.city || flight.destination}
+                          {' · '}
+                          {new Date(flight.date).toLocaleDateString(undefined, {
+                            month: 'short',
+                            day: 'numeric',
+                            year: 'numeric',
+                          })}
+                        </div>
+                      </div>
+
+                      {/* Result */}
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        <div className="text-right">
+                          <div className="font-mono text-sm font-medium">{result.aircraft_icao}</div>
+                          <div className="text-xs text-muted-foreground truncate max-w-32">
+                            {aircraft?.model || result.aircraft_name || ''}
+                          </div>
+                        </div>
+                        {getConfidenceBadge(result.confidence)}
+                        <Check className="w-4 h-4 text-green-600" />
+                      </div>
                     </div>
-                  </div>
-                )
-              })}
+                  )
+                })}
             </div>
 
             {/* Empty state */}

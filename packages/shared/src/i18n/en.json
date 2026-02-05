@@ -559,7 +559,13 @@
       "viewNormalized": "View normalized data",
       "count": "{{selected}} of {{total}} flights selected",
       "enriching": "Enriching",
-      "enrichingFlights": "Fetching aircraft and timing details..."
+      "enrichingFlights": "Fetching aircraft and timing details...",
+      "enrichingContinues": "You can import now - enrichment continues in background",
+      "yearInferred": "Year not found",
+      "yearInferredDesc": "The year was not found in the document and was inferred.",
+      "yearNotInDocument": "Year was not found in document",
+      "didYouMean": "Did you mean:",
+      "useYear": "Use {{year}}"
     },
     "background": {
       "ready": "{{count}} flights ready to review",

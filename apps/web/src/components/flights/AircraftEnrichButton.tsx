@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { findAirline } from '@kuuki/data'
 import { Button } from '@/components/ui/button'
 import { Sparkles, Loader2 } from 'lucide-react'
 import { AircraftEnrichDialog } from './AircraftEnrichDialog'
@@ -44,15 +45,19 @@ export function AircraftEnrichButton({
   }
 
   const handleClick = async () => {
-    // Prepare flights for the API
-    const flightsToEnrich: FlightToEnrich[] = flights.map(f => ({
-      id: String(f.id),
-      flight_number: f.flight_number,
-      airline_iata: f.airline_iata,
-      date: f.date,
-      origin: f.origin,
-      destination: f.destination,
-    }))
+    // Prepare flights for the API, including airline names for better search
+    const flightsToEnrich: FlightToEnrich[] = flights.map(f => {
+      const airline = f.airline_iata ? findAirline(f.airline_iata) : null
+      return {
+        id: String(f.id),
+        flight_number: f.flight_number,
+        airline_iata: f.airline_iata,
+        airline_name: airline?.name ?? null,
+        date: f.date,
+        origin: f.origin,
+        destination: f.destination,
+      }
+    })
 
     try {
       const response = await enrichMutation.mutateAsync(flightsToEnrich)

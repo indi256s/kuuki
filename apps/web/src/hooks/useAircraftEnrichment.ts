@@ -10,6 +10,7 @@ export interface FlightToEnrich {
   id: string
   flight_number: string | null
   airline_iata: string | null
+  airline_name?: string | null // Optional airline name for better search context
   date: string
   origin: string
   destination: string

@@ -18,6 +18,7 @@ export interface ExtractedFlight {
   enrichment_status?: EnrichmentStatus // Aircraft enrichment state
   field_confidence?: {
     date?: number
+    date_year_explicit?: boolean // true if year was in source, false if inferred
     origin?: number
     destination?: number
     airline_iata?: number

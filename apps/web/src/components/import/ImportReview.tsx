@@ -409,12 +409,17 @@ export function ImportReview({
         />
       )}
 
-      {/* Enrichment progress indicator */}
+      {/* Enrichment progress indicator with skip option */}
       {isEnriching && (
-        <div className="flex items-center gap-2 px-4 py-3 rounded-xl bg-primary/5 border border-primary/20">
-          <Loader2 className="w-4 h-4 animate-spin text-primary" />
-          <span className="text-sm text-primary">
-            {t('import.review.enrichingFlights', 'Fetching aircraft and timing details...')}
+        <div className="flex items-center justify-between gap-4 px-4 py-3 rounded-xl bg-primary/5 border border-primary/20">
+          <div className="flex items-center gap-2">
+            <Loader2 className="w-4 h-4 animate-spin text-primary" />
+            <span className="text-sm text-primary">
+              {t('import.review.enrichingFlights', 'Fetching aircraft and timing details...')}
+            </span>
+          </div>
+          <span className="text-xs text-muted-foreground">
+            {t('import.review.enrichingContinues', 'You can import now - enrichment continues in background')}
           </span>
         </div>
       )}

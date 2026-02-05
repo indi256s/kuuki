@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { findAirport, findAirline } from '@kuuki/data'
 import { AirportAutocomplete } from '../flights/AirportAutocomplete'
@@ -11,7 +11,15 @@ import { Input } from '@/components/ui/input'
 import { DateInput } from '@/components/ui/date-input'
 import { TimeInput } from '@/components/ui/time-input'
 import { Label } from '@/components/ui/label'
-import { ChevronDown, Trash2, AlertCircle, Plane, Loader2 } from 'lucide-react'
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+  PopoverHeader,
+  PopoverTitle,
+  PopoverDescription,
+} from '@/components/ui/popover'
+import { ChevronDown, Trash2, AlertCircle, Plane, Loader2, Calendar } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { ExtractedFlight } from '../../hooks/useImport'
 
@@ -29,6 +37,45 @@ interface FlightEditRowProps {
 
 const LOW_CONFIDENCE_THRESHOLD = 0.8
 
+/**
+ * Calculate smart year suggestion for dates where year was inferred.
+ * Returns the most recent past occurrence of the month/day.
+ */
+function calculateSmartYearSuggestion(dateStr: string): { suggestedDate: string; suggestedYear: number } | null {
+  if (!dateStr) return null
+
+  const [year, month, day] = dateStr.split('-').map(Number)
+  if (!year || !month || !day) return null
+
+  const today = new Date()
+  const currentYear = today.getFullYear()
+
+  // Try the current year first
+  const dateThisYear = new Date(currentYear, month - 1, day)
+
+  // If the date is in the future by more than a week, suggest last year
+  const oneWeekFromNow = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000)
+
+  if (dateThisYear > oneWeekFromNow) {
+    // Suggest last year
+    const suggestedYear = currentYear - 1
+    return {
+      suggestedDate: `${suggestedYear}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`,
+      suggestedYear,
+    }
+  }
+
+  // If the original year is not current year, suggest current year
+  if (year !== currentYear) {
+    return {
+      suggestedDate: `${currentYear}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`,
+      suggestedYear: currentYear,
+    }
+  }
+
+  return null
+}
+
 export function FlightEditRow({
   flight,
   index,
@@ -41,12 +88,26 @@ export function FlightEditRow({
 }: FlightEditRowProps) {
   const { t } = useTranslation()
   const [expanded, setExpanded] = useState(false)
+  const [yearPopoverOpen, setYearPopoverOpen] = useState(false)
 
-  const getFieldConfidence = (field: keyof NonNullable<ExtractedFlight['field_confidence']>) => {
-    return flight.field_confidence?.[field] ?? flight.confidence
+  // Check if year was inferred (not explicit in source document)
+  const isYearInferred = flight.field_confidence?.date_year_explicit === false
+
+  // Calculate smart year suggestion
+  const yearSuggestion = useMemo(() => {
+    if (!isYearInferred) return null
+    return calculateSmartYearSuggestion(flight.date)
+  }, [isYearInferred, flight.date])
+
+  // Get confidence for a field - only numeric confidence fields
+  type ConfidenceField = Exclude<keyof NonNullable<ExtractedFlight['field_confidence']>, 'date_year_explicit'>
+
+  const getFieldConfidence = (field: ConfidenceField): number => {
+    const value = flight.field_confidence?.[field]
+    return typeof value === 'number' ? value : flight.confidence
   }
 
-  const isLowConfidence = (field: keyof NonNullable<ExtractedFlight['field_confidence']>) => {
+  const isLowConfidence = (field: ConfidenceField) => {
     return getFieldConfidence(field) < LOW_CONFIDENCE_THRESHOLD
   }
 
@@ -56,6 +117,22 @@ export function FlightEditRow({
       [field]: value,
     })
   }, [flight, onChange])
+
+  // Apply the smart year suggestion
+  const handleApplyYearSuggestion = useCallback(() => {
+    if (yearSuggestion) {
+      onChange({
+        ...flight,
+        date: yearSuggestion.suggestedDate,
+        // Mark year as now explicitly set by user
+        field_confidence: {
+          ...flight.field_confidence,
+          date_year_explicit: true,
+        },
+      })
+      setYearPopoverOpen(false)
+    }
+  }, [flight, onChange, yearSuggestion])
 
   // Get display names for airports/airlines
   const originAirport = findAirport(flight.origin)
@@ -105,9 +182,51 @@ export function FlightEditRow({
           <span className="text-xs text-muted-foreground font-mono">#{index + 1}</span>
         </div>
 
-        {/* Date - prominent */}
-        <div className="w-28 flex-shrink-0">
-          <span className="text-sm font-medium">{formatDate(flight.date)}</span>
+        {/* Date - prominent, with year warning if inferred */}
+        <div className="w-32 flex-shrink-0">
+          {isYearInferred ? (
+            <Popover open={yearPopoverOpen} onOpenChange={setYearPopoverOpen}>
+              <PopoverTrigger asChild>
+                <button
+                  type="button"
+                  className={cn(
+                    "flex items-center gap-1.5 text-sm font-medium px-2 py-1 -mx-2 -my-1 rounded-md",
+                    "border border-warning/50 bg-warning/10 hover:bg-warning/20 transition-colors"
+                  )}
+                >
+                  <Calendar className="w-3.5 h-3.5 text-warning" />
+                  <span>{formatDate(flight.date)}</span>
+                </button>
+              </PopoverTrigger>
+              <PopoverContent className="w-64" align="start">
+                <PopoverHeader>
+                  <PopoverTitle className="flex items-center gap-2">
+                    <Calendar className="w-4 h-4 text-warning" />
+                    {t('import.review.yearInferred', 'Year not found')}
+                  </PopoverTitle>
+                  <PopoverDescription>
+                    {t('import.review.yearInferredDesc', 'The year was not found in the document and was inferred.')}
+                  </PopoverDescription>
+                </PopoverHeader>
+                {yearSuggestion && (
+                  <div className="mt-3 pt-3 border-t border-border/50">
+                    <p className="text-sm text-muted-foreground mb-2">
+                      {t('import.review.didYouMean', 'Did you mean:')}
+                    </p>
+                    <Button
+                      variant="outline"
+                      className="w-full justify-start h-8 text-sm"
+                      onClick={handleApplyYearSuggestion}
+                    >
+                      {formatDate(yearSuggestion.suggestedDate)}
+                    </Button>
+                  </div>
+                )}
+              </PopoverContent>
+            </Popover>
+          ) : (
+            <span className="text-sm font-medium">{formatDate(flight.date)}</span>
+          )}
         </div>
 
         {/* Route - the hero */}
@@ -206,18 +325,41 @@ export function FlightEditRow({
             </div>
           )}
 
+          {/* Year warning note */}
+          {isYearInferred && (
+            <div className="flex items-center justify-between gap-2 text-sm text-warning-foreground bg-warning/10 rounded-lg px-3 py-2">
+              <div className="flex items-center gap-2">
+                <Calendar className="w-4 h-4 flex-shrink-0" />
+                <span>{t('import.review.yearNotInDocument', 'Year was not found in document')}</span>
+              </div>
+              {yearSuggestion && (
+                <Button
+                  variant="outline"
+                  className="h-7 text-xs px-2"
+                  onClick={handleApplyYearSuggestion}
+                >
+                  {t('import.review.useYear', 'Use {{year}}', { year: yearSuggestion.suggestedYear })}
+                </Button>
+              )}
+            </div>
+          )}
+
           {/* Edit grid - clean columns */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             <div className="space-y-1.5">
-              <Label className="text-xs text-muted-foreground">
+              <Label className="text-xs text-muted-foreground flex items-center gap-1.5">
                 {t('flights.date', 'Date')}
+                {isYearInferred && (
+                  <Calendar className="w-3 h-3 text-warning" />
+                )}
               </Label>
               <DateInput
                 value={flight.date}
                 onChange={(value) => handleFieldChange('date', value)}
                 className={cn(
                   "h-9",
-                  isLowConfidence('date') && "border-warning ring-1 ring-warning/20"
+                  isLowConfidence('date') && "border-warning ring-1 ring-warning/20",
+                  isYearInferred && "border-warning ring-1 ring-warning/20"
                 )}
               />
             </div>

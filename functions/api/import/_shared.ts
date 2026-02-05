@@ -68,6 +68,7 @@ export interface ExtractedFlight {
   enrichment_status?: EnrichmentStatus // Aircraft enrichment state
   field_confidence?: {
     date?: number
+    date_year_explicit?: boolean // true if year was in source, false if inferred
     origin?: number
     destination?: number
     airline_iata?: number
@@ -157,6 +158,7 @@ Important rules:
 6. Dates should be in YYYY-MM-DD format
 7. Times should be in HH:mm 24-hour format
 8. Overall confidence should reflect how certain you are about the extraction
+9. For date_year_explicit: Set to true ONLY if the year (4 digits like "2024" or "2025") was explicitly visible in the document. Set to false if you inferred the year from context (e.g., "Dec 15" with no year visible).
 
 Return your response as a JSON object with this structure:
 {
@@ -173,6 +175,7 @@ Return your response as a JSON object with this structure:
       "confidence": 0.95,
       "field_confidence": {
         "date": 0.99,
+        "date_year_explicit": true,
         "origin": 0.99,
         "destination": 0.99,
         "airline_iata": 0.95,
