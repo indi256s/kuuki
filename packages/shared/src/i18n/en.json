@@ -379,7 +379,7 @@
     "optedOut": "Leaderboards disabled",
     "enableInSettings": "Enable in profile settings",
     "joinCta": "Join the rankings",
-    "joinCtaDescription": "Sign up and log 10 flights to appear on the leaderboard"
+    "joinCtaDescription": "Sign up and log 5 flights to appear on the leaderboard"
   },
   "profile": {
     "title": "Profile",
@@ -393,7 +393,7 @@
     "public": "Public",
     "private": "Private",
     "showOnLeaderboards": "Show on Leaderboards",
-    "showOnLeaderboardsDescription": "Appear in public rankings (requires 10+ flights)",
+    "showOnLeaderboardsDescription": "Appear in public rankings (requires 5+ flights)",
     "publicProfileDescription": "Anyone can view your stats and badges",
     "badges": "Badges",
     "noBadges": "No badges earned yet",

@@ -8,17 +8,17 @@ UPDATE profiles
 SET is_public = TRUE
 WHERE is_public = FALSE OR is_public IS NULL;
 
--- Enable leaderboards for users with 10+ flights
+-- Enable leaderboards for users with 5+ flights
 UPDATE profiles
 SET show_on_leaderboards = TRUE
 WHERE (show_on_leaderboards = FALSE OR show_on_leaderboards IS NULL)
   AND id IN (
     SELECT user_id
     FROM user_stats
-    WHERE total_flights >= 10
+    WHERE total_flights >= 5
   );
 
 COMMIT;
 
 -- Refresh the leaderboard cache to include newly opted-in users
-SELECT refresh_leaderboard_cache();
+SELECT refresh_leaderboards();
