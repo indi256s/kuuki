@@ -1,8 +1,8 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { MapPin, Car, Ship, Loader2 } from 'lucide-react'
-import { useClaimCountry } from '@/hooks/usePassport'
-import { getCountryByCode, getAllCountries } from '@/lib/passport'
+import { useClaimCountry, useAddGroundVisit } from '@/hooks/usePassport'
+import { getCountryByCode } from '@/lib/passport'
 import {
   Dialog,
   DialogContent,
@@ -21,76 +21,56 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from '@/components/ui/command'
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover'
 import type { EntryMethod } from '@kuuki/shared'
 
 interface ClaimDialogProps {
   isOpen: boolean
   onClose: () => void
   preselectedCountry?: string | null
+  isAlreadyClaimed?: boolean
 }
 
-export function ClaimDialog({ isOpen, onClose, preselectedCountry }: ClaimDialogProps) {
+export function ClaimDialog({ isOpen, onClose, preselectedCountry, isAlreadyClaimed = false }: ClaimDialogProps) {
   const { t } = useTranslation()
   const claimCountry = useClaimCountry()
+  const addGroundVisit = useAddGroundVisit()
 
-  const [selectedCountry, setSelectedCountry] = useState<string | null>(preselectedCountry ?? null)
-  const [countrySearchOpen, setCountrySearchOpen] = useState(false)
   const [visitYear, setVisitYear] = useState<string>('')
   const [note, setNote] = useState('')
   const [entryMethod, setEntryMethod] = useState<EntryMethod>(null)
 
-  const countries = getAllCountries()
-  const countryList = Object.entries(countries).map(([code, data]) => ({
-    code,
-    name: data.name,
-    nativeName: data.nativeName,
-  })).sort((a, b) => a.name.localeCompare(b.name))
+  // Sync state when dialog opens
+  useEffect(() => {
+    if (isOpen) {
+      setVisitYear('')
+      setNote('')
+      setEntryMethod(null)
+    }
+  }, [isOpen, preselectedCountry])
 
-  const selectedCountryData = selectedCountry ? getCountryByCode(selectedCountry) : null
+  const countryData = preselectedCountry ? getCountryByCode(preselectedCountry) : null
+  const mutation = isAlreadyClaimed ? addGroundVisit : claimCountry
 
   const handleSubmit = useCallback(async () => {
-    if (!selectedCountry) return
+    if (!preselectedCountry) return
 
     try {
-      await claimCountry.mutateAsync({
-        countryCode: selectedCountry,
+      await mutation.mutateAsync({
+        countryCode: preselectedCountry,
         visitYear: visitYear && visitYear !== 'unknown' ? parseInt(visitYear, 10) : null,
         note: note.trim() || null,
         entryMethod,
       })
 
-      // Reset form and close
-      setSelectedCountry(null)
-      setVisitYear('')
-      setNote('')
-      setEntryMethod(null)
       onClose()
     } catch (error) {
-      console.error('Failed to claim country:', error)
+      console.error('Failed to save:', error)
     }
-  }, [selectedCountry, visitYear, note, entryMethod, claimCountry, onClose])
+  }, [preselectedCountry, visitYear, note, entryMethod, mutation, onClose])
 
   const handleClose = useCallback(() => {
-    // Reset form on close
-    setSelectedCountry(preselectedCountry ?? null)
-    setVisitYear('')
-    setNote('')
-    setEntryMethod(null)
     onClose()
-  }, [onClose, preselectedCountry])
+  }, [onClose])
 
   // Generate year options (current year back to 1950)
   const currentYear = new Date().getFullYear()
@@ -102,73 +82,33 @@ export function ClaimDialog({ isOpen, onClose, preselectedCountry }: ClaimDialog
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <MapPin className="w-5 h-5 text-primary" />
-            {t('passport.claimCountry', 'Claim a Country')}
+            {isAlreadyClaimed
+              ? t('passport.addVisit', 'Add Visit')
+              : t('passport.claimCountry', 'Claim a Country')
+            }
           </DialogTitle>
           <DialogDescription>
-            {t('passport.claimDescription', 'Add a country you\'ve visited by land or sea.')}
+            {isAlreadyClaimed
+              ? t('passport.addVisitDescription', 'Add another visit to this country.')
+              : t('passport.claimDescription', 'Add a country you\'ve visited by land or sea.')
+            }
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4 py-4">
-          {/* Country selection */}
-          <div className="space-y-2">
-            <Label>{t('passport.country', 'Country')}</Label>
-            <Popover open={countrySearchOpen} onOpenChange={setCountrySearchOpen}>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  role="combobox"
-                  aria-expanded={countrySearchOpen}
-                  className="w-full justify-between font-normal"
-                >
-                  {selectedCountryData ? (
-                    <span className="flex items-center gap-2">
-                      <span
-                        className="w-3 h-3 rounded-full"
-                        style={{ backgroundColor: selectedCountryData.dominantColor }}
-                      />
-                      {selectedCountryData.name}
-                    </span>
-                  ) : (
-                    <span className="text-muted-foreground">
-                      {t('passport.selectCountry', 'Select a country...')}
-                    </span>
-                  )}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-full p-0" align="start">
-                <Command>
-                  <CommandInput placeholder={t('passport.searchCountry', 'Search country...')} />
-                  <CommandList className="max-h-64">
-                    <CommandEmpty>{t('common.noResults', 'No results found')}</CommandEmpty>
-                    <CommandGroup>
-                      {countryList.map((country) => (
-                        <CommandItem
-                          key={country.code}
-                          value={country.name}
-                          onSelect={() => {
-                            setSelectedCountry(country.code)
-                            setCountrySearchOpen(false)
-                          }}
-                        >
-                          <span className="flex items-center gap-2">
-                            <span
-                              className="w-3 h-3 rounded-full"
-                              style={{ backgroundColor: countries[country.code].dominantColor }}
-                            />
-                            {country.name}
-                            <span className="text-xs text-muted-foreground">
-                              ({country.code})
-                            </span>
-                          </span>
-                        </CommandItem>
-                      ))}
-                    </CommandGroup>
-                  </CommandList>
-                </Command>
-              </PopoverContent>
-            </Popover>
-          </div>
+          {/* Country header (non-editable) */}
+          {countryData && (
+            <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50 border border-border/50">
+              <span
+                className="w-4 h-4 rounded-full shrink-0"
+                style={{ backgroundColor: countryData.dominantColor }}
+              />
+              <div>
+                <p className="font-medium">{countryData.name}</p>
+                <p className="text-xs text-muted-foreground">{countryData.nativeName}</p>
+              </div>
+            </div>
+          )}
 
           {/* Visit year (optional) */}
           <div className="space-y-2">
@@ -234,13 +174,15 @@ export function ClaimDialog({ isOpen, onClose, preselectedCountry }: ClaimDialog
           </Button>
           <Button
             onClick={handleSubmit}
-            disabled={!selectedCountry || claimCountry.isPending}
+            disabled={!preselectedCountry || mutation.isPending}
           >
-            {claimCountry.isPending ? (
+            {mutation.isPending ? (
               <>
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                 {t('common.saving', 'Saving...')}
               </>
+            ) : isAlreadyClaimed ? (
+              t('passport.addVisitButton', 'Add Visit')
             ) : (
               t('passport.addStamp', 'Add Stamp')
             )}

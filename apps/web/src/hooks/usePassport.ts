@@ -4,6 +4,9 @@ import {
   getUserCountries,
   getUserClaims,
   claimCountry,
+  addGroundVisit,
+  getGroundVisits,
+  deleteGroundVisit,
   unclaimCountry,
   getCountryStats,
   getPassportStats,
@@ -11,12 +14,13 @@ import {
   type CountryClaim,
 } from '@/lib/passport'
 import { useAuthStore } from '@/stores/authStore'
-import type { PassportEntry, CountryStats, EntryMethod } from '@kuuki/shared'
+import type { PassportEntry, CountryStats, GroundVisit, EntryMethod } from '@kuuki/shared'
 
 const PASSPORT_COUNTRIES_KEY = 'passportCountries'
 const PASSPORT_CLAIMS_KEY = 'passportClaims'
 const PASSPORT_STATS_KEY = 'passportStats'
 const COUNTRY_STATS_KEY = 'countryStats'
+const GROUND_VISITS_KEY = 'groundVisits'
 
 /**
  * Hook for all passport countries (flights + claims combined)
@@ -87,7 +91,33 @@ export function useCountryStats(countryCode: string | null) {
 }
 
 /**
- * Hook to claim a country
+ * Hook for ground visits for a specific country
+ */
+export function useGroundVisits(countryCode: string | null) {
+  const userId = useAuthStore((state) => state.user?.id)
+
+  return useQuery<GroundVisit[]>({
+    queryKey: [GROUND_VISITS_KEY, userId, countryCode],
+    queryFn: () => {
+      if (!userId || !countryCode) return []
+      return getGroundVisits(userId, countryCode)
+    },
+    enabled: !!userId && !!countryCode,
+    staleTime: 2 * 60 * 1000,
+  })
+}
+
+/** Invalidate all passport-related queries */
+function invalidatePassportQueries(queryClient: ReturnType<typeof useQueryClient>) {
+  queryClient.invalidateQueries({ queryKey: [PASSPORT_COUNTRIES_KEY] })
+  queryClient.invalidateQueries({ queryKey: [PASSPORT_CLAIMS_KEY] })
+  queryClient.invalidateQueries({ queryKey: [PASSPORT_STATS_KEY] })
+  queryClient.invalidateQueries({ queryKey: ['userStats'] })
+  queryClient.invalidateQueries({ queryKey: ['flightStats'] })
+}
+
+/**
+ * Hook to claim a country (two-step: upsert stamp + insert ground visit)
  */
 export function useClaimCountry() {
   const queryClient = useQueryClient()
@@ -106,21 +136,84 @@ export function useClaimCountry() {
       entryMethod?: EntryMethod
     }) => {
       if (!userId) throw new Error('Not authenticated')
-      return claimCountry(userId, countryCode, { visitYear, note, entryMethod })
+
+      // Step 1: Upsert the stamp
+      await claimCountry(userId, countryCode)
+
+      // Step 2: Insert ground visit if any details provided
+      const hasDetails = visitYear != null || note || entryMethod
+      if (hasDetails) {
+        await addGroundVisit(userId, countryCode, { visitYear, note, entryMethod })
+      }
     },
     onSuccess: (_, { countryCode }) => {
-      // Invalidate all passport-related queries
-      queryClient.invalidateQueries({ queryKey: [PASSPORT_COUNTRIES_KEY] })
-      queryClient.invalidateQueries({ queryKey: [PASSPORT_CLAIMS_KEY] })
-      queryClient.invalidateQueries({ queryKey: [PASSPORT_STATS_KEY] })
-      // Also invalidate user stats since countries_count will change
-      queryClient.invalidateQueries({ queryKey: ['userStats'] })
-      queryClient.invalidateQueries({ queryKey: ['flightStats'] })
+      invalidatePassportQueries(queryClient)
+      queryClient.invalidateQueries({ queryKey: [COUNTRY_STATS_KEY, userId, countryCode] })
+      queryClient.invalidateQueries({ queryKey: [GROUND_VISITS_KEY, userId, countryCode] })
       toast.success(`Added ${countryCode} to your passport`)
     },
     onError: (error) => {
       console.error('Claim country failed:', error)
       toast.error("Couldn't update your passport. Please try again.")
+    },
+  })
+}
+
+/**
+ * Hook to add a ground visit to an already-claimed country
+ */
+export function useAddGroundVisit() {
+  const queryClient = useQueryClient()
+  const userId = useAuthStore((state) => state.user?.id)
+
+  return useMutation({
+    mutationFn: async ({
+      countryCode,
+      visitYear,
+      note,
+      entryMethod,
+    }: {
+      countryCode: string
+      visitYear?: number | null
+      note?: string | null
+      entryMethod?: EntryMethod
+    }) => {
+      if (!userId) throw new Error('Not authenticated')
+      return addGroundVisit(userId, countryCode, { visitYear, note, entryMethod })
+    },
+    onSuccess: (_, { countryCode }) => {
+      invalidatePassportQueries(queryClient)
+      queryClient.invalidateQueries({ queryKey: [COUNTRY_STATS_KEY, userId, countryCode] })
+      queryClient.invalidateQueries({ queryKey: [GROUND_VISITS_KEY, userId, countryCode] })
+      toast.success('Visit added')
+    },
+    onError: (error) => {
+      console.error('Add ground visit failed:', error)
+      toast.error("Couldn't add visit. Please try again.")
+    },
+  })
+}
+
+/**
+ * Hook to delete a ground visit
+ */
+export function useDeleteGroundVisit() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (visitId: string) => {
+      return deleteGroundVisit(visitId)
+    },
+    onSuccess: () => {
+      invalidatePassportQueries(queryClient)
+      // Invalidate all country stats (we don't know which country)
+      queryClient.invalidateQueries({ queryKey: [COUNTRY_STATS_KEY] })
+      queryClient.invalidateQueries({ queryKey: [GROUND_VISITS_KEY] })
+      toast.success('Visit removed')
+    },
+    onError: (error) => {
+      console.error('Delete ground visit failed:', error)
+      toast.error("Couldn't remove visit. Please try again.")
     },
   })
 }
@@ -138,14 +231,9 @@ export function useUnclaimCountry() {
       return unclaimCountry(userId, countryCode)
     },
     onSuccess: (_, countryCode) => {
-      // Invalidate all passport-related queries
-      queryClient.invalidateQueries({ queryKey: [PASSPORT_COUNTRIES_KEY] })
-      queryClient.invalidateQueries({ queryKey: [PASSPORT_CLAIMS_KEY] })
-      queryClient.invalidateQueries({ queryKey: [PASSPORT_STATS_KEY] })
+      invalidatePassportQueries(queryClient)
       queryClient.invalidateQueries({ queryKey: [COUNTRY_STATS_KEY, userId, countryCode] })
-      // Also invalidate user stats
-      queryClient.invalidateQueries({ queryKey: ['userStats'] })
-      queryClient.invalidateQueries({ queryKey: ['flightStats'] })
+      queryClient.invalidateQueries({ queryKey: [GROUND_VISITS_KEY, userId, countryCode] })
       toast.success(`Removed ${countryCode} from your passport`)
     },
     onError: (error) => {

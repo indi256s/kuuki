@@ -3,7 +3,8 @@ import {
   getUserCountries,
   getUserClaims,
   claimCountry,
-  updateClaim,
+  addGroundVisit,
+  deleteGroundVisit,
   unclaimCountry,
   getCountryStats,
   getPassportStats,
@@ -29,6 +30,7 @@ function createChainMock(result: { data?: unknown; error?: { message: string; co
     maybeSingle: vi.fn(() => Promise.resolve(result)),
     order: vi.fn(() => Promise.resolve(result)),
     insert: vi.fn(() => chain),
+    upsert: vi.fn(() => chain),
     update: vi.fn(() => chain),
     delete: vi.fn(() => chain),
     // For terminal operations that return promise directly
@@ -93,17 +95,19 @@ describe('passport', () => {
   })
 
   // ============================================================
-  // getUserCountries - combines visits and claims
+  // getUserCountries - combines visits, claims, and ground visits
   // ============================================================
 
   describe('getUserCountries', () => {
     it('returns empty array when user has no visits or claims', async () => {
       const visitsChain = createChainMock({ data: [], error: null })
       const claimsChain = createChainMock({ data: [], error: null })
+      const groundVisitsChain = createChainMock({ data: [], error: null })
 
       mockFrom.mockImplementation((table: string) => {
         if (table === 'visits') return visitsChain
         if (table === 'country_claims') return claimsChain
+        if (table === 'ground_visits') return groundVisitsChain
         throw new Error(`Unexpected table: ${table}`)
       })
 
@@ -112,6 +116,7 @@ describe('passport', () => {
       expect(result).toEqual([])
       expect(mockFrom).toHaveBeenCalledWith('visits')
       expect(mockFrom).toHaveBeenCalledWith('country_claims')
+      expect(mockFrom).toHaveBeenCalledWith('ground_visits')
     })
 
     it('returns passport entries from flight visits', async () => {
@@ -128,10 +133,12 @@ describe('passport', () => {
         error: null,
       })
       const claimsChain = createChainMock({ data: [], error: null })
+      const groundVisitsChain = createChainMock({ data: [], error: null })
 
       mockFrom.mockImplementation((table: string) => {
         if (table === 'visits') return visitsChain
         if (table === 'country_claims') return claimsChain
+        if (table === 'ground_visits') return groundVisitsChain
         throw new Error(`Unexpected table: ${table}`)
       })
 
@@ -162,10 +169,12 @@ describe('passport', () => {
         ],
         error: null,
       })
+      const groundVisitsChain = createChainMock({ data: [], error: null })
 
       mockFrom.mockImplementation((table: string) => {
         if (table === 'visits') return visitsChain
         if (table === 'country_claims') return claimsChain
+        if (table === 'ground_visits') return groundVisitsChain
         throw new Error(`Unexpected table: ${table}`)
       })
 
@@ -207,10 +216,12 @@ describe('passport', () => {
         ],
         error: null,
       })
+      const groundVisitsChain = createChainMock({ data: [], error: null })
 
       mockFrom.mockImplementation((table: string) => {
         if (table === 'visits') return visitsChain
         if (table === 'country_claims') return claimsChain
+        if (table === 'ground_visits') return groundVisitsChain
         throw new Error(`Unexpected table: ${table}`)
       })
 
@@ -243,10 +254,12 @@ describe('passport', () => {
         error: null,
       })
       const claimsChain = createChainMock({ data: [], error: null })
+      const groundVisitsChain = createChainMock({ data: [], error: null })
 
       mockFrom.mockImplementation((table: string) => {
         if (table === 'visits') return visitsChain
         if (table === 'country_claims') return claimsChain
+        if (table === 'ground_visits') return groundVisitsChain
         throw new Error(`Unexpected table: ${table}`)
       })
 
@@ -260,10 +273,12 @@ describe('passport', () => {
     it('throws error when visits query fails', async () => {
       const visitsChain = createChainMock({ data: null, error: { message: 'Database error' } })
       const claimsChain = createChainMock({ data: [], error: null })
+      const groundVisitsChain = createChainMock({ data: [], error: null })
 
       mockFrom.mockImplementation((table: string) => {
         if (table === 'visits') return visitsChain
         if (table === 'country_claims') return claimsChain
+        if (table === 'ground_visits') return groundVisitsChain
         throw new Error(`Unexpected table: ${table}`)
       })
 
@@ -273,10 +288,12 @@ describe('passport', () => {
     it('throws error when claims query fails', async () => {
       const visitsChain = createChainMock({ data: [], error: null })
       const claimsChain = createChainMock({ data: null, error: { message: 'Claims error' } })
+      const groundVisitsChain = createChainMock({ data: [], error: null })
 
       mockFrom.mockImplementation((table: string) => {
         if (table === 'visits') return visitsChain
         if (table === 'country_claims') return claimsChain
+        if (table === 'ground_visits') return groundVisitsChain
         throw new Error(`Unexpected table: ${table}`)
       })
 
@@ -285,19 +302,16 @@ describe('passport', () => {
   })
 
   // ============================================================
-  // claimCountry
+  // claimCountry (now upsert stamp only)
   // ============================================================
 
   describe('claimCountry', () => {
-    it('creates a country claim with minimal data', async () => {
+    it('upserts a country claim stamp', async () => {
       const mockClaim = {
         id: 'claim-123',
         user_id: 'user-123',
         country_code: 'DE',
         claimed_at: '2024-01-15T10:00:00Z',
-        visit_year: null,
-        note: null,
-        entry_method: null,
       }
 
       const chain = createChainMock({ data: mockClaim, error: null })
@@ -307,56 +321,13 @@ describe('passport', () => {
 
       expect(result).toEqual(mockClaim)
       expect(mockFrom).toHaveBeenCalledWith('country_claims')
-      expect(chain.insert).toHaveBeenCalledWith({
+      expect(chain.upsert).toHaveBeenCalledWith({
         user_id: 'user-123',
         country_code: 'DE',
-        visit_year: null,
-        note: null,
-        entry_method: null,
-      })
+      }, { onConflict: 'user_id,country_code' })
     })
 
-    it('creates a country claim with optional data', async () => {
-      const mockClaim = {
-        id: 'claim-123',
-        user_id: 'user-123',
-        country_code: 'FR',
-        claimed_at: '2024-01-15T10:00:00Z',
-        visit_year: 2019,
-        note: 'Road trip through Provence',
-        entry_method: 'land',
-      }
-
-      const chain = createChainMock({ data: mockClaim, error: null })
-      mockFrom.mockReturnValue(chain)
-
-      const result = await claimCountry('user-123', 'FR', {
-        visitYear: 2019,
-        note: 'Road trip through Provence',
-        entryMethod: 'land',
-      })
-
-      expect(result).toEqual(mockClaim)
-      expect(chain.insert).toHaveBeenCalledWith({
-        user_id: 'user-123',
-        country_code: 'FR',
-        visit_year: 2019,
-        note: 'Road trip through Provence',
-        entry_method: 'land',
-      })
-    })
-
-    it('throws specific error for duplicate claim', async () => {
-      const chain = createChainMock({
-        data: null,
-        error: { message: 'duplicate key', code: '23505' }
-      })
-      mockFrom.mockReturnValue(chain)
-
-      await expect(claimCountry('user-123', 'DE')).rejects.toThrow('You have already claimed this country')
-    })
-
-    it('throws generic error for other failures', async () => {
+    it('throws error on failure', async () => {
       const chain = createChainMock({
         data: null,
         error: { message: 'Connection failed' }
@@ -368,20 +339,72 @@ describe('passport', () => {
   })
 
   // ============================================================
-  // unclaimCountry
+  // addGroundVisit
   // ============================================================
 
-  describe('unclaimCountry', () => {
-    it('deletes a country claim', async () => {
+  describe('addGroundVisit', () => {
+    it('creates a ground visit with details', async () => {
+      const mockVisit = {
+        id: 'visit-123',
+        user_id: 'user-123',
+        country_code: 'FR',
+        visit_year: 2019,
+        entry_method: 'land',
+        note: 'Road trip through Provence',
+        created_at: '2024-01-15T10:00:00Z',
+      }
+
+      const chain = createChainMock({ data: mockVisit, error: null })
+      mockFrom.mockReturnValue(chain)
+
+      const result = await addGroundVisit('user-123', 'FR', {
+        visitYear: 2019,
+        note: 'Road trip through Provence',
+        entryMethod: 'land',
+      })
+
+      expect(result).toMatchObject({
+        id: 'visit-123',
+        countryCode: 'FR',
+        visitYear: 2019,
+        entryMethod: 'land',
+        note: 'Road trip through Provence',
+      })
+      expect(mockFrom).toHaveBeenCalledWith('ground_visits')
+      expect(chain.insert).toHaveBeenCalledWith({
+        user_id: 'user-123',
+        country_code: 'FR',
+        visit_year: 2019,
+        note: 'Road trip through Provence',
+        entry_method: 'land',
+      })
+    })
+
+    it('throws error on failure', async () => {
+      const chain = createChainMock({
+        data: null,
+        error: { message: 'Insert failed' }
+      })
+      mockFrom.mockReturnValue(chain)
+
+      await expect(addGroundVisit('user-123', 'FR')).rejects.toThrow('Failed to add ground visit: Insert failed')
+    })
+  })
+
+  // ============================================================
+  // deleteGroundVisit
+  // ============================================================
+
+  describe('deleteGroundVisit', () => {
+    it('deletes a ground visit by id', async () => {
       const chain = createChainMock({ data: null, error: null })
       mockFrom.mockReturnValue(chain)
 
-      await unclaimCountry('user-123', 'DE')
+      await deleteGroundVisit('visit-123')
 
-      expect(mockFrom).toHaveBeenCalledWith('country_claims')
+      expect(mockFrom).toHaveBeenCalledWith('ground_visits')
       expect(chain.delete).toHaveBeenCalled()
-      expect(chain.eq).toHaveBeenCalledWith('user_id', 'user-123')
-      expect(chain.eq).toHaveBeenCalledWith('country_code', 'DE')
+      expect(chain.eq).toHaveBeenCalledWith('id', 'visit-123')
     })
 
     it('throws error when delete fails', async () => {
@@ -391,7 +414,34 @@ describe('passport', () => {
       })
       mockFrom.mockReturnValue(chain)
 
-      await expect(unclaimCountry('user-123', 'DE')).rejects.toThrow('Failed to unclaim country: Delete failed')
+      await expect(deleteGroundVisit('visit-123')).rejects.toThrow('Failed to delete ground visit: Delete failed')
+    })
+  })
+
+  // ============================================================
+  // unclaimCountry
+  // ============================================================
+
+  describe('unclaimCountry', () => {
+    it('deletes ground visits then country claim', async () => {
+      const chain = createChainMock({ data: null, error: null })
+      mockFrom.mockReturnValue(chain)
+
+      await unclaimCountry('user-123', 'DE')
+
+      // Should call from() for both ground_visits and country_claims
+      expect(mockFrom).toHaveBeenCalledWith('ground_visits')
+      expect(mockFrom).toHaveBeenCalledWith('country_claims')
+    })
+
+    it('throws error when ground visits delete fails', async () => {
+      const chain = createChainMock({
+        data: null,
+        error: { message: 'Delete failed' }
+      })
+      mockFrom.mockReturnValue(chain)
+
+      await expect(unclaimCountry('user-123', 'DE')).rejects.toThrow('Failed to delete ground visits: Delete failed')
     })
   })
 
@@ -447,10 +497,12 @@ describe('passport', () => {
         error: null,
       })
       const claimsChain = createChainMock({ data: [], error: null })
+      const groundVisitsChain = createChainMock({ data: [], error: null })
 
       mockFrom.mockImplementation((table: string) => {
         if (table === 'visits') return visitsChain
         if (table === 'country_claims') return claimsChain
+        if (table === 'ground_visits') return groundVisitsChain
         throw new Error(`Unexpected table: ${table}`)
       })
 
@@ -464,10 +516,12 @@ describe('passport', () => {
     it('returns zero stats for new user', async () => {
       const visitsChain = createChainMock({ data: [], error: null })
       const claimsChain = createChainMock({ data: [], error: null })
+      const groundVisitsChain = createChainMock({ data: [], error: null })
 
       mockFrom.mockImplementation((table: string) => {
         if (table === 'visits') return visitsChain
         if (table === 'country_claims') return claimsChain
+        if (table === 'ground_visits') return groundVisitsChain
         throw new Error(`Unexpected table: ${table}`)
       })
 
@@ -488,7 +542,7 @@ describe('passport', () => {
       await expect(getCountryStats('user-123', 'XX')).rejects.toThrow('Unknown country code: XX')
     })
 
-    it('returns stats from flight visits', async () => {
+    it('returns stats from flight visits with ground visits', async () => {
       const visitsChain = createChainMock({
         data: [
           {
@@ -509,10 +563,12 @@ describe('passport', () => {
         error: null,
       })
       const claimsChain = createChainMock({ data: null, error: null })
+      const groundVisitsChain = createChainMock({ data: [], error: null })
 
       mockFrom.mockImplementation((table: string) => {
         if (table === 'visits') return visitsChain
         if (table === 'country_claims') return claimsChain
+        if (table === 'ground_visits') return groundVisitsChain
         throw new Error(`Unexpected table: ${table}`)
       })
 
@@ -525,29 +581,49 @@ describe('passport', () => {
       expect(stats.lastVisit).toBe('2023-06-05')
       expect(stats.airports).toHaveLength(2)
       expect(stats.airports[0]).toMatchObject({ iata: 'NRT', city: 'Tokyo', visitCount: 3 })
-      expect(stats.note).toBeNull()
-      expect(stats.entryMethod).toBeNull()
+      expect(stats.isClaimed).toBe(false)
+      expect(stats.groundVisits).toEqual([])
     })
 
-    it('returns stats with claim note and entry method', async () => {
+    it('returns stats with ground visits for claimed country', async () => {
       const visitsChain = createChainMock({ data: [], error: null })
       const claimsChain = createChainMock({
-        data: { note: 'Visited by train from France', entry_method: 'land' },
+        data: { id: 'claim-123' },
+        error: null,
+      })
+      const groundVisitsChain = createChainMock({
+        data: [{
+          id: 'gv-1',
+          user_id: 'user-123',
+          country_code: 'DE',
+          visit_year: 2022,
+          entry_method: 'land',
+          note: 'Visited by train from France',
+          created_at: '2024-01-15T10:00:00Z',
+        }],
         error: null,
       })
 
       mockFrom.mockImplementation((table: string) => {
         if (table === 'visits') return visitsChain
         if (table === 'country_claims') return claimsChain
+        if (table === 'ground_visits') return groundVisitsChain
         throw new Error(`Unexpected table: ${table}`)
       })
 
       const stats = await getCountryStats('user-123', 'DE')
 
       expect(stats.countryCode).toBe('DE')
+      expect(stats.isClaimed).toBe(true)
+      expect(stats.groundVisits).toHaveLength(1)
+      expect(stats.groundVisits[0]).toMatchObject({
+        id: 'gv-1',
+        countryCode: 'DE',
+        visitYear: 2022,
+        entryMethod: 'land',
+        note: 'Visited by train from France',
+      })
       expect(stats.totalVisits).toBe(1)
-      expect(stats.note).toBe('Visited by train from France')
-      expect(stats.entryMethod).toBe('land')
     })
   })
 
@@ -558,8 +634,8 @@ describe('passport', () => {
   describe('getUserClaims', () => {
     it('returns all claims for a user ordered by date', async () => {
       const mockClaims = [
-        { id: 'claim-2', user_id: 'user-123', country_code: 'FR', claimed_at: '2024-01-15', visit_year: 2023, note: null, entry_method: null },
-        { id: 'claim-1', user_id: 'user-123', country_code: 'DE', claimed_at: '2023-06-01', visit_year: 2022, note: 'Berlin trip', entry_method: 'land' },
+        { id: 'claim-2', user_id: 'user-123', country_code: 'FR', claimed_at: '2024-01-15' },
+        { id: 'claim-1', user_id: 'user-123', country_code: 'DE', claimed_at: '2023-06-01' },
       ]
 
       const chain = createChainMock({ data: mockClaims, error: null })
@@ -587,49 +663,6 @@ describe('passport', () => {
       mockFrom.mockReturnValue(chain)
 
       await expect(getUserClaims('user-123')).rejects.toThrow('Failed to fetch claims: Query failed')
-    })
-  })
-
-  // ============================================================
-  // updateClaim
-  // ============================================================
-
-  describe('updateClaim', () => {
-    it('updates a claim with new data', async () => {
-      const updatedClaim = {
-        id: 'claim-123',
-        user_id: 'user-123',
-        country_code: 'DE',
-        claimed_at: '2023-06-01',
-        visit_year: 2020,
-        note: 'Updated note',
-        entry_method: 'sea',
-      }
-
-      const chain = createChainMock({ data: updatedClaim, error: null })
-      mockFrom.mockReturnValue(chain)
-
-      const result = await updateClaim('claim-123', {
-        visitYear: 2020,
-        note: 'Updated note',
-        entryMethod: 'sea',
-      })
-
-      expect(result).toEqual(updatedClaim)
-      expect(mockFrom).toHaveBeenCalledWith('country_claims')
-      expect(chain.update).toHaveBeenCalledWith({
-        visit_year: 2020,
-        note: 'Updated note',
-        entry_method: 'sea',
-      })
-      expect(chain.eq).toHaveBeenCalledWith('id', 'claim-123')
-    })
-
-    it('throws error when update fails', async () => {
-      const chain = createChainMock({ data: null, error: { message: 'Update failed' } })
-      mockFrom.mockReturnValue(chain)
-
-      await expect(updateClaim('claim-123', { note: 'test' })).rejects.toThrow('Failed to update claim: Update failed')
     })
   })
 })

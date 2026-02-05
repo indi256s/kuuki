@@ -119,33 +119,62 @@ export type Database = {
         Row: {
           claimed_at: string | null
           country_code: string
-          entry_method: string | null
           id: string
-          note: string | null
           user_id: string
-          visit_year: number | null
         }
         Insert: {
           claimed_at?: string | null
           country_code: string
-          entry_method?: string | null
           id?: string
-          note?: string | null
           user_id: string
-          visit_year?: number | null
         }
         Update: {
           claimed_at?: string | null
           country_code?: string
-          entry_method?: string | null
           id?: string
-          note?: string | null
           user_id?: string
-          visit_year?: number | null
         }
         Relationships: [
           {
             foreignKeyName: "country_claims_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ground_visits: {
+        Row: {
+          id: string
+          user_id: string
+          country_code: string
+          visit_year: number | null
+          entry_method: string | null
+          note: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          country_code: string
+          visit_year?: number | null
+          entry_method?: string | null
+          note?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          country_code?: string
+          visit_year?: number | null
+          entry_method?: string | null
+          note?: string | null
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ground_visits_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"

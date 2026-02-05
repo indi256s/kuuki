@@ -70,10 +70,7 @@ const CLAIM_COLUMNS = [
   'country_code',
   'country_name',
   'continent',
-  'entry_method',
-  'visit_year',
   'claimed_at',
-  'note',
 ]
 
 /**
@@ -168,10 +165,7 @@ export function generateClaimsCsv(claims: CountryClaim[]): string {
       country_code: claim.country_code,
       country_name: countryInfo?.name ?? null,
       continent: countryInfo?.continent ?? null,
-      entry_method: claim.entry_method,
-      visit_year: claim.visit_year,
       claimed_at: claim.claimed_at,
-      note: claim.note,
     }
 
     return generateRow(row, CLAIM_COLUMNS)
