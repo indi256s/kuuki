@@ -115,8 +115,7 @@ export function UsernamePicker({ initialValue = '', onSubmit }: UsernamePickerPr
             value={rawInput}
             onChange={handleInputChange}
             placeholder={t('onboarding.username.placeholder')}
-            autoFocus
-            autoComplete="username"
+            autoComplete="off"
             className={hasError ? 'border-destructive' : ''}
           />
 
