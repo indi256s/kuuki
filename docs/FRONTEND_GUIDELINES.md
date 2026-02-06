@@ -42,6 +42,8 @@
 | `--destructive` | `oklch(0.65 0.18 25)` | Errors, delete |
 | `--success` | `oklch(0.72 0.14 160)` | Confirmations |
 | `--warning` | `oklch(0.82 0.12 85)` | Warnings |
+| `--info` | `oklch(0.55 0.10 200)` | Informational states, upcoming flights |
+| `--info-foreground` | `oklch(0.3 0.08 200)` | Text on info backgrounds |
 
 ### Dark Mode
 

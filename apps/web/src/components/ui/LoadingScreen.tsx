@@ -1,12 +1,17 @@
+import { useMemo } from 'react'
 import { PlaneAnimation } from '@/components/common/PlaneAnimation'
 import { cn } from '@/lib/utils'
+import { getProcessingMessage } from '@/lib/glados-text'
 
 interface LoadingScreenProps {
     className?: string
     message?: string
 }
 
-export function LoadingScreen({ className, message = "Loading..." }: LoadingScreenProps) {
+export function LoadingScreen({ className, message }: LoadingScreenProps) {
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    const defaultMessage = useMemo(() => getProcessingMessage('generic'), [])
+    const displayMessage = message ?? defaultMessage
     return (
         <div className={cn("fixed inset-0 z-50 flex flex-col items-center justify-center bg-background", className)}>
             {/* Background Animation */}
@@ -32,7 +37,7 @@ export function LoadingScreen({ className, message = "Loading..." }: LoadingScre
 
                 {/* Loading Message */}
                 <p className="text-muted-foreground font-medium tracking-widest uppercase text-sm animate-pulse">
-                    {message}
+                    {displayMessage}
                 </p>
             </div>
         </div>

@@ -1,29 +1,15 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/utils'
 import { Check, Loader2, ArrowRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { getProcessingMessage, type ProcessingStage } from '@/lib/glados-text'
 
-// Import stages with timing estimates
-const STAGES = [
-  {
-    id: 'cleaning',
-    duration: 3000, // ~3s for Stage 1 (Gemini cleaning)
-    en: { label: 'Normalizing', description: 'Cleaning and structuring your text...' },
-    ru: { label: 'Нормализация', description: 'Очищаем и структурируем текст...' },
-  },
-  {
-    id: 'extracting',
-    duration: 15000, // ~15s for Stage 2 (Gemini extraction) - varies by count
-    en: { label: 'Extracting', description: 'AI is identifying flights, dates, routes...' },
-    ru: { label: 'Извлечение', description: 'ИИ определяет рейсы, даты, маршруты...' },
-  },
-  {
-    id: 'validating',
-    duration: 2000, // ~2s for validation
-    en: { label: 'Validating', description: 'Checking airport codes and airline data...' },
-    ru: { label: 'Валидация', description: 'Проверяем коды аэропортов и авиакомпаний...' },
-  },
+// Stage definitions with timing estimates
+const STAGE_DEFS = [
+  { id: 'cleaning' as ProcessingStage, duration: 3000, label: { en: 'Normalizing', ru: 'Нормализация' }, ruDesc: 'Очищаем и структурируем текст...' },
+  { id: 'extracting' as ProcessingStage, duration: 15000, label: { en: 'Extracting', ru: 'Извлечение' }, ruDesc: 'ИИ определяет рейсы, даты, маршруты...' },
+  { id: 'validating' as ProcessingStage, duration: 2000, label: { en: 'Validating', ru: 'Валидация' }, ruDesc: 'Проверяем коды аэропортов и авиакомпаний...' },
 ]
 
 // Fun facts to show during longer waits
@@ -56,6 +42,15 @@ export function FlightProgressModal({
   const [factIndex, setFactIndex] = useState(0)
   const startTimeRef = useRef<number>(0)
   const lang = i18n.language === 'ru' ? 'ru' : 'en'
+
+  // Generate randomized GLaDOS descriptions on each modal open (English only)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const stages = useMemo(() => STAGE_DEFS.map(def => ({
+    id: def.id,
+    duration: def.duration,
+    en: { label: def.label.en, description: getProcessingMessage(def.id) },
+    ru: { label: def.label.ru, description: def.ruDesc },
+  })), [isOpen])
 
   // Check for reduced motion preference
   const prefersReducedMotion = typeof window !== 'undefined'
@@ -94,13 +89,13 @@ export function FlightProgressModal({
   // Calculate current stage based on elapsed time
   let cumulativeTime = 0
   let currentStageIndex = 0
-  for (let i = 0; i < STAGES.length; i++) {
-    cumulativeTime += STAGES[i].duration
+  for (let i = 0; i < stages.length; i++) {
+    cumulativeTime += stages[i].duration
     if (elapsedMs < cumulativeTime) {
       currentStageIndex = i
       break
     }
-    if (i === STAGES.length - 1) {
+    if (i === stages.length - 1) {
       currentStageIndex = i // Stay on last stage if exceeded
     }
   }
@@ -152,7 +147,7 @@ export function FlightProgressModal({
           {/* Stage pipeline */}
           <div className="px-6 py-5">
             <div className="space-y-3">
-              {STAGES.map((stage, index) => {
+              {stages.map((stage, index) => {
                 const isActive = index === currentStageIndex
                 const isComplete = index < currentStageIndex
                 const isPending = index > currentStageIndex

@@ -376,10 +376,10 @@ export function ImportUpload({ onSubmit, disabled }: ImportUploadProps) {
             <>
               <div className={cn(
                 'w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0',
-                filePreview.type === 'pdf' ? 'bg-destructive/10' : 'bg-primary/10'
+                filePreview.type === 'pdf' ? 'bg-info/10' : 'bg-primary/10'
               )}>
                 {filePreview.type === 'pdf' ? (
-                  <FileType className="w-5 h-5 text-destructive" />
+                  <FileType className="w-5 h-5 text-info" />
                 ) : (
                   <img
                     src={`data:image/jpeg;base64,${filePreview.content}`}

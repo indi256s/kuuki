@@ -35,7 +35,7 @@ import { Input } from '@/components/ui/input'
 import { DatePicker } from '@/components/ui/date-picker'
 import { TimePicker } from '@/components/ui/time-picker'
 import { Separator } from '@/components/ui/separator'
-import { AlertCircle, ChevronRight, Plane, Calendar, Trash2 } from 'lucide-react'
+import { AlertCircle, ChevronRight, Plane, Clock, Trash2 } from 'lucide-react'
 
 const flightSchema = z.object({
   date: z.string().min(1, 'Date is required'),
@@ -254,9 +254,9 @@ export function FlightForm({ isOpen, onClose, editFlight, onDelete }: FlightForm
 
         {/* Future flight notice */}
         {isFutureFlight && (
-          <div className="mb-4 p-3 rounded-lg bg-primary/10 border border-primary/20 flex items-center gap-2">
-            <Calendar className="w-4 h-4 text-primary shrink-0" aria-hidden="true" />
-            <p className="text-sm text-primary">
+          <div className="mb-4 p-3 rounded-lg bg-info/10 border border-info/20 flex items-center gap-2">
+            <Clock className="w-4 h-4 text-info shrink-0" aria-hidden="true" />
+            <p className="text-sm text-info">
               {t('flights.upcomingFlight', { days: daysUntil })}
             </p>
           </div>

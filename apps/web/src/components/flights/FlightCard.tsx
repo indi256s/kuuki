@@ -39,7 +39,7 @@ export function FlightCard({ flight, onEdit }: FlightCardProps) {
         'transition-[transform,box-shadow,background-color] duration-200',
         'hover:-translate-y-1 hover:shadow-lg hover:border-border/60',
         'active:-translate-y-0.5 active:shadow-md active:bg-muted/40',
-        isUpcoming && 'border-primary/30 bg-primary/[0.03]'
+        isUpcoming && 'border-info/30 bg-info/[0.03]'
       )}
     >
       {/* Top row: Route + Actions */}
@@ -62,12 +62,12 @@ export function FlightCard({ flight, onEdit }: FlightCardProps) {
           <div className="flex items-baseline gap-3 mt-2">
             <span className={cn(
               'font-mono text-sm tabular-nums',
-              isUpcoming ? 'text-primary font-medium' : 'text-muted-foreground'
+              isUpcoming ? 'text-info font-medium' : 'text-muted-foreground'
             )}>
               {formatDate(flight.date)}
             </span>
             {isUpcoming && (
-              <span className="text-[10px] text-primary/70 font-medium">+{daysAway}d</span>
+              <span className="text-[10px] text-info/70 font-medium">+{daysAway}d</span>
             )}
             {hasFlightNumber && (
               <span className="text-xs text-muted-foreground font-mono">

@@ -1,4 +1,6 @@
+import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
+import { getProcessingMessage } from '@/lib/glados-text'
 
 interface WindLoaderProps {
   step?: 'reading' | 'cleaning' | 'extracting' | 'validating' | 'finding'
@@ -7,7 +9,8 @@ interface WindLoaderProps {
 }
 
 export function WindLoader({ step = 'reading', size = 'md', hideMessage = false }: WindLoaderProps) {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
+  const isRussian = i18n.language === 'ru'
 
   const sizeClasses = {
     sm: 'w-32 h-24',
@@ -15,13 +18,23 @@ export function WindLoader({ step = 'reading', size = 'md', hideMessage = false 
     lg: 'w-64 h-48',
   }
 
-  const stepMessages: Record<string, string> = {
+  // Generate GLaDOS messages once per mount (English only)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const gladosMessages = useMemo(() => ({
+    reading: getProcessingMessage('reading'),
+    cleaning: getProcessingMessage('cleaning'),
+    extracting: getProcessingMessage('extracting'),
+    validating: getProcessingMessage('validating'),
+    finding: getProcessingMessage('finding'),
+  }), [])
+
+  const stepMessages: Record<string, string> = isRussian ? {
     reading: t('import.parsing.reading', 'Reading file...'),
     cleaning: t('import.parsing.cleaning', 'Cleaning data...'),
     extracting: t('import.parsing.extracting', 'Extracting flights...'),
     validating: t('import.parsing.validating', 'Validating codes...'),
     finding: t('import.parsing.finding', 'Finding flights...'),
-  }
+  } : gladosMessages
 
   return (
     <div className="flex flex-col items-center gap-4">

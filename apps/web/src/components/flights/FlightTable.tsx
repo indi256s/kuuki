@@ -244,7 +244,7 @@ export function FlightTable({
                   className={cn(
                     'group transition-[background-color,box-shadow] duration-200 border-b border-border/30 last:border-b-0',
                     'hover:bg-muted/30 hover:shadow-[inset_0_1px_0_rgba(0,0,0,0.02)]',
-                    isUpcoming && 'bg-primary/[0.03] border-primary/30',
+                    isUpcoming && 'bg-info/[0.03] border-info/30',
                     isSelected && 'bg-primary/5 hover:bg-primary/8'
                   )}
                 >
@@ -265,12 +265,12 @@ export function FlightTable({
                     <div className="flex items-baseline gap-1.5">
                       <span className={cn(
                         'font-mono text-base tabular-nums',
-                        isUpcoming ? 'text-primary font-medium' : 'text-foreground'
+                        isUpcoming ? 'text-info font-medium' : 'text-foreground'
                       )}>
                         {formatDate(flight.date)}
                       </span>
                       {isUpcoming && (
-                        <span className="text-[10px] text-primary/70 font-medium">
+                        <span className="text-[10px] text-info/70 font-medium">
                           +{daysAway}d
                         </span>
                       )}
