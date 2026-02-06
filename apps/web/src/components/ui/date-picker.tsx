@@ -2,10 +2,11 @@
 
 import * as React from "react"
 import { format, parse } from "date-fns"
+import { enUS, ru } from "date-fns/locale"
 import { CalendarIcon } from "lucide-react"
+import { useTranslation } from "react-i18next"
 
 import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
 import { Calendar } from "@/components/ui/calendar"
 import {
   Popover,
@@ -24,9 +25,14 @@ interface DatePickerProps {
   className?: string
 }
 
+const localeMap: Record<string, typeof enUS> = {
+  en: enUS,
+  ru: ru,
+}
+
 /**
- * Unified date picker with single clickable button that opens a calendar.
- * Stores dates in YYYY-MM-DD format internally.
+ * Unified date picker with locale-aware formatting, month/year dropdown navigation,
+ * and a "Today" shortcut.
  */
 function DatePicker({
   value,
@@ -34,7 +40,10 @@ function DatePicker({
   disabled,
   className,
 }: DatePickerProps) {
+  const { t, i18n } = useTranslation()
   const [open, setOpen] = React.useState(false)
+
+  const locale = localeMap[i18n.language] || enUS
 
   // Convert YYYY-MM-DD string to Date object for Calendar
   const dateValue = React.useMemo(() => {
@@ -52,30 +61,58 @@ function DatePicker({
     setOpen(false)
   }
 
+  const handleToday = () => {
+    handleSelect(new Date())
+  }
+
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          disabled={disabled}
+        <div
+          role="button"
+          tabIndex={disabled ? -1 : 0}
+          aria-label={t("common.pickDate", "Pick a date")}
+          aria-disabled={disabled}
           className={cn(
-            "w-full h-10 justify-start text-left font-mono",
+            "border-input flex h-10 w-full cursor-pointer items-center rounded-md border bg-transparent px-3 py-1 text-base shadow-xs transition-colors md:text-sm",
+            "focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]",
+            "outline-none",
+            disabled && "pointer-events-none cursor-not-allowed opacity-50",
             !dateValue && "text-muted-foreground",
             className
           )}
-          aria-label="Pick date from calendar"
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault()
+              setOpen(true)
+            }
+          }}
         >
-          <CalendarIcon className="mr-2 h-4 w-4 text-muted-foreground shrink-0" />
-          {dateValue ? format(dateValue, "MMM d, yyyy") : "Pick a date"}
-        </Button>
+          <CalendarIcon className="mr-2 h-4 w-4 shrink-0 text-muted-foreground" />
+          <span className="font-mono">
+            {dateValue
+              ? format(dateValue, "d MMM yyyy", { locale })
+              : t("common.pickDate", "Pick a date")}
+          </span>
+        </div>
       </PopoverTrigger>
       <PopoverContent className="w-auto p-0" align="start" sideOffset={8}>
         <Calendar
           mode="single"
           selected={dateValue}
           onSelect={handleSelect}
+          locale={locale}
           initialFocus
         />
+        <div className="px-4 pb-3">
+          <button
+            type="button"
+            onClick={handleToday}
+            className="text-sm text-primary hover:underline"
+          >
+            {t("common.today", "Today")}
+          </button>
+        </div>
       </PopoverContent>
     </Popover>
   )

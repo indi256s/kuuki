@@ -8,9 +8,11 @@ import { cn } from "@/lib/utils"
 
 export type CalendarProps = React.ComponentProps<typeof DayPicker>
 
+const currentYear = new Date().getFullYear()
+
 /**
  * Calendar with aviation-inspired aesthetics.
- * Clean grid, generous spacing, purposeful typography.
+ * Supports month/year dropdown navigation for fast selection.
  */
 function Calendar({
   className,
@@ -21,12 +23,21 @@ function Calendar({
   return (
     <DayPicker
       showOutsideDays={showOutsideDays}
+      captionLayout="dropdown"
+      startMonth={new Date(2000, 0)}
+      endMonth={new Date(currentYear + 1, 11)}
       className={cn("p-4", className)}
       classNames={{
         months: "flex flex-col",
         month: "space-y-3",
         caption: "flex justify-between items-center px-1 mb-2",
         caption_label: "text-sm font-medium tracking-wide",
+        dropdowns: "flex items-center gap-1.5",
+        dropdown: cn(
+          "font-mono text-sm rounded-md border border-input bg-transparent px-1.5 py-0.5",
+          "focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]",
+          "outline-none cursor-pointer"
+        ),
         nav: "flex items-center gap-1",
         nav_button: cn(
           "inline-flex items-center justify-center rounded-lg w-8 h-8",
@@ -51,8 +62,8 @@ function Calendar({
         day: cn(
           "inline-flex items-center justify-center",
           "w-9 h-9 rounded-lg font-mono text-sm",
-          "transition-all duration-150 ease-out",
-          "hover:bg-accent/60 hover:scale-105",
+          "transition-colors duration-150",
+          "hover:bg-accent/60",
           "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
           "aria-selected:opacity-100"
         ),

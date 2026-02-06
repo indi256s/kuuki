@@ -439,6 +439,7 @@ export function FlightForm({ isOpen, onClose, editFlight, onDelete }: FlightForm
                         <TimePicker
                           value={field.value}
                           onChange={field.onChange}
+                          onClear={() => field.onChange('')}
                           disabled={isSubmitting}
                         />
                       </FormControl>
@@ -459,6 +460,7 @@ export function FlightForm({ isOpen, onClose, editFlight, onDelete }: FlightForm
                         <TimePicker
                           value={field.value}
                           onChange={field.onChange}
+                          onClear={() => field.onChange('')}
                           disabled={isSubmitting}
                         />
                       </FormControl>
