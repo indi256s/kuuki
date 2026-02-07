@@ -3,7 +3,6 @@ import {
   AircraftTypesCard,
   ManufacturerCard,
   ContinentProgressCard,
-  DeparturePatternCard,
   DurationStatsCard,
 } from '@/components/dashboard'
 
@@ -13,7 +12,6 @@ export default function AnalysisDeck() {
       <AircraftTypesCard />
       <ManufacturerCard />
       <ContinentProgressCard />
-      <DeparturePatternCard />
       <DurationStatsCard />
     </DashboardGrid>
   )

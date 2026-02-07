@@ -12,8 +12,8 @@ export function DashboardGrid({ children, className }: DashboardGridProps) {
             className={cn(
                 // Base grid layout
                 'grid grid-cols-1 gap-6',
-                // Desktop: 3-column flexible grid
-                'lg:grid-cols-3 lg:auto-rows-auto',
+                // Desktop: 2-column flexible grid
+                'lg:grid-cols-2 lg:auto-rows-auto',
                 className
             )}
         >

@@ -396,8 +396,13 @@
       "narrowbody": "Ближний",
       "regional": "Региональный"
     },
-    "aircraftTypesTitle": "Типы самолётов",
-    "continentsTitle": "Континенты",
+    "aircraftTypesTitle": "Ваш флот",
+    "manufacturers": "Производители",
+    "continentsTitle": "Мировой охват",
+    "noData": "Нет данных",
+    "flights": "полётов",
+    "firstYear": "Первый год учёта",
+    "vsLastYear": "к прошлому году",
     "aircraftTypes": {
       "widebody": "Широкофюзеляжный",
       "narrowbody": "Узкофюзеляжный",

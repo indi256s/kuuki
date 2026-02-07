@@ -5,272 +5,287 @@ import {
   Building2,
   Globe2,
   Clock,
+  TrendingUp,
+  TrendingDown,
 } from 'lucide-react'
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  ResponsiveContainer,
+  Tooltip,
+  PieChart,
+  Pie,
+  Cell,
+  RadarChart,
+  Radar as RechartsRadar,
+  PolarGrid,
+  PolarAngleAxis,
+} from 'recharts'
 import { cn } from '@/lib/utils'
 import { useAdvancedStats } from '@/hooks/useAdvancedStats'
-import { useBadgeTier } from '@/hooks/useBadgeTier'
-import { getTierVisual } from '@/lib/tier-visuals'
-import { getFlavorText } from '@/lib/glados-dashboard'
-import { formatDuration, type DepartureBucket } from '@/lib/formatDuration'
+import { formatDuration } from '@/lib/formatDuration'
+import { findAircraft } from '@kuuki/data'
 
 // ============================================================================
-// Shared Types and Components
+// Shared
 // ============================================================================
 
-type RevealState = 'hidden' | 'basic' | 'full'
+const CHART_COLORS = [
+  'var(--chart-1)',
+  'var(--chart-2)',
+  'var(--chart-3)',
+  'var(--chart-4)',
+  'var(--chart-5)',
+]
+
+/** Build a stable manufacturer → color map from sorted manufacturer breakdown */
+function useManufacturerColorMap(
+  manufacturerBreakdown: Record<string, number> | null | undefined
+) {
+  return useMemo(() => {
+    const map = new Map<string, string>()
+    if (!manufacturerBreakdown) return map
+    Object.entries(manufacturerBreakdown)
+      .sort(([, a], [, b]) => b - a)
+      .forEach(([name], i) => {
+        map.set(name, CHART_COLORS[i % CHART_COLORS.length])
+      })
+    return map
+  }, [manufacturerBreakdown])
+}
 
 interface StatCardProps {
   title: string
   icon: React.ElementType
-  revealState: RevealState
-  flavorText?: string
-  tierAccent?: string
-  tierIconBg?: string
-  tierIconText?: string
   children: React.ReactNode
-  basicChildren?: React.ReactNode
   className?: string
 }
 
-function StatCard({
-  title,
-  icon: Icon,
-  revealState,
-  flavorText,
-  tierAccent,
-  tierIconBg,
-  tierIconText,
-  children,
-  basicChildren,
-  className,
-}: StatCardProps) {
+function StatCard({ title, icon: Icon, children, className }: StatCardProps) {
   return (
     <div
       className={cn(
-        'rounded-2xl border bg-card p-5',
-        'transition-all duration-300',
-        revealState !== 'hidden' && 'hover:shadow-md',
-        tierAccent || 'border-border/50',
+        'rounded-2xl border border-border/50 bg-card p-5',
+        'transition-shadow duration-300 hover:shadow-md',
         className
       )}
     >
-      {/* Header */}
       <div className="flex items-center gap-3 mb-4">
-        <div className={cn('w-9 h-9 rounded-lg flex items-center justify-center', tierIconBg || 'bg-muted/30')}>
-          <Icon className={cn('w-[18px] h-[18px]', tierIconText || 'text-muted-foreground')} />
+        <div className="w-9 h-9 rounded-lg flex items-center justify-center bg-muted/30">
+          <Icon className="w-[18px] h-[18px] text-muted-foreground" />
         </div>
-        <div className="min-w-0 flex-1">
-          <h4 className="font-medium text-sm">{title}</h4>
-          {flavorText && (
-            <p className="text-[11px] italic text-muted-foreground/60 leading-snug mt-0.5 truncate">
-              {flavorText}
-            </p>
-          )}
-        </div>
+        <h4 className="font-medium text-sm">{title}</h4>
       </div>
-
-      {/* Content */}
-      {revealState === 'hidden' ? (
-        <div className="h-16 rounded-lg bg-muted/20 flex items-center justify-center">
-          <span className="text-xs text-muted-foreground/50 italic">
-            Insufficient data for analysis.
-          </span>
-        </div>
-      ) : revealState === 'basic' ? (
-        basicChildren ?? children
-      ) : (
-        children
-      )}
+      {children}
     </div>
   )
-}
-
-// Horizontal bar component
-function HorizontalBar({
-  label,
-  value,
-  total,
-  color = 'bg-primary',
-}: {
-  label: string
-  value: number
-  total: number
-  color?: string
-}) {
-  const percentage = total > 0 ? (value / total) * 100 : 0
-
-  return (
-    <div className="space-y-1">
-      <div className="flex justify-between text-xs">
-        <span className="text-muted-foreground">{label}</span>
-        <span className="font-mono font-medium">{value}</span>
-      </div>
-      <div className="h-1.5 bg-muted rounded-full overflow-hidden">
-        <div
-          className={cn('h-full rounded-full transition-all duration-500', color)}
-          style={{ width: `${percentage}%` }}
-        />
-      </div>
-    </div>
-  )
-}
-
-function getRevealState(tierIndex: number, basicMin: number, fullMin: number): RevealState {
-  if (tierIndex >= fullMin) return 'full'
-  if (tierIndex >= basicMin) return 'basic'
-  return 'hidden'
 }
 
 // ============================================================================
-// Aircraft Types Card
+// Aircraft Types Card (Horizontal Bar Chart)
 // ============================================================================
 
 export function AircraftTypesCard() {
   const { t } = useTranslation()
   const { data: advancedStats } = useAdvancedStats()
-  const { tier, tierIndex, value } = useBadgeTier('aircraft')
+  const mfrColors = useManufacturerColorMap(advancedStats?.manufacturerBreakdown)
 
-  const revealState = getRevealState(tierIndex, 0, 1)
-  const visual = getTierVisual(tier)
-  const flavorText = getFlavorText('aircraft', tierIndex, value)
+  const chartData = useMemo(() => {
+    if (!advancedStats?.aircraftBreakdown) return []
+    return Object.entries(advancedStats.aircraftBreakdown)
+      .map(([name, count]) => {
+        const aircraft = findAircraft(name)
+        return { name, count, manufacturer: aircraft?.manufacturer ?? 'Unknown' }
+      })
+      .sort((a, b) => b.count - a.count)
+  }, [advancedStats?.aircraftBreakdown])
 
-  const typeBreakdown = advancedStats?.aircraftTypeBreakdown?.types
+  const total = useMemo(
+    () => chartData.reduce((sum, d) => sum + d.count, 0),
+    [chartData]
+  )
 
-  const total = useMemo(() => {
-    if (!typeBreakdown) return 0
-    return Object.values(typeBreakdown).reduce((sum, count) => sum + count, 0)
-  }, [typeBreakdown])
-
-  const types = [
-    { key: 'widebody', label: t('stats.aircraft.widebody', 'Long-haul'), color: 'bg-chart-1' },
-    { key: 'narrowbody', label: t('stats.aircraft.narrowbody', 'Short-haul'), color: 'bg-chart-2' },
-    { key: 'regional', label: t('stats.aircraft.regional', 'Regional'), color: 'bg-chart-3' },
-  ]
-
-  // Basic view: only show the top type
-  const topType = useMemo(() => {
-    if (!typeBreakdown) return null
-    return types.reduce<{ key: string; label: string; color: string } | null>((best, t) => {
-      const count = typeBreakdown?.[t.key] || 0
-      const bestCount = best ? (typeBreakdown?.[best.key] || 0) : 0
-      return count > bestCount ? t : best
-    }, null)
-  }, [typeBreakdown, types])
+  const barHeight = Math.max(chartData.length * 28, 60)
 
   return (
-    <StatCard
-      title={t('stats.aircraftTypesTitle', 'Aircraft Types')}
-      icon={Plane}
-      revealState={revealState}
-      flavorText={flavorText}
-      tierAccent={visual.border}
-      tierIconBg={visual.iconBg}
-      tierIconText={visual.text}
-      basicChildren={
-        topType && (
-          <HorizontalBar
-            label={topType.label}
-            value={typeBreakdown?.[topType.key] || 0}
-            total={total}
-            color={topType.color}
-          />
-        )
-      }
-    >
-      <div className="space-y-3">
-        {types.map(({ key, label, color }) => (
-          <HorizontalBar
-            key={key}
-            label={label}
-            value={typeBreakdown?.[key] || 0}
-            total={total}
-            color={color}
-          />
-        ))}
-      </div>
+    <StatCard title={t('stats.aircraftTypesTitle', 'Your Fleet')} icon={Plane}>
+      {chartData.length > 0 ? (
+        <>
+          <ResponsiveContainer width="100%" height={Math.min(barHeight, 220)}>
+            <BarChart
+              data={chartData}
+              layout="vertical"
+              margin={{ left: 0, right: 8, top: 0, bottom: 0 }}
+            >
+              <XAxis type="number" hide />
+              <YAxis
+                type="category"
+                dataKey="name"
+                width={48}
+                tick={{ fontSize: 11, fill: 'var(--muted-foreground)' }}
+                axisLine={false}
+                tickLine={false}
+              />
+              <Tooltip
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                formatter={((value: number) => {
+                  const pct = total > 0 ? ((value / total) * 100).toFixed(0) : '0'
+                  return [`${value} flights (${pct}%)`, '']
+                }) as any}
+                contentStyle={{
+                  background: 'var(--card)',
+                  border: '1px solid var(--border)',
+                  borderRadius: '8px',
+                  fontSize: '12px',
+                }}
+                cursor={{ fill: 'color-mix(in srgb, var(--muted) 30%, transparent)' }}
+              />
+              <Bar
+                dataKey="count"
+                radius={[0, 4, 4, 0]}
+                barSize={14}
+              >
+                {chartData.map((entry) => (
+                  <Cell
+                    key={entry.name}
+                    fill={mfrColors.get(entry.manufacturer) ?? 'var(--primary)'}
+                  />
+                ))}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+          {advancedStats?.cardInsights?.aircraft && (
+            <p className="text-xs text-muted-foreground mt-3 italic">
+              {advancedStats.cardInsights.aircraft}
+            </p>
+          )}
+        </>
+      ) : (
+        <div className="h-16 rounded-lg bg-muted/20 flex items-center justify-center">
+          <span className="text-xs text-muted-foreground/50 italic">
+            {t('stats.noData', 'No data yet')}
+          </span>
+        </div>
+      )}
     </StatCard>
   )
 }
 
 // ============================================================================
-// Manufacturer Card
+// Manufacturer Card (Donut + List)
 // ============================================================================
-
-const MANUFACTURER_COLORS: Record<string, string> = {
-  Airbus: 'bg-chart-1',
-  Boeing: 'bg-chart-4',
-  Embraer: 'bg-chart-2',
-  Bombardier: 'bg-chart-5',
-  ATR: 'bg-chart-3',
-}
 
 export function ManufacturerCard() {
   const { t } = useTranslation()
   const { data: advancedStats } = useAdvancedStats()
-  const { tier, tierIndex, value } = useBadgeTier('aircraft')
-
-  const revealState = getRevealState(tierIndex, 0, 1)
-  const visual = getTierVisual(tier)
-  const flavorText = getFlavorText('aircraft', tierIndex, value)
+  const mfrColors = useManufacturerColorMap(advancedStats?.manufacturerBreakdown)
 
   const manufacturers = useMemo(() => {
     if (!advancedStats?.manufacturerBreakdown) return []
     return Object.entries(advancedStats.manufacturerBreakdown)
       .map(([name, count]) => ({ name, count }))
       .sort((a, b) => b.count - a.count)
-      .slice(0, 4)
   }, [advancedStats?.manufacturerBreakdown])
 
-  const total = useMemo(() => {
-    return manufacturers.reduce((sum, m) => sum + m.count, 0)
-  }, [manufacturers])
+  const total = useMemo(
+    () => manufacturers.reduce((sum, m) => sum + m.count, 0),
+    [manufacturers]
+  )
 
   return (
-    <StatCard
-      title={t('stats.manufacturers', 'Manufacturers')}
-      icon={Building2}
-      revealState={revealState}
-      flavorText={flavorText}
-      tierAccent={visual.border}
-      tierIconBg={visual.iconBg}
-      tierIconText={visual.text}
-      basicChildren={
-        manufacturers.length > 0 ? (
-          <HorizontalBar
-            label={manufacturers[0].name}
-            value={manufacturers[0].count}
-            total={total}
-            color={MANUFACTURER_COLORS[manufacturers[0].name] || 'bg-primary'}
-          />
-        ) : undefined
-      }
-    >
-      <div className="space-y-3">
-        {manufacturers.map(({ name, count }) => (
-          <HorizontalBar
-            key={name}
-            label={name}
-            value={count}
-            total={total}
-            color={MANUFACTURER_COLORS[name] || 'bg-primary'}
-          />
-        ))}
-      </div>
+    <StatCard title={t('stats.manufacturers', 'Manufacturers')} icon={Building2}>
+      {manufacturers.length > 0 ? (
+        <>
+          <div className="relative">
+            <ResponsiveContainer width="100%" height={180}>
+              <PieChart>
+                <Pie
+                  data={manufacturers}
+                  dataKey="count"
+                  nameKey="name"
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={45}
+                  outerRadius={70}
+                  paddingAngle={2}
+                  strokeWidth={0}
+                >
+                  {manufacturers.map(({ name }) => (
+                    <Cell key={name} fill={mfrColors.get(name) ?? 'var(--primary)'} />
+                  ))}
+                </Pie>
+                <Tooltip
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                  formatter={((value: number, name: string) => {
+                    const pct = total > 0 ? ((value / total) * 100).toFixed(1) : '0'
+                    return [`${value} (${pct}%)`, name]
+                  }) as any}
+                  contentStyle={{
+                    background: 'var(--card)',
+                    border: '1px solid var(--border)',
+                    borderRadius: '8px',
+                    fontSize: '12px',
+                  }}
+                />
+              </PieChart>
+            </ResponsiveContainer>
+            {/* Center label */}
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+              <div className="text-center">
+                <div className="font-mono font-bold text-lg">{total}</div>
+                <div className="text-[10px] text-muted-foreground">{t('stats.flights', 'flights')}</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Ranked list */}
+          <div className="mt-3 space-y-1.5 max-h-[120px] overflow-y-auto">
+            {manufacturers.map(({ name, count }) => {
+              const color = mfrColors.get(name) ?? 'var(--primary)'
+              return (
+                <div key={name} className="flex items-center gap-2 text-xs">
+                  <div
+                    className="w-2.5 h-2.5 rounded-[2px] shrink-0"
+                    style={{ background: color }}
+                  />
+                  <span className="text-muted-foreground flex-1 truncate">{name}</span>
+                  <span className="font-mono font-medium">{count}</span>
+                  <div className="w-12 h-1 bg-muted rounded-full overflow-hidden">
+                    <div
+                      className="h-full rounded-full"
+                      style={{
+                        width: `${total > 0 ? (count / total) * 100 : 0}%`,
+                        background: color,
+                      }}
+                    />
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+
+          {advancedStats?.cardInsights?.manufacturer && (
+            <p className="text-xs text-muted-foreground mt-3 italic">
+              {advancedStats.cardInsights.manufacturer}
+            </p>
+          )}
+        </>
+      ) : (
+        <div className="h-16 rounded-lg bg-muted/20 flex items-center justify-center">
+          <span className="text-xs text-muted-foreground/50 italic">
+            {t('stats.noData', 'No data yet')}
+          </span>
+        </div>
+      )}
     </StatCard>
   )
 }
 
 // ============================================================================
-// Continent Progress Card
+// Continent Progress Card (Radar)
 // ============================================================================
-
-const CONTINENT_COLORS: Record<string, string> = {
-  europe: 'bg-chart-1',
-  asia: 'bg-chart-5',
-  americas: 'bg-chart-2',
-  africa: 'bg-chart-3',
-  oceania: 'bg-chart-4',
-}
 
 const CONTINENT_TOTALS: Record<string, number> = {
   europe: 44,
@@ -283,167 +298,93 @@ const CONTINENT_TOTALS: Record<string, number> = {
 export function ContinentProgressCard() {
   const { t } = useTranslation()
   const { data: advancedStats } = useAdvancedStats()
-  const { tier, tierIndex, value } = useBadgeTier('countries')
-
-  const revealState = getRevealState(tierIndex, 0, 1)
-  const visual = getTierVisual(tier)
-  const flavorText = getFlavorText('countries', tierIndex, value)
 
   const continentBreakdown = advancedStats?.continentBreakdown
 
-  const continents = [
-    { key: 'europe', label: t('continent.europe', 'Europe') },
-    { key: 'asia', label: t('continent.asia', 'Asia') },
-    { key: 'americas', label: t('continent.americas', 'Americas') },
-    { key: 'africa', label: t('continent.africa', 'Africa') },
-    { key: 'oceania', label: t('continent.oceania', 'Oceania') },
-  ]
-
-  // Basic view: only the continent with the most countries visited
-  const topContinent = useMemo(() => {
-    if (!continentBreakdown) return null
-    return continents.reduce<{ key: string; label: string } | null>((best, c) => {
-      const count = continentBreakdown?.[c.key] || 0
-      const bestCount = best ? (continentBreakdown?.[best.key] || 0) : 0
-      return count > bestCount ? c : best
-    }, null)
-  }, [continentBreakdown, continents])
+  const radarData = useMemo(() => {
+    const continents = [
+      { key: 'europe', label: t('continent.europe', 'Europe') },
+      { key: 'asia', label: t('continent.asia', 'Asia') },
+      { key: 'americas', label: t('continent.americas', 'Americas') },
+      { key: 'africa', label: t('continent.africa', 'Africa') },
+      { key: 'oceania', label: t('continent.oceania', 'Oceania') },
+    ]
+    return continents.map(({ key, label }) => {
+      const visited = continentBreakdown?.[key] || 0
+      const total = CONTINENT_TOTALS[key]
+      return {
+        continent: label,
+        coverage: Math.round((visited / total) * 100),
+        visited,
+        total,
+      }
+    })
+  }, [continentBreakdown, t])
 
   return (
-    <StatCard
-      title={t('stats.continentsTitle', 'Continents')}
-      icon={Globe2}
-      revealState={revealState}
-      flavorText={flavorText}
-      tierAccent={visual.border}
-      tierIconBg={visual.iconBg}
-      tierIconText={visual.text}
-      basicChildren={
-        topContinent && (
-          <HorizontalBar
-            label={`${topContinent.label} (${continentBreakdown?.[topContinent.key] || 0}/${CONTINENT_TOTALS[topContinent.key] || 50})`}
-            value={continentBreakdown?.[topContinent.key] || 0}
-            total={CONTINENT_TOTALS[topContinent.key] || 50}
-            color={CONTINENT_COLORS[topContinent.key]}
-          />
-        )
-      }
-    >
-      <div className="space-y-3">
-        {continents.map(({ key, label }) => {
-          const visited = continentBreakdown?.[key] || 0
-          const total = CONTINENT_TOTALS[key] || 50
-          return (
-            <HorizontalBar
-              key={key}
-              label={`${label} (${visited}/${total})`}
-              value={visited}
-              total={total}
-              color={CONTINENT_COLORS[key]}
-            />
-          )
-        })}
-      </div>
+    <StatCard title={t('stats.continentsTitle', 'World Coverage')} icon={Globe2}>
+      {continentBreakdown ? (
+        <>
+          <ResponsiveContainer width="100%" height={180}>
+            <RadarChart data={radarData} cx="50%" cy="50%" outerRadius="75%">
+              <PolarGrid stroke="var(--border)" />
+              <PolarAngleAxis
+                dataKey="continent"
+                tick={{ fontSize: 11, fill: 'var(--muted-foreground)' }}
+              />
+              <RechartsRadar
+                dataKey="coverage"
+                stroke="var(--primary)"
+                fill="var(--primary)"
+                fillOpacity={0.25}
+                strokeWidth={2}
+                dot={{ r: 3, fill: 'var(--primary)' }}
+              />
+              <Tooltip
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                formatter={((value: number, _name: string, props: any) => {
+                  const p = props?.payload
+                  return [`${p?.visited ?? 0}/${p?.total ?? 0} (${value}%)`, '']
+                }) as any}
+                contentStyle={{
+                  background: 'var(--card)',
+                  border: '1px solid var(--border)',
+                  borderRadius: '8px',
+                  fontSize: '12px',
+                }}
+              />
+            </RadarChart>
+          </ResponsiveContainer>
+          {advancedStats?.cardInsights?.continent && (
+            <p className="text-xs text-muted-foreground mt-1 italic">
+              {advancedStats.cardInsights.continent}
+            </p>
+          )}
+        </>
+      ) : (
+        <div className="h-16 rounded-lg bg-muted/20 flex items-center justify-center">
+          <span className="text-xs text-muted-foreground/50 italic">
+            {t('stats.noData', 'No data yet')}
+          </span>
+        </div>
+      )}
     </StatCard>
   )
 }
 
 // ============================================================================
-// Departure Pattern Card
-// ============================================================================
-
-const PATTERN_COLORS: Record<DepartureBucket, string> = {
-  red_eye: 'bg-chart-4',
-  early: 'bg-chart-3',
-  business: 'bg-chart-1',
-  evening: 'bg-chart-2',
-}
-
-export function DeparturePatternCard() {
-  const { t } = useTranslation()
-  const { data: advancedStats } = useAdvancedStats()
-  const { tier, tierIndex, value } = useBadgeTier('flights')
-
-  const revealState = getRevealState(tierIndex, 0, 1)
-  const visual = getTierVisual(tier)
-  const flavorText = getFlavorText('flights', tierIndex, value)
-
-  const patterns = advancedStats?.departurePatterns
-  const total = patterns?.total_with_time || 0
-
-  const patternData = [
-    { key: 'red_eye' as DepartureBucket, label: t('stats.pattern.redEye', 'Night Owl'), time: '00:00-06:00' },
-    { key: 'early' as DepartureBucket, label: t('stats.pattern.early', 'Early Bird'), time: '06:00-12:00' },
-    { key: 'business' as DepartureBucket, label: t('stats.pattern.business', 'Business'), time: '12:00-18:00' },
-    { key: 'evening' as DepartureBucket, label: t('stats.pattern.evening', 'Evening'), time: '18:00-00:00' },
-  ]
-
-  // Basic view: show dominant pattern only
-  const dominant = useMemo(() => {
-    if (!patterns) return null
-    return patternData.reduce<{ key: DepartureBucket; label: string; time: string } | null>((best, p) => {
-      const count = patterns?.[p.key] || 0
-      const bestCount = best ? (patterns?.[best.key] || 0) : 0
-      return count > bestCount ? p : best
-    }, null)
-  }, [patterns, patternData])
-
-  return (
-    <StatCard
-      title={t('stats.departurePatterns', 'Departure Patterns')}
-      icon={Clock}
-      revealState={revealState}
-      flavorText={flavorText}
-      tierAccent={visual.border}
-      tierIconBg={visual.iconBg}
-      tierIconText={visual.text}
-      basicChildren={
-        dominant && (
-          <HorizontalBar
-            label={`${dominant.label} (${dominant.time})`}
-            value={patterns?.[dominant.key] || 0}
-            total={total}
-            color={PATTERN_COLORS[dominant.key]}
-          />
-        )
-      }
-    >
-      <div className="space-y-3">
-        {patternData.map(({ key, label, time }) => {
-          const val = patterns?.[key] || 0
-          return (
-            <HorizontalBar
-              key={key}
-              label={`${label} (${time})`}
-              value={val}
-              total={total}
-              color={PATTERN_COLORS[key]}
-            />
-          )
-        })}
-      </div>
-    </StatCard>
-  )
-}
-
-// ============================================================================
-// Duration Stats Card
+// Duration Stats Card (Enhanced)
 // ============================================================================
 
 export function DurationStatsCard() {
   const { t } = useTranslation()
   const { data: advancedStats } = useAdvancedStats()
-  const { tier, tierIndex, value } = useBadgeTier('flights')
-
-  const revealState = getRevealState(tierIndex, 0, 1)
-  const visual = getTierVisual(tier)
-  const flavorText = getFlavorText('flights', tierIndex, value)
 
   const durationStats = advancedStats?.durationStats
+  const yearComparison = advancedStats?.durationYearComparison
 
   const stats = useMemo(() => {
     if (!durationStats) return null
-
     return {
       longest: formatDuration(durationStats.longest_minutes || 0),
       shortest: formatDuration(durationStats.shortest_minutes || 0),
@@ -452,58 +393,80 @@ export function DurationStatsCard() {
     }
   }, [durationStats])
 
+  const deltaLabel = useMemo(() => {
+    if (!yearComparison) return null
+    if (yearComparison.previous_total_minutes === 0) {
+      return { text: t('stats.firstYear', 'First year tracking'), positive: true }
+    }
+    const delta = yearComparison.delta_percent
+    const sign = delta >= 0 ? '+' : ''
+    return {
+      text: `${sign}${Math.round(delta)}% ${t('stats.vsLastYear', 'vs last year')}`,
+      positive: delta >= 0,
+    }
+  }, [yearComparison, t])
+
   return (
-    <StatCard
-      title={t('stats.durationStats', 'Flight Duration')}
-      icon={Clock}
-      revealState={revealState}
-      flavorText={flavorText}
-      tierAccent={visual.border}
-      tierIconBg={visual.iconBg}
-      tierIconText={visual.text}
-      basicChildren={
-        <div className="grid grid-cols-2 gap-3">
-          <div className="p-3 rounded-lg bg-muted/30">
-            <div className="text-xs text-muted-foreground mb-1">
-              {t('stats.longestFlight', 'Longest')}
+    <StatCard title={t('stats.durationStats', 'Flight Duration')} icon={Clock}>
+      {stats ? (
+        <>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="p-3 rounded-lg bg-muted/30">
+              <div className="text-xs text-muted-foreground mb-1">
+                {t('stats.longestFlight', 'Longest')}
+              </div>
+              <div className="font-mono font-semibold">{stats.longest}</div>
             </div>
-            <div className="font-mono font-semibold">{stats?.longest || '—'}</div>
-          </div>
-          <div className="p-3 rounded-lg bg-muted/30">
-            <div className="text-xs text-muted-foreground mb-1">
-              {t('stats.averageFlight', 'Average')}
+            <div className="p-3 rounded-lg bg-muted/30">
+              <div className="text-xs text-muted-foreground mb-1">
+                {t('stats.shortestFlight', 'Shortest')}
+              </div>
+              <div className="font-mono font-semibold">{stats.shortest}</div>
             </div>
-            <div className="font-mono font-semibold">{stats?.average || '—'}</div>
+            <div className="p-3 rounded-lg bg-muted/30">
+              <div className="text-xs text-muted-foreground mb-1">
+                {t('stats.averageFlight', 'Average')}
+              </div>
+              <div className="font-mono font-semibold">{stats.average}</div>
+            </div>
+            <div className="p-3 rounded-lg bg-muted/30">
+              <div className="text-xs text-muted-foreground mb-1">
+                {t('stats.totalTime', 'Total')}
+              </div>
+              <div className="font-mono font-semibold">{stats.total}</div>
+              {deltaLabel && (
+                <div
+                  className={cn(
+                    'inline-flex items-center gap-1 mt-1 px-1.5 py-0.5 rounded text-[10px] font-medium',
+                    deltaLabel.positive
+                      ? 'bg-success/10 text-success'
+                      : 'bg-destructive/10 text-destructive'
+                  )}
+                >
+                  {deltaLabel.positive ? (
+                    <TrendingUp className="w-3 h-3" />
+                  ) : (
+                    <TrendingDown className="w-3 h-3" />
+                  )}
+                  {deltaLabel.text}
+                </div>
+              )}
+            </div>
           </div>
+
+          {advancedStats?.cardInsights?.duration && (
+            <p className="text-xs text-muted-foreground mt-3 italic">
+              {advancedStats.cardInsights.duration}
+            </p>
+          )}
+        </>
+      ) : (
+        <div className="h-16 rounded-lg bg-muted/20 flex items-center justify-center">
+          <span className="text-xs text-muted-foreground/50 italic">
+            {t('stats.noData', 'No data yet')}
+          </span>
         </div>
-      }
-    >
-      <div className="grid grid-cols-2 gap-3">
-        <div className="p-3 rounded-lg bg-muted/30">
-          <div className="text-xs text-muted-foreground mb-1">
-            {t('stats.longestFlight', 'Longest')}
-          </div>
-          <div className="font-mono font-semibold">{stats?.longest || '—'}</div>
-        </div>
-        <div className="p-3 rounded-lg bg-muted/30">
-          <div className="text-xs text-muted-foreground mb-1">
-            {t('stats.shortestFlight', 'Shortest')}
-          </div>
-          <div className="font-mono font-semibold">{stats?.shortest || '—'}</div>
-        </div>
-        <div className="p-3 rounded-lg bg-muted/30">
-          <div className="text-xs text-muted-foreground mb-1">
-            {t('stats.averageFlight', 'Average')}
-          </div>
-          <div className="font-mono font-semibold">{stats?.average || '—'}</div>
-        </div>
-        <div className="p-3 rounded-lg bg-muted/30">
-          <div className="text-xs text-muted-foreground mb-1">
-            {t('stats.totalTime', 'Total')}
-          </div>
-          <div className="font-mono font-semibold">{stats?.total || '—'}</div>
-        </div>
-      </div>
+      )}
     </StatCard>
   )
 }

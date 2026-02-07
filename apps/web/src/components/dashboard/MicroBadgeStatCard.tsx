@@ -69,7 +69,7 @@ export function MicroBadgeStatCard({
       className={cn(
         'group rounded-2xl border bg-card p-4',
         'transition-all duration-300',
-        visual.border,
+        'border-border/50',
         'hover:shadow-md',
         className,
       )}
@@ -95,7 +95,7 @@ export function MicroBadgeStatCard({
             {t(`dashboard.track.${trackId}`, trackId)}
           </div>
           {badgeName && (
-            <div className={cn('text-xs font-medium mt-0.5', visual.text)}>
+            <div className={cn('text-xs font-medium mt-0.5', 'text-muted-foreground')}>
               {badgeName}
             </div>
           )}

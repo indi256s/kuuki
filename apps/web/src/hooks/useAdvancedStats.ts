@@ -46,6 +46,18 @@ export interface AdvancedStats {
   departurePatterns: DeparturePatterns | null  // NEW for Phase 5c
   durationCoverage: number  // NEW for Phase 5c - percentage 0-100
   patterns: Record<string, unknown> | null
+  cardInsights: {
+    aircraft: string
+    manufacturer: string
+    continent: string
+    duration: string
+  } | null
+  durationYearComparison: {
+    current_year: number
+    current_total_minutes: number
+    previous_total_minutes: number
+    delta_percent: number
+  } | null
   featuredFact: string | null
   featuredFactIndex: number
   updatedAt: string
@@ -98,6 +110,8 @@ export function useAdvancedStats() {
         departurePatterns: data.departure_patterns as DeparturePatterns | null,
         durationCoverage: (data.duration_coverage as number) ?? 0,
         patterns: data.patterns as Record<string, unknown> | null,
+        cardInsights: (data as Record<string, unknown>).card_insights as AdvancedStats['cardInsights'],
+        durationYearComparison: (data as Record<string, unknown>).duration_year_comparison as AdvancedStats['durationYearComparison'],
         featuredFact: data.featured_fact ?? null,
         featuredFactIndex: data.featured_fact_index ?? 0,
         updatedAt: data.updated_at ?? '',

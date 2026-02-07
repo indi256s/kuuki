@@ -397,8 +397,13 @@
       "narrowbody": "Short-haul",
       "regional": "Regional"
     },
-    "aircraftTypesTitle": "Aircraft Types",
-    "continentsTitle": "Continents",
+    "aircraftTypesTitle": "Your Fleet",
+    "manufacturers": "Manufacturers",
+    "continentsTitle": "World Coverage",
+    "noData": "No data yet",
+    "flights": "flights",
+    "firstYear": "First year tracking",
+    "vsLastYear": "vs last year",
     "aircraftTypes": {
       "widebody": "Widebody",
       "narrowbody": "Narrowbody",

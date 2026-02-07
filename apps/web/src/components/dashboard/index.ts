@@ -15,7 +15,6 @@ export {
   AircraftTypesCard,
   ManufacturerCard,
   ContinentProgressCard,
-  DeparturePatternCard,
   DurationStatsCard,
 } from './AdvancedStatCards'
 

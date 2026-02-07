@@ -1,6 +1,15 @@
 import { useTranslation } from 'react-i18next'
 import { formatDistance } from '@/lib/geo'
 import type { UserStats } from '@/lib/profiles'
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+  Legend,
+} from 'recharts'
 
 interface CompareChartProps {
   yourStats: UserStats
@@ -10,108 +19,55 @@ interface CompareChartProps {
   themeColor?: string
 }
 
-interface StatBarProps {
-  label: string
-  yourValue: number
-  theirValue: number
-  yourName: string
-  theirName: string
-  formatFn?: (value: number) => string
-}
-
-function StatBar({ label, yourValue, theirValue, yourName, theirName, formatFn }: StatBarProps) {
-  const format = formatFn || ((v: number) => v.toLocaleString())
-  const maxValue = Math.max(yourValue, theirValue, 1) // Avoid division by zero
-  const yourPercent = (yourValue / maxValue) * 100
-  const theirPercent = (theirValue / maxValue) * 100
-
-  const yourWins = yourValue > theirValue
-  const theirWins = theirValue > yourValue
-
-  return (
-    <div className="space-y-2">
-      <div className="flex items-center justify-between text-sm">
-        <span className="text-muted-foreground">{label}</span>
-      </div>
-
-      {/* Your bar */}
-      <div className="space-y-1">
-        <div className="flex items-center justify-between text-xs">
-          <span className={yourWins ? 'font-medium text-primary' : 'text-muted-foreground'}>
-            {yourName}
-          </span>
-          <span className={`font-data ${yourWins ? 'text-primary font-medium' : ''}`}>
-            {format(yourValue)}
-          </span>
-        </div>
-        <div className="h-3 bg-secondary/50 rounded-full overflow-hidden">
-          <div
-            className={`h-full rounded-full transition-all duration-500 ${
-              yourWins ? 'bg-primary' : 'bg-primary/50'
-            }`}
-            style={{ width: `${yourPercent}%` }}
-          />
-        </div>
-      </div>
-
-      {/* Their bar */}
-      <div className="space-y-1">
-        <div className="flex items-center justify-between text-xs">
-          <span className={theirWins ? 'font-medium text-chart-2' : 'text-muted-foreground'}>
-            {theirName}
-          </span>
-          <span className={`font-data ${theirWins ? 'text-chart-2 font-medium' : ''}`}>
-            {format(theirValue)}
-          </span>
-        </div>
-        <div className="h-3 bg-secondary/50 rounded-full overflow-hidden">
-          <div
-            className={`h-full rounded-full transition-all duration-500 ${
-              theirWins ? 'bg-chart-2' : 'bg-chart-2/50'
-            }`}
-            style={{ width: `${theirPercent}%` }}
-          />
-        </div>
-      </div>
-    </div>
-  )
-}
-
 export function CompareChart({ yourStats, theirStats, yourName, theirName }: CompareChartProps) {
   const { t } = useTranslation()
 
   const comparisons = [
     {
       label: t('dashboard.totalFlights', 'Flights'),
-      yourValue: yourStats.total_flights,
-      theirValue: theirStats.total_flights,
+      yourValue: yourStats.total_flights ?? 0,
+      theirValue: theirStats.total_flights ?? 0,
     },
     {
       label: t('dashboard.totalDistance', 'Distance'),
-      yourValue: yourStats.total_distance_km,
-      theirValue: theirStats.total_distance_km,
+      yourValue: yourStats.total_distance_km ?? 0,
+      theirValue: theirStats.total_distance_km ?? 0,
       formatFn: formatDistance,
     },
     {
       label: t('stats.countries', 'Countries'),
-      yourValue: yourStats.countries_count,
-      theirValue: theirStats.countries_count,
+      yourValue: yourStats.countries_count ?? 0,
+      theirValue: theirStats.countries_count ?? 0,
     },
     {
       label: t('stats.cities', 'Cities'),
-      yourValue: yourStats.cities_count,
-      theirValue: theirStats.cities_count,
+      yourValue: yourStats.cities_count ?? 0,
+      theirValue: theirStats.cities_count ?? 0,
     },
     {
       label: t('stats.airlines', 'Airlines'),
-      yourValue: yourStats.airlines_count,
-      theirValue: theirStats.airlines_count,
+      yourValue: yourStats.airlines_count ?? 0,
+      theirValue: theirStats.airlines_count ?? 0,
     },
   ]
 
   // Count wins
-  const yourWins = comparisons.filter(c => (c.yourValue ?? 0) > (c.theirValue ?? 0)).length
-  const theirWins = comparisons.filter(c => (c.theirValue ?? 0) > (c.yourValue ?? 0)).length
+  const yourWins = comparisons.filter(c => c.yourValue > c.theirValue).length
+  const theirWins = comparisons.filter(c => c.theirValue > c.yourValue).length
+
+  // Build recharts data with a formatFn reference for the tooltip
+  const chartData = comparisons.map(c => ({
+    name: c.label,
+    you: c.yourValue,
+    them: c.theirValue,
+    formatFn: c.formatFn,
+  }))
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const formatValue = (value: any, _name: any, props: any) => {
+    const fn = props?.payload?.formatFn as ((v: number) => string) | undefined
+    return fn ? fn(Number(value)) : Number(value).toLocaleString()
+  }
 
   return (
     <div className="space-y-6">
@@ -128,20 +84,34 @@ export function CompareChart({ yourStats, theirStats, yourName, theirName }: Com
         </div>
       </div>
 
-      {/* Stat comparisons */}
-      <div className="space-y-6">
-        {comparisons.map((comparison) => (
-          <StatBar
-            key={comparison.label}
-            label={comparison.label}
-            yourValue={comparison.yourValue ?? 0}
-            theirValue={comparison.theirValue ?? 0}
-            yourName={yourName}
-            theirName={theirName}
-            formatFn={comparison.formatFn}
+      {/* Recharts bar chart */}
+      <ResponsiveContainer width="100%" height={300}>
+        <BarChart data={chartData} layout="vertical" margin={{ left: 20, right: 20, top: 5, bottom: 5 }}>
+          <XAxis type="number" hide />
+          <YAxis
+            type="category"
+            dataKey="name"
+            width={80}
+            tick={{ fontSize: 13, fill: 'var(--muted-foreground)' }}
+            axisLine={false}
+            tickLine={false}
           />
-        ))}
-      </div>
+          <Tooltip
+            formatter={formatValue}
+            contentStyle={{
+              backgroundColor: 'var(--card)',
+              border: '1px solid var(--border)',
+              borderRadius: '8px',
+              fontSize: 13,
+            }}
+            labelStyle={{ color: 'var(--foreground)' }}
+            cursor={{ fill: 'color-mix(in srgb, var(--secondary) 30%, transparent)' }}
+          />
+          <Legend />
+          <Bar dataKey="you" name={yourName} fill="var(--primary)" radius={[0, 4, 4, 0]} barSize={14} />
+          <Bar dataKey="them" name={theirName} fill="var(--chart-2)" radius={[0, 4, 4, 0]} barSize={14} />
+        </BarChart>
+      </ResponsiveContainer>
     </div>
   )
 }
