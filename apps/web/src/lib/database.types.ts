@@ -510,6 +510,7 @@ export type Database = {
         Row: {
           aircraft_count: number | null
           airlines_count: number | null
+          airports_count: number | null
           cities_count: number | null
           continents_count: number | null
           countries_count: number | null
@@ -519,6 +520,7 @@ export type Database = {
           most_visited_country: string | null
           time_zones_count: number | null
           total_distance_km: number | null
+          total_duration_minutes: number | null
           total_flights: number | null
           updated_at: string | null
           user_id: string
@@ -527,6 +529,7 @@ export type Database = {
         Insert: {
           aircraft_count?: number | null
           airlines_count?: number | null
+          airports_count?: number | null
           cities_count?: number | null
           continents_count?: number | null
           countries_count?: number | null
@@ -536,6 +539,7 @@ export type Database = {
           most_visited_country?: string | null
           time_zones_count?: number | null
           total_distance_km?: number | null
+          total_duration_minutes?: number | null
           total_flights?: number | null
           updated_at?: string | null
           user_id: string
@@ -544,6 +548,7 @@ export type Database = {
         Update: {
           aircraft_count?: number | null
           airlines_count?: number | null
+          airports_count?: number | null
           cities_count?: number | null
           continents_count?: number | null
           countries_count?: number | null
@@ -553,6 +558,7 @@ export type Database = {
           most_visited_country?: string | null
           time_zones_count?: number | null
           total_distance_km?: number | null
+          total_duration_minutes?: number | null
           total_flights?: number | null
           updated_at?: string | null
           user_id?: string

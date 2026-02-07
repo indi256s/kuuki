@@ -7,9 +7,8 @@ export { YearFilter } from './YearFilter'
 export { MapCard } from './MapCard'
 export { TravelSummaryCard } from './TravelSummaryCard'
 
-// Overview tier cards
+// Legacy cards (kept for reference)
 export { UpcomingFlightsCard } from './UpcomingFlightsCard'
-export { ConsolidatedMilestonesCard } from './ConsolidatedMilestonesCard'
 
 // Advanced stat cards
 export {
@@ -19,6 +18,10 @@ export {
   DeparturePatternCard,
   DurationStatsCard,
 } from './AdvancedStatCards'
+
+// Micro stat and banner cards
+export { MicroBadgeStatCard } from './MicroBadgeStatCard'
+export { UpcomingFlightsBanner } from './UpcomingFlightsBanner'
 
 // Additional exports
 export { EmptyState } from './EmptyState'

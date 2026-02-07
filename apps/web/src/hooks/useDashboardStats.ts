@@ -2,7 +2,6 @@ import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/stores/authStore'
 import { useDashboardStore } from '@/stores/dashboardStore'
-import { useUnlockProgress } from './useAdvancedStats'
 import { findAirport } from '@kuuki/data'
 
 export interface DashboardStats {
@@ -14,16 +13,11 @@ export interface DashboardStats {
     uniqueCities: number
     uniqueAirlines: number
     uniqueAircraft: number
+    uniqueAirports: number
+    continentsCount: number
 
     // Visited country codes (for map)
     visitedCountries: string[]
-
-    // Unlock status
-    unlocks: {
-        aviaGeek: boolean
-        countryGeek: boolean
-        timeGeek: boolean
-    }
 
     // Upcoming flights
     upcomingFlights: Array<{
@@ -44,13 +38,6 @@ export interface DashboardStats {
         airlines: number | null
     }
 
-    // Milestones
-    milestones: {
-        moonProgress: number // percentage to 384,400 km
-        earthTrips: number // trips around Earth (40,075 km each)
-        timeInAir: { days: number; hours: number }
-    }
-
     // Favorites (only if ≥30% threshold met)
     favorites: {
         airline: { iata: string; count: number; percentage: number } | null
@@ -65,7 +52,6 @@ export interface DashboardStats {
 export function useDashboardStats() {
     const userId = useAuthStore((state) => state.user?.id)
     const selectedYear = useDashboardStore((state) => state.selectedYear)
-    const { data: unlockProgress } = useUnlockProgress()
 
     return useQuery({
         queryKey: ['dashboardStats', userId, selectedYear],
@@ -175,35 +161,17 @@ export function useDashboardStats() {
                 }
                 : null
 
-            // Calculate milestones
-            const totalDistance = stats?.total_distance_km || 0
-            // Note: total_duration_minutes might not exist in user_stats yet
-            // We'll use 0 as fallback for now
-            const totalDuration = 0 // TODO: Calculate from flights or add to user_stats
-
-            const moonDistance = 384400 // km
-            const earthCircumference = 40075 // km
-
-            const moonProgress = (totalDistance / moonDistance) * 100
-            const earthTrips = totalDistance / earthCircumference
-            const days = Math.floor(totalDuration / (60 * 24))
-            const hours = Math.floor((totalDuration % (60 * 24)) / 60)
-
             return {
                 totalFlights: stats?.total_flights || 0,
                 totalDistance: stats?.total_distance_km || 0,
-                totalDuration: totalDuration,
+                totalDuration: stats?.total_duration_minutes || 0,
                 uniqueCountries: stats?.countries_count || 0,
                 uniqueCities: stats?.cities_count || 0,
                 uniqueAirlines: stats?.airlines_count || 0,
                 uniqueAircraft: stats?.aircraft_count || 0,
+                uniqueAirports: stats?.airports_count || 0,
+                continentsCount: stats?.continents_count || 0,
                 visitedCountries,
-
-                unlocks: {
-                    aviaGeek: unlockProgress?.aviaGeek.unlocked || false,
-                    countryGeek: unlockProgress?.countryGeek.unlocked || false,
-                    timeGeek: unlockProgress?.duration.unlocked || false,
-                },
 
                 upcomingFlights: (upcoming || []).filter(f => f.airline_iata !== null) as Array<{
                     id: number
@@ -215,8 +183,6 @@ export function useDashboardStats() {
                 }>,
 
                 percentiles: {
-                    // Note: percentile fields might not exist in user_stats yet
-                    // Using null as fallback
                     countries: null,
                     cities: null,
                     flights: null,
@@ -224,15 +190,9 @@ export function useDashboardStats() {
                     airlines: null,
                 },
 
-                milestones: {
-                    moonProgress,
-                    earthTrips,
-                    timeInAir: { days, hours },
-                },
-
                 favorites: {
                     airline: airlineFavorite,
-                    country: null, // TODO: Calculate from airport countries
+                    country: null,
                     aircraft: aircraftFavorite,
                 },
             }

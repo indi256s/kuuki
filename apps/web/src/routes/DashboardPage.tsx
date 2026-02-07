@@ -10,9 +10,8 @@ import {
   DashboardGrid,
   YearFilter,
   MapCard,
-  TravelSummaryCard,
-  UpcomingFlightsCard,
-  ConsolidatedMilestonesCard,
+  UpcomingFlightsBanner,
+  MicroBadgeStatCard,
   AircraftTypesCard,
   ManufacturerCard,
   ContinentProgressCard,
@@ -80,72 +79,96 @@ export function DashboardPage() {
 
       {/* Main content - pb-safe adds bottom padding for mobile tab bar */}
       <main className="max-w-7xl 3xl:max-w-[1800px] mx-auto px-4 sm:px-6 py-4 sm:py-6 pb-safe sm:pb-6">
-        {/* Welcome section + Year filter (same line) */}
-        <div className="mb-8 animate-fade-up flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
-          <div>
-            <h1 className="text-2xl md:text-3xl font-semibold tracking-tight text-balance">
-              {t('dashboard.welcomePrefix', 'Welcome,')}{' '}
-              <span className="text-primary animate-name-highlight inline-block">
-                {displayName}
-              </span>
-            </h1>
-            <p className="mt-1 text-sm text-muted-foreground">
-              {hasFlights
-                ? t('dashboard.subtitle', 'Here\'s your travel overview')
-                : t('dashboard.emptySubtitle', 'Start tracking your flights')}
-            </p>
-          </div>
-
-          {hasFlights && <YearFilter />}
-        </div>
 
         {hasFlights ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 animate-fade-up stagger-children">
-            {/* Cell 1: Hero Map (2x2 normally, 4x3 when expanded) */}
+          <div className="space-y-4 animate-fade-up stagger-children">
+            {/* Upcoming flights banner */}
+            <UpcomingFlightsBanner />
+
+            {/* Welcome section + Year filter */}
+            <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+              <div>
+                <h1 className="text-2xl md:text-3xl font-semibold tracking-tight text-balance">
+                  {t('dashboard.welcomePrefix', 'Welcome,')}{' '}
+                  <span className="text-primary animate-name-highlight inline-block">
+                    {displayName}
+                  </span>
+                </h1>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  {t('dashboard.subtitle', 'Here\'s your travel overview')}
+                </p>
+              </div>
+              <YearFilter />
+            </div>
+
+            {/* Hero section: Map + 6 stat cards */}
             <div className={cn(
-              'row-span-2 min-h-[400px] md:h-auto transition-all duration-300',
+              'grid grid-cols-1 gap-4',
               mapExpanded
-                ? 'col-span-1 md:col-span-4 row-span-3'
-                : 'col-span-1 md:col-span-2'
+                ? 'md:grid-cols-1'
+                : 'md:grid-cols-2 lg:grid-cols-4'
             )}>
-              <MapCard
-                className="h-full w-full"
-                isExpanded={mapExpanded}
-                onExpandChange={setMapExpanded}
-              />
+              {/* Map (2 cols, 2 rows on desktop) */}
+              <div className={cn(
+                'min-h-[400px] md:h-auto',
+                mapExpanded
+                  ? 'col-span-1'
+                  : 'md:col-span-2 md:row-span-2'
+              )}>
+                <MapCard
+                  className="h-full w-full"
+                  isExpanded={mapExpanded}
+                  onExpandChange={setMapExpanded}
+                />
+              </div>
+
+              {/* 6 stat cards in 2-col grid beside map (hidden when map expanded) */}
+              {!mapExpanded && (
+                <div className="md:col-span-2 grid grid-cols-2 gap-4">
+                  <MicroBadgeStatCard trackId="flights" />
+                  <MicroBadgeStatCard trackId="distance" />
+                  <MicroBadgeStatCard trackId="countries" />
+                  <MicroBadgeStatCard trackId="time_in_air" />
+                  <MicroBadgeStatCard trackId="airlines" />
+                  <MicroBadgeStatCard trackId="aircraft" />
+                </div>
+              )}
             </div>
 
-            {/* Cell 2: Scoreboard / Travel Summary (2x1) */}
-            <div className="col-span-1 md:col-span-2 row-span-1 min-h-[200px]">
-              <TravelSummaryCard className="h-full" />
+            {/* Secondary stat row: airports, cities, continents */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <MicroBadgeStatCard trackId="airports" />
+              <MicroBadgeStatCard trackId="cities" />
+              <MicroBadgeStatCard trackId="continents" />
             </div>
 
-            {/* Cell 3: Next Mission / Upcoming (1x1) */}
-            <div className="col-span-1 row-span-1 min-h-[200px]">
-              <UpcomingFlightsCard />
-            </div>
-
-            {/* Cell 4: Achievements / Milestones (1x1) */}
-            <div className="col-span-1 row-span-1 min-h-[200px]">
-              <ConsolidatedMilestonesCard />
-            </div>
-
-            {/* Row 3: Analysis Deck (Full Width) */}
-            <div className="col-span-1 md:col-span-2 lg:col-span-4 animate-fade-up">
-              <DashboardGrid>
-                {/* Row 1: Aircraft stats */}
-                <AircraftTypesCard />
-                <ManufacturerCard />
-                <ContinentProgressCard />
-
-                {/* Row 2: Time stats */}
-                <DeparturePatternCard />
-                <DurationStatsCard />
-              </DashboardGrid>
-            </div>
+            {/* Analysis Deck */}
+            <DashboardGrid>
+              <AircraftTypesCard />
+              <ManufacturerCard />
+              <ContinentProgressCard />
+              <DeparturePatternCard />
+              <DurationStatsCard />
+            </DashboardGrid>
           </div>
         ) : (
-          <EmptyState onAddFlight={handleAddFlight} />
+          <div className="animate-fade-up">
+            {/* Welcome section for empty state */}
+            <div className="mb-8 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+              <div>
+                <h1 className="text-2xl md:text-3xl font-semibold tracking-tight text-balance">
+                  {t('dashboard.welcomePrefix', 'Welcome,')}{' '}
+                  <span className="text-primary animate-name-highlight inline-block">
+                    {displayName}
+                  </span>
+                </h1>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  {t('dashboard.emptySubtitle', 'Start tracking your flights')}
+                </p>
+              </div>
+            </div>
+            <EmptyState onAddFlight={handleAddFlight} />
+          </div>
         )}
       </main>
 

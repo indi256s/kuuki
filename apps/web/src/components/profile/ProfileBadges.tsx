@@ -17,6 +17,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import type { UserBadge, BadgeDefinition } from '@/lib/profiles'
+import { TIER_VISUALS } from '@/lib/tier-visuals'
 
 // Icon mapping for badges
 const BADGE_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
@@ -31,15 +32,6 @@ const BADGE_ICONS: Record<string, React.ComponentType<{ className?: string }>> =
   globe: Globe,
   timer: Timer,
   flask: FlaskConical,
-}
-
-// Tier colors for badge styling
-const TIER_COLORS: Record<string, { bg: string; text: string; border: string }> = {
-  bronze: { bg: 'bg-amber-100 dark:bg-amber-900/30', text: 'text-amber-700 dark:text-amber-400', border: 'border-amber-300 dark:border-amber-700' },
-  silver: { bg: 'bg-slate-100 dark:bg-slate-800/50', text: 'text-slate-600 dark:text-slate-300', border: 'border-slate-300 dark:border-slate-600' },
-  gold: { bg: 'bg-yellow-100 dark:bg-yellow-900/30', text: 'text-yellow-700 dark:text-yellow-400', border: 'border-yellow-400 dark:border-yellow-600' },
-  platinum: { bg: 'bg-cyan-100 dark:bg-cyan-900/30', text: 'text-cyan-700 dark:text-cyan-400', border: 'border-cyan-400 dark:border-cyan-600' },
-  diamond: { bg: 'bg-violet-100 dark:bg-violet-900/30', text: 'text-violet-700 dark:text-violet-400', border: 'border-violet-400 dark:border-violet-600' },
 }
 
 interface ProfileBadgesProps {
@@ -115,11 +107,7 @@ export function ProfileBadges({ badges, isLoading, showAll = false, hideTitle = 
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
         {displayBadges.map(({ badge, earned_at }) => {
           const IconComponent = BADGE_ICONS[badge.icon ?? ''] || Award
-          const tierColors = TIER_COLORS[badge.tier ?? ''] || {
-            bg: 'bg-secondary',
-            text: 'text-foreground',
-            border: 'border-border',
-          }
+          const tierColors = TIER_VISUALS[badge.tier as keyof typeof TIER_VISUALS] ?? TIER_VISUALS.none
           const earnedDate = earned_at ? new Date(earned_at).toLocaleDateString() : null
 
           return (

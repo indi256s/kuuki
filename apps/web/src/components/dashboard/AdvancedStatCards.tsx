@@ -5,69 +5,79 @@ import {
   Building2,
   Globe2,
   Clock,
-  Lock,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { useAdvancedStats, useUnlockProgress } from '@/hooks/useAdvancedStats'
+import { useAdvancedStats } from '@/hooks/useAdvancedStats'
+import { useBadgeTier } from '@/hooks/useBadgeTier'
+import { getTierVisual } from '@/lib/tier-visuals'
+import { getFlavorText } from '@/lib/glados-dashboard'
 import { formatDuration, type DepartureBucket } from '@/lib/formatDuration'
 
 // ============================================================================
 // Shared Types and Components
 // ============================================================================
 
+type RevealState = 'hidden' | 'basic' | 'full'
+
 interface StatCardProps {
   title: string
   icon: React.ElementType
-  iconColor?: string
-  isLocked: boolean
-  unlockProgress?: { current: number; required: number; label: string }
+  revealState: RevealState
+  flavorText?: string
+  tierAccent?: string
+  tierIconBg?: string
+  tierIconText?: string
   children: React.ReactNode
+  basicChildren?: React.ReactNode
   className?: string
 }
 
 function StatCard({
   title,
   icon: Icon,
-  iconColor = 'bg-primary/10 text-primary',
-  isLocked,
-  unlockProgress,
+  revealState,
+  flavorText,
+  tierAccent,
+  tierIconBg,
+  tierIconText,
   children,
+  basicChildren,
   className,
 }: StatCardProps) {
   return (
     <div
       className={cn(
-        'rounded-2xl border border-border/50 bg-card p-5',
+        'rounded-2xl border bg-card p-5',
         'transition-all duration-300',
-        !isLocked && 'hover:border-primary/30 hover:shadow-glow-sm',
-        isLocked && 'opacity-60',
+        revealState !== 'hidden' && 'hover:shadow-md',
+        tierAccent || 'border-border/50',
         className
       )}
     >
       {/* Header */}
       <div className="flex items-center gap-3 mb-4">
-        <div className={cn('w-9 h-9 rounded-lg flex items-center justify-center', iconColor)}>
-          <Icon className="w-[18px] h-[18px]" />
+        <div className={cn('w-9 h-9 rounded-lg flex items-center justify-center', tierIconBg || 'bg-muted/30')}>
+          <Icon className={cn('w-[18px] h-[18px]', tierIconText || 'text-muted-foreground')} />
         </div>
-        <h4 className="font-medium text-sm">{title}</h4>
-        {isLocked && (
-          <Lock
-            className="w-3.5 h-3.5 text-muted-foreground ml-auto"
-            aria-label={unlockProgress ? `Unlocks after ${unlockProgress.required} ${unlockProgress.label}` : 'Locked'}
-          />
-        )}
+        <div className="min-w-0 flex-1">
+          <h4 className="font-medium text-sm">{title}</h4>
+          {flavorText && (
+            <p className="text-[11px] italic text-muted-foreground/60 leading-snug mt-0.5 truncate">
+              {flavorText}
+            </p>
+          )}
+        </div>
       </div>
 
       {/* Content */}
-      {isLocked ? (
-        <div className="space-y-3">
-          <div className="h-16 rounded-lg bg-muted/30 animate-pulse" />
-          {unlockProgress && (
-            <div className="text-xs text-muted-foreground text-center">
-              {unlockProgress.current}/{unlockProgress.required} {unlockProgress.label}
-            </div>
-          )}
+      {revealState === 'hidden' ? (
+        <div className="h-16 rounded-lg bg-muted/20 flex items-center justify-center">
+          <span className="text-xs text-muted-foreground/50 italic">
+            Insufficient data for analysis.
+          </span>
         </div>
+      ) : revealState === 'basic' ? (
+        basicChildren ?? children
       ) : (
         children
       )}
@@ -105,6 +115,12 @@ function HorizontalBar({
   )
 }
 
+function getRevealState(tierIndex: number, basicMin: number, fullMin: number): RevealState {
+  if (tierIndex >= fullMin) return 'full'
+  if (tierIndex >= basicMin) return 'basic'
+  return 'hidden'
+}
+
 // ============================================================================
 // Aircraft Types Card
 // ============================================================================
@@ -112,9 +128,12 @@ function HorizontalBar({
 export function AircraftTypesCard() {
   const { t } = useTranslation()
   const { data: advancedStats } = useAdvancedStats()
-  const { data: unlockProgress } = useUnlockProgress()
+  const { tier, tierIndex, value } = useBadgeTier('aircraft')
 
-  const isLocked = !unlockProgress?.aviaGeek.unlocked
+  const revealState = getRevealState(tierIndex, 0, 1)
+  const visual = getTierVisual(tier)
+  const flavorText = getFlavorText('aircraft', tierIndex, value)
+
   const typeBreakdown = advancedStats?.aircraftTypeBreakdown?.types
 
   const total = useMemo(() => {
@@ -128,17 +147,35 @@ export function AircraftTypesCard() {
     { key: 'regional', label: t('stats.aircraft.regional', 'Regional'), color: 'bg-chart-3' },
   ]
 
+  // Basic view: only show the top type
+  const topType = useMemo(() => {
+    if (!typeBreakdown) return null
+    return types.reduce<{ key: string; label: string; color: string } | null>((best, t) => {
+      const count = typeBreakdown?.[t.key] || 0
+      const bestCount = best ? (typeBreakdown?.[best.key] || 0) : 0
+      return count > bestCount ? t : best
+    }, null)
+  }, [typeBreakdown, types])
+
   return (
     <StatCard
       title={t('stats.aircraftTypes', 'Aircraft Types')}
       icon={Plane}
-      iconColor="bg-blue-500/10 text-blue-500"
-      isLocked={isLocked}
-      unlockProgress={{
-        current: unlockProgress?.aviaGeek.current || 0,
-        required: 5,
-        label: t('stats.aircraftTypesRequired', 'aircraft types'),
-      }}
+      revealState={revealState}
+      flavorText={flavorText}
+      tierAccent={visual.border}
+      tierIconBg={visual.iconBg}
+      tierIconText={visual.text}
+      basicChildren={
+        topType && (
+          <HorizontalBar
+            label={topType.label}
+            value={typeBreakdown?.[topType.key] || 0}
+            total={total}
+            color={topType.color}
+          />
+        )
+      }
     >
       <div className="space-y-3">
         {types.map(({ key, label, color }) => (
@@ -170,9 +207,11 @@ const MANUFACTURER_COLORS: Record<string, string> = {
 export function ManufacturerCard() {
   const { t } = useTranslation()
   const { data: advancedStats } = useAdvancedStats()
-  const { data: unlockProgress } = useUnlockProgress()
+  const { tier, tierIndex, value } = useBadgeTier('aircraft')
 
-  const isLocked = !unlockProgress?.aviaGeek.unlocked
+  const revealState = getRevealState(tierIndex, 0, 1)
+  const visual = getTierVisual(tier)
+  const flavorText = getFlavorText('aircraft', tierIndex, value)
 
   const manufacturers = useMemo(() => {
     if (!advancedStats?.manufacturerBreakdown) return []
@@ -190,13 +229,21 @@ export function ManufacturerCard() {
     <StatCard
       title={t('stats.manufacturers', 'Manufacturers')}
       icon={Building2}
-      iconColor="bg-sky-500/10 text-sky-500"
-      isLocked={isLocked}
-      unlockProgress={{
-        current: unlockProgress?.aviaGeek.current || 0,
-        required: 5,
-        label: t('stats.aircraftTypesRequired', 'aircraft types'),
-      }}
+      revealState={revealState}
+      flavorText={flavorText}
+      tierAccent={visual.border}
+      tierIconBg={visual.iconBg}
+      tierIconText={visual.text}
+      basicChildren={
+        manufacturers.length > 0 ? (
+          <HorizontalBar
+            label={manufacturers[0].name}
+            value={manufacturers[0].count}
+            total={total}
+            color={MANUFACTURER_COLORS[manufacturers[0].name] || 'bg-primary'}
+          />
+        ) : undefined
+      }
     >
       <div className="space-y-3">
         {manufacturers.map(({ name, count }) => (
@@ -236,9 +283,12 @@ const CONTINENT_TOTALS: Record<string, number> = {
 export function ContinentProgressCard() {
   const { t } = useTranslation()
   const { data: advancedStats } = useAdvancedStats()
-  const { data: unlockProgress } = useUnlockProgress()
+  const { tier, tierIndex, value } = useBadgeTier('countries')
 
-  const isLocked = !unlockProgress?.countryGeek.unlocked
+  const revealState = getRevealState(tierIndex, 0, 1)
+  const visual = getTierVisual(tier)
+  const flavorText = getFlavorText('countries', tierIndex, value)
+
   const continentBreakdown = advancedStats?.continentBreakdown
 
   const continents = [
@@ -249,17 +299,35 @@ export function ContinentProgressCard() {
     { key: 'oceania', label: t('continent.oceania', 'Oceania') },
   ]
 
+  // Basic view: only the continent with the most countries visited
+  const topContinent = useMemo(() => {
+    if (!continentBreakdown) return null
+    return continents.reduce<{ key: string; label: string } | null>((best, c) => {
+      const count = continentBreakdown?.[c.key] || 0
+      const bestCount = best ? (continentBreakdown?.[best.key] || 0) : 0
+      return count > bestCount ? c : best
+    }, null)
+  }, [continentBreakdown, continents])
+
   return (
     <StatCard
       title={t('stats.continents', 'Continents')}
       icon={Globe2}
-      iconColor="bg-emerald-500/10 text-emerald-500"
-      isLocked={isLocked}
-      unlockProgress={{
-        current: unlockProgress?.countryGeek.current || 0,
-        required: 5,
-        label: t('stats.countriesRequired', 'countries'),
-      }}
+      revealState={revealState}
+      flavorText={flavorText}
+      tierAccent={visual.border}
+      tierIconBg={visual.iconBg}
+      tierIconText={visual.text}
+      basicChildren={
+        topContinent && (
+          <HorizontalBar
+            label={`${topContinent.label} (${continentBreakdown?.[topContinent.key] || 0}/${CONTINENT_TOTALS[topContinent.key] || 50})`}
+            value={continentBreakdown?.[topContinent.key] || 0}
+            total={CONTINENT_TOTALS[topContinent.key] || 50}
+            color={CONTINENT_COLORS[topContinent.key]}
+          />
+        )
+      }
     >
       <div className="space-y-3">
         {continents.map(({ key, label }) => {
@@ -294,11 +362,13 @@ const PATTERN_COLORS: Record<DepartureBucket, string> = {
 export function DeparturePatternCard() {
   const { t } = useTranslation()
   const { data: advancedStats } = useAdvancedStats()
-  const { data: unlockProgress } = useUnlockProgress()
+  const { tier, tierIndex, value } = useBadgeTier('flights')
 
-  const isLocked = !unlockProgress?.duration.unlocked
+  const revealState = getRevealState(tierIndex, 0, 1)
+  const visual = getTierVisual(tier)
+  const flavorText = getFlavorText('flights', tierIndex, value)
+
   const patterns = advancedStats?.departurePatterns
-
   const total = patterns?.total_with_time || 0
 
   const patternData = [
@@ -308,26 +378,44 @@ export function DeparturePatternCard() {
     { key: 'evening' as DepartureBucket, label: t('stats.pattern.evening', 'Evening'), time: '18:00-00:00' },
   ]
 
+  // Basic view: show dominant pattern only
+  const dominant = useMemo(() => {
+    if (!patterns) return null
+    return patternData.reduce<{ key: DepartureBucket; label: string; time: string } | null>((best, p) => {
+      const count = patterns?.[p.key] || 0
+      const bestCount = best ? (patterns?.[best.key] || 0) : 0
+      return count > bestCount ? p : best
+    }, null)
+  }, [patterns, patternData])
+
   return (
     <StatCard
       title={t('stats.departurePatterns', 'Departure Patterns')}
       icon={Clock}
-      iconColor="bg-indigo-500/10 text-indigo-500"
-      isLocked={isLocked}
-      unlockProgress={{
-        current: unlockProgress?.duration.current || 0,
-        required: 10,
-        label: t('stats.flightsRequired', 'flights'),
-      }}
+      revealState={revealState}
+      flavorText={flavorText}
+      tierAccent={visual.border}
+      tierIconBg={visual.iconBg}
+      tierIconText={visual.text}
+      basicChildren={
+        dominant && (
+          <HorizontalBar
+            label={`${dominant.label} (${dominant.time})`}
+            value={patterns?.[dominant.key] || 0}
+            total={total}
+            color={PATTERN_COLORS[dominant.key]}
+          />
+        )
+      }
     >
       <div className="space-y-3">
         {patternData.map(({ key, label, time }) => {
-          const value = patterns?.[key] || 0
+          const val = patterns?.[key] || 0
           return (
             <HorizontalBar
               key={key}
               label={`${label} (${time})`}
-              value={value}
+              value={val}
               total={total}
               color={PATTERN_COLORS[key]}
             />
@@ -345,9 +433,12 @@ export function DeparturePatternCard() {
 export function DurationStatsCard() {
   const { t } = useTranslation()
   const { data: advancedStats } = useAdvancedStats()
-  const { data: unlockProgress } = useUnlockProgress()
+  const { tier, tierIndex, value } = useBadgeTier('flights')
 
-  const isLocked = !unlockProgress?.duration.unlocked
+  const revealState = getRevealState(tierIndex, 0, 1)
+  const visual = getTierVisual(tier)
+  const flavorText = getFlavorText('flights', tierIndex, value)
+
   const durationStats = advancedStats?.durationStats
 
   const stats = useMemo(() => {
@@ -365,13 +456,27 @@ export function DurationStatsCard() {
     <StatCard
       title={t('stats.durationStats', 'Flight Duration')}
       icon={Clock}
-      iconColor="bg-amber-500/10 text-amber-500"
-      isLocked={isLocked}
-      unlockProgress={{
-        current: unlockProgress?.duration.current || 0,
-        required: 10,
-        label: t('stats.flightsRequired', 'flights'),
-      }}
+      revealState={revealState}
+      flavorText={flavorText}
+      tierAccent={visual.border}
+      tierIconBg={visual.iconBg}
+      tierIconText={visual.text}
+      basicChildren={
+        <div className="grid grid-cols-2 gap-3">
+          <div className="p-3 rounded-lg bg-muted/30">
+            <div className="text-xs text-muted-foreground mb-1">
+              {t('stats.longestFlight', 'Longest')}
+            </div>
+            <div className="font-mono font-semibold">{stats?.longest || '—'}</div>
+          </div>
+          <div className="p-3 rounded-lg bg-muted/30">
+            <div className="text-xs text-muted-foreground mb-1">
+              {t('stats.averageFlight', 'Average')}
+            </div>
+            <div className="font-mono font-semibold">{stats?.average || '—'}</div>
+          </div>
+        </div>
+      }
     >
       <div className="grid grid-cols-2 gap-3">
         <div className="p-3 rounded-lg bg-muted/30">

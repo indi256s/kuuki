@@ -147,7 +147,22 @@
     "inDays": "in {{days}}d",
     "noRouteData": "Add flights to see your route map",
     "routeMap": "Route Map",
-    "tapToExpand": "Tap to view full map"
+    "tapToExpand": "Tap to view full map",
+    "track": {
+      "flights": "Flights",
+      "distance": "Distance",
+      "airlines": "Airlines",
+      "aircraft": "Aircraft",
+      "cities": "Cities",
+      "time_in_air": "Time in Air",
+      "continents": "Continents",
+      "airports": "Airports",
+      "countries": "Countries"
+    },
+    "banner": {
+      "pending": "+{{count}} pending",
+      "nextFlight": "Next flight"
+    }
   },
   "flights": {
     "title": "Flights",
@@ -639,7 +654,32 @@
     "fleetMaster": "Fleet Master",
     "nightOwl": "Night Owl",
     "marathon": "Marathon",
-    "testSubject": "Test Subject"
+    "testSubject": "Test Subject",
+    "cities-1": "Outpost Alpha",
+    "cities-2": "Orbital Station",
+    "cities-3": "Skylab",
+    "cities-4": "Mir",
+    "cities-5": "ISS Commander",
+    "airtime-1": "Time Slip",
+    "airtime-2": "Temporal Drift",
+    "airtime-3": "Chrono Shift",
+    "airtime-4": "Time Dilation",
+    "airtime-5": "Event Horizon",
+    "continents-1": "Hemispheric",
+    "continents-2": "Meridian Crosser",
+    "continents-3": "Pangaea Seeker",
+    "continents-4": "Circumnavigator",
+    "continents-5": "Full Orbital",
+    "airports-1": "Tower Contact",
+    "airports-2": "Approach Control",
+    "airports-3": "ATC Veteran",
+    "airports-4": "TRACON Master",
+    "airports-5": "Global ATC",
+    "countries-1": "Border Crosser",
+    "countries-2": "Territory Scout",
+    "countries-3": "Sovereignty Collector",
+    "countries-4": "Diplomatic Clearance",
+    "countries-5": "Planetary Survey"
   },
   "compare": {
     "title": "Compare Stats",
