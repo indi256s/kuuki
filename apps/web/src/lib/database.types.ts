@@ -416,6 +416,8 @@ export type Database = {
           continent_breakdown: Json | null
           country_geek_unlocked: boolean | null
           created_at: string | null
+          departure_patterns: Json | null
+          duration_coverage: number | null
           duration_stats: Json | null
           duration_unlocked: boolean | null
           featured_fact: string | null
@@ -433,6 +435,8 @@ export type Database = {
           continent_breakdown?: Json | null
           country_geek_unlocked?: boolean | null
           created_at?: string | null
+          departure_patterns?: Json | null
+          duration_coverage?: number | null
           duration_stats?: Json | null
           duration_unlocked?: boolean | null
           featured_fact?: string | null
@@ -450,6 +454,8 @@ export type Database = {
           continent_breakdown?: Json | null
           country_geek_unlocked?: boolean | null
           created_at?: string | null
+          departure_patterns?: Json | null
+          duration_coverage?: number | null
           duration_stats?: Json | null
           duration_unlocked?: boolean | null
           featured_fact?: string | null
@@ -629,6 +635,11 @@ export type Database = {
       compute_continent_breakdown: {
         Args: { p_user_id: string }
         Returns: Json
+      }
+      compute_departure_patterns: { Args: { p_user_id: string }; Returns: Json }
+      compute_duration_coverage: {
+        Args: { p_user_id: string }
+        Returns: number
       }
       compute_duration_stats: { Args: { p_user_id: string }; Returns: Json }
       compute_region_breakdown: { Args: { p_user_id: string }; Returns: Json }

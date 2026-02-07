@@ -337,6 +337,11 @@
         "5": "You have spent 100% of your recorded flights sitting. The rest was also sitting. But faster."
       }
     },
+    "aircraft": {
+      "widebody": "Long-haul",
+      "narrowbody": "Short-haul",
+      "regional": "Regional"
+    },
     "aircraftTypesTitle": "Aircraft Types",
     "continentsTitle": "Continents",
     "aircraftTypes": {

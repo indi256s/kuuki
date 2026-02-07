@@ -142,8 +142,8 @@ export function AircraftTypesCard() {
   }, [typeBreakdown])
 
   const types = [
-    { key: 'widebody', label: t('stats.aircraft.widebody', 'Widebody'), color: 'bg-chart-1' },
-    { key: 'narrowbody', label: t('stats.aircraft.narrowbody', 'Narrowbody'), color: 'bg-chart-2' },
+    { key: 'widebody', label: t('stats.aircraft.widebody', 'Long-haul'), color: 'bg-chart-1' },
+    { key: 'narrowbody', label: t('stats.aircraft.narrowbody', 'Short-haul'), color: 'bg-chart-2' },
     { key: 'regional', label: t('stats.aircraft.regional', 'Regional'), color: 'bg-chart-3' },
   ]
 

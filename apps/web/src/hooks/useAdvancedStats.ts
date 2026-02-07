@@ -95,9 +95,8 @@ export function useAdvancedStats() {
         continentBreakdown: data.continent_breakdown as Record<string, number> | null,
         regionBreakdown: data.region_breakdown as Record<string, number> | null,
         durationStats: data.duration_stats as AdvancedStats['durationStats'],
-        // Phase 5c fields - use type assertion for backward compatibility until migration runs
-        departurePatterns: (data as Record<string, unknown>).departure_patterns as DeparturePatterns | null,
-        durationCoverage: ((data as Record<string, unknown>).duration_coverage as number) ?? 0,
+        departurePatterns: data.departure_patterns as DeparturePatterns | null,
+        durationCoverage: (data.duration_coverage as number) ?? 0,
         patterns: data.patterns as Record<string, unknown> | null,
         featuredFact: data.featured_fact ?? null,
         featuredFactIndex: data.featured_fact_index ?? 0,

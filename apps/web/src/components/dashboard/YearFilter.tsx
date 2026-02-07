@@ -11,47 +11,32 @@ export function YearFilter() {
     const years = [...availableYears, 'all' as const].sort((a, b) => {
         if (a === 'all') return 1
         if (b === 'all') return -1
-        return b - a // Descending order (newest first)
+        return b - a
     })
 
     return (
-        <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide">
-            <span className="text-sm font-medium text-muted-foreground whitespace-nowrap">
-                Filter:
-            </span>
-            <div className="flex gap-2">
-                {years.map((year) => {
-                    const isSelected = selectedYear === year
-                    const label = year === 'all' ? 'All Time' : year.toString()
+        <div className="inline-flex items-center gap-0.5 rounded-lg bg-muted/60 p-1">
+            {years.map((year) => {
+                const isSelected = selectedYear === year
+                const label = year === 'all' ? 'All' : year.toString()
 
-                    return (
-                        <button
-                            key={year}
-                            onClick={() => setSelectedYear(year)}
-                            aria-pressed={isSelected}
-                            className={cn(
-                                // Base styles
-                                'px-4 py-2 rounded-lg text-sm font-medium',
-                                'transition-all duration-200',
-                                'whitespace-nowrap',
-                                // Focus state
-                                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background',
-
-                                // Selected state
-                                isSelected ? [
-                                    'bg-primary text-primary-foreground',
-                                    'shadow-sm',
-                                ] : [
-                                    'bg-muted/50 text-muted-foreground',
-                                    'hover:bg-muted hover:text-foreground',
-                                ]
-                            )}
-                        >
-                            {label}
-                        </button>
-                    )
-                })}
-            </div>
+                return (
+                    <button
+                        key={year}
+                        onClick={() => setSelectedYear(year)}
+                        aria-pressed={isSelected}
+                        className={cn(
+                            'px-3 py-1 rounded-md text-xs transition-all duration-200',
+                            'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1',
+                            isSelected
+                                ? 'bg-background text-foreground font-medium shadow-sm'
+                                : 'text-muted-foreground hover:text-foreground'
+                        )}
+                    >
+                        {label}
+                    </button>
+                )
+            })}
         </div>
     )
 }
