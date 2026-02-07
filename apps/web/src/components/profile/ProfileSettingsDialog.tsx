@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useQueryClient } from '@tanstack/react-query'
 import { Loader2, ExternalLink, Copy, Check } from 'lucide-react'
 import {
   Dialog,
@@ -18,6 +19,7 @@ import { ThemeColorPicker } from './ThemeColorPicker'
 import { updateProfile } from '@/lib/auth'
 import { generateAvatarUrl, type ThemeColorKey } from '@/lib/profiles'
 import { useAuth } from '@/hooks/useAuth'
+import { LEADERBOARD_KEY, USER_POSITIONS_KEY, TOTAL_USERS_KEY } from '@/hooks/useLeaderboard'
 
 interface ProfileSettingsDialogProps {
   isOpen: boolean
@@ -27,6 +29,7 @@ interface ProfileSettingsDialogProps {
 export function ProfileSettingsDialog({ isOpen, onClose }: ProfileSettingsDialogProps) {
   const { t } = useTranslation()
   const { user, profile, refreshProfile } = useAuth()
+  const queryClient = useQueryClient()
 
   // Form state
   const [displayName, setDisplayName] = useState('')
@@ -83,6 +86,14 @@ export function ProfileSettingsDialog({ isOpen, onClose }: ProfileSettingsDialog
       }
 
       await refreshProfile()
+
+      // Invalidate leaderboard caches so the board reflects the change
+      if (showOnLeaderboards !== (profile?.show_on_leaderboards ?? false)) {
+        queryClient.invalidateQueries({ queryKey: [LEADERBOARD_KEY] })
+        queryClient.invalidateQueries({ queryKey: [USER_POSITIONS_KEY] })
+        queryClient.invalidateQueries({ queryKey: [TOTAL_USERS_KEY] })
+      }
+
       onClose()
     } catch {
       setError('An unexpected error occurred')

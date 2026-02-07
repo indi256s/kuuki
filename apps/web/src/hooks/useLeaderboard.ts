@@ -8,9 +8,9 @@ import {
 } from '@/lib/leaderboard'
 import { useAuthStore } from '@/stores/authStore'
 
-const LEADERBOARD_KEY = 'leaderboard'
-const USER_POSITIONS_KEY = 'userLeaderboardPositions'
-const TOTAL_USERS_KEY = 'totalRankedUsers'
+export const LEADERBOARD_KEY = 'leaderboard'
+export const USER_POSITIONS_KEY = 'userLeaderboardPositions'
+export const TOTAL_USERS_KEY = 'totalRankedUsers'
 
 /**
  * Hook for fetching leaderboard entries by category

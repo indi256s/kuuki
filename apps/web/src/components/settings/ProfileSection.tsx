@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useQueryClient } from '@tanstack/react-query'
 import { User, Check, Loader2 } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -10,10 +11,12 @@ import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { useAuth } from '@/hooks/useAuth'
 import { updateProfile } from '@/lib/auth'
+import { LEADERBOARD_KEY, USER_POSITIONS_KEY, TOTAL_USERS_KEY } from '@/hooks/useLeaderboard'
 
 export function ProfileSection() {
   const { t } = useTranslation()
   const { user, profile, refreshProfile } = useAuth()
+  const queryClient = useQueryClient()
 
   // Form state
   const [displayName, setDisplayName] = useState('')
@@ -57,6 +60,14 @@ export function ProfileSection() {
       }
 
       await refreshProfile()
+
+      // Invalidate leaderboard caches so the board reflects the change
+      if (showOnLeaderboards !== (profile?.show_on_leaderboards ?? false)) {
+        queryClient.invalidateQueries({ queryKey: [LEADERBOARD_KEY] })
+        queryClient.invalidateQueries({ queryKey: [USER_POSITIONS_KEY] })
+        queryClient.invalidateQueries({ queryKey: [TOTAL_USERS_KEY] })
+      }
+
       setSaveSuccess(true)
       setTimeout(() => setSaveSuccess(false), 3000)
     } catch {
