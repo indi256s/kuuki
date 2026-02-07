@@ -558,6 +558,7 @@
       "duplicate": "Duplicate",
       "duplicatesFound": "{{count}} possible duplicate(s) found",
       "duplicatesCount": "{{count}} possible duplicates",
+      "selectDuplicates": "Select duplicates",
       "invalid": "Invalid",
       "lowConfidence": "Some fields may need verification",
       "verify": "Verify",

@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { FlightEditRow } from './FlightEditRow'
 import { EnrichmentErrorBanner } from './EnrichmentErrorBanner'
 import { Button } from '@/components/ui/button'
-import { Plane, AlertTriangle, FileText, ChevronDown, Loader2, CheckSquare, Square, Plus } from 'lucide-react'
+import { Plane, AlertTriangle, FileText, ChevronDown, Loader2, CheckSquare, Square, Plus, Copy } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useEnrichmentPolling, type ExtractedFlight, type RejectedFlight } from '../../hooks/useImport'
 
@@ -130,6 +130,10 @@ export function ImportReview({
   const handleDeselectAll = useCallback(() => {
     setSelectedIds(new Set())
   }, [])
+
+  const handleSelectDuplicates = useCallback(() => {
+    setSelectedIds(new Set(duplicateIndices))
+  }, [duplicateIndices])
 
   const handleToggleSelect = useCallback((index: number, selected: boolean) => {
     setSelectedIds((prev) => {
@@ -356,14 +360,24 @@ export function ImportReview({
         {/* Warnings summary */}
         <div className="flex items-center gap-3 text-sm">
           {duplicateIndices.size > 0 && (
-            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-warning/10 border border-warning/20">
-              <AlertTriangle className="w-3.5 h-3.5 text-warning" />
-              <span className="text-warning-foreground text-xs font-medium">
-                {t('import.review.duplicatesCount', '{{count}} possible duplicates', {
-                  count: duplicateIndices.size,
-                })}
-              </span>
-            </div>
+            <>
+              <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-warning/10 border border-warning/20">
+                <AlertTriangle className="w-3.5 h-3.5 text-warning" />
+                <span className="text-warning-foreground text-xs font-medium">
+                  {t('import.review.duplicatesCount', '{{count}} possible duplicates', {
+                    count: duplicateIndices.size,
+                  })}
+                </span>
+              </div>
+              <Button
+                variant="ghost"
+                onClick={handleSelectDuplicates}
+                className="h-8 px-3 rounded-lg gap-2 text-sm text-warning-foreground hover:text-warning-foreground hover:bg-warning/10"
+              >
+                <Copy className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">{t('import.review.selectDuplicates', 'Select duplicates')}</span>
+              </Button>
+            </>
           )}
         </div>
       </div>
