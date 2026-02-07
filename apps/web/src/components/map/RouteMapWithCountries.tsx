@@ -24,6 +24,10 @@ interface RouteMapWithCountriesProps {
   height?: string
   className?: string
   onCountryClick?: (countryCode: string) => void
+  showRoutes?: boolean
+  heatmapMode?: boolean
+  visitCountMap?: Record<string, number>
+  countrySourceMap?: Record<string, 'flight' | 'claim' | 'both'>
 }
 
 interface ArcData {
@@ -52,6 +56,10 @@ export function RouteMapWithCountries({
   height = '220px',
   className,
   onCountryClick,
+  showRoutes = true,
+  heatmapMode = false,
+  visitCountMap,
+  countrySourceMap,
 }: RouteMapWithCountriesProps) {
   const { t } = useTranslation()
   const { resolvedTheme } = useTheme()
@@ -183,6 +191,12 @@ export function RouteMapWithCountries({
     if (alpha2) onCountryClick(alpha2)
   }, [onCountryClick])
 
+  // Max visit count for heatmap scaling
+  const maxVisitCount = useMemo(() => {
+    if (!heatmapMode || !visitCountMap) return 1
+    return Math.max(1, ...Object.values(visitCountMap))
+  }, [heatmapMode, visitCountMap])
+
   const getCountryColor = useCallback((geo: { properties: { ISO_A2?: string; ISO_N3?: string } }) => {
     const alpha2 = geo.properties.ISO_A2 !== '-99'
       ? geo.properties.ISO_A2
@@ -194,6 +208,22 @@ export function RouteMapWithCountries({
     }
     return unvisitedCountry
   }, [visitedSet, unvisitedCountry])
+
+  const getCountryOpacity = useCallback((alpha2: string | undefined, isVisited: boolean) => {
+    if (!isVisited) return 0.6
+
+    if (heatmapMode && visitCountMap && alpha2) {
+      const count = visitCountMap[alpha2] || 1
+      return 0.3 + (count / maxVisitCount) * 0.6
+    }
+
+    // Subtle distinction for claim-only countries
+    if (countrySourceMap && alpha2 && countrySourceMap[alpha2] === 'claim') {
+      return 0.65
+    }
+
+    return 0.85
+  }, [heatmapMode, visitCountMap, maxVisitCount, countrySourceMap])
 
   // ZoomableGroup state for interactive pan/zoom
   const [position, setPosition] = useState({
@@ -263,17 +293,21 @@ export function RouteMapWithCountries({
                   : numericToAlpha2[geo.properties.ISO_N3]
                 const isVisited = alpha2 && visitedSet.has(alpha2)
 
+                const opacity = getCountryOpacity(alpha2, !!isVisited)
+                const claimOnly = countrySourceMap && alpha2 && countrySourceMap[alpha2] === 'claim'
+
                 return (
                   <Geography
                     key={geo.rsmKey}
                     geography={geo}
                     fill={getCountryColor(geo)}
                     stroke={countryStroke}
-                    strokeWidth={0.3 / scaleFactor}
+                    strokeWidth={claimOnly ? 0.6 / scaleFactor : 0.3 / scaleFactor}
+                    strokeDasharray={claimOnly ? '2,1' : undefined}
                     style={{
                       default: {
                         outline: 'none',
-                        opacity: isVisited ? 0.85 : 0.6,
+                        opacity,
                       },
                       hover: {
                         outline: 'none',
@@ -290,7 +324,7 @@ export function RouteMapWithCountries({
           </Geographies>
 
           {/* Flight routes - adaptive scaling */}
-          {arcs.map((arc) => (
+          {showRoutes && arcs.map((arc) => (
             <Line
               key={arc.id}
               from={[arc.origin.lon, arc.origin.lat]}
@@ -303,7 +337,7 @@ export function RouteMapWithCountries({
           ))}
 
           {/* Airport markers - adaptive scaling */}
-          {airports.map((airport) => (
+          {showRoutes && airports.map((airport) => (
             <Marker key={airport.iata} coordinates={[airport.lon, airport.lat]}>
               <circle r={3 / scaleFactor} fill="white" opacity={0.9} aria-hidden="true" />
               {airports.length < 30 && (

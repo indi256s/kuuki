@@ -510,7 +510,11 @@ describe('passport', () => {
 
       expect(stats.countriesCount).toBe(3)
       expect(stats.continentsCount).toBe(3) // asia, americas, europe
-      expect(stats.worldCompletion).toBeCloseTo(1.2, 1) // 3/249 * 100
+      expect(stats.flightCountries).toBe(3)
+      expect(stats.groundCountries).toBe(0)
+      expect(stats.newThisYear).toBe(0) // all entries are from 2022/2023
+      expect(stats.lastStamp).toBeTruthy()
+      expect(stats.lastStamp!.countryCode).toBe('DE') // latest firstVisit: 2023-08-01
     })
 
     it('returns zero stats for new user', async () => {
@@ -529,7 +533,10 @@ describe('passport', () => {
 
       expect(stats.countriesCount).toBe(0)
       expect(stats.continentsCount).toBe(0)
-      expect(stats.worldCompletion).toBe(0)
+      expect(stats.flightCountries).toBe(0)
+      expect(stats.groundCountries).toBe(0)
+      expect(stats.newThisYear).toBe(0)
+      expect(stats.lastStamp).toBeNull()
     })
   })
 

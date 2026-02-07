@@ -408,16 +408,61 @@ export async function getCountryStats(userId: string, countryCode: string): Prom
 export async function getPassportStats(userId: string): Promise<{
   countriesCount: number
   continentsCount: number
-  worldCompletion: number
+  flightCountries: number
+  groundCountries: number
+  newThisYear: number
+  lastStamp: {
+    countryCode: string
+    countryName: string
+    date: string
+  } | null
 }> {
   const entries = await getUserCountries(userId)
 
   const continents = new Set(entries.map(e => e.continent))
+  const currentYear = new Date().getFullYear()
+
+  let flightCountries = 0
+  let groundCountries = 0
+  let newThisYear = 0
+  let lastStamp: { countryCode: string; countryName: string; date: string } | null = null
+  let latestDate = ''
+
+  for (const entry of entries) {
+    // Count by source
+    if (entry.source === 'flight') {
+      flightCountries++
+    } else if (entry.source === 'claim') {
+      groundCountries++
+    } else {
+      // 'both' — count as flight since it was also reached by air
+      flightCountries++
+    }
+
+    // New this year
+    const firstVisitYear = new Date(entry.firstVisit).getFullYear()
+    if (firstVisitYear === currentYear) {
+      newThisYear++
+    }
+
+    // Last stamp (most recent firstVisit)
+    if (entry.firstVisit > latestDate) {
+      latestDate = entry.firstVisit
+      lastStamp = {
+        countryCode: entry.countryCode,
+        countryName: entry.countryName,
+        date: entry.firstVisit,
+      }
+    }
+  }
 
   return {
     countriesCount: entries.length,
     continentsCount: continents.size,
-    worldCompletion: Math.round((entries.length / 249) * 100 * 100) / 100, // 2 decimal places
+    flightCountries,
+    groundCountries,
+    newThisYear,
+    lastStamp,
   }
 }
 

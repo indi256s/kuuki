@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
+import { formatDistanceToNow } from 'date-fns'
 import { useAuth } from '@/hooks/useAuth'
 import { useIsMobile } from '@/hooks/useIsMobile'
 import { usePassportCountries, usePassportStats } from '@/hooks/usePassport'
@@ -12,12 +13,20 @@ import { AppHeader } from '@/components/common/AppHeader'
 import { MobileHeader } from '@/components/layout/MobileHeader'
 import { MobileTabBar } from '@/components/layout/MobileTabBar'
 import { Button } from '@/components/ui/button'
-import { MapCard } from '@/components/dashboard/MapCard'
+import { PassportMap } from '@/components/passport/PassportMap'
 import { cn } from '@/lib/utils'
 import {
   Stamp,
   Plus,
 } from 'lucide-react'
+
+function countryCodeToFlag(code: string): string {
+  return code
+    .toUpperCase()
+    .split('')
+    .map(c => String.fromCodePoint(0x1F1E6 + c.charCodeAt(0) - 65))
+    .join('')
+}
 
 export function PassportPage() {
   const { t } = useTranslation()
@@ -85,10 +94,12 @@ export function PassportPage() {
               'transition-all duration-300',
               mapExpanded ? 'lg:col-span-1 min-h-[500px]' : 'lg:col-span-2 min-h-[300px]'
             )}>
-              <MapCard
+              <PassportMap
+                entries={countries ?? []}
                 className="h-full"
                 isExpanded={mapExpanded}
                 onExpandChange={setMapExpanded}
+                onCountryClick={handleSelectCountryFromMap}
               />
             </div>
 
@@ -108,13 +119,26 @@ export function PassportPage() {
                     </h1>
                   </div>
 
-                  <div className="space-y-6">
+                  <div className="space-y-5">
                     {/* Metric 1: Countries */}
                     <div>
                       <div className="text-sm text-muted-foreground mb-1">{t('passport.countriesLabel', 'Countries')}</div>
                       <div className="font-mono text-3xl font-semibold">
                         {stats?.countriesCount ?? 0}
                       </div>
+                      {(stats?.countriesCount ?? 0) > 0 && (
+                        <div className="text-xs text-muted-foreground mt-1">
+                          {stats!.flightCountries > 0 && (
+                            <span>{stats!.flightCountries} {t('passport.byAir', 'by air')}</span>
+                          )}
+                          {stats!.flightCountries > 0 && stats!.groundCountries > 0 && (
+                            <span>, </span>
+                          )}
+                          {stats!.groundCountries > 0 && (
+                            <span>{stats!.groundCountries} {t('passport.byLandSea', 'by land/sea')}</span>
+                          )}
+                        </div>
+                      )}
                     </div>
 
                     {/* Metric 2: Continents */}
@@ -126,26 +150,34 @@ export function PassportPage() {
                       </div>
                     </div>
 
-                    {/* Metric 3: World % */}
+                    {/* Metric 3: New This Year */}
                     <div>
-                      <div className="text-sm text-muted-foreground mb-1">{t('passport.worldCompletion', 'World Explored')}</div>
-                      <div className="flex items-baseline gap-2">
-                        <div className="font-mono text-3xl font-semibold">
-                          {stats?.worldCompletion.toFixed(1)}%
+                      <div className="text-sm text-muted-foreground mb-1">{t('passport.newThisYear', 'New This Year')}</div>
+                      <div className="font-mono text-3xl font-semibold">
+                        {(stats?.newThisYear ?? 0) > 0 ? stats!.newThisYear : '—'}
+                      </div>
+                    </div>
+
+                    {/* Metric 4: Last Stamp */}
+                    <div>
+                      <div className="text-sm text-muted-foreground mb-1">{t('passport.lastStamp', 'Last Stamp')}</div>
+                      {stats?.lastStamp ? (
+                        <div className="flex items-center gap-2 text-sm">
+                          <span>{countryCodeToFlag(stats.lastStamp.countryCode)}</span>
+                          <span className="font-medium">{stats.lastStamp.countryName}</span>
+                          <span className="text-muted-foreground">·</span>
+                          <span className="text-muted-foreground text-xs">
+                            {formatDistanceToNow(new Date(stats.lastStamp.date), { addSuffix: true })}
+                          </span>
                         </div>
-                      </div>
-                      {/* Progress Bar */}
-                      <div className="mt-2 h-1.5 w-full bg-muted rounded-full overflow-hidden">
-                        <div
-                          className="h-full bg-primary rounded-full transition-all duration-1000 ease-out"
-                          style={{ width: `${Math.min(100, stats?.worldCompletion ?? 0)}%` }}
-                        />
-                      </div>
+                      ) : (
+                        <div className="text-sm text-muted-foreground">—</div>
+                      )}
                     </div>
                   </div>
                 </div>
 
-                <Button className="w-full mt-8" onClick={handleAddCountry} variant="outline">
+                <Button className="w-full mt-6" onClick={handleAddCountry} variant="outline">
                   <Plus className="w-4 h-4 mr-2" />
                   {t('passport.addCountry', 'Add Country')}
                 </Button>

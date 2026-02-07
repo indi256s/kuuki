@@ -65,7 +65,14 @@ export function usePassportStats() {
   return useQuery({
     queryKey: [PASSPORT_STATS_KEY, userId],
     queryFn: () => {
-      if (!userId) return { countriesCount: 0, continentsCount: 0, worldCompletion: 0 }
+      if (!userId) return {
+        countriesCount: 0,
+        continentsCount: 0,
+        flightCountries: 0,
+        groundCountries: 0,
+        newThisYear: 0,
+        lastStamp: null,
+      }
       return getPassportStats(userId)
     },
     enabled: !!userId,
