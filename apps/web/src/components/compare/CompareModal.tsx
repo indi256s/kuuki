@@ -16,7 +16,8 @@ import { CompareChart } from './CompareChart'
 import { useUserStats } from '@/hooks/useProfile'
 import { useCompareStats } from '@/hooks/useCompare'
 import { useAuth } from '@/hooks/useAuth'
-import { generateAvatarUrl, type Profile } from '@/lib/profiles'
+import { UserAvatar } from '@/components/common/UserAvatar'
+import type { Profile } from '@/lib/profiles'
 
 interface CompareModalProps {
   isOpen: boolean
@@ -41,7 +42,6 @@ export function CompareModal({ isOpen, onClose }: CompareModalProps) {
 
   const myName = profile?.display_name || profile?.username || 'You'
   const theirName = selectedUser?.display_name || selectedUser?.username || 'Them'
-  const theirAvatarUrl = selectedUser?.avatar_url || (selectedUser ? generateAvatarUrl(selectedUser.id, 'teal') : null)
 
   const isLoading = isLoadingMyStats || isLoadingTheirStats
   const hasData = myStats && theirStats
@@ -61,11 +61,14 @@ export function CompareModal({ isOpen, onClose }: CompareModalProps) {
           {selectedUser ? (
             <div className="flex items-center justify-between p-3 rounded-xl bg-secondary/30">
               <div className="flex items-center gap-3">
-                <img
-                  src={theirAvatarUrl ?? ''}
-                  alt={theirName}
-                  className="w-10 h-10 rounded-xl object-cover"
-                />
+                <div className="w-10 h-10 rounded-xl overflow-hidden">
+                  <UserAvatar
+                    userId={selectedUser.id}
+                    avatarUrl={selectedUser.avatar_url}
+                    name={theirName}
+                    size={40}
+                  />
+                </div>
                 <div>
                   <p className="font-medium">{theirName}</p>
                   <p className="text-xs text-muted-foreground">@{selectedUser.username}</p>

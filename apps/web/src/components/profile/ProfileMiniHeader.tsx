@@ -1,4 +1,4 @@
-import { generateAvatarUrl, type ThemeColorKey } from '@/lib/profiles'
+import { UserAvatar } from '@/components/common/UserAvatar'
 import { cn } from '@/lib/utils'
 
 interface ProfileMiniHeaderProps {
@@ -28,9 +28,6 @@ interface ProfileMiniHeaderProps {
  */
 export function ProfileMiniHeader({ profile, keyStat, visible }: ProfileMiniHeaderProps) {
   const displayName = profile.display_name || profile.username || 'Anonymous'
-  const themeColor = (profile.theme_color as ThemeColorKey) || 'teal'
-  const avatarUrl = profile.avatar_url || generateAvatarUrl(profile.id, themeColor)
-  const initials = displayName.slice(0, 2).toUpperCase()
 
   return (
     <header
@@ -56,17 +53,12 @@ export function ProfileMiniHeader({ profile, keyStat, visible }: ProfileMiniHead
     >
       {/* Avatar */}
       <div className="w-8 h-8 rounded-full overflow-hidden bg-secondary flex-shrink-0">
-        {avatarUrl ? (
-          <img
-            src={avatarUrl}
-            alt={displayName}
-            className="w-full h-full object-cover"
-          />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center text-xs font-medium text-muted-foreground">
-            {initials}
-          </div>
-        )}
+        <UserAvatar
+          userId={profile.id}
+          avatarUrl={profile.avatar_url}
+          name={displayName}
+          size={32}
+        />
       </div>
 
       {/* Name - truncated */}

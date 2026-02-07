@@ -494,7 +494,8 @@
     "viewPublic": "Открыть публичный профиль",
     "themeColor": "Цвет темы",
     "settingsDescription": "Настройте свой публичный профиль",
-    "profileUrl": "URL профиля"
+    "profileUrl": "URL профиля",
+    "foundingUser": "Первый экипаж"
   },
   "settings": {
     "title": "Настройки",

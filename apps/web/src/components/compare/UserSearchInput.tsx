@@ -3,7 +3,8 @@ import { useTranslation } from 'react-i18next'
 import { Search, Loader2 } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { useSearchUsers } from '@/hooks/useProfile'
-import { generateAvatarUrl, type Profile } from '@/lib/profiles'
+import { UserAvatar } from '@/components/common/UserAvatar'
+import type { Profile } from '@/lib/profiles'
 
 interface UserSearchInputProps {
   onSelect: (profile: Profile) => void
@@ -81,7 +82,6 @@ export function UserSearchInput({ onSelect, excludeUserId, placeholder }: UserSe
             </div>
           ) : (
             filteredResults.map((profile) => {
-              const avatarUrl = profile.avatar_url || generateAvatarUrl(profile.id, 'teal')
               const displayName = profile.display_name || profile.username
 
               return (
@@ -90,11 +90,14 @@ export function UserSearchInput({ onSelect, excludeUserId, placeholder }: UserSe
                   onClick={() => handleSelect(profile)}
                   className="w-full px-4 py-2 flex items-center gap-3 hover:bg-accent transition-colors text-left"
                 >
-                  <img
-                    src={avatarUrl}
-                    alt={displayName ?? ''}
-                    className="w-8 h-8 rounded-lg object-cover"
-                  />
+                  <div className="w-8 h-8 rounded-lg overflow-hidden">
+                    <UserAvatar
+                      userId={profile.id}
+                      avatarUrl={profile.avatar_url}
+                      name={displayName ?? ''}
+                      size={32}
+                    />
+                  </div>
                   <div>
                     <p className="text-sm font-medium">{displayName}</p>
                     {profile.username && (

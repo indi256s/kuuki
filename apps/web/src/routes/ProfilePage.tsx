@@ -112,7 +112,7 @@ export function ProfilePage() {
         <Header />
         <main className="max-w-5xl mx-auto px-6 py-8 pb-safe sm:pb-8">
           <Card className="overflow-hidden">
-            <ProfileHeader profile={profile} isOwnProfile={isOwnProfile} />
+            <ProfileHeader profile={profile} isOwnProfile={isOwnProfile} badges={[]} />
           </Card>
         </main>
       </div>
@@ -133,7 +133,7 @@ export function ProfilePage() {
 
       <main className="max-w-5xl mx-auto px-6 py-8 pb-safe sm:pb-8">
         <Card className="overflow-hidden animate-fade-up">
-          <ProfileHeader profile={profile} isOwnProfile={isOwnProfile} />
+          <ProfileHeader profile={profile} isOwnProfile={isOwnProfile} badges={badges} />
         </Card>
 
         {/* Stats section (expanded by default on mobile) */}

@@ -495,7 +495,8 @@
     "viewPublic": "View Public Profile",
     "themeColor": "Theme Color",
     "settingsDescription": "Customize your public profile",
-    "profileUrl": "Profile URL"
+    "profileUrl": "Profile URL",
+    "foundingUser": "Founding Crew"
   },
   "settings": {
     "title": "Settings",

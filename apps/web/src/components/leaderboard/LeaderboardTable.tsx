@@ -12,7 +12,7 @@ import {
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { cn } from '@/lib/utils'
-import { generateAvatarUrl } from '@/lib/profiles'
+import { UserAvatar } from '@/components/common/UserAvatar'
 import { formatDistance } from '@/lib/geo'
 import type { LeaderboardEntryWithProfile, LeaderboardCategory } from '@/hooks/useLeaderboard'
 
@@ -107,7 +107,6 @@ export function LeaderboardTable({
         <TableBody>
           {entries.map((entry) => {
             const isCurrentUser = entry.user_id === currentUserId
-            const avatarUrl = entry.avatarUrl || generateAvatarUrl(entry.user_id, 'teal')
             const displayName = entry.displayName || entry.username || 'Anonymous'
 
             return (
@@ -129,11 +128,14 @@ export function LeaderboardTable({
                     to={`/fly/${entry.username}`}
                     className="flex items-center gap-3 hover:opacity-80 transition-opacity"
                   >
-                    <img
-                      src={avatarUrl}
-                      alt={displayName}
-                      className="w-10 h-10 rounded-xl object-cover"
-                    />
+                    <div className="w-10 h-10 rounded-xl overflow-hidden">
+                      <UserAvatar
+                        userId={entry.user_id}
+                        avatarUrl={entry.avatarUrl}
+                        name={displayName}
+                        size={40}
+                      />
+                    </div>
                     <div>
                       <p className="font-medium">
                         {displayName}

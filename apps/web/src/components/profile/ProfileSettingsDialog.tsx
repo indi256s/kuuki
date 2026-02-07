@@ -18,7 +18,8 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Separator } from '@/components/ui/separator'
 import { ThemeColorPicker } from './ThemeColorPicker'
 import { updateProfile } from '@/lib/auth'
-import { generateAvatarUrl, type ThemeColorKey } from '@/lib/profiles'
+import { UserAvatar } from '@/components/common/UserAvatar'
+import type { ThemeColorKey } from '@/lib/profiles'
 import { useAuth } from '@/hooks/useAuth'
 import { LEADERBOARD_KEY, USER_POSITIONS_KEY, TOTAL_USERS_KEY } from '@/hooks/useLeaderboard'
 
@@ -106,7 +107,6 @@ export function ProfileSettingsDialog({ isOpen, onClose }: ProfileSettingsDialog
     }
   }
 
-  const avatarUrl = profile?.avatar_url || generateAvatarUrl(user?.id ?? '', themeColor)
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
@@ -121,12 +121,14 @@ export function ProfileSettingsDialog({ isOpen, onClose }: ProfileSettingsDialog
         <div className="space-y-6 py-4">
           {/* Avatar preview */}
           <div className="flex items-center gap-4">
-            <img
-              src={avatarUrl}
-              alt="Avatar preview"
-              className="w-16 h-16 rounded-xl object-cover"
-              style={{ backgroundColor: `${profile?.theme_color ?? themeColor}20` }}
-            />
+            <div className="w-16 h-16 rounded-xl overflow-hidden" style={{ backgroundColor: `${profile?.theme_color ?? themeColor}20` }}>
+              <UserAvatar
+                userId={user?.id ?? ''}
+                avatarUrl={profile?.avatar_url}
+                name={displayName || profile?.username || 'Your Name'}
+                size={64}
+              />
+            </div>
             <div className="flex-1">
               <p className="font-medium">{displayName || profile?.username || 'Your Name'}</p>
               <p className="text-sm text-muted-foreground">@{profile?.username}</p>

@@ -1,21 +1,23 @@
 import { useTranslation } from 'react-i18next'
-import { Lock, Calendar } from 'lucide-react'
+import { Lock, Calendar, Sparkles } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
-import { generateAvatarUrl, THEME_COLORS, type ThemeColorKey } from '@/lib/profiles'
+import { UserAvatar } from '@/components/common/UserAvatar'
+import { THEME_COLORS, type ThemeColorKey } from '@/lib/profiles'
 import type { Profile } from '@/lib/profiles'
 
 interface ProfileHeaderProps {
   profile: Profile
   isOwnProfile?: boolean
+  badges?: Array<{ badge: { code: string } }>
 }
 
-export function ProfileHeader({ profile, isOwnProfile }: ProfileHeaderProps) {
+export function ProfileHeader({ profile, isOwnProfile, badges }: ProfileHeaderProps) {
   const { t } = useTranslation()
 
   const themeColor = (profile.theme_color as ThemeColorKey) || 'teal'
   const accentColor = THEME_COLORS[themeColor]
-  const avatarUrl = profile.avatar_url || generateAvatarUrl(profile.id, themeColor)
   const displayName = profile.display_name || profile.username || 'Anonymous'
+  const isFoundingUser = badges?.some(b => b.badge.code === 'founding-user')
   const memberSince = profile.created_at
     ? new Date(profile.created_at).toLocaleDateString(undefined, {
         year: 'numeric',
@@ -41,10 +43,11 @@ export function ProfileHeader({ profile, isOwnProfile }: ProfileHeaderProps) {
             className="w-28 h-28 md:w-32 md:h-32 rounded-2xl border-4 border-background shadow-lg overflow-hidden"
             style={{ backgroundColor: `${accentColor}20` }}
           >
-            <img
-              src={avatarUrl}
-              alt={displayName}
-              className="w-full h-full object-cover"
+            <UserAvatar
+              userId={profile.id}
+              avatarUrl={profile.avatar_url}
+              name={displayName}
+              size={128}
             />
           </div>
 
@@ -61,8 +64,14 @@ export function ProfileHeader({ profile, isOwnProfile }: ProfileHeaderProps) {
 
         {/* Name and username */}
         <div className="space-y-1">
-          <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">
+          <h1 className="text-2xl md:text-3xl font-semibold tracking-tight flex items-center gap-2 flex-wrap">
             {displayName}
+            {isFoundingUser && (
+              <span className="inline-flex items-center gap-1 text-sm bg-primary/15 text-primary px-2.5 py-0.5 rounded-full font-medium">
+                <Sparkles className="w-3.5 h-3.5" />
+                {t('profile.foundingUser')}
+              </span>
+            )}
           </h1>
           {profile.username && (
             <p className="text-muted-foreground">

@@ -7,6 +7,7 @@ import { ProtectedRoute } from '@/components/ProtectedRoute'
 import { ToastProvider, ErrorBoundary } from '@/components/error'
 import { ImportNotificationManager } from '@/components/import/ImportNotificationManager'
 import { LoadingScreen } from '@/components/ui/LoadingScreen'
+import { Agentation } from 'agentation'
 
 const DashboardPage = lazy(() => import('@/routes/DashboardPage').then(m => ({ default: m.DashboardPage })))
 const FlightsPage = lazy(() => import('@/routes/FlightsPage').then(m => ({ default: m.FlightsPage })))
@@ -145,6 +146,7 @@ export default function App() {
         <AppRoutes />
         <ToastProvider />
         <ImportNotificationManager />
+        {import.meta.env.DEV && <Agentation />}
       </BrowserRouter>
     </QueryClientProvider>
   )

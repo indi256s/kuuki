@@ -203,16 +203,6 @@ export async function checkUsernameAvailable(username: string, excludeUserId?: s
   return !data || data.length === 0
 }
 
-/**
- * Generate a deterministic avatar URL based on user ID
- * Uses Facehash-style hash to create a unique avatar
- */
-export function generateAvatarUrl(userId: string, themeColor: ThemeColorKey = 'teal'): string {
-  // Use DiceBear Avatars API for deterministic avatars
-  // 'shapes' style gives geometric patterns similar to Facehash
-  const bgColor = THEME_COLORS[themeColor].replace('#', '')
-  return `https://api.dicebear.com/7.x/shapes/svg?seed=${userId}&backgroundColor=${bgColor}`
-}
 
 /**
  * Get the CSS custom property value for a theme color
