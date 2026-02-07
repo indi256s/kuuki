@@ -4,15 +4,22 @@ import { Plus } from 'lucide-react'
 
 import { useAuth } from '@/hooks/useAuth'
 import { useFlightStats } from '@/hooks/useStats'
+import { useDashboardStats } from '@/hooks/useDashboardStats'
 import { useSyncUpcomingFlights } from '@/hooks/useFlights'
-import { useDashboardStore } from '@/stores/dashboardStore'
 import {
-  YearFilter,
+  useFlightYears,
+  useFlightAirlines,
+  useFlightAircraft,
+} from '@/hooks/useFlights'
+import { useDashboardStore } from '@/stores/dashboardStore'
+import { searchAirports } from '@kuuki/data'
+import {
   MapCard,
   UpcomingFlightsBanner,
   MicroBadgeStatCard,
   EmptyState
 } from '@/components/dashboard'
+import { FlightFilters } from '@/components/flights/FlightFilters'
 import { Skeleton } from '@/components/ui/skeleton'
 import { FlightForm } from '@/components/flights/FlightForm'
 import { AppHeader } from '@/components/common/AppHeader'
@@ -56,9 +63,22 @@ export function DashboardPage() {
   const { t } = useTranslation()
   const { profile } = useAuth()
   const { data: stats } = useFlightStats()
+  const { data: dashStats } = useDashboardStats()
   const [isFormOpen, setIsFormOpen] = useState(false)
   const [mapExpanded, setMapExpanded] = useState(false)
-  const setAvailableYears = useDashboardStore((state) => state.setAvailableYears)
+
+  // Dashboard filters from store
+  const filters = useDashboardStore((state) => state.filters)
+  const setFilters = useDashboardStore((state) => state.setFilters)
+
+  // Airport search local state
+  const [originSearch, setOriginSearch] = useState('')
+  const [destSearch, setDestSearch] = useState('')
+
+  // Dropdown data for filters
+  const { data: years = [] } = useFlightYears()
+  const { data: airlineCodes = [] } = useFlightAirlines()
+  const { data: aircraftCodes = [] } = useFlightAircraft()
 
   // Sync upcoming flights on dashboard load
   useSyncUpcomingFlights()
@@ -75,12 +95,49 @@ export function DashboardPage() {
     setIsFormOpen(false)
   }, [])
 
-  // TODO: Fetch available years from flights and populate dashboard store
+  // Resolve airport search to matching IATA codes
+  const resolveAirportCodes = useCallback((query: string): string[] => {
+    const trimmed = query.trim()
+    if (!trimmed) return []
+    const matches = searchAirports(trimmed)
+    return matches.map(a => a.iata)
+  }, [])
+
+  // Auto-apply origin filter with debounce
   useEffect(() => {
-    // Placeholder - will be implemented when we have year filtering in backend
-    const currentYear = new Date().getFullYear()
-    setAvailableYears([currentYear, currentYear - 1])
-  }, [setAvailableYears])
+    const trimmed = originSearch.trim()
+    if (trimmed.length === 0) {
+      setFilters({ ...filters, origin: undefined, originCodes: undefined })
+      return
+    }
+    const timer = setTimeout(() => {
+      const codes = resolveAirportCodes(trimmed)
+      if (codes.length > 0) {
+        setFilters({ ...filters, origin: undefined, originCodes: codes })
+      } else {
+        setFilters({ ...filters, origin: undefined, originCodes: undefined })
+      }
+    }, 150)
+    return () => clearTimeout(timer)
+  }, [originSearch, resolveAirportCodes])
+
+  // Auto-apply destination filter with debounce
+  useEffect(() => {
+    const trimmed = destSearch.trim()
+    if (trimmed.length === 0) {
+      setFilters({ ...filters, destination: undefined, destinationCodes: undefined })
+      return
+    }
+    const timer = setTimeout(() => {
+      const codes = resolveAirportCodes(trimmed)
+      if (codes.length > 0) {
+        setFilters({ ...filters, destination: undefined, destinationCodes: codes })
+      } else {
+        setFilters({ ...filters, destination: undefined, destinationCodes: undefined })
+      }
+    }, 150)
+    return () => clearTimeout(timer)
+  }, [destSearch, resolveAirportCodes])
 
   return (
     <div className="min-h-screen bg-gradient-soft">
@@ -111,21 +168,32 @@ export function DashboardPage() {
             {/* Upcoming flights banner */}
             <UpcomingFlightsBanner />
 
-            {/* Welcome section + Year filter */}
-            <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
-              <div>
-                <h1 className="text-2xl md:text-3xl font-semibold tracking-tight text-balance">
-                  {t('dashboard.welcomePrefix', 'Welcome,')}{' '}
-                  <span className="text-primary animate-name-highlight inline-block">
-                    {displayName}
-                  </span>
-                </h1>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  {t('dashboard.subtitle', 'Here\'s your travel overview')}
-                </p>
-              </div>
-              <YearFilter />
+            {/* Welcome section */}
+            <div>
+              <h1 className="text-2xl md:text-3xl font-semibold tracking-tight text-balance">
+                {t('dashboard.welcomePrefix', 'Welcome,')}{' '}
+                <span className="text-primary animate-name-highlight inline-block">
+                  {displayName}
+                </span>
+              </h1>
+              <p className="mt-1 text-sm text-muted-foreground">
+                {t('dashboard.subtitle', 'Here\'s your travel overview')}
+              </p>
             </div>
+
+            {/* Filters */}
+            <FlightFilters
+              filters={filters}
+              onFiltersChange={setFilters}
+              years={years}
+              airlineCodes={airlineCodes}
+              aircraftCodes={aircraftCodes}
+              totalCount={dashStats?.totalFlights ?? 0}
+              originSearch={originSearch}
+              destSearch={destSearch}
+              onOriginSearchChange={setOriginSearch}
+              onDestSearchChange={setDestSearch}
+            />
 
             {/* Hero section: Map + 6 stat cards */}
             <div className={cn(

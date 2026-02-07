@@ -1,10 +1,11 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
+import type { FlightFilters } from '@/lib/flights'
 
 interface DashboardState {
-    // Year filter state
-    selectedYear: number | 'all'
-    setSelectedYear: (year: number | 'all') => void
+    // Full flight filters
+    filters: FlightFilters
+    setFilters: (filters: FlightFilters) => void
 
     // Available years (dynamically populated from flight data)
     availableYears: number[]
@@ -14,8 +15,8 @@ interface DashboardState {
 export const useDashboardStore = create<DashboardState>()(
     persist(
         (set) => ({
-            selectedYear: 'all',
-            setSelectedYear: (year) => set({ selectedYear: year }),
+            filters: {},
+            setFilters: (filters) => set({ filters }),
 
             availableYears: [],
             setAvailableYears: (years) => set({ availableYears: years }),
@@ -23,7 +24,7 @@ export const useDashboardStore = create<DashboardState>()(
         {
             name: 'kuuki-dashboard-storage',
             partialize: (state) => ({
-                selectedYear: state.selectedYear,
+                filters: state.filters,
             }),
         }
     )

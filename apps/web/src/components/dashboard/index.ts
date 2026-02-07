@@ -1,7 +1,6 @@
 // Core components
 export { DashboardCard } from './DashboardCard'
 export { DashboardGrid } from './DashboardGrid'
-export { YearFilter } from './YearFilter'
 
 // Hero cards
 export { MapCard } from './MapCard'
