@@ -1,13 +1,13 @@
 import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useQueryClient } from '@tanstack/react-query'
-import { User, Check, Loader2 } from 'lucide-react'
+import { User } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { Checkbox } from '@/components/ui/checkbox'
-import { Button } from '@/components/ui/button'
+import { StatusButton } from '@/components/ui/status-button'
 import { Separator } from '@/components/ui/separator'
 import { useAuth } from '@/hooks/useAuth'
 import { updateProfile } from '@/lib/auth'
@@ -171,7 +171,7 @@ export function ProfileSection() {
                 {t('profile.showOnLeaderboards', 'Show on Leaderboards')}
               </Label>
               <p className="text-xs text-muted-foreground">
-                {t('profile.showOnLeaderboardsDescription', 'Appear in public rankings (requires 10+ flights)')}
+                {t('profile.showOnLeaderboardsDescription', 'Appear in public rankings (requires 5+ flights)')}
               </p>
             </div>
           </div>
@@ -179,21 +179,15 @@ export function ProfileSection() {
 
         {/* Save button */}
         <div className="flex items-center gap-2 pt-2">
-          <Button
+          <StatusButton
             onClick={handleSave}
-            disabled={isSaving || !hasChanges}
-            className="gap-2"
-          >
-            {isSaving && <Loader2 className="w-4 h-4 animate-spin" />}
-            {saveSuccess && <Check className="w-4 h-4" />}
-            {t('common.save', 'Save')}
-          </Button>
-
-          {saveSuccess && (
-            <span className="text-sm text-muted-foreground animate-in fade-in-50">
-              {t('common.saved', 'Saved')}
-            </span>
-          )}
+            disabled={!hasChanges}
+            status={isSaving ? 'loading' : saveSuccess ? 'success' : error ? 'error' : 'idle'}
+            idleText={t('common.save', 'Save')}
+            loadingText={t('common.saving', 'Saving...')}
+            successText={t('common.saved', 'Saved')}
+            errorText={t('common.error', 'Error')}
+          />
         </div>
 
         {/* Error message */}

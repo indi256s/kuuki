@@ -28,7 +28,8 @@
     "more": "more",
     "moreActions": "More actions",
     "optional": "optional",
-    "saving": "Saving..."
+    "saving": "Saving...",
+    "saved": "Saved"
   },
   "about": {
     "title": "What is Kuuki?",

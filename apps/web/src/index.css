@@ -776,6 +776,23 @@
   }
 }
 
+/* Status button icon entrance - satisfying bounce pop */
+@keyframes status-pop {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+
+  60% {
+    transform: scale(1.15);
+  }
+
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
 
 @layer utilities {
   .animate-fade-in {
@@ -898,6 +915,10 @@
 
   .animate-unlock-reveal {
     animation: unlock-reveal 500ms ease-out forwards;
+  }
+
+  .animate-status-pop {
+    animation: status-pop var(--duration-normal) var(--ease-bounce) forwards;
   }
 
   /* Shadow utilities for card hover effects */
@@ -1098,7 +1119,8 @@
   .kuuki-crossfade,
   .stagger-children>*,
   .animate-name-highlight,
-  .animate-check-bounce {
+  .animate-check-bounce,
+  .animate-status-pop {
     opacity: 1 !important;
     transform: none !important;
     filter: none !important;

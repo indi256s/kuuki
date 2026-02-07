@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useQueryClient } from '@tanstack/react-query'
-import { Loader2, ExternalLink, Copy, Check } from 'lucide-react'
+import { ExternalLink, Copy, Check } from 'lucide-react'
 import {
   Dialog,
   DialogContent,
@@ -10,6 +10,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
+import { StatusButton } from '@/components/ui/status-button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
@@ -40,6 +41,7 @@ export function ProfileSettingsDialog({ isOpen, onClose }: ProfileSettingsDialog
 
   // UI state
   const [isSaving, setIsSaving] = useState(false)
+  const [saveSuccess, setSaveSuccess] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
 
@@ -70,6 +72,7 @@ export function ProfileSettingsDialog({ isOpen, onClose }: ProfileSettingsDialog
 
     setIsSaving(true)
     setError(null)
+    setSaveSuccess(false)
 
     try {
       const result = await updateProfile(user.id, {
@@ -94,7 +97,8 @@ export function ProfileSettingsDialog({ isOpen, onClose }: ProfileSettingsDialog
         queryClient.invalidateQueries({ queryKey: [TOTAL_USERS_KEY] })
       }
 
-      onClose()
+      setSaveSuccess(true)
+      setTimeout(() => onClose(), 800)
     } catch {
       setError('An unexpected error occurred')
     } finally {
@@ -199,7 +203,7 @@ export function ProfileSettingsDialog({ isOpen, onClose }: ProfileSettingsDialog
                   {t('profile.showOnLeaderboards', 'Show on Leaderboards')}
                 </Label>
                 <p className="text-xs text-muted-foreground">
-                  {t('profile.showOnLeaderboardsDescription', 'Appear in public rankings (requires 10+ flights)')}
+                  {t('profile.showOnLeaderboardsDescription', 'Appear in public rankings (requires 5+ flights)')}
                 </p>
               </div>
             </div>
@@ -254,10 +258,15 @@ export function ProfileSettingsDialog({ isOpen, onClose }: ProfileSettingsDialog
             <Button type="button" variant="outline" onClick={onClose} disabled={isSaving}>
               {t('common.cancel', 'Cancel')}
             </Button>
-            <Button onClick={handleSave} disabled={isSaving}>
-              {isSaving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-              {t('common.save', 'Save')}
-            </Button>
+            <StatusButton
+              onClick={handleSave}
+              disabled={isSaving}
+              status={isSaving ? 'loading' : saveSuccess ? 'success' : error ? 'error' : 'idle'}
+              idleText={t('common.save', 'Save')}
+              loadingText={t('common.saving', 'Saving...')}
+              successText={t('common.saved', 'Saved')}
+              errorText={t('common.error', 'Error')}
+            />
           </div>
         </div>
       </DialogContent>
