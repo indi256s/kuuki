@@ -159,7 +159,7 @@ export function AircraftTypesCard() {
 
   return (
     <StatCard
-      title={t('stats.aircraftTypes', 'Aircraft Types')}
+      title={t('stats.aircraftTypesTitle', 'Aircraft Types')}
       icon={Plane}
       revealState={revealState}
       flavorText={flavorText}
@@ -311,7 +311,7 @@ export function ContinentProgressCard() {
 
   return (
     <StatCard
-      title={t('stats.continents', 'Continents')}
+      title={t('stats.continentsTitle', 'Continents')}
       icon={Globe2}
       revealState={revealState}
       flavorText={flavorText}
