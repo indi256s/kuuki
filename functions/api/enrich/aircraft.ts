@@ -5,11 +5,17 @@ import {
   type EnrichmentResult,
   type FlightToEnrich,
   buildBatchPrompt,
+  buildRouteKey,
+  queryAirLabsRoute,
+  checkDailyLimit,
+  incrementDailyUsage,
   MAX_BATCH_SIZE,
 } from './_shared'
 
 interface Env {
   GEMINI_API_KEY: string
+  AIRLABS_API_KEY: string
+  IMPORT_JOBS: KVNamespace
 }
 
 // JSON schema for structured output from Gemini
@@ -98,68 +104,190 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
       }
     }
 
-    // Initialize Google GenAI client
-    const ai = new GoogleGenAI({ apiKey: context.env.GEMINI_API_KEY })
+    // --- Two-tier enrichment pipeline ---
+    const airLabsResults = new Map<string, EnrichmentResult>() // flight_id → result
+    const flightsForGemini: FlightToEnrich[] = []
 
-    // Build the batch prompt
-    const prompt = buildBatchPrompt(flights)
+    // Logging counters
+    let airlabsQueries = 0
+    let airlabsCacheHits = 0
+    let airlabsHits = 0
 
-    console.log('Sending batch enrichment request for', flights.length, 'flights')
+    const hasAirLabs = !!context.env.AIRLABS_API_KEY && !!context.env.IMPORT_JOBS
 
-    // Call Gemini API with grounded web search
-    const response = await ai.models.generateContent({
-      model: 'gemini-3-flash-preview',
-      contents: prompt,
-      config: {
-        tools: [
-          { googleSearch: {} },
-        ],
-        responseMimeType: 'application/json',
-        responseSchema: ENRICHMENT_RESPONSE_SCHEMA,
-      },
-    })
+    if (hasAirLabs) {
+      // Step 1: Check daily limit
+      const dailyUsage = await checkDailyLimit(context.env.IMPORT_JOBS)
+      const overLimit = dailyUsage >= 50
 
-    // Extract response text
-    const responseText = response.text
-    if (!responseText) {
-      return Response.json(
-        { error: 'No response from AI model', results: [] } as EnrichmentResponse,
-        { status: 502, headers: corsHeaders }
-      )
-    }
-
-    // Parse JSON response
-    let parsedResponse: { results: Array<{ index: number; icao: string | null; name: string | null; confidence: number }> }
-    try {
-      parsedResponse = JSON.parse(responseText)
-    } catch {
-      console.error('Failed to parse Gemini response:', responseText)
-      return Response.json(
-        { error: 'Invalid response format from AI model', results: [] } as EnrichmentResponse,
-        { status: 502, headers: corsHeaders }
-      )
-    }
-
-    console.log('Gemini enrichment response:', JSON.stringify(parsedResponse, null, 2))
-
-    // Map Gemini results back to flight IDs
-    const results: EnrichmentResult[] = flights.map((flight, index) => {
-      const geminiResult = parsedResponse.results.find(r => r.index === index + 1)
-
-      if (!geminiResult) {
-        return {
-          flight_id: flight.id,
-          aircraft_icao: null,
-          aircraft_name: null,
-          confidence: 0,
-        }
+      if (overLimit) {
+        console.log(`AirLabs daily limit reached (${dailyUsage}/50), skipping to Gemini`)
       }
+
+      if (!overLimit) {
+        // Step 2: Deduplicate by route key
+        const routeKeyToFlights = new Map<string, FlightToEnrich[]>()
+        const noRouteKeyFlights: FlightToEnrich[] = []
+
+        for (const flight of flights) {
+          const key = buildRouteKey(flight)
+          if (!key) {
+            noRouteKeyFlights.push(flight)
+            continue
+          }
+          const group = routeKeyToFlights.get(key)
+          if (group) {
+            group.push(flight)
+          } else {
+            routeKeyToFlights.set(key, [flight])
+          }
+        }
+
+        // Flights without route keys go straight to Gemini
+        for (const flight of noRouteKeyFlights) {
+          flightsForGemini.push(flight)
+        }
+
+        // Step 3 & 4: Query AirLabs (cache-first) for each unique route
+        const uniqueRouteKeys = Array.from(routeKeyToFlights.keys())
+        const routeResults = await Promise.all(
+          uniqueRouteKeys.map(async (routeKey) => {
+            const representativeFlight = routeKeyToFlights.get(routeKey)![0]
+            const result = await queryAirLabsRoute(
+              context.env.AIRLABS_API_KEY,
+              context.env.IMPORT_JOBS,
+              representativeFlight
+            )
+            return { routeKey, result }
+          })
+        )
+
+        // Count queries vs cache hits
+        let actualApiCalls = 0
+        for (const { routeKey, result } of routeResults) {
+          const flightsForKey = routeKeyToFlights.get(routeKey)!
+
+          if (!result) {
+            // queryAirLabsRoute returned null (no route key) — shouldn't happen here
+            for (const f of flightsForKey) flightsForGemini.push(f)
+            continue
+          }
+
+          if (result.fromCache) {
+            airlabsCacheHits++
+          } else {
+            actualApiCalls++
+          }
+
+          if (result.aircraft_icao) {
+            airlabsHits++
+            // Map result to all flights sharing this route
+            for (const f of flightsForKey) {
+              airLabsResults.set(f.id, {
+                flight_id: f.id,
+                aircraft_icao: result.aircraft_icao,
+                aircraft_name: null, // AirLabs gives ICAO only
+                confidence: 1.0,
+                source: 'airlabs',
+              })
+            }
+          } else {
+            // AirLabs returned no aircraft — fall through to Gemini
+            for (const f of flightsForKey) flightsForGemini.push(f)
+          }
+        }
+
+        airlabsQueries = actualApiCalls
+
+        // Step 5: Update daily counter
+        if (actualApiCalls > 0) {
+          await incrementDailyUsage(context.env.IMPORT_JOBS, actualApiCalls)
+        }
+
+        console.log(
+          `AirLabs enrichment:`,
+          JSON.stringify({
+            unique_routes: uniqueRouteKeys.length,
+            airlabs_queries: actualApiCalls,
+            airlabs_cache_hits: airlabsCacheHits,
+            airlabs_hits: airlabsHits,
+            gemini_fallback: flightsForGemini.length,
+            daily_usage: dailyUsage + actualApiCalls,
+          })
+        )
+      } else {
+        // Over daily limit — all flights go to Gemini
+        flightsForGemini.push(...flights)
+      }
+    } else {
+      // No AirLabs configured — all flights go to Gemini
+      flightsForGemini.push(...flights)
+    }
+
+    // --- Tier 2: Gemini phase (only for flights not resolved by AirLabs) ---
+    const geminiResults = new Map<string, EnrichmentResult>()
+
+    if (flightsForGemini.length > 0) {
+      const ai = new GoogleGenAI({ apiKey: context.env.GEMINI_API_KEY })
+      const prompt = buildBatchPrompt(flightsForGemini)
+
+      console.log('Sending Gemini enrichment request for', flightsForGemini.length, 'flights')
+
+      const response = await ai.models.generateContent({
+        model: 'gemini-3-flash-preview',
+        contents: prompt,
+        config: {
+          tools: [
+            { googleSearch: {} },
+          ],
+          responseMimeType: 'application/json',
+          responseSchema: ENRICHMENT_RESPONSE_SCHEMA,
+        },
+      })
+
+      const responseText = response.text
+      if (responseText) {
+        try {
+          const parsedResponse: { results: Array<{ index: number; icao: string | null; name: string | null; confidence: number }> } = JSON.parse(responseText)
+
+          console.log('Gemini enrichment response:', JSON.stringify(parsedResponse, null, 2))
+
+          for (const flight of flightsForGemini) {
+            const geminiIndex = flightsForGemini.indexOf(flight) + 1
+            const geminiResult = parsedResponse.results.find(r => r.index === geminiIndex)
+
+            if (geminiResult) {
+              geminiResults.set(flight.id, {
+                flight_id: flight.id,
+                aircraft_icao: geminiResult.icao?.toUpperCase() || null,
+                aircraft_name: geminiResult.name || null,
+                confidence: Math.min(1, Math.max(0, geminiResult.confidence ?? 0)),
+                source: 'gemini',
+              })
+            }
+          }
+        } catch {
+          console.error('Failed to parse Gemini response:', responseText)
+        }
+      } else {
+        console.error('No response from Gemini')
+      }
+    }
+
+    // --- Merge results ---
+    const results: EnrichmentResult[] = flights.map((flight) => {
+      // AirLabs results take priority
+      const airLabsResult = airLabsResults.get(flight.id)
+      if (airLabsResult) return airLabsResult
+
+      const geminiResult = geminiResults.get(flight.id)
+      if (geminiResult) return geminiResult
 
       return {
         flight_id: flight.id,
-        aircraft_icao: geminiResult.icao?.toUpperCase() || null,
-        aircraft_name: geminiResult.name || null,
-        confidence: Math.min(1, Math.max(0, geminiResult.confidence ?? 0)),
+        aircraft_icao: null,
+        aircraft_name: null,
+        confidence: 0,
       }
     })
 

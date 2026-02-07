@@ -1,5 +1,5 @@
 import type { Flight } from '@/hooks/useFlights'
-import { findAirport, findAirline, findAircraft } from '@kuuki/data'
+import { findAirport, findAirline, findAircraft, getAirlineLogoUrl } from '@kuuki/data'
 import { formatDistance, formatDuration, daysUntilFlight } from '@/lib/geo'
 import { FlightCardActions } from './FlightCardActions'
 import { AircraftShimmerBadge } from './AircraftShimmerBadge'
@@ -91,11 +91,17 @@ export function FlightCard({ flight, onEdit }: FlightCardProps) {
         {/* Airline badge */}
         {airline && (
           <span
-            className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium text-white"
+            className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-xs font-medium text-white"
             style={{
               backgroundColor: airline.primaryColor || 'oklch(0.97 0.003 250)'
             }}
           >
+            <img
+              src={getAirlineLogoUrl(flight.airline_iata!)}
+              alt=""
+              className="w-4 h-4 object-contain"
+              onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
+            />
             {airline.name}
           </span>
         )}

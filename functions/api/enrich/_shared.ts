@@ -19,6 +19,7 @@ export interface EnrichmentResult {
   aircraft_icao: string | null
   aircraft_name: string | null
   confidence: number
+  source?: 'airlabs' | 'gemini'
 }
 
 export interface EnrichmentResponse {
@@ -101,4 +102,123 @@ Return JSON:
     { "index": 2, "icao": null, "name": null, "confidence": 0 }
   ]
 }`
+}
+
+// --- AirLabs Routes API integration ---
+
+export interface AirLabsRouteResult {
+  airline_iata: string
+  airline_icao: string
+  flight_iata: string
+  flight_icao: string
+  flight_number: string
+  dep_iata: string
+  dep_icao: string
+  arr_iata: string
+  arr_icao: string
+  aircraft_icao: string
+  duration: number // minutes
+  dep_time: string
+  arr_time: string
+}
+
+interface AirLabsCacheEntry {
+  aircraft_icao: string | null
+  duration: number | null
+  cached_at: number
+}
+
+const AIRLABS_CACHE_TTL = 6_048_000 // 70 days in seconds
+const AIRLABS_DAILY_LIMIT = 50
+const AIRLABS_USAGE_TTL = 172_800 // 2 days in seconds
+
+/**
+ * Build a deduplication key for a flight route.
+ * Format: "EK:1:DXB-LHR"
+ * Returns null if flight has no flight_number (those skip AirLabs).
+ */
+export function buildRouteKey(flight: FlightToEnrich): string | null {
+  if (!flight.flight_number || !flight.airline_iata) return null
+  return `${flight.airline_iata}:${flight.flight_number}:${flight.origin}-${flight.destination}`
+}
+
+/**
+ * Check how many AirLabs API calls have been made today.
+ */
+export async function checkDailyLimit(kv: KVNamespace): Promise<number> {
+  const today = new Date().toISOString().slice(0, 10) // YYYY-MM-DD
+  const key = `airlabs:usage:${today}`
+  const val = await kv.get(key)
+  return val ? parseInt(val, 10) : 0
+}
+
+/**
+ * Increment the daily AirLabs usage counter.
+ */
+export async function incrementDailyUsage(kv: KVNamespace, count: number): Promise<void> {
+  const today = new Date().toISOString().slice(0, 10)
+  const key = `airlabs:usage:${today}`
+  const current = await checkDailyLimit(kv)
+  await kv.put(key, String(current + count), { expirationTtl: AIRLABS_USAGE_TTL })
+}
+
+/**
+ * Query AirLabs Routes API for a single flight route.
+ * Checks KV cache first; on cache miss, calls the API and caches the result.
+ * Returns { aircraft_icao, duration, fromCache } or null.
+ */
+export async function queryAirLabsRoute(
+  apiKey: string,
+  kv: KVNamespace,
+  flight: FlightToEnrich
+): Promise<{ aircraft_icao: string | null; duration: number | null; fromCache: boolean } | null> {
+  const routeKey = buildRouteKey(flight)
+  if (!routeKey) return null
+
+  const cacheKey = `airlabs:route:${routeKey}`
+
+  // Check KV cache first
+  const cached = await kv.get<AirLabsCacheEntry>(cacheKey, 'json')
+  if (cached) {
+    return { aircraft_icao: cached.aircraft_icao, duration: cached.duration, fromCache: true }
+  }
+
+  // Cache miss — call AirLabs API
+  const flightIata = `${flight.airline_iata}${flight.flight_number}`
+  const url = `https://airlabs.co/api/v9/routes?flight_iata=${encodeURIComponent(flightIata)}&api_key=${apiKey}`
+
+  try {
+    const res = await fetch(url)
+    if (!res.ok) {
+      console.error(`AirLabs API error: ${res.status} ${res.statusText}`)
+      return null
+    }
+
+    const data = await res.json() as { response: AirLabsRouteResult[] }
+    const routes = data.response
+
+    if (!routes || routes.length === 0) {
+      // Cache null result to avoid re-querying
+      const nullEntry: AirLabsCacheEntry = { aircraft_icao: null, duration: null, cached_at: Date.now() }
+      await kv.put(cacheKey, JSON.stringify(nullEntry), { expirationTtl: AIRLABS_CACHE_TTL })
+      return { aircraft_icao: null, duration: null, fromCache: false }
+    }
+
+    // Find the matching route (prefer exact dep/arr match)
+    const match = routes.find(
+      r => r.dep_iata === flight.origin && r.arr_iata === flight.destination
+    ) || routes[0]
+
+    const entry: AirLabsCacheEntry = {
+      aircraft_icao: match.aircraft_icao || null,
+      duration: match.duration || null,
+      cached_at: Date.now(),
+    }
+    await kv.put(cacheKey, JSON.stringify(entry), { expirationTtl: AIRLABS_CACHE_TTL })
+
+    return { aircraft_icao: entry.aircraft_icao, duration: entry.duration, fromCache: false }
+  } catch (err) {
+    console.error('AirLabs API fetch error:', err)
+    return null
+  }
 }

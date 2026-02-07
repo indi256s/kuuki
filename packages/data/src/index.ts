@@ -100,3 +100,8 @@ export function getCountryName(code: string): string {
 export function getCountryColor(code: string): string {
   return countries[code.toUpperCase()]?.dominantColor || '#6b7280'
 }
+
+// Airline logo from AirLabs CDN (free, no API call)
+export function getAirlineLogoUrl(iataCode: string): string {
+  return `https://airlabs.co/img/airline/m/${iataCode.toUpperCase()}.png`
+}
