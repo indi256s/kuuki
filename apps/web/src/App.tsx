@@ -22,7 +22,8 @@ const DevResetPage = lazy(() => import('@/routes/DevResetPage').then(m => ({ def
 /**
  * React Query configuration with:
  * - Auto-retry: 3 attempts with exponential backoff (1s, 2s, 4s, max 30s)
- * - Stale time: 30 seconds
+ * - Stale time: 60 seconds (reduce API calls for rarely-changing data)
+ * - Garbage collection: 5 minutes (was cacheTime in v4)
  * - No refetch on window focus (to reduce API calls)
  * - Global error handler for background refetch failures
  */
@@ -31,7 +32,8 @@ const queryClient = new QueryClient({
     queries: {
       retry: 3,
       retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
-      staleTime: 30_000,
+      staleTime: 60_000, // 1 minute (reduced API calls)
+      gcTime: 5 * 60 * 1000, // 5 minutes
       refetchOnWindowFocus: false,
     },
     mutations: {

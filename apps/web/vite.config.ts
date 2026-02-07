@@ -12,8 +12,22 @@ export default defineConfig({
       includeAssets: ['kuuki.svg', 'apple-touch-icon.png'],
       manifest: false, // Use our custom manifest.webmanifest
       workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
+        // Precache only critical static assets, use runtime caching for chunks
+        globPatterns: ['**/*.{html,ico,png,svg}', '**/manifest*.{json,webmanifest}'],
         runtimeCaching: [
+          // Runtime cache for JS/CSS chunks (better than precaching all)
+          {
+            urlPattern: /\.(?:js|css)$/,
+            handler: 'StaleWhileRevalidate',
+            options: {
+              cacheName: 'assets-cache',
+              expiration: {
+                maxEntries: 60,
+                maxAgeSeconds: 30 * 24 * 60 * 60, // 30 days
+              },
+            },
+          },
+          // Font caching
           {
             urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
             handler: 'CacheFirst',
@@ -46,6 +60,61 @@ export default defineConfig({
       },
     }),
   ],
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          // Router (changes rarely, ~50 kB)
+          // Note: React/React-DOM are bundled into main chunk since they're used everywhere
+          'router': ['react-router-dom'],
+          
+          // React Query (changes rarely, ~50 kB)
+          'react-query': ['@tanstack/react-query'],
+          
+          // Heavy chart library (~200 kB, lazy-loaded via AnalysisDeck)
+          'recharts': ['recharts'],
+          
+          // Map library (~80 kB, used on dashboard)
+          'maps': ['react-simple-maps'],
+          
+          // UI component library (~120 kB)
+          'radix-ui': [
+            '@radix-ui/react-dialog',
+            '@radix-ui/react-dropdown-menu',
+            '@radix-ui/react-popover',
+            '@radix-ui/react-select',
+            '@radix-ui/react-accordion',
+            '@radix-ui/react-checkbox',
+            '@radix-ui/react-collapsible',
+            '@radix-ui/react-label',
+            '@radix-ui/react-navigation-menu',
+            '@radix-ui/react-progress',
+            '@radix-ui/react-scroll-area',
+            '@radix-ui/react-separator',
+            '@radix-ui/react-slot',
+          ],
+          
+          // Form libraries (~60 kB)
+          'forms': ['react-hook-form', '@hookform/resolvers', 'zod'],
+          
+          // i18n (~40 kB)
+          'i18n': ['i18next', 'react-i18next', 'i18next-browser-languagedetector'],
+          
+          // Utilities (small, can group)
+          'utils': ['clsx', 'tailwind-merge', 'class-variance-authority', 'date-fns'],
+          
+          // State management (~15 kB)
+          'state': ['zustand'],
+          
+          // Supabase client (~80 kB)
+          'supabase': ['@supabase/supabase-js'],
+          
+          // Data package (app-specific, changes with app logic)
+          'data': ['@kuuki/data'],
+        },
+      },
+    },
+  },
   resolve: {
     alias: {
       '@': '/src',
