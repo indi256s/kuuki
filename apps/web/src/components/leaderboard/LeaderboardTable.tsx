@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
+import { cn } from '@/lib/utils'
 import { generateAvatarUrl } from '@/lib/profiles'
 import { formatDistance } from '@/lib/geo'
 import type { LeaderboardEntryWithProfile, LeaderboardCategory } from '@/hooks/useLeaderboard'
@@ -46,7 +47,7 @@ export function LeaderboardTable({
 
   if (isLoading) {
     return (
-      <div className="rounded-xl border overflow-hidden">
+      <div className="rounded-2xl border border-border/50 overflow-hidden">
         <Table>
           <TableHeader>
             <TableRow>
@@ -76,8 +77,8 @@ export function LeaderboardTable({
 
   if (entries.length === 0) {
     return (
-      <div className="rounded-xl border p-8 text-center">
-        <Trophy className="w-12 h-12 mx-auto mb-4 text-muted-foreground/30" />
+      <div className="rounded-2xl border border-border/50 p-8 text-center">
+        <Trophy className="w-12 h-12 mx-auto mb-4 text-muted-foreground/30 animate-fade-up" />
         <p className="text-muted-foreground">
           {t('leaderboard.empty', 'No rankings yet. Be the first!')}
         </p>
@@ -94,7 +95,7 @@ export function LeaderboardTable({
   }
 
   return (
-    <div className="rounded-xl border overflow-hidden">
+    <div className="rounded-2xl border border-border/50 overflow-hidden">
       <Table>
         <TableHeader>
           <TableRow>
@@ -112,7 +113,11 @@ export function LeaderboardTable({
             return (
               <TableRow
                 key={entry.id}
-                className={isCurrentUser ? 'bg-primary/5' : undefined}
+                className={cn(
+                  'transition-colors hover:bg-accent/50',
+                  isCurrentUser && 'bg-primary/5',
+                  entry.rank <= 3 && !isCurrentUser && 'bg-amber-50/50 dark:bg-amber-950/10',
+                )}
               >
                 <TableCell className="font-medium">
                   <div className="flex items-center justify-center w-8">

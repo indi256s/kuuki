@@ -36,36 +36,34 @@ export function LeaderboardPage() {
       <AppHeader />
 
       {/* Main content - pb-safe adds bottom padding for mobile tab bar */}
-      <main className="max-w-4xl mx-auto px-6 py-8 pb-safe sm:pb-8">
-        {/* Page header */}
-        <div className="mb-8 animate-fade-up">
-          <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">
-            {t('leaderboard.title', 'Leaderboard')}
-            <span className="ml-3 text-sm font-normal text-muted-foreground hidden sm:inline">
-              {t('leaderboard.subtitle', 'See how you rank against other travelers')}
-            </span>
-          </h1>
+      <main className="max-w-7xl 3xl:max-w-[1800px] mx-auto px-4 sm:px-6 py-4 sm:py-6 pb-safe sm:pb-6">
+        <div className="space-y-6 animate-fade-up stagger-children">
+          {/* Page header */}
+          <div>
+            <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">
+              {t('leaderboard.title', 'Leaderboard')}
+              <span className="ml-3 text-sm font-normal text-muted-foreground hidden sm:inline">
+                {t('leaderboard.subtitle', 'See how you rank against other travelers')}
+              </span>
+            </h1>
 
-          {/* Total users badge */}
-          {totalUsers !== undefined && totalUsers > 0 && (
-            <div className="mt-3 inline-flex items-center gap-2 text-sm text-muted-foreground bg-secondary/50 px-3 py-1.5 rounded-full">
-              <Users className="w-4 h-4" />
-              {t('leaderboard.totalUsers', '{{count}} travelers ranked', { count: totalUsers })}
-            </div>
-          )}
-        </div>
+            {/* Total users badge */}
+            {totalUsers !== undefined && totalUsers > 0 && (
+              <div className="mt-3 inline-flex items-center gap-2 text-sm text-muted-foreground bg-secondary/50 px-3 py-1.5 rounded-full">
+                <Users className="w-4 h-4" />
+                {t('leaderboard.totalUsers', '{{count}} travelers ranked', { count: totalUsers })}
+              </div>
+            )}
+          </div>
 
-        {/* Category tabs */}
-        <div className="mb-6 animate-fade-up" style={{ animationDelay: '50ms' }}>
+          {/* Category tabs */}
           <CategoryTabs
             activeCategory={activeCategory}
             onCategoryChange={setActiveCategory}
           />
-        </div>
 
-        {/* User's rank card (if logged in) */}
-        {user && (
-          <div className="mb-6 animate-fade-up" style={{ animationDelay: '75ms' }}>
+          {/* User's rank card (if logged in) */}
+          {user && (
             <UserRankCard
               position={currentPosition}
               category={activeCategory}
@@ -73,30 +71,26 @@ export function LeaderboardPage() {
               showOnLeaderboards={profile?.show_on_leaderboards ?? false}
               totalFlights={stats?.totalFlights ?? 0}
             />
-          </div>
-        )}
+          )}
 
-        {/* Leaderboard table */}
-        <div className="animate-fade-up" style={{ animationDelay: '100ms' }}>
+          {/* Leaderboard table */}
           <LeaderboardTable
             entries={leaderboardData?.entries ?? []}
             category={activeCategory}
             isLoading={isLoadingLeaderboard}
             currentUserId={user?.id}
           />
-        </div>
 
-        {/* Empty state for non-logged-in users */}
-        {!user && (
-          <div className="mt-8 animate-fade-up" style={{ animationDelay: '150ms' }}>
-            <Card className="border-dashed">
+          {/* Empty state for non-logged-in users */}
+          {!user && (
+            <Card className="rounded-2xl border-dashed border-border/50">
               <CardContent className="p-6 text-center">
                 <Trophy className="w-10 h-10 mx-auto mb-3 text-muted-foreground/50" />
                 <h3 className="font-semibold mb-1">
                   {t('leaderboard.joinCta', 'Join the rankings')}
                 </h3>
                 <p className="text-sm text-muted-foreground mb-4">
-                  {t('leaderboard.joinCtaDescription', 'Sign up and log 10 flights to appear on the leaderboard')}
+                  {t('leaderboard.joinCtaDescription', 'Sign up and log 5 flights to appear on the leaderboard')}
                 </p>
                 <Button asChild>
                   <Link to="/">
@@ -105,8 +99,8 @@ export function LeaderboardPage() {
                 </Button>
               </CardContent>
             </Card>
-          </div>
-        )}
+          )}
+        </div>
       </main>
 
       {/* Mobile tab bar - only show for logged-in users */}

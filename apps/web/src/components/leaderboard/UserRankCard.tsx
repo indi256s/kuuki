@@ -19,7 +19,7 @@ interface UserRankCardProps {
   totalFlights?: number
 }
 
-const MIN_FLIGHTS = 10
+const MIN_FLIGHTS = 5
 const RANK_STORAGE_KEY = 'kuuki_last_rank'
 
 // Get stored ranks from localStorage

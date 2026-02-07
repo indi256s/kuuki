@@ -24,13 +24,13 @@ export function CategoryTabs({ activeCategory, onCategoryChange }: CategoryTabsP
   const { t } = useTranslation()
 
   return (
-    <div className="flex gap-1 p-1 rounded-xl bg-secondary/50 overflow-x-auto">
+    <div className="flex gap-1 p-1 rounded-2xl bg-secondary/50 overflow-x-auto">
       {CATEGORIES.map(({ id, icon: Icon, labelKey }) => (
         <button
           key={id}
           onClick={() => onCategoryChange(id)}
           className={cn(
-            'flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap',
+            'flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all whitespace-nowrap',
             activeCategory === id
               ? 'bg-background text-foreground shadow-sm'
               : 'text-muted-foreground hover:text-foreground hover:bg-background/50'
