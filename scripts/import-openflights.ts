@@ -16,11 +16,11 @@ const TARGET_COUNTRIES = new Set([
   // East Asia
   'CN', 'JP', 'KR', 'TW', 'HK', 'MO',
   // Southeast Asia
-  'SG', 'MY', 'TH', 'VN', 'ID', 'PH',
+  'SG', 'MY', 'TH', 'VN', 'ID', 'PH', 'MM', 'KH', 'LA', 'BN', 'MV',
   // South Asia
   'IN', 'BD', 'LK', 'PK', 'NP',
   // Middle East
-  'AE', 'QA', 'SA', 'BH', 'OM', 'KW', 'IL', 'JO', 'LB', 'TR',
+  'AE', 'QA', 'SA', 'BH', 'OM', 'KW', 'IL', 'JO', 'LB', 'TR', 'IQ',
   // Europe (Western)
   'DE', 'FR', 'IT', 'ES', 'PT', 'NL', 'BE', 'CH', 'AT', 'GB', 'IE',
   // Europe (Nordic)
@@ -29,14 +29,18 @@ const TARGET_COUNTRIES = new Set([
   'PL', 'CZ', 'HU', 'RO', 'BG', 'GR', 'HR', 'RS', 'SI', 'SK', 'BA', 'ME', 'MK', 'AL', 'XK',
   // Europe (Baltic)
   'EE', 'LV', 'LT',
+  // Europe (Mediterranean islands)
+  'CY', 'MT', 'LU',
   // North America (keep existing coverage)
   'US', 'CA', 'MX',
+  // Caribbean & Central America
+  'PA', 'CR', 'CU', 'DO', 'JM', 'BB', 'TT', 'GT', 'NI', 'HN', 'SV', 'BZ',
   // South America (keep existing coverage)
-  'BR', 'AR', 'CL', 'CO', 'PE',
+  'BR', 'AR', 'CL', 'CO', 'PE', 'EC', 'VE', 'UY', 'PY', 'BO', 'GY', 'SR',
   // Oceania
   'AU', 'NZ',
   // Africa (major)
-  'ZA', 'EG', 'KE', 'MA', 'NG', 'ET'
+  'ZA', 'EG', 'KE', 'MA', 'NG', 'ET', 'TN', 'DZ', 'TZ', 'GH', 'UG', 'RW', 'MU', 'SC', 'SN', 'CI'
 ])
 
 // Curated list of major airports to include from each region
@@ -98,6 +102,7 @@ const PRIORITY_AIRPORTS = new Set([
   'SGN', 'HAN', 'DAD', 'CXR', 'PQC',
   'CGK', 'DPS', 'SUB', 'UPG', 'JOG', 'MES', 'PDG',
   'MNL', 'CEB', 'DVO', 'ILO', 'CRK',
+  'RGN', 'MDL', 'PNH', 'REP', 'VTE', 'BWN', 'MLE',
 
   // India - Major airports
   'DEL', 'BOM', 'BLR', 'MAA', 'CCU', 'HYD', 'COK', 'GOI',
@@ -106,7 +111,7 @@ const PRIORITY_AIRPORTS = new Set([
 
   // Middle East
   'DXB', 'AUH', 'SHJ', 'DOH', 'RUH', 'JED', 'DMM', 'MED',
-  'KWI', 'BAH', 'MCT', 'TLV', 'AMM', 'BEY',
+  'KWI', 'BAH', 'MCT', 'TLV', 'AMM', 'BEY', 'BGW',
 
   // Turkey
   'IST', 'SAW', 'ESB', 'AYT', 'ADB', 'DLM', 'BJV', 'GZT',
@@ -164,6 +169,9 @@ const PRIORITY_AIRPORTS = new Set([
   'BEG', 'ZAG', 'SPU', 'DBV', 'PUY', 'LJU', 'MBX',
   'TIV', 'PRN', 'SKP', 'TIA', 'SJJ', 'BNX',
 
+  // Cyprus, Malta, Luxembourg
+  'LCA', 'PFO', 'MLA', 'LUX',
+
   // US - Top 50 airports
   'JFK', 'LAX', 'ORD', 'DFW', 'DEN', 'ATL', 'SFO', 'SEA',
   'MIA', 'BOS', 'EWR', 'LGA', 'IAD', 'DCA', 'PHX', 'IAH',
@@ -179,6 +187,9 @@ const PRIORITY_AIRPORTS = new Set([
   // Mexico
   'MEX', 'CUN', 'GDL', 'MTY', 'TIJ', 'SJD', 'PVR', 'MID',
 
+  // Caribbean & Central America
+  'PTY', 'SJO', 'HAV', 'SDQ', 'PUJ', 'MBJ', 'BGI', 'POS', 'GUA', 'MGA', 'SAP', 'SAL', 'BZE',
+
   // Brazil
   'GRU', 'GIG', 'CGH', 'SDU', 'BSB', 'CNF', 'REC', 'SSA',
   'POA', 'FOR', 'CWB', 'FLN', 'VCP', 'MAO', 'BEL', 'NAT',
@@ -193,6 +204,24 @@ const PRIORITY_AIRPORTS = new Set([
   'BOG', 'MDE', 'CLO', 'CTG', 'BAQ', 'SMR',
   'LIM', 'CUZ', 'AQP', 'TRU',
 
+  // Ecuador
+  'UIO', 'GYE',
+
+  // Venezuela
+  'CCS',
+
+  // Uruguay
+  'MVD',
+
+  // Paraguay
+  'ASU',
+
+  // Bolivia
+  'VVI', 'LPB',
+
+  // Guyana, Suriname
+  'GEO', 'PBM',
+
   // Australia
   'SYD', 'MEL', 'BNE', 'PER', 'ADL', 'CBR', 'OOL', 'CNS',
   'HBA', 'DRW', 'ASP', 'TSV', 'NTL', 'AVV',
@@ -203,7 +232,8 @@ const PRIORITY_AIRPORTS = new Set([
   // Africa
   'JNB', 'CPT', 'DUR', 'PLZ', 'CAI', 'ALY', 'HRG', 'SSH',
   'NBO', 'MBA', 'CMN', 'RAK', 'AGA', 'FEZ',
-  'LOS', 'ABV', 'PHC', 'ADD', 'DIR'
+  'LOS', 'ABV', 'PHC', 'ADD', 'DIR',
+  'TUN', 'MIR', 'SFA', 'ALG', 'DAR', 'ZNZ', 'ACC', 'EBB', 'KGL', 'MRU', 'SEZ', 'DSS', 'ABJ'
 ])
 
 // Curated list of major airlines to include
@@ -413,6 +443,7 @@ const COUNTRY_TO_CODE: Record<string, string> = {
   'Bosnia and Herzegovina': 'BA', 'Montenegro': 'ME', 'North Macedonia': 'MK',
   'Macedonia': 'MK', 'Albania': 'AL', 'Kosovo': 'XK',
   'Estonia': 'EE', 'Latvia': 'LV', 'Lithuania': 'LT',
+  'Cyprus': 'CY', 'Malta': 'MT', 'Luxembourg': 'LU',
   'Ukraine': 'UA', 'Belarus': 'BY', 'Moldova': 'MD',
   'Georgia': 'GE', 'Azerbaijan': 'AZ', 'Armenia': 'AM',
   'Kazakhstan': 'KZ', 'Uzbekistan': 'UZ', 'Kyrgyzstan': 'KG',
@@ -421,17 +452,29 @@ const COUNTRY_TO_CODE: Record<string, string> = {
   'Taiwan': 'TW', 'Hong Kong': 'HK', 'Macau': 'MO',
   'Singapore': 'SG', 'Malaysia': 'MY', 'Thailand': 'TH',
   'Vietnam': 'VN', 'Indonesia': 'ID', 'Philippines': 'PH',
+  'Myanmar': 'MM', 'Burma': 'MM', 'Cambodia': 'KH', 'Laos': 'LA',
+  'Brunei': 'BN', 'Maldives': 'MV',
   'India': 'IN', 'Bangladesh': 'BD', 'Sri Lanka': 'LK',
   'Pakistan': 'PK', 'Nepal': 'NP',
   'United Arab Emirates': 'AE', 'Qatar': 'QA', 'Saudi Arabia': 'SA',
   'Bahrain': 'BH', 'Oman': 'OM', 'Kuwait': 'KW', 'Israel': 'IL',
-  'Jordan': 'JO', 'Lebanon': 'LB', 'Turkey': 'TR', 'Iran': 'IR',
+  'Jordan': 'JO', 'Lebanon': 'LB', 'Turkey': 'TR', 'Iran': 'IR', 'Iraq': 'IQ',
   'Canada': 'CA', 'Mexico': 'MX',
+  'Panama': 'PA', 'Costa Rica': 'CR', 'Cuba': 'CU', 'Dominican Republic': 'DO',
+  'Jamaica': 'JM', 'Barbados': 'BB', 'Trinidad and Tobago': 'TT', 'Puerto Rico': 'PR',
+  'Guatemala': 'GT', 'Nicaragua': 'NI', 'Honduras': 'HN',
+  'El Salvador': 'SV', 'Belize': 'BZ',
   'Brazil': 'BR', 'Argentina': 'AR', 'Chile': 'CL',
   'Colombia': 'CO', 'Peru': 'PE', 'Venezuela': 'VE', 'Ecuador': 'EC',
+  'Uruguay': 'UY', 'Paraguay': 'PY', 'Bolivia': 'BO',
+  'Guyana': 'GY', 'Suriname': 'SR',
   'Australia': 'AU', 'New Zealand': 'NZ',
   'South Africa': 'ZA', 'Egypt': 'EG', 'Kenya': 'KE',
-  'Morocco': 'MA', 'Nigeria': 'NG', 'Ethiopia': 'ET'
+  'Morocco': 'MA', 'Nigeria': 'NG', 'Ethiopia': 'ET',
+  'Tunisia': 'TN', 'Algeria': 'DZ', 'Tanzania': 'TZ',
+  'Ghana': 'GH', 'Uganda': 'UG', 'Rwanda': 'RW',
+  'Mauritius': 'MU', 'Seychelles': 'SC', 'Senegal': 'SN',
+  'Ivory Coast': 'CI', "Côte d'Ivoire": 'CI'
 }
 
 function parseCSVLine(line: string): string[] {

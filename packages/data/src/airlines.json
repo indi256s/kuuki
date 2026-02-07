@@ -1020,16 +1020,6 @@
     "callsign": "SPIRIT WINGS"
   },
   {
-    "iata": "NQ",
-    "icao": "AJX",
-    "name": "Air Japan",
-    "country": "Japan",
-    "logoUrl": null,
-    "primaryColor": "#D50032",
-    "alliance": "star_alliance",
-    "callsign": "AIR JAPAN"
-  },
-  {
     "iata": "NZ",
     "icao": "ANZ",
     "name": "Air New Zealand",

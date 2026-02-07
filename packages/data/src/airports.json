@@ -33,6 +33,17 @@
     "timezone": "Europe/London"
   },
   {
+    "iata": "ACC",
+    "icao": "DGAA",
+    "name": "Kotoka International Airport",
+    "city": "Accra",
+    "country": "Ghana",
+    "countryCode": "GH",
+    "latitude": 5.605189800262451,
+    "longitude": -0.16678600013256073,
+    "timezone": "Africa/Accra"
+  },
+  {
     "iata": "ACE",
     "icao": "GCRR",
     "name": "Lanzarote Airport",
@@ -176,6 +187,17 @@
     "timezone": "Europe/Madrid"
   },
   {
+    "iata": "ALG",
+    "icao": "DAAG",
+    "name": "Houari Boumediene Airport",
+    "city": "Algier",
+    "country": "Algeria",
+    "countryCode": "DZ",
+    "latitude": 36.691001892089844,
+    "longitude": 3.215409994125366,
+    "timezone": "Africa/Algiers"
+  },
+  {
     "iata": "ALY",
     "icao": "HEAX",
     "name": "El Nouzha Airport",
@@ -317,6 +339,17 @@
     "latitude": 38.770401001,
     "longitude": 35.4953994751,
     "timezone": "Europe/Istanbul"
+  },
+  {
+    "iata": "ASU",
+    "icao": "SGAS",
+    "name": "Silvio Pettirossi International Airport",
+    "city": "Asuncion",
+    "country": "Paraguay",
+    "countryCode": "PY",
+    "latitude": -25.239999771118164,
+    "longitude": -57.52000045776367,
+    "timezone": "America/Asuncion"
   },
   {
     "iata": "ATH",
@@ -473,6 +506,17 @@
     "timezone": "Europe/London"
   },
   {
+    "iata": "BGI",
+    "icao": "TBPB",
+    "name": "Sir Grantley Adams International Airport",
+    "city": "Bridgetown",
+    "country": "Barbados",
+    "countryCode": "BB",
+    "latitude": 13.0746002197,
+    "longitude": -59.4925003052,
+    "timezone": "America/Barbados"
+  },
+  {
     "iata": "BGO",
     "icao": "ENBR",
     "name": "Bergen Airport Flesland",
@@ -482,6 +526,17 @@
     "latitude": 60.29339981,
     "longitude": 5.218140125,
     "timezone": "Europe/Oslo"
+  },
+  {
+    "iata": "BGW",
+    "icao": "ORBI",
+    "name": "Baghdad International Airport",
+    "city": "Baghdad",
+    "country": "Iraq",
+    "countryCode": "IQ",
+    "latitude": 33.262500762900004,
+    "longitude": 44.2346000671,
+    "timezone": "Asia/Baghdad"
   },
   {
     "iata": "BGY",
@@ -847,6 +902,28 @@
     "timezone": "America/New_York"
   },
   {
+    "iata": "BWN",
+    "icao": "WBSB",
+    "name": "Brunei International Airport",
+    "city": "Bandar Seri Begawan",
+    "country": "Brunei",
+    "countryCode": "BN",
+    "latitude": 4.944200038909912,
+    "longitude": 114.9280014038086,
+    "timezone": "Asia/Brunei"
+  },
+  {
+    "iata": "BZE",
+    "icao": "MZBZ",
+    "name": "Philip S. W. Goldson International Airport",
+    "city": "Belize City",
+    "country": "Belize",
+    "countryCode": "BZ",
+    "latitude": 17.539100646972656,
+    "longitude": -88.30819702148438,
+    "timezone": "America/Belize"
+  },
+  {
     "iata": "CAG",
     "icao": "LIEE",
     "name": "Cagliari Elmas Airport",
@@ -900,6 +977,17 @@
     "latitude": -36.772701,
     "longitude": -73.063103,
     "timezone": "America/Santiago"
+  },
+  {
+    "iata": "CCS",
+    "icao": "SVMI",
+    "name": "Simón Bolívar International Airport",
+    "city": "Caracas",
+    "country": "Venezuela",
+    "countryCode": "VE",
+    "latitude": 10.601194,
+    "longitude": -66.991222,
+    "timezone": "America/Caracas"
   },
   {
     "iata": "CCU",
@@ -1342,6 +1430,17 @@
     "timezone": "America/Chicago"
   },
   {
+    "iata": "DAR",
+    "icao": "HTDA",
+    "name": "Julius Nyerere International Airport",
+    "city": "Dar Es Salaam",
+    "country": "Tanzania",
+    "countryCode": "TZ",
+    "latitude": -6.87811,
+    "longitude": 39.202599,
+    "timezone": "Africa/Dar_es_Salaam"
+  },
+  {
     "iata": "DBV",
     "icao": "LDDU",
     "name": "Dubrovnik Airport",
@@ -1604,6 +1703,17 @@
     "latitude": 25.2532,
     "longitude": 55.3657,
     "timezone": "Asia/Dubai"
+  },
+  {
+    "iata": "EBB",
+    "icao": "HUEN",
+    "name": "Entebbe International Airport",
+    "city": "Entebbe",
+    "country": "Uganda",
+    "countryCode": "UG",
+    "latitude": 0.042386,
+    "longitude": 32.443501,
+    "timezone": "Africa/Kampala"
   },
   {
     "iata": "EDI",
@@ -1903,6 +2013,17 @@
     "timezone": "Europe/Warsaw"
   },
   {
+    "iata": "GEO",
+    "icao": "SYCJ",
+    "name": "Cheddi Jagan International Airport",
+    "city": "Georgetown",
+    "country": "Guyana",
+    "countryCode": "GY",
+    "latitude": 6.498549938201904,
+    "longitude": -58.25410079956055,
+    "timezone": "America/Guyana"
+  },
+  {
     "iata": "GIG",
     "icao": "SBGL",
     "name": "Rio de Janeiro/Galeão International Airport",
@@ -2035,6 +2156,17 @@
     "timezone": "Europe/Vienna"
   },
   {
+    "iata": "GUA",
+    "icao": "MGGT",
+    "name": "La Aurora Airport",
+    "city": "Guatemala City",
+    "country": "Guatemala",
+    "countryCode": "GT",
+    "latitude": 14.5833,
+    "longitude": -90.527496,
+    "timezone": "America/Guatemala"
+  },
+  {
     "iata": "GUW",
     "icao": "UATG",
     "name": "Atyrau Airport",
@@ -2066,6 +2198,17 @@
     "latitude": 40.467498779296875,
     "longitude": 50.04669952392578,
     "timezone": "Asia/Baku"
+  },
+  {
+    "iata": "GYE",
+    "icao": "SEGU",
+    "name": "José Joaquín de Olmedo International Airport",
+    "city": "Guayaquil",
+    "country": "Ecuador",
+    "countryCode": "EC",
+    "latitude": -2.1574199199699997,
+    "longitude": -79.88359832760001,
+    "timezone": "America/Guayaquil"
   },
   {
     "iata": "GZT",
@@ -2110,6 +2253,17 @@
     "latitude": 21.2212,
     "longitude": 105.8072,
     "timezone": "Asia/Ho_Chi_Minh"
+  },
+  {
+    "iata": "HAV",
+    "icao": "MUHA",
+    "name": "José Martí International Airport",
+    "city": "Havana",
+    "country": "Cuba",
+    "countryCode": "CU",
+    "latitude": 22.989200592041016,
+    "longitude": -82.40910339355469,
+    "timezone": "America/Havana"
   },
   {
     "iata": "HBA",
@@ -2585,6 +2739,17 @@
     "timezone": "Europe/Kaliningrad"
   },
   {
+    "iata": "KGL",
+    "icao": "HRYR",
+    "name": "Kigali International Airport",
+    "city": "Kigali",
+    "country": "Rwanda",
+    "countryCode": "RW",
+    "latitude": -1.96863,
+    "longitude": 30.1395,
+    "timezone": "Africa/Kigali"
+  },
+  {
     "iata": "KHH",
     "icao": "RCKH",
     "name": "Kaohsiung International Airport",
@@ -2827,6 +2992,17 @@
     "timezone": "Europe/London"
   },
   {
+    "iata": "LCA",
+    "icao": "LCLK",
+    "name": "Larnaca International Airport",
+    "city": "Larnaca",
+    "country": "Cyprus",
+    "countryCode": "CY",
+    "latitude": 34.875099182128906,
+    "longitude": 33.624900817871094,
+    "timezone": "Asia/Nicosia"
+  },
+  {
     "iata": "LED",
     "icao": "ULLI",
     "name": "Pulkovo Airport",
@@ -2992,6 +3168,17 @@
     "timezone": "Atlantic/Canary"
   },
   {
+    "iata": "LPB",
+    "icao": "SLLP",
+    "name": "El Alto International Airport",
+    "city": "La Paz",
+    "country": "Bolivia",
+    "countryCode": "BO",
+    "latitude": -16.5132999420166,
+    "longitude": -68.19229888916016,
+    "timezone": "America/La_Paz"
+  },
+  {
     "iata": "LPL",
     "icao": "EGGP",
     "name": "Liverpool John Lennon Airport",
@@ -3012,6 +3199,17 @@
     "latitude": 51.8747,
     "longitude": -0.3683,
     "timezone": "Europe/London"
+  },
+  {
+    "iata": "LUX",
+    "icao": "ELLX",
+    "name": "Luxembourg-Findel International Airport",
+    "city": "Luxemburg",
+    "country": "Luxembourg",
+    "countryCode": "LU",
+    "latitude": 49.6233333,
+    "longitude": 6.2044444,
+    "timezone": "Europe/Luxembourg"
   },
   {
     "iata": "LWN",
@@ -3113,6 +3311,17 @@
     "timezone": "Africa/Nairobi"
   },
   {
+    "iata": "MBJ",
+    "icao": "MKJS",
+    "name": "Sangster International Airport",
+    "city": "Montego Bay",
+    "country": "Jamaica",
+    "countryCode": "JM",
+    "latitude": 18.503700256347656,
+    "longitude": -77.91339874267578,
+    "timezone": "America/Jamaica"
+  },
+  {
     "iata": "MBX",
     "icao": "LJMB",
     "name": "Maribor Airport",
@@ -3166,6 +3375,17 @@
     "latitude": 6.16454,
     "longitude": -75.4231,
     "timezone": "America/Bogota"
+  },
+  {
+    "iata": "MDL",
+    "icao": "VYMD",
+    "name": "Mandalay International Airport",
+    "city": "Mandalay",
+    "country": "Burma",
+    "countryCode": "MM",
+    "latitude": 21.702199935913086,
+    "longitude": 95.97789764404297,
+    "timezone": "Asia/Rangoon"
   },
   {
     "iata": "MDW",
@@ -3245,6 +3465,17 @@
     "timezone": "Asia/Macau"
   },
   {
+    "iata": "MGA",
+    "icao": "MNMG",
+    "name": "Augusto C. Sandino (Managua) International Airport",
+    "city": "Managua",
+    "country": "Nicaragua",
+    "countryCode": "NI",
+    "latitude": 12.141500473022461,
+    "longitude": -86.16819763183594,
+    "timezone": "America/Managua"
+  },
+  {
     "iata": "MIA",
     "icao": "KMIA",
     "name": "Miami International Airport",
@@ -3267,6 +3498,17 @@
     "timezone": "America/Mexico_City"
   },
   {
+    "iata": "MIR",
+    "icao": "DTMB",
+    "name": "Monastir Habib Bourguiba International Airport",
+    "city": "Monastir",
+    "country": "Tunisia",
+    "countryCode": "TN",
+    "latitude": 35.75809860229492,
+    "longitude": 10.75469970703125,
+    "timezone": "Africa/Tunis"
+  },
+  {
     "iata": "MKE",
     "icao": "KMKE",
     "name": "General Mitchell International Airport",
@@ -3276,6 +3518,28 @@
     "latitude": 42.947200775146484,
     "longitude": -87.89659881591797,
     "timezone": "America/Chicago"
+  },
+  {
+    "iata": "MLA",
+    "icao": "LMML",
+    "name": "Malta International Airport",
+    "city": "Malta",
+    "country": "Malta",
+    "countryCode": "MT",
+    "latitude": 35.857498,
+    "longitude": 14.4775,
+    "timezone": "Europe/Malta"
+  },
+  {
+    "iata": "MLE",
+    "icao": "VRMM",
+    "name": "Malé International Airport",
+    "city": "Male",
+    "country": "Maldives",
+    "countryCode": "MV",
+    "latitude": 4.191830158233643,
+    "longitude": 73.52909851074219,
+    "timezone": "Indian/Maldives"
   },
   {
     "iata": "MMK",
@@ -3344,6 +3608,17 @@
     "timezone": "Europe/Paris"
   },
   {
+    "iata": "MRU",
+    "icao": "FIMP",
+    "name": "Sir Seewoosagur Ramgoolam International Airport",
+    "city": "Plaisance",
+    "country": "Mauritius",
+    "countryCode": "MU",
+    "latitude": -20.430201,
+    "longitude": 57.683601,
+    "timezone": "Indian/Mauritius"
+  },
+  {
     "iata": "MSP",
     "icao": "KMSP",
     "name": "Minneapolis-Saint Paul International Airport",
@@ -3386,6 +3661,17 @@
     "latitude": 48.3537,
     "longitude": 11.775,
     "timezone": "Europe/Berlin"
+  },
+  {
+    "iata": "MVD",
+    "icao": "SUMU",
+    "name": "Carrasco International /General C L Berisso Airport",
+    "city": "Montevideo",
+    "country": "Uruguay",
+    "countryCode": "UY",
+    "latitude": -34.838402,
+    "longitude": -56.0308,
+    "timezone": "America/Montevideo"
   },
   {
     "iata": "MXP",
@@ -3806,6 +4092,17 @@
     "timezone": "Asia/Calcutta"
   },
   {
+    "iata": "PBM",
+    "icao": "SMJP",
+    "name": "Johan Adolf Pengel International Airport",
+    "city": "Zandery",
+    "country": "Suriname",
+    "countryCode": "SR",
+    "latitude": 5.4528298377999995,
+    "longitude": -55.1878013611,
+    "timezone": "America/Paramaribo"
+  },
+  {
     "iata": "PDG",
     "icao": "WIPT",
     "name": "Minangkabau International Airport",
@@ -3892,6 +4189,17 @@
     "latitude": 61.88520050048828,
     "longitude": 34.154701232910156,
     "timezone": "Europe/Moscow"
+  },
+  {
+    "iata": "PFO",
+    "icao": "LCPH",
+    "name": "Paphos International Airport",
+    "city": "Paphos",
+    "country": "Cyprus",
+    "countryCode": "CY",
+    "latitude": 34.71799850463867,
+    "longitude": 32.48569869995117,
+    "timezone": "Asia/Nicosia"
   },
   {
     "iata": "PHC",
@@ -4015,6 +4323,17 @@
     "timezone": "Europe/Rome"
   },
   {
+    "iata": "PNH",
+    "icao": "VDPP",
+    "name": "Phnom Penh International Airport",
+    "city": "Phnom-penh",
+    "country": "Cambodia",
+    "countryCode": "KH",
+    "latitude": 11.546600341796875,
+    "longitude": 104.84400177001953,
+    "timezone": "Asia/Phnom_Penh"
+  },
+  {
     "iata": "PNQ",
     "icao": "VAPO",
     "name": "Pune Airport",
@@ -4035,6 +4354,17 @@
     "latitude": -29.994400024414062,
     "longitude": -51.1713981628418,
     "timezone": "America/Sao_Paulo"
+  },
+  {
+    "iata": "POS",
+    "icao": "TTPP",
+    "name": "Piarco International Airport",
+    "city": "Port-of-spain",
+    "country": "Trinidad and Tobago",
+    "countryCode": "TT",
+    "latitude": 10.595399856567383,
+    "longitude": -61.33720016479492,
+    "timezone": "America/Port_of_Spain"
   },
   {
     "iata": "POZ",
@@ -4090,6 +4420,28 @@
     "latitude": 43.683899,
     "longitude": 10.3927,
     "timezone": "Europe/Rome"
+  },
+  {
+    "iata": "PTY",
+    "icao": "MPTO",
+    "name": "Tocumen International Airport",
+    "city": "Panama City",
+    "country": "Panama",
+    "countryCode": "PA",
+    "latitude": 9.0713596344,
+    "longitude": -79.3834991455,
+    "timezone": "America/Panama"
+  },
+  {
+    "iata": "PUJ",
+    "icao": "MDPC",
+    "name": "Punta Cana International Airport",
+    "city": "Punta Cana",
+    "country": "Dominican Republic",
+    "countryCode": "DO",
+    "latitude": 18.567399978599997,
+    "longitude": -68.36340332030001,
+    "timezone": "America/Santo_Domingo"
   },
   {
     "iata": "PUQ",
@@ -4189,6 +4541,28 @@
     "latitude": -8.126489639282227,
     "longitude": -34.92359924316406,
     "timezone": "America/Fortaleza"
+  },
+  {
+    "iata": "REP",
+    "icao": "VDSR",
+    "name": "Siem Reap International Airport",
+    "city": "Siem-reap",
+    "country": "Cambodia",
+    "countryCode": "KH",
+    "latitude": 13.410699844400002,
+    "longitude": 103.81300354,
+    "timezone": "Asia/Phnom_Penh"
+  },
+  {
+    "iata": "RGN",
+    "icao": "VYYY",
+    "name": "Yangon International Airport",
+    "city": "Yangon",
+    "country": "Burma",
+    "countryCode": "MM",
+    "latitude": 16.907300949099998,
+    "longitude": 96.1332015991,
+    "timezone": "Asia/Rangoon"
   },
   {
     "iata": "RHO",
@@ -4301,6 +4675,17 @@
     "timezone": "Europe/Warsaw"
   },
   {
+    "iata": "SAL",
+    "icao": "MSLP",
+    "name": "Monseñor Óscar Arnulfo Romero International Airport",
+    "city": "San Salvador",
+    "country": "El Salvador",
+    "countryCode": "SV",
+    "latitude": 13.4409,
+    "longitude": -89.055702,
+    "timezone": "America/El_Salvador"
+  },
+  {
     "iata": "SAN",
     "icao": "KSAN",
     "name": "San Diego International Airport",
@@ -4310,6 +4695,17 @@
     "latitude": 32.7336,
     "longitude": -117.1897,
     "timezone": "America/Los_Angeles"
+  },
+  {
+    "iata": "SAP",
+    "icao": "MHLM",
+    "name": "Ramón Villeda Morales International Airport",
+    "city": "San Pedro Sula",
+    "country": "Honduras",
+    "countryCode": "HN",
+    "latitude": 15.4526,
+    "longitude": -87.923599,
+    "timezone": "America/Tegucigalpa"
   },
   {
     "iata": "SAT",
@@ -4389,6 +4785,17 @@
     "timezone": "Asia/Tokyo"
   },
   {
+    "iata": "SDQ",
+    "icao": "MDSD",
+    "name": "Las Américas International Airport",
+    "city": "Santo Domingo",
+    "country": "Dominican Republic",
+    "countryCode": "DO",
+    "latitude": 18.42970085144,
+    "longitude": -69.668899536133,
+    "timezone": "America/Santo_Domingo"
+  },
+  {
     "iata": "SDU",
     "icao": "SBRJ",
     "name": "Santos Dumont Airport",
@@ -4409,6 +4816,28 @@
     "latitude": 47.4502,
     "longitude": -122.3088,
     "timezone": "America/Los_Angeles"
+  },
+  {
+    "iata": "SEZ",
+    "icao": "FSIA",
+    "name": "Seychelles International Airport",
+    "city": "Mahe",
+    "country": "Seychelles",
+    "countryCode": "SC",
+    "latitude": -4.67434,
+    "longitude": 55.521801,
+    "timezone": "Indian/Mahe"
+  },
+  {
+    "iata": "SFA",
+    "icao": "DTTX",
+    "name": "Sfax Thyna International Airport",
+    "city": "Sfax",
+    "country": "Tunisia",
+    "countryCode": "TN",
+    "latitude": 34.71799850463867,
+    "longitude": 10.690999984741211,
+    "timezone": "Africa/Tunis"
   },
   {
     "iata": "SFO",
@@ -4519,6 +4948,17 @@
     "latitude": 43.82460021972656,
     "longitude": 18.331499099731445,
     "timezone": "Europe/Sarajevo"
+  },
+  {
+    "iata": "SJO",
+    "icao": "MROC",
+    "name": "Juan Santamaria International Airport",
+    "city": "San Jose",
+    "country": "Costa Rica",
+    "countryCode": "CR",
+    "latitude": 9.993860244750977,
+    "longitude": -84.20880126953125,
+    "timezone": "America/Costa_Rica"
   },
   {
     "iata": "SKD",
@@ -5126,6 +5566,17 @@
     "timezone": "Australia/Brisbane"
   },
   {
+    "iata": "TUN",
+    "icao": "DTTA",
+    "name": "Tunis Carthage International Airport",
+    "city": "Tunis",
+    "country": "Tunisia",
+    "countryCode": "TN",
+    "latitude": 36.85100173950195,
+    "longitude": 10.22719955444336,
+    "timezone": "Africa/Tunis"
+  },
+  {
     "iata": "TZX",
     "icao": "LTCG",
     "name": "Trabzon International Airport",
@@ -5146,6 +5597,17 @@
     "latitude": 54.557498931885,
     "longitude": 55.874401092529,
     "timezone": "Asia/Yekaterinburg"
+  },
+  {
+    "iata": "UIO",
+    "icao": "SEQM",
+    "name": "Mariscal Sucre International Airport",
+    "city": "Quito",
+    "country": "Ecuador",
+    "countryCode": "EC",
+    "latitude": -0.129166666667,
+    "longitude": -78.3575,
+    "timezone": "America/Guayaquil"
   },
   {
     "iata": "UPG",
@@ -5311,6 +5773,28 @@
     "latitude": 45.395699,
     "longitude": 10.8885,
     "timezone": "Europe/Rome"
+  },
+  {
+    "iata": "VTE",
+    "icao": "VLVT",
+    "name": "Wattay International Airport",
+    "city": "Vientiane",
+    "country": "Laos",
+    "countryCode": "LA",
+    "latitude": 17.988300323500003,
+    "longitude": 102.56300354,
+    "timezone": "Asia/Vientiane"
+  },
+  {
+    "iata": "VVI",
+    "icao": "SLVR",
+    "name": "Viru Viru International Airport",
+    "city": "Santa Cruz",
+    "country": "Bolivia",
+    "countryCode": "BO",
+    "latitude": -17.6448,
+    "longitude": -63.135399,
+    "timezone": "America/La_Paz"
   },
   {
     "iata": "VVO",
@@ -5597,6 +6081,17 @@
     "latitude": 45.7429008484,
     "longitude": 16.0687999725,
     "timezone": "Europe/Zagreb"
+  },
+  {
+    "iata": "ZNZ",
+    "icao": "HTZA",
+    "name": "Abeid Amani Karume International Airport",
+    "city": "Zanzibar",
+    "country": "Tanzania",
+    "countryCode": "TZ",
+    "latitude": -6.22202,
+    "longitude": 39.224899,
+    "timezone": "Africa/Dar_es_Salaam"
   },
   {
     "iata": "ZQN",
