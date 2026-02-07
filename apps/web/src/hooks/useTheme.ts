@@ -4,7 +4,7 @@ export type ThemeMode = 'light' | 'dark' | 'system'
 export type ResolvedTheme = 'light' | 'dark'
 
 const STORAGE_KEY = 'kuuki-theme-mode'
-const DEFAULT_MODE: ThemeMode = 'system'
+const DEFAULT_MODE: ThemeMode = 'dark'
 
 // Meta theme-color values for mobile browser chrome
 const THEME_COLORS = {

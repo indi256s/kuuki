@@ -9,6 +9,7 @@ import { RegisterForm } from '@/components/auth/RegisterForm'
 import { SignInForm, RotatingTagline } from '@/components/auth'
 import { PlaneAnimation } from '@/components/common/PlaneAnimation'
 import { AccentPicker } from '@/components/common/AccentPicker'
+import { ThemeSwitcher } from '@/components/common/ThemeSwitcher'
 import { WhatIsKuukiDialog } from '@/components/auth/WhatIsKuukiDialog'
 
 type AuthMode = 'register' | 'signin'
@@ -84,6 +85,7 @@ export function AuthPage() {
           {/* Top Right Controls */}
           <div className="absolute top-6 right-6 flex items-center gap-2 z-20">
             <AccentPicker value={accentColor} onChange={setAccentColor} />
+            <ThemeSwitcher />
             <div className="hidden lg:block w-px h-5 bg-border" />
 
             <Button
