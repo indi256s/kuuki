@@ -7,6 +7,7 @@ import { CalendarIcon } from "lucide-react"
 import { useTranslation } from "react-i18next"
 
 import { cn } from "@/lib/utils"
+import { Button } from "@/components/ui/button"
 import { Calendar } from "@/components/ui/calendar"
 import {
   Popover,
@@ -68,33 +69,22 @@ function DatePicker({
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <div
-          role="button"
-          tabIndex={disabled ? -1 : 0}
-          aria-label={t("common.pickDate", "Pick a date")}
-          aria-disabled={disabled}
+        <Button
+          variant="outline"
+          disabled={disabled}
+          data-empty={!dateValue}
           className={cn(
-            "border-input flex h-10 w-full cursor-pointer items-center rounded-md border bg-transparent px-3 py-1 text-base shadow-xs transition-colors md:text-sm",
-            "focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]",
-            "outline-none",
-            disabled && "pointer-events-none cursor-not-allowed opacity-50",
-            !dateValue && "text-muted-foreground",
+            "data-[empty=true]:text-muted-foreground w-full justify-start text-left font-normal",
             className
           )}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" || e.key === " ") {
-              e.preventDefault()
-              setOpen(true)
-            }
-          }}
         >
-          <CalendarIcon className="mr-2 h-4 w-4 shrink-0 text-muted-foreground" />
+          <CalendarIcon />
           <span className="font-mono">
             {dateValue
               ? format(dateValue, "d MMM yyyy", { locale })
               : t("common.pickDate", "Pick a date")}
           </span>
-        </div>
+        </Button>
       </PopoverTrigger>
       <PopoverContent className="w-auto p-0" align="start" sideOffset={8}>
         <Calendar
@@ -104,14 +94,15 @@ function DatePicker({
           locale={locale}
           initialFocus
         />
-        <div className="px-4 pb-3">
-          <button
+        <div className="border-border/40 border-t px-3 py-2">
+          <Button
             type="button"
+            variant="ghost"
             onClick={handleToday}
-            className="text-sm text-primary hover:underline"
+            className="h-7 px-2 text-xs"
           >
             {t("common.today", "Today")}
-          </button>
+          </Button>
         </div>
       </PopoverContent>
     </Popover>

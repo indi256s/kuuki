@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { useAuth } from '@/hooks/useAuth'
 import { useLanguage } from '@/hooks/useLanguage'
 import { UsernamePicker } from '@/components/onboarding/UsernamePicker'
-import { ImportCTA } from '@/components/onboarding/ImportCTA'
+import { ImportUpload } from '@/components/import/ImportUpload'
 import { updateProfile } from '@/lib/auth'
 import { Button } from '@/components/ui/button'
 import { Plane, Languages } from 'lucide-react'
@@ -39,12 +39,12 @@ export function OnboardingPage() {
     [user, refreshProfile, t]
   )
 
-  const handleImport = useCallback(() => {
-    navigate('/import')
-  }, [navigate])
-
-  const handleManual = useCallback(() => {
-    navigate('/dashboard')
+  const handleImportSubmit = useCallback((data: { type: 'pdf' | 'image' | 'text'; content: string }) => {
+    if (data.type === 'text') {
+      navigate('/import', { state: { textContent: data.content } })
+    } else {
+      navigate('/import')
+    }
   }, [navigate])
 
   const handleSkip = useCallback(() => {
@@ -81,11 +81,21 @@ export function OnboardingPage() {
             <UsernamePicker onSubmit={handleUsernameSubmit} />
           )}
           {step === 'import' && (
-            <ImportCTA
-              onImport={handleImport}
-              onManual={handleManual}
-              onSkip={handleSkip}
-            />
+            <div className="w-full max-w-md mx-auto">
+              <div className="text-center mb-8">
+                <h1 className="text-2xl font-semibold tracking-tight mb-2">
+                  {t('onboarding.import.title')}
+                </h1>
+                <p className="text-muted-foreground">
+                  {t('onboarding.import.subtitle')}
+                </p>
+              </div>
+              <ImportUpload
+                onSubmit={handleImportSubmit}
+                variant="onboarding"
+                onSkip={handleSkip}
+              />
+            </div>
           )}
         </div>
       </main>

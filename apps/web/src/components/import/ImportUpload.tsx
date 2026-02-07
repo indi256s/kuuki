@@ -30,12 +30,14 @@ interface ImportUploadProps {
   onSubmit: (data: { type: 'pdf' | 'image' | 'text'; content: string }) => void
   disabled?: boolean
   hasExistingFlights?: boolean
+  variant?: 'full' | 'onboarding'
+  onSkip?: () => void
 }
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10 MB
 const ACCEPTED_TYPES = ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg']
 
-export function ImportUpload({ onSubmit, disabled }: ImportUploadProps) {
+export function ImportUpload({ onSubmit, disabled, variant = 'full', onSkip }: ImportUploadProps) {
   const { t } = useTranslation()
   const [isDragging, setIsDragging] = useState(false)
   const [filePreview, setFilePreview] = useState<{
@@ -441,6 +443,16 @@ export function ImportUpload({ onSubmit, disabled }: ImportUploadProps) {
       >
         {t('import.parseFlights', 'Parse Flights')}
       </Button>
+
+      {variant === 'onboarding' && onSkip && (
+        <Button
+          variant="ghost"
+          onClick={onSkip}
+          className="w-full text-muted-foreground hover:text-foreground"
+        >
+          {t('onboarding.import.skipOption')}
+        </Button>
+      )}
     </div>
   )
 }
