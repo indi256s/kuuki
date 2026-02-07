@@ -234,6 +234,7 @@ export function useRecentFlights(limit = 5) {
       return getRecentFlights(userId, limit)
     },
     enabled: !!userId,
+    staleTime: 2 * 60 * 1000, // 2 minutes — flights don't change often
   })
 }
 

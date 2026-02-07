@@ -1,8 +1,96 @@
-import { useState, useCallback, useMemo, useRef, useEffect } from 'react'
+import { useState, useCallback, useMemo, useRef, useEffect, memo } from 'react'
 import type { PassportEntry } from '@kuuki/shared'
 import { CountryStamp } from './CountryStamp'
 import { StampPopup } from './StampPopup'
 import { Skeleton } from '@/components/ui/skeleton'
+
+/**
+ * Hook: reveal element when it enters the viewport (lazy rendering)
+ */
+function useInView(options?: IntersectionObserverInit) {
+  const ref = useRef<HTMLDivElement>(null)
+  const [isInView, setIsInView] = useState(false)
+
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsInView(true)
+          observer.disconnect() // Once visible, stay rendered
+        }
+      },
+      { rootMargin: '200px', ...options } // Start loading 200px before visible
+    )
+
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [])
+
+  return { ref, isInView }
+}
+
+/** Lazy continent section — renders skeleton until scrolled into view */
+const LazyContinentSection = memo(function LazyContinentSection({
+  continent,
+  stamps,
+  groupIndex,
+  continentNames,
+  selectedEntry,
+  onStampClick,
+  themeColor,
+}: {
+  continent: string
+  stamps: PassportEntry[]
+  groupIndex: number
+  continentNames: Record<string, string>
+  selectedEntry: PassportEntry | null
+  onStampClick: (entry: PassportEntry, event: React.MouseEvent) => void
+  themeColor?: string
+}) {
+  const { ref, isInView } = useInView()
+
+  return (
+    <section
+      ref={ref}
+      key={continent}
+      className="animate-fade-up"
+      style={{ animationDelay: `${groupIndex * 50}ms` }}
+    >
+      <h2 className="text-sm font-medium text-muted-foreground mb-3 flex items-center gap-2">
+        {continentNames[continent] || continent}
+        <span className="text-xs bg-muted px-1.5 py-0.5 rounded-full font-mono">
+          {stamps.length}
+        </span>
+      </h2>
+
+      {isInView ? (
+        <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
+          {stamps.map((entry) => (
+            <div
+              key={entry.countryCode}
+              onClick={(e) => onStampClick(entry, e)}
+            >
+              <CountryStamp
+                entry={entry}
+                themeColor={themeColor}
+                isSelected={selectedEntry?.countryCode === entry.countryCode}
+              />
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
+          {stamps.slice(0, 6).map((_, i) => (
+            <Skeleton key={i} className="aspect-[4/3] rounded-lg" />
+          ))}
+        </div>
+      )}
+    </section>
+  )
+})
 
 interface PassportStampsProps {
   entries: PassportEntry[]
@@ -121,31 +209,16 @@ export function PassportStamps({ entries, isLoading, themeColor }: PassportStamp
   return (
     <div ref={containerRef} className="relative space-y-6">
       {groupedByContinent.map(({ continent, stamps }, groupIndex) => (
-        <section key={continent} className="animate-fade-up" style={{ animationDelay: `${groupIndex * 50}ms` }}>
-          {/* Continent header */}
-          <h2 className="text-sm font-medium text-muted-foreground mb-3 flex items-center gap-2">
-            {continentNames[continent] || continent}
-            <span className="text-xs bg-muted px-1.5 py-0.5 rounded-full font-mono">
-              {stamps.length}
-            </span>
-          </h2>
-
-          {/* Stamp grid */}
-          <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
-            {stamps.map((entry) => (
-              <div
-                key={entry.countryCode}
-                onClick={(e) => handleStampClick(entry, e)}
-              >
-                <CountryStamp
-                  entry={entry}
-                  themeColor={themeColor}
-                  isSelected={selectedEntry?.countryCode === entry.countryCode}
-                />
-              </div>
-            ))}
-          </div>
-        </section>
+        <LazyContinentSection
+          key={continent}
+          continent={continent}
+          stamps={stamps}
+          groupIndex={groupIndex}
+          continentNames={continentNames}
+          selectedEntry={selectedEntry}
+          onStampClick={handleStampClick}
+          themeColor={themeColor}
+        />
       ))}
 
       {/* Popup overlay */}

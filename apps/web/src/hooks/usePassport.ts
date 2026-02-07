@@ -1,3 +1,4 @@
+import { useMemo } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import {
@@ -9,7 +10,6 @@ import {
   deleteGroundVisit,
   unclaimCountry,
   getCountryStats,
-  getPassportStats,
   isCountryClaimed,
   type CountryClaim,
 } from '@/lib/passport'
@@ -18,7 +18,6 @@ import type { PassportEntry, CountryStats, GroundVisit, EntryMethod } from '@kuu
 
 const PASSPORT_COUNTRIES_KEY = 'passportCountries'
 const PASSPORT_CLAIMS_KEY = 'passportClaims'
-const PASSPORT_STATS_KEY = 'passportStats'
 const COUNTRY_STATS_KEY = 'countryStats'
 const GROUND_VISITS_KEY = 'groundVisits'
 
@@ -57,15 +56,16 @@ export function usePassportClaims() {
 }
 
 /**
- * Hook for passport summary stats
+ * Hook for passport summary stats — derived from cached countries data
+ * to avoid a redundant Supabase round-trip (getPassportStats internally
+ * calls getUserCountries which is already cached by usePassportCountries).
  */
 export function usePassportStats() {
-  const userId = useAuthStore((state) => state.user?.id)
+  const { data: entries } = usePassportCountries()
 
-  return useQuery({
-    queryKey: [PASSPORT_STATS_KEY, userId],
-    queryFn: () => {
-      if (!userId) return {
+  const stats = useMemo(() => {
+    if (!entries || entries.length === 0) {
+      return {
         countriesCount: 0,
         continentsCount: 0,
         flightCountries: 0,
@@ -73,11 +73,52 @@ export function usePassportStats() {
         newThisYear: 0,
         lastStamp: null,
       }
-      return getPassportStats(userId)
-    },
-    enabled: !!userId,
-    staleTime: 2 * 60 * 1000,
-  })
+    }
+
+    const continents = new Set(entries.map(e => e.continent))
+    const currentYear = new Date().getFullYear()
+
+    let flightCountries = 0
+    let groundCountries = 0
+    let newThisYear = 0
+    let lastStamp: { countryCode: string; countryName: string; date: string } | null = null
+    let latestDate = ''
+
+    for (const entry of entries) {
+      if (entry.source === 'flight') {
+        flightCountries++
+      } else if (entry.source === 'claim') {
+        groundCountries++
+      } else {
+        flightCountries++
+      }
+
+      const firstVisitYear = new Date(entry.firstVisit).getFullYear()
+      if (firstVisitYear === currentYear) {
+        newThisYear++
+      }
+
+      if (entry.firstVisit > latestDate) {
+        latestDate = entry.firstVisit
+        lastStamp = {
+          countryCode: entry.countryCode,
+          countryName: entry.countryName,
+          date: entry.firstVisit,
+        }
+      }
+    }
+
+    return {
+      countriesCount: entries.length,
+      continentsCount: continents.size,
+      flightCountries,
+      groundCountries,
+      newThisYear,
+      lastStamp,
+    }
+  }, [entries])
+
+  return { data: stats }
 }
 
 /**
@@ -118,7 +159,7 @@ export function useGroundVisits(countryCode: string | null) {
 function invalidatePassportQueries(queryClient: ReturnType<typeof useQueryClient>) {
   queryClient.invalidateQueries({ queryKey: [PASSPORT_COUNTRIES_KEY] })
   queryClient.invalidateQueries({ queryKey: [PASSPORT_CLAIMS_KEY] })
-  queryClient.invalidateQueries({ queryKey: [PASSPORT_STATS_KEY] })
+  // Stats are derived from countries via useMemo — no separate invalidation needed
   queryClient.invalidateQueries({ queryKey: ['userStats'] })
   queryClient.invalidateQueries({ queryKey: ['flightStats'] })
 }
