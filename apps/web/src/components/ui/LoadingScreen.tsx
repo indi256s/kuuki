@@ -1,5 +1,4 @@
 import { useMemo } from 'react'
-import { PlaneAnimation } from '@/components/common/PlaneAnimation'
 import { cn } from '@/lib/utils'
 import { getProcessingMessage } from '@/lib/glados-text'
 
@@ -14,18 +13,11 @@ export function LoadingScreen({ className, message }: LoadingScreenProps) {
     const displayMessage = message ?? defaultMessage
     return (
         <div className={cn("fixed inset-0 z-50 flex flex-col items-center justify-center bg-background", className)}>
-            {/* Background Animation */}
-            <PlaneAnimation count={40} variant="vibrant" className="opacity-50" />
-
             <div className="relative z-10 flex flex-col items-center gap-6 animate-fade-in">
-                {/* Brand Mark with Pulse */}
+                {/* Brand Mark */}
                 <div className="relative">
-                    <div className="absolute inset-0 bg-primary/20 blur-xl rounded-full animate-pulse" />
                     <span
                         className="relative text-6xl font-bold font-display select-none text-primary"
-                        style={{
-                            textShadow: '0 0 30px rgba(var(--primary), 0.3)'
-                        }}
                     >
                         Kuuki
                         {/* Hiragana watermark overlay */}
@@ -33,6 +25,13 @@ export function LoadingScreen({ className, message }: LoadingScreenProps) {
                             くうき
                         </span>
                     </span>
+                </div>
+
+                {/* Lightweight pulsing dots spinner */}
+                <div className="flex items-center gap-1.5" aria-hidden="true">
+                    <span className="w-2 h-2 rounded-full bg-primary/60 animate-[pulse-dot_1.4s_ease-in-out_infinite]" />
+                    <span className="w-2 h-2 rounded-full bg-primary/60 animate-[pulse-dot_1.4s_ease-in-out_0.2s_infinite]" />
+                    <span className="w-2 h-2 rounded-full bg-primary/60 animate-[pulse-dot_1.4s_ease-in-out_0.4s_infinite]" />
                 </div>
 
                 {/* Loading Message */}
