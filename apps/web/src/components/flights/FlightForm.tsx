@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -124,20 +124,29 @@ export function FlightForm({ isOpen, onClose, editFlight, onDelete }: FlightForm
   const watchOrigin = form.watch('origin')
   const watchDestination = form.watch('destination')
 
+  // Use ref to avoid including the mutation object in the dependency array
+  // (useMutation returns a new object reference on every state change, causing infinite loops)
+  const checkDuplicateRef = useRef(checkDuplicate)
+  checkDuplicateRef.current = checkDuplicate
+
   useEffect(() => {
     if (watchDate && watchOrigin && watchDestination && watchOrigin.length === 3 && watchDestination.length === 3) {
-      checkDuplicate.mutate(
-        { date: watchDate, origin: watchOrigin, destination: watchDestination, excludeId: editFlight?.id },
-        {
-          onSuccess: (isDuplicate) => {
-            setDuplicateWarning(isDuplicate)
-          },
-        }
-      )
+      // Debounce to avoid firing while user is still typing
+      const timer = setTimeout(() => {
+        checkDuplicateRef.current.mutate(
+          { date: watchDate, origin: watchOrigin, destination: watchDestination, excludeId: editFlight?.id },
+          {
+            onSuccess: (isDuplicate) => {
+              setDuplicateWarning(isDuplicate)
+            },
+          }
+        )
+      }, 300)
+      return () => clearTimeout(timer)
     } else {
       setDuplicateWarning(false)
     }
-  }, [watchDate, watchOrigin, watchDestination, editFlight?.id, checkDuplicate])
+  }, [watchDate, watchOrigin, watchDestination, editFlight?.id])
 
   const onSubmit = useCallback(async (data: FlightFormData) => {
     form.clearErrors('root')
