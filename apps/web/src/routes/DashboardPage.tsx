@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, lazy, Suspense } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Plus } from 'lucide-react'
 
@@ -7,24 +7,50 @@ import { useFlightStats } from '@/hooks/useStats'
 import { useSyncUpcomingFlights } from '@/hooks/useFlights'
 import { useDashboardStore } from '@/stores/dashboardStore'
 import {
-  DashboardGrid,
   YearFilter,
   MapCard,
   UpcomingFlightsBanner,
   MicroBadgeStatCard,
-  AircraftTypesCard,
-  ManufacturerCard,
-  ContinentProgressCard,
-  DeparturePatternCard,
-  DurationStatsCard,
   EmptyState
 } from '@/components/dashboard'
+import { Skeleton } from '@/components/ui/skeleton'
 import { FlightForm } from '@/components/flights/FlightForm'
 import { AppHeader } from '@/components/common/AppHeader'
 import { MobileHeader } from '@/components/layout/MobileHeader'
 import { MobileTabBar } from '@/components/layout/MobileTabBar'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
+
+const LazyAnalysisDeck = lazy(() => import('@/components/dashboard/AnalysisDeck'))
+
+function AnalysisDeckSkeleton() {
+  return (
+    <div className="grid grid-cols-1 gap-6 lg:grid-cols-3 lg:auto-rows-auto">
+      {Array.from({ length: 5 }).map((_, i) => (
+        <div key={i} className="rounded-2xl border border-border/50 bg-card p-5">
+          <div className="flex items-center gap-3 mb-4">
+            <Skeleton className="w-9 h-9 rounded-lg" />
+            <div className="flex-1 space-y-1.5">
+              <Skeleton className="h-3.5 w-28" />
+              <Skeleton className="h-2.5 w-40" />
+            </div>
+          </div>
+          <div className="space-y-3">
+            {Array.from({ length: 3 }).map((_, j) => (
+              <div key={j} className="space-y-1">
+                <div className="flex justify-between">
+                  <Skeleton className="h-3 w-20" />
+                  <Skeleton className="h-3 w-8" />
+                </div>
+                <Skeleton className="h-1.5 w-full rounded-full" />
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
 
 export function DashboardPage() {
   const { t } = useTranslation()
@@ -142,14 +168,10 @@ export function DashboardPage() {
               <MicroBadgeStatCard trackId="continents" />
             </div>
 
-            {/* Analysis Deck */}
-            <DashboardGrid>
-              <AircraftTypesCard />
-              <ManufacturerCard />
-              <ContinentProgressCard />
-              <DeparturePatternCard />
-              <DurationStatsCard />
-            </DashboardGrid>
+            {/* Analysis Deck (lazy-loaded) */}
+            <Suspense fallback={<AnalysisDeckSkeleton />}>
+              <LazyAnalysisDeck />
+            </Suspense>
           </div>
         ) : (
           <div className="animate-fade-up">

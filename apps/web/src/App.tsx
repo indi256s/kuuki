@@ -1,19 +1,22 @@
+import { lazy, Suspense } from 'react'
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom'
 import { QueryClient, QueryClientProvider, QueryCache } from '@tanstack/react-query'
 import { LandingPage } from '@/routes/LandingPage'
 import { AuthPage } from '@/routes/AuthPage'
-import { DashboardPage } from '@/routes/DashboardPage'
-import { FlightsPage } from '@/routes/FlightsPage'
-import { ImportPage } from '@/routes/ImportPage'
-import { OnboardingPage } from '@/routes/OnboardingPage'
-import { ProfilePage } from '@/routes/ProfilePage'
-import { LeaderboardPage } from '@/routes/LeaderboardPage'
-import { PassportPage } from '@/routes/PassportPage'
-import { SettingsPage } from '@/routes/SettingsPage'
-import { DevResetPage } from '@/routes/DevResetPage'
 import { ProtectedRoute } from '@/components/ProtectedRoute'
 import { ToastProvider, ErrorBoundary } from '@/components/error'
 import { ImportNotificationManager } from '@/components/import/ImportNotificationManager'
+import { LoadingScreen } from '@/components/ui/LoadingScreen'
+
+const DashboardPage = lazy(() => import('@/routes/DashboardPage').then(m => ({ default: m.DashboardPage })))
+const FlightsPage = lazy(() => import('@/routes/FlightsPage').then(m => ({ default: m.FlightsPage })))
+const ImportPage = lazy(() => import('@/routes/ImportPage').then(m => ({ default: m.ImportPage })))
+const OnboardingPage = lazy(() => import('@/routes/OnboardingPage').then(m => ({ default: m.OnboardingPage })))
+const ProfilePage = lazy(() => import('@/routes/ProfilePage').then(m => ({ default: m.ProfilePage })))
+const LeaderboardPage = lazy(() => import('@/routes/LeaderboardPage').then(m => ({ default: m.LeaderboardPage })))
+const PassportPage = lazy(() => import('@/routes/PassportPage').then(m => ({ default: m.PassportPage })))
+const SettingsPage = lazy(() => import('@/routes/SettingsPage').then(m => ({ default: m.SettingsPage })))
+const DevResetPage = lazy(() => import('@/routes/DevResetPage').then(m => ({ default: m.DevResetPage })))
 
 /**
  * React Query configuration with:
@@ -64,6 +67,7 @@ function RouteErrorBoundary({ children }: { children: React.ReactNode }) {
  */
 function AppRoutes() {
   return (
+    <Suspense fallback={<LoadingScreen />}>
     <RouteErrorBoundary>
       <Routes>
         <Route path="/" element={<AuthPage />} />
@@ -130,6 +134,7 @@ function AppRoutes() {
         <Route path="/leaderboard" element={<LeaderboardPage />} />
       </Routes>
     </RouteErrorBoundary>
+    </Suspense>
   )
 }
 

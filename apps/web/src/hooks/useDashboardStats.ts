@@ -66,29 +66,7 @@ export function useDashboardStats() {
                     lte: `${selectedYear}-12-31`,
                 }
 
-            // Fetch basic stats
-            const { data: stats, error: statsError } = await supabase
-                .from('user_stats')
-                .select('*')
-                .eq('user_id', userId)
-                .single()
-
-            if (statsError && statsError.code !== 'PGRST116') {
-                throw statsError
-            }
-
-            // Fetch upcoming flights (up to 5 for dashboard display)
-            const { data: upcoming, error: upcomingError } = await supabase
-                .from('flights')
-                .select('id, date, origin, destination, airline_iata, flight_number')
-                .eq('user_id', userId)
-                .eq('is_upcoming', true)
-                .order('date', { ascending: true })
-                .limit(5)
-
-            if (upcomingError) throw upcomingError
-
-            // Fetch year-filtered flights for favorites and countries calculation
+            // Build year-filtered flights query
             let favoritesQuery = supabase
                 .from('flights')
                 .select('airline_iata, aircraft_icao, origin, destination')
@@ -101,8 +79,31 @@ export function useDashboardStats() {
                     .lte('date', yearFilter.lte)
             }
 
-            const { data: flights, error: flightsError } = await favoritesQuery
+            // Fire all 3 independent queries in parallel
+            const [
+                { data: stats, error: statsError },
+                { data: upcoming, error: upcomingError },
+                { data: flights, error: flightsError },
+            ] = await Promise.all([
+                supabase
+                    .from('user_stats')
+                    .select('*')
+                    .eq('user_id', userId)
+                    .single(),
+                supabase
+                    .from('flights')
+                    .select('id, date, origin, destination, airline_iata, flight_number')
+                    .eq('user_id', userId)
+                    .eq('is_upcoming', true)
+                    .order('date', { ascending: true })
+                    .limit(5),
+                favoritesQuery,
+            ])
 
+            if (statsError && statsError.code !== 'PGRST116') {
+                throw statsError
+            }
+            if (upcomingError) throw upcomingError
             if (flightsError) throw flightsError
 
             // Extract visited countries from airport codes

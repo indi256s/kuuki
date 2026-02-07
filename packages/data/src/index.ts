@@ -14,13 +14,72 @@ export const airports: Airport[] = airportsData as Airport[]
 // Airline data (major airlines)
 export const airlines: Airline[] = airlinesData as Airline[]
 
+// Lazy-initialized lookup Maps
+let aircraftByIcaoMap: Map<string, Aircraft> | null = null
+let aircraftByIataMap: Map<string, Aircraft> | null = null
+let airportByIataMap: Map<string, Airport> | null = null
+let airportByIcaoMap: Map<string, Airport> | null = null
+let airlineByIataMap: Map<string, Airline> | null = null
+let airlineByIcaoMap: Map<string, Airline> | null = null
+
+function getAircraftByIcaoMap(): Map<string, Aircraft> {
+  if (!aircraftByIcaoMap) {
+    aircraftByIcaoMap = new Map(aircraft.map(a => [a.icao.toUpperCase(), a]))
+  }
+  return aircraftByIcaoMap
+}
+
+function getAircraftByIataMap(): Map<string, Aircraft> {
+  if (!aircraftByIataMap) {
+    aircraftByIataMap = new Map()
+    for (const a of aircraft) {
+      if (a.iata) aircraftByIataMap.set(a.iata.toUpperCase(), a)
+    }
+  }
+  return aircraftByIataMap
+}
+
+function getAirportByIataMap(): Map<string, Airport> {
+  if (!airportByIataMap) {
+    airportByIataMap = new Map(airports.map(a => [a.iata.toUpperCase(), a]))
+  }
+  return airportByIataMap
+}
+
+function getAirportByIcaoMap(): Map<string, Airport> {
+  if (!airportByIcaoMap) {
+    airportByIcaoMap = new Map()
+    for (const a of airports) {
+      if (a.icao) airportByIcaoMap.set(a.icao.toUpperCase(), a)
+    }
+  }
+  return airportByIcaoMap
+}
+
+function getAirlineByIataMap(): Map<string, Airline> {
+  if (!airlineByIataMap) {
+    airlineByIataMap = new Map(airlines.map(a => [a.iata.toUpperCase(), a]))
+  }
+  return airlineByIataMap
+}
+
+function getAirlineByIcaoMap(): Map<string, Airline> {
+  if (!airlineByIcaoMap) {
+    airlineByIcaoMap = new Map()
+    for (const a of airlines) {
+      if (a.icao) airlineByIcaoMap.set(a.icao.toUpperCase(), a)
+    }
+  }
+  return airlineByIcaoMap
+}
+
 // Aircraft lookup helpers
 export function findAircraft(icao: string): Aircraft | undefined {
-  return aircraft.find(a => a.icao.toUpperCase() === icao.toUpperCase())
+  return getAircraftByIcaoMap().get(icao.toUpperCase())
 }
 
 export function findAircraftByIata(iata: string): Aircraft | undefined {
-  return aircraft.find(a => a.iata?.toUpperCase() === iata.toUpperCase())
+  return getAircraftByIataMap().get(iata.toUpperCase())
 }
 
 export function searchAircraft(query: string): Aircraft[] {
@@ -36,11 +95,11 @@ export function searchAircraft(query: string): Aircraft[] {
 
 // Airport lookup helpers
 export function findAirport(iata: string): Airport | undefined {
-  return airports.find(a => a.iata.toUpperCase() === iata.toUpperCase())
+  return getAirportByIataMap().get(iata.toUpperCase())
 }
 
 export function findAirportByIcao(icao: string): Airport | undefined {
-  return airports.find(a => a.icao?.toUpperCase() === icao.toUpperCase())
+  return getAirportByIcaoMap().get(icao.toUpperCase())
 }
 
 export function searchAirports(query: string): Airport[] {
@@ -56,11 +115,11 @@ export function searchAirports(query: string): Airport[] {
 
 // Airline lookup helpers
 export function findAirline(iata: string): Airline | undefined {
-  return airlines.find(a => a.iata.toUpperCase() === iata.toUpperCase())
+  return getAirlineByIataMap().get(iata.toUpperCase())
 }
 
 export function findAirlineByIcao(icao: string): Airline | undefined {
-  return airlines.find(a => a.icao?.toUpperCase() === icao.toUpperCase())
+  return getAirlineByIcaoMap().get(icao.toUpperCase())
 }
 
 export function searchAirlines(query: string): Airline[] {
