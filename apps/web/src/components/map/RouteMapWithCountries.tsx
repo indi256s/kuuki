@@ -37,18 +37,47 @@ interface ArcData {
   airlineColor: string
 }
 
-// ISO numeric to alpha-2 mapping for common countries
+// ISO numeric to alpha-2 mapping for all countries in world-atlas TopoJSON
 const numericToAlpha2: Record<string, string> = {
+  // Americas
   '840': 'US', '124': 'CA', '484': 'MX', '076': 'BR', '032': 'AR', '152': 'CL',
+  '604': 'PE', '170': 'CO', '858': 'UY', '600': 'PY', '068': 'BO', '218': 'EC',
+  '862': 'VE', '328': 'GY', '740': 'SR', '591': 'PA', '188': 'CR', '558': 'NI',
+  '340': 'HN', '222': 'SV', '320': 'GT', '084': 'BZ', '192': 'CU', '388': 'JM',
+  '332': 'HT', '214': 'DO', '630': 'PR', '044': 'BS', '780': 'TT', '238': 'FK',
+  // Europe
   '826': 'GB', '250': 'FR', '276': 'DE', '380': 'IT', '724': 'ES', '620': 'PT',
   '528': 'NL', '056': 'BE', '756': 'CH', '040': 'AT', '616': 'PL', '203': 'CZ',
   '752': 'SE', '578': 'NO', '246': 'FI', '208': 'DK', '372': 'IE', '300': 'GR',
-  '643': 'RU', '804': 'UA', '792': 'TR', '392': 'JP', '156': 'CN', '410': 'KR',
-  '764': 'TH', '704': 'VN', '360': 'ID', '702': 'SG', '458': 'MY', '608': 'PH',
-  '356': 'IN', '036': 'AU', '554': 'NZ', '710': 'ZA', '818': 'EG', '504': 'MA',
-  '404': 'KE', '566': 'NG', '784': 'AE', '682': 'SA', '376': 'IL', '634': 'QA',
-  '604': 'PE', '170': 'CO', '344': 'HK', '158': 'TW',
+  '643': 'RU', '804': 'UA', '792': 'TR', '348': 'HU', '642': 'RO', '100': 'BG',
+  '688': 'RS', '191': 'HR', '070': 'BA', '499': 'ME', '008': 'AL', '807': 'MK',
+  '703': 'SK', '705': 'SI', '440': 'LT', '428': 'LV', '233': 'EE', '112': 'BY',
+  '498': 'MD', '352': 'IS', '442': 'LU', '196': 'CY', '304': 'GL',
+  // Middle East & Central Asia 
+  '376': 'IL', '400': 'JO', '422': 'LB', '760': 'SY', '368': 'IQ', '364': 'IR',
+  '784': 'AE', '682': 'SA', '634': 'QA', '414': 'KW', '512': 'OM', '887': 'YE',
+  '051': 'AM', '268': 'GE', '031': 'AZ', '398': 'KZ', '860': 'UZ', '762': 'TJ',
+  '417': 'KG', '795': 'TM', '004': 'AF', '275': 'PS',
+  // Asia-Pacific
+  '392': 'JP', '156': 'CN', '410': 'KR', '408': 'KP', '496': 'MN', '158': 'TW',
+  '344': 'HK', '764': 'TH', '704': 'VN', '360': 'ID', '702': 'SG', '458': 'MY',
+  '608': 'PH', '096': 'BN', '626': 'TL', '104': 'MM', '418': 'LA', '116': 'KH',
+  '356': 'IN', '586': 'PK', '050': 'BD', '144': 'LK', '524': 'NP', '064': 'BT',
+  '036': 'AU', '554': 'NZ', '598': 'PG', '090': 'SB', '548': 'VU', '540': 'NC', '242': 'FJ',
+  // Africa
+  '710': 'ZA', '818': 'EG', '504': 'MA', '404': 'KE', '566': 'NG', '012': 'DZ',
+  '434': 'LY', '788': 'TN', '729': 'SD', '148': 'TD', '562': 'NE', '466': 'ML',
+  '478': 'MR', '686': 'SN', '270': 'GM', '324': 'GN', '624': 'GW', '694': 'SL',
+  '430': 'LR', '384': 'CI', '854': 'BF', '288': 'GH', '768': 'TG', '204': 'BJ',
+  '120': 'CM', '140': 'CF', '178': 'CG', '180': 'CD', '800': 'UG', '646': 'RW',
+  '108': 'BI', '834': 'TZ', '706': 'SO', '231': 'ET', '232': 'ER', '262': 'DJ',
+  '894': 'ZM', '716': 'ZW', '072': 'BW', '516': 'NA', '508': 'MZ', '454': 'MW',
+  '426': 'LS', '748': 'SZ', '024': 'AO', '266': 'GA', '226': 'GQ', '450': 'MG',
+  '732': 'EH', '728': 'SS',
+  // Other
+  '010': 'AQ', '260': 'TF',
 }
+
 
 export function RouteMapWithCountries({
   flights: propFlights,
@@ -183,11 +212,9 @@ export function RouteMapWithCountries({
     return { center: [centerLon, centerLat] as [number, number], scale }
   }, [flights])
 
-  const handleCountryClick = useCallback((geo: { properties: { ISO_A2?: string; ISO_N3?: string } }) => {
+  const handleCountryClick = useCallback((geo: { id?: string }) => {
     if (!onCountryClick) return
-    const alpha2 = geo.properties.ISO_A2 !== '-99'
-      ? geo.properties.ISO_A2
-      : numericToAlpha2[geo.properties.ISO_N3 || '']
+    const alpha2 = geo.id ? numericToAlpha2[geo.id] : undefined
     if (alpha2) onCountryClick(alpha2)
   }, [onCountryClick])
 
@@ -197,10 +224,8 @@ export function RouteMapWithCountries({
     return Math.max(1, ...Object.values(visitCountMap))
   }, [heatmapMode, visitCountMap])
 
-  const getCountryColor = useCallback((geo: { properties: { ISO_A2?: string; ISO_N3?: string } }) => {
-    const alpha2 = geo.properties.ISO_A2 !== '-99'
-      ? geo.properties.ISO_A2
-      : numericToAlpha2[geo.properties.ISO_N3 || '']
+  const getCountryColor = useCallback((geo: { id?: string }) => {
+    const alpha2 = geo.id ? numericToAlpha2[geo.id] : undefined
 
     if (alpha2 && visitedSet.has(alpha2)) {
       const data = getCountryData(alpha2)
@@ -288,9 +313,7 @@ export function RouteMapWithCountries({
           <Geographies geography={GEO_URL}>
             {({ geographies }) =>
               geographies.map((geo) => {
-                const alpha2 = geo.properties.ISO_A2 !== '-99'
-                  ? geo.properties.ISO_A2
-                  : numericToAlpha2[geo.properties.ISO_N3]
+                const alpha2 = geo.id ? numericToAlpha2[geo.id] : undefined
                 const isVisited = alpha2 && visitedSet.has(alpha2)
 
                 const opacity = getCountryOpacity(alpha2, !!isVisited)
