@@ -95,20 +95,26 @@ export function AppHeader({ onAddFlight, showAddButton = false }: AppHeaderProps
             onChange={setAccentColor}
           />
 
-          {/* Founding Crew badge */}
-          {isFoundingUser && (
-            <span className="inline-flex items-center gap-1 text-xs bg-primary/15 text-primary px-2 py-1 rounded-full font-medium">
-              <Sparkles className="w-3 h-3" />
-              {t('profile.foundingUser')}
-            </span>
-          )}
-
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="relative w-9 h-9 rounded-full">
-                <div className="w-full h-full rounded-full bg-secondary flex items-center justify-center text-xs font-medium">
+              <Button
+                variant="ghost"
+                size={isFoundingUser ? 'default' : 'icon'}
+                className={`relative rounded-full transition-all duration-300 ${isFoundingUser
+                  ? 'pl-1 pr-3 py-1 h-9 gap-2 bg-primary/10 hover:bg-primary/20 text-primary'
+                  : 'w-9 h-9'
+                  }`}
+              >
+                <div className={`rounded-full bg-secondary flex items-center justify-center text-xs font-medium text-foreground transition-all ${isFoundingUser ? 'w-7 h-7' : 'w-full h-full'
+                  }`}>
                   {initials}
                 </div>
+                {isFoundingUser && (
+                  <span className="flex items-center gap-1.5 text-xs font-medium">
+                    <Sparkles className="w-3.5 h-3.5" />
+                    {t('profile.foundingUser')}
+                  </span>
+                )}
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48">
