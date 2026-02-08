@@ -6,6 +6,7 @@ import { AuthPage } from '@/routes/AuthPage'
 import { ProtectedRoute } from '@/components/ProtectedRoute'
 import { ToastProvider, ErrorBoundary } from '@/components/error'
 import { ImportNotificationManager } from '@/components/import/ImportNotificationManager'
+import { BadgeNotificationManager } from '@/components/badges'
 import { LoadingScreen } from '@/components/ui/LoadingScreen'
 import { Agentation } from 'agentation'
 
@@ -146,6 +147,7 @@ export default function App() {
         <AppRoutes />
         <ToastProvider />
         <ImportNotificationManager />
+        <BadgeNotificationManager />
         {import.meta.env.DEV && <Agentation />}
       </BrowserRouter>
     </QueryClientProvider>
