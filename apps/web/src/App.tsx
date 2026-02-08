@@ -18,6 +18,7 @@ const LeaderboardPage = lazy(() => import('@/routes/LeaderboardPage').then(m => 
 const PassportPage = lazy(() => import('@/routes/PassportPage').then(m => ({ default: m.PassportPage })))
 const SettingsPage = lazy(() => import('@/routes/SettingsPage').then(m => ({ default: m.SettingsPage })))
 const DevResetPage = lazy(() => import('@/routes/DevResetPage').then(m => ({ default: m.DevResetPage })))
+const JourneyPlannerPage = lazy(() => import('@/routes/JourneyPlannerPage').then(m => ({ default: m.JourneyPlannerPage })))
 
 /**
  * React Query configuration with:
@@ -120,6 +121,14 @@ function AppRoutes() {
             element={
               <ProtectedRoute>
                 <SettingsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/journey"
+            element={
+              <ProtectedRoute>
+                <JourneyPlannerPage />
               </ProtectedRoute>
             }
           />
