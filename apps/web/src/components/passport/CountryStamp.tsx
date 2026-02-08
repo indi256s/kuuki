@@ -23,7 +23,7 @@ function formatRelativeDate(dateString: string): string {
 }
 
 function CircleStamp({ entry, onClick, isSelected }: CountryStampProps) {
-  const relativeDate = formatRelativeDate(entry.firstVisit)
+  const relativeDate = formatRelativeDate(entry.lastVisit)
   const borderColor = entry.dominantColor
 
   return (
@@ -164,7 +164,7 @@ function CircleStamp({ entry, onClick, isSelected }: CountryStampProps) {
 }
 
 function RectangleStamp({ entry, onClick, isSelected }: CountryStampProps) {
-  const relativeDate = formatRelativeDate(entry.firstVisit)
+  const relativeDate = formatRelativeDate(entry.lastVisit)
   const borderColor = entry.dominantColor
 
   return (

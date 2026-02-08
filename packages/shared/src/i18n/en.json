@@ -1037,6 +1037,8 @@
     "toggleRoutes": "Show flight routes",
     "toggleClaimed": "Show claimed countries",
     "toggleHeatmap": "Toggle heatmap",
+    "deleteVisit": "Remove from Passport",
+    "deleteConfirm": "Remove this country from your passport? This will delete all ground visit records.",
     "continentBadges": {
       "europhile": "Europhile",
       "asianaut": "Asianaut",

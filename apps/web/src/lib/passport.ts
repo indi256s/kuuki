@@ -445,13 +445,13 @@ export async function getPassportStats(userId: string): Promise<{
       newThisYear++
     }
 
-    // Last stamp (most recent firstVisit)
-    if (entry.firstVisit > latestDate) {
-      latestDate = entry.firstVisit
+    // Last stamp (most recent lastVisit)
+    if (entry.lastVisit > latestDate) {
+      latestDate = entry.lastVisit
       lastStamp = {
         countryCode: entry.countryCode,
         countryName: entry.countryName,
-        date: entry.firstVisit,
+        date: entry.lastVisit,
       }
     }
   }

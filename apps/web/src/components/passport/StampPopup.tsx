@@ -1,6 +1,7 @@
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { X, Plane, Calendar, Ship, Car } from 'lucide-react'
-import { useCountryStats } from '@/hooks/usePassport'
+import { X, Plane, Calendar, Ship, Car, Trash2 } from 'lucide-react'
+import { useCountryStats, useUnclaimCountry } from '@/hooks/usePassport'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -52,6 +53,19 @@ function GroundVisitItem({ visit }: { visit: GroundVisit }) {
 export function StampPopup({ entry, onClose }: StampPopupProps) {
   const { t } = useTranslation()
   const { data: stats, isLoading } = useCountryStats(entry.countryCode)
+  const unclaimCountry = useUnclaimCountry()
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+
+  // Can only delete if country is claimed (not flight-only)
+  const canDelete = stats?.isClaimed && entry.source !== 'flight'
+
+  const handleDelete = () => {
+    unclaimCountry.mutate(entry.countryCode, {
+      onSuccess: () => {
+        onClose()
+      }
+    })
+  }
 
   return (
     <Card className="w-80 shadow-lg border-border/50 animate-in fade-in-0 zoom-in-95 duration-200">
@@ -154,6 +168,46 @@ export function StampPopup({ entry, onClose }: StampPopupProps) {
                     <GroundVisitItem key={visit.id} visit={visit} />
                   ))}
                 </div>
+              </div>
+            )}
+
+            {/* Delete button for claimed countries */}
+            {canDelete && (
+              <div className="pt-2 border-t border-border/50">
+                {showDeleteConfirm ? (
+                  <div className="space-y-2">
+                    <p className="text-xs text-muted-foreground">
+                      {t('passport.deleteConfirm', 'Remove this country from your passport? This will delete all ground visit records.')}
+                    </p>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        className="flex-1 h-8 text-sm"
+                        onClick={() => setShowDeleteConfirm(false)}
+                        disabled={unclaimCountry.isPending}
+                      >
+                        {t('common.cancel', 'Cancel')}
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        className="flex-1 h-8 text-sm"
+                        onClick={handleDelete}
+                        disabled={unclaimCountry.isPending}
+                      >
+                        {unclaimCountry.isPending ? t('common.removing', 'Removing...') : t('common.remove', 'Remove')}
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <Button
+                    variant="ghost"
+                    className="w-full h-8 text-sm text-muted-foreground hover:text-destructive"
+                    onClick={() => setShowDeleteConfirm(true)}
+                  >
+                    <Trash2 className="w-4 h-4 mr-2" />
+                    {t('passport.deleteVisit', 'Remove from Passport')}
+                  </Button>
+                )}
               </div>
             )}
           </>

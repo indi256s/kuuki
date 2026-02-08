@@ -98,12 +98,13 @@ export function usePassportStats() {
         newThisYear++
       }
 
-      if (entry.firstVisit > latestDate) {
-        latestDate = entry.firstVisit
+      // Track most recent visit
+      if (entry.lastVisit > latestDate) {
+        latestDate = entry.lastVisit
         lastStamp = {
           countryCode: entry.countryCode,
           countryName: entry.countryName,
-          date: entry.firstVisit,
+          date: entry.lastVisit,
         }
       }
     }

@@ -1036,6 +1036,8 @@
     "toggleRoutes": "Показать маршруты",
     "toggleClaimed": "Показать добавленные страны",
     "toggleHeatmap": "Тепловая карта",
+    "deleteVisit": "Удалить из паспорта",
+    "deleteConfirm": "Удалить эту страну из паспорта? Все записи о наземных визитах будут удалены.",
     "continentBadges": {
       "europhile": "Европеец",
       "asianaut": "Азианавт",
