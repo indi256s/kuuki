@@ -28,6 +28,7 @@
     "more": "more",
     "moreActions": "More actions",
     "optional": "optional",
+    "remove": "Remove",
     "saving": "Saving...",
     "saved": "Saved"
   },
@@ -991,6 +992,12 @@
     }
   },
   "passport": {
+    "land": "Land",
+    "sea": "Sea",
+    "groundVisits": "Ground visit",
+    "deleteVisitConfirm": "Are you sure?",
+    "deleteVisit": "Remove from Passport",
+    "deleteConfirm": "Remove this country from your passport? This will delete all ground visit records.",
     "title": "Passport",
     "subtitle": "Your collection of visited countries",
     "emptyTagline": "246 countries await",

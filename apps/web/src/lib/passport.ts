@@ -251,11 +251,12 @@ export async function getGroundVisits(userId: string, countryCode: string): Prom
 /**
  * Delete a single ground visit
  */
-export async function deleteGroundVisit(visitId: string): Promise<void> {
+export async function deleteGroundVisit(userId: string, visitId: string): Promise<void> {
   const { error } = await supabase
     .from('ground_visits')
     .delete()
     .eq('id', visitId)
+    .eq('user_id', userId)
 
   if (error) {
     throw new Error(`Failed to delete ground visit: ${error.message}`)

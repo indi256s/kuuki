@@ -248,10 +248,12 @@ export function useAddGroundVisit() {
  */
 export function useDeleteGroundVisit() {
   const queryClient = useQueryClient()
+  const userId = useAuthStore((state) => state.user?.id)
 
   return useMutation({
     mutationFn: async (visitId: string) => {
-      return deleteGroundVisit(visitId)
+      if (!userId) throw new Error('Not authenticated')
+      return deleteGroundVisit(userId, visitId)
     },
     onSuccess: () => {
       invalidatePassportQueries(queryClient)

@@ -400,11 +400,12 @@ describe('passport', () => {
       const chain = createChainMock({ data: null, error: null })
       mockFrom.mockReturnValue(chain)
 
-      await deleteGroundVisit('visit-123')
+      await deleteGroundVisit('user-123', 'visit-123')
 
       expect(mockFrom).toHaveBeenCalledWith('ground_visits')
       expect(chain.delete).toHaveBeenCalled()
       expect(chain.eq).toHaveBeenCalledWith('id', 'visit-123')
+      expect(chain.eq).toHaveBeenCalledWith('user_id', 'user-123')
     })
 
     it('throws error when delete fails', async () => {
@@ -414,7 +415,7 @@ describe('passport', () => {
       })
       mockFrom.mockReturnValue(chain)
 
-      await expect(deleteGroundVisit('visit-123')).rejects.toThrow('Failed to delete ground visit: Delete failed')
+      await expect(deleteGroundVisit('user-123', 'visit-123')).rejects.toThrow('Failed to delete ground visit: Delete failed')
     })
   })
 

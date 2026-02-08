@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { X, Plane, Calendar, Ship, Car, Trash2 } from 'lucide-react'
-import { useCountryStats, useUnclaimCountry } from '@/hooks/usePassport'
+import { useCountryStats, useUnclaimCountry, useDeleteGroundVisit } from '@/hooks/usePassport'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -23,28 +23,64 @@ function formatDate(dateString: string): string {
   })
 }
 
-function GroundVisitItem({ visit }: { visit: GroundVisit }) {
+function GroundVisitItem({ visit, onDelete }: { visit: GroundVisit; onDelete?: () => void }) {
   const { t } = useTranslation()
+  const [isConfirming, setIsConfirming] = useState(false)
 
   return (
-    <div className="flex items-start gap-2 py-1.5">
-      {visit.entryMethod && (
-        <Badge variant="outline" className="text-xs gap-1 shrink-0">
-          {visit.entryMethod === 'land' ? (
-            <><Car className="w-3 h-3" />{t('passport.land', 'Land')}</>
-          ) : (
-            <><Ship className="w-3 h-3" />{t('passport.sea', 'Sea')}</>
-          )}
-        </Badge>
-      )}
-      {visit.visitYear && (
-        <span className="text-xs text-muted-foreground font-mono shrink-0">{visit.visitYear}</span>
-      )}
-      {visit.note && (
-        <span className="text-xs italic text-muted-foreground/80 line-clamp-2">"{visit.note}"</span>
-      )}
-      {!visit.entryMethod && !visit.visitYear && !visit.note && (
-        <span className="text-xs text-muted-foreground">{t('passport.groundVisits', 'Ground visit')}</span>
+    <div className="group flex items-center justify-between py-1.5 hover:bg-muted/50 rounded px-1.5 -mx-1.5 transition-colors">
+      <div className="flex items-start gap-2">
+        {visit.entryMethod && (
+          <Badge variant="outline" className="text-xs gap-1 shrink-0">
+            {visit.entryMethod === 'land' ? (
+              <><Car className="w-3 h-3" />{t('passport.land', 'Land')}</>
+            ) : (
+              <><Ship className="w-3 h-3" />{t('passport.sea', 'Sea')}</>
+            )}
+          </Badge>
+        )}
+        {visit.visitYear && (
+          <span className="text-xs text-muted-foreground font-mono shrink-0">{visit.visitYear}</span>
+        )}
+        {visit.note && (
+          <span className="text-xs italic text-muted-foreground/80 line-clamp-2">"{visit.note}"</span>
+        )}
+        {!visit.entryMethod && !visit.visitYear && !visit.note && (
+          <span className="text-xs text-muted-foreground">{t('passport.groundVisits', 'Ground visit')}</span>
+        )}
+      </div>
+
+      {onDelete && (
+        isConfirming ? (
+          <div className="flex items-center gap-1 animate-in fade-in slide-in-from-right-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-6 w-6 text-muted-foreground hover:text-primary"
+              onClick={() => setIsConfirming(false)}
+            >
+              <X className="h-3 w-3" />
+            </Button>
+            <Button
+              variant="destructive"
+              size="icon"
+              className="h-6 w-6"
+              onClick={onDelete}
+            >
+              <Trash2 className="h-3 w-3" />
+            </Button>
+          </div>
+        ) : (
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive"
+            onClick={() => setIsConfirming(true)}
+          >
+            <Trash2 className="h-3 w-3" />
+            <span className="sr-only">{t('common.remove')}</span>
+          </Button>
+        )
       )}
     </div>
   )
@@ -54,6 +90,7 @@ export function StampPopup({ entry, onClose }: StampPopupProps) {
   const { t } = useTranslation()
   const { data: stats, isLoading } = useCountryStats(entry.countryCode)
   const unclaimCountry = useUnclaimCountry()
+  const deleteGroundVisit = useDeleteGroundVisit()
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
 
   // Can only delete if country is claimed (not flight-only)
@@ -165,7 +202,11 @@ export function StampPopup({ entry, onClose }: StampPopupProps) {
                 </p>
                 <div className="space-y-0.5">
                   {stats.groundVisits.map((visit) => (
-                    <GroundVisitItem key={visit.id} visit={visit} />
+                    <GroundVisitItem
+                      key={visit.id}
+                      visit={visit}
+                      onDelete={() => deleteGroundVisit.mutate(visit.id)}
+                    />
                   ))}
                 </div>
               </div>
