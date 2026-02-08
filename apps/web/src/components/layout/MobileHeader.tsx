@@ -1,8 +1,10 @@
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
+import { Sparkles } from 'lucide-react'
 import { KuukiIcon } from '@/components/common/KuukiIcon'
 import { AccentPicker } from '@/components/common/AccentPicker'
 import { useAccentColor } from '@/hooks/useAccentColor'
+import { useUserBadges } from '@/hooks/useBadges'
 
 interface MobileHeaderProps {
   /** Optional title to show instead of/alongside the logo */
@@ -22,6 +24,8 @@ interface MobileHeaderProps {
 export function MobileHeader({ title, action }: MobileHeaderProps) {
   const { t } = useTranslation()
   const { accentColor, setAccentColor } = useAccentColor()
+  const { data: badges } = useUserBadges()
+  const isFoundingUser = badges?.some(b => b.badge.code === 'founding-user')
 
   return (
     <header
@@ -45,6 +49,12 @@ export function MobileHeader({ title, action }: MobileHeaderProps) {
             value={accentColor}
             onChange={setAccentColor}
           />
+          {isFoundingUser && (
+            <span className="inline-flex items-center gap-1 text-xs bg-primary/15 text-primary px-2 py-1 rounded-full font-medium">
+              <Sparkles className="w-3 h-3" />
+              {t('profile.foundingUser')}
+            </span>
+          )}
           {action}
         </div>
       </div>

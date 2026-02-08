@@ -13,7 +13,6 @@ const DashboardPage = lazy(() => import('@/routes/DashboardPage').then(m => ({ d
 const FlightsPage = lazy(() => import('@/routes/FlightsPage').then(m => ({ default: m.FlightsPage })))
 const ImportPage = lazy(() => import('@/routes/ImportPage').then(m => ({ default: m.ImportPage })))
 const OnboardingPage = lazy(() => import('@/routes/OnboardingPage').then(m => ({ default: m.OnboardingPage })))
-const ProfilePage = lazy(() => import('@/routes/ProfilePage').then(m => ({ default: m.ProfilePage })))
 const LeaderboardPage = lazy(() => import('@/routes/LeaderboardPage').then(m => ({ default: m.LeaderboardPage })))
 const PassportPage = lazy(() => import('@/routes/PassportPage').then(m => ({ default: m.PassportPage })))
 const SettingsPage = lazy(() => import('@/routes/SettingsPage').then(m => ({ default: m.SettingsPage })))
@@ -71,72 +70,71 @@ function RouteErrorBoundary({ children }: { children: React.ReactNode }) {
 function AppRoutes() {
   return (
     <Suspense fallback={<LoadingScreen />}>
-    <RouteErrorBoundary>
-      <Routes>
-        <Route path="/" element={<AuthPage />} />
-        <Route path="/landing" element={<LandingPage />} />
-        <Route
-          path="/onboarding"
-          element={
-            <ProtectedRoute>
-              <OnboardingPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/dashboard"
-          element={
-            <ProtectedRoute>
-              <DashboardPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/flights"
-          element={
-            <ProtectedRoute>
-              <FlightsPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/import"
-          element={
-            <ProtectedRoute>
-              <ImportPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/passport"
-          element={
-            <ProtectedRoute>
-              <PassportPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/settings"
-          element={
-            <ProtectedRoute>
-              <SettingsPage />
-            </ProtectedRoute>
-          }
-        />
-        {/* Dev tools */}
-        <Route
-          path="/dev/reset"
-          element={
-            <ProtectedRoute>
-              <DevResetPage />
-            </ProtectedRoute>
-          }
-        />
-        {/* Public routes */}
-        <Route path="/fly/:username" element={<ProfilePage />} />
-        <Route path="/leaderboard" element={<LeaderboardPage />} />
-      </Routes>
-    </RouteErrorBoundary>
+      <RouteErrorBoundary>
+        <Routes>
+          <Route path="/" element={<AuthPage />} />
+          <Route path="/landing" element={<LandingPage />} />
+          <Route
+            path="/onboarding"
+            element={
+              <ProtectedRoute>
+                <OnboardingPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/dashboard"
+            element={
+              <ProtectedRoute>
+                <DashboardPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/flights"
+            element={
+              <ProtectedRoute>
+                <FlightsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/import"
+            element={
+              <ProtectedRoute>
+                <ImportPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/passport"
+            element={
+              <ProtectedRoute>
+                <PassportPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/settings"
+            element={
+              <ProtectedRoute>
+                <SettingsPage />
+              </ProtectedRoute>
+            }
+          />
+          {/* Dev tools */}
+          <Route
+            path="/dev/reset"
+            element={
+              <ProtectedRoute>
+                <DevResetPage />
+              </ProtectedRoute>
+            }
+          />
+          {/* Public routes */}
+          <Route path="/leaderboard" element={<LeaderboardPage />} />
+        </Routes>
+      </RouteErrorBoundary>
     </Suspense>
   )
 }
