@@ -2,7 +2,7 @@ import { useTranslation } from 'react-i18next'
 import { Palette, Sun, Moon, Monitor } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { useTheme, type ThemeMode } from '@/hooks/useTheme'
-import { useAccentColor } from '@/hooks/useAccentColor'
+
 import { cn } from '@/lib/utils'
 
 const THEME_OPTIONS: { mode: ThemeMode; icon: typeof Sun }[] = [
@@ -11,16 +11,7 @@ const THEME_OPTIONS: { mode: ThemeMode; icon: typeof Sun }[] = [
   { mode: 'system', icon: Monitor },
 ]
 
-const ACCENT_COLORS = [
-  { name: 'blue' as const, bg: '#4EA7F5' },
-  { name: 'cyan' as const, bg: '#26B5CE' },
-  { name: 'teal' as const, bg: '#2EB88A' },
-  { name: 'yellow' as const, bg: '#EBCB4B' },
-  { name: 'orange' as const, bg: '#F3904F' },
-  { name: 'coral' as const, bg: '#F76B6E' },
-  { name: 'red' as const, bg: '#E54D5A' },
-  { name: 'purple' as const, bg: '#AF7AF2' },
-]
+import { useAccentColor, ACCENT_COLORS_LIST } from '@/hooks/useAccentColor'
 
 export function AppearanceSection() {
   const { t } = useTranslation()
@@ -87,7 +78,7 @@ export function AppearanceSection() {
             {t('settings.appearance.accentLabel')}
           </label>
           <div className="grid grid-cols-8 gap-2">
-            {ACCENT_COLORS.map((color) => {
+            {ACCENT_COLORS_LIST.map((color) => {
               const isActive = accentColor === color.name
               return (
                 <button

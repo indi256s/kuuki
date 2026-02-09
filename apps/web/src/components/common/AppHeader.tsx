@@ -2,7 +2,6 @@ import { Link, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '@/hooks/useAuth'
 import { useLanguage } from '@/hooks/useLanguage'
-import { useAccentColor } from '@/hooks/useAccentColor'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -13,8 +12,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Plus, LogOut, Languages, Settings, Sparkles } from 'lucide-react'
 import { KuukiIcon } from '@/components/common/KuukiIcon'
-import { ThemeSwitcher } from '@/components/common/ThemeSwitcher'
-import { AccentPicker } from '@/components/common/AccentPicker'
+import { AppearanceToggle } from '@/components/common/AppearanceToggle'
 import { useUserBadges } from '@/hooks/useBadges'
 
 interface AppHeaderProps {
@@ -27,7 +25,6 @@ export function AppHeader({ onAddFlight, showAddButton = false }: AppHeaderProps
   const location = useLocation()
   const { user, profile, signOut } = useAuth()
   const { currentLanguage, toggleLanguage } = useLanguage()
-  const { accentColor, setAccentColor } = useAccentColor()
   const { data: badges } = useUserBadges()
   const isFoundingUser = badges?.some(b => b.badge.code === 'founding-user')
 
@@ -38,7 +35,7 @@ export function AppHeader({ onAddFlight, showAddButton = false }: AppHeaderProps
     { path: '/dashboard', label: t('nav.dashboard', 'Dashboard') },
     { path: '/flights', label: t('nav.flights', 'Flights') },
     { path: '/passport', label: t('nav.passport', 'Passport') },
-    { path: '/journey', label: t('nav.journey', 'Journey') },
+    // { path: '/journey', label: t('nav.journey', 'Journey') },
     { path: '/leaderboard', label: t('nav.leaderboard', 'Leaderboard') },
     { path: '/import', label: t('nav.import', 'Import') },
   ]
@@ -87,14 +84,8 @@ export function AppHeader({ onAddFlight, showAddButton = false }: AppHeaderProps
             </Button>
           )}
 
-          {/* Theme switcher */}
-          <ThemeSwitcher />
-
-          {/* Accent color picker */}
-          <AccentPicker
-            value={accentColor}
-            onChange={setAccentColor}
-          />
+          {/* Appearance Toggle (Theme + Accent) */}
+          <AppearanceToggle />
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>

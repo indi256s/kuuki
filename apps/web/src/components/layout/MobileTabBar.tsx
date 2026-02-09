@@ -6,7 +6,6 @@ import {
   Upload,
   Globe2,
   Settings,
-  Route,
   type LucideIcon,
 } from 'lucide-react'
 
@@ -33,7 +32,7 @@ export function MobileTabBar() {
   const tabs: TabItem[] = [
     { path: '/dashboard', icon: LayoutDashboard, labelKey: 'nav.dashboard' },
     { path: '/flights', icon: Plane, labelKey: 'nav.flights' },
-    { path: '/journey', icon: Route, labelKey: 'nav.journey' },
+    // { path: '/journey', icon: Route, labelKey: 'nav.journey' },
     { path: '/import', icon: Upload, labelKey: 'nav.import' },
     { path: '/passport', icon: Globe2, labelKey: 'nav.passport' },
     { path: '/settings', icon: Settings, labelKey: 'nav.settings' },

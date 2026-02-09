@@ -2,8 +2,7 @@ import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Sparkles } from 'lucide-react'
 import { KuukiIcon } from '@/components/common/KuukiIcon'
-import { AccentPicker } from '@/components/common/AccentPicker'
-import { useAccentColor } from '@/hooks/useAccentColor'
+import { AppearanceToggle } from '@/components/common/AppearanceToggle'
 import { useUserBadges } from '@/hooks/useBadges'
 
 interface MobileHeaderProps {
@@ -23,7 +22,6 @@ interface MobileHeaderProps {
  */
 export function MobileHeader({ title, action }: MobileHeaderProps) {
   const { t } = useTranslation()
-  const { accentColor, setAccentColor } = useAccentColor()
   const { data: badges } = useUserBadges()
   const isFoundingUser = badges?.some(b => b.badge.code === 'founding-user')
 
@@ -45,10 +43,7 @@ export function MobileHeader({ title, action }: MobileHeaderProps) {
 
         {/* Actions */}
         <div className="flex items-center gap-2">
-          <AccentPicker
-            value={accentColor}
-            onChange={setAccentColor}
-          />
+          <AppearanceToggle />
           {isFoundingUser && (
             <span className="inline-flex items-center gap-1 text-xs bg-primary/15 text-primary px-2 py-1 rounded-full font-medium">
               <Sparkles className="w-3 h-3" />

@@ -2,18 +2,22 @@ import { useState, useCallback, useEffect } from 'react'
 
 // Must match AccentPicker colors
 // Each color includes foreground for proper contrast on buttons
-const ACCENT_COLORS = {
-  blue: { bg: '#4EA7F5', fg: '#ffffff' },
-  cyan: { bg: '#26B5CE', fg: '#0a2e35' },      // Light bg needs dark text
-  teal: { bg: '#2EB88A', fg: '#0a2e1f' },      // Light bg needs dark text
-  yellow: { bg: '#EBCB4B', fg: '#3d3314' },    // Light bg needs dark text
-  orange: { bg: '#F3904F', fg: '#ffffff' },
-  coral: { bg: '#F76B6E', fg: '#ffffff' },
-  red: { bg: '#E54D5A', fg: '#ffffff' },
-  purple: { bg: '#AF7AF2', fg: '#ffffff' },
-} as const
+export const ACCENT_COLORS_LIST = [
+  { name: 'blue', bg: '#4EA7F5', fg: '#ffffff', label: 'Blue' },
+  { name: 'cyan', bg: '#26B5CE', fg: '#0a2e35', label: 'Cyan' },
+  { name: 'teal', bg: '#2EB88A', fg: '#0a2e1f', label: 'Teal' },
+  { name: 'yellow', bg: '#EBCB4B', fg: '#3d3314', label: 'Yellow' },
+  { name: 'orange', bg: '#F3904F', fg: '#ffffff', label: 'Orange' },
+  { name: 'coral', bg: '#F76B6E', fg: '#ffffff', label: 'Coral' },
+  { name: 'red', bg: '#E54D5A', fg: '#ffffff', label: 'Red' },
+  { name: 'purple', bg: '#AF7AF2', fg: '#ffffff', label: 'Purple' },
+] as const
 
-export type AccentColorName = keyof typeof ACCENT_COLORS
+const ACCENT_COLORS = Object.fromEntries(
+  ACCENT_COLORS_LIST.map(c => [c.name, { bg: c.bg, fg: c.fg }])
+) as Record<string, { bg: string, fg: string }>
+
+export type AccentColorName = (typeof ACCENT_COLORS_LIST)[number]['name']
 
 const STORAGE_KEY = 'kuuki-accent-color'
 const DEFAULT_COLOR: AccentColorName = 'red'

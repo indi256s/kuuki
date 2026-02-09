@@ -2,14 +2,12 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useLanguage } from '@/hooks/useLanguage'
-import { useAccentColor } from '@/hooks/useAccentColor'
 import { Button } from '@/components/ui/button'
 import { Languages, HelpCircle } from 'lucide-react'
 import { RegisterForm } from '@/components/auth/RegisterForm'
 import { SignInForm, RotatingTagline } from '@/components/auth'
 import { PlaneAnimation } from '@/components/common/PlaneAnimation'
-import { AccentPicker } from '@/components/common/AccentPicker'
-import { ThemeSwitcher } from '@/components/common/ThemeSwitcher'
+import { AppearanceToggle } from '@/components/common/AppearanceToggle'
 import { WhatIsKuukiDialog } from '@/components/auth/WhatIsKuukiDialog'
 
 type AuthMode = 'register' | 'signin'
@@ -18,7 +16,6 @@ export function AuthPage() {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const { toggleLanguage } = useLanguage()
-  const { accentColor, setAccentColor } = useAccentColor()
   const [mode, setMode] = useState<AuthMode>('register')
   const [showAbout, setShowAbout] = useState(false)
 
@@ -84,8 +81,7 @@ export function AuthPage() {
         <div className="relative flex flex-col justify-center px-8 py-12 lg:px-16 lg:py-12 bg-card/50 backdrop-blur-xl">
           {/* Top Right Controls */}
           <div className="absolute top-6 right-6 flex items-center gap-2 z-20">
-            <AccentPicker value={accentColor} onChange={setAccentColor} />
-            <ThemeSwitcher />
+            <AppearanceToggle />
             <div className="hidden lg:block w-px h-5 bg-border" />
 
             <Button
