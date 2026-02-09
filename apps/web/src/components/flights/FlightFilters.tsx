@@ -386,7 +386,7 @@ export function FlightFilters({
             <SlidersHorizontal className="w-3.5 h-3.5" />
             {t('flights.filters', 'Filters')}
             {activeFilterCount > 0 && (
-              <span className="ml-0.5 flex items-center justify-center w-4.5 h-4.5 rounded-full bg-primary text-primary-foreground text-[10px] font-medium">
+              <span className="ml-0.5 flex items-center justify-center size-5 rounded-full bg-primary text-primary-foreground text-xs font-medium">
                 {activeFilterCount}
               </span>
             )}
@@ -396,12 +396,12 @@ export function FlightFilters({
         {/* Expandable filter section */}
         <div
           className={cn(
-            'grid transition-[grid-template-rows] duration-200 ease-out',
+            'grid transition-[grid-template-rows] duration-150 ease-out',
             effectiveOpen ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'
           )}
         >
           <div className="overflow-hidden">
-            <div className="pt-3 grid grid-cols-2 gap-2">
+            <div className="pt-3 grid grid-cols-2 gap-2 animate-fade-up">
               {/* Origin + Destination: side by side across full width */}
               <div className="col-span-2 flex items-center gap-2">
                 <div className="flex-1">{originInput}</div>

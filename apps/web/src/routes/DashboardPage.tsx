@@ -202,12 +202,12 @@ export function DashboardPage() {
                 ? 'md:grid-cols-1'
                 : 'md:grid-cols-2 lg:grid-cols-4'
             )}>
-              {/* Map (2 cols, 2 rows on desktop) */}
+              {/* Map (2 cols on desktop) */}
               <div className={cn(
                 'min-h-[400px] md:h-auto',
                 mapExpanded
                   ? 'col-span-1'
-                  : 'md:col-span-2 md:row-span-2'
+                  : 'md:col-span-2'
               )}>
                 <MapCard
                   className="h-full w-full"
@@ -218,7 +218,7 @@ export function DashboardPage() {
 
               {/* 6 stat cards in 2-col grid beside map (hidden when map expanded) */}
               {!mapExpanded && (
-                <div className="md:col-span-2 grid grid-cols-2 gap-4">
+                <div className="md:col-span-2 grid grid-cols-2 grid-rows-3 gap-4 h-full">
                   <MicroBadgeStatCard trackId="flights" />
                   <MicroBadgeStatCard trackId="distance" />
                   <MicroBadgeStatCard trackId="countries" />

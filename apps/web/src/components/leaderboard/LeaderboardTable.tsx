@@ -128,7 +128,7 @@ export function LeaderboardTable({
                     to={`/fly/${entry.username}`}
                     className="flex items-center gap-2 sm:gap-3 hover:opacity-80 transition-opacity"
                   >
-                    <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl overflow-hidden shrink-0">
+                    <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl overflow-hidden shrink-0">
                       <UserAvatar
                         userId={entry.user_id}
                         avatarUrl={entry.avatarUrl}
@@ -159,7 +159,7 @@ export function LeaderboardTable({
                       {formatValue(entry.value)}
                     </span>
                     {entry.percentile && entry.percentile >= 90 && (
-                      <span className="sm:ml-2 text-xs text-primary block sm:inline">
+                      <span className="sm:ml-2 text-xs text-primary block sm:inline mt-0.5 sm:mt-0">
                         Top {Math.round(100 - entry.percentile)}%
                       </span>
                     )}
