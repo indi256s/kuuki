@@ -160,7 +160,7 @@ export function FlightTable({
     <div className="rounded-2xl border border-border/60 overflow-hidden bg-card shadow-sm">
       {/* Horizontally scrollable table wrapper */}
       <div className="overflow-x-auto">
-        <Table className="min-w-[900px]">
+        <Table className="min-w-[750px]">
           <TableHeader>
             <TableRow className="group hover:bg-transparent border-b border-border/40 bg-muted/20">
               {/* Selection checkbox column */}
@@ -212,6 +212,7 @@ export function FlightTable({
                 field="aircraft_icao"
                 currentSort={sort}
                 onSort={onSortChange}
+                className="hidden lg:table-cell"
               >
                 {t('flights.aircraft', 'Aircraft')}
               </SortableHeader>
@@ -219,7 +220,7 @@ export function FlightTable({
                 field="distance_km"
                 currentSort={sort}
                 onSort={onSortChange}
-                className="text-right"
+                className="text-right hidden lg:table-cell"
               >
                 {t('flights.distance', 'Distance')}
               </SortableHeader>
@@ -316,8 +317,8 @@ export function FlightTable({
                     )}
                   </TableCell>
 
-                  {/* Aircraft */}
-                  <TableCell className="py-3 align-top">
+                  {/* Aircraft - hidden on md, visible on lg */}
+                  <TableCell className="py-3 align-top hidden lg:table-cell">
                     {aircraft ? (
                       <span className="text-base text-foreground">
                         {aircraft.manufacturer} {aircraft.model}
@@ -329,8 +330,8 @@ export function FlightTable({
                     )}
                   </TableCell>
 
-                  {/* Distance */}
-                  <TableCell className="py-3 align-top text-right">
+                  {/* Distance - hidden on md, visible on lg */}
+                  <TableCell className="py-3 align-top text-right hidden lg:table-cell">
                     {flight.distance_km ? (
                       <span className="font-mono text-base tabular-nums">{formatDistance(flight.distance_km)}</span>
                     ) : (

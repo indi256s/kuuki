@@ -393,7 +393,9 @@
     "deleteSelected": "Delete Selected",
     "deleteCount": "Delete {{count}}",
     "batchDeleteTitle": "Delete {{count}} Flights?",
-    "batchDeleteMessage": "This action cannot be undone. All selected flights will be permanently removed from your log."
+    "batchDeleteMessage": "This action cannot be undone. All selected flights will be permanently removed from your log.",
+    "filters": "Filters",
+    "flights": "flights"
   },
   "stats": {
     "title": "Stats",

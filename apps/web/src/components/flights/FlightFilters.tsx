@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useState, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { findAircraft, findAirline, airlines } from '@kuuki/data'
 import type { FlightFilters as FiltersType } from '@/hooks/useFlights'
@@ -14,8 +14,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Search, X } from 'lucide-react'
+import { Search, X, SlidersHorizontal } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { useIsMobile } from '@/hooks/useIsMobile'
 
 type Alliance = 'star_alliance' | 'oneworld' | 'skyteam'
 
@@ -176,175 +177,275 @@ export function FlightFilters({
     return filters.airlineIata || 'all'
   }
 
-  // 1-line compact horizontal layout
-  return (
-    <div className={cn('flex flex-wrap items-center gap-2', className)}>
-      {/* Search inputs first - most commonly used */}
-      <div className="relative">
-        <Input
-          value={originSearch}
-          onChange={(e) => onOriginSearchChange(e.target.value)}
-          placeholder={t('flights.cityOrCode', 'City or code')}
-          className={cn(
-            'w-32 h-9 text-sm pr-7',
-            (filters.origin || (filters.originCodes && filters.originCodes.length > 0)) && 'border-primary ring-1 ring-primary/20'
-          )}
-        />
-        {(filters.origin || (filters.originCodes && filters.originCodes.length > 0)) ? (
-          <button
-            type="button"
-            onClick={clearOriginFilter}
-            className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-            aria-label={t('flights.clearOrigin', 'Clear origin filter')}
-          >
-            <X className="w-3.5 h-3.5" aria-hidden="true" />
-          </button>
-        ) : (
-          <Search className="absolute right-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground/50 pointer-events-none" aria-hidden="true" />
+  const isMobile = useIsMobile('sm')
+  const [filtersOpen, setFiltersOpen] = useState(false)
+
+  // Count active filters for badge
+  const activeFilterCount = Object.keys(filters).reduce((count, k) => {
+    const val = filters[k as keyof FiltersType]
+    if (Array.isArray(val)) return val.length > 0 ? count + 1 : count
+    return val !== undefined ? count + 1 : count
+  }, 0)
+
+  // Auto-open when filters are active
+  const effectiveOpen = filtersOpen || hasActiveFilters
+
+  // Shared filter controls (used in both mobile and desktop)
+  const originInput = (
+    <div className="relative">
+      <Input
+        value={originSearch}
+        onChange={(e) => onOriginSearchChange(e.target.value)}
+        placeholder={t('flights.cityOrCode', 'City or code')}
+        className={cn(
+          'h-9 text-sm pr-7',
+          isMobile ? 'w-full' : 'w-32',
+          (filters.origin || (filters.originCodes && filters.originCodes.length > 0)) && 'border-primary ring-1 ring-primary/20'
         )}
-      </div>
+      />
+      {(filters.origin || (filters.originCodes && filters.originCodes.length > 0)) ? (
+        <button
+          type="button"
+          onClick={clearOriginFilter}
+          className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+          aria-label={t('flights.clearOrigin', 'Clear origin filter')}
+        >
+          <X className="w-3.5 h-3.5" aria-hidden="true" />
+        </button>
+      ) : (
+        <Search className="absolute right-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground/50 pointer-events-none" aria-hidden="true" />
+      )}
+    </div>
+  )
 
-      <span className="text-muted-foreground/40">→</span>
-
-      <div className="relative">
-        <Input
-          value={destSearch}
-          onChange={(e) => onDestSearchChange(e.target.value)}
-          placeholder={t('flights.cityOrCode', 'City or code')}
-          className={cn(
-            'w-32 h-9 text-sm pr-7',
-            (filters.destination || (filters.destinationCodes && filters.destinationCodes.length > 0)) && 'border-primary ring-1 ring-primary/20'
-          )}
-        />
-        {(filters.destination || (filters.destinationCodes && filters.destinationCodes.length > 0)) ? (
-          <button
-            type="button"
-            onClick={clearDestFilter}
-            className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-            aria-label={t('flights.clearDest', 'Clear destination filter')}
-          >
-            <X className="w-3.5 h-3.5" aria-hidden="true" />
-          </button>
-        ) : (
-          <Search className="absolute right-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground/50 pointer-events-none" aria-hidden="true" />
+  const destInput = (
+    <div className="relative">
+      <Input
+        value={destSearch}
+        onChange={(e) => onDestSearchChange(e.target.value)}
+        placeholder={t('flights.cityOrCode', 'City or code')}
+        className={cn(
+          'h-9 text-sm pr-7',
+          isMobile ? 'w-full' : 'w-32',
+          (filters.destination || (filters.destinationCodes && filters.destinationCodes.length > 0)) && 'border-primary ring-1 ring-primary/20'
         )}
-      </div>
+      />
+      {(filters.destination || (filters.destinationCodes && filters.destinationCodes.length > 0)) ? (
+        <button
+          type="button"
+          onClick={clearDestFilter}
+          className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+          aria-label={t('flights.clearDest', 'Clear destination filter')}
+        >
+          <X className="w-3.5 h-3.5" aria-hidden="true" />
+        </button>
+      ) : (
+        <Search className="absolute right-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground/50 pointer-events-none" aria-hidden="true" />
+      )}
+    </div>
+  )
 
-      {/* Compact dropdowns */}
-      <Select
-        value={filters.year?.toString() || 'all'}
-        onValueChange={handleYearFilter}
-      >
-        <SelectTrigger className="w-24 h-9 text-sm">
-          <SelectValue placeholder={t('flights.year', 'Year')} />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="all">{t('flights.allYears', 'All years')}</SelectItem>
-          {years.map((year) => (
-            <SelectItem key={year} value={year.toString()}>
-              {year}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+  const yearSelect = (
+    <Select
+      value={filters.year?.toString() || 'all'}
+      onValueChange={handleYearFilter}
+    >
+      <SelectTrigger className={cn('h-9 text-sm', isMobile ? 'w-full' : 'w-24')}>
+        <SelectValue placeholder={t('flights.year', 'Year')} />
+      </SelectTrigger>
+      <SelectContent>
+        <SelectItem value="all">{t('flights.allYears', 'All years')}</SelectItem>
+        {years.map((year) => (
+          <SelectItem key={year} value={year.toString()}>
+            {year}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  )
 
-      <Select
-        value={getAirlineSelectValue()}
-        onValueChange={handleAirlineFilter}
-      >
-        <SelectTrigger className="w-32 h-9 text-sm">
-          <SelectValue placeholder={t('flights.airline', 'Airline')} />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="all">{t('flights.allAirlines', 'All airlines')}</SelectItem>
+  const airlineSelect = (
+    <Select
+      value={getAirlineSelectValue()}
+      onValueChange={handleAirlineFilter}
+    >
+      <SelectTrigger className={cn('h-9 text-sm', isMobile ? 'w-full' : 'w-32')}>
+        <SelectValue placeholder={t('flights.airline', 'Airline')} />
+      </SelectTrigger>
+      <SelectContent>
+        <SelectItem value="all">{t('flights.allAirlines', 'All airlines')}</SelectItem>
 
-          {/* Alliance quick-select options */}
-          {(Object.keys(ALLIANCE_INFO) as Alliance[]).some(a => groupedAirlines[a].length > 0) && (
-            <>
-              <SelectSeparator />
-              {(Object.keys(ALLIANCE_INFO) as Alliance[]).map(alliance => {
-                if (groupedAirlines[alliance].length === 0) return null
-                const info = ALLIANCE_INFO[alliance]
-                return (
-                  <SelectItem key={`alliance:${alliance}`} value={`alliance:${alliance}`}>
-                    <span className={cn('mr-1.5', info.colorClass)}>{info.symbol}</span>
-                    {info.name}
-                  </SelectItem>
-                )
-              })}
-            </>
-          )}
-
-          {/* Grouped airlines */}
-          {(Object.keys(ALLIANCE_INFO) as Alliance[]).map(alliance => {
-            if (groupedAirlines[alliance].length === 0) return null
-            const info = ALLIANCE_INFO[alliance]
-            return (
-              <SelectGroup key={alliance}>
-                <SelectSeparator />
-                <SelectLabel className="text-xs text-muted-foreground">
-                  <span className={cn('mr-1', info.colorClass)}>{info.symbol}</span>
+        {/* Alliance quick-select options */}
+        {(Object.keys(ALLIANCE_INFO) as Alliance[]).some(a => groupedAirlines[a].length > 0) && (
+          <>
+            <SelectSeparator />
+            {(Object.keys(ALLIANCE_INFO) as Alliance[]).map(alliance => {
+              if (groupedAirlines[alliance].length === 0) return null
+              const info = ALLIANCE_INFO[alliance]
+              return (
+                <SelectItem key={`alliance:${alliance}`} value={`alliance:${alliance}`}>
+                  <span className={cn('mr-1.5', info.colorClass)}>{info.symbol}</span>
                   {info.name}
-                </SelectLabel>
-                {groupedAirlines[alliance].map(iata => (
-                  <SelectItem key={iata} value={iata} className="pl-6">
-                    {getAirlineDisplay(iata)}
-                  </SelectItem>
-                ))}
-              </SelectGroup>
-            )
-          })}
+                </SelectItem>
+              )
+            })}
+          </>
+        )}
 
-          {/* Other airlines (no alliance) */}
-          {groupedAirlines.other.length > 0 && (
-            <SelectGroup>
+        {/* Grouped airlines */}
+        {(Object.keys(ALLIANCE_INFO) as Alliance[]).map(alliance => {
+          if (groupedAirlines[alliance].length === 0) return null
+          const info = ALLIANCE_INFO[alliance]
+          return (
+            <SelectGroup key={alliance}>
               <SelectSeparator />
               <SelectLabel className="text-xs text-muted-foreground">
-                {t('flights.otherAirlines', 'Other')}
+                <span className={cn('mr-1', info.colorClass)}>{info.symbol}</span>
+                {info.name}
               </SelectLabel>
-              {groupedAirlines.other.map(iata => (
+              {groupedAirlines[alliance].map(iata => (
                 <SelectItem key={iata} value={iata} className="pl-6">
                   {getAirlineDisplay(iata)}
                 </SelectItem>
               ))}
             </SelectGroup>
-          )}
-        </SelectContent>
-      </Select>
+          )
+        })}
 
-      <Select
-        value={filters.aircraftIcao || 'all'}
-        onValueChange={handleAircraftFilter}
-      >
-        <SelectTrigger className="w-28 h-9 text-sm">
-          <SelectValue placeholder={t('flights.aircraft', 'Aircraft')} />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="all">{t('flights.allAircraft', 'All aircraft')}</SelectItem>
-          {aircraftCodes.map((code) => {
-            const aircraft = findAircraft(code)
-            return (
-              <SelectItem key={code} value={code}>
-                {aircraft ? aircraft.model : code}
+        {/* Other airlines (no alliance) */}
+        {groupedAirlines.other.length > 0 && (
+          <SelectGroup>
+            <SelectSeparator />
+            <SelectLabel className="text-xs text-muted-foreground">
+              {t('flights.otherAirlines', 'Other')}
+            </SelectLabel>
+            {groupedAirlines.other.map(iata => (
+              <SelectItem key={iata} value={iata} className="pl-6">
+                {getAirlineDisplay(iata)}
               </SelectItem>
-            )
-          })}
-        </SelectContent>
-      </Select>
+            ))}
+          </SelectGroup>
+        )}
+      </SelectContent>
+    </Select>
+  )
 
-      <Select
-        value={filters.isUpcoming === true ? 'upcoming' : filters.isUpcoming === false ? 'past' : 'all'}
-        onValueChange={handleUpcomingFilter}
-      >
-        <SelectTrigger className="w-28 h-9 text-sm">
-          <SelectValue placeholder={t('flights.status', 'Status')} />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="all">{t('flights.allFlights', 'All')}</SelectItem>
-          <SelectItem value="upcoming">{t('flights.upcoming', 'Upcoming')}</SelectItem>
-          <SelectItem value="past">{t('flights.past', 'Past')}</SelectItem>
-        </SelectContent>
-      </Select>
+  const aircraftSelect = (
+    <Select
+      value={filters.aircraftIcao || 'all'}
+      onValueChange={handleAircraftFilter}
+    >
+      <SelectTrigger className={cn('h-9 text-sm', isMobile ? 'w-full' : 'w-28')}>
+        <SelectValue placeholder={t('flights.aircraft', 'Aircraft')} />
+      </SelectTrigger>
+      <SelectContent>
+        <SelectItem value="all">{t('flights.allAircraft', 'All aircraft')}</SelectItem>
+        {aircraftCodes.map((code) => {
+          const aircraft = findAircraft(code)
+          return (
+            <SelectItem key={code} value={code}>
+              {aircraft ? aircraft.model : code}
+            </SelectItem>
+          )
+        })}
+      </SelectContent>
+    </Select>
+  )
+
+  const statusSelect = (
+    <Select
+      value={filters.isUpcoming === true ? 'upcoming' : filters.isUpcoming === false ? 'past' : 'all'}
+      onValueChange={handleUpcomingFilter}
+    >
+      <SelectTrigger className={cn('h-9 text-sm', isMobile ? 'w-full' : 'w-28')}>
+        <SelectValue placeholder={t('flights.status', 'Status')} />
+      </SelectTrigger>
+      <SelectContent>
+        <SelectItem value="all">{t('flights.allFlights', 'All')}</SelectItem>
+        <SelectItem value="upcoming">{t('flights.upcoming', 'Upcoming')}</SelectItem>
+        <SelectItem value="past">{t('flights.past', 'Past')}</SelectItem>
+      </SelectContent>
+    </Select>
+  )
+
+  // Mobile: collapsed filter bar with expandable section
+  if (isMobile) {
+    return (
+      <div className={cn('w-full', className)}>
+        {/* Compact bar: flight count + filter toggle */}
+        <div className="flex items-center justify-between gap-2">
+          <span className="text-sm text-muted-foreground font-data tabular-nums">
+            {totalCount.toLocaleString()} {t('flights.flights', 'flights')}
+          </span>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setFiltersOpen(!effectiveOpen)}
+            className="h-8 gap-1.5 text-sm"
+          >
+            <SlidersHorizontal className="w-3.5 h-3.5" />
+            {t('flights.filters', 'Filters')}
+            {activeFilterCount > 0 && (
+              <span className="ml-0.5 flex items-center justify-center w-4.5 h-4.5 rounded-full bg-primary text-primary-foreground text-[10px] font-medium">
+                {activeFilterCount}
+              </span>
+            )}
+          </Button>
+        </div>
+
+        {/* Expandable filter section */}
+        <div
+          className={cn(
+            'grid transition-[grid-template-rows] duration-200 ease-out',
+            effectiveOpen ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'
+          )}
+        >
+          <div className="overflow-hidden">
+            <div className="pt-3 grid grid-cols-2 gap-2">
+              {/* Origin + Destination: side by side across full width */}
+              <div className="col-span-2 flex items-center gap-2">
+                <div className="flex-1">{originInput}</div>
+                <span className="text-muted-foreground/40 shrink-0">→</span>
+                <div className="flex-1">{destInput}</div>
+              </div>
+
+              {/* Selects: one per cell */}
+              {yearSelect}
+              {airlineSelect}
+              {aircraftSelect}
+              {statusSelect}
+
+              {/* Clear button */}
+              {hasActiveFilters && (
+                <div className="col-span-2">
+                  <Button
+                    variant="ghost"
+                    onClick={clearAllFilters}
+                    className="h-8 px-2 text-sm text-muted-foreground hover:text-foreground w-full"
+                  >
+                    <X className="w-3.5 h-3.5 mr-1" />
+                    {t('flights.clear', 'Clear')}
+                  </Button>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // Desktop: inline horizontal layout (unchanged)
+  return (
+    <div className={cn('flex flex-wrap items-center gap-2', className)}>
+      {originInput}
+      <span className="text-muted-foreground/40">→</span>
+      {destInput}
+
+      {yearSelect}
+      {airlineSelect}
+      {aircraftSelect}
+      {statusSelect}
 
       {/* Clear filters button */}
       {hasActiveFilters && (

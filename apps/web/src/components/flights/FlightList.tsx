@@ -257,8 +257,8 @@ export function FlightList({ onEdit }: FlightListProps) {
       {/* Flight list - CSS-only card/table switch at sm (640px) breakpoint */}
       {flights.length > 0 && (
         <>
-          {/* Cards: visible on mobile (<640px) */}
-          <div className="sm:hidden space-y-2">
+          {/* Cards: visible on mobile (<768px) */}
+          <div className="md:hidden space-y-2">
             {flights.map((flight) => (
               <FlightCard
                 key={flight.id}
@@ -268,8 +268,8 @@ export function FlightList({ onEdit }: FlightListProps) {
             ))}
           </div>
 
-          {/* Table: visible on desktop (≥640px) */}
-          <div className="hidden sm:block">
+          {/* Table: visible on desktop (≥768px) */}
+          <div className="hidden md:block">
             <FlightTable
               flights={flights}
               onEdit={onEdit}
@@ -334,10 +334,10 @@ export function FlightList({ onEdit }: FlightListProps) {
                 <Button
                   variant="ghost"
                   onClick={toggleSelectionMode}
-                  className="hidden sm:flex h-8 px-2.5 text-muted-foreground hover:text-foreground"
+                  className="hidden md:flex h-8 px-2.5 text-muted-foreground hover:text-foreground"
                 >
-                  <CheckSquare className="w-4 h-4 sm:mr-1.5" />
-                  <span className="hidden md:inline text-sm">{t('flights.select', 'Select')}</span>
+                  <CheckSquare className="w-4 h-4 md:mr-1.5" />
+                  <span className="hidden lg:inline text-sm">{t('flights.select', 'Select')}</span>
                 </Button>
               )}
             </div>

@@ -123,12 +123,12 @@ export function LeaderboardTable({
                     <RankBadge rank={entry.rank} />
                   </div>
                 </TableCell>
-                <TableCell>
+                <TableCell className="py-2 sm:py-3">
                   <Link
                     to={`/fly/${entry.username}`}
-                    className="flex items-center gap-3 hover:opacity-80 transition-opacity"
+                    className="flex items-center gap-2 sm:gap-3 hover:opacity-80 transition-opacity"
                   >
-                    <div className="w-10 h-10 rounded-xl overflow-hidden">
+                    <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl overflow-hidden shrink-0">
                       <UserAvatar
                         userId={entry.user_id}
                         avatarUrl={entry.avatarUrl}
@@ -136,8 +136,8 @@ export function LeaderboardTable({
                         size={40}
                       />
                     </div>
-                    <div>
-                      <p className="font-medium">
+                    <div className="min-w-0">
+                      <p className="text-sm sm:text-base font-medium truncate">
                         {displayName}
                         {isCurrentUser && (
                           <Badge variant="secondary" className="ml-2 text-xs">
@@ -146,22 +146,24 @@ export function LeaderboardTable({
                         )}
                       </p>
                       {entry.username && (
-                        <p className="text-xs text-muted-foreground">
+                        <p className="text-xs text-muted-foreground hidden sm:block">
                           @{entry.username}
                         </p>
                       )}
                     </div>
                   </Link>
                 </TableCell>
-                <TableCell className="text-right">
-                  <span className="font-data font-medium">
-                    {formatValue(entry.value)}
-                  </span>
-                  {entry.percentile && entry.percentile >= 90 && (
-                    <span className="ml-2 text-xs text-primary">
-                      Top {Math.round(100 - entry.percentile)}%
+                <TableCell className="text-right py-2 sm:py-3">
+                  <div>
+                    <span className="font-data font-medium">
+                      {formatValue(entry.value)}
                     </span>
-                  )}
+                    {entry.percentile && entry.percentile >= 90 && (
+                      <span className="sm:ml-2 text-xs text-primary block sm:inline">
+                        Top {Math.round(100 - entry.percentile)}%
+                      </span>
+                    )}
+                  </div>
                 </TableCell>
               </TableRow>
             )
