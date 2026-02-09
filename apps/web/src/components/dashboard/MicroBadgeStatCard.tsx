@@ -68,7 +68,7 @@ export function MicroBadgeStatCard({
     <div
       className={cn(
         'group rounded-2xl border bg-card p-4',
-        'transition-all duration-300',
+        'transition-shadow duration-300',
         'border-border/50',
         'hover:shadow-md',
         className,
@@ -88,18 +88,20 @@ export function MicroBadgeStatCard({
 
         {/* Content */}
         <div className="min-w-0 flex-1">
-          <div className="text-2xl font-mono font-bold tracking-tight leading-none">
-            {formatValue(trackId, value)}
-          </div>
-          <div className="text-xs text-muted-foreground mt-1">
-            {t(`dashboard.track.${trackId}`, trackId)}
+          <div className="flex items-baseline gap-1.5">
+            <span className="text-2xl font-mono font-bold tracking-tight leading-none">
+              {formatValue(trackId, value)}
+            </span>
+            <span className="text-xs text-muted-foreground">
+              {t(`dashboard.track.${trackId}`, trackId)}
+            </span>
           </div>
           {badgeName && (
             <div className={cn('text-xs font-medium mt-0.5', 'text-muted-foreground')}>
               {badgeName}
             </div>
           )}
-          <div className="text-[11px] italic text-muted-foreground/60 mt-1 leading-snug">
+          <div className="text-xs italic text-muted-foreground/60 mt-1 leading-snug">
             {subtitle}
           </div>
         </div>
