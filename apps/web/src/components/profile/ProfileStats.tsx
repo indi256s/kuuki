@@ -1,6 +1,5 @@
 import { useTranslation } from 'react-i18next'
 import { Plane, TrendingUp, Globe2, Building2, MapPin, Layers } from 'lucide-react'
-import { Card, CardContent } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { formatDistance } from '@/lib/geo'
 import type { UserStats } from '@/lib/profiles'
@@ -17,15 +16,20 @@ export function ProfileStats({ stats, isLoading, hideTitle = false }: ProfileSta
 
   if (isLoading) {
     return (
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-        {[...Array(6)].map((_, i) => (
-          <Card key={i}>
-            <CardContent className="p-4">
-              <Skeleton className="h-8 w-16 mb-1" />
-              <Skeleton className="h-4 w-20" />
-            </CardContent>
-          </Card>
-        ))}
+      <div className="space-y-8">
+        <div className="space-y-2">
+          <Skeleton className="h-16 w-32" />
+          <Skeleton className="h-4 w-24" />
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-8">
+          {[...Array(5)].map((_, i) => (
+            <div key={i} className="space-y-2">
+              <Skeleton className="h-4 w-4" />
+              <Skeleton className="h-8 w-20" />
+              <Skeleton className="h-3 w-16" />
+            </div>
+          ))}
+        </div>
       </div>
     )
   }
@@ -34,112 +38,91 @@ export function ProfileStats({ stats, isLoading, hideTitle = false }: ProfileSta
     return null
   }
 
-  // Determine visual density based on travel volume
-  // More flights = more stats shown
-  const showExtended = (stats.total_flights ?? 0) >= 10
-  const showAdvanced = (stats.total_flights ?? 0) >= 25
+  const totalFlights = stats.total_flights ?? 0
+  const totalDistance = stats.total_distance_km ?? 0
+  const earthTrips = Math.floor(totalDistance / 40075)
+  const showExtended = totalFlights >= 10
 
-  const coreStats = [
-    {
-      label: t('dashboard.totalFlights', 'Flights'),
-      value: (stats.total_flights ?? 0).toLocaleString(),
-      icon: Plane,
-      gradient: 'from-primary/10 to-primary/5',
-      iconColor: 'text-primary',
-    },
+  const gridStats = [
     {
       label: t('dashboard.totalDistance', 'Distance'),
-      value: formatDistance(stats.total_distance_km ?? 0),
+      value: formatDistance(totalDistance),
       icon: TrendingUp,
-      gradient: 'from-chart-2/10 to-chart-2/5',
-      iconColor: 'text-chart-2',
+      context: earthTrips >= 1
+        ? t('stats.funFacts.earthTrips', "You've flown {{count}} trips around Earth", { count: earthTrips })
+        : undefined,
     },
     {
       label: t('stats.countries', 'Countries'),
       value: (stats.countries_count ?? 0).toString(),
       icon: Globe2,
-      gradient: 'from-chart-3/10 to-chart-3/5',
-      iconColor: 'text-chart-3',
     },
     {
       label: t('stats.airlines', 'Airlines'),
       value: (stats.airlines_count ?? 0).toString(),
       icon: Building2,
-      gradient: 'from-chart-4/10 to-chart-4/5',
-      iconColor: 'text-chart-4',
     },
+    ...(showExtended ? [
+      {
+        label: t('stats.cities', 'Cities'),
+        value: (stats.cities_count ?? 0).toString(),
+        icon: MapPin,
+      },
+      {
+        label: t('stats.aircraftTypesLabel', 'Aircraft'),
+        value: (stats.aircraft_count ?? 0).toString(),
+        icon: Layers,
+      },
+    ] : []),
   ]
 
-  const extendedStats = showExtended ? [
-    {
-      label: t('stats.cities', 'Cities'),
-      value: (stats.cities_count ?? 0).toString(),
-      icon: MapPin,
-      gradient: 'from-chart-5/10 to-chart-5/5',
-      iconColor: 'text-chart-5',
-    },
-    {
-      label: t('stats.aircraftTypesLabel', 'Aircraft'),
-      value: (stats.aircraft_count ?? 0).toString(),
-      icon: Layers,
-      gradient: 'from-chart-1/10 to-chart-1/5',
-      iconColor: 'text-chart-1',
-    },
-  ] : []
-
-  const allStats = [...coreStats, ...extendedStats]
-
   return (
-    <div className="space-y-4">
+    <div className="space-y-10">
       {!hideTitle && (
         <h2 className="text-lg font-semibold">
           {t('stats.title', 'Stats')}
         </h2>
       )}
 
-      <div className={`grid gap-4 ${showExtended ? 'grid-cols-2 md:grid-cols-3' : 'grid-cols-2 md:grid-cols-4'}`}>
-        {allStats.map((stat) => (
-          <Card
-            key={stat.label}
-            className="group relative overflow-hidden border-border/50 hover:border-border hover:shadow-md transition-all duration-300"
-          >
-            <div className={`absolute inset-0 bg-gradient-to-br ${stat.gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-300`} />
+      {/* Hero stat — total flights as centerpiece */}
+      <div className="space-y-1">
+        <Plane className="w-5 h-5 text-muted-foreground/60 mb-2" strokeWidth={1.5} />
+        <p className="text-5xl md:text-6xl font-data font-medium tracking-tight">
+          {totalFlights.toLocaleString()}
+        </p>
+        <p className="text-xs uppercase tracking-widest text-muted-foreground">
+          {t('dashboard.totalFlights', 'Flights')}
+        </p>
+      </div>
 
-            <CardContent className="relative p-4">
-              <div className="flex items-start justify-between">
-                <div className="space-y-0.5">
-                  <p className="text-2xl md:text-3xl font-semibold tracking-tight font-data">
-                    {stat.value}
-                  </p>
-                  <p className="text-xs md:text-sm text-muted-foreground">
-                    {stat.label}
-                  </p>
-                </div>
-                <div className={`p-2 rounded-lg bg-secondary/50 ${stat.iconColor} group-hover:scale-110 transition-transform duration-300`}>
-                  <stat.icon className="w-4 h-4" strokeWidth={1.5} />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+      {/* Grid stats — borderless, typography-driven */}
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-8">
+        {gridStats.map((stat) => (
+          <div
+            key={stat.label}
+            className="group space-y-1.5 rounded-xl p-3 -m-3 transition-colors duration-300 hover:bg-primary/[0.03]"
+          >
+            <stat.icon className="w-4 h-4 text-muted-foreground/50" strokeWidth={1.5} />
+            <p className="text-2xl font-data font-medium tracking-tight">
+              {stat.value}
+            </p>
+            <p className="text-xs uppercase tracking-widest text-muted-foreground">
+              {stat.label}
+            </p>
+            {stat.context && (
+              <p className="text-xs text-muted-foreground/70 normal-case tracking-normal">
+                {stat.context}
+              </p>
+            )}
+          </div>
         ))}
       </div>
 
-      {/* Fun facts for advanced travelers */}
-      {showAdvanced && (
-        <div className="mt-6 p-4 rounded-xl bg-secondary/30 text-sm text-muted-foreground">
-          <p>
-            {(stats.continents_count ?? 0) >= 3 && (
-              <span className="block">
-                {t('stats.funFacts.continents', 'Visited {{count}} continents', { count: stats.continents_count ?? 0 })}
-              </span>
-            )}
-            {(stats.total_distance_km ?? 0) >= 40075 && (
-              <span className="block">
-                {t('stats.funFacts.earthTrips', "You've flown {{count}} trips around Earth", {
-                  count: Math.floor((stats.total_distance_km ?? 0) / 40075),
-                })}
-              </span>
-            )}
+      {/* Fun facts aside */}
+      {(stats.continents_count ?? 0) >= 3 && (
+        <div className="border-l-2 border-primary/30 pl-4">
+          <p className="text-sm text-muted-foreground">
+            {t('stats.funFacts.continents', 'Visited {{count}} continents', { count: stats.continents_count ?? 0 })}
           </p>
         </div>
       )}

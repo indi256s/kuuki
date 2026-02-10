@@ -13,7 +13,6 @@ import {
   FlaskConical,
   Award,
 } from 'lucide-react'
-import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import type { UserBadge, BadgeDefinition } from '@/lib/profiles'
@@ -53,9 +52,9 @@ export function ProfileBadges({ badges, isLoading, showAll = false, hideTitle = 
             {t('profile.badges', 'Badges')}
           </h2>
         )}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+        <div className="flex gap-3 overflow-x-auto pb-2">
           {[...Array(4)].map((_, i) => (
-            <Skeleton key={i} className="h-24 rounded-xl" />
+            <Skeleton key={i} className="h-10 w-32 rounded-full flex-shrink-0" />
           ))}
         </div>
       </div>
@@ -70,24 +69,20 @@ export function ProfileBadges({ badges, isLoading, showAll = false, hideTitle = 
             {t('profile.badges', 'Badges')}
           </h2>
         )}
-        <Card className="border-dashed">
-          <CardContent className="p-6 text-center text-muted-foreground">
-            <Award className="w-8 h-8 mx-auto mb-2 opacity-50" />
-            <p>{t('profile.noBadges', 'No badges earned yet')}</p>
-          </CardContent>
-        </Card>
+        <div className="py-8 text-center text-muted-foreground">
+          <Award className="w-8 h-8 mx-auto mb-2 opacity-40" />
+          <p className="text-sm">{t('profile.noBadges', 'No badges earned yet')}</p>
+        </div>
       </div>
     )
   }
 
-  // Filter out secret badges that haven't been earned (shouldn't happen, but safety check)
-  // Also sort by tier and points
+  // Sort by points (higher first)
   const sortedBadges = [...badges].sort((a, b) => {
-    // Sort by points (higher first)
     return (b.badge.points ?? 0) - (a.badge.points ?? 0)
   })
 
-  const displayBadges = showAll ? sortedBadges : sortedBadges.slice(0, 8)
+  const displayBadges = showAll ? sortedBadges : sortedBadges.slice(0, 12)
 
   return (
     <div className="space-y-4">
@@ -96,58 +91,42 @@ export function ProfileBadges({ badges, isLoading, showAll = false, hideTitle = 
           <h2 className="text-lg font-semibold">
             {t('profile.badges', 'Badges')}
           </h2>
-          {badges.length > 8 && !showAll && (
+          {badges.length > 12 && !showAll && (
             <Badge variant="secondary">
-              +{badges.length - 8} {t('common.more', 'more')}
+              +{badges.length - 12} {t('common.more', 'more')}
             </Badge>
           )}
         </div>
       )}
 
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+      {/* Horizontal scroll on mobile, flowing wrap on desktop */}
+      <div className="flex gap-2.5 overflow-x-auto pb-2 md:flex-wrap md:overflow-visible md:pb-0">
         {displayBadges.map(({ badge, earned_at }) => {
           const IconComponent = BADGE_ICONS[badge.icon ?? ''] || Award
           const tierColors = TIER_VISUALS[badge.tier as keyof typeof TIER_VISUALS] ?? TIER_VISUALS.none
           const earnedDate = earned_at ? new Date(earned_at).toLocaleDateString() : null
 
           return (
-            <Card
+            <div
               key={badge.id}
-              className={`relative overflow-hidden border ${tierColors.border} hover:shadow-md transition-all duration-300 group`}
+              className="group relative flex items-center gap-2 px-3 py-2 rounded-full border border-border/50 bg-card/50 hover:bg-secondary/50 hover:border-border transition-all duration-200 flex-shrink-0 cursor-default"
+              title={earnedDate ? `${badge.description ?? ''}\nEarned: ${earnedDate}` : badge.description ?? ''}
             >
-              <div className={`absolute inset-0 ${tierColors.bg} opacity-50`} />
+              {/* Tier dot */}
+              {badge.tier && badge.tier !== 'none' && (
+                <span className={`w-2 h-2 rounded-full ${tierColors.bg} ${tierColors.border} border`} />
+              )}
 
-              <CardContent className="relative p-4">
-                <div className="flex flex-col items-center text-center gap-2">
-                  <div className={`p-2.5 rounded-xl ${tierColors.bg} ${tierColors.text} group-hover:scale-110 transition-transform duration-300`}>
-                    <IconComponent className="w-6 h-6" />
-                  </div>
+              {/* Icon */}
+              <div className={`${tierColors.text}`}>
+                <IconComponent className="w-4 h-4" />
+              </div>
 
-                  <div className="space-y-0.5">
-                    <p className="text-sm font-medium leading-tight">
-                      {badge.name}
-                    </p>
-                    {badge.tier && (
-                      <Badge variant="outline" className={`text-xs ${tierColors.text} ${tierColors.border}`}>
-                        {badge.tier}
-                      </Badge>
-                    )}
-                  </div>
-
-                  {badge.description && (
-                    <p className="text-xs text-muted-foreground line-clamp-2">
-                      {badge.description}
-                    </p>
-                  )}
-
-                  {earnedDate && (
-                    <p className="text-xs text-muted-foreground/70">
-                      {earnedDate}
-                    </p>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
+              {/* Name */}
+              <span className="text-sm font-medium whitespace-nowrap">
+                {badge.name}
+              </span>
+            </div>
           )
         })}
       </div>

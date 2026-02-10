@@ -1,4 +1,5 @@
 import { UserAvatar } from '@/components/common/UserAvatar'
+import { THEME_COLORS, type ThemeColorKey } from '@/lib/profiles'
 import { cn } from '@/lib/utils'
 
 interface ProfileMiniHeaderProps {
@@ -18,30 +19,24 @@ interface ProfileMiniHeaderProps {
 
 /**
  * ProfileMiniHeader - Sticky mini-header that appears on scroll.
- *
- * Design decisions:
- * - Fixed at top of viewport, appears when main profile header scrolls out
- * - Shows avatar + name + key stat in a compact layout
- * - Uses CSS transform for GPU-accelerated slide animation
- * - Backdrop blur for depth perception
- * - Mobile-only component (hidden on sm+ breakpoints)
+ * Circular avatar with theme color accent line at top.
  */
 export function ProfileMiniHeader({ profile, keyStat, visible }: ProfileMiniHeaderProps) {
   const displayName = profile.display_name || profile.username || 'Anonymous'
+  const themeColor = (profile.theme_color as ThemeColorKey) || 'teal'
+  const accentColor = THEME_COLORS[themeColor]
 
   return (
     <header
       className={cn(
         // Positioning
         'fixed top-0 left-0 right-0 z-50',
-        // Sizing
-        'h-14',
         // Layout
-        'flex items-center gap-3 px-4',
+        'flex flex-col',
         // Styling
         'bg-background/95 backdrop-blur-lg',
         'border-b border-border/50',
-        // Animation - transform-based for GPU acceleration
+        // Animation
         'transition-transform duration-300 ease-out',
         'will-change-transform',
         // Visibility
@@ -51,27 +46,36 @@ export function ProfileMiniHeader({ profile, keyStat, visible }: ProfileMiniHead
       )}
       aria-hidden={!visible}
     >
-      {/* Avatar */}
-      <div className="w-8 h-8 rounded-full overflow-hidden bg-secondary flex-shrink-0">
-        <UserAvatar
-          userId={profile.id}
-          avatarUrl={profile.avatar_url}
-          name={displayName}
-          size={32}
-        />
-      </div>
+      {/* Theme color accent line */}
+      <div
+        className="h-0.5 w-full"
+        style={{ backgroundColor: accentColor }}
+      />
 
-      {/* Name - truncated */}
-      <div className="flex-1 min-w-0">
-        <p className="font-medium text-foreground truncate text-sm">
-          {displayName}
-        </p>
-      </div>
+      {/* Content */}
+      <div className="flex items-center gap-3 px-4 h-14">
+        {/* Avatar — circular */}
+        <div className="w-8 h-8 rounded-full overflow-hidden bg-secondary flex-shrink-0">
+          <UserAvatar
+            userId={profile.id}
+            avatarUrl={profile.avatar_url}
+            name={displayName}
+            size={32}
+          />
+        </div>
 
-      {/* Key stat */}
-      <span className="text-sm text-muted-foreground flex-shrink-0">
-        {keyStat}
-      </span>
+        {/* Name - truncated */}
+        <div className="flex-1 min-w-0">
+          <p className="font-medium text-foreground truncate text-sm">
+            {displayName}
+          </p>
+        </div>
+
+        {/* Key stat */}
+        <span className="text-sm font-data text-muted-foreground flex-shrink-0 tabular-nums">
+          {keyStat}
+        </span>
+      </div>
     </header>
   )
 }

@@ -19,6 +19,7 @@ const PassportPage = lazy(() => import('@/routes/PassportPage').then(m => ({ def
 const SettingsPage = lazy(() => import('@/routes/SettingsPage').then(m => ({ default: m.SettingsPage })))
 const DevResetPage = lazy(() => import('@/routes/DevResetPage').then(m => ({ default: m.DevResetPage })))
 const JourneyPlannerPage = lazy(() => import('@/routes/JourneyPlannerPage').then(m => ({ default: m.JourneyPlannerPage })))
+const ProfilePage = lazy(() => import('@/routes/ProfilePage').then(m => ({ default: m.ProfilePage })))
 
 /**
  * React Query configuration with:
@@ -143,6 +144,7 @@ function AppRoutes() {
           />
           {/* Public routes */}
           <Route path="/leaderboard" element={<LeaderboardPage />} />
+          <Route path="/fly/:username" element={<ProfilePage />} />
         </Routes>
       </RouteErrorBoundary>
     </Suspense>

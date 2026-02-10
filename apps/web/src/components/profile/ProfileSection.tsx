@@ -22,9 +22,8 @@ interface ProfileSectionProps {
  * ProfileSection - Responsive collapsible section for profile pages.
  *
  * Behavior:
- * - On mobile: Collapsible card with tap to expand/collapse
- * - On desktop (sm+): Always expanded, no collapse trigger visible
- * - Empty state support: Shows emptyState content when children is empty
+ * - On mobile: Collapsible with clean divider-style trigger
+ * - On desktop (sm+): Always expanded with subtle divider
  */
 export function ProfileSection({
   title,
@@ -43,38 +42,35 @@ export function ProfileSection({
   const content = isEmpty && emptyState ? emptyState : children
 
   return (
-    <div className={cn('mt-6', className)}>
+    <div className={cn('', className)}>
       {/* Mobile: Collapsible */}
       <div className="sm:hidden">
         <Collapsible open={isOpen} onOpenChange={setIsOpen}>
           <CollapsibleTrigger asChild>
             <button
               className={cn(
-                'w-full flex items-center gap-3 p-4 rounded-xl',
-                'bg-card border border-border/50',
-                'hover:bg-secondary/50 hover:border-border',
+                'w-full flex items-center gap-3 py-3',
+                'border-b border-border/30',
                 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
-                'transition-all duration-200',
+                'transition-colors duration-200',
                 'text-left'
               )}
               aria-expanded={isOpen}
             >
               {/* Icon */}
               {Icon && (
-                <div className="flex-shrink-0 p-2 rounded-lg bg-secondary/50">
-                  <Icon className="w-5 h-5 text-muted-foreground" />
-                </div>
+                <Icon className="w-4 h-4 text-muted-foreground/60 flex-shrink-0" strokeWidth={1.5} />
               )}
 
               {/* Title */}
-              <span className="flex-1 font-medium text-foreground">
+              <span className="flex-1 text-sm uppercase tracking-widest text-muted-foreground font-medium">
                 {title}
               </span>
 
               {/* Chevron indicator */}
               <ChevronRight
                 className={cn(
-                  'w-5 h-5 text-muted-foreground flex-shrink-0',
+                  'w-4 h-4 text-muted-foreground/40 flex-shrink-0',
                   'transition-transform duration-200',
                   isOpen && 'rotate-90'
                 )}
@@ -83,21 +79,24 @@ export function ProfileSection({
           </CollapsibleTrigger>
 
           <CollapsibleContent className="overflow-hidden data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down">
-            <div className="pt-3">
+            <div className="pt-4 pb-2">
               {content}
             </div>
           </CollapsibleContent>
         </Collapsible>
       </div>
 
-      {/* Desktop: Always expanded with header */}
+      {/* Desktop: Always expanded with subtle divider */}
       <div className="hidden sm:block">
-        {/* Section header */}
-        <div className="flex items-center gap-2 mb-4">
+        {/* Section divider with title */}
+        <div className="flex items-center gap-3 mb-6">
           {Icon && (
-            <Icon className="w-5 h-5 text-muted-foreground" />
+            <Icon className="w-4 h-4 text-muted-foreground/50" strokeWidth={1.5} />
           )}
-          <h2 className="text-lg font-semibold">{title}</h2>
+          <h2 className="text-xs uppercase tracking-widest text-muted-foreground font-medium">
+            {title}
+          </h2>
+          <div className="flex-1 h-px bg-border/30" />
         </div>
 
         {/* Content */}
