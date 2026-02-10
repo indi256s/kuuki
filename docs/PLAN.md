@@ -316,6 +316,35 @@ Code cleanup to ensure codebase consistency with DNA documentation patterns.
 
 ---
 
+## Post-MVP: Profile Page Redesign ✅
+
+Full visual overhaul of the `/fly/:username` profile page to match the Warm Japanese Minimalism brand.
+
+**Completed 2026-02-10:**
+
+| Area | Status | Changes |
+|------|--------|---------|
+| **Route Registration** | ✅ Done | `/fly/:username` added as public route in App.tsx |
+| **ProfileHeader** | ✅ Done | Atmospheric radial gradient banner, SVG grain overlay, circular avatar with lantern glow, Share button |
+| **ProfileStats** | ✅ Done | Hero stat (text-5xl font-data), borderless typography grid, avionics-panel labels |
+| **ProfileBadges** | ✅ Done | Horizontal scroll pills on mobile, flowing wrap desktop, tier color dots |
+| **ProfileRankings** | ✅ Done | Single list layout, prominent rank numbers, thin progress bars, amber top-10 highlight |
+| **ProfileSection** | ✅ Done | Clean divider-style triggers, uppercase tracking-widest titles, subtle desktop dividers |
+| **ProfilePage Layout** | ✅ Done | Removed wrapping Card, Ma spacing (space-y-12/16), max-w-3xl, くうき watermark, staggered animations, atmospheric 404, frosted-glass private state |
+| **ProfileMiniHeader** | ✅ Done | Theme color accent line, font-data key stat |
+
+**Files Modified:**
+- `apps/web/src/App.tsx` — Added lazy import + public route
+- `apps/web/src/routes/ProfilePage.tsx` — Full layout restructure
+- `apps/web/src/components/profile/ProfileHeader.tsx` — Visual redesign
+- `apps/web/src/components/profile/ProfileStats.tsx` — Visual redesign
+- `apps/web/src/components/profile/ProfileBadges.tsx` — Visual redesign
+- `apps/web/src/components/profile/ProfileRankings.tsx` — Visual redesign
+- `apps/web/src/components/profile/ProfileSection.tsx` — Refinement
+- `apps/web/src/components/profile/ProfileMiniHeader.tsx` — Match new style
+
+---
+
 ## What's Next (Future Ideas)
 
 These are **not planned** — just ideas for post-MVP based on user feedback:
