@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next'
+import { cn } from '@/lib/utils'
 import { Lock, Calendar, Sparkles, Share2, Check } from 'lucide-react'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { UserAvatar } from '@/components/common/UserAvatar'
@@ -16,6 +17,12 @@ interface ProfileHeaderProps {
 export function ProfileHeader({ profile, isOwnProfile, badges }: ProfileHeaderProps) {
   const { t } = useTranslation()
   const [copied, setCopied] = useState(false)
+  const [badgeCollapsed, setBadgeCollapsed] = useState(false)
+
+  useEffect(() => {
+    const timer = setTimeout(() => setBadgeCollapsed(true), 5000)
+    return () => clearTimeout(timer)
+  }, [])
 
   const themeColor = (profile.theme_color as ThemeColorKey) || 'teal'
   const accentColor = THEME_COLORS[themeColor]
@@ -100,9 +107,19 @@ export function ProfileHeader({ profile, isOwnProfile, badges }: ProfileHeaderPr
           {/* Meta pills — member since + founding user */}
           <div className="flex flex-wrap items-center gap-2">
             {isFoundingUser && (
-              <span className="inline-flex items-center gap-1.5 text-xs bg-secondary/50 text-primary px-3 py-1.5 rounded-full font-medium">
-                <Sparkles className="w-3.5 h-3.5" />
-                {t('profile.foundingUser')}
+              <span className={cn(
+                "group inline-flex items-center text-xs bg-secondary/50 text-primary py-1.5 rounded-full font-medium transition-[padding] duration-300 ease-in-out",
+                badgeCollapsed ? "pl-2.5 pr-2.5 hover:pl-3 hover:pr-3" : "pl-3 pr-3"
+              )}>
+                <Sparkles className="w-3.5 h-3.5 shrink-0" />
+                <span className={cn(
+                  "overflow-hidden whitespace-nowrap transition-[max-width,opacity,margin] duration-300 ease-in-out",
+                  badgeCollapsed
+                    ? "max-w-0 opacity-0 ml-0 group-hover:max-w-[120px] group-hover:opacity-100 group-hover:ml-1.5"
+                    : "max-w-[120px] opacity-100 ml-1.5"
+                )}>
+                  {t('profile.foundingUser')}
+                </span>
               </span>
             )}
             {memberSince && (
