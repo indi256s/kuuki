@@ -38,17 +38,49 @@ const CHART_COLORS = [
   'var(--chart-5)',
 ]
 
-/** Build a stable manufacturer → color map from sorted manufacturer breakdown */
+/**
+ * Brand-inspired manufacturer colors adapted to OKLCH.
+ * Each hue is spread across the wheel for max distinction.
+ * Matched keys are case-insensitive.
+ */
+const MANUFACTURER_COLORS: Record<string, string> = {
+  airbus:       'oklch(0.56 0.12 250)',  // Airbus corporate blue
+  boeing:       'oklch(0.62 0.13 195)',  // Boeing teal-cyan
+  embraer:      'oklch(0.72 0.13 85)',   // Brazilian gold
+  sukhoi:       'oklch(0.58 0.16 25)',   // Russian red-coral
+  atr:          'oklch(0.58 0.12 300)',  // ATR purple
+  bombardier:   'oklch(0.65 0.14 155)',  // Bombardier green
+  'de havilland': 'oklch(0.65 0.13 45)', // De Havilland orange
+  cessna:       'oklch(0.60 0.12 350)',  // Cessna rose
+  comac:        'oklch(0.55 0.14 15)',   // COMAC vermillion
+  tupolev:      'oklch(0.62 0.10 270)',  // Tupolev indigo
+  antonov:      'oklch(0.68 0.11 120)',  // Antonov lime
+  mcdonnell:    'oklch(0.58 0.11 220)',  // MD steel blue
+  fokker:       'oklch(0.70 0.10 60)',   // Fokker amber
+  saab:         'oklch(0.55 0.10 175)',  // Saab dark teal
+}
+
+/** Build a stable manufacturer → color map, preferring brand colors */
 function useManufacturerColorMap(
   manufacturerBreakdown: Record<string, number> | null | undefined
 ) {
   return useMemo(() => {
     const map = new Map<string, string>()
     if (!manufacturerBreakdown) return map
+    let fallbackIdx = 0
     Object.entries(manufacturerBreakdown)
       .sort(([, a], [, b]) => b - a)
-      .forEach(([name], i) => {
-        map.set(name, CHART_COLORS[i % CHART_COLORS.length])
+      .forEach(([name]) => {
+        const key = name.toLowerCase()
+        // Try exact match, then partial match (e.g. "McDonnell Douglas" → "mcdonnell")
+        const brandColor = MANUFACTURER_COLORS[key]
+          ?? Object.entries(MANUFACTURER_COLORS).find(([k]) => key.includes(k))?.[1]
+        if (brandColor) {
+          map.set(name, brandColor)
+        } else {
+          map.set(name, CHART_COLORS[fallbackIdx % CHART_COLORS.length])
+          fallbackIdx++
+        }
       })
     return map
   }, [manufacturerBreakdown])
@@ -65,7 +97,7 @@ function StatCard({ title, icon: Icon, children, className }: StatCardProps) {
   return (
     <div
       className={cn(
-        'rounded-2xl border border-border/50 bg-card p-5',
+        'rounded-2xl border border-border/50 bg-card p-5 h-full flex flex-col',
         'transition-shadow duration-300 hover:shadow-md',
         className
       )}
@@ -76,7 +108,7 @@ function StatCard({ title, icon: Icon, children, className }: StatCardProps) {
         </div>
         <h4 className="font-medium text-sm">{title}</h4>
       </div>
-      {children}
+      <div className="flex-1 flex flex-col">{children}</div>
     </div>
   )
 }
@@ -86,11 +118,11 @@ function StatCard({ title, icon: Icon, children, className }: StatCardProps) {
 // ============================================================================
 
 const TYPE_COLORS: Record<string, string> = {
-  widebody: 'var(--chart-1)',
-  narrowbody: 'var(--chart-2)',
-  regional: 'var(--chart-3)',
-  turboprop: 'var(--chart-4)',
-  bizjet: 'var(--chart-5)',
+  widebody:   'oklch(0.55 0.12 250)',  // deep blue — intercontinental heavies
+  narrowbody: 'oklch(0.62 0.11 195)',  // teal — the workhorses
+  regional:   'oklch(0.68 0.11 80)',   // warm amber — short hops
+  turboprop:  'oklch(0.65 0.09 150)',  // sage — prop planes
+  bizjet:     'oklch(0.58 0.12 300)',  // violet — premium/private
   piston: 'var(--muted-foreground)',
 }
 
@@ -287,7 +319,7 @@ export function ManufacturerCard() {
   return (
     <StatCard title={t('stats.manufacturers', 'Manufacturers')} icon={Building2}>
       {manufacturers.length > 0 ? (
-        <div className="space-y-4">
+        <div className="flex flex-col flex-1 gap-4">
           {/* 4a. Hero Loyalty Statement */}
           {insights && (
             <div className="space-y-1.5">
@@ -313,23 +345,28 @@ export function ManufacturerCard() {
             </div>
           )}
 
-          {/* 4b. Ranked Manufacturer List */}
-          <div className="space-y-1.5 max-h-[140px] overflow-y-auto">
+          {/* 4b. Ranked Manufacturer Bars */}
+          <div className="flex flex-col flex-1 gap-2">
             {manufacturers.map(({ name, count }) => {
               const color = mfrColors.get(name) ?? 'var(--primary)'
+              const pct = total > 0 ? (count / total) * 100 : 0
               return (
-                <div key={name} className="flex items-center gap-2 text-xs">
-                  <div
-                    className="w-2.5 h-2.5 rounded-[2px] shrink-0"
-                    style={{ background: color }}
-                  />
-                  <span className="text-muted-foreground flex-1 truncate">{name}</span>
-                  <span className="font-mono font-medium">{count}</span>
-                  <div className="w-12 h-1 bg-muted rounded-full overflow-hidden">
+                <div key={name} className="flex-1 flex flex-col justify-center p-3 rounded-lg bg-muted/30">
+                  <div className="flex items-center justify-between text-xs mb-1.5">
+                    <div className="flex items-center gap-2">
+                      <div
+                        className="w-2.5 h-2.5 rounded-[2px] shrink-0"
+                        style={{ background: color }}
+                      />
+                      <span className="text-muted-foreground">{name}</span>
+                    </div>
+                    <span className="font-mono font-medium">{count}</span>
+                  </div>
+                  <div className="h-1.5 bg-background/50 rounded-full overflow-hidden">
                     <div
                       className="h-full rounded-full"
                       style={{
-                        width: `${total > 0 ? (count / total) * 100 : 0}%`,
+                        width: `${pct}%`,
                         background: color,
                       }}
                     />
