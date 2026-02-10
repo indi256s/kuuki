@@ -91,7 +91,7 @@ export function ProfileSection({
         {/* Section divider with title */}
         <div className="flex items-center gap-3 mb-6">
           {Icon && (
-            <Icon className="w-4 h-4 text-muted-foreground/50" strokeWidth={1.5} />
+            <Icon className="w-4 h-4 text-muted-foreground/60" strokeWidth={1.5} />
           )}
           <h2 className="text-xs uppercase tracking-widest text-muted-foreground font-medium">
             {title}

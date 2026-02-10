@@ -1,9 +1,11 @@
 import { useState, useEffect, useRef } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { ArrowLeft, Plane, UserX, BarChart3, Trophy, Award, Lock } from 'lucide-react'
+import { ArrowLeft, UserX, BarChart3, Trophy, Award, Lock, Plane } from 'lucide-react'
 import { usePublicProfile } from '@/hooks/useProfile'
 import { useAuth } from '@/hooks/useAuth'
+import { AppHeader } from '@/components/common/AppHeader'
+import { MobileHeader } from '@/components/layout/MobileHeader'
 import { ProfileHeader } from '@/components/profile/ProfileHeader'
 import { ProfileStats } from '@/components/profile/ProfileStats'
 import { ProfileBadges } from '@/components/profile/ProfileBadges'
@@ -45,13 +47,12 @@ export function ProfilePage() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-soft">
-        <Header />
+        <SharedHeader user={user} />
         <main className="max-w-3xl mx-auto px-6 py-8 pb-safe sm:pb-8">
           {/* Header skeleton */}
           <div className="animate-fade-up">
-            <Skeleton className="h-40 md:h-52 rounded-none" />
-            <div className="px-6 md:px-8 pb-8">
-              <div className="relative -mt-16 md:-mt-20 mb-6">
+            <div className="px-6 md:px-8 pt-8 md:pt-12 pb-8">
+              <div className="relative mb-6">
                 <Skeleton className="w-28 h-28 md:w-36 md:h-36 rounded-full" />
               </div>
               <div className="space-y-3">
@@ -84,7 +85,7 @@ export function ProfilePage() {
             backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
           }}
         />
-        <Header />
+        <SharedHeader user={user} />
         <main className="max-w-3xl mx-auto px-6 py-8 pb-safe sm:pb-8 relative">
           <div className="py-16 md:py-24 text-center animate-fade-up">
             <UserX className="w-16 h-16 mx-auto mb-6 text-muted-foreground/30" strokeWidth={1} />
@@ -119,7 +120,7 @@ export function ProfilePage() {
       <div className="min-h-screen bg-gradient-soft relative overflow-hidden">
         {/* Background watermark */}
         <Watermark />
-        <Header />
+        <SharedHeader user={user} />
         <main className="max-w-3xl mx-auto px-6 py-8 pb-safe sm:pb-8 relative">
           <div className="animate-fade-up">
             <ProfileHeader profile={profile} isOwnProfile={isOwnProfile} badges={[]} />
@@ -165,7 +166,7 @@ export function ProfilePage() {
         visible={showMiniHeader}
       />
 
-      <Header />
+      <SharedHeader user={user} />
 
       <main className="max-w-3xl mx-auto px-6 py-8 pb-safe sm:pb-8 relative space-y-12 md:space-y-16">
         {/* Header section */}
@@ -230,15 +231,28 @@ function Watermark() {
       className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none select-none"
       aria-hidden="true"
     >
-      <span className="text-[12rem] md:text-[16rem] font-display font-bold text-foreground opacity-[0.015] leading-none whitespace-nowrap">
+      <span className="text-[12rem] md:text-[16rem] font-display font-bold text-foreground opacity-[0.012] dark:opacity-[0.008] leading-none whitespace-nowrap">
         くうき
       </span>
     </div>
   )
 }
 
-// Minimal header for profile pages
-function Header() {
+// Shared header: full navbar for logged-in users, minimal for visitors
+function SharedHeader({ user }: { user: ReturnType<typeof useAuth>['user'] }) {
+  if (user) {
+    return (
+      <>
+        <AppHeader />
+        <MobileHeader />
+      </>
+    )
+  }
+  return <MinimalHeader />
+}
+
+// Minimal header for logged-out visitors
+function MinimalHeader() {
   const { t } = useTranslation()
 
   return (

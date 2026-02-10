@@ -36,33 +36,19 @@ export function ProfileHeader({ profile, isOwnProfile, badges }: ProfileHeaderPr
   }
 
   return (
-    <div className="relative">
-      {/* Atmospheric banner with radial gradient + grain */}
+    <div className="relative px-6 md:px-8 pt-8 md:pt-12 pb-8">
+      {/* Subtle atmospheric glow behind avatar */}
       <div
-        className="relative h-40 md:h-52 overflow-hidden"
-      >
-        {/* Warm radial gradient — light source from above */}
-        <div
-          className="absolute inset-0"
-          style={{
-            background: `radial-gradient(ellipse 80% 60% at 50% 0%, ${accentColor}25 0%, ${accentColor}08 50%, transparent 100%)`,
-          }}
-        />
-        {/* Subtle grain overlay — washi paper texture */}
-        <div
-          className="absolute inset-0 opacity-[0.08]"
-          style={{
-            backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
-          }}
-        />
-      </div>
+        className="absolute top-0 left-0 w-72 h-72 -translate-x-1/4 -translate-y-1/4 pointer-events-none"
+        style={{ background: `radial-gradient(circle, ${accentColor}15 0%, transparent 70%)` }}
+      />
 
       {/* Profile info — generous Ma spacing */}
-      <div className="px-6 md:px-8 pb-8">
+      <div>
         {/* Avatar — circular with lantern glow */}
-        <div className="relative -mt-16 md:-mt-20 mb-6">
+        <div className="relative mb-6">
           <div
-            className="w-28 h-28 md:w-36 md:h-36 rounded-full border-4 border-background overflow-hidden"
+            className="w-28 h-28 md:w-36 md:h-36 rounded-full border-2 border-border/30 overflow-hidden"
             style={{
               boxShadow: `0 0 24px ${accentColor}30, 0 0 48px ${accentColor}15`,
             }}
