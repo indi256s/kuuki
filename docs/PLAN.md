@@ -92,7 +92,7 @@ Public profiles, compare feature, leaderboards, and 20 badges with space-themed 
 - 20 badges across 6 categories (flights, distance, airlines, aircraft, achievement, secret)
 - 10 theme color presets with visual density scaling
 - Privacy controls (public/private profiles, leaderboard opt-in)
-- 10 flight minimum for leaderboard eligibility
+- 5 flight minimum for leaderboard eligibility
 
 **Tech:**
 - Denormalized `user_stats` table with database triggers for instant updates
@@ -342,6 +342,31 @@ Full visual overhaul of the `/fly/:username` profile page to match the Warm Japa
 - `apps/web/src/components/profile/ProfileRankings.tsx` — Visual redesign
 - `apps/web/src/components/profile/ProfileSection.tsx` — Refinement
 - `apps/web/src/components/profile/ProfileMiniHeader.tsx` — Match new style
+
+---
+
+## Post-MVP: Data Quality Fixes ✅
+
+Fixed leaderboard staleness and data integrity issues across user_stats and flights tables.
+
+**Completed 2026-02-10:**
+
+| Area | Status | Changes |
+|------|--------|---------|
+| **Leaderboard Refresh** | ✅ Done | Added missing trigger: `user_stats` changes now auto-refresh `leaderboard_cache` (was never refreshing after flight add/edit/delete) |
+| **Refresh Debounce** | ✅ Done | 30-second debounce on leaderboard refresh to prevent excessive recalculations during bulk imports |
+| **Continents Calculation** | ✅ Done | Restored continent mapping in `recalculate_user_stats` (was hardcoded to 0); recalculated all users |
+| **Enrichment Status** | ✅ Done | Fixed 180 flights stuck as `pending` despite having `aircraft_icao`; added BEFORE UPDATE trigger to auto-set `enrichment_status='enriched'` when aircraft is set |
+| **Frontend Cache** | ✅ Done | Leaderboard React Query keys now invalidated after flight create/update/delete/batch-delete mutations |
+
+**Migrations:**
+- `20260210140000_add_leaderboard_refresh_trigger_on_stats.sql`
+- `20260210163000_fix_continents_count_calculation.sql`
+- `20260210163500_auto_update_enrichment_status_on_aircraft_change.sql`
+
+**Known (not bugs):**
+- 129 flights still missing `aircraft_icao` — genuinely unresolvable, can be re-enriched via "Find Aircraft" button
+- ~300 flights missing `departure_time`/`arrival_time` — expected, no time enrichment pipeline exists
 
 ---
 
