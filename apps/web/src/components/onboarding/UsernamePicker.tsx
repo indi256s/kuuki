@@ -1,8 +1,10 @@
 import { useState, useMemo, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
+import { Facehash } from 'facehash'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent } from '@/components/ui/card'
+import { FACEHASH_COLORS } from '@/components/common/UserAvatar'
 
 interface UsernamePickerProps {
   initialValue?: string
@@ -95,6 +97,20 @@ export function UsernamePicker({ initialValue = '', onSubmit }: UsernamePickerPr
   return (
     <div className="w-full max-w-md mx-auto">
       <div className="text-center mb-8">
+        <div className="flex justify-center mb-4 animate-fade-up">
+          <div className="rounded-full overflow-hidden" style={{ width: 80, height: 80 }}>
+            <Facehash
+              name={normalizedUsername || '?'}
+              size={80}
+              colors={FACEHASH_COLORS}
+              variant="gradient"
+              intensity3d="subtle"
+              showInitial={false}
+              interactive
+              enableBlink
+            />
+          </div>
+        </div>
         <h1 className="text-2xl font-semibold tracking-tight mb-2">
           {t('onboarding.username.title')}
         </h1>

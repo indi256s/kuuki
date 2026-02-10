@@ -1,5 +1,7 @@
 import { Avatar, AvatarImage, AvatarFallback } from 'facehash'
 
+export const FACEHASH_COLORS = ['#ec4899', '#f59e0b', '#3b82f6', '#f97316', '#10b981']
+
 interface UserAvatarProps {
   /** User ID used as seed for deterministic face generation */
   userId: string
@@ -34,6 +36,7 @@ export function UserAvatar({ userId, avatarUrl, name, size = 40, className }: Us
         name={userId}
         facehashProps={{
           size,
+          colors: FACEHASH_COLORS,
           variant: 'gradient',
           intensity3d: 'subtle',
           showInitial: false,
