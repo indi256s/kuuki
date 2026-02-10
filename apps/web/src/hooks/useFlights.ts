@@ -24,6 +24,7 @@ import {
   type SortOrder,
 } from '@/lib/flights'
 import { useAuthStore } from '@/stores/authStore'
+import { LEADERBOARD_KEY, USER_POSITIONS_KEY, TOTAL_USERS_KEY } from '@/hooks/useLeaderboard'
 import { useEffect } from 'react'
 
 const FLIGHTS_KEY = 'flights'
@@ -97,6 +98,9 @@ export function useCreateFlight() {
       queryClient.invalidateQueries({ queryKey: [FLIGHT_YEARS_KEY] })
       queryClient.invalidateQueries({ queryKey: [FLIGHT_AIRLINES_KEY] })
       queryClient.invalidateQueries({ queryKey: ['flightStats'] })
+      queryClient.invalidateQueries({ queryKey: [LEADERBOARD_KEY] })
+      queryClient.invalidateQueries({ queryKey: [USER_POSITIONS_KEY] })
+      queryClient.invalidateQueries({ queryKey: [TOTAL_USERS_KEY] })
       toast.success('Flight added to your log')
     },
     onError: (error) => {
@@ -124,6 +128,9 @@ export function useUpdateFlight() {
       queryClient.invalidateQueries({ queryKey: [RECENT_FLIGHTS_KEY] })
       queryClient.invalidateQueries({ queryKey: [UPCOMING_FLIGHTS_KEY] })
       queryClient.invalidateQueries({ queryKey: ['flightStats'] })
+      queryClient.invalidateQueries({ queryKey: [LEADERBOARD_KEY] })
+      queryClient.invalidateQueries({ queryKey: [USER_POSITIONS_KEY] })
+      queryClient.invalidateQueries({ queryKey: [TOTAL_USERS_KEY] })
       toast.success('Flight updated successfully')
     },
     onError: (error) => {
@@ -155,6 +162,9 @@ export function useDeleteFlight() {
       queryClient.invalidateQueries({ queryKey: [FLIGHT_YEARS_KEY] })
       queryClient.invalidateQueries({ queryKey: [FLIGHT_AIRLINES_KEY] })
       queryClient.invalidateQueries({ queryKey: ['flightStats'] })
+      queryClient.invalidateQueries({ queryKey: [LEADERBOARD_KEY] })
+      queryClient.invalidateQueries({ queryKey: [USER_POSITIONS_KEY] })
+      queryClient.invalidateQueries({ queryKey: [TOTAL_USERS_KEY] })
       toast.success('Flight removed from your log')
     },
     onError: (error) => {
@@ -188,6 +198,9 @@ export function useBatchDeleteFlights() {
       queryClient.invalidateQueries({ queryKey: [FLIGHT_AIRLINES_KEY] })
       queryClient.invalidateQueries({ queryKey: [FLIGHT_AIRCRAFT_KEY] })
       queryClient.invalidateQueries({ queryKey: ['flightStats'] })
+      queryClient.invalidateQueries({ queryKey: [LEADERBOARD_KEY] })
+      queryClient.invalidateQueries({ queryKey: [USER_POSITIONS_KEY] })
+      queryClient.invalidateQueries({ queryKey: [TOTAL_USERS_KEY] })
       toast.success(`${flightIds.length} flights removed`)
     },
     onError: (error) => {
