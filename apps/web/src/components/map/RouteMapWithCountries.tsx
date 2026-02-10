@@ -10,7 +10,7 @@ import {
 } from 'react-simple-maps'
 import { useRecentFlights } from '@/hooks/useFlights'
 import { useTheme } from '@/hooks/useTheme'
-import { findAirport, findAirline } from '@kuuki/data'
+import { findAirport } from '@kuuki/data'
 import { getCountryData } from '@/lib/countries'
 import type { Flight } from '@/hooks/useFlights'
 import { cn } from '@/lib/utils'
@@ -34,7 +34,6 @@ interface ArcData {
   id: number
   origin: { lat: number; lon: number; iata: string }
   destination: { lat: number; lon: number; iata: string }
-  airlineColor: string
 }
 
 // ISO numeric to alpha-2 mapping for all countries in world-atlas TopoJSON
@@ -117,13 +116,10 @@ export function RouteMapWithCountries({
       const destAirport = findAirport(flight.destination)
       if (!originAirport || !destAirport) continue
 
-      const airline = flight.airline_iata ? findAirline(flight.airline_iata) : null
-
       result.push({
         id: flight.id,
         origin: { lat: originAirport.latitude, lon: originAirport.longitude, iata: originAirport.iata },
         destination: { lat: destAirport.latitude, lon: destAirport.longitude, iata: destAirport.iata },
-        airlineColor: airline?.primaryColor || '#64748b',
       })
     }
     return result
@@ -159,58 +155,41 @@ export function RouteMapWithCountries({
     return combined
   }, [visitedCountries, flightCountries])
 
-  // Calculate weighted viewport - focuses on most visited region
+  // Calculate viewport by fitting a bounding box around all airports
   const viewport = useMemo(() => {
-    if (flights.length === 0) {
-      // Default world view
+    if (airports.length === 0) {
       return { center: [10, 30] as [number, number], scale: 120 }
     }
 
-    // Count touchpoints per airport (more visits = higher weight)
-    const airportWeight = new Map<string, number>()
-    for (const flight of flights) {
-      airportWeight.set(flight.origin, (airportWeight.get(flight.origin) || 0) + 1)
-      airportWeight.set(flight.destination, (airportWeight.get(flight.destination) || 0) + 1)
+    // Calculate bounding box of all airports
+    let minLat = Infinity, maxLat = -Infinity
+    let minLon = Infinity, maxLon = -Infinity
+
+    for (const airport of airports) {
+      minLat = Math.min(minLat, airport.lat)
+      maxLat = Math.max(maxLat, airport.lat)
+      minLon = Math.min(minLon, airport.lon)
+      maxLon = Math.max(maxLon, airport.lon)
     }
 
-    // Calculate weighted center
-    let totalWeight = 0
-    let weightedLat = 0
-    let weightedLon = 0
+    // Add padding (20% of span, minimum 5°)
+    const latSpan = maxLat - minLat
+    const lonSpan = maxLon - minLon
+    const latPad = Math.max(5, latSpan * 0.2)
+    const lonPad = Math.max(5, lonSpan * 0.2)
 
-    for (const [iata, weight] of airportWeight) {
-      const airport = findAirport(iata)
-      if (!airport) continue
-      weightedLat += airport.latitude * weight
-      weightedLon += airport.longitude * weight
-      totalWeight += weight
-    }
+    const centerLat = (minLat + maxLat) / 2
+    const centerLon = (minLon + maxLon) / 2
+    const paddedLatSpan = latSpan + latPad * 2
+    const paddedLonSpan = lonSpan + lonPad * 2
 
-    if (totalWeight === 0) {
-      return { center: [10, 30] as [number, number], scale: 120 }
-    }
-
-    const centerLat = weightedLat / totalWeight
-    const centerLon = weightedLon / totalWeight
-
-    // Calculate spread of weighted airports for scale calculation
-    let maxDistanceSq = 0
-    for (const [iata, weight] of airportWeight) {
-      const airport = findAirport(iata)
-      if (!airport) continue
-      // Weight affects how much we care about including this airport
-      const distSq = Math.pow(airport.latitude - centerLat, 2) + Math.pow(airport.longitude - centerLon, 2)
-      // Scale distance by inverse of weight - frequently visited airports matter more
-      maxDistanceSq = Math.max(maxDistanceSq, distSq * Math.min(1, 2 / weight))
-    }
-
-    // Convert distance to scale (tighter zoom for concentrated activity)
-    const spread = Math.sqrt(maxDistanceSq)
-    // Heuristic: 5° spread -> scale ~500, 90° spread -> scale ~120
-    const scale = Math.min(600, Math.max(120, 2500 / Math.max(spread, 5)))
+    // Convert span to Mercator scale
+    // Larger span = smaller scale number
+    const span = Math.max(paddedLatSpan, paddedLonSpan)
+    const scale = Math.min(800, Math.max(100, 3000 / Math.max(span, 4)))
 
     return { center: [centerLon, centerLat] as [number, number], scale }
-  }, [flights])
+  }, [airports])
 
   const handleCountryClick = useCallback((geo: { id?: string }) => {
     if (!onCountryClick) return
@@ -346,13 +325,13 @@ export function RouteMapWithCountries({
             }
           </Geographies>
 
-          {/* Flight routes - adaptive scaling */}
+          {/* Flight routes - unified primary color */}
           {showRoutes && arcs.map((arc) => (
             <Line
               key={arc.id}
               from={[arc.origin.lon, arc.origin.lat]}
               to={[arc.destination.lon, arc.destination.lat]}
-              stroke={arc.airlineColor}
+              stroke="var(--primary)"
               strokeWidth={1.5 / scaleFactor}
               strokeLinecap="round"
               strokeOpacity={0.7}
