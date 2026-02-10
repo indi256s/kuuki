@@ -76,6 +76,8 @@ const mockAdvancedStats: AdvancedStats = {
   durationCoverage: 95,
   cardInsights: null,
   durationYearComparison: null,
+  fleetInsights: null,
+  manufacturerInsights: null,
   patterns: null,
   featuredFact: null,
   featuredFactIndex: 0,

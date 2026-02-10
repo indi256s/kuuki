@@ -22,6 +22,32 @@ export interface DeparturePatterns {
   total_with_time: number
 }
 
+export interface FleetInsights {
+  hero: {
+    icao: string
+    model: string
+    manufacturer: string
+    name: string
+    type: string
+    count: number
+    pct: number
+    total_distance_km: number
+    total_duration_minutes: number
+    fun_fact: string
+  }
+}
+
+export interface ManufacturerInsights {
+  dominant: {
+    name: string
+    pct: number
+    count: number
+    types_count: number
+    loyalty_label: string
+    loyalty_quip: string
+  }
+}
+
 export interface AdvancedStats {
   userId: string
   // Unlock flags
@@ -58,6 +84,8 @@ export interface AdvancedStats {
     previous_total_minutes: number
     delta_percent: number
   } | null
+  fleetInsights: FleetInsights | null
+  manufacturerInsights: ManufacturerInsights | null
   featuredFact: string | null
   featuredFactIndex: number
   updatedAt: string
@@ -112,6 +140,8 @@ export function useAdvancedStats() {
         patterns: data.patterns as Record<string, unknown> | null,
         cardInsights: (data as Record<string, unknown>).card_insights as AdvancedStats['cardInsights'],
         durationYearComparison: (data as Record<string, unknown>).duration_year_comparison as AdvancedStats['durationYearComparison'],
+        fleetInsights: (data as Record<string, unknown>).fleet_insights as FleetInsights | null,
+        manufacturerInsights: (data as Record<string, unknown>).manufacturer_insights as ManufacturerInsights | null,
         featuredFact: data.featured_fact ?? null,
         featuredFactIndex: data.featured_fact_index ?? 0,
         updatedAt: data.updated_at ?? '',

@@ -512,6 +512,10 @@
     "continentsTitle": "Мировой охват",
     "noData": "Нет данных",
     "flights": "полётов",
+    "nMore": "+{{count}} ещё",
+    "fleetHeroFallback": "Ваш топ-самолёт",
+    "compositionLabel": "Состав флота",
+    "typesCount": "{{count}} типов",
     "firstYear": "Первый год учёта",
     "vsLastYear": "к прошлому году",
     "aircraftTypes": {

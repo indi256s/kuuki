@@ -513,6 +513,10 @@
     "continentsTitle": "World Coverage",
     "noData": "No data yet",
     "flights": "flights",
+    "nMore": "+{{count}} more",
+    "fleetHeroFallback": "Your top aircraft",
+    "compositionLabel": "Fleet Composition",
+    "typesCount": "{{count}} types",
     "firstYear": "First year tracking",
     "vsLastYear": "vs last year",
     "aircraftTypes": {

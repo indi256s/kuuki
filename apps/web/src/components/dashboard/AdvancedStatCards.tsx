@@ -15,8 +15,6 @@ import {
   YAxis,
   ResponsiveContainer,
   Tooltip,
-  PieChart,
-  Pie,
   Cell,
   RadarChart,
   Radar as RechartsRadar,
@@ -84,7 +82,20 @@ function StatCard({ title, icon: Icon, children, className }: StatCardProps) {
 }
 
 // ============================================================================
-// Aircraft Types Card (Horizontal Bar Chart)
+// Fleet Composition Type Colors
+// ============================================================================
+
+const TYPE_COLORS: Record<string, string> = {
+  widebody: 'var(--chart-1)',
+  narrowbody: 'var(--chart-2)',
+  regional: 'var(--chart-3)',
+  turboprop: 'var(--chart-4)',
+  bizjet: 'var(--chart-5)',
+  piston: 'var(--muted-foreground)',
+}
+
+// ============================================================================
+// Aircraft Types Card — "Your Fleet" (Hero + Composition + Bar Chart)
 // ============================================================================
 
 export function AircraftTypesCard() {
@@ -92,39 +103,120 @@ export function AircraftTypesCard() {
   const { data: advancedStats } = useAdvancedStats()
   const mfrColors = useManufacturerColorMap(advancedStats?.manufacturerBreakdown)
 
+  const hero = advancedStats?.fleetInsights?.hero
+  const typeBreakdown = advancedStats?.aircraftTypeBreakdown?.types
+
+  // Bar chart data: top 8 with "Model · Manufacturer" labels
   const chartData = useMemo(() => {
     if (!advancedStats?.aircraftBreakdown) return []
     return Object.entries(advancedStats.aircraftBreakdown)
-      .map(([name, count]) => {
-        const aircraft = findAircraft(name)
-        return { name, count, manufacturer: aircraft?.manufacturer ?? 'Unknown' }
+      .map(([icao, count]) => {
+        const aircraft = findAircraft(icao)
+        const label = aircraft
+          ? `${aircraft.model} · ${aircraft.manufacturer}`
+          : icao
+        return {
+          icao,
+          label,
+          count,
+          manufacturer: aircraft?.manufacturer ?? 'Unknown',
+        }
       })
       .sort((a, b) => b.count - a.count)
   }, [advancedStats?.aircraftBreakdown])
 
+  const top8 = chartData.slice(0, 8)
+  const overflowCount = chartData.length - 8
   const total = useMemo(
     () => chartData.reduce((sum, d) => sum + d.count, 0),
     [chartData]
   )
 
-  const barHeight = Math.max(chartData.length * 28, 60)
+  // Fleet composition segments
+  const compositionSegments = useMemo(() => {
+    if (!typeBreakdown) return []
+    const entries = Object.entries(typeBreakdown).sort(([, a], [, b]) => b - a)
+    const totalTypes = entries.reduce((s, [, c]) => s + c, 0)
+    return entries.map(([type, count]) => ({
+      type,
+      count,
+      pct: totalTypes > 0 ? (count / totalTypes) * 100 : 0,
+    }))
+  }, [typeBreakdown])
+
+  const barHeight = Math.max(top8.length * 28, 60)
 
   return (
     <StatCard title={t('stats.aircraftTypesTitle', 'Your Fleet')} icon={Plane}>
       {chartData.length > 0 ? (
-        <>
+        <div className="space-y-4">
+          {/* 3a. Hero Section */}
+          {hero && (
+            <div className="space-y-1.5">
+              <div className="flex items-baseline gap-2">
+                <span className="font-display font-semibold text-lg">
+                  {hero.model} <span className="text-muted-foreground font-normal">·</span> {hero.manufacturer}
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="font-mono text-sm text-muted-foreground">
+                  {hero.count} {t('stats.flights', 'flights')}
+                </span>
+                <span
+                  className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-muted text-muted-foreground"
+                >
+                  {t(`stats.aircraftTypes.${hero.type}`, hero.type)}
+                </span>
+              </div>
+              <p className="text-xs text-muted-foreground italic leading-relaxed">
+                {hero.fun_fact}
+              </p>
+            </div>
+          )}
+
+          {/* 3b. Fleet Composition Blocks */}
+          {compositionSegments.length > 1 && (
+            <div className="space-y-1.5">
+              <div className="flex h-3 rounded-full overflow-hidden gap-0.5">
+                {compositionSegments.map(({ type, pct }) => (
+                  <div
+                    key={type}
+                    className="h-full rounded-full transition-all"
+                    style={{
+                      width: `${Math.max(pct, 3)}%`,
+                      background: TYPE_COLORS[type] ?? 'var(--muted)',
+                    }}
+                  />
+                ))}
+              </div>
+              <div className="flex flex-wrap gap-x-3 gap-y-0.5">
+                {compositionSegments.map(({ type, count }) => (
+                  <div key={type} className="flex items-center gap-1 text-[10px] text-muted-foreground">
+                    <div
+                      className="w-1.5 h-1.5 rounded-full shrink-0"
+                      style={{ background: TYPE_COLORS[type] ?? 'var(--muted)' }}
+                    />
+                    {t(`stats.aircraftTypes.${type}`, type)} {count}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* 3c. Improved Bar Chart (top 8) */}
+          <div className="border-t border-border/30" />
           <ResponsiveContainer width="100%" height={Math.min(barHeight, 220)}>
             <BarChart
-              data={chartData}
+              data={top8}
               layout="vertical"
               margin={{ left: 0, right: 8, top: 0, bottom: 0 }}
             >
               <XAxis type="number" hide />
               <YAxis
                 type="category"
-                dataKey="name"
-                width={48}
-                tick={{ fontSize: 11, fill: 'var(--muted-foreground)' }}
+                dataKey="label"
+                width={100}
+                tick={{ fontSize: 10, fill: 'var(--muted-foreground)' }}
                 axisLine={false}
                 tickLine={false}
               />
@@ -142,26 +234,22 @@ export function AircraftTypesCard() {
                 }}
                 cursor={{ fill: 'color-mix(in srgb, var(--muted) 30%, transparent)' }}
               />
-              <Bar
-                dataKey="count"
-                radius={[0, 4, 4, 0]}
-                barSize={14}
-              >
-                {chartData.map((entry) => (
+              <Bar dataKey="count" radius={[0, 4, 4, 0]} barSize={14}>
+                {top8.map((entry) => (
                   <Cell
-                    key={entry.name}
+                    key={entry.icao}
                     fill={mfrColors.get(entry.manufacturer) ?? 'var(--primary)'}
                   />
                 ))}
               </Bar>
             </BarChart>
           </ResponsiveContainer>
-          {advancedStats?.cardInsights?.aircraft && (
-            <p className="text-xs text-muted-foreground mt-3 italic">
-              {advancedStats.cardInsights.aircraft}
+          {overflowCount > 0 && (
+            <p className="text-[10px] text-muted-foreground">
+              {t('stats.nMore', { count: overflowCount })}
             </p>
           )}
-        </>
+        </div>
       ) : (
         <div className="h-16 rounded-lg bg-muted/20 flex items-center justify-center">
           <span className="text-xs text-muted-foreground/50 italic">
@@ -174,13 +262,15 @@ export function AircraftTypesCard() {
 }
 
 // ============================================================================
-// Manufacturer Card (Donut + List)
+// Manufacturer Card — Hero Loyalty + Ranked List (no donut)
 // ============================================================================
 
 export function ManufacturerCard() {
   const { t } = useTranslation()
   const { data: advancedStats } = useAdvancedStats()
   const mfrColors = useManufacturerColorMap(advancedStats?.manufacturerBreakdown)
+
+  const insights = advancedStats?.manufacturerInsights?.dominant
 
   const manufacturers = useMemo(() => {
     if (!advancedStats?.manufacturerBreakdown) return []
@@ -197,51 +287,34 @@ export function ManufacturerCard() {
   return (
     <StatCard title={t('stats.manufacturers', 'Manufacturers')} icon={Building2}>
       {manufacturers.length > 0 ? (
-        <>
-          <div className="relative">
-            <ResponsiveContainer width="100%" height={180}>
-              <PieChart>
-                <Pie
-                  data={manufacturers}
-                  dataKey="count"
-                  nameKey="name"
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={45}
-                  outerRadius={70}
-                  paddingAngle={2}
-                  strokeWidth={0}
-                >
-                  {manufacturers.map(({ name }) => (
-                    <Cell key={name} fill={mfrColors.get(name) ?? 'var(--primary)'} />
-                  ))}
-                </Pie>
-                <Tooltip
-                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                  formatter={((value: number, name: string) => {
-                    const pct = total > 0 ? ((value / total) * 100).toFixed(1) : '0'
-                    return [`${value} (${pct}%)`, name]
-                  }) as any}
-                  contentStyle={{
-                    background: 'var(--card)',
-                    border: '1px solid var(--border)',
-                    borderRadius: '8px',
-                    fontSize: '12px',
-                  }}
-                />
-              </PieChart>
-            </ResponsiveContainer>
-            {/* Center label */}
-            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-              <div className="text-center">
-                <div className="font-mono font-bold text-lg">{total}</div>
-                <div className="text-[10px] text-muted-foreground">{t('stats.flights', 'flights')}</div>
+        <div className="space-y-4">
+          {/* 4a. Hero Loyalty Statement */}
+          {insights && (
+            <div className="space-y-1.5">
+              <div className="flex items-baseline gap-2">
+                <span className="font-mono font-bold text-2xl text-primary">{Math.round(insights.pct)}%</span>
+                <span className="font-semibold text-base">{insights.name}</span>
               </div>
+              <div className="flex items-center gap-2">
+                <span
+                  className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-muted text-muted-foreground"
+                >
+                  {insights.loyalty_label}
+                </span>
+                {insights.types_count > 1 && (
+                  <span className="text-[10px] text-muted-foreground/60">
+                    {t('stats.typesCount', { count: insights.types_count })}
+                  </span>
+                )}
+              </div>
+              <p className="text-xs text-muted-foreground italic leading-relaxed">
+                {insights.loyalty_quip}
+              </p>
             </div>
-          </div>
+          )}
 
-          {/* Ranked list */}
-          <div className="mt-3 space-y-1.5 max-h-[120px] overflow-y-auto">
+          {/* 4b. Ranked Manufacturer List */}
+          <div className="space-y-1.5 max-h-[140px] overflow-y-auto">
             {manufacturers.map(({ name, count }) => {
               const color = mfrColors.get(name) ?? 'var(--primary)'
               return (
@@ -265,13 +338,7 @@ export function ManufacturerCard() {
               )
             })}
           </div>
-
-          {advancedStats?.cardInsights?.manufacturer && (
-            <p className="text-xs text-muted-foreground mt-3 italic">
-              {advancedStats.cardInsights.manufacturer}
-            </p>
-          )}
-        </>
+        </div>
       ) : (
         <div className="h-16 rounded-lg bg-muted/20 flex items-center justify-center">
           <span className="text-xs text-muted-foreground/50 italic">
