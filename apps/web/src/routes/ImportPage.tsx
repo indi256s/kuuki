@@ -17,7 +17,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { findAirport, findAircraft } from '@kuuki/data'
-import { calculateFlightDistance, estimateFlightDuration } from '@/lib/geo'
+import { calculateFlightDistance, calculateFlightDuration, estimateFlightDuration } from '@/lib/geo'
 import { getMessageKeyForCategory } from '@/lib/errors'
 import { Check, Plane, ArrowRight, AlertCircle } from 'lucide-react'
 import { PlaneAnimation } from '@/components/common/PlaneAnimation'
@@ -168,7 +168,20 @@ export function ImportPage() {
             destAirport.latitude,
             destAirport.longitude
           )
-          durationMinutes = estimateFlightDuration(distanceKm, aircraft?.type)
+
+          // Use actual times if available (timezone-aware), otherwise estimate
+          if (flight.departure_time && flight.arrival_time) {
+            durationMinutes = calculateFlightDuration(
+              flight.departure_time,
+              flight.arrival_time,
+              flight.date,
+              originAirport.timezone,
+              destAirport.timezone
+            ) ?? undefined
+          }
+          if (!durationMinutes) {
+            durationMinutes = estimateFlightDuration(distanceKm, aircraft?.type)
+          }
         }
 
         await createFlightMutation.mutateAsync({

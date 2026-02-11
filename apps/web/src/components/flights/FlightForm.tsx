@@ -9,7 +9,7 @@ import { AircraftPicker } from './AircraftPicker'
 import { useCreateFlight, useUpdateFlight, useCheckDuplicate, type Flight } from '@/hooks/useFlights'
 import { useIsMobile } from '@/hooks/useIsMobile'
 import { findAirport, findAircraft } from '@kuuki/data'
-import { calculateFlightDistance, estimateFlightDuration, isUpcomingFlight, daysUntilFlight } from '@/lib/geo'
+import { calculateFlightDistance, calculateFlightDuration, estimateFlightDuration, isUpcomingFlight, daysUntilFlight } from '@/lib/geo'
 import {
   Dialog,
   DialogContent,
@@ -173,19 +173,15 @@ export function FlightForm({ isOpen, onClose, editFlight, onDelete }: FlightForm
       }
     }
 
-    // Calculate actual duration from times if provided
+    // Calculate actual duration from times if provided (timezone-aware)
     if (data.departureTime && data.arrivalTime) {
-      const depParts = data.departureTime.split(':').map(Number)
-      const arrParts = data.arrivalTime.split(':').map(Number)
-      const depMinutes = depParts[0] * 60 + depParts[1]
-      let arrMinutes = arrParts[0] * 60 + arrParts[1]
-
-      // Handle overnight flights
-      if (arrMinutes < depMinutes) {
-        arrMinutes += 24 * 60
-      }
-
-      durationMinutes = arrMinutes - depMinutes
+      durationMinutes = calculateFlightDuration(
+        data.departureTime,
+        data.arrivalTime,
+        data.date,
+        originAirport?.timezone,
+        destAirport?.timezone
+      )
     }
 
     const flightData = {
