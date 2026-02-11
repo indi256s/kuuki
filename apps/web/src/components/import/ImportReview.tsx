@@ -44,13 +44,15 @@ export function ImportReview({
   const [isEnriching, setIsEnriching] = useState(!!enrichmentJobId)
   const [enrichmentError, setEnrichmentError] = useState<string | null>(null)
   const [selectedIds, setSelectedIds] = useState<Set<number>>(() => {
-    // Pre-select all valid flights
+    // Pre-select all valid flights, excluding duplicates
     return new Set(
       initialFlights
         .map((_, i) => i)
         .filter((i) => {
           const f = initialFlights[i]
+          const isDuplicate = existingRoutes.has(`${f.date}:${f.origin}:${f.destination}`)
           return (
+            !isDuplicate &&
             f.date &&
             f.origin?.length === 3 &&
             f.destination?.length === 3 &&
@@ -131,8 +133,14 @@ export function ImportReview({
     setSelectedIds(new Set())
   }, [])
 
-  const handleSelectDuplicates = useCallback(() => {
-    setSelectedIds(new Set(duplicateIndices))
+  const handleExcludeDuplicates = useCallback(() => {
+    setSelectedIds(prev => {
+      const next = new Set(prev)
+      for (const idx of duplicateIndices) {
+        next.delete(idx)
+      }
+      return next
+    })
   }, [duplicateIndices])
 
   const handleToggleSelect = useCallback((index: number, selected: boolean) => {
@@ -371,11 +379,11 @@ export function ImportReview({
               </div>
               <Button
                 variant="ghost"
-                onClick={handleSelectDuplicates}
+                onClick={handleExcludeDuplicates}
                 className="h-8 px-3 rounded-lg gap-2 text-sm text-warning-foreground hover:text-warning-foreground hover:bg-warning/10"
               >
                 <Copy className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">{t('import.review.selectDuplicates', 'Select duplicates')}</span>
+                <span className="hidden sm:inline">{t('import.review.excludeDuplicates', 'Exclude duplicates')}</span>
               </Button>
             </>
           )}
