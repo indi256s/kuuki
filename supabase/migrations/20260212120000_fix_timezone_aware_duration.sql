@@ -11,6 +11,10 @@
 -- This migration uses origin_tz / dest_tz (IANA timezone names) to convert
 -- local times to UTC via AT TIME ZONE, then subtracts to get true duration.
 
+-- Add UTC timestamp columns if they don't exist yet
+ALTER TABLE flights ADD COLUMN IF NOT EXISTS departure_utc TIMESTAMPTZ;
+ALTER TABLE flights ADD COLUMN IF NOT EXISTS arrival_utc TIMESTAMPTZ;
+
 -- Recalculate duration_minutes for all flights that have:
 -- 1) Both departure_time and arrival_time
 -- 2) Both origin_tz and dest_tz (IANA timezone strings)
