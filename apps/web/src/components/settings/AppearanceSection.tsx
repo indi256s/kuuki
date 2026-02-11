@@ -53,8 +53,8 @@ export function AppearanceSection() {
                     isActive ? 'text-foreground font-semibold' : 'text-muted-foreground'
                   )}
                 >
-                  <Icon className="h-3.5 w-3.5" />
-                  {t(`settings.appearance.modes.${mode}`)}
+                  <Icon className="relative z-10 h-3.5 w-3.5" />
+                  <span className="relative z-10">{t(`settings.appearance.modes.${mode}`)}</span>
                   {isActive && (
                     <span
                       className="bg-background absolute inset-0 rounded-md border shadow-sm animate-in fade-in-0 zoom-in-98 duration-200 ease-smooth"
