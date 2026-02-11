@@ -12,14 +12,14 @@ import { useFlightRoutes } from '@/hooks/useFlights'
 import { useTheme } from '@/hooks/useTheme'
 import { findAirport } from '@kuuki/data'
 import { getCountryData } from '@/lib/countries'
-import type { Flight } from '@/hooks/useFlights'
+import type { FlightRoute } from '@/lib/flights'
 import { cn } from '@/lib/utils'
 
 // Natural Earth 110m TopoJSON - lightweight world map
 const GEO_URL = 'https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json'
 
 interface RouteMapWithCountriesProps {
-  flights?: Flight[]
+  flights?: FlightRoute[]
   visitedCountries?: string[]
   height?: string
   className?: string

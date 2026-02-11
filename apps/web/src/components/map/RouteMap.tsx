@@ -4,7 +4,7 @@ import { useFlightRoutes } from '@/hooks/useFlights'
 import { useTheme } from '@/hooks/useTheme'
 import { findAirport, findAirline } from '@kuuki/data'
 import { generateGreatCircleArc } from '@/lib/geo'
-import type { Flight } from '@/hooks/useFlights'
+import type { FlightRoute } from '@/lib/flights'
 
 // Note: For full Mapbox GL JS integration, install:
 // pnpm add mapbox-gl react-map-gl @types/mapbox-gl
@@ -12,7 +12,7 @@ import type { Flight } from '@/hooks/useFlights'
 // This is a simplified SVG-based map for now
 
 interface RouteMapProps {
-  flights?: Flight[]
+  flights?: FlightRoute[]
   height?: string
 }
 
