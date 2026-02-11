@@ -3,7 +3,7 @@ import { findAirport, findAirline, findAircraft, getAirlineLogoUrl } from '@kuuk
 import { formatDistance, formatDuration, daysUntilFlight } from '@/lib/geo'
 import { FlightCardActions } from './FlightCardActions'
 import { AircraftShimmerBadge } from './AircraftShimmerBadge'
-import { cn } from '@/lib/utils'
+import { cn, getContrastColor } from '@/lib/utils'
 
 interface FlightCardProps {
   flight: Flight
@@ -91,9 +91,10 @@ export function FlightCard({ flight, onEdit }: FlightCardProps) {
         {/* Airline badge */}
         {airline && (
           <span
-            className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-xs font-medium text-white"
+            className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-xs font-medium"
             style={{
-              backgroundColor: airline.primaryColor || 'oklch(0.97 0.003 250)'
+              backgroundColor: airline.primaryColor || 'oklch(0.55 0.02 250)',
+              color: airline.primaryColor ? getContrastColor(airline.primaryColor) : 'white',
             }}
           >
             <img

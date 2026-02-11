@@ -196,8 +196,8 @@ If no flights can be extracted, return: {"flights": [], "raw_text": "..."}`
 // ============================================================================
 
 // Parses the cleaned text output from Gemini into basic ExtractedFlight objects
-// Format: YYYY-MM-DD | FLIGHT_NUMBER | ORIGIN-DESTINATION | AIRLINE_CODE
-const CLEANED_LINE_REGEX = /^(\d{4}-\d{2}-\d{2})\s*\|\s*([A-Z0-9]{2,3}\s*\d+)?\s*\|\s*([A-Z]{3})-([A-Z]{3})\s*\|\s*([A-Z0-9]{2})$/i
+// Format: YYYY-MM-DD | FLIGHT_NUMBER | ORIGIN-DESTINATION | AIRLINE_CODE | DEP_TIME | ARR_TIME
+const CLEANED_LINE_REGEX = /^(\d{4}-\d{2}-\d{2})\s*\|\s*([A-Z0-9]{2,3}\s*\d+)?\s*\|\s*([A-Z]{3})-([A-Z]{3})\s*\|\s*([A-Z0-9]{2})(?:\s*\|\s*(\d{2}:\d{2}|-)\s*\|\s*(\d{2}:\d{2}|-))?$/i
 
 export function parseCleanedText(cleanedText: string): ExtractedFlight[] {
   const lines = cleanedText.trim().split('\n')
@@ -209,7 +209,7 @@ export function parseCleanedText(cleanedText: string): ExtractedFlight[] {
 
     const match = trimmed.match(CLEANED_LINE_REGEX)
     if (match) {
-      const [, date, flightNumberRaw, origin, destination, airlineIata] = match
+      const [, date, flightNumberRaw, origin, destination, airlineIata, depTime, arrTime] = match
 
       // Parse flight number - extract just the digits if present
       let flightNumber: string | undefined
@@ -218,13 +218,19 @@ export function parseCleanedText(cleanedText: string): ExtractedFlight[] {
         if (digits) flightNumber = digits
       }
 
+      // Parse times - treat "-" as missing
+      const departureTime = depTime && depTime !== '-' ? depTime : undefined
+      const arrivalTime = arrTime && arrTime !== '-' ? arrTime : undefined
+
       flights.push({
         date,
         origin: origin.toUpperCase(),
         destination: destination.toUpperCase(),
         airline_iata: airlineIata.toUpperCase(),
         flight_number: flightNumber,
-        // Phase 1 flights have no aircraft/times - marked for enrichment
+        departure_time: departureTime,
+        arrival_time: arrivalTime,
+        // Phase 1 flights have no aircraft - marked for enrichment
         confidence: 0.7, // Lower confidence since no full AI extraction yet
         enrichment_status: 'pending',
       })
@@ -256,7 +262,10 @@ The input may contain:
 
 Your task:
 1. Extract each flight and output ONE LINE per flight in this exact format:
-   YYYY-MM-DD | FLIGHT_NUMBER | ORIGIN-DESTINATION | AIRLINE_CODE
+   YYYY-MM-DD | FLIGHT_NUMBER | ORIGIN-DESTINATION | AIRLINE_CODE | DEPARTURE_TIME | ARRIVAL_TIME
+
+   - DEPARTURE_TIME and ARRIVAL_TIME are in HH:mm 24-hour format
+   - If a time is not available, use a dash: -
 
 2. Rules:
    - Dates: Always YYYY-MM-DD format. Infer year from context (section headers like "### 2024")
@@ -293,7 +302,7 @@ Example input:
 | **2026-01-07** | LY5109 | TLV ➝ TBS | EL AL | Confirmed |
 
 Example output:
-2024-12-31 | TK 378 | IST-TBS | TK
-2026-01-07 | LY 5109 | TLV-TBS | LY
+2024-12-31 | TK 378 | IST-TBS | TK | 14:30 | 17:45
+2026-01-07 | LY 5109 | TLV-TBS | LY | 08:00 | 11:30
 
 Output ONLY the cleaned lines, one per flight. No headers, no explanations.`

@@ -1,6 +1,6 @@
 import { lazy, Suspense } from 'react'
 import { Maximize2, Minimize2 } from 'lucide-react'
-import { useRecentFlights } from '@/hooks/useFlights'
+import { useFlightRoutes } from '@/hooks/useFlights'
 import { useDashboardStats } from '@/hooks/useDashboardStats'
 import { cn } from '@/lib/utils'
 
@@ -15,7 +15,7 @@ interface MapCardProps {
 }
 
 export function MapCard({ className, isExpanded = false, onExpandChange }: MapCardProps) {
-  const { data: flights = [] } = useRecentFlights(50)
+  const { data: flights = [] } = useFlightRoutes()
   const { data: stats } = useDashboardStats()
 
   const visitedCountries = stats?.visitedCountries || []

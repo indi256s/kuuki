@@ -13,7 +13,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { Pencil, ArrowUp, ArrowDown, ArrowUpDown } from 'lucide-react'
-import { cn } from '@/lib/utils'
+import { cn, getContrastColor } from '@/lib/utils'
 import { AircraftShimmerBadge } from './AircraftShimmerBadge'
 
 interface FlightTableProps {
@@ -297,9 +297,10 @@ export function FlightTable({
                     {airline ? (
                       <div className="flex items-center gap-2">
                         <span
-                          className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium text-white"
+                          className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium"
                           style={{
-                            backgroundColor: airline.primaryColor || 'oklch(0.97 0.003 250)'
+                            backgroundColor: airline.primaryColor || 'oklch(0.55 0.02 250)',
+                            color: airline.primaryColor ? getContrastColor(airline.primaryColor) : 'white',
                           }}
                         >
                           {airline.name}

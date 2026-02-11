@@ -756,7 +756,7 @@
       "duplicate": "Дубликат",
       "duplicatesFound": "Найдено {{count}} возможных дубликатов",
       "duplicatesCount": "{{count}} возможных дубликатов",
-      "selectDuplicates": "Выбрать дубликаты",
+      "excludeDuplicates": "Исключить дубликаты",
       "invalid": "Ошибка",
       "lowConfidence": "Некоторые поля требуют проверки",
       "verify": "Проверить",

@@ -1,7 +1,7 @@
 import { lazy, Suspense, useState, useMemo, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Maximize2, Minimize2, Route, Flag, Layers } from 'lucide-react'
-import { useRecentFlights } from '@/hooks/useFlights'
+import { useFlightRoutes } from '@/hooks/useFlights'
 import { cn } from '@/lib/utils'
 import type { PassportEntry } from '@kuuki/shared'
 
@@ -25,7 +25,7 @@ export function PassportMap({
   onCountryClick,
 }: PassportMapProps) {
   const { t } = useTranslation()
-  const { data: flights = [] } = useRecentFlights(50)
+  const { data: flights = [] } = useFlightRoutes()
 
   // Toggle state
   const [showRoutes, setShowRoutes] = useState(true)

@@ -8,6 +8,7 @@ import {
   deleteFlight,
   deleteFlights,
   checkDuplicateFlight,
+  getFlightRoutes,
   getRecentFlights,
   getUpcomingFlights,
   getFlightYears,
@@ -29,6 +30,7 @@ import { useEffect } from 'react'
 
 const FLIGHTS_KEY = 'flights'
 const FLIGHT_KEY = 'flight'
+const FLIGHT_ROUTES_KEY = 'flightRoutes'
 const RECENT_FLIGHTS_KEY = 'recentFlights'
 const UPCOMING_FLIGHTS_KEY = 'upcomingFlights'
 const FLIGHT_YEARS_KEY = 'flightYears'
@@ -231,6 +233,23 @@ export function useCheckDuplicate() {
       if (!userId) throw new Error('Not authenticated')
       return checkDuplicateFlight(userId, date, origin, destination, excludeId)
     },
+  })
+}
+
+/**
+ * Hook for all flight routes (map rendering - lightweight, no limit)
+ */
+export function useFlightRoutes() {
+  const userId = useAuthStore((state) => state.user?.id)
+
+  return useQuery({
+    queryKey: [FLIGHT_ROUTES_KEY, userId],
+    queryFn: () => {
+      if (!userId) return []
+      return getFlightRoutes(userId)
+    },
+    enabled: !!userId,
+    staleTime: 2 * 60 * 1000,
   })
 }
 
