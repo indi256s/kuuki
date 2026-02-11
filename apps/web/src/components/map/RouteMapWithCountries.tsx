@@ -8,7 +8,7 @@ import {
   Marker,
   ZoomableGroup,
 } from 'react-simple-maps'
-import { useRecentFlights } from '@/hooks/useFlights'
+import { useFlightRoutes } from '@/hooks/useFlights'
 import { useTheme } from '@/hooks/useTheme'
 import { findAirport } from '@kuuki/data'
 import { getCountryData } from '@/lib/countries'
@@ -91,9 +91,9 @@ export function RouteMapWithCountries({
 }: RouteMapWithCountriesProps) {
   const { t } = useTranslation()
   const { resolvedTheme } = useTheme()
-  const { data: recentFlights = [] } = useRecentFlights(50)
+  const { data: allRoutes = [] } = useFlightRoutes()
 
-  const flights = propFlights ?? recentFlights
+  const flights = propFlights ?? allRoutes
 
   // Theme-aware colors
   const isLight = resolvedTheme === 'light'

@@ -308,6 +308,23 @@ export async function getFlightStats(userId: string): Promise<FlightStats> {
 }
 
 /**
+ * Get all flight routes for map rendering (lightweight: only route-relevant columns)
+ */
+export async function getFlightRoutes(userId: string): Promise<Flight[]> {
+  const { data, error } = await supabase
+    .from('flights')
+    .select('id, origin, destination, airline_iata, date, is_upcoming')
+    .eq('user_id', userId)
+    .order('date', { ascending: false })
+
+  if (error) {
+    throw new Error(`Failed to fetch flight routes: ${error.message}`)
+  }
+
+  return (data ?? []) as unknown as Flight[]
+}
+
+/**
  * Get recent flights for dashboard display
  */
 export async function getRecentFlights(userId: string, limit = 5): Promise<Flight[]> {

@@ -1,6 +1,6 @@
 import { useState, useMemo, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useRecentFlights } from '@/hooks/useFlights'
+import { useFlightRoutes } from '@/hooks/useFlights'
 import { useTheme } from '@/hooks/useTheme'
 import { findAirport, findAirline } from '@kuuki/data'
 import { generateGreatCircleArc } from '@/lib/geo'
@@ -27,10 +27,10 @@ interface ArcData {
 export function RouteMap({ flights: propFlights, height = '300px' }: RouteMapProps) {
   const { t } = useTranslation()
   const { resolvedTheme } = useTheme()
-  const { data: recentFlights = [] } = useRecentFlights(50)
+  const { data: allRoutes = [] } = useFlightRoutes()
   const [colorMode, setColorMode] = useState<'airline' | 'route'>('airline')
 
-  const flights = propFlights ?? recentFlights
+  const flights = propFlights ?? allRoutes
 
   // Theme-aware colors
   const isLight = resolvedTheme === 'light'
