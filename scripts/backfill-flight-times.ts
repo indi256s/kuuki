@@ -26,7 +26,7 @@ import { GoogleGenAI, Type } from '@google/genai'
 
 const SUPABASE_URL = 'https://cwmotwkvpdkfrtjxmoce.supabase.co'
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY || ''
-const AIRLABS_API_KEY = '2ce38033-3fcb-47db-8b4b-151974f9db6f'
+const AIRLABS_API_KEY = process.env.AIRLABS_API_KEY || '2ce38033-3fcb-47db-8b4b-151974f9db6f'
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || ''
 
 const DRY_RUN = process.env.DRY_RUN === '1'
