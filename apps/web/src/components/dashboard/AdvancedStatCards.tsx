@@ -460,6 +460,23 @@ function FleetRidgeline({
           to   { stroke-dashoffset: 0; stroke-dasharray: none; }
         }
       `}</style>
+
+      {/* Manufacturer color legend */}
+      {rows.length > 0 && (
+        <div className="flex flex-wrap gap-x-3 gap-y-1 mt-2">
+          {[...new Map(rows.map((r) => [r.manufacturer, mfrColors.get(r.manufacturer) ?? 'var(--primary)']))].map(
+            ([mfr, color]) => (
+              <div key={mfr} className="flex items-center gap-1 text-[10px] text-muted-foreground">
+                <div
+                  className="w-2 h-2 rounded-full shrink-0"
+                  style={{ background: color }}
+                />
+                {mfr}
+              </div>
+            )
+          )}
+        </div>
+      )}
     </div>
   )
 }
