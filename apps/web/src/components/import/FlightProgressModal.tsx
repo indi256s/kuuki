@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/utils'
-import { Check, Loader2, ArrowRight, Plane } from 'lucide-react'
+import { Check, Loader2, ArrowRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { getProcessingMessage, type ProcessingStage } from '@/lib/glados-text'
 import { findAirline } from '@kuuki/data'
@@ -210,14 +210,14 @@ export function FlightProgressModal({
     <div className="fixed inset-0 z-50 min-h-[100dvh] flex items-center justify-center p-4">
       {/* Backdrop with subtle gradient */}
       <div
-        className="absolute inset-0 bg-gradient-to-b from-background/95 to-background/98 backdrop-blur-sm"
+        className="absolute inset-0 bg-gradient-to-b from-background/60 to-background/75 backdrop-blur-sm"
         onClick={onCancel}
       />
 
       {/* Modal content */}
       <div className="relative z-10 w-full max-w-md">
         {/* Main card */}
-        <div className="bg-card/80 backdrop-blur-md border border-border/50 rounded-2xl shadow-2xl overflow-hidden">
+        <div className="bg-card/50 backdrop-blur-lg border border-border/50 rounded-2xl shadow-2xl overflow-hidden">
 
           {/* Header with elapsed time */}
           <div className="px-6 pt-6 pb-4 border-b border-border/30">
@@ -299,34 +299,54 @@ export function FlightProgressModal({
             </div>
           </div>
 
-          {/* Discovered flights reveal */}
-          {hasFlights && revealedCount > 0 && (
+          {/* Flight log panel — visible during extraction and after */}
+          {(currentStageIndex >= 1 || hasFlights) && (
             <div className="px-6 pb-4">
-              <div className="text-xs font-medium text-muted-foreground mb-2">
-                {t('import.parsing.flightsFound', 'Flights found')}
+              <div className="flex items-center justify-between mb-2">
+                <div className="text-xs font-medium text-muted-foreground">
+                  {t('import.parsing.flightsFound', 'Flights found')}
+                </div>
+                {(hasFlights && revealedCount > 0) && (
+                  <span className="text-xs font-mono text-primary tabular-nums">
+                    {revealedCount} {revealedCount === 1 ? 'flight' : 'flights'}
+                  </span>
+                )}
               </div>
-              <div className="space-y-1.5 max-h-48 overflow-y-auto">
-                {flights.slice(0, revealedCount).map((flight, index) => (
-                  <div
-                    key={`${flight.origin}-${flight.destination}-${flight.date}-${index}`}
-                    className={cn(
-                      "flex items-center gap-2 text-xs font-mono text-foreground/80",
-                      !prefersReducedMotion && "animate-fade-up"
-                    )}
-                    style={!prefersReducedMotion ? { animationDelay: `${index * 50}ms`, animationFillMode: 'backwards' } : undefined}
-                  >
-                    <Plane className="w-3 h-3 text-primary flex-shrink-0" />
-                    <span className="truncate">{formatFlightLine(flight)}</span>
-                    {validated && (
-                      <Check
+              <div className="bg-black/10 dark:bg-black/20 rounded-lg border-l-2 border-primary/30 p-3">
+                <div className="space-y-1.5 max-h-48 overflow-y-auto font-mono text-xs">
+                  {(!hasFlights || revealedCount === 0) ? (
+                    <div className="flex items-center gap-2 text-muted-foreground">
+                      <span className="text-primary/60">&gt;</span>
+                      <span>{t('import.parsing.scanning', 'Scanning document...')}</span>
+                      <span className={cn(
+                        "inline-block w-1.5 h-3.5 bg-primary/50",
+                        !prefersReducedMotion && "animate-pulse"
+                      )} />
+                    </div>
+                  ) : (
+                    flights!.slice(0, revealedCount).map((flight, index) => (
+                      <div
+                        key={`${flight.origin}-${flight.destination}-${flight.date}-${index}`}
                         className={cn(
-                          "w-3 h-3 text-primary flex-shrink-0 ml-auto",
-                          !prefersReducedMotion && "animate-fade-in"
+                          "flex items-center gap-2 text-foreground/80",
+                          !prefersReducedMotion && "animate-fade-up"
                         )}
-                      />
-                    )}
-                  </div>
-                ))}
+                        style={!prefersReducedMotion ? { animationDelay: `${index * 50}ms`, animationFillMode: 'backwards' } : undefined}
+                      >
+                        <span className="text-primary/60 flex-shrink-0">&gt;</span>
+                        <span className="truncate">{formatFlightLine(flight)}</span>
+                        {validated && (
+                          <Check
+                            className={cn(
+                              "w-3 h-3 text-primary flex-shrink-0 ml-auto",
+                              !prefersReducedMotion && "animate-fade-in"
+                            )}
+                          />
+                        )}
+                      </div>
+                    ))
+                  )}
+                </div>
               </div>
             </div>
           )}

@@ -747,7 +747,8 @@
       "continueInBackground": "Continue in background",
       "inProgress": "in progress",
       "redirectHint": "Processing in overlay...",
-      "flightsFound": "Flights found"
+      "flightsFound": "Flights found",
+      "scanning": "Scanning document..."
     },
     "review": {
       "title": "Review extracted flights",
