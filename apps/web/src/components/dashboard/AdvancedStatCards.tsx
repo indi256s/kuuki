@@ -9,13 +9,8 @@ import {
   TrendingDown,
 } from 'lucide-react'
 import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
   ResponsiveContainer,
   Tooltip,
-  Cell,
   RadarChart,
   Radar as RechartsRadar,
   PolarGrid,
@@ -233,8 +228,6 @@ export function AircraftTypesCard() {
     }))
   }, [typeBreakdown])
 
-  const barHeight = Math.max(top8.length * 28, 60)
-
   return (
     <StatCard title={t('stats.aircraftTypesTitle', 'Your Fleet')} icon={Plane}>
       {chartData.length > 0 ? (
@@ -243,13 +236,12 @@ export function AircraftTypesCard() {
           {hero && (
             <div className="space-y-1.5">
               <div className="flex items-baseline gap-2">
-                <span className="font-display font-semibold text-lg">
-                  {hero.model} <span className="text-muted-foreground font-normal">·</span> {hero.manufacturer}
-                </span>
+                <span className="font-mono font-bold text-2xl text-primary">{hero.count}x</span>
+                <span className="font-semibold text-base">{hero.model}</span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="font-mono text-sm text-muted-foreground">
-                  {hero.count} {t('stats.flights', 'flights')}
+                <span className="text-sm text-muted-foreground">
+                  {hero.manufacturer}
                 </span>
                 <span
                   className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-muted text-muted-foreground"
@@ -292,47 +284,9 @@ export function AircraftTypesCard() {
             </div>
           )}
 
-          {/* 3c. Improved Bar Chart (top 8) */}
+          {/* 3c. Custom CSS Bar Chart (top 8) */}
           <div className="border-t border-border/30" />
-          <ResponsiveContainer width="100%" height={Math.min(barHeight, 220)}>
-            <BarChart
-              data={top8}
-              layout="vertical"
-              margin={{ left: 0, right: 8, top: 0, bottom: 0 }}
-            >
-              <XAxis type="number" hide />
-              <YAxis
-                type="category"
-                dataKey="label"
-                width={100}
-                tick={{ fontSize: 10, fill: 'var(--muted-foreground)' }}
-                axisLine={false}
-                tickLine={false}
-              />
-              <Tooltip
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                formatter={((value: number) => {
-                  const pct = total > 0 ? ((value / total) * 100).toFixed(0) : '0'
-                  return [`${value} flights (${pct}%)`, '']
-                }) as any}
-                contentStyle={{
-                  background: 'var(--card)',
-                  border: '1px solid var(--border)',
-                  borderRadius: '8px',
-                  fontSize: '12px',
-                }}
-                cursor={{ fill: 'color-mix(in srgb, var(--muted) 30%, transparent)' }}
-              />
-              <Bar dataKey="count" radius={[0, 4, 4, 0]} barSize={14}>
-                {top8.map((entry) => (
-                  <Cell
-                    key={entry.icao}
-                    fill={mfrColors.get(entry.manufacturer) ?? 'var(--primary)'}
-                  />
-                ))}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
+          <FleetBarChart items={top8} total={total} mfrColors={mfrColors} />
           {overflowCount > 0 && (
             <p className="text-[10px] text-muted-foreground">
               {t('stats.nMore', { count: overflowCount })}
@@ -347,6 +301,97 @@ export function AircraftTypesCard() {
         </div>
       )}
     </StatCard>
+  )
+}
+
+// ============================================================================
+// Fleet Bar Chart (pure CSS)
+// ============================================================================
+
+interface FleetBarItem {
+  icao: string
+  label: string
+  count: number
+  manufacturer: string
+}
+
+function FleetBarChart({
+  items,
+  total,
+  mfrColors,
+}: {
+  items: FleetBarItem[]
+  total: number
+  mfrColors: Map<string, string>
+}) {
+  const maxCount = items.length > 0 ? items[0].count : 1
+  return (
+    <div className="flex flex-col gap-1.5">
+      {items.map((item, idx) => (
+        <FleetBar
+          key={item.icao}
+          item={item}
+          maxCount={maxCount}
+          total={total}
+          color={mfrColors.get(item.manufacturer) ?? 'var(--primary)'}
+          index={idx}
+        />
+      ))}
+    </div>
+  )
+}
+
+function FleetBar({
+  item,
+  maxCount,
+  total,
+  color,
+  index,
+}: {
+  item: FleetBarItem
+  maxCount: number
+  total: number
+  color: string
+  index: number
+}) {
+  const widthPct = (item.count / maxCount) * 100
+  const pct = total > 0 ? ((item.count / total) * 100).toFixed(0) : '0'
+
+  return (
+    <div
+      className="group relative flex items-center gap-2 animate-fade-in motion-reduce:animate-none motion-reduce:opacity-100"
+      style={{
+        animationDelay: `${index * 60}ms`,
+        animationFillMode: 'backwards',
+      }}
+    >
+      <div className="w-[100px] shrink-0 truncate text-[10px] text-muted-foreground">
+        {item.label}
+      </div>
+      <div className="flex-1 h-3.5 rounded-sm bg-muted/20 relative overflow-hidden">
+        <div
+          className="h-full rounded-sm transition-[filter] duration-150 group-hover:brightness-125"
+          style={{
+            width: `${widthPct}%`,
+            background: color,
+          }}
+        />
+        {/* Hover tooltip */}
+        <div
+          className={cn(
+            'absolute left-1/2 -translate-x-1/2 -top-7 z-10 pointer-events-none',
+            'hidden group-hover:block',
+            'whitespace-nowrap px-1.5 py-0.5 rounded',
+            'bg-card border border-border/50 text-[10px] font-mono shadow-sm'
+          )}
+        >
+          {item.count} flights ({pct}%)
+        </div>
+      </div>
+      <span className="w-8 text-right font-mono text-[10px] text-muted-foreground">
+        {pct}%
+      </span>
+    </div>
   )
 }
 
