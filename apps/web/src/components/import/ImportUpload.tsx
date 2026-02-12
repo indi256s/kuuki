@@ -249,52 +249,62 @@ export function ImportUpload({ onSubmit, disabled, variant = 'full', onSkip }: I
 
   return (
     <div className="space-y-4">
-      {/* Card 1: AI Tip (Collapsible) */}
+      {/* Card 1: AI Tip (Collapsible prompt) */}
       <Note accent="primary" size="sm" className="select-none">
-        {/* Row 1: Title + Copy + Chevron */}
-        <div className="flex items-center gap-3">
-          <span className="text-sm font-medium flex-1">
-            {t('import.tip.teaser', 'Let AI find all your flights from Gmail & Calendar')}
-          </span>
-          <Button
-            variant="secondary"
-            onClick={copyPrompt}
-            className="h-7 px-3 gap-1.5 text-xs flex-shrink-0"
-          >
-            {showCopiedToast ? (
-              <>
-                <Check className="w-3.5 h-3.5" />
-                {t('import.tip.copied', 'Copied!')}
-              </>
-            ) : (
-              <>
-                <Copy className="w-3.5 h-3.5" />
-                {t('common.copy', 'Copy')}
-              </>
-            )}
-          </Button>
-          <button
-            type="button"
-            onClick={() => setTipExpanded(!tipExpanded)}
-            className="p-1 -mr-1 rounded-md hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
-            aria-expanded={tipExpanded}
-            aria-label={tipExpanded ? 'Collapse prompt' : 'Expand prompt'}
-          >
-            <ChevronDown
-              className={cn(
-                'w-4 h-4 text-muted-foreground transition-transform duration-200',
-                tipExpanded && 'rotate-180'
-              )}
-            />
-          </button>
-        </div>
+        {/* Row 1: Title */}
+        <span className="text-sm font-medium">
+          {t('import.tip.teaser', 'Let AI find all your flights from Gmail & Calendar')}
+        </span>
 
         {/* Row 2: Description (always visible) */}
         <p className="text-sm text-muted-foreground mt-2">
-          {t('import.tip.description', 'Copy this prompt → paste to Gemini or Claude → paste AI response below')}
+          {t('import.tip.description', 'Copy this prompt → feed it to Gemini → paste the results below')}
         </p>
 
-        {/* Collapsed section: Recommendation + Prompt */}
+        {/* Row 3: Recommendation (always visible) */}
+        <p className="text-xs text-muted-foreground/70 mt-1.5 italic">
+          {t('import.tip.recommendation', "Gemini works best (it reads your Calendar). Claude is acceptable. ChatGPT... let's not.")}
+        </p>
+
+        {/* Row 4: Show/Copy prompt button */}
+        <div className="flex items-center gap-2 mt-3">
+          <Button
+            variant="secondary"
+            onClick={() => setTipExpanded(!tipExpanded)}
+            className="h-7 px-3 gap-1.5 text-xs"
+          >
+            <ChevronDown
+              className={cn(
+                'w-3.5 h-3.5 transition-transform duration-200',
+                tipExpanded && 'rotate-180'
+              )}
+            />
+            {tipExpanded
+              ? t('import.tip.hidePrompt', 'Hide prompt')
+              : t('import.tip.showPrompt', 'Show prompt')}
+          </Button>
+          {tipExpanded && (
+            <Button
+              variant="secondary"
+              onClick={copyPrompt}
+              className="h-7 px-3 gap-1.5 text-xs"
+            >
+              {showCopiedToast ? (
+                <>
+                  <Check className="w-3.5 h-3.5" />
+                  {t('import.tip.copied', 'Copied!')}
+                </>
+              ) : (
+                <>
+                  <Copy className="w-3.5 h-3.5" />
+                  {t('common.copy', 'Copy')}
+                </>
+              )}
+            </Button>
+          )}
+        </div>
+
+        {/* Collapsed section: Prompt only */}
         <div
           className={cn(
             'grid transition-all duration-200 ease-out',
@@ -303,9 +313,6 @@ export function ImportUpload({ onSubmit, disabled, variant = 'full', onSkip }: I
         >
           <div className="overflow-hidden">
             <NoteContent>
-              <p className="text-xs text-muted-foreground/70 mb-3 italic">
-                {t('import.tip.recommendation', "Use Gemini (native Calendar integration) or Claude. Don't use ChatGPT (it sucks)")}
-              </p>
               <pre className="text-xs bg-muted/50 p-3 rounded-lg font-mono overflow-x-auto whitespace-pre-wrap text-foreground/80 border border-border/50">
                 {GEMINI_PROMPT}
               </pre>

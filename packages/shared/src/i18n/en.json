@@ -724,8 +724,10 @@
     "tip": {
       "title": "Use Google Gemini to find your flights",
       "teaser": "Let AI find all your flights from Gmail & Calendar",
-      "description": "Copy this prompt → paste to Gemini or Claude → paste AI response below",
-      "recommendation": "Use Gemini (native Calendar integration) or Claude. Don't use ChatGPT (it sucks)",
+      "description": "Copy this prompt → feed it to Gemini → paste the results below",
+      "recommendation": "Gemini works best (it reads your Calendar). Claude is acceptable. ChatGPT... let's not.",
+      "showPrompt": "Show prompt",
+      "hidePrompt": "Hide prompt",
       "hint": "Use with @Gmail and @Google Calendar in Google Gemini",
       "copied": "Copied!",
       "easterEgg": "This is the prompt FOR your AI. Copy it to Gemini or Claude, get the flight list, then paste THAT here. I believe in you."
