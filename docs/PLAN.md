@@ -366,7 +366,39 @@ Fixed leaderboard staleness and data integrity issues across user_stats and flig
 
 **Known (not bugs):**
 - 129 flights still missing `aircraft_icao` — genuinely unresolvable, can be re-enriched via "Find Aircraft" button
-- ~300 flights missing `departure_time`/`arrival_time` — expected, no time enrichment pipeline exists
+- ~80 flights missing `departure_time`/`arrival_time` — pre-fix imports; times now required in Gemini schema (see Import UX Improvements below)
+
+---
+
+## Post-MVP: Import UX Improvements ✅
+
+Live flight reveal animation and time extraction reliability fix.
+
+**Completed 2026-02-12:**
+
+| Area | Status | Changes |
+|------|--------|---------|
+| **Flight Reveal Animation** | ✅ Done | After Gemini returns flights, they appear one-by-one as compact text lines with staggered fade-up animation before transitioning to review |
+| **Time Extraction Fix** | ✅ Done | Made `departure_time`/`arrival_time` required in Gemini response schema; ~26% of imports were silently dropping times due to optional fields |
+
+**Flight Reveal UX:**
+- Compact monospace flight lines: `B2 946   LED → MSQ   15 Jan 2026   20:10–21:40`
+- Staggered `animate-fade-up` (300ms between each flight)
+- Validation checkmarks after all flights revealed
+- Auto-transition to review step after reveal completes
+- Scrollable container (`max-h-48`) for large imports
+
+**Time Extraction Fix:**
+- Root cause: `departure_time`/`arrival_time` were optional in `FLIGHT_RESPONSE_SCHEMA`, letting Gemini silently omit clearly visible times
+- Fix: Made times required in schema, updated prompt to emphasize time extraction, added empty-string-to-undefined normalization
+
+**Files Modified:**
+- `apps/web/src/components/import/FlightProgressModal.tsx` — Flight reveal animation with staggered appearance
+- `apps/web/src/routes/ImportPage.tsx` — `pendingFlights` state, delayed review transition
+- `functions/api/import/parse.ts` — Times required in schema, empty string normalization
+- `functions/api/import/_shared.ts` — Updated extraction prompt for time emphasis
+- `packages/shared/src/i18n/en.json` — Added `import.parsing.flightsFound`
+- `packages/shared/src/i18n/ru.json` — Added `import.parsing.flightsFound`
 
 ---
 

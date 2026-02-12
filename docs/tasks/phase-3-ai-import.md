@@ -25,8 +25,9 @@
 - Call Gemini 3 Flash for OCR + semantic parsing
 - Return structured flight data with confidence scores
 - Validation: 3-letter airport codes, 2-letter airline codes
-- Normalization: uppercase codes, clamped confidence (0-1)
+- Normalization: uppercase codes, clamped confidence (0-1), empty time strings → undefined
 - Error handling with aviation-themed messages
+- ✅ `departure_time`/`arrival_time` required in response schema (prevents Gemini from silently omitting visible times)
 
 **Secrets:**
 - `GEMINI_API_KEY` - stored in Workers secrets
@@ -80,6 +81,7 @@ Format: one flight per line, include whatever info you found.
 2. "Extracting text..."
 3. "Finding flights..."
 - WindLoader animation with phase indicators
+- ✅ Live flight reveal: after API returns, flights appear one-by-one as compact text lines with staggered fade-up before transitioning to review
 
 ### Import Review
 
