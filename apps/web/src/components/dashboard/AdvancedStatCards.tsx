@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useMemo, useState, useCallback, useRef, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
   Plane,
@@ -18,6 +18,8 @@ import {
 } from 'recharts'
 import { cn } from '@/lib/utils'
 import { useAdvancedStats } from '@/hooks/useAdvancedStats'
+import { useFlightDurations } from '@/hooks/useFlightDurations'
+import type { FlightDuration } from '@/hooks/useFlightDurations'
 import { formatDuration } from '@/lib/formatDuration'
 import { findAircraft } from '@kuuki/data'
 
@@ -44,7 +46,7 @@ interface WaffleAllocation {
   pct: number
 }
 
-/** Distribute exactly 100 squares using the largest remainder method */
+/** Distribute exactly 64 squares using the largest remainder method */
 function allocateWaffleSquares(
   manufacturers: Array<{ name: string; count: number }>
 ): WaffleAllocation[] {
@@ -56,20 +58,20 @@ function allocateWaffleSquares(
 
   // Compute ideal shares, assign floor (min 1 for entries with >0)
   const entries = sorted.map((m) => {
-    const ideal = (m.count / total) * 100
+    const ideal = (m.count / total) * 64
     return {
       name: m.name,
       count: m.count,
       ideal,
       squares: Math.max(1, Math.floor(ideal)),
-      pct: Math.round(ideal * 10) / 10,
+      pct: Math.round(((m.count / total) * 100) * 10) / 10,
     }
   })
 
   let assigned = entries.reduce((s, e) => s + e.squares, 0)
 
-  // If min-1 guarantee pushed sum > 100, reduce the largest allocations
-  while (assigned > 100) {
+  // If min-1 guarantee pushed sum > 64, reduce the largest allocations
+  while (assigned > 64) {
     const largest = entries.find((e) => e.squares > 1)
     if (!largest) break
     largest.squares--
@@ -77,10 +79,10 @@ function allocateWaffleSquares(
   }
 
   // Distribute remaining squares by largest fractional remainder
-  const remaining = 100 - assigned
+  const remaining = 64 - assigned
   if (remaining > 0) {
     const byRemainder = [...entries]
-      .filter((e) => e.squares < 100)
+      .filter((e) => e.squares < 64)
       .sort((a, b) => (b.ideal - Math.floor(b.ideal)) - (a.ideal - Math.floor(a.ideal)))
     for (let i = 0; i < remaining && i < byRemainder.length; i++) {
       byRemainder[i].squares++
@@ -179,7 +181,301 @@ const TYPE_COLORS: Record<string, string> = {
 }
 
 // ============================================================================
-// Aircraft Types Card — "Your Fleet" (Hero + Composition + Bar Chart)
+// Gaussian KDE + Ridgeline Chart
+// ============================================================================
+
+function gaussianKDE(values: number[], bandwidth: number, points: number[]): number[] {
+  const n = values.length
+  return points.map((x) => {
+    let sum = 0
+    for (const v of values) {
+      const z = (x - v) / bandwidth
+      sum += Math.exp(-0.5 * z * z)
+    }
+    return sum / (n * bandwidth * Math.sqrt(2 * Math.PI))
+  })
+}
+
+function silvermanBandwidth(values: number[]): number {
+  const n = values.length
+  if (n < 2) return 30
+  const mean = values.reduce((s, v) => s + v, 0) / n
+  const variance = values.reduce((s, v) => s + (v - mean) ** 2, 0) / (n - 1)
+  const stddev = Math.sqrt(variance)
+  return Math.max(10, 1.06 * stddev * n ** -0.2)
+}
+
+interface RidgelineRow {
+  icao: string
+  label: string
+  manufacturer: string
+  count: number
+  avgDuration: number
+  densityPoints: { x: number; y: number }[]
+  maxDensity: number
+}
+
+function buildRidgelineData(
+  aircraftBreakdown: Record<string, number>,
+  durations: FlightDuration[]
+): RidgelineRow[] {
+  // Group durations by ICAO
+  const byIcao = new Map<string, number[]>()
+  for (const d of durations) {
+    const arr = byIcao.get(d.aircraft_icao) ?? []
+    arr.push(d.duration_minutes)
+    byIcao.set(d.aircraft_icao, arr)
+  }
+
+  // Top 5 by flight count that have ≥ 3 duration data points
+  const top = Object.entries(aircraftBreakdown)
+    .sort(([, a], [, b]) => b - a)
+    .filter(([icao]) => (byIcao.get(icao)?.length ?? 0) >= 3)
+    .slice(0, 5)
+
+  if (top.length === 0) return []
+
+  // Shared x-axis: from 0 to max duration + padding
+  const allDurations = durations.map((d) => d.duration_minutes)
+  const maxDur = Math.max(...allDurations)
+  const xMin = 0
+  const xMax = Math.ceil(maxDur / 30) * 30 + 30
+  const numPoints = 80
+  const step = (xMax - xMin) / (numPoints - 1)
+  const xPoints = Array.from({ length: numPoints }, (_, i) => xMin + i * step)
+
+  return top.map(([icao, count]) => {
+    const vals = byIcao.get(icao) ?? []
+    const bw = silvermanBandwidth(vals)
+    const density = gaussianKDE(vals, bw, xPoints)
+    const maxD = Math.max(...density)
+    const aircraft = findAircraft(icao)
+    const avgDuration = vals.reduce((s, v) => s + v, 0) / vals.length
+
+    return {
+      icao,
+      label: aircraft?.model ?? icao,
+      manufacturer: aircraft?.manufacturer ?? 'Unknown',
+      count,
+      avgDuration,
+      densityPoints: xPoints.map((x, i) => ({ x, y: density[i] })),
+      maxDensity: maxD,
+    }
+  })
+}
+
+function FleetRidgeline({
+  aircraftBreakdown,
+  mfrColors,
+}: {
+  aircraftBreakdown: Record<string, number> | null | undefined
+  mfrColors: Map<string, string>
+}) {
+  const { t } = useTranslation()
+  const { data: durations } = useFlightDurations()
+  const containerRef = useRef<HTMLDivElement>(null)
+  const [width, setWidth] = useState(0)
+  const [hoveredRow, setHoveredRow] = useState<number | null>(null)
+  const [tooltipPos, setTooltipPos] = useState<{ x: number; y: number } | null>(null)
+
+  useEffect(() => {
+    if (!containerRef.current) return
+    const obs = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        setWidth(entry.contentRect.width)
+      }
+    })
+    obs.observe(containerRef.current)
+    return () => obs.disconnect()
+  }, [])
+
+  const rows = useMemo(() => {
+    if (!aircraftBreakdown || !durations || durations.length === 0) return []
+    return buildRidgelineData(aircraftBreakdown, durations)
+  }, [aircraftBreakdown, durations])
+
+  // Check if we have sufficient data
+  const hasSufficientData = rows.length >= 2
+
+  const handleMouseMove = useCallback(
+    (e: React.MouseEvent<SVGSVGElement>, rowIdx: number) => {
+      const svg = e.currentTarget
+      const rect = svg.getBoundingClientRect()
+      setHoveredRow(rowIdx)
+      setTooltipPos({ x: e.clientX - rect.left, y: e.clientY - rect.top })
+    },
+    []
+  )
+
+  const handleMouseLeave = useCallback(() => {
+    setHoveredRow(null)
+    setTooltipPos(null)
+  }, [])
+
+  if (!hasSufficientData) return null
+
+  // Layout constants
+  const labelW = 42
+  const padR = 8
+  const rowH = 28
+  const overlap = 8
+  const chartW = Math.max(width - labelW - padR, 60)
+  const totalH = rows.length * (rowH - overlap) + overlap + 20 // +20 for x-axis
+
+  // X scale based on density points range
+  const xMin = rows[0]?.densityPoints[0]?.x ?? 0
+  const xMax = rows[0]?.densityPoints[rows[0].densityPoints.length - 1]?.x ?? 600
+
+  const xScale = (val: number) => ((val - xMin) / (xMax - xMin)) * chartW
+
+  // Global max density for normalization
+  const globalMax = Math.max(...rows.map((r) => r.maxDensity))
+
+  // Generate x-axis ticks
+  const tickValues = [60, 180, 360, 600].filter((v) => v <= xMax)
+
+  const formatTick = (mins: number) => {
+    if (mins < 60) return `${mins}m`
+    return t('stats.fleetRidgeline.hours', { count: Math.round(mins / 60) })
+  }
+
+  return (
+    <div ref={containerRef} className="w-full">
+      {width > 0 && (
+        <svg
+          width={width}
+          height={totalH}
+          className="overflow-visible"
+          onMouseLeave={handleMouseLeave}
+        >
+          {rows.map((row, idx) => {
+            const yBase = idx * (rowH - overlap) + rowH
+            const color = mfrColors.get(row.manufacturer) ?? 'var(--primary)'
+            const curveH = rowH - 4
+            const isHovered = hoveredRow === idx
+
+            // Build SVG path
+            const points = row.densityPoints.map((p) => ({
+              px: labelW + xScale(p.x),
+              py: yBase - (p.y / globalMax) * curveH,
+            }))
+
+            const areaPath = [
+              `M ${points[0].px} ${yBase}`,
+              `L ${points[0].px} ${points[0].py}`,
+              ...points.slice(1).map((p) => `L ${p.px} ${p.py}`),
+              `L ${points[points.length - 1].px} ${yBase}`,
+              'Z',
+            ].join(' ')
+
+            const linePath = [
+              `M ${points[0].px} ${points[0].py}`,
+              ...points.slice(1).map((p) => `L ${p.px} ${p.py}`),
+            ].join(' ')
+
+            return (
+              <g
+                key={row.icao}
+                onMouseMove={(e) => handleMouseMove(e as unknown as React.MouseEvent<SVGSVGElement>, idx)}
+                style={{ cursor: 'default' }}
+              >
+                {/* Label */}
+                <text
+                  x={labelW - 4}
+                  y={yBase - rowH / 2 + 4}
+                  textAnchor="end"
+                  className="fill-muted-foreground"
+                  style={{ fontSize: '10px', fontFamily: 'var(--font-mono, monospace)' }}
+                >
+                  {row.label}
+                </text>
+
+                {/* Fill */}
+                <path
+                  d={areaPath}
+                  fill={color}
+                  opacity={isHovered ? 0.4 : 0.2}
+                  className="transition-opacity duration-150"
+                />
+
+                {/* Stroke */}
+                <path
+                  d={linePath}
+                  fill="none"
+                  stroke={color}
+                  strokeWidth={1.5}
+                  opacity={isHovered ? 1 : 0.7}
+                  className="transition-opacity duration-150"
+                  style={{
+                    strokeDasharray: isHovered ? 'none' : 'none',
+                    animation: `ridgeline-draw 0.6s ease-out ${idx * 0.08}s both`,
+                  }}
+                />
+              </g>
+            )
+          })}
+
+          {/* X-axis ticks */}
+          {tickValues.map((v) => {
+            const x = labelW + xScale(v)
+            const y = rows.length * (rowH - overlap) + overlap + 4
+            return (
+              <g key={v}>
+                <line
+                  x1={x}
+                  y1={y - 2}
+                  x2={x}
+                  y2={y + 2}
+                  stroke="var(--muted-foreground)"
+                  strokeWidth={0.5}
+                  opacity={0.4}
+                />
+                <text
+                  x={x}
+                  y={y + 12}
+                  textAnchor="middle"
+                  className="fill-muted-foreground"
+                  style={{ fontSize: '9px', fontFamily: 'var(--font-mono, monospace)' }}
+                >
+                  {formatTick(v)}
+                </text>
+              </g>
+            )
+          })}
+
+          {/* Tooltip */}
+          {hoveredRow !== null && tooltipPos && (
+            <foreignObject
+              x={Math.min(tooltipPos.x + 8, width - 140)}
+              y={Math.max(tooltipPos.y - 36, 0)}
+              width={130}
+              height={44}
+              style={{ pointerEvents: 'none' }}
+            >
+              <div className="bg-card border border-border/50 rounded px-2 py-1 shadow-sm">
+                <div className="font-mono text-[10px] font-semibold">{rows[hoveredRow].label}</div>
+                <div className="text-[9px] text-muted-foreground">
+                  {rows[hoveredRow].count} {t('stats.flights')} · avg {Math.round(rows[hoveredRow].avgDuration)}m
+                </div>
+              </div>
+            </foreignObject>
+          )}
+        </svg>
+      )}
+
+      {/* CSS animation for stroke draw-in */}
+      <style>{`
+        @keyframes ridgeline-draw {
+          from { stroke-dashoffset: 1000; stroke-dasharray: 1000; }
+          to   { stroke-dashoffset: 0; stroke-dasharray: none; }
+        }
+      `}</style>
+    </div>
+  )
+}
+
+// ============================================================================
+// Aircraft Types Card — "Your Fleet" (Hero + Composition + Ridgeline)
 // ============================================================================
 
 export function AircraftTypesCard() {
@@ -209,8 +505,8 @@ export function AircraftTypesCard() {
       .sort((a, b) => b.count - a.count)
   }, [advancedStats?.aircraftBreakdown])
 
-  const top8 = chartData.slice(0, 5)
-  const overflowCount = chartData.length - 5
+  const top8 = chartData.slice(0, 3)
+  const overflowCount = chartData.length - 3
   const total = useMemo(
     () => chartData.reduce((sum, d) => sum + d.count, 0),
     [chartData]
@@ -231,22 +527,22 @@ export function AircraftTypesCard() {
   return (
     <StatCard title={t('stats.aircraftTypesTitle', 'Your Fleet')} icon={Plane}>
       {chartData.length > 0 ? (
-        <div className="space-y-2">
+        <div className="space-y-1.5">
           {/* 3a. Hero Section */}
           {hero && (
             <div className="space-y-1">
               <div className="flex items-baseline gap-2">
-                <span className="font-mono font-bold text-lg text-primary">{hero.count}x</span>
+                <span className="font-mono font-bold text-lg text-primary">{Math.round(hero.pct)}%</span>
                 <span className="font-semibold text-sm">{hero.model}</span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-sm text-muted-foreground">
-                  {hero.manufacturer}
-                </span>
                 <span
                   className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-muted text-muted-foreground"
                 >
                   {t(`stats.aircraftTypes.${hero.type}`, hero.type)}
+                </span>
+                <span className="text-[10px] text-muted-foreground/60">
+                  {hero.manufacturer}
                 </span>
               </div>
               <p className="text-xs text-muted-foreground italic leading-relaxed line-clamp-2">
@@ -284,14 +580,20 @@ export function AircraftTypesCard() {
             </div>
           )}
 
-          {/* 3c. Custom CSS Bar Chart (top 8) */}
+          {/* 3c. Ridgeline chart (with bar chart fallback) */}
           <div className="border-t border-border/30" />
-          <FleetBarChart items={top8} total={total} mfrColors={mfrColors} />
-          {overflowCount > 0 && (
-            <p className="text-[10px] text-muted-foreground">
-              {t('stats.nMore', { count: overflowCount })}
-            </p>
-          )}
+          <FleetRidgeline
+            aircraftBreakdown={advancedStats?.aircraftBreakdown}
+            mfrColors={mfrColors}
+          />
+          {/* Fallback bar chart shown when ridgeline has insufficient data */}
+          <FleetBarChartFallback
+            aircraftBreakdown={advancedStats?.aircraftBreakdown}
+            items={top8}
+            total={total}
+            mfrColors={mfrColors}
+            overflowCount={overflowCount}
+          />
         </div>
       ) : (
         <div className="h-16 rounded-lg bg-muted/20 flex items-center justify-center">
@@ -395,6 +697,54 @@ function FleetBar({
   )
 }
 
+/**
+ * Wrapper that only renders the bar chart when the ridgeline has insufficient data.
+ * Uses the same check as FleetRidgeline — if < 2 aircraft have ≥ 3 duration samples,
+ * it falls back to the bar chart.
+ */
+function FleetBarChartFallback({
+  aircraftBreakdown,
+  items,
+  total,
+  mfrColors,
+  overflowCount,
+}: {
+  aircraftBreakdown: Record<string, number> | null | undefined
+  items: FleetBarItem[]
+  total: number
+  mfrColors: Map<string, string>
+  overflowCount: number
+}) {
+  const { t } = useTranslation()
+  const { data: durations } = useFlightDurations()
+
+  // Mirror the ridgeline's sufficiency check
+  const ridgelineHasData = useMemo(() => {
+    if (!aircraftBreakdown || !durations || durations.length === 0) return false
+    const byIcao = new Map<string, number>()
+    for (const d of durations) {
+      byIcao.set(d.aircraft_icao, (byIcao.get(d.aircraft_icao) ?? 0) + 1)
+    }
+    const qualifyingTypes = Object.keys(aircraftBreakdown).filter(
+      (icao) => (byIcao.get(icao) ?? 0) >= 3
+    )
+    return qualifyingTypes.length >= 2
+  }, [aircraftBreakdown, durations])
+
+  if (ridgelineHasData) return null
+
+  return (
+    <>
+      <FleetBarChart items={items} total={total} mfrColors={mfrColors} />
+      {overflowCount > 0 && (
+        <p className="text-[10px] text-muted-foreground">
+          {t('stats.nMore', { count: overflowCount })}
+        </p>
+      )}
+    </>
+  )
+}
+
 // ============================================================================
 // Waffle Chart Components
 // ============================================================================
@@ -406,7 +756,7 @@ function WaffleGrid({
   allocations: WaffleAllocation[]
   colorMap: Map<string, string>
 }) {
-  // Build flat array of 100 squares grouped by manufacturer (largest first)
+  // Build flat array of 64 squares grouped by manufacturer (largest first)
   const squares = useMemo(() => {
     const result: Array<{ name: string; count: number; pct: number; color: string }> = []
     for (const alloc of allocations) {
@@ -420,7 +770,7 @@ function WaffleGrid({
 
   return (
     <div
-      className="grid grid-cols-10 gap-0.5"
+      className="grid grid-cols-8 gap-0.5"
       role="img"
       aria-label="Manufacturer distribution waffle chart"
     >
@@ -442,7 +792,7 @@ function WaffleGrid({
               'hidden group-hover:block',
               'whitespace-nowrap px-1.5 py-0.5 rounded',
               'bg-card border border-border/50 text-[10px] font-mono shadow-sm',
-              idx < 10 ? 'top-full mt-1' : '-top-8'
+              idx < 8 ? 'top-full mt-1' : '-top-8'
             )}
           >
             {sq.name} · {sq.count} ({sq.pct}%)
@@ -502,7 +852,7 @@ export function ManufacturerCard() {
   return (
     <StatCard title={t('stats.manufacturers', 'Manufacturers')} icon={Building2}>
       {manufacturers.length > 0 ? (
-        <div className="flex flex-col flex-1 gap-2">
+        <div className="flex flex-col flex-1 gap-1.5">
           {/* 4a. Hero Loyalty Statement */}
           {insights && (
             <div className="space-y-1">

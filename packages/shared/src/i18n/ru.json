@@ -554,6 +554,10 @@
     "typesCount_other": "{{count}} типов",
     "firstYear": "Первый год учёта",
     "vsLastYear": "к прошлому году",
+    "fleetRidgeline": {
+      "duration": "Длительность",
+      "hours": "{{count}}ч"
+    },
     "aircraftTypes": {
       "widebody": "Широкофюзеляжный",
       "narrowbody": "Узкофюзеляжный",

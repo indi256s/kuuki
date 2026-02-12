@@ -539,6 +539,10 @@
     "typesCount_other": "{{count}} types",
     "firstYear": "First year tracking",
     "vsLastYear": "vs last year",
+    "fleetRidgeline": {
+      "duration": "Duration",
+      "hours": "{{count}}h"
+    },
     "aircraftTypes": {
       "widebody": "Widebody",
       "narrowbody": "Narrowbody",
