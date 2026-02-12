@@ -745,7 +745,8 @@
       "analyzingDocument": "Чтение документа",
       "continueInBackground": "Продолжить в фоне",
       "inProgress": "выполняется",
-      "redirectHint": "Обработка в оверлее..."
+      "redirectHint": "Обработка в оверлее...",
+      "flightsFound": "Найдены рейсы"
     },
     "review": {
       "title": "Проверьте найденные полёты",

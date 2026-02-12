@@ -1,9 +1,11 @@
 import { useState, useEffect, useRef, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/utils'
-import { Check, Loader2, ArrowRight } from 'lucide-react'
+import { Check, Loader2, ArrowRight, Plane } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { getProcessingMessage, type ProcessingStage } from '@/lib/glados-text'
+import { findAirline } from '@kuuki/data'
+import type { ExtractedFlight } from '@/hooks/useImport'
 
 // Stage definitions with timing estimates
 const STAGE_DEFS = [
@@ -21,6 +23,36 @@ const FUN_FACTS = [
   { en: 'A Boeing 747 has about 6 million parts', ru: 'Boeing 747 состоит из ~6 миллионов деталей' },
 ]
 
+// Delay between each flight appearing (ms)
+const REVEAL_DELAY_MS = 300
+// Delay after all flights revealed before showing validation marks (ms)
+const VALIDATION_DELAY_MS = 500
+// Delay after validation marks before calling onRevealComplete (ms)
+const COMPLETE_DELAY_MS = 400
+
+/** Format a flight as a compact one-line string */
+function formatFlightLine(flight: ExtractedFlight): string {
+  const airline = flight.airline_iata ? findAirline(flight.airline_iata) : null
+  const airlineCode = airline?.iata || flight.airline_iata || ''
+  const flightNum = flight.flight_number || ''
+  const flightId = `${airlineCode} ${flightNum}`.trim()
+
+  const origin = flight.origin
+  const dest = flight.destination
+
+  // Format date as "15 Jan 2026"
+  const [year, month, day] = flight.date.split('-')
+  const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+  const dateStr = `${parseInt(day)} ${monthNames[parseInt(month) - 1]} ${year}`
+
+  // Format times if available
+  const times = flight.departure_time && flight.arrival_time
+    ? `${flight.departure_time.slice(0, 5)}–${flight.arrival_time.slice(0, 5)}`
+    : ''
+
+  return [flightId, `${origin} → ${dest}`, dateStr, times].filter(Boolean).join('   ')
+}
+
 interface FlightProgressModalProps {
   isOpen: boolean
   onCancel?: () => void
@@ -28,6 +60,10 @@ interface FlightProgressModalProps {
   inputType?: 'text' | 'pdf' | 'image'
   /** Show "Continue in Background" after this many ms (default: 7000) */
   showBackgroundAfterMs?: number
+  /** Flights to reveal after API returns */
+  flights?: ExtractedFlight[]
+  /** Called after reveal animation completes */
+  onRevealComplete?: () => void
 }
 
 export function FlightProgressModal({
@@ -36,11 +72,16 @@ export function FlightProgressModal({
   onContinueInBackground,
   inputType = 'text',
   showBackgroundAfterMs = 7000,
+  flights,
+  onRevealComplete,
 }: FlightProgressModalProps) {
   const { t, i18n } = useTranslation()
   const [elapsedMs, setElapsedMs] = useState(0)
   const [factIndex, setFactIndex] = useState(0)
+  const [revealedCount, setRevealedCount] = useState(0)
+  const [validated, setValidated] = useState(false)
   const startTimeRef = useRef<number>(0)
+  const revealTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const lang = i18n.language === 'ru' ? 'ru' : 'en'
 
   // Generate randomized GLaDOS descriptions on each modal open (English only)
@@ -55,6 +96,53 @@ export function FlightProgressModal({
   // Check for reduced motion preference
   const prefersReducedMotion = typeof window !== 'undefined'
     && window.matchMedia('(prefers-reduced-motion: reduce)').matches
+
+  // Reset reveal state when modal closes or flights change
+  useEffect(() => {
+    if (!isOpen) {
+      setRevealedCount(0)
+      setValidated(false)
+      if (revealTimerRef.current) {
+        clearTimeout(revealTimerRef.current)
+        revealTimerRef.current = null
+      }
+    }
+  }, [isOpen])
+
+  // Staggered flight reveal animation
+  useEffect(() => {
+    if (!flights || flights.length === 0 || !isOpen) return
+
+    // Start revealing flights one by one
+    if (revealedCount < flights.length) {
+      revealTimerRef.current = setTimeout(() => {
+        setRevealedCount(prev => prev + 1)
+      }, revealedCount === 0 ? 200 : REVEAL_DELAY_MS) // Shorter initial delay
+      return () => {
+        if (revealTimerRef.current) clearTimeout(revealTimerRef.current)
+      }
+    }
+
+    // All flights revealed — show validation marks
+    if (revealedCount >= flights.length && !validated) {
+      revealTimerRef.current = setTimeout(() => {
+        setValidated(true)
+      }, VALIDATION_DELAY_MS)
+      return () => {
+        if (revealTimerRef.current) clearTimeout(revealTimerRef.current)
+      }
+    }
+
+    // Validated — call onRevealComplete after a short pause
+    if (validated && onRevealComplete) {
+      revealTimerRef.current = setTimeout(() => {
+        onRevealComplete()
+      }, COMPLETE_DELAY_MS)
+      return () => {
+        if (revealTimerRef.current) clearTimeout(revealTimerRef.current)
+      }
+    }
+  }, [flights, revealedCount, validated, isOpen, onRevealComplete])
 
   // Track elapsed time
   useEffect(() => {
@@ -86,17 +174,22 @@ export function FlightProgressModal({
 
   if (!isOpen) return null
 
+  // When flights are provided, all stages are complete
+  const hasFlights = flights && flights.length > 0
+
   // Calculate current stage based on elapsed time
   let cumulativeTime = 0
-  let currentStageIndex = 0
-  for (let i = 0; i < stages.length; i++) {
-    cumulativeTime += stages[i].duration
-    if (elapsedMs < cumulativeTime) {
-      currentStageIndex = i
-      break
-    }
-    if (i === stages.length - 1) {
-      currentStageIndex = i // Stay on last stage if exceeded
+  let currentStageIndex = hasFlights ? stages.length : 0
+  if (!hasFlights) {
+    for (let i = 0; i < stages.length; i++) {
+      cumulativeTime += stages[i].duration
+      if (elapsedMs < cumulativeTime) {
+        currentStageIndex = i
+        break
+      }
+      if (i === stages.length - 1) {
+        currentStageIndex = i // Stay on last stage if exceeded
+      }
     }
   }
 
@@ -205,6 +298,38 @@ export function FlightProgressModal({
               })}
             </div>
           </div>
+
+          {/* Discovered flights reveal */}
+          {hasFlights && revealedCount > 0 && (
+            <div className="px-6 pb-4">
+              <div className="text-xs font-medium text-muted-foreground mb-2">
+                {t('import.parsing.flightsFound', 'Flights found')}
+              </div>
+              <div className="space-y-1.5 max-h-48 overflow-y-auto">
+                {flights.slice(0, revealedCount).map((flight, index) => (
+                  <div
+                    key={`${flight.origin}-${flight.destination}-${flight.date}-${index}`}
+                    className={cn(
+                      "flex items-center gap-2 text-xs font-mono text-foreground/80",
+                      !prefersReducedMotion && "animate-fade-up"
+                    )}
+                    style={!prefersReducedMotion ? { animationDelay: `${index * 50}ms`, animationFillMode: 'backwards' } : undefined}
+                  >
+                    <Plane className="w-3 h-3 text-primary flex-shrink-0" />
+                    <span className="truncate">{formatFlightLine(flight)}</span>
+                    {validated && (
+                      <Check
+                        className={cn(
+                          "w-3 h-3 text-primary flex-shrink-0 ml-auto",
+                          !prefersReducedMotion && "animate-fade-in"
+                        )}
+                      />
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Fun fact footer */}
           <div className="px-6 py-4 bg-muted/30 border-t border-border/30">

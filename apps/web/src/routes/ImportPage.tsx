@@ -54,6 +54,7 @@ export function ImportPage() {
   const [cleanedText, setCleanedText] = useState<string | undefined>()
   const [savedCount, setSavedCount] = useState(0)
   const [isFormOpen, setIsFormOpen] = useState(false)
+  const [pendingFlights, setPendingFlights] = useState<ExtractedFlight[] | undefined>()
 
   // Animated count for success screen - only animates when step becomes 'success'
   const animatedSavedCount = useCountUp(step === 'success' ? savedCount : 0, 800)
@@ -118,7 +119,14 @@ export function ImportPage() {
       setCleanedText(result.cleaned_text)
       // Track enrichment job ID for two-phase import
       setEnrichmentJobId(result.enrichmentJobId)
-      setStep('review')
+
+      // If flights found, pass them to modal for reveal animation before transitioning
+      if (result.flights.length > 0) {
+        setPendingFlights(result.flights)
+        // Stay on step='parsing' — modal will call onRevealComplete to transition
+      } else {
+        setStep('review')
+      }
     } catch (error) {
       console.error('Parse error:', error)
 
@@ -235,6 +243,11 @@ export function ImportPage() {
     setStep('success')
   }, [createFlightMutation, queryClient, showError])
 
+  const handleRevealComplete = useCallback(() => {
+    setPendingFlights(undefined)
+    setStep('review')
+  }, [])
+
   const handleCancel = useCallback(() => {
     setStep('upload')
     setExtractedFlights([])
@@ -244,6 +257,7 @@ export function ImportPage() {
     setParseError(null)
     setSaveErrors([])
     setEnrichmentJobId(undefined)
+    setPendingFlights(undefined)
     parseMutation.reset()
   }, [parseMutation])
 
@@ -285,6 +299,7 @@ export function ImportPage() {
     setParseError(null)
     setSaveErrors([])
     setEnrichmentJobId(undefined)
+    setPendingFlights(undefined)
     parseMutation.reset()
   }, [parseMutation])
 
@@ -505,6 +520,8 @@ export function ImportPage() {
         onCancel={handleCancel}
         onContinueInBackground={enrichmentJobId ? handleContinueInBackground : undefined}
         inputType={inputType}
+        flights={pendingFlights}
+        onRevealComplete={handleRevealComplete}
       />
     </div>
   )

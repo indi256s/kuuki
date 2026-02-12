@@ -746,7 +746,8 @@
       "analyzingDocument": "Reading document",
       "continueInBackground": "Continue in background",
       "inProgress": "in progress",
-      "redirectHint": "Processing in overlay..."
+      "redirectHint": "Processing in overlay...",
+      "flightsFound": "Flights found"
     },
     "review": {
       "title": "Review extracted flights",
