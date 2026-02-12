@@ -9,7 +9,7 @@ import { AircraftPicker } from './AircraftPicker'
 import { useCreateFlight, useUpdateFlight, useCheckDuplicate, type Flight } from '@/hooks/useFlights'
 import { useIsMobile } from '@/hooks/useIsMobile'
 import { findAirport, findAircraft } from '@kuuki/data'
-import { calculateFlightDistance, calculateFlightDuration, estimateFlightDuration, isUpcomingFlight, daysUntilFlight } from '@/lib/geo'
+import { calculateFlightDistance, calculateFlightDuration, estimateFlightDuration } from '@/lib/geo'
 import {
   Dialog,
   DialogContent,
@@ -35,7 +35,7 @@ import { Input } from '@/components/ui/input'
 import { DatePicker } from '@/components/ui/date-picker'
 import { TimePicker } from '@/components/ui/time-picker'
 import { Separator } from '@/components/ui/separator'
-import { AlertCircle, ChevronRight, Plane, Clock, Trash2 } from 'lucide-react'
+import { AlertCircle, ChevronRight, Plane, Trash2 } from 'lucide-react'
 
 const flightSchema = z.object({
   date: z.string().min(1, 'Date is required'),
@@ -233,8 +233,6 @@ export function FlightForm({ isOpen, onClose, editFlight, onDelete }: FlightForm
 
 
   const isSubmitting = createFlight.isPending || updateFlight.isPending
-  const isFutureFlight = watchDate && isUpcomingFlight(watchDate)
-  const daysUntil = watchDate && isFutureFlight ? daysUntilFlight(watchDate) : 0
 
   // Shared form content rendered in both Sheet and Dialog
   const formContent = (
@@ -253,16 +251,6 @@ export function FlightForm({ isOpen, onClose, editFlight, onDelete }: FlightForm
           <div className="mb-4 p-3 rounded-lg bg-warning/10 border border-warning/20">
             <p className="text-sm text-warning">
               {t('flights.duplicateWarning', 'You already have a flight on this date with the same route. You can still save it.')}
-            </p>
-          </div>
-        )}
-
-        {/* Future flight notice */}
-        {isFutureFlight && (
-          <div className="mb-4 p-3 rounded-lg bg-info/10 border border-info/20 flex items-center gap-2">
-            <Clock className="w-4 h-4 text-info shrink-0" aria-hidden="true" />
-            <p className="text-sm text-info">
-              {t('flights.upcomingFlight', { days: daysUntil })}
             </p>
           </div>
         )}
