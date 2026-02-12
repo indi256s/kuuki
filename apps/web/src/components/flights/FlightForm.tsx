@@ -35,13 +35,13 @@ import { Input } from '@/components/ui/input'
 import { DatePicker } from '@/components/ui/date-picker'
 import { TimePicker } from '@/components/ui/time-picker'
 import { Separator } from '@/components/ui/separator'
-import { AlertCircle, ChevronRight, Plane, Trash2 } from 'lucide-react'
+import { AlertCircle, ArrowLeftRight, Plane, Trash2 } from 'lucide-react'
 
 const flightSchema = z.object({
   date: z.string().min(1, 'Date is required'),
   origin: z.string().length(3, 'Must be 3-letter IATA code'),
   destination: z.string().length(3, 'Must be 3-letter IATA code'),
-  airlineIata: z.string().min(2, 'Airline is required'),
+  airlineIata: z.string().length(2).optional().or(z.literal('')),
   aircraftIcao: z.string().optional(),
   flightNumber: z.string().optional(),
   departureTime: z.string().optional(),
@@ -69,7 +69,7 @@ export function FlightForm({ isOpen, onClose, editFlight, onDelete }: FlightForm
 
   // UI state
   const [showOptional, setShowOptional] = useState(false)
-  const [duplicateWarning, setDuplicateWarning] = useState(false)
+  const [duplicateFlight, setDuplicateFlight] = useState<Flight | null>(null)
   const isEditing = !!editFlight
 
   const form = useForm<FlightFormData>({
@@ -115,7 +115,7 @@ export function FlightForm({ isOpen, onClose, editFlight, onDelete }: FlightForm
         setShowOptional(false)
       }
       form.clearErrors()
-      setDuplicateWarning(false)
+      setDuplicateFlight(null)
     }
   }, [isOpen, editFlight, form])
 
@@ -136,15 +136,15 @@ export function FlightForm({ isOpen, onClose, editFlight, onDelete }: FlightForm
         checkDuplicateRef.current.mutate(
           { date: watchDate, origin: watchOrigin, destination: watchDestination, excludeId: editFlight?.id },
           {
-            onSuccess: (isDuplicate) => {
-              setDuplicateWarning(isDuplicate)
+            onSuccess: (result) => {
+              setDuplicateFlight(result)
             },
           }
         )
       }, 300)
       return () => clearTimeout(timer)
     } else {
-      setDuplicateWarning(false)
+      setDuplicateFlight(null)
     }
   }, [watchDate, watchOrigin, watchDestination, editFlight?.id])
 
@@ -188,7 +188,7 @@ export function FlightForm({ isOpen, onClose, editFlight, onDelete }: FlightForm
       date: data.date,
       origin: data.origin.toUpperCase(),
       destination: data.destination.toUpperCase(),
-      airline_iata: data.airlineIata.toUpperCase(),
+      airline_iata: data.airlineIata ? data.airlineIata.toUpperCase() : null,
       aircraft_icao: data.aircraftIcao || null,
       flight_number: data.flightNumber || null,
       departure_time: data.departureTime || null,
@@ -238,19 +238,16 @@ export function FlightForm({ isOpen, onClose, editFlight, onDelete }: FlightForm
   const formContent = (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="px-4 pb-6 sm:px-6 lg:px-8 lg:pb-8 xl:px-10 xl:pb-10">
-        {/* Error display */}
-        {form.formState.errors.root && (
-          <div className="mb-4 p-3 rounded-lg bg-destructive/10 border border-destructive/20 flex items-start gap-2" role="alert">
-            <AlertCircle className="w-4 h-4 text-destructive mt-0.5 shrink-0" aria-hidden="true" />
-            <p className="text-sm text-destructive">{form.formState.errors.root.message}</p>
-          </div>
-        )}
-
         {/* Duplicate warning */}
-        {duplicateWarning && (
+        {duplicateFlight && (
           <div className="mb-4 p-3 rounded-lg bg-warning/10 border border-warning/20">
             <p className="text-sm text-warning">
               {t('flights.duplicateWarning', 'You already have a flight on this date with the same route. You can still save it.')}
+            </p>
+            <p className="mt-1 text-xs text-warning/80 font-mono">
+              {duplicateFlight.origin} → {duplicateFlight.destination}
+              {duplicateFlight.airline_iata ? ` ${duplicateFlight.airline_iata}` : ''}
+              {duplicateFlight.flight_number ? ` ${duplicateFlight.flight_number}` : ''}
             </p>
           </div>
         )}
@@ -260,7 +257,7 @@ export function FlightForm({ isOpen, onClose, editFlight, onDelete }: FlightForm
           <h3 className="text-[10px] font-medium text-muted-foreground/60 uppercase tracking-widest">
             {t('flights.routeSection', 'Route')}
           </h3>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="relative grid grid-cols-2 gap-3">
             <FormField
               control={form.control}
               name="origin"
@@ -279,6 +276,22 @@ export function FlightForm({ isOpen, onClose, editFlight, onDelete }: FlightForm
                 </FormItem>
               )}
             />
+
+            {/* Swap origin/destination button */}
+            <button
+              type="button"
+              onClick={() => {
+                const orig = form.getValues('origin')
+                const dest = form.getValues('destination')
+                form.setValue('origin', dest)
+                form.setValue('destination', orig)
+              }}
+              disabled={isSubmitting}
+              className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10 w-7 h-7 rounded-full bg-card border border-border hover:bg-accent hover:border-primary/30 transition-colors flex items-center justify-center disabled:opacity-50 disabled:pointer-events-none"
+              aria-label={t('flights.swapRoute', 'Swap')}
+            >
+              <ArrowLeftRight className="w-3.5 h-3.5 text-muted-foreground" />
+            </button>
 
             <FormField
               control={form.control}
@@ -336,11 +349,10 @@ export function FlightForm({ isOpen, onClose, editFlight, onDelete }: FlightForm
               <FormItem>
                 <AirlineAutocomplete
                   id="airline"
-                  value={field.value}
+                  value={field.value ?? ''}
                   onChange={field.onChange}
                   label={t('flights.airline', 'Airline')}
                   placeholder="AA"
-                  required
                   disabled={isSubmitting}
                 />
                 <FormMessage />
@@ -349,24 +361,29 @@ export function FlightForm({ isOpen, onClose, editFlight, onDelete }: FlightForm
           />
         </div>
 
-        {/* Optional fields toggle */}
-        <button
-          type="button"
-          onClick={() => setShowOptional(!showOptional)}
-          className="mt-4 flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
-          aria-expanded={showOptional}
-          aria-label={showOptional
-            ? t('flights.hideDetails', 'Hide details')
-            : t('flights.addDetails', 'Add more details')}
-        >
-          <ChevronRight
-            className={`w-4 h-4 transition-transform ${showOptional ? 'rotate-90' : ''}`}
-            aria-hidden="true"
-          />
-          {showOptional
-            ? t('flights.hideDetails', 'Hide details')
-            : t('flights.addDetails', 'Add more details')}
-        </button>
+        {/* Optional fields - ghost buttons when collapsed */}
+        {!showOptional && (
+          <div className="mt-4 grid grid-cols-2 gap-3">
+            {[
+              { label: t('flights.aircraft', 'Aircraft'), id: 'aircraft' },
+              { label: t('flights.flightNumber', 'Flight #'), id: 'flightNumber' },
+              { label: t('flights.departureTime', 'Departure'), id: 'departureTime' },
+              { label: t('flights.arrivalTime', 'Arrival'), id: 'arrivalTime' },
+            ].map(({ label, id }) => (
+              <button
+                type="button"
+                key={id}
+                onClick={() => {
+                  setShowOptional(true)
+                  requestAnimationFrame(() => document.getElementById(id)?.focus())
+                }}
+                className="text-left px-3 py-2.5 rounded-lg border border-dashed border-border/50 hover:border-primary/30 hover:bg-accent/30 transition-colors"
+              >
+                <span className="text-xs text-muted-foreground/50">{label}</span>
+              </button>
+            ))}
+          </div>
+        )}
 
         {/* Optional fields - Aircraft & Times */}
         {showOptional && (
@@ -406,6 +423,7 @@ export function FlightForm({ isOpen, onClose, editFlight, onDelete }: FlightForm
                       </FormLabel>
                       <FormControl>
                         <Input
+                          id="flightNumber"
                           placeholder="123"
                           disabled={isSubmitting}
                           className="font-mono uppercase"
@@ -430,6 +448,7 @@ export function FlightForm({ isOpen, onClose, editFlight, onDelete }: FlightForm
                       </FormLabel>
                       <FormControl>
                         <TimePicker
+                          id="departureTime"
                           value={field.value}
                           onChange={field.onChange}
                           onClear={() => field.onChange('')}
@@ -451,6 +470,7 @@ export function FlightForm({ isOpen, onClose, editFlight, onDelete }: FlightForm
                       </FormLabel>
                       <FormControl>
                         <TimePicker
+                          id="arrivalTime"
                           value={field.value}
                           onChange={field.onChange}
                           onClear={() => field.onChange('')}
@@ -464,6 +484,14 @@ export function FlightForm({ isOpen, onClose, editFlight, onDelete }: FlightForm
               </div>
             </div>
           </>
+        )}
+
+        {/* Error display - near submit for visibility */}
+        {form.formState.errors.root && (
+          <div className="mt-4 mb-2 p-3 rounded-lg bg-destructive/10 border border-destructive/20 flex items-start gap-2" role="alert">
+            <AlertCircle className="w-4 h-4 text-destructive mt-0.5 shrink-0" aria-hidden="true" />
+            <p className="text-sm text-destructive">{form.formState.errors.root.message}</p>
+          </div>
         )}
 
         {/* Submit buttons */}

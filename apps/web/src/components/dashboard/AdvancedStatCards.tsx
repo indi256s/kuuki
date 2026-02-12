@@ -38,6 +38,63 @@ const CHART_COLORS = [
   'var(--chart-5)',
 ]
 
+// ============================================================================
+// Waffle Chart Utilities
+// ============================================================================
+
+interface WaffleAllocation {
+  name: string
+  count: number
+  squares: number
+  pct: number
+}
+
+/** Distribute exactly 100 squares using the largest remainder method */
+function allocateWaffleSquares(
+  manufacturers: Array<{ name: string; count: number }>
+): WaffleAllocation[] {
+  if (manufacturers.length === 0) return []
+  const total = manufacturers.reduce((s, m) => s + m.count, 0)
+  if (total === 0) return []
+
+  const sorted = [...manufacturers].sort((a, b) => b.count - a.count)
+
+  // Compute ideal shares, assign floor (min 1 for entries with >0)
+  const entries = sorted.map((m) => {
+    const ideal = (m.count / total) * 100
+    return {
+      name: m.name,
+      count: m.count,
+      ideal,
+      squares: Math.max(1, Math.floor(ideal)),
+      pct: Math.round(ideal * 10) / 10,
+    }
+  })
+
+  let assigned = entries.reduce((s, e) => s + e.squares, 0)
+
+  // If min-1 guarantee pushed sum > 100, reduce the largest allocations
+  while (assigned > 100) {
+    const largest = entries.find((e) => e.squares > 1)
+    if (!largest) break
+    largest.squares--
+    assigned--
+  }
+
+  // Distribute remaining squares by largest fractional remainder
+  const remaining = 100 - assigned
+  if (remaining > 0) {
+    const byRemainder = [...entries]
+      .filter((e) => e.squares < 100)
+      .sort((a, b) => (b.ideal - Math.floor(b.ideal)) - (a.ideal - Math.floor(a.ideal)))
+    for (let i = 0; i < remaining && i < byRemainder.length; i++) {
+      byRemainder[i].squares++
+    }
+  }
+
+  return entries.map(({ name, count, squares, pct }) => ({ name, count, squares, pct }))
+}
+
 /**
  * Brand-inspired manufacturer colors adapted to OKLCH.
  * Each hue is spread across the wheel for max distinction.
@@ -294,7 +351,88 @@ export function AircraftTypesCard() {
 }
 
 // ============================================================================
-// Manufacturer Card — Hero Loyalty + Ranked List (no donut)
+// Waffle Chart Components
+// ============================================================================
+
+function WaffleGrid({
+  allocations,
+  colorMap,
+}: {
+  allocations: WaffleAllocation[]
+  colorMap: Map<string, string>
+}) {
+  // Build flat array of 100 squares grouped by manufacturer (largest first)
+  const squares = useMemo(() => {
+    const result: Array<{ name: string; count: number; pct: number; color: string }> = []
+    for (const alloc of allocations) {
+      const color = colorMap.get(alloc.name) ?? 'var(--primary)'
+      for (let i = 0; i < alloc.squares; i++) {
+        result.push({ name: alloc.name, count: alloc.count, pct: alloc.pct, color })
+      }
+    }
+    return result
+  }, [allocations, colorMap])
+
+  return (
+    <div
+      className="grid grid-cols-10 gap-0.5"
+      role="img"
+      aria-label="Manufacturer distribution waffle chart"
+    >
+      {squares.map((sq, idx) => (
+        <div key={idx} className="group relative aspect-square">
+          <div
+            className="w-full h-full rounded-sm transition-transform duration-150 group-hover:scale-[1.2] animate-fade-in motion-reduce:animate-none motion-reduce:opacity-100"
+            style={{
+              background: sq.color,
+              animationDelay: `${idx * 8}ms`,
+              animationFillMode: 'backwards',
+            }}
+            role="img"
+            aria-label={`${sq.name}: ${sq.count} flights (${sq.pct}%)`}
+          />
+          <div
+            className={cn(
+              'absolute left-1/2 -translate-x-1/2 z-10 pointer-events-none',
+              'hidden group-hover:block',
+              'whitespace-nowrap px-1.5 py-0.5 rounded',
+              'bg-card border border-border/50 text-[10px] font-mono shadow-sm',
+              idx < 10 ? 'top-full mt-1' : '-top-8'
+            )}
+          >
+            {sq.name} · {sq.count} ({sq.pct}%)
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+function WaffleLegend({
+  allocations,
+  colorMap,
+}: {
+  allocations: WaffleAllocation[]
+  colorMap: Map<string, string>
+}) {
+  return (
+    <div className="flex flex-wrap gap-x-3 gap-y-1">
+      {allocations.map(({ name, count, pct }) => (
+        <div key={name} className="flex items-center gap-1 text-[10px] text-muted-foreground">
+          <div
+            className="w-2 h-2 rounded-sm shrink-0"
+            style={{ background: colorMap.get(name) ?? 'var(--primary)' }}
+          />
+          <span>{name}</span>
+          <span className="font-mono">· {count} ({pct}%)</span>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+// ============================================================================
+// Manufacturer Card — Hero Loyalty + Waffle Chart
 // ============================================================================
 
 export function ManufacturerCard() {
@@ -311,8 +449,8 @@ export function ManufacturerCard() {
       .sort((a, b) => b.count - a.count)
   }, [advancedStats?.manufacturerBreakdown])
 
-  const total = useMemo(
-    () => manufacturers.reduce((sum, m) => sum + m.count, 0),
+  const allocations = useMemo(
+    () => allocateWaffleSquares(manufacturers),
     [manufacturers]
   )
 
@@ -345,35 +483,10 @@ export function ManufacturerCard() {
             </div>
           )}
 
-          {/* 4b. Ranked Manufacturer Bars */}
-          <div className="flex flex-col flex-1 gap-2">
-            {manufacturers.map(({ name, count }) => {
-              const color = mfrColors.get(name) ?? 'var(--primary)'
-              const pct = total > 0 ? (count / total) * 100 : 0
-              return (
-                <div key={name} className="flex-1 flex flex-col justify-center p-3 rounded-lg bg-muted/30">
-                  <div className="flex items-center justify-between text-xs mb-1.5">
-                    <div className="flex items-center gap-2">
-                      <div
-                        className="w-2.5 h-2.5 rounded-[2px] shrink-0"
-                        style={{ background: color }}
-                      />
-                      <span className="text-muted-foreground">{name}</span>
-                    </div>
-                    <span className="font-mono font-medium">{count}</span>
-                  </div>
-                  <div className="h-1.5 bg-background/50 rounded-full overflow-hidden">
-                    <div
-                      className="h-full rounded-full"
-                      style={{
-                        width: `${pct}%`,
-                        background: color,
-                      }}
-                    />
-                  </div>
-                </div>
-              )
-            })}
+          {/* 4b. Waffle Chart */}
+          <div className="space-y-3">
+            <WaffleGrid allocations={allocations} colorMap={mfrColors} />
+            <WaffleLegend allocations={allocations} colorMap={mfrColors} />
           </div>
         </div>
       ) : (

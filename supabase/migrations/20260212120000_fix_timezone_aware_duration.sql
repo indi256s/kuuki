@@ -25,46 +25,46 @@ SET
       WHEN (
         -- arrival in UTC minus departure in UTC
         EXTRACT(EPOCH FROM (
-          (date + arrival_time::time) AT TIME ZONE dest_tz
+          (date + arrival_time) AT TIME ZONE dest_tz
           -
-          (date + departure_time::time) AT TIME ZONE origin_tz
+          (date + departure_time) AT TIME ZONE origin_tz
         )) / 60
       ) > 0
       AND (
         EXTRACT(EPOCH FROM (
-          (date + arrival_time::time) AT TIME ZONE dest_tz
+          (date + arrival_time) AT TIME ZONE dest_tz
           -
-          (date + departure_time::time) AT TIME ZONE origin_tz
+          (date + departure_time) AT TIME ZONE origin_tz
         )) / 60
       ) <= 1440  -- max 24 hours
       THEN ROUND(
         EXTRACT(EPOCH FROM (
-          (date + arrival_time::time) AT TIME ZONE dest_tz
+          (date + arrival_time) AT TIME ZONE dest_tz
           -
-          (date + departure_time::time) AT TIME ZONE origin_tz
+          (date + departure_time) AT TIME ZONE origin_tz
         )) / 60
       )
 
       -- Cross-day flight: arrival next day (add 24 hours to arrival)
       WHEN (
         EXTRACT(EPOCH FROM (
-          ((date + INTERVAL '1 day') + arrival_time::time) AT TIME ZONE dest_tz
+          ((date + INTERVAL '1 day') + arrival_time) AT TIME ZONE dest_tz
           -
-          (date + departure_time::time) AT TIME ZONE origin_tz
+          (date + departure_time) AT TIME ZONE origin_tz
         )) / 60
       ) > 0
       AND (
         EXTRACT(EPOCH FROM (
-          ((date + INTERVAL '1 day') + arrival_time::time) AT TIME ZONE dest_tz
+          ((date + INTERVAL '1 day') + arrival_time) AT TIME ZONE dest_tz
           -
-          (date + departure_time::time) AT TIME ZONE origin_tz
+          (date + departure_time) AT TIME ZONE origin_tz
         )) / 60
       ) <= 1440
       THEN ROUND(
         EXTRACT(EPOCH FROM (
-          ((date + INTERVAL '1 day') + arrival_time::time) AT TIME ZONE dest_tz
+          ((date + INTERVAL '1 day') + arrival_time) AT TIME ZONE dest_tz
           -
-          (date + departure_time::time) AT TIME ZONE origin_tz
+          (date + departure_time) AT TIME ZONE origin_tz
         )) / 60
       )
 
@@ -73,24 +73,23 @@ SET
     END
   ),
   -- Also populate departure_utc and arrival_utc for future use
-  departure_utc = (date + departure_time::time) AT TIME ZONE origin_tz,
+  departure_utc = (date + departure_time) AT TIME ZONE origin_tz,
   arrival_utc = CASE
     WHEN (
       EXTRACT(EPOCH FROM (
-        (date + arrival_time::time) AT TIME ZONE dest_tz
+        (date + arrival_time) AT TIME ZONE dest_tz
         -
-        (date + departure_time::time) AT TIME ZONE origin_tz
+        (date + departure_time) AT TIME ZONE origin_tz
       )) / 60
     ) > 0
-    THEN (date + arrival_time::time) AT TIME ZONE dest_tz
-    ELSE ((date + INTERVAL '1 day') + arrival_time::time) AT TIME ZONE dest_tz
+    THEN (date + arrival_time) AT TIME ZONE dest_tz
+    ELSE ((date + INTERVAL '1 day') + arrival_time) AT TIME ZONE dest_tz
   END
 WHERE
   departure_time IS NOT NULL
   AND arrival_time IS NOT NULL
   AND origin_tz IS NOT NULL
-  AND dest_tz IS NOT NULL
-  AND departure_time ~ '^\d{1,2}:\d{2}';
+  AND dest_tz IS NOT NULL;
 
 -- Refresh user stats to reflect corrected durations
 -- (The existing trigger will handle new inserts/updates, but we need to

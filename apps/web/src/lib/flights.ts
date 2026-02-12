@@ -227,10 +227,10 @@ export async function checkDuplicateFlight(
   origin: string,
   destination: string,
   excludeId?: number
-): Promise<boolean> {
+): Promise<Flight | null> {
   let query = supabase
     .from('flights')
-    .select('id')
+    .select('*')
     .eq('user_id', userId)
     .eq('date', date)
     .eq('origin', origin)
@@ -246,7 +246,7 @@ export async function checkDuplicateFlight(
     throw new Error(`Failed to check duplicate: ${error.message}`)
   }
 
-  return (data?.length ?? 0) > 0
+  return data?.[0] ?? null
 }
 
 /**
