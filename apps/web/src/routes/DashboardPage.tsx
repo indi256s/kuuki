@@ -12,6 +12,7 @@ import {
   useFlightAirlines,
   useFlightAircraft,
 } from '@/hooks/useFlights'
+import { usePassportCountries } from '@/hooks/usePassport'
 import { useDashboardStore } from '@/stores/dashboardStore'
 import { searchAirports } from '@kuuki/data'
 import {
@@ -83,6 +84,7 @@ export function DashboardPage() {
 
   // Flight routes for map
   const { data: allFlights = [] } = useFlightRoutes()
+  const { data: passportCountries } = usePassportCountries()
 
   // Filter flights client-side using dashboard filters
   const filteredFlights = useMemo(() => {
@@ -243,6 +245,7 @@ export function DashboardPage() {
               )}>
                 <MapCard
                   flights={filteredFlights}
+                  passportEntries={passportCountries ?? []}
                   className="h-full w-full"
                   isExpanded={mapExpanded}
                   onExpandChange={setMapExpanded}
