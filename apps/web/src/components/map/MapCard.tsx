@@ -1,67 +1,74 @@
 import { lazy, Suspense, useState, useMemo, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Maximize2, Minimize2, Route, Flag, Layers } from 'lucide-react'
-import { useFlightRoutes } from '@/hooks/useFlights'
 import { cn } from '@/lib/utils'
+import type { FlightRoute } from '@/lib/flights'
 import type { PassportEntry } from '@kuuki/shared'
 
 const RouteMapWithCountries = lazy(() =>
   import('@/components/map/RouteMapWithCountries').then(m => ({ default: m.RouteMapWithCountries }))
 )
 
-interface PassportMapProps {
-  entries: PassportEntry[]
+interface MapCardProps {
+  flights: FlightRoute[]
+  passportEntries?: PassportEntry[]
   className?: string
   isExpanded?: boolean
   onExpandChange?: (expanded: boolean) => void
   onCountryClick?: (countryCode: string) => void
 }
 
-export function PassportMap({
-  entries,
+export function MapCard({
+  flights,
+  passportEntries,
   className,
   isExpanded = false,
   onExpandChange,
   onCountryClick,
-}: PassportMapProps) {
+}: MapCardProps) {
   const { t } = useTranslation()
-  const { data: flights = [] } = useFlightRoutes()
 
   // Toggle state
   const [showRoutes, setShowRoutes] = useState(true)
   const [showClaimed, setShowClaimed] = useState(true)
   const [heatmapMode, setHeatmapMode] = useState(false)
 
-  // Derive visited countries (all alpha-2 codes from entries)
+  const hasPassport = !!passportEntries
+
+  // Derive visited countries from passport entries
   const visitedCountries = useMemo(() => {
+    if (!passportEntries) return undefined
     if (!showClaimed) {
-      return entries.filter(e => e.source !== 'claim').map(e => e.countryCode)
+      return passportEntries.filter(e => e.source !== 'claim').map(e => e.countryCode)
     }
-    return entries.map(e => e.countryCode)
-  }, [entries, showClaimed])
+    return passportEntries.map(e => e.countryCode)
+  }, [passportEntries, showClaimed])
 
   // Visit count map for heatmap
   const visitCountMap = useMemo(() => {
+    if (!passportEntries) return undefined
     const map: Record<string, number> = {}
-    for (const entry of entries) {
+    for (const entry of passportEntries) {
       map[entry.countryCode] = entry.visitCount
     }
     return map
-  }, [entries])
+  }, [passportEntries])
 
   // Country source map for styling
   const countrySourceMap = useMemo(() => {
+    if (!passportEntries) return undefined
     const map: Record<string, 'flight' | 'claim' | 'both'> = {}
-    for (const entry of entries) {
+    for (const entry of passportEntries) {
       map[entry.countryCode] = entry.source
     }
     return map
-  }, [entries])
+  }, [passportEntries])
 
   // Max visit count for legend
   const maxVisitCount = useMemo(() => {
-    return Math.max(1, ...entries.map(e => e.visitCount))
-  }, [entries])
+    if (!passportEntries) return 1
+    return Math.max(1, ...passportEntries.map(e => e.visitCount))
+  }, [passportEntries])
 
   const handleToggleRoutes = useCallback(() => setShowRoutes(v => !v), [])
   const handleToggleClaimed = useCallback(() => setShowClaimed(v => !v), [])
@@ -84,7 +91,7 @@ export function PassportMap({
           className="h-full w-full"
           onCountryClick={onCountryClick}
           showRoutes={showRoutes}
-          heatmapMode={heatmapMode}
+          heatmapMode={hasPassport ? heatmapMode : undefined}
           visitCountMap={visitCountMap}
           countrySourceMap={countrySourceMap}
         />
@@ -104,30 +111,34 @@ export function PassportMap({
         >
           <Route className="w-4 h-4" />
         </button>
-        <button
-          onClick={handleToggleClaimed}
-          className={cn(
-            'w-8 h-8 rounded-md flex items-center justify-center transition-colors p-0',
-            'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50',
-            showClaimed ? 'bg-primary/15 text-primary' : 'text-muted-foreground hover:text-foreground'
-          )}
-          aria-label={t('passport.toggleClaimed', 'Show claimed countries')}
-          aria-pressed={showClaimed}
-        >
-          <Flag className="w-4 h-4" />
-        </button>
-        <button
-          onClick={handleToggleHeatmap}
-          className={cn(
-            'w-8 h-8 rounded-md flex items-center justify-center transition-colors p-0',
-            'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50',
-            heatmapMode ? 'bg-primary/15 text-primary' : 'text-muted-foreground hover:text-foreground'
-          )}
-          aria-label={t('passport.toggleHeatmap', 'Toggle heatmap')}
-          aria-pressed={heatmapMode}
-        >
-          <Layers className="w-4 h-4" />
-        </button>
+        {hasPassport && (
+          <>
+            <button
+              onClick={handleToggleClaimed}
+              className={cn(
+                'w-8 h-8 rounded-md flex items-center justify-center transition-colors p-0',
+                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50',
+                showClaimed ? 'bg-primary/15 text-primary' : 'text-muted-foreground hover:text-foreground'
+              )}
+              aria-label={t('passport.toggleClaimed', 'Show claimed countries')}
+              aria-pressed={showClaimed}
+            >
+              <Flag className="w-4 h-4" />
+            </button>
+            <button
+              onClick={handleToggleHeatmap}
+              className={cn(
+                'w-8 h-8 rounded-md flex items-center justify-center transition-colors p-0',
+                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50',
+                heatmapMode ? 'bg-primary/15 text-primary' : 'text-muted-foreground hover:text-foreground'
+              )}
+              aria-label={t('passport.toggleHeatmap', 'Toggle heatmap')}
+              aria-pressed={heatmapMode}
+            >
+              <Layers className="w-4 h-4" />
+            </button>
+          </>
+        )}
       </div>
 
       {/* Expand/Collapse toggle */}
@@ -153,25 +164,27 @@ export function PassportMap({
         </button>
       )}
 
-      {/* Heatmap legend */}
-      <div
-        className={cn(
-          'absolute bottom-2 right-2 z-10 bg-card/70 backdrop-blur-sm rounded-md px-2 py-1.5 flex items-center gap-1.5 transition-opacity duration-150',
-          'motion-reduce:transition-none',
-          heatmapMode ? 'opacity-100' : 'opacity-0 pointer-events-none'
-        )}
-        role="img"
-        aria-label={`Visit frequency scale from 1 to ${maxVisitCount}`}
-      >
-        <span className="text-[9px] font-mono text-muted-foreground">1</span>
+      {/* Heatmap legend (only with passport data) */}
+      {hasPassport && (
         <div
-          className="w-20 h-2 rounded-full"
-          style={{
-            background: 'linear-gradient(to right, hsl(var(--primary) / 0.2), hsl(var(--primary)))',
-          }}
-        />
-        <span className="text-[9px] font-mono text-muted-foreground">{maxVisitCount}</span>
-      </div>
+          className={cn(
+            'absolute bottom-2 right-2 z-10 bg-card/70 backdrop-blur-sm rounded-md px-2 py-1.5 flex items-center gap-1.5 transition-opacity duration-150',
+            'motion-reduce:transition-none',
+            heatmapMode ? 'opacity-100' : 'opacity-0 pointer-events-none'
+          )}
+          role="img"
+          aria-label={`Visit frequency scale from 1 to ${maxVisitCount}`}
+        >
+          <span className="text-[9px] font-mono text-muted-foreground">1</span>
+          <div
+            className="w-20 h-2 rounded-full"
+            style={{
+              background: 'linear-gradient(to right, hsl(var(--primary) / 0.2), hsl(var(--primary)))',
+            }}
+          />
+          <span className="text-[9px] font-mono text-muted-foreground">{maxVisitCount}</span>
+        </div>
+      )}
     </div>
   )
 }

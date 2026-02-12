@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { formatDistanceToNow } from 'date-fns'
 import { useAuth } from '@/hooks/useAuth'
 import { useIsMobile } from '@/hooks/useIsMobile'
+import { useFlightRoutes } from '@/hooks/useFlights'
 import { usePassportCountries, usePassportStats } from '@/hooks/usePassport'
 import { PassportStamps } from '@/components/passport/PassportStamps'
 import { EmptyPassport } from '@/components/passport/EmptyPassport'
@@ -13,7 +14,7 @@ import { AppHeader } from '@/components/common/AppHeader'
 import { MobileHeader } from '@/components/layout/MobileHeader'
 import { MobileTabBar } from '@/components/layout/MobileTabBar'
 import { Button } from '@/components/ui/button'
-import { PassportMap } from '@/components/passport/PassportMap'
+import { MapCard } from '@/components/map/MapCard'
 import { cn } from '@/lib/utils'
 import {
   Stamp,
@@ -34,6 +35,7 @@ export function PassportPage() {
   const isMobile = useIsMobile()
   const { data: countries, isLoading: countriesLoading } = usePassportCountries()
   const { data: stats } = usePassportStats()
+  const { data: flights = [] } = useFlightRoutes()
   const [isClaimDialogOpen, setIsClaimDialogOpen] = useState(false)
   const [isMapOpen, setIsMapOpen] = useState(false)
   const [mapExpanded, setMapExpanded] = useState(false)
@@ -94,8 +96,9 @@ export function PassportPage() {
               'transition-all duration-300',
               mapExpanded ? 'lg:col-span-1 min-h-[500px]' : 'lg:col-span-2 min-h-[300px]'
             )}>
-              <PassportMap
-                entries={countries ?? []}
+              <MapCard
+                flights={flights}
+                passportEntries={countries ?? []}
                 className="h-full"
                 isExpanded={mapExpanded}
                 onExpandChange={setMapExpanded}

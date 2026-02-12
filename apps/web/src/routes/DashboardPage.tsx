@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, lazy, Suspense } from 'react'
+import { useState, useCallback, useEffect, useMemo, lazy, Suspense } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Plus } from 'lucide-react'
 
@@ -7,6 +7,7 @@ import { useFlightStats } from '@/hooks/useStats'
 import { useDashboardStats } from '@/hooks/useDashboardStats'
 import { useSyncUpcomingFlights } from '@/hooks/useFlights'
 import {
+  useFlightRoutes,
   useFlightYears,
   useFlightAirlines,
   useFlightAircraft,
@@ -14,11 +15,11 @@ import {
 import { useDashboardStore } from '@/stores/dashboardStore'
 import { searchAirports } from '@kuuki/data'
 import {
-  MapCard,
   UpcomingFlightsBanner,
   MicroBadgeStatCard,
   EmptyState
 } from '@/components/dashboard'
+import { MapCard } from '@/components/map/MapCard'
 import { FlightFilters } from '@/components/flights/FlightFilters'
 import { Skeleton } from '@/components/ui/skeleton'
 import { FlightForm } from '@/components/flights/FlightForm'
@@ -79,6 +80,37 @@ export function DashboardPage() {
   const { data: years = [] } = useFlightYears()
   const { data: airlineCodes = [] } = useFlightAirlines()
   const { data: aircraftCodes = [] } = useFlightAircraft()
+
+  // Flight routes for map
+  const { data: allFlights = [] } = useFlightRoutes()
+
+  // Filter flights client-side using dashboard filters
+  const filteredFlights = useMemo(() => {
+    let result = allFlights
+    if (filters.year) {
+      const yearStr = String(filters.year)
+      result = result.filter(f => f.date.startsWith(yearStr))
+    }
+    if (filters.airlineIata) {
+      result = result.filter(f => f.airline_iata === filters.airlineIata)
+    }
+    if (filters.airlineIataCodes && filters.airlineIataCodes.length > 0) {
+      const set = new Set(filters.airlineIataCodes)
+      result = result.filter(f => f.airline_iata && set.has(f.airline_iata))
+    }
+    if (filters.originCodes && filters.originCodes.length > 0) {
+      const set = new Set(filters.originCodes)
+      result = result.filter(f => set.has(f.origin))
+    }
+    if (filters.destinationCodes && filters.destinationCodes.length > 0) {
+      const set = new Set(filters.destinationCodes)
+      result = result.filter(f => set.has(f.destination))
+    }
+    if (filters.isUpcoming !== undefined) {
+      result = result.filter(f => f.is_upcoming === filters.isUpcoming)
+    }
+    return result
+  }, [allFlights, filters])
 
   // Sync upcoming flights on dashboard load
   useSyncUpcomingFlights()
@@ -210,6 +242,7 @@ export function DashboardPage() {
                   : 'md:col-span-2'
               )}>
                 <MapCard
+                  flights={filteredFlights}
                   className="h-full w-full"
                   isExpanded={mapExpanded}
                   onExpandChange={setMapExpanded}

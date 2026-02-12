@@ -3,7 +3,6 @@ export { DashboardCard } from './DashboardCard'
 export { DashboardGrid } from './DashboardGrid'
 
 // Hero cards
-export { MapCard } from './MapCard'
 export { TravelSummaryCard } from './TravelSummaryCard'
 
 // Legacy cards (kept for reference)
