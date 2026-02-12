@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { searchAirlines, findAirline } from '@kuuki/data'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { AlertCircle } from 'lucide-react'
 import type { Airline } from '@kuuki/shared/types'
 
 interface AirlineAutocompleteProps {
@@ -87,6 +88,11 @@ export function AirlineAutocomplete({
     // Delay close to allow click on dropdown
     setTimeout(() => {
       setIsOpen(false)
+      // Allow empty input (airline is optional)
+      if (inputValue.length === 0) {
+        onChange('')
+        return
+      }
       // Validate on blur
       if (inputValue.length === 2) {
         const airline = findAirline(inputValue)
@@ -159,6 +165,14 @@ export function AirlineAutocomplete({
         <div className="mt-1 text-xs text-muted-foreground">
           {selectedAirline.name}
         </div>
+      )}
+
+      {/* Unknown airline warning */}
+      {value && value.length === 2 && !selectedAirline && inputValue === value && (
+        <p className="mt-1 flex items-center gap-1 text-xs text-warning">
+          <AlertCircle className="w-3 h-3 shrink-0" />
+          {t('flights.unknownAirline', 'Unknown airline')}
+        </p>
       )}
 
       {error && (

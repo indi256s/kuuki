@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { searchAirports, findAirport } from '@kuuki/data'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { AlertCircle } from 'lucide-react'
 import type { Airport } from '@kuuki/shared/types'
 
 interface AirportAutocompleteProps {
@@ -159,6 +160,14 @@ export function AirportAutocomplete({
         <div className="mt-1 text-xs text-muted-foreground">
           {selectedAirport.name}, {selectedAirport.city}
         </div>
+      )}
+
+      {/* Unknown airport warning */}
+      {value && value.length === 3 && !selectedAirport && inputValue === value && (
+        <p className="mt-1 flex items-center gap-1 text-xs text-warning">
+          <AlertCircle className="w-3 h-3 shrink-0" />
+          {t('flights.unknownAirport', 'Unknown airport — distance and stats may be incomplete')}
+        </p>
       )}
 
       {error && (
