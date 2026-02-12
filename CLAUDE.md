@@ -51,7 +51,14 @@ Translations are in `packages/shared/src/i18n/`:
 - `en.json` - English (primary)
 - `ru.json` - Russian
 
-Always add keys to both files when adding new UI text.
+**Always add keys to both files when adding new UI text.**
+
+**Pluralization:**
+Use i18next plural suffixes for count-based translations:
+- English: `key_one`, `key_other` (e.g., "1 flight" vs "2 flights")
+- Russian: `key_one`, `key_few`, `key_other` (e.g., "1 полёт", "2 полёта", "5 полётов")
+
+See `docs/I18N_GUIDE.md` for detailed pluralization rules and examples.
 
 ## Component Locations
 
