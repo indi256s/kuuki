@@ -416,11 +416,11 @@ function WaffleLegend({
   colorMap: Map<string, string>
 }) {
   return (
-    <div className="flex flex-wrap gap-x-3 gap-y-1">
+    <div className="flex flex-wrap gap-x-4 gap-y-1.5">
       {allocations.map(({ name, count, pct }) => (
-        <div key={name} className="flex items-center gap-1 text-[10px] text-muted-foreground">
+        <div key={name} className="flex items-center gap-1.5 text-xs text-muted-foreground">
           <div
-            className="w-2 h-2 rounded-sm shrink-0"
+            className="w-2.5 h-2.5 rounded-sm shrink-0"
             style={{ background: colorMap.get(name) ?? 'var(--primary)' }}
           />
           <span>{name}</span>
