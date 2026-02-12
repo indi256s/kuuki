@@ -15,16 +15,19 @@ export default defineConfig({
         // Precache only critical static assets, use runtime caching for chunks
         globPatterns: ['**/*.{html,ico,png,svg}', '**/manifest*.{json,webmanifest}'],
         runtimeCaching: [
-          // Runtime cache for JS/CSS chunks (better than precaching all)
+          // Runtime cache for JS/CSS chunks — NetworkFirst ensures fresh hashed
+          // assets are fetched after deploys (StaleWhileRevalidate served stale
+          // index.html referencing old hashes that no longer exist on the server)
           {
             urlPattern: /\.(?:js|css)$/,
-            handler: 'StaleWhileRevalidate',
+            handler: 'NetworkFirst',
             options: {
               cacheName: 'assets-cache',
               expiration: {
                 maxEntries: 60,
                 maxAgeSeconds: 30 * 24 * 60 * 60, // 30 days
               },
+              networkTimeoutSeconds: 3,
             },
           },
           // Font caching

@@ -149,14 +149,14 @@ function StatCard({ title, icon: Icon, children, className }: StatCardProps) {
   return (
     <div
       className={cn(
-        'rounded-2xl border border-border/50 bg-card p-5 h-full flex flex-col',
+        'rounded-2xl border border-border/50 bg-card p-3 h-full flex flex-col',
         'transition-shadow duration-300 hover:shadow-md',
         className
       )}
     >
-      <div className="flex items-center gap-3 mb-4">
-        <div className="w-9 h-9 rounded-lg flex items-center justify-center bg-muted/30">
-          <Icon className="w-[18px] h-[18px] text-muted-foreground" />
+      <div className="flex items-center gap-2 mb-2">
+        <div className="w-7 h-7 rounded-lg flex items-center justify-center bg-muted/30">
+          <Icon className="w-4 h-4 text-muted-foreground" />
         </div>
         <h4 className="font-medium text-sm">{title}</h4>
       </div>
@@ -209,8 +209,8 @@ export function AircraftTypesCard() {
       .sort((a, b) => b.count - a.count)
   }, [advancedStats?.aircraftBreakdown])
 
-  const top8 = chartData.slice(0, 8)
-  const overflowCount = chartData.length - 8
+  const top8 = chartData.slice(0, 5)
+  const overflowCount = chartData.length - 5
   const total = useMemo(
     () => chartData.reduce((sum, d) => sum + d.count, 0),
     [chartData]
@@ -231,13 +231,13 @@ export function AircraftTypesCard() {
   return (
     <StatCard title={t('stats.aircraftTypesTitle', 'Your Fleet')} icon={Plane}>
       {chartData.length > 0 ? (
-        <div className="space-y-4">
+        <div className="space-y-2">
           {/* 3a. Hero Section */}
           {hero && (
-            <div className="space-y-1.5">
+            <div className="space-y-1">
               <div className="flex items-baseline gap-2">
-                <span className="font-mono font-bold text-2xl text-primary">{hero.count}x</span>
-                <span className="font-semibold text-base">{hero.model}</span>
+                <span className="font-mono font-bold text-lg text-primary">{hero.count}x</span>
+                <span className="font-semibold text-sm">{hero.model}</span>
               </div>
               <div className="flex items-center gap-2">
                 <span className="text-sm text-muted-foreground">
@@ -249,7 +249,7 @@ export function AircraftTypesCard() {
                   {t(`stats.aircraftTypes.${hero.type}`, hero.type)}
                 </span>
               </div>
-              <p className="text-xs text-muted-foreground italic leading-relaxed">
+              <p className="text-xs text-muted-foreground italic leading-relaxed line-clamp-2">
                 {hero.fun_fact}
               </p>
             </div>
@@ -257,8 +257,8 @@ export function AircraftTypesCard() {
 
           {/* 3b. Fleet Composition Blocks */}
           {compositionSegments.length > 1 && (
-            <div className="space-y-1.5">
-              <div className="flex h-3 rounded-full overflow-hidden gap-0.5">
+            <div className="space-y-1">
+              <div className="flex h-2.5 rounded-full overflow-hidden gap-0.5">
                 {compositionSegments.map(({ type, pct }) => (
                   <div
                     key={type}
@@ -326,7 +326,7 @@ function FleetBarChart({
 }) {
   const maxCount = items.length > 0 ? items[0].count : 1
   return (
-    <div className="flex flex-col gap-1.5">
+    <div className="flex flex-col gap-1">
       {items.map((item, idx) => (
         <FleetBar
           key={item.icao}
@@ -461,11 +461,11 @@ function WaffleLegend({
   colorMap: Map<string, string>
 }) {
   return (
-    <div className="flex flex-wrap gap-x-4 gap-y-1.5">
+    <div className="flex flex-wrap gap-x-3 gap-y-1">
       {allocations.map(({ name, count, pct }) => (
-        <div key={name} className="flex items-center gap-1.5 text-xs text-muted-foreground">
+        <div key={name} className="flex items-center gap-1 text-[10px] text-muted-foreground">
           <div
-            className="w-2.5 h-2.5 rounded-sm shrink-0"
+            className="w-2 h-2 rounded-sm shrink-0"
             style={{ background: colorMap.get(name) ?? 'var(--primary)' }}
           />
           <span>{name}</span>
@@ -502,13 +502,13 @@ export function ManufacturerCard() {
   return (
     <StatCard title={t('stats.manufacturers', 'Manufacturers')} icon={Building2}>
       {manufacturers.length > 0 ? (
-        <div className="flex flex-col flex-1 gap-4">
+        <div className="flex flex-col flex-1 gap-2">
           {/* 4a. Hero Loyalty Statement */}
           {insights && (
-            <div className="space-y-1.5">
+            <div className="space-y-1">
               <div className="flex items-baseline gap-2">
-                <span className="font-mono font-bold text-2xl text-primary">{Math.round(insights.pct)}%</span>
-                <span className="font-semibold text-base">{insights.name}</span>
+                <span className="font-mono font-bold text-lg text-primary">{Math.round(insights.pct)}%</span>
+                <span className="font-semibold text-sm">{insights.name}</span>
               </div>
               <div className="flex items-center gap-2">
                 <span
@@ -522,14 +522,14 @@ export function ManufacturerCard() {
                   </span>
                 )}
               </div>
-              <p className="text-xs text-muted-foreground italic leading-relaxed">
+              <p className="text-xs text-muted-foreground italic leading-relaxed line-clamp-2">
                 {insights.loyalty_quip}
               </p>
             </div>
           )}
 
           {/* 4b. Waffle Chart */}
-          <div className="space-y-3">
+          <div className="space-y-2">
             <WaffleGrid allocations={allocations} colorMap={mfrColors} />
             <WaffleLegend allocations={allocations} colorMap={mfrColors} />
           </div>
@@ -587,7 +587,7 @@ export function ContinentProgressCard() {
     <StatCard title={t('stats.continentsTitle', 'World Coverage')} icon={Globe2}>
       {continentBreakdown ? (
         <>
-          <ResponsiveContainer width="100%" height={180}>
+          <ResponsiveContainer width="100%" height={120}>
             <RadarChart data={radarData} cx="50%" cy="50%" outerRadius="75%">
               <PolarGrid stroke="var(--border)" />
               <PolarAngleAxis
@@ -672,30 +672,30 @@ export function DurationStatsCard() {
     <StatCard title={t('stats.durationStats', 'Flight Duration')} icon={Clock}>
       {stats ? (
         <>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="p-3 rounded-lg bg-muted/30">
-              <div className="text-xs text-muted-foreground mb-1">
+          <div className="grid grid-cols-2 gap-2">
+            <div className="p-2 rounded-lg bg-muted/30">
+              <div className="text-[10px] text-muted-foreground mb-0.5">
                 {t('stats.longestFlight', 'Longest')}
               </div>
-              <div className="font-mono font-semibold">{stats.longest}</div>
+              <div className="font-mono font-semibold text-sm">{stats.longest}</div>
             </div>
-            <div className="p-3 rounded-lg bg-muted/30">
-              <div className="text-xs text-muted-foreground mb-1">
+            <div className="p-2 rounded-lg bg-muted/30">
+              <div className="text-[10px] text-muted-foreground mb-0.5">
                 {t('stats.shortestFlight', 'Shortest')}
               </div>
-              <div className="font-mono font-semibold">{stats.shortest}</div>
+              <div className="font-mono font-semibold text-sm">{stats.shortest}</div>
             </div>
-            <div className="p-3 rounded-lg bg-muted/30">
-              <div className="text-xs text-muted-foreground mb-1">
+            <div className="p-2 rounded-lg bg-muted/30">
+              <div className="text-[10px] text-muted-foreground mb-0.5">
                 {t('stats.averageFlight', 'Average')}
               </div>
-              <div className="font-mono font-semibold">{stats.average}</div>
+              <div className="font-mono font-semibold text-sm">{stats.average}</div>
             </div>
-            <div className="p-3 rounded-lg bg-muted/30">
-              <div className="text-xs text-muted-foreground mb-1">
+            <div className="p-2 rounded-lg bg-muted/30">
+              <div className="text-[10px] text-muted-foreground mb-0.5">
                 {t('stats.totalTime', 'Total')}
               </div>
-              <div className="font-mono font-semibold">{stats.total}</div>
+              <div className="font-mono font-semibold text-sm">{stats.total}</div>
               {deltaLabel && (
                 <div
                   className={cn(
