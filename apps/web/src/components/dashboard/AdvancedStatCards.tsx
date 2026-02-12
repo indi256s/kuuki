@@ -484,7 +484,7 @@ export function AircraftTypesCard() {
       .map(([icao, count]) => {
         const aircraft = findAircraft(icao)
         const label = aircraft
-          ? `${aircraft.model} · ${aircraft.manufacturer}`
+          ? aircraft.model
           : icao
         return {
           icao,
