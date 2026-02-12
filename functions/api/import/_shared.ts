@@ -155,11 +155,12 @@ Important rules:
 2. ALWAYS use IATA codes: airports (3 letters like TLV, TBS) and airlines (2 letters like LY, QR)
 3. If you see an airline NAME, you MUST convert it to its 2-letter IATA code using your knowledge
 4. Use ICAO codes for aircraft (4 letters)
-5. If a field is not visible or unclear, omit it rather than guessing
-6. Dates should be in YYYY-MM-DD format
-7. Times should be in HH:mm 24-hour format
-8. Overall confidence should reflect how certain you are about the extraction
-9. For date_year_explicit: Set to true ONLY if the year (4 digits like "2024" or "2025") was explicitly visible in the document. Set to false if you inferred the year from context (e.g., "Dec 15" with no year visible).
+5. For optional fields (flight_number, aircraft_icao), omit if not visible rather than guessing
+6. For departure_time and arrival_time: ALWAYS extract if visible. Use empty string "" only if truly not present in the document
+7. Dates should be in YYYY-MM-DD format
+8. Times should be in HH:mm 24-hour format
+9. Overall confidence should reflect how certain you are about the extraction
+10. For date_year_explicit: Set to true ONLY if the year (4 digits like "2024" or "2025") was explicitly visible in the document. Set to false if you inferred the year from context (e.g., "Dec 15" with no year visible).
 
 Return your response as a JSON object with this structure:
 {

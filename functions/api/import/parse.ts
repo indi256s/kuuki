@@ -101,7 +101,7 @@ const FLIGHT_RESPONSE_SCHEMA = {
             },
           },
         },
-        required: ['date', 'origin', 'destination', 'airline_iata', 'confidence'],
+        required: ['date', 'origin', 'destination', 'airline_iata', 'departure_time', 'arrival_time', 'confidence'],
       },
     },
     raw_text: {
@@ -200,13 +200,15 @@ async function extractFlightsWithGemini(
       return true
     })
     .map((flight) => {
-      // Normalize codes to uppercase
+      // Normalize codes to uppercase, convert empty time strings to undefined
       const normalizedFlight = {
         ...flight,
         origin: flight.origin.toUpperCase(),
         destination: flight.destination.toUpperCase(),
         airline_iata: flight.airline_iata.toUpperCase(),
         aircraft_icao: flight.aircraft_icao?.toUpperCase(),
+        departure_time: flight.departure_time || undefined,
+        arrival_time: flight.arrival_time || undefined,
         // Ensure confidence is a number between 0 and 1 (use ?? to preserve explicit 0)
         confidence: Math.min(1, Math.max(0, flight.confidence ?? 0.5)),
       }
