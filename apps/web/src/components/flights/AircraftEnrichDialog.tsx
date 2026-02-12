@@ -24,6 +24,7 @@ interface AircraftEnrichDialogProps {
   results: EnrichmentResult[]
   onAccept: (updates: { id: number; aircraft_icao: string }[]) => Promise<void>
   isApplying: boolean
+  error: string | null
 }
 
 export function AircraftEnrichDialog({
@@ -33,6 +34,7 @@ export function AircraftEnrichDialog({
   results,
   onAccept,
   isApplying,
+  error,
 }: AircraftEnrichDialogProps) {
   const { t } = useTranslation()
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
@@ -90,9 +92,13 @@ export function AircraftEnrichDialog({
       .filter((u): u is { id: number; aircraft_icao: string } => u !== null)
 
     if (updates.length > 0) {
-      await onAccept(updates)
+      try {
+        await onAccept(updates)
+        onClose()
+      } catch {
+        // Error is surfaced via the error prop from the parent mutation state
+      }
     }
-    onClose()
   }
 
   const getConfidenceBadge = (confidence: number) => {
@@ -237,6 +243,12 @@ export function AircraftEnrichDialog({
         </div>
 
         <DialogFooter className="px-6 py-4 border-t border-border/50 bg-muted/20">
+          {error && (
+            <div className="w-full flex items-center gap-2 text-sm text-destructive mb-2">
+              <AlertCircle aria-hidden="true" className="w-4 h-4 flex-shrink-0" />
+              <span>{t('enrich.saveFailed', 'Failed to save aircraft data. Please try again.')}</span>
+            </div>
+          )}
           <Button variant="outline" onClick={onClose} disabled={isApplying}>
             {t('common.cancel')}
           </Button>

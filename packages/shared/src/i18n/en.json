@@ -1134,7 +1134,10 @@
     "acceptSelected_one": "Accept {{count}} Selected",
     "acceptSelected_other": "Accept {{count}} Selected",
     "notFound": "Not found",
-    "noResults": "Could not identify any aircraft. Try again or set manually."
+    "noResults": "Could not identify any aircraft. Try again or set manually.",
+    "searchFailed": "Aircraft search failed. Please try again.",
+    "saveFailed": "Failed to save aircraft data. Please try again.",
+    "saveSuccess": "{{count}} aircraft saved"
   },
   "toasts": {
     "flightCreated": "Flight added to your log",

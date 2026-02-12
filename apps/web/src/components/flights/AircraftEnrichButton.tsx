@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { toast } from 'sonner'
 import { findAirline } from '@kuuki/data'
 import { Button } from '@/components/ui/button'
 import { Sparkles, Loader2 } from 'lucide-react'
@@ -65,13 +66,19 @@ export function AircraftEnrichButton({
       setIsDialogOpen(true)
     } catch (error) {
       console.error('Aircraft enrichment failed:', error)
-      // Could show a toast here
+      toast.error(t('enrich.searchFailed', 'Aircraft search failed. Please try again.'))
     }
   }
 
   const handleAccept = async (updates: { id: number; aircraft_icao: string }[]) => {
-    await updateMutation.mutateAsync(updates)
-    onComplete?.()
+    try {
+      await updateMutation.mutateAsync(updates)
+      onComplete?.()
+      toast.success(t('enrich.saveSuccess', '{{count}} aircraft saved', { count: updates.length }))
+    } catch (error) {
+      console.error('Failed to save aircraft data:', error)
+      throw error // Re-throw so dialog knows about the error
+    }
   }
 
   const handleClose = () => {
@@ -112,6 +119,7 @@ export function AircraftEnrichButton({
         results={results}
         onAccept={handleAccept}
         isApplying={updateMutation.isPending}
+        error={updateMutation.error ? String(updateMutation.error.message || updateMutation.error) : null}
       />
     </>
   )
