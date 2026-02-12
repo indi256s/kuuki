@@ -67,14 +67,18 @@ function SheetContent({
     full: "sm:max-w-xl lg:max-w-2xl xl:max-w-3xl 3xl:max-w-4xl 4xl:max-w-5xl",
   }
 
-  // For bottom sheets: dynamically adjust max-height based on keyboard
-  // When keyboard is open, reduce max-height to keep content visible
+  // For bottom sheets: dynamically adjust position and max-height when keyboard opens.
+  // `bottom` offset moves the sheet above the keyboard (needed for iOS Safari where
+  // interactive-widget=resizes-content isn't supported). On Chromium, the viewport
+  // meta tag handles repositioning and keyboardHeight stays 0, so this is a no-op.
   const bottomSheetStyle: React.CSSProperties | undefined =
     side === "bottom"
       ? {
           maxHeight: keyboardHeight > 0
             ? `calc(100vh - ${keyboardHeight}px - env(safe-area-inset-top, 0px))`
             : '85vh',
+          bottom: keyboardHeight > 0 ? `${keyboardHeight}px` : undefined,
+          transition: 'bottom 0.15s ease-out, max-height 0.15s ease-out',
         }
       : undefined
 
