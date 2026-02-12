@@ -265,14 +265,13 @@ function buildRidgelineData(
 }
 
 function FleetRidgeline({
-  aircraftBreakdown,
+  rows,
   mfrColors,
 }: {
-  aircraftBreakdown: Record<string, number> | null | undefined
+  rows: RidgelineRow[]
   mfrColors: Map<string, string>
 }) {
   const { t } = useTranslation()
-  const { data: durations } = useFlightDurations()
   const containerRef = useRef<HTMLDivElement>(null)
   const [width, setWidth] = useState(0)
   const [hoveredRow, setHoveredRow] = useState<number | null>(null)
@@ -289,18 +288,11 @@ function FleetRidgeline({
     return () => obs.disconnect()
   }, [])
 
-  const rows = useMemo(() => {
-    if (!aircraftBreakdown || !durations || durations.length === 0) return []
-    return buildRidgelineData(aircraftBreakdown, durations)
-  }, [aircraftBreakdown, durations])
-
-  // Check if we have sufficient data
-  const hasSufficientData = rows.length >= 2
-
   const handleMouseMove = useCallback(
-    (e: React.MouseEvent<SVGSVGElement>, rowIdx: number) => {
-      const svg = e.currentTarget
-      const rect = svg.getBoundingClientRect()
+    (e: React.MouseEvent, rowIdx: number) => {
+      const el = e.currentTarget.closest('svg')
+      if (!el) return
+      const rect = el.getBoundingClientRect()
       setHoveredRow(rowIdx)
       setTooltipPos({ x: e.clientX - rect.left, y: e.clientY - rect.top })
     },
@@ -311,8 +303,6 @@ function FleetRidgeline({
     setHoveredRow(null)
     setTooltipPos(null)
   }, [])
-
-  if (!hasSufficientData) return null
 
   // Layout constants
   const labelW = 42
@@ -376,7 +366,7 @@ function FleetRidgeline({
             return (
               <g
                 key={row.icao}
-                onMouseMove={(e) => handleMouseMove(e as unknown as React.MouseEvent<SVGSVGElement>, idx)}
+                onMouseMove={(e) => handleMouseMove(e, idx)}
                 style={{ cursor: 'default' }}
               >
                 {/* Label */}
@@ -481,12 +471,13 @@ function FleetRidgeline({
 export function AircraftTypesCard() {
   const { t } = useTranslation()
   const { data: advancedStats } = useAdvancedStats()
+  const { data: durations } = useFlightDurations()
   const mfrColors = useManufacturerColorMap(advancedStats?.manufacturerBreakdown)
 
   const hero = advancedStats?.fleetInsights?.hero
   const typeBreakdown = advancedStats?.aircraftTypeBreakdown?.types
 
-  // Bar chart data: top 8 with "Model · Manufacturer" labels
+  // Bar chart data: top 3 with "Model · Manufacturer" labels
   const chartData = useMemo(() => {
     if (!advancedStats?.aircraftBreakdown) return []
     return Object.entries(advancedStats.aircraftBreakdown)
@@ -511,6 +502,14 @@ export function AircraftTypesCard() {
     () => chartData.reduce((sum, d) => sum + d.count, 0),
     [chartData]
   )
+
+  // Centralized decision: can we show ridgeline?
+  const ridgelineRows = useMemo(() => {
+    if (!advancedStats?.aircraftBreakdown || !durations || durations.length === 0) return []
+    return buildRidgelineData(advancedStats.aircraftBreakdown, durations)
+  }, [advancedStats?.aircraftBreakdown, durations])
+
+  const showRidgeline = ridgelineRows.length >= 2
 
   // Fleet composition segments
   const compositionSegments = useMemo(() => {
@@ -580,20 +579,23 @@ export function AircraftTypesCard() {
             </div>
           )}
 
-          {/* 3c. Ridgeline chart (with bar chart fallback) */}
+          {/* 3c. Ridgeline or fallback bar chart — decided once in parent */}
           <div className="border-t border-border/30" />
-          <FleetRidgeline
-            aircraftBreakdown={advancedStats?.aircraftBreakdown}
-            mfrColors={mfrColors}
-          />
-          {/* Fallback bar chart shown when ridgeline has insufficient data */}
-          <FleetBarChartFallback
-            aircraftBreakdown={advancedStats?.aircraftBreakdown}
-            items={top8}
-            total={total}
-            mfrColors={mfrColors}
-            overflowCount={overflowCount}
-          />
+          {showRidgeline ? (
+            <FleetRidgeline
+              rows={ridgelineRows}
+              mfrColors={mfrColors}
+            />
+          ) : (
+            <>
+              <FleetBarChart items={top8} total={total} mfrColors={mfrColors} />
+              {overflowCount > 0 && (
+                <p className="text-[10px] text-muted-foreground">
+                  {t('stats.nMore', { count: overflowCount })}
+                </p>
+              )}
+            </>
+          )}
         </div>
       ) : (
         <div className="h-16 rounded-lg bg-muted/20 flex items-center justify-center">
@@ -694,54 +696,6 @@ function FleetBar({
         {pct}%
       </span>
     </div>
-  )
-}
-
-/**
- * Wrapper that only renders the bar chart when the ridgeline has insufficient data.
- * Uses the same check as FleetRidgeline — if < 2 aircraft have ≥ 3 duration samples,
- * it falls back to the bar chart.
- */
-function FleetBarChartFallback({
-  aircraftBreakdown,
-  items,
-  total,
-  mfrColors,
-  overflowCount,
-}: {
-  aircraftBreakdown: Record<string, number> | null | undefined
-  items: FleetBarItem[]
-  total: number
-  mfrColors: Map<string, string>
-  overflowCount: number
-}) {
-  const { t } = useTranslation()
-  const { data: durations } = useFlightDurations()
-
-  // Mirror the ridgeline's sufficiency check
-  const ridgelineHasData = useMemo(() => {
-    if (!aircraftBreakdown || !durations || durations.length === 0) return false
-    const byIcao = new Map<string, number>()
-    for (const d of durations) {
-      byIcao.set(d.aircraft_icao, (byIcao.get(d.aircraft_icao) ?? 0) + 1)
-    }
-    const qualifyingTypes = Object.keys(aircraftBreakdown).filter(
-      (icao) => (byIcao.get(icao) ?? 0) >= 3
-    )
-    return qualifyingTypes.length >= 2
-  }, [aircraftBreakdown, durations])
-
-  if (ridgelineHasData) return null
-
-  return (
-    <>
-      <FleetBarChart items={items} total={total} mfrColors={mfrColors} />
-      {overflowCount > 0 && (
-        <p className="text-[10px] text-muted-foreground">
-          {t('stats.nMore', { count: overflowCount })}
-        </p>
-      )}
-    </>
   )
 }
 
