@@ -30,6 +30,8 @@ const AIRLABS_API_KEY = process.env.AIRLABS_API_KEY || '2ce38033-3fcb-47db-8b4b-
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || ''
 
 const DRY_RUN = process.env.DRY_RUN === '1'
+const BATCH_SIZE = parseInt(process.env.BATCH_SIZE || '50', 10)
+const BATCH_PAUSE_MS = parseInt(process.env.BATCH_PAUSE_MS || '1000', 10)
 const AIRLABS_DELAY_MS = 350 // ~3 req/s to stay well under limits
 const GEMINI_BATCH_SIZE = 10
 const GEMINI_DELAY_MS = 2000
@@ -210,7 +212,8 @@ Confidence scoring:
 - 0.7-0.89: Found likely schedule but not 100% certain of the exact date
 - Below 0.7: Cannot determine with confidence → return null times
 
-Return JSON with results array.`
+Return ONLY a JSON object (no markdown, no explanation) with this exact structure:
+{"results": [{"index": 1, "departure_time": "HH:MM", "arrival_time": "HH:MM", "confidence": 0.9}, ...]}`
 }
 
 let geminiClient: GoogleGenAI | null = null
@@ -230,13 +233,13 @@ async function tryGeminiBatch(flights: FlightRow[]): Promise<Map<number, TimeRes
   const prompt = buildGeminiPrompt(flights)
 
   try {
+    // Note: Gemini doesn't support responseSchema + googleSearch together,
+    // so we use googleSearch for grounding and parse JSON from text output
     const response = await geminiClient.models.generateContent({
       model: 'gemini-2.0-flash',
       contents: prompt,
       config: {
         tools: [{ googleSearch: {} }],
-        responseMimeType: 'application/json',
-        responseSchema: GEMINI_SCHEMA,
       },
     })
 
@@ -247,6 +250,17 @@ async function tryGeminiBatch(flights: FlightRow[]): Promise<Map<number, TimeRes
       return results
     }
 
+    // Extract JSON from text (may be wrapped in ```json ... ``` blocks)
+    let jsonStr = text
+    const jsonMatch = text.match(/```(?:json)?\s*([\s\S]*?)```/)
+    if (jsonMatch) {
+      jsonStr = jsonMatch[1].trim()
+    } else {
+      // Try to find raw JSON object
+      const braceMatch = text.match(/\{[\s\S]*\}/)
+      if (braceMatch) jsonStr = braceMatch[0]
+    }
+
     const parsed: {
       results: Array<{
         index: number
@@ -254,7 +268,7 @@ async function tryGeminiBatch(flights: FlightRow[]): Promise<Map<number, TimeRes
         arrival_time: string | null
         confidence: number
       }>
-    } = JSON.parse(text)
+    } = JSON.parse(jsonStr)
 
     for (const r of parsed.results) {
       const flightIndex = r.index - 1 // convert 1-based to 0-based
@@ -397,6 +411,7 @@ async function updateFlightTimes(
     .from('flights')
     .update(update)
     .eq('id', flight.id)
+    .select()
 
   if (error) {
     console.error(`  Failed to update flight ${flight.id}: ${error.message}`)
@@ -411,6 +426,7 @@ async function updateFlightTimes(
 async function main() {
   console.log('=== Flight Times Backfill ===')
   console.log(`Mode: ${DRY_RUN ? 'DRY RUN' : 'LIVE'}`)
+  console.log(`Batch size: ${BATCH_SIZE} (pause ${BATCH_PAUSE_MS}ms between batches)`)
   console.log(`AirLabs: ${AIRLABS_API_KEY ? 'configured' : 'MISSING'}`)
   console.log(`Gemini: ${GEMINI_API_KEY ? 'configured' : 'not configured (fallback disabled)'}`)
   console.log('')
@@ -476,43 +492,69 @@ async function main() {
 
   const geminiQueue: FlightRow[] = [...noFlightNumberFlights] // start with flights that can't use AirLabs
 
-  for (let i = 0; i < uniqueRoutes.length; i++) {
-    const flightIata = uniqueRoutes[i]
-    const flightGroup = routeKeyToFlights.get(flightIata)!
-    const sample = flightGroup[0]
+  // Process AirLabs routes in batches to avoid OOM
+  for (let batchStart = 0; batchStart < uniqueRoutes.length; batchStart += BATCH_SIZE) {
+    const batchEnd = Math.min(batchStart + BATCH_SIZE, uniqueRoutes.length)
+    const batchRoutes = uniqueRoutes.slice(batchStart, batchEnd)
+    const batchNum = Math.floor(batchStart / BATCH_SIZE) + 1
+    const totalBatches = Math.ceil(uniqueRoutes.length / BATCH_SIZE)
 
-    process.stdout.write(`[${i + 1}/${uniqueRoutes.length}] ${flightIata} ${sample.origin}-${sample.destination}... `)
+    if (totalBatches > 1) {
+      console.log(`\n[Batch ${batchNum}/${totalBatches}] Routes ${batchStart + 1}-${batchEnd} of ${uniqueRoutes.length}`)
+    }
 
-    const result = await tryAirLabs(sample)
+    for (let i = 0; i < batchRoutes.length; i++) {
+      const globalIndex = batchStart + i
+      const flightIata = batchRoutes[i]
+      const flightGroup = routeKeyToFlights.get(flightIata)!
+      const sample = flightGroup[0]
 
-    if (result) {
-      console.log(`${result.departure_time}-${result.arrival_time}`)
+      process.stdout.write(`[${globalIndex + 1}/${uniqueRoutes.length}] ${flightIata} ${sample.origin}-${sample.destination}... `)
 
-      // Apply to all flights in this group
-      for (const flight of flightGroup) {
-        // If flight already has one time, only fill the missing one
-        const depTime = flight.departure_time || result.departure_time
-        const arrTime = flight.arrival_time || result.arrival_time
+      const result = await tryAirLabs(sample)
 
-        const ok = await updateFlightTimes(flight, depTime, arrTime)
-        if (ok) {
-          stats.updated++
-          if (DRY_RUN) {
-            console.log(`  [DRY RUN] Would update flight ${flight.id} (${flight.date}): ${depTime}-${arrTime}`)
+      if (result) {
+        console.log(`${result.departure_time}-${result.arrival_time}`)
+
+        // Apply to all flights in this group
+        for (const flight of flightGroup) {
+          // If flight already has one time, only fill the missing one
+          const depTime = flight.departure_time || result.departure_time
+          const arrTime = flight.arrival_time || result.arrival_time
+
+          const ok = await updateFlightTimes(flight, depTime, arrTime)
+          if (ok) {
+            stats.updated++
+            if (DRY_RUN) {
+              console.log(`  [DRY RUN] Would update flight ${flight.id} (${flight.date}): ${depTime}-${arrTime}`)
+            }
           }
         }
+      } else {
+        console.log('no data')
+        // Queue all flights in this group for Gemini
+        geminiQueue.push(...flightGroup)
       }
-    } else {
-      console.log('no data')
-      // Queue all flights in this group for Gemini
-      geminiQueue.push(...flightGroup)
+
+      // Rate limit
+      if (globalIndex < uniqueRoutes.length - 1) {
+        await sleep(AIRLABS_DELAY_MS)
+      }
     }
 
-    // Rate limit
-    if (i < uniqueRoutes.length - 1) {
-      await sleep(AIRLABS_DELAY_MS)
+    // Pause between batches to let GC run and avoid OOM
+    if (batchEnd < uniqueRoutes.length) {
+      console.log(`  Pausing ${BATCH_PAUSE_MS}ms between batches...`)
+      // Clear AirLabs cache for processed routes to free memory
+      for (const route of batchRoutes) {
+        airLabsCache.delete(route)
+      }
+      await sleep(BATCH_PAUSE_MS)
     }
   }
+
+  // Clear remaining cache
+  airLabsCache.clear()
 
   console.log(`\nAirLabs: ${stats.airlabsHits} hits, ${stats.airlabsMisses} misses, ${stats.airlabsErrors} errors`)
 
