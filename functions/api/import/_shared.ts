@@ -141,7 +141,8 @@ For EACH flight found, extract:
   "El Al" → "LY", "Qatar Airways" → "QR", "Turkish Airlines" → "TK",
   "Aeroflot" → "SU", "Lufthansa" → "LH", "Georgian Airways" → "A9",
   "China Eastern" → "MU", "Thai Airways" → "TG", "Pegasus" → "PC",
-  "Air Serbia" → "JU", "Wizz Air" → "W6", "Yakutia" → "R3", etc.
+  "Air Serbia" → "JU", "Wizz Air" → "W6", "Yakutia" → "R3",
+  "Smartavia" → "5N", etc.
 - flight_number: Flight number (digits only, no airline prefix)
 - aircraft_icao: 4-letter ICAO aircraft type code if visible (e.g., B738, A320)
 - departure_time: Departure time in HH:mm 24-hour format
@@ -289,6 +290,7 @@ Your task:
      * Belavia → B2
      * AirJapan, Air Japan → NQ
      * FlyOne → 3F
+    * Smartavia → 5N
    - Skip cancelled flights
    - Skip entries that aren't actual flights
 

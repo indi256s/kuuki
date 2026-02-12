@@ -795,6 +795,11 @@
       "title": "Полёты импортированы!",
       "count": "{{count}} полёт(ов) добавлено в журнал",
       "partialFail": "{{count}} полёт(ов) не удалось сохранить.",
+      "allFailed": "Ошибка импорта",
+      "allFailedCount": "Не удалось сохранить {{count}} полёт(ов)",
+      "partialTitle": "Частично импортировано",
+      "partialCount": "Сохранено {{success}} из {{total}} полёт(ов)",
+      "errorDetail": "{{flight}}: {{error}}",
       "importMore": "Импортировать ещё",
       "viewFlights": "Посмотреть полёты"
     }

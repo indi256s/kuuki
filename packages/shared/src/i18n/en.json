@@ -796,6 +796,11 @@
       "title": "Flights imported!",
       "count": "{{count}} flight(s) added to your log",
       "partialFail": "{{count}} flight(s) could not be saved.",
+      "allFailed": "Import failed",
+      "allFailedCount": "{{count}} flight(s) could not be saved",
+      "partialTitle": "Partially imported",
+      "partialCount": "{{success}} of {{total}} flight(s) saved",
+      "errorDetail": "{{flight}}: {{error}}",
       "importMore": "Import more",
       "viewFlights": "View flights"
     }

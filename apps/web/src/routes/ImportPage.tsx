@@ -19,7 +19,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 import { findAirport, findAircraft } from '@kuuki/data'
 import { calculateFlightDistance, calculateFlightDuration, estimateFlightDuration } from '@/lib/geo'
 import { getMessageKeyForCategory } from '@/lib/errors'
-import { Check, Plane, ArrowRight, AlertCircle } from 'lucide-react'
+import { Check, Plane, ArrowRight, AlertCircle, X, AlertTriangle } from 'lucide-react'
 import { PlaneAnimation } from '@/components/common/PlaneAnimation'
 import { useCountUp } from '@/hooks/useCountUp'
 
@@ -58,7 +58,7 @@ export function ImportPage() {
   // Animated count for success screen - only animates when step becomes 'success'
   const animatedSavedCount = useCountUp(step === 'success' ? savedCount : 0, 800)
   const [parseError, setParseError] = useState<string | null>(null)
-  const [saveErrors, setSaveErrors] = useState<number[]>([]) // Track failed flight indices
+  const [saveErrors, setSaveErrors] = useState<Array<{ index: number; flightLabel: string; error: string }>>([]) // Track failed flights with details
   const [enrichmentJobId, setEnrichmentJobId] = useState<string | undefined>()
 
   const parseMutation = useParseImport()
@@ -148,7 +148,7 @@ export function ImportPage() {
     setSaveErrors([])
 
     let successCount = 0
-    const failedIndices: number[] = []
+    const failedDetails: Array<{ index: number; flightLabel: string; error: string }> = []
 
     for (let i = 0; i < flights.length; i++) {
       const flight = flights[i]
@@ -206,22 +206,28 @@ export function ImportPage() {
         setSavedCount(successCount)
       } catch (error) {
         console.error('Failed to save flight:', error)
-        failedIndices.push(i)
+        const flightLabel = `${flight.origin} → ${flight.destination} (${flight.date})`
+        const errorMsg = error instanceof Error ? error.message : String(error)
+        failedDetails.push({ index: i, flightLabel, error: errorMsg })
         // Continue with other flights - don't block on individual failures
       }
     }
 
     // Track failed saves for potential retry
-    setSaveErrors(failedIndices)
+    setSaveErrors(failedDetails)
 
     // Invalidate queries to refresh data
     await queryClient.invalidateQueries({ queryKey: ['flights'] })
     await queryClient.invalidateQueries({ queryKey: ['flightStats'] })
 
-    // Show toast if some flights failed (data loss risk scenario)
-    if (failedIndices.length > 0 && successCount > 0) {
+    // Show toast for failures
+    if (failedDetails.length > 0 && successCount > 0) {
       showError(new Error('Some flights could not be saved'), {
         context: 'save-partial',
+      })
+    } else if (successCount === 0 && failedDetails.length > 0) {
+      showError(new Error('All flights failed to save'), {
+        context: 'save-failed',
       })
     }
 
@@ -409,43 +415,79 @@ export function ImportPage() {
           </Card>
         )}
 
-        {step === 'success' && (
-          <Card className="border-border/50" style={{ animationDelay: '100ms' }}>
-            <CardContent className="p-6">
-              <div className="py-8 text-center">
-                <div className="w-16 h-16 mx-auto mb-4 bg-success/10 rounded-full flex items-center justify-center">
-                  <Check className="w-8 h-8 text-success" />
-                </div>
-                <h3 className="text-xl font-semibold tracking-tight mb-2">
-                  {t('import.success.title', 'Flights imported!')}
-                </h3>
-                <p className="text-muted-foreground mb-6">
-                  {t('import.success.count', '{{count}} flight(s) added to your log', { count: animatedSavedCount })}
-                </p>
+        {step === 'success' && (() => {
+          const allFailed = savedCount === 0 && saveErrors.length > 0
+          const partialSuccess = savedCount > 0 && saveErrors.length > 0
 
-                {/* Show warning if some flights failed to save */}
-                {saveErrors.length > 0 && (
-                  <Alert variant="destructive" className="mb-6 text-left max-w-sm mx-auto">
-                    <AlertCircle className="h-4 w-4" />
-                    <AlertDescription>
-                      {t('import.success.partialFail', '{{count}} flight(s) could not be saved.', { count: saveErrors.length })}
-                    </AlertDescription>
-                  </Alert>
-                )}
+          return (
+            <Card className="border-border/50" style={{ animationDelay: '100ms' }}>
+              <CardContent className="p-6">
+                <div className="py-8 text-center">
+                  {/* Icon: green check / red X / yellow warning */}
+                  {allFailed ? (
+                    <div className="w-16 h-16 mx-auto mb-4 bg-destructive/10 rounded-full flex items-center justify-center">
+                      <X className="w-8 h-8 text-destructive" />
+                    </div>
+                  ) : partialSuccess ? (
+                    <div className="w-16 h-16 mx-auto mb-4 bg-warning/10 rounded-full flex items-center justify-center">
+                      <AlertTriangle className="w-8 h-8 text-warning" />
+                    </div>
+                  ) : (
+                    <div className="w-16 h-16 mx-auto mb-4 bg-success/10 rounded-full flex items-center justify-center">
+                      <Check className="w-8 h-8 text-success" />
+                    </div>
+                  )}
 
-                <div className="flex justify-center gap-3">
-                  <Button variant="outline" onClick={handleImportMore}>
-                    {t('import.success.importMore', 'Import more')}
-                  </Button>
-                  <Button onClick={handleGoToFlights} className="gap-2">
-                    {t('import.success.viewFlights', 'View flights')}
-                    <ArrowRight className="w-4 h-4" />
-                  </Button>
+                  {/* Title */}
+                  <h3 className="text-xl font-semibold tracking-tight mb-2">
+                    {allFailed
+                      ? t('import.success.allFailed', 'Import failed')
+                      : partialSuccess
+                        ? t('import.success.partialTitle', 'Partially imported')
+                        : t('import.success.title', 'Flights imported!')}
+                  </h3>
+
+                  {/* Subtitle */}
+                  <p className="text-muted-foreground mb-6">
+                    {allFailed
+                      ? t('import.success.allFailedCount', '{{count}} flight(s) could not be saved', { count: saveErrors.length })
+                      : partialSuccess
+                        ? t('import.success.partialCount', '{{success}} of {{total}} flight(s) saved', { success: animatedSavedCount, total: savedCount + saveErrors.length })
+                        : t('import.success.count', '{{count}} flight(s) added to your log', { count: animatedSavedCount })}
+                  </p>
+
+                  {/* Per-flight error details */}
+                  {saveErrors.length > 0 && (
+                    <Alert variant="destructive" className="mb-6 text-left max-w-md mx-auto">
+                      <AlertCircle className="h-4 w-4" />
+                      <AlertDescription>
+                        <ul className="mt-1 space-y-1">
+                          {saveErrors.map((err, i) => (
+                            <li key={i} className="text-sm">
+                              {t('import.success.errorDetail', '{{flight}}: {{error}}', { flight: err.flightLabel, error: err.error })}
+                            </li>
+                          ))}
+                        </ul>
+                      </AlertDescription>
+                    </Alert>
+                  )}
+
+                  <div className="flex justify-center gap-3">
+                    <Button variant="outline" onClick={handleImportMore}>
+                      {t('import.success.importMore', 'Import more')}
+                    </Button>
+                    {savedCount > 0 && (
+                      <Button onClick={handleGoToFlights} className="gap-2">
+                        {t('import.success.viewFlights', 'View flights')}
+                        <ArrowRight className="w-4 h-4" />
+                      </Button>
+                    )}
+                  </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
+              </CardContent>
+            </Card>
+          )
+        })()}
       </main>
 
       {/* Manual flight form modal */}
