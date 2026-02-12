@@ -50,6 +50,16 @@
     "callsign": "IFLY"
   },
   {
+    "iata": "6R",
+    "icao": "DRU",
+    "name": "Alrosa Airlines",
+    "country": "Russia",
+    "logoUrl": null,
+    "primaryColor": "#1B4D8E",
+    "alliance": null,
+    "callsign": "MIRNY"
+  },
+  {
     "iata": "7C",
     "icao": "JJA",
     "name": "Jeju Air",
@@ -88,6 +98,16 @@
     "primaryColor": "#083C6E",
     "alliance": "star_alliance",
     "callsign": "AEGEAN"
+  },
+  {
+    "iata": "A4",
+    "icao": "AZO",
+    "name": "Azimuth Airlines",
+    "country": "Russia",
+    "logoUrl": null,
+    "primaryColor": "#E31E24",
+    "alliance": null,
+    "callsign": "AZIMUTH"
   },
   {
     "iata": "A9",
@@ -450,6 +470,16 @@
     "callsign": "DOLOMOTI"
   },
   {
+    "iata": "EO",
+    "icao": "KAR",
+    "name": "Pegas Fly",
+    "country": "Russia",
+    "logoUrl": null,
+    "primaryColor": "#FF6600",
+    "alliance": null,
+    "callsign": "PEGAS"
+  },
+  {
     "iata": "ET",
     "icao": "ETH",
     "name": "Ethiopian Airlines",
@@ -718,6 +748,16 @@
     "primaryColor": "#00529B",
     "alliance": null,
     "callsign": "UZBEK"
+  },
+  {
+    "iata": "HZ",
+    "icao": "SHU",
+    "name": "Aurora",
+    "country": "Russia",
+    "logoUrl": null,
+    "primaryColor": "#6B2D8B",
+    "alliance": null,
+    "callsign": "AURORA"
   },
   {
     "iata": "I8",
@@ -1018,6 +1058,16 @@
     "primaryColor": "#FFE600",
     "alliance": null,
     "callsign": "SPIRIT WINGS"
+  },
+  {
+    "iata": "NQ",
+    "icao": "AJX",
+    "name": "AirJapan",
+    "country": "Japan",
+    "logoUrl": null,
+    "primaryColor": "#003087",
+    "alliance": null,
+    "callsign": "AIRJAPAN"
   },
   {
     "iata": "NZ",
