@@ -250,7 +250,7 @@ export function FlightFilters({
       value={filters.year?.toString() || 'all'}
       onValueChange={handleYearFilter}
     >
-      <SelectTrigger className={cn('h-9 text-sm', isMobile ? 'w-full' : 'w-auto min-w-24')}>
+      <SelectTrigger className={cn('h-9 text-sm', isMobile ? 'w-full' : 'w-auto whitespace-nowrap')}>
         <SelectValue placeholder={t('flights.year', 'Year')} />
       </SelectTrigger>
       <SelectContent>
@@ -269,7 +269,7 @@ export function FlightFilters({
       value={getAirlineSelectValue()}
       onValueChange={handleAirlineFilter}
     >
-      <SelectTrigger className={cn('h-9 text-sm', isMobile ? 'w-full' : 'w-auto min-w-32')}>
+      <SelectTrigger className={cn('h-9 text-sm', isMobile ? 'w-full' : 'w-auto whitespace-nowrap')}>
         <SelectValue placeholder={t('flights.airline', 'Airline')} />
       </SelectTrigger>
       <SelectContent>
@@ -335,7 +335,7 @@ export function FlightFilters({
       value={filters.aircraftIcao || 'all'}
       onValueChange={handleAircraftFilter}
     >
-      <SelectTrigger className={cn('h-9 text-sm', isMobile ? 'w-full' : 'w-auto min-w-28')}>
+      <SelectTrigger className={cn('h-9 text-sm', isMobile ? 'w-full' : 'w-auto whitespace-nowrap')}>
         <SelectValue placeholder={t('flights.aircraft', 'Aircraft')} />
       </SelectTrigger>
       <SelectContent>
@@ -357,7 +357,7 @@ export function FlightFilters({
       value={filters.isUpcoming === true ? 'upcoming' : filters.isUpcoming === false ? 'past' : 'all'}
       onValueChange={handleUpcomingFilter}
     >
-      <SelectTrigger className={cn('h-9 text-sm', isMobile ? 'w-full' : 'w-auto min-w-28')}>
+      <SelectTrigger className={cn('h-9 text-sm', isMobile ? 'w-full' : 'w-auto whitespace-nowrap')}>
         <SelectValue placeholder={t('flights.status', 'Status')} />
       </SelectTrigger>
       <SelectContent>
