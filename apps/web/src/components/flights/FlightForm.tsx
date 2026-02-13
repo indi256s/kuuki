@@ -12,7 +12,6 @@ import { useCreateFlight, useUpdateFlight, useCheckDuplicate, type Flight } from
 import { useIsMobile } from '@/hooks/useIsMobile'
 import { findAirport, findAircraft } from '@kuuki/data'
 import { calculateFlightDistance, calculateFlightDuration, estimateFlightDuration } from '@/lib/geo'
-import { useToast } from '@/hooks/use-toast'
 
 // Type for flight search results from AirLabs API
 interface FlightScheduleResult {
@@ -89,7 +88,6 @@ export function FlightForm({ isOpen, onClose, editFlight, onDelete }: FlightForm
   const [searchTime, setSearchTime] = useState<string>('')
   const [flightSuggestions, setFlightSuggestions] = useState<FlightScheduleResult[]>([])
   const [isSearching, setIsSearching] = useState(false)
-  const { toast } = useToast()
 
   const form = useForm<FlightFormData>({
     resolver: zodResolver(flightSchema),
@@ -255,10 +253,7 @@ export function FlightForm({ isOpen, onClose, editFlight, onDelete }: FlightForm
       form.setValue('aircraftIcao', flight.aircraft_icao)
     }
     setFlightSuggestions([])
-    toast({
-      title: t('flights.flightDetailsFilled', 'Flight details filled from schedule'),
-    })
-  }, [form, toast, t])
+  }, [form])
 
   const onSubmit = useCallback(async (data: FlightFormData) => {
     form.clearErrors('root')
