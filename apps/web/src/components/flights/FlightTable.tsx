@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next'
 import type { Flight, SortConfig, SortField } from '@/hooks/useFlights'
-import { findAirport, findAirline, findAircraft } from '@kuuki/data'
+import { findAirport, findAirline, findAircraft, getAirlineLogoUrl } from '@kuuki/data'
 import { formatDistance, formatDuration, daysUntilFlight } from '@/lib/geo'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -297,12 +297,18 @@ export function FlightTable({
                     {airline ? (
                       <div className="flex items-center gap-2">
                         <span
-                          className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium"
+                          className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-xs font-medium"
                           style={{
                             backgroundColor: airline.primaryColor || 'oklch(0.55 0.02 250)',
                             color: airline.primaryColor ? getContrastColor(airline.primaryColor) : 'white',
                           }}
                         >
+                          <img
+                            src={getAirlineLogoUrl(flight.airline_iata!)}
+                            alt=""
+                            className="w-4 h-4 object-contain"
+                            onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
+                          />
                           {airline.name}
                         </span>
                         {flight.flight_number && (
