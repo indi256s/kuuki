@@ -6,7 +6,6 @@
   "scripts": {
     "dev": "turbo dev",
     "dev:pages": "wrangler pages dev --compatibility-date=2024-01-01 --ip 0.0.0.0 --proxy 5173 -- pnpm --filter @kuuki/web dev",
-    "dev:lan": "pnpm --filter @kuuki/web dev:lan",
     "build": "turbo build",
     "lint": "turbo lint",
     "typecheck": "turbo typecheck",

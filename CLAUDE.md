@@ -8,7 +8,6 @@ This is the main pet project for indi256 - a personal flight tracking app.
 cd ~/kuuki
 pnpm install    # Install dependencies
 pnpm dev        # Start dev server (usually port 5173)
-pnpm dev:lan    # Start dev server accessible via Tailscale
 pnpm build      # Production build
 pnpm test       # Run tests
 
@@ -16,25 +15,6 @@ pnpm test       # Run tests
 cd apps/web
 npx shadcn@latest add <component>
 ```
-
-## Fast Local Testing (via Tailscale)
-
-Skip Cloudflare build times (~3 min) by testing locally:
-
-```bash
-pnpm dev:lan    # Starts Vite on 0.0.0.0:5173
-```
-
-Then access from your MacBook:
-```
-http://100.97.93.1:5173/
-# or
-http://indi-ubuntu-8gb-nbg1-1:5173/
-```
-
-- Changes hot-reload instantly (Vite HMR)
-- No build/deploy step needed
-- Only accessible on your Tailscale network (secure)
 
 ## Project Structure
 
