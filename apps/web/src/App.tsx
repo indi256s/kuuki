@@ -10,16 +10,40 @@ import { BadgeNotificationManager } from '@/components/badges'
 import { LoadingScreen } from '@/components/ui/LoadingScreen'
 import { Agentation } from 'agentation'
 
-const DashboardPage = lazy(() => import('@/routes/DashboardPage').then(m => ({ default: m.DashboardPage })))
-const FlightsPage = lazy(() => import('@/routes/FlightsPage').then(m => ({ default: m.FlightsPage })))
-const ImportPage = lazy(() => import('@/routes/ImportPage').then(m => ({ default: m.ImportPage })))
-const OnboardingPage = lazy(() => import('@/routes/OnboardingPage').then(m => ({ default: m.OnboardingPage })))
-const LeaderboardPage = lazy(() => import('@/routes/LeaderboardPage').then(m => ({ default: m.LeaderboardPage })))
-const PassportPage = lazy(() => import('@/routes/PassportPage').then(m => ({ default: m.PassportPage })))
-const SettingsPage = lazy(() => import('@/routes/SettingsPage').then(m => ({ default: m.SettingsPage })))
-const DevResetPage = lazy(() => import('@/routes/DevResetPage').then(m => ({ default: m.DevResetPage })))
-const JourneyPlannerPage = lazy(() => import('@/routes/JourneyPlannerPage').then(m => ({ default: m.JourneyPlannerPage })))
-const ProfilePage = lazy(() => import('@/routes/ProfilePage').then(m => ({ default: m.ProfilePage })))
+/**
+ * Wraps a dynamic import to handle stale chunk errors after deployments.
+ * When Cloudflare Pages serves new assets, old chunk hashes no longer exist
+ * and the SPA fallback returns HTML instead of JS. This detects the failure
+ * and reloads the page once to fetch fresh HTML with correct chunk references.
+ */
+function lazyWithRetry(factory: () => Promise<{ default: React.ComponentType }>) {
+  return lazy(() =>
+    factory().catch((error: unknown) => {
+      const alreadyRetried = sessionStorage.getItem('chunk_retry')
+      if (!alreadyRetried) {
+        sessionStorage.setItem('chunk_retry', '1')
+        window.location.reload()
+        return new Promise<never>(() => {})
+      }
+      sessionStorage.removeItem('chunk_retry')
+      throw error
+    })
+  )
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const named = <K extends string>(key: K) => (m: any) => ({ default: m[key] })
+
+const DashboardPage = lazyWithRetry(() => import('@/routes/DashboardPage').then(named('DashboardPage')))
+const FlightsPage = lazyWithRetry(() => import('@/routes/FlightsPage').then(named('FlightsPage')))
+const ImportPage = lazyWithRetry(() => import('@/routes/ImportPage').then(named('ImportPage')))
+const OnboardingPage = lazyWithRetry(() => import('@/routes/OnboardingPage').then(named('OnboardingPage')))
+const LeaderboardPage = lazyWithRetry(() => import('@/routes/LeaderboardPage').then(named('LeaderboardPage')))
+const PassportPage = lazyWithRetry(() => import('@/routes/PassportPage').then(named('PassportPage')))
+const SettingsPage = lazyWithRetry(() => import('@/routes/SettingsPage').then(named('SettingsPage')))
+const DevResetPage = lazyWithRetry(() => import('@/routes/DevResetPage').then(named('DevResetPage')))
+const JourneyPlannerPage = lazyWithRetry(() => import('@/routes/JourneyPlannerPage').then(named('JourneyPlannerPage')))
+const ProfilePage = lazyWithRetry(() => import('@/routes/ProfilePage').then(named('ProfilePage')))
 
 /**
  * React Query configuration with:
