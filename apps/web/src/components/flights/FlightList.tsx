@@ -185,15 +185,10 @@ export function FlightList({ onEdit }: FlightListProps) {
 
   const confirmBatchDelete = async () => {
     if (selectedIds.size > 0) {
-      try {
-        await batchDeleteFlights.mutateAsync(Array.from(selectedIds))
-        setSelectedIds(new Set())
-        setSelectionMode(false)
-      } catch {
-        // Error toast is handled by the mutation's onError
-      } finally {
-        setBatchDeleteConfirm(false)
-      }
+      await batchDeleteFlights.mutateAsync(Array.from(selectedIds))
+      setSelectedIds(new Set())
+      setSelectionMode(false)
+      setBatchDeleteConfirm(false)
     }
   }
 

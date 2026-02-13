@@ -32,7 +32,7 @@ export async function getLeaderboard(
 
   if (error) {
     console.error('Error fetching leaderboard:', error)
-    throw error
+    return { entries: [], total: 0 }
   }
 
   // Parse metadata to extract profile info
@@ -69,7 +69,7 @@ export async function getUserLeaderboardPositions(userId: string): Promise<Recor
 
   if (error) {
     console.error('Error fetching user leaderboard positions:', error)
-    throw error
+    return result
   }
 
   for (const entry of data ?? []) {
@@ -92,7 +92,7 @@ export async function getTotalRankedUsers(): Promise<number> {
 
   if (error) {
     console.error('Error fetching total ranked users:', error)
-    throw error
+    return 0
   }
 
   return count ?? 0

@@ -92,17 +92,6 @@ const LazyContinentSection = memo(function LazyContinentSection({
   )
 })
 
-const CONTINENT_NAMES: Record<string, string> = {
-  europe: 'Europe',
-  asia: 'Asia',
-  africa: 'Africa',
-  'north-america': 'North America',
-  'south-america': 'South America',
-  oceania: 'Oceania',
-  antarctica: 'Antarctica',
-  Other: 'Other',
-}
-
 interface PassportStampsProps {
   entries: PassportEntry[]
   isLoading?: boolean
@@ -195,6 +184,18 @@ export function PassportStamps({ entries, isLoading, themeColor }: PassportStamp
     return sortedContinents
   }, [entries])
 
+  // Continent display names
+  const continentNames: Record<string, string> = {
+    europe: 'Europe',
+    asia: 'Asia',
+    africa: 'Africa',
+    'north-america': 'North America',
+    'south-america': 'South America',
+    oceania: 'Oceania',
+    antarctica: 'Antarctica',
+    Other: 'Other',
+  }
+
   if (isLoading) {
     return (
       <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
@@ -213,7 +214,7 @@ export function PassportStamps({ entries, isLoading, themeColor }: PassportStamp
           continent={continent}
           stamps={stamps}
           groupIndex={groupIndex}
-          continentNames={CONTINENT_NAMES}
+          continentNames={continentNames}
           selectedEntry={selectedEntry}
           onStampClick={handleStampClick}
           themeColor={themeColor}

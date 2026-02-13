@@ -53,7 +53,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
       set({ user: null, profile: null, isLoading: false, isInitialized: true })
     }
 
-    // Subscribe to auth changes (lives for app lifetime; isInitialized guard prevents duplicates)
+    // Subscribe to auth changes
     onAuthStateChange(async (user) => {
       try {
         if (user) {
@@ -75,13 +75,8 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
 
     // Set user immediately to avoid race condition with navigation
     if (result.success && result.user) {
-      try {
-        const profile = await getProfile(result.user.id)
-        set({ user: result.user, profile, isLoading: false })
-      } catch (error) {
-        console.error('Failed to fetch profile after sign up:', error)
-        set({ user: result.user, profile: null, isLoading: false })
-      }
+      const profile = await getProfile(result.user.id)
+      set({ user: result.user, profile, isLoading: false })
     } else {
       set({ isLoading: false })
     }
@@ -95,13 +90,8 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
 
     // Set user immediately to avoid race condition with navigation
     if (result.success && result.user) {
-      try {
-        const profile = await getProfile(result.user.id)
-        set({ user: result.user, profile, isLoading: false })
-      } catch (error) {
-        console.error('Failed to fetch profile after sign in:', error)
-        set({ user: result.user, profile: null, isLoading: false })
-      }
+      const profile = await getProfile(result.user.id)
+      set({ user: result.user, profile, isLoading: false })
     } else {
       set({ isLoading: false })
     }
@@ -118,12 +108,8 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
   refreshProfile: async () => {
     const { user } = get()
     if (user) {
-      try {
-        const profile = await getProfile(user.id)
-        set({ profile })
-      } catch (error) {
-        console.error('Failed to refresh profile:', error)
-      }
+      const profile = await getProfile(user.id)
+      set({ profile })
     }
   },
 }))

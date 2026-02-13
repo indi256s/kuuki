@@ -9,7 +9,7 @@ import {
   Flag,
 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import type { BadgeTierResult } from '@/hooks/useBadgeTier'
+import { useBadgeTier } from '@/hooks/useBadgeTier'
 import { getTierVisual } from '@/lib/tier-visuals'
 import { getFlavorText, getTimeRelatable } from '@/lib/glados-dashboard'
 import { BADGE_TRACKS, type BadgeTrackId } from '@/lib/badge-tracks'
@@ -44,15 +44,13 @@ function formatValue(trackId: BadgeTrackId, value: number): string {
 
 export function MicroBadgeStatCard({
   trackId,
-  tierData,
   className,
 }: {
   trackId: BadgeTrackId
-  tierData: BadgeTierResult
   className?: string
 }) {
   const { t } = useTranslation()
-  const { tier, tierIndex, value } = tierData
+  const { tier, tierIndex, value } = useBadgeTier(trackId)
   const visual = getTierVisual(tier)
   const track = BADGE_TRACKS[trackId]
   const Icon = TRACK_ICONS[trackId]

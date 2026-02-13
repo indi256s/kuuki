@@ -53,14 +53,9 @@ export function FlightsPage() {
 
   const confirmDelete = async () => {
     if (deleteConfirmFlight) {
-      try {
-        await deleteFlight.mutateAsync(deleteConfirmFlight.id)
-      } catch {
-        // Error toast is handled by the mutation's onError
-      } finally {
-        setDeleteConfirmFlight(null)
-        setEditingFlight(null)
-      }
+      await deleteFlight.mutateAsync(deleteConfirmFlight.id)
+      setDeleteConfirmFlight(null)
+      setEditingFlight(null)
     }
   }
 

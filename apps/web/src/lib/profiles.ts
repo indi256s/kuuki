@@ -42,11 +42,9 @@ export async function getPublicProfile(username: string): Promise<PublicProfileD
     .ilike('username', username)
     .single()
 
-  if (profileError) {
-    if (profileError.code === 'PGRST116') return null // Not found
-    throw profileError // Network/server error — let caller handle
+  if (profileError || !profile) {
+    return null
   }
-  if (!profile) return null
 
   // If profile is not public, only return basic info
   if (!profile.is_public) {
@@ -102,7 +100,7 @@ export async function searchUsers(query: string, limit = 10): Promise<Profile[]>
 
   if (error) {
     console.error('Error searching users:', error)
-    throw error
+    return []
   }
 
   return data ?? []
@@ -120,11 +118,10 @@ export async function getUserStats(userId: string): Promise<UserStats | null> {
 
   if (error) {
     // PGRST116 = not found (user has no stats yet)
-    if (error.code === 'PGRST116') {
-      return null
+    if (error.code !== 'PGRST116') {
+      console.error('Error fetching user stats:', error)
     }
-    console.error('Error fetching user stats:', error)
-    throw error
+    return null
   }
 
   return data
@@ -142,7 +139,7 @@ export async function getUserBadges(userId: string): Promise<Array<UserBadge & {
 
   if (error) {
     console.error('Error fetching user badges:', error)
-    throw error
+    return []
   }
 
   return (data ?? []) as Array<UserBadge & { badge: BadgeDefinition }>
@@ -160,7 +157,7 @@ export async function getAllBadges(): Promise<BadgeDefinition[]> {
 
   if (error) {
     console.error('Error fetching badge definitions:', error)
-    throw error
+    return []
   }
 
   return data ?? []
@@ -177,7 +174,7 @@ export async function getUserRankings(userId: string): Promise<LeaderboardEntry[
 
   if (error) {
     console.error('Error fetching user rankings:', error)
-    throw error
+    return []
   }
 
   return data ?? []

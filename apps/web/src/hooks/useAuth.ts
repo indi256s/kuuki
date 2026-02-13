@@ -1,25 +1,22 @@
 import { useEffect } from 'react'
-import { useShallow } from 'zustand/react/shallow'
 import { useAuthStore } from '@/stores/authStore'
 
 export function useAuth() {
-  const store = useAuthStore(
-    useShallow((state) => ({
-      user: state.user,
-      profile: state.profile,
-      isLoading: state.isLoading,
-      isAuthenticated: !!state.user,
-      signUp: state.signUp,
-      signIn: state.signIn,
-      signOut: state.signOut,
-      refreshProfile: state.refreshProfile,
-      initialize: state.initialize,
-    }))
-  )
+  const store = useAuthStore()
 
+  // Initialize auth on first use
   useEffect(() => {
     store.initialize()
   }, [store.initialize])
 
-  return store
+  return {
+    user: store.user,
+    profile: store.profile,
+    isLoading: store.isLoading,
+    isAuthenticated: !!store.user,
+    signUp: store.signUp,
+    signIn: store.signIn,
+    signOut: store.signOut,
+    refreshProfile: store.refreshProfile,
+  }
 }

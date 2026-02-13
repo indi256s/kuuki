@@ -124,7 +124,7 @@ Start with `docs/README.md` for the full index. Key documents:
 - `docs/TECH_STACK.md` - Dependencies with exact versions
 - `docs/FRONTEND_GUIDELINES.md` - Design system, components, patterns
 - `docs/BACKEND_STRUCTURE.md` - Database schema, RLS, API
-- `docs/PLAN.md` - Project status and roadmap
+- `docs/PLAN.md` - Implementation roadmap and status
 
 ## Skills (for AI Agents)
 
@@ -143,12 +143,13 @@ Use these in Claude Code via `/skill-name` or in Antigravity by referencing `doc
 
 ## Feature Completion Checklist
 
-**REQUIRED:** After completing any feature, always update documentation as the final step:
+**REQUIRED:** After completing any feature or phase, always update documentation as the final step:
 
 1. ✅ Implementation complete and tested
 2. ✅ Code committed with descriptive message
-3. ✅ **Update `docs/PLAN.md`** — Update status in the relevant section
-4. ✅ Commit documentation changes separately (`docs: update status`)
-5. ✅ Push to remote
+3. ✅ **Update `docs/PLAN.md`** — Mark phase/feature status in the table
+4. ✅ **Update `docs/tasks/phase-X.md`** — Check off completed items, add implementation notes
+5. ✅ Commit documentation changes separately (`docs: Mark Phase X as complete`)
+6. ✅ Push to remote
 
 **Why:** `PLAN.md` is the single source of truth for project status. Keeping it synchronized ensures anyone (human or agent) can quickly understand what's done and what's pending.
