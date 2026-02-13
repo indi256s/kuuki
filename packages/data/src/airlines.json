@@ -2851,12 +2851,12 @@
   },
   {
     "iata": "VF",
-    "icao": "VLM",
-    "name": "VLM Airlines",
-    "country": "Belgium",
-    "primaryColor": "#003876",
+    "icao": "AJT",
+    "name": "AJet",
+    "country": "Turkey",
+    "primaryColor": "#E31E24",
     "alliance": null,
-    "callsign": "RUBENS",
+    "callsign": "AJET",
     "logoUrl": null
   },
   {
