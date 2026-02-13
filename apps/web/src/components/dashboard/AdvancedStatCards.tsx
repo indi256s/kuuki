@@ -227,11 +227,11 @@ function buildRidgelineData(
     byIcao.set(d.aircraft_icao, arr)
   }
 
-  // Top 5 by flight count that have ≥ 3 duration data points
+  // Top 10 by flight count that have ≥ 3 duration data points
   const top = Object.entries(aircraftBreakdown)
     .sort(([, a], [, b]) => b - a)
     .filter(([icao]) => (byIcao.get(icao)?.length ?? 0) >= 3)
-    .slice(0, 5)
+    .slice(0, 10)
 
   if (top.length === 0) return []
 
@@ -513,8 +513,8 @@ export function AircraftTypesCard() {
       .sort((a, b) => b.count - a.count)
   }, [advancedStats?.aircraftBreakdown])
 
-  const top8 = chartData.slice(0, 3)
-  const overflowCount = chartData.length - 3
+  const top8 = chartData.slice(0, 8)
+  const overflowCount = chartData.length - 8
   const total = useMemo(
     () => chartData.reduce((sum, d) => sum + d.count, 0),
     [chartData]
