@@ -14,11 +14,6 @@ import {
   ASYNC_THRESHOLD,
 } from './_shared'
 
-interface Env {
-  GEMINI_API_KEY: string
-  IMPORT_JOBS: KVNamespace
-}
-
 const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10 MB
 
 // Helper to clean messy text using Gemini (Stage 1 of two-stage parsing)
@@ -31,7 +26,7 @@ async function cleanTextWithGemini(ai: GoogleGenAI, rawText: string): Promise<st
 
     return response.text || ''
   } catch (error) {
-    console.error('Stage 1 (cleaning) error:', error)
+    console.error(JSON.stringify({ event: 'cleaning_error', error: String(error) }))
     // Return empty to fall back to original text
     return ''
   }
@@ -150,12 +145,11 @@ async function extractFlightsWithGemini(
   try {
     parsedResponse = JSON.parse(responseText)
   } catch {
-    console.error('Failed to parse Gemini response:', responseText)
+    console.error(JSON.stringify({ event: 'gemini_parse_error', response_length: responseText.length }))
     throw new Error('Invalid response format from AI model')
   }
 
-  // Debug: Log raw parsed flights from Gemini
-  console.log('Gemini parsed flights:', JSON.stringify(parsedResponse.flights, null, 2))
+  console.log(JSON.stringify({ event: 'gemini_parsed', flight_count: parsedResponse.flights?.length ?? 0 }))
 
   // Validate and normalize flights, collecting rejected ones for diagnostics
   const rejectedFlights: RejectedFlight[] = []
@@ -193,7 +187,7 @@ async function extractFlightsWithGemini(
           airline_iata: flight.airline_iata,
           reason: reasons.join(', '),
         })
-        console.log(`Flight ${index} rejected:`, reasons.join(', '))
+        console.log(JSON.stringify({ event: 'flight_rejected', index, reasons }))
         return false
       }
 
@@ -228,8 +222,7 @@ async function extractFlightsWithGemini(
       }
     })
 
-  // Debug: Log validation summary
-  console.log(`Validated ${validFlights.length} of ${geminiCount} flights, rejected ${rejectedFlights.length}`)
+  console.log(JSON.stringify({ event: 'validation_complete', valid: validFlights.length, total: geminiCount, rejected: rejectedFlights.length }))
 
   return {
     flights: validFlights,
@@ -312,27 +305,25 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
       // Phase 2: Full Gemini extraction in background → Update via polling
       // ========================================================================
 
-      console.log('Phase 1: Cleaning text input...')
+      console.log(JSON.stringify({ event: 'phase1_start', action: 'cleaning_text' }))
       cleanedText = await cleanTextWithGemini(ai, content)
-      console.log('Cleaned text:', cleanedText)
+      console.log(JSON.stringify({ event: 'phase1_cleaned', cleaned_length: cleanedText.length }))
 
       // If cleaning produced empty result, fall back to original text
       const textForExtraction = cleanedText.trim() ? cleanedText : content
       contents.push(`\n\nDocument content:\n${textForExtraction}`)
 
-      // Estimate flight count
       const estimatedCount = estimateFlightCount(textForExtraction)
-      console.log(`Estimated flight count: ${estimatedCount}`)
+      console.log(JSON.stringify({ event: 'flight_estimate', count: estimatedCount }))
 
-      // Phase 1: Parse cleaned text with regex for basic flights
       const basicFlights = parseCleanedText(textForExtraction)
-      console.log(`Phase 1: Regex parsed ${basicFlights.length} basic flights`)
+      console.log(JSON.stringify({ event: 'phase1_regex_parsed', flight_count: basicFlights.length }))
 
       // For large imports (10+), use two-phase approach
       if (estimatedCount >= ASYNC_THRESHOLD && basicFlights.length > 0) {
         // Create enrichment job in KV
         const job = await createJob(kv, 'enrichment')
-        console.log(`Two-phase mode: Created enrichment job ${job.id} for ${basicFlights.length} flights`)
+        console.log(JSON.stringify({ event: 'two_phase_start', job_id: job.id, flight_count: basicFlights.length }))
 
         // Phase 2: Background Gemini extraction
         context.waitUntil(
@@ -346,9 +337,9 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
                 gemini_count: result.gemini_count,
                 cleaned_text: result.cleaned_text,
               })
-              console.log(`Enrichment job ${job.id} completed with ${result.flights.length} flights`)
+              console.log(JSON.stringify({ event: 'enrichment_job_complete', job_id: job.id, flight_count: result.flights.length }))
             } catch (error) {
-              console.error(`Enrichment job ${job.id} failed:`, error)
+              console.error(JSON.stringify({ event: 'enrichment_job_failed', job_id: job.id, error: String(error) }))
               await updateJob(kv, job.id, {
                 status: 'failed',
                 error: error instanceof Error ? error.message : 'Unknown error',
@@ -393,7 +384,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
       { headers: corsHeaders }
     )
   } catch (error) {
-    console.error('Parse error:', error)
+    console.error(JSON.stringify({ event: 'parse_error', error: String(error) }))
     return Response.json(
       { error: 'Internal server error', flights: [] } as ParseResponse,
       { status: 500, headers: corsHeaders }

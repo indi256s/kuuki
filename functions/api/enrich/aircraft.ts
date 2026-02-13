@@ -12,12 +12,6 @@ import {
   MAX_BATCH_SIZE,
 } from './_shared'
 
-interface Env {
-  GEMINI_API_KEY: string
-  AIRLABS_API_KEY: string
-  IMPORT_JOBS: KVNamespace
-}
-
 // JSON schema for structured output from Gemini
 const ENRICHMENT_RESPONSE_SCHEMA = {
   type: Type.OBJECT,
@@ -75,6 +69,15 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
       )
     }
 
+    // Guard against oversized request bodies (50KB limit for enrichment payloads)
+    const contentLength = parseInt(context.request.headers.get('content-length') || '0')
+    if (contentLength > 50_000) {
+      return Response.json(
+        { error: 'Request too large', results: [] } as EnrichmentResponse,
+        { status: 413, headers: corsHeaders }
+      )
+    }
+
     // Parse request
     const body = await context.request.json() as EnrichmentRequest
     const { flights } = body
@@ -121,7 +124,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
       const overLimit = dailyUsage >= 50
 
       if (overLimit) {
-        console.log(`AirLabs daily limit reached (${dailyUsage}/50), skipping to Gemini`)
+        console.log(JSON.stringify({ event: 'airlabs_limit_reached', daily_usage: dailyUsage }))
       }
 
       if (!overLimit) {
@@ -204,17 +207,15 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
           await incrementDailyUsage(context.env.IMPORT_JOBS, actualApiCalls)
         }
 
-        console.log(
-          `AirLabs enrichment:`,
-          JSON.stringify({
-            unique_routes: uniqueRouteKeys.length,
-            airlabs_queries: actualApiCalls,
-            airlabs_cache_hits: airlabsCacheHits,
-            airlabs_hits: airlabsHits,
-            gemini_fallback: flightsForGemini.length,
-            daily_usage: dailyUsage + actualApiCalls,
-          })
-        )
+        console.log(JSON.stringify({
+          event: 'airlabs_enrichment',
+          unique_routes: uniqueRouteKeys.length,
+          airlabs_queries: actualApiCalls,
+          airlabs_cache_hits: airlabsCacheHits,
+          airlabs_hits: airlabsHits,
+          gemini_fallback: flightsForGemini.length,
+          daily_usage: dailyUsage + actualApiCalls,
+        }))
       } else {
         // Over daily limit — all flights go to Gemini
         flightsForGemini.push(...flights)
@@ -231,7 +232,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
       const ai = new GoogleGenAI({ apiKey: context.env.GEMINI_API_KEY })
       const prompt = buildBatchPrompt(flightsForGemini)
 
-      console.log('Sending Gemini enrichment request for', flightsForGemini.length, 'flights')
+      console.log(JSON.stringify({ event: 'gemini_enrichment_start', flight_count: flightsForGemini.length }))
 
       const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
@@ -250,7 +251,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
         try {
           const parsedResponse: { results: Array<{ index: number; icao: string | null; name: string | null; confidence: number }> } = JSON.parse(responseText)
 
-          console.log('Gemini enrichment response:', JSON.stringify(parsedResponse, null, 2))
+          console.log(JSON.stringify({ event: 'gemini_enrichment_response', result_count: parsedResponse.results.length }))
 
           for (const flight of flightsForGemini) {
             const geminiIndex = flightsForGemini.indexOf(flight) + 1
@@ -267,10 +268,10 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
             }
           }
         } catch {
-          console.error('Failed to parse Gemini response:', responseText)
+          console.error(JSON.stringify({ event: 'gemini_parse_error', response_length: responseText.length }))
         }
       } else {
-        console.error('No response from Gemini')
+        console.error(JSON.stringify({ event: 'gemini_no_response' }))
       }
     }
 
@@ -291,17 +292,15 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
       }
     })
 
-    console.log(`Enrichment complete: ${results.filter(r => r.aircraft_icao).length} of ${flights.length} identified`)
+    console.log(JSON.stringify({ event: 'enrichment_complete', identified: results.filter(r => r.aircraft_icao).length, total: flights.length }))
 
     return Response.json(
       { results } as EnrichmentResponse,
       { headers: corsHeaders }
     )
   } catch (error) {
-    console.error('Enrichment error:', error)
     const errorMessage = error instanceof Error ? error.message : 'Unknown error'
-    const errorStack = error instanceof Error ? error.stack : undefined
-    console.error('Error details:', { message: errorMessage, stack: errorStack })
+    console.error(JSON.stringify({ event: 'enrichment_error', error: errorMessage, stack: error instanceof Error ? error.stack : undefined }))
     return Response.json(
       { error: `Internal server error: ${errorMessage}`, results: [] } as EnrichmentResponse,
       { status: 500, headers: corsHeaders }

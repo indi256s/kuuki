@@ -1,10 +1,5 @@
 import { createServerClient, parseCookieHeader, serializeCookieHeader } from '@supabase/ssr'
 
-interface Env {
-  SUPABASE_URL: string
-  SUPABASE_ANON_KEY: string
-}
-
 export const onRequest: PagesFunction<Env> = async (context) => {
   const { request, env, next } = context
 

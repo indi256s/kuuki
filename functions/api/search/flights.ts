@@ -3,11 +3,6 @@ import {
   incrementDailyUsage,
 } from '../enrich/_shared'
 
-interface Env {
-  AIRLABS_API_KEY: string
-  IMPORT_JOBS: KVNamespace
-}
-
 interface SearchRequest {
   origin: string
   destination: string
@@ -92,6 +87,15 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
       )
     }
 
+    // Guard against oversized request bodies (50KB limit for search payloads)
+    const contentLength = parseInt(context.request.headers.get('content-length') || '0')
+    if (contentLength > 50_000) {
+      return Response.json(
+        { error: 'Request too large', flights: [] } as SearchResponse,
+        { status: 413, headers: corsHeaders }
+      )
+    }
+
     // Parse request
     const body = await context.request.json() as SearchRequest
     const { origin, destination, date, time, windowMinutes = 180 } = body
@@ -127,7 +131,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     let schedules: FlightScheduleResult[]
 
     if (cached) {
-      console.log(`Cache hit for flight search: ${cacheKey}`)
+      console.log(JSON.stringify({ event: 'flight_search_cache_hit', cache_key: cacheKey }))
       schedules = cached
     } else {
       // Check daily limit
@@ -142,12 +146,12 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
       // Call AirLabs Schedules API
       const url = `https://airlabs.co/api/v9/schedules?dep_iata=${origin.toUpperCase()}&arr_iata=${destination.toUpperCase()}&api_key=${context.env.AIRLABS_API_KEY}`
 
-      console.log(`Fetching schedules from AirLabs: ${origin} -> ${destination}`)
+      console.log(JSON.stringify({ event: 'airlabs_fetch', origin, destination }))
 
       const response = await fetch(url)
 
       if (!response.ok) {
-        console.error(`AirLabs API error: ${response.status} ${response.statusText}`)
+        console.error(JSON.stringify({ event: 'airlabs_api_error', status: response.status, statusText: response.statusText }))
         return Response.json(
           { error: 'Flight search service unavailable', flights: [] } as SearchResponse,
           { status: 503, headers: corsHeaders }
@@ -176,7 +180,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
       // Increment daily usage counter
       await incrementDailyUsage(context.env.IMPORT_JOBS, 1)
 
-      console.log(`AirLabs schedules: ${schedules.length} flights found, daily usage: ${dailyUsage + 1}/50`)
+      console.log(JSON.stringify({ event: 'airlabs_schedules', flights_found: schedules.length, daily_usage: dailyUsage + 1 }))
     }
 
     // Filter by time window
@@ -184,15 +188,15 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
       .filter(flight => isWithinTimeWindow(flight.departure_time, time, windowMinutes))
       .slice(0, 3) // Max 3 results
 
-    console.log(`Time window filter: ${matchingFlights.length} of ${schedules.length} flights match`)
+    console.log(JSON.stringify({ event: 'time_window_filter', matched: matchingFlights.length, total: schedules.length }))
 
     return Response.json(
       { flights: matchingFlights } as SearchResponse,
       { headers: corsHeaders }
     )
   } catch (error) {
-    console.error('Flight search error:', error)
     const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+    console.error(JSON.stringify({ event: 'flight_search_error', error: errorMessage }))
     return Response.json(
       { error: `Internal server error: ${errorMessage}`, flights: [] } as SearchResponse,
       { status: 500, headers: corsHeaders }

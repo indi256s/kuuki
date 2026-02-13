@@ -238,11 +238,11 @@ export function parseCleanedText(cleanedText: string): ExtractedFlight[] {
       })
     } else {
       // Log unparseable lines for debugging
-      console.log(`[parseCleanedText] Could not parse line: "${trimmed}"`)
+      console.log(JSON.stringify({ event: 'parse_line_failed', line: trimmed }))
     }
   }
 
-  console.log(`[parseCleanedText] Parsed ${flights.length} flights from ${lines.length} lines`)
+  console.log(JSON.stringify({ event: 'parse_cleaned_text', parsed: flights.length, total_lines: lines.length }))
   return flights
 }
 

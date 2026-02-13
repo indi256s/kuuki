@@ -190,7 +190,7 @@ export async function queryAirLabsRoute(
   try {
     const res = await fetch(url)
     if (!res.ok) {
-      console.error(`AirLabs API error: ${res.status} ${res.statusText}`)
+      console.error(JSON.stringify({ event: 'airlabs_route_error', status: res.status, statusText: res.statusText }))
       return null
     }
 
@@ -218,7 +218,7 @@ export async function queryAirLabsRoute(
 
     return { aircraft_icao: entry.aircraft_icao, duration: entry.duration, fromCache: false }
   } catch (err) {
-    console.error('AirLabs API fetch error:', err)
+    console.error(JSON.stringify({ event: 'airlabs_fetch_error', error: String(err) }))
     return null
   }
 }

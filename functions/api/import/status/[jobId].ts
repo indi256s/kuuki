@@ -1,9 +1,5 @@
 import { getJob, type ParseResponse } from '../_shared'
 
-interface Env {
-  IMPORT_JOBS: KVNamespace
-}
-
 export const onRequestGet: PagesFunction<Env> = async (context) => {
   const corsHeaders = {
     'Access-Control-Allow-Origin': '*',

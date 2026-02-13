@@ -1,9 +1,5 @@
 import { getJob, type ExtractedFlight, type EnrichmentStatusType } from '../_shared'
 
-interface Env {
-  IMPORT_JOBS: KVNamespace
-}
-
 interface EnrichmentResponse {
   status: EnrichmentStatusType
   flights?: ExtractedFlight[]
