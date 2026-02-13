@@ -14,6 +14,7 @@ import {
   getFlightYears,
   getFlightAirlines,
   getFlightAircraft,
+  getFlightFilterOptions,
   getAllFlightIds,
   syncUpcomingFlights,
   type Flight,
@@ -26,6 +27,8 @@ import {
 } from '@/lib/flights'
 import { useAuthStore } from '@/stores/authStore'
 import { LEADERBOARD_KEY, USER_POSITIONS_KEY, TOTAL_USERS_KEY } from '@/hooks/useLeaderboard'
+import { classifyError } from '@/lib/errors'
+import i18n from '@/lib/i18n'
 import { useEffect } from 'react'
 
 const FLIGHTS_KEY = 'flights'
@@ -36,6 +39,7 @@ const UPCOMING_FLIGHTS_KEY = 'upcomingFlights'
 const FLIGHT_YEARS_KEY = 'flightYears'
 const FLIGHT_AIRLINES_KEY = 'flightAirlines'
 const FLIGHT_AIRCRAFT_KEY = 'flightAircraft'
+const FLIGHT_FILTER_OPTIONS_KEY = 'flightFilterOptions'
 
 /**
  * Hook for paginated flight list with infinite scroll
@@ -99,6 +103,7 @@ export function useCreateFlight() {
       queryClient.invalidateQueries({ queryKey: [UPCOMING_FLIGHTS_KEY] })
       queryClient.invalidateQueries({ queryKey: [FLIGHT_YEARS_KEY] })
       queryClient.invalidateQueries({ queryKey: [FLIGHT_AIRLINES_KEY] })
+      queryClient.invalidateQueries({ queryKey: [FLIGHT_FILTER_OPTIONS_KEY] })
       queryClient.invalidateQueries({ queryKey: ['flightStats'] })
       queryClient.invalidateQueries({ queryKey: [LEADERBOARD_KEY] })
       queryClient.invalidateQueries({ queryKey: [USER_POSITIONS_KEY] })
@@ -107,7 +112,8 @@ export function useCreateFlight() {
     },
     onError: (error) => {
       console.error('Create flight failed:', error)
-      toast.error("Couldn't save flight. Please try again.")
+      const classified = classifyError(error, 'save')
+      toast.error(i18n.t(classified.messageKey, i18n.t('errors.generic.1')))
     },
   })
 }
@@ -137,7 +143,8 @@ export function useUpdateFlight() {
     },
     onError: (error) => {
       console.error('Update flight failed:', error)
-      toast.error("Couldn't save flight. Please try again.")
+      const classified = classifyError(error, 'save')
+      toast.error(i18n.t(classified.messageKey, i18n.t('errors.generic.1')))
     },
   })
 }
@@ -163,6 +170,7 @@ export function useDeleteFlight() {
       queryClient.invalidateQueries({ queryKey: [UPCOMING_FLIGHTS_KEY] })
       queryClient.invalidateQueries({ queryKey: [FLIGHT_YEARS_KEY] })
       queryClient.invalidateQueries({ queryKey: [FLIGHT_AIRLINES_KEY] })
+      queryClient.invalidateQueries({ queryKey: [FLIGHT_FILTER_OPTIONS_KEY] })
       queryClient.invalidateQueries({ queryKey: ['flightStats'] })
       queryClient.invalidateQueries({ queryKey: [LEADERBOARD_KEY] })
       queryClient.invalidateQueries({ queryKey: [USER_POSITIONS_KEY] })
@@ -171,7 +179,8 @@ export function useDeleteFlight() {
     },
     onError: (error) => {
       console.error('Delete flight failed:', error)
-      toast.error("Couldn't delete flight. Please try again.")
+      const classified = classifyError(error, 'delete')
+      toast.error(i18n.t(classified.messageKey, i18n.t('errors.generic.1')))
     },
   })
 }
@@ -199,6 +208,7 @@ export function useBatchDeleteFlights() {
       queryClient.invalidateQueries({ queryKey: [FLIGHT_YEARS_KEY] })
       queryClient.invalidateQueries({ queryKey: [FLIGHT_AIRLINES_KEY] })
       queryClient.invalidateQueries({ queryKey: [FLIGHT_AIRCRAFT_KEY] })
+      queryClient.invalidateQueries({ queryKey: [FLIGHT_FILTER_OPTIONS_KEY] })
       queryClient.invalidateQueries({ queryKey: ['flightStats'] })
       queryClient.invalidateQueries({ queryKey: [LEADERBOARD_KEY] })
       queryClient.invalidateQueries({ queryKey: [USER_POSITIONS_KEY] })
@@ -207,7 +217,8 @@ export function useBatchDeleteFlights() {
     },
     onError: (error) => {
       console.error('Batch delete flights failed:', error)
-      toast.error("Couldn't delete flights. Please try again.")
+      const classified = classifyError(error, 'delete')
+      toast.error(i18n.t(classified.messageKey, i18n.t('errors.generic.1')))
     },
   })
 }
@@ -335,6 +346,22 @@ export function useFlightAircraft() {
 }
 
 /**
+ * Hook to get all filter options (years, airlines, aircraft) in a single query
+ */
+export function useFlightFilterOptions() {
+  const userId = useAuthStore((state) => state.user?.id)
+
+  return useQuery({
+    queryKey: [FLIGHT_FILTER_OPTIONS_KEY, userId],
+    queryFn: () => {
+      if (!userId) return { years: [], airlines: [], aircraft: [] }
+      return getFlightFilterOptions(userId)
+    },
+    enabled: !!userId,
+  })
+}
+
+/**
  * Hook to get all flight IDs (for bulk selection)
  * Only fetches IDs, respects current filters
  */
@@ -369,6 +396,8 @@ export function useSyncUpcomingFlights() {
         queryClient.invalidateQueries({ queryKey: [UPCOMING_FLIGHTS_KEY] })
         queryClient.invalidateQueries({ queryKey: ['flightStats'] })
       }
+    }).catch((error) => {
+      console.error('Failed to sync upcoming flights:', error)
     })
   }, [userId, queryClient])
 }

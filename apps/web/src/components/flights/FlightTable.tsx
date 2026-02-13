@@ -16,6 +16,14 @@ import { Pencil, ArrowUp, ArrowDown, ArrowUpDown } from 'lucide-react'
 import { cn, getContrastColor } from '@/lib/utils'
 import { AircraftShimmerBadge } from './AircraftShimmerBadge'
 
+function formatDate(dateStr: string) {
+  const date = new Date(dateStr)
+  const day = String(date.getDate()).padStart(2, '0')
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const year = String(date.getFullYear()).slice(-2)
+  return `${day}.${month}.${year}`
+}
+
 interface FlightTableProps {
   flights: Flight[]
   onEdit: (flight: Flight) => void
@@ -116,15 +124,6 @@ export function FlightTable({
   selectionEnabled = false,
 }: FlightTableProps) {
   const { t } = useTranslation()
-
-  // Compact date: dd.mm.yy
-  const formatDate = (dateStr: string) => {
-    const date = new Date(dateStr)
-    const day = String(date.getDate()).padStart(2, '0')
-    const month = String(date.getMonth() + 1).padStart(2, '0')
-    const year = String(date.getFullYear()).slice(-2)
-    return `${day}.${month}.${year}`
-  }
 
   // Selection handlers
   const allSelected = flights.length > 0 && flights.every(f => selectedIds.has(f.id))

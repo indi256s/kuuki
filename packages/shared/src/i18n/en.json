@@ -947,7 +947,12 @@
       "2": "This flight plan seems to have been... misplaced."
     },
     "auth": {
-      "sessionExpired": "Your session has expired. Please sign in again."
+      "sessionExpired": "Your session has expired. Please sign in again.",
+      "invalidCredentials": "Invalid email or password. Please try again.",
+      "emailNotConfirmed": "Please check your email and confirm your account.",
+      "emailTaken": "This email is already registered.",
+      "invalidInvite": "Invalid or expired invite code.",
+      "passwordTooShort": "Password must be at least 6 characters."
     },
     "dataLoss": {
       "saveFailed": "Your changes couldn't be saved. Please try again."

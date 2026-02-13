@@ -11,7 +11,7 @@
 | [TECH_STACK.md](./TECH_STACK.md) | Dependencies with exact versions | Installing packages |
 | [FRONTEND_GUIDELINES.md](./FRONTEND_GUIDELINES.md) | Design system, components, patterns | Writing UI code |
 | [BACKEND_STRUCTURE.md](./BACKEND_STRUCTURE.md) | Database schema, RLS, API contracts | Working with data |
-| [PLAN.md](./PLAN.md) | Implementation roadmap and status | Understanding progress |
+| [PLAN.md](./PLAN.md) | Project status and roadmap | Understanding progress |
 
 ## Quick Reference
 
@@ -28,29 +28,17 @@
 
 | Document | Purpose |
 |----------|---------|
-| [SPEC.md](./SPEC.md) | Original interview-derived specification (archival) |
 | [SITEMAP.md](./SITEMAP.md) | Route inventory |
-| [tasks/](./tasks/) | Detailed implementation tasks per phase |
-| [plans/](./plans/) | Ad-hoc design documents |
+| [I18N_GUIDE.md](./I18N_GUIDE.md) | Internationalization and pluralization rules |
+| [LIGHTHOUSE-CHECKLIST.md](./LIGHTHOUSE-CHECKLIST.md) | Performance audit targets |
 
 ## Current Status
 
-**MVP COMPLETE** — All 6 phases done, CI/CD deployed, ready for users.
-
-| Phase | Status |
-|-------|--------|
-| Phase 0.5: Reference Data | Complete |
-| Phase 1: Foundation | Complete |
-| Phase 1.5: Onboarding | Complete |
-| Phase 2: Core Flights | Complete |
-| Phase 3: AI Import | Complete |
-| Phase 3.5: UI Redesign | Complete |
-| Phase 4: Social | Complete |
-| Phase 4.5: Passport | Complete |
-| Phase 5: Advanced Stats | Complete |
-| Phase 6: Polish | Complete |
+**OPEN BETA** — MVP complete, polishing for public launch.
 
 **Live:** https://kuuki.indi256.com
+
+See [PLAN.md](./PLAN.md) for full roadmap and remaining beta polish items.
 
 ## Project Structure
 

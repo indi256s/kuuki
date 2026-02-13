@@ -1,6 +1,8 @@
 import { useMemo } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
+import { classifyError } from '@/lib/errors'
+import i18n from '@/lib/i18n'
 import {
   getUserCountries,
   getUserClaims,
@@ -203,7 +205,8 @@ export function useClaimCountry() {
     },
     onError: (error) => {
       console.error('Claim country failed:', error)
-      toast.error("Couldn't update your passport. Please try again.")
+      const classified = classifyError(error, 'save')
+      toast.error(i18n.t(classified.messageKey, i18n.t('errors.generic.1')))
     },
   })
 }
@@ -238,7 +241,8 @@ export function useAddGroundVisit() {
     },
     onError: (error) => {
       console.error('Add ground visit failed:', error)
-      toast.error("Couldn't add visit. Please try again.")
+      const classified = classifyError(error, 'save')
+      toast.error(i18n.t(classified.messageKey, i18n.t('errors.generic.1')))
     },
   })
 }
@@ -264,7 +268,8 @@ export function useDeleteGroundVisit() {
     },
     onError: (error) => {
       console.error('Delete ground visit failed:', error)
-      toast.error("Couldn't remove visit. Please try again.")
+      const classified = classifyError(error, 'delete')
+      toast.error(i18n.t(classified.messageKey, i18n.t('errors.generic.1')))
     },
   })
 }
@@ -289,7 +294,8 @@ export function useUnclaimCountry() {
     },
     onError: (error) => {
       console.error('Unclaim country failed:', error)
-      toast.error("Couldn't update your passport. Please try again.")
+      const classified = classifyError(error, 'delete')
+      toast.error(i18n.t(classified.messageKey, i18n.t('errors.generic.1')))
     },
   })
 }

@@ -8,7 +8,8 @@ import { ToastProvider, ErrorBoundary } from '@/components/error'
 import { ImportNotificationManager } from '@/components/import/ImportNotificationManager'
 import { BadgeNotificationManager } from '@/components/badges'
 import { LoadingScreen } from '@/components/ui/LoadingScreen'
-import { Agentation } from 'agentation'
+
+const LazyAgentation = lazy(() => import('agentation').then(m => ({ default: m.Agentation })))
 
 /**
  * Wraps a dynamic import to handle stale chunk errors after deployments.
@@ -183,7 +184,7 @@ export default function App() {
         <ToastProvider />
         <ImportNotificationManager />
         <BadgeNotificationManager />
-        {import.meta.env.DEV && <Agentation />}
+        {import.meta.env.DEV && <Suspense><LazyAgentation /></Suspense>}
       </BrowserRouter>
     </QueryClientProvider>
   )

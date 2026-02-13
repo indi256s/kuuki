@@ -1,6 +1,9 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { toast } from 'sonner'
 import { useAuthStore } from '@/stores/authStore'
 import { supabase } from '@/lib/supabase'
+import { classifyError } from '@/lib/errors'
+import i18n from '@/lib/i18n'
 
 // Keys for cache invalidation
 const FLIGHTS_KEY = 'flights'
@@ -49,6 +52,11 @@ export function useAircraftEnrichment() {
 
       return response.json()
     },
+    onError: (error) => {
+      console.error('Aircraft enrichment failed:', error)
+      const classified = classifyError(error)
+      toast.error(i18n.t(classified.messageKey, i18n.t('errors.generic.1')))
+    },
   })
 }
 
@@ -88,6 +96,11 @@ export function useUpdateFlightAircraft() {
       queryClient.invalidateQueries({ queryKey: [FLIGHTS_KEY] })
       queryClient.invalidateQueries({ queryKey: [FLIGHT_AIRCRAFT_KEY] })
       queryClient.invalidateQueries({ queryKey: ['flightStats'] })
+    },
+    onError: (error) => {
+      console.error('Update flight aircraft failed:', error)
+      const classified = classifyError(error, 'save')
+      toast.error(i18n.t(classified.messageKey, i18n.t('errors.generic.1')))
     },
   })
 }

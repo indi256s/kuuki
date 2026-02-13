@@ -2,7 +2,6 @@ import { useQuery } from '@tanstack/react-query'
 import {
   getPublicProfile,
   getUserStats,
-  getUserBadges,
   getUserRankings,
   searchUsers,
   type PublicProfileData,
@@ -13,7 +12,6 @@ import { useAuthStore } from '@/stores/authStore'
 
 const PROFILE_KEY = 'profile'
 const USER_STATS_KEY = 'userStats'
-const USER_BADGES_KEY = 'userBadges'
 const USER_RANKINGS_KEY = 'userRankings'
 const SEARCH_USERS_KEY = 'searchUsers'
 
@@ -48,22 +46,6 @@ export function useUserStats() {
     },
     enabled: !!userId,
     staleTime: 1000 * 60 * 2, // 2 minutes (stats update via triggers)
-  })
-}
-
-/**
- * Hook for fetching current user's badges
- */
-export function useUserBadges() {
-  const userId = useAuthStore((state) => state.user?.id)
-
-  return useQuery({
-    queryKey: [USER_BADGES_KEY, userId],
-    queryFn: () => {
-      if (!userId) return []
-      return getUserBadges(userId)
-    },
-    enabled: !!userId,
   })
 }
 

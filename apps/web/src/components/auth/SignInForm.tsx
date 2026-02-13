@@ -23,6 +23,20 @@ const signInSchema = z.object({
 
 type SignInFormData = z.infer<typeof signInSchema>
 
+const AUTH_ERROR_MAP: Record<string, string> = {
+  'Invalid login credentials': 'errors.auth.invalidCredentials',
+  'Email not confirmed': 'errors.auth.emailNotConfirmed',
+  'User already registered': 'errors.auth.emailTaken',
+  'Password should be at least 6 characters': 'errors.auth.passwordTooShort',
+}
+
+function mapAuthError(error: string): string {
+  for (const [pattern, key] of Object.entries(AUTH_ERROR_MAP)) {
+    if (error.includes(pattern)) return key
+  }
+  return ''
+}
+
 interface SignInFormProps {
   onSuccess?: () => void
   onSignUpClick?: () => void
@@ -48,8 +62,9 @@ export function SignInForm({ onSuccess, onSignUpClick }: SignInFormProps) {
     if (result.success) {
       onSuccess?.()
     } else {
+      const errorKey = result.error ? mapAuthError(result.error) : ''
       form.setError('root', {
-        message: result.error || t('errors.generic'),
+        message: errorKey ? t(errorKey) : t('errors.generic.1'),
       })
     }
   }

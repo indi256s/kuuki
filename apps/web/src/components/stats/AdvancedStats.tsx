@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Plane, Globe2, Clock } from 'lucide-react'
 import { useFlightStats } from '@/hooks/useStats'
@@ -16,7 +16,7 @@ export function AdvancedStats() {
   const { data: unlockProgress } = useUnlockProgress()
 
   // Track newly unlocked tiers for celebration
-  const [previousUnlocks, setPreviousUnlocks] = useState<{
+  const previousUnlocksRef = useRef<{
     aviaGeek: boolean
     countryGeek: boolean
     duration: boolean
@@ -27,31 +27,32 @@ export function AdvancedStats() {
   useEffect(() => {
     if (!unlockProgress) return
 
-    if (previousUnlocks === null) {
+    const prev = previousUnlocksRef.current
+    if (prev === null) {
       // First load - just set the baseline
-      setPreviousUnlocks({
+      previousUnlocksRef.current = {
         aviaGeek: unlockProgress.aviaGeek.unlocked,
         countryGeek: unlockProgress.countryGeek.unlocked,
         duration: unlockProgress.duration.unlocked,
-      })
+      }
       return
     }
 
     // Check for new unlocks
-    if (!previousUnlocks.aviaGeek && unlockProgress.aviaGeek.unlocked) {
+    if (!prev.aviaGeek && unlockProgress.aviaGeek.unlocked) {
       setNewlyUnlocked('aviaGeek')
-    } else if (!previousUnlocks.countryGeek && unlockProgress.countryGeek.unlocked) {
+    } else if (!prev.countryGeek && unlockProgress.countryGeek.unlocked) {
       setNewlyUnlocked('countryGeek')
-    } else if (!previousUnlocks.duration && unlockProgress.duration.unlocked) {
+    } else if (!prev.duration && unlockProgress.duration.unlocked) {
       setNewlyUnlocked('duration')
     }
 
-    setPreviousUnlocks({
+    previousUnlocksRef.current = {
       aviaGeek: unlockProgress.aviaGeek.unlocked,
       countryGeek: unlockProgress.countryGeek.unlocked,
       duration: unlockProgress.duration.unlocked,
-    })
-  }, [unlockProgress, previousUnlocks])
+    }
+  }, [unlockProgress])
 
   const hasFlights = (stats?.totalFlights ?? 0) > 0
 

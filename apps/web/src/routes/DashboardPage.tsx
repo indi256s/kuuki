@@ -1,16 +1,14 @@
 import { useState, useCallback, useEffect, useMemo, lazy, Suspense } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Plus } from 'lucide-react'
+import { Plus, RefreshCw } from 'lucide-react'
 
 import { useAuth } from '@/hooks/useAuth'
-import { useFlightStats } from '@/hooks/useStats'
 import { useDashboardStats } from '@/hooks/useDashboardStats'
+import { useAllBadgeTiers } from '@/hooks/useBadgeTier'
 import { useSyncUpcomingFlights } from '@/hooks/useFlights'
 import {
   useFlightRoutes,
-  useFlightYears,
-  useFlightAirlines,
-  useFlightAircraft,
+  useFlightFilterOptions,
 } from '@/hooks/useFlights'
 import { usePassportCountries } from '@/hooks/usePassport'
 import { useDashboardStore } from '@/stores/dashboardStore'
@@ -64,8 +62,8 @@ function AnalysisDeckSkeleton() {
 export function DashboardPage() {
   const { t } = useTranslation()
   const { profile } = useAuth()
-  const { data: stats } = useFlightStats()
-  const { data: dashStats } = useDashboardStats()
+  const { data: dashStats, isLoading: isDashLoading, error: dashError, refetch: refetchDash } = useDashboardStats()
+  const allBadgeTiers = useAllBadgeTiers()
   const [isFormOpen, setIsFormOpen] = useState(false)
   const [mapExpanded, setMapExpanded] = useState(false)
 
@@ -77,10 +75,11 @@ export function DashboardPage() {
   const [originSearch, setOriginSearch] = useState('')
   const [destSearch, setDestSearch] = useState('')
 
-  // Dropdown data for filters
-  const { data: years = [] } = useFlightYears()
-  const { data: airlineCodes = [] } = useFlightAirlines()
-  const { data: aircraftCodes = [] } = useFlightAircraft()
+  // Dropdown data for filters (single combined query)
+  const { data: filterOptions } = useFlightFilterOptions()
+  const years = filterOptions?.years ?? []
+  const airlineCodes = filterOptions?.airlines ?? []
+  const aircraftCodes = filterOptions?.aircraft ?? []
 
   // Flight routes for map
   const { data: allFlights = [] } = useFlightRoutes()
@@ -117,7 +116,7 @@ export function DashboardPage() {
   // Sync upcoming flights on dashboard load
   useSyncUpcomingFlights()
 
-  const hasFlights = (stats?.totalFlights ?? 0) > 0 || (stats?.upcomingFlights ?? 0) > 0
+  const hasFlights = (dashStats?.totalFlights ?? 0) > 0 || (dashStats?.upcomingFlights?.length ?? 0) > 0
 
   const displayName = profile?.display_name || profile?.username || 'User'
 
@@ -141,37 +140,41 @@ export function DashboardPage() {
   useEffect(() => {
     const trimmed = originSearch.trim()
     if (trimmed.length === 0) {
-      setFilters({ ...filters, origin: undefined, originCodes: undefined })
+      const current = useDashboardStore.getState().filters
+      setFilters({ ...current, origin: undefined, originCodes: undefined })
       return
     }
     const timer = setTimeout(() => {
+      const current = useDashboardStore.getState().filters
       const codes = resolveAirportCodes(trimmed)
       if (codes.length > 0) {
-        setFilters({ ...filters, origin: undefined, originCodes: codes })
+        setFilters({ ...current, origin: undefined, originCodes: codes })
       } else {
-        setFilters({ ...filters, origin: undefined, originCodes: undefined })
+        setFilters({ ...current, origin: undefined, originCodes: undefined })
       }
     }, 150)
     return () => clearTimeout(timer)
-  }, [originSearch, resolveAirportCodes])
+  }, [originSearch, resolveAirportCodes, setFilters])
 
   // Auto-apply destination filter with debounce
   useEffect(() => {
     const trimmed = destSearch.trim()
     if (trimmed.length === 0) {
-      setFilters({ ...filters, destination: undefined, destinationCodes: undefined })
+      const current = useDashboardStore.getState().filters
+      setFilters({ ...current, destination: undefined, destinationCodes: undefined })
       return
     }
     const timer = setTimeout(() => {
+      const current = useDashboardStore.getState().filters
       const codes = resolveAirportCodes(trimmed)
       if (codes.length > 0) {
-        setFilters({ ...filters, destination: undefined, destinationCodes: codes })
+        setFilters({ ...current, destination: undefined, destinationCodes: codes })
       } else {
-        setFilters({ ...filters, destination: undefined, destinationCodes: undefined })
+        setFilters({ ...current, destination: undefined, destinationCodes: undefined })
       }
     }, 150)
     return () => clearTimeout(timer)
-  }, [destSearch, resolveAirportCodes])
+  }, [destSearch, resolveAirportCodes, setFilters])
 
   return (
     <div className="min-h-screen bg-gradient-soft">
@@ -197,7 +200,32 @@ export function DashboardPage() {
       {/* Main content - pb-safe adds bottom padding for mobile tab bar */}
       <main className="max-w-7xl 3xl:max-w-[1800px] mx-auto px-4 sm:px-6 py-4 sm:py-6 pb-safe sm:pb-6">
 
-        {hasFlights ? (
+        {isDashLoading && !dashStats ? (
+          <div className="space-y-4 animate-fade-up">
+            <Skeleton className="h-8 w-48" />
+            <Skeleton className="h-5 w-64" />
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="md:col-span-2 min-h-[400px]">
+                <Skeleton className="h-full w-full rounded-2xl" />
+              </div>
+              <div className="md:col-span-2 grid grid-cols-2 grid-rows-3 gap-4">
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <Skeleton key={i} className="h-24 rounded-2xl" />
+                ))}
+              </div>
+            </div>
+          </div>
+        ) : dashError ? (
+          <div className="flex flex-col items-center justify-center py-24 text-center animate-fade-up">
+            <p className="text-sm text-muted-foreground mb-4">
+              {t('errors.loadingStats', 'Failed to load stats')}
+            </p>
+            <Button variant="outline" onClick={() => refetchDash()} className="gap-2">
+              <RefreshCw className="w-4 h-4" />
+              {t('common.retry', 'Try again')}
+            </Button>
+          </div>
+        ) : hasFlights ? (
           <div className="space-y-4 animate-fade-up stagger-children">
             {/* Upcoming flights banner */}
             <UpcomingFlightsBanner />
@@ -255,21 +283,21 @@ export function DashboardPage() {
               {/* 6 stat cards in 2-col grid beside map (hidden when map expanded) */}
               {!mapExpanded && (
                 <div className="md:col-span-2 grid grid-cols-2 grid-rows-3 gap-4 h-full">
-                  <MicroBadgeStatCard trackId="flights" />
-                  <MicroBadgeStatCard trackId="distance" />
-                  <MicroBadgeStatCard trackId="countries" />
-                  <MicroBadgeStatCard trackId="time_in_air" />
-                  <MicroBadgeStatCard trackId="airlines" />
-                  <MicroBadgeStatCard trackId="aircraft" />
+                  <MicroBadgeStatCard trackId="flights" tierData={allBadgeTiers.flights} />
+                  <MicroBadgeStatCard trackId="distance" tierData={allBadgeTiers.distance} />
+                  <MicroBadgeStatCard trackId="countries" tierData={allBadgeTiers.countries} />
+                  <MicroBadgeStatCard trackId="time_in_air" tierData={allBadgeTiers.time_in_air} />
+                  <MicroBadgeStatCard trackId="airlines" tierData={allBadgeTiers.airlines} />
+                  <MicroBadgeStatCard trackId="aircraft" tierData={allBadgeTiers.aircraft} />
                 </div>
               )}
             </div>
 
             {/* Secondary stat row: airports, cities, continents */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <MicroBadgeStatCard trackId="airports" />
-              <MicroBadgeStatCard trackId="cities" />
-              <MicroBadgeStatCard trackId="continents" />
+              <MicroBadgeStatCard trackId="airports" tierData={allBadgeTiers.airports} />
+              <MicroBadgeStatCard trackId="cities" tierData={allBadgeTiers.cities} />
+              <MicroBadgeStatCard trackId="continents" tierData={allBadgeTiers.continents} />
             </div>
 
             {/* Analysis Deck (lazy-loaded) */}

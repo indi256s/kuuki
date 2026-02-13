@@ -1,8 +1,8 @@
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
-import { useCreateFlight, useFlights } from '@/hooks/useFlights'
+import { useFlights } from '@/hooks/useFlights'
 import { useParseImport, type ExtractedFlight, type RejectedFlight } from '@/hooks/useImport'
 import { useToast } from '@/hooks/useToast'
 import { useImportStore } from '@/stores/importStore'
@@ -17,7 +17,9 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { findAirport, findAircraft } from '@kuuki/data'
-import { calculateFlightDistance, calculateFlightDuration, estimateFlightDuration } from '@/lib/geo'
+import { calculateFlightDistance, calculateFlightDuration, estimateFlightDuration, isUpcomingFlight } from '@/lib/geo'
+import { supabase } from '@/lib/supabase'
+import { useAuthStore } from '@/stores/authStore'
 import { getMessageKeyForCategory } from '@/lib/errors'
 import { Check, Plane, ArrowRight, AlertCircle, X, AlertTriangle } from 'lucide-react'
 import { PlaneAnimation } from '@/components/common/PlaneAnimation'
@@ -63,18 +65,21 @@ export function ImportPage() {
   const [enrichmentJobId, setEnrichmentJobId] = useState<string | undefined>()
 
   const parseMutation = useParseImport()
-  const createFlightMutation = useCreateFlight()
+  const userId = useAuthStore((state) => state.user?.id)
   const { showError } = useToast()
   const { addBackgroundJob, removeBackgroundJob } = useImportStore()
 
   // Get existing flights for duplicate detection
   const { data: existingFlightsData } = useFlights(undefined, undefined, 1000)
-  const existingRoutes = new Set<string>()
-  existingFlightsData?.pages.forEach(page => {
-    page.flights.forEach(flight => {
-      existingRoutes.add(`${flight.date}:${flight.origin}:${flight.destination}`)
+  const existingRoutes = useMemo(() => {
+    const routes = new Set<string>()
+    existingFlightsData?.pages.forEach(page => {
+      page.flights.forEach(flight => {
+        routes.add(`${flight.date}:${flight.origin}:${flight.destination}`)
+      })
     })
-  })
+    return routes
+  }, [existingFlightsData])
 
   // Handle initial state: text content from EmptyState or resuming from background
   useEffect(() => {
@@ -151,84 +156,95 @@ export function ImportPage() {
   }, [parseMutation])
 
   const handleSaveFlights = useCallback(async (flights: ExtractedFlight[]) => {
+    if (!userId) return
     setStep('saving')
     setSavedCount(0)
     setSaveErrors([])
 
-    let successCount = 0
-    const failedDetails: Array<{ index: number; flightLabel: string; error: string }> = []
+    // Prepare all flight data upfront (distance/duration computation is sync)
+    const preparedFlights = flights.map((flight) => {
+      const originAirport = findAirport(flight.origin)
+      const destAirport = findAirport(flight.destination)
+      const aircraft = flight.aircraft_icao ? findAircraft(flight.aircraft_icao) : null
 
-    for (let i = 0; i < flights.length; i++) {
-      const flight = flights[i]
-      try {
-        // Look up airport coordinates for distance calculation
-        const originAirport = findAirport(flight.origin)
-        const destAirport = findAirport(flight.destination)
-        const aircraft = flight.aircraft_icao ? findAircraft(flight.aircraft_icao) : null
+      let distanceKm: number | undefined
+      let durationMinutes: number | undefined
 
-        let distanceKm: number | undefined
-        let durationMinutes: number | undefined
+      if (originAirport && destAirport) {
+        distanceKm = calculateFlightDistance(
+          originAirport.latitude,
+          originAirport.longitude,
+          destAirport.latitude,
+          destAirport.longitude
+        )
 
-        if (originAirport && destAirport) {
-          distanceKm = calculateFlightDistance(
-            originAirport.latitude,
-            originAirport.longitude,
-            destAirport.latitude,
-            destAirport.longitude
-          )
-
-          // Use actual times if available (timezone-aware), otherwise estimate
-          if (flight.departure_time && flight.arrival_time) {
-            durationMinutes = calculateFlightDuration(
-              flight.departure_time,
-              flight.arrival_time,
-              flight.date,
-              originAirport.timezone,
-              destAirport.timezone
-            ) ?? undefined
-          }
-          if (!durationMinutes) {
-            durationMinutes = estimateFlightDuration(distanceKm, aircraft?.type)
-          }
+        if (flight.departure_time && flight.arrival_time) {
+          durationMinutes = calculateFlightDuration(
+            flight.departure_time,
+            flight.arrival_time,
+            flight.date,
+            originAirport.timezone,
+            destAirport.timezone
+          ) ?? undefined
         }
-
-        await createFlightMutation.mutateAsync({
-          date: flight.date,
-          origin: flight.origin,
-          destination: flight.destination,
-          airline_iata: flight.airline_iata,
-          flight_number: flight.flight_number || null,
-          aircraft_icao: flight.aircraft_icao || null,
-          departure_time: flight.departure_time || null,
-          arrival_time: flight.arrival_time || null,
-          distance_km: distanceKm ?? null,
-          duration_minutes: durationMinutes ?? null,
-          origin_tz: originAirport?.timezone || null,
-          dest_tz: destAirport?.timezone || null,
-          source: 'ai_import',
-          // Pass enrichment status from parse result (or default based on aircraft presence)
-          enrichment_status: flight.enrichment_status || (flight.aircraft_icao ? 'skipped' : 'pending'),
-        })
-
-        successCount++
-        setSavedCount(successCount)
-      } catch (error) {
-        console.error('Failed to save flight:', error)
-        const flightLabel = `${flight.origin} → ${flight.destination} (${flight.date})`
-        const errorMsg = error instanceof Error ? error.message : String(error)
-        failedDetails.push({ index: i, flightLabel, error: errorMsg })
-        // Continue with other flights - don't block on individual failures
+        if (!durationMinutes) {
+          durationMinutes = estimateFlightDuration(distanceKm, aircraft?.type)
+        }
       }
+
+      const enrichmentStatus = flight.enrichment_status || (flight.aircraft_icao ? 'skipped' : 'pending')
+
+      return {
+        user_id: userId,
+        date: flight.date,
+        origin: flight.origin,
+        destination: flight.destination,
+        airline_iata: flight.airline_iata,
+        flight_number: flight.flight_number || null,
+        aircraft_icao: flight.aircraft_icao || null,
+        departure_time: flight.departure_time || null,
+        arrival_time: flight.arrival_time || null,
+        distance_km: distanceKm ?? null,
+        duration_minutes: durationMinutes ?? null,
+        origin_tz: originAirport?.timezone || null,
+        dest_tz: destAirport?.timezone || null,
+        source: 'ai_import' as const,
+        enrichment_status: enrichmentStatus,
+        is_upcoming: isUpcomingFlight(flight.date),
+      }
+    })
+
+    // Batch insert all flights at once
+    const { data, error } = await supabase
+      .from('flights')
+      .insert(preparedFlights)
+      .select('id')
+
+    const failedDetails: Array<{ index: number; flightLabel: string; error: string }> = []
+    let successCount: number
+
+    if (error) {
+      console.error('Batch insert failed:', error)
+      // If batch insert fails entirely, report all as failed
+      successCount = 0
+      flights.forEach((flight, i) => {
+        failedDetails.push({
+          index: i,
+          flightLabel: `${flight.origin} \u2192 ${flight.destination} (${flight.date})`,
+          error: error.message,
+        })
+      })
+    } else {
+      successCount = data?.length ?? flights.length
     }
 
-    // Track failed saves for potential retry
     setSaveErrors(failedDetails)
+    setSavedCount(successCount)
 
-    // Invalidate queries to refresh data
+    // Invalidate queries once after batch
     await queryClient.invalidateQueries({ queryKey: ['flights'] })
     await queryClient.invalidateQueries({ queryKey: ['flightStats'] })
 
-    // Show toast for failures
     if (failedDetails.length > 0 && successCount > 0) {
       showError(new Error('Some flights could not be saved'), {
         context: 'save-partial',
@@ -239,9 +255,8 @@ export function ImportPage() {
       })
     }
 
-    setSavedCount(successCount)
     setStep('success')
-  }, [createFlightMutation, queryClient, showError])
+  }, [userId, queryClient, showError])
 
   const handleRevealComplete = useCallback(() => {
     setPendingFlights(undefined)

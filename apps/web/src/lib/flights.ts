@@ -374,6 +374,42 @@ export async function getUpcomingFlights(userId: string, limit = 3): Promise<Fli
   return data ?? []
 }
 
+export interface FlightFilterOptions {
+  years: number[]
+  airlines: string[]
+  aircraft: string[]
+}
+
+/**
+ * Get all filter options (years, airlines, aircraft) in a single query
+ */
+export async function getFlightFilterOptions(userId: string): Promise<FlightFilterOptions> {
+  const { data, error } = await supabase
+    .from('flights')
+    .select('date, airline_iata, aircraft_icao')
+    .eq('user_id', userId)
+
+  if (error) {
+    throw new Error(`Failed to fetch flight filter options: ${error.message}`)
+  }
+
+  const years = new Set<number>()
+  const airlines = new Set<string>()
+  const aircraft = new Set<string>()
+
+  for (const flight of data ?? []) {
+    years.add(new Date(flight.date).getFullYear())
+    if (flight.airline_iata) airlines.add(flight.airline_iata)
+    if (flight.aircraft_icao) aircraft.add(flight.aircraft_icao)
+  }
+
+  return {
+    years: Array.from(years).sort((a, b) => b - a),
+    airlines: Array.from(airlines).sort(),
+    aircraft: Array.from(aircraft).sort(),
+  }
+}
+
 /**
  * Get unique years from user's flights (for filter dropdown)
  */
