@@ -6,10 +6,22 @@ import { z } from 'zod'
 import { AirportAutocomplete } from './AirportAutocomplete'
 import { AirlineAutocomplete } from './AirlineAutocomplete'
 import { AircraftPicker } from './AircraftPicker'
+import { TimeSearchInput } from './TimeSearchInput'
+import { FlightSuggestionsList } from './FlightSuggestionsList'
 import { useCreateFlight, useUpdateFlight, useCheckDuplicate, type Flight } from '@/hooks/useFlights'
 import { useIsMobile } from '@/hooks/useIsMobile'
 import { findAirport, findAircraft } from '@kuuki/data'
 import { calculateFlightDistance, calculateFlightDuration, estimateFlightDuration } from '@/lib/geo'
+
+// Type for flight search results from AirLabs API
+interface FlightScheduleResult {
+  airline_iata: string
+  flight_number: string
+  departure_time: string
+  arrival_time: string
+  aircraft_icao: string | null
+  duration_minutes: number | null
+}
 import {
   Dialog,
   DialogContent,
@@ -35,7 +47,7 @@ import { Input } from '@/components/ui/input'
 import { DatePicker } from '@/components/ui/date-picker'
 import { TimePicker } from '@/components/ui/time-picker'
 import { Separator } from '@/components/ui/separator'
-import { AlertCircle, ArrowLeftRight, Plane, Trash2 } from 'lucide-react'
+import { AlertCircle, ArrowLeftRight, Plane, Trash2, Loader2 } from 'lucide-react'
 
 const flightSchema = z.object({
   date: z.string().min(1, 'Date is required'),
@@ -71,6 +83,11 @@ export function FlightForm({ isOpen, onClose, editFlight, onDelete }: FlightForm
   const [showOptional, setShowOptional] = useState(false)
   const [duplicateFlight, setDuplicateFlight] = useState<Flight | null>(null)
   const isEditing = !!editFlight
+
+  // Time-based flight search state
+  const [searchTime, setSearchTime] = useState<string>('')
+  const [flightSuggestions, setFlightSuggestions] = useState<FlightScheduleResult[]>([])
+  const [isSearching, setIsSearching] = useState(false)
 
   const form = useForm<FlightFormData>({
     resolver: zodResolver(flightSchema),
@@ -119,10 +136,12 @@ export function FlightForm({ isOpen, onClose, editFlight, onDelete }: FlightForm
     }
   }, [isOpen, editFlight, form])
 
-  // Watch for route changes to check duplicates
+  // Watch for route changes to check duplicates and trigger flight search
   const watchDate = form.watch('date')
   const watchOrigin = form.watch('origin')
   const watchDestination = form.watch('destination')
+  const watchAirlineIata = form.watch('airlineIata')
+  const watchFlightNumber = form.watch('flightNumber')
 
   // Use ref to avoid including the mutation object in the dependency array
   // (useMutation returns a new object reference on every state change, causing infinite loops)
@@ -147,6 +166,94 @@ export function FlightForm({ isOpen, onClose, editFlight, onDelete }: FlightForm
       setDuplicateFlight(null)
     }
   }, [watchDate, watchOrigin, watchDestination, editFlight?.id])
+
+  // Flight search handler
+  const handleFlightSearch = useCallback(async () => {
+    if (!searchTime || !watchOrigin || !watchDestination || !watchDate) {
+      setFlightSuggestions([])
+      return
+    }
+
+    if (watchOrigin.length !== 3 || watchDestination.length !== 3) {
+      setFlightSuggestions([])
+      return
+    }
+
+    // Don't search if user already has flight details
+    if (watchAirlineIata || watchFlightNumber) {
+      setFlightSuggestions([])
+      return
+    }
+
+    setIsSearching(true)
+
+    try {
+      const response = await fetch('/api/search/flights', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          origin: watchOrigin,
+          destination: watchDestination,
+          date: watchDate,
+          time: searchTime,
+          windowMinutes: 180,
+        }),
+      })
+
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.error || 'Search failed')
+      }
+
+      const data = await response.json()
+      setFlightSuggestions(data.flights || [])
+
+      // Auto-fill if exactly 1 result
+      if (data.flights?.length === 1) {
+        handleSelectFlight(data.flights[0])
+      }
+    } catch (err) {
+      console.error('Flight search error:', err)
+      setFlightSuggestions([])
+    } finally {
+      setIsSearching(false)
+    }
+  }, [searchTime, watchOrigin, watchDestination, watchDate, watchAirlineIata, watchFlightNumber])
+
+  // Trigger flight search when time changes
+  useEffect(() => {
+    if (!searchTime) {
+      setFlightSuggestions([])
+      return
+    }
+
+    // Debounce search
+    const timer = setTimeout(() => {
+      handleFlightSearch()
+    }, 500)
+
+    return () => clearTimeout(timer)
+  }, [searchTime, handleFlightSearch])
+
+  // Clear suggestions when user manually edits flight details
+  useEffect(() => {
+    if ((watchAirlineIata || watchFlightNumber) && flightSuggestions.length > 0) {
+      setFlightSuggestions([])
+    }
+  }, [watchAirlineIata, watchFlightNumber, flightSuggestions.length])
+
+  // Handle flight selection from suggestions
+  const handleSelectFlight = useCallback((flight: FlightScheduleResult) => {
+    setShowOptional(true)
+    form.setValue('airlineIata', flight.airline_iata)
+    form.setValue('flightNumber', flight.flight_number)
+    form.setValue('departureTime', flight.departure_time)
+    form.setValue('arrivalTime', flight.arrival_time)
+    if (flight.aircraft_icao) {
+      form.setValue('aircraftIcao', flight.aircraft_icao)
+    }
+    setFlightSuggestions([])
+  }, [form])
 
   const onSubmit = useCallback(async (data: FlightFormData) => {
     form.clearErrors('root')
@@ -341,6 +448,30 @@ export function FlightForm({ isOpen, onClose, editFlight, onDelete }: FlightForm
               </FormItem>
             )}
           />
+
+          {/* Time search input */}
+          <TimeSearchInput
+            value={searchTime}
+            onChange={setSearchTime}
+            onClear={() => setSearchTime('')}
+            disabled={isSubmitting}
+          />
+
+          {/* Loading state */}
+          {isSearching && (
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              <span>{t('flights.searchingFlights', 'Searching flights...')}</span>
+            </div>
+          )}
+
+          {/* Flight suggestions */}
+          {flightSuggestions.length > 0 && (
+            <FlightSuggestionsList
+              flights={flightSuggestions}
+              onSelect={handleSelectFlight}
+            />
+          )}
 
           <FormField
             control={form.control}

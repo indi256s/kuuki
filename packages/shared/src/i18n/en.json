@@ -405,7 +405,13 @@
     "batchDeleteTitle_other": "Delete {{count}} Flights?",
     "batchDeleteMessage": "This action cannot be undone. All selected flights will be permanently removed from your log.",
     "filters": "Filters",
-    "flights": "flights"
+    "flights": "flights",
+    "searchTime": "Search Time (optional)",
+    "searchTimeWindow": "±3 hours",
+    "searchingFlights": "Searching flights...",
+    "matchingFlights": "Matching Flights",
+    "noFlightsFound": "No flights found for this time window",
+    "flightDetailsFilled": "Flight details filled from schedule"
   },
   "stats": {
     "title": "Stats",
