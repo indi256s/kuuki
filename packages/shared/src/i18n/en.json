@@ -39,24 +39,24 @@
     "meaningDetail": "Kuuki \"feels\" your journeys, turning dry data into a beautiful flight history.",
     "features": {
       "import": {
-        "title": "Smart Import (AI Import)",
-        "description": "Don't type manually. Just drop a ticket screenshot, PDF, or email text. AI extracts flight, airline, and aircraft data. It's the **laziest** way to keep a flight log."
+        "title": "Smart Import",
+        "description": "Drop a boarding pass photo, PDF, or email text — AI extracts everything. Or just pick your route and approximate time, and we'll find the flight for you. Because **typing an airline code is apparently too much effort.** We respect that."
       },
       "passport": {
-        "title": "Digital Impressions (Passport & Stats)",
-        "description": "Unique stamps for every country and detailed stats (from aircraft types to moon progress). It's not just a list, but your **progress as a world explorer**."
+        "title": "Digital Passport",
+        "description": "Collect unique stamps for **246 countries and territories** — yes, even the ones you reached by train or ferry. Each stamp tracks your visits, airports, and first landing date. Your **collection as a world explorer**, beautifully quantified."
       },
       "gamification": {
-        "title": "Stress-free Gamification",
-        "description": "Badges for achievements (like \"Night Owl\" or \"Equator Hopper\") and percentile leaderboards. No pressure. You're always in the \"top 15%\", never at \"145th place\"."
+        "title": "Badges & Leaderboards",
+        "description": "**20 badges** across milestones, exploration, and achievements. Four stat tiers unlock as you fly more — from overview to aircraft geek to time analysis. Leaderboards show percentiles, not rankings. You're in the **\"top 15%\"**, never **\"145th place\"**."
       },
       "privacy": {
         "title": "Privacy by Design",
-        "description": "Share your public profile, but **your exact routes and map are always hidden**. Only stats and badges are visible. You choose what to share."
+        "description": "Your exact routes and map? **Always hidden.** Public profiles show only stats and badges — enough to impress, not enough to reveal your travel habits. **You choose what's visible.**"
       },
       "community": {
-        "title": "Community Driven",
-        "description": "Built for a small circle (50-500 aviation enthusiasts). Suggest features boldly. Direct feedback shapes the final product."
+        "title": "Community",
+        "description": "A small circle of **50–500 aviation enthusiasts**. Invite-only, live right now. Suggest features, report quirks — your feedback directly shapes what Kuuki becomes."
       }
     }
   },
