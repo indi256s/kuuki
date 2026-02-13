@@ -265,7 +265,7 @@
     "name": "Aegean Airlines",
     "country": "Greece",
     "primaryColor": "#083C6E",
-    "alliance": "Star Alliance",
+    "alliance": "star_alliance",
     "callsign": "AEGEAN",
     "logoUrl": null
   },
@@ -315,7 +315,7 @@
     "name": "Air Canada",
     "country": "Canada",
     "primaryColor": "#F01428",
-    "alliance": "Star Alliance",
+    "alliance": "star_alliance",
     "callsign": "AIR CANADA",
     "logoUrl": null
   },
@@ -345,7 +345,7 @@
     "name": "Air France",
     "country": "France",
     "primaryColor": "#002157",
-    "alliance": "SkyTeam",
+    "alliance": "skyteam",
     "callsign": "AIRFRANS",
     "logoUrl": null
   },
@@ -365,7 +365,7 @@
     "name": "Air India",
     "country": "India",
     "primaryColor": "#FF8C00",
-    "alliance": "Star Alliance",
+    "alliance": "star_alliance",
     "callsign": "AIRINDIA",
     "logoUrl": null
   },
@@ -385,7 +385,7 @@
     "name": "Aeroméxico",
     "country": "Mexico",
     "primaryColor": "#00205B",
-    "alliance": "SkyTeam",
+    "alliance": "skyteam",
     "callsign": "AEROMEXICO",
     "logoUrl": null
   },
@@ -405,7 +405,7 @@
     "name": "Aerolíneas Argentinas",
     "country": "Argentina",
     "primaryColor": "#0072CE",
-    "alliance": "SkyTeam",
+    "alliance": "skyteam",
     "callsign": "ARGENTINA",
     "logoUrl": null
   },
@@ -435,7 +435,7 @@
     "name": "Avianca",
     "country": "Colombia",
     "primaryColor": "#E4002B",
-    "alliance": "Star Alliance",
+    "alliance": "star_alliance",
     "callsign": "AVIANCA",
     "logoUrl": null
   },
@@ -585,7 +585,7 @@
     "name": "EVA Air",
     "country": "Taiwan",
     "primaryColor": "#00A84F",
-    "alliance": "Star Alliance",
+    "alliance": "star_alliance",
     "callsign": "EVA",
     "logoUrl": null
   },
@@ -645,7 +645,7 @@
     "name": "Air China",
     "country": "China",
     "primaryColor": "#C70037",
-    "alliance": "Star Alliance",
+    "alliance": "star_alliance",
     "callsign": "AIR CHINA",
     "logoUrl": null
   },
@@ -655,7 +655,7 @@
     "name": "China Airlines",
     "country": "Taiwan",
     "primaryColor": "#D31145",
-    "alliance": "SkyTeam",
+    "alliance": "skyteam",
     "callsign": "DYNASTY",
     "logoUrl": null
   },
@@ -665,7 +665,7 @@
     "name": "Copa Airlines",
     "country": "Panama",
     "primaryColor": "#003F87",
-    "alliance": "Star Alliance",
+    "alliance": "star_alliance",
     "callsign": "COPA",
     "logoUrl": null
   },
@@ -685,7 +685,7 @@
     "name": "China Southern Airlines",
     "country": "China",
     "primaryColor": "#008AC5",
-    "alliance": "SkyTeam",
+    "alliance": "skyteam",
     "callsign": "CHINA SOUTHERN",
     "logoUrl": null
   },
@@ -755,7 +755,7 @@
     "name": "Delta Air Lines",
     "country": "United States",
     "primaryColor": "#003366",
-    "alliance": "SkyTeam",
+    "alliance": "skyteam",
     "callsign": "DELTA",
     "logoUrl": null
   },
@@ -905,7 +905,7 @@
     "name": "Air Dolomiti",
     "country": "Italy",
     "primaryColor": "#1E3264",
-    "alliance": "Star Alliance",
+    "alliance": "star_alliance",
     "callsign": "DOLOMOTI",
     "logoUrl": null
   },
@@ -925,7 +925,7 @@
     "name": "Ethiopian Airlines",
     "country": "Ethiopia",
     "primaryColor": "#078930",
-    "alliance": "Star Alliance",
+    "alliance": "star_alliance",
     "callsign": "ETHIOPIAN",
     "logoUrl": null
   },
@@ -1055,7 +1055,7 @@
     "name": "Shanghai Airlines",
     "country": "China",
     "primaryColor": "#E31837",
-    "alliance": "SkyTeam",
+    "alliance": "skyteam",
     "callsign": "SHANGHAI AIR",
     "logoUrl": null
   },
@@ -1155,7 +1155,7 @@
     "name": "Garuda Indonesia",
     "country": "Indonesia",
     "primaryColor": "#009A44",
-    "alliance": "SkyTeam",
+    "alliance": "skyteam",
     "callsign": "INDONESIA",
     "logoUrl": null
   },
@@ -1605,7 +1605,7 @@
     "name": "Korean Air",
     "country": "South Korea",
     "primaryColor": "#0063AF",
-    "alliance": "SkyTeam",
+    "alliance": "skyteam",
     "callsign": "KOREANAIR",
     "logoUrl": null
   },
@@ -1615,7 +1615,7 @@
     "name": "KLM Royal Dutch Airlines",
     "country": "Netherlands",
     "primaryColor": "#00A1E4",
-    "alliance": "SkyTeam",
+    "alliance": "skyteam",
     "callsign": "KLM",
     "logoUrl": null
   },
@@ -1635,7 +1635,7 @@
     "name": "Kenya Airways",
     "country": "Kenya",
     "primaryColor": "#C8102E",
-    "alliance": "SkyTeam",
+    "alliance": "skyteam",
     "callsign": "KENYA",
     "logoUrl": null
   },
@@ -1665,7 +1665,7 @@
     "name": "Lufthansa",
     "country": "Germany",
     "primaryColor": "#05164D",
-    "alliance": "Star Alliance",
+    "alliance": "star_alliance",
     "callsign": "LUFTHANSA",
     "logoUrl": null
   },
@@ -1685,7 +1685,7 @@
     "name": "LOT Polish Airlines",
     "country": "Poland",
     "primaryColor": "#003A70",
-    "alliance": "Star Alliance",
+    "alliance": "star_alliance",
     "callsign": "POLLOT",
     "logoUrl": null
   },
@@ -1715,7 +1715,7 @@
     "name": "Swiss International Air Lines",
     "country": "Switzerland",
     "primaryColor": "#DC0019",
-    "alliance": "Star Alliance",
+    "alliance": "star_alliance",
     "callsign": "SWISS",
     "logoUrl": null
   },
@@ -1745,7 +1745,7 @@
     "name": "Middle East Airlines",
     "country": "Lebanon",
     "primaryColor": "#C8102E",
-    "alliance": "SkyTeam",
+    "alliance": "skyteam",
     "callsign": "CEDAR JET",
     "logoUrl": null
   },
@@ -1755,7 +1755,7 @@
     "name": "Xiamen Airlines",
     "country": "China",
     "primaryColor": "#003399",
-    "alliance": "SkyTeam",
+    "alliance": "skyteam",
     "callsign": "XIAMEN AIR",
     "logoUrl": null
   },
@@ -1815,7 +1815,7 @@
     "name": "EgyptAir",
     "country": "Egypt",
     "primaryColor": "#003A70",
-    "alliance": "Star Alliance",
+    "alliance": "star_alliance",
     "callsign": "EGYPTAIR",
     "logoUrl": null
   },
@@ -1835,7 +1835,7 @@
     "name": "China Eastern Airlines",
     "country": "China",
     "primaryColor": "#003876",
-    "alliance": "SkyTeam",
+    "alliance": "skyteam",
     "callsign": "CHINA EASTERN",
     "logoUrl": null
   },
@@ -1885,7 +1885,7 @@
     "name": "All Nippon Airways",
     "country": "Japan",
     "primaryColor": "#003087",
-    "alliance": "Star Alliance",
+    "alliance": "star_alliance",
     "callsign": "ALL NIPPON",
     "logoUrl": null
   },
@@ -1955,7 +1955,7 @@
     "name": "Air New Zealand",
     "country": "New Zealand",
     "primaryColor": "#221F1F",
-    "alliance": "Star Alliance",
+    "alliance": "star_alliance",
     "callsign": "NEW ZEALAND",
     "logoUrl": null
   },
@@ -1975,7 +1975,7 @@
     "name": "Czech Airlines",
     "country": "Czech Republic",
     "primaryColor": "#003A70",
-    "alliance": "Star Alliance",
+    "alliance": "star_alliance",
     "callsign": "CSA-LINES",
     "logoUrl": null
   },
@@ -2015,7 +2015,7 @@
     "name": "Austrian Airlines",
     "country": "Austria",
     "primaryColor": "#E20A16",
-    "alliance": "Star Alliance",
+    "alliance": "star_alliance",
     "callsign": "AUSTRIAN",
     "logoUrl": null
   },
@@ -2025,7 +2025,7 @@
     "name": "Croatia Airlines",
     "country": "Croatia",
     "primaryColor": "#003087",
-    "alliance": "Star Alliance",
+    "alliance": "star_alliance",
     "callsign": "CROATIA",
     "logoUrl": null
   },
@@ -2325,7 +2325,7 @@
     "name": "TAROM",
     "country": "Romania",
     "primaryColor": "#003087",
-    "alliance": "SkyTeam",
+    "alliance": "skyteam",
     "callsign": "TAROM",
     "logoUrl": null
   },
@@ -2385,7 +2385,7 @@
     "name": "South African Airways",
     "country": "South Africa",
     "primaryColor": "#FF7F00",
-    "alliance": "Star Alliance",
+    "alliance": "star_alliance",
     "callsign": "SPRINGBOK",
     "logoUrl": null
   },
@@ -2415,7 +2415,7 @@
     "name": "Scandinavian Airlines",
     "country": "Sweden",
     "primaryColor": "#000080",
-    "alliance": "Star Alliance",
+    "alliance": "star_alliance",
     "callsign": "SCANDINAVIAN",
     "logoUrl": null
   },
@@ -2445,7 +2445,7 @@
     "name": "Brussels Airlines",
     "country": "Belgium",
     "primaryColor": "#CC092F",
-    "alliance": "Star Alliance",
+    "alliance": "star_alliance",
     "callsign": "BEE-LINE",
     "logoUrl": null
   },
@@ -2465,7 +2465,7 @@
     "name": "Singapore Airlines",
     "country": "Singapore",
     "primaryColor": "#F8A81D",
-    "alliance": "Star Alliance",
+    "alliance": "star_alliance",
     "callsign": "SINGAPORE",
     "logoUrl": null
   },
@@ -2485,7 +2485,7 @@
     "name": "Aeroflot",
     "country": "Russia",
     "primaryColor": "#FF6600",
-    "alliance": "SkyTeam",
+    "alliance": "skyteam",
     "callsign": "AEROFLOT",
     "logoUrl": null
   },
@@ -2495,7 +2495,7 @@
     "name": "Saudia",
     "country": "Saudi Arabia",
     "primaryColor": "#006633",
-    "alliance": "SkyTeam",
+    "alliance": "skyteam",
     "callsign": "SAUDIA",
     "logoUrl": null
   },
@@ -2565,7 +2565,7 @@
     "name": "Thai Airways",
     "country": "Thailand",
     "primaryColor": "#582C83",
-    "alliance": "Star Alliance",
+    "alliance": "star_alliance",
     "callsign": "THAI",
     "logoUrl": null
   },
@@ -2575,7 +2575,7 @@
     "name": "Turkish Airlines",
     "country": "Turkey",
     "primaryColor": "#C8102E",
-    "alliance": "Star Alliance",
+    "alliance": "star_alliance",
     "callsign": "TURKAIR",
     "logoUrl": null
   },
@@ -2605,7 +2605,7 @@
     "name": "TAP Air Portugal",
     "country": "Portugal",
     "primaryColor": "#009639",
-    "alliance": "Star Alliance",
+    "alliance": "star_alliance",
     "callsign": "AIR PORTUGAL",
     "logoUrl": null
   },
@@ -2695,7 +2695,7 @@
     "name": "United Airlines",
     "country": "United States",
     "primaryColor": "#002244",
-    "alliance": "Star Alliance",
+    "alliance": "star_alliance",
     "callsign": "UNITED",
     "logoUrl": null
   },
@@ -2795,7 +2795,7 @@
     "name": "Air Europa",
     "country": "Spain",
     "primaryColor": "#FF6600",
-    "alliance": "SkyTeam",
+    "alliance": "skyteam",
     "callsign": "EUROPA",
     "logoUrl": null
   },
@@ -2885,7 +2885,7 @@
     "name": "Vietnam Airlines",
     "country": "Vietnam",
     "primaryColor": "#08528F",
-    "alliance": "SkyTeam",
+    "alliance": "skyteam",
     "callsign": "VIET NAM AIRLINES",
     "logoUrl": null
   },
@@ -2905,7 +2905,7 @@
     "name": "Virgin Atlantic",
     "country": "United Kingdom",
     "primaryColor": "#DC143C",
-    "alliance": "SkyTeam",
+    "alliance": "skyteam",
     "callsign": "VIRGIN",
     "logoUrl": null
   },
@@ -3195,7 +3195,7 @@
     "name": "Shenzhen Airlines",
     "country": "China",
     "primaryColor": "#00529B",
-    "alliance": "Star Alliance",
+    "alliance": "star_alliance",
     "callsign": "SHENZHEN AIR",
     "logoUrl": null
   },
