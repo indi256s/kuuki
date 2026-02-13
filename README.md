@@ -1,69 +1,111 @@
 # Kuuki (くうき)
 
-**Your Personal Travel Legacy.**  
+**Your Personal Travel Legacy.**
 Turn your flight history into a visual legacy. Designed for explorers. Beautifully quantified.
 
 ---
 
-## 🏯 Philosophy
+## Philosophy
 
 **Kuuki (空気)** means "Air" or "Atmosphere" in Japanese.
 
 Most flight trackers are utilitarian spreadsheets. Kuuki is designed to be a **digital sanctuary** for your journeys. It combines the precision of a data-logger with the aesthetics of a travel journal.
 
-> **"Where travel stats meet art.**  
-> **Designed for explorers. Beautifully quantified."**
+---
+
+## Features
+
+- **AI Import** — Snap a photo of your boarding pass; Gemini AI parses the details.
+- **Manual Entry** — For aviation purists who know their tail numbers.
+- **Visual Routes** — Animated maps of your journeys.
+- **Digital Passport** — Collect country stamps as you land.
+- **Geek-Grade Analytics** — Aircraft types, circadian rhythm, streaks, and more.
+- **Social (Opt-in)** — Leaderboards, public profiles, privacy first.
 
 ---
 
-## ✨ Features
+## Tech Stack
 
-### 🛫 Flight Tracking, Reimagined
-- **AI Import:** Snap a photo of your boarding pass. Gemini AI parses the details instantly.
-- **Manual Entry:** For the aviation purists who know their tail numbers.
-- **Visual Routes:** Beautiful, animated maps of your journeys.
-
-### 🛂 The Digital Passport
-- **Collect Stamps:** Automatically unlock country stamps as you land.
-- **Claim Territories:** Visual map of visited countries and regions.
-
-### 📊 Geek-Grade Analytics
-Kuuki grows with you. Unlock advanced stats tiers:
-- **Overview:** Kilometers, hours aloft, countries visited.
-- **Avia Geek:** Aircraft types (A320 vs 737), registration codes, seat classes.
-- **Country Geek:** UN subregions, hemispheres, climate zones.
-- **Time Geek:** Circadian rhythm analysis, longest streaks.
-
-### 🤝 Social (Opt-in)
-- **Leaderboards:** Compete on distance, countries, or diversity of airlines.
-- **Public Profiles:** Share your travel legacy with a beautiful, public-facing URL.
-- **Privacy First:** Your data is yours. Social features are strictly opt-in.
+- **Frontend:** React 19, Vite, TypeScript, Tailwind CSS, shadcn/ui
+- **Backend:** Supabase (Auth, Postgres, RLS)
+- **Edge:** Cloudflare Pages + Workers (API gateway)
+- **AI:** Google Gemini (boarding pass parsing, aircraft enrichment)
+- **Monorepo:** pnpm + Turborepo
 
 ---
 
-## 🛠 Tech Stack
+## Project Structure
 
-Built on the **Modern Vibe Stack**:
-
-- **Frontend:** React 19, Vite, TypeScript
-- **Styling:** Tailwind CSS, shadcn/ui, Framer Motion
-- **Backend:** Supabase (Auth, Postgres, Realtime)
-- **Edge:** Cloudflare Workers (API Gateway, Caching)
-- **AI:** Google Gemini 3 (Vision & Parsing)
-- **Architecture:** pnpm Monorepo with Turborepo
-
----
-
-## 🚀 Development
-
-```bash
-# Install dependencies
-pnpm install
-
-# Start development server
-pnpm dev
+```
+apps/web/          React + Vite frontend
+packages/shared/   Shared types, i18n (en.json, ru.json)
+packages/data/     Static reference data (airports, airlines, aircraft)
+functions/         Cloudflare Workers API (Gemini proxy)
+supabase/          Database migrations
+docs/              Project documentation (PRD, design system, etc.)
 ```
 
-## 📄 License
+---
+
+## Getting Started
+
+### Prerequisites
+
+- **Node.js** 20+
+- **pnpm** 9+ (`corepack enable && corepack prepare pnpm@latest --activate`)
+
+### Setup
+
+```bash
+# Clone and install
+git clone https://github.com/indi256s/kuuki.git
+cd kuuki
+pnpm install
+
+# Configure environment
+cp apps/web/.env.example apps/web/.env
+# Then fill in your Supabase credentials (ask the project owner)
+```
+
+### Environment Variables
+
+| Variable | Where | Description |
+|---|---|---|
+| `VITE_SUPABASE_URL` | `apps/web/.env` | Supabase project URL |
+| `VITE_SUPABASE_ANON_KEY` | `apps/web/.env` | Supabase publishable (anon) key |
+| `GEMINI_API_KEY` | Cloudflare `.dev.vars` | Google Gemini API key (for AI import) |
+| `AIRLABS_API_KEY` | Cloudflare `.dev.vars` | AirLabs key (for aircraft enrichment) |
+
+> **Note:** The Supabase anon key is safe to share with contributors — it's a publishable key scoped by Row Level Security (RLS). Never share the `service_role` key.
+
+### Run
+
+```bash
+pnpm dev        # Start dev server at http://localhost:5173
+pnpm build      # Production build
+pnpm test       # Run tests
+```
+
+---
+
+## Contributing
+
+1. Create a branch from `main`
+2. Make your changes
+3. Run `pnpm build` to ensure no type errors
+4. Open a PR against `main`
+
+### Useful Docs
+
+Start with `docs/README.md` for the full index:
+
+- `docs/PRD.md` — Product requirements
+- `docs/APP_FLOW.md` — User navigation paths
+- `docs/FRONTEND_GUIDELINES.md` — Design system and component patterns
+- `docs/BACKEND_STRUCTURE.md` — Database schema and RLS policies
+
+---
+
+## License
 
 MIT © [Indi256](https://github.com/indi256)
