@@ -175,14 +175,14 @@ export function MapCard({
           role="img"
           aria-label={`Visit frequency scale from 1 to ${maxVisitCount}`}
         >
-          <span className="text-[9px] font-mono text-muted-foreground">1</span>
+          <span className="text-[10px] font-mono text-muted-foreground">1</span>
           <div
             className="w-20 h-2 rounded-full"
             style={{
               background: 'linear-gradient(to right, hsl(var(--primary) / 0.2), hsl(var(--primary)))',
             }}
           />
-          <span className="text-[9px] font-mono text-muted-foreground">{maxVisitCount}</span>
+          <span className="text-[10px] font-mono text-muted-foreground">{maxVisitCount}</span>
         </div>
       )}
     </div>

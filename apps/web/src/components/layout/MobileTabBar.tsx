@@ -70,7 +70,7 @@ export function MobileTabBar() {
                   }`}
                 strokeWidth={active ? 2.5 : 2}
               />
-              <span className={`text-[10px] leading-tight ${active ? 'font-medium' : ''}`}>
+              <span className={`text-xs leading-tight ${active ? 'font-medium' : ''}`}>
                 {t(tab.labelKey)}
               </span>
             </Link>

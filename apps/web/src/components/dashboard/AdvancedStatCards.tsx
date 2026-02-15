@@ -444,7 +444,7 @@ function FleetRidgeline({
             >
               <div className="bg-card border border-border/50 rounded px-2 py-1 shadow-sm">
                 <div className="font-mono text-[10px] font-semibold">{rows[hoveredRow].label}</div>
-                <div className="text-[9px] text-muted-foreground">
+                <div className="text-[10px] text-muted-foreground">
                   {rows[hoveredRow].count} {t('stats.flights')} · avg {Math.round(rows[hoveredRow].avgDuration)}m
                 </div>
               </div>

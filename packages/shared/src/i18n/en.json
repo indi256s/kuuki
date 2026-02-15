@@ -2,7 +2,7 @@
   "common": {
     "appName": "Kuuki",
     "tagline": "Every journey, remembered",
-    "loading": "Loading...",
+    "loading": "Loading…",
     "error": "Something went wrong",
     "retry": "Try again",
     "save": "Save",
@@ -29,7 +29,7 @@
     "moreActions": "More actions",
     "optional": "optional",
     "remove": "Remove",
-    "saving": "Saving...",
+    "saving": "Saving…",
     "saved": "Saved"
   },
   "about": {
@@ -40,7 +40,7 @@
     "features": {
       "import": {
         "title": "Smart Import",
-        "description": "Drop a boarding pass photo, PDF, or email text — AI extracts everything. Or just pick your route and approximate time, and we'll find the flight for you. Because **typing an airline code is apparently too much effort.** We respect that."
+        "description": "Drop a boarding pass photo, PDF, or email text — AI extracts everything. Or just pick your route and approximate time, and we’ll find the flight for you. Because **typing an airline code is apparently too much effort.** We respect that."
       },
       "passport": {
         "title": "Digital Passport",
@@ -48,11 +48,11 @@
       },
       "gamification": {
         "title": "Badges & Leaderboards",
-        "description": "**20 badges** across milestones, exploration, and achievements. Four stat tiers unlock as you fly more — from overview to aircraft geek to time analysis. Leaderboards show percentiles, not rankings. You're in the **\"top 15%\"**, never **\"145th place\"**."
+        "description": "**20 badges** across milestones, exploration, and achievements. Four stat tiers unlock as you fly more — from overview to aircraft geek to time analysis. Leaderboards show percentiles, not rankings. You’re in the **\"top 15%\"**, never **\"145th place\"**."
       },
       "privacy": {
         "title": "Privacy by Design",
-        "description": "Your exact routes and map? **Always hidden.** Public profiles show only stats and badges — enough to impress, not enough to reveal your travel habits. **You choose what's visible.**"
+        "description": "Your exact routes and map? **Always hidden.** Public profiles show only stats and badges — enough to impress, not enough to reveal your travel habits. **You choose what’s visible.**"
       },
       "community": {
         "title": "Community",
@@ -64,7 +64,7 @@
     "signIn": "Sign in",
     "signOut": "Sign out",
     "signInWithGoogle": "Sign in with Google",
-    "signingIn": "Signing in...",
+    "signingIn": "Signing in…",
     "welcome": "Welcome back",
     "welcomeBack": "Welcome Back",
     "newUser": "New to Kuuki?",
@@ -104,13 +104,13 @@
       }
     },
     "taglines": [
-      "Snap a boarding pass. We'll figure it out.",
+      "Snap a boarding pass. We’ll figure it out.",
       "Flights, countries, airports — all the nerdy stuff.",
       "Halfway to the Moon, apparently.",
       "Your flight data is safe with us. Probably.",
       "Logging your progress. For science.",
       "We do what we must. Airfare was non-refundable.",
-      "You've been busy. We appreciate that."
+      "You’ve been busy. We appreciate that."
     ]
   },
   "nav": {
@@ -188,7 +188,7 @@
         "empty": [
           "Displacement: zero. Fascinating.",
           "Current range: your parking lot.",
-          "The odometer appears... decorative."
+          "The odometer appears… decorative."
         ],
         "active": [
           "Measurable displacement detected.",
@@ -323,8 +323,8 @@
       "timeRelatable": {
         "quickHop": "A quick hop through the atmosphere",
         "oneMovie": "About one in-flight movie",
-        "movies_one": "That's about {{count}} movie",
-        "movies_other": "That's about {{count}} movies",
+        "movies_one": "That’s about {{count}} movie",
+        "movies_other": "That’s about {{count}} movies",
         "vacation": "A vacation spent in the sky",
         "twoWeeks": "Two weeks above the clouds",
         "fullMonth": "A full month at cruising altitude"
@@ -357,9 +357,9 @@
     "km": "km",
     "minutes": "min",
     "hours": "h",
-    "airportPlaceholder": "Search by code or city...",
-    "airlinePlaceholder": "Search by code or name...",
-    "aircraftPlaceholder": "Search by type code or name...",
+    "airportPlaceholder": "Search by code or city…",
+    "airlinePlaceholder": "Search by code or name…",
+    "aircraftPlaceholder": "Search by type code or name…",
     "requiredFields": "Please fill in all required fields",
     "invalidAirportCode": "Airport codes must be 3 letters",
     "sameAirport": "Origin and destination cannot be the same",
@@ -390,9 +390,9 @@
     "pending": "Pending",
     "addAircraft": "Add aircraft",
     "setAircraft": "Set Aircraft",
-    "pendingDescription": "We couldn't identify the aircraft. You can set it manually.",
+    "pendingDescription": "We couldn’t identify the aircraft. You can set it manually.",
     "aircraftPickerDescription": "Select the aircraft type for this flight.",
-    "selectAircraft": "Select aircraft...",
+    "selectAircraft": "Select aircraft…",
     "select": "Select",
     "selectAll": "Select all",
     "selectFlight": "Select flight",
@@ -408,7 +408,7 @@
     "flights": "flights",
     "searchTime": "Search Time (optional)",
     "searchTimeWindow": "±3 hours",
-    "searchingFlights": "Searching flights...",
+    "searchingFlights": "Searching flights…",
     "matchingFlights": "Matching Flights",
     "noFlightsFound": "No flights found for this time window",
     "flightDetailsFilled": "Flight details filled from schedule"
@@ -437,28 +437,28 @@
     "funFacts": {
       "title": "Fun Facts",
       "moonProgress": "Distance to the Moon: {{percent}}% complete",
-      "earthTrips_one": "You've flown {{count}} trip around Earth",
-      "earthTrips_other": "You've flown {{count}} trips around Earth",
+      "earthTrips_one": "You’ve flown {{count}} trip around Earth",
+      "earthTrips_other": "You’ve flown {{count}} trips around Earth",
       "timeInAir": "Time in air: {{days}} days, {{hours}} hours",
-      "timezoneCrossings_one": "You've crossed {{count}} time zone",
-      "timezoneCrossings_other": "You've crossed {{count}} time zones",
+      "timezoneCrossings_one": "You’ve crossed {{count}} time zone",
+      "timezoneCrossings_other": "You’ve crossed {{count}} time zones",
       "furthestFromHome": "Furthest from home: {{distance}} km ({{city}}, {{country}})",
-      "countryCompletion": "You've visited {{percent}}% of all countries"
+      "countryCompletion": "You’ve visited {{percent}}% of all countries"
     },
     "locked": {
       "signature": "Your Flight Stats AI",
       "aviaGeek": {
         "1": "Oh, you want aircraft insights? How ambitious. Only {{remaining}} more types to go.",
-        "2": "Aircraft analytics await. {{remaining}} more aircraft types and they're yours. No pressure.",
+        "2": "Aircraft analytics await. {{remaining}} more aircraft types and they’re yours. No pressure.",
         "3": "The Avia Geek tier observes your progress with mild interest. {{remaining}} more to go."
       },
       "countryGeek": {
-        "1": "Country analytics require 5 countries. You've managed {{current}}. Impressive.",
-        "2": "Globe-trotting statistics unlock at 5 countries. Only {{remaining}} more continents... I mean countries... to conquer.",
-        "3": "Your passport seems rather... underfilled. {{remaining}} more countries will remedy that."
+        "1": "Country analytics require 5 countries. You’ve managed {{current}}. Impressive.",
+        "2": "Globe-trotting statistics unlock at 5 countries. Only {{remaining}} more continents… I mean countries… to conquer.",
+        "3": "Your passport seems rather… underfilled. {{remaining}} more countries will remedy that."
       },
       "duration": {
-        "1": "Duration stats unlock at 10 flights. You're at {{current}}. The anticipation must be overwhelming.",
+        "1": "Duration stats unlock at 10 flights. You’re at {{current}}. The anticipation must be overwhelming.",
         "2": "{{remaining}} more flights until time analytics. Science demands patience. And more flying.",
         "3": "Flight duration insights are {{remaining}} flights away. The clock is ticking. Metaphorically."
       }
@@ -476,13 +476,13 @@
       "narrowbody": "Narrowbody",
       "widebody": "Widebody",
       "fact": {
-        "1": "Your {{manufacturer}} loyalty is noted. They'll appreciate the business.",
-        "2_one": "The {{aircraft}} appears {{count}} time in your logs. It's either reliable or you lack imagination.",
-        "2_other": "The {{aircraft}} appears {{count}} times in your logs. It's either reliable or you lack imagination.",
+        "1": "Your {{manufacturer}} loyalty is noted. They’ll appreciate the business.",
+        "2_one": "The {{aircraft}} appears {{count}} time in your logs. It’s either reliable or you lack imagination.",
+        "2_other": "The {{aircraft}} appears {{count}} times in your logs. It’s either reliable or you lack imagination.",
         "3": "{{percentage}}% widebody ratio. Your comfort preferences are showing.",
         "4_one": "{{count}} manufacturer in your collection. An eclectic taste.",
         "4_other": "{{count}} manufacturers in your collection. An eclectic taste.",
-        "5": "I've analyzed your fleet preferences. The data is... revealing."
+        "5": "I’ve analyzed your fleet preferences. The data is… revealing."
       }
     },
     "countryGeek": {
@@ -491,13 +491,13 @@
       "completion": "{{percentage}}% of all territories",
       "allCountries": "All Countries",
       "fact": {
-        "1_one": "{{count}} country. That's {{percentage}}% of Earth. The other {{remaining}}% awaits your arrival.",
-        "1_other": "{{count}} countries. That's {{percentage}}% of Earth. The other {{remaining}}% awaits your arrival.",
+        "1_one": "{{count}} country. That’s {{percentage}}% of Earth. The other {{remaining}}% awaits your arrival.",
+        "1_other": "{{count}} countries. That’s {{percentage}}% of Earth. The other {{remaining}}% awaits your arrival.",
         "2_one": "{{continent}} appears to be your preferred hemisphere. {{count}} country there alone.",
         "2_other": "{{continent}} appears to be your preferred hemisphere. {{count}} countries there alone.",
-        "3": "{{continent}} seems... neglected. Only {{visited}} of {{total}} explored.",
+        "3": "{{continent}} seems… neglected. Only {{visited}} of {{total}} explored.",
         "4": "{{remaining}} territories remain unconquered. I admire your ambition. Or pity your schedule.",
-        "5": "Your geographical distribution is... revealing."
+        "5": "Your geographical distribution is… revealing."
       }
     },
     "timeGeek": {
@@ -517,10 +517,10 @@
         "short": "Short-haul",
         "medium": "Medium-haul",
         "long": "Long-haul",
-        "specialist": "You're a {{type}} specialist"
+        "specialist": "You’re a {{type}} specialist"
       },
       "fact": {
-        "1": "{{days}} days airborne. That's {{days}} days you weren't doing anything productive on the ground either.",
+        "1": "{{days}} days airborne. That’s {{days}} days you weren’t doing anything productive on the ground either.",
         "2": "{{percent}}% {{bucket}} departures. Your circadian rhythm has been noted. And judged.",
         "3": "{{total}} total, {{avg}} average. The math checks out. Your life choices remain unexamined.",
         "4": "Your longest flight: {{duration}}. I hope the in-flight entertainment was adequate. I have my doubts.",
@@ -624,7 +624,7 @@
     "username": "Username",
     "displayName": "Display Name",
     "bio": "Bio",
-    "bioPlaceholder": "Tell us about yourself...",
+    "bioPlaceholder": "Tell us about yourself…",
     "homeAirport": "Home Airport",
     "visibility": "Visibility",
     "public": "Public",
@@ -637,7 +637,7 @@
     "memberSince": "Member since {{date}}",
     "you": "You",
     "notFound": "Profile not found",
-    "notFoundDescription": "This user doesn't exist or has a private profile.",
+    "notFoundDescription": "This user doesn’t exist or has a private profile.",
     "prefersPrivacy": "This user prefers privacy",
     "viewPublic": "View Public Profile",
     "themeColor": "Theme Color",
@@ -691,7 +691,7 @@
       "claimsDesc_other": "Download all {{count}} visited countries as CSV",
       "noFlights": "No flights to export",
       "noClaims": "No countries to export",
-      "exporting": "Exporting...",
+      "exporting": "Exporting…",
       "formatToggle": "Include enriched data (country names, continents)",
       "rateLimitReached": "Export limit reached. Try again tomorrow.",
       "rateLimitRemaining_one": "{{count}} export remaining today",
@@ -711,14 +711,14 @@
       "passwordLabel": "Enter your password to confirm",
       "passwordPlaceholder": "Your password",
       "confirm": "Delete Everything",
-      "deleting": "Deleting...",
+      "deleting": "Deleting…",
       "wrongPassword": "Incorrect password. Please try again.",
       "success": "Your account has been deleted.",
-      "farewell": "Thank you for flying with us. Or don't. Your call."
+      "farewell": "Thank you for flying with us. Or don’t. Your call."
     },
     "accountDeleted": {
       "title": "Account Deleted",
-      "message": "This user's account has been deleted."
+      "message": "This user’s account has been deleted."
     }
   },
   "import": {
@@ -732,7 +732,7 @@
     },
     "uploadImage": "Upload Image",
     "pasteText": "Paste Text",
-    "processing": "Processing...",
+    "processing": "Processing…",
     "reviewLabel": "Import Review",
     "confirm": "Confirm Import",
     "flightsFound_one": "{{count}} flight found",
@@ -747,7 +747,7 @@
       "pasteHint": "to paste an image",
       "orPasteText": "Or paste text instead",
       "pasteFlightDetails": "Paste flight details",
-      "textPlaceholder": "Paste booking confirmations, itineraries...",
+      "textPlaceholder": "Paste booking confirmations, itineraries…",
       "textPreview": "Text preview",
       "textTooShort": "Please enter more text to analyze.",
       "parse": "Parse",
@@ -761,7 +761,7 @@
       "title": "Use Google Gemini to find your flights",
       "teaser": "Let AI find all your flights from Gmail & Calendar",
       "description": "Copy this prompt → feed it to Gemini → paste the results below",
-      "recommendation": "Gemini works best (it reads your Calendar). Claude is acceptable. ChatGPT... let's not.",
+      "recommendation": "Gemini works best (it reads your Calendar). Claude is acceptable. ChatGPT… let’s not.",
       "showPrompt": "Show prompt",
       "hidePrompt": "Hide prompt",
       "hint": "Use with @Gmail and @Google Calendar in Google Gemini",
@@ -774,17 +774,17 @@
     "pasteImage": "to paste from clipboard",
     "parseFlights": "Parse Flights",
     "parsing": {
-      "reading": "Reading file...",
-      "extracting": "Extracting text...",
-      "finding": "Finding flights...",
+      "reading": "Reading file…",
+      "extracting": "Extracting text…",
+      "finding": "Finding flights…",
       "hint": "This usually takes a few seconds",
       "analyzingText": "Analyzing flight data",
       "analyzingDocument": "Reading document",
       "continueInBackground": "Continue in background",
       "inProgress": "in progress",
-      "redirectHint": "Processing in overlay...",
+      "redirectHint": "Processing in overlay…",
       "flightsFound": "Flights found",
-      "scanning": "Scanning document..."
+      "scanning": "Scanning document…"
     },
     "review": {
       "title": "Review extracted flights",
@@ -794,7 +794,7 @@
       "selected": "selected",
       "saveSelected_one": "Import {{count}}",
       "saveSelected_other": "Import {{count}}",
-      "saving": "Saving...",
+      "saving": "Saving…",
       "duplicate": "Duplicate",
       "duplicatesFound_one": "{{count}} possible duplicate found",
       "duplicatesFound_other": "{{count}} possible duplicates found",
@@ -809,7 +809,7 @@
       "viewNormalized": "View normalized data",
       "count": "{{selected}} of {{total}} flights selected",
       "enriching": "Enriching",
-      "enrichingFlights": "Fetching aircraft and timing details...",
+      "enrichingFlights": "Fetching aircraft and timing details…",
       "enrichingContinues": "You can import now - enrichment continues in background",
       "yearInferred": "Year not found",
       "yearInferredDesc": "The year was not found in the document and was inferred.",
@@ -829,12 +829,12 @@
     },
     "noResults": {
       "title": "No flights found",
-      "message": "We couldn't extract flights from this document",
+      "message": "We couldn’t extract flights from this document",
       "manual": "Add manually",
       "tryAgain": "Try another file"
     },
     "saving": {
-      "progress": "Saving flight {{current}} of {{total}}..."
+      "progress": "Saving flight {{current}} of {{total}}…"
     },
     "success": {
       "title": "Flights imported!",
@@ -924,47 +924,47 @@
   "compare": {
     "title": "Compare Stats",
     "description": "See how your travel stats stack up against another traveler",
-    "searchPlaceholder": "Search for a traveler to compare...",
+    "searchPlaceholder": "Search for a traveler to compare…",
     "emptyState": "Search for another traveler to compare your stats",
     "noData": "Unable to load comparison data"
   },
   "errors": {
     "generic": {
-      "1": "We've hit some unexpected turbulence. Please stand by.",
+      "1": "We’ve hit some unexpected turbulence. Please stand by.",
       "2": "Our instruments are acting up. Give us a moment.",
-      "3": "Hit an air pocket. We're working on it."
+      "3": "Hit an air pocket. We’re working on it."
     },
     "network": {
-      "1": "Ground control to Major Tom. We've lost signal.",
-      "2": "The radar's showing nothing but static. Check your connection.",
-      "3": "Tower's not responding. Either they're on break, or your WiFi is."
+      "1": "Ground control to Major Tom. We’ve lost signal.",
+      "2": "The radar’s showing nothing but static. Check your connection.",
+      "3": "Tower’s not responding. Either they’re on break, or your WiFi is."
     },
     "api": {
-      "1": "Our servers are experiencing... turbulence. Please stand by.",
+      "1": "Our servers are experiencing… turbulence. Please stand by.",
       "2": "Something went wrong on our end. Maintenance crew dispatched.",
-      "3": "The backend is having a moment. It'll be fine. Probably."
+      "3": "The backend is having a moment. It’ll be fine. Probably."
     },
     "rateLimit": {
-      "1": "You're making requests faster than a 737 at takeoff. Slow down.",
-      "2": "Easy there, speed racer. Let's take a breather."
+      "1": "You’re making requests faster than a 737 at takeoff. Slow down.",
+      "2": "Easy there, speed racer. Let’s take a breather."
     },
     "notFound": {
-      "1": "That destination doesn't appear on our charts.",
-      "2": "This flight plan seems to have been... misplaced."
+      "1": "That destination doesn’t appear on our charts.",
+      "2": "This flight plan seems to have been… misplaced."
     },
     "auth": {
       "sessionExpired": "Your session has expired. Please sign in again."
     },
     "dataLoss": {
-      "saveFailed": "Your changes couldn't be saved. Please try again."
+      "saveFailed": "Your changes couldn’t be saved. Please try again."
     },
     "validation": {
       "invalid": "Please check your input and try again."
     },
     "import": {
-      "parseFailed": "We couldn't read your document. Try a different format.",
+      "parseFailed": "We couldn’t read your document. Try a different format.",
       "timeout": "Parsing took too long. Please try a smaller file.",
-      "invalidFormat": "This file format isn't supported.",
+      "invalidFormat": "This file format isn’t supported.",
       "noFlights": "No flights found in this document."
     },
     "crashScreen": {
@@ -1045,7 +1045,7 @@
       "importDescription": "Upload boarding pass (PDF/image) or flight details",
       "manualOption": "Add Manually",
       "manualDescription": "Enter flight details by hand",
-      "skipOption": "I'll do this later",
+      "skipOption": "I’ll do this later",
       "skipDescription": "Go to your empty dashboard"
     }
   },
@@ -1077,22 +1077,22 @@
     "sea": "Sea",
     "note": "Note",
     "claimCountry": "Claim a Country",
-    "claimDescription": "Add a country you've visited by land or sea.",
+    "claimDescription": "Add a country you’ve visited by land or sea.",
     "country": "Country",
-    "selectCountry": "Select a country...",
-    "searchCountry": "Search country...",
+    "selectCountry": "Select a country…",
+    "searchCountry": "Search country…",
     "visitYear": "Year Visited",
-    "selectYear": "Select year...",
-    "dontRemember": "I don't remember",
+    "selectYear": "Select year…",
+    "dontRemember": "I don’t remember",
     "howDidYouEnter": "How did you enter?",
-    "notePlaceholder": "Any memories from this trip...",
+    "notePlaceholder": "Any memories from this trip…",
     "addStamp": "Add Stamp",
     "addVisit": "Add Visit",
     "addVisitDescription": "Add another visit to this country.",
     "addVisitButton": "Add Visit",
     "groundVisits": "Ground Visits",
-    "mapInstructions": "Check in countries you've visited",
-    "mapInstructionsDetail": "Search below or browse the list to add countries you've reached by land or sea. Countries from your flights are already tracked automatically.",
+    "mapInstructions": "Check in countries you’ve visited",
+    "mapInstructionsDetail": "Search below or browse the list to add countries you’ve reached by land or sea. Countries from your flights are already tracked automatically.",
     "visitedCountries_one": "{{count}} country visited",
     "visitedCountries_other": "{{count}} countries visited",
     "claimHint": "Tap a country to claim it",
@@ -1132,7 +1132,7 @@
     "findAircraft": "Find Aircraft",
     "findAircraftCount_one": "Find Aircraft ({{count}})",
     "findAircraftCount_other": "Find Aircraft ({{count}})",
-    "searching": "Searching...",
+    "searching": "Searching…",
     "missingAircraft": "Missing Aircraft",
     "missingAircraftDesc_one": "{{count}} flight has no aircraft type",
     "missingAircraftDesc_other": "{{count}} flights have no aircraft type",
@@ -1155,11 +1155,11 @@
     "flightDeleted": "Flight removed from your log",
     "flightsDeleted_one": "{{count}} flight removed",
     "flightsDeleted_other": "{{count}} flights removed",
-    "flightSaveFailed": "Couldn't save flight. Please try again.",
-    "flightDeleteFailed": "Couldn't delete flight. Please try again.",
+    "flightSaveFailed": "Couldn’t save flight. Please try again.",
+    "flightDeleteFailed": "Couldn’t delete flight. Please try again.",
     "countryClaimed": "Added {{country}} to your passport",
     "countryUnclaimed": "Removed {{country}} from your passport",
-    "passportSaveFailed": "Couldn't update your passport. Please try again.",
+    "passportSaveFailed": "Couldn’t update your passport. Please try again.",
     "importSuccess_one": "{{count}} flight imported successfully",
     "importSuccess_other": "{{count}} flights imported successfully",
     "importFailed": "Import failed. Please try again."
