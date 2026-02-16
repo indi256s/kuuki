@@ -75,30 +75,32 @@ describe('SignUpForm', () => {
     expect(screen.getByRole('button', { name: /create an account/i })).toBeInTheDocument()
   })
 
-  it('validates invite code on blur', async () => {
+  it('requires invite code for submission', async () => {
     const user = userEvent.setup()
-    mockSupabaseClient.rpc.mockResolvedValueOnce({ data: true, error: null })
 
     render(<SignUpForm />)
 
-    const codeInput = screen.getByLabelText(/invite code/i)
-    await user.type(codeInput, 'KUUKI-TEST-swift-cloud')
-    await user.tab() // blur
+    await user.type(screen.getByLabelText(/^email$/i), 'test@example.com')
+    await user.type(screen.getByLabelText(/^password$/i), 'password123')
+    await user.type(screen.getByLabelText(/confirm password/i), 'password123')
+    await user.click(screen.getByRole('button', { name: /create an account/i }))
 
     await waitFor(() => {
-      expect(screen.getByText(/valid invite code/i)).toBeInTheDocument()
+      expect(screen.getByText(/invite code is required/i)).toBeInTheDocument()
     })
   })
 
-  it('shows error for invalid invite code', async () => {
+  it('shows error when signup fails due to invalid invite code', async () => {
     const user = userEvent.setup()
-    mockSupabaseClient.rpc.mockResolvedValueOnce({ data: false, error: null })
+    mockSignUp.mockResolvedValue({ success: false, error: 'Invalid or expired invite code' })
 
     render(<SignUpForm />)
 
-    const codeInput = screen.getByLabelText(/invite code/i)
-    await user.type(codeInput, 'INVALID-CODE')
-    await user.tab()
+    await user.type(screen.getByLabelText(/invite code/i), 'INVALID-CODE')
+    await user.type(screen.getByLabelText(/^email$/i), 'test@example.com')
+    await user.type(screen.getByLabelText(/^password$/i), 'password123')
+    await user.type(screen.getByLabelText(/confirm password/i), 'password123')
+    await user.click(screen.getByRole('button', { name: /create an account/i }))
 
     await waitFor(() => {
       expect(screen.getByText(/invalid or expired/i)).toBeInTheDocument()

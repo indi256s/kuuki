@@ -106,53 +106,18 @@ describe('RotatingTagline', () => {
     })
   })
 
-  describe('progress indicators', () => {
-    it('renders correct number of progress indicators for items', () => {
+  describe('container structure', () => {
+    it('renders a container with flex layout', () => {
       render(<RotatingTagline items={englishTaglines} />)
 
-      // Progress dots should match number of taglines (one per item)
-      const progressDots = document.querySelectorAll('.gap-2 > div')
-      expect(progressDots.length).toBe(englishTaglines.length)
+      const container = document.querySelector('.flex.flex-col')
+      expect(container).not.toBeNull()
     })
 
-    it('highlights the current progress indicator', () => {
+    it('has a text container with min-height', () => {
       render(<RotatingTagline items={englishTaglines} />)
 
-      // Find the dot elements (w-1.5 h-1.5 rounded-full)
-      const dots = document.querySelectorAll('.w-1\\.5.h-1\\.5.rounded-full')
-      // First dot should be active (bg-primary, scale-125)
-      expect(dots[0].classList.contains('bg-primary')).toBe(true)
-      expect(dots[0].classList.contains('scale-125')).toBe(true)
-    })
-
-    it('updates highlighted indicator when rotating', async () => {
-      render(<RotatingTagline items={englishTaglines} interval={1000} />)
-
-      await act(async () => {
-        vi.advanceTimersByTime(1300)
-      })
-
-      const dots = document.querySelectorAll('.w-1\\.5.h-1\\.5.rounded-full')
-      // Second dot should now be active
-      expect(dots[1].classList.contains('bg-primary')).toBe(true)
-      expect(dots[1].classList.contains('scale-125')).toBe(true)
-      // First dot should be past (lighter color)
-      expect(dots[0].classList.contains('bg-primary/50')).toBe(true)
-    })
-  })
-
-  describe('container dimensions', () => {
-    it('container has overflow-hidden to prevent layout shift', () => {
-      render(<RotatingTagline items={englishTaglines} />)
-
-      const textContainer = document.querySelector('.overflow-hidden')
-      expect(textContainer).not.toBeNull()
-    })
-
-    it('container has fixed height class', () => {
-      render(<RotatingTagline items={englishTaglines} />)
-
-      const textContainer = document.querySelector('.h-5')
+      const textContainer = document.querySelector('.min-h-\\[3rem\\]')
       expect(textContainer).not.toBeNull()
     })
   })
