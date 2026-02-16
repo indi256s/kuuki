@@ -385,13 +385,21 @@ export function FlightEditRow({
             </div>
 
             <div className="space-y-1.5">
-              <Label className="text-xs text-muted-foreground">
+              <Label className="text-xs text-muted-foreground flex items-center gap-1.5">
                 {t('flights.airline', 'Airline')}
+                {(!flight.airline_iata || flight.airline_iata.length !== 2) && (
+                  <AlertCircle className="w-3 h-3 text-destructive" />
+                )}
               </Label>
-              <AirlineAutocomplete
-                value={flight.airline_iata}
-                onChange={(iata) => handleFieldChange('airline_iata', iata)}
-              />
+              <div className={cn(
+                "rounded-md",
+                (!flight.airline_iata || flight.airline_iata.length !== 2) && "ring-2 ring-destructive/30"
+              )}>
+                <AirlineAutocomplete
+                  value={flight.airline_iata}
+                  onChange={(iata) => handleFieldChange('airline_iata', iata)}
+                />
+              </div>
             </div>
           </div>
 

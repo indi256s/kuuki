@@ -43,13 +43,38 @@ export function ImportReview({
   const [showCleanedText, setShowCleanedText] = useState(false)
   const [isEnriching, setIsEnriching] = useState(!!enrichmentJobId)
   const [enrichmentError, setEnrichmentError] = useState<string | null>(null)
+
+  // Convert rejected flights to editable ExtractedFlight objects
+  // This allows users to fill in missing airline codes instead of re-entering everything
+  const rejectedAsFlights = useMemo(() => {
+    if (!rejected || rejected.length === 0) return []
+    return rejected.map((r): ExtractedFlight => ({
+      date: r.date || '',
+      origin: r.origin || '',
+      destination: r.destination || '',
+      airline_iata: r.airline_iata || '', // Empty - user needs to fill this
+      confidence: 0.5,
+      enrichment_status: 'pending',
+    }))
+  }, [rejected])
+
+  // Merge valid flights with rejected flights (to allow editing)
+  const allFlights = useMemo(() => {
+    if (flights.length > 0) return flights
+    // If no valid flights, show rejected ones for manual correction
+    return rejectedAsFlights
+  }, [flights, rejectedAsFlights])
+
+  const showingRejectedFlights = flights.length === 0 && rejectedAsFlights.length > 0
+
   const [selectedIds, setSelectedIds] = useState<Set<number>>(() => {
     // Pre-select all valid flights, excluding duplicates
+    const flightsToCheck = initialFlights.length > 0 ? initialFlights : rejectedAsFlights
     return new Set(
-      initialFlights
+      flightsToCheck
         .map((_, i) => i)
         .filter((i) => {
-          const f = initialFlights[i]
+          const f = flightsToCheck[i]
           const isDuplicate = existingRoutes.has(`${f.date}:${f.origin}:${f.destination}`)
           return (
             !isDuplicate &&
@@ -116,18 +141,18 @@ export function ImportReview({
   // Check for duplicates
   const duplicateIndices = useMemo(() => {
     const indices = new Set<number>()
-    flights.forEach((flight, i) => {
+    allFlights.forEach((flight, i) => {
       const key = `${flight.date}:${flight.origin}:${flight.destination}`
       if (existingRoutes.has(key)) {
         indices.add(i)
       }
     })
     return indices
-  }, [flights, existingRoutes])
+  }, [allFlights, existingRoutes])
 
   const handleSelectAll = useCallback(() => {
-    setSelectedIds(new Set(flights.map((_, i) => i)))
-  }, [flights])
+    setSelectedIds(new Set(allFlights.map((_, i) => i)))
+  }, [allFlights])
 
   const handleDeselectAll = useCallback(() => {
     setSelectedIds(new Set())
@@ -156,15 +181,38 @@ export function ImportReview({
   }, [])
 
   const handleFlightChange = useCallback((index: number, flight: ExtractedFlight) => {
-    setFlights((prev) => {
-      const next = [...prev]
-      next[index] = flight
-      return next
-    })
-  }, [])
+    if (showingRejectedFlights) {
+      // When editing rejected flights, update the local state
+      // (We're not modifying the original flights array since it's empty)
+      setFlights((prev) => {
+        // If we haven't started editing yet, initialize from rejected flights
+        if (prev.length === 0) {
+          const updated = [...rejectedAsFlights]
+          updated[index] = flight
+          return updated
+        }
+        // Otherwise update normally
+        const next = [...prev]
+        next[index] = flight
+        return next
+      })
+    } else {
+      setFlights((prev) => {
+        const next = [...prev]
+        next[index] = flight
+        return next
+      })
+    }
+  }, [showingRejectedFlights, rejectedAsFlights])
 
   const handleDelete = useCallback((index: number) => {
-    setFlights((prev) => prev.filter((_, i) => i !== index))
+    setFlights((prev) => {
+      // If editing rejected flights and haven't modified flights yet
+      if (showingRejectedFlights && prev.length === 0) {
+        return rejectedAsFlights.filter((_, i) => i !== index)
+      }
+      return prev.filter((_, i) => i !== index)
+    })
     setSelectedIds((prev) => {
       const next = new Set<number>()
       prev.forEach((id) => {
@@ -174,20 +222,20 @@ export function ImportReview({
       })
       return next
     })
-  }, [])
+  }, [showingRejectedFlights, rejectedAsFlights])
 
   const handleSave = useCallback(() => {
     // Scroll to top for better UX during save
     window.scrollTo({ top: 0, behavior: 'smooth' })
-    const selectedFlights = flights.filter((_, i) => selectedIds.has(i))
+    const selectedFlights = allFlights.filter((_, i) => selectedIds.has(i))
     onSave(selectedFlights)
-  }, [flights, selectedIds, onSave])
+  }, [allFlights, selectedIds, onSave])
 
   const selectedCount = selectedIds.size
-  const totalCount = flights.length
+  const totalCount = allFlights.length
 
-  // Empty state - no flights found
-  if (flights.length === 0) {
+  // Empty state - no flights found at all
+  if (allFlights.length === 0) {
     return (
       <div className="text-center py-16">
         {/* Elegant empty icon */}
@@ -204,51 +252,6 @@ export function ImportReview({
         <p className="text-muted-foreground max-w-sm mx-auto mb-8">
           {t('import.noResults.message', "We couldn't extract flights from this document")}
         </p>
-
-        {/* Diagnostic info when flights were found but rejected */}
-        {rejected && rejected.length > 0 && (
-          <div className="text-left max-w-md mx-auto mb-8 rounded-xl border border-warning/30 bg-warning/[0.03] overflow-hidden">
-            <div className="px-4 py-3 border-b border-warning/20 bg-warning/[0.05]">
-              <div className="flex items-center gap-2">
-                <AlertTriangle className="w-4 h-4 text-warning" />
-                <span className="text-sm font-medium text-warning-foreground">
-                  {t('import.noResults.diagnostic', 'AI found {{count}} flight(s), but all were rejected during validation:', {
-                    count: geminiCount || rejected.length,
-                  })}
-                </span>
-              </div>
-            </div>
-            <div className="p-4 space-y-2">
-              {rejected.slice(0, 5).map((r, i) => (
-                <div key={i} className="flex items-start gap-2 text-sm">
-                  <span className="text-warning/60 mt-0.5">•</span>
-                  <div className="min-w-0">
-                    <span className="font-mono text-foreground">
-                      {r.date && <span>{r.date}</span>}
-                      {r.origin && r.destination && (
-                        <span> {r.origin}→{r.destination}</span>
-                      )}
-                      {r.airline_iata && <span> ({r.airline_iata})</span>}
-                    </span>
-                    <span className="text-muted-foreground ml-2">{r.reason}</span>
-                  </div>
-                </div>
-              ))}
-              {rejected.length > 5 && (
-                <p className="text-sm text-muted-foreground pl-4">
-                  {t('import.noResults.moreRejected', '...and {{count}} more', {
-                    count: rejected.length - 5,
-                  })}
-                </p>
-              )}
-            </div>
-            <div className="px-4 py-3 bg-muted/30 border-t border-border/30">
-              <p className="text-xs text-muted-foreground">
-                💡 {t('import.noResults.hint', 'Tip: Make sure airline codes are 2 letters (e.g., "LY" not "El Al") and airport codes are 3 letters.')}
-              </p>
-            </div>
-          </div>
-        )}
 
         {/* Show cleaned text for debugging */}
         {cleanedText && (
@@ -286,7 +289,9 @@ export function ImportReview({
             {t('import.review.title', 'Review extracted flights')}
           </h2>
           <p className="text-muted-foreground">
-            {t('import.review.subtitle', 'Verify and select which flights to import')}
+            {showingRejectedFlights
+              ? t('import.review.subtitleRejected', 'Fill in missing airline codes to import these flights')
+              : t('import.review.subtitle', 'Verify and select which flights to import')}
           </p>
         </div>
 
@@ -302,6 +307,25 @@ export function ImportReview({
         </div>
       </div>
 
+      {/* Banner when showing rejected flights */}
+      {showingRejectedFlights && (
+        <div className="rounded-xl border border-warning/30 bg-warning/[0.05] overflow-hidden">
+          <div className="px-4 py-3 flex items-start gap-3">
+            <AlertTriangle className="w-5 h-5 text-warning flex-shrink-0 mt-0.5" />
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-warning-foreground mb-1">
+                {t('import.review.missingAirlines', 'Missing airline codes')}
+              </p>
+              <p className="text-sm text-muted-foreground">
+                {t('import.review.missingAirlinesHint', 'AI found {{count}} flight(s), but couldn\'t determine the airline. Fill in the 2-letter airline codes (like "LY", "QR", "TK") to import these flights, or skip for now.', {
+                  count: geminiCount || rejectedAsFlights.length,
+                })}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Action toolbar - minimal floating buttons */}
       <div className="flex items-center justify-between gap-4 py-2">
         <button
@@ -313,31 +337,63 @@ export function ImportReview({
         </button>
 
         <div className="flex items-center gap-3">
-          <Button
-            variant="outline"
-            onClick={onCancel}
-            disabled={saving}
-            className="rounded-xl"
-          >
-            {t('common.cancel', 'Cancel')}
-          </Button>
-          <Button
-            onClick={handleSave}
-            disabled={saving || selectedCount === 0}
-            className="rounded-xl min-w-[140px]"
-          >
-            {saving ? (
-              <span className="flex items-center gap-2">
-                <Loader2 className="w-4 h-4 animate-spin" />
-                {t('import.review.saving', 'Saving...')}
-              </span>
-            ) : (
-              <span className="flex items-center gap-2">
-                <Plane className="w-4 h-4" />
-                {t('import.review.saveSelected', 'Import {{count}}', { count: selectedCount })}
-              </span>
-            )}
-          </Button>
+          {showingRejectedFlights ? (
+            <>
+              <Button
+                variant="outline"
+                onClick={onCancel}
+                disabled={saving}
+                className="rounded-xl"
+              >
+                {t('import.review.skipForNow', 'Skip for now')}
+              </Button>
+              <Button
+                onClick={handleSave}
+                disabled={saving || selectedCount === 0}
+                className="rounded-xl min-w-[140px]"
+              >
+                {saving ? (
+                  <span className="flex items-center gap-2">
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    {t('import.review.saving', 'Saving...')}
+                  </span>
+                ) : (
+                  <span className="flex items-center gap-2">
+                    <Plane className="w-4 h-4" />
+                    {t('import.review.saveSelected', 'Import {{count}}', { count: selectedCount })}
+                  </span>
+                )}
+              </Button>
+            </>
+          ) : (
+            <>
+              <Button
+                variant="outline"
+                onClick={onCancel}
+                disabled={saving}
+                className="rounded-xl"
+              >
+                {t('common.cancel', 'Cancel')}
+              </Button>
+              <Button
+                onClick={handleSave}
+                disabled={saving || selectedCount === 0}
+                className="rounded-xl min-w-[140px]"
+              >
+                {saving ? (
+                  <span className="flex items-center gap-2">
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    {t('import.review.saving', 'Saving...')}
+                  </span>
+                ) : (
+                  <span className="flex items-center gap-2">
+                    <Plane className="w-4 h-4" />
+                    {t('import.review.saveSelected', 'Import {{count}}', { count: selectedCount })}
+                  </span>
+                )}
+              </Button>
+            </>
+          )}
         </div>
       </div>
 
@@ -448,7 +504,7 @@ export function ImportReview({
 
       {/* Flight list - with subtle container */}
       <div className="space-y-3">
-        {flights.map((flight, index) => (
+        {allFlights.map((flight, index) => (
           <FlightEditRow
             key={index}
             flight={flight}

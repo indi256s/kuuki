@@ -789,12 +789,14 @@
     "review": {
       "title": "Review extracted flights",
       "subtitle": "Verify and select which flights to import",
+      "subtitleRejected": "Fill in missing airline codes to import these flights",
       "selectAll": "Select all",
       "deselectAll": "Deselect all",
       "selected": "selected",
       "saveSelected_one": "Import {{count}}",
       "saveSelected_other": "Import {{count}}",
       "saving": "Saving…",
+      "skipForNow": "Skip for now",
       "duplicate": "Duplicate",
       "duplicatesFound_one": "{{count}} possible duplicate found",
       "duplicatesFound_other": "{{count}} possible duplicates found",
@@ -815,7 +817,9 @@
       "yearInferredDesc": "The year was not found in the document and was inferred.",
       "yearNotInDocument": "Year was not found in document",
       "didYouMean": "Did you mean:",
-      "useYear": "Use {{year}}"
+      "useYear": "Use {{year}}",
+      "missingAirlines": "Missing airline codes",
+      "missingAirlinesHint": "AI found {{count}} flight(s), but couldn't determine the airline. Fill in the 2-letter airline codes (like \"LY\", \"QR\", \"TK\") to import these flights, or skip for now."
     },
     "background": {
       "ready_one": "{{count}} flight ready to review",
