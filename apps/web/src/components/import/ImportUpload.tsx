@@ -129,13 +129,6 @@ export function ImportUpload({ onSubmit, disabled, variant = 'full', onSkip }: I
           return
         }
       }
-
-      // If pasting text and textarea is focused, let it flow naturally
-      // but clear file if there's one
-      if (filePreview) {
-        setFilePreview(null)
-        setFileError(null)
-      }
     }
 
     document.addEventListener('paste', handlePaste)
@@ -207,12 +200,6 @@ export function ImportUpload({ onSubmit, disabled, variant = 'full', onSkip }: I
     textarea.style.height = '96px' // Reset to min
     const scrollHeight = Math.min(textarea.scrollHeight, 256) // max-h-64
     setTextareaHeight(`${Math.max(96, scrollHeight)}px`)
-
-    // Clear file when typing
-    if (value && filePreview) {
-      setFilePreview(null)
-      setFileError(null)
-    }
   }, [filePreview, looksLikeOurPrompt, t])
 
   // Clear handlers
