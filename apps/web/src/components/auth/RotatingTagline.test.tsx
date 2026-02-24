@@ -106,54 +106,48 @@ describe('RotatingTagline', () => {
     })
   })
 
-  describe('progress indicators', () => {
-    it('renders correct number of progress indicators for items', () => {
+  describe('layout structure', () => {
+    it('renders a flex column container', () => {
       render(<RotatingTagline items={englishTaglines} />)
 
-      // Progress dots should match number of taglines (one per item)
-      const progressDots = document.querySelectorAll('.gap-2 > div')
-      expect(progressDots.length).toBe(englishTaglines.length)
+      const container = document.querySelector('.flex.flex-col.items-center')
+      expect(container).not.toBeNull()
     })
 
-    it('highlights the current progress indicator', () => {
+    it('renders text inside a min-height container', () => {
       render(<RotatingTagline items={englishTaglines} />)
 
-      // Find the dot elements (w-1.5 h-1.5 rounded-full)
-      const dots = document.querySelectorAll('.w-1\\.5.h-1\\.5.rounded-full')
-      // First dot should be active (bg-primary, scale-125)
-      expect(dots[0].classList.contains('bg-primary')).toBe(true)
-      expect(dots[0].classList.contains('scale-125')).toBe(true)
+      // Text wrapper has min-height to prevent layout shift during animation
+      const textWrapper = document.querySelector('.min-h-\\[3rem\\]')
+      expect(textWrapper).not.toBeNull()
     })
 
-    it('updates highlighted indicator when rotating', async () => {
+    it('text is centered horizontally', () => {
+      render(<RotatingTagline items={englishTaglines} />)
+
+      const textWrapper = document.querySelector('.justify-center')
+      expect(textWrapper).not.toBeNull()
+    })
+
+    it('cycles to next item after interval', async () => {
       render(<RotatingTagline items={englishTaglines} interval={1000} />)
+
+      // First item visible initially
+      expect(screen.getByText(englishTaglines[0])).toBeInTheDocument()
 
       await act(async () => {
         vi.advanceTimersByTime(1300)
       })
 
-      const dots = document.querySelectorAll('.w-1\\.5.h-1\\.5.rounded-full')
-      // Second dot should now be active
-      expect(dots[1].classList.contains('bg-primary')).toBe(true)
-      expect(dots[1].classList.contains('scale-125')).toBe(true)
-      // First dot should be past (lighter color)
-      expect(dots[0].classList.contains('bg-primary/50')).toBe(true)
-    })
-  })
-
-  describe('container dimensions', () => {
-    it('container has overflow-hidden to prevent layout shift', () => {
-      render(<RotatingTagline items={englishTaglines} />)
-
-      const textContainer = document.querySelector('.overflow-hidden')
-      expect(textContainer).not.toBeNull()
+      // Second item visible after interval
+      expect(screen.getByText(englishTaglines[1])).toBeInTheDocument()
     })
 
-    it('container has fixed height class', () => {
-      render(<RotatingTagline items={englishTaglines} />)
+    it('accepts a custom className on the text element', () => {
+      render(<RotatingTagline items={englishTaglines} className="text-xl" />)
 
-      const textContainer = document.querySelector('.h-5')
-      expect(textContainer).not.toBeNull()
+      const text = screen.getByText(englishTaglines[0])
+      expect(text.classList.contains('text-xl')).toBe(true)
     })
   })
 })
