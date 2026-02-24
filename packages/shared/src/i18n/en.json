@@ -365,6 +365,7 @@
     "sameAirport": "Origin and destination cannot be the same",
     "duplicateWarning": "You already have a flight on this date with the same route. You can still save it.",
     "unknownAirport": "Unknown airport — distance and stats may be incomplete",
+    "didYouMean": "Did you mean:",
     "unknownAirline": "Unknown airline",
     "swapRoute": "Swap",
     "invalidTime": "Invalid time format",
