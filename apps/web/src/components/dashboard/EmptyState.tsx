@@ -1,9 +1,10 @@
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
-import { Plus, Upload } from 'lucide-react'
+import { Plus, Upload, FlaskConical } from 'lucide-react'
 import { sampleStats, sampleFlights, formatDistance, formatDuration } from '@/lib/sampleData'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
 
 interface EmptyStateProps {
   onAddFlight: () => void
@@ -14,6 +15,14 @@ export function EmptyState({ onAddFlight }: EmptyStateProps) {
 
   return (
     <div className="relative">
+      {/* Demo data label */}
+      <div className="flex items-center gap-2 mb-3 pointer-events-none select-none">
+        <Badge variant="secondary" className="gap-1.5 text-xs font-medium text-muted-foreground">
+          <FlaskConical className="w-3 h-3" />
+          {t('dashboard.demoPreview', 'Example data — not your flights')}
+        </Badge>
+      </div>
+
       {/* Sample dashboard preview (faded) */}
       <div className="opacity-40 pointer-events-none select-none blur-[1px]" aria-hidden="true">
         {/* Stats grid */}

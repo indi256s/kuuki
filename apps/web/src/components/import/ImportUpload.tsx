@@ -99,9 +99,6 @@ export function ImportUpload({ onSubmit, disabled, variant = 'full', onSkip }: I
         content: base64,
         fileName: file.name,
       })
-      // Clear text when file is added
-      setTextInput('')
-      setTextareaHeight('96px')
       setTextError(null)
     }
     reader.onerror = () => {
@@ -130,17 +127,12 @@ export function ImportUpload({ onSubmit, disabled, variant = 'full', onSkip }: I
         }
       }
 
-      // If pasting text and textarea is focused, let it flow naturally
-      // but clear file if there's one
-      if (filePreview) {
-        setFilePreview(null)
-        setFileError(null)
-      }
+      // If pasting text, let it flow naturally into the textarea
     }
 
     document.addEventListener('paste', handlePaste)
     return () => document.removeEventListener('paste', handlePaste)
-  }, [disabled, filePreview, processFile])
+  }, [disabled, processFile])
 
   // Handle drag events for file card
   const handleDragOver = useCallback((e: React.DragEvent) => {
@@ -207,13 +199,7 @@ export function ImportUpload({ onSubmit, disabled, variant = 'full', onSkip }: I
     textarea.style.height = '96px' // Reset to min
     const scrollHeight = Math.min(textarea.scrollHeight, 256) // max-h-64
     setTextareaHeight(`${Math.max(96, scrollHeight)}px`)
-
-    // Clear file when typing
-    if (value && filePreview) {
-      setFilePreview(null)
-      setFileError(null)
-    }
-  }, [filePreview, looksLikeOurPrompt, t])
+  }, [looksLikeOurPrompt, t])
 
   // Clear handlers
   const clearText = useCallback(() => {
@@ -228,20 +214,20 @@ export function ImportUpload({ onSubmit, disabled, variant = 'full', onSkip }: I
   }, [])
 
   // Submit handler
+  // File takes priority when both file and text are present
   const handleSubmit = useCallback(() => {
-    // Prefer text if both have content (shouldn't happen with clear logic)
-    if (textInput.trim().length >= 10) {
-      onSubmit({
-        type: 'text',
-        content: textInput.trim(),
-      })
-    } else if (textInput.trim().length > 0 && textInput.trim().length < 10) {
-      setTextError(t('import.upload.textTooShort', 'Please enter more text to analyze.'))
-    } else if (filePreview) {
+    if (filePreview) {
       onSubmit({
         type: filePreview.type,
         content: filePreview.content,
       })
+    } else if (textInput.trim().length >= 10) {
+      onSubmit({
+        type: 'text',
+        content: textInput.trim(),
+      })
+    } else if (textInput.trim().length > 0) {
+      setTextError(t('import.upload.textTooShort', 'Please enter more text to analyze.'))
     }
   }, [textInput, filePreview, onSubmit, t])
 
