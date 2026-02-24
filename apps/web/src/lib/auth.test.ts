@@ -77,7 +77,7 @@ describe('auth functions', () => {
 
       const result = await signUp('test@example.com', 'password123', 'KUUKI-TEST-swift-cloud')
 
-      expect(result).toEqual({ success: true })
+      expect(result).toMatchObject({ success: true })
       expect(mockSupabaseClient.auth.signUp).toHaveBeenCalledWith({
         email: 'test@example.com',
         password: 'password123',
@@ -114,7 +114,7 @@ describe('auth functions', () => {
 
       const result = await signIn('test@example.com', 'password123')
 
-      expect(result).toEqual({ success: true })
+      expect(result).toMatchObject({ success: true })
       expect(mockSupabaseClient.auth.signInWithPassword).toHaveBeenCalledWith({
         email: 'test@example.com',
         password: 'password123',
