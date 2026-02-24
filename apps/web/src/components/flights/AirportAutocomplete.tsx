@@ -34,6 +34,7 @@ export function AirportAutocomplete({
   const [selectedIndex, setSelectedIndex] = useState(-1)
   const inputRef = useRef<HTMLInputElement>(null)
   const listRef = useRef<HTMLUListElement>(null)
+  const justSelectedRef = useRef(false)
 
   // Sync input with external value changes
   useEffect(() => {
@@ -78,6 +79,7 @@ export function AirportAutocomplete({
   }
 
   const handleSelect = (airport: Airport) => {
+    justSelectedRef.current = true
     setInputValue(airport.iata)
     onChange(airport.iata, airport)
     setIsOpen(false)
@@ -87,6 +89,12 @@ export function AirportAutocomplete({
   const handleBlur = () => {
     // Delay close to allow click on dropdown
     setTimeout(() => {
+      // If user clicked a dropdown item, handleSelect already ran — skip blur logic
+      if (justSelectedRef.current) {
+        justSelectedRef.current = false
+        setIsOpen(false)
+        return
+      }
       setIsOpen(false)
       // Validate on blur
       if (inputValue.length === 3) {
