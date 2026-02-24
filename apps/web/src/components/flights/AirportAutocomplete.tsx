@@ -34,6 +34,7 @@ export function AirportAutocomplete({
   const [selectedIndex, setSelectedIndex] = useState(-1)
   const inputRef = useRef<HTMLInputElement>(null)
   const listRef = useRef<HTMLUListElement>(null)
+  const justSelectedRef = useRef(false)
 
   // Sync input with external value changes
   useEffect(() => {
@@ -78,6 +79,7 @@ export function AirportAutocomplete({
   }
 
   const handleSelect = (airport: Airport) => {
+    justSelectedRef.current = true
     setInputValue(airport.iata)
     onChange(airport.iata, airport)
     setIsOpen(false)
@@ -87,6 +89,12 @@ export function AirportAutocomplete({
   const handleBlur = () => {
     // Delay close to allow click on dropdown
     setTimeout(() => {
+      // If user clicked a dropdown item, handleSelect already ran — skip blur logic
+      if (justSelectedRef.current) {
+        justSelectedRef.current = false
+        setIsOpen(false)
+        return
+      }
       setIsOpen(false)
       // Validate on blur
       if (inputValue.length === 3) {
@@ -162,13 +170,33 @@ export function AirportAutocomplete({
         </div>
       )}
 
-      {/* Unknown airport warning */}
-      {value && value.length === 3 && !selectedAirport && inputValue === value && (
-        <p className="mt-1 flex items-center gap-1 text-xs text-warning">
-          <AlertCircle className="w-3 h-3 shrink-0" />
-          {t('flights.unknownAirport', 'Unknown airport — distance and stats may be incomplete')}
-        </p>
-      )}
+      {/* Unknown airport warning + close match suggestions */}
+      {value && value.length === 3 && !selectedAirport && inputValue === value && (() => {
+        const suggestions = searchAirports(value).slice(0, 2)
+        return (
+          <div className="mt-1 space-y-1">
+            <p className="flex items-center gap-1 text-xs text-warning">
+              <AlertCircle className="w-3 h-3 shrink-0" />
+              {t('flights.unknownAirport', 'Unknown airport — distance and stats may be incomplete')}
+            </p>
+            {suggestions.length > 0 && (
+              <div className="flex flex-wrap gap-1">
+                <span className="text-xs text-muted-foreground">{t('flights.didYouMean', 'Did you mean:')}</span>
+                {suggestions.map((s) => (
+                  <button
+                    key={s.iata}
+                    type="button"
+                    onClick={() => handleSelect(s)}
+                    className="text-xs text-primary underline underline-offset-2 hover:no-underline"
+                  >
+                    {s.iata} · {s.city}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        )
+      })()}
 
       {error && (
         <p className="mt-1 text-xs text-destructive">{error}</p>
