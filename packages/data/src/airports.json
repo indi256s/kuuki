@@ -4987,7 +4987,7 @@
     "icao": "LWSK",
     "name": "Skopje Alexander the Great Airport",
     "city": "Skopje",
-    "country": "Macedonia",
+    "country": "North Macedonia",
     "countryCode": "MK",
     "latitude": 41.961601,
     "longitude": 21.621401,
@@ -6125,5 +6125,60 @@
     "latitude": 37.7509,
     "longitude": 20.8843,
     "timezone": "Europe/Athens"
+  },
+  {
+    "iata": "TGD",
+    "icao": "LYPG",
+    "name": "Podgorica Airport",
+    "city": "Podgorica",
+    "country": "Montenegro",
+    "countryCode": "ME",
+    "latitude": 42.359402,
+    "longitude": 19.252001,
+    "timezone": "Europe/Podgorica"
+  },
+  {
+    "iata": "ZAD",
+    "icao": "LDZD",
+    "name": "Zadar Airport",
+    "city": "Zadar",
+    "country": "Croatia",
+    "countryCode": "HR",
+    "latitude": 44.108299,
+    "longitude": 15.3467,
+    "timezone": "Europe/Zagreb"
+  },
+  {
+    "iata": "INI",
+    "icao": "LYNI",
+    "name": "Nis Constantine the Great Airport",
+    "city": "Nis",
+    "country": "Serbia",
+    "countryCode": "RS",
+    "latitude": 43.337299,
+    "longitude": 21.853701,
+    "timezone": "Europe/Belgrade"
+  },
+  {
+    "iata": "RJK",
+    "icao": "LDRI",
+    "name": "Rijeka Airport",
+    "city": "Rijeka",
+    "country": "Croatia",
+    "countryCode": "HR",
+    "latitude": 45.2169,
+    "longitude": 14.5703,
+    "timezone": "Europe/Zagreb"
+  },
+  {
+    "iata": "OMO",
+    "icao": "LQMO",
+    "name": "Mostar International Airport",
+    "city": "Mostar",
+    "country": "Bosnia and Herzegovina",
+    "countryCode": "BA",
+    "latitude": 43.282902,
+    "longitude": 17.8459,
+    "timezone": "Europe/Sarajevo"
   }
 ]
