@@ -11,6 +11,7 @@ export type JobType = 'parse' | 'enrichment'
 
 export interface ImportJob {
   id: string
+  ownerId?: string // user id that created the job; pollers reject jobs owned by anyone else
   type: JobType
   status: JobStatus
   createdAt: number
@@ -26,10 +27,11 @@ export interface ImportJob {
 const JOB_TTL_SECONDS = 10 * 60
 
 // KV-backed job functions
-export async function createJob(kv: KVNamespace, type: JobType = 'parse'): Promise<ImportJob> {
+export async function createJob(kv: KVNamespace, type: JobType = 'parse', ownerId?: string): Promise<ImportJob> {
   const id = crypto.randomUUID()
   const job: ImportJob = {
     id,
+    ownerId,
     type,
     status: 'processing',
     createdAt: Date.now(),

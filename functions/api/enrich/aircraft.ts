@@ -11,6 +11,8 @@ import {
   incrementDailyUsage,
   MAX_BATCH_SIZE,
 } from './_shared'
+import { corsHeaders, corsPreflight } from '../_lib/cors'
+import { requireCsrf } from '../_lib/auth'
 
 // JSON schema for structured output from Gemini
 const ENRICHMENT_RESPONSE_SCHEMA = {
@@ -48,16 +50,31 @@ const ENRICHMENT_RESPONSE_SCHEMA = {
 }
 
 export const onRequestPost: PagesFunction<Env> = async (context) => {
-  // CORS headers
-  const corsHeaders = {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type',
-  }
+  const { request, env } = context
+  const cors = corsHeaders(request, env, 'POST, OPTIONS')
 
   // Handle preflight
-  if (context.request.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders })
+  if (request.method === 'OPTIONS') {
+    return corsPreflight(request, env, 'POST, OPTIONS')
+  }
+
+  // CSRF: state-changing, paid-quota endpoint — require same-origin + double-submit token.
+  try {
+    requireCsrf(request)
+  } catch {
+    return new Response(
+      JSON.stringify({ error: 'Invalid CSRF token', code: 'CSRF', results: [] }),
+      { status: 403, headers: { 'Content-Type': 'application/json', ...cors } }
+    )
+  }
+
+  // Auth gate — burns paid Gemini/AirLabs quota, so reject anonymous callers
+  const user = (context.data && context.data.user) || null
+  if (!user) {
+    return new Response(
+      JSON.stringify({ error: 'Authentication required', code: 'UNAUTHENTICATED', results: [] }),
+      { status: 401, headers: { 'Content-Type': 'application/json', ...cors } }
+    )
   }
 
   try {
@@ -65,7 +82,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     if (!context.env.GEMINI_API_KEY) {
       return Response.json(
         { error: 'Gemini API key not configured', results: [] } as EnrichmentResponse,
-        { status: 500, headers: corsHeaders }
+        { status: 500, headers: cors }
       )
     }
 
@@ -74,7 +91,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     if (contentLength > 50_000) {
       return Response.json(
         { error: 'Request too large', results: [] } as EnrichmentResponse,
-        { status: 413, headers: corsHeaders }
+        { status: 413, headers: cors }
       )
     }
 
@@ -86,14 +103,14 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     if (!flights || !Array.isArray(flights) || flights.length === 0) {
       return Response.json(
         { error: 'flights array is required and cannot be empty', results: [] } as EnrichmentResponse,
-        { status: 400, headers: corsHeaders }
+        { status: 400, headers: cors }
       )
     }
 
     if (flights.length > MAX_BATCH_SIZE) {
       return Response.json(
         { error: `Maximum ${MAX_BATCH_SIZE} flights per request`, results: [] } as EnrichmentResponse,
-        { status: 400, headers: corsHeaders }
+        { status: 400, headers: cors }
       )
     }
 
@@ -102,7 +119,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
       if (!flight.id || !flight.date || !flight.origin || !flight.destination) {
         return Response.json(
           { error: 'Each flight must have id, date, origin, and destination', results: [] } as EnrichmentResponse,
-          { status: 400, headers: corsHeaders }
+          { status: 400, headers: cors }
         )
       }
     }
@@ -296,14 +313,14 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
 
     return Response.json(
       { results } as EnrichmentResponse,
-      { headers: corsHeaders }
+      { headers: cors }
     )
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error'
     console.error(JSON.stringify({ event: 'enrichment_error', error: errorMessage, stack: error instanceof Error ? error.stack : undefined }))
     return Response.json(
       { error: `Internal server error: ${errorMessage}`, results: [] } as EnrichmentResponse,
-      { status: 500, headers: corsHeaders }
+      { status: 500, headers: cors }
     )
   }
 }

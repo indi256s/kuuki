@@ -2,6 +2,8 @@ import {
   checkDailyLimit,
   incrementDailyUsage,
 } from '../enrich/_shared'
+import { corsHeaders, corsPreflight } from '../_lib/cors'
+import { requireCsrf } from '../_lib/auth'
 
 interface SearchRequest {
   origin: string
@@ -66,16 +68,31 @@ function isWithinTimeWindow(
 }
 
 export const onRequestPost: PagesFunction<Env> = async (context) => {
-  // CORS headers
-  const corsHeaders = {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type',
-  }
+  const { request, env } = context
+  const cors = corsHeaders(request, env, 'POST, OPTIONS')
 
   // Handle preflight
-  if (context.request.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders })
+  if (request.method === 'OPTIONS') {
+    return corsPreflight(request, env, 'POST, OPTIONS')
+  }
+
+  // CSRF: state-changing, paid-quota endpoint — require same-origin + double-submit token.
+  try {
+    requireCsrf(request)
+  } catch {
+    return new Response(
+      JSON.stringify({ error: 'Invalid CSRF token', code: 'CSRF', flights: [] }),
+      { status: 403, headers: { 'Content-Type': 'application/json', ...cors } }
+    )
+  }
+
+  // Auth gate — burns paid AirLabs quota, so reject anonymous callers
+  const user = (context.data && context.data.user) || null
+  if (!user) {
+    return new Response(
+      JSON.stringify({ error: 'Authentication required', code: 'UNAUTHENTICATED', flights: [] }),
+      { status: 401, headers: { 'Content-Type': 'application/json', ...cors } }
+    )
   }
 
   try {
@@ -83,7 +100,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     if (!context.env.AIRLABS_API_KEY) {
       return Response.json(
         { error: 'AirLabs API key not configured', flights: [] } as SearchResponse,
-        { status: 500, headers: corsHeaders }
+        { status: 500, headers: cors }
       )
     }
 
@@ -92,7 +109,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     if (contentLength > 50_000) {
       return Response.json(
         { error: 'Request too large', flights: [] } as SearchResponse,
-        { status: 413, headers: corsHeaders }
+        { status: 413, headers: cors }
       )
     }
 
@@ -104,14 +121,14 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     if (!origin || !destination || !date || !time) {
       return Response.json(
         { error: 'origin, destination, date, and time are required', flights: [] } as SearchResponse,
-        { status: 400, headers: corsHeaders }
+        { status: 400, headers: cors }
       )
     }
 
     if (origin.length !== 3 || destination.length !== 3) {
       return Response.json(
         { error: 'origin and destination must be 3-letter IATA codes', flights: [] } as SearchResponse,
-        { status: 400, headers: corsHeaders }
+        { status: 400, headers: cors }
       )
     }
 
@@ -120,7 +137,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     if (!timeRegex.test(time)) {
       return Response.json(
         { error: 'time must be in HH:MM format', flights: [] } as SearchResponse,
-        { status: 400, headers: corsHeaders }
+        { status: 400, headers: cors }
       )
     }
 
@@ -139,7 +156,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
       if (dailyUsage >= 50) {
         return Response.json(
           { error: 'Daily search limit reached. Try again tomorrow.', flights: [] } as SearchResponse,
-          { status: 429, headers: corsHeaders }
+          { status: 429, headers: cors }
         )
       }
 
@@ -154,7 +171,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
         console.error(JSON.stringify({ event: 'airlabs_api_error', status: response.status, statusText: response.statusText }))
         return Response.json(
           { error: 'Flight search service unavailable', flights: [] } as SearchResponse,
-          { status: 503, headers: corsHeaders }
+          { status: 503, headers: cors }
         )
       }
 
@@ -192,14 +209,14 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
 
     return Response.json(
       { flights: matchingFlights } as SearchResponse,
-      { headers: corsHeaders }
+      { headers: cors }
     )
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error'
     console.error(JSON.stringify({ event: 'flight_search_error', error: errorMessage }))
     return Response.json(
       { error: `Internal server error: ${errorMessage}`, flights: [] } as SearchResponse,
-      { status: 500, headers: corsHeaders }
+      { status: 500, headers: cors }
     )
   }
 }
