@@ -8,7 +8,7 @@ import { Progress } from '@/components/ui/progress'
 import { Skeleton } from '@/components/ui/skeleton'
 import { formatDistance } from '@/lib/geo'
 import { cn } from '@/lib/utils'
-import type { LeaderboardEntry } from '@/lib/profiles'
+import type { LeaderboardEntry } from '@/lib/leaderboard'
 import type { LeaderboardCategory } from '@/hooks/useLeaderboard'
 
 interface UserRankCardProps {
