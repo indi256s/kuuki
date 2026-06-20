@@ -67,10 +67,15 @@ export async function resolveSession(db: D1Database, token: string | undefined):
 
 /**
  * Slide a valid session's expiry forward, at most once per day. Returns the new expiry
- * (to re-set the cookie Max-Age) or null if no extension happened.
+ * (to re-set the cookie Max-Age) or null if no extension happened. Pass `force` (used by
+ * the explicit `/api/auth/refresh` endpoint) to bypass the once-per-day guard.
  */
-export async function slideSession(db: D1Database, session: ResolvedSession): Promise<string | null> {
-  if (session.lastSeenAt && msSince(session.lastSeenAt) < SLIDE_AFTER_MS) return null
+export async function slideSession(
+  db: D1Database,
+  session: ResolvedSession,
+  force = false,
+): Promise<string | null> {
+  if (!force && session.lastSeenAt && msSince(session.lastSeenAt) < SLIDE_AFTER_MS) return null
   const now = nowIso()
   const expiresAt = isoPlusSeconds(SESSION_TTL_SECONDS, now)
   await db

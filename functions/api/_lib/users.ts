@@ -33,6 +33,46 @@ export async function getUserByEmail(
     .first<{ id: string; email: string; password_hash: string }>()
 }
 
+/** Fetch a user's stored password hash by id (re-auth gate for verify-password). */
+export async function getPasswordHashById(
+  db: D1Database,
+  userId: string,
+): Promise<string | null> {
+  const row = await db
+    .prepare('SELECT password_hash FROM users WHERE id = ?')
+    .bind(userId)
+    .first<{ password_hash: string }>()
+  return row?.password_hash ?? null
+}
+
+/**
+ * Delete every row a user owns, then the profile and user rows, in one batch.
+ *
+ * D1's FK ON DELETE CASCADE is not guaranteed on every path (see schema header), so we
+ * delete children explicitly in child→parent order. Tables enumerated from §4 of the
+ * migration plan + the schema. The whole thing runs as a single db.batch() so a failure
+ * rolls back rather than leaving a half-deleted account.
+ */
+export async function deleteUserCascade(db: D1Database, userId: string): Promise<void> {
+  const childTables = [
+    'flights',
+    'visits',
+    'country_claims',
+    'ground_visits',
+    'user_stats',
+    'user_advanced_stats',
+    'user_badges',
+    'user_aircraft',
+    'leaderboard_cache',
+    'sessions',
+  ]
+  await db.batch([
+    ...childTables.map((t) => db.prepare(`DELETE FROM ${t} WHERE user_id = ?`).bind(userId)),
+    db.prepare('DELETE FROM profiles WHERE id = ?').bind(userId),
+    db.prepare('DELETE FROM users WHERE id = ?').bind(userId),
+  ])
+}
+
 /**
  * Create the auth user, its profile, and the founding-user badge in one batch.
  * Mirrors the live signup trigger chain. Returns the new user id.
