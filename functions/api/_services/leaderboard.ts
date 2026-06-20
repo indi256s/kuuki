@@ -22,9 +22,9 @@ const CATEGORIES = [
   { category: 'airlines', column: 'airlines_count' },
 ] as const
 
-// D1 caps a single statement at ~100 bound variables. Each INSERT row binds 7 vars, so a
-// chunk of 100 rows would be 700 vars — well under the per-statement limit when chunked.
-const ROWS_PER_INSERT = 100
+// D1 caps a single statement at 100 bound variables. Each INSERT row binds 7 vars, so the chunk
+// must stay at floor(100 / 7) = 14 rows (98 vars) to avoid "too many SQL variables" at runtime.
+const ROWS_PER_INSERT = 14
 
 interface EligibleRow {
   user_id: string
