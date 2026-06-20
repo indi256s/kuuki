@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { FlightEditRow } from './FlightEditRow'
 import { EnrichmentErrorBanner } from './EnrichmentErrorBanner'
 import { Button } from '@/components/ui/button'
-import { Plane, AlertTriangle, FileText, ChevronDown, Loader2, CheckSquare, Square, Plus, Copy } from 'lucide-react'
+import { Plane, AlertTriangle, FileText, ChevronDown, Loader2, CheckSquare, Square, Plus, Copy, Info } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useEnrichmentPolling, type ExtractedFlight, type RejectedFlight } from '../../hooks/useImport'
 
@@ -68,7 +68,7 @@ export function ImportReview({
   const showingRejectedFlights = flights.length === 0 && rejectedAsFlights.length > 0
 
   const [selectedIds, setSelectedIds] = useState<Set<number>>(() => {
-    // Pre-select all valid flights, excluding duplicates
+    // Pre-select all valid flights, excluding duplicates and placeholder airlines
     const flightsToCheck = initialFlights.length > 0 ? initialFlights : rejectedAsFlights
     return new Set(
       flightsToCheck
@@ -76,8 +76,11 @@ export function ImportReview({
         .filter((i) => {
           const f = flightsToCheck[i]
           const isDuplicate = existingRoutes.has(`${f.date}:${f.origin}:${f.destination}`)
+          // Don't auto-select flights with placeholder airline
+          const hasPlaceholderAirline = f.airline_iata === 'ZZ'
           return (
             !isDuplicate &&
+            !hasPlaceholderAirline &&
             f.date &&
             f.origin?.length === 3 &&
             f.destination?.length === 3 &&
@@ -149,6 +152,11 @@ export function ImportReview({
     })
     return indices
   }, [allFlights, existingRoutes])
+
+  // Count flights with placeholder airlines
+  const placeholderCount = useMemo(() => {
+    return allFlights.filter(f => f.airline_iata === 'ZZ').length
+  }, [allFlights])
 
   const handleSelectAll = useCallback(() => {
     setSelectedIds(new Set(allFlights.map((_, i) => i)))
@@ -326,6 +334,25 @@ export function ImportReview({
         </div>
       )}
 
+      {/* Info banner for placeholder airlines */}
+      {placeholderCount > 0 && !showingRejectedFlights && (
+        <div className="rounded-xl border border-blue-500/30 bg-blue-500/[0.05]">
+          <div className="px-4 py-3 flex items-start gap-3">
+            <Info className="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5" />
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-foreground mb-1">
+                {t('import.review.placeholderAirlines', 'Unknown airlines detected')}
+              </p>
+              <p className="text-sm text-muted-foreground">
+                {t('import.review.placeholderAirlinesHint', "AI couldn't identify the airline for {{count}} flight(s). You can import them now and add airlines later, or fill them in before importing.", {
+                  count: placeholderCount,
+                })}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Action toolbar - minimal floating buttons */}
       <div className="flex items-center justify-between gap-4 py-2">
         <button
@@ -419,6 +446,25 @@ export function ImportReview({
             <Square className="w-4 h-4" />
             <span className="hidden sm:inline">{t('import.review.deselectAll', 'Clear')}</span>
           </Button>
+          {placeholderCount > 0 && (
+            <Button
+              variant="ghost"
+              onClick={() => {
+                setSelectedIds(prev => {
+                  const next = new Set(prev)
+                  allFlights.forEach((flight, idx) => {
+                    if (flight.airline_iata === 'ZZ') {
+                      next.add(idx)
+                    }
+                  })
+                  return next
+                })
+              }}
+              className="h-8 px-3 rounded-lg gap-2 text-sm"
+            >
+              {t('import.review.includeUnknown', 'Include unknown')}
+            </Button>
+          )}
         </div>
 
         {/* Warnings summary */}

@@ -172,9 +172,16 @@ async function extractFlightsWithGemini(
       } else if (flight.destination.length !== 3) {
         reasons.push(`destination "${flight.destination}" is not 3 letters`)
       }
-      if (typeof flight.airline_iata !== 'string') {
-        reasons.push('missing airline code')
+      // Apply ZZ placeholder for missing airline instead of rejecting
+      if (typeof flight.airline_iata !== 'string' || !flight.airline_iata) {
+        flight.airline_iata = 'ZZ'
+        flight.airline_was_placeholder = true
+        flight.field_confidence = {
+          ...flight.field_confidence,
+          airline_iata: 0,  // Zero confidence for placeholder
+        }
       } else if (flight.airline_iata.length !== 2) {
+        // Still reject invalid lengths
         reasons.push(`airline "${flight.airline_iata}" is not 2 letters`)
       }
 

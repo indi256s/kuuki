@@ -66,6 +66,7 @@ export interface ExtractedFlight {
   arrival_time?: string // HH:mm
   confidence: number // 0-1 overall confidence
   enrichment_status?: EnrichmentStatus // Aircraft enrichment state
+  airline_was_placeholder?: boolean // Flag when ZZ was auto-applied
   field_confidence?: {
     date?: number
     date_year_explicit?: boolean // true if year was in source, false if inferred
@@ -137,7 +138,7 @@ For EACH flight found, extract:
 - date: Flight date in YYYY-MM-DD format
 - origin: 3-letter IATA airport code for departure (e.g., JFK, LAX, TLV)
 - destination: 3-letter IATA airport code for arrival
-- airline_iata: 2-letter IATA airline code. CONVERT airline names to codes:
+- airline_iata: 2-letter IATA airline code. Use "ZZ" if airline cannot be determined. CONVERT airline names to codes:
   "El Al" → "LY", "Qatar Airways" → "QR", "Turkish Airlines" → "TK",
   "Aeroflot" → "SU", "Lufthansa" → "LH", "Georgian Airways" → "A9",
   "China Eastern" → "MU", "Thai Airways" → "TG", "Pegasus" → "PC",
