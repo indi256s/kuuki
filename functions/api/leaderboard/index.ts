@@ -1,0 +1,33 @@
+// GET /api/leaderboard?category=&limit=&offset= — public ranked list read from leaderboard_cache.
+
+import { runHandler, json, HttpError } from '../_lib/http'
+import type { RequestData } from '../_lib/auth'
+import { toLeaderboardEntry } from '../_lib/leaderboard'
+import type { LeaderboardCacheRow } from '../_lib/leaderboard'
+
+const CATEGORIES = ['flights', 'distance', 'countries', 'cities', 'airlines']
+
+export const onRequestGet: PagesFunction<Env, string, RequestData> = (context) =>
+  runHandler(async () => {
+    const url = new URL(context.request.url)
+    const category = url.searchParams.get('category') ?? ''
+    if (!CATEGORIES.includes(category)) {
+      throw new HttpError(400, 'Invalid category', 'INVALID_CATEGORY')
+    }
+
+    const limit = Math.min(Math.max(Number(url.searchParams.get('limit')) || 50, 1), 200)
+    const offset = Math.max(Number(url.searchParams.get('offset')) || 0, 0)
+
+    const db = context.env.DB
+    const { results } = await db
+      .prepare('SELECT * FROM leaderboard_cache WHERE category = ? ORDER BY rank ASC LIMIT ? OFFSET ?')
+      .bind(category, limit, offset)
+      .all<LeaderboardCacheRow>()
+
+    const countRow = await db
+      .prepare('SELECT COUNT(*) AS total FROM leaderboard_cache WHERE category = ?')
+      .bind(category)
+      .first<{ total: number }>()
+
+    return json({ entries: (results ?? []).map(toLeaderboardEntry), total: countRow?.total ?? 0 })
+  })

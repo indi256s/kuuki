@@ -25,6 +25,7 @@ export function toLeaderboardEntry(row: LeaderboardCacheRow) {
     }
   }
   return {
+    id: row.id,
     user_id: row.user_id,
     category: row.category,
     value: row.value,

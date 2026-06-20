@@ -31,6 +31,15 @@
 3. syncVisitsFromFlight → 4. recomputeUserStats → 5. updateAdvancedStatsUnlocks → 6. evaluateBadges →
 7. (advanced stats: see D4 decision — recommend refreshAdvancedStats here too). Leaderboards = Cron.
 
+**Duration precedence (RESOLVED — implemented in Phase 4, do not re-litigate):** when both the
+tz-aware path and the distance fallback could set `duration_minutes`, run them in this order so they
+never clobber: (a) `computeFlightDuration` FIRST, passing the incoming `duration_minutes` as
+`existingDurationMinutes` — it sets `departure_utc`/`arrival_utc` and the authoritative tz-aware
+`duration_minutes` (returns the existing value unchanged when times/tzs are incomplete); (b)
+`fillDistanceAndDuration` SECOND, seeded with that tz duration — its `duration == null` guard means
+the distance-derived duration only fills when the tz path produced nothing. Implemented in
+`functions/api/flights/index.ts` (create) and `flights/[id].ts` (update).
+
 ## Geometry / distance
 
 ```
