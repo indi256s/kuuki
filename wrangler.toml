@@ -11,6 +11,7 @@ compatibility_flags = ["nodejs_compat"]
 # Environment variables for Functions
 [vars]
 # Add any non-secret environment variables here
+PAGES_ORIGIN = "https://kuuki.pages.dev"  # canonical origin reflected by _lib/cors.ts (override per-env)
 SUPABASE_URL = "https://cwmotwkvpdkfrtjxmoce.supabase.co"
 SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN3bW90d2t2cGRrZnJ0anhtb2NlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk4NzQwNzUsImV4cCI6MjA4NTQ1MDA3NX0.RRvp029RplA_KGzEu0as3a1MN6bGOqfGX5b8KASU8nk"
 

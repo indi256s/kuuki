@@ -9,6 +9,7 @@ interface Env {
   GEMINI_API_KEY: string
   AIRLABS_API_KEY: string
   AUTH_SECRET: string // pepper/HMAC key for password hashing (set via `wrangler pages secret put`)
+  PAGES_ORIGIN: string // canonical Pages origin for CORS (import/enrich/search); per-env override
 
   // KV Namespaces
   IMPORT_JOBS: KVNamespace
