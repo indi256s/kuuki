@@ -56,3 +56,9 @@ scripts/*.dat
 
 # Git worktrees
 .worktrees/
+
+# Agent tooling (keep out of remote)
+.agents/
+.claude/
+.planning/
+CLAUDE.md
