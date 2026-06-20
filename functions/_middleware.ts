@@ -1,59 +1,36 @@
-import { createServerClient, parseCookieHeader, serializeCookieHeader } from '@supabase/ssr'
+// Resolves the session cookie for /api/* requests and attaches the user to context.data,
+// so handlers read context.data.user. Also slides the session expiry (≤ once/day) and
+// re-sets the cookie. Non-/api requests (the SPA + static assets) pass straight through.
+//
+// Replaces the former Supabase SSR cookie-refresh middleware.
 
-export const onRequest: PagesFunction<Env> = async (context) => {
-  const { request, env, next } = context
+import { resolveSession, slideSession } from './api/_lib/session'
+import { parseCookies, SESSION_COOKIE } from './api/_lib/cookies'
+import { refreshSessionCookie } from './api/_lib/authCookies'
+import type { RequestData } from './api/_lib/auth'
 
-  // Skip middleware for static assets
+export const onRequest: PagesFunction<Env, string, RequestData> = async (context) => {
+  const { request, env, next, data } = context
+  data.user = null
+
   const url = new URL(request.url)
-  if (
-    url.pathname.startsWith('/_next/') ||
-    url.pathname.startsWith('/assets/') ||
-    url.pathname.match(/\.(ico|png|jpg|jpeg|gif|svg|webp|css|js|woff2?|ttf|eot)$/)
-  ) {
+  if (!url.pathname.startsWith('/api/') || !env.DB) {
     return next()
   }
 
-  // If env vars are not set, pass through (dev mode without wrangler)
-  if (!env.SUPABASE_URL || !env.SUPABASE_ANON_KEY) {
+  const token = parseCookies(request.headers.get('Cookie'))[SESSION_COOKIE]
+  const session = await resolveSession(env.DB, token)
+  if (!session) {
     return next()
   }
 
+  data.user = session.user
+  const newExpiry = await slideSession(env.DB, session)
   const response = await next()
-
-  // Collect cookies to set on the response
-  const cookiesToSet: { name: string; value: string; options: Record<string, unknown> }[] = []
-
-  const supabase = createServerClient(env.SUPABASE_URL, env.SUPABASE_ANON_KEY, {
-    cookies: {
-      getAll() {
-        const cookieHeader = request.headers.get('Cookie') ?? ''
-        return parseCookieHeader(cookieHeader)
-      },
-      setAll(cookies) {
-        cookiesToSet.push(...cookies)
-      },
-    },
-  })
-
-  // This will refresh the session if the access token is expired
-  // The refreshed tokens are stored via setAll above
-  await supabase.auth.getUser()
-
-  // Clone response and set updated cookies
-  const newResponse = new Response(response.body, response)
-
-  for (const cookie of cookiesToSet) {
-    newResponse.headers.append(
-      'Set-Cookie',
-      serializeCookieHeader(cookie.name, cookie.value, {
-        ...cookie.options,
-        httpOnly: true,
-        secure: true,
-        sameSite: 'lax',
-        path: '/',
-      })
-    )
+  if (newExpiry && token) {
+    const res = new Response(response.body, response)
+    refreshSessionCookie(res.headers, token)
+    return res
   }
-
-  return newResponse
+  return response
 }

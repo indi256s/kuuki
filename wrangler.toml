@@ -18,3 +18,9 @@ SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS
 [[kv_namespaces]]
 binding = "IMPORT_JOBS"
 id = "15bad9e7dfa44f8382883513c8bff292"
+
+# D1 Database (Supabase → Cloudflare migration target)
+[[d1_databases]]
+binding = "DB"
+database_name = "kuuki-db"
+database_id = "2a8e3895-6a98-4473-8d7b-a43ca0c0026f"
