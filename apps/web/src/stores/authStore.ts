@@ -1,24 +1,24 @@
 import { create } from 'zustand'
-import type { User } from '@supabase/supabase-js'
+import { setUnauthorizedHandler } from '@/lib/apiClient'
 import {
+  type AuthUser,
   type Profile,
+  getMe,
   getProfile,
-  getSession,
-  onAuthStateChange,
   signIn as authSignIn,
   signUp as authSignUp,
   signOut as authSignOut,
 } from '@/lib/auth'
 
 interface AuthStore {
-  user: User | null
+  user: AuthUser | null
   profile: Profile | null
   isLoading: boolean
   isInitialized: boolean
 
   // Actions
   initialize: () => Promise<void>
-  signUp: (email: string, password: string, inviteCode: string) => Promise<{ success: boolean; error?: string }>
+  signUp: (email: string, password: string) => Promise<{ success: boolean; error?: string }>
   signIn: (email: string, password: string) => Promise<{ success: boolean; error?: string }>
   signOut: () => Promise<void>
   refreshProfile: () => Promise<void>
@@ -35,43 +35,23 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
 
     set({ isLoading: true })
 
-    try {
-      // CRITICAL: Restore session from storage first (not getUser!)
-      // getSession() reads from localStorage and triggers token refresh if needed
-      const session = await getSession()
-      const user = session?.user ?? null
+    // A failed session refresh (inside apiClient) hard-logs-out the user.
+    setUnauthorizedHandler(() => set({ user: null, profile: null }))
 
-      if (user) {
-        const profile = await getProfile(user.id)
-        set({ user, profile, isLoading: false, isInitialized: true })
-      } else {
-        set({ user: null, profile: null, isLoading: false, isInitialized: true })
-      }
+    try {
+      // Bootstrap the session from the httpOnly cookie.
+      const { user, profile } = await getMe()
+      set({ user, profile, isLoading: false, isInitialized: true })
     } catch (error) {
       // Network errors, timeouts, etc. - don't leave loading state stuck
       console.error('Auth initialization failed:', error)
       set({ user: null, profile: null, isLoading: false, isInitialized: true })
     }
-
-    // Subscribe to auth changes
-    onAuthStateChange(async (user) => {
-      try {
-        if (user) {
-          const profile = await getProfile(user.id)
-          set({ user, profile, isLoading: false })
-        } else {
-          set({ user: null, profile: null, isLoading: false })
-        }
-      } catch (error) {
-        console.error('Auth state change failed:', error)
-        set({ isLoading: false })
-      }
-    })
   },
 
-  signUp: async (email, password, inviteCode) => {
+  signUp: async (email, password) => {
     set({ isLoading: true })
-    const result = await authSignUp(email, password, inviteCode)
+    const result = await authSignUp(email, password)
 
     // Set user immediately to avoid race condition with navigation
     if (result.success && result.user) {

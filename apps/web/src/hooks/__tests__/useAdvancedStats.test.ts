@@ -3,12 +3,8 @@ import { renderHook, waitFor } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { createElement } from 'react'
 
-// Mock Supabase - must be defined before vi.mock
-vi.mock('@/lib/supabase', () => ({
-  supabase: {
-    from: vi.fn(),
-  },
-}))
+// Mock the apiClient - must be defined before importing the hooks under test
+vi.mock('@/lib/apiClient', async () => await import('@/test/mocks/apiClient'))
 
 // Mock auth store
 vi.mock('@/stores/authStore', () => ({
@@ -17,7 +13,7 @@ vi.mock('@/stores/authStore', () => ({
 
 // Import after mocks
 import { useAdvancedStats, useUnlockProgress } from '../useAdvancedStats'
-import { supabase } from '@/lib/supabase'
+import { api, resetApiMock } from '@/test/mocks/apiClient'
 
 const mockUserId = 'test-user-123'
 
@@ -37,21 +33,12 @@ function createWrapper() {
 
 describe('useUnlockProgress', () => {
   beforeEach(() => {
-    vi.clearAllMocks()
+    resetApiMock()
   })
 
   it('returns default unlock progress when no user_stats exists', async () => {
-    // Setup mock to return PGRST116 (no rows)
-    vi.mocked(supabase.from).mockReturnValue({
-      select: vi.fn().mockReturnValue({
-        eq: vi.fn().mockReturnValue({
-          single: vi.fn().mockResolvedValue({
-            data: null,
-            error: { code: 'PGRST116', message: 'No rows found' },
-          }),
-        }),
-      }),
-    })
+    // No stats row yet -> API returns null
+    vi.mocked(api.get).mockResolvedValue(null)
 
     const { result } = renderHook(() => useUnlockProgress(), {
       wrapper: createWrapper(),
@@ -61,6 +48,7 @@ describe('useUnlockProgress', () => {
       expect(result.current.isSuccess).toBe(true)
     })
 
+    expect(api.get).toHaveBeenCalledWith('/api/me/stats')
     expect(result.current.data).toEqual({
       aviaGeek: { current: 0, required: 5, unlocked: false },
       countryGeek: { current: 0, required: 5, unlocked: false },
@@ -69,19 +57,10 @@ describe('useUnlockProgress', () => {
   })
 
   it('calculates unlock progress correctly when user has stats', async () => {
-    vi.mocked(supabase.from).mockReturnValue({
-      select: vi.fn().mockReturnValue({
-        eq: vi.fn().mockReturnValue({
-          single: vi.fn().mockResolvedValue({
-            data: {
-              aircraft_count: 7,
-              countries_count: 3,
-              total_flights: 15,
-            },
-            error: null,
-          }),
-        }),
-      }),
+    vi.mocked(api.get).mockResolvedValue({
+      aircraft_count: 7,
+      countries_count: 3,
+      total_flights: 15,
     })
 
     const { result } = renderHook(() => useUnlockProgress(), {
@@ -100,19 +79,10 @@ describe('useUnlockProgress', () => {
   })
 
   it('unlocks aviaGeek at exactly 5 aircraft', async () => {
-    vi.mocked(supabase.from).mockReturnValue({
-      select: vi.fn().mockReturnValue({
-        eq: vi.fn().mockReturnValue({
-          single: vi.fn().mockResolvedValue({
-            data: {
-              aircraft_count: 5,
-              countries_count: 4,
-              total_flights: 9,
-            },
-            error: null,
-          }),
-        }),
-      }),
+    vi.mocked(api.get).mockResolvedValue({
+      aircraft_count: 5,
+      countries_count: 4,
+      total_flights: 9,
     })
 
     const { result } = renderHook(() => useUnlockProgress(), {
@@ -129,19 +99,10 @@ describe('useUnlockProgress', () => {
   })
 
   it('unlocks countryGeek at exactly 5 countries', async () => {
-    vi.mocked(supabase.from).mockReturnValue({
-      select: vi.fn().mockReturnValue({
-        eq: vi.fn().mockReturnValue({
-          single: vi.fn().mockResolvedValue({
-            data: {
-              aircraft_count: 2,
-              countries_count: 5,
-              total_flights: 5,
-            },
-            error: null,
-          }),
-        }),
-      }),
+    vi.mocked(api.get).mockResolvedValue({
+      aircraft_count: 2,
+      countries_count: 5,
+      total_flights: 5,
     })
 
     const { result } = renderHook(() => useUnlockProgress(), {
@@ -158,19 +119,10 @@ describe('useUnlockProgress', () => {
   })
 
   it('unlocks duration at exactly 10 flights', async () => {
-    vi.mocked(supabase.from).mockReturnValue({
-      select: vi.fn().mockReturnValue({
-        eq: vi.fn().mockReturnValue({
-          single: vi.fn().mockResolvedValue({
-            data: {
-              aircraft_count: 2,
-              countries_count: 3,
-              total_flights: 10,
-            },
-            error: null,
-          }),
-        }),
-      }),
+    vi.mocked(api.get).mockResolvedValue({
+      aircraft_count: 2,
+      countries_count: 3,
+      total_flights: 10,
     })
 
     const { result } = renderHook(() => useUnlockProgress(), {
@@ -187,19 +139,10 @@ describe('useUnlockProgress', () => {
   })
 
   it('handles null values in stats gracefully', async () => {
-    vi.mocked(supabase.from).mockReturnValue({
-      select: vi.fn().mockReturnValue({
-        eq: vi.fn().mockReturnValue({
-          single: vi.fn().mockResolvedValue({
-            data: {
-              aircraft_count: null,
-              countries_count: null,
-              total_flights: null,
-            },
-            error: null,
-          }),
-        }),
-      }),
+    vi.mocked(api.get).mockResolvedValue({
+      aircraft_count: null,
+      countries_count: null,
+      total_flights: null,
     })
 
     const { result } = renderHook(() => useUnlockProgress(), {
@@ -220,20 +163,12 @@ describe('useUnlockProgress', () => {
 
 describe('useAdvancedStats', () => {
   beforeEach(() => {
-    vi.clearAllMocks()
+    resetApiMock()
   })
 
   it('returns null when no advanced stats record exists', async () => {
-    vi.mocked(supabase.from).mockReturnValue({
-      select: vi.fn().mockReturnValue({
-        eq: vi.fn().mockReturnValue({
-          single: vi.fn().mockResolvedValue({
-            data: null,
-            error: { code: 'PGRST116', message: 'No rows found' },
-          }),
-        }),
-      }),
-    })
+    // No record -> API returns null
+    vi.mocked(api.get).mockResolvedValue(null)
 
     const { result } = renderHook(() => useAdvancedStats(), {
       wrapper: createWrapper(),
@@ -243,10 +178,12 @@ describe('useAdvancedStats', () => {
       expect(result.current.isSuccess).toBe(true)
     })
 
+    expect(api.get).toHaveBeenCalledWith('/api/me/advanced-stats')
     expect(result.current.data).toBeNull()
   })
 
-  it('parses advanced stats correctly from database', async () => {
+  it('parses advanced stats correctly from the API', async () => {
+    // Snake_case DTO: the API already parses JSON columns and coerces *_unlocked to booleans.
     const mockData = {
       user_id: mockUserId,
       avia_geek_unlocked: true,
@@ -261,29 +198,24 @@ describe('useAdvancedStats', () => {
         total_minutes: 5000,
         avg_minutes: 120,
         longest_minutes: 600,
-        longest_flight_id: 'flight-1',
+        longest_flight_id: 1,
         shortest_minutes: 45,
-        shortest_flight_id: 'flight-2',
+        shortest_flight_id: 2,
         flight_count: 42,
       },
       departure_patterns: { red_eye: 5, early: 10, business: 20, evening: 7, total_with_time: 42 },
       duration_coverage: 95.5,
       patterns: { favorite_route: 'IST-TBS' },
+      card_insights: null,
+      duration_year_comparison: null,
+      fleet_insights: null,
+      manufacturer_insights: null,
       featured_fact: "You've flown the length of the Amazon 3 times",
       featured_fact_index: 2,
       updated_at: '2026-02-01T00:00:00Z',
     }
 
-    vi.mocked(supabase.from).mockReturnValue({
-      select: vi.fn().mockReturnValue({
-        eq: vi.fn().mockReturnValue({
-          single: vi.fn().mockResolvedValue({
-            data: mockData,
-            error: null,
-          }),
-        }),
-      }),
-    })
+    vi.mocked(api.get).mockResolvedValue(mockData)
 
     const { result } = renderHook(() => useAdvancedStats(), {
       wrapper: createWrapper(),
@@ -307,21 +239,25 @@ describe('useAdvancedStats', () => {
         total_minutes: 5000,
         avg_minutes: 120,
         longest_minutes: 600,
-        longest_flight_id: 'flight-1',
+        longest_flight_id: 1,
         shortest_minutes: 45,
-        shortest_flight_id: 'flight-2',
+        shortest_flight_id: 2,
         flight_count: 42,
       },
       departurePatterns: { red_eye: 5, early: 10, business: 20, evening: 7, total_with_time: 42 },
       durationCoverage: 95.5,
       patterns: { favorite_route: 'IST-TBS' },
+      cardInsights: null,
+      durationYearComparison: null,
+      fleetInsights: null,
+      manufacturerInsights: null,
       featuredFact: "You've flown the length of the Amazon 3 times",
       featuredFactIndex: 2,
       updatedAt: '2026-02-01T00:00:00Z',
     })
   })
 
-  it('handles null JSONB fields gracefully', async () => {
+  it('handles null JSON fields gracefully', async () => {
     const mockData = {
       user_id: mockUserId,
       avia_geek_unlocked: false,
@@ -336,21 +272,16 @@ describe('useAdvancedStats', () => {
       departure_patterns: null,
       duration_coverage: null,
       patterns: null,
+      card_insights: null,
+      duration_year_comparison: null,
+      fleet_insights: null,
+      manufacturer_insights: null,
       featured_fact: null,
       featured_fact_index: 0,
       updated_at: null,
     }
 
-    vi.mocked(supabase.from).mockReturnValue({
-      select: vi.fn().mockReturnValue({
-        eq: vi.fn().mockReturnValue({
-          single: vi.fn().mockResolvedValue({
-            data: mockData,
-            error: null,
-          }),
-        }),
-      }),
-    })
+    vi.mocked(api.get).mockResolvedValue(mockData)
 
     const { result } = renderHook(() => useAdvancedStats(), {
       wrapper: createWrapper(),

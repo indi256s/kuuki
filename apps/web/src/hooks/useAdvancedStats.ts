@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { supabase } from '@/lib/supabase'
+import { api } from '@/lib/apiClient'
 import { useAuthStore } from '@/stores/authStore'
 
 export interface MostFlownAircraft {
@@ -100,6 +100,43 @@ export interface UnlockProgress {
 const ADVANCED_STATS_KEY = 'advancedStats'
 
 /**
+ * Raw advanced-stats row as returned by GET /api/me/advanced-stats.
+ * Snake_case keys mirror the old Supabase user_advanced_stats row; the API parses the
+ * JSON-TEXT columns and coerces the *_unlocked flags to booleans server-side.
+ */
+interface ApiAdvancedStats {
+  user_id: string
+  avia_geek_unlocked: boolean
+  country_geek_unlocked: boolean
+  duration_unlocked: boolean
+  manufacturer_breakdown: Record<string, number> | null
+  aircraft_breakdown: Record<string, number> | null
+  aircraft_type_breakdown: AircraftTypeBreakdown | null
+  continent_breakdown: Record<string, number> | null
+  region_breakdown: Record<string, number> | null
+  duration_stats: AdvancedStats['durationStats']
+  departure_patterns: DeparturePatterns | null
+  duration_coverage: number | null
+  patterns: Record<string, unknown> | null
+  card_insights: AdvancedStats['cardInsights']
+  duration_year_comparison: AdvancedStats['durationYearComparison']
+  fleet_insights: FleetInsights | null
+  manufacturer_insights: ManufacturerInsights | null
+  featured_fact: string | null
+  featured_fact_index: number | null
+  updated_at: string | null
+}
+
+/**
+ * Stats row consumed by useUnlockProgress (GET /api/me/stats).
+ */
+interface ApiUserStats {
+  aircraft_count: number | null
+  countries_count: number | null
+  total_flights: number | null
+}
+
+/**
  * Hook for fetching advanced stats with tier unlock information
  */
 export function useAdvancedStats() {
@@ -110,41 +147,37 @@ export function useAdvancedStats() {
     queryFn: async (): Promise<AdvancedStats | null> => {
       if (!userId) return null
 
-      const { data, error } = await supabase
-        .from('user_advanced_stats')
-        .select('*')
-        .eq('user_id', userId)
-        .single()
+      try {
+        const data = await api.get<ApiAdvancedStats | null>('/api/me/advanced-stats')
 
-      if (error) {
-        // If no record exists yet, return default unlocked state
-        if (error.code === 'PGRST116') {
-          return null
+        // No record exists yet — preserve the original PGRST116 null behavior.
+        if (!data) return null
+
+        return {
+          userId: data.user_id,
+          aviaGeekUnlocked: data.avia_geek_unlocked ?? false,
+          countryGeekUnlocked: data.country_geek_unlocked ?? false,
+          durationUnlocked: data.duration_unlocked ?? false,
+          manufacturerBreakdown: data.manufacturer_breakdown,
+          aircraftBreakdown: data.aircraft_breakdown,
+          aircraftTypeBreakdown: data.aircraft_type_breakdown,
+          continentBreakdown: data.continent_breakdown,
+          regionBreakdown: data.region_breakdown,
+          durationStats: data.duration_stats,
+          departurePatterns: data.departure_patterns,
+          durationCoverage: data.duration_coverage ?? 0,
+          patterns: data.patterns,
+          cardInsights: data.card_insights,
+          durationYearComparison: data.duration_year_comparison,
+          fleetInsights: data.fleet_insights,
+          manufacturerInsights: data.manufacturer_insights,
+          featuredFact: data.featured_fact ?? null,
+          featuredFactIndex: data.featured_fact_index ?? 0,
+          updatedAt: data.updated_at ?? '',
         }
-        throw error
-      }
-
-      return {
-        userId: data.user_id,
-        aviaGeekUnlocked: data.avia_geek_unlocked ?? false,
-        countryGeekUnlocked: data.country_geek_unlocked ?? false,
-        durationUnlocked: data.duration_unlocked ?? false,
-        manufacturerBreakdown: data.manufacturer_breakdown as Record<string, number> | null,
-        aircraftBreakdown: data.aircraft_breakdown as Record<string, number> | null,
-        aircraftTypeBreakdown: data.aircraft_type_breakdown as AircraftTypeBreakdown | null,
-        continentBreakdown: data.continent_breakdown as Record<string, number> | null,
-        regionBreakdown: data.region_breakdown as Record<string, number> | null,
-        durationStats: data.duration_stats as AdvancedStats['durationStats'],
-        departurePatterns: data.departure_patterns as DeparturePatterns | null,
-        durationCoverage: (data.duration_coverage as number) ?? 0,
-        patterns: data.patterns as Record<string, unknown> | null,
-        cardInsights: (data as Record<string, unknown>).card_insights as AdvancedStats['cardInsights'],
-        durationYearComparison: (data as Record<string, unknown>).duration_year_comparison as AdvancedStats['durationYearComparison'],
-        fleetInsights: (data as Record<string, unknown>).fleet_insights as FleetInsights | null,
-        manufacturerInsights: (data as Record<string, unknown>).manufacturer_insights as ManufacturerInsights | null,
-        featuredFact: data.featured_fact ?? null,
-        featuredFactIndex: data.featured_fact_index ?? 0,
-        updatedAt: data.updated_at ?? '',
+      } catch (error) {
+        console.error('Error fetching advanced stats:', error)
+        return null
       }
     },
     enabled: !!userId,
@@ -162,21 +195,15 @@ export function useUnlockProgress() {
     queryFn: async (): Promise<UnlockProgress | null> => {
       if (!userId) return null
 
-      const { data, error } = await supabase
-        .from('user_stats')
-        .select('aircraft_count, countries_count, total_flights')
-        .eq('user_id', userId)
-        .single()
+      const data = await api.get<ApiUserStats | null>('/api/me/stats')
 
-      if (error) {
-        if (error.code === 'PGRST116') {
-          return {
-            aviaGeek: { current: 0, required: 5, unlocked: false },
-            countryGeek: { current: 0, required: 5, unlocked: false },
-            duration: { current: 0, required: 10, unlocked: false },
-          }
+      // No stats row yet — same default progress the PGRST116 path returned.
+      if (!data) {
+        return {
+          aviaGeek: { current: 0, required: 5, unlocked: false },
+          countryGeek: { current: 0, required: 5, unlocked: false },
+          duration: { current: 0, required: 10, unlocked: false },
         }
-        throw error
       }
 
       return {

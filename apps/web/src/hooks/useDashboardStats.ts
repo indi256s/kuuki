@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { supabase } from '@/lib/supabase'
+import { api } from '@/lib/apiClient'
 import { useAuthStore } from '@/stores/authStore'
 import { useDashboardStore } from '@/stores/dashboardStore'
 import { findAirport, findCountry } from '@kuuki/data'
@@ -47,6 +47,59 @@ export interface DashboardStats {
     }
 }
 
+/** Pre-computed user_stats row as returned inside GET /api/me/dashboard-stats. */
+interface ApiUserStats {
+    total_flights: number
+    total_distance_km: number
+    total_duration_minutes: number
+    countries_count: number
+    cities_count: number
+    airlines_count: number
+    aircraft_count: number
+    airports_count: number
+    continents_count: number
+}
+
+/** Completed-flight projection returned by the dashboard-stats fast path (no date column). */
+interface ApiCompletedFlight {
+    origin: string
+    destination: string
+    distance_km: number | null
+    duration_minutes: number | null
+    airline_iata: string | null
+    aircraft_icao: string | null
+}
+
+/** Upcoming-flight projection returned by the dashboard-stats fast path. */
+interface ApiUpcomingFlight {
+    id: number
+    date: string
+    origin: string
+    destination: string
+    airline_iata: string | null
+    flight_number: string | null
+}
+
+interface DashboardStatsResponse {
+    stats: ApiUserStats | null
+    upcomingFlights: ApiUpcomingFlight[]
+    completedFlights: ApiCompletedFlight[]
+}
+
+/** Full own-flight DTO as returned by GET /api/flights/all (used by the filtered path). */
+interface ApiFlight {
+    id: number
+    date: string
+    origin: string
+    destination: string
+    airline_iata: string | null
+    aircraft_icao: string | null
+    flight_number: string | null
+    distance_km: number | null
+    duration_minutes: number | null
+    is_upcoming: boolean | null
+}
+
 function hasActiveFilters(filters: FlightFilters): boolean {
     return !!(
         filters.year ||
@@ -61,39 +114,39 @@ function hasActiveFilters(filters: FlightFilters): boolean {
     )
 }
 
-function applyFiltersToQuery(
-    query: ReturnType<ReturnType<typeof supabase.from>['select']>,
-    filters: FlightFilters
-) {
+/** Client-side equivalent of the old Supabase filter chain (applied to completed flights). */
+function matchesFilters(flight: ApiFlight, filters: FlightFilters): boolean {
     if (filters.year) {
-        query = query
-            .gte('date', `${filters.year}-01-01`)
-            .lte('date', `${filters.year}-12-31`)
+        const start = `${filters.year}-01-01`
+        const end = `${filters.year}-12-31`
+        if (flight.date < start || flight.date > end) return false
     }
 
     if (filters.airlineIataCodes && filters.airlineIataCodes.length > 0) {
-        query = query.in('airline_iata', filters.airlineIataCodes)
+        if (!flight.airline_iata || !filters.airlineIataCodes.includes(flight.airline_iata)) return false
     } else if (filters.airlineIata) {
-        query = query.eq('airline_iata', filters.airlineIata)
+        if (flight.airline_iata !== filters.airlineIata) return false
     }
 
     if (filters.aircraftIcao) {
-        query = query.eq('aircraft_icao', filters.aircraftIcao)
+        if (flight.aircraft_icao !== filters.aircraftIcao) return false
     }
 
     if (filters.originCodes && filters.originCodes.length > 0) {
-        query = query.in('origin', filters.originCodes.map(c => c.toUpperCase()))
+        const codes = filters.originCodes.map((c) => c.toUpperCase())
+        if (!codes.includes(flight.origin.toUpperCase())) return false
     } else if (filters.origin) {
-        query = query.eq('origin', filters.origin.toUpperCase())
+        if (flight.origin.toUpperCase() !== filters.origin.toUpperCase()) return false
     }
 
     if (filters.destinationCodes && filters.destinationCodes.length > 0) {
-        query = query.in('destination', filters.destinationCodes.map(c => c.toUpperCase()))
+        const codes = filters.destinationCodes.map((c) => c.toUpperCase())
+        if (!codes.includes(flight.destination.toUpperCase())) return false
     } else if (filters.destination) {
-        query = query.eq('destination', filters.destination.toUpperCase())
+        if (flight.destination.toUpperCase() !== filters.destination.toUpperCase()) return false
     }
 
-    return query
+    return true
 }
 
 /**
@@ -113,49 +166,25 @@ export function useDashboardStats() {
             const filtersActive = hasActiveFilters(filters)
 
             if (filtersActive) {
-                return fetchFilteredStats(userId, filters)
+                return fetchFilteredStats(filters)
             }
 
-            return fetchUnfilteredStats(userId)
+            return fetchUnfilteredStats()
         },
         enabled: !!userId,
     })
 }
 
 /**
- * Fast path: no filters active, use pre-computed user_stats + separate favorites query.
+ * Fast path: no filters active, use pre-computed user_stats + completed flights for favorites.
  */
-async function fetchUnfilteredStats(userId: string): Promise<DashboardStats> {
-    const [
-        { data: stats, error: statsError },
-        { data: upcoming, error: upcomingError },
-        { data: flights, error: flightsError },
-    ] = await Promise.all([
-        supabase
-            .from('user_stats')
-            .select('*')
-            .eq('user_id', userId)
-            .single(),
-        supabase
-            .from('flights')
-            .select('id, date, origin, destination, airline_iata, flight_number')
-            .eq('user_id', userId)
-            .eq('is_upcoming', true)
-            .order('date', { ascending: true })
-            .limit(5),
-        supabase
-            .from('flights')
-            .select('airline_iata, aircraft_icao, origin, destination')
-            .eq('user_id', userId)
-            .eq('is_upcoming', false),
-    ])
+async function fetchUnfilteredStats(): Promise<DashboardStats> {
+    const { stats, upcomingFlights, completedFlights } =
+        await api.get<DashboardStatsResponse>('/api/me/dashboard-stats')
 
-    if (statsError && statsError.code !== 'PGRST116') throw statsError
-    if (upcomingError) throw upcomingError
-    if (flightsError) throw flightsError
-
-    const visitedCountries = extractCountryCodes(flights || [])
-    const favorites = computeFavorites(flights || [])
+    const flights = completedFlights ?? []
+    const visitedCountries = extractCountryCodes(flights)
+    const favorites = computeFavorites(flights)
 
     return {
         totalFlights: stats?.total_flights || 0,
@@ -168,7 +197,7 @@ async function fetchUnfilteredStats(userId: string): Promise<DashboardStats> {
         uniqueAirports: stats?.airports_count || 0,
         continentsCount: stats?.continents_count || 0,
         visitedCountries,
-        upcomingFlights: filterValidUpcoming(upcoming || []),
+        upcomingFlights: filterValidUpcoming(upcomingFlights ?? []),
         percentiles: {
             countries: null,
             cities: null,
@@ -181,35 +210,18 @@ async function fetchUnfilteredStats(userId: string): Promise<DashboardStats> {
 }
 
 /**
- * Filtered path: query raw flights with filters applied, compute all stats client-side.
+ * Filtered path: fetch all flights, apply filters + compute all stats client-side.
  */
-async function fetchFilteredStats(userId: string, filters: FlightFilters): Promise<DashboardStats> {
-    let flightsQuery = supabase
-        .from('flights')
-        .select('origin, destination, distance_km, duration_minutes, airline_iata, aircraft_icao, date')
-        .eq('user_id', userId)
-        .eq('is_upcoming', false)
+async function fetchFilteredStats(filters: FlightFilters): Promise<DashboardStats> {
+    const all = (await api.get<ApiFlight[]>('/api/flights/all')) ?? []
 
-    flightsQuery = applyFiltersToQuery(flightsQuery, filters)
+    const completed = all.filter((f) => !f.is_upcoming)
+    const allFlights = completed.filter((f) => matchesFilters(f, filters))
 
-    const [
-        { data: flights, error: flightsError },
-        { data: upcoming, error: upcomingError },
-    ] = await Promise.all([
-        flightsQuery,
-        supabase
-            .from('flights')
-            .select('id, date, origin, destination, airline_iata, flight_number')
-            .eq('user_id', userId)
-            .eq('is_upcoming', true)
-            .order('date', { ascending: true })
-            .limit(5),
-    ])
-
-    if (flightsError) throw flightsError
-    if (upcomingError) throw upcomingError
-
-    const allFlights = flights || []
+    const upcoming = all
+        .filter((f) => f.is_upcoming)
+        .sort((a, b) => a.date.localeCompare(b.date))
+        .slice(0, 5)
 
     // Compute stats from raw flights
     let totalDistance = 0
@@ -263,7 +275,7 @@ async function fetchFilteredStats(userId: string, filters: FlightFilters): Promi
         uniqueAirports: airports.size,
         continentsCount: continents.size,
         visitedCountries,
-        upcomingFlights: filterValidUpcoming(upcoming || []),
+        upcomingFlights: filterValidUpcoming(upcoming),
         percentiles: {
             countries: null,
             cities: null,
@@ -322,7 +334,16 @@ function computeFavorites(flights: Array<{ airline_iata: string | null; aircraft
     }
 }
 
-function filterValidUpcoming(upcoming: Array<Record<string, unknown>>) {
+function filterValidUpcoming(
+    upcoming: Array<{
+        id: number
+        date: string
+        origin: string
+        destination: string
+        airline_iata: string | null
+        flight_number: string | null
+    }>
+) {
     return upcoming.filter((f) => f.airline_iata !== null) as Array<{
         id: number
         date: string

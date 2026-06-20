@@ -17,7 +17,6 @@ import {
 import { AlertCircle } from 'lucide-react'
 
 const signUpSchema = z.object({
-  inviteCode: z.string().min(1, 'Invite code is required'),
   email: z.string().email('Invalid email address'),
   password: z.string().min(8, 'Password must be at least 8 characters'),
   confirmPassword: z.string().min(1, 'Please confirm your password'),
@@ -40,7 +39,6 @@ export function SignUpForm({ onSuccess, onSignInClick }: SignUpFormProps) {
   const form = useForm<SignUpFormData>({
     resolver: zodResolver(signUpSchema),
     defaultValues: {
-      inviteCode: '',
       email: '',
       password: '',
       confirmPassword: '',
@@ -50,7 +48,7 @@ export function SignUpForm({ onSuccess, onSignInClick }: SignUpFormProps) {
   const onSubmit = async (data: SignUpFormData) => {
     form.clearErrors('root')
 
-    const result = await signUp(data.email, data.password, data.inviteCode)
+    const result = await signUp(data.email, data.password)
 
     if (result.success) {
       onSuccess?.()
@@ -70,26 +68,6 @@ export function SignUpForm({ onSuccess, onSignInClick }: SignUpFormProps) {
             <AlertDescription>{form.formState.errors.root.message}</AlertDescription>
           </Alert>
         )}
-
-        <FormField
-          control={form.control}
-          name="inviteCode"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>{t('auth.inviteCode', 'Invite Code')}</FormLabel>
-              <FormControl>
-                <Input
-                  placeholder="KUUKI-XXXX-word-word"
-                  disabled={isLoading}
-                  className="font-mono text-sm"
-                  {...field}
-                  onChange={(e) => field.onChange(e.target.value.toUpperCase())}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
 
         <FormField
           control={form.control}

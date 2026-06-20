@@ -2,7 +2,7 @@ import { useState, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
 import { useAuthStore } from '@/stores/authStore'
-import { supabase } from '@/lib/supabase'
+import { api } from '@/lib/apiClient'
 import { AppHeader } from '@/components/common/AppHeader'
 import { MobileHeader } from '@/components/layout/MobileHeader'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
@@ -32,18 +32,10 @@ export function DevResetPage() {
     setError(null)
 
     try {
-      // Delete all flights for the current user
-      const { data, error: deleteError } = await supabase
-        .from('flights')
-        .delete()
-        .eq('user_id', user.id)
-        .select('id')
+      // Delete all flights for the current user (ownership scoped server-side).
+      const { deleted } = await api.post<{ deleted: number }>('/api/flights/delete-all')
 
-      if (deleteError) {
-        throw new Error(deleteError.message)
-      }
-
-      const count = data?.length ?? 0
+      const count = deleted ?? 0
       setDeletedCount(count)
 
       // Invalidate all flight-related queries

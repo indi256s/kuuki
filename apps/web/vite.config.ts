@@ -108,10 +108,7 @@ export default defineConfig({
           
           // State management (~15 kB)
           'state': ['zustand'],
-          
-          // Supabase client (~80 kB)
-          'supabase': ['@supabase/supabase-js'],
-          
+
           // Data package (app-specific, changes with app logic)
           'data': ['@kuuki/data'],
         },

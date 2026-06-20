@@ -1,148 +1,140 @@
-import { describe, it, expect, beforeEach } from 'vitest'
-import { mockSupabaseClient, resetSupabaseMocks } from '@/test/mocks/supabase'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
+
+// Replace the real apiClient with the shared mock.
+vi.mock('@/lib/apiClient', async () => await import('@/test/mocks/apiClient'))
+import { api, ApiError, resetApiMock } from '@/test/mocks/apiClient'
 
 // Import after mocking
-import { checkInviteCode, signUp, signIn, signOut } from './auth'
+import { signUp, signIn, signOut, verifyPassword, deleteAccount } from './auth'
 
 describe('auth functions', () => {
   beforeEach(() => {
-    resetSupabaseMocks()
-  })
-
-  describe('checkInviteCode', () => {
-    it('returns true for valid code', async () => {
-      mockSupabaseClient.rpc.mockResolvedValueOnce({ data: true, error: null })
-
-      const result = await checkInviteCode('KUUKI-TEST-swift-cloud')
-
-      expect(mockSupabaseClient.rpc).toHaveBeenCalledWith('check_invite_code', {
-        p_code: 'KUUKI-TEST-SWIFT-CLOUD',
-      })
-      expect(result).toBe(true)
-    })
-
-    it('returns false for invalid code', async () => {
-      mockSupabaseClient.rpc.mockResolvedValueOnce({ data: false, error: null })
-
-      const result = await checkInviteCode('INVALID-CODE')
-
-      expect(result).toBe(false)
-    })
-
-    it('returns false on error', async () => {
-      mockSupabaseClient.rpc.mockResolvedValueOnce({
-        data: null,
-        error: { message: 'Database error' },
-      })
-
-      const result = await checkInviteCode('KUUKI-TEST-swift-cloud')
-
-      expect(result).toBe(false)
-    })
-
-    it('converts code to uppercase', async () => {
-      mockSupabaseClient.rpc.mockResolvedValueOnce({ data: true, error: null })
-
-      await checkInviteCode('kuuki-test-swift-cloud')
-
-      expect(mockSupabaseClient.rpc).toHaveBeenCalledWith('check_invite_code', {
-        p_code: 'KUUKI-TEST-SWIFT-CLOUD',
-      })
-    })
+    resetApiMock()
   })
 
   describe('signUp', () => {
-    it('returns error for invalid invite code', async () => {
-      mockSupabaseClient.rpc.mockResolvedValueOnce({ data: false, error: null })
+    it('creates a user on success', async () => {
+      vi.mocked(api.post).mockResolvedValueOnce({
+        user: { id: 'user-123', email: 'test@example.com' },
+        profile: null,
+      })
 
-      const result = await signUp('test@example.com', 'password123', 'INVALID')
+      const result = await signUp('test@example.com', 'password123')
 
       expect(result).toEqual({
-        success: false,
-        error: 'Invalid or expired invite code',
+        success: true,
+        user: { id: 'user-123', email: 'test@example.com' },
       })
-      expect(mockSupabaseClient.auth.signUp).not.toHaveBeenCalled()
-    })
-
-    it('creates user and uses invite code on success', async () => {
-      // Mock checkInviteCode
-      mockSupabaseClient.rpc.mockResolvedValueOnce({ data: true, error: null })
-      // Mock signUp
-      mockSupabaseClient.auth.signUp.mockResolvedValueOnce({
-        data: { user: { id: 'user-123' } },
-        error: null,
-      })
-      // Mock useInviteCode
-      mockSupabaseClient.rpc.mockResolvedValueOnce({ data: true, error: null })
-
-      const result = await signUp('test@example.com', 'password123', 'KUUKI-TEST-swift-cloud')
-
-      expect(result).toEqual({ success: true, user: { id: 'user-123' } })
-      expect(mockSupabaseClient.auth.signUp).toHaveBeenCalledWith({
+      expect(api.post).toHaveBeenCalledWith('/api/auth/signup', {
         email: 'test@example.com',
         password: 'password123',
-        options: {
-          data: {
-            invite_code: 'KUUKI-TEST-SWIFT-CLOUD',
-          },
-        },
       })
     })
 
-    it('returns error when auth signUp fails', async () => {
-      mockSupabaseClient.rpc.mockResolvedValueOnce({ data: true, error: null })
-      mockSupabaseClient.auth.signUp.mockResolvedValueOnce({
-        data: { user: null },
-        error: { message: 'Email already registered' },
-      })
+    it('returns error when the email is already taken', async () => {
+      vi.mocked(api.post).mockRejectedValueOnce(
+        new ApiError(409, 'An account with this email already exists', 'EMAIL_TAKEN')
+      )
 
-      const result = await signUp('test@example.com', 'password123', 'KUUKI-TEST-swift-cloud')
+      const result = await signUp('test@example.com', 'password123')
 
       expect(result).toEqual({
         success: false,
-        error: 'Email already registered',
+        error: 'An account with this email already exists',
       })
     })
   })
 
   describe('signIn', () => {
     it('returns success on valid credentials', async () => {
-      mockSupabaseClient.auth.signInWithPassword.mockResolvedValueOnce({
-        data: { user: { id: 'user-123' } },
-        error: null,
+      vi.mocked(api.post).mockResolvedValueOnce({
+        user: { id: 'user-123', email: 'test@example.com' },
+        profile: null,
       })
 
       const result = await signIn('test@example.com', 'password123')
 
-      expect(result).toEqual({ success: true, user: { id: 'user-123' } })
-      expect(mockSupabaseClient.auth.signInWithPassword).toHaveBeenCalledWith({
+      expect(result).toEqual({
+        success: true,
+        user: { id: 'user-123', email: 'test@example.com' },
+      })
+      expect(api.post).toHaveBeenCalledWith('/api/auth/signin', {
         email: 'test@example.com',
         password: 'password123',
       })
     })
 
     it('returns error on invalid credentials', async () => {
-      mockSupabaseClient.auth.signInWithPassword.mockResolvedValueOnce({
-        data: { user: null },
-        error: { message: 'Invalid login credentials' },
-      })
+      vi.mocked(api.post).mockRejectedValueOnce(
+        new ApiError(401, 'Invalid email or password', 'INVALID_CREDENTIALS')
+      )
 
       const result = await signIn('test@example.com', 'wrongpassword')
 
       expect(result).toEqual({
         success: false,
-        error: 'Invalid login credentials',
+        error: 'Invalid email or password',
       })
     })
   })
 
   describe('signOut', () => {
-    it('calls supabase signOut', async () => {
-      mockSupabaseClient.auth.signOut.mockResolvedValueOnce({ error: null })
+    it('posts to the signout endpoint', async () => {
+      vi.mocked(api.post).mockResolvedValueOnce({ ok: true })
 
       await signOut()
 
-      expect(mockSupabaseClient.auth.signOut).toHaveBeenCalled()
+      expect(api.post).toHaveBeenCalledWith('/api/auth/signout')
+    })
+
+    it('swallows errors', async () => {
+      vi.mocked(api.post).mockRejectedValueOnce(new ApiError(500, 'boom'))
+
+      await expect(signOut()).resolves.toBeUndefined()
+    })
+  })
+
+  describe('verifyPassword', () => {
+    it('returns true when the password is correct', async () => {
+      vi.mocked(api.post).mockResolvedValueOnce({ ok: true })
+
+      const result = await verifyPassword('password123')
+
+      expect(result).toBe(true)
+      expect(api.post).toHaveBeenCalledWith('/api/auth/verify-password', {
+        password: 'password123',
+      })
+    })
+
+    it('returns false when the password is incorrect', async () => {
+      vi.mocked(api.post).mockRejectedValueOnce(
+        new ApiError(401, 'Incorrect password', 'INVALID_CREDENTIALS')
+      )
+
+      const result = await verifyPassword('wrongpassword')
+
+      expect(result).toBe(false)
+    })
+  })
+
+  describe('deleteAccount', () => {
+    it('returns success when the account is deleted', async () => {
+      vi.mocked(api.delete).mockResolvedValueOnce({ ok: true })
+
+      const result = await deleteAccount()
+
+      expect(result).toEqual({ success: true })
+      expect(api.delete).toHaveBeenCalledWith('/api/auth/account')
+    })
+
+    it('returns error on failure', async () => {
+      vi.mocked(api.delete).mockRejectedValueOnce(
+        new ApiError(500, 'Failed to delete account')
+      )
+
+      const result = await deleteAccount()
+
+      expect(result).toEqual({ success: false, error: 'Failed to delete account' })
     })
   })
 })

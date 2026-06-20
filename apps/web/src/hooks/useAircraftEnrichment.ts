@@ -1,6 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { useAuthStore } from '@/stores/authStore'
-import { supabase } from '@/lib/supabase'
+import { api } from '@/lib/apiClient'
 
 // Keys for cache invalidation
 const FLIGHTS_KEY = 'flights'
@@ -36,18 +35,7 @@ export interface EnrichmentResponse {
 export function useAircraftEnrichment() {
   return useMutation({
     mutationFn: async (flights: FlightToEnrich[]): Promise<EnrichmentResponse> => {
-      const response = await fetch('/api/enrich/aircraft', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ flights }),
-      })
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}))
-        throw new Error(errorData.error || `Request failed with status ${response.status}`)
-      }
-
-      return response.json()
+      return api.post<EnrichmentResponse>('/api/enrich/aircraft', { flights })
     },
   })
 }
@@ -58,27 +46,14 @@ export function useAircraftEnrichment() {
  */
 export function useUpdateFlightAircraft() {
   const queryClient = useQueryClient()
-  const userId = useAuthStore((state) => state.user?.id)
 
   return useMutation({
     mutationFn: async (updates: { id: number; aircraft_icao: string }[]) => {
-      if (!userId) throw new Error('Not authenticated')
-
-      // Use Supabase to update each flight
-      // We do individual updates to ensure proper ownership checks
+      // PATCH each flight individually; ownership is enforced server-side per id.
       const results = await Promise.all(
-        updates.map(async ({ id, aircraft_icao }) => {
-          const { data, error } = await supabase
-            .from('flights')
-            .update({ aircraft_icao })
-            .eq('id', id)
-            .eq('user_id', userId)
-            .select()
-            .single()
-
-          if (error) throw error
-          return data
-        })
+        updates.map(({ id, aircraft_icao }) =>
+          api.patch(`/api/flights/${id}`, { aircraft_icao })
+        )
       )
 
       return results

@@ -1,6 +1,5 @@
-import { supabase } from './supabase'
+import { api, ApiError } from './apiClient'
 import type { Tables, TablesInsert, TablesUpdate } from './database.types'
-import { isUpcomingFlight } from './geo'
 
 export type Flight = Tables<'flights'>
 export type FlightInsert = TablesInsert<'flights'>
@@ -38,6 +37,70 @@ export interface FlightStats {
 }
 
 /**
+ * Own-flight DTO as returned by the API (functions/api/_lib/flights.ts → toOwnFlight).
+ * Mirrors Tables<'flights'> minus `user_id` (always the requester) and minus the D1-internal
+ * `aircraft_lookup_attempts` counter (not present in the Supabase-generated types).
+ */
+interface ApiFlight {
+  id: number
+  date: string
+  origin: string
+  destination: string
+  airline_iata: string | null
+  aircraft_icao: string | null
+  flight_number: string | null
+  departure_time: string | null
+  arrival_time: string | null
+  departure_utc: string | null
+  arrival_utc: string | null
+  origin_tz: string | null
+  dest_tz: string | null
+  distance_km: number | null
+  duration_minutes: number | null
+  source: string
+  is_upcoming: boolean
+  enrichment_status: string
+  created_at: string
+}
+
+/**
+ * Lift an ApiFlight DTO back into the Tables<'flights'> row type the frontend consumers expect.
+ * The API omits `user_id`; we re-attach the caller-known id so the declared `Flight` return type
+ * holds. (No consumer reads `user_id` off a returned flight — it is filled for type-shape parity.)
+ */
+function toFlight(dto: ApiFlight, userId: string): Flight {
+  return { ...dto, user_id: userId }
+}
+
+/**
+ * Build the query params for a flight list / ids request from FlightFilters + paging + sort.
+ * Mirrors functions/api/_lib/flightQuery.ts (parseFlightFilters / parseSort / parsePagination):
+ * scalar filters, CSV arrays for the *Codes filters, sortField/sortOrder, limit/offset.
+ */
+function filterParams(filters: FlightFilters = {}): Record<string, string | number> {
+  const params: Record<string, string | number> = {}
+  if (filters.year) params.year = filters.year
+  if (filters.airlineIataCodes && filters.airlineIataCodes.length > 0) {
+    params.airlineIataCodes = filters.airlineIataCodes.join(',')
+  } else if (filters.airlineIata) {
+    params.airlineIata = filters.airlineIata
+  }
+  if (filters.aircraftIcao) params.aircraftIcao = filters.aircraftIcao
+  if (filters.isUpcoming !== undefined) params.isUpcoming = String(filters.isUpcoming)
+  if (filters.originCodes && filters.originCodes.length > 0) {
+    params.originCodes = filters.originCodes.map((c) => c.toUpperCase()).join(',')
+  } else if (filters.origin) {
+    params.origin = filters.origin.toUpperCase()
+  }
+  if (filters.destinationCodes && filters.destinationCodes.length > 0) {
+    params.destinationCodes = filters.destinationCodes.map((c) => c.toUpperCase()).join(',')
+  } else if (filters.destination) {
+    params.destination = filters.destination.toUpperCase()
+  }
+  return params
+}
+
+/**
  * Fetch paginated flights for a user
  */
 export async function getFlights(
@@ -51,66 +114,23 @@ export async function getFlights(
 ): Promise<{ flights: Flight[]; total: number }> {
   const { limit = 20, offset = 0, filters = {}, sort } = options
 
-  let query = supabase
-    .from('flights')
-    .select('*', { count: 'exact' })
-    .eq('user_id', userId)
-
-  // Apply sorting
-  const sortField = sort?.field ?? 'date'
-  const sortAscending = sort?.order === 'asc'
-  query = query.order(sortField, { ascending: sortAscending })
-  // Secondary sort by id for stable ordering
-  query = query.order('id', { ascending: sortAscending })
-
-  // Apply filters
-  if (filters.year) {
-    const startDate = `${filters.year}-01-01`
-    const endDate = `${filters.year}-12-31`
-    query = query.gte('date', startDate).lte('date', endDate)
+  const params: Record<string, string | number> = {
+    ...filterParams(filters),
+    limit,
+    offset,
+    sortField: sort?.field ?? 'date',
+    sortOrder: sort?.order ?? 'desc',
   }
 
-  // Airline filter - support both single code and array of codes (alliance filter)
-  if (filters.airlineIataCodes && filters.airlineIataCodes.length > 0) {
-    query = query.in('airline_iata', filters.airlineIataCodes)
-  } else if (filters.airlineIata) {
-    query = query.eq('airline_iata', filters.airlineIata)
-  }
-
-  if (filters.aircraftIcao) {
-    query = query.eq('aircraft_icao', filters.aircraftIcao)
-  }
-
-  if (filters.isUpcoming !== undefined) {
-    query = query.eq('is_upcoming', filters.isUpcoming)
-  }
-
-  // Origin filter - support both single code and array of codes (fuzzy search)
-  if (filters.originCodes && filters.originCodes.length > 0) {
-    query = query.in('origin', filters.originCodes.map(c => c.toUpperCase()))
-  } else if (filters.origin) {
-    query = query.eq('origin', filters.origin.toUpperCase())
-  }
-
-  // Destination filter - support both single code and array of codes (fuzzy search)
-  if (filters.destinationCodes && filters.destinationCodes.length > 0) {
-    query = query.in('destination', filters.destinationCodes.map(c => c.toUpperCase()))
-  } else if (filters.destination) {
-    query = query.eq('destination', filters.destination.toUpperCase())
-  }
-
-  // Apply pagination
-  query = query.range(offset, offset + limit - 1)
-
-  const { data, error, count } = await query
-
-  if (error) {
-    throw new Error(`Failed to fetch flights: ${error.message}`)
-  }
-
-  return {
-    flights: data ?? [],
-    total: count ?? 0,
+  try {
+    const data = await api.get<{ flights: ApiFlight[]; total: number }>('/api/flights', params)
+    return {
+      flights: (data.flights ?? []).map((f) => toFlight(f, userId)),
+      total: data.total ?? 0,
+    }
+  } catch (error) {
+    console.error('Error fetching flights:', error)
+    return { flights: [], total: 0 }
   }
 }
 
@@ -118,86 +138,42 @@ export async function getFlights(
  * Get a single flight by ID
  */
 export async function getFlight(flightId: number): Promise<Flight | null> {
-  const { data, error } = await supabase
-    .from('flights')
-    .select('*')
-    .eq('id', flightId)
-    .single()
-
-  if (error) {
-    if (error.code === 'PGRST116') return null // Not found
-    throw new Error(`Failed to fetch flight: ${error.message}`)
+  try {
+    const dto = await api.get<ApiFlight>(`/api/flights/${flightId}`)
+    return toFlight(dto, '')
+  } catch (error) {
+    if (error instanceof ApiError && error.status === 404) return null
+    console.error('Error fetching flight:', error)
+    return null
   }
-
-  return data
 }
 
 /**
  * Create a new flight
  */
 export async function createFlight(flight: Omit<FlightInsert, 'id' | 'created_at'>): Promise<Flight> {
-  // Auto-detect upcoming flights
-  const isUpcoming = isUpcomingFlight(flight.date)
-
-  // Use provided enrichment_status or default based on aircraft presence
-  // - 'skipped' if aircraft_icao is already provided
-  // - 'pending' if we need to enrich it later
-  const enrichmentStatus = flight.enrichment_status ?? (flight.aircraft_icao ? 'skipped' : 'pending')
-
-  const { data, error } = await supabase
-    .from('flights')
-    .insert({
-      ...flight,
-      is_upcoming: isUpcoming,
-      source: flight.source ?? 'manual',
-      enrichment_status: enrichmentStatus,
-    })
-    .select()
-    .single()
-
-  if (error) {
-    throw new Error(`Failed to create flight: ${error.message}`)
-  }
-
-  return data
+  // The API derives the owner from the session and recomputes is_upcoming / enrichment defaults
+  // server-side, so user_id (and any client is_upcoming) are dropped from the request body.
+  const { user_id, is_upcoming, ...body } = flight
+  const dto = await api.post<ApiFlight>('/api/flights', body)
+  return toFlight(dto, user_id)
 }
 
 /**
  * Update an existing flight
  */
 export async function updateFlight(flightId: number, updates: FlightUpdate): Promise<Flight> {
-  // If date is being updated, recalculate is_upcoming
-  const updateData: FlightUpdate = { ...updates }
-  if (updates.date) {
-    updateData.is_upcoming = isUpcomingFlight(updates.date)
-  }
-
-  const { data, error } = await supabase
-    .from('flights')
-    .update(updateData)
-    .eq('id', flightId)
-    .select()
-    .single()
-
-  if (error) {
-    throw new Error(`Failed to update flight: ${error.message}`)
-  }
-
-  return data
+  // The API recomputes is_upcoming from the (possibly new) date, so we never send it.
+  const { user_id, id, created_at, is_upcoming, ...body } = updates
+  const dto = await api.patch<ApiFlight>(`/api/flights/${flightId}`, body)
+  return toFlight(dto, user_id ?? '')
 }
 
 /**
  * Delete a flight
  */
 export async function deleteFlight(flightId: number): Promise<void> {
-  const { error } = await supabase
-    .from('flights')
-    .delete()
-    .eq('id', flightId)
-
-  if (error) {
-    throw new Error(`Failed to delete flight: ${error.message}`)
-  }
+  await api.delete<{ ok: boolean }>(`/api/flights/${flightId}`)
 }
 
 /**
@@ -206,16 +182,8 @@ export async function deleteFlight(flightId: number): Promise<void> {
 export async function deleteFlights(flightIds: number[]): Promise<number> {
   if (flightIds.length === 0) return 0
 
-  const { error, count } = await supabase
-    .from('flights')
-    .delete({ count: 'exact' })
-    .in('id', flightIds)
-
-  if (error) {
-    throw new Error(`Failed to delete flights: ${error.message}`)
-  }
-
-  return count ?? 0
+  const data = await api.post<{ deleted: number }>('/api/flights/bulk-delete', { ids: flightIds })
+  return data.deleted ?? 0
 }
 
 /**
@@ -228,42 +196,28 @@ export async function checkDuplicateFlight(
   destination: string,
   excludeId?: number
 ): Promise<Flight | null> {
-  let query = supabase
-    .from('flights')
-    .select('*')
-    .eq('user_id', userId)
-    .eq('date', date)
-    .eq('origin', origin)
-    .eq('destination', destination)
-
-  if (excludeId) {
-    query = query.neq('id', excludeId)
+  try {
+    const dto = await api.get<ApiFlight | null>('/api/flights/check-duplicate', {
+      date,
+      origin,
+      destination,
+      excludeId,
+    })
+    return dto ? toFlight(dto, userId) : null
+  } catch (error) {
+    console.error('Error checking duplicate flight:', error)
+    return null
   }
-
-  const { data, error } = await query.limit(1)
-
-  if (error) {
-    throw new Error(`Failed to check duplicate: ${error.message}`)
-  }
-
-  return data?.[0] ?? null
 }
 
 /**
  * Get flight statistics for a user
  */
-export async function getFlightStats(userId: string): Promise<FlightStats> {
-  // Get all completed flights for stats (exclude upcoming)
-  const { data: flights, error } = await supabase
-    .from('flights')
-    .select('origin, destination, distance_km, airline_iata, is_upcoming')
-    .eq('user_id', userId)
-
-  if (error) {
-    throw new Error(`Failed to fetch flight stats: ${error.message}`)
-  }
-
-  if (!flights || flights.length === 0) {
+export async function getFlightStats(_userId: string): Promise<FlightStats> {
+  try {
+    return await api.get<FlightStats>('/api/flights/stats')
+  } catch (error) {
+    console.error('Error fetching flight stats:', error)
     return {
       totalFlights: 0,
       totalDistance: 0,
@@ -272,38 +226,6 @@ export async function getFlightStats(userId: string): Promise<FlightStats> {
       uniqueAirports: 0,
       upcomingFlights: 0,
     }
-  }
-
-  // Separate upcoming vs completed
-  const completedFlights = flights.filter(f => !f.is_upcoming)
-  const upcomingFlights = flights.filter(f => f.is_upcoming)
-
-  // Calculate stats from completed flights only
-  const uniqueAirports = new Set<string>()
-  const uniqueAirlines = new Set<string>()
-  let totalDistance = 0
-
-  for (const flight of completedFlights) {
-    uniqueAirports.add(flight.origin)
-    uniqueAirports.add(flight.destination)
-    if (flight.airline_iata) {
-      uniqueAirlines.add(flight.airline_iata)
-    }
-    totalDistance += flight.distance_km ?? 0
-  }
-
-  // Countries visited - we'd need airport data to calculate this properly
-  // For now, estimate based on unique airports (rough approximation)
-  // This will be replaced with proper calculation using visits table
-  const countriesVisited = Math.floor(uniqueAirports.size / 3) || 0
-
-  return {
-    totalFlights: completedFlights.length,
-    totalDistance: Math.round(totalDistance),
-    countriesVisited,
-    airlinesFlown: uniqueAirlines.size,
-    uniqueAirports: uniqueAirports.size,
-    upcomingFlights: upcomingFlights.length,
   }
 }
 
@@ -322,125 +244,79 @@ export interface FlightRoute {
 /**
  * Get all flight routes for map rendering (lightweight: only route-relevant columns)
  */
-export async function getFlightRoutes(userId: string): Promise<FlightRoute[]> {
-  const { data, error } = await supabase
-    .from('flights')
-    .select('id, origin, destination, airline_iata, date, is_upcoming')
-    .eq('user_id', userId)
-    .order('date', { ascending: false })
-
-  if (error) {
-    throw new Error(`Failed to fetch flight routes: ${error.message}`)
+export async function getFlightRoutes(_userId: string): Promise<FlightRoute[]> {
+  try {
+    const rows = await api.get<FlightRoute[]>('/api/flights/routes')
+    return rows ?? []
+  } catch (error) {
+    console.error('Error fetching flight routes:', error)
+    return []
   }
-
-  return (data ?? []) as FlightRoute[]
 }
 
 /**
  * Get recent flights for dashboard display
  */
 export async function getRecentFlights(userId: string, limit = 5): Promise<Flight[]> {
-  const { data, error } = await supabase
-    .from('flights')
-    .select('*')
-    .eq('user_id', userId)
-    .eq('is_upcoming', false)
-    .order('date', { ascending: false })
-    .limit(limit)
-
-  if (error) {
-    throw new Error(`Failed to fetch recent flights: ${error.message}`)
+  try {
+    const rows = await api.get<ApiFlight[]>('/api/flights/recent', { limit })
+    return (rows ?? []).map((f) => toFlight(f, userId))
+  } catch (error) {
+    console.error('Error fetching recent flights:', error)
+    return []
   }
-
-  return data ?? []
 }
 
 /**
  * Get upcoming flights for dashboard display
  */
 export async function getUpcomingFlights(userId: string, limit = 3): Promise<Flight[]> {
-  const { data, error } = await supabase
-    .from('flights')
-    .select('*')
-    .eq('user_id', userId)
-    .eq('is_upcoming', true)
-    .order('date', { ascending: true })
-    .limit(limit)
-
-  if (error) {
-    throw new Error(`Failed to fetch upcoming flights: ${error.message}`)
+  try {
+    const rows = await api.get<ApiFlight[]>('/api/flights/upcoming', { limit })
+    return (rows ?? []).map((f) => toFlight(f, userId))
+  } catch (error) {
+    console.error('Error fetching upcoming flights:', error)
+    return []
   }
-
-  return data ?? []
 }
 
 /**
  * Get unique years from user's flights (for filter dropdown)
  */
-export async function getFlightYears(userId: string): Promise<number[]> {
-  const { data, error } = await supabase
-    .from('flights')
-    .select('date')
-    .eq('user_id', userId)
-
-  if (error) {
-    throw new Error(`Failed to fetch flight years: ${error.message}`)
+export async function getFlightYears(_userId: string): Promise<number[]> {
+  try {
+    const years = await api.get<number[]>('/api/flights/years')
+    return years ?? []
+  } catch (error) {
+    console.error('Error fetching flight years:', error)
+    return []
   }
-
-  const years = new Set<number>()
-  for (const flight of data ?? []) {
-    years.add(new Date(flight.date).getFullYear())
-  }
-
-  return Array.from(years).sort((a, b) => b - a)
 }
 
 /**
  * Get unique airlines from user's flights (for filter dropdown)
  */
-export async function getFlightAirlines(userId: string): Promise<string[]> {
-  const { data, error } = await supabase
-    .from('flights')
-    .select('airline_iata')
-    .eq('user_id', userId)
-    .not('airline_iata', 'is', null)
-
-  if (error) {
-    throw new Error(`Failed to fetch flight airlines: ${error.message}`)
+export async function getFlightAirlines(_userId: string): Promise<string[]> {
+  try {
+    const airlines = await api.get<string[]>('/api/flights/airlines')
+    return airlines ?? []
+  } catch (error) {
+    console.error('Error fetching flight airlines:', error)
+    return []
   }
-
-  const airlines = new Set<string>()
-  for (const flight of data ?? []) {
-    if (flight.airline_iata) {
-      airlines.add(flight.airline_iata)
-    }
-  }
-
-  return Array.from(airlines).sort()
 }
 
 /**
  * Get unique aircraft from user's flights (for filter dropdown)
  */
-export async function getFlightAircraft(userId: string): Promise<string[]> {
-  const { data, error } = await supabase
-    .from('flights')
-    .select('aircraft_icao')
-    .eq('user_id', userId)
-    .not('aircraft_icao', 'is', null)
-
-  if (error) {
-    throw new Error(`Failed to fetch flight aircraft: ${error.message}`)
+export async function getFlightAircraft(_userId: string): Promise<string[]> {
+  try {
+    const aircraft = await api.get<string[]>('/api/flights/aircraft')
+    return aircraft ?? []
+  } catch (error) {
+    console.error('Error fetching flight aircraft:', error)
+    return []
   }
-
-  const aircraft = new Set<string>()
-  for (const flight of data ?? []) {
-    if (flight.aircraft_icao) {
-      aircraft.add(flight.aircraft_icao)
-    }
-  }
-
-  return Array.from(aircraft).sort()
 }
 
 /**
@@ -448,17 +324,13 @@ export async function getFlightAircraft(userId: string): Promise<string[]> {
  * No pagination - returns everything
  */
 export async function getAllFlights(userId: string): Promise<Flight[]> {
-  const { data, error } = await supabase
-    .from('flights')
-    .select('*')
-    .eq('user_id', userId)
-    .order('date', { ascending: false })
-
-  if (error) {
-    throw new Error(`Failed to fetch all flights: ${error.message}`)
+  try {
+    const rows = await api.get<ApiFlight[]>('/api/flights/all')
+    return (rows ?? []).map((f) => toFlight(f, userId))
+  } catch (error) {
+    console.error('Error fetching all flights:', error)
+    return []
   }
-
-  return data ?? []
 }
 
 /**
@@ -466,77 +338,28 @@ export async function getAllFlights(userId: string): Promise<Flight[]> {
  * Lightweight query - only returns IDs, respects filters
  */
 export async function getAllFlightIds(
-  userId: string,
+  _userId: string,
   filters?: FlightFilters
 ): Promise<number[]> {
-  let query = supabase
-    .from('flights')
-    .select('id')
-    .eq('user_id', userId)
-
-  // Apply filters (same as getFlights)
-  if (filters?.year) {
-    const startDate = `${filters.year}-01-01`
-    const endDate = `${filters.year}-12-31`
-    query = query.gte('date', startDate).lte('date', endDate)
+  try {
+    const data = await api.get<{ ids: number[] }>('/api/flights/ids', filterParams(filters))
+    return data.ids ?? []
+  } catch (error) {
+    console.error('Error fetching flight IDs:', error)
+    return []
   }
-
-  // Airline filter - support both single code and array of codes (alliance filter)
-  if (filters?.airlineIataCodes && filters.airlineIataCodes.length > 0) {
-    query = query.in('airline_iata', filters.airlineIataCodes)
-  } else if (filters?.airlineIata) {
-    query = query.eq('airline_iata', filters.airlineIata)
-  }
-
-  if (filters?.aircraftIcao) {
-    query = query.eq('aircraft_icao', filters.aircraftIcao)
-  }
-
-  if (filters?.isUpcoming !== undefined) {
-    query = query.eq('is_upcoming', filters.isUpcoming)
-  }
-
-  // Origin filter - support both single code and array of codes (fuzzy search)
-  if (filters?.originCodes && filters.originCodes.length > 0) {
-    query = query.in('origin', filters.originCodes.map(c => c.toUpperCase()))
-  } else if (filters?.origin) {
-    query = query.eq('origin', filters.origin.toUpperCase())
-  }
-
-  // Destination filter - support both single code and array of codes (fuzzy search)
-  if (filters?.destinationCodes && filters.destinationCodes.length > 0) {
-    query = query.in('destination', filters.destinationCodes.map(c => c.toUpperCase()))
-  } else if (filters?.destination) {
-    query = query.eq('destination', filters.destination.toUpperCase())
-  }
-
-  const { data, error } = await query
-
-  if (error) {
-    throw new Error(`Failed to fetch flight IDs: ${error.message}`)
-  }
-
-  return (data ?? []).map(f => f.id)
 }
 
 /**
  * Convert upcoming flights to completed when their date has passed
  * Call this on app load or periodically
  */
-export async function syncUpcomingFlights(userId: string): Promise<number> {
-  const today = new Date().toISOString().split('T')[0]
-
-  const { data, error } = await supabase
-    .from('flights')
-    .update({ is_upcoming: false })
-    .eq('user_id', userId)
-    .eq('is_upcoming', true)
-    .lte('date', today)
-    .select('id')
-
-  if (error) {
-    throw new Error(`Failed to sync upcoming flights: ${error.message}`)
+export async function syncUpcomingFlights(_userId: string): Promise<number> {
+  try {
+    const data = await api.post<{ synced: number }>('/api/flights/sync-upcoming')
+    return data.synced ?? 0
+  } catch (error) {
+    console.error('Error syncing upcoming flights:', error)
+    return 0
   }
-
-  return data?.length ?? 0
 }

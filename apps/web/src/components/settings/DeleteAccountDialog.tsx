@@ -96,7 +96,7 @@ export function DeleteAccountDialog({ open, onOpenChange }: DeleteAccountDialogP
     setStep('deleting')
 
     // Verify password first
-    const isValid = await verifyPassword(user.email!, password)
+    const isValid = await verifyPassword(password)
     if (!isValid) {
       setError(t('settings.delete.wrongPassword'))
       setStep('error')
@@ -104,7 +104,7 @@ export function DeleteAccountDialog({ open, onOpenChange }: DeleteAccountDialogP
     }
 
     // Delete the account
-    const result = await deleteAccount(user.id)
+    const result = await deleteAccount()
     if (!result.success) {
       setError(result.error ?? t('common.error'))
       setStep('error')

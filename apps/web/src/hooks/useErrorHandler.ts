@@ -1,6 +1,6 @@
 import { useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { supabase } from '@/lib/supabase'
+import { api } from '@/lib/apiClient'
 import { useToast } from './useToast'
 import { classifyError } from '@/lib/errors'
 import type { ErrorContext } from '@/lib/errors'
@@ -46,15 +46,12 @@ export function useErrorHandler() {
    */
   const attemptSessionRefresh = useCallback(async (): Promise<boolean> => {
     try {
-      const { data, error } = await supabase.auth.refreshSession()
-      if (error || !data.session) {
-        console.debug('[Auth] Session refresh failed:', error?.message)
-        return false
-      }
+      // Same-origin session slide; throws ApiError on a non-2xx (expired/missing session).
+      await api.post('/api/auth/refresh')
       console.debug('[Auth] Session refreshed successfully')
       return true
     } catch (e) {
-      console.debug('[Auth] Session refresh error:', e)
+      console.debug('[Auth] Session refresh failed:', e)
       return false
     }
   }, [])
