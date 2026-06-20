@@ -264,6 +264,31 @@ validates the TS ports against real data.
 reset for all users.** Pre-create `users` from `profiles` emails; set passwords via a one-time admin
 script (no email sender in v1). Scale (owner + few invite-gated testers) makes manual reset fine.
 
+## 7.5 Status (updated as phases land)
+
+**Landed (branch `fix/33-image-removal`):** Phases 2, 3, 4, 6 complete. Backend `/api/*` data
+layer + auth (incl. `refresh`/`verify-password`/`account`-delete) built; frontend fully migrated
+off `@supabase/*` to `lib/apiClient` (same-origin cookie+CSRF). Gate green: `functions` tsc 0,
+`apps/web` tsc -b 0, `vite build` OK, `vitest` 175/175. `@supabase/*` removed from code + lockfile.
+
+**Blocked / not started:** Phase 5 (data migration — needs decisions D1/D2/D3/D5 + Supabase+CF
+access; remote/deploy-like), Phase 7 (preview deploy), Phase 8 (cron + cutover).
+
+**Carry-forwards / known gaps for the next session:**
+- **Phase 1′ live extraction NOT performed** — services were ported from the migration SQL +
+  generated types, not from the 2 live unversioned objects (`flights→visits` trigger incl.
+  DELETE/UPDATE decrement, `handle_new_user`). Verify against live defs before/at Phase 5.
+- **Compare feature regression** — `useCompareStats(otherUserId)` (`useCompare.ts`/`CompareModal.tsx`)
+  now returns the *current* user's stats: there is no per-arbitrary-user stats-by-id endpoint in §5
+  (only `/api/me/stats` + `/api/public/profiles/:username`). Needs a product/endpoint decision.
+- **Orphaned admin scripts** — `scripts/backfill-flight-times.ts` + `enrich-existing-flights.ts`
+  still import `@supabase` (root dep removed) → `pnpm backfill:times` now errors. Rewrite as
+  wrangler-D1 admin tools in Phase 5 (per §6.7; they need live D1 data anyway).
+- **Cosmetic** — unused invite-code i18n keys remain in `en.json`/`ru.json`; legacy
+  `SUPABASE_URL`/`SUPABASE_ANON_KEY` still in `wrangler.toml` `[vars]` + `env.d.ts` (remove at Phase 8).
+- **FE adapter notes** — leaderboard/rankings consume flat snake_case (remapped in `lib/leaderboard`);
+  flight DTO omits `user_id`/`aircraft_lookup_attempts` (re-attached in a mapper; no consumer reads them).
+
 ## 8. Phased execution order (corrected)
 - **Phase 0 — Prep (no creds):** add `db/`, shared continent/country map + types in `packages/*`.
   Pure additions; app still builds on Supabase.
@@ -272,20 +297,19 @@ script (no email sender in v1). Scale (owner + few invite-gated testers) makes m
 - **Phase 1′ — LIVE EXTRACTION (Supabase access) [MOVED EARLIER]:** dump the 2 unversioned objects +
   base-table DDL. Finalize `0001_init.sql` (esp. `visits` shape) and the service specs from *real*
   definitions. Everything downstream depends on this.
-- **Phase 2 — Auth backend:** `_lib/` (crypto, session, requireAuth, CSRF) + `api/auth/*` + rewrite
-  `_middleware.ts` + `env.d.ts`. Test via curl on local D1.
-- **Phase 3 — Stats services:** implement the table in §3 from the extracted defs; unit-test on local
+- ✅ **Phase 2 — Auth backend:** `_lib/` (crypto, session, requireAuth, CSRF) + `api/auth/*` + rewrite
+  `_middleware.ts` + `env.d.ts`. (refresh/verify-password/account-delete added 2026-06-20.)
+- ✅ **Phase 3 — Stats services:** implement the table in §3 from the extracted defs; unit-test on local
   D1 fixtures.
-- **Phase 4 — Data API:** all `/api/*` data handlers (`requireOwner`); add auth+CORS to existing
-  functions. Test each via curl.
-- **Phase 5 — Data export + import:** `scripts/sb-to-d1.ts`; import local→validate→remote; backfill
-  derived tables.
-- **Phase 6 — Frontend refactor:** `apiClient`, rewrite `lib/*`/`authStore`/hooks; remove
-  `@supabase/*`; MSW mocks; `pnpm test` + `turbo build` green without Supabase.
-- **Phase 7 — Preview integration:** deploy preview with D1 + preview `AUTH_SECRET`; e2e (signup w/
-  invite, signin, CRUD, stats recompute, leaderboard, passport, account delete, cross-user
-  isolation, 401-refresh).
-- **Phase 8 — Cron + cutover:** create `kuuki-cron`; set prod `AUTH_SECRET`; final re-export; promote;
+- ✅ **Phase 4 — Data API:** all `/api/*` data handlers (`requireOwner`); add auth+CORS to existing
+  functions.
+- ⏸ **Phase 5 — Data export + import (BLOCKED — decisions D1/D2/D3/D5 + access):** `scripts/sb-to-d1.ts`;
+  import local→validate→remote; backfill derived tables.
+- ✅ **Phase 6 — Frontend refactor:** `apiClient`, rewrote `lib/*`/`authStore`/hooks; removed
+  `@supabase/*`; tests use an apiClient vi.fn mock (MSW not needed); build + 175 tests green w/o Supabase.
+- ⏸ **Phase 7 — Preview integration (deploy):** deploy preview with D1 + preview `AUTH_SECRET`; e2e (signup,
+  signin, CRUD, stats recompute, leaderboard, passport, account delete, cross-user isolation, 401-refresh).
+- ⏸ **Phase 8 — Cron + cutover (deploy):** create `kuuki-cron`; set prod `AUTH_SECRET`; final re-export; promote;
   force password reset; remove SUPABASE_* vars; **lock down/pause Supabase** (anon key compromised);
   decommission after soak.
 
