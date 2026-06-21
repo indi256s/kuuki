@@ -333,6 +333,17 @@ const FLIGHTS_COLUMNS = [
   'created_at',
 ]
 
+// NOTE (Phase 5 close-out, verified 2026-06-21): aircraft_icao is imported
+// VERBATIM. Two rows (ids 495, 496; user 4fc167f2) carry 'A380' instead of the
+// canonical ICAO 'A388'. This is pre-existing LIVE data, kept on purpose — do
+// NOT "normalize" it here. Rationale: live Supabase's aircraft_reference also
+// has only 'A388' (never 'A380'), so the advanced-stats LEFT JOINs
+// (advancedStatsBreakdowns.ts:90/119/148, advancedStatsInsights.ts:118/205/224)
+// degrade these flights to 'Unknown' manufacturer / 'unknown' type in BOTH live
+// and D1. Fixing it at import would make D1 the ONLY place that diverges from
+// live. The real fix belongs in live Supabase (UPDATE flights 495/496 -> 'A388')
+// + a re-snapshot + aircraft-input validation, tracked as a separate
+// data-quality ticket around Phase 8 — never as an import-time transform.
 function buildFlightRows(flights: FlightRow[]): Bind[][] {
   if (FLIGHTS_COLUMNS.length !== 20) {
     throw new Error(`flights column list must be 20 (omitting aircraft_lookup_attempts), got ${FLIGHTS_COLUMNS.length}`)

@@ -29,13 +29,18 @@ LOCAL D1 (`.wrangler/state/v3/d1`) holds the full migrated dataset and passes al
 - **`sqlite_sequence` has no UNIQUE/PK** → `INSERT … ON CONFLICT(name)` is rejected by D1. Use `UPDATE sqlite_sequence SET seq=… WHERE name=…` (the row already exists after an AUTOINCREMENT insert with explicit ids). Fixed in sb-to-d1.ts + ship-oracle.ts.
 - Only **17 of 26 users have flights** → 17 user_stats/advanced rows; 3 users are upcoming-only (total_flights=0).
 
-## 4. Local smoke (optional, not yet run)
-Start `wrangler pages dev` and sign in as any migrated user with temp password `kuuki-local-dev-2026`
-(see the command block at the bottom of scripts/reset-passwords.ts). reset-passwords already
-asserted verifyPassword round-trips true.
+## 4. Local smoke — DONE (verified 2026-06-21)
+Ran `wrangler pages dev` against the persisted LOCAL D1 and signed in as a migrated user
+(temp password `kuuki-local-dev-2026`): GET /api/auth/me (unauth) → `{user:null}`; POST
+/api/auth/signin → **200** with user+profile; GET /api/auth/me (auth) → user object; GET
+/api/me/advanced-stats → **200** with computed stats. End-to-end **PASS**.
+**Correct command is config-driven:** `npx wrangler pages dev --persist-to .wrangler/state --port 8788`
+(bindings come from wrangler.toml). Do **NOT** pass `--d1=DB=kuuki-db --kv=IMPORT_JOBS` — those
+override flags key an EMPTY local DB (different hash than the config UUID) and signin 500s with
+`no such table: users`. The reset-passwords.ts smoke block was fixed accordingly.
 
 ## 5. Open / deferred (do NOT do without authorization)
-- **Data-quality note:** 2 flights have `aircraft_icao='A380'` (valid ICAO is `A388`) — pre-existing live data; mirrored verbatim. Decide in Phase 7 whether to normalize (no read path joins flights→aircraft_reference today). Background task task_8b963cad was filed.
+- **Data-quality note (CORRECTED at close-out 2026-06-21):** 2 flights (ids **495, 496**; user `4fc167f2`) carry `aircraft_icao='A380'` instead of canonical `A388`. The earlier "no read path joins flights→aircraft_reference" claim is **WRONG** — advanced-stats *does* join: `LEFT JOIN aircraft_reference ar ON f.aircraft_icao=ar.icao` in `advancedStatsBreakdowns.ts:90/119/148` + `advancedStatsInsights.ts:118/205/224`, so on recompute these 2 flights bucket as `Unknown`/`unknown` manufacturer+type (verified via repro query). **Decision: keep verbatim** — live Supabase's `aircraft_reference` also has only `A388` (never `A380`), so live degrades identically → D1==live parity; and the shipped `user_advanced_stats` oracle is live-derived (and stale, predates these flights) so A380 feeds no validation gate. Normalizing at import would make D1 the only divergence from live. **Real fix** = `UPDATE` live Supabase flights 495/496 → `A388` + re-snapshot + add aircraft-input validation; do it at/around Phase 8, NOT as an import transform. Documented in `scripts/sb-to-d1.ts` (buildFlightRows). (Supersedes background task task_8b963cad's "cosmetic" framing.)
 - Stray untracked `docs/agents/` (domain.md, triage-labels.md, issue-tracker.md) appeared mid-session, unrelated to Phase 5 — left untracked, not committed. Review/remove separately.
 - Deferred carry-forwards (Compare regression, admin-script rewrite, i18n/SUPABASE cleanup) per spec §7.5 — untouched.
 

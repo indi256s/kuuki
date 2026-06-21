@@ -178,10 +178,18 @@ async function main(): Promise<void> {
     const sampleEmail = pending[0].email
     console.log('\n── LOCAL pages-dev smoke test (run manually) ──')
     console.log('# Terminal 1 — start local pages dev against the SAME persisted D1:')
+    console.log('npx wrangler pages dev --persist-to .wrangler/state --port 8788')
     console.log(
-      'npx wrangler pages dev apps/web/dist --compatibility-date=2025-09-23 ' +
-        '--compatibility-flag=nodejs_compat --d1=DB=kuuki-db --kv=IMPORT_JOBS ' +
-        '--persist-to .wrangler/state --port 8788',
+      '#   ^ binds D1/KV/vars from wrangler.toml (binding DB -> database_id UUID).',
+    )
+    console.log(
+      '#     Do NOT add --d1=DB=kuuki-db/--kv=IMPORT_JOBS: those override flags key the',
+    )
+    console.log(
+      '#     local store by the literal name (a DIFFERENT hash than the config UUID), so',
+    )
+    console.log(
+      '#     pages dev opens an EMPTY db and signin 500s with "no such table: users".',
     )
     console.log('\n# Terminal 2 — bootstrap (expect {"user":null,...} before sign-in):')
     console.log('curl -s -c cookies.txt http://localhost:8788/api/auth/me')
@@ -204,13 +212,15 @@ main().catch((err) => {
 })
 
 /*
- * ── LOCAL pages-dev smoke command (reference) ──────────────────────────────
+ * ── LOCAL pages-dev smoke command (reference, verified 2026-06-21) ──────────
  * Start local pages dev bound to the SAME persisted LOCAL D1 (.wrangler/state):
  *
- *   npx wrangler pages dev apps/web/dist \
- *     --compatibility-date=2025-09-23 --compatibility-flag=nodejs_compat \
- *     --d1=DB=kuuki-db --kv=IMPORT_JOBS \
- *     --persist-to .wrangler/state --port 8788
+ *   npx wrangler pages dev --persist-to .wrangler/state --port 8788
+ *
+ *   # Bindings come from wrangler.toml (binding DB -> database_id UUID). Do NOT
+ *   # pass --d1=DB=kuuki-db or --kv=IMPORT_JOBS: those override flags key the local
+ *   # store by the literal name (a DIFFERENT hash than the config UUID), so pages
+ *   # dev opens an EMPTY db and signin 500s with "no such table: users".
  *
  * Then, with AUTH_SECRET coming from .dev.vars (pages dev loads it automatically):
  *
