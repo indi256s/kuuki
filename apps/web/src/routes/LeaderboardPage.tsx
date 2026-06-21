@@ -36,7 +36,7 @@ export function LeaderboardPage() {
       <AppHeader />
 
       {/* Main content - pb-safe adds bottom padding for mobile tab bar */}
-      <main className="max-w-7xl 3xl:max-w-[1800px] mx-auto px-4 sm:px-6 py-4 sm:py-6 pb-safe sm:pb-6">
+      <main id="main-content" className="max-w-7xl 3xl:max-w-[1800px] mx-auto px-4 sm:px-6 py-4 sm:py-6 pb-safe sm:pb-6">
         <div className="space-y-6 animate-fade-up stagger-children">
           {/* Page header */}
           <div>

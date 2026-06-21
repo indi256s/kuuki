@@ -6,6 +6,7 @@ import { ShowcaseModal } from '@/components/onboarding/ShowcaseModal'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Plane, Globe2, BarChart3, Users, Languages, ArrowRight } from 'lucide-react'
+import { cn } from '@/lib/utils'
 
 export function LandingPage() {
   const { t } = useTranslation()
@@ -48,6 +49,9 @@ export function LandingPage() {
     },
   ]
 
+  const [featured, ...secondary] = features
+  const heroTitle = t('landing.hero.title')
+
   return (
     <div className="min-h-screen bg-gradient-soft flex flex-col">
       {/* Showcase Modal */}
@@ -75,19 +79,10 @@ export function LandingPage() {
       </header>
 
       {/* Hero */}
-      <main className="flex-1 flex flex-col justify-center px-6 py-12">
+      <main id="main-content" className="flex-1 flex flex-col justify-center px-6 py-12">
         <div className="max-w-4xl mx-auto text-center">
-          {/* Main headline - word-by-word reveal for premium feel */}
-          <h1 className="text-4xl sm:text-5xl md:text-6xl font-semibold tracking-tight text-balance">
-            {t('landing.hero.title').split(' ').map((word, i) => (
-              <span
-                key={i}
-                className="inline-block animate-fade-up"
-                style={{ animationDelay: `${i * 80}ms` }}
-              >
-                {word}{' '}
-              </span>
-            ))}
+          <h1 className="text-4xl sm:text-5xl md:text-6xl font-semibold tracking-tight text-balance animate-fade-up">
+            {heroTitle}
           </h1>
 
           {/* Subtitle */}
@@ -111,20 +106,38 @@ export function LandingPage() {
           </div>
         </div>
 
-        {/* Features grid */}
-        <div className="max-w-5xl mx-auto mt-24 grid sm:grid-cols-2 lg:grid-cols-4 gap-4 stagger-children">
-          {features.map((feature) => (
-            <Card key={feature.title} className="border-border/50 hover:border-primary/30 transition-[border-color] duration-200 group">
-              <CardContent className="p-5">
-                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center mb-4 group-hover:bg-primary/20 group-hover:scale-110 transition-[background-color,transform] duration-300">
-                  <feature.icon className="w-5 h-5 text-primary" strokeWidth={1.5} />
-                </div>
-                <h3 className="font-medium mb-1">{feature.title}</h3>
-                <p className="text-sm text-muted-foreground">{feature.description}</p>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+        {/* Features: featured row + compact trio */}
+        <section className="max-w-5xl mx-auto mt-24 space-y-4 stagger-children" aria-label={t('landing.features.ariaLabel', 'Features')}>
+          <Card className="border-border/50 hover:border-primary/30 transition-[border-color] duration-200 group">
+            <CardContent className="p-6 sm:p-8 flex flex-col sm:flex-row gap-6 items-start">
+              <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0 group-hover:bg-primary/20 transition-colors duration-300">
+                <featured.icon className="w-6 h-6 text-primary" strokeWidth={1.5} />
+              </div>
+              <div className="text-left">
+                <h2 className="text-lg font-semibold mb-2">{featured.title}</h2>
+                <p className="text-muted-foreground max-w-2xl">{featured.description}</p>
+              </div>
+            </CardContent>
+          </Card>
+
+          <ul className="grid sm:grid-cols-3 gap-4 list-none p-0 m-0">
+            {secondary.map((feature) => (
+              <li key={feature.title}>
+                <Card className={cn(
+                  'h-full border-border/50 hover:border-primary/30 transition-[border-color] duration-200 group'
+                )}>
+                  <CardContent className="p-5">
+                    <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center mb-3 group-hover:bg-primary/20 transition-colors duration-300">
+                      <feature.icon className="w-4 h-4 text-primary" strokeWidth={1.5} />
+                    </div>
+                    <h3 className="font-medium mb-1 text-sm">{feature.title}</h3>
+                    <p className="text-sm text-muted-foreground leading-snug">{feature.description}</p>
+                  </CardContent>
+                </Card>
+              </li>
+            ))}
+          </ul>
+        </section>
       </main>
 
       {/* Footer */}

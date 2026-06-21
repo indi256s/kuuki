@@ -145,15 +145,15 @@ export function WindLoader({ step = 'reading', size = 'md', hideMessage = false 
         <div className="flex items-center gap-2 text-muted-foreground">
           <div className="flex gap-1">
             <span
-              className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce"
+              className="w-1.5 h-1.5 rounded-full bg-primary animate-loading-dot"
               style={{ animationDelay: '0ms' }}
             />
             <span
-              className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce"
+              className="w-1.5 h-1.5 rounded-full bg-primary animate-loading-dot"
               style={{ animationDelay: '150ms' }}
             />
             <span
-              className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce"
+              className="w-1.5 h-1.5 rounded-full bg-primary animate-loading-dot"
               style={{ animationDelay: '300ms' }}
             />
           </div>

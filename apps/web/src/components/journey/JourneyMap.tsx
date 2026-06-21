@@ -9,10 +9,9 @@ import {
     ZoomableGroup,
 } from 'react-simple-maps'
 import { findAirport, findAirline } from '@kuuki/data'
-import { useTheme } from '@/hooks/useTheme'
+import { useMapColors } from '@/hooks/useMapColors'
 import type { JourneyLeg } from '@/routes/JourneyPlannerPage'
 
-// Reuse the same GeoJSON
 const GEO_URL = 'https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json'
 
 interface JourneyMapProps {
@@ -20,15 +19,8 @@ interface JourneyMapProps {
 }
 
 export const JourneyMap = memo(function JourneyMap({ legs }: JourneyMapProps) {
-    const { resolvedTheme } = useTheme()
-    const isLight = resolvedTheme === 'light'
+    const mapColors = useMapColors()
 
-    // Theme colors
-    // Transparent by default to let parent background show through (e.g. cinematic gradient)
-    const countryFill = isLight ? '#e2e8f0' : '#1e293b'
-    const countryStroke = isLight ? '#cbd5e1' : '#334155'
-
-    // Prepare map data
     const { arcs, airports } = useMemo(() => {
         const computedArcs = []
         const airportMap = new Map()
@@ -43,7 +35,7 @@ export const JourneyMap = memo(function JourneyMap({ legs }: JourneyMapProps) {
                     id: leg.id,
                     origin: { lat: origin.latitude, lon: origin.longitude },
                     destination: { lat: dest.latitude, lon: dest.longitude },
-                    color: airline?.primaryColor || '#6366f1',
+                    color: airline?.primaryColor || mapColors.routeFallback,
                 })
 
                 if (!airportMap.has(leg.origin)) airportMap.set(leg.origin, { ...origin, iata: leg.origin })
@@ -55,17 +47,14 @@ export const JourneyMap = memo(function JourneyMap({ legs }: JourneyMapProps) {
             arcs: computedArcs,
             airports: Array.from(airportMap.values())
         }
-    }, [legs])
+    }, [legs, mapColors.routeFallback])
 
-    // Simple auto-center logic (can be improved later to be adaptive like the main map)
-    // For now, center on the first leg's origin or default
     const center = useMemo(() => {
         if (airports.length > 0) {
             return [airports[0].longitude, airports[0].latitude] as [number, number]
         }
         return [0, 20] as [number, number]
     }, [airports])
-
 
     return (
         <div className="w-full h-full bg-transparent">
@@ -88,12 +77,12 @@ export const JourneyMap = memo(function JourneyMap({ legs }: JourneyMapProps) {
                                 <Geography
                                     key={geo.rsmKey}
                                     geography={geo}
-                                    fill={countryFill}
-                                    stroke={countryStroke}
+                                    fill={mapColors.country}
+                                    stroke={mapColors.stroke}
                                     strokeWidth={0.5}
                                     style={{
                                         default: { outline: 'none' },
-                                        hover: { outline: 'none', fill: isLight ? '#cbd5e1' : '#334155' },
+                                        hover: { outline: 'none', fill: mapColors.countryHover },
                                         pressed: { outline: 'none' },
                                     }}
                                 />
@@ -101,7 +90,6 @@ export const JourneyMap = memo(function JourneyMap({ legs }: JourneyMapProps) {
                         }
                     </Geographies>
 
-                    {/* Route Lines */}
                     {arcs.map((arc) => (
                         <Line
                             key={arc.id}
@@ -114,17 +102,16 @@ export const JourneyMap = memo(function JourneyMap({ legs }: JourneyMapProps) {
                         />
                     ))}
 
-                    {/* Airport Markers */}
                     {airports.map((airport) => (
                         <Marker key={airport.iata} coordinates={[airport.longitude, airport.latitude]}>
-                            <circle r={4} fill="white" stroke={countryStroke} strokeWidth={1} />
+                            <circle r={4} fill="var(--card)" stroke={mapColors.stroke} strokeWidth={1} />
                             <text
                                 textAnchor="middle"
                                 y={-10}
                                 style={{
                                     fontFamily: 'monospace',
                                     fontSize: '10px',
-                                    fill: isLight ? '#0f172a' : '#f8fafc',
+                                    fill: mapColors.markerLabel,
                                     fontWeight: 'bold'
                                 }}
                             >

@@ -329,7 +329,7 @@ export function ImportPage() {
       <AppHeader />
 
       {/* Main content - pb-safe adds bottom padding for mobile tab bar */}
-      <main className="max-w-5xl mx-auto px-6 py-8 pb-safe sm:pb-8 relative z-10">
+      <main id="main-content" className="max-w-5xl mx-auto px-6 py-8 pb-safe sm:pb-8 relative z-10">
         {/* Page header with step indicator */}
         <div className="mb-8 animate-fade-up">
           <div className="flex items-center justify-between">

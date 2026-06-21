@@ -86,7 +86,7 @@ export function RegisterForm({ onSuccess, onSignInClick }: RegisterFormProps) {
                   type="email"
                   placeholder="you@example.com"
                   disabled={isLoading}
-                  className="h-12 aura-input border-0 focus-visible:ring-1 focus-visible:ring-primary/50 text-white placeholder:text-white/20"
+                  className="h-12 aura-input border-0 focus-visible:ring-1 focus-visible:ring-primary/50 text-white placeholder:text-white/60"
                   {...field}
                 />
               </FormControl>
@@ -110,7 +110,7 @@ export function RegisterForm({ onSuccess, onSignInClick }: RegisterFormProps) {
                   type="password"
                   placeholder="••••••••"
                   disabled={isLoading}
-                  className="h-12 aura-input border-0 focus-visible:ring-1 focus-visible:ring-primary/50 text-white placeholder:text-white/20"
+                  className="h-12 aura-input border-0 focus-visible:ring-1 focus-visible:ring-primary/50 text-white placeholder:text-white/60"
                   {...field}
                 />
               </FormControl>
@@ -122,7 +122,7 @@ export function RegisterForm({ onSuccess, onSignInClick }: RegisterFormProps) {
         <Button
           type="submit"
           disabled={isLoading}
-          className="w-full h-12 aura-button rounded-xl text-white font-medium text-base shadow-lg shadow-primary/20 hover:shadow-primary/40 border-0"
+          className="w-full h-12 aura-button rounded-xl text-white font-medium text-base border-0"
         >
           {isLoading ? t('common.loading') : t('auth.createAccount')}
         </Button>

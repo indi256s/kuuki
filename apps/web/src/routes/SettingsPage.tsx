@@ -26,7 +26,7 @@ export function SettingsPage() {
       <AppHeader />
 
       {/* Main content */}
-      <main className="max-w-2xl mx-auto px-6 py-8 pb-safe sm:pb-8 relative z-10">
+      <main id="main-content" className="max-w-2xl mx-auto px-6 py-8 pb-safe sm:pb-8 relative z-10">
         {/* Page title */}
         <div className="mb-8 animate-fade-up">
           <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">

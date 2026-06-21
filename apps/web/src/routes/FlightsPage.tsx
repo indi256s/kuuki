@@ -73,7 +73,7 @@ export function FlightsPage() {
       <AppHeader onAddFlight={handleAddFlight} showAddButton />
 
       {/* Content - wider container, generous spacing */}
-      <main className="max-w-7xl 3xl:max-w-[1800px] mx-auto px-4 sm:px-8 py-6 sm:py-10 pb-safe sm:pb-10">
+      <main id="main-content" className="max-w-7xl 3xl:max-w-[1800px] mx-auto px-4 sm:px-8 py-6 sm:py-10 pb-safe sm:pb-10">
         {/* Page header */}
         <div className="mb-8 animate-fade-up">
           <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">

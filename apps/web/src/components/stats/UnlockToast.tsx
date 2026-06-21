@@ -96,7 +96,7 @@ export function UnlockToast({ tier, onDismiss }: UnlockToastProps) {
         className={cn(
           'relative flex items-center gap-4 px-5 py-4 rounded-2xl',
           'bg-card border border-border/50',
-          'shadow-2xl backdrop-blur-xl',
+          'shadow-md',
           config.glowClass
         )}
       >

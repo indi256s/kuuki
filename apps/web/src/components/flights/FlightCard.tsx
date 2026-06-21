@@ -35,10 +35,10 @@ export function FlightCard({ flight, onEdit }: FlightCardProps) {
   return (
     <div
       className={cn(
-        'group rounded-xl border border-border/60 bg-card shadow-sm p-4 sm:p-5',
-        'transition-[transform,box-shadow,background-color] duration-200',
-        'hover:-translate-y-1 hover:shadow-lg hover:border-border/60',
-        'active:-translate-y-0.5 active:shadow-md active:bg-muted/40',
+        'group rounded-xl border border-border/60 bg-card p-4 sm:p-5',
+        'transition-[transform,background-color,border-color] duration-200',
+        'hover:-translate-y-0.5 hover:border-primary/30',
+        'active:translate-y-0 active:bg-muted/40',
         isUpcoming && 'border-info/30 bg-info/[0.03]'
       )}
     >

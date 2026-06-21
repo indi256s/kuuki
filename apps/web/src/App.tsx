@@ -8,6 +8,7 @@ import { ToastProvider, ErrorBoundary } from '@/components/error'
 import { ImportNotificationManager } from '@/components/import/ImportNotificationManager'
 import { BadgeNotificationManager } from '@/components/badges'
 import { LoadingScreen } from '@/components/ui/LoadingScreen'
+import { SkipLink } from '@/components/common/SkipLink'
 import { Agentation } from 'agentation'
 
 /**
@@ -179,6 +180,7 @@ export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
+        <SkipLink />
         <AppRoutes />
         <ToastProvider />
         <ImportNotificationManager />

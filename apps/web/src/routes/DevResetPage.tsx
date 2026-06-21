@@ -66,7 +66,7 @@ export function DevResetPage() {
         <MobileHeader />
         <AppHeader />
 
-        <main className="max-w-md mx-auto px-6 py-16">
+        <main id="main-content" className="max-w-md mx-auto px-6 py-16">
           <Card className="border-success/50">
             <CardContent className="pt-6 text-center">
               <div className="w-16 h-16 mx-auto mb-4 bg-success/10 rounded-full flex items-center justify-center">
@@ -93,7 +93,7 @@ export function DevResetPage() {
       <MobileHeader />
       <AppHeader />
 
-      <main className="max-w-md mx-auto px-6 py-16">
+      <main id="main-content" className="max-w-md mx-auto px-6 py-16">
         <Card className="border-destructive/50">
           <CardHeader className="text-center">
             <div className="w-16 h-16 mx-auto mb-4 bg-destructive/10 rounded-full flex items-center justify-center">

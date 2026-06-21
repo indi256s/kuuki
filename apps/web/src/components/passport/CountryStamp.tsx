@@ -51,13 +51,6 @@ function CircleStamp({ entry, onClick, isSelected }: CountryStampProps) {
         className="w-full h-full drop-shadow-sm transition-transform duration-300 group-hover:scale-[1.02] group-active:scale-[0.98]"
         aria-hidden="true"
       >
-        <defs>
-          <filter id="ink-bleed">
-            <feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="3" result="noise" />
-            <feDisplacementMap in="SourceGraphic" in2="noise" scale="0.5" />
-          </filter>
-        </defs>
-
         {/* Background - Washi paper feel */}
         <circle
           cx="60"

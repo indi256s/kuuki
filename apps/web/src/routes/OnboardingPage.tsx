@@ -75,7 +75,7 @@ export function OnboardingPage() {
       </header>
 
       {/* Main content */}
-      <main className="flex-1 flex items-center justify-center p-4">
+      <main id="main-content" className="flex-1 flex items-center justify-center p-4">
         <div className="animate-fade-up">
           {step === 'username' && (
             <UsernamePicker onSubmit={handleUsernameSubmit} />

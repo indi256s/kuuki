@@ -31,7 +31,7 @@
 
   /* Smooth, organic animations */
   --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
-  --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
   --duration-micro: 100ms;
   /* Button press, toggles, checkboxes */
   --duration-fast: 150ms;
@@ -43,8 +43,8 @@
 :root {
   --radius: 0.875rem;
 
-  /* Core palette - soft, warm, inviting */
-  --background: oklch(0.985 0.002 240);
+  /* Core palette - cool near-white (not warm cream) */
+  --background: oklch(0.985 0.002 260);
   --foreground: oklch(0.25 0.01 260);
 
   /* Cards - subtle lift, warm paper */
@@ -94,6 +94,20 @@
   --chart-3: oklch(0.68 0.10 50);
   --chart-4: oklch(0.82 0.12 85);
   --chart-5: oklch(0.55 0.10 200);
+
+  /* Map surfaces */
+  --map-background: oklch(0.97 0.005 250);
+  --map-background-end: oklch(0.985 0.002 260);
+  --map-gradient-start: oklch(0.90 0.015 250);
+  --map-gradient-end: oklch(0.97 0.005 250);
+  --map-country: oklch(0.92 0.008 260);
+  --map-country-hover: oklch(0.88 0.01 260);
+  --map-stroke: oklch(0.85 0.01 260);
+  --map-label: oklch(0.35 0.01 260);
+  --map-dot: oklch(0.35 0.01 260);
+  --map-route-fallback: oklch(0.55 0.12 25);
+  --map-marker-label: oklch(0.25 0.01 260);
+  --map-panel: oklch(0.99 0.003 240);
 
   /* Sidebar */
   --sidebar: oklch(0.99 0.003 240);
@@ -168,6 +182,20 @@
   --chart-3: oklch(0.78 0.12 50);
   --chart-4: oklch(0.85 0.12 85);
   --chart-5: oklch(0.72 0.12 200);
+
+  /* Map surfaces */
+  --map-background: oklch(0.16 0.01 260);
+  --map-background-end: oklch(0.14 0.01 260);
+  --map-gradient-start: oklch(0.28 0.03 250);
+  --map-gradient-end: oklch(0.16 0.01 260);
+  --map-country: oklch(0.28 0.01 260);
+  --map-country-hover: oklch(0.32 0.01 260);
+  --map-stroke: oklch(0.35 0.01 260);
+  --map-label: oklch(0.95 0.005 250);
+  --map-dot: oklch(0.95 0.005 250);
+  --map-route-fallback: oklch(0.72 0.14 55);
+  --map-marker-label: oklch(0.95 0.005 250);
+  --map-panel: oklch(0.25 0.005 260);
 
   /* Legacy dark tokens */
   --color-ink: oklch(0.95 0.005 250);
@@ -375,13 +403,6 @@
         oklch(0.14 0.01 260) 100%);
   }
 
-  .aura-gradient-text {
-    background: linear-gradient(135deg, #FFF 30%, rgba(255, 255, 255, 0.5) 100%);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-  }
-
   /* Focus ring - legacy support */
   .focus-ring {
     @apply outline-none;
@@ -402,6 +423,10 @@
     opacity: 1;
     transform: scale(1);
   }
+}
+
+.animate-loading-dot {
+  animation: pulse-dot 1.2s var(--ease-smooth) infinite;
 }
 
 /* Animation keyframes */
@@ -461,21 +486,6 @@
   to {
     opacity: 1;
     transform: translateY(0);
-  }
-}
-
-/* Flowing shimmer animation for hiragana branding (like wind - くうき) */
-@keyframes text-flow {
-
-  0%,
-  100% {
-    background-position: 0% 50%;
-    opacity: 0.4;
-  }
-
-  50% {
-    background-position: 100% 50%;
-    opacity: 0.7;
   }
 }
 
@@ -830,30 +840,6 @@
     animation: slide-in-right var(--duration-normal) var(--ease-smooth) forwards;
   }
 
-  /* Flowing shimmer for branding text - warm vermillion/amber */
-  .animate-text-flow {
-    background: linear-gradient(135deg,
-        oklch(0.55 0.12 25 / 0.35),
-        oklch(0.55 0.12 25 / 0.7),
-        oklch(0.55 0.12 25 / 0.35));
-    background-size: 200% 200%;
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-    animation: text-flow 4s ease-in-out infinite;
-  }
-
-  .dark .animate-text-flow {
-    background: linear-gradient(135deg,
-        oklch(0.72 0.14 55 / 0.45),
-        oklch(0.72 0.14 55 / 0.85),
-        oklch(0.72 0.14 55 / 0.45));
-    background-size: 200% 200%;
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-  }
-
   /* Vertical text for Japanese/CJK */
   .writing-vertical {
     writing-mode: vertical-rl;
@@ -937,7 +923,7 @@
   }
 
   .animate-status-pop {
-    animation: status-pop var(--duration-normal) var(--ease-bounce) forwards;
+    animation: status-pop var(--duration-normal) var(--ease-out-quart) forwards;
   }
 
   /* Shadow utilities for card hover effects */
@@ -972,16 +958,11 @@
   }
 }
 
-/* Checkbox bounce on check - satisfying feedback */
-@keyframes check-bounce {
+/* Checkbox check feedback */
+@keyframes check-pop {
   0% {
     transform: scale(0);
     opacity: 0;
-  }
-
-  60% {
-    transform: scale(1.15);
-    opacity: 1;
   }
 
   100% {
@@ -1009,7 +990,7 @@
   }
 
   .animate-check-bounce {
-    animation: check-bounce 200ms var(--ease-bounce) forwards;
+    animation: check-pop 200ms var(--ease-out-quart) forwards;
   }
 
   .after\:animate-ripple::after {
@@ -1129,7 +1110,6 @@
   .animate-scale-in,
   .animate-slide-in-right,
   .animate-tier-reveal,
-  .animate-text-flow,
   .animate-flight-depart,
   .animate-flight-cruise,
   .animate-flight-arrive,
@@ -1149,16 +1129,6 @@
   .after\:animate-ripple::after {
     animation: none;
     opacity: 0;
-  }
-
-  /* Static fallback for text-flow animation */
-  .animate-text-flow {
-    background: none !important;
-    color: oklch(0.55 0.12 25 / 0.65) !important;
-  }
-
-  .dark .animate-text-flow {
-    color: oklch(0.72 0.14 55 / 0.75) !important;
   }
 
   /* Static fallback for planes animation */

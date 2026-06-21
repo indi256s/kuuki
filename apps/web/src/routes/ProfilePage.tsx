@@ -48,7 +48,7 @@ export function ProfilePage() {
     return (
       <div className="min-h-screen bg-gradient-soft">
         <SharedHeader user={user} />
-        <main className="max-w-3xl mx-auto px-6 py-8 pb-safe sm:pb-8">
+        <main id="main-content" className="max-w-3xl mx-auto px-6 py-8 pb-safe sm:pb-8">
           {/* Header skeleton */}
           <div className="animate-fade-up">
             <div className="px-6 md:px-8 pt-8 md:pt-12 pb-8">
@@ -78,15 +78,8 @@ export function ProfilePage() {
   if (error || !profileData) {
     return (
       <div className="min-h-screen bg-gradient-soft relative overflow-hidden">
-        {/* Subtle grain background */}
-        <div
-          className="absolute inset-0 opacity-[0.04] pointer-events-none"
-          style={{
-            backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
-          }}
-        />
         <SharedHeader user={user} />
-        <main className="max-w-3xl mx-auto px-6 py-8 pb-safe sm:pb-8 relative">
+        <main id="main-content" className="max-w-3xl mx-auto px-6 py-8 pb-safe sm:pb-8 relative">
           <div className="py-16 md:py-24 text-center animate-fade-up">
             <UserX className="w-16 h-16 mx-auto mb-6 text-muted-foreground/30" strokeWidth={1} />
             <h1 className="text-2xl font-display font-semibold mb-2">
@@ -121,7 +114,7 @@ export function ProfilePage() {
         {/* Background watermark */}
         <Watermark />
         <SharedHeader user={user} />
-        <main className="max-w-3xl mx-auto px-6 py-8 pb-safe sm:pb-8 relative">
+        <main id="main-content" className="max-w-3xl mx-auto px-6 py-8 pb-safe sm:pb-8 relative">
           <div className="animate-fade-up">
             <ProfileHeader profile={profile} isOwnProfile={isOwnProfile} badges={[]} />
           </div>
@@ -168,7 +161,7 @@ export function ProfilePage() {
 
       <SharedHeader user={user} />
 
-      <main className="max-w-3xl mx-auto px-6 py-8 pb-safe sm:pb-8 relative space-y-12 md:space-y-16">
+      <main id="main-content" className="max-w-3xl mx-auto px-6 py-8 pb-safe sm:pb-8 relative space-y-12 md:space-y-16">
         {/* Header section */}
         <div className="animate-fade-up">
           <ProfileHeader profile={profile} isOwnProfile={isOwnProfile} badges={badges} />
@@ -256,7 +249,7 @@ function MinimalHeader() {
   const { t } = useTranslation()
 
   return (
-    <header className="sticky top-0 z-40 bg-background/80 backdrop-blur-xl border-b border-border/50">
+    <header className="sticky top-0 z-40 bg-background/95 border-b border-border/50">
       <div className="max-w-3xl mx-auto px-6 h-14 flex items-center justify-between">
         <Link to="/" className="flex items-center gap-2 group">
           <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-[background-color] duration-150">

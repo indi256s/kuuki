@@ -351,7 +351,7 @@ export function FlightTable({
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-8 w-8 text-muted-foreground hover:text-foreground active:scale-95 transition-transform duration-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                      className="text-muted-foreground hover:text-foreground active:scale-95 transition-transform duration-100"
                       onClick={() => onEdit(flight)}
                     >
                       <Pencil className="w-3.5 h-3.5" />
