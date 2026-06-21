@@ -8,7 +8,6 @@ const noteVariants = cva(
         variants: {
             variant: {
                 default: "bg-card text-card-foreground",
-                glass: "bg-card/95 dark:bg-card/90 border-border/50",
                 ghost: "bg-transparent border-dashed text-muted-foreground hover:bg-muted/50",
                 highlight: "bg-primary/5 border-primary/20 text-primary-foreground",
             },

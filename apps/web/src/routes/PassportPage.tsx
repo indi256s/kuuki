@@ -11,6 +11,7 @@ import { ClaimDialog } from '@/components/passport/ClaimDialog'
 import { CountryClaimMap } from '@/components/passport/CountryClaimMap'
 import { CountryListSheet } from '@/components/passport/CountryListSheet'
 import { AppHeader } from '@/components/common/AppHeader'
+import { AppPageShell } from '@/components/layout/AppPageShell'
 import { MobileHeader } from '@/components/layout/MobileHeader'
 import { MobileTabBar } from '@/components/layout/MobileTabBar'
 import { Button } from '@/components/ui/button'
@@ -65,25 +66,49 @@ export function PassportPage() {
   }, [])
 
   return (
-    <div className="min-h-screen bg-gradient-soft">
+    <AppPageShell
+      shellClassName="min-h-screen bg-gradient-soft"
+      maxWidth="wide"
+      className="mx-auto px-4 sm:px-6 py-4 sm:py-6 pb-safe sm:pb-6"
+      mobileHeader={
+        <MobileHeader
+          action={
+            hasCountries ? (
+              <Button onClick={handleAddCountry} className="gap-1.5">
+                <Plus className="w-4 h-4" />
+                <span>{t('passport.addCountry', 'Add')}</span>
+              </Button>
+            ) : undefined
+          }
+        />
+      }
+      appHeader={<AppHeader />}
+      afterMain={
+        <>
+          {isMobile ? (
+            <CountryListSheet
+              isOpen={isMapOpen}
+              onClose={() => setIsMapOpen(false)}
+              onSelectCountry={handleSelectCountryFromMap}
+            />
+          ) : (
+            <CountryClaimMap
+              isOpen={isMapOpen}
+              onClose={() => setIsMapOpen(false)}
+              onSelectCountry={handleSelectCountryFromMap}
+            />
+          )}
 
-      {/* Mobile header */}
-      <MobileHeader
-        action={
-          hasCountries ? (
-            <Button onClick={handleAddCountry} className="gap-1.5">
-              <Plus className="w-4 h-4" />
-              <span>{t('passport.addCountry', 'Add')}</span>
-            </Button>
-          ) : undefined
-        }
-      />
-
-      {/* Desktop header */}
-      <AppHeader />
-
-      {/* Main content */}
-      <main id="main-content" className="max-w-7xl 3xl:max-w-[1800px] mx-auto px-4 sm:px-6 py-4 sm:py-6 pb-safe sm:pb-6">
+          <ClaimDialog
+            isOpen={isClaimDialogOpen}
+            onClose={handleClaimDialogClose}
+            preselectedCountry={preselectedCountry}
+            isAlreadyClaimed={isAlreadyClaimed}
+          />
+        </>
+      }
+      mobileTabBar={<MobileTabBar />}
+    >
 
         {/* Hero Section: Map & Stats */}
         {hasCountries && (
@@ -202,33 +227,6 @@ export function PassportPage() {
         ) : (
           <EmptyPassport onAddCountry={handleAddCountry} />
         )}
-      </main>
-
-      {/* Country selection: Sheet on mobile, Dialog on desktop */}
-      {isMobile ? (
-        <CountryListSheet
-          isOpen={isMapOpen}
-          onClose={() => setIsMapOpen(false)}
-          onSelectCountry={handleSelectCountryFromMap}
-        />
-      ) : (
-        <CountryClaimMap
-          isOpen={isMapOpen}
-          onClose={() => setIsMapOpen(false)}
-          onSelectCountry={handleSelectCountryFromMap}
-        />
-      )}
-
-      {/* Claim dialog */}
-      <ClaimDialog
-        isOpen={isClaimDialogOpen}
-        onClose={handleClaimDialogClose}
-        preselectedCountry={preselectedCountry}
-        isAlreadyClaimed={isAlreadyClaimed}
-      />
-
-      {/* Mobile tab bar */}
-      <MobileTabBar />
-    </div>
+    </AppPageShell>
   )
 }

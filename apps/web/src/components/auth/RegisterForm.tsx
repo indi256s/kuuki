@@ -78,15 +78,15 @@ export function RegisterForm({ onSuccess, onSignInClick }: RegisterFormProps) {
           render={({ field }) => (
             <FormItem>
               <FormLabel className="flex items-center gap-2">
-                <Mail className="w-4 h-4 text-white/50" />
-                <span className="text-white/80">{t('auth.email', 'Email')}</span>
+                <Mail className="w-4 h-4 text-muted-foreground" aria-hidden="true" />
+                <span className="text-foreground/80">{t('auth.email', 'Email')}</span>
               </FormLabel>
               <FormControl>
                 <Input
                   type="email"
                   placeholder="you@example.com"
                   disabled={isLoading}
-                  className="h-12 aura-input border-0 focus-visible:ring-1 focus-visible:ring-primary/50 text-white placeholder:text-white/60"
+                  className="h-12 aura-input border-0 focus-visible:ring-1 focus-visible:ring-primary/50 text-foreground placeholder:text-muted-foreground"
                   {...field}
                 />
               </FormControl>
@@ -102,15 +102,15 @@ export function RegisterForm({ onSuccess, onSignInClick }: RegisterFormProps) {
           render={({ field }) => (
             <FormItem>
               <FormLabel className="flex items-center gap-2">
-                <Lock className="w-4 h-4 text-white/50" />
-                <span className="text-white/80">{t('auth.password', 'Password')}</span>
+                <Lock className="w-4 h-4 text-muted-foreground" aria-hidden="true" />
+                <span className="text-foreground/80">{t('auth.password', 'Password')}</span>
               </FormLabel>
               <FormControl>
                 <Input
                   type="password"
                   placeholder="••••••••"
                   disabled={isLoading}
-                  className="h-12 aura-input border-0 focus-visible:ring-1 focus-visible:ring-primary/50 text-white placeholder:text-white/60"
+                  className="h-12 aura-input border-0 focus-visible:ring-1 focus-visible:ring-primary/50 text-foreground placeholder:text-muted-foreground"
                   {...field}
                 />
               </FormControl>
@@ -122,13 +122,13 @@ export function RegisterForm({ onSuccess, onSignInClick }: RegisterFormProps) {
         <Button
           type="submit"
           disabled={isLoading}
-          className="w-full h-12 aura-button rounded-xl text-white font-medium text-base border-0"
+          className="w-full h-12 aura-button rounded-xl text-primary-foreground font-medium text-base border-0"
         >
           {isLoading ? t('common.loading') : t('auth.createAccount')}
         </Button>
 
         {onSignInClick && (
-          <p className="text-center text-sm text-white/50">
+          <p className="text-center text-sm text-muted-foreground">
             {t('auth.haveAccount', 'Already have an account?')}{' '}
             <button
               type="button"

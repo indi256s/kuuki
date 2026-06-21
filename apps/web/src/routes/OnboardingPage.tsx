@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '@/hooks/useAuth'
 import { useLanguage } from '@/hooks/useLanguage'
+import { AppPageShell } from '@/components/layout/AppPageShell'
 import { UsernamePicker } from '@/components/onboarding/UsernamePicker'
 import { ImportUpload } from '@/components/import/ImportUpload'
 import { updateProfile } from '@/lib/auth'
@@ -75,7 +76,11 @@ export function OnboardingPage() {
       </header>
 
       {/* Main content */}
-      <main id="main-content" className="flex-1 flex items-center justify-center p-4">
+      <AppPageShell
+        mainOnly
+        maxWidth="none"
+        className="flex-1 flex items-center justify-center p-4"
+      >
         <div className="animate-fade-up">
           {step === 'username' && (
             <UsernamePicker onSubmit={handleUsernameSubmit} />
@@ -98,7 +103,7 @@ export function OnboardingPage() {
             </div>
           )}
         </div>
-      </main>
+      </AppPageShell>
 
       {/* Step indicator */}
       <footer className="p-4">

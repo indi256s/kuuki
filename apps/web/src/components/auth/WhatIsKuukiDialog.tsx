@@ -40,7 +40,7 @@ export function WhatIsKuukiDialog({ open, onOpenChange }: WhatIsKuukiDialogProps
             <DialogContent showCloseButton={false} className="max-w-2xl p-0 gap-0 overflow-hidden bg-transparent border-none shadow-none sm:max-w-xl">
                 <DialogTitle className="sr-only">{t('about.title')}</DialogTitle>
 
-                <Note variant="glass" className="w-full relative overflow-hidden">
+                <Note variant="default" className="w-full relative overflow-hidden">
                     {/* Close button - positioned inside the rounded area */}
                     <DialogClose className="absolute right-2 top-2 p-2 rounded-full bg-muted/50 hover:bg-muted opacity-70 hover:opacity-100 transition-all z-10">
                         <X className="h-4 w-4" />

@@ -9,7 +9,7 @@ import {
   ZoomableGroup,
 } from 'react-simple-maps'
 import { useFlightRoutes } from '@/hooks/useFlights'
-import { useMapColors } from '@/hooks/useMapColors'
+import { MAP_CSS_VARS } from '@/lib/mapColors'
 import { findAirport } from '@kuuki/data'
 import { getCountryData } from '@/lib/countries'
 import type { FlightRoute } from '@/lib/flights'
@@ -90,14 +90,13 @@ export function RouteMapWithCountries({
   countrySourceMap,
 }: RouteMapWithCountriesProps) {
   const { t } = useTranslation()
-  const mapColors = useMapColors()
   const { data: allRoutes = [] } = useFlightRoutes()
 
   const flights = propFlights ?? allRoutes
 
-  const mapBg = mapColors.background
-  const unvisitedCountry = mapColors.country
-  const countryStroke = mapColors.stroke
+  const mapBg = MAP_CSS_VARS.background
+  const unvisitedCountry = MAP_CSS_VARS.country
+  const countryStroke = MAP_CSS_VARS.stroke
   const emptyIconColor = 'text-muted-foreground'
   const emptyTextColor = 'text-muted-foreground'
 
@@ -206,10 +205,10 @@ export function RouteMapWithCountries({
 
     if (alpha2 && visitedSet.has(alpha2)) {
       const data = getCountryData(alpha2)
-      return data?.dominantColor || mapColors.routeFallback
+      return data?.dominantColor || MAP_CSS_VARS.routeFallback
     }
     return unvisitedCountry
-  }, [visitedSet, unvisitedCountry, mapColors.routeFallback])
+  }, [visitedSet, unvisitedCountry, MAP_CSS_VARS.routeFallback])
 
   const getCountryOpacity = useCallback((alpha2: string | undefined, isVisited: boolean) => {
     if (!isVisited) return 0.6

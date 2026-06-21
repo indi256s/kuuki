@@ -9,8 +9,8 @@ import {
     ZoomableGroup,
 } from 'react-simple-maps'
 import { findAirport, findAirline } from '@kuuki/data'
-import { useMapColors } from '@/hooks/useMapColors'
-import type { JourneyLeg } from '@/routes/JourneyPlannerPage'
+import { MAP_CSS_VARS } from '@/lib/mapColors'
+import type { JourneyLeg } from '@/types/journey'
 
 const GEO_URL = 'https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json'
 
@@ -19,8 +19,6 @@ interface JourneyMapProps {
 }
 
 export const JourneyMap = memo(function JourneyMap({ legs }: JourneyMapProps) {
-    const mapColors = useMapColors()
-
     const { arcs, airports } = useMemo(() => {
         const computedArcs = []
         const airportMap = new Map()
@@ -35,7 +33,7 @@ export const JourneyMap = memo(function JourneyMap({ legs }: JourneyMapProps) {
                     id: leg.id,
                     origin: { lat: origin.latitude, lon: origin.longitude },
                     destination: { lat: dest.latitude, lon: dest.longitude },
-                    color: airline?.primaryColor || mapColors.routeFallback,
+                    color: airline?.primaryColor || MAP_CSS_VARS.routeFallback,
                 })
 
                 if (!airportMap.has(leg.origin)) airportMap.set(leg.origin, { ...origin, iata: leg.origin })
@@ -47,7 +45,7 @@ export const JourneyMap = memo(function JourneyMap({ legs }: JourneyMapProps) {
             arcs: computedArcs,
             airports: Array.from(airportMap.values())
         }
-    }, [legs, mapColors.routeFallback])
+    }, [legs, MAP_CSS_VARS.routeFallback])
 
     const center = useMemo(() => {
         if (airports.length > 0) {
@@ -77,12 +75,12 @@ export const JourneyMap = memo(function JourneyMap({ legs }: JourneyMapProps) {
                                 <Geography
                                     key={geo.rsmKey}
                                     geography={geo}
-                                    fill={mapColors.country}
-                                    stroke={mapColors.stroke}
+                                    fill={MAP_CSS_VARS.country}
+                                    stroke={MAP_CSS_VARS.stroke}
                                     strokeWidth={0.5}
                                     style={{
                                         default: { outline: 'none' },
-                                        hover: { outline: 'none', fill: mapColors.countryHover },
+                                        hover: { outline: 'none', fill: MAP_CSS_VARS.countryHover },
                                         pressed: { outline: 'none' },
                                     }}
                                 />
@@ -104,14 +102,14 @@ export const JourneyMap = memo(function JourneyMap({ legs }: JourneyMapProps) {
 
                     {airports.map((airport) => (
                         <Marker key={airport.iata} coordinates={[airport.longitude, airport.latitude]}>
-                            <circle r={4} fill="var(--card)" stroke={mapColors.stroke} strokeWidth={1} />
+                            <circle r={4} fill="var(--card)" stroke={MAP_CSS_VARS.stroke} strokeWidth={1} />
                             <text
                                 textAnchor="middle"
                                 y={-10}
                                 style={{
                                     fontFamily: 'monospace',
                                     fontSize: '10px',
-                                    fill: mapColors.markerLabel,
+                                    fill: MAP_CSS_VARS.markerLabel,
                                     fontWeight: 'bold'
                                 }}
                             >

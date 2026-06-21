@@ -25,6 +25,7 @@ import { FlightFilters } from '@/components/flights/FlightFilters'
 import { Skeleton } from '@/components/ui/skeleton'
 import { FlightForm } from '@/components/flights/FlightForm'
 import { AppHeader } from '@/components/common/AppHeader'
+import { AppPageShell } from '@/components/layout/AppPageShell'
 import { MobileHeader } from '@/components/layout/MobileHeader'
 import { MobileTabBar } from '@/components/layout/MobileTabBar'
 import { Button } from '@/components/ui/button'
@@ -174,28 +175,36 @@ export function DashboardPage() {
   }, [destSearch, resolveAirportCodes])
 
   return (
-    <div className="min-h-screen bg-gradient-soft">
-
-      {/* Mobile header */}
-      <MobileHeader
-        action={
-          hasFlights ? (
-            <Button onClick={handleAddFlight} className="gap-1.5">
-              <Plus className="w-4 h-4" />
-              <span>{t('nav.addFlight')}</span>
-            </Button>
-          ) : undefined
-        }
-      />
-
-      {/* Desktop header */}
-      <AppHeader
-        onAddFlight={handleAddFlight}
-        showAddButton={hasFlights}
-      />
-
-      {/* Main content - pb-safe adds bottom padding for mobile tab bar */}
-      <main id="main-content" className="max-w-7xl 3xl:max-w-[1800px] mx-auto px-4 sm:px-6 py-4 sm:py-6 pb-safe sm:pb-6">
+    <AppPageShell
+      shellClassName="min-h-screen bg-gradient-soft"
+      maxWidth="wide"
+      className="mx-auto px-4 sm:px-6 py-4 sm:py-6 pb-safe sm:pb-6"
+      mobileHeader={
+        <MobileHeader
+          action={
+            hasFlights ? (
+              <Button onClick={handleAddFlight} className="gap-1.5">
+                <Plus className="w-4 h-4" />
+                <span>{t('nav.addFlight')}</span>
+              </Button>
+            ) : undefined
+          }
+        />
+      }
+      appHeader={
+        <AppHeader
+          onAddFlight={handleAddFlight}
+          showAddButton={hasFlights}
+        />
+      }
+      afterMain={
+        <FlightForm
+          isOpen={isFormOpen}
+          onClose={handleCloseForm}
+        />
+      }
+      mobileTabBar={<MobileTabBar />}
+    >
 
         {hasFlights ? (
           <div className="space-y-4 animate-fade-up stagger-children">
@@ -296,16 +305,6 @@ export function DashboardPage() {
             <EmptyState onAddFlight={handleAddFlight} />
           </div>
         )}
-      </main>
-
-      {/* Flight form modal */}
-      <FlightForm
-        isOpen={isFormOpen}
-        onClose={handleCloseForm}
-      />
-
-      {/* Mobile tab bar */}
-      <MobileTabBar />
-    </div >
+    </AppPageShell>
   )
 }

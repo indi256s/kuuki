@@ -2,14 +2,14 @@
 name: Kuuki
 description: Warm Japanese-minimal flight legacy tracker
 colors:
-  background: "#fafafb"
-  foreground: "#2a2d35"
-  primary: "#b8422e"
-  card: "#fcfcfd"
-  muted: "#f4f5f7"
-  muted-foreground: "#6b7280"
-  border: "#dde0e6"
-  chart-1: "#b8422e"
+  background: "var(--background)"
+  foreground: "var(--foreground)"
+  primary: "var(--primary)"
+  card: "var(--card)"
+  muted: "var(--muted)"
+  muted-foreground: "var(--muted-foreground)"
+  border: "var(--border)"
+  chart-1: "var(--chart-1)"
 typography:
   display:
     fontFamily: "DM Sans, ui-sans-serif, system-ui, sans-serif"
@@ -31,7 +31,7 @@ spacing:
 components:
   button-primary:
     backgroundColor: "{colors.primary}"
-    textColor: "#ffffff"
+    textColor: "var(--primary-foreground)"
     rounded: "{rounded.md}"
     padding: "0.5rem 1rem"
   card-default:

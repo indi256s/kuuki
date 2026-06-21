@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { useLanguage } from '@/hooks/useLanguage'
 import { useShowcase } from '@/hooks/useShowcase'
 import { ShowcaseModal } from '@/components/onboarding/ShowcaseModal'
+import { AppPageShell } from '@/components/layout/AppPageShell'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Plane, Globe2, BarChart3, Users, Languages, ArrowRight } from 'lucide-react'
@@ -16,13 +17,17 @@ export function LandingPage() {
   // Don't render until localStorage check completes
   if (hasSeen === null) {
     return (
-      <div className="min-h-screen bg-gradient-soft flex items-center justify-center">
+      <AppPageShell
+        shellClassName="min-h-screen bg-gradient-soft flex items-center justify-center"
+        maxWidth="none"
+        className="flex items-center justify-center"
+      >
         <div
           className="w-6 h-6 rounded-full border-2 border-primary border-t-transparent animate-spin"
           role="status"
           aria-label={t('common.loading', 'Loading')}
         />
-      </div>
+      </AppPageShell>
     )
   }
 
@@ -79,7 +84,11 @@ export function LandingPage() {
       </header>
 
       {/* Hero */}
-      <main id="main-content" className="flex-1 flex flex-col justify-center px-6 py-12">
+      <AppPageShell
+        mainOnly
+        maxWidth="none"
+        className="flex-1 flex flex-col justify-center px-6 py-12"
+      >
         <div className="max-w-4xl mx-auto text-center">
           <h1 className="text-4xl sm:text-5xl md:text-6xl font-semibold tracking-tight text-balance animate-fade-up">
             {heroTitle}
@@ -136,7 +145,7 @@ export function LandingPage() {
             ))}
           </ul>
         </section>
-      </main>
+      </AppPageShell>
 
       {/* Footer */}
       <footer className="px-6 py-8 text-center">

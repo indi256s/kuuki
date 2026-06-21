@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "tw-animate-css";
+@import "./map-tokens.css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -95,20 +96,6 @@
   --chart-4: oklch(0.82 0.12 85);
   --chart-5: oklch(0.55 0.10 200);
 
-  /* Map surfaces */
-  --map-background: oklch(0.97 0.005 250);
-  --map-background-end: oklch(0.985 0.002 260);
-  --map-gradient-start: oklch(0.90 0.015 250);
-  --map-gradient-end: oklch(0.97 0.005 250);
-  --map-country: oklch(0.92 0.008 260);
-  --map-country-hover: oklch(0.88 0.01 260);
-  --map-stroke: oklch(0.85 0.01 260);
-  --map-label: oklch(0.35 0.01 260);
-  --map-dot: oklch(0.35 0.01 260);
-  --map-route-fallback: oklch(0.55 0.12 25);
-  --map-marker-label: oklch(0.25 0.01 260);
-  --map-panel: oklch(0.99 0.003 240);
-
   /* Sidebar */
   --sidebar: oklch(0.99 0.003 240);
   --sidebar-foreground: oklch(0.25 0.01 260);
@@ -182,20 +169,6 @@
   --chart-3: oklch(0.78 0.12 50);
   --chart-4: oklch(0.85 0.12 85);
   --chart-5: oklch(0.72 0.12 200);
-
-  /* Map surfaces */
-  --map-background: oklch(0.16 0.01 260);
-  --map-background-end: oklch(0.14 0.01 260);
-  --map-gradient-start: oklch(0.28 0.03 250);
-  --map-gradient-end: oklch(0.16 0.01 260);
-  --map-country: oklch(0.28 0.01 260);
-  --map-country-hover: oklch(0.32 0.01 260);
-  --map-stroke: oklch(0.35 0.01 260);
-  --map-label: oklch(0.95 0.005 250);
-  --map-dot: oklch(0.95 0.005 250);
-  --map-route-fallback: oklch(0.72 0.14 55);
-  --map-marker-label: oklch(0.95 0.005 250);
-  --map-panel: oklch(0.25 0.005 260);
 
   /* Legacy dark tokens */
   --color-ink: oklch(0.95 0.005 250);
@@ -989,7 +962,7 @@
     animation: name-highlight 600ms var(--ease-smooth) 300ms forwards;
   }
 
-  .animate-check-bounce {
+  .animate-check-pop {
     animation: check-pop 200ms var(--ease-out-quart) forwards;
   }
 
@@ -1118,7 +1091,7 @@
   .kuuki-crossfade,
   .stagger-children>*,
   .animate-name-highlight,
-  .animate-check-bounce,
+  .animate-check-pop,
   .animate-status-pop {
     opacity: 1 !important;
     transform: none !important;

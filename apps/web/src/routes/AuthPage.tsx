@@ -84,9 +84,9 @@ export function AuthPage() {
         </div>
 
         {/* Right Side: Auth Form */}
-        <div id="main-content" className="relative flex flex-col justify-center px-8 py-12 lg:px-16 lg:py-12 bg-card">
+        <main id="main-content" tabIndex={-1} className="relative flex flex-col justify-center px-8 py-12 lg:px-16 lg:py-12 bg-card">
           {/* Single page title */}
-          <h1 className="text-3xl lg:sr-only font-bold tracking-tighter text-foreground mb-8 text-center">
+          <h1 className="text-3xl font-bold tracking-tighter text-foreground mb-8 text-center">
             <BrandMark />
           </h1>
 
@@ -137,7 +137,7 @@ export function AuthPage() {
               className="text-muted-foreground text-sm font-medium tracking-wide justify-center"
             />
           </div>
-        </div>
+        </main>
       </div>
 
       <WhatIsKuukiDialog open={showAbout} onOpenChange={setShowAbout} />

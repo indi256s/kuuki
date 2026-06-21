@@ -3,17 +3,9 @@ import { useState } from 'react'
 import { JourneyMap } from '@/components/journey/JourneyMap'
 import { JourneyTimeline } from '@/components/journey/JourneyTimeline'
 import { Button } from '@/components/ui/button'
+import type { JourneyLeg } from '@/types/journey'
 import { Plus, Save, Map as MapIcon, Calendar, ArrowLeft } from 'lucide-react'
 import { Link } from 'react-router-dom'
-
-export interface JourneyLeg {
-    id: string
-    origin: string
-    destination: string
-    airline: string
-    flightNumber: string
-    duration: string
-}
 
 const INITIAL_TRIP: JourneyLeg[] = [
     {
@@ -38,7 +30,7 @@ export function JourneyPlannerPage() {
     const [trip, setTrip] = useState<JourneyLeg[]>(INITIAL_TRIP)
 
     return (
-        <div id="main-content" className="relative h-screen w-full flex flex-col bg-background text-foreground overflow-hidden font-sans">
+        <main id="main-content" tabIndex={-1} className="relative h-screen w-full flex flex-col bg-background text-foreground overflow-hidden font-sans">
 
             <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-background to-background pointer-events-none" />
 
@@ -101,6 +93,6 @@ export function JourneyPlannerPage() {
                     </div>
                 </div>
             </div>
-        </div>
+        </main>
     )
 }

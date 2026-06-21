@@ -1,9 +1,5 @@
 # Product
 
-## Register
-
-product
-
 ## Users
 
 Frequent flyers and aviation enthusiasts who want more than a spreadsheet of legs. They log flights after trips, browse stats on desktop or phone, and optionally share a public profile or compete on leaderboards. Context is reflective (reviewing travel history) rather than transactional (booking).

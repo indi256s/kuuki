@@ -2,8 +2,8 @@
 import { useMemo } from 'react'
 import { findAirline, getAirlineLogoUrl } from '@kuuki/data'
 import { cn } from '@/lib/utils'
-import { useMapColors } from '@/hooks/useMapColors'
-import type { JourneyLeg } from '@/routes/JourneyPlannerPage'
+import { MAP_CSS_VARS } from '@/lib/mapColors'
+import type { JourneyLeg } from '@/types/journey'
 import { Plane, GripVertical, Clock } from 'lucide-react'
 
 interface FlightGanttBlockProps {
@@ -12,9 +12,8 @@ interface FlightGanttBlockProps {
 }
 
 export function FlightGanttBlock({ leg, className }: FlightGanttBlockProps) {
-    const mapColors = useMapColors()
     const airline = useMemo(() => findAirline(leg.airline), [leg.airline])
-    const airlineColor = airline?.primaryColor || mapColors.routeFallback
+    const airlineColor = airline?.primaryColor || MAP_CSS_VARS.routeFallback
     const logoUrl = getAirlineLogoUrl(leg.airline)
 
     return (

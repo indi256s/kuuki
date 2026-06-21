@@ -1,7 +1,7 @@
 import { useState, useMemo, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useFlightRoutes } from '@/hooks/useFlights'
-import { useMapColors } from '@/hooks/useMapColors'
+import { MAP_CSS_VARS } from '@/lib/mapColors'
 import { findAirport, findAirline } from '@kuuki/data'
 import { generateGreatCircleArc } from '@/lib/geo'
 import type { FlightRoute } from '@/lib/flights'
@@ -26,16 +26,15 @@ interface ArcData {
 
 export function RouteMap({ flights: propFlights, height = '300px' }: RouteMapProps) {
   const { t } = useTranslation()
-  const mapColors = useMapColors()
   const { data: allRoutes = [] } = useFlightRoutes()
   const [colorMode, setColorMode] = useState<'airline' | 'route'>('airline')
 
   const flights = propFlights ?? allRoutes
 
-  const bgGradient = `linear-gradient(180deg, ${mapColors.gradientStart} 0%, ${mapColors.gradientEnd} 100%)`
-  const gridColor = mapColors.stroke
-  const labelColor = mapColors.label
-  const dotColor = mapColors.dot
+  const bgGradient = `linear-gradient(180deg, ${MAP_CSS_VARS.gradientStart} 0%, ${MAP_CSS_VARS.gradientEnd} 100%)`
+  const gridColor = MAP_CSS_VARS.stroke
+  const labelColor = MAP_CSS_VARS.label
+  const dotColor = MAP_CSS_VARS.dot
 
   // Process flights into arc data
   const arcs = useMemo<ArcData[]>(() => {
@@ -67,12 +66,12 @@ export function RouteMap({ flights: propFlights, height = '300px' }: RouteMapPro
           iata: destAirport.iata,
         },
         airline: airline?.iata,
-        airlineColor: airline?.primaryColor || mapColors.routeFallback,
+        airlineColor: airline?.primaryColor || MAP_CSS_VARS.routeFallback,
       })
     }
 
     return result
-  }, [flights, mapColors.routeFallback])
+  }, [flights, MAP_CSS_VARS.routeFallback])
 
   // Get unique airports
   const airports = useMemo(() => {

@@ -1,4 +1,7 @@
 {
+  "a11y": {
+    "skipToContent": "Skip to main content"
+  },
   "common": {
     "appName": "Kuuki",
     "tagline": "Every journey, remembered",
@@ -987,6 +990,7 @@
       "joinOpenBeta": "Join Open Beta"
     },
     "features": {
+      "ariaLabel": "Features",
       "tracking": {
         "title": "Flight Tracking",
         "description": "Log your flights with AI-powered import from boarding passes and itineraries"
