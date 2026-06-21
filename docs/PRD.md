@@ -12,7 +12,7 @@
 | **Domain** | kuuki.indi256.com |
 | **Tagline** | A flight stats vault for aviation enthusiasts |
 | **Scale** | 50-500 users (first 6 months) |
-| **Status** | Feature-complete MVP, invite-only beta |
+| **Status** | Feature-complete MVP, open beta |
 
 ### What Kuuki Is
 
@@ -341,12 +341,12 @@ Characteristics:
 ### Authentication
 
 ```
-AS a new user with an invite code
+AS a new user
 I WANT to sign up with email/password
 SO THAT I can start tracking my flights
 
 Acceptance:
-- Invite code validated on blur
+- Signup accepts email and password only
 - Profile auto-created on signup
 - Redirect to dashboard after onboarding
 ```

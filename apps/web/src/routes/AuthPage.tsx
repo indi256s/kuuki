@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useLanguage } from '@/hooks/useLanguage'
 import { Button } from '@/components/ui/button'
@@ -23,8 +23,11 @@ function BrandMark({ className }: { className?: string }) {
 export function AuthPage() {
   const { t } = useTranslation()
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
   const { toggleLanguage } = useLanguage()
-  const [mode, setMode] = useState<AuthMode>('register')
+  const [mode, setMode] = useState<AuthMode>(
+    searchParams.get('mode') === 'signin' ? 'signin' : 'register'
+  )
   const [showAbout, setShowAbout] = useState(false)
 
   const handleSuccess = () => {
