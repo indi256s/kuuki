@@ -1,9 +1,25 @@
-# Handoff — Kuuki Phase 5 COMPLETE → Phase 7 (preview/e2e) next
+# Handoff — Kuuki Phase 5 COMPLETE, Phase 7 COMPLETE → Phase 8 next (NOT authorized)
 
 Generated 2026-06-21. Phase 5 (migrate live Supabase data into **LOCAL** Cloudflare D1) is
 **built, validated, and committed** — `git ae4312b` on branch `fix/33-image-removal`.
-**Not deployed, not pushed, no remote D1 touched.** Pause here for explicit authorization
-before Phase 7/8 (both deploy-gated).
+Phase 7 (Access-gated preview deploy + e2e) is **COMPLETE** — see "Phase 7 OUTCOME" below.
+**Nothing pushed; production `kuuki` / remote `kuuki-db` never touched.** Phase 8 is
+**NOT authorized** — stop at its boundary (see §6).
+
+## Phase 7 OUTCOME — COMPLETE (2026-06-21)
+- **Bug found & fixed:** deployed signin 500'd — Workers `crypto.subtle` rejects PBKDF2
+  iterations >100k (`NotSupportedError`), app used 210k. Fix `git e261cf5`:
+  `functions/api/_lib/crypto.ts` 210k→100k (+ `reset-passwords.ts` round-trip assertion).
+  Invisible locally because pages-dev/Vitest use Node crypto (allows 210k). Committed, not pushed.
+- **Re-hashed** all 26 local users at 100k → validate.ts **27/27** → re-exported the local dump
+  → wiped & reloaded preview remote `kuuki-db-preview`. Verified counts: users 26, flights 343,
+  visits 171, adv_stats 17, lb 25, aircraft 214, airports 557, a380 2, reset_required 0, 26×100k hashes.
+- **Redeployed** `kuuki-staging` (swap-config method) and re-ran the gated e2e: **13/13 PASS** —
+  token reaches origin, unauth→401, signin A/B→**200** (was 500), ownership 200/404/200/404,
+  flight-id isolation (80 / 65 / 0 overlap), distinct per-user stats. e2e script `/tmp/kuuki-e2e.sh`.
+- Gates re-confirmed: functions tsc 0, apps/web tsc -b 0, build OK, **175/175** tests.
+- **Still open at close:** teardown vs keep (revoke service token `5c8cfde2…` + `rm /tmp/kuuki-access.env`
+  at minimum); whether to commit `wrangler.staging.toml`. Both deferred to a user decision.
 
 ## 1. Status — DONE
 LOCAL D1 (`.wrangler/state/v3/d1`) holds the full migrated dataset and passes all gates:
@@ -44,9 +60,9 @@ override flags key an EMPTY local DB (different hash than the config UUID) and s
 - Stray untracked `docs/agents/` (domain.md, triage-labels.md, issue-tracker.md) appeared mid-session, unrelated to Phase 5 — left untracked, not committed. Review/remove separately.
 - Deferred carry-forwards (Compare regression, admin-script rewrite, i18n/SUPABASE cleanup) per spec §7.5 — untouched.
 
-## 6. Phase 7 → Phase 8 (both DEPLOY-GATED — get explicit user OK)
-- **Phase 7:** preview deploy + e2e (incl. cross-user isolation).
-- **Phase 8:** kuuki-cron for */5 leaderboard refresh, prod AUTH_SECRET, final re-export, promote to remote D1, force password reset for all users, remove SUPABASE_* vars, lock down Supabase (anon key is compromised in git history).
+## 6. Phase 7 DONE → Phase 8 next (DEPLOY-GATED — NOT authorized; get explicit user OK)
+- **Phase 7:** ✅ DONE — preview deploy + gated e2e incl. cross-user isolation (see "Phase 7 OUTCOME" above).
+- **Phase 8 (NOT authorized):** kuuki-cron for */5 leaderboard refresh, prod AUTH_SECRET, final re-export, promote to remote `kuuki-db`, force password reset for all users, remove SUPABASE_* vars, lock down Supabase (anon key is compromised in git history), and the A380→A388 live-data fix (flights 495/496, user `4fc167f2` — see §5 + `sb-to-d1.ts` buildFlightRows). When Phase 8 runs, also re-hash production at the same 100k cap (the PBKDF2 fix above is required for prod signin too).
 
 ## 7. Guardrails (still in force)
 Commit don't deploy; LOCAL D1 only; never push/PR or run against remote D1 without explicit user request. `db/_snapshot/` + `.dev.vars` stay gitignored (contain emails / secret).
