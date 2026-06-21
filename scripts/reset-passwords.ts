@@ -155,7 +155,7 @@ async function main(): Promise<void> {
     if (parts.length !== 6) {
       throw new Error(`FATAL: stored hash has ${parts.length} parts, expected 6: ${sampleStored}`)
     }
-    if (parts[0] !== 'pbkdf2' || parts[1] !== 'v1' || parts[2] !== 'sha256' || parts[3] !== '210000') {
+    if (parts[0] !== 'pbkdf2' || parts[1] !== 'v1' || parts[2] !== 'sha256' || parts[3] !== '100000') {
       throw new Error(`FATAL: stored hash header malformed: ${parts.slice(0, 4).join('$')}`)
     }
     const ok = await verifyPassword(TEMP_PASSWORD, sampleStored, authSecret)

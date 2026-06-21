@@ -12,7 +12,12 @@
 // login: keep verifying old versions with the old secret, rehash to the new one.
 
 const PEPPER_VERSION = 'v1'
-const PBKDF2_ITERATIONS = 210_000
+// Cloudflare Workers' crypto.subtle caps PBKDF2 at 100,000 iterations and throws
+// NotSupportedError above it. Node crypto (used by `wrangler pages dev` / Vitest) allows
+// more, which is why 210k passed every local gate yet 500'd on the deployed runtime.
+// verifyPassword reads the iteration count from each stored hash, so legacy hashes must be
+// re-derived at ≤100k for signin to work on Workers.
+const PBKDF2_ITERATIONS = 100_000
 const KEY_LEN_BYTES = 32
 const SALT_LEN_BYTES = 16
 
