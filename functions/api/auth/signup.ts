@@ -28,6 +28,11 @@ export const onRequestPost: PagesFunction<Env> = (context) =>
     if (!email || !EMAIL_RE.test(email)) throw new HttpError(400, 'A valid email is required', 'INVALID_EMAIL')
     if (!password || password.length < 8) throw new HttpError(400, 'Password must be at least 8 characters', 'WEAK_PASSWORD')
 
+    // Account-enumeration tradeoff (security finding #8, LOW): a distinct 409 here reveals that
+    // an email is registered. The privacy-preserving fix (accept-then-verify by email) needs
+    // transactional email infrastructure this app does not have, so the leak is accepted: it is
+    // per-IP rate-limited (above), low-value for this app, and sign-in is separately hardened
+    // against enumeration (dummyVerify + generic INVALID_CREDENTIALS).
     if (await getUserByEmail(env.DB, email)) {
       throw new HttpError(409, 'An account with this email already exists', 'EMAIL_TAKEN')
     }

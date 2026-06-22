@@ -9,8 +9,7 @@
     "build": "turbo build",
     "lint": "turbo lint",
     "typecheck": "turbo typecheck",
-    "clean": "turbo clean",
-    "backfill:times": "npx tsx scripts/backfill-flight-times.ts"
+    "clean": "turbo clean"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20260131.0",

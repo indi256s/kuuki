@@ -116,9 +116,9 @@ export async function verifyPassword(password: string): Promise<boolean> {
  * Delete the authenticated user's account and all of its data.
  * This is a permanent, irreversible action.
  */
-export async function deleteAccount(): Promise<{ success: boolean; error?: string }> {
+export async function deleteAccount(password: string): Promise<{ success: boolean; error?: string }> {
   try {
-    await api.delete('/api/auth/account')
+    await api.delete('/api/auth/account', { password })
     return { success: true }
   } catch (error) {
     if (error instanceof ApiError) {

@@ -3,7 +3,7 @@
 
 import { runHandler, readJson, json } from '../_lib/http'
 import { requireCsrf, requireUser, type RequestData } from '../_lib/auth'
-import { recomputeUserStats, updateAdvancedStatsUnlocks, evaluateBadges } from '../_services/stats'
+import { rebuildVisitsForUser, recomputeUserStats, updateAdvancedStatsUnlocks, evaluateBadges } from '../_services/stats'
 import { refreshAdvancedStats } from '../_services/advancedStats'
 
 interface Body {
@@ -33,6 +33,8 @@ export const onRequestPost: PagesFunction<Env, string, RequestData> = (context) 
       deleted += res.meta.changes ?? 0
     }
 
+    // Rebuild visits from remaining flights so geo counts decrement (security finding #6).
+    await rebuildVisitsForUser(env.DB, user.id)
     await recomputeUserStats(env.DB, user.id)
     await updateAdvancedStatsUnlocks(env.DB, user.id)
     await evaluateBadges(env.DB, user.id)

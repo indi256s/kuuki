@@ -15,8 +15,10 @@ import {
 } from './_shared'
 import { corsHeaders, corsPreflight } from '../_lib/cors'
 import { requireCsrf, type RequestData } from '../_lib/auth'
+import { rateLimit } from '../_lib/ratelimit'
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10 MB
+const MAX_TEXT_LENGTH = 100_000 // chars — cap the (previously uncapped) text branch; controls Gemini cost
 
 // Helper to clean messy text using Gemini (Stage 1 of two-stage parsing)
 async function cleanTextWithGemini(ai: GoogleGenAI, rawText: string): Promise<string> {
@@ -274,6 +276,16 @@ export const onRequestPost: PagesFunction<Env, string, RequestData> = async (con
     )
   }
 
+  // Per-user rate limit — each parse makes paid Gemini calls (security finding: AI quota/cost abuse).
+  try {
+    await rateLimit(context.env.IMPORT_JOBS, `parse:${user.id}`, 20, 3600)
+  } catch {
+    return new Response(
+      JSON.stringify({ error: 'Too many requests — please slow down', code: 'RATE_LIMITED', flights: [] }),
+      { status: 429, headers: { 'Content-Type': 'application/json', ...cors } }
+    )
+  }
+
   try {
     // Check API key
     if (!context.env.GEMINI_API_KEY) {
@@ -302,7 +314,7 @@ export const onRequestPost: PagesFunction<Env, string, RequestData> = async (con
       )
     }
 
-    // Check file size for base64 content
+    // Check file size for base64 content; cap raw text length on the text branch.
     if (type !== 'text') {
       const estimatedSize = (content.length * 3) / 4
       if (estimatedSize > MAX_FILE_SIZE) {
@@ -311,6 +323,11 @@ export const onRequestPost: PagesFunction<Env, string, RequestData> = async (con
           { status: 400, headers: cors }
         )
       }
+    } else if (content.length > MAX_TEXT_LENGTH) {
+      return Response.json(
+        { error: 'Text too long. Maximum is 100,000 characters', flights: [] } as ParseResponse,
+        { status: 400, headers: cors }
+      )
     }
 
     // Initialize Google GenAI client
@@ -366,9 +383,10 @@ export const onRequestPost: PagesFunction<Env, string, RequestData> = async (con
               console.log(JSON.stringify({ event: 'enrichment_job_complete', job_id: job.id, flight_count: result.flights.length }))
             } catch (error) {
               console.error(JSON.stringify({ event: 'enrichment_job_failed', job_id: job.id, error: String(error) }))
+              // Security finding #7: store a generic message in the owner-readable job, not error.message.
               await updateJob(kv, job.id, {
                 status: 'failed',
-                error: error instanceof Error ? error.message : 'Unknown error',
+                error: 'Import failed. Please try again.',
               })
             }
           })()

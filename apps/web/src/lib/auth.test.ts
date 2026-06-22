@@ -121,10 +121,10 @@ describe('auth functions', () => {
     it('returns success when the account is deleted', async () => {
       vi.mocked(api.delete).mockResolvedValueOnce({ ok: true })
 
-      const result = await deleteAccount()
+      const result = await deleteAccount('password123')
 
       expect(result).toEqual({ success: true })
-      expect(api.delete).toHaveBeenCalledWith('/api/auth/account')
+      expect(api.delete).toHaveBeenCalledWith('/api/auth/account', { password: 'password123' })
     })
 
     it('returns error on failure', async () => {
@@ -132,7 +132,7 @@ describe('auth functions', () => {
         new ApiError(500, 'Failed to delete account')
       )
 
-      const result = await deleteAccount()
+      const result = await deleteAccount('password123')
 
       expect(result).toEqual({ success: false, error: 'Failed to delete account' })
     })

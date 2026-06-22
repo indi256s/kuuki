@@ -25,13 +25,17 @@ const SORT_FIELDS = new Set([
   'duration_minutes',
 ])
 
+// Cap multi-value filters so a caller can't blow past D1's ~100 bound-variable limit
+// (security hardening: uncapped IN-clause arrays → self-DoS at runtime).
+const MAX_FILTER_VALUES = 25
+
 function csv(value: string | null): string[] | undefined {
   if (!value) return undefined
   const parts = value
     .split(',')
     .map((s) => s.trim())
     .filter(Boolean)
-  return parts.length ? parts : undefined
+  return parts.length ? parts.slice(0, MAX_FILTER_VALUES) : undefined
 }
 
 /** Parse FlightFilters from the request query string (?year=&airlineIata=&originCodes=a,b ...). */

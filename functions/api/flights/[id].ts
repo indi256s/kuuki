@@ -9,6 +9,7 @@ import { computeFlightDuration } from '../_services/flightDuration'
 import {
   fillDistanceAndDuration,
   syncVisitsFromFlight,
+  rebuildVisitsForUser,
   recomputeUserStats,
   updateAdvancedStatsUnlocks,
   evaluateBadges,
@@ -140,7 +141,10 @@ export const onRequestPatch: PagesFunction<Env, string, RequestData> = (context)
 
     if (!updated) throw new HttpError(404, 'Flight not found', 'NOT_FOUND')
 
-    await runChain(env.DB, user.id, isUpcoming ? null : { origin, destination, date })
+    // Rebuild visits from all remaining flights — an edit can change/remove an airport, and the
+    // incremental sync never removes the old one (security finding #6: visits never decrement).
+    await rebuildVisitsForUser(env.DB, user.id)
+    await runChain(env.DB, user.id, null)
 
     return json(toOwnFlight(updated))
   })
@@ -155,7 +159,9 @@ export const onRequestDelete: PagesFunction<Env, string, RequestData> = (context
     const res = await env.DB.prepare('DELETE FROM flights WHERE id = ? AND user_id = ?').bind(id, user.id).run()
     if (!res.meta.changes) throw new HttpError(404, 'Flight not found', 'NOT_FOUND')
 
-    // No syncVisitsFromFlight on delete — visits are cumulative and never decrement.
+    // Rebuild visits from the remaining flights so geo counts decrement correctly
+    // (security finding: visits never decremented on delete → permanently inflated stats).
+    await rebuildVisitsForUser(env.DB, user.id)
     await runChain(env.DB, user.id, null)
 
     return json({ ok: true })

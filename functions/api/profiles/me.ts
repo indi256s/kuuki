@@ -46,6 +46,20 @@ export const onRequestPatch: PagesFunction<Env, string, RequestData> = (context)
       throw new HttpError(400, 'Bio must be 140 characters or fewer', 'BAD_REQUEST')
     }
 
+    // Defense-in-depth validation for fields that reach render/fetch sinks (security hardening).
+    if (
+      typeof body.avatar_url === 'string' && body.avatar_url.length > 0 &&
+      !/^https:\/\//i.test(body.avatar_url) && !/^data:image\//i.test(body.avatar_url)
+    ) {
+      throw new HttpError(400, 'avatar_url must be an https:// or data:image/ URL', 'BAD_REQUEST')
+    }
+    if (
+      typeof body.theme_color === 'string' && body.theme_color.length > 0 &&
+      !/^[a-zA-Z0-9#_-]{1,32}$/.test(body.theme_color)
+    ) {
+      throw new HttpError(400, 'Invalid theme_color', 'BAD_REQUEST')
+    }
+
     const sets: string[] = []
     const binds: unknown[] = []
 

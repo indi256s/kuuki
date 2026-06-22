@@ -20,7 +20,7 @@ export interface EnrichmentResult {
   aircraft_icao: string | null
   aircraft_name: string | null
   confidence: number
-  source?: 'airlabs' | 'gemini'
+  source?: 'gemini'
 }
 
 export interface EnrichmentResponse {

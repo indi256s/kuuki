@@ -42,6 +42,9 @@ function toBase64Url(bytes: Uint8Array): string {
 
 /** HMAC-SHA256(secret, password) — the pepper step applied before PBKDF2. */
 async function pepper(password: string, secret: string): Promise<ArrayBuffer> {
+  // Fail closed: a missing AUTH_SECRET would otherwise HMAC with the literal "undefined",
+  // silently collapsing the pepper for every user (security hardening).
+  if (!secret) throw new Error('AUTH_SECRET is not configured')
   const key = await crypto.subtle.importKey(
     'raw',
     encoder.encode(secret),
