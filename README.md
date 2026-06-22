@@ -71,12 +71,8 @@ cp apps/web/.env.example apps/web/.env
 
 | Variable | Where | Description |
 |---|---|---|
-| `VITE_SUPABASE_URL` | `apps/web/.env` | Supabase project URL |
-| `VITE_SUPABASE_ANON_KEY` | `apps/web/.env` | Supabase publishable (anon) key |
-| `GEMINI_API_KEY` | Cloudflare `.dev.vars` | Google Gemini API key (for AI import) |
-| `AIRLABS_API_KEY` | Cloudflare `.dev.vars` | AirLabs key (for aircraft enrichment) |
-
-> **Note:** The Supabase anon key is safe to share with contributors — it's a publishable key scoped by Row Level Security (RLS). Never share the `service_role` key.
+| `GEMINI_API_KEY` | Cloudflare `.dev.vars` | Google Gemini API key (for AI import + aircraft enrichment) |
+| `AUTH_SECRET` | Cloudflare `.dev.vars` / `wrangler pages secret put` | Pepper/HMAC key for password hashing (required; auth fails closed if unset) |
 
 ### Run
 

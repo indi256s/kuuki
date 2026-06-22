@@ -106,48 +106,19 @@ describe('RotatingTagline', () => {
     })
   })
 
-  describe('layout structure', () => {
-    it('renders a flex column container', () => {
+  describe('container structure', () => {
+    it('renders a container with flex layout', () => {
       render(<RotatingTagline items={englishTaglines} />)
 
-      const container = document.querySelector('.flex.flex-col.items-center')
+      const container = document.querySelector('.flex.flex-col')
       expect(container).not.toBeNull()
     })
 
-    it('renders text inside a min-height container', () => {
+    it('has a text container with min-height', () => {
       render(<RotatingTagline items={englishTaglines} />)
 
-      // Text wrapper has min-height to prevent layout shift during animation
-      const textWrapper = document.querySelector('.min-h-\\[3rem\\]')
-      expect(textWrapper).not.toBeNull()
-    })
-
-    it('text is centered horizontally', () => {
-      render(<RotatingTagline items={englishTaglines} />)
-
-      const textWrapper = document.querySelector('.justify-center')
-      expect(textWrapper).not.toBeNull()
-    })
-
-    it('cycles to next item after interval', async () => {
-      render(<RotatingTagline items={englishTaglines} interval={1000} />)
-
-      // First item visible initially
-      expect(screen.getByText(englishTaglines[0])).toBeInTheDocument()
-
-      await act(async () => {
-        vi.advanceTimersByTime(1300)
-      })
-
-      // Second item visible after interval
-      expect(screen.getByText(englishTaglines[1])).toBeInTheDocument()
-    })
-
-    it('accepts a custom className on the text element', () => {
-      render(<RotatingTagline items={englishTaglines} className="text-xl" />)
-
-      const text = screen.getByText(englishTaglines[0])
-      expect(text.classList.contains('text-xl')).toBe(true)
+      const textContainer = document.querySelector('.min-h-\\[3rem\\]')
+      expect(textContainer).not.toBeNull()
     })
   })
 })

@@ -28,7 +28,7 @@ export function MobileHeader({ title, action }: MobileHeaderProps) {
   return (
     <header
       data-testid="mobile-header"
-      className="sticky top-0 z-40 sm:hidden bg-background/80 backdrop-blur-xl border-b border-border/50"
+      className="sticky top-0 z-40 sm:hidden bg-background/95 border-b border-border/50"
     >
       <div className="px-4 h-14 flex items-center justify-between">
         {/* Logo / Title */}

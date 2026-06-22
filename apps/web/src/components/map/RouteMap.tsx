@@ -1,7 +1,7 @@
 import { useState, useMemo, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useFlightRoutes } from '@/hooks/useFlights'
-import { useTheme } from '@/hooks/useTheme'
+import { MAP_CSS_VARS } from '@/lib/mapColors'
 import { findAirport, findAirline } from '@kuuki/data'
 import { generateGreatCircleArc } from '@/lib/geo'
 import type { FlightRoute } from '@/lib/flights'
@@ -26,20 +26,15 @@ interface ArcData {
 
 export function RouteMap({ flights: propFlights, height = '300px' }: RouteMapProps) {
   const { t } = useTranslation()
-  const { resolvedTheme } = useTheme()
   const { data: allRoutes = [] } = useFlightRoutes()
   const [colorMode, setColorMode] = useState<'airline' | 'route'>('airline')
 
   const flights = propFlights ?? allRoutes
 
-  // Theme-aware colors
-  const isLight = resolvedTheme === 'light'
-  const bgGradient = isLight
-    ? 'linear-gradient(180deg, #e0e7f0 0%, #f5f7fa 100%)' // soft blue-gray gradient
-    : 'linear-gradient(180deg, #1e3a5f 0%, #0f172a 100%)' // deep blue gradient
-  const gridColor = isLight ? '#cbd5e1' : '#64748b'
-  const labelColor = isLight ? '#334155' : '#ffffff'
-  const dotColor = isLight ? '#334155' : '#ffffff'
+  const bgGradient = `linear-gradient(180deg, ${MAP_CSS_VARS.gradientStart} 0%, ${MAP_CSS_VARS.gradientEnd} 100%)`
+  const gridColor = MAP_CSS_VARS.stroke
+  const labelColor = MAP_CSS_VARS.label
+  const dotColor = MAP_CSS_VARS.dot
 
   // Process flights into arc data
   const arcs = useMemo<ArcData[]>(() => {
@@ -71,12 +66,12 @@ export function RouteMap({ flights: propFlights, height = '300px' }: RouteMapPro
           iata: destAirport.iata,
         },
         airline: airline?.iata,
-        airlineColor: airline?.primaryColor || '#6366f1',
+        airlineColor: airline?.primaryColor || MAP_CSS_VARS.routeFallback,
       })
     }
 
     return result
-  }, [flights])
+  }, [flights, MAP_CSS_VARS.routeFallback])
 
   // Get unique airports
   const airports = useMemo(() => {

@@ -4,11 +4,13 @@
 
 interface Env {
   // Environment variables (wrangler.toml [vars] + Cloudflare dashboard secrets)
-  SUPABASE_URL: string
-  SUPABASE_ANON_KEY: string
   GEMINI_API_KEY: string
-  AIRLABS_API_KEY: string
+  AUTH_SECRET: string // pepper/HMAC key for password hashing (set via `wrangler pages secret put`)
+  PAGES_ORIGIN: string // canonical Pages origin for CORS (import/enrich); per-env override
 
   // KV Namespaces
   IMPORT_JOBS: KVNamespace
+
+  // D1 Database (migration target)
+  DB: D1Database
 }

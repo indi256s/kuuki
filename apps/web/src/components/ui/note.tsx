@@ -7,19 +7,17 @@ const noteVariants = cva(
     {
         variants: {
             variant: {
-                default: "bg-card text-card-foreground shadow-sm",
-                glass: "bg-white/60 dark:bg-white/5 backdrop-blur-xl border-white/20 dark:border-white/10 shadow-lg shadow-black/5 dark:shadow-black/20",
+                default: "bg-card text-card-foreground",
                 ghost: "bg-transparent border-dashed text-muted-foreground hover:bg-muted/50",
                 highlight: "bg-primary/5 border-primary/20 text-primary-foreground",
             },
-            // Semantic accent variants with left border accent
             accent: {
                 none: "",
-                primary: "border-l-4 border-l-primary/60 bg-primary/[0.03] dark:bg-primary/[0.06]",
-                info: "border-l-4 border-l-info/60 bg-info/[0.04] dark:bg-info/[0.08]",
-                success: "border-l-4 border-l-success/60 bg-success/[0.04] dark:bg-success/[0.08]",
-                warning: "border-l-4 border-l-warning/60 bg-warning/[0.04] dark:bg-warning/[0.08]",
-                destructive: "border-l-4 border-l-destructive/60 bg-destructive/[0.04] dark:bg-destructive/[0.08]",
+                primary: "border border-primary/20 bg-primary/[0.03] dark:bg-primary/[0.06]",
+                info: "border border-info/25 bg-info/[0.04] dark:bg-info/[0.08]",
+                success: "border border-success/25 bg-success/[0.04] dark:bg-success/[0.08]",
+                warning: "border border-warning/25 bg-warning/[0.04] dark:bg-warning/[0.08]",
+                destructive: "border border-destructive/25 bg-destructive/[0.04] dark:bg-destructive/[0.08]",
             },
             size: {
                 default: "p-6",
@@ -28,7 +26,7 @@ const noteVariants = cva(
             }
         },
         defaultVariants: {
-            variant: "glass",
+            variant: "default",
             accent: "none",
             size: "default",
         },

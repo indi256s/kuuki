@@ -86,42 +86,35 @@
 │   Sign Up Tab   │
 └────────┬────────┘
          │
-         │ Enter: email, password, invite code
-         │ Invite code validated on blur
+         │ Enter: email, password
          │
          ▼
-    ┌─────────┐
-    │ Valid?  │
-    └────┬────┘
-     No  │  Yes
-    ┌────┴────┐
-    ▼         ▼
-┌───────┐  ┌─────────────────┐
-│ Error │  │  /onboarding    │
-│ Toast │  │  Username Picker │
-└───────┘  └────────┬────────┘
-                    │
-                    │ Pick username (normalized)
-                    │
-                    ▼
-           ┌─────────────────┐
-           │   /dashboard    │
-           │   (Empty State) │
-           └────────┬────────┘
-                    │
-                    │ User sees sample data preview
-                    │ CTAs: "Add Flight" or "Import"
-                    │
-                    ▼
-           ┌────────────────────────┐
-           │ First flight added OR  │
-           │ First import complete  │
-           └────────────────────────┘
+┌─────────────────┐
+│  /onboarding    │
+│  Username Picker │
+└────────┬────────┘
+         │
+         │ Pick username (normalized)
+         │
+         ▼
+┌─────────────────┐
+│   /dashboard    │
+│   (Empty State) │
+└────────┬────────┘
+         │
+         │ User sees sample data preview
+         │ CTAs: "Add Flight" or "Import"
+         │
+         ▼
+┌────────────────────────┐
+│ First flight added OR  │
+│ First import complete  │
+└────────────────────────┘
 ```
 
 **Entry Points:** Direct URL, /landing CTA
 **Exit Points:** /dashboard
-**Error States:** Invalid invite code, email already exists
+**Error States:** Invalid email/password, email already exists
 **Success State:** Profile created, redirected to dashboard
 
 ---

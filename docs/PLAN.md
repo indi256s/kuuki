@@ -34,7 +34,7 @@ Aircraft, airports, airlines loaded as static JSON. See `packages/data/`.
 
 ### Phase 1: Foundation ✅
 
-Auth with invite codes, i18n (EN/RU), 26 tests passing, Cloudflare Pages live.
+Open registration auth, i18n (EN/RU), 26 tests passing, Cloudflare Pages live.
 
 → [tasks/phase-1-foundation.md](./tasks/phase-1-foundation.md)
 

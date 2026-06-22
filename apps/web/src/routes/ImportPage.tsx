@@ -7,6 +7,7 @@ import { useParseImport, type ExtractedFlight, type RejectedFlight } from '@/hoo
 import { useToast } from '@/hooks/useToast'
 import { useImportStore } from '@/stores/importStore'
 import { AppHeader } from '@/components/common/AppHeader'
+import { AppPageShell } from '@/components/layout/AppPageShell'
 import { MobileHeader } from '@/components/layout/MobileHeader'
 import { MobileTabBar } from '@/components/layout/MobileTabBar'
 import { ImportUpload } from '@/components/import/ImportUpload'
@@ -318,18 +319,32 @@ export function ImportPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-soft relative overflow-hidden">
-      {/* Background plane animation - z-0 to stay behind content */}
-      <PlaneAnimation className="z-0" variant="subtle" count={20} />
+    <AppPageShell
+      shellClassName="min-h-screen bg-gradient-soft relative overflow-hidden"
+      maxWidth="import"
+      className="mx-auto px-6 py-8 pb-safe sm:pb-8 relative z-10"
+      beforeMain={<PlaneAnimation className="z-0" variant="subtle" count={20} />}
+      mobileHeader={<MobileHeader />}
+      appHeader={<AppHeader />}
+      afterMain={
+        <>
+          <FlightForm
+            isOpen={isFormOpen}
+            onClose={handleFormClose}
+          />
 
-      {/* Mobile header */}
-      <MobileHeader />
-
-      {/* Desktop header */}
-      <AppHeader />
-
-      {/* Main content - pb-safe adds bottom padding for mobile tab bar */}
-      <main className="max-w-5xl mx-auto px-6 py-8 pb-safe sm:pb-8 relative z-10">
+          <FlightProgressModal
+            isOpen={step === 'parsing'}
+            onCancel={handleCancel}
+            onContinueInBackground={enrichmentJobId ? handleContinueInBackground : undefined}
+            inputType={inputType}
+            flights={pendingFlights}
+            onRevealComplete={handleRevealComplete}
+          />
+        </>
+      }
+      mobileTabBar={<MobileTabBar />}
+    >
         {/* Page header with step indicator */}
         <div className="mb-8 animate-fade-up">
           <div className="flex items-center justify-between">
@@ -503,26 +518,6 @@ export function ImportPage() {
             </Card>
           )
         })()}
-      </main>
-
-      {/* Manual flight form modal */}
-      <FlightForm
-        isOpen={isFormOpen}
-        onClose={handleFormClose}
-      />
-
-      {/* Mobile tab bar */}
-      <MobileTabBar />
-
-      {/* Flight progress modal - shown during parsing */}
-      <FlightProgressModal
-        isOpen={step === 'parsing'}
-        onCancel={handleCancel}
-        onContinueInBackground={enrichmentJobId ? handleContinueInBackground : undefined}
-        inputType={inputType}
-        flights={pendingFlights}
-        onRevealComplete={handleRevealComplete}
-      />
-    </div>
+    </AppPageShell>
   )
 }

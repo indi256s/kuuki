@@ -45,7 +45,7 @@ export function AppHeader({ onAddFlight, showAddButton = false }: AppHeaderProps
   return (
     <header
       data-testid="desktop-header"
-      className="hidden sm:block sticky top-0 z-40 bg-background/80 backdrop-blur-xl border-b border-border/50"
+      className="hidden sm:block sticky top-0 z-40 bg-background/95 border-b border-border/50"
     >
       <div className="max-w-7xl 3xl:max-w-[1800px] mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
         {/* Logo & Nav */}

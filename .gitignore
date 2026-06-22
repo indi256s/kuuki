@@ -51,8 +51,17 @@ supabase/.env
 .wrangler/
 .dev.vars
 
+# Phase 5 migration snapshot (real user data — never commit)
+db/_snapshot/
+
 # Raw data files (downloaded for import scripts)
 scripts/*.dat
 
 # Git worktrees
 .worktrees/
+
+# Agent tooling (keep out of remote)
+.agents/
+.claude/
+.planning/
+CLAUDE.md

@@ -1,9 +1,10 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
 import {
   getUserCountries,
   getUserClaims,
   claimCountry,
   addGroundVisit,
+  getGroundVisits,
   deleteGroundVisit,
   unclaimCountry,
   getCountryStats,
@@ -13,39 +14,14 @@ import {
   getCountryByCode,
 } from './passport'
 
-// Mock the supabase module
-const mockFrom = vi.fn()
-vi.mock('./supabase', () => ({
-  supabase: {
-    from: (...args: unknown[]) => mockFrom(...args),
-  },
-}))
-
-// Helper to create chainable mock
-function createChainMock(result: { data?: unknown; error?: { message: string; code?: string } | null }) {
-  const chain = {
-    select: vi.fn(() => chain),
-    eq: vi.fn(() => chain),
-    single: vi.fn(() => Promise.resolve(result)),
-    maybeSingle: vi.fn(() => Promise.resolve(result)),
-    order: vi.fn(() => Promise.resolve(result)),
-    insert: vi.fn(() => chain),
-    upsert: vi.fn(() => chain),
-    update: vi.fn(() => chain),
-    delete: vi.fn(() => chain),
-    // For terminal operations that return promise directly
-    then: (resolve: (value: typeof result) => void) => Promise.resolve(result).then(resolve),
-  }
-  return chain
-}
+vi.mock('@/lib/apiClient', async () => await import('@/test/mocks/apiClient'))
+import { api, resetApiMock } from '@/test/mocks/apiClient'
 
 describe('passport', () => {
-  beforeEach(() => {
-    vi.clearAllMocks()
-  })
+  beforeEach(resetApiMock)
 
   // ============================================================
-  // Pure functions (no mocking needed)
+  // Pure functions (no API needed)
   // ============================================================
 
   describe('getAllCountries', () => {
@@ -95,33 +71,22 @@ describe('passport', () => {
   })
 
   // ============================================================
-  // getUserCountries - combines visits, claims, and ground visits
+  // getUserCountries - merges visits, claims, and ground visits
   // ============================================================
 
   describe('getUserCountries', () => {
     it('returns empty array when user has no visits or claims', async () => {
-      const visitsChain = createChainMock({ data: [], error: null })
-      const claimsChain = createChainMock({ data: [], error: null })
-      const groundVisitsChain = createChainMock({ data: [], error: null })
-
-      mockFrom.mockImplementation((table: string) => {
-        if (table === 'visits') return visitsChain
-        if (table === 'country_claims') return claimsChain
-        if (table === 'ground_visits') return groundVisitsChain
-        throw new Error(`Unexpected table: ${table}`)
-      })
+      vi.mocked(api.get).mockResolvedValue({ visits: [], claims: [], groundVisits: [] })
 
       const result = await getUserCountries('user-123')
 
       expect(result).toEqual([])
-      expect(mockFrom).toHaveBeenCalledWith('visits')
-      expect(mockFrom).toHaveBeenCalledWith('country_claims')
-      expect(mockFrom).toHaveBeenCalledWith('ground_visits')
+      expect(api.get).toHaveBeenCalledWith('/api/passport/countries')
     })
 
     it('returns passport entries from flight visits', async () => {
-      const visitsChain = createChainMock({
-        data: [
+      vi.mocked(api.get).mockResolvedValue({
+        visits: [
           {
             country_code: 'JP',
             first_visit: '2023-01-15',
@@ -130,16 +95,8 @@ describe('passport', () => {
             airport_iata: 'NRT',
           },
         ],
-        error: null,
-      })
-      const claimsChain = createChainMock({ data: [], error: null })
-      const groundVisitsChain = createChainMock({ data: [], error: null })
-
-      mockFrom.mockImplementation((table: string) => {
-        if (table === 'visits') return visitsChain
-        if (table === 'country_claims') return claimsChain
-        if (table === 'ground_visits') return groundVisitsChain
-        throw new Error(`Unexpected table: ${table}`)
+        claims: [],
+        groundVisits: [],
       })
 
       const result = await getUserCountries('user-123')
@@ -159,23 +116,10 @@ describe('passport', () => {
     })
 
     it('returns passport entries from manual claims', async () => {
-      const visitsChain = createChainMock({ data: [], error: null })
-      const claimsChain = createChainMock({
-        data: [
-          {
-            country_code: 'DE',
-            claimed_at: '2022-06-01',
-          },
-        ],
-        error: null,
-      })
-      const groundVisitsChain = createChainMock({ data: [], error: null })
-
-      mockFrom.mockImplementation((table: string) => {
-        if (table === 'visits') return visitsChain
-        if (table === 'country_claims') return claimsChain
-        if (table === 'ground_visits') return groundVisitsChain
-        throw new Error(`Unexpected table: ${table}`)
+      vi.mocked(api.get).mockResolvedValue({
+        visits: [],
+        claims: [{ country_code: 'DE', claimed_at: '2022-06-01' }],
+        groundVisits: [],
       })
 
       const result = await getUserCountries('user-123')
@@ -195,8 +139,8 @@ describe('passport', () => {
     })
 
     it('marks country as "both" when visited by flight and claimed', async () => {
-      const visitsChain = createChainMock({
-        data: [
+      vi.mocked(api.get).mockResolvedValue({
+        visits: [
           {
             country_code: 'JP',
             first_visit: '2023-01-15',
@@ -205,24 +149,8 @@ describe('passport', () => {
             airport_iata: 'NRT',
           },
         ],
-        error: null,
-      })
-      const claimsChain = createChainMock({
-        data: [
-          {
-            country_code: 'JP',
-            claimed_at: '2022-05-01', // Earlier than flight
-          },
-        ],
-        error: null,
-      })
-      const groundVisitsChain = createChainMock({ data: [], error: null })
-
-      mockFrom.mockImplementation((table: string) => {
-        if (table === 'visits') return visitsChain
-        if (table === 'country_claims') return claimsChain
-        if (table === 'ground_visits') return groundVisitsChain
-        throw new Error(`Unexpected table: ${table}`)
+        claims: [{ country_code: 'JP', claimed_at: '2022-05-01' }], // Earlier than flight
+        groundVisits: [],
       })
 
       const result = await getUserCountries('user-123')
@@ -234,8 +162,8 @@ describe('passport', () => {
     })
 
     it('sorts entries by first visit date (oldest first)', async () => {
-      const visitsChain = createChainMock({
-        data: [
+      vi.mocked(api.get).mockResolvedValue({
+        visits: [
           {
             country_code: 'US',
             first_visit: '2023-06-01',
@@ -251,16 +179,8 @@ describe('passport', () => {
             airport_iata: 'NRT',
           },
         ],
-        error: null,
-      })
-      const claimsChain = createChainMock({ data: [], error: null })
-      const groundVisitsChain = createChainMock({ data: [], error: null })
-
-      mockFrom.mockImplementation((table: string) => {
-        if (table === 'visits') return visitsChain
-        if (table === 'country_claims') return claimsChain
-        if (table === 'ground_visits') return groundVisitsChain
-        throw new Error(`Unexpected table: ${table}`)
+        claims: [],
+        groundVisits: [],
       })
 
       const result = await getUserCountries('user-123')
@@ -270,71 +190,54 @@ describe('passport', () => {
       expect(result[1].countryCode).toBe('US') // 2023
     })
 
-    it('throws error when visits query fails', async () => {
-      const visitsChain = createChainMock({ data: null, error: { message: 'Database error' } })
-      const claimsChain = createChainMock({ data: [], error: null })
-      const groundVisitsChain = createChainMock({ data: [], error: null })
-
-      mockFrom.mockImplementation((table: string) => {
-        if (table === 'visits') return visitsChain
-        if (table === 'country_claims') return claimsChain
-        if (table === 'ground_visits') return groundVisitsChain
-        throw new Error(`Unexpected table: ${table}`)
+    it('counts ground visits toward a claimed country', async () => {
+      vi.mocked(api.get).mockResolvedValue({
+        visits: [],
+        claims: [{ country_code: 'FR', claimed_at: '2021-03-01' }],
+        groundVisits: [{ country_code: 'FR' }, { country_code: 'FR' }],
       })
 
-      await expect(getUserCountries('user-123')).rejects.toThrow('Failed to fetch visits: Database error')
+      const result = await getUserCountries('user-123')
+
+      expect(result).toHaveLength(1)
+      expect(result[0].countryCode).toBe('FR')
+      expect(result[0].visitCount).toBe(2)
     })
 
-    it('throws error when claims query fails', async () => {
-      const visitsChain = createChainMock({ data: [], error: null })
-      const claimsChain = createChainMock({ data: null, error: { message: 'Claims error' } })
-      const groundVisitsChain = createChainMock({ data: [], error: null })
+    it('propagates errors from the API', async () => {
+      vi.mocked(api.get).mockRejectedValue(new Error('Database error'))
 
-      mockFrom.mockImplementation((table: string) => {
-        if (table === 'visits') return visitsChain
-        if (table === 'country_claims') return claimsChain
-        if (table === 'ground_visits') return groundVisitsChain
-        throw new Error(`Unexpected table: ${table}`)
-      })
-
-      await expect(getUserCountries('user-123')).rejects.toThrow('Failed to fetch claims: Claims error')
+      await expect(getUserCountries('user-123')).rejects.toThrow('Database error')
     })
   })
 
   // ============================================================
-  // claimCountry (now upsert stamp only)
+  // claimCountry (PUT /claims/:cc)
   // ============================================================
 
   describe('claimCountry', () => {
-    it('upserts a country claim stamp', async () => {
-      const mockClaim = {
+    it('claims a country and refills user_id', async () => {
+      vi.mocked(api.put).mockResolvedValue({
+        id: 'claim-123',
+        country_code: 'DE',
+        claimed_at: '2024-01-15T10:00:00Z',
+      })
+
+      const result = await claimCountry('user-123', 'DE')
+
+      expect(result).toEqual({
         id: 'claim-123',
         user_id: 'user-123',
         country_code: 'DE',
         claimed_at: '2024-01-15T10:00:00Z',
-      }
-
-      const chain = createChainMock({ data: mockClaim, error: null })
-      mockFrom.mockReturnValue(chain)
-
-      const result = await claimCountry('user-123', 'DE')
-
-      expect(result).toEqual(mockClaim)
-      expect(mockFrom).toHaveBeenCalledWith('country_claims')
-      expect(chain.upsert).toHaveBeenCalledWith({
-        user_id: 'user-123',
-        country_code: 'DE',
-      }, { onConflict: 'user_id,country_code' })
+      })
+      expect(api.put).toHaveBeenCalledWith('/api/passport/claims/DE')
     })
 
-    it('throws error on failure', async () => {
-      const chain = createChainMock({
-        data: null,
-        error: { message: 'Connection failed' }
-      })
-      mockFrom.mockReturnValue(chain)
+    it('propagates errors on failure', async () => {
+      vi.mocked(api.put).mockRejectedValue(new Error('Connection failed'))
 
-      await expect(claimCountry('user-123', 'DE')).rejects.toThrow('Failed to claim country: Connection failed')
+      await expect(claimCountry('user-123', 'DE')).rejects.toThrow('Connection failed')
     })
   })
 
@@ -344,18 +247,14 @@ describe('passport', () => {
 
   describe('addGroundVisit', () => {
     it('creates a ground visit with details', async () => {
-      const mockVisit = {
+      vi.mocked(api.post).mockResolvedValue({
         id: 'visit-123',
-        user_id: 'user-123',
-        country_code: 'FR',
-        visit_year: 2019,
-        entry_method: 'land',
+        countryCode: 'FR',
+        visitYear: 2019,
+        entryMethod: 'land',
         note: 'Road trip through Provence',
-        created_at: '2024-01-15T10:00:00Z',
-      }
-
-      const chain = createChainMock({ data: mockVisit, error: null })
-      mockFrom.mockReturnValue(chain)
+        createdAt: '2024-01-15T10:00:00Z',
+      })
 
       const result = await addGroundVisit('user-123', 'FR', {
         visitYear: 2019,
@@ -369,25 +268,81 @@ describe('passport', () => {
         visitYear: 2019,
         entryMethod: 'land',
         note: 'Road trip through Provence',
+        createdAt: '2024-01-15T10:00:00Z',
       })
-      expect(mockFrom).toHaveBeenCalledWith('ground_visits')
-      expect(chain.insert).toHaveBeenCalledWith({
-        user_id: 'user-123',
-        country_code: 'FR',
-        visit_year: 2019,
+      expect(api.post).toHaveBeenCalledWith('/api/passport/ground-visits', {
+        countryCode: 'FR',
+        visitYear: 2019,
         note: 'Road trip through Provence',
-        entry_method: 'land',
+        entryMethod: 'land',
       })
     })
 
-    it('throws error on failure', async () => {
-      const chain = createChainMock({
-        data: null,
-        error: { message: 'Insert failed' }
+    it('defaults optional fields to null', async () => {
+      vi.mocked(api.post).mockResolvedValue({
+        id: 'visit-456',
+        countryCode: 'FR',
+        visitYear: null,
+        entryMethod: null,
+        note: null,
+        createdAt: '2024-01-15T10:00:00Z',
       })
-      mockFrom.mockReturnValue(chain)
 
-      await expect(addGroundVisit('user-123', 'FR')).rejects.toThrow('Failed to add ground visit: Insert failed')
+      await addGroundVisit('user-123', 'FR')
+
+      expect(api.post).toHaveBeenCalledWith('/api/passport/ground-visits', {
+        countryCode: 'FR',
+        visitYear: null,
+        note: null,
+        entryMethod: null,
+      })
+    })
+
+    it('propagates errors on failure', async () => {
+      vi.mocked(api.post).mockRejectedValue(new Error('Insert failed'))
+
+      await expect(addGroundVisit('user-123', 'FR')).rejects.toThrow('Insert failed')
+    })
+  })
+
+  // ============================================================
+  // getGroundVisits
+  // ============================================================
+
+  describe('getGroundVisits', () => {
+    it('returns ground visits mapped to the frontend shape', async () => {
+      vi.mocked(api.get).mockResolvedValue([
+        {
+          id: 'gv-1',
+          countryCode: 'DE',
+          visitYear: 2022,
+          entryMethod: 'land',
+          note: 'Train from France',
+          createdAt: '2024-01-15T10:00:00Z',
+        },
+      ])
+
+      const result = await getGroundVisits('user-123', 'DE')
+
+      expect(result).toHaveLength(1)
+      expect(result[0]).toEqual({
+        id: 'gv-1',
+        userId: 'user-123',
+        countryCode: 'DE',
+        visitYear: 2022,
+        entryMethod: 'land',
+        note: 'Train from France',
+        createdAt: '2024-01-15T10:00:00Z',
+      })
+      expect(api.get).toHaveBeenCalledWith('/api/passport/ground-visits', { countryCode: 'DE' })
+    })
+
+    it('returns empty array when there are no ground visits', async () => {
+      vi.mocked(api.get).mockResolvedValue([])
+
+      const result = await getGroundVisits('user-123', 'DE')
+
+      expect(result).toEqual([])
     })
   })
 
@@ -397,25 +352,17 @@ describe('passport', () => {
 
   describe('deleteGroundVisit', () => {
     it('deletes a ground visit by id', async () => {
-      const chain = createChainMock({ data: null, error: null })
-      mockFrom.mockReturnValue(chain)
+      vi.mocked(api.delete).mockResolvedValue({ ok: true })
 
       await deleteGroundVisit('user-123', 'visit-123')
 
-      expect(mockFrom).toHaveBeenCalledWith('ground_visits')
-      expect(chain.delete).toHaveBeenCalled()
-      expect(chain.eq).toHaveBeenCalledWith('id', 'visit-123')
-      expect(chain.eq).toHaveBeenCalledWith('user_id', 'user-123')
+      expect(api.delete).toHaveBeenCalledWith('/api/passport/ground-visits/visit-123')
     })
 
-    it('throws error when delete fails', async () => {
-      const chain = createChainMock({
-        data: null,
-        error: { message: 'Delete failed' }
-      })
-      mockFrom.mockReturnValue(chain)
+    it('propagates errors when delete fails', async () => {
+      vi.mocked(api.delete).mockRejectedValue(new Error('Delete failed'))
 
-      await expect(deleteGroundVisit('user-123', 'visit-123')).rejects.toThrow('Failed to delete ground visit: Delete failed')
+      await expect(deleteGroundVisit('user-123', 'visit-123')).rejects.toThrow('Delete failed')
     })
   })
 
@@ -424,25 +371,18 @@ describe('passport', () => {
   // ============================================================
 
   describe('unclaimCountry', () => {
-    it('deletes ground visits then country claim', async () => {
-      const chain = createChainMock({ data: null, error: null })
-      mockFrom.mockReturnValue(chain)
+    it('deletes the claim (server cascades ground visits)', async () => {
+      vi.mocked(api.delete).mockResolvedValue({ ok: true })
 
       await unclaimCountry('user-123', 'DE')
 
-      // Should call from() for both ground_visits and country_claims
-      expect(mockFrom).toHaveBeenCalledWith('ground_visits')
-      expect(mockFrom).toHaveBeenCalledWith('country_claims')
+      expect(api.delete).toHaveBeenCalledWith('/api/passport/claims/DE')
     })
 
-    it('throws error when ground visits delete fails', async () => {
-      const chain = createChainMock({
-        data: null,
-        error: { message: 'Delete failed' }
-      })
-      mockFrom.mockReturnValue(chain)
+    it('propagates errors when delete fails', async () => {
+      vi.mocked(api.delete).mockRejectedValue(new Error('Delete failed'))
 
-      await expect(unclaimCountry('user-123', 'DE')).rejects.toThrow('Failed to delete ground visits: Delete failed')
+      await expect(unclaimCountry('user-123', 'DE')).rejects.toThrow('Delete failed')
     })
   })
 
@@ -452,59 +392,43 @@ describe('passport', () => {
 
   describe('isCountryClaimed', () => {
     it('returns true when country is claimed', async () => {
-      const chain = createChainMock({ data: { id: 'claim-123' }, error: null })
-      mockFrom.mockReturnValue(chain)
+      vi.mocked(api.get).mockResolvedValue({ exists: true })
 
       const result = await isCountryClaimed('user-123', 'JP')
 
       expect(result).toBe(true)
-      expect(mockFrom).toHaveBeenCalledWith('country_claims')
-      expect(chain.eq).toHaveBeenCalledWith('user_id', 'user-123')
-      expect(chain.eq).toHaveBeenCalledWith('country_code', 'JP')
+      expect(api.get).toHaveBeenCalledWith('/api/passport/claims/JP/exists')
     })
 
     it('returns false when country is not claimed', async () => {
-      const chain = createChainMock({ data: null, error: null })
-      mockFrom.mockReturnValue(chain)
+      vi.mocked(api.get).mockResolvedValue({ exists: false })
 
       const result = await isCountryClaimed('user-123', 'JP')
 
       expect(result).toBe(false)
     })
 
-    it('throws error when query fails', async () => {
-      const chain = createChainMock({
-        data: null,
-        error: { message: 'Query failed' }
-      })
-      mockFrom.mockReturnValue(chain)
+    it('propagates errors when query fails', async () => {
+      vi.mocked(api.get).mockRejectedValue(new Error('Query failed'))
 
-      await expect(isCountryClaimed('user-123', 'JP')).rejects.toThrow('Failed to check claim: Query failed')
+      await expect(isCountryClaimed('user-123', 'JP')).rejects.toThrow('Query failed')
     })
   })
 
   // ============================================================
-  // getPassportStats
+  // getPassportStats (derived from getUserCountries)
   // ============================================================
 
   describe('getPassportStats', () => {
     it('calculates stats from passport entries', async () => {
-      const visitsChain = createChainMock({
-        data: [
+      vi.mocked(api.get).mockResolvedValue({
+        visits: [
           { country_code: 'JP', first_visit: '2022-01-15', last_visit: '2022-01-20', visit_count: 2, airport_iata: 'NRT' },
           { country_code: 'US', first_visit: '2023-06-01', last_visit: '2023-06-05', visit_count: 1, airport_iata: 'JFK' },
           { country_code: 'DE', first_visit: '2023-08-01', last_visit: '2023-08-10', visit_count: 1, airport_iata: 'FRA' },
         ],
-        error: null,
-      })
-      const claimsChain = createChainMock({ data: [], error: null })
-      const groundVisitsChain = createChainMock({ data: [], error: null })
-
-      mockFrom.mockImplementation((table: string) => {
-        if (table === 'visits') return visitsChain
-        if (table === 'country_claims') return claimsChain
-        if (table === 'ground_visits') return groundVisitsChain
-        throw new Error(`Unexpected table: ${table}`)
+        claims: [],
+        groundVisits: [],
       })
 
       const stats = await getPassportStats('user-123')
@@ -515,20 +439,11 @@ describe('passport', () => {
       expect(stats.groundCountries).toBe(0)
       expect(stats.newThisYear).toBe(0) // all entries are from 2022/2023
       expect(stats.lastStamp).toBeTruthy()
-      expect(stats.lastStamp!.countryCode).toBe('DE') // latest firstVisit: 2023-08-01
+      expect(stats.lastStamp!.countryCode).toBe('DE') // latest lastVisit: 2023-08-10
     })
 
     it('returns zero stats for new user', async () => {
-      const visitsChain = createChainMock({ data: [], error: null })
-      const claimsChain = createChainMock({ data: [], error: null })
-      const groundVisitsChain = createChainMock({ data: [], error: null })
-
-      mockFrom.mockImplementation((table: string) => {
-        if (table === 'visits') return visitsChain
-        if (table === 'country_claims') return claimsChain
-        if (table === 'ground_visits') return groundVisitsChain
-        throw new Error(`Unexpected table: ${table}`)
-      })
+      vi.mocked(api.get).mockResolvedValue({ visits: [], claims: [], groundVisits: [] })
 
       const stats = await getPassportStats('user-123')
 
@@ -550,34 +465,19 @@ describe('passport', () => {
       await expect(getCountryStats('user-123', 'XX')).rejects.toThrow('Unknown country code: XX')
     })
 
-    it('returns stats from flight visits with ground visits', async () => {
-      const visitsChain = createChainMock({
-        data: [
-          {
-            first_visit: '2022-01-15',
-            last_visit: '2022-01-20',
-            visit_count: 3,
-            airport_iata: 'NRT',
-            city: 'Tokyo',
-          },
-          {
-            first_visit: '2023-06-01',
-            last_visit: '2023-06-05',
-            visit_count: 2,
-            airport_iata: 'KIX',
-            city: 'Osaka',
-          },
+    it('returns stats from flight visits and fills countryName from countries.json', async () => {
+      vi.mocked(api.get).mockResolvedValue({
+        countryCode: 'JP',
+        countryName: '',
+        firstVisit: '2022-01-15',
+        lastVisit: '2023-06-05',
+        totalVisits: 5,
+        airports: [
+          { iata: 'NRT', name: 'NRT', city: 'Tokyo', visitCount: 3 },
+          { iata: 'KIX', name: 'KIX', city: 'Osaka', visitCount: 2 },
         ],
-        error: null,
-      })
-      const claimsChain = createChainMock({ data: null, error: null })
-      const groundVisitsChain = createChainMock({ data: [], error: null })
-
-      mockFrom.mockImplementation((table: string) => {
-        if (table === 'visits') return visitsChain
-        if (table === 'country_claims') return claimsChain
-        if (table === 'ground_visits') return groundVisitsChain
-        throw new Error(`Unexpected table: ${table}`)
+        isClaimed: false,
+        groundVisits: [],
       })
 
       const stats = await getCountryStats('user-123', 'JP')
@@ -591,37 +491,34 @@ describe('passport', () => {
       expect(stats.airports[0]).toMatchObject({ iata: 'NRT', city: 'Tokyo', visitCount: 3 })
       expect(stats.isClaimed).toBe(false)
       expect(stats.groundVisits).toEqual([])
+      expect(api.get).toHaveBeenCalledWith('/api/passport/countries/JP/stats')
     })
 
     it('returns stats with ground visits for claimed country', async () => {
-      const visitsChain = createChainMock({ data: [], error: null })
-      const claimsChain = createChainMock({
-        data: { id: 'claim-123' },
-        error: null,
-      })
-      const groundVisitsChain = createChainMock({
-        data: [{
-          id: 'gv-1',
-          user_id: 'user-123',
-          country_code: 'DE',
-          visit_year: 2022,
-          entry_method: 'land',
-          note: 'Visited by train from France',
-          created_at: '2024-01-15T10:00:00Z',
-        }],
-        error: null,
-      })
-
-      mockFrom.mockImplementation((table: string) => {
-        if (table === 'visits') return visitsChain
-        if (table === 'country_claims') return claimsChain
-        if (table === 'ground_visits') return groundVisitsChain
-        throw new Error(`Unexpected table: ${table}`)
+      vi.mocked(api.get).mockResolvedValue({
+        countryCode: 'DE',
+        countryName: '',
+        firstVisit: '',
+        lastVisit: '',
+        totalVisits: 1,
+        airports: [],
+        isClaimed: true,
+        groundVisits: [
+          {
+            id: 'gv-1',
+            countryCode: 'DE',
+            visitYear: 2022,
+            entryMethod: 'land',
+            note: 'Visited by train from France',
+            createdAt: '2024-01-15T10:00:00Z',
+          },
+        ],
       })
 
       const stats = await getCountryStats('user-123', 'DE')
 
       expect(stats.countryCode).toBe('DE')
+      expect(stats.countryName).toBe('Germany')
       expect(stats.isClaimed).toBe(true)
       expect(stats.groundVisits).toHaveLength(1)
       expect(stats.groundVisits[0]).toMatchObject({
@@ -631,6 +528,9 @@ describe('passport', () => {
         entryMethod: 'land',
         note: 'Visited by train from France',
       })
+      // No flight dates but claimed -> fills current date and at least 1 visit
+      expect(stats.firstVisit).not.toBe('')
+      expect(stats.lastVisit).not.toBe('')
       expect(stats.totalVisits).toBe(1)
     })
   })
@@ -640,37 +540,33 @@ describe('passport', () => {
   // ============================================================
 
   describe('getUserClaims', () => {
-    it('returns all claims for a user ordered by date', async () => {
-      const mockClaims = [
-        { id: 'claim-2', user_id: 'user-123', country_code: 'FR', claimed_at: '2024-01-15' },
-        { id: 'claim-1', user_id: 'user-123', country_code: 'DE', claimed_at: '2023-06-01' },
-      ]
-
-      const chain = createChainMock({ data: mockClaims, error: null })
-      mockFrom.mockReturnValue(chain)
+    it('returns all claims for a user with user_id refilled', async () => {
+      vi.mocked(api.get).mockResolvedValue([
+        { id: 'claim-2', country_code: 'FR', claimed_at: '2024-01-15' },
+        { id: 'claim-1', country_code: 'DE', claimed_at: '2023-06-01' },
+      ])
 
       const result = await getUserClaims('user-123')
 
-      expect(result).toEqual(mockClaims)
-      expect(mockFrom).toHaveBeenCalledWith('country_claims')
-      expect(chain.eq).toHaveBeenCalledWith('user_id', 'user-123')
-      expect(chain.order).toHaveBeenCalledWith('claimed_at', { ascending: false })
+      expect(result).toEqual([
+        { id: 'claim-2', user_id: 'user-123', country_code: 'FR', claimed_at: '2024-01-15' },
+        { id: 'claim-1', user_id: 'user-123', country_code: 'DE', claimed_at: '2023-06-01' },
+      ])
+      expect(api.get).toHaveBeenCalledWith('/api/passport/claims')
     })
 
     it('returns empty array when user has no claims', async () => {
-      const chain = createChainMock({ data: [], error: null })
-      mockFrom.mockReturnValue(chain)
+      vi.mocked(api.get).mockResolvedValue([])
 
       const result = await getUserClaims('user-123')
 
       expect(result).toEqual([])
     })
 
-    it('throws error when query fails', async () => {
-      const chain = createChainMock({ data: null, error: { message: 'Query failed' } })
-      mockFrom.mockReturnValue(chain)
+    it('propagates errors when query fails', async () => {
+      vi.mocked(api.get).mockRejectedValue(new Error('Query failed'))
 
-      await expect(getUserClaims('user-123')).rejects.toThrow('Failed to fetch claims: Query failed')
+      await expect(getUserClaims('user-123')).rejects.toThrow('Query failed')
     })
   })
 })

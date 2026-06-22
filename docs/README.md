@@ -59,7 +59,7 @@ kuuki/
 ├── apps/web/src/           # React SPA source
 │   ├── components/
 │   │   ├── ui/             # shadcn/ui components
-│   │   ├── auth/           # Login, signup, invite
+│   │   ├── auth/           # Login and signup
 │   │   ├── dashboard/      # Dashboard, stats cards
 │   │   ├── flights/        # Flight list, forms
 │   │   ├── import/         # AI import flow

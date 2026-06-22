@@ -1,6 +1,6 @@
 
 import { useState, useCallback } from 'react'
-import { JourneyLeg } from '@/routes/JourneyPlannerPage'
+import type { JourneyLeg } from '@/types/journey'
 import { FlightGanttBlock } from './FlightGanttBlock'
 import { Plus } from 'lucide-react'
 import { cn } from '@/lib/utils'

@@ -4,6 +4,7 @@ import { Plus } from 'lucide-react'
 import { FlightList } from '@/components/flights/FlightList'
 import { FlightForm } from '@/components/flights/FlightForm'
 import { AppHeader } from '@/components/common/AppHeader'
+import { AppPageShell } from '@/components/layout/AppPageShell'
 import { MobileHeader } from '@/components/layout/MobileHeader'
 import { MobileTabBar } from '@/components/layout/MobileTabBar'
 import { FloatingActionButton } from '@/components/common/FloatingActionButton'
@@ -64,16 +65,53 @@ export function FlightsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-soft">
+    <AppPageShell
+      shellClassName="min-h-screen bg-gradient-soft"
+      maxWidth="wide"
+      className="mx-auto px-4 sm:px-8 py-6 sm:py-10 pb-safe sm:pb-10"
+      mobileHeader={<MobileHeader />}
+      appHeader={<AppHeader onAddFlight={handleAddFlight} showAddButton />}
+      afterMain={
+        <>
+          <FlightForm
+            isOpen={isFormOpen}
+            onClose={handleCloseForm}
+            editFlight={editingFlight}
+            onDelete={handleDeleteClick}
+          />
 
-      {/* Mobile header */}
-      <MobileHeader />
+          <Dialog open={deleteConfirmFlight !== null} onOpenChange={(open) => !open && cancelDelete()}>
+            <DialogContent size="sm">
+              <DialogHeader>
+                <DialogTitle>{t('flights.deleteConfirmTitle', 'Delete Flight?')}</DialogTitle>
+                <DialogDescription>
+                  {t('flights.deleteConfirmMessage', 'This action cannot be undone. The flight will be permanently removed from your log.')}
+                </DialogDescription>
+              </DialogHeader>
+              <DialogFooter>
+                <Button variant="outline" onClick={cancelDelete}>
+                  {t('common.cancel')}
+                </Button>
+                <Button
+                  variant="destructive"
+                  onClick={confirmDelete}
+                  disabled={deleteFlight.isPending}
+                >
+                  {deleteFlight.isPending ? t('common.loading') : t('common.delete')}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
 
-      {/* Desktop header */}
-      <AppHeader onAddFlight={handleAddFlight} showAddButton />
-
-      {/* Content - wider container, generous spacing */}
-      <main className="max-w-7xl 3xl:max-w-[1800px] mx-auto px-4 sm:px-8 py-6 sm:py-10 pb-safe sm:pb-10">
+          <FloatingActionButton
+            icon={Plus}
+            onClick={handleAddFlight}
+            label={t('nav.addFlight')}
+          />
+        </>
+      }
+      mobileTabBar={<MobileTabBar />}
+    >
         {/* Page header */}
         <div className="mb-8 animate-fade-up">
           <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">
@@ -88,49 +126,6 @@ export function FlightsPage() {
         <div className="animate-fade-up" style={{ animationDelay: '100ms' }}>
           <FlightList onEdit={handleEditFlight} />
         </div>
-      </main>
-
-      {/* Flight form modal */}
-      <FlightForm
-        isOpen={isFormOpen}
-        onClose={handleCloseForm}
-        editFlight={editingFlight}
-        onDelete={handleDeleteClick}
-      />
-
-      {/* Delete confirmation dialog */}
-      <Dialog open={deleteConfirmFlight !== null} onOpenChange={(open) => !open && cancelDelete()}>
-        <DialogContent size="sm">
-          <DialogHeader>
-            <DialogTitle>{t('flights.deleteConfirmTitle', 'Delete Flight?')}</DialogTitle>
-            <DialogDescription>
-              {t('flights.deleteConfirmMessage', 'This action cannot be undone. The flight will be permanently removed from your log.')}
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button variant="outline" onClick={cancelDelete}>
-              {t('common.cancel')}
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={confirmDelete}
-              disabled={deleteFlight.isPending}
-            >
-              {deleteFlight.isPending ? t('common.loading') : t('common.delete')}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Mobile FAB for adding flights */}
-      <FloatingActionButton
-        icon={Plus}
-        onClick={handleAddFlight}
-        label={t('nav.addFlight')}
-      />
-
-      {/* Mobile tab bar */}
-      <MobileTabBar />
-    </div>
+    </AppPageShell>
   )
 }

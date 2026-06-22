@@ -9,14 +9,14 @@ const atmosphericCardVariants = cva(
     {
         variants: {
             variant: {
-                default: "bg-card text-card-foreground border-border/50 shadow-sm hover:shadow-md dark:hover:border-primary/20",
-                glass: "bg-white/60 dark:bg-white/5 backdrop-blur-xl border-white/20 dark:border-white/10 shadow-lg shadow-black/5 dark:shadow-black/20",
+                default: "bg-card text-card-foreground border-border/50 hover:border-primary/20 dark:hover:border-primary/20",
+                glass: "bg-card/90 dark:bg-card/80 border-border/50",
                 ghost: "bg-transparent border-dashed border-border/50 text-muted-foreground hover:bg-muted/30",
             },
             size: {
                 default: "rounded-[24px]",
                 sm: "rounded-2xl",
-                lg: "rounded-[32px]",
+                lg: "rounded-2xl",
             },
         },
         defaultVariants: {

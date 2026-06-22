@@ -120,7 +120,7 @@ export function ProfileStats({ stats, isLoading, hideTitle = false }: ProfileSta
 
       {/* Fun facts aside */}
       {(stats.continents_count ?? 0) >= 3 && (
-        <div className="border-l-2 border-primary/30 pl-4">
+        <div className="rounded-lg border border-primary/20 bg-primary/[0.03] p-4">
           <p className="text-sm text-muted-foreground">
             {t('stats.funFacts.continents', 'Visited {{count}} continents', { count: stats.continents_count ?? 0 })}
           </p>

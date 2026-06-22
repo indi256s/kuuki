@@ -169,20 +169,6 @@ CREATE TABLE country_claims (
 CREATE INDEX idx_country_claims_user ON country_claims(user_id);
 ```
 
-#### `invite_codes`
-
-Admin-managed invite codes.
-
-```sql
-CREATE TABLE invite_codes (
-  code TEXT PRIMARY KEY,
-  max_uses INT DEFAULT 1,
-  times_used INT DEFAULT 0,
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  expires_at TIMESTAMPTZ
-);
-```
-
 ---
 
 ## Row Level Security (RLS)
@@ -278,23 +264,6 @@ CREATE POLICY "Users can CRUD own claims"
 ON country_claims FOR ALL
 USING (auth.uid() = user_id);
 ```
-
-### Invite Codes
-
-```sql
--- Enable RLS
-ALTER TABLE invite_codes ENABLE ROW LEVEL SECURITY;
-
--- Anyone can read to validate
-CREATE POLICY "Anyone can validate codes"
-ON invite_codes FOR SELECT
-USING (true);
-
--- Only service role can modify
--- (handled implicitly - no user policies)
-```
-
----
 
 ## Triggers
 
@@ -524,9 +493,9 @@ export async function onRequest(context: EventContext) {
 ### Auth Flow
 
 1. **Sign Up:**
-   - Validate invite code
-   - Create auth.users entry
-   - Trigger creates profile + stats
+   - Validate email and password
+   - Create user entry
+   - Create profile + stats
 
 2. **Sign In:**
    - Standard email/password
@@ -535,30 +504,6 @@ export async function onRequest(context: EventContext) {
 3. **Sign Out:**
    - Clear session
    - Redirect to `/`
-
-### Invite Code Validation
-
-```typescript
-async function validateInviteCode(code: string): Promise<boolean> {
-  const { data, error } = await supabase
-    .from('invite_codes')
-    .select('code, max_uses, times_used, expires_at')
-    .eq('code', code)
-    .single()
-
-  if (error || !data) return false
-  if (data.times_used >= data.max_uses) return false
-  if (data.expires_at && new Date(data.expires_at) < new Date()) return false
-
-  return true
-}
-
-async function consumeInviteCode(code: string): Promise<void> {
-  await supabase.rpc('consume_invite_code', { code })
-}
-```
-
----
 
 ## Data Flow Patterns
 

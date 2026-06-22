@@ -2,8 +2,9 @@ import { useState, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
 import { useAuthStore } from '@/stores/authStore'
-import { supabase } from '@/lib/supabase'
+import { api } from '@/lib/apiClient'
 import { AppHeader } from '@/components/common/AppHeader'
+import { AppPageShell } from '@/components/layout/AppPageShell'
 import { MobileHeader } from '@/components/layout/MobileHeader'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -32,18 +33,10 @@ export function DevResetPage() {
     setError(null)
 
     try {
-      // Delete all flights for the current user
-      const { data, error: deleteError } = await supabase
-        .from('flights')
-        .delete()
-        .eq('user_id', user.id)
-        .select('id')
+      // Delete all flights for the current user (ownership scoped server-side).
+      const { deleted } = await api.post<{ deleted: number }>('/api/flights/delete-all')
 
-      if (deleteError) {
-        throw new Error(deleteError.message)
-      }
-
-      const count = data?.length ?? 0
+      const count = deleted ?? 0
       setDeletedCount(count)
 
       // Invalidate all flight-related queries
@@ -67,41 +60,32 @@ export function DevResetPage() {
     }
   }, [isConfirmed, user?.id, queryClient, navigate])
 
-  // Show success state
-  if (deletedCount !== null) {
-    return (
-      <div className="min-h-screen bg-gradient-soft">
-        <MobileHeader />
-        <AppHeader />
-
-        <main className="max-w-md mx-auto px-6 py-16">
-          <Card className="border-success/50">
-            <CardContent className="pt-6 text-center">
-              <div className="w-16 h-16 mx-auto mb-4 bg-success/10 rounded-full flex items-center justify-center">
-                <Trash2 className="w-8 h-8 text-success" />
-              </div>
-              <h2 className="text-xl font-semibold mb-2">Reset Complete</h2>
-              <p className="text-muted-foreground">
-                {deletedCount === 0
-                  ? 'No flights to delete.'
-                  : `Deleted ${deletedCount} flight${deletedCount === 1 ? '' : 's'}.`}
-              </p>
-              <p className="text-sm text-muted-foreground mt-2">
-                Redirecting to dashboard...
-              </p>
-            </CardContent>
-          </Card>
-        </main>
-      </div>
-    )
-  }
-
   return (
-    <div className="min-h-screen bg-gradient-soft">
-      <MobileHeader />
-      <AppHeader />
-
-      <main className="max-w-md mx-auto px-6 py-16">
+    <AppPageShell
+      shellClassName="min-h-screen bg-gradient-soft"
+      maxWidth="narrow"
+      className="mx-auto px-6 py-16"
+      mobileHeader={<MobileHeader />}
+      appHeader={<AppHeader />}
+    >
+      {deletedCount !== null ? (
+        <Card className="border-success/50">
+          <CardContent className="pt-6 text-center">
+            <div className="w-16 h-16 mx-auto mb-4 bg-success/10 rounded-full flex items-center justify-center">
+              <Trash2 className="w-8 h-8 text-success" />
+            </div>
+            <h2 className="text-xl font-semibold mb-2">Reset Complete</h2>
+            <p className="text-muted-foreground">
+              {deletedCount === 0
+                ? 'No flights to delete.'
+                : `Deleted ${deletedCount} flight${deletedCount === 1 ? '' : 's'}.`}
+            </p>
+            <p className="text-sm text-muted-foreground mt-2">
+              Redirecting to dashboard...
+            </p>
+          </CardContent>
+        </Card>
+      ) : (
         <Card className="border-destructive/50">
           <CardHeader className="text-center">
             <div className="w-16 h-16 mx-auto mb-4 bg-destructive/10 rounded-full flex items-center justify-center">
@@ -170,7 +154,7 @@ export function DevResetPage() {
             </div>
           </CardContent>
         </Card>
-      </main>
-    </div>
+      )}
+    </AppPageShell>
   )
 }

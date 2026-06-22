@@ -207,7 +207,7 @@ export function FlightFilters({
         <button
           type="button"
           onClick={clearOriginFilter}
-          className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+          className="absolute right-1 top-1/2 -translate-y-1/2 flex min-h-11 min-w-11 items-center justify-center text-muted-foreground hover:text-foreground"
           aria-label={t('flights.clearOrigin', 'Clear origin filter')}
         >
           <X className="w-3.5 h-3.5" aria-hidden="true" />
@@ -234,7 +234,7 @@ export function FlightFilters({
         <button
           type="button"
           onClick={clearDestFilter}
-          className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+          className="absolute right-1 top-1/2 -translate-y-1/2 flex min-h-11 min-w-11 items-center justify-center text-muted-foreground hover:text-foreground"
           aria-label={t('flights.clearDest', 'Clear destination filter')}
         >
           <X className="w-3.5 h-3.5" aria-hidden="true" />

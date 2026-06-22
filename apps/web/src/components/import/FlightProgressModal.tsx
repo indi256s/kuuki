@@ -312,7 +312,7 @@ export function FlightProgressModal({
                   </span>
                 )}
               </div>
-              <div className="bg-black/10 dark:bg-black/20 rounded-lg border-l-2 border-primary/30 p-3">
+              <div className="bg-muted/40 dark:bg-muted/20 rounded-lg border border-primary/20 p-3">
                 <div className="space-y-1.5 max-h-48 overflow-y-auto font-mono text-xs">
                   {(!hasFlights || revealedCount === 0) ? (
                     <div className="flex items-center gap-2 text-muted-foreground">

@@ -1,11 +1,13 @@
-import { supabase } from './supabase'
+import { api } from './apiClient'
 import type { Tables } from './database.types'
 
 export type Profile = Tables<'profiles'>
 export type UserStats = Tables<'user_stats'>
 export type BadgeDefinition = Tables<'badge_definitions'>
 export type UserBadge = Tables<'user_badges'>
-export type LeaderboardEntry = Tables<'leaderboard_cache'>
+// LeaderboardEntry is canonical in ./leaderboard (flat shape from the rankings endpoints).
+export type { LeaderboardEntry } from './leaderboard'
+import type { LeaderboardEntry } from './leaderboard'
 
 // Theme color presets with hex values
 export const THEME_COLORS = {
@@ -35,50 +37,25 @@ export interface PublicProfileData {
  * Returns null if user doesn't exist or profile is private
  */
 export async function getPublicProfile(username: string): Promise<PublicProfileData | null> {
-  // First, get the profile by username
-  const { data: profile, error: profileError } = await supabase
-    .from('profiles')
-    .select('*')
-    .ilike('username', username)
-    .single()
+  try {
+    // The public endpoint returns the public profile DTO (a column-allowlisted subset of the
+    // profiles row). Consumers only read public columns, so we present it as the Profile type.
+    const data = await api.get<{
+      profile: Profile
+      stats: UserStats | null
+      badges: Array<UserBadge & { badge: BadgeDefinition }>
+      rankings: LeaderboardEntry[]
+    }>(`/api/public/profiles/${encodeURIComponent(username)}`)
 
-  if (profileError || !profile) {
-    return null
-  }
-
-  // If profile is not public, only return basic info
-  if (!profile.is_public) {
     return {
-      profile,
-      stats: null,
-      badges: [],
-      rankings: [],
+      profile: data.profile,
+      stats: data.stats ?? null,
+      badges: data.badges ?? [],
+      rankings: data.rankings ?? [],
     }
-  }
-
-  // Fetch stats, badges, and rankings in parallel
-  const [statsResult, badgesResult, rankingsResult] = await Promise.all([
-    supabase
-      .from('user_stats')
-      .select('*')
-      .eq('user_id', profile.id)
-      .single(),
-    supabase
-      .from('user_badges')
-      .select('*, badge:badge_definitions(*)')
-      .eq('user_id', profile.id)
-      .order('earned_at', { ascending: false }),
-    supabase
-      .from('leaderboard_cache')
-      .select('*')
-      .eq('user_id', profile.id),
-  ])
-
-  return {
-    profile,
-    stats: statsResult.data,
-    badges: (badgesResult.data ?? []) as Array<UserBadge & { badge: BadgeDefinition }>,
-    rankings: rankingsResult.data ?? [],
+  } catch (error) {
+    console.error('Error fetching public profile:', error)
+    return null
   }
 }
 
@@ -91,116 +68,88 @@ export async function searchUsers(query: string, limit = 10): Promise<Profile[]>
     return []
   }
 
-  const { data, error } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('is_public', true)
-    .ilike('username', `%${query}%`)
-    .limit(limit)
-
-  if (error) {
+  try {
+    // The search endpoint returns public profile DTOs; consumers read only public columns.
+    const results = await api.get<Profile[]>('/api/profiles/search', { q: query })
+    return (results ?? []).slice(0, limit)
+  } catch (error) {
     console.error('Error searching users:', error)
     return []
   }
-
-  return data ?? []
 }
 
 /**
  * Get user stats for the current user
+ * (userId is accepted for signature compatibility; the API resolves the user from the session.)
  */
-export async function getUserStats(userId: string): Promise<UserStats | null> {
-  const { data, error } = await supabase
-    .from('user_stats')
-    .select('*')
-    .eq('user_id', userId)
-    .single()
-
-  if (error) {
-    // PGRST116 = not found (user has no stats yet)
-    if (error.code !== 'PGRST116') {
-      console.error('Error fetching user stats:', error)
-    }
+export async function getUserStats(_userId: string): Promise<UserStats | null> {
+  try {
+    return await api.get<UserStats | null>('/api/me/stats')
+  } catch (error) {
+    console.error('Error fetching user stats:', error)
     return null
   }
-
-  return data
 }
 
 /**
  * Get user's badges with badge definitions
+ * (userId is accepted for signature compatibility; the API resolves the user from the session.)
  */
-export async function getUserBadges(userId: string): Promise<Array<UserBadge & { badge: BadgeDefinition }>> {
-  const { data, error } = await supabase
-    .from('user_badges')
-    .select('*, badge:badge_definitions(*)')
-    .eq('user_id', userId)
-    .order('earned_at', { ascending: false })
-
-  if (error) {
+export async function getUserBadges(
+  _userId: string
+): Promise<Array<UserBadge & { badge: BadgeDefinition }>> {
+  try {
+    const badges = await api.get<Array<UserBadge & { badge: BadgeDefinition }>>('/api/me/badges')
+    return badges ?? []
+  } catch (error) {
     console.error('Error fetching user badges:', error)
     return []
   }
-
-  return (data ?? []) as Array<UserBadge & { badge: BadgeDefinition }>
 }
 
 /**
  * Get all badge definitions (for showing progress)
  */
 export async function getAllBadges(): Promise<BadgeDefinition[]> {
-  const { data, error } = await supabase
-    .from('badge_definitions')
-    .select('*')
-    .order('category')
-    .order('tier')
-
-  if (error) {
+  try {
+    const badges = await api.get<BadgeDefinition[]>('/api/badges')
+    return badges ?? []
+  } catch (error) {
     console.error('Error fetching badge definitions:', error)
     return []
   }
-
-  return data ?? []
 }
 
 /**
  * Get user's leaderboard rankings
+ * (userId is accepted for signature compatibility; the API resolves the user from the session.)
  */
-export async function getUserRankings(userId: string): Promise<LeaderboardEntry[]> {
-  const { data, error } = await supabase
-    .from('leaderboard_cache')
-    .select('*')
-    .eq('user_id', userId)
-
-  if (error) {
+export async function getUserRankings(_userId: string): Promise<LeaderboardEntry[]> {
+  try {
+    const rankings = await api.get<LeaderboardEntry[]>('/api/me/rankings')
+    return rankings ?? []
+  } catch (error) {
     console.error('Error fetching user rankings:', error)
     return []
   }
-
-  return data ?? []
 }
 
 /**
  * Check if a username is available
+ * (excludeUserId is accepted for signature compatibility; the API excludes the
+ * authenticated user's own row server-side.)
  */
-export async function checkUsernameAvailable(username: string, excludeUserId?: string): Promise<boolean> {
-  let query = supabase
-    .from('profiles')
-    .select('id')
-    .ilike('username', username)
-
-  if (excludeUserId) {
-    query = query.neq('id', excludeUserId)
-  }
-
-  const { data, error } = await query.limit(1)
-
-  if (error) {
+export async function checkUsernameAvailable(
+  username: string,
+  _excludeUserId?: string
+): Promise<boolean> {
+  try {
+    const data = await api.get<{ available: boolean }>('/api/profiles/check-username', { username })
+    return data.available ?? false
+  } catch (error) {
     console.error('Error checking username:', error)
     return false
   }
-
-  return !data || data.length === 0
 }
 
 

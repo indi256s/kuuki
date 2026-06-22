@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Plane, Calendar, Clock } from 'lucide-react'
-import { supabase } from '@/lib/supabase'
+import { api, ApiError } from '@/lib/apiClient'
 import { cn } from '@/lib/utils'
 import {
   Popover,
@@ -29,14 +29,13 @@ export function FlightPopover({ flightId, children, className }: FlightPopoverPr
     queryFn: async (): Promise<Flight | null> => {
       if (flightId === null) return null
 
-      const { data, error } = await supabase
-        .from('flights')
-        .select('*')
-        .eq('id', flightId)
-        .single()
-
-      if (error) throw error
-      return data
+      try {
+        return (await api.get<Flight>(`/api/flights/${flightId}`)) ?? null
+      } catch (error) {
+        // Treat a missing flight as "not found" (renders the empty state); rethrow others.
+        if (error instanceof ApiError && error.status === 404) return null
+        throw error
+      }
     },
     enabled: open && flightId !== null,
     staleTime: 5 * 60 * 1000, // 5 minutes

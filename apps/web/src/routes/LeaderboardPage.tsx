@@ -9,6 +9,7 @@ import { CategoryTabs } from '@/components/leaderboard/CategoryTabs'
 import { LeaderboardTable } from '@/components/leaderboard/LeaderboardTable'
 import { UserRankCard } from '@/components/leaderboard/UserRankCard'
 import { AppHeader } from '@/components/common/AppHeader'
+import { AppPageShell } from '@/components/layout/AppPageShell'
 import { MobileHeader } from '@/components/layout/MobileHeader'
 import { MobileTabBar } from '@/components/layout/MobileTabBar'
 import { Button } from '@/components/ui/button'
@@ -27,16 +28,14 @@ export function LeaderboardPage() {
   const currentPosition = userPositions?.[activeCategory] ?? null
 
   return (
-    <div className="min-h-screen bg-gradient-soft">
-
-      {/* Mobile header */}
-      <MobileHeader />
-
-      {/* Desktop header */}
-      <AppHeader />
-
-      {/* Main content - pb-safe adds bottom padding for mobile tab bar */}
-      <main className="max-w-7xl 3xl:max-w-[1800px] mx-auto px-4 sm:px-6 py-4 sm:py-6 pb-safe sm:pb-6">
+    <AppPageShell
+      shellClassName="min-h-screen bg-gradient-soft"
+      maxWidth="wide"
+      className="mx-auto px-4 sm:px-6 py-4 sm:py-6 pb-safe sm:pb-6"
+      mobileHeader={<MobileHeader />}
+      appHeader={<AppHeader />}
+      mobileTabBar={user ? <MobileTabBar /> : undefined}
+    >
         <div className="space-y-6 animate-fade-up stagger-children">
           {/* Page header */}
           <div>
@@ -101,10 +100,6 @@ export function LeaderboardPage() {
             </Card>
           )}
         </div>
-      </main>
-
-      {/* Mobile tab bar - only show for logged-in users */}
-      {user && <MobileTabBar />}
-    </div>
+    </AppPageShell>
   )
 }

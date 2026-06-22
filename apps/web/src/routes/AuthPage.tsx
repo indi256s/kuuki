@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useLanguage } from '@/hooks/useLanguage'
 import { Button } from '@/components/ui/button'
@@ -12,18 +12,28 @@ import { WhatIsKuukiDialog } from '@/components/auth/WhatIsKuukiDialog'
 
 type AuthMode = 'register' | 'signin'
 
+function BrandMark({ className }: { className?: string }) {
+  return (
+    <span className={className}>
+      <span className="text-primary">Ku</span>uki
+    </span>
+  )
+}
+
 export function AuthPage() {
   const { t } = useTranslation()
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
   const { toggleLanguage } = useLanguage()
-  const [mode, setMode] = useState<AuthMode>('register')
+  const [mode, setMode] = useState<AuthMode>(
+    searchParams.get('mode') === 'signin' ? 'signin' : 'register'
+  )
   const [showAbout, setShowAbout] = useState(false)
 
   const handleSuccess = () => {
     navigate('/dashboard')
   }
 
-  // Get taglines array from i18n
   const taglines = t('auth.taglines', { returnObjects: true }) as string[]
 
   return (
@@ -35,42 +45,38 @@ export function AuthPage() {
 
       {/* Mobile: Atmospheric background elements */}
       <div className="lg:hidden absolute inset-0 pointer-events-none overflow-hidden">
-        {/* Horizontal hiragana for mobile - High contrast */}
         <div className="absolute top-16 left-1/2 -translate-x-1/2 z-0">
           <span
-            className="text-4xl font-bold font-display tracking-[0.3em] select-none bg-clip-text text-transparent bg-[radial-gradient(circle_at_top_left,color-mix(in_srgb,var(--primary),transparent_20%),rgba(23,23,23,0.3))] dark:bg-[radial-gradient(circle_at_top_left,color-mix(in_srgb,var(--primary),transparent_10%),rgba(255,255,255,0.3))]"
+            className="text-4xl font-bold font-display tracking-[0.3em] select-none text-primary/40 dark:text-primary/50"
+            aria-hidden="true"
           >
             くうき
           </span>
         </div>
-        {/* Planes behind form on mobile - Higher opacity */}
         <div className="opacity-90">
           <PlaneAnimation />
         </div>
       </div>
 
       {/* Main Card */}
-      <div className="w-full max-w-[1100px] min-h-[600px] lg:h-[700px] rounded-[32px] grid lg:grid-cols-[40%_60%] overflow-hidden shadow-xl dark:shadow-2xl relative z-10 transition-all duration-500 bg-card/90 lg:bg-card/80 backdrop-blur-xl border border-border/50">
+      <div className="w-full max-w-[1100px] min-h-[600px] lg:h-[700px] rounded-2xl grid lg:grid-cols-[40%_60%] overflow-hidden relative z-10 transition-all duration-500 bg-card border border-border/50">
 
         {/* Left Side: Visual / Brand (Desktop only) */}
-        <div className="relative hidden lg:flex flex-col justify-start p-12 overflow-hidden group bg-muted/50 dark:bg-transparent">
-          {/* Dynamic Background for Left Panel */}
+        <div className="relative hidden lg:flex flex-col justify-start p-12 overflow-hidden group bg-muted/50 dark:bg-muted/20">
           <div className="absolute inset-0 bg-gradient-to-br from-primary/5 dark:from-primary/10 to-transparent opacity-80 dark:opacity-50 z-0" />
 
-          {/* Planes animation */}
           <PlaneAnimation />
 
-          {/* Top Branding with Rotating Tagline */}
           <div className="relative z-10">
-            <h1 className="text-4xl font-bold tracking-tighter text-foreground mb-3">
-              <span className="text-primary">Ku</span>uki
-            </h1>
+            <p className="text-4xl font-bold tracking-tighter text-foreground mb-3" aria-hidden="true">
+              <BrandMark />
+            </p>
           </div>
 
-          {/* Center Visual Feature - Japanese Typography (Hero opacity) */}
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-0 pointer-events-none select-none">
             <span
-              className="text-[12rem] font-bold leading-none writing-vertical select-none font-display tracking-widest bg-clip-text text-transparent bg-[radial-gradient(circle_at_top_left,color-mix(in_srgb,var(--primary),transparent_70%),rgba(23,23,23,0.15))] dark:bg-[radial-gradient(circle_at_top_left,color-mix(in_srgb,var(--primary),transparent_65%),rgba(255,255,255,0.12))]"
+              className="text-[12rem] font-bold leading-none writing-vertical select-none font-display tracking-widest text-primary/15 dark:text-primary/20"
+              aria-hidden="true"
             >
               くうき
             </span>
@@ -78,7 +84,12 @@ export function AuthPage() {
         </div>
 
         {/* Right Side: Auth Form */}
-        <div className="relative flex flex-col justify-center px-8 py-12 lg:px-16 lg:py-12 bg-card/50 backdrop-blur-xl">
+        <main id="main-content" tabIndex={-1} className="relative flex flex-col justify-center px-8 py-12 lg:px-16 lg:py-12 bg-card">
+          {/* Single page title */}
+          <h1 className="text-3xl font-bold tracking-tighter text-foreground mb-8 text-center">
+            <BrandMark />
+          </h1>
+
           {/* Top Right Controls */}
           <div className="absolute top-6 right-6 flex items-center gap-2 z-20">
             <AppearanceToggle />
@@ -88,7 +99,7 @@ export function AuthPage() {
               variant="ghost"
               size="icon"
               onClick={() => setShowAbout(true)}
-              className="text-muted-foreground hover:text-primary h-9 w-9 rounded-full hover:bg-muted transition-colors"
+              className="text-muted-foreground hover:text-primary rounded-full hover:bg-muted transition-colors"
               aria-label="What is Kuuki?"
             >
               <HelpCircle className="w-4 h-4" />
@@ -96,19 +107,13 @@ export function AuthPage() {
 
             <Button
               variant="ghost"
+              size="icon"
               onClick={toggleLanguage}
               aria-label={t('settings.toggleLanguage', 'Toggle language')}
-              className="hidden lg:flex text-muted-foreground hover:text-foreground h-9 w-9 p-0 rounded-full hover:bg-muted focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+              className="hidden lg:flex text-muted-foreground hover:text-foreground rounded-full hover:bg-muted"
             >
               <Languages className="w-4 h-4" />
             </Button>
-          </div>
-
-          {/* Mobile: Brand header inside form area */}
-          <div className="lg:hidden mb-8 text-center">
-            <h1 className="text-3xl font-bold tracking-tighter text-foreground mb-3">
-              <span className="text-primary">Ku</span>uki
-            </h1>
           </div>
 
           <div className="w-full max-w-md mx-auto space-y-8 animate-fade-in">
@@ -125,7 +130,6 @@ export function AuthPage() {
             )}
           </div>
 
-          {/* Tagline below form (Visible on all screens) */}
           <div className="mt-8 text-center px-4">
             <RotatingTagline
               items={taglines}
@@ -133,7 +137,7 @@ export function AuthPage() {
               className="text-muted-foreground text-sm font-medium tracking-wide justify-center"
             />
           </div>
-        </div>
+        </main>
       </div>
 
       <WhatIsKuukiDialog open={showAbout} onOpenChange={setShowAbout} />

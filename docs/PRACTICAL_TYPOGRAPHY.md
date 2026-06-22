@@ -295,6 +295,7 @@ Butterick prefers modest jumps (12pt → 13pt). However, web design conventions 
 **Heading Levels (6.1)**
 
 The design system documents 6 size levels (Display → Caption), but actual component usage shows ~3 practical levels:
+
 1. Page title (`text-2xl`–`text-4xl`)
 2. Section title (`text-lg`–`text-xl`)
 3. Card/label (`text-sm`–`text-base`)
@@ -304,6 +305,7 @@ This is functionally compliant, though the 6-level documentation could mislead d
 **Centered Text (7.4)**
 
 40 files use `text-center`, but examination shows it's confined to appropriate contexts:
+
 - Hero sections (landing, auth pages)
 - Empty states
 - Modal content
@@ -342,6 +344,7 @@ This is the most pervasive typography issue. The three-period approximation prod
 Examples by category:
 
 *Loading states (14 instances):*
+
 ```json
 "loading": "Loading...",
 "saving": "Saving...",
@@ -357,6 +360,7 @@ Examples by category:
 ```
 
 *Placeholders (8 instances):*
+
 ```json
 "airportPlaceholder": "Search by code or city...",
 "bioPlaceholder": "Tell us about yourself...",
@@ -366,6 +370,7 @@ Examples by category:
 ```
 
 *GLaDOS personality text (8 instances):*
+
 ```json
 "The odometer appears... decorative.",
 "Our servers are experiencing... turbulence.",

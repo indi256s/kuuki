@@ -64,7 +64,7 @@ export function BadgeNotificationToast({
                 className={cn(
                     'relative flex items-center gap-4 px-5 py-4 rounded-2xl',
                     'bg-card border border-border/50',
-                    'shadow-2xl backdrop-blur-xl',
+                    'shadow-md',
                     isFoundingCrew
                         ? 'shadow-[0_0_60px_rgba(var(--primary),0.4)]'
                         : 'shadow-[0_0_40px_rgba(234,179,8,0.3)]'

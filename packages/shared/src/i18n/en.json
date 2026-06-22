@@ -1,4 +1,7 @@
 {
+  "a11y": {
+    "skipToContent": "Skip to main content"
+  },
   "common": {
     "appName": "Kuuki",
     "tagline": "Every journey, remembered",
@@ -56,7 +59,7 @@
       },
       "community": {
         "title": "Community",
-        "description": "A small circle of **50–500 aviation enthusiasts**. Invite-only, live right now. Suggest features, report quirks — your feedback directly shapes what Kuuki becomes."
+        "description": "Open beta is live for a small circle of **50–500 aviation enthusiasts**. Create an account, suggest features, report quirks — your feedback directly shapes what Kuuki becomes."
       }
     }
   },
@@ -73,16 +76,11 @@
     "email": "Email",
     "password": "Password",
     "confirmPassword": "Confirm Password",
-    "inviteCode": "Invite Code",
-    "codeValid": "Valid invite code",
-    "codeInvalid": "Invalid or expired invite code",
     "passwordMismatch": "Passwords do not match",
     "passwordTooShort": "Password must be at least 8 characters",
     "passwordHint": "At least 8 characters",
     "joinKuuki": "Join Kuuki",
-    "inviteRequired": "Invite code required",
     "signInSubtitle": "Sign in to your flight vault",
-    "inviteOnlyNote": "Kuuki is invite-only to maintain a quality community",
     "features": {
       "tracking": "AI-powered import from boarding passes",
       "places": "Build your personal nomad passport",
@@ -990,9 +988,10 @@
       "title": "Your Flight Stats Vault",
       "subtitle": "Log every journey. Discover your patterns. Compare with fellow travelers.",
       "signIn": "Sign In",
-      "requestInvite": "Request Invite"
+      "joinOpenBeta": "Join Open Beta"
     },
     "features": {
+      "ariaLabel": "Features",
       "tracking": {
         "title": "Flight Tracking",
         "description": "Log your flights with AI-powered import from boarding passes and itineraries"

@@ -20,14 +20,12 @@ export function HeroSection() {
       {/* CTA buttons */}
       <div className="flex flex-col sm:flex-row gap-4 justify-center">
         <Button asChild size="lg" className="text-lg">
-          <Link to="/">
+          <Link to="/?mode=signin">
             {t('landing.hero.signIn')}
           </Link>
         </Button>
         <Button asChild variant="outline" size="lg" className="text-lg">
-          <a href="mailto:invite@kuuki.app?subject=Kuuki%20Invite%20Request">
-            {t('landing.hero.requestInvite')}
-          </a>
+          <Link to="/">{t('landing.hero.joinOpenBeta')}</Link>
         </Button>
       </div>
     </section>

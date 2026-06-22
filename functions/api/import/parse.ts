@@ -13,8 +13,12 @@ import {
   updateJob,
   ASYNC_THRESHOLD,
 } from './_shared'
+import { corsHeaders, corsPreflight } from '../_lib/cors'
+import { requireCsrf, type RequestData } from '../_lib/auth'
+import { rateLimit } from '../_lib/ratelimit'
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10 MB
+const MAX_TEXT_LENGTH = 100_000 // chars — cap the (previously uncapped) text branch; controls Gemini cost
 
 // Helper to clean messy text using Gemini (Stage 1 of two-stage parsing)
 async function cleanTextWithGemini(ai: GoogleGenAI, rawText: string): Promise<string> {
@@ -172,9 +176,16 @@ async function extractFlightsWithGemini(
       } else if (flight.destination.length !== 3) {
         reasons.push(`destination "${flight.destination}" is not 3 letters`)
       }
-      if (typeof flight.airline_iata !== 'string') {
-        reasons.push('missing airline code')
+      // Apply ZZ placeholder for missing airline instead of rejecting
+      if (typeof flight.airline_iata !== 'string' || !flight.airline_iata) {
+        flight.airline_iata = 'ZZ'
+        flight.airline_was_placeholder = true
+        flight.field_confidence = {
+          ...flight.field_confidence,
+          airline_iata: 0,  // Zero confidence for placeholder
+        }
       } else if (flight.airline_iata.length !== 2) {
+        // Still reject invalid lengths
         reasons.push(`airline "${flight.airline_iata}" is not 2 letters`)
       }
 
@@ -235,17 +246,44 @@ async function extractFlightsWithGemini(
   }
 }
 
-export const onRequestPost: PagesFunction<Env> = async (context) => {
-  // CORS headers
-  const corsHeaders = {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type',
-  }
+export const onRequestPost: PagesFunction<Env, string, RequestData> = async (context) => {
+  const { request, env } = context
+  const cors = corsHeaders(request, env, 'POST, OPTIONS')
 
   // Handle preflight
-  if (context.request.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders })
+  if (request.method === 'OPTIONS') {
+    return corsPreflight(request, env, 'POST, OPTIONS')
+  }
+
+  // CSRF: state-changing, paid-quota endpoint — require same-origin + double-submit token.
+  // requireCsrf throws an HttpError, so catch it and return this handler's own domain shape
+  // (a thrown error here would otherwise surface as a generic 500).
+  try {
+    requireCsrf(request)
+  } catch {
+    return new Response(
+      JSON.stringify({ error: 'Invalid CSRF token', code: 'CSRF', flights: [] }),
+      { status: 403, headers: { 'Content-Type': 'application/json', ...cors } }
+    )
+  }
+
+  // Auth gate — burns paid Gemini quota, so reject anonymous callers
+  const user = (context.data && context.data.user) || null
+  if (!user) {
+    return new Response(
+      JSON.stringify({ error: 'Authentication required', code: 'UNAUTHENTICATED', flights: [] }),
+      { status: 401, headers: { 'Content-Type': 'application/json', ...cors } }
+    )
+  }
+
+  // Per-user rate limit — each parse makes paid Gemini calls (security finding: AI quota/cost abuse).
+  try {
+    await rateLimit(context.env.IMPORT_JOBS, `parse:${user.id}`, 20, 3600)
+  } catch {
+    return new Response(
+      JSON.stringify({ error: 'Too many requests — please slow down', code: 'RATE_LIMITED', flights: [] }),
+      { status: 429, headers: { 'Content-Type': 'application/json', ...cors } }
+    )
   }
 
   try {
@@ -253,7 +291,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     if (!context.env.GEMINI_API_KEY) {
       return Response.json(
         { error: 'Gemini API key not configured', flights: [] } as ParseResponse,
-        { status: 500, headers: corsHeaders }
+        { status: 500, headers: cors }
       )
     }
 
@@ -265,26 +303,31 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     if (!type || !['pdf', 'image', 'text'].includes(type)) {
       return Response.json(
         { error: 'Invalid type. Must be pdf, image, or text', flights: [] } as ParseResponse,
-        { status: 400, headers: corsHeaders }
+        { status: 400, headers: cors }
       )
     }
 
     if (!content) {
       return Response.json(
         { error: 'Content is required', flights: [] } as ParseResponse,
-        { status: 400, headers: corsHeaders }
+        { status: 400, headers: cors }
       )
     }
 
-    // Check file size for base64 content
+    // Check file size for base64 content; cap raw text length on the text branch.
     if (type !== 'text') {
       const estimatedSize = (content.length * 3) / 4
       if (estimatedSize > MAX_FILE_SIZE) {
         return Response.json(
           { error: 'File too large. Maximum size is 10 MB', flights: [] } as ParseResponse,
-          { status: 400, headers: corsHeaders }
+          { status: 400, headers: cors }
         )
       }
+    } else if (content.length > MAX_TEXT_LENGTH) {
+      return Response.json(
+        { error: 'Text too long. Maximum is 100,000 characters', flights: [] } as ParseResponse,
+        { status: 400, headers: cors }
+      )
     }
 
     // Initialize Google GenAI client
@@ -322,7 +365,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
       // For large imports (10+), use two-phase approach
       if (estimatedCount >= ASYNC_THRESHOLD && basicFlights.length > 0) {
         // Create enrichment job in KV
-        const job = await createJob(kv, 'enrichment')
+        const job = await createJob(kv, 'enrichment', user.id)
         console.log(JSON.stringify({ event: 'two_phase_start', job_id: job.id, flight_count: basicFlights.length }))
 
         // Phase 2: Background Gemini extraction
@@ -340,9 +383,10 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
               console.log(JSON.stringify({ event: 'enrichment_job_complete', job_id: job.id, flight_count: result.flights.length }))
             } catch (error) {
               console.error(JSON.stringify({ event: 'enrichment_job_failed', job_id: job.id, error: String(error) }))
+              // Security finding #7: store a generic message in the owner-readable job, not error.message.
               await updateJob(kv, job.id, {
                 status: 'failed',
-                error: error instanceof Error ? error.message : 'Unknown error',
+                error: 'Import failed. Please try again.',
               })
             }
           })()
@@ -356,7 +400,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
             enrichmentStatus: 'pending',
             cleaned_text: cleanedText,
           } as ParseResponse,
-          { headers: corsHeaders }
+          { headers: cors }
         )
       }
 
@@ -381,13 +425,13 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
         ...result,
         enrichmentStatus: 'completed', // Mark as complete since we did full extraction
       } as ParseResponse,
-      { headers: corsHeaders }
+      { headers: cors }
     )
   } catch (error) {
     console.error(JSON.stringify({ event: 'parse_error', error: String(error) }))
     return Response.json(
       { error: 'Internal server error', flights: [] } as ParseResponse,
-      { status: 500, headers: corsHeaders }
+      { status: 500, headers: cors }
     )
   }
 }

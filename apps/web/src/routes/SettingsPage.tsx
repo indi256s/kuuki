@@ -1,4 +1,5 @@
 import { useTranslation } from 'react-i18next'
+import { AppPageShell } from '@/components/layout/AppPageShell'
 import { MobileHeader } from '@/components/layout/MobileHeader'
 import { MobileTabBar } from '@/components/layout/MobileTabBar'
 import { AppHeader } from '@/components/common/AppHeader'
@@ -15,18 +16,15 @@ export function SettingsPage() {
   const { t } = useTranslation()
 
   return (
-    <div className="min-h-screen bg-gradient-soft relative overflow-hidden">
-      {/* Background plane animation */}
-      <PlaneAnimation className="z-0" variant="subtle" count={20} />
-
-      {/* Mobile header */}
-      <MobileHeader />
-
-      {/* Desktop header */}
-      <AppHeader />
-
-      {/* Main content */}
-      <main className="max-w-2xl mx-auto px-6 py-8 pb-safe sm:pb-8 relative z-10">
+    <AppPageShell
+      shellClassName="min-h-screen bg-gradient-soft relative overflow-hidden"
+      maxWidth="settings"
+      className="mx-auto px-6 py-8 pb-safe sm:pb-8 relative z-10"
+      beforeMain={<PlaneAnimation className="z-0" variant="subtle" count={20} />}
+      mobileHeader={<MobileHeader />}
+      appHeader={<AppHeader />}
+      mobileTabBar={<MobileTabBar />}
+    >
         {/* Page title */}
         <div className="mb-8 animate-fade-up">
           <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">
@@ -64,10 +62,6 @@ export function SettingsPage() {
             <DeleteAccountSection />
           </div>
         </div>
-      </main>
-
-      {/* Mobile tab bar */}
-      <MobileTabBar />
-    </div>
+    </AppPageShell>
   )
 }

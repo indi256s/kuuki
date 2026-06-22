@@ -9,7 +9,7 @@ import {
   ZoomableGroup,
 } from 'react-simple-maps'
 import { useFlightRoutes } from '@/hooks/useFlights'
-import { useTheme } from '@/hooks/useTheme'
+import { MAP_CSS_VARS } from '@/lib/mapColors'
 import { findAirport } from '@kuuki/data'
 import { getCountryData } from '@/lib/countries'
 import type { FlightRoute } from '@/lib/flights'
@@ -90,18 +90,15 @@ export function RouteMapWithCountries({
   countrySourceMap,
 }: RouteMapWithCountriesProps) {
   const { t } = useTranslation()
-  const { resolvedTheme } = useTheme()
   const { data: allRoutes = [] } = useFlightRoutes()
 
   const flights = propFlights ?? allRoutes
 
-  // Theme-aware colors
-  const isLight = resolvedTheme === 'light'
-  const mapBg = isLight ? '#f5f7fa' : '#0a0f18'
-  const unvisitedCountry = isLight ? '#e2e8f0' : '#1e293b'
-  const countryStroke = isLight ? '#cbd5e1' : '#334155'
-  const emptyIconColor = isLight ? 'text-slate-400' : 'text-slate-700'
-  const emptyTextColor = isLight ? 'text-slate-500' : 'text-slate-500'
+  const mapBg = MAP_CSS_VARS.background
+  const unvisitedCountry = MAP_CSS_VARS.country
+  const countryStroke = MAP_CSS_VARS.stroke
+  const emptyIconColor = 'text-muted-foreground'
+  const emptyTextColor = 'text-muted-foreground'
 
   const arcs = useMemo<ArcData[]>(() => {
     const result: ArcData[] = []
@@ -208,10 +205,10 @@ export function RouteMapWithCountries({
 
     if (alpha2 && visitedSet.has(alpha2)) {
       const data = getCountryData(alpha2)
-      return data?.dominantColor || '#3b82f6'
+      return data?.dominantColor || MAP_CSS_VARS.routeFallback
     }
     return unvisitedCountry
-  }, [visitedSet, unvisitedCountry])
+  }, [visitedSet, unvisitedCountry, MAP_CSS_VARS.routeFallback])
 
   const getCountryOpacity = useCallback((alpha2: string | undefined, isVisited: boolean) => {
     if (!isVisited) return 0.6
