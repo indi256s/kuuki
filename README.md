@@ -2,7 +2,7 @@
 
 A flight journal with route maps, a digital passport, statistics, opt-in rankings, and ticket import with review before saving.
 
-The application uses React 19, TypeScript, Vite, Tailwind CSS and shadcn/ui. Cloudflare Pages serves the web app; Pages Functions use D1, cookie sessions and Google Gemini. A scheduled Worker repairs pending statistics and refreshes rankings. Supabase files remain as migration history.
+The application uses React 19, TypeScript, Vite, Tailwind CSS and shadcn/ui. Cloudflare Pages serves the web app; Pages Functions use D1, Better Auth and Google Gemini. A scheduled Worker repairs pending statistics and refreshes rankings. Supabase files remain as migration history.
 
 ## Development
 
@@ -27,6 +27,7 @@ Configure server secrets in Cloudflare or a gitignored local `.dev.vars`; never 
 
 | Setting | Purpose |
 | --- | --- |
+| `BETTER_AUTH_SECRET` | Independent Better Auth signing/encryption secret; generate with `openssl rand -base64 32` |
 | `AUTH_SECRET` | Password pepper; preserve the existing production value |
 | `PAGES_ORIGIN` | Exact canonical origin for auth and CSRF |
 | `GEMINI_API_KEY` | Server-side ticket parsing and aircraft enrichment |
@@ -37,6 +38,10 @@ Configure server secrets in Cloudflare or a gitignored local `.dev.vars`; never 
 | `ACTIVATION_MAIL_AUTH_TOKEN` | Server secret with Cloudflare Email Sending: Edit permission |
 
 Each environment needs separate D1, import KV and credentials. The configured preview D1 and KV are isolated from production; deployment admission verifies their identities. Legacy account activation applies only to migrated accounts awaiting their first working password.
+
+Better Auth uses the same origin as the app, taken from `PAGES_ORIGIN`. Before deploying this version, apply `db/migrations/0004_better_auth.sql` to each authorized D1 target and configure a separate `BETTER_AUTH_SECRET`. Keep `AUTH_SECRET` unchanged so existing passwords continue to work. The migration preserves user IDs and copies current hashes into credential accounts. Signup creates the user, profile and credential atomically before establishing a Better Auth session. The existing session cookie remains supported during the transition; new logins replace it with Better Auth's signed cookie. Social login and password reset are not configured.
+
+For local Pages development, copy `.dev.vars.example` to `.dev.vars`, generate both secrets, and set `PAGES_ORIGIN` to the local Pages origin. The disposable fixture already supplies synthetic secrets.
 
 ## Checks
 

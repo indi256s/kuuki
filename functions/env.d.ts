@@ -7,6 +7,7 @@ interface Env {
   GEMINI_API_KEY: string
   GEMINI_IMPORT_MODEL?: string // non-secret override; defaults to gemini-3.5-flash-lite
   GEMINI_ENRICH_MODEL?: string // non-secret override; defaults to gemini-3.5-flash-lite
+  BETTER_AUTH_SECRET: string // independent signing/encryption secret, at least 32 characters
   AUTH_SECRET: string // pepper/HMAC key for password hashing (set via `wrangler pages secret put`)
   PAGES_ORIGIN: string // canonical Pages origin for CORS (import/enrich); per-env override
   MAINTENANCE_MODE?: string // 'true' blocks API access before any session/database work

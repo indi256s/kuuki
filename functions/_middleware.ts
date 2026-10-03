@@ -4,12 +4,14 @@
 //
 // Replaces the former Supabase SSR cookie-refresh middleware.
 
-import { resolveSession, slideSession } from './api/_lib/session'
-import { parseCookies, SESSION_COOKIE, CSRF_COOKIE } from './api/_lib/cookies'
+import { resolveSession, slideSession, revokeSession } from './api/_lib/session'
+import { parseCookies, SESSION_COOKIE, CSRF_COOKIE, clearCookie } from './api/_lib/cookies'
 import { refreshSessionCookie } from './api/_lib/authCookies'
 import { generateToken } from './api/_lib/crypto'
 import { configuredActivationOrigin } from './api/_lib/activationSender'
 import type { RequestData } from './api/_lib/auth'
+import { createAuth, hasBetterAuthCookie, appendCsrfCookie, BETTER_AUTH_COOKIE } from './api/_lib/betterAuth'
+import { runHandler } from './api/_lib/http'
 
 export const onRequest: PagesFunction<Env, string, RequestData> = async (context) => {
   const { request, env, next, data } = context
@@ -58,6 +60,28 @@ export const onRequest: PagesFunction<Env, string, RequestData> = async (context
     return next()
   }
 
+  if (hasBetterAuthCookie(request)) {
+    return runHandler(async () => {
+      // Session replacement routes own cookie writes and must not renew an old identity.
+      if (['/api/auth/signin', '/api/auth/signup', '/api/auth/signout', '/api/auth/sign-in/email', '/api/auth/sign-up/email', '/api/auth/sign-out', '/api/auth/get-session'].includes(url.pathname)) return next()
+      const authResponse = await createAuth(env).api.getSession({ headers: request.headers, asResponse: true })
+      if (!authResponse.ok) return authResponse
+      const session = await authResponse.json() as { user: { id: string; email: string } } | null
+      data.user = session ? { id: session.user.id, email: session.user.email } : null
+      if (!session) await revokeSession(env.DB, parseCookies(request.headers.get('Cookie'))[SESSION_COOKIE])
+      const response = await next()
+      if (response.headers.get('Set-Cookie')?.includes(`${BETTER_AUTH_COOKIE}=`)) return response
+      const result = new Response(response.body, response)
+      if (!session) result.headers.append('Set-Cookie', clearCookie(SESSION_COOKIE, { httpOnly: true }))
+      for (const cookie of authResponse.headers.getSetCookie()) result.headers.append('Set-Cookie', cookie)
+      if (session && (request.method === 'GET' || request.method === 'HEAD')) {
+        appendCsrfCookie(result.headers, request, parseCookies(request.headers.get('Cookie'))[CSRF_COOKIE])
+      }
+      result.headers.set('Cache-Control', 'no-store')
+      return result
+    })
+  }
+
   const cookies = parseCookies(request.headers.get('Cookie'))
   const token = cookies[SESSION_COOKIE]
   const session = await resolveSession(env.DB, token)
@@ -71,7 +95,7 @@ export const onRequest: PagesFunction<Env, string, RequestData> = async (context
   const response = await next()
   // A sign-in/sign-out/account handler owns its Set-Cookie response. Appending an old
   // session after it would leave browsers with an ambiguous A/B cookie pair.
-  const handlerOwnsSession = response.headers.get('Set-Cookie')?.includes(`${SESSION_COOKIE}=`) ?? false
+  const handlerOwnsSession = response.headers.get('Set-Cookie')?.includes(`${SESSION_COOKIE}=`) || response.headers.get('Set-Cookie')?.includes(`${BETTER_AUTH_COOKIE}=`)
   if (newExpiry && token && csrfToken && !handlerOwnsSession) {
     const res = new Response(response.body, response)
     refreshSessionCookie(res.headers, token, csrfToken)

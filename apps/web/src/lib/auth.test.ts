@@ -17,6 +17,27 @@ describe('auth functions', () => {
     await expect(getMe()).rejects.toMatchObject({ status: 503 })
   })
 
+  it('sends Better Auth email actions through the identity-scoped API transport', async () => {
+    const token = Symbol('account action')
+    const user = { id: 'user-1', email: 'test@example.com' }
+    vi.mocked(api.post).mockResolvedValueOnce({ user })
+    await expect(signIn(' test@example.com ', 'password123', token)).resolves.toEqual({ success: true, user })
+    expect(api.post).toHaveBeenCalledWith('/api/auth/sign-in/email', {
+      email: 'test@example.com', password: 'password123',
+    }, expect.objectContaining({ identityToken: token }))
+
+    vi.mocked(api.post).mockResolvedValueOnce({ user })
+    await expect(signUp(' test@example.com ', 'password123', token)).resolves.toEqual({ success: true, user })
+    expect(api.post).toHaveBeenLastCalledWith('/api/auth/sign-up/email', {
+      email: 'test@example.com', password: 'password123', name: '',
+    }, expect.objectContaining({ identityToken: token }))
+
+    vi.mocked(api.post).mockResolvedValueOnce({ success: true })
+    await expect(signOut(token)).resolves.toEqual({ success: true })
+    expect(api.post).toHaveBeenLastCalledWith('/api/auth/sign-out', {},
+      expect.objectContaining({ identityToken: token }))
+  })
+
   it.each([
     {
       name: 'signUp (email taken)',

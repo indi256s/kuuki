@@ -1,4 +1,5 @@
 import { api, ApiError, type IdentityOperationToken } from './apiClient'
+import { authClientFor } from './auth-client'
 import type { Tables } from './database.types'
 
 export type Profile = Tables<'profiles'>
@@ -23,11 +24,11 @@ export async function signUp(
   identityToken?: IdentityOperationToken,
 ): Promise<{ success: boolean; error?: string; user?: AuthUser }> {
   try {
-    const data = await api.post<{ user: AuthUser; profile: Profile | null }>('/api/auth/signup', {
-      email,
-      password,
-    }, { identityToken })
-    return { success: true, user: data.user }
+    const { data, error } = await authClientFor(identityToken).signUp.email({
+      email: email.trim(), password, name: '',
+    })
+    if (error) return { success: false, error: error.message }
+    return { success: true, user: data?.user }
   } catch (error) {
     if (error instanceof ApiError) {
       return { success: false, error: error.message }
@@ -43,11 +44,11 @@ export async function signIn(
   identityToken?: IdentityOperationToken,
 ): Promise<{ success: boolean; error?: string; user?: AuthUser }> {
   try {
-    const data = await api.post<{ user: AuthUser; profile: Profile | null }>('/api/auth/signin', {
-      email,
-      password,
-    }, { identityToken })
-    return { success: true, user: data.user }
+    const { data, error } = await authClientFor(identityToken).signIn.email({
+      email: email.trim(), password,
+    })
+    if (error) return { success: false, error: error.message }
+    return { success: true, user: data?.user }
   } catch (error) {
     if (error instanceof ApiError) {
       return { success: false, error: error.message }
@@ -59,7 +60,8 @@ export async function signIn(
 // Sign out
 export async function signOut(identityToken?: IdentityOperationToken): Promise<{ success: boolean; error?: string }> {
   try {
-    await api.post('/api/auth/signout', undefined, { identityToken })
+    const { error } = await authClientFor(identityToken).signOut()
+    if (error) return { success: false, error: error.message }
     return { success: true }
   } catch (error) {
     return { success: false, error: error instanceof ApiError ? error.message : 'Could not sign out. Please try again.' }

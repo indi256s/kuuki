@@ -1,0 +1,7 @@
+# Server-only settings for local Cloudflare Pages development.
+# Generate separate values for each secret: openssl rand -base64 32
+AUTH_SECRET=
+BETTER_AUTH_SECRET=
+PAGES_ORIGIN=http://localhost:8788
+GEMINI_API_KEY=
+MAINTENANCE_MODE=false

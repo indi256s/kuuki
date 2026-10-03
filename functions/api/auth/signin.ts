@@ -3,9 +3,8 @@
 import { runHandler, readJson, json, HttpError } from '../_lib/http'
 import { requireSameOrigin } from '../_lib/auth'
 import { getUserByEmail, parsePassword } from '../_lib/users'
-import { verifyPassword, dummyVerify } from '../_lib/crypto'
-import { createSession } from '../_lib/session'
-import { setSessionCookies } from '../_lib/authCookies'
+import { dummyVerify } from '../_lib/crypto'
+import { signInWithBetterAuth } from '../_lib/betterAuth'
 import { getProfileRow, toOwnProfile } from '../_lib/profiles'
 import { rateLimit, clientIp } from '../_lib/ratelimit'
 
@@ -31,20 +30,17 @@ export const onRequestPost: PagesFunction<Env> = (context) =>
       await dummyVerify(password, env.AUTH_SECRET)
       throw new HttpError(401, 'Invalid email or password', 'INVALID_CREDENTIALS')
     }
-    if (!(await verifyPassword(password, user.password_hash, env.AUTH_SECRET))) {
-      throw new HttpError(401, 'Invalid email or password', 'INVALID_CREDENTIALS')
-    }
+    const authResponse = await signInWithBetterAuth(env, request, user.email, password)
+    if (!authResponse.ok) return authResponse
 
-    const { token } = await createSession(env.DB, user.id, {
-      userAgent: request.headers.get('User-Agent'),
-      ip: clientIp(request),
-    })
-
+    const authResult = await authResponse.json() as Record<string, unknown>
+    delete authResult.token
     const profileRow = await getProfileRow(env.DB, user.id)
     const res = json({
-      user: { id: user.id, email: user.email },
+      ...authResult,
       profile: profileRow ? toOwnProfile(profileRow) : null,
     })
-    setSessionCookies(res.headers, token)
+    for (const cookie of authResponse.headers.getSetCookie()) res.headers.append('Set-Cookie', cookie)
+    res.headers.set('Cache-Control', 'no-store')
     return res
   })

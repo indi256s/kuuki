@@ -24,7 +24,7 @@ const mf = new Miniflare({
   host: '127.0.0.1', port,
   d1Databases: { DB: 'kuuki-synthetic-browser-fixture' },
   bindings: {
-    AUTH_SECRET: 'synthetic-browser-pepper', PAGES_ORIGIN: origin,
+    AUTH_SECRET: 'synthetic-browser-pepper', BETTER_AUTH_SECRET: 'synthetic-better-auth-secret-for-runtime-proof', PAGES_ORIGIN: origin,
     GEMINI_API_KEY: 'synthetic-provider-key',
     ...(checkOnly ? {
       ACTIVATION_ORIGIN: 'https://activate.fixture.test',
@@ -121,10 +121,11 @@ try {
     })
     if (!signin.ok) throw new Error(`Workerd sign-in failed: ${signin.status}`)
     const setCookie = signin.headers.get('Set-Cookie') ?? ''
-    const session = /kuuki_session=([^;]+)/.exec(setCookie)?.[1]
+    const session = /kuuki_auth_session=([^;]+)/.exec(setCookie)?.[1]
     const csrf = /kuuki_csrf=([^;]+)/.exec(setCookie)?.[1]
     if (!session || !csrf) throw new Error('Workerd sign-in did not set both cookies')
-    const cookie = `kuuki_session=${session}; kuuki_csrf=${csrf}`
+    const sessionCookieName = origin.startsWith('https:') ? '__Secure-kuuki_auth_session' : 'kuuki_auth_session'
+    const cookie = `${sessionCookieName}=${session}; kuuki_csrf=${csrf}`
     const me = await mf.dispatchFetch(`${origin}/api/auth/me`, { headers: { Cookie: cookie } })
     const identity = await me.json() as { user: { email: string } | null }
     if (!me.ok || identity.user?.email !== 'a@example.test') throw new Error('Workerd cookie identity mismatch')

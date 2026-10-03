@@ -28,6 +28,8 @@ export default {
         db.prepare('DELETE FROM account_activation_tokens WHERE expires_at <= ?').bind(now.toISOString()),
         db.prepare('DELETE FROM auth_rate_limits WHERE expires_at <= ?').bind(Math.floor(now.getTime() / 1000)),
         db.prepare('DELETE FROM sessions WHERE expires_at <= ?').bind(now.toISOString()),
+        db.prepare('DELETE FROM auth_sessions WHERE expiresAt <= ?').bind(now.toISOString()),
+        db.prepare('DELETE FROM auth_verifications WHERE expiresAt <= ?').bind(now.toISOString()),
         db.prepare('DELETE FROM flight_idempotency WHERE created_at < ?').bind(cutoff),
       ])
       const remaining = await db.prepare(

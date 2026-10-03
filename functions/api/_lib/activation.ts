@@ -55,9 +55,19 @@ export async function completeActivation(db: D1Database, token: string, password
          AND EXISTS (SELECT 1 FROM users WHERE id = account_activation_tokens.user_id AND password_hash = 'RESET_REQUIRED')`,
     ).bind(claimId, tokenHash, now),
     db.prepare(
-      `UPDATE users SET password_hash = ? WHERE password_hash = 'RESET_REQUIRED'
+      `UPDATE users SET password_hash = ?, updated_at = ? WHERE password_hash = 'RESET_REQUIRED'
        AND id = (SELECT user_id FROM account_activation_tokens WHERE token_hash = ? AND claim_id = ?)`,
-    ).bind(passwordHash, tokenHash, claimId),
+    ).bind(passwordHash, now, tokenHash, claimId),
+    db.prepare(`INSERT INTO auth_accounts (id, accountId, providerId, userId, password, createdAt, updatedAt)
+      SELECT 'credential:' || u.id, u.id, 'credential', u.id, u.password_hash, u.created_at, ?
+      FROM users u JOIN account_activation_tokens t ON t.user_id = u.id
+      WHERE t.token_hash = ? AND t.claim_id = ? AND u.password_hash = ?
+      ON CONFLICT(providerId, accountId) DO UPDATE SET password = excluded.password, updatedAt = excluded.updatedAt`)
+      .bind(now, tokenHash, claimId, passwordHash),
+    db.prepare(`DELETE FROM auth_sessions WHERE userId = (
+      SELECT t.user_id FROM account_activation_tokens t JOIN users u ON u.id = t.user_id
+      WHERE t.token_hash = ? AND t.claim_id = ? AND u.password_hash = ?
+    )`).bind(tokenHash, claimId, passwordHash),
     db.prepare(
       `DELETE FROM sessions WHERE user_id = (
          SELECT t.user_id FROM account_activation_tokens t JOIN users u ON u.id = t.user_id

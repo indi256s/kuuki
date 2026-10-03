@@ -1,10 +1,10 @@
 // POST /api/auth/signup — open registration (email + password, optional displayName).
 
+import { z } from 'zod'
 import { runHandler, readJson, json, HttpError } from '../_lib/http'
 import { requireSameOrigin } from '../_lib/auth'
-import { EMAIL_RE, parsePassword, getUserByEmail, createUserWithProfile } from '../_lib/users'
-import { createSession } from '../_lib/session'
-import { setSessionCookies } from '../_lib/authCookies'
+import { parsePassword, getUserByEmail, createUserWithProfile } from '../_lib/users'
+import { createAuth, signInWithBetterAuth } from '../_lib/betterAuth'
 import { getProfileRow, toOwnProfile } from '../_lib/profiles'
 import { rateLimit, clientIp } from '../_lib/ratelimit'
 
@@ -12,6 +12,7 @@ interface SignupBody {
   email?: string
   password?: string
   displayName?: string
+  name?: string
 }
 
 export const onRequestPost: PagesFunction<Env> = (context) =>
@@ -22,7 +23,7 @@ export const onRequestPost: PagesFunction<Env> = (context) =>
 
     const body = await readJson<SignupBody>(request)
     const email = typeof body?.email === 'string' ? body.email.trim() : null
-    if (!email || !EMAIL_RE.test(email)) throw new HttpError(400, 'A valid email is required', 'INVALID_EMAIL')
+    if (!email || !z.email().safeParse(email).success) throw new HttpError(400, 'A valid email is required', 'INVALID_EMAIL')
     const password = parsePassword(body?.password, 'new')
 
     // Account-enumeration tradeoff (security finding #8, LOW): a distinct 409 here reveals that
@@ -34,22 +35,31 @@ export const onRequestPost: PagesFunction<Env> = (context) =>
       throw new HttpError(409, 'An account with this email already exists', 'EMAIL_TAKEN')
     }
 
+    // Validate secrets/configuration before writing any account rows.
+    createAuth(env)
+    const displayName = body?.displayName ?? body?.name
     const user = await createUserWithProfile(
       env.DB,
-      { email, password, displayName: typeof body?.displayName === 'string' ? body.displayName.trim() || null : null },
+      { email, password, displayName: typeof displayName === 'string' ? displayName.trim() || null : null },
       env.AUTH_SECRET,
     )
 
-    const { token } = await createSession(env.DB, user.id, {
-      userAgent: request.headers.get('User-Agent'),
-      ip: clientIp(request),
-    })
+    let authResponse: Response
+    try {
+      authResponse = await signInWithBetterAuth(env, request, user.email, password)
+    } catch {
+      throw new HttpError(503, 'Your account was created. Please sign in to continue.', 'SIGN_IN_REQUIRED')
+    }
+    if (!authResponse.ok) throw new HttpError(503, 'Your account was created. Please sign in to continue.', 'SIGN_IN_REQUIRED')
 
+    const authResult = await authResponse.json() as Record<string, unknown>
+    delete authResult.token
     const profileRow = await getProfileRow(env.DB, user.id)
     const res = json(
-      { user: { id: user.id, email: user.email }, profile: profileRow ? toOwnProfile(profileRow) : null },
+      { ...authResult, profile: profileRow ? toOwnProfile(profileRow) : null },
       { status: 201 },
     )
-    setSessionCookies(res.headers, token)
+    for (const cookie of authResponse.headers.getSetCookie()) res.headers.append('Set-Cookie', cookie)
+    res.headers.set('Cache-Control', 'no-store')
     return res
   })

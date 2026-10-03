@@ -12,7 +12,7 @@ Manifests specify compatible ranges; `pnpm-lock.yaml` records the installed vers
 | Maps/charts | react-simple-maps and Recharts |
 | Hosting/API | Cloudflare Pages and Pages Functions |
 | Database | Cloudflare D1, additive SQL migrations |
-| Authentication | Password hashing with a server pepper, D1 sessions, HTTP-only session cookie and CSRF cookie |
+| Authentication | Better Auth with D1 credential accounts and sessions, existing peppered passwords, HTTP-only signed session cookie and CSRF cookie |
 | Activation delivery | Cloudflare Email Sending REST API; fake sender for local proof |
 | Recovery | Scheduled maintenance Worker, revision-guarded derived-state publication |
 | AI | Server-side `@google/genai`; model configuration and provider errors stay behind the API |
@@ -35,7 +35,7 @@ Ticket extraction produces review drafts, never automatic database writes. Missi
 
 ## Configuration and references
 
-D1 and import KV bindings belong to each environment. Preview and production must never share them. Server configuration includes `AUTH_SECRET`, `PAGES_ORIGIN`, `GEMINI_API_KEY`, `MAINTENANCE_MODE` and activation delivery settings. See [the release runbook](runbooks/audit-remediation-release.md) for exact gates and secret handling.
+D1 and import KV bindings belong to each environment. Preview and production must never share them. Server configuration includes `BETTER_AUTH_SECRET`, `AUTH_SECRET`, `PAGES_ORIGIN`, `GEMINI_API_KEY`, `MAINTENANCE_MODE` and activation delivery settings. See [the release runbook](runbooks/audit-remediation-release.md) for exact gates and secret handling.
 
 `packages/data` supplies web reference data; D1 migration references include an additive, provenance-recorded supplement. Unknown historical route codes remain raw historical evidence instead of being mapped to guessed airports. Supabase migrations and export artifacts are historical inputs retained until production cutover is accepted.
 

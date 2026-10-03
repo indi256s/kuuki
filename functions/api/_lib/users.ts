@@ -55,7 +55,7 @@ export async function getPasswordHashById(
   userId: string,
 ): Promise<string | null> {
   const row = await db
-    .prepare('SELECT password_hash FROM users WHERE id = ?')
+    .prepare(`SELECT COALESCE((SELECT password FROM auth_accounts WHERE userId = users.id AND providerId = 'credential'), password_hash) AS password_hash FROM users WHERE id = ?`)
     .bind(userId)
     .first<{ password_hash: string }>()
   return row?.password_hash ?? null
@@ -88,6 +88,8 @@ export async function deleteUserCascade(db: D1Database, userId: string): Promise
   ]
   await db.batch([
     ...childTables.map((t) => db.prepare(`DELETE FROM ${t} WHERE user_id = ?`).bind(userId)),
+    db.prepare('DELETE FROM auth_sessions WHERE userId = ?').bind(userId),
+    db.prepare('DELETE FROM auth_accounts WHERE userId = ?').bind(userId),
     db.prepare('DELETE FROM profiles WHERE id = ?').bind(userId),
     db.prepare('DELETE FROM users WHERE id = ?').bind(userId),
   ])
@@ -109,8 +111,10 @@ export async function createUserWithProfile(
 
   await db.batch([
     db
-      .prepare('INSERT INTO users (id, email, password_hash, created_at) VALUES (?, ?, ?, ?)')
-      .bind(id, email, passwordHash, now),
+      .prepare('INSERT INTO users (id, email, password_hash, created_at, updated_at, name, image) VALUES (?, ?, ?, ?, ?, ?, ?)')
+      .bind(id, email, passwordHash, now, now, input.displayName ?? '', input.avatarUrl ?? null),
+    db.prepare(`INSERT INTO auth_accounts (id, accountId, providerId, userId, password, createdAt, updatedAt) VALUES (?, ?, 'credential', ?, ?, ?, ?)`)
+      .bind(`credential:${id}`, id, id, passwordHash, now, now),
     db
       .prepare(
         `INSERT INTO profiles (id, display_name, avatar_url, created_at, updated_at)

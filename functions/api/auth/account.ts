@@ -10,6 +10,7 @@ import { requireCsrf, requireUser, type RequestData } from '../_lib/auth'
 import { deleteUserCascade, getPasswordHashById, parsePassword } from '../_lib/users'
 import { verifyPassword } from '../_lib/crypto'
 import { clearSessionCookies } from '../_lib/authCookies'
+import { clearBetterAuthCookie } from '../_lib/betterAuth'
 
 export const onRequestDelete: PagesFunction<Env, string, RequestData> = (context) =>
   runHandler(async () => {
@@ -30,5 +31,6 @@ export const onRequestDelete: PagesFunction<Env, string, RequestData> = (context
 
     const res = json({ ok: true })
     clearSessionCookies(res.headers)
+    clearBetterAuthCookie(res.headers, request)
     return res
   })

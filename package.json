@@ -2,10 +2,10 @@
   "name": "kuuki",
   "version": "0.0.1",
   "private": true,
-  "description": "Kuuki (\u7a7a\u6c17) - Travel geek platform for flight tracking and leaderboards",
+  "description": "Kuuki (空気) - Travel geek platform for flight tracking and leaderboards",
   "scripts": {
     "dev": "turbo dev",
-    "dev:pages": "wrangler pages dev --compatibility-date=2024-01-01 --ip 0.0.0.0 --proxy 5173 -- pnpm --filter @kuuki/web dev",
+    "dev:pages": "wrangler pages dev --ip 0.0.0.0 --proxy 5173 -- pnpm --filter @kuuki/web dev",
     "build": "turbo build",
     "lint": "turbo lint",
     "typecheck": "turbo typecheck",
@@ -32,7 +32,12 @@
   },
   "packageManager": "pnpm@9.15.0",
   "dependencies": {
-    "@google/genai": "^1.39.0"
+    "@better-auth/kysely-adapter": "^1.7.7",
+    "@google/genai": "^1.39.0",
+    "better-auth": "^1.7.7",
+    "kysely": "^0.29.6",
+    "kysely-d1": "^0.4.0",
+    "zod": "^4.6.5"
   },
   "pnpm": {
     "overrides": {
