@@ -25,8 +25,8 @@ import {
   type SortOrder,
 } from '@/lib/flights'
 import { useAuthStore } from '@/stores/authStore'
-import { LEADERBOARD_KEY, USER_POSITIONS_KEY, TOTAL_USERS_KEY } from '@/hooks/useLeaderboard'
 import { useEffect } from 'react'
+import { reconcileDerivedState } from '@/lib/derivedStateFeedback'
 
 const FLIGHTS_KEY = 'flights'
 const FLIGHT_KEY = 'flight'
@@ -70,13 +70,14 @@ export function useFlights(filters?: FlightFilters, sort?: SortConfig, pageSize 
  * Hook for a single flight
  */
 export function useFlight(flightId: number | null) {
+  const userId = useAuthStore((state) => state.user?.id)
   return useQuery({
-    queryKey: [FLIGHT_KEY, flightId],
+    queryKey: [FLIGHT_KEY, userId, flightId],
     queryFn: () => {
       if (!flightId) return null
       return getFlight(flightId)
     },
-    enabled: !!flightId,
+    enabled: !!flightId && !!userId,
   })
 }
 
@@ -88,21 +89,12 @@ export function useCreateFlight() {
   const userId = useAuthStore((state) => state.user?.id)
 
   return useMutation({
-    mutationFn: async (flight: Omit<FlightInsert, 'id' | 'created_at' | 'user_id'>) => {
+    mutationFn: async ({ flight, operationId }: { flight: Omit<FlightInsert, 'id' | 'created_at' | 'user_id'>; operationId: string }) => {
       if (!userId) throw new Error('Not authenticated')
-      return createFlight({ ...flight, user_id: userId })
+      return createFlight({ ...flight, user_id: userId }, operationId)
     },
-    onSuccess: () => {
-      // Invalidate all flight-related queries
-      queryClient.invalidateQueries({ queryKey: [FLIGHTS_KEY] })
-      queryClient.invalidateQueries({ queryKey: [RECENT_FLIGHTS_KEY] })
-      queryClient.invalidateQueries({ queryKey: [UPCOMING_FLIGHTS_KEY] })
-      queryClient.invalidateQueries({ queryKey: [FLIGHT_YEARS_KEY] })
-      queryClient.invalidateQueries({ queryKey: [FLIGHT_AIRLINES_KEY] })
-      queryClient.invalidateQueries({ queryKey: ['flightStats'] })
-      queryClient.invalidateQueries({ queryKey: [LEADERBOARD_KEY] })
-      queryClient.invalidateQueries({ queryKey: [USER_POSITIONS_KEY] })
-      queryClient.invalidateQueries({ queryKey: [TOTAL_USERS_KEY] })
+    onSuccess: (created) => {
+      if (userId) reconcileDerivedState(created, queryClient, userId)
       toast.success('Flight added to your log')
     },
     onError: (error) => {
@@ -117,6 +109,7 @@ export function useCreateFlight() {
  */
 export function useUpdateFlight() {
   const queryClient = useQueryClient()
+  const userId = useAuthStore((state) => state.user?.id)
 
   return useMutation({
     mutationFn: async ({ flightId, updates }: { flightId: number; updates: FlightUpdate }) => {
@@ -124,15 +117,7 @@ export function useUpdateFlight() {
     },
     onSuccess: (updatedFlight) => {
       // Update the specific flight in cache
-      queryClient.setQueryData([FLIGHT_KEY, updatedFlight.id], updatedFlight)
-      // Invalidate lists
-      queryClient.invalidateQueries({ queryKey: [FLIGHTS_KEY] })
-      queryClient.invalidateQueries({ queryKey: [RECENT_FLIGHTS_KEY] })
-      queryClient.invalidateQueries({ queryKey: [UPCOMING_FLIGHTS_KEY] })
-      queryClient.invalidateQueries({ queryKey: ['flightStats'] })
-      queryClient.invalidateQueries({ queryKey: [LEADERBOARD_KEY] })
-      queryClient.invalidateQueries({ queryKey: [USER_POSITIONS_KEY] })
-      queryClient.invalidateQueries({ queryKey: [TOTAL_USERS_KEY] })
+      if (userId) reconcileDerivedState(updatedFlight, queryClient, userId)
       toast.success('Flight updated successfully')
     },
     onError: (error) => {
@@ -149,24 +134,14 @@ export function useUpdateFlight() {
  */
 export function useDeleteFlight() {
   const queryClient = useQueryClient()
+  const userId = useAuthStore((state) => state.user?.id)
 
   return useMutation({
     mutationFn: async (flightId: number) => {
       return deleteFlight(flightId)
     },
-    onSuccess: (_, flightId) => {
-      // Remove from cache
-      queryClient.removeQueries({ queryKey: [FLIGHT_KEY, flightId] })
-      // Invalidate lists
-      queryClient.invalidateQueries({ queryKey: [FLIGHTS_KEY] })
-      queryClient.invalidateQueries({ queryKey: [RECENT_FLIGHTS_KEY] })
-      queryClient.invalidateQueries({ queryKey: [UPCOMING_FLIGHTS_KEY] })
-      queryClient.invalidateQueries({ queryKey: [FLIGHT_YEARS_KEY] })
-      queryClient.invalidateQueries({ queryKey: [FLIGHT_AIRLINES_KEY] })
-      queryClient.invalidateQueries({ queryKey: ['flightStats'] })
-      queryClient.invalidateQueries({ queryKey: [LEADERBOARD_KEY] })
-      queryClient.invalidateQueries({ queryKey: [USER_POSITIONS_KEY] })
-      queryClient.invalidateQueries({ queryKey: [TOTAL_USERS_KEY] })
+    onSuccess: (ack) => {
+      if (userId) reconcileDerivedState(ack, queryClient, userId)
       toast.success('Flight removed from your log')
     },
     onError: (error) => {
@@ -182,27 +157,14 @@ export function useDeleteFlight() {
  */
 export function useBatchDeleteFlights() {
   const queryClient = useQueryClient()
+  const userId = useAuthStore((state) => state.user?.id)
 
   return useMutation({
     mutationFn: async (flightIds: number[]) => {
       return deleteFlights(flightIds)
     },
-    onSuccess: (_, flightIds) => {
-      // Remove each flight from cache
-      flightIds.forEach(id => {
-        queryClient.removeQueries({ queryKey: [FLIGHT_KEY, id] })
-      })
-      // Invalidate all lists
-      queryClient.invalidateQueries({ queryKey: [FLIGHTS_KEY] })
-      queryClient.invalidateQueries({ queryKey: [RECENT_FLIGHTS_KEY] })
-      queryClient.invalidateQueries({ queryKey: [UPCOMING_FLIGHTS_KEY] })
-      queryClient.invalidateQueries({ queryKey: [FLIGHT_YEARS_KEY] })
-      queryClient.invalidateQueries({ queryKey: [FLIGHT_AIRLINES_KEY] })
-      queryClient.invalidateQueries({ queryKey: [FLIGHT_AIRCRAFT_KEY] })
-      queryClient.invalidateQueries({ queryKey: ['flightStats'] })
-      queryClient.invalidateQueries({ queryKey: [LEADERBOARD_KEY] })
-      queryClient.invalidateQueries({ queryKey: [USER_POSITIONS_KEY] })
-      queryClient.invalidateQueries({ queryKey: [TOTAL_USERS_KEY] })
+    onSuccess: (ack, flightIds) => {
+      if (userId) reconcileDerivedState(ack, queryClient, userId)
       toast.success(`${flightIds.length} flights removed`)
     },
     onError: (error) => {
@@ -362,14 +324,9 @@ export function useSyncUpcomingFlights() {
   useEffect(() => {
     if (!userId) return
 
-    syncUpcomingFlights(userId).then((count) => {
-      if (count > 0) {
-        // Refresh queries if any flights were updated
-        queryClient.invalidateQueries({ queryKey: [FLIGHTS_KEY] })
-        queryClient.invalidateQueries({ queryKey: [UPCOMING_FLIGHTS_KEY] })
-        queryClient.invalidateQueries({ queryKey: ['flightStats'] })
-      }
-    })
+    syncUpcomingFlights(userId).then((ack) => {
+      if (ack.synced > 0) reconcileDerivedState(ack, queryClient, userId)
+    }).catch(error => console.error('Upcoming flight sync failed:', error))
   }, [userId, queryClient])
 }
 

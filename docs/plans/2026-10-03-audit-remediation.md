@@ -1,0 +1,205 @@
+Plan contract: wave-plan/v1
+# Kuuki: план исправлений технического аудита
+
+Goal: завершить переход на Cloudflare, вернуть старым пользователям доступ к прежним профилям и данным, восстановить импорт билетов и сделать выпуск воспроизводимым.
+Architecture: сохранить React + Pages Functions + D1 и Wrangler; исправлять существующие модули. Добавить только необходимые таблицы для активации доступа, происхождения исторических visits, ограничений auth и восстановления незавершённых пересчётов; один небольшой scheduled Worker для обслуживания D1.
+Success: исторические аккаунты и исходные записи сохранены; пользователь подтверждает владение аккаунтом, устанавливает персональный пароль и видит прежние перелёты; preview изолирован; CRUD, паспорт, рейтинги и OCR проходят целевые проверки; обязательный CI блокирует ошибочный выпуск.
+Out of scope: переписывание приложения, редизайн, смена CLI на `cf`, новая система SSO, восстановление неизвестных старых паролей, автоматическая запись результата OCR без подтверждения, полная обработка всех форматов документов.
+Constraints: сохранять исходные user IDs и существующий production-аккаунт; не переносить общий локальный пароль; не запускать старые destructive scripts на рабочей базе; сохранить чужие untracked-файлы. Primary принимает архитектурные решения и результаты последовательно. Для реализации и независимого review использовать `gpt-6-sol` / `medium`; для простых ограниченных read-only lookup допустим `gpt-6-luna` / `max`. Указывать model и effort в dispatch metadata; профиль primary не менять.
+Planning basis: [аудит 03.10.2026](../audits/2026-10-03-technical-audit.md), [исследование OCR](../research/2026-10-03-ticket-ocr-models.md), commit `bc897858e7a5b5670a03ba461e3d5d356be100a0`, исходники auth/CRUD/derive/import, manifests, Wrangler и CI. Production counts и bindings взяты из аудита; перед работой с облаком их нужно прочитать заново.
+Execution profile: primary=runtime-selected; workers=gpt-6-sol/medium; reviewers=independent-gpt-6-sol/medium; exact-profile-attestation=required
+Authority evidence: запрос пользователя «create a plan to fix findgins» разрешает подготовку плана. Этот документ не разрешает реализацию, deploy, изменение облачных ресурсов, production-данных или отправку писем пользователям.
+
+Дата плана: 3 октября 2026 года. Состояние: предложен; реализация не начата. Путь выполнения: W1 → W2 → W3 → W4 → W5. Этапы можно готовить отдельными reviewable patches в рабочей ветке. До первого merge в main или production deploy обязательны фактическая изоляция preview и отключение обходного Pages Git deploy path; если эти внешние изменения ещё не разрешены, patches остаются локальными/на review. Production cutover выполняется только после принятия всех необходимых этапов.
+
+## Решения и ограничения
+
+1. **D1 остаётся хранилищем пользователей.** Cookie-сессии и текущий password hash сохраняются. Действующий production `AUTH_SECRET` не менять: с ним связан пароль нынешнего аккаунта. Новый staging secret применяется только к staging credentials.
+2. **Login enablement старых аккаунтов через одноразовое подтверждение почты.** Это не перенос старого пароля. В [CONTEXT.md](../../CONTEXT.md) self-service Password reset ранее исключён из объёма работ; план закрывает A02 установкой первых рабочих credentials мигрированных аккаунтов. Универсальный «забыл пароль» для уже активированных пользователей остаётся отдельной задачей. Июньские указания о включении лишь одного verification account не подходят текущей цели вернуть всех прежних пользователей; существующий glossary не переписывать до реализации принятого решения.
+3. **Исторические visits сохраняются с происхождением.** Flights остаются источником пересчитываемых посещений аэропортов; country_claims и ground_visits сохраняют собственную семантику. Невосстановимые legacy visits выделяются в отдельное исходное evidence, а не исчезают при первом PATCH. Архивная цифра 171 не превращается в вечный инвариант всех будущих stats.
+4. **Единственный путь выпуска через GitHub Actions.** Он ждёт обязательные проверки. Нужны отдельные preview DB/KV/secrets существующего Pages проекта; не создавать новый frontend-проект только ради исправления отсутствующего `kuuki-staging` из workflow. Отключение второго production deploy path относится к отдельно разрешённой настройке облака.
+5. **OCR: сначала рабочий Gemini, затем сравнение качества.** Предварительный ID `gemini-3.5-flash-lite`, сохраняющий существующий SDK и контракт. Проверить его доступность и SDK на дату реализации. OpenAI Luna и Mistral OCR 4.1 служат альтернативами для теста; провайдера выбирают по размеченным билетам, расходу и задержке. [Google](https://ai.google.dev/gemini-api/docs/models/gemini-3.5-flash-lite), [OpenAI](https://developers.openai.com/api/docs/models/gpt-5.6-luna), [Mistral](https://docs.mistral.ai/models/ocr-4-1).
+
+До W5 требуется разрешить только фактические неопределённости: актуальность старого экспорта, конфликт нынешнего аккаунта со старой записью, доступ к sender-domain и почтовому сервису, подтверждённый состав legacy visit evidence. До их разрешения можно готовить код, фикстуры и локальную репетицию. Совпадение email само по себе не разрешает автоматически объединять разные аккаунты.
+
+## Покрытие находок
+
+| Находка | Изменение | Этап | Основное доказательство |
+|---|---|---|---|
+| A01, P0 | Повторяемый перенос, schema baseline, справочники, сохранение текущего аккаунта | W1, W3, W5 | Сверка каждой исходной записи, IDs и FK; повторный запуск без дублей |
+| A02, P1 | Login enablement с персональным паролем; работа с pepper | W2, W5 | Однократность токена, отзыв сессий, вход в прежний профиль на Cloudflare |
+| A03, P1 | Раздельные DB/KV/secrets и один путь deploy | W1, W5 | Разные bindings; контрольная preview-запись не затрагивает production |
+| A04, P1 | Импорт через CSRF-aware клиент | W4 | Frontend POST проходит; missing/mismatched token даёт 403 |
+| A05, P1 | Продление обеих cookie | W2 | Активная сессия на 31-й день может менять данные и выйти |
+| A06, P1 | Middleware не перезаписывает cookie обработчика | W2 | Вход A → B оставляет одну актуальную session cookie; `/me` возвращает B |
+| A07, P1 | Источник и provenance исторических visits | W3 | Редактирование одного flight сохраняет unrelated legacy evidence |
+| A08, P2 | Атомарные связанные записи, идемпотентность и восстановление | W3, W4 | Инъекция отказа и повтор запроса; ни дублей flight, ни потерянных ground notes |
+| A09, P2 | Пересчёт расстояния при изменении маршрута | W3 | JFK–LAX → JFK–BOS; отдельный тест явного override |
+| A10, P2 | Общая invalidation зависимых queries | W4 | Счётчики, карта и паспорт обновляются без перезагрузки |
+| A11, P2 | Ошибки выхода и экспорта передаются в UI | W2, W4 | При 500/403/network error нет ложного успеха и пустого CSV |
+| A12, P1 | Cron, согласованная eligibility, время последнего успеха | W3, W5 | Изменённые stats попадают в следующий refresh; opt-out исключён из totals |
+| A13, P2 | Обязательные backend/tests/deploy gates; проверяемые scripts | W1, W5 | Намеренно сломанная проверка блокирует deploy |
+| A14, P2 | Совместимые обновления и разбор применимости advisories | W4 | Сборки/tests после обновлений; перечень оставшихся применимых рисков |
+| A15, P2 | Серверная валидация dates/IATA/aircraft; справочники | W3 | Невалидный запрос отклоняется до записи; валидный migrated flight сохраняется |
+| A16, P1 | Поддерживаемая AI-модель и видимые ошибки провайдера | W4 | Text/image/PDF проходят контракт; model-not-found виден пользователю |
+| Дополнительно | Auth limits, founding eligibility, `/dev/reset`, реальные body limits, CSP, Supabase remnants и документация | W2–W5 | Критерии соответствующих этапов ниже |
+
+## Execution map
+
+| Wave | Outcome | Depends on | Writes (active owner) | Reads / validates | Parallel-safe with | Material risk → primary proof | Acceptance owner |
+|---|---|---|---|---|---|---|---|
+| W1 | Безопасная база для изменений, изоляция и обязательные проверки | Текущий аудит | `wrangler.toml`, `.github/workflows/{ci,auto-revert}.yml`, root `package.json`, lockfile, `scripts/tsconfig.sbd1.json`; новые fixture/preflight/config файлы | Production schema и bindings, manifests, snapshots | Независимый read-only review | Выпуск минует tests → отрицательный CI-сценарий; не тот DB → explicit target guard | primary |
+| W2 | Рабочие сессии и безопасное login enablement | W1 | `functions/_middleware.ts`, `functions/api/auth/**`, `_lib/{auth,authCookies,crypto,session,users,ratelimit}.ts`, `functions/env.d.ts`; новая auth migration; web auth/store/client/routes, auth i18n | W1 fixtures и тестовый target, существующий credential format | Read-only review; W3 начинать после фиксации auth migration/контракта | Захват аккаунта/replay → конкурентное применение token; cookie A/B → runtime `/me` | primary |
+| W3 | Сохранность истории, корректный CRUD и обновляемые рейтинги | W2 | `scripts/{sb-to-d1,derive,ship-oracle,validate}.ts`, migrations после auth migration, `functions/api/{flights,passport,me,leaderboard}/**`, `_services/**`; новый `workers/maintenance/**`; shared flight validation/DTO | Snapshot manifest, W2 credentials/limits, references | Read-only review | Потеря посещений/частичная запись → сравнение per-user + fault injection | primary |
+| W4 | Рабочий импорт и актуальный интерфейс; обновлённые зависимости и docs | W3 | `functions/api/{import,enrich}/**`, web flight/passport/stats/import/export hooks и libs; `_headers`; root/web manifests, lockfile; README, TECH_STACK, актуальный runbook | W2 auth и W3 CRUD/repair contracts; OCR fixtures | OCR corpus evaluation и read-only review на разных фикстурах | Неверный рейс/ложный успех → разметка и подтверждение; stale cache → функциональный сценарий | primary |
+| W5 | Проверенный выпуск и перенос в production | W1–W4; разрешения на конкретные внешние действия | Принятый runbook, evidence manifest и release notes; разрешённые облачные настройки/данные | Финальный patch, staging, snapshots/backups, approvals | Независимые final lanes на одной версии | Данные/rollback/credentials → staging restore drill и контрольный login после cutover | primary |
+
+Пути в карте означают область ответственности, а не обязательное изменение каждого файла. Все новые migrations принадлежат одному активному владельцу: W2 передаёт каталог W3 после принятия и остановки writer. Root manifests/lockfile: W1 → W4. `functions/env.d.ts`: W2 → W3 → W4. `apps/web/src/{App.tsx,lib/apiClient.ts}` и shared i18n: W2 → W4. Shared DTO: W3 → W4. Runbook: W4 → W5. При передаче primary проверяет diff; параллельная запись в эти пути запрещена. Каждый этап владеет также своими новыми тестами.
+
+## W1: безопасные окружения и обязательные проверки
+
+Objective: подготовить изменение кода так, чтобы проверка ветки не могла записать в рабочую базу, а ошибка теста не пропускала release.
+
+Owned writes: W1 из execution map; предложенные `scripts/migration-preflight.ts`, `tests/fixtures/` и `functions/vitest.config.ts`.
+
+Implementation:
+
+- Составить manifest источников: timestamp/хеши защищённых snapshots, counts, схема, fingerprint нынешнего аккаунта без раскрытия email и password hash. Архивный экспорт не считать автоматически актуальным. Реальные данные и recovery secrets не коммитить; общие тесты работают с синтетическими пользователями.
+- Добавить preflight с explicit target: local/staging/production, проверка DB ID, ожидаемой схемы и backup reference. По умолчанию только dry-run. Ошибка или неизвестный conflict останавливает операции до первой записи. Старые `getPlatformProxy()` scripts пока остаются локальными: их наличие не означает поддержку remote migration.
+- Описать отдельные preview bindings DB/KV и разные auth secrets в поддерживаемой Pages конфигурации. Удалить ссылку workflow на отсутствующий `kuuki-staging`, привязать staging deploy к preview существующего `kuuki`. Облачные ресурсы и отключение Git deploy применять только при соответствующей авторизации. Эти настройки завершаются до первого merge в main, production deploy или remote preview smoke; одного изменения workflow недостаточно. До проверки изоляции запретить remote fixture/seed/reset.
+- Оставить pnpm 9.15.0; согласовать Node 24 LTS в CI и локальной документации. Добавить root TypeScript и `@types/node`, исправить воспроизводимость scripts typecheck. Добавить backend test command, например предложенный `pnpm test:api` с отдельной конфигурацией и локальным D1 runtime; он ещё не существует.
+- Удалить `continue-on-error` для обязательных tests/deploy; обе deploy jobs зависят от frontend tests, API tests, types и Worker build. `[skip ci]` не должен выпускать непроверенный production artifact. Отключить auto-revert main; подготовить возврат принятой версии deployment вместо автоматического Git commit.
+- Проверить, что CI deploy использует исходники Functions и собранный frontend той же версии; сохранить SHA в release evidence.
+- Предусмотреть non-secret `MAINTENANCE_MODE` для согласованного cutover: middleware отвечает 503 с Retry-After на `/api/*` до любых чтений/записей D1, включая sliding refresh. Статическая страница объясняет временную недоступность. Проверка режима и фактическое отсутствие API writes обязательны перед backup/write hold; режим не подменяет target guards migration tools.
+
+Dependencies: актуальное состояние repo и раздельные fixture directories. Provisioning preview относится к будущим внешним действиям, а не к созданию этого плана.
+
+Focused proof: failed API test/typecheck блокирует release; неправильный target/preflight даёт отказ до записи; при разрешённой настройке preview SELECT сравнивает реальные bindings. [Pages environments](https://developers.cloudflare.com/pages/functions/wrangler-configuration/).
+
+Accept when: проверки запускаются при fresh install; конфигурация не предполагает запись preview в production; dry-run показывает полный план без секретов; для дальнейших remote проверок изоляция подтверждена реально, а не только TOML.
+
+## W2: сессии и доступ прежних пользователей
+
+Objective: пользователь остаётся авторизованным корректно и может активировать прежний аккаунт без общего пароля или смены user_id.
+
+Owned writes: W2 из карты; предложенная migration `0002_auth_activation.sql` с `account_activation_tokens` и `auth_rate_limits`; auth UI и локальные фикстуры.
+
+Implementation:
+
+- Продлевать session и существующую CSRF cookie согласованно в middleware и `/auth/refresh`. Не менять CSRF token на каждом read, чтобы параллельные запросы не ломались. Если handler установил/очистил session cookie, middleware не добавляет старую.
+- Исправить signout: server failure передаётся в UI; store очищает identity после подтверждённого ответа. При успешной смене аккаунта и logout очищать пользовательские Query/store данные. Hard 401 остаётся сигналом истёкшей авторизации.
+- Уточнить проверку формата hash: известная pepper version, допустимые iterations и длины salt/hash; неподдерживаемое значение даёт отказ без 500. Не повышать PBKDF2 iterations без реального Cloudflare runtime теста. Не вводить новую rotation схему без потребности; runbook фиксирует сохранение текущего secret и отдельный порядок будущей ротации.
+- Login enablement: предложенные `POST /api/auth/activation/request` и `POST /api/auth/activation/complete`, страница установки пароля. Request возвращает одинаковый общий ответ для неизвестного и известного email. Создавать и отправлять activation token можно только для аккаунта с `password_hash = 'RESET_REQUIRED'`; для активного аккаунта request ничего не меняет и даёт тот же общий ответ. Ссылка направляется только адресу из согласованного источника. Не активировать credentials простым вводом user_id/email клиентом.
+- Токен: случайные 256 бит, в D1 только SHA-256, TTL 30 минут, однократное применение. GET по ссылке ничего не меняет, чтобы почтовый scanner не активировал аккаунт. Оба POST требуют same-origin проверки; завершение требует также валидного bearer token, полученного по ссылке. На странице не должно быть сторонних ресурсов; `Referrer-Policy: no-referrer`; token не попадает в analytics/logs. Завершение меняет hash под целевым environment secret, отзывает прежние sessions и токены; вход выполняется отдельным обычным signin.
+- Обеспечить атомарность проверки/потребления token и установки password hash: одна транзакционная последовательность D1 с guarded SQL. Условие `users.password_hash = 'RESET_REQUIRED'` проверяется в той же транзакции, а не только при выпуске ссылки: stale token не меняет активированный/нынешний аккаунт. При конкурентных запросах ровно один может завершиться; проигравший не меняет пароль и не отзывает новые sessions. Если D1 batch не позволяет выразить guard безопасно, остановиться на этом proof и пересмотреть SQL до реализации остальных записей.
+- Добавить простой sender adapter и fake sender для тестов. Выбор почтового сервиса и владение sender-domain проверить до реальной доставки; не считать Cloudflare Email Routing готовым transactional sender. В этом плане массовая отправка отсутствует.
+- Для auth заменить KV read-modify-write атомарным D1 fixed-window counter с expiry и route-specific ключом. Начальные IP лимиты сохранить: signin 20/15 минут, signup 10/час, verify-password 10/15 минут; активация дополнительно ограничена по IP и HMAC нормализованного email. Это проектный выбор для текущего небольшого набора аккаунтов, не новая универсальная квотная платформа. Очистка просроченных counters/token идёт в W3 maintenance.
+- Founding User: сохранить ранее выданные badges; убрать автоматическую выдачу всем новым signup. W3 убирает ветку `beta_invite → true` и не восстанавливает её при пересчёте.
+
+Dependencies: W1 target guards/tests; согласованная email→user identity из экспорта. Добавить maintenance guard в middleware/Env по контракту W1. Отсутствие почтового провайдера не мешает реализовать fake sender и проверить flow, но блокирует внешнюю доставку в W5.
+
+Focused proof: activation request/complete для текущего активного аккаунта не меняют его hash и sessions; старый token после другой активации также ничего не меняет. A → B после суток; активная сессия после 31 дня; неактивная истекает; missing CSRF запрещён; два параллельных token complete, просроченный и повторный token; неверный secret/hash; signout 500; параллельный rate counter.
+
+Accept when: эти сценарии проходят на фиктивных пользователях в локальном D1 и на разрешённом Cloudflare staging; login enablement сохраняет прежний user_id. Почтовая доставка принимается отдельно в W5.
+
+## W3: данные, история поездок и согласованность записей
+
+Objective: перенесённые исходные данные сохраняются, новые изменения приводят к ожидаемым stats, а ошибка позднего шага не создаёт незаметную потерю или дубликат.
+
+Owned writes: W3 из карты; следующие additive migrations, migration manifest/validator; proposed maintenance Worker с отдельным `wrangler.toml`, без публичного административного API.
+
+Implementation:
+
+- Проверить текущую production schema и пустой migration ledger. Не запускать `0001_init.sql` на существующих users. Подготовить отдельный документированный baseline: доказать соответствие всех tables/indexes/constraints, затем зарегистрировать исходный baseline поддерживаемым способом; новые schema changes выполняются additive migrations. При расхождении сначала подготовить конкретный schema diff. Baseline и импорт нужны как два разных шага.
+- Переделать importer на explicit target и повторяемые операции: список исходных IDs, lookup конфликтов по IDs/email/username/flight IDs, контроль already-imported rows. Не использовать `INSERT OR REPLACE` или silent overwrite. Для совпадающего доказанного аккаунта сохранить исходный ID и нынешние credentials; для разных ID одинаковый email требует решения владельца. Foreign IDs и текущие unrelated records не менять без карты соответствия.
+- Загружать users/profiles/flights/claims/ground_visits со связанными notes, references и code words. Старым аккаунтам назначить `RESET_REQUIRED`, а не копировать локальные test hashes. Независимый нынешний production-account сохраняется. Expected counts вычисляются из объединения manifest и нынешней базы; итог users нельзя жёстко считать 26 или 27 до проверки conflicts.
+- На readonly copy сопоставить 171 legacy visits с visits из текущих completed flights. Для 15 неподтверждённых строк у 8 пользователей выяснить происхождение: пропущенный flight, старое удаление, неизвестный аэропорт или ошибка. Для действительных архивных посещений предложена таблица `legacy_visit_evidence` с исходным user/airport, датами и provenance. Сначала восстановить пропущенные исходники, если они есть; спорные строки не уничтожать. В `visits` объединять flight-derived и отдельное legacy evidence по аэропорту, без двойного счёта. Из legacy counters не вычитать произвольную разницу как число реальных поездок. Ground visits/claims не преобразовывать в аэропортные visits.
+- Заменить инкрементальную пересборку, которая повторно добавляет visits при retry, на детерминированный user-scoped расчёт по согласованным источникам. Пересчитывать stats и badges с отчётом ожидаемых отличий. Убирать ошибочные агрегаты разрешается только как видимое согласованное изменение, а не побочный эффект обычного PATCH. `ship-oracle.ts` остаётся инструментом локального сравнения и не подменяет рабочие данные целыми таблицами.
+- Атомарно удалять country claim и его ground visits через `db.batch`. Для flight writes простые связанные SQL statements также объединять в batch. [D1 batch откатывается при ошибке statement](https://developers.cloudflare.com/d1/worker-api/d1-database/).
+- Для существующих многошаговых JS-derived services ввести узкое восстановление: canonical mutation + user revision/dirty marker фиксируются в одном batch; `POST` принимает `Idempotency-Key`, сохранённый с user, payload digest и итоговым flight ID. Повтор того же ключа возвращает ту же запись, другой payload даёт 409. Один retry исходного действия сохраняет ключ; новая осознанная операция получает новый. Срок хранения ключа минимум покрывает окно повторов интерфейса.
+- После canonical commit выполнить пересчёт. При позднем отказе не возвращать двусмысленный 500, предлагающий создать flight снова: вернуть подтверждение сохранения с явным `derived_state: pending` как additive API metadata. Dirty marker остаётся до завершения; maintenance выполняет retry. Не считать `waitUntil` единственным механизмом восстановления. Пересчёт должен быть защищён от публикации старой revision после новой mutation: revision guard на атомарную публикацию всех derived results, а не только на удаление marker. Предложенный `GET /api/me/derived-state` возвращает текущую revision и ready/pending/error для авторизованного владельца; это контракт для ограниченного refetch в W4. Cache refresh учитывает pending; frontend поддержку передать W4.
+- Добавить общий schema validation на API boundary: календарная дата, существующие нормализованные airport IATA, aircraft ICAO, поддерживаемые numeric/time поля. Shared package объявляет свою dependency на выбранный validator; frontend и Functions используют один контракт. Два исторических `A380` нормализовать только по явной карте `A380 → A388` с проверкой ожидаемых изменений; неизвестные значения не заменять на догадки.
+- При смене origin/destination сбрасывать старое вычисляемое distance/duration, если PATCH не содержит нового override; заново вычислять timezone-derived времена при изменении затронутых полей. Явный допустимый override сохраняется; происхождение старого числа не угадывать.
+- Добавить scheduled Worker: retry dirty users, затем `refreshLeaderboards`, cleanup expired auth tokens/counters/sessions. Начальное расписание раз в 5 минут; отсутствие успешного цикла более 15 минут отражается в операторском статусе/логе. Worker использует уже существующие services и environment-specific DB. Не передавать password pepper cron, если ему он не нужен.
+- Согласовать eligibility totals/rankings с главным leaderboard: тот же opt-in и минимальный completed flight count. Исторические earned badges сохраняются; `beta_invite` не раздаёт Founding User новым users.
+
+Dependencies: W2 migration/credential contract; итоговые visit правила и manifest доступны до принятия W3. Изменение API metadata передано W4, а не скрыто внутри backend.
+
+Focused proof: importer run → rerun → resume после interruption без дублей/overwrite; FK; сравнение сохранённых raw records и notes; flight PATCH не затрагивает чужое legacy evidence; rollback unclaim при отказе второго statement; late derive failure → same-key retry → одна запись → repair; две interleaved user revisions не публикуют старые stats; новый opt-out не виден в публичных totals.
+
+Accept when: source rows сверены по IDs/полям, дельта derived результатов объяснена; все CRUD paths включая bulk/delete-all/sync-upcoming используют согласованный mutation/repair контракт; каждый ключевой отказ оставляет восстановимое, наблюдаемое состояние. Полная UI приёмка pending завершится в W4.
+
+## W4: импорт билетов, интерфейс и уборка
+
+Objective: импорт снова работает, результат проверяется пользователем, интерфейс отражает изменения и ошибки; документация описывает действующий Cloudflare стек.
+
+Owned writes: W4 из карты с завершёнными transfers; обновления зависимостей небольшими совместимыми группами.
+
+Implementation:
+
+- Перевести `useImport` на общий API client с CSRF и сохранением cancellation/error поведения. Model IDs импорт/очистка/enrichment вынести в non-secret environment config с явным поддерживаемым default. Начать с Gemini 3.5 Flash-Lite; enrichment проверить отдельно. Отключённый `gemini-2.0-flash` удалить из runtime путей.
+- Проверить текущий `@google/genai` и response schema на синтетическом text, JPEG/PNG, PDF. Model-not-found, quota, timeout и неверный JSON показываются как ошибки. Ни пустой успешный результат, ни автоматическая запись распознанных flights при отказе не допустимы. Реальный provider test требует разрешённого тестового API/бюджета; обычный CI использует deterministic fake provider.
+- Ограничивать фактически прочитанные body bytes до AI call, включая отсутствие Content-Length, base64 overhead и размер decoded файла. Сохранить 10 MB decoded file и 100 000 text characters; выбрать и задокументировать соответствующий cap HTTP body. Prompt/document content остаётся недоверенным вводом, не расширяет доступ к аккаунту или инструментам.
+- Сохранить ImportReview: календарная/IATA validation из W3, поля с неизвестным годом требуют уточнения, пустой aircraft не заполняется выдуманным типом. `confidence` не выдавать за проверенную вероятность. Даты и местные времена подтверждаются до записи. Новый формат nullable date согласовать с shared DTO и UI либо удерживать такой draft только в review до получения валидной date.
+- На 30–50 обезличенных билетах сравнить предварительную модель с OpenAI Luna и Mistral OCR 4.1; фото, цифровой и сканированный PDF, русский/смешанный язык, несколько сегментов, смена суток и неуказанный год. Считать exact fields/whole-flight/segment pairing, invented year, p50/p95 и реальные usage costs. Минимальный release gate: ни один неизвестный год не становится фактом без review; все импортируемые записи проходят серверный контракт. Финальную модель и допустимые quality thresholds зафиксировать по измерениям, не по номеру поколения. Corpus/PNR/имена не публиковать.
+- Реальные билеты передавать только через выбранный платный API с проверенными data-use/retention настройками. Не включать второй проход для каждого документа по умолчанию. Декодирование BCBP/дополнительные форматы можно вынести в следующий небольшой план, если корпус покажет пользу.
+- Реализовать сохранение `Idempotency-Key` во всех создающих flow, включая retry после auth refresh и import каждого сегмента. Обработать `derived_state: pending`: показать сохранённую запись и состояние обновления stats; дождаться ready с ограниченным polling/refetch, с видимой ошибкой долгого восстановления. Не отправлять ещё один create из-за pending.
+- Ввести один небольшой user-scoped helper invalidation для create/update/delete/bulk/import/sync/claim; обновлять flight lists/routes, dashboard/stats/advanced stats/passport и затронутые rankings. Не очищать кеш другого user как замену правильным keys.
+- `getAllFlights` передаёт error; export пишет CSV и расходует лимит только после успешной загрузки. Фактически пустые flights дают понятный пустой результат. Удалить `/dev/reset` из production router/build; локальный инструмент сохранить только при реальной потребности.
+- Проверить CSP origins на функциональных сценариях, убрать старый airlabs origin, сначала получить/изучить Report-Only сообщения; enforcement включать только после проверки API и статических responses на staging. Попадание `_headers` в build само по себе не доказывает headers на Functions.
+- Обновить зависимости по применимости runtime/dev advisories; не использовать слепой `audit fix --force`. Зафиксировать remaining advisory, достижимый путь и причину/следующий шаг. Пройти lint warnings по смыслу без большой косметической правки.
+- Исправить README/TECH_STACK/setup/test commands и выпускной runbook. `scripts/enrich-existing-flights.ts` архивировать как legacy, если потребителя нет. Supabase migrations и исторические handoffs сохранить до подтверждения production cutover; старые облачные `VITE_SUPABASE_*` удалять после него. По завершении переноса проверить права/нужность старого Supabase отдельно; данные там автоматически не удалять.
+
+Dependencies: W2 auth, W3 validation/idempotency/derived-state contract. Quality evaluation использует разрешённые документы и API; отсутствие разрешения блокирует только платный прогон, его нельзя заменить заявлениями о точности модели.
+
+Focused proof: frontend import POST с fake provider и CSRF; provider errors; chunked/без Content-Length oversized body отвергнут до вызова; route mutation сразу меняет видимые stats/map/passport; export failure не создаёт CSV и не расходует лимит; pending повтор не создаёт дубль; OCR corpus report.
+
+Accept when: функциональные text/image/PDF flows завершены review и сохранением; UI выражает pending/errors; качество и стоимость выбранного provider измерены или явно остаются незакрытым release gate. Новые fake-provider tests подтверждают интеграцию, но не реальную точность OCR.
+
+## W5: staging, перенос и выпуск
+
+Objective: перенести данные и включить приложение на той же принятой версии, которую проверили; сохранить возможность отката без удаления нынешних данных.
+
+Owned writes: evidence и release/runbook; внешние mutations выполняются только в разрешённом объёме.
+
+Implementation:
+
+1. Сначала полный прогон на изолированном staging: fresh schema → seeds → import → legacy evidence → derive → validation → активация синтетического пользователя → CRUD/import/cron. Реальные старые данные для staging копировать только в согласованном защищённом/обезличенном виде; реальную почту заменять fake sender.
+2. Независимый review полного scoped diff для auth/data/API/CI. Primary устраняет подтверждённые замечания и принимает все final gates. Review и проверка относятся к одному immutable patch.
+3. Подготовить конкретный production change set: deployment SHA, DB/KV IDs, schema baseline и migrations, manifest import conflicts и expected deltas, secret handling, mailbox/provider, cron, stop conditions и backup/restore. Перед внешним действием проверить существующую авторизацию; когда её нет, получить разрешение на этот reviewable change set. Письма и платные AI тесты включать только если разрешены соответствующие действия.
+4. До окна cutover перечислить всех writers production DB: canonical/custom domain, старые immutable deployment URLs, cron, CI и административные scripts. Включить согласованный write hold: развернуть принятую версию с `MAINTENANCE_MODE`, совместимую со старой схемой в режиме hold, закрыть остальные write entrypoints и приостановить фоновые writers. Для старых deployments подготовить конкретное ограничение доступа или разрешённое удаление после сохранения rollback artifacts; middleware нового deployment не защищает старые URL. Проверить отказ на каждом entrypoint и отсутствие DB writes; если полный hold не доказан, перенос не начинать. Только после этого заново прочитать production counts, IDs и conflict keys, сверить с change-set manifest; при drift обновить/review manifest до первой migration/import записи. Сохранить SQL export и доступную Time Travel точку, текущий deployment/config и доступ к тому же pepper. Не печатать secrets. Проверить восстановление export на отдельной БД до изменения основной. [D1 backup/Time Travel](https://developers.cloudflare.com/d1/reference/time-travel/).
+5. При write hold применить совместимые additive migrations и baseline, seeds, idempotent import по принятой карте конфликтов, evidence/derive/validation, затем выпустить совместимый код и maintenance Worker. При новом неописанном conflict или failed gate остановить cutover до снятия hold. Не запускать `reset-passwords.ts`, `derive.ts` с глобальным DELETE или `ship-oracle.ts` напрямую на production.
+6. При hold выполнить read-only production data checks через административный D1 доступ. Подготовить production smoke без чужих credentials для немедленного выполнения после снятия hold: существующий нынешний аккаунт остаётся доступным; разрешённый verification account активируется и видит свои исходные IDs/data; ownership A/B, CSRF, cookie, CRUD, import/provider error, export и cron. Для проверки почты отправить только разрешённому тестовому получателю; письма всему старому набору отдельно разрешаются.
+7. Первичный smoke совместимого release выполнить до снятия hold на staging; production data validation выполнить при hold. Снять hold после сравнения counts/FK/per-user preservation, затем разрешённый production smoke проверить немедленно; при ошибке вернуть hold и действовать по rollback/repair runbook. Удалить подтверждённые неиспользуемые Supabase env, записать фактические bindings и release ID. Подготовить возврат совместимого deployment и forward repair; восстановление целой DB после возобновления записей требует сначала сохранить и согласовать новые записи. Deployment rollback не является DB rollback.
+8. На согласованном периоде после выпуска проверить ошибки auth/import, возраст dirty markers и last cron success без логирования credentials/PNR. Автоматический мониторинг не создаётся этим планом.
+
+Dependencies: W1–W4 приняты; source/conflicts/visits/sender неопределённости закрыты; конкретные внешние actions разрешены. Недоступный legacy source или реальная доставка фиксируются как blocker соответствующей части cutover, не как повод удалить аккаунты.
+
+Focused proof: staging restore drill + миграция/resume; тот же patch в deployment; preview fixture isolation; рабочий login на настоящем Workers runtime, сохранность ID/data и job recovery.
+
+Accept when: все обязательные evidence gates зелёные, expected data delta совпала, старые пользователи имеют безопасный путь login enablement, нынешний аккаунт сохранён, release/rollback/runbook отражают реальную конфигурацию. Незавершённая почтовая доставка или corpus evaluation не скрываются за успешной сборкой.
+
+## Final evidence gate
+
+Identity: все final lanes проверяют один clean commit либо base SHA + хеш scoped diff и всех относящихся к нему untracked файлов. Дополнительно фиксируются Node/pnpm/Wrangler/SDK versions, migration manifest, DB/KV IDs без secrets и deployed SHA. Одного имени ветки недостаточно. Заимствованные audit checks подтверждают baseline, но не исправления.
+
+| Lane | Proves | Command or scenario | Success signal | Parallel-safe |
+|---|---|---|---|---|
+| Install | Lockfile воспроизводим | `pnpm install --frozen-lockfile` | Exit 0, lockfile без изменений | Перед остальными lanes |
+| Types | Frontend, Functions, migration scripts | `pnpm typecheck`; `pnpm --filter @kuuki/web exec tsc --project ../../functions/tsconfig.json --noEmit`; `pnpm --filter @kuuki/web exec tsc --project ../../scripts/tsconfig.sbd1.json --noEmit` | Все exit 0 | Да после install; packages build при необходимости один раз |
+| Build | Frontend и API собираются | `pnpm build`; `pnpm exec wrangler pages functions build --outdir /tmp/kuuki-remediation-functions` | Exit 0; SHA соответствует release | Да, отдельный outdir |
+| Lint | Настроенные проверки кода | `pnpm lint` | Exit 0; остаточные warnings разобраны | Да |
+| Existing tests | Прежние публичные сценарии | `pnpm --filter @kuuki/web test:run` | Exit 0; число может вырасти относительно 175 | Да на отдельном fixture state |
+| API regressions | Auth, ownership, concurrency, mutations | Предложенный W1 `pnpm test:api`; W2/W3 failure scenarios | Replay/late failure не меняют чужое/не дублируют; dirty state исправляется | Да, уникальная временная D1 для lane |
+| Data | Source preservation и повторяемость import | W3 validator на dedicated local/staging target; production read-only сверка W5 | Raw IDs/fields/notes совпадают; FK 0; derived deltas объяснены | Нет во время seed/import/derive; последовательно |
+| Browser function | Cookie identity, visible refresh и errors | agent-browser на разрешённом staging; users A/B, controlled-time fixture, desktop 1280×800; session switch, CRUD, import review, export failure | `/me` и UI один user; counts/map обновились; errors/pending видны; артефакт сценария без PII | Отдельные users и данные; не одновременно с data lane |
+| Real runtime | WebCrypto, DB guards и bindings в Cloudflare | W2/W3 smoke на staging; read-only binding inspection; preview fixture | Hash/login работает; одна token completion; preview DB/KV отличны от production | Последовательно с migrations; fixture write только после разрешения |
+| OCR | Качество, стоимость и latency реального provider | W4 corpus report и разрешённые text/image/PDF calls | Выбор модели и пороги зафиксированы; unknown year остаётся review; usage measured | Да отдельно от пользовательского D1 |
+| Dependencies | Применимость оставшихся advisories | `pnpm audit --json` + runtime bundle metadata/applicability notes | Reachable high-risk findings устранены либо явно оставлены release blocker; audit exit 1 сам по себе не verdict | Да |
+| Release/restore | Выпуск под gates и сохранность восстановления | Negative CI scenario; staging SQL-export restore; W5 cutover manifest | Failed checks не запускают deploy; восстановление проверено до production записи | Нет, primary serial |
+
+Команды types/build/lint/frontend tests/audit существуют и использовались в аудите. `pnpm test:api`, preflight, remote validator, maintenance Worker и activation routes предложены этим планом и должны быть добавлены; их нельзя считать уже доступными или проверенными. `scripts/validate.ts` сейчас сравнивает только local oracle и содержит hardcoded counts: remote проверка требует явного target/manifest, а не вызова старой команды на production.
+
+Final acceptance (primary, serial): A01–A16 и дополнительные замечания имеют выполненный критерий либо явно вынесенный согласованный остаток; отсутствуют необъяснённые data losses, identity conflicts, достижимые auth/data blockers и скрытые внешние действия. Проверки повторяются после релевантного изменения, отказа или нерешённого замечания; дорогую визуальную ревизию этот план не требует.
+
+Plan review: независимый `gpt-6-sol` / `medium` проверил покрытие и feasibility. Исправлены scope активации только для `RESET_REQUIRED`, запрет первого production merge до изоляции/deploy gating и порядок fresh manifest validation после полного write hold. Реализация и runtime proofs остаются задачами этапов, а не результатом review документа.

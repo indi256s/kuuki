@@ -1,4 +1,5 @@
 import { api } from './apiClient'
+import type { DerivedAck } from './derivedStateFeedback'
 import type { Tables, TablesInsert } from './database.types'
 import type { PassportEntry, CountryStats, GroundVisit, Continent, EntryMethod } from '@kuuki/shared'
 import countriesData from '@kuuki/data/countries.json'
@@ -58,7 +59,7 @@ interface ApiClaimListRow {
 }
 
 /** A ground visit DTO as returned by the API (camelCase, no userId). */
-interface ApiGroundVisit {
+interface ApiGroundVisit extends DerivedAck {
   id: string
   countryCode: string
   visitYear: number | null
@@ -211,14 +212,16 @@ export async function getUserClaims(userId: string): Promise<CountryClaim[]> {
 export async function claimCountry(
   userId: string,
   countryCode: string,
-): Promise<CountryClaim> {
-  const claim = await api.put<ApiClaimListRow>(`/api/passport/claims/${countryCode}`)
+): Promise<CountryClaim & DerivedAck> {
+  const claim = await api.put<ApiClaimListRow & DerivedAck>(`/api/passport/claims/${countryCode}`)
   // The API strips user_id; refill it so the CountryClaim (Tables row) shape stays intact.
   return {
     id: claim.id,
     user_id: userId,
     country_code: claim.country_code,
     claimed_at: claim.claimed_at,
+    derived_state: claim.derived_state,
+    revision: claim.revision,
   }
 }
 
@@ -233,7 +236,7 @@ export async function addGroundVisit(
     note?: string | null
     entryMethod?: EntryMethod
   } = {}
-): Promise<GroundVisit> {
+): Promise<GroundVisit & DerivedAck> {
   const visit = await api.post<ApiGroundVisit>('/api/passport/ground-visits', {
     countryCode,
     visitYear: data.visitYear ?? null,
@@ -241,7 +244,7 @@ export async function addGroundVisit(
     entryMethod: data.entryMethod ?? null,
   })
 
-  return toGroundVisit(visit, userId)
+  return { ...toGroundVisit(visit, userId), derived_state: visit.derived_state, revision: visit.revision }
 }
 
 /**
@@ -255,15 +258,15 @@ export async function getGroundVisits(userId: string, countryCode: string): Prom
 /**
  * Delete a single ground visit
  */
-export async function deleteGroundVisit(_userId: string, visitId: string): Promise<void> {
-  await api.delete<{ ok: boolean }>(`/api/passport/ground-visits/${visitId}`)
+export async function deleteGroundVisit(_userId: string, visitId: string): Promise<DerivedAck> {
+  return api.delete<DerivedAck>(`/api/passport/ground-visits/${visitId}`)
 }
 
 /**
  * Remove a claimed country (stamp + all ground visits)
  */
-export async function unclaimCountry(_userId: string, countryCode: string): Promise<void> {
-  await api.delete<{ ok: boolean }>(`/api/passport/claims/${countryCode}`)
+export async function unclaimCountry(_userId: string, countryCode: string): Promise<DerivedAck> {
+  return api.delete<DerivedAck>(`/api/passport/claims/${countryCode}`)
 }
 
 /**

@@ -22,12 +22,20 @@ export function BadgeNotificationManager() {
     const { t } = useTranslation()
     const { data: badges, isLoading } = useUserBadges()
     const user = useAuthStore((state) => state.user)
+    const authLoading = useAuthStore((state) => state.isLoading)
     const [badgeToShow, setBadgeToShow] = useState<BadgeToShow | null>(null)
     const [queue, setQueue] = useState<BadgeToShow[]>([])
 
+    useEffect(() => {
+        if (authLoading || !user) {
+            setBadgeToShow(null)
+            setQueue([])
+        }
+    }, [authLoading, user])
+
     // Process badges and detect new ones
     useEffect(() => {
-        if (isLoading || !badges || !user) return
+        if (authLoading || isLoading || !badges || !user) return
 
         const seenBadges = JSON.parse(localStorage.getItem(SEEN_BADGES_KEY) || '[]') as string[]
         const foundingCrewShown = localStorage.getItem(FOUNDING_CREW_SHOWN_KEY) === 'true'
@@ -60,7 +68,7 @@ export function BadgeNotificationManager() {
             localStorage.setItem(SEEN_BADGES_KEY, JSON.stringify([...new Set(allSeen)]))
             setQueue(newBadges)
         }
-    }, [badges, isLoading, user, t])
+    }, [authLoading, badges, isLoading, user, t])
 
     // Show badges one at a time from queue
     useEffect(() => {

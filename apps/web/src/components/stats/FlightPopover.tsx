@@ -10,6 +10,7 @@ import {
 } from '@/components/ui/popover'
 import { formatDuration } from '@/lib/formatDuration'
 import type { Flight } from '@/lib/flights'
+import { useAuthStore } from '@/stores/authStore'
 
 interface FlightPopoverProps {
   flightId: number | null
@@ -23,9 +24,10 @@ interface FlightPopoverProps {
  */
 export function FlightPopover({ flightId, children, className }: FlightPopoverProps) {
   const [open, setOpen] = useState(false)
+  const userId = useAuthStore((state) => state.user?.id)
 
   const { data: flight, isLoading } = useQuery({
-    queryKey: ['flight-popover', flightId],
+    queryKey: ['flight-popover', userId, flightId],
     queryFn: async (): Promise<Flight | null> => {
       if (flightId === null) return null
 
@@ -37,7 +39,7 @@ export function FlightPopover({ flightId, children, className }: FlightPopoverPr
         throw error
       }
     },
-    enabled: open && flightId !== null,
+    enabled: open && flightId !== null && !!userId,
     staleTime: 5 * 60 * 1000, // 5 minutes
   })
 

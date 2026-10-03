@@ -5,11 +5,16 @@ vi.mock('@/lib/apiClient', async () => await import('@/test/mocks/apiClient'))
 import { api, ApiError, resetApiMock } from '@/test/mocks/apiClient'
 
 // Import after mocking
-import { signUp, signIn, signOut, verifyPassword, deleteAccount } from './auth'
+import { signUp, signIn, signOut, verifyPassword, deleteAccount, getMe } from './auth'
 
 describe('auth functions', () => {
   beforeEach(() => {
     resetApiMock()
+  })
+
+  it('propagates a session lookup outage instead of confirming anonymity', async () => {
+    vi.mocked(api.get).mockRejectedValueOnce(new ApiError(503, 'Unavailable'))
+    await expect(getMe()).rejects.toMatchObject({ status: 503 })
   })
 
   describe('signUp', () => {
@@ -28,7 +33,7 @@ describe('auth functions', () => {
       expect(api.post).toHaveBeenCalledWith('/api/auth/signup', {
         email: 'test@example.com',
         password: 'password123',
-      })
+      }, undefined)
     })
 
     it('returns error when the email is already taken', async () => {
@@ -61,7 +66,7 @@ describe('auth functions', () => {
       expect(api.post).toHaveBeenCalledWith('/api/auth/signin', {
         email: 'test@example.com',
         password: 'password123',
-      })
+      }, undefined)
     })
 
     it('returns error on invalid credentials', async () => {
@@ -82,15 +87,15 @@ describe('auth functions', () => {
     it('posts to the signout endpoint', async () => {
       vi.mocked(api.post).mockResolvedValueOnce({ ok: true })
 
-      await signOut()
+      expect(await signOut()).toEqual({ success: true })
 
-      expect(api.post).toHaveBeenCalledWith('/api/auth/signout')
+      expect(api.post).toHaveBeenCalledWith('/api/auth/signout', undefined, undefined)
     })
 
-    it('swallows errors', async () => {
+    it('returns a signout failure to the caller', async () => {
       vi.mocked(api.post).mockRejectedValueOnce(new ApiError(500, 'boom'))
 
-      await expect(signOut()).resolves.toBeUndefined()
+      await expect(signOut()).resolves.toEqual({ success: false, error: 'boom' })
     })
   })
 
@@ -124,7 +129,7 @@ describe('auth functions', () => {
       const result = await deleteAccount('password123')
 
       expect(result).toEqual({ success: true })
-      expect(api.delete).toHaveBeenCalledWith('/api/auth/account', { password: 'password123' })
+      expect(api.delete).toHaveBeenCalledWith('/api/auth/account', { password: 'password123' }, undefined)
     })
 
     it('returns error on failure', async () => {

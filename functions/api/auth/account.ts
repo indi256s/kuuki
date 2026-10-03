@@ -39,7 +39,7 @@ export const onRequestDelete: PagesFunction<Env, string, RequestData> = (context
     // Re-auth enforced server-side: prove knowledge of the current password before this
     // irreversible deletion (security finding: delete re-auth was client-side only).
     const body = await readJson<{ password?: string }>(request)
-    if (!body?.password) throw new HttpError(400, 'Password is required', 'MISSING_PASSWORD')
+    if (typeof body?.password !== 'string' || !body.password || body.password.length > 1024) throw new HttpError(400, 'Password is required', 'MISSING_PASSWORD')
     const hash = await getPasswordHashById(env.DB, user.id)
     if (!hash || !(await verifyPassword(body.password, hash, env.AUTH_SECRET))) {
       throw new HttpError(401, 'Incorrect password', 'INVALID_CREDENTIALS')

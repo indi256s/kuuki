@@ -24,6 +24,12 @@ const russianTaglines = [
   "Ты был занят. Мы это ценим.",
 ]
 
+async function advanceRotation(interval: number) {
+  await act(async () => { vi.advanceTimersByTime(interval) })
+  await act(async () => { vi.advanceTimersByTime(200) })
+  await act(async () => { vi.advanceTimersByTime(50) })
+}
+
 describe('RotatingTagline', () => {
   beforeEach(() => {
     vi.useFakeTimers()
@@ -45,10 +51,7 @@ describe('RotatingTagline', () => {
 
       expect(screen.getByText(englishTaglines[0])).toBeInTheDocument()
 
-      // Advance past interval + animation duration
-      await act(async () => {
-        vi.advanceTimersByTime(8300)
-      })
+      await advanceRotation(8000)
 
       expect(screen.getByText(englishTaglines[1])).toBeInTheDocument()
     })
@@ -56,13 +59,10 @@ describe('RotatingTagline', () => {
     it('cycles back to first tagline after showing all', async () => {
       render(<RotatingTagline items={englishTaglines} interval={1000} />)
 
-      // Advance through all taglines: (n items * interval) + animation buffer
-      // This triggers n intervals, wrapping index back to 0
-      await act(async () => {
-        vi.advanceTimersByTime(englishTaglines.length * 1000 + 300)
-      })
-
-      expect(screen.getByText(englishTaglines[0])).toBeInTheDocument()
+      for (let index = 1; index <= englishTaglines.length; index++) {
+        await advanceRotation(index === 1 ? 1000 : 750)
+        expect(screen.getByText(englishTaglines[index % englishTaglines.length])).toBeInTheDocument()
+      }
     })
   })
 

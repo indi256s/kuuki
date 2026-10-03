@@ -109,7 +109,14 @@
       "Logging your progress. For science.",
       "We do what we must. Airfare was non-refundable.",
       "You’ve been busy. We appreciate that."
-    ]
+    ],
+    "activateExisting": "Activate an existing account",
+    "activateTitle": "Activate your existing account",
+    "sendActivation": "Send activation link",
+    "backToSignIn": "Back to sign in",
+    "activationRequested": "If this address has an account ready to activate, you will receive a link.",
+    "activationRequestFailed": "Could not request activation. Please try again.",
+    "signOutFailed": "Could not sign out. Please try again."
   },
   "nav": {
     "dashboard": "Dashboard",
@@ -332,6 +339,14 @@
   "flights": {
     "title": "Flights",
     "addFlight": "Add Flight",
+    "unconfirmedSave": "The last save may have succeeded. Retry the original flight safely, or start a new save with the current form.",
+    "retryOriginal": "Retry original",
+    "startNewSave": "Start new save",
+    "expiredSave": "This save is too old to retry safely. Check your flights before starting a new save.",
+    "statsUpdating": "Change saved. Statistics are updating. This may take a moment.",
+    "statsReady": "Statistics are up to date.",
+    "statsDelayed": "Your change was saved, but statistics are still updating. Refresh later to check them.",
+    "statsCheckFailed": "Your change was saved, but statistics could not be checked. Refresh later to check them.",
     "editFlight": "Edit Flight",
     "deleteFlight": "Delete Flight",
     "flightNumber": "Flight Number",
@@ -814,6 +829,7 @@
       "enrichingContinues": "You can import now - enrichment continues in background",
       "yearInferred": "Year not found",
       "yearInferredDesc": "The year was not found in the document and was inferred.",
+      "confirmYear": "Confirm the year on each selected flight before importing.",
       "yearNotInDocument": "Year was not found in document",
       "didYouMean": "Did you mean:",
       "useYear": "Use {{year}}",
@@ -852,6 +868,11 @@
       "partialCount": "{{success}} of {{total}} flight(s) saved",
       "errorDetail": "{{flight}}: {{error}}",
       "importMore": "Import more",
+      "retryFailed": "Retry failed saves",
+      "unconfirmed": "Save status unconfirmed. Retry the original request.",
+      "expired": "This save is too old to retry safely. Check your flights before starting a new import.",
+      "reviewFailed": "Review flight dates",
+      "startNewImport": "Start new import (abandon these retries)",
       "viewFlights": "View flights"
     }
   },

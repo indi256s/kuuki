@@ -115,6 +115,7 @@ export function FlightEditRow({
     onChange({
       ...flight,
       [field]: value,
+      ...(field === 'date' ? { field_confidence: { ...flight.field_confidence, date_year_explicit: true } } : {}),
     })
   }, [flight, onChange])
 
@@ -142,6 +143,7 @@ export function FlightEditRow({
   // Validate row
   const isValid =
     flight.date &&
+    flight.field_confidence?.date_year_explicit !== false &&
     flight.origin?.length === 3 &&
     flight.destination?.length === 3 &&
     flight.airline_iata?.length === 2 &&

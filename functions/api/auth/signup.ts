@@ -20,13 +20,13 @@ export const onRequestPost: PagesFunction<Env> = (context) =>
   runHandler(async () => {
     const { request, env } = context
     requireSameOrigin(request)
-    await rateLimit(env.IMPORT_JOBS, `signup:${clientIp(request)}`, 10, 3600)
+    await rateLimit(env.DB, `signup:${clientIp(request)}`, 10, 3600)
 
     const body = await readJson<SignupBody>(request)
-    const email = body?.email?.trim()
+    const email = typeof body?.email === 'string' ? body.email.trim() : null
     const password = body?.password
     if (!email || !EMAIL_RE.test(email)) throw new HttpError(400, 'A valid email is required', 'INVALID_EMAIL')
-    if (!password || password.length < 8) throw new HttpError(400, 'Password must be at least 8 characters', 'WEAK_PASSWORD')
+    if (typeof password !== 'string' || password.length < 8 || password.length > 1024) throw new HttpError(400, 'Password must be 8–1024 characters', 'WEAK_PASSWORD')
 
     // Account-enumeration tradeoff (security finding #8, LOW): a distinct 409 here reveals that
     // an email is registered. The privacy-preserving fix (accept-then-verify by email) needs
@@ -39,7 +39,7 @@ export const onRequestPost: PagesFunction<Env> = (context) =>
 
     const user = await createUserWithProfile(
       env.DB,
-      { email, password, displayName: body?.displayName?.trim() || null },
+      { email, password, displayName: typeof body?.displayName === 'string' ? body.displayName.trim() || null : null },
       env.AUTH_SECRET,
     )
 

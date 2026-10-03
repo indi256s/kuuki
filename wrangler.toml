@@ -11,7 +11,8 @@ compatibility_flags = ["nodejs_compat"]
 # Environment variables for Functions
 [vars]
 # Add any non-secret environment variables here
-PAGES_ORIGIN = "https://kuuki.pages.dev"  # canonical origin reflected by _lib/cors.ts (override per-env)
+PAGES_ORIGIN = "https://kuuki.marchstudio.uk"  # canonical production origin (override per-env)
+MAINTENANCE_MODE = "false"
 
 # KV Namespaces
 [[kv_namespaces]]
@@ -24,3 +25,21 @@ binding = "DB"
 database_name = "kuuki-db"
 database_id = "2a8e3895-6a98-4473-8d7b-a43ca0c0026f"
 migrations_dir = "db/migrations"
+
+# Isolated preview resources; live write isolation remains a separate release gate.
+[[env.preview.kv_namespaces]]
+binding = "IMPORT_JOBS"
+id = "015fa195daf34090b3895197e291a814"
+
+[[env.preview.d1_databases]]
+binding = "DB"
+database_name = "kuuki-preview"
+database_id = "80e0c789-c1ab-4aa5-a6fe-e65c6e6cb74c"
+migrations_dir = "db/migrations"
+
+[env.preview.vars]
+PAGES_ORIGIN = "https://staging.kuuki.pages.dev"
+MAINTENANCE_MODE = "false"
+ACTIVATION_ORIGIN = "https://activate-staging.kuuki.marchstudio.uk"
+ACTIVATION_MAIL_ACCOUNT_ID = "5cadcff0282e54f3ff1d7062d4dbb97a"
+ACTIVATION_MAIL_FROM = "accounts@marchstudio.uk"

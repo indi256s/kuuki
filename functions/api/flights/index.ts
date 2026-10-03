@@ -5,6 +5,7 @@
 import { runHandler, readJson, json, HttpError } from '../_lib/http'
 import { requireUser, requireCsrf, type RequestData } from '../_lib/auth'
 import { toOwnFlight, type FlightRow } from '../_lib/flights'
+import { parseFlightBody } from '../_lib/flightValidation'
 import {
   parseFlightFilters,
   parsePagination,
@@ -13,14 +14,8 @@ import {
   orderByClause,
 } from '../_lib/flightQuery'
 import { computeFlightDuration } from '../_services/flightDuration'
-import {
-  fillDistanceAndDuration,
-  syncVisitsFromFlight,
-  recomputeUserStats,
-  updateAdvancedStatsUnlocks,
-  evaluateBadges,
-} from '../_services/stats'
-import { refreshAdvancedStats } from '../_services/advancedStats'
+import { fillDistanceAndDuration } from '../_services/stats'
+import { dirtyUserStatement, repairUserDerivedState } from '../_services/derivedState'
 
 // Explicit FlightRow column allowlist (never SELECT *) — drives both SELECT and INSERT/UPDATE RETURNING.
 export const FLIGHT_COLUMNS =
@@ -28,29 +23,16 @@ export const FLIGHT_COLUMNS =
   'departure_time, arrival_time, departure_utc, arrival_utc, origin_tz, dest_tz, distance_km, ' +
   'duration_minutes, source, is_upcoming, enrichment_status, aircraft_lookup_attempts, created_at'
 
-/** A flight is upcoming when its date is strictly after today (local midnight). Mirrors geo.isUpcomingFlight. */
+/** Use the UTC calendar day, consistently with sync-upcoming in the Workers runtime. */
 export function isUpcomingFlight(date: string): boolean {
-  const flightDate = new Date(date)
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
-  return flightDate > today
+  return date > new Date().toISOString().slice(0, 10)
 }
 
-interface FlightBody {
-  date?: string
-  origin?: string
-  destination?: string
-  airline_iata?: string | null
-  aircraft_icao?: string | null
-  flight_number?: string | null
-  departure_time?: string | null
-  arrival_time?: string | null
-  origin_tz?: string | null
-  dest_tz?: string | null
-  distance_km?: number | null
-  duration_minutes?: number | null
-  source?: string
-  enrichment_status?: string
+async function digestInput(input: object): Promise<string> {
+  const sorted = Object.fromEntries(Object.entries(input).sort(([a], [b]) => a.localeCompare(b)))
+  const bytes = new TextEncoder().encode(JSON.stringify(sorted))
+  const hash = await crypto.subtle.digest('SHA-256', bytes)
+  return [...new Uint8Array(hash)].map(byte => byte.toString(16).padStart(2, '0')).join('')
 }
 
 export const onRequestGet: PagesFunction<Env, string, RequestData> = (context) =>
@@ -82,74 +64,80 @@ export const onRequestPost: PagesFunction<Env, string, RequestData> = (context) 
     requireCsrf(request)
     const user = requireUser(data)
 
-    const body = await readJson<FlightBody>(request)
-    const date = body?.date?.trim()
-    const origin = body?.origin?.trim()
-    const destination = body?.destination?.trim()
-    if (!date || !origin || !destination) {
-      throw new HttpError(400, 'date, origin and destination are required', 'MISSING_FIELDS')
-    }
+    const key = request.headers.get('Idempotency-Key')
+    if (!key || !/^[A-Za-z0-9._:-]{8,128}$/.test(key)) throw new HttpError(400, 'Valid Idempotency-Key required', 'IDEMPOTENCY_KEY_REQUIRED')
+    const body = await readJson<unknown>(request)
+    const input = await parseFlightBody(env.DB, body, 'create')
+    const date = input.date!
+    const origin = input.origin!
+    const destination = input.destination!
+    const digest = await digestInput(input)
 
-    const source = body?.source ?? 'manual'
+    const source = input.source ?? 'manual'
     const isUpcoming = isUpcomingFlight(date)
-    const enrichmentStatus = body?.enrichment_status ?? (body?.aircraft_icao ? 'skipped' : 'pending')
+    const enrichmentStatus = input.enrichment_status ?? (input.aircraft_icao ? 'skipped' : 'pending')
 
     const { departureUtc, arrivalUtc, durationMinutes: tzDur } = computeFlightDuration({
       date,
-      departureTime: body?.departure_time ?? null,
-      arrivalTime: body?.arrival_time ?? null,
-      originTz: body?.origin_tz ?? null,
-      destTz: body?.dest_tz ?? null,
-      existingDurationMinutes: body?.duration_minutes ?? null,
+      departureTime: input.departure_time ?? null,
+      arrivalTime: input.arrival_time ?? null,
+      originTz: input.origin_tz ?? null,
+      destTz: input.dest_tz ?? null,
+      existingDurationMinutes: input.duration_minutes ?? null,
     })
 
     const { distanceKm, durationMinutes } = await fillDistanceAndDuration(
       env.DB,
       origin,
       destination,
-      body?.distance_km ?? null,
+      input.distance_km ?? null,
       tzDur,
     )
 
-    const created = await env.DB.prepare(
-      `INSERT INTO flights (
+    const statements = [
+      env.DB.prepare(
+        'INSERT INTO flight_idempotency (user_id, key, payload_digest, flight_id, created_at) VALUES (?, ?, ?, NULL, ?) ON CONFLICT (user_id, key) DO NOTHING',
+      ).bind(user.id, key, digest, new Date().toISOString()),
+      env.DB.prepare(
+        `INSERT INTO flights (
          date, origin, destination, airline_iata, aircraft_icao, flight_number,
          departure_time, arrival_time, departure_utc, arrival_utc, origin_tz, dest_tz,
          distance_km, duration_minutes, source, is_upcoming, enrichment_status, user_id
-       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-       RETURNING ${FLIGHT_COLUMNS}`,
-    )
-      .bind(
+       ) SELECT ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? WHERE changes() = 1`,
+      ).bind(
         date,
         origin,
         destination,
-        body?.airline_iata ?? null,
-        body?.aircraft_icao ?? null,
-        body?.flight_number ?? null,
-        body?.departure_time ?? null,
-        body?.arrival_time ?? null,
+        input.airline_iata ?? null,
+        input.aircraft_icao ?? null,
+        input.flight_number ?? null,
+        input.departure_time ?? null,
+        input.arrival_time ?? null,
         departureUtc,
         arrivalUtc,
-        body?.origin_tz ?? null,
-        body?.dest_tz ?? null,
+        input.origin_tz ?? null,
+        input.dest_tz ?? null,
         distanceKm,
         durationMinutes,
         source,
         isUpcoming ? 1 : 0,
         enrichmentStatus,
         user.id,
-      )
-      .first<FlightRow>()
-
-    if (!created) throw new HttpError(500, 'Failed to create flight', 'INSERT_FAILED')
-
-    if (!isUpcoming) {
-      await syncVisitsFromFlight(env.DB, user.id, { origin, destination, date, is_upcoming: 0 })
-    }
-    await recomputeUserStats(env.DB, user.id)
-    await updateAdvancedStatsUnlocks(env.DB, user.id)
-    await evaluateBadges(env.DB, user.id)
-    await refreshAdvancedStats(env.DB, user.id)
-
-    return json(toOwnFlight(created), { status: 201 })
+      ),
+      env.DB.prepare(
+        'UPDATE flight_idempotency SET flight_id = last_insert_rowid() WHERE user_id = ? AND key = ? AND flight_id IS NULL AND changes() = 1',
+      ).bind(user.id, key),
+      dirtyUserStatement(env.DB, user.id, true),
+    ]
+    const batch = await env.DB.batch(statements)
+    const ledger = await env.DB.prepare('SELECT payload_digest, flight_id FROM flight_idempotency WHERE user_id = ? AND key = ?')
+      .bind(user.id, key).first<{ payload_digest: string; flight_id: number | null }>()
+    if (!ledger) throw new HttpError(500, 'Flight receipt missing', 'RECEIPT_MISSING')
+    if (ledger.payload_digest !== digest) throw new HttpError(409, 'Idempotency key already used for another flight', 'IDEMPOTENCY_CONFLICT')
+    const row = ledger.flight_id == null ? null : await env.DB.prepare(`SELECT ${FLIGHT_COLUMNS} FROM flights WHERE id = ? AND user_id = ?`)
+      .bind(ledger.flight_id, user.id).first<FlightRow>()
+    if (!row) throw new HttpError(410, 'Original flight was deleted', 'IDEMPOTENCY_GONE')
+    const created = (batch[0].meta.changes ?? 0) > 0
+    const derived = await repairUserDerivedState(env.DB, user.id)
+    return json({ ...toOwnFlight(row), ...derived }, { status: created ? 201 : 200 })
   })

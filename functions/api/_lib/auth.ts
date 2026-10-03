@@ -30,15 +30,27 @@ export function requireSameOrigin(request: Request): void {
   if (SAFE_METHODS.has(request.method)) return
   const origin = request.headers.get('Origin')
   if (!origin) return // non-browser client (e.g. curl); no ambient-cookie risk
-  let originHost: string
+  let requestOrigin: string
   try {
-    originHost = new URL(origin).host
+    requestOrigin = new URL(origin).origin
   } catch {
     throw new HttpError(403, 'Bad origin', 'CSRF')
   }
-  if (originHost !== new URL(request.url).host) {
+  if (requestOrigin !== new URL(request.url).origin) {
     throw new HttpError(403, 'Cross-origin request rejected', 'CSRF')
   }
+}
+
+/** Activation requires an explicit browser Origin and an exact scheme/host/port match. */
+export function requireStrictSameOrigin(request: Request): void {
+  const origin = request.headers.get('Origin')
+  if (!origin) throw new HttpError(403, 'Origin required', 'CSRF')
+  try {
+    if (new URL(origin).origin === new URL(request.url).origin) return
+  } catch {
+    // Reject malformed Origin through the common error below.
+  }
+  throw new HttpError(403, 'Cross-origin request rejected', 'CSRF')
 }
 
 /**

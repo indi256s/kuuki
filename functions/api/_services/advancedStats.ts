@@ -21,13 +21,17 @@ import {
   computeDurationStats,
   computeDeparturePatterns,
   computeDurationCoverage,
+  continentBreakdownForCountries,
+  regionBreakdownForCountries,
 } from './advancedStatsBreakdowns'
 import {
   computeFleetInsights,
   computeManufacturerInsights,
   computeCardInsights,
   computeDurationYearComparison,
+  cardInsightsFromBreakdowns,
 } from './advancedStatsInsights'
+import type { ComputedUserStats, DerivedVisit } from './stats'
 
 /** JSON.stringify for a TEXT/JSON column, mapping null/undefined to a SQL NULL bind. */
 function j(value: unknown): string | null {
@@ -112,4 +116,64 @@ export async function refreshAdvancedStats(db: D1Database, userId: string): Prom
     )
     .bind(j(card), j(yearComparison), nowIso(), userId)
     .run()
+}
+
+/** Prepare one complete advanced row from canonical flights and proposed visits. */
+export async function computedAdvancedStatsStatement(
+  db: D1Database,
+  userId: string,
+  stats: ComputedUserStats,
+  visits: DerivedVisit[],
+): Promise<D1PreparedStatement> {
+  const aircraft = await computeAircraftBreakdown(db, userId)
+  const aircraftType = await computeAircraftTypeBreakdown(db, userId)
+  const countries = visits.map(v => v.country_code)
+  const continent = continentBreakdownForCountries(countries)
+  const region = regionBreakdownForCountries(countries)
+  const duration = await computeDurationStats(db, userId)
+  const departure = await computeDeparturePatterns(db, userId)
+  const coverage = await computeDurationCoverage(db, userId)
+  const fleet = await computeFleetInsights(db, userId)
+  const manufacturer = await computeManufacturerInsights(db, userId)
+  const yearComparison = await computeDurationYearComparison(db, userId)
+  const card = cardInsightsFromBreakdowns({
+    aircraft_breakdown: j(aircraft.aircraft),
+    manufacturer_breakdown: j(aircraft.manufacturers),
+    continent_breakdown: j(continent),
+    duration_stats: j(duration),
+  })
+  return db.prepare(
+    `INSERT INTO user_advanced_stats (
+       user_id, avia_geek_unlocked, country_geek_unlocked, duration_unlocked,
+       aircraft_breakdown, manufacturer_breakdown, aircraft_type_breakdown,
+       continent_breakdown, region_breakdown, duration_stats, departure_patterns,
+       duration_coverage, fleet_insights, manufacturer_insights, card_insights,
+       duration_year_comparison, updated_at
+     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+     ON CONFLICT(user_id) DO UPDATE SET
+       avia_geek_unlocked=excluded.avia_geek_unlocked,
+       country_geek_unlocked=excluded.country_geek_unlocked,
+       duration_unlocked=excluded.duration_unlocked,
+       aircraft_breakdown=excluded.aircraft_breakdown,
+       manufacturer_breakdown=excluded.manufacturer_breakdown,
+       aircraft_type_breakdown=excluded.aircraft_type_breakdown,
+       continent_breakdown=excluded.continent_breakdown,
+       region_breakdown=excluded.region_breakdown,
+       duration_stats=excluded.duration_stats,
+       departure_patterns=excluded.departure_patterns,
+       duration_coverage=excluded.duration_coverage,
+       fleet_insights=excluded.fleet_insights,
+       manufacturer_insights=excluded.manufacturer_insights,
+       card_insights=excluded.card_insights,
+       duration_year_comparison=excluded.duration_year_comparison,
+       updated_at=excluded.updated_at`,
+  ).bind(
+    userId,
+    stats.aircraft_count >= 5 ? 1 : 0,
+    stats.countries_count >= 5 ? 1 : 0,
+    stats.total_flights >= 10 ? 1 : 0,
+    j(aircraft.aircraft), j(aircraft.manufacturers), j(aircraftType),
+    j(continent), j(region), j(duration), j(departure), coverage,
+    j(fleet), j(manufacturer), j(card), j(yearComparison), nowIso(),
+  )
 }

@@ -35,6 +35,7 @@ export function DataExportSection() {
     setExportingFlights(true)
     try {
       const flights = await getAllFlights(userId)
+      if (flights.length === 0) throw new Error('No flights were returned for export. Please refresh and try again.')
       exportFlights(flights, { enriched })
       recordExport()
       showSuccess(t('settings.export.flights'))

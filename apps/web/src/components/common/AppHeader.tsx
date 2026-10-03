@@ -14,6 +14,7 @@ import { Plus, LogOut, Languages, Settings, Sparkles } from 'lucide-react'
 import { KuukiIcon } from '@/components/common/KuukiIcon'
 import { AppearanceToggle } from '@/components/common/AppearanceToggle'
 import { useUserBadges } from '@/hooks/useBadges'
+import { toast } from 'sonner'
 
 interface AppHeaderProps {
   onAddFlight?: () => void
@@ -41,6 +42,10 @@ export function AppHeader({ onAddFlight, showAddButton = false }: AppHeaderProps
   ]
 
   const isActive = (path: string) => location.pathname === path
+  const handleSignOut = async () => {
+    const result = await signOut()
+    if (!result.success) toast.error(result.error || t('auth.signOutFailed'))
+  }
 
   return (
     <header
@@ -126,7 +131,7 @@ export function AppHeader({ onAddFlight, showAddButton = false }: AppHeaderProps
                 {currentLanguage === 'en' ? 'Русский' : 'English'}
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={signOut} className="text-destructive focus:text-destructive">
+              <DropdownMenuItem onClick={() => { void handleSignOut() }} className="text-destructive focus:text-destructive">
                 <LogOut className="w-4 h-4 mr-2" />
                 {t('auth.signOut')}
               </DropdownMenuItem>

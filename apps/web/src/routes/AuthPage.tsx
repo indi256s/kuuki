@@ -9,8 +9,9 @@ import { SignInForm, RotatingTagline } from '@/components/auth'
 import { PlaneAnimation } from '@/components/common/PlaneAnimation'
 import { AppearanceToggle } from '@/components/common/AppearanceToggle'
 import { WhatIsKuukiDialog } from '@/components/auth/WhatIsKuukiDialog'
+import { ActivationRequestForm } from '@/components/auth/ActivationRequestForm'
 
-type AuthMode = 'register' | 'signin'
+type AuthMode = 'register' | 'signin' | 'activate'
 
 function BrandMark({ className }: { className?: string }) {
   return (
@@ -117,16 +118,23 @@ export function AuthPage() {
           </div>
 
           <div className="w-full max-w-md mx-auto space-y-8 animate-fade-in">
-            {mode === 'register' ? (
+            {mode === 'activate' ? (
+              <ActivationRequestForm onBack={() => setMode('signin')} />
+            ) : mode === 'register' ? (
               <RegisterForm
                 onSuccess={handleSuccess}
                 onSignInClick={() => setMode('signin')}
               />
             ) : (
-              <SignInForm
-                onSuccess={handleSuccess}
-                onSignUpClick={() => setMode('register')}
-              />
+              <div className="space-y-4">
+                <SignInForm
+                  onSuccess={handleSuccess}
+                  onSignUpClick={() => setMode('register')}
+                />
+                <button type="button" onClick={() => setMode('activate')} className="block mx-auto text-sm text-primary hover:underline">
+                  {t('auth.activateExisting')}
+                </button>
+              </div>
             )}
           </div>
 

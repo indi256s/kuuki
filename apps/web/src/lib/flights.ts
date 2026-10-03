@@ -1,4 +1,7 @@
 import { api, ApiError } from './apiClient'
+import { validateFlightInput } from '@kuuki/shared'
+import { completeFlightCreateOperation, getFlightCreateOperation } from './flightCreateOperations'
+import type { DerivedAck } from './derivedStateFeedback'
 import type { Tables, TablesInsert, TablesUpdate } from './database.types'
 
 export type Flight = Tables<'flights'>
@@ -41,7 +44,7 @@ export interface FlightStats {
  * Mirrors Tables<'flights'> minus `user_id` (always the requester) and minus the D1-internal
  * `aircraft_lookup_attempts` counter (not present in the Supabase-generated types).
  */
-interface ApiFlight {
+interface ApiFlight extends DerivedAck {
   id: number
   date: string
   origin: string
@@ -151,18 +154,21 @@ export async function getFlight(flightId: number): Promise<Flight | null> {
 /**
  * Create a new flight
  */
-export async function createFlight(flight: Omit<FlightInsert, 'id' | 'created_at'>): Promise<Flight> {
+export async function createFlight(flight: Omit<FlightInsert, 'id' | 'created_at'>, operationId: string): Promise<Flight & DerivedAck> {
   // The API derives the owner from the session and recomputes is_upcoming / enrichment defaults
   // server-side, so user_id (and any client is_upcoming) are dropped from the request body.
   const { user_id, is_upcoming, ...body } = flight
-  const dto = await api.post<ApiFlight>('/api/flights', body)
+  const input = validateFlightInput(body, 'create')
+  const operation = getFlightCreateOperation(user_id, operationId, input)
+  const dto = await api.post<ApiFlight>('/api/flights', operation.body, undefined, undefined, { 'Idempotency-Key': operation.key })
+  completeFlightCreateOperation(user_id, operationId, operation.key)
   return toFlight(dto, user_id)
 }
 
 /**
  * Update an existing flight
  */
-export async function updateFlight(flightId: number, updates: FlightUpdate): Promise<Flight> {
+export async function updateFlight(flightId: number, updates: FlightUpdate): Promise<Flight & DerivedAck> {
   // The API recomputes is_upcoming from the (possibly new) date, so we never send it.
   const { user_id, id, created_at, is_upcoming, ...body } = updates
   const dto = await api.patch<ApiFlight>(`/api/flights/${flightId}`, body)
@@ -172,18 +178,17 @@ export async function updateFlight(flightId: number, updates: FlightUpdate): Pro
 /**
  * Delete a flight
  */
-export async function deleteFlight(flightId: number): Promise<void> {
-  await api.delete<{ ok: boolean }>(`/api/flights/${flightId}`)
+export async function deleteFlight(flightId: number): Promise<DerivedAck> {
+  return api.delete<DerivedAck>(`/api/flights/${flightId}`)
 }
 
 /**
  * Delete multiple flights at once
  */
-export async function deleteFlights(flightIds: number[]): Promise<number> {
-  if (flightIds.length === 0) return 0
+export async function deleteFlights(flightIds: number[]): Promise<DerivedAck & { deleted: number }> {
+  if (flightIds.length === 0) return { deleted: 0 }
 
-  const data = await api.post<{ deleted: number }>('/api/flights/bulk-delete', { ids: flightIds })
-  return data.deleted ?? 0
+  return api.post<DerivedAck & { deleted: number }>('/api/flights/bulk-delete', { ids: flightIds })
 }
 
 /**
@@ -324,13 +329,8 @@ export async function getFlightAircraft(_userId: string): Promise<string[]> {
  * No pagination - returns everything
  */
 export async function getAllFlights(userId: string): Promise<Flight[]> {
-  try {
-    const rows = await api.get<ApiFlight[]>('/api/flights/all')
-    return (rows ?? []).map((f) => toFlight(f, userId))
-  } catch (error) {
-    console.error('Error fetching all flights:', error)
-    return []
-  }
+  const rows = await api.get<ApiFlight[]>('/api/flights/all')
+  return rows.map((f) => toFlight(f, userId))
 }
 
 /**
@@ -354,12 +354,6 @@ export async function getAllFlightIds(
  * Convert upcoming flights to completed when their date has passed
  * Call this on app load or periodically
  */
-export async function syncUpcomingFlights(_userId: string): Promise<number> {
-  try {
-    const data = await api.post<{ synced: number }>('/api/flights/sync-upcoming')
-    return data.synced ?? 0
-  } catch (error) {
-    console.error('Error syncing upcoming flights:', error)
-    return 0
-  }
+export async function syncUpcomingFlights(_userId: string): Promise<DerivedAck & { synced: number }> {
+  return api.post<DerivedAck & { synced: number }>('/api/flights/sync-upcoming')
 }

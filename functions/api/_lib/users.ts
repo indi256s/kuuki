@@ -1,8 +1,7 @@
-// User + profile creation, porting Supabase's handle_new_user + award_founding_badge_on_signup.
+// User + profile creation, porting Supabase's handle_new_user.
 //
 // handle_new_user (live): on auth.users INSERT → insert profiles(id, display_name, avatar_url).
 //   No username, no user_stats row (user_stats is created lazily by recomputeUserStats upsert).
-// award_founding_badge_on_signup (live): on profiles INSERT → award badge where code='founding-user'.
 
 import { newId, hashPassword } from './crypto'
 import { nowIso } from './time'
@@ -65,6 +64,10 @@ export async function deleteUserCascade(db: D1Database, userId: string): Promise
     'user_aircraft',
     'leaderboard_cache',
     'sessions',
+    'account_activation_tokens',
+    'user_derived_state',
+    'legacy_visit_evidence',
+    'flight_idempotency',
   ]
   await db.batch([
     ...childTables.map((t) => db.prepare(`DELETE FROM ${t} WHERE user_id = ?`).bind(userId)),
@@ -74,8 +77,8 @@ export async function deleteUserCascade(db: D1Database, userId: string): Promise
 }
 
 /**
- * Create the auth user, its profile, and the founding-user badge in one batch.
- * Mirrors the live signup trigger chain. Returns the new user id.
+ * Create the auth user and profile in one batch. Founding badges already earned by
+ * historical users remain untouched; new signups do not receive one.
  */
 export async function createUserWithProfile(
   db: D1Database,
@@ -97,14 +100,6 @@ export async function createUserWithProfile(
          VALUES (?, ?, ?, ?, ?)`,
       )
       .bind(id, input.displayName ?? null, input.avatarUrl ?? null, now, now),
-    // Founding-user badge (no-op if that badge definition isn't seeded yet).
-    db
-      .prepare(
-        `INSERT INTO user_badges (user_id, badge_id, earned_at)
-         SELECT ?, bd.id, ? FROM badge_definitions bd WHERE bd.code = 'founding-user'
-         ON CONFLICT (user_id, badge_id) DO NOTHING`,
-      )
-      .bind(id, now),
   ])
 
   return { id, email }

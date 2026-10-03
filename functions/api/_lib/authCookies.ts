@@ -28,11 +28,15 @@ export function setSessionCookies(headers: Headers, sessionToken: string, maxAge
   return csrf
 }
 
-/** Re-set only the session cookie expiry (sliding renewal); leaves CSRF cookie untouched. */
-export function refreshSessionCookie(headers: Headers, sessionToken: string, maxAge = SESSION_TTL_SECONDS): void {
+/** Renew both cookie expiries while keeping the existing CSRF token stable. */
+export function refreshSessionCookie(headers: Headers, sessionToken: string, csrfToken: string, maxAge = SESSION_TTL_SECONDS): void {
   headers.append(
     'Set-Cookie',
     serializeCookie(SESSION_COOKIE, sessionToken, { maxAge, httpOnly: true, secure: true, sameSite: 'Lax' }),
+  )
+  headers.append(
+    'Set-Cookie',
+    serializeCookie(CSRF_COOKIE, csrfToken, { maxAge, httpOnly: false, secure: true, sameSite: 'Lax' }),
   )
 }
 

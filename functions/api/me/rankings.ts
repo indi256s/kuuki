@@ -8,7 +8,12 @@ export const onRequestGet: PagesFunction<Env, string, RequestData> = (context) =
   runHandler(async () => {
     const user = requireUser(context.data)
     const { results } = await context.env.DB.prepare(
-      'SELECT * FROM leaderboard_cache WHERE user_id = ?',
+      `SELECT lc.* FROM leaderboard_cache lc
+       JOIN profiles p ON p.id = lc.user_id
+       JOIN user_stats us ON us.user_id = lc.user_id
+       LEFT JOIN user_derived_state ds ON ds.user_id = lc.user_id
+       WHERE lc.user_id = ? AND p.show_on_leaderboards = 1 AND us.total_flights >= 5
+         AND (ds.user_id IS NULL OR ds.revision = ds.published_revision)`,
     )
       .bind(user.id)
       .all<LeaderboardCacheRow>()

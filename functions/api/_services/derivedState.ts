@@ -1,0 +1,191 @@
+import { nowIso } from '../_lib/time'
+import {
+  computeStatsForVisits,
+  computedBadgeStatements,
+  computedStatsStatement,
+  type DerivedVisit,
+} from './stats'
+import { computedAdvancedStatsStatement } from './advancedStats'
+
+export interface DerivedRepairResult {
+  derived_state: 'ready' | 'pending'
+  revision: number
+}
+
+interface StateRow {
+  revision: number
+  published_revision: number
+  last_error: string | null
+}
+
+interface VisitSource {
+  airport_iata: string
+  country_code: string | null
+  city: string | null
+  date: string
+}
+
+interface LegacyVisitSource {
+  airport_iata: string | null
+  country_code: string | null
+  city: string | null
+  reference_country_code: string | null
+  reference_city: string | null
+  first_visit: string
+  last_visit: string
+  visit_count: number
+}
+
+/**
+ * Include this statement in the same D1 batch as every canonical user mutation.
+ * The original published revision remains visible until a complete repair publishes.
+ */
+export function dirtyUserStatement(
+  db: D1Database,
+  userId: string,
+  onlyIfPreviousChanged = false,
+): D1PreparedStatement {
+  return db.prepare(
+    `INSERT INTO user_derived_state
+       (user_id, revision, published_revision, last_error, updated_at)
+     SELECT ?, 1, 0, NULL, ? WHERE ${onlyIfPreviousChanged ? 'changes() > 0' : '1 = 1'}
+     ON CONFLICT(user_id) DO UPDATE SET
+       revision = user_derived_state.revision + 1,
+       last_error = NULL,
+       updated_at = excluded.updated_at`,
+  ).bind(userId, nowIso())
+}
+
+async function proposedVisits(db: D1Database, userId: string): Promise<DerivedVisit[]> {
+  const flightSources = await db.prepare(
+    `SELECT ar.iata AS airport_iata, ar.country_code, ar.city, f.date
+     FROM flights f JOIN airports_reference ar ON ar.iata = f.origin
+     WHERE f.user_id = ? AND (f.is_upcoming IS NULL OR f.is_upcoming = 0)
+     UNION ALL
+     SELECT ar.iata AS airport_iata, ar.country_code, ar.city, f.date
+     FROM flights f JOIN airports_reference ar ON ar.iata = f.destination
+     WHERE f.user_id = ? AND (f.is_upcoming IS NULL OR f.is_upcoming = 0)`,
+  ).bind(userId, userId).all<VisitSource>()
+
+  const evidence = await db.prepare(
+    `SELECT e.airport_iata, e.country_code, e.city, e.first_visit, e.last_visit,
+            e.visit_count, ar.country_code AS reference_country_code,
+            ar.city AS reference_city
+     FROM legacy_visit_evidence e
+     LEFT JOIN airports_reference ar ON ar.iata = e.airport_iata
+     WHERE e.user_id = ? AND e.contributes = 1`,
+  ).bind(userId).all<LegacyVisitSource>()
+
+  const merged = new Map<string, DerivedVisit>()
+  for (const source of flightSources.results) {
+    const prior = merged.get(source.airport_iata)
+    if (prior) {
+      prior.first_visit = prior.first_visit < source.date ? prior.first_visit : source.date
+      prior.last_visit = prior.last_visit > source.date ? prior.last_visit : source.date
+      prior.visit_count += 1
+    } else {
+      merged.set(source.airport_iata, {
+        airport_iata: source.airport_iata,
+        country_code: source.country_code ?? '',
+        city: source.city,
+        first_visit: source.date,
+        last_visit: source.date,
+        visit_count: 1,
+      })
+    }
+  }
+  for (const source of evidence.results) {
+    if (!source.airport_iata) throw new Error('Contributing legacy evidence lacks airport')
+    const prior = merged.get(source.airport_iata)
+    if (prior) {
+      // Archived counters may overlap flight history. Keep the larger observed count,
+      // never add both or infer a number of extra trips from their difference.
+      prior.visit_count = Math.max(prior.visit_count, source.visit_count)
+      prior.first_visit = prior.first_visit < source.first_visit ? prior.first_visit : source.first_visit
+      prior.last_visit = prior.last_visit > source.last_visit ? prior.last_visit : source.last_visit
+    } else {
+      const country = source.country_code ?? source.reference_country_code
+      if (!country) throw new Error('Contributing legacy evidence lacks country')
+      merged.set(source.airport_iata, {
+        airport_iata: source.airport_iata,
+        country_code: country,
+        city: source.city ?? source.reference_city,
+        first_visit: source.first_visit,
+        last_visit: source.last_visit,
+        visit_count: source.visit_count,
+      })
+    }
+  }
+  return [...merged.values()].sort((a, b) => a.airport_iata.localeCompare(b.airport_iata))
+}
+
+async function stateOf(db: D1Database, userId: string): Promise<StateRow | null> {
+  return db.prepare(
+    'SELECT revision, published_revision, last_error FROM user_derived_state WHERE user_id = ?',
+  ).bind(userId).first<StateRow>()
+}
+
+/**
+ * Calculate only from canonical rows, then publish every derived table in one D1 batch.
+ * A newer canonical mutation makes the first guard violate CHECK, rolling back the batch.
+ */
+export async function repairUserDerivedState(db: D1Database, userId: string): Promise<DerivedRepairResult> {
+  // A new account with no mutation can be asked to repair; seed it dirty once.
+  try {
+    await db.prepare(
+      'INSERT INTO user_derived_state (user_id, revision, published_revision) VALUES (?, 1, 0) ON CONFLICT(user_id) DO NOTHING',
+    ).bind(userId).run()
+  } catch {
+    return { derived_state: 'pending', revision: 0 }
+  }
+  const state = await stateOf(db, userId).catch(() => null)
+  if (!state) return { derived_state: 'pending', revision: 0 }
+  if (state.revision === state.published_revision) {
+    return { derived_state: 'ready', revision: state.revision }
+  }
+  const revision = state.revision
+  try {
+    const visits = await proposedVisits(db, userId)
+    const stats = await computeStatsForVisits(db, userId, visits)
+    const advanced = await computedAdvancedStatsStatement(db, userId, stats, visits)
+    const badges = await computedBadgeStatements(db, userId, stats)
+    const now = nowIso()
+    const statements: D1PreparedStatement[] = [
+      // The -1 branch violates CHECK; no later result can publish after a newer revision.
+      db.prepare(
+        `UPDATE user_derived_state
+         SET published_revision = CASE WHEN revision = ? THEN ? ELSE -1 END,
+             last_error = NULL, published_at = ?
+         WHERE user_id = ?`,
+      ).bind(revision, revision, now, userId),
+      // UPDATE matching zero rows must not let the remaining derived writes through.
+      db.prepare(
+        `INSERT INTO user_derived_state (user_id, revision, published_revision)
+         SELECT ?, 0, -1 WHERE NOT EXISTS
+           (SELECT 1 FROM user_derived_state WHERE user_id = ?)`,
+      ).bind(userId, userId),
+      db.prepare('DELETE FROM visits WHERE user_id = ?').bind(userId),
+      ...visits.map(visit => db.prepare(
+        `INSERT INTO visits
+           (user_id, country_code, city, airport_iata, first_visit, last_visit, visit_count)
+         VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      ).bind(
+        userId, visit.country_code, visit.city, visit.airport_iata,
+        visit.first_visit, visit.last_visit, visit.visit_count,
+      )),
+      computedStatsStatement(db, userId, stats),
+      advanced,
+      ...badges,
+    ]
+    await db.batch(statements)
+    return { derived_state: 'ready', revision }
+  } catch {
+    // A newer mutation owns the marker; never attach this attempt's error to it.
+    await db.prepare(
+      `UPDATE user_derived_state SET last_error = 'DERIVED_REPAIR_FAILED'
+       WHERE user_id = ? AND revision = ? AND published_revision < revision`,
+    ).bind(userId, revision).run().catch(() => undefined)
+    const current = await stateOf(db, userId).catch(() => null)
+    return { derived_state: 'pending', revision: current?.revision ?? revision }
+  }
+}

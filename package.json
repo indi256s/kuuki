@@ -2,23 +2,43 @@
   "name": "kuuki",
   "version": "0.0.1",
   "private": true,
-  "description": "Kuuki (空気) - Travel geek platform for flight tracking and leaderboards",
+  "description": "Kuuki (\u7a7a\u6c17) - Travel geek platform for flight tracking and leaderboards",
   "scripts": {
     "dev": "turbo dev",
     "dev:pages": "wrangler pages dev --compatibility-date=2024-01-01 --ip 0.0.0.0 --proxy 5173 -- pnpm --filter @kuuki/web dev",
     "build": "turbo build",
     "lint": "turbo lint",
     "typecheck": "turbo typecheck",
-    "clean": "turbo clean"
+    "typecheck:api": "tsc --noEmit -p functions/tsconfig.json",
+    "typecheck:scripts": "tsc --noEmit -p scripts/tsconfig.sbd1.json",
+    "typecheck:maintenance": "tsc --noEmit -p workers/maintenance/tsconfig.json",
+    "test:api": "vitest run --config functions/vitest.config.ts",
+    "build:api": "wrangler pages functions build --outdir .wrangler/functions-build --metafile .wrangler/functions-build/bundle-meta.json",
+    "build:maintenance": "wrangler deploy --dry-run --config workers/maintenance/wrangler.toml --outdir .wrangler/maintenance-build",
+    "preflight": "tsx scripts/migration-preflight.ts",
+    "clean": "turbo clean",
+    "smoke:runtime": "tsx scripts/smoke-local-runtime.ts --check",
+    "dev:fixture": "tsx scripts/smoke-local-runtime.ts"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^4.20260131.0",
+    "@cloudflare/workers-types": "^5.20261003.1",
+    "@types/node": "^24.0.0",
+    "miniflare": "^4.20260730.0",
     "tsx": "^4.21.0",
-    "turbo": "^2.4.0",
-    "wrangler": "^4.62.0"
+    "turbo": "^2.11.7",
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.11",
+    "wrangler": "^4.147.0"
   },
   "packageManager": "pnpm@9.15.0",
   "dependencies": {
     "@google/genai": "^1.39.0"
+  },
+  "pnpm": {
+    "overrides": {
+      "protobufjs@>=7.5.4 <7.6.5": "7.6.5",
+      "ws@>=8.18.0 <8.21.0": "8.21.0",
+      "rollup@>=4.34.0 <4.59.0": "4.59.0"
+    }
   }
 }

@@ -54,9 +54,6 @@ export async function updateJob(kv: KVNamespace, id: string, updates: Partial<Im
   }
 }
 
-// Threshold for async mode
-export const ASYNC_THRESHOLD = 10
-
 export interface ExtractedFlight {
   date: string // YYYY-MM-DD
   origin: string // IATA code
@@ -160,10 +157,12 @@ Important rules:
 4. Use ICAO codes for aircraft (4 letters)
 5. For optional fields (flight_number, aircraft_icao), omit if not visible rather than guessing
 6. For departure_time and arrival_time: ALWAYS extract if visible. Use empty string "" only if truly not present in the document
-7. Dates should be in YYYY-MM-DD format
+7. Dates with a year explicitly visible should be in YYYY-MM-DD format. If the
+   year is absent or uncertain, return date as an empty string and set
+   field_confidence.date_year_explicit to false. Never infer a year.
 8. Times should be in HH:mm 24-hour format
 9. Overall confidence should reflect how certain you are about the extraction
-10. For date_year_explicit: Set to true ONLY if the year (4 digits like "2024" or "2025") was explicitly visible in the document. Set to false if you inferred the year from context (e.g., "Dec 15" with no year visible).
+10. For date_year_explicit: Set to true ONLY if the year (4 digits like "2024" or "2025") was explicitly visible in the document. Otherwise set false and leave date empty for human review.
 
 Return your response as a JSON object with this structure:
 {
@@ -195,120 +194,3 @@ Return your response as a JSON object with this structure:
 }
 
 If no flights can be extracted, return: {"flights": [], "raw_text": "..."}`
-
-// ============================================================================
-// Regex Parser for Cleaned Text (Two-Phase Import - Phase 1)
-// ============================================================================
-
-// Parses the cleaned text output from Gemini into basic ExtractedFlight objects
-// Format: YYYY-MM-DD | FLIGHT_NUMBER | ORIGIN-DESTINATION | AIRLINE_CODE | DEP_TIME | ARR_TIME
-const CLEANED_LINE_REGEX = /^(\d{4}-\d{2}-\d{2})\s*\|\s*([A-Z0-9]{2,3}\s*\d+)?\s*\|\s*([A-Z]{3})-([A-Z]{3})\s*\|\s*([A-Z0-9]{2})(?:\s*\|\s*(\d{2}:\d{2}|-)\s*\|\s*(\d{2}:\d{2}|-))?$/i
-
-export function parseCleanedText(cleanedText: string): ExtractedFlight[] {
-  const lines = cleanedText.trim().split('\n')
-  const flights: ExtractedFlight[] = []
-
-  for (const line of lines) {
-    const trimmed = line.trim()
-    if (!trimmed) continue
-
-    const match = trimmed.match(CLEANED_LINE_REGEX)
-    if (match) {
-      const [, date, flightNumberRaw, origin, destination, airlineIata, depTime, arrTime] = match
-
-      // Parse flight number - extract just the digits if present
-      let flightNumber: string | undefined
-      if (flightNumberRaw) {
-        const digits = flightNumberRaw.replace(/[^0-9]/g, '')
-        if (digits) flightNumber = digits
-      }
-
-      // Parse times - treat "-" as missing
-      const departureTime = depTime && depTime !== '-' ? depTime : undefined
-      const arrivalTime = arrTime && arrTime !== '-' ? arrTime : undefined
-
-      flights.push({
-        date,
-        origin: origin.toUpperCase(),
-        destination: destination.toUpperCase(),
-        airline_iata: airlineIata.toUpperCase(),
-        flight_number: flightNumber,
-        departure_time: departureTime,
-        arrival_time: arrivalTime,
-        // Phase 1 flights have no aircraft - marked for enrichment
-        confidence: 0.7, // Lower confidence since no full AI extraction yet
-        enrichment_status: 'pending',
-      })
-    } else {
-      // Log unparseable lines for debugging
-      console.log(JSON.stringify({ event: 'parse_line_failed', line: trimmed }))
-    }
-  }
-
-  console.log(JSON.stringify({ event: 'parse_cleaned_text', parsed: flights.length, total_lines: lines.length }))
-  return flights
-}
-
-// ============================================================================
-// Cleaning Prompt (Stage 1 of two-stage parsing)
-// ============================================================================
-
-// Cleaning prompt for messy text input (Stage 1 of two-stage parsing)
-export const CLEANING_PROMPT = `You are a data cleaning assistant. Your job is to normalize messy flight data into a clean, consistent format.
-
-The input may contain:
-- Markdown formatting (**bold**, *italic*, tables, bullets)
-- Special arrow characters (➝, →, ->, =>, etc.)
-- Airline names instead of codes (e.g., "Turkish Airlines" instead of "TK")
-- Partial dates (e.g., "31 Dec" with year in a section header like "### 2024")
-- City names in parentheses like "KRR (Krasnodar)"
-- Passenger names, booking status, citation markers
-- Mixed formats (tables + bulleted lists)
-
-Your task:
-1. Extract each flight and output ONE LINE per flight in this exact format:
-   YYYY-MM-DD | FLIGHT_NUMBER | ORIGIN-DESTINATION | AIRLINE_CODE | DEPARTURE_TIME | ARRIVAL_TIME
-
-   - DEPARTURE_TIME and ARRIVAL_TIME are in HH:mm 24-hour format
-   - If a time is not available, use a dash: -
-
-2. Rules:
-   - Dates: Always YYYY-MM-DD format. Infer year from context (section headers like "### 2024")
-   - Flight numbers: Include airline prefix and number (e.g., "LY5109", "TK 378")
-   - Airports: Use 3-letter IATA codes only (strip city names)
-   - Airlines: Convert names to 2-letter IATA codes:
-     * El Al, ELAL → LY
-     * Turkish Airlines, Turkish → TK
-     * Qatar Airways, Qatar → QR
-     * Aeroflot → SU
-     * S7 Airlines, S7 → S7
-     * Ural Airlines → U6
-     * Red Wings → WZ
-     * Georgian Airways → A9
-     * China Eastern → MU
-     * Thai Airways → TG
-     * Pegasus → PC
-     * Air Serbia → JU
-     * Wizz Air → W6
-     * Nordwind → N4
-     * Belavia → B2
-     * AirJapan, Air Japan → NQ
-     * FlyOne → 3F
-    * Smartavia → 5N
-   - Skip cancelled flights
-   - Skip entries that aren't actual flights
-
-3. Special airport codes:
-   - MOW (Moscow) → use the specific airport if mentioned (SVO, DME, VKO), otherwise use SVO
-   - If only city name given, use main airport code
-
-Example input:
-### 2024
-* **31 Dec:** IST ➝ TBS | TK378 (Turkish Airlines) | *Sergei*
-| **2026-01-07** | LY5109 | TLV ➝ TBS | EL AL | Confirmed |
-
-Example output:
-2024-12-31 | TK 378 | IST-TBS | TK | 14:30 | 17:45
-2026-01-07 | LY 5109 | TLV-TBS | LY | 08:00 | 11:30
-
-Output ONLY the cleaned lines, one per flight. No headers, no explanations.`

@@ -1,6 +1,7 @@
 import { lazy, Suspense } from 'react'
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom'
-import { QueryClient, QueryClientProvider, QueryCache } from '@tanstack/react-query'
+import { QueryClientProvider } from '@tanstack/react-query'
+import { queryClient } from '@/lib/queryClient'
 import { LandingPage } from '@/routes/LandingPage'
 import { AuthPage } from '@/routes/AuthPage'
 import { ProtectedRoute } from '@/components/ProtectedRoute'
@@ -42,44 +43,8 @@ const OnboardingPage = lazyWithRetry(() => import('@/routes/OnboardingPage').the
 const LeaderboardPage = lazyWithRetry(() => import('@/routes/LeaderboardPage').then(named('LeaderboardPage')))
 const PassportPage = lazyWithRetry(() => import('@/routes/PassportPage').then(named('PassportPage')))
 const SettingsPage = lazyWithRetry(() => import('@/routes/SettingsPage').then(named('SettingsPage')))
-const DevResetPage = lazyWithRetry(() => import('@/routes/DevResetPage').then(named('DevResetPage')))
 const JourneyPlannerPage = lazyWithRetry(() => import('@/routes/JourneyPlannerPage').then(named('JourneyPlannerPage')))
 const ProfilePage = lazyWithRetry(() => import('@/routes/ProfilePage').then(named('ProfilePage')))
-
-/**
- * React Query configuration with:
- * - Auto-retry: 3 attempts with exponential backoff (1s, 2s, 4s, max 30s)
- * - Stale time: 60 seconds (reduce API calls for rarely-changing data)
- * - Garbage collection: 5 minutes (was cacheTime in v4)
- * - No refetch on window focus (to reduce API calls)
- * - Global error handler for background refetch failures
- */
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: 3,
-      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
-      staleTime: 60_000, // 1 minute (reduced API calls)
-      gcTime: 5 * 60 * 1000, // 5 minutes
-      refetchOnWindowFocus: false,
-    },
-    mutations: {
-      // Don't auto-retry mutations - user should trigger retry
-      retry: false,
-    },
-  },
-  queryCache: new QueryCache({
-    onError: (error, query) => {
-      // Only show toast for background refetch failures when we already had data
-      // This prevents duplicate errors on initial load failures
-      if (query.state.data !== undefined) {
-        console.error('[QueryCache] Background refetch failed:', error)
-        // Toast handling is done by individual components or useErrorHandler
-        // We just log here for debugging/future Sentry integration
-      }
-    },
-  }),
-})
 
 /**
  * Route wrapper that provides ErrorBoundary keyed by pathname.
@@ -155,15 +120,6 @@ function AppRoutes() {
             element={
               <ProtectedRoute>
                 <JourneyPlannerPage />
-              </ProtectedRoute>
-            }
-          />
-          {/* Dev tools */}
-          <Route
-            path="/dev/reset"
-            element={
-              <ProtectedRoute>
-                <DevResetPage />
               </ProtectedRoute>
             }
           />

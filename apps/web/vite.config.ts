@@ -14,12 +14,14 @@ export default defineConfig({
       workbox: {
         // Precache only critical static assets, use runtime caching for chunks
         globPatterns: ['**/*.{html,ico,png,svg}', '**/manifest*.{json,webmanifest}'],
+        globIgnores: ['**/activate.html', '**/activate.js'],
+        navigateFallbackDenylist: [/^\/activate(?:\.html|\.js)$/],
         runtimeCaching: [
           // Runtime cache for JS/CSS chunks — NetworkFirst ensures fresh hashed
           // assets are fetched after deploys (StaleWhileRevalidate served stale
           // index.html referencing old hashes that no longer exist on the server)
           {
-            urlPattern: /\.(?:js|css)$/,
+            urlPattern: ({ url }) => /\.(?:js|css)$/.test(url.pathname) && url.pathname !== '/activate.js',
             handler: 'NetworkFirst',
             options: {
               cacheName: 'assets-cache',

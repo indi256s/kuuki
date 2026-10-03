@@ -9,6 +9,11 @@ import {
 import { corsHeaders, corsPreflight } from '../_lib/cors'
 import { requireCsrf, type RequestData } from '../_lib/auth'
 import { rateLimit } from '../_lib/ratelimit'
+import { BodyError, readBoundedJson } from '../import/_body'
+import { ProviderResponseError, providerFailure } from '../import/_provider'
+
+const DEFAULT_MODEL = 'gemini-3.5-flash-lite'
+const PROVIDER_TIMEOUT_MS = 45_000
 
 // JSON schema for structured output from Gemini
 const ENRICHMENT_RESPONSE_SCHEMA = {
@@ -93,18 +98,8 @@ export const onRequestPost: PagesFunction<Env, string, RequestData> = async (con
       )
     }
 
-    // Guard against oversized request bodies (50KB limit for enrichment payloads)
-    const contentLength = parseInt(context.request.headers.get('content-length') || '0')
-    if (contentLength > 50_000) {
-      return Response.json(
-        { error: 'Request too large', results: [] } as EnrichmentResponse,
-        { status: 413, headers: cors }
-      )
-    }
-
-    // Parse request
-    const body = await context.request.json() as EnrichmentRequest
-    const { flights } = body
+    const body = await readBoundedJson(request, 50_000) as Partial<EnrichmentRequest> | null
+    const flights = body?.flights
 
     // Validate input
     if (!flights || !Array.isArray(flights) || flights.length === 0) {
@@ -123,12 +118,21 @@ export const onRequestPost: PagesFunction<Env, string, RequestData> = async (con
 
     // Validate each flight has required fields
     for (const flight of flights) {
-      if (!flight.id || !flight.date || !flight.origin || !flight.destination) {
+      if (!flight || typeof flight.id !== 'string' || !flight.id ||
+          typeof flight.date !== 'string' || !flight.date ||
+          typeof flight.origin !== 'string' || !flight.origin ||
+          typeof flight.destination !== 'string' || !flight.destination) {
         return Response.json(
           { error: 'Each flight must have id, date, origin, and destination', results: [] } as EnrichmentResponse,
           { status: 400, headers: cors }
         )
       }
+    }
+    if (new Set(flights.map(flight => flight.id)).size !== flights.length) {
+      return Response.json(
+        { error: 'Flight IDs must be unique', results: [] } as EnrichmentResponse,
+        { status: 400, headers: cors },
+      )
     }
 
     // --- Gemini enrichment (grounded web search) ---
@@ -140,7 +144,7 @@ export const onRequestPost: PagesFunction<Env, string, RequestData> = async (con
     console.log(JSON.stringify({ event: 'gemini_enrichment_start', flight_count: flights.length }))
 
     const response = await ai.models.generateContent({
-      model: 'gemini-3-flash-preview',
+      model: context.env.GEMINI_ENRICH_MODEL?.trim() || DEFAULT_MODEL,
       contents: prompt,
       config: {
         tools: [
@@ -148,35 +152,38 @@ export const onRequestPost: PagesFunction<Env, string, RequestData> = async (con
         ],
         responseMimeType: 'application/json',
         responseSchema: ENRICHMENT_RESPONSE_SCHEMA,
+        httpOptions: { timeout: PROVIDER_TIMEOUT_MS },
       },
     })
 
-    const responseText = response.text
-    if (responseText) {
-      try {
-        const parsedResponse: { results: Array<{ index: number; icao: string | null; name: string | null; confidence: number }> } = JSON.parse(responseText)
-
-        console.log(JSON.stringify({ event: 'gemini_enrichment_response', result_count: parsedResponse.results.length }))
-
-        for (const flight of flights) {
-          const geminiIndex = flights.indexOf(flight) + 1
-          const geminiResult = parsedResponse.results.find(r => r.index === geminiIndex)
-
-          if (geminiResult) {
-            geminiResults.set(flight.id, {
-              flight_id: flight.id,
-              aircraft_icao: geminiResult.icao?.toUpperCase() || null,
-              aircraft_name: geminiResult.name || null,
-              confidence: Math.min(1, Math.max(0, geminiResult.confidence ?? 0)),
-              source: 'gemini',
-            })
-          }
-        }
-      } catch {
-        console.error(JSON.stringify({ event: 'gemini_parse_error', response_length: responseText.length }))
+    if (!response.text) throw new ProviderResponseError('Empty enrichment response')
+    let parsedResponse: { results: Array<{ index: number; icao: string | null; name: string | null; confidence: number }> }
+    try {
+      parsedResponse = JSON.parse(response.text)
+    } catch {
+      throw new ProviderResponseError('Invalid enrichment JSON')
+    }
+    if (!parsedResponse || !Array.isArray(parsedResponse.results) ||
+        parsedResponse.results.length !== flights.length ||
+        new Set(parsedResponse.results.map(r => r?.index)).size !== flights.length ||
+        parsedResponse.results.some(r => !r || !Number.isInteger(r.index) ||
+          r.index < 1 || r.index > flights.length ||
+          (r.icao != null && typeof r.icao !== 'string') ||
+          (r.name != null && typeof r.name !== 'string') ||
+          !Number.isFinite(r.confidence))) {
+      throw new ProviderResponseError('Invalid enrichment response shape')
+    }
+    for (const [index, flight] of flights.entries()) {
+      const geminiResult = parsedResponse.results.find(r => r.index === index + 1)
+      if (geminiResult) {
+        geminiResults.set(flight.id, {
+          flight_id: flight.id,
+          aircraft_icao: geminiResult.icao?.toUpperCase() || null,
+          aircraft_name: geminiResult.name || null,
+          confidence: Math.min(1, Math.max(0, geminiResult.confidence)),
+          source: 'gemini',
+        })
       }
-    } else {
-      console.error(JSON.stringify({ event: 'gemini_no_response' }))
     }
 
     // --- Merge results (Gemini-only) ---
@@ -199,11 +206,17 @@ export const onRequestPost: PagesFunction<Env, string, RequestData> = async (con
       { headers: cors }
     )
   } catch (error) {
-    // Security finding #7: do NOT echo error.message to the client. Log detail server-side only.
-    console.error(JSON.stringify({ event: 'enrichment_error', error: error instanceof Error ? error.message : String(error), stack: error instanceof Error ? error.stack : undefined }))
+    if (error instanceof BodyError) {
+      return Response.json(
+        { error: error.message, code: error.status === 413 ? 'BODY_TOO_LARGE' : 'INVALID_BODY', results: [] },
+        { status: error.status, headers: cors },
+      )
+    }
+    const failure = providerFailure(error)
+    console.error(JSON.stringify({ event: 'enrichment_provider_error', code: failure.code }))
     return Response.json(
-      { error: 'Internal server error', results: [] } as EnrichmentResponse,
-      { status: 500, headers: cors }
+      { error: failure.message, code: failure.code, results: [] },
+      { status: failure.status, headers: cors }
     )
   }
 }

@@ -335,7 +335,15 @@ export async function computeCardInsights(db: D1Database, userId: string): Promi
     }>()
 
   if (!row) return null
+  return cardInsightsFromBreakdowns(row)
+}
 
+export function cardInsightsFromBreakdowns(row: {
+  aircraft_breakdown: string | null
+  manufacturer_breakdown: string | null
+  continent_breakdown: string | null
+  duration_stats: string | null
+}): CardInsights {
   const insights: CardInsights = {}
 
   // Aircraft insight: most-flown model from aircraft_breakdown.

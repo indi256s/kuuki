@@ -1,16 +1,13 @@
 // POST /api/flights/bulk-delete — delete the given own flights, then recompute derived stats.
 // D1 caps bound variables per statement, so ids are chunked into batched DELETEs.
 
-import { runHandler, readJson, json } from '../_lib/http'
+import { runHandler, readJson, json, HttpError } from '../_lib/http'
 import { requireCsrf, requireUser, type RequestData } from '../_lib/auth'
-import { rebuildVisitsForUser, recomputeUserStats, updateAdvancedStatsUnlocks, evaluateBadges } from '../_services/stats'
-import { refreshAdvancedStats } from '../_services/advancedStats'
+import { dirtyUserStatement, repairUserDerivedState } from '../_services/derivedState'
 
 interface Body {
   ids?: number[]
 }
-
-const CHUNK = 90
 
 export const onRequestPost: PagesFunction<Env, string, RequestData> = (context) =>
   runHandler(async () => {
@@ -19,26 +16,16 @@ export const onRequestPost: PagesFunction<Env, string, RequestData> = (context) 
     const user = requireUser(data)
 
     const body = await readJson<Body>(request)
-    const ids = (body?.ids ?? []).filter((id) => Number.isFinite(id))
+    if (!Array.isArray(body?.ids) || body.ids.some(id => !Number.isInteger(id) || id <= 0) || body.ids.length > 10_000) {
+      throw new HttpError(400, 'Invalid flight ids', 'INVALID_IDS')
+    }
+    const ids = [...new Set(body.ids)]
     if (ids.length === 0) return json({ deleted: 0 })
 
-    let deleted = 0
-    for (let i = 0; i < ids.length; i += CHUNK) {
-      const chunk = ids.slice(i, i + CHUNK)
-      const placeholders = chunk.map(() => '?').join(', ')
-      const res = await env.DB
-        .prepare(`DELETE FROM flights WHERE user_id = ? AND id IN (${placeholders})`)
-        .bind(user.id, ...chunk)
-        .run()
-      deleted += res.meta.changes ?? 0
-    }
-
-    // Rebuild visits from remaining flights so geo counts decrement (security finding #6).
-    await rebuildVisitsForUser(env.DB, user.id)
-    await recomputeUserStats(env.DB, user.id)
-    await updateAdvancedStatsUnlocks(env.DB, user.id)
-    await evaluateBadges(env.DB, user.id)
-    await refreshAdvancedStats(env.DB, user.id)
-
-    return json({ deleted })
+    const [result] = await env.DB.batch([
+      env.DB.prepare('DELETE FROM flights WHERE user_id = ? AND id IN (SELECT value FROM json_each(?))').bind(user.id, JSON.stringify(ids)),
+      dirtyUserStatement(env.DB, user.id, true),
+    ])
+    const deleted = result.meta.changes ?? 0
+    return json({ deleted, ...(deleted ? await repairUserDerivedState(env.DB, user.id) : {}) })
   })

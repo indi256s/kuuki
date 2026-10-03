@@ -240,6 +240,7 @@ export function ImportReview({
   }, [allFlights, selectedIds, onSave])
 
   const selectedCount = selectedIds.size
+  const selectedHasInferredYear = allFlights.some((flight, index) => selectedIds.has(index) && flight.field_confidence?.date_year_explicit === false)
   const totalCount = allFlights.length
 
   // Empty state - no flights found at all
@@ -354,6 +355,11 @@ export function ImportReview({
       )}
 
       {/* Action toolbar - minimal floating buttons */}
+      {selectedHasInferredYear && (
+        <p className="text-sm text-warning" role="alert">
+          {t('import.review.confirmYear', 'Confirm the year on each selected flight before importing.')}
+        </p>
+      )}
       <div className="flex items-center justify-between gap-4 py-2">
         <button
           onClick={onManualAdd}
@@ -376,7 +382,7 @@ export function ImportReview({
               </Button>
               <Button
                 onClick={handleSave}
-                disabled={saving || selectedCount === 0}
+                disabled={saving || selectedCount === 0 || selectedHasInferredYear}
                 className="rounded-xl min-w-[140px]"
               >
                 {saving ? (
@@ -404,7 +410,7 @@ export function ImportReview({
               </Button>
               <Button
                 onClick={handleSave}
-                disabled={saving || selectedCount === 0}
+                disabled={saving || selectedCount === 0 || selectedHasInferredYear}
                 className="rounded-xl min-w-[140px]"
               >
                 {saving ? (

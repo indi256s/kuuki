@@ -15,16 +15,25 @@ export function RotatingTagline({ items, interval = 6000, className }: RotatingT
     const timer = setInterval(() => {
       // Quick exit to the left
       setPhase('exit')
-      setTimeout(() => {
-        setCurrentIndex((prev) => (prev + 1) % items.length)
-        setPhase('enter')
-        // Snap to visible
-        setTimeout(() => setPhase('visible'), 50)
-      }, 200)
     }, interval)
 
     return () => clearInterval(timer)
-  }, [items.length, interval])
+  }, [interval])
+
+  useEffect(() => {
+    if (phase !== 'exit') return
+    const timer = setTimeout(() => {
+      setCurrentIndex((prev) => (prev + 1) % items.length)
+      setPhase('enter')
+    }, 200)
+    return () => clearTimeout(timer)
+  }, [phase, items.length])
+
+  useEffect(() => {
+    if (phase !== 'enter') return
+    const timer = setTimeout(() => setPhase('visible'), 50)
+    return () => clearTimeout(timer)
+  }, [phase])
 
   return (
     <div className="flex flex-col items-center gap-3">
