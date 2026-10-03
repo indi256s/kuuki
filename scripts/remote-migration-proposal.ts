@@ -30,11 +30,13 @@ function sqlLiteral(value: Bind): string {
 /** Deterministic, data-bearing draft; every INSERT is ordinary missing-only SQL. */
 export function renderMissingSql(tables: MissingTable[], metadata: {
   accountId: string; databaseId: string; observedSchemaSha256: string; manifest: ImportManifest
+  dirtyUserIds?: string[]
 }): string {
   const header = [
     '-- PRIVATE MIGRATION DRAFT: contains source user data; keep mode 0600.',
     '-- Source freshness: NOT VERIFIED. Remote state can change after this read-only inventory.',
     '-- Recheck source, backup, schema, natural keys, and target immediately before approved application.',
+    '-- Apply this proposal atomically under the production hold; do not enable cron during import.',
     `-- Account ${metadata.accountId}; D1 database ${metadata.databaseId}`,
     `-- Target schema SHA-256 ${metadata.observedSchemaSha256}`,
     `-- Source snapshot SHA-256 ${metadata.manifest.sourceSnapshotSha256}`,
@@ -43,11 +45,23 @@ export function renderMissingSql(tables: MissingTable[], metadata: {
     '',
   ]
   const statements: string[] = []
+  if (metadata.dirtyUserIds?.length && !tables.some((table) => table.table === 'users')) {
+    throw new Error('Cannot propose derived markers without users import inventory')
+  }
   for (const table of tables) {
     const names = table.columns.map(sqlIdentifier).join(', ')
     for (const row of table.rows) {
       if (row.length !== table.columns.length) throw new Error(`SQL artifact arity mismatch: ${table.table}`)
       statements.push(`INSERT INTO ${sqlIdentifier(table.table)} (${names}) VALUES (${row.map(sqlLiteral).join(', ')});`)
+    }
+    if (table.table === 'users') {
+      for (let i = 0; i < (metadata.dirtyUserIds?.length ?? 0); i += 100) {
+        const ids = metadata.dirtyUserIds!.slice(i, i + 100)
+        statements.push(`INSERT INTO user_derived_state (user_id, revision, published_revision)
+SELECT id, 1, 0 FROM users WHERE id IN (${ids.map(sqlLiteral).join(', ')})
+ON CONFLICT(user_id) DO UPDATE SET revision = user_derived_state.revision + 1,
+  last_error = NULL, updated_at = excluded.updated_at;`)
+      }
     }
   }
   return [...header, ...statements, ''].join('\n')
@@ -108,9 +122,10 @@ export async function main(argv = process.argv.slice(2)): Promise<void> {
         next: 'Apply/review schema separately; rerun read-only inventory before any import' }, null, 2))
       return
     }
-    const repairedUsers = new Set((await reader.read(
-      'SELECT user_id FROM user_derived_state WHERE revision = published_revision AND revision > 0',
-    )).map((row) => String(row.user_id)))
+    const stateRows = await reader.read('SELECT user_id, revision, published_revision FROM user_derived_state')
+    const repairedUsers = new Set(stateRows.filter((row) => Number(row.revision) > 0 &&
+      Number(row.revision) === Number(row.published_revision)).map((row) => String(row.user_id)))
+    const stateIds = new Set(stateRows.map((row) => String(row.user_id)))
     const inventory: Record<string, { existing: number; identical: number; missing: number; divergent: number }> = {}
     const identityRows = new Map<string, Record<string, unknown>[]>()
     const missingTablesForSql: MissingTable[] = []
@@ -162,9 +177,12 @@ export async function main(argv = process.argv.slice(2)): Promise<void> {
     if (fkBefore.length) throw new Error('Target foreign-key violations before artifact')
     const expectedUnionCounts = Object.fromEntries(Object.entries(inventory).map(([name, item]) =>
       [name, item.existing + item.missing]))
+    const sourceUserIds = tables.find((table) => table.table === 'users')!.rows.map((row) => String(row[0]))
+    const sourceChanged = missingTablesForSql.some((table) => table.rows.length > 0)
+    const dirtyUserIds = sourceChanged ? sourceUserIds : sourceUserIds.filter((id) => !stateIds.has(id))
     if (outputPath && unresolvedConflicts === 0) {
       const sql = renderMissingSql(missingTablesForSql, { accountId, databaseId,
-        observedSchemaSha256, manifest })
+        observedSchemaSha256, manifest, dirtyUserIds })
       writeFileSync(outputPath, sql, { flag: 'wx', mode: 0o600 })
       try {
         writeFileSync(`${outputPath}.manifest.json`, JSON.stringify({ ...manifest,
@@ -183,6 +201,7 @@ export async function main(argv = process.argv.slice(2)): Promise<void> {
       missingTables, identityCollisions, unresolvedConflicts, conflictsReviewed: true,
       additiveReady: unresolvedConflicts === 0,
       freshSourceVerified: false, sourceSnapshotSha256: manifest.sourceSnapshotSha256,
+      derivedUsersToDirty: dirtyUserIds.length,
       artifactWritten: Boolean(outputPath && unresolvedConflicts === 0),
       artifactPath: outputPath && unresolvedConflicts === 0 ? outputPath : undefined,
       artifactManifestPath: outputPath && unresolvedConflicts === 0 ? `${outputPath}.manifest.json` : undefined,

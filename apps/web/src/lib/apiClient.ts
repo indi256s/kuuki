@@ -39,6 +39,7 @@ interface RequestOptions {
   identityToken?: IdentityOperationToken
   timeoutMs?: number
   headers?: Record<string, string>
+  csrfToken?: string | null
 }
 
 export type IdentityOperationToken = symbol
@@ -195,26 +196,25 @@ function assertCurrentIdentity(generation: number): void {
   if (generation !== authGeneration) throw new DOMException('Session changed', 'AbortError')
 }
 
-function csrfHeaders(): Record<string, string> {
-  const token = readCookie(CSRF_COOKIE)
+function csrfHeaders(token = readCookie(CSRF_COOKIE)): Record<string, string> {
   return token ? { 'X-CSRF-Token': token } : {}
 }
 
-async function doFetch(method: HttpMethod, url: string, body: unknown, signal?: AbortSignal, customHeaders?: Record<string, string>): Promise<Response> {
+async function doFetch(method: HttpMethod, url: string, body: unknown, signal?: AbortSignal, customHeaders?: Record<string, string>, csrfToken?: string | null): Promise<Response> {
   const headers: Record<string, string> = { ...customHeaders }
   let payload: BodyInit | undefined
   if (body !== undefined) {
     headers['Content-Type'] = 'application/json'
     payload = JSON.stringify(body)
   }
-  if (!SAFE_METHODS.has(method)) Object.assign(headers, csrfHeaders())
+  if (!SAFE_METHODS.has(method)) Object.assign(headers, csrfHeaders(csrfToken))
   return fetch(url, { method, headers, body: payload, credentials: 'include', signal })
 }
 
 async function performRequest<T>(method: HttpMethod, path: string, body: unknown, opts: RequestOptions): Promise<T> {
   const requestGeneration = authGeneration
   const url = buildUrl(path, opts.params)
-  let res = await doFetch(method, url, body, opts.signal, opts.headers)
+  let res = await doFetch(method, url, body, opts.signal, opts.headers, opts.csrfToken)
   assertCurrentIdentity(requestGeneration)
 
   // Transparent 401 recovery — never for auth endpoints (their 401s are meaningful).
@@ -222,7 +222,7 @@ async function performRequest<T>(method: HttpMethod, path: string, body: unknown
     const refreshed = await attemptRefresh()
     assertCurrentIdentity(requestGeneration)
     if (refreshed === 'refreshed') {
-      res = await doFetch(method, url, body, opts.signal, opts.headers)
+      res = await doFetch(method, url, body, opts.signal, opts.headers, opts.csrfToken)
       assertCurrentIdentity(requestGeneration)
       if (res.status === 401 && requestGeneration === authGeneration) onUnauthorized?.()
     } else if (refreshed === 'unauthorized') {
@@ -246,12 +246,19 @@ function request<T>(method: HttpMethod, path: string, body?: unknown, opts: Requ
   if (identityOperation && opts.identityToken !== identityOperation) {
     return Promise.reject(new DOMException('Account action in progress', 'AbortError'))
   }
+  const requestGeneration = authGeneration
+  const csrfToken = readCookie(CSRF_COOKIE)
   const controller = new AbortController()
   const timeout = setTimeout(() => controller.abort(new DOMException('Request timed out', 'TimeoutError')), opts.timeoutMs ?? REQUEST_TIMEOUT_MS)
   const abort = () => controller.abort(opts.signal?.reason)
   if (opts.signal?.aborted) abort()
   else opts.signal?.addEventListener('abort', abort, { once: true })
-  const run = () => performRequest<T>(method, path, body, { ...opts, signal: controller.signal })
+  const run = () => {
+    // A peer may release its lock before this tab receives the identity broadcast.
+    assertCurrentIdentity(requestGeneration)
+    if (readCookie(CSRF_COOKIE) !== csrfToken) throw new DOMException('Session changed', 'AbortError')
+    return performRequest<T>(method, path, body, { ...opts, csrfToken, signal: controller.signal })
+  }
   const pending = (async () => {
     try {
       if ((opts.identityToken && opts.identityToken === identityOperation) || typeof navigator === 'undefined' || !navigator.locks) return await run()

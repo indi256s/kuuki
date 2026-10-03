@@ -25,7 +25,11 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     }
     const emailKey = await activationEmailKey(email, env.AUTH_SECRET)
     await rateLimit(env.DB, `activation-email:${emailKey}`, 3, 3600)
-    await requestActivation(env.DB, email, activationOrigin, sender)
+    // Keep lookup and delivery out of the account-dependent response path. Pages
+    // keeps this task alive after the generic response has been returned.
+    context.waitUntil(requestActivation(env.DB, email, activationOrigin, sender).catch(() => {
+      console.error(JSON.stringify({ event: 'activation_request_failed' }))
+    }))
     return json({ ok: true })
   })
   response.headers.set('Cache-Control', RESPONSE_HEADERS['Cache-Control'])

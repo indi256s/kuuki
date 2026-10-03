@@ -112,8 +112,17 @@ try {
       method: 'POST', headers: { Origin: origin, 'Content-Type': 'application/json' },
       body: JSON.stringify({ email: 'legacy@example.test' }),
     })
-    const issued = await db.prepare("SELECT COUNT(*) AS n FROM account_activation_tokens WHERE user_id = 'legacy-fixture'").first<{ n: number }>()
-    if (!activation.ok || mailCalls !== 1 || issued?.n !== 1) throw new Error('Compiled activation sender failed')
+    if (!activation.ok) throw new Error('Compiled activation request failed')
+    // waitUntil continues after dispatchFetch returns. Observe its D1 write and
+    // fake provider acknowledgement before asserting the compiled tail completed.
+    const deliveryDeadline = Date.now() + 5_000
+    let issued = 0
+    while (Date.now() < deliveryDeadline) {
+      issued = (await db.prepare("SELECT COUNT(*) AS n FROM account_activation_tokens WHERE user_id = 'legacy-fixture'").first<{ n: number }>())?.n ?? 0
+      if (mailCalls === 1 && issued === 1) break
+      await new Promise(resolve => setTimeout(resolve, 10))
+    }
+    if (mailCalls !== 1 || issued !== 1) throw new Error('Compiled activation sender failed')
     const signin = await mf.dispatchFetch(`${origin}/api/auth/signin`, {
       method: 'POST', headers: { Origin: origin, 'Content-Type': 'application/json' },
       body: JSON.stringify({ email: 'a@example.test', password: 'rehearsal-password-2026' }),

@@ -29,6 +29,31 @@ it('does not return an old user read after an identity switch', async () => {
   await expect(request).rejects.toMatchObject({ name: 'AbortError' })
 })
 
+it('rejects a mutation queued behind another tab changing the session cookie', async () => {
+  let releaseLock!: () => void
+  vi.stubGlobal('navigator', {
+    locks: {
+      request: (_name: string, _options: unknown, callback: () => Promise<unknown>) =>
+        new Promise((resolve, reject) => {
+          releaseLock = () => { void Promise.resolve().then(callback).then(resolve, reject) }
+        }),
+    },
+  })
+  const immediateFetch = vi.fn(async () => new Response(JSON.stringify({ ok: true })))
+  vi.stubGlobal('fetch', immediateFetch)
+  document.cookie = 'kuuki_csrf=account-a; path=/'
+  try {
+    const mutation = api.patch('/api/flights/old', { notes: 'from A' })
+    // The peer broadcast has not arrived, so this tab's auth generation is unchanged.
+    document.cookie = 'kuuki_csrf=account-b; path=/'
+    releaseLock()
+    await expect(mutation).rejects.toMatchObject({ name: 'AbortError' })
+    expect(immediateFetch).not.toHaveBeenCalled()
+  } finally {
+    document.cookie = 'kuuki_csrf=; Max-Age=0; path=/'
+  }
+})
+
 it('drains a bootstrap response before sending sign-in under a new cookie identity', async () => {
   const bootstrap = api.get('/api/auth/me')
   const operation = beginIdentityOperation()

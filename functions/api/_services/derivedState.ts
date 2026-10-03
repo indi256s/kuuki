@@ -48,7 +48,7 @@ export function dirtyUserStatement(
   return db.prepare(
     `INSERT INTO user_derived_state
        (user_id, revision, published_revision, last_error, updated_at)
-     SELECT ?, 1, 0, NULL, ? WHERE ${onlyIfPreviousChanged ? 'changes() = 1' : '1 = 1'}
+     SELECT ?, 1, 0, NULL, ? WHERE ${onlyIfPreviousChanged ? 'changes() > 0' : '1 = 1'}
      ON CONFLICT(user_id) DO UPDATE SET
        revision = user_derived_state.revision + 1,
        last_error = NULL,

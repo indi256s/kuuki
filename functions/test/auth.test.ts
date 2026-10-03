@@ -24,13 +24,17 @@ async function seedUser(db: D1Database, id: string, email: string, hash = 'RESET
   ])
 }
 
-function activationRequest(db: D1Database, path: string, body: object, headers: Record<string, string> = {}, origin = ORIGIN, extraEnv: Record<string, string> = {}) {
+function activationRequest(db: D1Database, path: string, body: object, headers: Record<string, string> = {}, origin = ORIGIN, extraEnv: Record<string, string> = {}, background: Promise<unknown>[] = []) {
   const request = new Request(`${origin}${path}`, {
     method: 'POST',
     headers: { Origin: origin, 'Content-Type': 'application/json', ...headers },
     body: JSON.stringify(body),
   })
-  return { ...apiContext(db, request), env: { DB: db, AUTH_SECRET: SECRET, PAGES_ORIGIN: ORIGIN, ACTIVATION_ORIGIN, ...extraEnv } } as never
+  return {
+    ...apiContext(db, request),
+    env: { DB: db, AUTH_SECRET: SECRET, PAGES_ORIGIN: ORIGIN, ACTIVATION_ORIGIN, ...extraEnv },
+    waitUntil(task: Promise<unknown>) { background.push(task) },
+  } as never
 }
 
 it('activates only a RESET_REQUIRED user once and keeps an active account unchanged', async () => {
@@ -107,21 +111,32 @@ it('uses the configured dedicated activation origin and keeps request responses 
   try {
     await seedUser(db, 'legacy', 'legacy@example.test')
     await seedUser(db, 'active', 'active@example.test', await hashPassword('active-password', SECRET))
-    const send = vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response(JSON.stringify({
+    let finishSend!: (response: Response) => void
+    const sendPending = new Promise<Response>(resolve => { finishSend = resolve })
+    const send = vi.spyOn(globalThis, 'fetch').mockReturnValue(sendPending)
+    const acknowledged = new Response(JSON.stringify({
       success: true, errors: [], result: { delivered: [], queued: ['legacy@example.test'], permanent_bounces: [] },
-    })))
+    }))
     const senderEnv = {
       ACTIVATION_MAIL_ACCOUNT_ID: '0123456789abcdef0123456789abcdef',
       ACTIVATION_MAIL_AUTH_TOKEN: 'synthetic-sender-secret',
       ACTIVATION_MAIL_FROM: 'sender@example.test',
     }
     const statuses = []
+    const background: Promise<unknown>[] = []
     for (const email of ['missing@example.test', 'active@example.test', 'legacy@example.test']) {
-      const response = await requestRoute(activationRequest(db, '/api/auth/activation/request', { email }, {}, ORIGIN, senderEnv))
+      const response = await requestRoute(activationRequest(db, '/api/auth/activation/request', { email }, {}, ORIGIN, senderEnv, background))
       statuses.push(response.status)
       expect(await response.json()).toEqual({ ok: true })
     }
     expect(statuses).toEqual([200, 200, 200])
+    expect(background).toHaveLength(3)
+    await vi.waitFor(() => expect(send).toHaveBeenCalledOnce())
+    // The account-dependent send remains pending after the generic 200 response.
+    expect((await db.prepare('SELECT COUNT(*) AS n FROM account_activation_tokens').first<{ n: number }>())?.n).toBe(1)
+    finishSend(acknowledged)
+    await Promise.all(background)
+    expect((await db.prepare('SELECT COUNT(*) AS n FROM account_activation_tokens').first<{ n: number }>())?.n).toBe(1)
     expect(send).toHaveBeenCalledOnce()
     const [senderUrl, init] = send.mock.calls[0]
     expect(String(senderUrl)).toBe(`https://api.cloudflare.com/client/v4/accounts/${senderEnv.ACTIVATION_MAIL_ACCOUNT_ID}/email/sending/send`)
@@ -157,12 +172,14 @@ it('removes the activation token and keeps account responses generic when delive
     })
     const log = vi.spyOn(console, 'error').mockImplementation(() => {})
     const responses = []
+    const background: Promise<unknown>[] = []
     for (const email of ['missing@example.test', 'active@example.test', 'legacy@example.test']) {
-      const response = await requestRoute(activationRequest(db, '/api/auth/activation/request', { email }, {}, ORIGIN, senderEnv))
+      const response = await requestRoute(activationRequest(db, '/api/auth/activation/request', { email }, {}, ORIGIN, senderEnv, background))
       responses.push({ status: response.status, body: await response.json() })
     }
 
     expect(responses).toEqual(Array(3).fill({ status: 200, body: { ok: true } }))
+    await Promise.all(background)
     expect(send).toHaveBeenCalledOnce()
     expect(sentLink).toMatch(/^https:\/\/activate\.kuuki\.test\/activate#token=/)
     expect((await db.prepare('SELECT COUNT(*) AS n FROM account_activation_tokens').first<{ n: number }>())?.n).toBe(0)

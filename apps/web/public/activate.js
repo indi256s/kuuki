@@ -7,7 +7,7 @@ const status = document.getElementById('status')
 const submit = document.getElementById('submit')
 
 if (!token) {
-  status.textContent = 'This activation link is missing its token. Request a new link from sign in.'
+  status.textContent = 'This link is missing its token. If you already set a password, sign in with it. Otherwise, request a new link from sign in.'
 } else {
   form.hidden = false
 }
@@ -41,7 +41,7 @@ form.addEventListener('submit', async (event) => {
     token = null
     status.textContent = 'Your account is active. Sign in with your new password.'
   } catch (error) {
-    status.textContent = error.message || 'Activation failed. Please try again.'
+    status.textContent = `${error.message || 'Activation failed.'} If you submitted a password but did not see confirmation, try signing in with that password.`
   } finally {
     submit.disabled = false
   }

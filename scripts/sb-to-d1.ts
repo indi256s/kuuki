@@ -434,8 +434,9 @@ export function assertSourceForeignKeyClosure(
     }
   }
   for (const name of ['profiles', 'flights', 'country_claims', 'ground_visits',
-    'legacy_visit_evidence', 'user_stats', 'user_advanced_stats', 'user_badges',
-    'leaderboard_cache']) edge(name, name === 'profiles' ? 'id' : 'user_id', users)
+    'legacy_visit_evidence', 'user_stats', 'user_advanced_stats', 'user_badges']) {
+    edge(name, name === 'profiles' ? 'id' : 'user_id', users)
+  }
   edge('user_badges', 'badge_id', badges)
   for (const visit of sourceVisits) if (!users.has(String(visit.user_id))) {
     throw new Error('Source FK closure failed: visits.user_id')
@@ -588,7 +589,9 @@ export function buildImportTables(
     { table: 'ground_visits', key: 'id', columns: GROUND_VISITS_COLUMNS, rows: buildGroundVisitRows(groundVisits) },
     { table: 'legacy_visit_evidence', key: 'source_id', columns: evidenceColumns, rows: evidenceRows },
   ]
-  for (const def of ORACLE_TABLES.filter((d) => d.table !== 'visits')) {
+  // Leaderboards are rebuilt from published stats and get new autoincrement IDs.
+  // Preserve the source file hash, but never treat cache row IDs as import keys.
+  for (const def of ORACLE_TABLES.filter((d) => d.table !== 'visits' && d.table !== 'leaderboard_cache')) {
     tables.push({ table: def.table, key: def.autoincrement ? 'id' : 'user_id', columns: def.specs.map((s) => s.col), rows: buildOracleRows(def, readSnapshot<Record<string, unknown>>(def.table, snapshotDir)) })
   }
   const referenceSourceSha256 = digest(stableJson(tables
@@ -721,11 +724,33 @@ export async function importSnapshot(
 ): Promise<ImportManifest> {
   const { manifest, prepared } = await inspectSnapshotImport(db, snapshotDir)
   if (!apply) return manifest
+  const sourceUserIds = prepared.find((table) => table.table === 'users')!.rows.map((row) => String(row[0]))
+  const stateRows = await db.prepare('SELECT user_id FROM user_derived_state').all<{ user_id: string }>()
+  const stateIds = new Set(stateRows.results.map((row) => row.user_id))
+  const sourceChanged = prepared.some((table) => table.missing.length > 0)
+  const dirtyIds = sourceChanged ? sourceUserIds : sourceUserIds.filter((id) => !stateIds.has(id))
+  const dirtyStatements: D1PreparedStatement[] = []
+  for (let i = 0; i < dirtyIds.length; i += 80) {
+    const ids = dirtyIds.slice(i, i + 80)
+    dirtyStatements.push(db.prepare(
+      `INSERT INTO user_derived_state (user_id, revision, published_revision)
+       SELECT id, 1, 0 FROM users WHERE id IN (${ids.map(() => '?').join(', ')})
+       ON CONFLICT(user_id) DO UPDATE SET revision = user_derived_state.revision + 1,
+         last_error = NULL, updated_at = excluded.updated_at`,
+    ).bind(...ids))
+  }
   for (const table of prepared) {
     const statements = buildInserts(db, table.table, table.columns, table.missing)
     // D1 batches are atomic individually. A crash between batches is safe: rerun plans
     // against the already-inserted rows and adds only what remains missing.
-    for (let i = 0; i < statements.length; i += 50) await db.batch(statements.slice(i, i + 50))
+    for (let i = 0; i < statements.length; i += 50) {
+      const chunk = statements.slice(i, i + 50)
+      if (table.table === 'users' && i + 50 >= statements.length) chunk.push(...dirtyStatements)
+      await db.batch(chunk)
+    }
+    if (table.table === 'users' && statements.length === 0 && dirtyStatements.length) {
+      await db.batch(dirtyStatements)
+    }
     const after = Number((await db.prepare(`SELECT COUNT(*) AS n FROM ${table.table}`).first<{ n: number }>())?.n ?? -1)
     if (after !== table.before + table.missing.length) throw new Error(`Post-import count mismatch in ${table.table}`)
     if (stopAfterTable === table.table) throw new Error('Intentional import interruption')

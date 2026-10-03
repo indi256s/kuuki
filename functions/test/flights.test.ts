@@ -2,6 +2,10 @@ import { afterEach, expect, it, vi } from 'vitest'
 import { createApiDatabase, apiContext } from './harness'
 import { onRequestPost, isUpcomingFlight } from '../api/flights/index'
 import { onRequestGet, onRequestPatch, onRequestDelete } from '../api/flights/[id]'
+import { onRequestPost as bulkDelete } from '../api/flights/bulk-delete'
+import { onRequestPost as deleteAll } from '../api/flights/delete-all'
+import { onRequestPost as syncUpcoming } from '../api/flights/sync-upcoming'
+import { repairUserDerivedState } from '../api/_services/derivedState'
 
 const origin = 'https://kuuki.test'
 const user = { id: 'u1', email: 'u1@example.test' }
@@ -158,5 +162,46 @@ it('recalculates route distance and duration while respecting explicit overrides
     expect(after.duration_minutes).not.toBe(999)
     const overridden = await onRequestPatch(context(db, `/api/flights/${id}`, 'PATCH', { destination: 'IST', distance_km: 1234, duration_minutes: 321 }, undefined, id))
     expect(await overridden.json()).toMatchObject({ distance_km: 1234, duration_minutes: 321 })
+  } finally { await dispose() }
+})
+
+it.each([
+  ['bulk delete', bulkDelete, '/api/flights/bulk-delete', (ids: number[]) => ({ ids })],
+  ['delete all', deleteAll, '/api/flights/delete-all', () => undefined],
+] as const)('publishes current stats and visits after %s removes two flights', async (_label, handler, path, body) => {
+  const { db, dispose } = await createApiDatabase()
+  try {
+    await seed(db)
+    const first = await onRequestPost(context(db, '/api/flights', 'POST', flight, 'multi-delete-001'))
+    const second = await onRequestPost(context(db, '/api/flights', 'POST', { ...flight, destination: 'JFK' }, 'multi-delete-002'))
+    const ids = [(await first.json() as { id: number }).id, (await second.json() as { id: number }).id]
+    expect((await db.prepare('SELECT total_flights FROM user_stats WHERE user_id = ?').bind(user.id).first<{ total_flights: number }>())?.total_flights).toBe(2)
+    expect(await count(db, 'visits')).toBe(3)
+
+    const response = await handler(context(db, path, 'POST', body(ids)))
+    expect(response.status).toBe(200)
+    expect(await response.json()).toMatchObject({ deleted: 2, derived_state: 'ready' })
+    expect(await count(db, 'flights')).toBe(0)
+    expect((await db.prepare('SELECT total_flights FROM user_stats WHERE user_id = ?').bind(user.id).first<{ total_flights: number }>())?.total_flights).toBe(0)
+    expect(await count(db, 'visits')).toBe(0)
+  } finally { await dispose() }
+})
+
+it('publishes two flights that become completed in one sync', async () => {
+  const { db, dispose } = await createApiDatabase()
+  try {
+    await seed(db)
+    await db.batch([
+      db.prepare('INSERT INTO flights (user_id,date,origin,destination,is_upcoming) VALUES (?,?,?,?,1)').bind(user.id, flight.date, 'TBS', 'IST'),
+      db.prepare('INSERT INTO flights (user_id,date,origin,destination,is_upcoming) VALUES (?,?,?,?,1)').bind(user.id, flight.date, 'TBS', 'JFK'),
+    ])
+    expect(await repairUserDerivedState(db, user.id)).toMatchObject({ derived_state: 'ready' })
+    expect((await db.prepare('SELECT total_flights FROM user_stats WHERE user_id = ?').bind(user.id).first<{ total_flights: number }>())?.total_flights).toBe(0)
+
+    const response = await syncUpcoming(context(db, '/api/flights/sync-upcoming', 'POST'))
+    expect(response.status).toBe(200)
+    expect(await response.json()).toMatchObject({ synced: 2, derived_state: 'ready' })
+    expect((await db.prepare('SELECT total_flights FROM user_stats WHERE user_id = ?').bind(user.id).first<{ total_flights: number }>())?.total_flights).toBe(2)
+    expect(await count(db, 'visits')).toBe(3)
   } finally { await dispose() }
 })

@@ -3,9 +3,11 @@ import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { unstable_splitSqlQuery } from 'wrangler'
 import { assessSchemaAdmission, createLocalSchemaFixture, openLocalTarget, schemaRowsSha256 } from './migration-target'
 import { buildImportTables, importSnapshot } from './sb-to-d1'
 import { repairUserDerivedState } from '../functions/api/_services/derivedState'
+import { refreshLeaderboards } from '../functions/api/_services/leaderboard'
 import { TABLES } from './ship-oracle'
 import { renderMissingSql } from './remote-migration-proposal'
 import { validateTarget } from './validate'
@@ -126,6 +128,29 @@ describe('isolated D1 migration', () => {
     expect(sql).not.toMatch(/INSERT OR (?:REPLACE|IGNORE)/)
   })
 
+  it('includes source-scoped dirty markers in an executable remote import batch', async () => {
+    const source = syntheticSnapshot()
+    const fixture = await createLocalSchemaFixture()
+    try {
+      const target = await openLocalTarget(fixture.options)
+      try {
+        await target.db.prepare('INSERT INTO users(id,email,password_hash,created_at) VALUES(?,?,?,?)')
+          .bind(CURRENT, 'current@example.test', 'current-private-hash', '2026-02-01T00:00:00.000Z').run()
+        const sql = renderMissingSql([{ table: 'users',
+          columns: ['id', 'email', 'password_hash', 'created_at'],
+          rows: [[LEGACY, 'legacy@example.test', 'RESET_REQUIRED', '2026-02-01T00:00:00.000Z']],
+        }], { accountId: 'a'.repeat(32), databaseId: 'b'.repeat(36),
+          observedSchemaSha256: 'c'.repeat(64), manifest: buildImportTables(source).manifest,
+          dirtyUserIds: [LEGACY] })
+        await target.db.batch(unstable_splitSqlQuery(sql).map((statement) => target.db.prepare(statement)))
+        expect(await target.db.prepare('SELECT revision, published_revision FROM user_derived_state WHERE user_id = ?')
+          .bind(LEGACY).first()).toMatchObject({ revision: 1, published_revision: 0 })
+        expect(await target.db.prepare('SELECT user_id FROM user_derived_state WHERE user_id = ?')
+          .bind(CURRENT).first()).toBeNull()
+      } finally { await target.dispose() }
+    } finally { fixture.cleanup() }
+  })
+
   it('refuses a natural identity collision before any import write', async () => {
     const source = syntheticSnapshot()
     const fixture = await createLocalSchemaFixture()
@@ -175,6 +200,12 @@ describe('isolated D1 migration', () => {
         await expect(importSnapshot(target.db, source, true, 'users')).rejects.toThrow('Intentional import interruption')
         const manifest = await importSnapshot(target.db, source, true)
         expect(manifest.visitEvidence).toEqual({ raw: 2, contributing: 2, derivedKeys: 2, expectedUnionKeys: 3 })
+        const pending = await target.db.prepare('SELECT revision, published_revision FROM user_derived_state WHERE user_id = ?')
+          .bind(LEGACY).first<{ revision: number; published_revision: number }>()
+        expect(pending?.revision).toBeGreaterThan(0)
+        expect(pending?.published_revision).toBe(0)
+        expect(await target.db.prepare('SELECT user_id FROM user_derived_state WHERE user_id = ?')
+          .bind(CURRENT).first()).toBeNull()
         await importSnapshot(target.db, source, true)
         const notes = await target.db.prepare('SELECT note FROM ground_visits WHERE id = ?').bind('ground-1').first<{ note: string }>()
         expect(notes?.note).toBe('A retained private note')
@@ -198,7 +229,39 @@ describe('isolated D1 migration', () => {
           source, { ...manifest, target: 'local', databaseId: fixture.options.databaseId,
             expectedUnionCounts: manifest.expectedUnionCounts!,
             schemaSha256: target.schemaSha256 })
+        const published = await target.db.prepare('SELECT revision, published_revision FROM user_derived_state WHERE user_id = ?')
+          .bind(LEGACY).first()
         await importSnapshot(target.db, source, true) // ready derived rows are compatible on replay
+        expect(await target.db.prepare('SELECT revision, published_revision FROM user_derived_state WHERE user_id = ?')
+          .bind(LEGACY).first()).toEqual(published)
+      } finally { await target.dispose() }
+    } finally { fixture.cleanup() }
+  })
+
+  it('replays after leaderboard refresh changes cache IDs without importing stale cache rows', async () => {
+    const source = syntheticSnapshot()
+    const flightsPath = join(source, 'flights.json')
+    const flights = JSON.parse(readFileSync(flightsPath, 'utf8')) as Array<Record<string, unknown>>
+    for (const id of [497, 498, 499]) flights.push({ ...flights[1], id, aircraft_icao: null })
+    writeFileSync(flightsPath, JSON.stringify(flights))
+    writeFileSync(join(source, 'leaderboard_cache.json'), JSON.stringify([{
+      id: 1545, user_id: LEGACY, category: 'flights', value: 5, rank: 1,
+      percentile: 100, metadata: null, updated_at: TS,
+    }]))
+    const fixture = await createLocalSchemaFixture()
+    try {
+      const target = await openLocalTarget(fixture.options)
+      try {
+        await importSnapshot(target.db, source, true)
+        expect((await target.db.prepare('SELECT COUNT(*) AS n FROM leaderboard_cache').first<{ n: number }>())?.n).toBe(0)
+        expect((await repairUserDerivedState(target.db, LEGACY)).derived_state).toBe('ready')
+        await refreshLeaderboards(target.db)
+        const refreshed = await target.db.prepare('SELECT id FROM leaderboard_cache WHERE user_id = ? AND category = ?')
+          .bind(LEGACY, 'flights').first<{ id: number }>()
+        expect(refreshed?.id).not.toBe(1545)
+        await importSnapshot(target.db, source, true)
+        expect(await target.db.prepare('SELECT id FROM leaderboard_cache WHERE user_id = ? AND category = ?')
+          .bind(LEGACY, 'flights').first()).toMatchObject({ id: refreshed!.id })
       } finally { await target.dispose() }
     } finally { fixture.cleanup() }
   })

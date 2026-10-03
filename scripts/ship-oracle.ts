@@ -178,7 +178,9 @@ export async function main(argv = process.argv.slice(2)): Promise<void> {
   const snapshotDir = index < 0 ? join(ROOT, 'db', '_snapshot') : resolve(argv[index + 1])
   const target = await openLocalTarget(options)
   try {
-    for (const def of TABLES) {
+    // The cache is regenerated with new IDs on each refresh, so source cache
+    // rows are not an authoritative migration comparison.
+    for (const def of TABLES.filter((table) => table.table !== 'leaderboard_cache')) {
       const source = JSON.parse(readFileSync(join(snapshotDir, `${def.table}.json`), 'utf8')) as Record<string, unknown>[]
       const expected = buildRows(def, source)
       const columns = def.specs.map((spec) => spec.col)
