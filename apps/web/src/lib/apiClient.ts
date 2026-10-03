@@ -36,12 +36,88 @@ type HttpMethod = 'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE'
 interface RequestOptions {
   params?: QueryParams
   signal?: AbortSignal
+  identityToken?: IdentityOperationToken
+  timeoutMs?: number
+  headers?: Record<string, string>
+}
+
+export type IdentityOperationToken = symbol
+let identityOperation: IdentityOperationToken | null = null
+const inFlightRequests = new Set<Promise<unknown>>()
+const IDENTITY_WAIT_MS = 35_000
+const REQUEST_TIMEOUT_MS = 30_000
+const LOCK_NAME = 'kuuki-session-identity'
+
+function timeoutError(): Error {
+  return new Error('The account action timed out waiting for other requests. Please try again.')
+}
+
+async function withDeadline<T>(promise: Promise<T>, milliseconds: number): Promise<T> {
+  let timer: ReturnType<typeof setTimeout> | undefined
+  try {
+    return await Promise.race([
+      promise,
+      new Promise<T>((_, reject) => { timer = setTimeout(() => reject(timeoutError()), milliseconds) }),
+    ])
+  } finally {
+    if (timer) clearTimeout(timer)
+  }
+}
+
+async function holdExclusiveLock(released: Promise<void>, signal: AbortSignal): Promise<void> {
+  if (typeof navigator === 'undefined' || !navigator.locks) return
+  let acquired!: () => void
+  const acquiredPromise = new Promise<void>(resolve => { acquired = resolve })
+  const lockTask = navigator.locks.request(LOCK_NAME, { mode: 'exclusive', signal }, async () => {
+    acquired()
+    await released
+  })
+  // The lock task can reject after acquisition when the page is torn down.
+  void lockTask.catch(() => {})
+  await Promise.race([acquiredPromise, lockTask.then(() => { throw new Error('Could not acquire the account lock') })])
+}
+
+/** Reserve the cookie identity before waiting for older responses and their Set-Cookie headers. */
+export function beginIdentityOperation() {
+  if (identityOperation) throw new Error('An account action is already in progress')
+  const token = Symbol('identity operation')
+  identityOperation = token
+  let unlock!: () => void
+  const released = new Promise<void>(resolve => { unlock = resolve })
+  const controller = new AbortController()
+  const ready = (async () => {
+    try {
+      await withDeadline(Promise.allSettled([...inFlightRequests]), IDENTITY_WAIT_MS)
+      await withDeadline(holdExclusiveLock(released, controller.signal), IDENTITY_WAIT_MS)
+      advanceAuthGeneration()
+    } catch (error) {
+      controller.abort()
+      unlock()
+      if (identityOperation === token) identityOperation = null
+      throw error
+    }
+  })()
+  return {
+    token,
+    ready,
+    release: () => {
+      unlock()
+      if (identityOperation === token) identityOperation = null
+    },
+  }
 }
 
 // Registered by the auth store; called when a refresh attempt fails (hard logout).
 let onUnauthorized: (() => void) | null = null
+let authGeneration = 0
+export function getAuthGeneration(): number { return authGeneration }
 export function setUnauthorizedHandler(handler: (() => void) | null): void {
   onUnauthorized = handler
+}
+export function advanceAuthGeneration(): void {
+  authGeneration += 1
+  refreshInFlight?.controller.abort()
+  refreshInFlight = null
 }
 
 function readCookie(name: string): string | null {
@@ -82,29 +158,41 @@ async function parseBody(res: Response): Promise<unknown> {
 
 // De-dupe concurrent refreshes: many parallel requests can 401 at once; they should share
 // a single /api/auth/refresh round-trip rather than stampede it.
-let refreshInFlight: Promise<boolean> | null = null
+type RefreshResult = 'refreshed' | 'unauthorized' | 'failed'
+let refreshInFlight: { generation: number; promise: Promise<RefreshResult>; controller: AbortController } | null = null
 
-async function attemptRefresh(): Promise<boolean> {
-  if (!refreshInFlight) {
-    refreshInFlight = (async () => {
+async function attemptRefresh(): Promise<RefreshResult> {
+  if (!refreshInFlight || refreshInFlight.generation !== authGeneration) {
+    const generation = authGeneration
+    const controller = new AbortController()
+    const promise = (async () => {
+      const timeout = setTimeout(() => controller.abort(new DOMException('Refresh timed out', 'TimeoutError')), REQUEST_TIMEOUT_MS)
       try {
         const res = await fetch('/api/auth/refresh', {
           method: 'POST',
           credentials: 'include',
           headers: csrfHeaders(),
+          signal: controller.signal,
         })
-        return res.ok
+        if (res.ok) return 'refreshed'
+        return res.status === 401 || res.status === 403 ? 'unauthorized' : 'failed'
       } catch {
-        return false
+        return 'failed'
       } finally {
-        // Clear after the microtask settles so concurrent callers reuse this result first.
-        queueMicrotask(() => {
-          refreshInFlight = null
-        })
+        clearTimeout(timeout)
       }
     })()
+    refreshInFlight = { generation, promise, controller }
+    // The previous identity's refresh must not clear a newer identity's request.
+    void promise.then(() => {
+      if (refreshInFlight?.promise === promise) refreshInFlight = null
+    })
   }
-  return refreshInFlight
+  return refreshInFlight.promise
+}
+
+function assertCurrentIdentity(generation: number): void {
+  if (generation !== authGeneration) throw new DOMException('Session changed', 'AbortError')
 }
 
 function csrfHeaders(): Record<string, string> {
@@ -112,8 +200,8 @@ function csrfHeaders(): Record<string, string> {
   return token ? { 'X-CSRF-Token': token } : {}
 }
 
-async function doFetch(method: HttpMethod, url: string, body: unknown, signal?: AbortSignal): Promise<Response> {
-  const headers: Record<string, string> = {}
+async function doFetch(method: HttpMethod, url: string, body: unknown, signal?: AbortSignal, customHeaders?: Record<string, string>): Promise<Response> {
+  const headers: Record<string, string> = { ...customHeaders }
   let payload: BodyInit | undefined
   if (body !== undefined) {
     headers['Content-Type'] = 'application/json'
@@ -123,21 +211,27 @@ async function doFetch(method: HttpMethod, url: string, body: unknown, signal?: 
   return fetch(url, { method, headers, body: payload, credentials: 'include', signal })
 }
 
-async function request<T>(method: HttpMethod, path: string, body?: unknown, opts: RequestOptions = {}): Promise<T> {
+async function performRequest<T>(method: HttpMethod, path: string, body: unknown, opts: RequestOptions): Promise<T> {
+  const requestGeneration = authGeneration
   const url = buildUrl(path, opts.params)
-  let res = await doFetch(method, url, body, opts.signal)
+  let res = await doFetch(method, url, body, opts.signal, opts.headers)
+  assertCurrentIdentity(requestGeneration)
 
   // Transparent 401 recovery — never for auth endpoints (their 401s are meaningful).
   if (res.status === 401 && !path.startsWith('/api/auth/')) {
     const refreshed = await attemptRefresh()
-    if (refreshed) {
-      res = await doFetch(method, url, body, opts.signal)
-    } else {
-      onUnauthorized?.()
+    assertCurrentIdentity(requestGeneration)
+    if (refreshed === 'refreshed') {
+      res = await doFetch(method, url, body, opts.signal, opts.headers)
+      assertCurrentIdentity(requestGeneration)
+      if (res.status === 401 && requestGeneration === authGeneration) onUnauthorized?.()
+    } else if (refreshed === 'unauthorized') {
+      if (requestGeneration === authGeneration) onUnauthorized?.()
     }
   }
 
   const parsed = await parseBody(res)
+  assertCurrentIdentity(requestGeneration)
   if (!res.ok) {
     const errObj = (parsed && typeof parsed === 'object' ? (parsed as Record<string, unknown>) : {}) as {
       error?: string
@@ -148,10 +242,37 @@ async function request<T>(method: HttpMethod, path: string, body?: unknown, opts
   return parsed as T
 }
 
+function request<T>(method: HttpMethod, path: string, body?: unknown, opts: RequestOptions = {}): Promise<T> {
+  if (identityOperation && opts.identityToken !== identityOperation) {
+    return Promise.reject(new DOMException('Account action in progress', 'AbortError'))
+  }
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(new DOMException('Request timed out', 'TimeoutError')), opts.timeoutMs ?? REQUEST_TIMEOUT_MS)
+  const abort = () => controller.abort(opts.signal?.reason)
+  if (opts.signal?.aborted) abort()
+  else opts.signal?.addEventListener('abort', abort, { once: true })
+  const run = () => performRequest<T>(method, path, body, { ...opts, signal: controller.signal })
+  const pending = (async () => {
+    try {
+      if ((opts.identityToken && opts.identityToken === identityOperation) || typeof navigator === 'undefined' || !navigator.locks) return await run()
+      return await navigator.locks.request(LOCK_NAME, { mode: 'shared', signal: controller.signal }, run)
+    } finally {
+      clearTimeout(timeout)
+      opts.signal?.removeEventListener('abort', abort)
+    }
+  })()
+  inFlightRequests.add(pending)
+  void pending.then(
+    () => inFlightRequests.delete(pending),
+    () => inFlightRequests.delete(pending),
+  )
+  return pending
+}
+
 export const api = {
-  get: <T>(path: string, params?: QueryParams, signal?: AbortSignal) => request<T>('GET', path, undefined, { params, signal }),
-  post: <T>(path: string, body?: unknown) => request<T>('POST', path, body),
+  get: <T>(path: string, params?: QueryParams, signal?: AbortSignal, identityToken?: IdentityOperationToken) => request<T>('GET', path, undefined, { params, signal, identityToken }),
+  post: <T>(path: string, body?: unknown, identityToken?: IdentityOperationToken, timeoutMs?: number, headers?: Record<string, string>) => request<T>('POST', path, body, { identityToken, timeoutMs, headers }),
   patch: <T>(path: string, body?: unknown) => request<T>('PATCH', path, body),
   put: <T>(path: string, body?: unknown) => request<T>('PUT', path, body),
-  delete: <T>(path: string, body?: unknown) => request<T>('DELETE', path, body),
+  delete: <T>(path: string, body?: unknown, identityToken?: IdentityOperationToken) => request<T>('DELETE', path, body, { identityToken }),
 }

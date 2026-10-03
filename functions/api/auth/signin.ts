@@ -18,12 +18,12 @@ export const onRequestPost: PagesFunction<Env> = (context) =>
   runHandler(async () => {
     const { request, env } = context
     requireSameOrigin(request)
-    await rateLimit(env.IMPORT_JOBS, `signin:${clientIp(request)}`, 20, 900)
+    await rateLimit(env.DB, `signin:${clientIp(request)}`, 20, 900)
 
     const body = await readJson<SigninBody>(request)
-    const email = body?.email?.trim()
+    const email = typeof body?.email === 'string' ? body.email.trim() : null
     const password = body?.password
-    if (!email || !password) throw new HttpError(400, 'Email and password are required', 'MISSING_CREDENTIALS')
+    if (!email || typeof password !== 'string' || !password || password.length > 1024) throw new HttpError(400, 'Email and password are required', 'MISSING_CREDENTIALS')
 
     const user = await getUserByEmail(env.DB, email)
     if (!user) {

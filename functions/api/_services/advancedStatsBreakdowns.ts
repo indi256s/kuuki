@@ -183,12 +183,21 @@ export async function computeContinentBreakdown(db: D1Database, userId: string):
   return regionDistinctCounts(db, userId, false)
 }
 
+/** The same visit-based breakdown against visits awaiting atomic publication. */
+export function continentBreakdownForCountries(countryCodes: Iterable<string>): ContinentBreakdown {
+  return regionCountsForCountries(countryCodes, false)
+}
+
 // =========================================================================================
 // 4. compute_region_breakdown  (map B via regionOf; INCLUDES 'other')
 // =========================================================================================
 
 export async function computeRegionBreakdown(db: D1Database, userId: string): Promise<RegionBreakdown> {
   return regionDistinctCounts(db, userId, true)
+}
+
+export function regionBreakdownForCountries(countryCodes: Iterable<string>): RegionBreakdown {
+  return regionCountsForCountries(countryCodes, true)
 }
 
 /**
@@ -203,9 +212,13 @@ async function regionDistinctCounts(db: D1Database, userId: string, includeOther
     .bind(userId)
     .all<{ country_code: string }>()
 
+  return regionCountsForCountries(rows.results.map(r => r.country_code), includeOther)
+}
+
+function regionCountsForCountries(countryCodes: Iterable<string>, includeOther: boolean): Record<string, number> {
   const counts: Record<string, number> = {}
-  for (const r of rows.results) {
-    const bucket = regionOf(r.country_code)
+  for (const code of new Set(countryCodes)) {
+    const bucket = regionOf(code)
     if (!includeOther && bucket === 'other') continue
     counts[bucket] = (counts[bucket] ?? 0) + 1
   }

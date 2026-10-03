@@ -15,6 +15,7 @@ import {
 } from '@/lib/passport'
 import { useAuthStore } from '@/stores/authStore'
 import type { PassportEntry, CountryStats, GroundVisit, EntryMethod } from '@kuuki/shared'
+import { reconcileDerivedState } from '@/lib/derivedStateFeedback'
 
 const PASSPORT_COUNTRIES_KEY = 'passportCountries'
 const PASSPORT_CLAIMS_KEY = 'passportClaims'
@@ -156,15 +157,6 @@ export function useGroundVisits(countryCode: string | null) {
   })
 }
 
-/** Invalidate all passport-related queries */
-function invalidatePassportQueries(queryClient: ReturnType<typeof useQueryClient>) {
-  queryClient.invalidateQueries({ queryKey: [PASSPORT_COUNTRIES_KEY] })
-  queryClient.invalidateQueries({ queryKey: [PASSPORT_CLAIMS_KEY] })
-  // Stats are derived from countries via useMemo — no separate invalidation needed
-  queryClient.invalidateQueries({ queryKey: ['userStats'] })
-  queryClient.invalidateQueries({ queryKey: ['flightStats'] })
-}
-
 /**
  * Hook to claim a country (two-step: upsert stamp + insert ground visit)
  */
@@ -187,18 +179,18 @@ export function useClaimCountry() {
       if (!userId) throw new Error('Not authenticated')
 
       // Step 1: Upsert the stamp
-      await claimCountry(userId, countryCode)
+      const claim = await claimCountry(userId, countryCode)
+      reconcileDerivedState(claim, queryClient, userId)
 
       // Step 2: Insert ground visit if any details provided
       const hasDetails = visitYear != null || note || entryMethod
       if (hasDetails) {
-        await addGroundVisit(userId, countryCode, { visitYear, note, entryMethod })
+        return addGroundVisit(userId, countryCode, { visitYear, note, entryMethod })
       }
+      return claim
     },
-    onSuccess: (_, { countryCode }) => {
-      invalidatePassportQueries(queryClient)
-      queryClient.invalidateQueries({ queryKey: [COUNTRY_STATS_KEY, userId, countryCode] })
-      queryClient.invalidateQueries({ queryKey: [GROUND_VISITS_KEY, userId, countryCode] })
+    onSuccess: (ack, { countryCode }) => {
+      if (userId) reconcileDerivedState(ack, queryClient, userId)
       toast.success(`Added ${countryCode} to your passport`)
     },
     onError: (error) => {
@@ -230,10 +222,8 @@ export function useAddGroundVisit() {
       if (!userId) throw new Error('Not authenticated')
       return addGroundVisit(userId, countryCode, { visitYear, note, entryMethod })
     },
-    onSuccess: (_, { countryCode }) => {
-      invalidatePassportQueries(queryClient)
-      queryClient.invalidateQueries({ queryKey: [COUNTRY_STATS_KEY, userId, countryCode] })
-      queryClient.invalidateQueries({ queryKey: [GROUND_VISITS_KEY, userId, countryCode] })
+    onSuccess: (ack) => {
+      if (userId) reconcileDerivedState(ack, queryClient, userId)
       toast.success('Visit added')
     },
     onError: (error) => {
@@ -255,11 +245,8 @@ export function useDeleteGroundVisit() {
       if (!userId) throw new Error('Not authenticated')
       return deleteGroundVisit(userId, visitId)
     },
-    onSuccess: () => {
-      invalidatePassportQueries(queryClient)
-      // Invalidate all country stats (we don't know which country)
-      queryClient.invalidateQueries({ queryKey: [COUNTRY_STATS_KEY] })
-      queryClient.invalidateQueries({ queryKey: [GROUND_VISITS_KEY] })
+    onSuccess: (ack) => {
+      if (userId) reconcileDerivedState(ack, queryClient, userId)
       toast.success('Visit removed')
     },
     onError: (error) => {
@@ -281,10 +268,8 @@ export function useUnclaimCountry() {
       if (!userId) throw new Error('Not authenticated')
       return unclaimCountry(userId, countryCode)
     },
-    onSuccess: (_, countryCode) => {
-      invalidatePassportQueries(queryClient)
-      queryClient.invalidateQueries({ queryKey: [COUNTRY_STATS_KEY, userId, countryCode] })
-      queryClient.invalidateQueries({ queryKey: [GROUND_VISITS_KEY, userId, countryCode] })
+    onSuccess: (ack, countryCode) => {
+      if (userId) reconcileDerivedState(ack, queryClient, userId)
       toast.success(`Removed ${countryCode} from your passport`)
     },
     onError: (error) => {

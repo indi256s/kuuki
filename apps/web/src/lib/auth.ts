@@ -1,4 +1,4 @@
-import { api, ApiError } from './apiClient'
+import { api, ApiError, type IdentityOperationToken } from './apiClient'
 import type { Tables } from './database.types'
 
 export type Profile = Tables<'profiles'>
@@ -19,13 +19,14 @@ export interface AuthState {
 // Sign up with email and password (open registration — no invite code).
 export async function signUp(
   email: string,
-  password: string
+  password: string,
+  identityToken?: IdentityOperationToken,
 ): Promise<{ success: boolean; error?: string; user?: AuthUser }> {
   try {
     const data = await api.post<{ user: AuthUser; profile: Profile | null }>('/api/auth/signup', {
       email,
       password,
-    })
+    }, identityToken)
     return { success: true, user: data.user }
   } catch (error) {
     if (error instanceof ApiError) {
@@ -38,13 +39,14 @@ export async function signUp(
 // Sign in with email and password
 export async function signIn(
   email: string,
-  password: string
+  password: string,
+  identityToken?: IdentityOperationToken,
 ): Promise<{ success: boolean; error?: string; user?: AuthUser }> {
   try {
     const data = await api.post<{ user: AuthUser; profile: Profile | null }>('/api/auth/signin', {
       email,
       password,
-    })
+    }, identityToken)
     return { success: true, user: data.user }
   } catch (error) {
     if (error instanceof ApiError) {
@@ -55,28 +57,33 @@ export async function signIn(
 }
 
 // Sign out
-export async function signOut(): Promise<void> {
+export async function signOut(identityToken?: IdentityOperationToken): Promise<{ success: boolean; error?: string }> {
   try {
-    await api.post('/api/auth/signout')
+    await api.post('/api/auth/signout', undefined, identityToken)
+    return { success: true }
   } catch (error) {
-    console.error('Error signing out:', error)
+    return { success: false, error: error instanceof ApiError ? error.message : 'Could not sign out. Please try again.' }
+  }
+}
+
+export async function requestActivation(email: string): Promise<{ success: boolean; error?: string }> {
+  try {
+    await api.post('/api/auth/activation/request', { email })
+    return { success: true }
+  } catch (error) {
+    return { success: false, error: error instanceof ApiError ? error.message : 'Could not request activation. Please try again.' }
   }
 }
 
 // Bootstrap the current session from the httpOnly cookie. Replaces getSession()/getUser().
 export async function getMe(): Promise<{ user: AuthUser | null; profile: Profile | null }> {
-  try {
-    return await api.get<{ user: AuthUser | null; profile: Profile | null }>('/api/auth/me')
-  } catch (error) {
-    console.error('Error fetching current user:', error)
-    return { user: null, profile: null }
-  }
+  return api.get<{ user: AuthUser | null; profile: Profile | null }>('/api/auth/me')
 }
 
 // Get user profile
-export async function getProfile(userId: string): Promise<Profile | null> {
+export async function getProfile(userId: string, identityToken?: IdentityOperationToken): Promise<Profile | null> {
   try {
-    return await api.get<Profile>(`/api/profiles/${userId}`)
+    return await api.get<Profile>(`/api/profiles/${userId}`, undefined, undefined, identityToken)
   } catch (error) {
     console.error('Error fetching profile:', error)
     return null
@@ -116,9 +123,9 @@ export async function verifyPassword(password: string): Promise<boolean> {
  * Delete the authenticated user's account and all of its data.
  * This is a permanent, irreversible action.
  */
-export async function deleteAccount(password: string): Promise<{ success: boolean; error?: string }> {
+export async function deleteAccount(password: string, identityToken?: IdentityOperationToken): Promise<{ success: boolean; error?: string }> {
   try {
-    await api.delete('/api/auth/account', { password })
+    await api.delete('/api/auth/account', { password }, identityToken)
     return { success: true }
   } catch (error) {
     if (error instanceof ApiError) {

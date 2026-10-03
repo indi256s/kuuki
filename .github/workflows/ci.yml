@@ -5,54 +5,20 @@ on:
     branches: [main, dev]
   pull_request:
     branches: [main, dev]
-    types: [opened, synchronize, reopened, labeled]
   workflow_dispatch:
 
-# Cancel in-progress runs on same branch
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 env:
   PNPM_VERSION: 9.15.0
-  NODE_VERSION: 25
+  NODE_VERSION: 24
 
 jobs:
-  # Skip CI if commit message contains [skip ci]
-  check-skip:
+  verify:
     runs-on: ubuntu-latest
-    outputs:
-      should_skip: ${{ steps.check.outputs.should_skip }}
-    steps:
-      - id: check
-        env:
-          COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
-        run: |
-          if [[ "$COMMIT_MESSAGE" == *"[skip ci]"* ]]; then
-            echo "should_skip=true" >> $GITHUB_OUTPUT
-          else
-            echo "should_skip=false" >> $GITHUB_OUTPUT
-          fi
-
-  # Gate for AI agent PRs - require ci:approved label
-  check-approval:
-    needs: check-skip
-    if: |
-      needs.check-skip.outputs.should_skip != 'true' && (
-        github.event_name == 'push' ||
-        github.event_name == 'workflow_dispatch' ||
-        (github.event_name == 'pull_request' &&
-         (github.event.pull_request.user.login != 'github-actions[bot]' ||
-          contains(github.event.pull_request.labels.*.name, 'ci:approved')))
-      )
-    runs-on: ubuntu-latest
-    steps:
-      - run: echo "CI approved to run"
-
-  lint:
-    needs: check-approval
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -61,114 +27,95 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'pnpm'
+          cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - run: pnpm turbo run build --filter='./packages/*'
       - run: pnpm lint
-
-  typecheck:
-    needs: check-approval
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-        with:
-          version: ${{ env.PNPM_VERSION }}
-      - uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'pnpm'
-      - run: pnpm install --frozen-lockfile
-      # Build packages first (typecheck depends on built types)
-      - run: pnpm turbo run build --filter='./packages/*'
       - run: pnpm typecheck
-
-  test:
-    needs: check-approval
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    continue-on-error: true  # Tests don't block merge
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-        with:
-          version: ${{ env.PNPM_VERSION }}
-      - uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'pnpm'
-      - run: pnpm install --frozen-lockfile
-      # Build packages first (tests may depend on built types)
-      - run: pnpm turbo run build --filter='./packages/*'
-      - run: cd apps/web && pnpm test:run --reporter=junit --outputFile=test-results.xml
-      - uses: actions/upload-artifact@v4
-        if: failure()
-        with:
-          name: test-results
-          path: apps/web/test-results.xml
-          retention-days: 7
-
-  build:
-    needs: check-approval
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-        with:
-          version: ${{ env.PNPM_VERSION }}
-      - uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'pnpm'
-      - run: pnpm install --frozen-lockfile
+      - run: pnpm typecheck:api
+      - run: pnpm typecheck:scripts
+      - run: pnpm typecheck:maintenance
+      - run: pnpm --filter @kuuki/web test:run
+      - run: pnpm test:api
       - run: pnpm build
+      - run: pnpm build:api
+      - run: pnpm build:maintenance
+      - run: pnpm smoke:runtime
       - uses: actions/upload-artifact@v4
         with:
-          name: web-dist
+          name: web-dist-${{ github.sha }}
           path: apps/web/dist
           retention-days: 1
 
-  deploy-staging:
-    needs: [lint, typecheck, build]
-    if: github.event_name == 'pull_request'
+  deploy-preview:
+    needs: verify
+    if: github.event_name == 'pull_request' && vars.PREVIEW_ISOLATION_VERIFIED == 'true'
+    concurrency:
+      group: kuuki-staging-deployment
+      cancel-in-progress: true
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    continue-on-error: true  # Deploy failures don't trigger auto-revert
     steps:
       - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: node scripts/check-preview-config.mjs
       - uses: actions/download-artifact@v4
         with:
-          name: web-dist
+          name: web-dist-${{ github.sha }}
           path: apps/web/dist
-      - uses: cloudflare/wrangler-action@v3
+      - run: pnpm exec wrangler pages deploy apps/web/dist --project-name=kuuki --branch=staging
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
+  deploy-maintenance:
+    needs: [verify, deploy-production]
+    if: vars.MAINTENANCE_DEPLOY_READY == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
         with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy apps/web/dist --project-name=kuuki-staging
-          packageManager: npm
+          version: ${{ env.PNPM_VERSION }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec wrangler deploy --config workers/maintenance/wrangler.toml
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
 
   deploy-production:
-    needs: [lint, typecheck, build]
-    if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+    needs: verify
+    if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && vars.PREVIEW_ISOLATION_VERIFIED == 'true' && vars.GIT_DEPLOY_DISABLED == 'true' && vars.PRODUCTION_RELEASE_SHA == github.sha
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    continue-on-error: true  # Deploy failures don't trigger auto-revert
     steps:
       - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: node scripts/check-preview-config.mjs
       - uses: actions/download-artifact@v4
         with:
-          name: web-dist
+          name: web-dist-${{ github.sha }}
           path: apps/web/dist
-      - uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy apps/web/dist --project-name=kuuki
-          packageManager: npm
+      - run: pnpm exec wrangler pages deploy apps/web/dist --project-name=kuuki --branch=main
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}

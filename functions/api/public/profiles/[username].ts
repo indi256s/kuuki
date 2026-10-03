@@ -70,7 +70,10 @@ export const onRequestGet: PagesFunction<Env> = (context) =>
       return toUserBadgeWithDefinition(userBadge, def)
     })
 
-    const showRankings = !!profile.show_on_leaderboards && (stats?.total_flights ?? 0) >= 5
+    const derivedState = await db.prepare('SELECT revision, published_revision FROM user_derived_state WHERE user_id = ?')
+      .bind(profile.id).first<{ revision: number; published_revision: number }>()
+    const showRankings = !!profile.show_on_leaderboards && (stats?.total_flights ?? 0) >= 5 &&
+      (!derivedState || derivedState.revision === derivedState.published_revision)
     let rankings: ReturnType<typeof toLeaderboardEntry>[] = []
     if (showRankings) {
       const rankRows = await db

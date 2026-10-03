@@ -1,0 +1,12 @@
+{
+  "target": "local",
+  "observedDbId": "local-synthetic-d1",
+  "expectedSchemaSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "observedSchemaSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "backupReference": "synthetic-fixture-backup",
+  "sourceSnapshotSha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+  "sourceSnapshotCapturedAt": "2026-10-03T08:00:00Z",
+  "sourceSnapshotReviewedAt": "2026-10-03T08:05:00Z",
+  "conflictsReviewed": true,
+  "unresolvedConflicts": 0
+}

@@ -2,8 +2,7 @@
 
 import { runHandler, json } from '../_lib/http'
 import { requireCsrf, requireUser, type RequestData } from '../_lib/auth'
-import { rebuildVisitsForUser, recomputeUserStats, updateAdvancedStatsUnlocks, evaluateBadges } from '../_services/stats'
-import { refreshAdvancedStats } from '../_services/advancedStats'
+import { dirtyUserStatement, repairUserDerivedState } from '../_services/derivedState'
 
 export const onRequestPost: PagesFunction<Env, string, RequestData> = (context) =>
   runHandler(async () => {
@@ -11,15 +10,10 @@ export const onRequestPost: PagesFunction<Env, string, RequestData> = (context) 
     requireCsrf(request)
     const user = requireUser(data)
 
-    const res = await env.DB.prepare('DELETE FROM flights WHERE user_id = ?').bind(user.id).run()
-    const deleted = res.meta.changes ?? 0
-
-    // Rebuild visits (empty now) so geo counts reset to zero (security finding #6).
-    await rebuildVisitsForUser(env.DB, user.id)
-    await recomputeUserStats(env.DB, user.id)
-    await updateAdvancedStatsUnlocks(env.DB, user.id)
-    await evaluateBadges(env.DB, user.id)
-    await refreshAdvancedStats(env.DB, user.id)
-
-    return json({ deleted })
+    const [result] = await env.DB.batch([
+      env.DB.prepare('DELETE FROM flights WHERE user_id = ?').bind(user.id),
+      dirtyUserStatement(env.DB, user.id, true),
+    ])
+    const deleted = result.meta.changes ?? 0
+    return json({ deleted, ...(deleted ? await repairUserDerivedState(env.DB, user.id) : {}) })
   })

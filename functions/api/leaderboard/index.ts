@@ -25,7 +25,10 @@ export const onRequestGet: PagesFunction<Env, string, RequestData> = (context) =
       .prepare(
         `SELECT lc.* FROM leaderboard_cache lc
          JOIN profiles p ON p.id = lc.user_id
-         WHERE lc.category = ? AND p.show_on_leaderboards = 1
+         JOIN user_stats us ON us.user_id = lc.user_id
+         LEFT JOIN user_derived_state ds ON ds.user_id = lc.user_id
+         WHERE lc.category = ? AND p.show_on_leaderboards = 1 AND us.total_flights >= 5
+           AND (ds.user_id IS NULL OR ds.revision = ds.published_revision)
          ORDER BY lc.rank ASC LIMIT ? OFFSET ?`,
       )
       .bind(category, limit, offset)
@@ -35,7 +38,10 @@ export const onRequestGet: PagesFunction<Env, string, RequestData> = (context) =
       .prepare(
         `SELECT COUNT(*) AS total FROM leaderboard_cache lc
          JOIN profiles p ON p.id = lc.user_id
-         WHERE lc.category = ? AND p.show_on_leaderboards = 1`,
+         JOIN user_stats us ON us.user_id = lc.user_id
+         LEFT JOIN user_derived_state ds ON ds.user_id = lc.user_id
+         WHERE lc.category = ? AND p.show_on_leaderboards = 1 AND us.total_flights >= 5
+           AND (ds.user_id IS NULL OR ds.revision = ds.published_revision)`,
       )
       .bind(category)
       .first<{ total: number }>()

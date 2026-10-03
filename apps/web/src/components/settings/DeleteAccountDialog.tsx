@@ -16,7 +16,7 @@ import { Label } from '@/components/ui/label'
 import { useAuthStore } from '@/stores/authStore'
 import { useFlightStats } from '@/hooks/useStats'
 import { usePassportStats, usePassportClaims } from '@/hooks/usePassport'
-import { verifyPassword, deleteAccount } from '@/lib/auth'
+import { verifyPassword } from '@/lib/auth'
 import { getAllFlights } from '@/lib/flights'
 import { exportFlights, exportClaims } from '@/lib/export'
 import { useToast } from '@/hooks/useToast'
@@ -32,6 +32,7 @@ export function DeleteAccountDialog({ open, onOpenChange }: DeleteAccountDialogP
   const { t } = useTranslation()
   const navigate = useNavigate()
   const user = useAuthStore((state) => state.user)
+  const deleteAccount = useAuthStore((state) => state.deleteAccount)
   const { showError, showSuccess } = useToast()
 
   const { data: stats } = useFlightStats()
@@ -68,6 +69,7 @@ export function DeleteAccountDialog({ open, onOpenChange }: DeleteAccountDialogP
       // Export flights
       if (flightCount > 0) {
         const flights = await getAllFlights(user.id)
+        if (flights.length === 0) throw new Error('No flights were returned for export. Please refresh and try again.')
         exportFlights(flights, { enriched: true })
       }
 

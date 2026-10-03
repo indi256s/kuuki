@@ -53,7 +53,9 @@ export async function refreshLeaderboards(db: D1Database): Promise<void> {
               us.airports_count, us.airlines_count
        FROM user_stats us
        JOIN profiles p ON p.id = us.user_id
+       LEFT JOIN user_derived_state ds ON ds.user_id = us.user_id
        WHERE us.total_flights >= 5 AND p.show_on_leaderboards = 1
+         AND (ds.user_id IS NULL OR ds.revision = ds.published_revision)
        ORDER BY p.created_at ASC`,
     )
     .all<EligibleRow>()

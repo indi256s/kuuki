@@ -1,8 +1,8 @@
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
-import { useCreateFlight, useFlights } from '@/hooks/useFlights'
+import { useCreateFlight, useFlights, type FlightInsert } from '@/hooks/useFlights'
 import { useParseImport, type ExtractedFlight, type RejectedFlight } from '@/hooks/useImport'
 import { useToast } from '@/hooks/useToast'
 import { useImportStore } from '@/stores/importStore'
@@ -23,9 +23,14 @@ import { getMessageKeyForCategory } from '@/lib/errors'
 import { Check, Plane, ArrowRight, AlertCircle, X, AlertTriangle } from 'lucide-react'
 import { PlaneAnimation } from '@/components/common/PlaneAnimation'
 import { useCountUp } from '@/hooks/useCountUp'
+import { abandonFlightCreateOperation, currentFlightOperationId, pendingFlightCreateOperation, pendingImportFlightOperations, rotateFlightOperationId } from '@/lib/flightCreateOperations'
+import { useAuthStore } from '@/stores/authStore'
+import { validateFlightInput } from '@kuuki/shared'
 
 type ImportStep = 'upload' | 'parsing' | 'review' | 'saving' | 'success'
 type InputType = 'text' | 'pdf' | 'image'
+type CreateInput = Omit<FlightInsert, 'id' | 'created_at' | 'user_id'>
+type FailedFlight = { flight: ExtractedFlight; operationId: string; originalInput?: CreateInput; expired?: boolean }
 
 // Location state for resuming from background
 interface BackgroundState {
@@ -42,6 +47,10 @@ export function ImportPage() {
   const navigate = useNavigate()
   const location = useLocation()
   const queryClient = useQueryClient()
+  const userId = useAuthStore((state) => state.user?.id)
+  const importRunId = useRef(currentFlightOperationId('import'))
+  const recoveryCheckedFor = useRef<string | null>(null)
+  const [failedFlights, setFailedFlights] = useState<FailedFlight[]>([])
 
   // Background state from location (resume from toast notification)
   const locationState = location.state as BackgroundState | null
@@ -63,6 +72,34 @@ export function ImportPage() {
   const [saveErrors, setSaveErrors] = useState<Array<{ index: number; flightLabel: string; error: string }>>([]) // Track failed flights with details
   const [enrichmentJobId, setEnrichmentJobId] = useState<string | undefined>()
 
+  useEffect(() => {
+    if (!userId || recoveryCheckedFor.current === userId) return
+    recoveryCheckedFor.current = userId
+    const recovered: FailedFlight[] = pendingImportFlightOperations(userId).map(({ operationId, body, expired }) => {
+      const input = body as CreateInput
+      return {
+        operationId,
+        originalInput: input,
+        expired,
+        flight: {
+          date: input.date ?? '', origin: input.origin ?? '', destination: input.destination ?? '',
+          airline_iata: input.airline_iata ?? '', flight_number: input.flight_number ?? undefined,
+          aircraft_icao: input.aircraft_icao ?? undefined, departure_time: input.departure_time ?? undefined,
+          arrival_time: input.arrival_time ?? undefined, confidence: 1,
+        },
+      }
+    })
+    if (recovered.length === 0) return
+    setFailedFlights(recovered)
+    setSaveErrors(recovered.map((item, index) => ({
+      index, flightLabel: `${item.flight.origin} → ${item.flight.destination} (${item.flight.date})`,
+      error: item.expired
+        ? t('import.success.expired', 'This save is too old to retry safely. Check your flights before starting a new import.')
+        : t('import.success.unconfirmed', 'Save status unconfirmed. Retry the original request.'),
+    })))
+    setStep('success')
+  }, [userId, t])
+
   const parseMutation = useParseImport()
   const createFlightMutation = useCreateFlight()
   const { showError } = useToast()
@@ -79,6 +116,7 @@ export function ImportPage() {
 
   // Handle initial state: text content from EmptyState or resuming from background
   useEffect(() => {
+    if (userId && pendingImportFlightOperations(userId).length > 0) return
     // Resume from background notification
     if (locationState?.fromBackground) {
       if (locationState.enrichedFlights) {
@@ -151,17 +189,20 @@ export function ImportPage() {
     }
   }, [parseMutation])
 
-  const handleSaveFlights = useCallback(async (flights: ExtractedFlight[]) => {
+  const handleSaveFlights = useCallback(async (flights: ExtractedFlight[], retryEntries?: FailedFlight[]) => {
     setStep('saving')
     setSavedCount(0)
     setSaveErrors([])
 
     let successCount = 0
     const failedDetails: Array<{ index: number; flightLabel: string; error: string }> = []
+    const failedForRetry: FailedFlight[] = []
 
     for (let i = 0; i < flights.length; i++) {
       const flight = flights[i]
+      const operationId = retryEntries?.[i]?.operationId ?? `${importRunId.current}:${i}`
       try {
+        if (flight.field_confidence?.date_year_explicit === false && !retryEntries?.[i]?.originalInput) throw new Error('Confirm the inferred year before saving')
         // Look up airport coordinates for distance calculation
         const originAirport = findAirport(flight.origin)
         const destAirport = findAirport(flight.destination)
@@ -193,7 +234,7 @@ export function ImportPage() {
           }
         }
 
-        await createFlightMutation.mutateAsync({
+        const input: CreateInput = retryEntries?.[i]?.originalInput ?? {
           date: flight.date,
           origin: flight.origin,
           destination: flight.destination,
@@ -209,7 +250,9 @@ export function ImportPage() {
           source: 'ai_import',
           // Pass enrichment status from parse result (or default based on aircraft presence)
           enrichment_status: flight.enrichment_status || (flight.aircraft_icao ? 'skipped' : 'pending'),
-        })
+        }
+        validateFlightInput(input, 'create')
+        await createFlightMutation.mutateAsync({ flight: input, operationId })
 
         successCount++
         setSavedCount(successCount)
@@ -218,12 +261,15 @@ export function ImportPage() {
         const flightLabel = `${flight.origin} → ${flight.destination} (${flight.date})`
         const errorMsg = error instanceof Error ? error.message : String(error)
         failedDetails.push({ index: i, flightLabel, error: errorMsg })
+        const pending = userId ? pendingFlightCreateOperation(userId, operationId) : null
+        failedForRetry.push({ flight, operationId, originalInput: pending?.body as CreateInput | undefined, expired: pending?.expired })
         // Continue with other flights - don't block on individual failures
       }
     }
 
     // Track failed saves for potential retry
     setSaveErrors(failedDetails)
+    setFailedFlights(failedForRetry)
 
     // Invalidate queries to refresh data
     await queryClient.invalidateQueries({ queryKey: ['flights'] })
@@ -242,7 +288,12 @@ export function ImportPage() {
 
     setSavedCount(successCount)
     setStep('success')
-  }, [createFlightMutation, queryClient, showError])
+  }, [createFlightMutation, queryClient, showError, userId])
+
+  const retryFailedFlights = useCallback(() => {
+    if (failedFlights.some(item => item.expired)) return
+    void handleSaveFlights(failedFlights.map(item => item.flight), failedFlights)
+  }, [failedFlights, handleSaveFlights])
 
   const handleRevealComplete = useCallback(() => {
     setPendingFlights(undefined)
@@ -303,6 +354,12 @@ export function ImportPage() {
     setPendingFlights(undefined)
     parseMutation.reset()
   }, [parseMutation])
+
+  const startNewImport = useCallback(() => {
+    if (userId) failedFlights.forEach(item => abandonFlightCreateOperation(userId, item.operationId))
+    importRunId.current = rotateFlightOperationId('import')
+    handleImportMore()
+  }, [userId, failedFlights, handleImportMore])
 
   // Map step to user-facing step number (parsing/saving are transient states)
   const getStepNumber = (currentStep: ImportStep): number => {
@@ -503,8 +560,20 @@ export function ImportPage() {
                   )}
 
                   <div className="flex justify-center gap-3">
-                    <Button variant="outline" onClick={handleImportMore}>
-                      {t('import.success.importMore', 'Import more')}
+                    {failedFlights.length > 0 && (
+                      <Button variant="outline" onClick={retryFailedFlights} disabled={failedFlights.some(item => item.expired)}>
+                        {t('import.success.retryFailed', 'Retry failed saves')}
+                      </Button>
+                    )}
+                    {failedFlights.some(item => item.flight.field_confidence?.date_year_explicit === false) && (
+                      <Button variant="outline" onClick={() => setStep('review')}>
+                        {t('import.success.reviewFailed', 'Review flight dates')}
+                      </Button>
+                    )}
+                    <Button variant="outline" onClick={startNewImport}>
+                      {failedFlights.length > 0
+                        ? t('import.success.startNewImport', 'Start new import (abandon these retries)')
+                        : t('import.success.importMore', 'Import more')}
                     </Button>
                     {savedCount > 0 && (
                       <Button onClick={handleGoToFlights} className="gap-2">

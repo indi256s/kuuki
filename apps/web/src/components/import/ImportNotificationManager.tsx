@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { useImportStore } from '@/stores/importStore'
 import { useEnrichmentPolling, type ExtractedFlight } from '@/hooks/useImport'
 import { useToast } from '@/hooks/useToast'
+import { useAuthStore } from '@/stores/authStore'
 
 /**
  * Background component that monitors active import jobs and shows
@@ -16,6 +17,7 @@ export function ImportNotificationManager() {
   const navigate = useNavigate()
   const { showSuccess } = useToast()
   const { getActiveJobs, removeBackgroundJob, clearExpiredJobs } = useImportStore()
+  const authLoading = useAuthStore((state) => state.isLoading)
 
   // Clear expired jobs on mount
   useEffect(() => {
@@ -101,7 +103,7 @@ export function ImportNotificationManager() {
     firstJob?.jobId,
     handleEnrichmentComplete,
     handleEnrichmentError,
-    !!firstJob // Only poll if there's an active job
+    !!firstJob && !authLoading // Account actions hold the shared request lock.
   )
 
   // This component doesn't render anything

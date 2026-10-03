@@ -1,302 +1,46 @@
-# Kuuki - Tech Stack
+# Kuuki tech stack
 
-> **For AI Agents:** Every package, dependency, API, and tool locked to exact versions. No ambiguity. Use these exact versions when generating code.
+Manifests specify compatible ranges; `pnpm-lock.yaml` records the installed versions. Use the lockfile rather than treating older documentation as a version pin.
 
----
+| Layer | Current implementation |
+| --- | --- |
+| Web | React 19, TypeScript, Vite, React Router |
+| UI | Tailwind CSS 4, shadcn/ui and Radix |
+| State | Zustand and TanStack Query |
+| Forms | React Hook Form and Zod; shared flight validation at API boundaries |
+| Translation | react-i18next, Russian and English |
+| Maps/charts | react-simple-maps and Recharts |
+| Hosting/API | Cloudflare Pages and Pages Functions |
+| Database | Cloudflare D1, additive SQL migrations |
+| Authentication | Password hashing with a server pepper, D1 sessions, HTTP-only session cookie and CSRF cookie |
+| Activation delivery | Cloudflare Email Sending REST API; fake sender for local proof |
+| Recovery | Scheduled maintenance Worker, revision-guarded derived-state publication |
+| AI | Server-side `@google/genai`; model configuration and provider errors stay behind the API |
+| Toolchain | Node.js 24, pnpm 9.15.0, Turborepo, Wrangler |
+| Testing | Vitest, Testing Library, Miniflare D1 and compiled local workerd smoke |
 
-## Stack Overview
+## Runtime contracts
 
-| Layer | Technology | Version |
-|-------|------------|---------|
-| Frontend | React + Vite + TypeScript | React 19, Vite 6, TS 5.7 |
-| Styling | Tailwind CSS + shadcn/ui | Tailwind 4.0, OKLCH colors |
-| State | Zustand + TanStack Query | Zustand 5, Query 5.62 |
-| Forms | React Hook Form + Zod | RHF 7.71, Zod 4.3 |
-| i18n | react-i18next | i18next 25.8 |
-| Routing | React Router | 7.1 |
-| Icons | Lucide React | 0.563 |
-| Maps | react-simple-maps | 3.0 |
-| Hosting | Cloudflare Pages | - |
-| Edge API | Cloudflare Workers | - |
-| Database | Supabase PostgreSQL | - |
-| Auth | Supabase Auth | - |
-| AI | Google Gemini 3.0 Flash | genai 1.39 |
+The browser uses same-origin `/api` requests. Mutations require the CSRF cookie/header pair. Ownership is enforced in every user query; Supabase RLS is no longer the live authorization layer.
 
----
+A create request carries an `Idempotency-Key`. A retry must retain its original key and payload. Canonical mutations and dirty revisions commit together; statistics, visits and badges publish atomically for that revision. A saved flight may return `derived_state: pending`; the client waits for recovery without creating another flight. Maintenance retries dirty users and refreshes rankings every five minutes. Its status records the last successful cycle; operators investigate a gap longer than fifteen minutes.
 
-## Frontend Dependencies
+Migrated accounts initially use `RESET_REQUIRED`. Activation requires a short-lived, one-use email token on a separate HTTPS origin. The server stores only its digest. Active users keep their existing credentials, and activation is not a general password-reset service. Preserve the production `AUTH_SECRET` when migrating.
 
-### Core Framework
+Activation delivery uses the fixed Cloudflare Email Sending API with text and HTML content. Only an explicit delivered or queued acknowledgement for the intended recipient counts as provider acceptance. Account ID, verified sender address and a secret scoped to Email Sending are required; real delivery remains gated on domain onboarding and an authorized recipient test. See [the sender setup](runbooks/audit-remediation-release.md#activation-delivery) for operational requirements.
 
-| Package | Version | Purpose |
-|---------|---------|---------|
-| `react` | ^19.0.0 | UI library |
-| `react-dom` | ^19.0.0 | React DOM renderer |
-| `react-router-dom` | ^7.1.0 | Client-side routing |
-| `typescript` | ^5.7.0 | Type safety |
+Modern browsers with Web Locks coordinate requests and identity changes across tabs. Browsers without Web Locks retain a per-tab fallback; full cross-tab identity protection is a release compatibility limitation. Old tabs should reload after cutover. The activation origin serves isolated assets and does not serve the application service worker.
 
-### Build Tools
+Ticket extraction produces review drafts, never automatic database writes. Missing years and other uncertain fields require confirmation. Fake-provider checks establish the HTTP/SDK integration; real OCR quality, latency, cost and retention require a separate approved corpus evaluation.
 
-| Package | Version | Purpose |
-|---------|---------|---------|
-| `vite` | ^6.0.0 | Build tool and dev server |
-| `@vitejs/plugin-react` | ^4.3.0 | React plugin for Vite |
-| `@tailwindcss/vite` | ^4.0.0 | Tailwind Vite integration |
-| `vite-plugin-pwa` | ^1.2.0 | PWA support |
+## Configuration and references
 
-### Styling
+D1 and import KV bindings belong to each environment. Preview and production must never share them. Server configuration includes `AUTH_SECRET`, `PAGES_ORIGIN`, `GEMINI_API_KEY`, `MAINTENANCE_MODE` and activation delivery settings. See [the release runbook](runbooks/audit-remediation-release.md) for exact gates and secret handling.
 
-| Package | Version | Purpose |
-|---------|---------|---------|
-| `tailwindcss` | ^4.0.0 | Utility-first CSS |
-| `tailwind-merge` | ^3.4.0 | Merge Tailwind classes |
-| `class-variance-authority` | ^0.7.1 | Component variants |
-| `clsx` | ^2.1.1 | Conditional classes |
-| `tw-animate-css` | ^1.4.0 | Animation utilities |
+`packages/data` supplies web reference data; D1 migration references include an additive, provenance-recorded supplement. Unknown historical route codes remain raw historical evidence instead of being mapped to guessed airports. Supabase migrations and export artifacts are historical inputs retained until production cutover is accepted.
 
-### UI Components (shadcn/ui via Radix)
+## Commands
 
-| Package | Version | Purpose |
-|---------|---------|---------|
-| `@radix-ui/react-accordion` | ^1.2.12 | Accordion component |
-| `@radix-ui/react-checkbox` | ^1.3.3 | Checkbox component |
-| `@radix-ui/react-collapsible` | ^1.1.12 | Collapsible sections |
-| `@radix-ui/react-dialog` | ^1.1.15 | Modal dialogs |
-| `@radix-ui/react-dropdown-menu` | ^2.1.16 | Dropdown menus |
-| `@radix-ui/react-label` | ^2.1.8 | Form labels |
-| `@radix-ui/react-navigation-menu` | ^1.2.14 | Navigation menu |
-| `@radix-ui/react-popover` | ^1.1.15 | Popovers |
-| `@radix-ui/react-progress` | ^1.1.8 | Progress bars |
-| `@radix-ui/react-scroll-area` | ^1.2.10 | Scroll containers |
-| `@radix-ui/react-select` | ^2.2.6 | Select dropdowns |
-| `@radix-ui/react-separator` | ^1.1.8 | Visual separators |
-| `@radix-ui/react-slot` | ^1.2.4 | Slot composition |
-| `cmdk` | ^1.1.1 | Command palette |
-| `sonner` | ^2.0.7 | Toast notifications |
+Use the [README](../README.md) for setup and check commands. `pnpm build:maintenance` is a local dry run, and `pnpm dev:fixture` is an isolated synthetic app. Source migration and validation require explicit targets; do not use legacy reset or global replacement scripts on a populated database.
 
-### State Management
-
-| Package | Version | Purpose |
-|---------|---------|---------|
-| `zustand` | ^5.0.0 | Client-side state |
-| `@tanstack/react-query` | ^5.62.0 | Server state / caching |
-
-### Forms & Validation
-
-| Package | Version | Purpose |
-|---------|---------|---------|
-| `react-hook-form` | ^7.71.1 | Form management |
-| `@hookform/resolvers` | ^5.2.2 | Zod integration |
-| `zod` | ^4.3.6 | Schema validation |
-
-### Internationalization
-
-| Package | Version | Purpose |
-|---------|---------|---------|
-| `i18next` | ^25.8.0 | i18n core |
-| `react-i18next` | ^16.5.4 | React bindings |
-| `i18next-browser-languagedetector` | ^8.2.0 | Auto language detection |
-
-### Date & Time
-
-| Package | Version | Purpose |
-|---------|---------|---------|
-| `date-fns` | ^4.1.0 | Date utilities |
-| `react-day-picker` | ^9.13.0 | Calendar component |
-
-### Visualization
-
-| Package | Version | Purpose |
-|---------|---------|---------|
-| `react-simple-maps` | ^3.0.0 | World map visualization |
-| `lucide-react` | ^0.563.0 | Icon library |
-
-### Backend Integration
-
-| Package | Version | Purpose |
-|---------|---------|---------|
-| `@supabase/supabase-js` | ^2.47.0 | Supabase client |
-
----
-
-## Development Dependencies
-
-### Testing
-
-| Package | Version | Purpose |
-|---------|---------|---------|
-| `vitest` | ^4.0.18 | Test runner |
-| `@testing-library/react` | ^16.3.2 | React testing |
-| `@testing-library/jest-dom` | ^6.9.1 | DOM matchers |
-| `@testing-library/user-event` | ^14.6.1 | User interaction simulation |
-| `@vitest/coverage-v8` | ^4.0.18 | Coverage reporting |
-| `jsdom` | ^27.4.0 | DOM simulation |
-
-### Linting & Types
-
-| Package | Version | Purpose |
-|---------|---------|---------|
-| `eslint` | ^9.39.2 | Code linting |
-| `@eslint/js` | ^9.39.2 | ESLint JS config |
-| `typescript-eslint` | ^8.54.0 | TypeScript ESLint |
-| `eslint-plugin-react-hooks` | ^7.0.1 | React hooks rules |
-| `eslint-plugin-react-refresh` | ^0.5.0 | Fast refresh rules |
-| `@types/react` | ^19.0.0 | React types |
-| `@types/react-dom` | ^19.0.0 | React DOM types |
-| `@types/react-simple-maps` | ^3.0.6 | Map types |
-| `globals` | ^17.3.0 | Global type definitions |
-
-### PWA
-
-| Package | Version | Purpose |
-|---------|---------|---------|
-| `workbox-window` | ^7.4.0 | Service worker utilities |
-
----
-
-## Root Dependencies
-
-| Package | Version | Purpose |
-|---------|---------|---------|
-| `turbo` | ^2.4.0 | Monorepo build system |
-| `wrangler` | ^4.62.0 | Cloudflare CLI |
-| `@cloudflare/workers-types` | ^4.20260131.0 | Worker types |
-| `@google/genai` | ^1.39.0 | Gemini AI SDK |
-
----
-
-## Workspace Packages
-
-### @kuuki/web
-
-Main web application. Contains all React components, routes, and hooks.
-
-### @kuuki/shared
-
-Shared code between packages:
-- TypeScript types
-- i18n translations (`en.json`, `ru.json`)
-
-### @kuuki/data
-
-Static reference data:
-- `aircraft.json` — 726 aircraft types
-- `airports.json` — 512 airports
-- `airlines.json` — 162 airlines
-- `countries.json` — 246 countries/territories
-
----
-
-## External Services
-
-### Supabase
-
-| Service | Purpose |
-|---------|---------|
-| PostgreSQL | Primary database |
-| Auth | Email/password authentication |
-| RLS | Row-level security |
-| Triggers | Stats computation, badge evaluation |
-
-**Configuration:**
-- Free tier
-- Direct client access (no backend proxy)
-- 30-day session duration
-
-### Cloudflare
-
-| Service | Purpose |
-|---------|---------|
-| Pages | Static site hosting |
-| Workers | Gemini API proxy |
-
-**Build Settings:**
-- Build command: `pnpm build`
-- Output directory: `apps/web/dist`
-- Node version: 18+
-
-### Google Gemini
-
-| Model | Purpose |
-|-------|---------|
-| Gemini 3.0 Flash | OCR and semantic parsing for flight import |
-
-**API Key Management:**
-- Beta: Server-side proxy (key in Worker secrets)
-- Post-launch: User provides own key
-
----
-
-## Environment Variables
-
-### Client-Side (Safe to Expose)
-
-```env
-VITE_SUPABASE_URL=https://xxx.supabase.co
-VITE_SUPABASE_ANON_KEY=xxx
-```
-
-### Server-Side (Worker Secrets)
-
-```env
-GEMINI_API_KEY=xxx
-```
-
-**Never commit secrets.** Use Cloudflare Worker secrets:
-
-```bash
-wrangler secret put GEMINI_API_KEY
-```
-
----
-
-## Browser Support
-
-| Browser | Version |
-|---------|---------|
-| Chrome | 90+ |
-| Firefox | 90+ |
-| Safari | 14+ |
-| Edge | 90+ |
-
-**Not Supported:**
-- Internet Explorer
-- Legacy mobile browsers
-
----
-
-## Node.js Compatibility
-
-| Environment | Version |
-|-------------|---------|
-| Development | 18+ (recommended: 20) |
-| Cloudflare Workers | V8 isolates |
-| Build (CI) | 18+ |
-
----
-
-## Package Manager
-
-| Tool | Version |
-|------|---------|
-| pnpm | 9.15.0 |
-
-**Commands:**
-```bash
-pnpm install          # Install dependencies
-pnpm dev              # Start dev server
-pnpm build            # Production build
-pnpm test             # Run tests
-pnpm lint             # Run linter
-pnpm typecheck        # TypeScript check
-```
-
----
-
-## Related Documentation
-
-| Document | Purpose |
-|----------|---------|
-| [PRD.md](./PRD.md) | Product requirements |
-| [FRONTEND_GUIDELINES.md](./FRONTEND_GUIDELINES.md) | UI/UX patterns |
-| [BACKEND_STRUCTURE.md](./BACKEND_STRUCTURE.md) | Database and API |
+GitHub Actions verifies the same SHA used for deployment. External preview isolation, required branch checks, Pages Git deployment shutdown, schema/evidence readiness and maintenance activation are operational gates, not facts proved by the presence of workflow YAML.

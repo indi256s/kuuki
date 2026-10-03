@@ -36,6 +36,8 @@ import { DatePicker } from '@/components/ui/date-picker'
 import { TimePicker } from '@/components/ui/time-picker'
 import { Separator } from '@/components/ui/separator'
 import { AlertCircle, ArrowLeftRight, Plane, Trash2 } from 'lucide-react'
+import { abandonFlightCreateOperation, currentFlightOperationId, pendingFlightCreateOperation, rotateFlightOperationId } from '@/lib/flightCreateOperations'
+import { useAuthStore } from '@/stores/authStore'
 
 const flightSchema = z.object({
   date: z.string().min(1, 'Date is required'),
@@ -66,11 +68,20 @@ export function FlightForm({ isOpen, onClose, editFlight, onDelete }: FlightForm
   const createFlight = useCreateFlight()
   const updateFlight = useUpdateFlight()
   const checkDuplicate = useCheckDuplicate()
+  const userId = useAuthStore((state) => state.user?.id)
+  const operationId = useRef(currentFlightOperationId('manual'))
+  const [unconfirmed, setUnconfirmed] = useState(false)
 
   // UI state
   const [showOptional, setShowOptional] = useState(false)
   const [duplicateFlight, setDuplicateFlight] = useState<Flight | null>(null)
   const isEditing = !!editFlight
+  useEffect(() => {
+    if (isOpen && !isEditing && userId) {
+      operationId.current = currentFlightOperationId('manual')
+      setUnconfirmed(!!pendingFlightCreateOperation(userId, operationId.current))
+    }
+  }, [isOpen, isEditing, userId])
 
   const form = useForm<FlightFormData>({
     resolver: zodResolver(flightSchema),
@@ -205,15 +216,18 @@ export function FlightForm({ isOpen, onClose, editFlight, onDelete }: FlightForm
           updates: flightData,
         })
       } else {
-        await createFlight.mutateAsync(flightData)
+        await createFlight.mutateAsync({ flight: flightData, operationId: operationId.current })
+        operationId.current = rotateFlightOperationId('manual')
+        setUnconfirmed(false)
       }
       onClose()
     } catch (err) {
+      if (userId && pendingFlightCreateOperation(userId, operationId.current)) setUnconfirmed(true)
       form.setError('root', {
         message: err instanceof Error ? err.message : t('errors.generic'),
       })
     }
-  }, [form, t, isEditing, editFlight, updateFlight, createFlight, onClose])
+  }, [form, t, isEditing, editFlight, updateFlight, createFlight, onClose, userId])
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -232,6 +246,35 @@ export function FlightForm({ isOpen, onClose, editFlight, onDelete }: FlightForm
 
 
   const isSubmitting = createFlight.isPending || updateFlight.isPending
+
+  const retryOriginal = async () => {
+    if (!userId) return
+    const pending = pendingFlightCreateOperation(userId, operationId.current)
+    if (!pending) return
+    if (pending.expired) {
+      form.setError('root', { message: t('flights.expiredSave', 'This save is too old to retry safely. Check your flights before starting a new save.') })
+      return
+    }
+    try {
+      await createFlight.mutateAsync({
+        flight: pending.body as Omit<import('@/lib/flights').FlightInsert, 'id' | 'created_at' | 'user_id'>,
+        operationId: operationId.current,
+      })
+      operationId.current = rotateFlightOperationId('manual')
+      setUnconfirmed(false)
+      onClose()
+    } catch (error) {
+      form.setError('root', { message: error instanceof Error ? error.message : t('errors.generic') })
+    }
+  }
+
+  const startNewOperation = () => {
+    if (!userId) return
+    abandonFlightCreateOperation(userId, operationId.current)
+    operationId.current = rotateFlightOperationId('manual')
+    setUnconfirmed(false)
+    form.clearErrors('root')
+  }
 
   // Shared form content rendered in both Sheet and Dialog
   const formContent = (
@@ -493,6 +536,16 @@ export function FlightForm({ isOpen, onClose, editFlight, onDelete }: FlightForm
           </div>
         )}
 
+        {unconfirmed && !isEditing && (
+          <div className="mt-4 rounded-md border border-warning p-3 text-sm" role="alert">
+            <p>{t('flights.unconfirmedSave', 'The last save may have succeeded. Retry the original flight safely, or start a new save with the current form.')}</p>
+            <div className="mt-2 flex gap-2">
+              <Button type="button" variant="outline" disabled={isSubmitting} onClick={retryOriginal}>{t('flights.retryOriginal', 'Retry original')}</Button>
+              <Button type="button" variant="outline" disabled={isSubmitting} onClick={startNewOperation}>{t('flights.startNewSave', 'Start new save')}</Button>
+            </div>
+          </div>
+        )}
+
         {/* Submit buttons */}
         <div className="flex gap-3 mt-6">
           <Button
@@ -506,7 +559,7 @@ export function FlightForm({ isOpen, onClose, editFlight, onDelete }: FlightForm
           </Button>
           <Button
             type="submit"
-            disabled={isSubmitting}
+            disabled={isSubmitting || unconfirmed}
             className="flex-1"
           >
             {isSubmitting ? t('common.loading') : isEditing ? t('common.save') : t('flights.addFlight', 'Add Flight')}

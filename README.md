@@ -1,107 +1,79 @@
 # Kuuki (くうき)
 
-**Your Personal Travel Legacy.**
-Turn your flight history into a visual legacy. Designed for explorers. Beautifully quantified.
+A flight journal with route maps, a digital passport, statistics, opt-in rankings, and ticket import with review before saving.
 
----
+The application uses React 19, TypeScript, Vite, Tailwind CSS and shadcn/ui. Cloudflare Pages serves the web app; Pages Functions use D1, cookie sessions and Google Gemini. A scheduled Worker repairs pending statistics and refreshes rankings. Supabase files remain as migration history.
 
-## Philosophy
+## Development
 
-**Kuuki (空気)** means "Air" or "Atmosphere" in Japanese.
-
-Most flight trackers are utilitarian spreadsheets. Kuuki is designed to be a **digital sanctuary** for your journeys. It combines the precision of a data-logger with the aesthetics of a travel journal.
-
----
-
-## Features
-
-- **AI Import** — Snap a photo of your boarding pass; Gemini AI parses the details.
-- **Manual Entry** — For aviation purists who know their tail numbers.
-- **Visual Routes** — Animated maps of your journeys.
-- **Digital Passport** — Collect country stamps as you land.
-- **Geek-Grade Analytics** — Aircraft types, circadian rhythm, streaks, and more.
-- **Social (Opt-in)** — Leaderboards, public profiles, privacy first.
-
----
-
-## Tech Stack
-
-- **Frontend:** React 19, Vite, TypeScript, Tailwind CSS, shadcn/ui
-- **Backend:** Supabase (Auth, Postgres, RLS)
-- **Edge:** Cloudflare Pages + Workers (API gateway)
-- **AI:** Google Gemini (boarding pass parsing, aircraft enrichment)
-- **Monorepo:** pnpm + Turborepo
-
----
-
-## Project Structure
-
-```
-apps/web/          React + Vite frontend
-packages/shared/   Shared types, i18n (en.json, ru.json)
-packages/data/     Static reference data (airports, airlines, aircraft)
-functions/         Cloudflare Workers API (Gemini proxy)
-supabase/          Database migrations
-docs/              Project documentation (PRD, design system, etc.)
-```
-
----
-
-## Getting Started
-
-### Prerequisites
-
-- **Node.js** 20+
-- **pnpm** 9+ (`corepack enable && corepack prepare pnpm@latest --activate`)
-
-### Setup
+Use Node.js 24 and pnpm 9.15.0.
 
 ```bash
-# Clone and install
-git clone https://github.com/indi256s/kuuki.git
-cd kuuki
-pnpm install
-
-# Configure environment
-cp apps/web/.env.example apps/web/.env
-# Then fill in your Supabase credentials (ask the project owner)
+corepack enable
+corepack prepare pnpm@9.15.0 --activate
+pnpm install --frozen-lockfile
+pnpm build
+pnpm build:api
+pnpm dev:fixture
 ```
 
-### Environment Variables
+The fixture serves the compiled app at `http://localhost:8799` with two synthetic accounts and an isolated, disposable D1 database. All provider requests are faked or denied. It reads neither `.dev.vars` nor the legacy snapshot. The console prints the fixture credentials; Ctrl-C discards its data.
 
-| Variable | Where | Description |
-|---|---|---|
-| `GEMINI_API_KEY` | Cloudflare `.dev.vars` | Google Gemini API key (for AI import + aircraft enrichment) |
-| `AUTH_SECRET` | Cloudflare `.dev.vars` / `wrangler pages secret put` | Pepper/HMAC key for password hashing (required; auth fails closed if unset) |
+`pnpm dev` starts Vite for frontend development. Use the compiled fixture for cookie, API and database integration. The existing `pnpm dev:pages` command uses local Wrangler configuration; configure its local D1 and secrets explicitly before use.
 
-### Run
+## Configuration
+
+Configure server secrets in Cloudflare or a gitignored local `.dev.vars`; never put them in `VITE_*` variables.
+
+| Setting | Purpose |
+| --- | --- |
+| `AUTH_SECRET` | Password pepper; preserve the existing production value |
+| `PAGES_ORIGIN` | Exact canonical origin for auth and CSRF |
+| `GEMINI_API_KEY` | Server-side ticket parsing and aircraft enrichment |
+| `MAINTENANCE_MODE` | API write hold during cutover |
+| `ACTIVATION_ORIGIN` | Separate HTTPS origin for legacy account activation |
+| `ACTIVATION_MAIL_ACCOUNT_ID` | Cloudflare account with Email Sending enabled; non-secret 32-character account ID |
+| `ACTIVATION_MAIL_FROM` | `accounts@marchstudio.uk` once Email Sending domain verification is complete |
+| `ACTIVATION_MAIL_AUTH_TOKEN` | Server secret with Cloudflare Email Sending: Edit permission |
+
+Each environment needs separate D1, import KV and credentials. Preview placeholders intentionally prevent deployment until real isolation is verified. Legacy account activation applies only to migrated accounts awaiting their first working password.
+
+## Checks
 
 ```bash
-pnpm dev        # Start dev server at http://localhost:5173
-pnpm build      # Production build
-pnpm test       # Run tests
+pnpm lint
+pnpm typecheck
+pnpm typecheck:api
+pnpm typecheck:scripts
+pnpm typecheck:maintenance
+pnpm --filter @kuuki/web test:run
+pnpm test:api
+pnpm build
+pnpm build:api
+pnpm build:maintenance
+pnpm smoke:runtime
 ```
 
----
+CI requires these checks before deployment. Worker builds are dry runs. Deployments require verified preview isolation and disabling the separate Pages Git deployment path. Production additionally requires `PRODUCTION_RELEASE_SHA` to match the commit being deployed; set it only after accepting the release gates in the runbook. Maintenance deployment has an additional readiness gate and initially holds writes.
 
-## Contributing
+## Structure
 
-1. Create a branch from `main`
-2. Make your changes
-3. Run `pnpm build` to ensure no type errors
-4. Open a PR against `main`
+```text
+apps/web/             React application
+packages/shared/      DTOs, validation, translations
+packages/data/        Static airport, aircraft, airline and country references
+functions/            Pages Functions API and regression tests
+db/migrations/        D1 schema migrations
+db/_snapshot/         Gitignored legacy export, for rehearsal only
+scripts/              Explicit-target migration, validation and local fixtures
+workers/maintenance/  Scheduled recovery and rankings
+supabase/             Historical schema and migrations
+```
 
-### Useful Docs
+## Migration and release
 
-Start with `docs/README.md` for the full index:
+Follow [the remediation release runbook](docs/runbooks/audit-remediation-release.md) and [execution status](docs/runbooks/audit-remediation-status.md). Import scripts require an explicit isolated target and validate source records and conflicts. Freshness of the legacy source must be verified before production; snapshot file dates alone are insufficient. Production migration, cloud configuration, delivery and paid OCR evaluation require the approved release change set.
 
-- `docs/PRD.md` — Product requirements
-- `docs/APP_FLOW.md` — User navigation paths
-- `docs/FRONTEND_GUIDELINES.md` — Design system and component patterns
-- `docs/BACKEND_STRUCTURE.md` — Database schema and RLS policies
-
----
-
-## License
+See [TECH_STACK](docs/TECH_STACK.md) for runtime contracts and [the documentation index](docs/README.md) for product documentation.
 
 MIT © [Indi256](https://github.com/indi256)

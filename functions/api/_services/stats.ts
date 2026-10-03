@@ -303,7 +303,7 @@ export async function evaluateBadges(db: D1Database, userId: string): Promise<vo
     else if ('flight_minutes' in crit && s.longest_flight_minutes >= num('flight_minutes')) earned = true
     else if ('night_departure' in crit && s.has_night_departure === 1) earned = true
     else if ('early_adopter' in crit && userNumber <= num('early_adopter')) earned = true
-    else if ('beta_invite' in crit) earned = true // legacy: always awarded
+    // beta_invite is historical-only: existing awards remain, but new accounts do not earn it.
     if (earned) toAward.push(b.id)
   }
 
@@ -317,4 +317,122 @@ export async function evaluateBadges(db: D1Database, userId: string): Promise<vo
       ),
     )
   }
+}
+
+/** The complete proposed visit row, calculated before any derived table is changed. */
+export interface DerivedVisit {
+  airport_iata: string
+  country_code: string
+  city: string | null
+  first_visit: string
+  last_visit: string
+  visit_count: number
+}
+
+export interface ComputedUserStats {
+  total_flights: number
+  total_distance_km: number
+  total_duration_minutes: number
+  longest_flight_minutes: number
+  airports_count: number
+  cities_count: number
+  countries_count: number
+  continents_count: number
+  airlines_count: number
+  aircraft_count: number
+  has_night_departure: number
+}
+
+/** Read canonical flights and calculate stats against the proposed visits, never old visits. */
+export async function computeStatsForVisits(
+  db: D1Database,
+  userId: string,
+  visits: DerivedVisit[],
+): Promise<ComputedUserStats> {
+  const flights = await db.prepare(
+    `SELECT COUNT(*) AS total_flights, COALESCE(SUM(distance_km), 0) AS total_distance_km,
+            COALESCE(SUM(duration_minutes), 0) AS total_duration_minutes,
+            COALESCE(MAX(duration_minutes), 0) AS longest_flight_minutes,
+            COUNT(DISTINCT airline_iata) AS airlines_count,
+            COUNT(DISTINCT aircraft_icao) AS aircraft_count,
+            COALESCE(MAX(CASE WHEN departure_time IS NOT NULL
+              AND CAST(substr(departure_time, 1, 2) AS INTEGER) < 5 THEN 1 ELSE 0 END), 0) AS has_night_departure
+     FROM flights WHERE user_id = ? AND (is_upcoming IS NULL OR is_upcoming = 0)`,
+  ).bind(userId).first<Pick<ComputedUserStats,
+    'total_flights' | 'total_distance_km' | 'total_duration_minutes' |
+    'longest_flight_minutes' | 'airlines_count' | 'aircraft_count' | 'has_night_departure'>>()
+  return {
+    total_flights: flights?.total_flights ?? 0,
+    total_distance_km: Math.round(flights?.total_distance_km ?? 0),
+    total_duration_minutes: flights?.total_duration_minutes ?? 0,
+    longest_flight_minutes: flights?.longest_flight_minutes ?? 0,
+    airlines_count: flights?.airlines_count ?? 0,
+    aircraft_count: flights?.aircraft_count ?? 0,
+    has_night_departure: flights?.has_night_departure ?? 0,
+    airports_count: visits.length,
+    cities_count: new Set(visits.map(v => v.city).filter(Boolean)).size,
+    countries_count: new Set(visits.map(v => v.country_code)).size,
+    continents_count: new Set(visits.map(v => v.country_code).map(continentOf7)).size,
+  }
+}
+
+/** Upsert only recalculated fields; historical/unowned fields survive. */
+export function computedStatsStatement(
+  db: D1Database,
+  userId: string,
+  stats: ComputedUserStats,
+): D1PreparedStatement {
+  return db.prepare(
+    `INSERT INTO user_stats (
+       user_id, total_flights, total_distance_km, total_duration_minutes,
+       longest_flight_minutes, airports_count, cities_count, countries_count,
+       continents_count, airlines_count, aircraft_count, has_night_departure, updated_at
+     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+     ON CONFLICT(user_id) DO UPDATE SET
+       total_flights=excluded.total_flights, total_distance_km=excluded.total_distance_km,
+       total_duration_minutes=excluded.total_duration_minutes,
+       longest_flight_minutes=excluded.longest_flight_minutes,
+       airports_count=excluded.airports_count, cities_count=excluded.cities_count,
+       countries_count=excluded.countries_count, continents_count=excluded.continents_count,
+       airlines_count=excluded.airlines_count, aircraft_count=excluded.aircraft_count,
+       has_night_departure=excluded.has_night_departure, updated_at=excluded.updated_at`,
+  ).bind(
+    userId, stats.total_flights, stats.total_distance_km, stats.total_duration_minutes,
+    stats.longest_flight_minutes, stats.airports_count, stats.cities_count,
+    stats.countries_count, stats.continents_count, stats.airlines_count,
+    stats.aircraft_count, stats.has_night_departure, nowIso(),
+  )
+}
+
+/** Award-only badge evaluation from the new stats row; existing awards are never revoked. */
+export async function computedBadgeStatements(
+  db: D1Database,
+  userId: string,
+  stats: ComputedUserStats,
+): Promise<D1PreparedStatement[]> {
+  const profile = await db.prepare('SELECT created_at FROM profiles WHERE id = ?').bind(userId).first<{created_at:string}>()
+  const order = await db.prepare('SELECT COUNT(*) + 1 AS n FROM profiles WHERE created_at < ?')
+    .bind(profile?.created_at ?? nowIso()).first<{n:number}>()
+  const badges = await db.prepare('SELECT id, criteria FROM badge_definitions').all<BadgeRow>()
+  const earnedAt = nowIso()
+  const result: D1PreparedStatement[] = []
+  for (const badge of badges.results) {
+    let criteria: Record<string, unknown> = {}
+    try { criteria = badge.criteria ? JSON.parse(badge.criteria) : {} } catch { /* malformed criteria earn nothing */ }
+    const n = (name: string) => Number(criteria[name])
+    let earned = false
+    if ('flights' in criteria) earned = stats.total_flights >= n('flights')
+    else if ('distance_km' in criteria) earned = stats.total_distance_km >= n('distance_km')
+    else if ('airlines' in criteria) earned = stats.airlines_count >= n('airlines')
+    else if ('aircraft' in criteria) earned = stats.aircraft_count >= n('aircraft')
+    else if ('continents' in criteria) earned = stats.continents_count >= n('continents')
+    else if ('flight_minutes' in criteria) earned = stats.longest_flight_minutes >= n('flight_minutes')
+    else if ('night_departure' in criteria) earned = stats.has_night_departure === 1
+    else if ('early_adopter' in criteria) earned = (order?.n ?? 1) <= n('early_adopter')
+    if (earned) result.push(
+      db.prepare('INSERT INTO user_badges (user_id, badge_id, earned_at) VALUES (?, ?, ?) ON CONFLICT(user_id, badge_id) DO NOTHING')
+        .bind(userId, badge.id, earnedAt),
+    )
+  }
+  return result
 }

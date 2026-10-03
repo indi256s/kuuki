@@ -3,14 +3,32 @@
     "target": "esnext",
     "module": "esnext",
     "moduleResolution": "bundler",
-    "lib": ["esnext"],
+    "lib": [
+      "esnext"
+    ],
     "strict": true,
     "noEmit": true,
     "skipLibCheck": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "resolveJsonModule": true,
-    "types": ["node", "@cloudflare/workers-types"]
+    "types": [
+      "node",
+      "@cloudflare/workers-types"
+    ]
   },
-  "include": ["./sb-to-d1.ts", "./sb-to-d1.smoke.ts", "./derive.ts", "./ship-oracle.ts", "./reset-passwords.ts", "./validate.ts"]
+  "include": [
+    "./sb-to-d1.ts",
+    "./sb-to-d1.smoke.ts",
+    "./derive.ts",
+    "./ship-oracle.ts",
+    "./reset-passwords.ts",
+    "./validate.ts",
+    "./migration-preflight.ts",
+    "./migration-target.ts",
+    "./remote-migration-proposal.ts",
+    "./migration-remote-reader.ts",
+    "./migration-remote-validate.ts",
+    "./smoke-local-runtime.ts"
+  ]
 }

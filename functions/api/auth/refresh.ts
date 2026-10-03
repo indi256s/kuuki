@@ -6,7 +6,7 @@
 
 import { runHandler, json, HttpError } from '../_lib/http'
 import { requireCsrf, type RequestData } from '../_lib/auth'
-import { parseCookies, SESSION_COOKIE, SESSION_TTL_SECONDS } from '../_lib/cookies'
+import { parseCookies, SESSION_COOKIE, CSRF_COOKIE, SESSION_TTL_SECONDS } from '../_lib/cookies'
 import { resolveSession, slideSession } from '../_lib/session'
 import { refreshSessionCookie } from '../_lib/authCookies'
 
@@ -19,12 +19,13 @@ export const onRequestPost: PagesFunction<Env, string, RequestData> = (context) 
     // session is absent or expired and refresh must fail (client logs out).
     if (!data.user) throw new HttpError(401, 'Session expired', 'SESSION_EXPIRED')
 
-    const token = parseCookies(request.headers.get('Cookie'))[SESSION_COOKIE]
+    const cookies = parseCookies(request.headers.get('Cookie'))
+    const token = cookies[SESSION_COOKIE]
     const session = await resolveSession(env.DB, token)
     if (!session) throw new HttpError(401, 'Session expired', 'SESSION_EXPIRED')
 
     const newExpiry = await slideSession(env.DB, session, true)
     const res = json({ user: session.user })
-    if (newExpiry && token) refreshSessionCookie(res.headers, token, SESSION_TTL_SECONDS)
+    if (newExpiry && token && cookies[CSRF_COOKIE]) refreshSessionCookie(res.headers, token, cookies[CSRF_COOKIE], SESSION_TTL_SECONDS)
     return res
   })

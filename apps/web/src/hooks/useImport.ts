@@ -1,5 +1,6 @@
 import { useMutation } from '@tanstack/react-query'
 import { useEffect, useRef, useCallback } from 'react'
+import { api, ApiError } from '@/lib/apiClient'
 
 export type EnrichmentStatus = 'pending' | 'enriched' | 'failed' | 'skipped'
 export type JobStatus = 'processing' | 'completed' | 'failed'
@@ -79,16 +80,7 @@ async function pollJobStatus(jobId: string, signal?: AbortSignal): Promise<Parse
       throw new Error('Request cancelled')
     }
 
-    const response = await fetch(`/api/import/status/${jobId}`, {
-      signal,
-    })
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}))
-      throw new Error(errorData.error || 'Failed to check job status')
-    }
-
-    const result: ParseResult = await response.json()
+    const result = await api.get<ParseResult>(`/api/import/status/${jobId}`, undefined, signal)
 
     // Check if job is complete
     if (result.status === 'completed') {
@@ -114,21 +106,7 @@ export function useParseImport() {
       const controller = new AbortController()
 
       try {
-        const response = await fetch('/api/import/parse', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(request),
-          signal: controller.signal,
-        })
-
-        if (!response.ok) {
-          const errorData = await response.json().catch(() => ({}))
-          throw new Error(errorData.error || 'Failed to parse document')
-        }
-
-        const result: ParseResult = await response.json()
+        const result = await api.post<ParseResult>('/api/import/parse', request, undefined, 120_000)
 
         // Check if this is legacy async mode (no flights returned, just jobId)
         if (result.status === 'processing' && result.jobId && result.flights.length === 0) {
@@ -143,6 +121,7 @@ export function useParseImport() {
         if (error instanceof Error && error.name === 'AbortError') {
           throw new Error('Request cancelled')
         }
+        if (error instanceof ApiError) throw new Error(error.message || 'Failed to parse document')
         throw error
       }
     },
@@ -194,20 +173,7 @@ export function useEnrichmentPolling(
       }
 
       try {
-        const response = await fetch(`/api/import/enrichment/${jobId}`)
-
-        if (!response.ok) {
-          const errorData = await response.json().catch(() => ({}))
-          if (response.status === 404) {
-            // Job expired or not found
-            stopPolling()
-            onErrorRef.current?.('Enrichment job expired. You can still save the basic flights.')
-            return
-          }
-          throw new Error(errorData.error || 'Failed to check enrichment status')
-        }
-
-        const data: EnrichmentResponse = await response.json()
+        const data = await api.get<EnrichmentResponse>(`/api/import/enrichment/${jobId}`)
 
         if (data.status === 'completed' && data.flights) {
           stopPolling()
@@ -224,6 +190,12 @@ export function useEnrichmentPolling(
         // Still pending, continue polling
         attemptsRef.current++
       } catch (error) {
+        if (error instanceof ApiError && error.status === 404) {
+          // Job expired or not found
+          stopPolling()
+          onErrorRef.current?.('Enrichment job expired. You can still save the basic flights.')
+          return
+        }
         console.error('Enrichment poll error:', error)
         attemptsRef.current++
         // Don't stop polling on transient errors

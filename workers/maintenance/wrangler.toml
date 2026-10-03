@@ -1,0 +1,25 @@
+name = "kuuki-maintenance"
+main = "./index.ts"
+compatibility_date = "2025-09-23"
+
+[triggers]
+crons = ["*/5 * * * *"]
+
+[vars]
+MAINTENANCE_MODE = "true"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "kuuki-db"
+database_id = "2a8e3895-6a98-4473-8d7b-a43ca0c0026f"
+migrations_dir = "../../db/migrations"
+
+# Shares the verified isolated Pages preview D1; production stays separate.
+[[env.preview.d1_databases]]
+binding = "DB"
+database_name = "kuuki-preview"
+database_id = "80e0c789-c1ab-4aa5-a6fe-e65c6e6cb74c"
+migrations_dir = "../../db/migrations"
+
+[env.preview.vars]
+MAINTENANCE_MODE = "true"

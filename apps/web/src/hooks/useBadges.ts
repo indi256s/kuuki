@@ -10,6 +10,7 @@ const ALL_BADGES_KEY = 'allBadges'
  */
 export function useUserBadges() {
   const userId = useAuthStore((state) => state.user?.id)
+  const authLoading = useAuthStore((state) => state.isLoading)
 
   return useQuery({
     queryKey: [USER_BADGES_KEY, userId],
@@ -17,7 +18,7 @@ export function useUserBadges() {
       if (!userId) return []
       return getUserBadges(userId)
     },
-    enabled: !!userId,
+    enabled: !!userId && !authLoading,
     staleTime: 1000 * 60 * 5, // 5 minutes
   })
 }

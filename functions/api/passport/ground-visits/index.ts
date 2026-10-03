@@ -6,6 +6,7 @@ import { requireUser, requireCsrf, type RequestData } from '../../_lib/auth'
 import { newId } from '../../_lib/crypto'
 import { nowIso } from '../../_lib/time'
 import { toGroundVisit, type GroundVisitRow } from '../../_lib/passportDtos'
+import { dirtyUserStatement, repairUserDerivedState } from '../../_services/derivedState'
 
 interface GroundVisitBody {
   countryCode?: string
@@ -18,7 +19,7 @@ export const onRequestGet: PagesFunction<Env, string, RequestData> = (context) =
   runHandler(async () => {
     const user = requireUser(context.data)
     const countryCode = new URL(context.request.url).searchParams.get('countryCode')
-    if (!countryCode) throw new HttpError(400, 'countryCode is required', 'INVALID')
+    if (typeof countryCode !== 'string' || !/^[A-Z]{2}$/.test(countryCode)) throw new HttpError(400, 'Valid countryCode is required', 'INVALID')
 
     const rows = await context.env.DB
       .prepare(
@@ -38,10 +39,10 @@ export const onRequestPost: PagesFunction<Env, string, RequestData> = (context) 
 
     const body = await readJson<GroundVisitBody>(request)
     const countryCode = body?.countryCode
-    if (!countryCode) throw new HttpError(400, 'countryCode is required', 'INVALID')
+    if (typeof countryCode !== 'string' || !/^[A-Z]{2}$/.test(countryCode)) throw new HttpError(400, 'Valid countryCode is required', 'INVALID')
 
     const note = body?.note ?? null
-    if (note != null && note.length > 200) throw new HttpError(400, 'note too long', 'INVALID')
+    if (note != null && (typeof note !== 'string' || note.length > 200)) throw new HttpError(400, 'note is invalid', 'INVALID')
 
     const entryMethod = body?.entryMethod ?? null
     if (entryMethod != null && entryMethod !== 'land' && entryMethod !== 'sea') {
@@ -49,18 +50,21 @@ export const onRequestPost: PagesFunction<Env, string, RequestData> = (context) 
     }
 
     const visitYear = body?.visitYear ?? null
+    if (visitYear !== null && (!Number.isInteger(visitYear) || visitYear < 1800 || visitYear > 2200)) throw new HttpError(400, 'visitYear is invalid', 'INVALID')
     const id = newId()
     const createdAt = nowIso()
 
-    await env.DB
-      .prepare(
+    await env.DB.batch([
+      env.DB.prepare(
         'INSERT INTO ground_visits (id, user_id, country_code, visit_year, note, entry_method, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)',
       )
-      .bind(id, user.id, countryCode, visitYear, note, entryMethod, createdAt)
-      .run()
+      .bind(id, user.id, countryCode, visitYear, note, entryMethod, createdAt),
+      dirtyUserStatement(env.DB, user.id),
+    ])
+    const derived = await repairUserDerivedState(env.DB, user.id)
 
     return json(
-      toGroundVisit({
+      { ...toGroundVisit({
         id,
         user_id: user.id,
         country_code: countryCode,
@@ -68,7 +72,7 @@ export const onRequestPost: PagesFunction<Env, string, RequestData> = (context) 
         note,
         entry_method: entryMethod,
         created_at: createdAt,
-      }),
+      }), ...derived },
       { status: 201 },
     )
   })
