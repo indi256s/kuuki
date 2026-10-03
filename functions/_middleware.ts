@@ -40,10 +40,12 @@ export const onRequest: PagesFunction<Env, string, RequestData> = async (context
           (url.pathname === '/activate' || url.pathname === '/activate.html' || url.pathname === '/activate.js')) return next()
       if (request.method === 'POST' && url.pathname === '/api/auth/activation/complete') return next()
       if (request.method === 'GET' || request.method === 'HEAD') {
+        const signIn = url.pathname === '/' && url.searchParams.get('mode') === 'signin'
         return new Response(null, {
           status: 302,
           headers: {
-            Location: new URL('/', env.PAGES_ORIGIN).toString(),
+            // An explicit empty fragment prevents browsers inheriting a bearer token.
+            Location: new URL(signIn ? '/?mode=signin#' : '/#', env.PAGES_ORIGIN).toString(),
             'Cache-Control': 'no-store',
             'Referrer-Policy': 'no-referrer',
           },

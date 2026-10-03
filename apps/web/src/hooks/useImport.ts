@@ -147,9 +147,11 @@ export function useEnrichmentPolling(
   const onCompleteRef = useRef(onComplete)
   const onErrorRef = useRef(onError)
 
-  // Keep callbacks fresh without triggering effect
-  onCompleteRef.current = onComplete
-  onErrorRef.current = onError
+  // Keep callbacks fresh without restarting polling.
+  useEffect(() => {
+    onCompleteRef.current = onComplete
+    onErrorRef.current = onError
+  }, [onComplete, onError])
 
   const stopPolling = useCallback(() => {
     if (intervalRef.current) {
@@ -165,15 +167,21 @@ export function useEnrichmentPolling(
       return
     }
 
+    const controller = new AbortController()
+    let active = true
+    let inFlight = false
     const poll = async () => {
+      if (!active || inFlight) return
       if (attemptsRef.current >= MAX_POLL_ATTEMPTS) {
         stopPolling()
         onErrorRef.current?.('Enrichment timed out. You can still save the basic flights.')
         return
       }
 
+      inFlight = true
       try {
-        const data = await api.get<EnrichmentResponse>(`/api/import/enrichment/${jobId}`)
+        const data = await api.get<EnrichmentResponse>(`/api/import/enrichment/${jobId}`, undefined, controller.signal)
+        if (!active) return
 
         if (data.status === 'completed' && data.flights) {
           stopPolling()
@@ -190,6 +198,7 @@ export function useEnrichmentPolling(
         // Still pending, continue polling
         attemptsRef.current++
       } catch (error) {
+        if (!active) return
         if (error instanceof ApiError && error.status === 404) {
           // Job expired or not found
           stopPolling()
@@ -199,6 +208,8 @@ export function useEnrichmentPolling(
         console.error('Enrichment poll error:', error)
         attemptsRef.current++
         // Don't stop polling on transient errors
+      } finally {
+        inFlight = false
       }
     }
 
@@ -206,7 +217,11 @@ export function useEnrichmentPolling(
     poll()
     intervalRef.current = setInterval(poll, POLL_INTERVAL_MS)
 
-    return stopPolling
+    return () => {
+      active = false
+      controller.abort()
+      stopPolling()
+    }
   }, [jobId, enabled, stopPolling])
 
   return { stopPolling }

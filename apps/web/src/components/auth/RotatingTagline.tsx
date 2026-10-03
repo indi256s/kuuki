@@ -12,18 +12,26 @@ export function RotatingTagline({ items, interval = 6000, className }: RotatingT
   const [phase, setPhase] = useState<'visible' | 'exit' | 'enter'>('visible')
 
   useEffect(() => {
+    let exitTimeout: ReturnType<typeof setTimeout> | undefined
+    let enterTimeout: ReturnType<typeof setTimeout> | undefined
     const timer = setInterval(() => {
+      clearTimeout(exitTimeout)
+      clearTimeout(enterTimeout)
       // Quick exit to the left
       setPhase('exit')
-      setTimeout(() => {
+      exitTimeout = setTimeout(() => {
         setCurrentIndex((prev) => (prev + 1) % items.length)
         setPhase('enter')
         // Snap to visible
-        setTimeout(() => setPhase('visible'), 50)
+        enterTimeout = setTimeout(() => setPhase('visible'), 50)
       }, 200)
     }, interval)
 
-    return () => clearInterval(timer)
+    return () => {
+      clearInterval(timer)
+      clearTimeout(exitTimeout)
+      clearTimeout(enterTimeout)
+    }
   }, [items.length, interval])
 
   return (

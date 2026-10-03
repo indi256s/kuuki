@@ -287,8 +287,13 @@ it('serves only the token page and completion API on the activation alias before
   for (const path of ['/', '/sw.js', '/manifest.webmanifest', '/api/auth/me']) {
     const response = await middleware({ request: new Request(`${ACTIVATION_ORIGIN}${path}`), env, data: {}, next } as never)
     expect(response.status).toBe(302)
-    expect(response.headers.get('Location')).toBe(`${ORIGIN}/`)
+    expect(response.headers.get('Location')).toBe(`${ORIGIN}/#`)
   }
+  const signIn = await middleware({ request: new Request(`${ACTIVATION_ORIGIN}/?mode=signin&token=discard`), env, data: {}, next } as never)
+  expect(signIn.status).toBe(302)
+  expect(signIn.headers.get('Location')).toBe(`${ORIGIN}/?mode=signin#`)
+  expect(signIn.headers.get('Cache-Control')).toBe('no-store')
+  expect(signIn.headers.get('Referrer-Policy')).toBe('no-referrer')
   const forbidden = await middleware({ request: new Request(`${ACTIVATION_ORIGIN}/api/auth/signin`, { method: 'POST' }), env, data: {}, next } as never)
   expect(forbidden.status).toBe(403)
   expect(db.prepare).not.toHaveBeenCalled()
@@ -316,9 +321,4 @@ it('rejects malformed password-hash parameters without calling PBKDF2', async ()
     copy[changed[0]] = changed[1]
     expect(await verifyPassword('password', copy.join('$'), SECRET)).toBe(false)
   }
-})
-
-// Temporary hosted release-gate proof; remove after confirming deploy is skipped.
-it('temporary negative API deployment gate proof', () => {
-  expect(true).toBe(false)
 })

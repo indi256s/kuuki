@@ -67,7 +67,7 @@ export function FlightForm({ isOpen, onClose, editFlight, onDelete }: FlightForm
   const isMobile = useIsMobile()
   const createFlight = useCreateFlight()
   const updateFlight = useUpdateFlight()
-  const checkDuplicate = useCheckDuplicate()
+  const { mutate: checkDuplicateMutate } = useCheckDuplicate()
   const userId = useAuthStore((state) => state.user?.id)
   const operationId = useRef(currentFlightOperationId('manual'))
   const [unconfirmed, setUnconfirmed] = useState(false)
@@ -134,16 +134,11 @@ export function FlightForm({ isOpen, onClose, editFlight, onDelete }: FlightForm
   const watchDate = form.watch('date')
   const watchOrigin = form.watch('origin')
   const watchDestination = form.watch('destination')
-  // Use ref to avoid including the mutation object in the dependency array
-  // (useMutation returns a new object reference on every state change, causing infinite loops)
-  const checkDuplicateRef = useRef(checkDuplicate)
-  checkDuplicateRef.current = checkDuplicate
-
   useEffect(() => {
     if (watchDate && watchOrigin && watchDestination && watchOrigin.length === 3 && watchDestination.length === 3) {
       // Debounce to avoid firing while user is still typing
       const timer = setTimeout(() => {
-        checkDuplicateRef.current.mutate(
+        checkDuplicateMutate(
           { date: watchDate, origin: watchOrigin, destination: watchDestination, excludeId: editFlight?.id },
           {
             onSuccess: (result) => {
@@ -156,7 +151,7 @@ export function FlightForm({ isOpen, onClose, editFlight, onDelete }: FlightForm
     } else {
       setDuplicateFlight(null)
     }
-  }, [watchDate, watchOrigin, watchDestination, editFlight?.id])
+  }, [watchDate, watchOrigin, watchDestination, editFlight?.id, checkDuplicateMutate])
 
   const onSubmit = useCallback(async (data: FlightFormData) => {
     form.clearErrors('root')

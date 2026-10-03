@@ -36,7 +36,7 @@ Configure server secrets in Cloudflare or a gitignored local `.dev.vars`; never 
 | `ACTIVATION_MAIL_FROM` | `accounts@marchstudio.uk` once Email Sending domain verification is complete |
 | `ACTIVATION_MAIL_AUTH_TOKEN` | Server secret with Cloudflare Email Sending: Edit permission |
 
-Each environment needs separate D1, import KV and credentials. Preview placeholders intentionally prevent deployment until real isolation is verified. Legacy account activation applies only to migrated accounts awaiting their first working password.
+Each environment needs separate D1, import KV and credentials. The configured preview D1 and KV are isolated from production; deployment admission verifies their identities. Legacy account activation applies only to migrated accounts awaiting their first working password.
 
 ## Checks
 
