@@ -317,3 +317,8 @@ it('rejects malformed password-hash parameters without calling PBKDF2', async ()
     expect(await verifyPassword('password', copy.join('$'), SECRET)).toBe(false)
   }
 })
+
+// Temporary hosted release-gate proof; remove after confirming deploy is skipped.
+it('temporary negative API deployment gate proof', () => {
+  expect(true).toBe(false)
+})
