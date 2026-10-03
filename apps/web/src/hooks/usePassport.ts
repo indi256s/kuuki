@@ -6,21 +6,15 @@ import {
   getUserClaims,
   claimCountry,
   addGroundVisit,
-  getGroundVisits,
   deleteGroundVisit,
   unclaimCountry,
   getCountryStats,
-  isCountryClaimed,
   type CountryClaim,
 } from '@/lib/passport'
 import { useAuthStore } from '@/stores/authStore'
-import type { PassportEntry, CountryStats, GroundVisit, EntryMethod } from '@kuuki/shared'
+import type { PassportEntry, CountryStats, EntryMethod } from '@kuuki/shared'
 import { reconcileDerivedState } from '@/lib/derivedStateFeedback'
-
-const PASSPORT_COUNTRIES_KEY = 'passportCountries'
-const PASSPORT_CLAIMS_KEY = 'passportClaims'
-const COUNTRY_STATS_KEY = 'countryStats'
-const GROUND_VISITS_KEY = 'groundVisits'
+import { queryKeys } from '@/lib/queryKeys'
 
 /**
  * Hook for all passport countries (flights + claims combined)
@@ -29,7 +23,7 @@ export function usePassportCountries() {
   const userId = useAuthStore((state) => state.user?.id)
 
   return useQuery<PassportEntry[]>({
-    queryKey: [PASSPORT_COUNTRIES_KEY, userId],
+    queryKey: queryKeys.passportCountries(userId),
     queryFn: () => {
       if (!userId) return []
       return getUserCountries(userId)
@@ -46,7 +40,7 @@ export function usePassportClaims() {
   const userId = useAuthStore((state) => state.user?.id)
 
   return useQuery<CountryClaim[]>({
-    queryKey: [PASSPORT_CLAIMS_KEY, userId],
+    queryKey: queryKeys.passportClaims(userId),
     queryFn: () => {
       if (!userId) return []
       return getUserClaims(userId)
@@ -130,27 +124,10 @@ export function useCountryStats(countryCode: string | null) {
   const userId = useAuthStore((state) => state.user?.id)
 
   return useQuery<CountryStats | null>({
-    queryKey: [COUNTRY_STATS_KEY, userId, countryCode],
+    queryKey: queryKeys.countryStats(userId, countryCode),
     queryFn: () => {
       if (!userId || !countryCode) return null
       return getCountryStats(userId, countryCode)
-    },
-    enabled: !!userId && !!countryCode,
-    staleTime: 2 * 60 * 1000,
-  })
-}
-
-/**
- * Hook for ground visits for a specific country
- */
-export function useGroundVisits(countryCode: string | null) {
-  const userId = useAuthStore((state) => state.user?.id)
-
-  return useQuery<GroundVisit[]>({
-    queryKey: [GROUND_VISITS_KEY, userId, countryCode],
-    queryFn: () => {
-      if (!userId || !countryCode) return []
-      return getGroundVisits(userId, countryCode)
     },
     enabled: !!userId && !!countryCode,
     staleTime: 2 * 60 * 1000,
@@ -180,14 +157,13 @@ export function useClaimCountry() {
 
       // Step 1: Upsert the stamp
       const claim = await claimCountry(userId, countryCode)
-      reconcileDerivedState(claim, queryClient, userId)
 
       // Step 2: Insert ground visit if any details provided
       const hasDetails = visitYear != null || note || entryMethod
-      if (hasDetails) {
-        return addGroundVisit(userId, countryCode, { visitYear, note, entryMethod })
-      }
-      return claim
+      if (!hasDetails) return claim
+      // The stamp is committed even if the visit insert fails, so refresh for it now.
+      reconcileDerivedState(claim, queryClient, userId)
+      return addGroundVisit(userId, countryCode, { visitYear, note, entryMethod })
     },
     onSuccess: (ack, { countryCode }) => {
       if (userId) reconcileDerivedState(ack, queryClient, userId)
@@ -276,23 +252,6 @@ export function useUnclaimCountry() {
       console.error('Unclaim country failed:', error)
       toast.error("Couldn't update your passport. Please try again.")
     },
-  })
-}
-
-/**
- * Hook to check if country is claimed (for map display)
- */
-export function useIsCountryClaimed(countryCode: string | null) {
-  const userId = useAuthStore((state) => state.user?.id)
-
-  return useQuery({
-    queryKey: ['isCountryClaimed', userId, countryCode],
-    queryFn: () => {
-      if (!userId || !countryCode) return false
-      return isCountryClaimed(userId, countryCode)
-    },
-    enabled: !!userId && !!countryCode,
-    staleTime: 30 * 1000, // 30 seconds
   })
 }
 

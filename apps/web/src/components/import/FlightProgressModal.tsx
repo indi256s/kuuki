@@ -1,8 +1,7 @@
 import { useState, useEffect, useRef, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/utils'
-import { Check, Loader2, ArrowRight } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { Check, Loader2 } from 'lucide-react'
 import { getProcessingMessage, type ProcessingStage } from '@/lib/glados-text'
 import { findAirline } from '@kuuki/data'
 import type { ExtractedFlight } from '@/hooks/useImport'
@@ -56,10 +55,7 @@ function formatFlightLine(flight: ExtractedFlight): string {
 interface FlightProgressModalProps {
   isOpen: boolean
   onCancel?: () => void
-  onContinueInBackground?: () => void
   inputType?: 'text' | 'pdf' | 'image'
-  /** Show "Continue in Background" after this many ms (default: 7000) */
-  showBackgroundAfterMs?: number
   /** Flights to reveal after API returns */
   flights?: ExtractedFlight[]
   /** Called after reveal animation completes */
@@ -69,9 +65,7 @@ interface FlightProgressModalProps {
 export function FlightProgressModal({
   isOpen,
   onCancel,
-  onContinueInBackground,
   inputType = 'text',
-  showBackgroundAfterMs = 7000,
   flights,
   onRevealComplete,
 }: FlightProgressModalProps) {
@@ -370,18 +364,6 @@ export function FlightProgressModal({
 
         {/* Action buttons - below card */}
         <div className="mt-4 space-y-2">
-          {/* Continue in Background - shown after threshold */}
-          {onContinueInBackground && elapsedMs >= showBackgroundAfterMs && (
-            <Button
-              onClick={onContinueInBackground}
-              className="w-full gap-2 rounded-xl"
-              variant="default"
-            >
-              {t('import.parsing.continueInBackground', 'Continue in background')}
-              <ArrowRight className="w-4 h-4" />
-            </Button>
-          )}
-
           {/* Cancel button */}
           {onCancel && (
             <button

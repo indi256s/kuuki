@@ -15,9 +15,6 @@ interface Env {
   ACTIVATION_MAIL_FROM?: string // verified Email Sending sender address
   ACTIVATION_ORIGIN?: string // dedicated HTTPS Pages alias for the token-only page
 
-  // KV Namespaces
-  IMPORT_JOBS: KVNamespace
-
   // D1 Database (migration target)
   DB: D1Database
 }

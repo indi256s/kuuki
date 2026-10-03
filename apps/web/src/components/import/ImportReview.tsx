@@ -1,11 +1,9 @@
 import { useState, useCallback, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { FlightEditRow } from './FlightEditRow'
-import { EnrichmentErrorBanner } from './EnrichmentErrorBanner'
 import { Button } from '@/components/ui/button'
-import { Plane, AlertTriangle, FileText, ChevronDown, Loader2, CheckSquare, Square, Plus, Copy, Info } from 'lucide-react'
-import { cn } from '@/lib/utils'
-import { useEnrichmentPolling, type ExtractedFlight, type RejectedFlight } from '../../hooks/useImport'
+import { Plane, AlertTriangle, Loader2, CheckSquare, Square, Plus, Copy, Info } from 'lucide-react'
+import type { ExtractedFlight, RejectedFlight } from '../../hooks/useImport'
 
 interface ImportReviewProps {
   flights: ExtractedFlight[]
@@ -17,12 +15,6 @@ interface ImportReviewProps {
   // Diagnostic info for when flights are rejected
   rejected?: RejectedFlight[]
   geminiCount?: number
-  // Normalized text from two-stage parsing (text input only)
-  cleanedText?: string
-  // Two-phase import: enrichment job ID for polling
-  enrichmentJobId?: string
-  // Callback when enrichment completes (to update parent state)
-  onEnrichmentComplete?: (flights: ExtractedFlight[]) => void
 }
 
 export function ImportReview({
@@ -34,15 +26,9 @@ export function ImportReview({
   saving,
   rejected,
   geminiCount,
-  cleanedText,
-  enrichmentJobId,
-  onEnrichmentComplete,
 }: ImportReviewProps) {
   const { t } = useTranslation()
   const [flights, setFlights] = useState<ExtractedFlight[]>(initialFlights)
-  const [showCleanedText, setShowCleanedText] = useState(false)
-  const [isEnriching, setIsEnriching] = useState(!!enrichmentJobId)
-  const [enrichmentError, setEnrichmentError] = useState<string | null>(null)
 
   // Convert rejected flights to editable ExtractedFlight objects
   // This allows users to fill in missing airline codes instead of re-entering everything
@@ -90,56 +76,6 @@ export function ImportReview({
         })
     )
   })
-
-  // Handle enrichment completion - merge enriched data into flights
-  const handleEnrichmentComplete = useCallback((enrichedFlights: ExtractedFlight[]) => {
-    setIsEnriching(false)
-    setEnrichmentError(null)
-
-    // Merge enriched flights with current flights (match by date + route)
-    setFlights(prev => {
-      return prev.map(basicFlight => {
-        // Find matching enriched flight
-        const enriched = enrichedFlights.find(
-          ef => ef.date === basicFlight.date &&
-                ef.origin === basicFlight.origin &&
-                ef.destination === basicFlight.destination
-        )
-
-        if (enriched) {
-          // Merge enriched data, keeping any user edits
-          return {
-            ...basicFlight,
-            // Only update fields that weren't manually edited (still have original values)
-            aircraft_icao: basicFlight.aircraft_icao || enriched.aircraft_icao,
-            departure_time: basicFlight.departure_time || enriched.departure_time,
-            arrival_time: basicFlight.arrival_time || enriched.arrival_time,
-            confidence: enriched.confidence,
-            enrichment_status: enriched.enrichment_status,
-            field_confidence: enriched.field_confidence,
-          }
-        }
-        return basicFlight
-      })
-    })
-
-    // Notify parent
-    onEnrichmentComplete?.(enrichedFlights)
-  }, [onEnrichmentComplete])
-
-  // Handle enrichment error
-  const handleEnrichmentError = useCallback((error: string) => {
-    setIsEnriching(false)
-    setEnrichmentError(error)
-  }, [])
-
-  // Poll for enrichment completion
-  useEnrichmentPolling(
-    enrichmentJobId,
-    handleEnrichmentComplete,
-    handleEnrichmentError,
-    isEnriching
-  )
 
   // Check for duplicates
   const duplicateIndices = useMemo(() => {
@@ -261,20 +197,6 @@ export function ImportReview({
         <p className="text-muted-foreground max-w-sm mx-auto mb-8">
           {t('import.noResults.message', "We couldn't extract flights from this document")}
         </p>
-
-        {/* Show cleaned text for debugging */}
-        {cleanedText && (
-          <div className="text-left max-w-md mx-auto mb-8 rounded-xl border border-border/60 bg-card overflow-hidden">
-            <div className="px-4 py-3 border-b border-border/50 bg-muted/30">
-              <span className="text-sm text-muted-foreground">
-                {t('import.noResults.normalizedData', 'Normalized data (for debugging):')}
-              </span>
-            </div>
-            <pre className="p-4 text-xs text-muted-foreground font-mono whitespace-pre-wrap overflow-x-auto max-h-32 overflow-y-auto">
-              {cleanedText}
-            </pre>
-          </div>
-        )}
 
         <div className="flex items-center justify-center gap-3">
           <Button variant="outline" onClick={onCancel} className="rounded-xl">
@@ -498,62 +420,6 @@ export function ImportReview({
         </div>
       </div>
 
-      {/* Cleaned text toggle (for transparency) */}
-      {cleanedText && (
-        <div className="rounded-xl border border-border/50 bg-card/50 overflow-hidden">
-          <button
-            onClick={() => setShowCleanedText(!showCleanedText)}
-            className="w-full flex items-center justify-between px-4 py-3 text-sm text-muted-foreground hover:text-foreground hover:bg-muted/30 transition-colors"
-          >
-            <span className="flex items-center gap-2">
-              <FileText className="w-4 h-4" />
-              {t('import.review.viewNormalized', 'View normalized data')}
-            </span>
-            <ChevronDown aria-hidden="true" className={cn(
-              "w-4 h-4 transition-transform duration-200 ease-out",
-              showCleanedText && "rotate-180"
-            )} />
-          </button>
-          <div className={cn(
-            "overflow-hidden transition-all duration-300 ease-out",
-            showCleanedText ? "max-h-64 opacity-100" : "max-h-0 opacity-0"
-          )}>
-            <div className="px-4 py-3 border-t border-border/50 bg-muted/30">
-              <pre className="text-xs text-muted-foreground font-mono whitespace-pre-wrap overflow-x-auto max-h-48 overflow-y-auto">
-                {cleanedText}
-              </pre>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Enrichment error banner */}
-      {enrichmentError && (
-        <EnrichmentErrorBanner
-          error={enrichmentError}
-          onRetry={() => {
-            // Can't retry without re-parsing - just dismiss the error
-            setEnrichmentError(null)
-          }}
-          onSkip={() => setEnrichmentError(null)}
-        />
-      )}
-
-      {/* Enrichment progress indicator with skip option */}
-      {isEnriching && (
-        <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between sm:gap-4 px-4 py-3 rounded-xl bg-primary/5 border border-primary/20">
-          <div className="flex items-center gap-2">
-            <Loader2 className="w-4 h-4 animate-spin text-primary" />
-            <span className="text-sm text-primary">
-              {t('import.review.enrichingFlights', 'Fetching aircraft and timing details...')}
-            </span>
-          </div>
-          <span className="text-xs text-muted-foreground">
-            {t('import.review.enrichingContinues', 'You can import now - enrichment continues in background')}
-          </span>
-        </div>
-      )}
-
       {/* Flight list - with subtle container */}
       <div className="space-y-3">
         {allFlights.map((flight, index) => (
@@ -563,7 +429,6 @@ export function ImportReview({
             index={index}
             selected={selectedIds.has(index)}
             isDuplicate={duplicateIndices.has(index)}
-            isEnriching={isEnriching}
             onSelect={(selected) => handleToggleSelect(index, selected)}
             onChange={(f) => handleFlightChange(index, f)}
             onDelete={() => handleDelete(index)}

@@ -14,11 +14,6 @@ compatibility_flags = ["nodejs_compat"]
 PAGES_ORIGIN = "https://kuuki.marchstudio.uk"  # canonical production origin (override per-env)
 MAINTENANCE_MODE = "false"
 
-# KV Namespaces
-[[kv_namespaces]]
-binding = "IMPORT_JOBS"
-id = "15bad9e7dfa44f8382883513c8bff292"
-
 # D1 Database
 [[d1_databases]]
 binding = "DB"
@@ -27,10 +22,6 @@ database_id = "2a8e3895-6a98-4473-8d7b-a43ca0c0026f"
 migrations_dir = "db/migrations"
 
 # Isolated preview resources; live write isolation remains a separate release gate.
-[[env.preview.kv_namespaces]]
-binding = "IMPORT_JOBS"
-id = "015fa195daf34090b3895197e291a814"
-
 [[env.preview.d1_databases]]
 binding = "DB"
 database_name = "kuuki-preview"

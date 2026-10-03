@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { api } from '@/lib/apiClient'
 import { useAuthStore } from '@/stores/authStore'
+import { queryKeys } from '@/lib/queryKeys'
 
 export interface MostFlownAircraft {
   icao: string
@@ -91,14 +92,6 @@ export interface AdvancedStats {
   updatedAt: string
 }
 
-export interface UnlockProgress {
-  aviaGeek: { current: number; required: number; unlocked: boolean }
-  countryGeek: { current: number; required: number; unlocked: boolean }
-  duration: { current: number; required: number; unlocked: boolean }
-}
-
-const ADVANCED_STATS_KEY = 'advancedStats'
-
 /**
  * Raw advanced-stats row as returned by GET /api/me/advanced-stats.
  * Snake_case keys mirror the old Supabase user_advanced_stats row; the API parses the
@@ -128,22 +121,13 @@ interface ApiAdvancedStats {
 }
 
 /**
- * Stats row consumed by useUnlockProgress (GET /api/me/stats).
- */
-interface ApiUserStats {
-  aircraft_count: number | null
-  countries_count: number | null
-  total_flights: number | null
-}
-
-/**
  * Hook for fetching advanced stats with tier unlock information
  */
 export function useAdvancedStats() {
   const userId = useAuthStore((state) => state.user?.id)
 
   return useQuery({
-    queryKey: [ADVANCED_STATS_KEY, userId],
+    queryKey: queryKeys.advancedStats(userId),
     queryFn: async (): Promise<AdvancedStats | null> => {
       if (!userId) return null
 
@@ -178,50 +162,6 @@ export function useAdvancedStats() {
       } catch (error) {
         console.error('Error fetching advanced stats:', error)
         return null
-      }
-    },
-    enabled: !!userId,
-  })
-}
-
-/**
- * Hook that combines basic stats with unlock progress calculation
- */
-export function useUnlockProgress() {
-  const userId = useAuthStore((state) => state.user?.id)
-
-  return useQuery({
-    queryKey: ['unlockProgress', userId],
-    queryFn: async (): Promise<UnlockProgress | null> => {
-      if (!userId) return null
-
-      const data = await api.get<ApiUserStats | null>('/api/me/stats')
-
-      // No stats row yet — same default progress the PGRST116 path returned.
-      if (!data) {
-        return {
-          aviaGeek: { current: 0, required: 5, unlocked: false },
-          countryGeek: { current: 0, required: 5, unlocked: false },
-          duration: { current: 0, required: 10, unlocked: false },
-        }
-      }
-
-      return {
-        aviaGeek: {
-          current: data.aircraft_count ?? 0,
-          required: 5,
-          unlocked: (data.aircraft_count ?? 0) >= 5,
-        },
-        countryGeek: {
-          current: data.countries_count ?? 0,
-          required: 5,
-          unlocked: (data.countries_count ?? 0) >= 5,
-        },
-        duration: {
-          current: data.total_flights ?? 0,
-          required: 10,
-          unlocked: (data.total_flights ?? 0) >= 10,
-        },
       }
     },
     enabled: !!userId,

@@ -26,7 +26,7 @@ export async function signUp(
     const data = await api.post<{ user: AuthUser; profile: Profile | null }>('/api/auth/signup', {
       email,
       password,
-    }, identityToken)
+    }, { identityToken })
     return { success: true, user: data.user }
   } catch (error) {
     if (error instanceof ApiError) {
@@ -46,7 +46,7 @@ export async function signIn(
     const data = await api.post<{ user: AuthUser; profile: Profile | null }>('/api/auth/signin', {
       email,
       password,
-    }, identityToken)
+    }, { identityToken })
     return { success: true, user: data.user }
   } catch (error) {
     if (error instanceof ApiError) {
@@ -59,7 +59,7 @@ export async function signIn(
 // Sign out
 export async function signOut(identityToken?: IdentityOperationToken): Promise<{ success: boolean; error?: string }> {
   try {
-    await api.post('/api/auth/signout', undefined, identityToken)
+    await api.post('/api/auth/signout', undefined, { identityToken })
     return { success: true }
   } catch (error) {
     return { success: false, error: error instanceof ApiError ? error.message : 'Could not sign out. Please try again.' }
@@ -83,7 +83,7 @@ export async function getMe(): Promise<{ user: AuthUser | null; profile: Profile
 // Get user profile
 export async function getProfile(userId: string, identityToken?: IdentityOperationToken): Promise<Profile | null> {
   try {
-    return await api.get<Profile>(`/api/profiles/${userId}`, undefined, undefined, identityToken)
+    return await api.get<Profile>(`/api/profiles/${userId}`, undefined, { identityToken })
   } catch (error) {
     console.error('Error fetching profile:', error)
     return null
@@ -125,7 +125,7 @@ export async function verifyPassword(password: string): Promise<boolean> {
  */
 export async function deleteAccount(password: string, identityToken?: IdentityOperationToken): Promise<{ success: boolean; error?: string }> {
   try {
-    await api.delete('/api/auth/account', { password }, identityToken)
+    await api.delete('/api/auth/account', { password }, { identityToken })
     return { success: true }
   } catch (error) {
     if (error instanceof ApiError) {

@@ -2,13 +2,10 @@
 import { createHash } from 'node:crypto'
 import { mkdtempSync, readFileSync, rmSync, statSync } from 'node:fs'
 import { tmpdir } from 'node:os'
-import { dirname, isAbsolute, join, resolve } from 'node:path'
-import { fileURLToPath } from 'node:url'
+import { isAbsolute, join, resolve } from 'node:path'
 import { Miniflare } from 'miniflare'
-import { unstable_splitSqlQuery } from 'wrangler'
-
-const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..')
-const MIGRATIONS = ['0001_init.sql', '0002_auth_activation.sql', '0003_derived_recovery.sql']
+import { MAX_REVIEW_AGE_MS, ROOT, SCHEMA_SQL, requiredArg } from './_cli'
+import { applyMigrations } from './_migrations'
 
 export interface LocalTargetOptions {
   target: 'local'
@@ -20,12 +17,6 @@ export interface LocalTarget {
   db: D1Database
   schemaSha256: string
   dispose(): Promise<void>
-}
-
-function requiredArg(argv: string[], key: string): string {
-  const i = argv.indexOf(key)
-  if (i === -1 || !argv[i + 1] || argv[i + 1].startsWith('--')) throw new Error(`Required argument: ${key}`)
-  return argv[i + 1]
 }
 
 export function parseLocalTarget(argv = process.argv.slice(2)): LocalTargetOptions {
@@ -53,8 +44,7 @@ function miniflare(databaseId: string, persistPath?: string): Miniflare {
 }
 
 export async function schemaFingerprint(db: D1Database): Promise<string> {
-  const objects = await db.prepare(`SELECT type, name, tbl_name, sql FROM sqlite_master
-    WHERE name NOT LIKE 'sqlite_%' ORDER BY type, name`).all()
+  const objects = await db.prepare(SCHEMA_SQL).all()
   return schemaRowsSha256(objects.results ?? [])
 }
 
@@ -113,7 +103,7 @@ export function assessSchemaAdmission(
       evidence.observedApplicationSchemaSha256 !== observedSha256 ||
       evidence.expectedFreshSchemaSha256 !== expectedSha256 || evidence.semanticReview !== true ||
       JSON.stringify(dimensions) !== JSON.stringify([...REVIEW_DIMENSIONS].sort()) ||
-      !Number.isFinite(reviewed) || reviewed > Date.now() || Date.now() - reviewed > 24 * 60 * 60 * 1000) {
+      !Number.isFinite(reviewed) || reviewed > Date.now() || Date.now() - reviewed > MAX_REVIEW_AGE_MS) {
     return { admitted: false, observedSha256, expectedSha256, reason: 'schema-admission-evidence-invalid-or-stale' }
   }
   return { admitted: true, observedSha256, expectedSha256 }
@@ -123,16 +113,9 @@ export async function expectedSchemaRows(): Promise<Array<Record<string, unknown
   const mf = miniflare('schema-proof-d1')
   try {
     const db = await mf.getD1Database('DB')
-    for (const name of MIGRATIONS) await applyMigrationSql(db, readFileSync(join(ROOT, 'db', 'migrations', name), 'utf8'))
-    return (await db.prepare(`SELECT type, name, tbl_name, sql FROM sqlite_master
-      WHERE name NOT LIKE 'sqlite_%' ORDER BY type, name`).all<Record<string, unknown>>()).results
+    await applyMigrations(db)
+    return (await db.prepare(SCHEMA_SQL).all<Record<string, unknown>>()).results
   } finally { await mf.dispose() }
-}
-
-async function applyMigrationSql(db: D1Database, sql: string): Promise<void> {
-  for (const statement of unstable_splitSqlQuery(sql)) {
-    await db.prepare(statement).run()
-  }
 }
 
 /** Build the expected hash by actually applying this checkout's migrations to fresh D1. */
@@ -161,7 +144,7 @@ export async function createLocalSchemaFixture(): Promise<{ options: LocalTarget
   const mf = miniflare(options.databaseId, persistPath)
   try {
     const db = await mf.getD1Database('DB')
-    for (const name of MIGRATIONS) await applyMigrationSql(db, readFileSync(join(ROOT, 'db', 'migrations', name), 'utf8'))
+    await applyMigrations(db)
   } finally {
     await mf.dispose()
   }

@@ -22,7 +22,7 @@
 //     numeric's TEXT form, which preserves a trailing .0 (2.0 laps, 13.0 days): use
 //     toFixed1 for those embeds.
 
-import { nowIso } from '../_lib/time'
+import { firstOf, type BatchedRead } from './stats'
 
 // --- rounding helpers (Postgres-numeric parity) -------------------------------------------
 
@@ -88,8 +88,8 @@ export interface DurationYearComparison {
 //    Returns null when there are no completed flights with an aircraft.
 // =========================================================================================
 
-export async function computeFleetInsights(db: D1Database, userId: string): Promise<FleetInsights | null> {
-  const total = await db
+export function computeFleetInsights(db: D1Database, userId: string): BatchedRead<FleetInsights | null> {
+  const total = db
     .prepare(
       `SELECT COUNT(*) AS n
        FROM flights
@@ -98,12 +98,8 @@ export async function computeFleetInsights(db: D1Database, userId: string): Prom
          AND (is_upcoming IS NULL OR is_upcoming = 0)`,
     )
     .bind(userId)
-    .first<{ n: number }>()
-  const totalFlights = total?.n ?? 0
 
-  if (totalFlights === 0) return null
-
-  const hero = await db
+  const hero = db
     .prepare(
       `SELECT
          f.aircraft_icao AS icao,
@@ -124,17 +120,29 @@ export async function computeFleetInsights(db: D1Database, userId: string): Prom
        LIMIT 1`,
     )
     .bind(userId)
-    .first<{
-      icao: string
-      model: string
-      manufacturer: string
-      name: string
-      type: string
-      flight_count: number
-      total_distance_km: number
-      total_duration_minutes: number
-    }>()
 
+  return {
+    statements: [total, hero],
+    derive: ([totalResult, heroResult]) => fleetInsights(
+      firstOf<{ n: number }>(totalResult)?.n ?? 0,
+      firstOf<FleetHeroRow>(heroResult),
+    ),
+  }
+}
+
+interface FleetHeroRow {
+  icao: string
+  model: string
+  manufacturer: string
+  name: string
+  type: string
+  flight_count: number
+  total_distance_km: number
+  total_duration_minutes: number
+}
+
+function fleetInsights(totalFlights: number, hero: FleetHeroRow | null): FleetInsights | null {
+  if (totalFlights === 0) return null
   if (!hero) return null
 
   const distanceKm = hero.total_distance_km
@@ -181,8 +189,8 @@ export async function computeFleetInsights(db: D1Database, userId: string): Prom
 //    loyalty by pct thresholds >=80 / >=60 / >=40 / else. Null when no completed flights.
 // =========================================================================================
 
-export async function computeManufacturerInsights(db: D1Database, userId: string): Promise<ManufacturerInsights | null> {
-  const total = await db
+export function computeManufacturerInsights(db: D1Database, userId: string): BatchedRead<ManufacturerInsights | null> {
+  const total = db
     .prepare(
       `SELECT COUNT(*) AS n
        FROM flights
@@ -191,16 +199,14 @@ export async function computeManufacturerInsights(db: D1Database, userId: string
          AND (is_upcoming IS NULL OR is_upcoming = 0)`,
     )
     .bind(userId)
-    .first<{ n: number }>()
-  const totalFlights = total?.n ?? 0
 
-  if (totalFlights === 0) return null
-
-  const dominant = await db
+  // types_count = COUNT(DISTINCT aircraft_icao) within the dominant manufacturer's group.
+  const dominant = db
     .prepare(
       `SELECT
          COALESCE(ar.manufacturer, 'Unknown') AS name,
-         COUNT(*) AS flight_count
+         COUNT(*) AS flight_count,
+         COUNT(DISTINCT f.aircraft_icao) AS types_count
        FROM flights f
        LEFT JOIN aircraft_reference ar ON f.aircraft_icao = ar.icao
        WHERE f.user_id = ?
@@ -211,25 +217,25 @@ export async function computeManufacturerInsights(db: D1Database, userId: string
        LIMIT 1`,
     )
     .bind(userId)
-    .first<{ name: string; flight_count: number }>()
 
+  return {
+    statements: [total, dominant],
+    derive: ([totalResult, dominantResult]) => manufacturerInsights(
+      firstOf<{ n: number }>(totalResult)?.n ?? 0,
+      firstOf<{ name: string; flight_count: number; types_count: number }>(dominantResult),
+    ),
+  }
+}
+
+function manufacturerInsights(
+  totalFlights: number,
+  dominant: { name: string; flight_count: number; types_count: number } | null,
+): ManufacturerInsights | null {
+  if (totalFlights === 0) return null
   if (!dominant) return null
 
   const pct = roundN((dominant.flight_count / totalFlights) * 100, 1)
-
-  const types = await db
-    .prepare(
-      `SELECT COUNT(DISTINCT f.aircraft_icao) AS n
-       FROM flights f
-       LEFT JOIN aircraft_reference ar ON f.aircraft_icao = ar.icao
-       WHERE f.user_id = ?
-         AND f.aircraft_icao IS NOT NULL
-         AND (f.is_upcoming IS NULL OR f.is_upcoming = 0)
-         AND COALESCE(ar.manufacturer, 'Unknown') = ?`,
-    )
-    .bind(userId, dominant.name)
-    .first<{ n: number }>()
-  const typesCount = types?.n ?? 0
+  const typesCount = dominant.types_count
 
   let loyaltyLabel: string
   let loyaltyQuip: string
@@ -308,35 +314,14 @@ function sumValues(map: Record<string, number>): number {
 
 // =========================================================================================
 // 3. compute_card_insights -> { aircraft?, manufacturer?, continent?, duration? }
-//    Live function RETURNS void and UPDATEs user_advanced_stats.card_insights directly,
-//    reading the already-written aircraft_breakdown / manufacturer_breakdown /
-//    continent_breakdown / duration_stats columns. This port reads the same row and
-//    RETURNS the card_insights JSON object (caller stringifies into card_insights).
-//    Returns null when the user_advanced_stats row is missing (live RETURNs without
-//    writing). Keys are only added when their breakdown is present & non-empty.
+//    Live function UPDATEs user_advanced_stats.card_insights from the aircraft / manufacturer
+//    / continent / duration breakdown columns. This port computes the same JSON object from
+//    the freshly computed breakdowns. Keys are only added when their breakdown is present &
+//    non-empty.
 //
 //    Number embeds use `||` in the live SQL: percentages are ROUND(x, 0) integers, the
 //    duration days value is ROUND(min/1440, 1) which keeps a trailing .0 in text form.
 // =========================================================================================
-
-export async function computeCardInsights(db: D1Database, userId: string): Promise<CardInsights | null> {
-  const row = await db
-    .prepare(
-      `SELECT aircraft_breakdown, manufacturer_breakdown, continent_breakdown, duration_stats
-       FROM user_advanced_stats
-       WHERE user_id = ?`,
-    )
-    .bind(userId)
-    .first<{
-      aircraft_breakdown: string | null
-      manufacturer_breakdown: string | null
-      continent_breakdown: string | null
-      duration_stats: string | null
-    }>()
-
-  if (!row) return null
-  return cardInsightsFromBreakdowns(row)
-}
 
 export function cardInsightsFromBreakdowns(row: {
   aircraft_breakdown: string | null
@@ -412,10 +397,10 @@ export function cardInsightsFromBreakdowns(row: {
 //    'YYYY-MM-DD' date string.
 // =========================================================================================
 
-export async function computeDurationYearComparison(db: D1Database, userId: string): Promise<DurationYearComparison> {
+export function computeDurationYearComparison(db: D1Database, userId: string): BatchedRead<DurationYearComparison> {
   const currentYear = new Date().getUTCFullYear()
 
-  const cur = await db
+  const cur = db
     .prepare(
       `SELECT COALESCE(SUM(duration_minutes), 0) AS total
        FROM flights
@@ -425,10 +410,8 @@ export async function computeDurationYearComparison(db: D1Database, userId: stri
          AND duration_minutes IS NOT NULL`,
     )
     .bind(userId, currentYear)
-    .first<{ total: number }>()
-  const currentTotal = cur?.total ?? 0
 
-  const prev = await db
+  const prev = db
     .prepare(
       `SELECT COALESCE(SUM(duration_minutes), 0) AS total
        FROM flights
@@ -438,18 +421,19 @@ export async function computeDurationYearComparison(db: D1Database, userId: stri
          AND duration_minutes IS NOT NULL`,
     )
     .bind(userId, currentYear - 1)
-    .first<{ total: number }>()
-  const previousTotal = prev?.total ?? 0
-
-  const deltaPercent = previousTotal > 0 ? roundN(((currentTotal - previousTotal) / previousTotal) * 100, 1) : null
 
   return {
-    current_year: currentYear,
-    current_total_minutes: currentTotal,
-    previous_total_minutes: previousTotal,
-    delta_percent: deltaPercent,
+    statements: [cur, prev],
+    derive([curResult, prevResult]) {
+      const currentTotal = firstOf<{ total: number }>(curResult)?.total ?? 0
+      const previousTotal = firstOf<{ total: number }>(prevResult)?.total ?? 0
+      const deltaPercent = previousTotal > 0 ? roundN(((currentTotal - previousTotal) / previousTotal) * 100, 1) : null
+      return {
+        current_year: currentYear,
+        current_total_minutes: currentTotal,
+        previous_total_minutes: previousTotal,
+        delta_percent: deltaPercent,
+      }
+    },
   }
 }
-
-// nowIso is re-exported convenience for callers that stamp updated_at alongside these writes.
-export { nowIso }

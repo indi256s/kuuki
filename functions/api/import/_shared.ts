@@ -2,58 +2,6 @@
 
 export type EnrichmentStatus = 'pending' | 'enriched' | 'failed' | 'skipped'
 
-// ============================================================================
-// Async Job System (KV-backed for persistence across Worker instances)
-// ============================================================================
-
-export type JobStatus = 'processing' | 'completed' | 'failed'
-export type JobType = 'parse' | 'enrichment'
-
-export interface ImportJob {
-  id: string
-  ownerId?: string // user id that created the job; pollers reject jobs owned by anyone else
-  type: JobType
-  status: JobStatus
-  createdAt: number
-  flights?: ExtractedFlight[]
-  error?: string
-  // Diagnostic info
-  rejected?: RejectedFlight[]
-  gemini_count?: number
-  cleaned_text?: string
-}
-
-// KV TTL in seconds (10 minutes)
-const JOB_TTL_SECONDS = 10 * 60
-
-// KV-backed job functions
-export async function createJob(kv: KVNamespace, type: JobType = 'parse', ownerId?: string): Promise<ImportJob> {
-  const id = crypto.randomUUID()
-  const job: ImportJob = {
-    id,
-    ownerId,
-    type,
-    status: 'processing',
-    createdAt: Date.now(),
-  }
-  await kv.put(`job:${id}`, JSON.stringify(job), { expirationTtl: JOB_TTL_SECONDS })
-  return job
-}
-
-export async function getJob(kv: KVNamespace, id: string): Promise<ImportJob | undefined> {
-  const data = await kv.get(`job:${id}`)
-  if (!data) return undefined
-  return JSON.parse(data) as ImportJob
-}
-
-export async function updateJob(kv: KVNamespace, id: string, updates: Partial<ImportJob>): Promise<void> {
-  const job = await getJob(kv, id)
-  if (job) {
-    const updated = { ...job, ...updates }
-    await kv.put(`job:${id}`, JSON.stringify(updated), { expirationTtl: JOB_TTL_SECONDS })
-  }
-}
-
 export interface ExtractedFlight {
   date: string // YYYY-MM-DD
   origin: string // IATA code
@@ -93,8 +41,6 @@ export interface RejectedFlight {
   reason: string
 }
 
-export type EnrichmentStatusType = 'pending' | 'completed' | 'failed'
-
 export interface ParseResponse {
   flights: ExtractedFlight[]
   raw_text?: string
@@ -102,13 +48,6 @@ export interface ParseResponse {
   // Diagnostic info for debugging
   rejected?: RejectedFlight[]
   gemini_count?: number // How many flights Gemini found before validation
-  cleaned_text?: string // Normalized text from Stage 1 (text input only)
-  // Legacy async mode fields (for backwards compatibility)
-  jobId?: string
-  status?: JobStatus
-  // Two-phase import fields
-  enrichmentJobId?: string // Job ID for polling enrichment status
-  enrichmentStatus?: EnrichmentStatusType // 'pending' | 'completed' | 'failed'
 }
 
 export function getMimeType(type: 'pdf' | 'image' | 'text'): string {

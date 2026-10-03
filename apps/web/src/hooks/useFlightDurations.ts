@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { api } from '@/lib/apiClient'
 import { useAuthStore } from '@/stores/authStore'
+import { queryKeys } from '@/lib/queryKeys'
 
 export interface FlightDuration {
   aircraft_icao: string
@@ -10,7 +11,7 @@ export interface FlightDuration {
 export function useFlightDurations() {
   const userId = useAuthStore((s) => s.user?.id)
   return useQuery({
-    queryKey: ['flightDurations', userId],
+    queryKey: queryKeys.flightDurations(userId),
     queryFn: async () => {
       const data = await api.get<FlightDuration[]>('/api/flights/durations')
       return data ?? []

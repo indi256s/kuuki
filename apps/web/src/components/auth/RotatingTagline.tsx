@@ -11,29 +11,25 @@ export function RotatingTagline({ items, interval = 6000, className }: RotatingT
   const [currentIndex, setCurrentIndex] = useState(0)
   const [phase, setPhase] = useState<'visible' | 'exit' | 'enter'>('visible')
 
+  // Each tick: exit (200ms), swap text and jump below, then slide back into view 50ms later.
   useEffect(() => {
-    const timer = setInterval(() => {
-      // Quick exit to the left
+    let swap: ReturnType<typeof setTimeout> | undefined
+    let reveal: ReturnType<typeof setTimeout> | undefined
+    const tick = setInterval(() => {
       setPhase('exit')
+      swap = setTimeout(() => {
+        setCurrentIndex((prev) => (prev + 1) % items.length)
+        setPhase('enter')
+      }, 200)
+      reveal = setTimeout(() => setPhase('visible'), 250)
     }, interval)
 
-    return () => clearInterval(timer)
-  }, [interval])
-
-  useEffect(() => {
-    if (phase !== 'exit') return
-    const timer = setTimeout(() => {
-      setCurrentIndex((prev) => (prev + 1) % items.length)
-      setPhase('enter')
-    }, 200)
-    return () => clearTimeout(timer)
-  }, [phase, items.length])
-
-  useEffect(() => {
-    if (phase !== 'enter') return
-    const timer = setTimeout(() => setPhase('visible'), 50)
-    return () => clearTimeout(timer)
-  }, [phase])
+    return () => {
+      clearInterval(tick)
+      clearTimeout(swap)
+      clearTimeout(reveal)
+    }
+  }, [interval, items.length])
 
   return (
     <div className="flex flex-col items-center gap-3">

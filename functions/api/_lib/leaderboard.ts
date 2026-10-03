@@ -15,6 +15,14 @@ export interface LeaderboardCacheRow {
   updated_at: string
 }
 
+// Eligibility gate shared by every leaderboard read/rebuild: a user whose derived state is stale
+// (revision != published_revision) is hidden until repair publishes it. Users with no
+// user_derived_state row are eligible. Use as `${derivedStateJoin('lc')} ... WHERE ... AND ${PUBLISHED_DERIVED_STATE}`;
+// the join always aliases the table as `ds`.
+export const derivedStateJoin = (userAlias: string) =>
+  `LEFT JOIN user_derived_state ds ON ds.user_id = ${userAlias}.user_id`
+export const PUBLISHED_DERIVED_STATE = '(ds.user_id IS NULL OR ds.revision = ds.published_revision)'
+
 export function toLeaderboardEntry(row: LeaderboardCacheRow) {
   let meta: { username?: string; display_name?: string; avatar_url?: string } = {}
   if (row.metadata) {

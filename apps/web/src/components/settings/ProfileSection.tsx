@@ -11,7 +11,7 @@ import { StatusButton } from '@/components/ui/status-button'
 import { Separator } from '@/components/ui/separator'
 import { useAuth } from '@/hooks/useAuth'
 import { updateProfile } from '@/lib/auth'
-import { LEADERBOARD_KEY, USER_POSITIONS_KEY, TOTAL_USERS_KEY } from '@/hooks/useLeaderboard'
+import { queryKeys } from '@/lib/queryKeys'
 
 export function ProfileSection() {
   const { t } = useTranslation()
@@ -63,9 +63,9 @@ export function ProfileSection() {
 
       // Invalidate leaderboard caches so the board reflects the change
       if (showOnLeaderboards !== (profile?.show_on_leaderboards ?? false)) {
-        queryClient.invalidateQueries({ queryKey: [LEADERBOARD_KEY] })
-        queryClient.invalidateQueries({ queryKey: [USER_POSITIONS_KEY] })
-        queryClient.invalidateQueries({ queryKey: [TOTAL_USERS_KEY] })
+        queryClient.invalidateQueries({ queryKey: queryKeys.leaderboard() })
+        queryClient.invalidateQueries({ queryKey: queryKeys.leaderboardPositions(user.id) })
+        queryClient.invalidateQueries({ queryKey: queryKeys.totalRankedUsers() })
       }
 
       setSaveSuccess(true)

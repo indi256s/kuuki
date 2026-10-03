@@ -1,8 +1,15 @@
 import { QueryClient, QueryCache } from '@tanstack/react-query'
 
+/** Cancelled requests were dropped on purpose. The account-lock rejection is transient, so it still retries. */
+function isCancellation(error: unknown): boolean {
+  if (!(error instanceof Error)) return false
+  if (error.message === 'Request cancelled') return true
+  return error.name === 'AbortError' && error.message !== 'Account action in progress'
+}
+
 /**
  * React Query configuration with:
- * - Auto-retry: 3 attempts with exponential backoff (1s, 2s, 4s, max 30s)
+ * - Auto-retry: 3 attempts with exponential backoff (1s, 2s, 4s, max 30s), never for cancelled requests
  * - Stale time: 60 seconds (reduce API calls for rarely-changing data)
  * - Garbage collection: 5 minutes (was cacheTime in v4)
  * - No refetch on window focus (to reduce API calls)
@@ -11,7 +18,7 @@ import { QueryClient, QueryCache } from '@tanstack/react-query'
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      retry: 3,
+      retry: (failureCount, error) => failureCount < 3 && !isCancellation(error),
       retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
       staleTime: 60_000, // 1 minute (reduced API calls)
       gcTime: 5 * 60 * 1000, // 5 minutes

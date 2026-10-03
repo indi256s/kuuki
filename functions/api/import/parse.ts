@@ -8,10 +8,11 @@ import {
   detectImageMimeType,
   EXTRACTION_PROMPT,
 } from './_shared'
-import { BodyError, decodedBase64Size, readBoundedJson } from './_body'
-import { ProviderResponseError, providerFailure } from './_provider'
+import { decodedBase64Size } from './_body'
+import { DEFAULT_MODEL, PROVIDER_TIMEOUT_MS, ProviderResponseError, providerFailure } from './_provider'
 import { corsHeaders, corsPreflight } from '../_lib/cors'
-import { requireCsrf, type RequestData } from '../_lib/auth'
+import { requireCsrf, requireUser, type RequestData } from '../_lib/auth'
+import { HttpError, readJson, runHandler } from '../_lib/http'
 import { rateLimit } from '../_lib/ratelimit'
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10 MB
@@ -19,8 +20,6 @@ const MAX_TEXT_LENGTH = 100_000 // chars — cap the (previously uncapped) text 
 // A 10 MiB file becomes at most 13,981,016 base64 bytes; 14 MiB includes
 // the JSON envelope. The stream limit applies even without Content-Length.
 const MAX_IMPORT_BODY_BYTES = 14 * 1024 * 1024
-const PROVIDER_TIMEOUT_MS = 45_000
-const DEFAULT_MODEL = 'gemini-3.5-flash-lite'
 
 // JSON schema for structured output (full extraction with aircraft/times)
 const FLIGHT_RESPONSE_SCHEMA = {
@@ -245,7 +244,7 @@ async function extractFlightsWithGemini(
 }
 
 export const onRequestPost: PagesFunction<Env, string, RequestData> = async (context) => {
-  const { request, env } = context
+  const { request, env, data } = context
   const cors = corsHeaders(request, env, 'POST, OPTIONS')
 
   // Handle preflight
@@ -253,76 +252,30 @@ export const onRequestPost: PagesFunction<Env, string, RequestData> = async (con
     return corsPreflight(request, env, 'POST, OPTIONS')
   }
 
-  // CSRF: state-changing, paid-quota endpoint — require same-origin + double-submit token.
-  // requireCsrf throws an HttpError, so catch it and return this handler's own domain shape
-  // (a thrown error here would otherwise surface as a generic 500).
-  try {
+  return runHandler(async () => {
+    // CSRF: state-changing, paid-quota endpoint — require same-origin + double-submit token.
     requireCsrf(request)
-  } catch {
-    return new Response(
-      JSON.stringify({ error: 'Invalid CSRF token', code: 'CSRF', flights: [] }),
-      { status: 403, headers: { 'Content-Type': 'application/json', ...cors } }
-    )
-  }
+    // Auth gate — burns paid Gemini quota, so reject anonymous callers
+    const user = requireUser(data)
+    // Per-user rate limit — each parse makes paid Gemini calls (security finding: AI quota/cost abuse).
+    await rateLimit(env.DB, `import-parse:${user.id}`, 20, 3600)
 
-  // Auth gate — burns paid Gemini quota, so reject anonymous callers
-  const user = (context.data && context.data.user) || null
-  if (!user) {
-    return new Response(
-      JSON.stringify({ error: 'Authentication required', code: 'UNAUTHENTICATED', flights: [] }),
-      { status: 401, headers: { 'Content-Type': 'application/json', ...cors } }
-    )
-  }
+    if (!env.GEMINI_API_KEY) throw new HttpError(500, 'Gemini API key not configured')
 
-  // Per-user rate limit — each parse makes paid Gemini calls (security finding: AI quota/cost abuse).
-  try {
-    await rateLimit(context.env.IMPORT_JOBS, `parse:${user.id}`, 20, 3600)
-  } catch {
-    return new Response(
-      JSON.stringify({ error: 'Too many requests — please slow down', code: 'RATE_LIMITED', flights: [] }),
-      { status: 429, headers: { 'Content-Type': 'application/json', ...cors } }
-    )
-  }
-
-  try {
-    // Check API key
-    if (!context.env.GEMINI_API_KEY) {
-      return Response.json(
-        { error: 'Gemini API key not configured', flights: [] } as ParseResponse,
-        { status: 500, headers: cors }
-      )
-    }
-
-    const body = await readBoundedJson(request, MAX_IMPORT_BODY_BYTES) as Partial<ParseRequest> | null
+    const body = await readJson<Partial<ParseRequest>>(request, { maxBytes: MAX_IMPORT_BODY_BYTES })
     const type = body?.type
     const content = body?.content
     if (!type || !['pdf', 'image', 'text'].includes(type)) {
-      return Response.json(
-        { error: 'Invalid type. Must be pdf, image, or text', flights: [] } as ParseResponse,
-        { status: 400, headers: cors }
-      )
+      throw new HttpError(400, 'Invalid type. Must be pdf, image, or text')
     }
-    if (typeof content !== 'string' || !content) {
-      return Response.json(
-        { error: 'Content is required', flights: [] } as ParseResponse,
-        { status: 400, headers: cors }
-      )
-    }
+    if (typeof content !== 'string' || !content) throw new HttpError(400, 'Content is required')
     if (type !== 'text') {
-      if (decodedBase64Size(content) > MAX_FILE_SIZE) {
-        return Response.json(
-          { error: 'File too large. Maximum size is 10 MB', flights: [] } as ParseResponse,
-          { status: 413, headers: cors }
-        )
-      }
+      if (decodedBase64Size(content) > MAX_FILE_SIZE) throw new HttpError(413, 'File too large. Maximum size is 10 MB')
     } else if (content.length > MAX_TEXT_LENGTH) {
-      return Response.json(
-        { error: 'Text too long. Maximum is 100,000 characters', flights: [] } as ParseResponse,
-        { status: 400, headers: cors }
-      )
+      throw new HttpError(400, 'Text too long. Maximum is 100,000 characters')
     }
 
-    const ai = new GoogleGenAI({ apiKey: context.env.GEMINI_API_KEY })
+    const ai = new GoogleGenAI({ apiKey: env.GEMINI_API_KEY })
     type ContentPart = string | { inlineData: { data: string; mimeType: string } }
     const contents: ContentPart[] = [EXTRACTION_PROMPT]
     if (type === 'text') {
@@ -337,28 +290,16 @@ export const onRequestPost: PagesFunction<Env, string, RequestData> = async (con
       })
     }
 
-    const model = context.env.GEMINI_IMPORT_MODEL?.trim() || DEFAULT_MODEL
-    const result = await extractFlightsWithGemini(ai, model, contents)
-
-    return Response.json(
-      {
-        ...result,
-        enrichmentStatus: 'completed', // Mark as complete since we did full extraction
-      } as ParseResponse,
-      { headers: cors }
-    )
-  } catch (error) {
-    if (error instanceof BodyError) {
-      return Response.json(
-        { error: error.message, code: error.status === 413 ? 'BODY_TOO_LARGE' : 'INVALID_BODY', flights: [] },
-        { status: error.status, headers: cors },
-      )
+    const model = env.GEMINI_IMPORT_MODEL?.trim() || DEFAULT_MODEL
+    let result: ParseResponse
+    try {
+      result = await extractFlightsWithGemini(ai, model, contents)
+    } catch (error) {
+      const failure = providerFailure(error)
+      console.error(JSON.stringify({ event: 'parse_provider_error', code: failure.code }))
+      throw failure
     }
-    const failure = providerFailure(error)
-    console.error(JSON.stringify({ event: 'parse_provider_error', code: failure.code }))
-    return Response.json(
-      { error: failure.message, code: failure.code, flights: [] },
-      { status: failure.status, headers: cors }
-    )
-  }
+
+    return Response.json(result, { headers: cors })
+  }, { headers: cors, fields: { flights: [] } })
 }

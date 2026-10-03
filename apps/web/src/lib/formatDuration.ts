@@ -7,7 +7,7 @@
  * - ≥ 24 hours → "14d 7h"
  */
 
-export interface DurationParts {
+interface DurationParts {
   days: number
   hours: number
   minutes: number
@@ -17,7 +17,7 @@ export interface DurationParts {
 /**
  * Decompose minutes into days, hours, and remaining minutes
  */
-export function formatDurationParts(totalMinutes: number): DurationParts {
+function formatDurationParts(totalMinutes: number): DurationParts {
   if (totalMinutes < 0) totalMinutes = 0
 
   const days = Math.floor(totalMinutes / (24 * 60))
@@ -96,109 +96,4 @@ export function formatDuration(
     return `${parts.days}d`
   }
   return `${parts.days}d ${parts.hours}h`
-}
-
-/**
- * Format duration with i18n-friendly output for translation keys
- * Returns an object that can be used with ICU message format
- */
-export function formatDurationI18n(minutes: number): {
-  days: number
-  hours: number
-  minutes: number
-  formatted: string
-  style: 'minutes' | 'hours' | 'days'
-} {
-  const parts = formatDurationParts(minutes)
-  const totalHours = minutes / 60
-
-  let style: 'minutes' | 'hours' | 'days'
-  if (totalHours < 1) {
-    style = 'minutes'
-  } else if (totalHours < 24) {
-    style = 'hours'
-  } else {
-    style = 'days'
-  }
-
-  return {
-    days: parts.days,
-    hours: parts.hours,
-    minutes: parts.minutes,
-    formatted: formatDuration(minutes),
-    style,
-  }
-}
-
-/**
- * Categorize flight duration into haul type
- * Industry standard thresholds:
- * - Short-haul: < 3 hours
- * - Medium-haul: 3-6 hours
- * - Long-haul: > 6 hours
- */
-export type HaulType = 'short' | 'medium' | 'long'
-
-export function getHaulType(minutes: number): HaulType {
-  const hours = minutes / 60
-  if (hours < 3) return 'short'
-  if (hours <= 6) return 'medium'
-  return 'long'
-}
-
-/**
- * Get haul type distribution from an array of flight durations
- */
-export function getHaulDistribution(durations: number[]): Record<HaulType, number> {
-  const distribution: Record<HaulType, number> = { short: 0, medium: 0, long: 0 }
-
-  for (const duration of durations) {
-    if (duration > 0) {
-      distribution[getHaulType(duration)]++
-    }
-  }
-
-  return distribution
-}
-
-/**
- * Categorize departure time into aviation time buckets
- * - Red-eye: 22:00-05:00
- * - Early: 05:00-09:00
- * - Business: 09:00-17:00
- * - Evening: 17:00-22:00
- */
-export type DepartureBucket = 'red_eye' | 'early' | 'business' | 'evening'
-
-export function getDepartureBucket(hour: number): DepartureBucket {
-  if (hour >= 22 || hour < 5) return 'red_eye'
-  if (hour >= 5 && hour < 9) return 'early'
-  if (hour >= 9 && hour < 17) return 'business'
-  return 'evening'
-}
-
-/**
- * Get the dominant departure pattern from counts
- */
-export function getDominantPattern(
-  patterns: Record<DepartureBucket, number>
-): { bucket: DepartureBucket; count: number; percentage: number } | null {
-  const total = Object.values(patterns).reduce((sum, count) => sum + count, 0)
-  if (total === 0) return null
-
-  let maxBucket: DepartureBucket = 'business'
-  let maxCount = 0
-
-  for (const [bucket, count] of Object.entries(patterns) as [DepartureBucket, number][]) {
-    if (count > maxCount) {
-      maxCount = count
-      maxBucket = bucket
-    }
-  }
-
-  return {
-    bucket: maxBucket,
-    count: maxCount,
-    percentage: Math.round((maxCount / total) * 100),
-  }
 }

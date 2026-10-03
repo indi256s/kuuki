@@ -4,8 +4,10 @@
 
 import { runHandler, readJson, json, HttpError } from '../_lib/http'
 import { requireUser, requireCsrf, type RequestData } from '../_lib/auth'
+import { sha256Hex } from '../_lib/crypto'
 import { toOwnFlight, type FlightRow } from '../_lib/flights'
 import { parseFlightBody } from '../_lib/flightValidation'
+import type { FlightInput } from '../../../packages/shared/src/flightValidation'
 import {
   parseFlightFilters,
   parsePagination,
@@ -28,11 +30,13 @@ export function isUpcomingFlight(date: string): boolean {
   return date > new Date().toISOString().slice(0, 10)
 }
 
-async function digestInput(input: object): Promise<string> {
+export function isIdempotencyKey(key: unknown): key is string {
+  return typeof key === 'string' && /^[A-Za-z0-9._:-]{8,128}$/.test(key)
+}
+
+export function digestInput(input: object): Promise<string> {
   const sorted = Object.fromEntries(Object.entries(input).sort(([a], [b]) => a.localeCompare(b)))
-  const bytes = new TextEncoder().encode(JSON.stringify(sorted))
-  const hash = await crypto.subtle.digest('SHA-256', bytes)
-  return [...new Uint8Array(hash)].map(byte => byte.toString(16).padStart(2, '0')).join('')
+  return sha256Hex(JSON.stringify(sorted))
 }
 
 export const onRequestGet: PagesFunction<Env, string, RequestData> = (context) =>
@@ -58,6 +62,71 @@ export const onRequestGet: PagesFunction<Env, string, RequestData> = (context) =
     return json({ flights: list.results.map(toOwnFlight), total: count?.total ?? 0 })
   })
 
+/** Ledger insert, conditional flight insert and ledger link for one create; batch them with a dirty mark. */
+export async function createFlightStatements(db: D1Database, userId: string, key: string, input: FlightInput): Promise<{ digest: string; statements: D1PreparedStatement[] }> {
+  const date = input.date!
+  const origin = input.origin!
+  const destination = input.destination!
+  const digest = await digestInput(input)
+
+  const source = input.source ?? 'manual'
+  const isUpcoming = isUpcomingFlight(date)
+  const enrichmentStatus = input.enrichment_status ?? (input.aircraft_icao ? 'skipped' : 'pending')
+
+  const { departureUtc, arrivalUtc, durationMinutes: tzDur } = computeFlightDuration({
+    date,
+    departureTime: input.departure_time ?? null,
+    arrivalTime: input.arrival_time ?? null,
+    originTz: input.origin_tz ?? null,
+    destTz: input.dest_tz ?? null,
+    existingDurationMinutes: input.duration_minutes ?? null,
+  })
+
+  const { distanceKm, durationMinutes } = await fillDistanceAndDuration(
+    db,
+    origin,
+    destination,
+    input.distance_km ?? null,
+    tzDur,
+  )
+
+  const statements = [
+    db.prepare(
+      'INSERT INTO flight_idempotency (user_id, key, payload_digest, flight_id, created_at) VALUES (?, ?, ?, NULL, ?) ON CONFLICT (user_id, key) DO NOTHING',
+    ).bind(userId, key, digest, new Date().toISOString()),
+    db.prepare(
+      `INSERT INTO flights (
+       date, origin, destination, airline_iata, aircraft_icao, flight_number,
+       departure_time, arrival_time, departure_utc, arrival_utc, origin_tz, dest_tz,
+       distance_km, duration_minutes, source, is_upcoming, enrichment_status, user_id
+     ) SELECT ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? WHERE changes() = 1`,
+    ).bind(
+      date,
+      origin,
+      destination,
+      input.airline_iata ?? null,
+      input.aircraft_icao ?? null,
+      input.flight_number ?? null,
+      input.departure_time ?? null,
+      input.arrival_time ?? null,
+      departureUtc,
+      arrivalUtc,
+      input.origin_tz ?? null,
+      input.dest_tz ?? null,
+      distanceKm,
+      durationMinutes,
+      source,
+      isUpcoming ? 1 : 0,
+      enrichmentStatus,
+      userId,
+    ),
+    db.prepare(
+      'UPDATE flight_idempotency SET flight_id = last_insert_rowid() WHERE user_id = ? AND key = ? AND flight_id IS NULL AND changes() = 1',
+    ).bind(userId, key),
+  ]
+  return { digest, statements }
+}
+
 export const onRequestPost: PagesFunction<Env, string, RequestData> = (context) =>
   runHandler(async () => {
     const { request, env, data } = context
@@ -65,71 +134,11 @@ export const onRequestPost: PagesFunction<Env, string, RequestData> = (context) 
     const user = requireUser(data)
 
     const key = request.headers.get('Idempotency-Key')
-    if (!key || !/^[A-Za-z0-9._:-]{8,128}$/.test(key)) throw new HttpError(400, 'Valid Idempotency-Key required', 'IDEMPOTENCY_KEY_REQUIRED')
+    if (!isIdempotencyKey(key)) throw new HttpError(400, 'Valid Idempotency-Key required', 'IDEMPOTENCY_KEY_REQUIRED')
     const body = await readJson<unknown>(request)
     const input = await parseFlightBody(env.DB, body, 'create')
-    const date = input.date!
-    const origin = input.origin!
-    const destination = input.destination!
-    const digest = await digestInput(input)
-
-    const source = input.source ?? 'manual'
-    const isUpcoming = isUpcomingFlight(date)
-    const enrichmentStatus = input.enrichment_status ?? (input.aircraft_icao ? 'skipped' : 'pending')
-
-    const { departureUtc, arrivalUtc, durationMinutes: tzDur } = computeFlightDuration({
-      date,
-      departureTime: input.departure_time ?? null,
-      arrivalTime: input.arrival_time ?? null,
-      originTz: input.origin_tz ?? null,
-      destTz: input.dest_tz ?? null,
-      existingDurationMinutes: input.duration_minutes ?? null,
-    })
-
-    const { distanceKm, durationMinutes } = await fillDistanceAndDuration(
-      env.DB,
-      origin,
-      destination,
-      input.distance_km ?? null,
-      tzDur,
-    )
-
-    const statements = [
-      env.DB.prepare(
-        'INSERT INTO flight_idempotency (user_id, key, payload_digest, flight_id, created_at) VALUES (?, ?, ?, NULL, ?) ON CONFLICT (user_id, key) DO NOTHING',
-      ).bind(user.id, key, digest, new Date().toISOString()),
-      env.DB.prepare(
-        `INSERT INTO flights (
-         date, origin, destination, airline_iata, aircraft_icao, flight_number,
-         departure_time, arrival_time, departure_utc, arrival_utc, origin_tz, dest_tz,
-         distance_km, duration_minutes, source, is_upcoming, enrichment_status, user_id
-       ) SELECT ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? WHERE changes() = 1`,
-      ).bind(
-        date,
-        origin,
-        destination,
-        input.airline_iata ?? null,
-        input.aircraft_icao ?? null,
-        input.flight_number ?? null,
-        input.departure_time ?? null,
-        input.arrival_time ?? null,
-        departureUtc,
-        arrivalUtc,
-        input.origin_tz ?? null,
-        input.dest_tz ?? null,
-        distanceKm,
-        durationMinutes,
-        source,
-        isUpcoming ? 1 : 0,
-        enrichmentStatus,
-        user.id,
-      ),
-      env.DB.prepare(
-        'UPDATE flight_idempotency SET flight_id = last_insert_rowid() WHERE user_id = ? AND key = ? AND flight_id IS NULL AND changes() = 1',
-      ).bind(user.id, key),
-      dirtyUserStatement(env.DB, user.id, true),
-    ]
-    const batch = await env.DB.batch(statements)
+    const { digest, statements } = await createFlightStatements(env.DB, user.id, key, input)
+    const batch = await env.DB.batch([...statements, dirtyUserStatement(env.DB, user.id, true)])
     const ledger = await env.DB.prepare('SELECT payload_digest, flight_id FROM flight_idempotency WHERE user_id = ? AND key = ?')
       .bind(user.id, key).first<{ payload_digest: string; flight_id: number | null }>()
     if (!ledger) throw new HttpError(500, 'Flight receipt missing', 'RECEIPT_MISSING')

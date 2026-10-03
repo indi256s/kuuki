@@ -5,7 +5,7 @@
 
 import { runHandler, readJson, json, HttpError } from '../_lib/http'
 import { requireCsrf, requireUser, type RequestData } from '../_lib/auth'
-import { getPasswordHashById } from '../_lib/users'
+import { getPasswordHashById, parsePassword } from '../_lib/users'
 import { verifyPassword } from '../_lib/crypto'
 import { rateLimit, clientIp } from '../_lib/ratelimit'
 
@@ -21,8 +21,7 @@ export const onRequestPost: PagesFunction<Env, string, RequestData> = (context) 
     await rateLimit(env.DB, `verifypw:${clientIp(request)}`, 10, 900)
 
     const body = await readJson<VerifyBody>(request)
-    const password = body?.password
-    if (typeof password !== 'string' || !password || password.length > 1024) throw new HttpError(400, 'Password is required', 'MISSING_PASSWORD')
+    const password = parsePassword(body?.password, 'current')
 
     const hash = await getPasswordHashById(env.DB, user.id)
     if (!hash || !(await verifyPassword(password, hash, env.AUTH_SECRET))) {

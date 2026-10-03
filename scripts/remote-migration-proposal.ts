@@ -5,10 +5,9 @@ import { dirname, isAbsolute, join, resolve, sep } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { assertSourceForeignKeyClosure, buildImportTables, sameProjectedRow, type ImportManifest } from './sb-to-d1'
 import { assessSchemaAdmission, expectedSchemaRows } from './migration-target'
-import { openRemoteReader } from './migration-remote-reader'
+import { assertRemoteIds, openRemoteReader } from './migration-remote-reader'
+import { ROOT, SCHEMA_SQL, requiredArg } from './_cli'
 
-const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..')
-const SCHEMA_SQL = `SELECT type, name, tbl_name, sql FROM sqlite_master WHERE name NOT LIKE 'sqlite_%' ORDER BY type, name`
 type Bind = string | number | null
 interface MissingTable { table: string; columns: string[]; rows: Bind[][] }
 
@@ -78,24 +77,16 @@ function privateOutputPath(raw: string): string {
   return path
 }
 
-function arg(argv: string[], name: string): string {
-  const at = argv.indexOf(name)
-  if (at < 0 || !argv[at + 1] || argv[at + 1].startsWith('--')) throw new Error(`Required: ${name}`)
-  return argv[at + 1]
-}
-
 export async function main(argv = process.argv.slice(2)): Promise<void> {
-  const accountId = arg(argv, '--account-id')
-  const databaseId = arg(argv, '--database-id')
-  if (!/^[a-f0-9]{32}$/i.test(accountId) || !/^[a-f0-9-]{36}$/i.test(databaseId)) {
-    throw new Error('Explicit Cloudflare account/database IDs are malformed')
-  }
+  const accountId = requiredArg(argv, '--account-id')
+  const databaseId = requiredArg(argv, '--database-id')
+  assertRemoteIds(accountId, databaseId)
   const sourceIndex = argv.indexOf('--snapshot-dir')
   const snapshotDir = sourceIndex < 0 ? join(ROOT, 'db', '_snapshot') : resolve(argv[sourceIndex + 1])
   const outputIndex = argv.indexOf('--output-sql')
-  const outputPath = outputIndex < 0 ? null : privateOutputPath(arg(argv, '--output-sql'))
+  const outputPath = outputIndex < 0 ? null : privateOutputPath(requiredArg(argv, '--output-sql'))
   const admissionIndex = argv.indexOf('--schema-admission')
-  const admissionPath = admissionIndex < 0 ? undefined : privateOutputPath(arg(argv, '--schema-admission'))
+  const admissionPath = admissionIndex < 0 ? undefined : privateOutputPath(requiredArg(argv, '--schema-admission'))
   const { tables, manifest } = buildImportTables(snapshotDir)
   const reader = openRemoteReader(accountId, databaseId)
   try {

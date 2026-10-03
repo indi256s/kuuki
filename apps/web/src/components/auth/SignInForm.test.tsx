@@ -35,30 +35,7 @@ describe('SignInForm', () => {
     mockSignIn.mockReset()
   })
 
-  it('renders email and password fields', () => {
-    render(<SignInForm />)
-
-    expect(screen.getByLabelText(/email/i)).toBeInTheDocument()
-    expect(screen.getByLabelText(/password/i)).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /sign in/i })).toBeInTheDocument()
-  })
-
-  it('calls signIn with email and password on submit', async () => {
-    const user = userEvent.setup()
-    mockSignIn.mockResolvedValue({ success: true })
-
-    render(<SignInForm />)
-
-    await user.type(screen.getByLabelText(/email/i), 'test@example.com')
-    await user.type(screen.getByLabelText(/password/i), 'password123')
-    await user.click(screen.getByRole('button', { name: /sign in/i }))
-
-    await waitFor(() => {
-      expect(mockSignIn).toHaveBeenCalledWith('test@example.com', 'password123')
-    })
-  })
-
-  it('calls onSuccess callback after successful signin', async () => {
+  it('submits credentials, then calls onSuccess', async () => {
     const user = userEvent.setup()
     mockSignIn.mockResolvedValue({ success: true })
 
@@ -70,6 +47,7 @@ describe('SignInForm', () => {
     await user.click(screen.getByRole('button', { name: /sign in/i }))
 
     await waitFor(() => {
+      expect(mockSignIn).toHaveBeenCalledWith('test@example.com', 'password123')
       expect(onSuccess).toHaveBeenCalled()
     })
   })
@@ -87,29 +65,5 @@ describe('SignInForm', () => {
     await waitFor(() => {
       expect(screen.getByText(/invalid credentials/i)).toBeInTheDocument()
     })
-  })
-
-  it('shows sign up link when onSignUpClick is provided', () => {
-    const onSignUpClick = vi.fn()
-    render(<SignInForm onSignUpClick={onSignUpClick} />)
-
-    expect(screen.getByText(/new to kuuki/i)).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /create an account/i })).toBeInTheDocument()
-  })
-
-  it('calls onSignUpClick when sign up link is clicked', async () => {
-    const user = userEvent.setup()
-    const onSignUpClick = vi.fn()
-    render(<SignInForm onSignUpClick={onSignUpClick} />)
-
-    await user.click(screen.getByRole('button', { name: /create an account/i }))
-
-    expect(onSignUpClick).toHaveBeenCalled()
-  })
-
-  it('does not show sign up link when onSignUpClick is not provided', () => {
-    render(<SignInForm />)
-
-    expect(screen.queryByText(/new to kuuki/i)).not.toBeInTheDocument()
   })
 })

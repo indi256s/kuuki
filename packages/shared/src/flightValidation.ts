@@ -15,6 +15,9 @@ export interface FlightInput {
   enrichment_status?: 'pending' | 'enriched' | 'failed' | 'skipped'
 }
 
+/** Most flights one POST /api/flights/bulk request may carry. */
+export const FLIGHT_BULK_CREATE_MAX = 50
+
 const fields = new Set<keyof FlightInput>([
   'date', 'origin', 'destination', 'airline_iata', 'aircraft_icao', 'flight_number',
   'departure_time', 'arrival_time', 'origin_tz', 'dest_tz', 'distance_km',

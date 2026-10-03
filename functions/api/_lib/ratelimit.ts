@@ -1,4 +1,6 @@
-// Atomic D1 fixed-window counters for the small auth surface.
+// Atomic D1 fixed-window counters for auth and paid import/enrichment routes.
+// All callers share the auth_rate_limits table, so each key starts with its route's prefix
+// (signin:, signup:, import-parse:, import-enrich:, ...).
 
 import { HttpError } from './http'
 
@@ -7,22 +9,13 @@ import { HttpError } from './http'
  * statement, so parallel requests cannot lose increments.
  */
 export async function rateLimit(
-  store: D1Database | KVNamespace,
+  db: D1Database,
   key: string,
   limit: number,
   windowSeconds: number,
 ): Promise<void> {
-  // Import/enrichment callers still use the pre-existing KV limiter. Auth routes
-  // pass D1 and use the atomic branch below; W4 can move its own callers later.
-  if (!('prepare' in store)) {
-    const k = `rl:${key}`
-    const current = Number((await store.get(k)) ?? '0')
-    if (current >= limit) throw new HttpError(429, 'Too many requests — please try again later', 'RATE_LIMITED')
-    await store.put(k, String(current + 1), { expirationTtl: windowSeconds })
-    return
-  }
   const now = Math.floor(Date.now() / 1000)
-  const row = await store.prepare(
+  const row = await db.prepare(
     `INSERT INTO auth_rate_limits (key, count, expires_at) VALUES (?, 1, ?)
      ON CONFLICT(key) DO UPDATE SET
        count = CASE WHEN auth_rate_limits.expires_at <= ? THEN 1 ELSE auth_rate_limits.count + 1 END,

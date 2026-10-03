@@ -1,9 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { api } from '@/lib/apiClient'
-
-// Keys for cache invalidation
-const FLIGHTS_KEY = 'flights'
-const FLIGHT_AIRCRAFT_KEY = 'flightAircraft'
+import { queryKeys } from '@/lib/queryKeys'
+import { useAuthStore } from '@/stores/authStore'
 
 export interface FlightToEnrich {
   id: string
@@ -46,6 +44,7 @@ export function useAircraftEnrichment() {
  */
 export function useUpdateFlightAircraft() {
   const queryClient = useQueryClient()
+  const userId = useAuthStore((state) => state.user?.id)
 
   return useMutation({
     mutationFn: async (updates: { id: number; aircraft_icao: string }[]) => {
@@ -60,9 +59,9 @@ export function useUpdateFlightAircraft() {
     },
     onSuccess: () => {
       // Invalidate flight-related queries to refresh the UI
-      queryClient.invalidateQueries({ queryKey: [FLIGHTS_KEY] })
-      queryClient.invalidateQueries({ queryKey: [FLIGHT_AIRCRAFT_KEY] })
-      queryClient.invalidateQueries({ queryKey: ['flightStats'] })
+      queryClient.invalidateQueries({ queryKey: queryKeys.flights(userId) })
+      queryClient.invalidateQueries({ queryKey: queryKeys.flightAircraft(userId) })
+      queryClient.invalidateQueries({ queryKey: queryKeys.flightStats(userId) })
     },
   })
 }

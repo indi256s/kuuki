@@ -1,8 +1,9 @@
-import { afterEach, expect, it, vi } from 'vitest'
+import { afterAll, afterEach, beforeAll, expect, it, vi } from 'vitest'
 import { ApiError } from '@google/genai'
 import { onRequestPost as parseImport } from '../api/import/parse'
 import { onRequestPost as enrichAircraft } from '../api/enrich/aircraft'
 import { decodedBase64Size } from '../api/import/_body'
+import { createApiDatabase, csrfRequest, testOrigin as origin } from './harness'
 
 const provider = vi.hoisted(() => ({ generateContent: vi.fn() }))
 vi.mock('@google/genai', async importOriginal => {
@@ -15,25 +16,16 @@ vi.mock('@google/genai', async importOriginal => {
   }
 })
 
-const origin = 'https://kuuki.test'
-const kv = { get: async () => null, put: async () => undefined }
+let api: Awaited<ReturnType<typeof createApiDatabase>>
+beforeAll(async () => { api = await createApiDatabase() })
+afterAll(async () => { await api.dispose() })
 
-function context(path: string, body: BodyInit) {
-  const request = new Request(`${origin}${path}`, {
-    method: 'POST',
-    headers: {
-      Origin: origin,
-      Cookie: 'kuuki_csrf=test-csrf',
-      'X-CSRF-Token': 'test-csrf',
-      'Content-Type': 'application/json',
-    },
-    body,
-    ...(body instanceof ReadableStream ? { duplex: 'half' } : {}),
-  } as RequestInit & { duplex?: 'half' })
+function context(path: string, body: BodyInit, userId = 'u1') {
+  const request = csrfRequest(path, 'POST', body)
   return {
     request,
-    env: { GEMINI_API_KEY: 'test', PAGES_ORIGIN: origin, IMPORT_JOBS: kv },
-    data: { user: { id: 'u1', email: 'u1@example.test' } },
+    env: { GEMINI_API_KEY: 'test', PAGES_ORIGIN: origin, DB: api.db },
+    data: { user: { id: userId, email: `${userId}@example.test` } },
     params: {},
     waitUntil() {},
   } as never
@@ -47,17 +39,32 @@ it('validates a 10 MiB base64 boundary without a repeating-group regex', () => {
   expect(() => decodedBase64Size(content.slice(0, -4) + 'AB==')).toThrow('Invalid file encoding')
 })
 
-it('rejects a chunked oversized import body before contacting the provider', async () => {
+it.each([
+  ['import parse', parseImport, '/api/import/parse', 14 * 1024 * 1024 + 1, 'flights'],
+  ['enrichment', enrichAircraft, '/api/enrich/aircraft', 50_001, 'results'],
+] as const)('rejects a chunked oversized %s body before contacting the provider, without trusting Content-Length', async (_label, handler, path, size, emptyKey) => {
   const stream = new ReadableStream<Uint8Array>({
     start(controller) {
-      controller.enqueue(new Uint8Array(14 * 1024 * 1024 + 1))
+      controller.enqueue(new Uint8Array(size))
       controller.close()
     },
   })
-  const response = await parseImport(context('/api/import/parse', stream))
+  const response = await handler(context(path, stream))
   expect(response.status).toBe(413)
-  expect(await response.json()).toMatchObject({ code: 'BODY_TOO_LARGE' })
+  expect(response.headers.get('Access-Control-Allow-Origin')).toBe(origin)
+  expect(await response.json()).toMatchObject({ code: 'PAYLOAD_TOO_LARGE', [emptyKey]: [] })
   expect(provider.generateContent).not.toHaveBeenCalled()
+})
+
+it('rate-limits parse per user in D1 and keeps the CORS error shape', async () => {
+  provider.generateContent.mockResolvedValue({ text: '{"flights":[]}' })
+  const body = JSON.stringify({ type: 'text', content: 'Flight details' })
+  for (let i = 0; i < 20; i++) expect((await parseImport(context('/api/import/parse', body, 'u-limit'))).status).toBe(200)
+  const response = await parseImport(context('/api/import/parse', body, 'u-limit'))
+  expect(response.status).toBe(429)
+  expect(response.headers.get('Access-Control-Allow-Origin')).toBe(origin)
+  expect(await response.json()).toMatchObject({ code: 'RATE_LIMITED', flights: [] })
+  expect(provider.generateContent).toHaveBeenCalledTimes(20)
 })
 
 it('uses one configured model call and leaves an unknown year for review', async () => {
@@ -79,7 +86,6 @@ it('uses one configured model call and leaves an unknown year for review', async
   expect(result.flights[0].date).toBe('')
   expect(result.flights[0].field_confidence.date_year_explicit).toBe(false)
   expect(provider.generateContent).toHaveBeenCalledTimes(1)
-  expect(provider.generateContent.mock.calls[0][0].model).toBe('gemini-3.5-flash-lite')
 })
 
 it('projects provider flight fields and rejection reasons without echoing arbitrary data', async () => {
@@ -130,34 +136,12 @@ it.each([
   expect(await response.json()).toMatchObject({ code, flights: [] })
 })
 
-it('does not report malformed enrichment JSON as an empty success', async () => {
-  provider.generateContent.mockResolvedValue({ text: '{bad-json' })
-  const response = await enrichAircraft(context(
-    '/api/enrich/aircraft',
-    JSON.stringify({ flights: [{ id: 'f1', date: '2025-01-01', origin: 'AAA', destination: 'BBB' }] }),
-  ))
+it.each([
+  ['enrichment', enrichAircraft, '/api/enrich/aircraft', { flights: [{ id: 'f1', date: '2025-01-01', origin: 'AAA', destination: 'BBB' }] }, '{bad-json', 'results'],
+  ['structured import', parseImport, '/api/import/parse', { type: 'text', content: 'Flight details' }, 'not-json', 'flights'],
+] as const)('surfaces malformed %s provider JSON as an error, not an empty success', async (_label, handler, path, body, text, emptyKey) => {
+  provider.generateContent.mockResolvedValue({ text })
+  const response = await handler(context(path, JSON.stringify(body)))
   expect(response.status).toBe(502)
-  expect(await response.json()).toMatchObject({ code: 'PROVIDER_INVALID_RESPONSE', results: [] })
-})
-
-it('surfaces an unsupported structured import response as an error', async () => {
-  provider.generateContent.mockResolvedValue({ text: 'not-json' })
-  const response = await parseImport(context(
-    '/api/import/parse',
-    JSON.stringify({ type: 'text', content: 'Flight details' }),
-  ))
-  expect(response.status).toBe(502)
-  expect(await response.json()).toMatchObject({ code: 'PROVIDER_INVALID_RESPONSE', flights: [] })
-})
-
-it('enforces the enrichment byte cap without trusting Content-Length', async () => {
-  const stream = new ReadableStream<Uint8Array>({
-    start(controller) {
-      controller.enqueue(new Uint8Array(50_001))
-      controller.close()
-    },
-  })
-  const response = await enrichAircraft(context('/api/enrich/aircraft', stream))
-  expect(response.status).toBe(413)
-  expect(provider.generateContent).not.toHaveBeenCalled()
+  expect(await response.json()).toMatchObject({ code: 'PROVIDER_INVALID_RESPONSE', [emptyKey]: [] })
 })

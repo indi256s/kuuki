@@ -2,7 +2,7 @@
 
 import { runHandler, json, HttpError } from '../_lib/http'
 import type { RequestData } from '../_lib/auth'
-import { toLeaderboardEntry } from '../_lib/leaderboard'
+import { derivedStateJoin, PUBLISHED_DERIVED_STATE, toLeaderboardEntry } from '../_lib/leaderboard'
 import type { LeaderboardCacheRow } from '../_lib/leaderboard'
 
 const CATEGORIES = ['flights', 'distance', 'countries', 'cities', 'airlines']
@@ -26,9 +26,9 @@ export const onRequestGet: PagesFunction<Env, string, RequestData> = (context) =
         `SELECT lc.* FROM leaderboard_cache lc
          JOIN profiles p ON p.id = lc.user_id
          JOIN user_stats us ON us.user_id = lc.user_id
-         LEFT JOIN user_derived_state ds ON ds.user_id = lc.user_id
+         ${derivedStateJoin('lc')}
          WHERE lc.category = ? AND p.show_on_leaderboards = 1 AND us.total_flights >= 5
-           AND (ds.user_id IS NULL OR ds.revision = ds.published_revision)
+           AND ${PUBLISHED_DERIVED_STATE}
          ORDER BY lc.rank ASC LIMIT ? OFFSET ?`,
       )
       .bind(category, limit, offset)
@@ -39,9 +39,9 @@ export const onRequestGet: PagesFunction<Env, string, RequestData> = (context) =
         `SELECT COUNT(*) AS total FROM leaderboard_cache lc
          JOIN profiles p ON p.id = lc.user_id
          JOIN user_stats us ON us.user_id = lc.user_id
-         LEFT JOIN user_derived_state ds ON ds.user_id = lc.user_id
+         ${derivedStateJoin('lc')}
          WHERE lc.category = ? AND p.show_on_leaderboards = 1 AND us.total_flights >= 5
-           AND (ds.user_id IS NULL OR ds.revision = ds.published_revision)`,
+           AND ${PUBLISHED_DERIVED_STATE}`,
       )
       .bind(category)
       .first<{ total: number }>()

@@ -248,14 +248,6 @@ export async function addGroundVisit(
 }
 
 /**
- * Get ground visits for a specific country
- */
-export async function getGroundVisits(userId: string, countryCode: string): Promise<GroundVisit[]> {
-  const visits = await api.get<ApiGroundVisit[]>('/api/passport/ground-visits', { countryCode })
-  return (visits ?? []).map((v) => toGroundVisit(v, userId))
-}
-
-/**
  * Delete a single ground visit
  */
 export async function deleteGroundVisit(_userId: string, visitId: string): Promise<DerivedAck> {
@@ -365,14 +357,6 @@ export async function getPassportStats(userId: string): Promise<{
     newThisYear,
     lastStamp,
   }
-}
-
-/**
- * Check if a country is already claimed by the user
- */
-export async function isCountryClaimed(_userId: string, countryCode: string): Promise<boolean> {
-  const data = await api.get<{ exists: boolean }>(`/api/passport/claims/${countryCode}/exists`)
-  return !!data.exists
 }
 
 /**

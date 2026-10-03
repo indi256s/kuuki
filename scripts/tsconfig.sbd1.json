@@ -18,11 +18,11 @@
     ]
   },
   "include": [
+    "./_cli.ts",
     "./sb-to-d1.ts",
     "./sb-to-d1.smoke.ts",
     "./derive.ts",
     "./ship-oracle.ts",
-    "./reset-passwords.ts",
     "./validate.ts",
     "./migration-preflight.ts",
     "./migration-target.ts",

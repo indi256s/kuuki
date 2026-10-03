@@ -3,6 +3,7 @@ import { requireStrictSameOrigin } from '../../_lib/auth'
 import { rateLimit, clientIp } from '../../_lib/ratelimit'
 import { completeActivation } from '../../_lib/activation'
 import { configuredActivationOrigin } from '../../_lib/activationSender'
+import { parsePassword } from '../../_lib/users'
 
 export const onRequestPost: PagesFunction<Env> = async (context) => {
   const response = await runHandler(async () => {
@@ -15,10 +16,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     const bearer = request.headers.get('Authorization')
     const token = bearer?.startsWith('Bearer ') ? bearer.slice(7) : ''
     const body = await readJson<{ password?: unknown }>(request)
-    const password = body?.password
-    if (typeof password !== 'string' || password.length < 8 || password.length > 1024) {
-      throw new HttpError(400, 'Password must be 8–1024 characters', 'WEAK_PASSWORD')
-    }
+    const password = parsePassword(body?.password, 'new')
     if (!token || !(await completeActivation(env.DB, token, password, env.AUTH_SECRET))) {
       throw new HttpError(400, 'Activation link is invalid or expired', 'INVALID_ACTIVATION')
     }

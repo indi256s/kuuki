@@ -1,8 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { getFlightStats, type FlightStats } from '@/lib/flights'
 import { useAuthStore } from '@/stores/authStore'
-
-const FLIGHT_STATS_KEY = 'flightStats'
+import { queryKeys } from '@/lib/queryKeys'
 
 /**
  * Hook for aggregated flight statistics
@@ -11,7 +10,7 @@ export function useFlightStats() {
   const userId = useAuthStore((state) => state.user?.id)
 
   return useQuery({
-    queryKey: [FLIGHT_STATS_KEY, userId],
+    queryKey: queryKeys.flightStats(userId),
     queryFn: () => {
       if (!userId) {
         return {

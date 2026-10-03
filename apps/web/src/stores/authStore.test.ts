@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { queryClient } from '@/lib/queryClient'
-import { useImportStore } from './importStore'
+import { queryKeys } from '@/lib/queryKeys'
 import { useAuthStore } from './authStore'
 import { signIn, signOut, deleteAccount, getProfile, getMe } from '@/lib/auth'
 import { getFlightCreateOperation, pendingFlightCreateOperation, clearFlightCreateOperations } from '@/lib/flightCreateOperations'
@@ -15,7 +15,6 @@ describe('cookie identity changes', () => {
     vi.clearAllMocks()
     queryClient.clear()
     clearFlightCreateOperations()
-    useImportStore.setState({ backgroundJobs: {} })
     useAuthStore.setState({
       user: { id: 'a', email: 'a@example.com' }, profile: null,
       isLoading: false, isInitialized: true,
@@ -23,43 +22,41 @@ describe('cookie identity changes', () => {
   })
 
   it('keeps the old identity and its data when signout fails', async () => {
-    queryClient.setQueryData(['flights'], [{ id: 'private-a' }])
+    queryClient.setQueryData(queryKeys.flights('a'), [{ id: 'private-a' }])
     vi.mocked(signOut).mockResolvedValue({ success: false, error: 'Server unavailable' })
 
     const result = await useAuthStore.getState().signOut()
 
     expect(result).toEqual({ success: false, error: 'Server unavailable' })
     expect(useAuthStore.getState().user?.id).toBe('a')
-    expect(queryClient.getQueryData(['flights'])).toEqual([{ id: 'private-a' }])
+    expect(queryClient.getQueryData(queryKeys.flights('a'))).toEqual([{ id: 'private-a' }])
   })
 
-  it('removes the previous user cache and background jobs on confirmed switch', async () => {
+  it('removes the previous user cache on confirmed switch', async () => {
     const receipt = getFlightCreateOperation('a', 'manual', { date: '2026-01-01' })
-    queryClient.setQueryData(['flights'], [{ id: 'private-a' }])
-    useImportStore.setState({ backgroundJobs: { old: { jobId: 'old', basicFlights: [], startedAt: Date.now() } } })
+    queryClient.setQueryData(queryKeys.flights('a'), [{ id: 'private-a' }])
     vi.mocked(signIn).mockResolvedValue({ success: true, user: { id: 'b', email: 'b@example.com' } })
     vi.mocked(getProfile).mockResolvedValue(null)
 
     await useAuthStore.getState().signIn('b@example.com', 'password')
 
     expect(useAuthStore.getState().user?.id).toBe('b')
-    expect(queryClient.getQueryData(['flights'])).toBeUndefined()
-    expect(useImportStore.getState().backgroundJobs).toEqual({})
+    expect(queryClient.getQueryData(queryKeys.flights('a'))).toBeUndefined()
     expect(pendingFlightCreateOperation('a', 'manual')).toMatchObject({ key: receipt.key, body: { date: '2026-01-01' } })
     expect(pendingFlightCreateOperation('b', 'manual')).toBeNull()
   })
 
   it('clears identity and private data only after account deletion succeeds', async () => {
-    queryClient.setQueryData(['flights'], [{ id: 'private-a' }])
+    queryClient.setQueryData(queryKeys.flights('a'), [{ id: 'private-a' }])
     vi.mocked(deleteAccount).mockResolvedValueOnce({ success: false, error: 'Wrong password' })
     await expect(useAuthStore.getState().deleteAccount('wrong')).resolves.toEqual({ success: false, error: 'Wrong password' })
     expect(useAuthStore.getState().user?.id).toBe('a')
-    expect(queryClient.getQueryData(['flights'])).toEqual([{ id: 'private-a' }])
+    expect(queryClient.getQueryData(queryKeys.flights('a'))).toEqual([{ id: 'private-a' }])
 
     vi.mocked(deleteAccount).mockResolvedValueOnce({ success: true })
     await expect(useAuthStore.getState().deleteAccount('correct')).resolves.toEqual({ success: true })
     expect(useAuthStore.getState().user).toBeNull()
-    expect(queryClient.getQueryData(['flights'])).toBeUndefined()
+    expect(queryClient.getQueryData(queryKeys.flights('a'))).toBeUndefined()
   })
 
   it('admits only one cookie identity mutation until its response settles', async () => {

@@ -4,6 +4,7 @@ import { useAuthStore } from '@/stores/authStore'
 import { useDashboardStore } from '@/stores/dashboardStore'
 import { findAirport, findCountry } from '@kuuki/data'
 import type { FlightFilters } from '@/lib/flights'
+import { queryKeys } from '@/lib/queryKeys'
 
 export interface DashboardStats {
     // Basic stats
@@ -159,7 +160,7 @@ export function useDashboardStats() {
     const filters = useDashboardStore((state) => state.filters)
 
     return useQuery({
-        queryKey: ['dashboardStats', userId, filters],
+        queryKey: queryKeys.dashboardStats(userId, filters),
         queryFn: async (): Promise<DashboardStats | null> => {
             if (!userId) return null
 

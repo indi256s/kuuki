@@ -1,10 +1,11 @@
 // PUT /api/passport/claims/:cc — claim a country (idempotent upsert).
 // DELETE /api/passport/claims/:cc — unclaim (drops ground visits first, then the claim).
 
-import { runHandler, json, HttpError } from '../../../_lib/http'
+import { runHandler, json } from '../../../_lib/http'
 import { requireUser, requireCsrf, type RequestData } from '../../../_lib/auth'
 import { newId } from '../../../_lib/crypto'
 import { nowIso } from '../../../_lib/time'
+import { parseCountryCode } from '../../../_lib/params'
 import { dirtyUserStatement, repairUserDerivedState } from '../../../_services/derivedState'
 
 export const onRequestPut: PagesFunction<Env, string, RequestData> = (context) =>
@@ -12,8 +13,7 @@ export const onRequestPut: PagesFunction<Env, string, RequestData> = (context) =
     const { request, env } = context
     requireCsrf(request)
     const user = requireUser(context.data)
-    const cc = context.params.cc as string
-    if (!/^[A-Z]{2}$/.test(cc)) throw new HttpError(400, 'Invalid country code', 'INVALID_COUNTRY')
+    const cc = parseCountryCode(context.params.cc)
 
     const [inserted] = await env.DB.batch([
       env.DB.prepare(
@@ -36,15 +36,17 @@ export const onRequestDelete: PagesFunction<Env, string, RequestData> = (context
     const { request, env } = context
     requireCsrf(request)
     const user = requireUser(context.data)
-    const cc = context.params.cc as string
-    if (!/^[A-Z]{2}$/.test(cc)) throw new HttpError(400, 'Invalid country code', 'INVALID_COUNTRY')
+    const cc = parseCountryCode(context.params.cc)
 
-    const results = await env.DB.batch([
+    // Ground visits can exist without a claim, so each DELETE gets its own
+    // only-if-changed dirty mark (changes() sees just the preceding statement).
+    const [visits, , claims] = await env.DB.batch([
       env.DB.prepare('DELETE FROM ground_visits WHERE user_id = ? AND country_code = ?').bind(user.id, cc),
+      dirtyUserStatement(env.DB, user.id, true),
       env.DB.prepare('DELETE FROM country_claims WHERE user_id = ? AND country_code = ?').bind(user.id, cc),
-      dirtyUserStatement(env.DB, user.id),
+      dirtyUserStatement(env.DB, user.id, true),
     ])
 
-    const changed = results[0].meta.changes || results[1].meta.changes
+    const changed = visits.meta.changes || claims.meta.changes
     return json({ ok: true, ...(changed ? await repairUserDerivedState(env.DB, user.id) : {}) })
   })

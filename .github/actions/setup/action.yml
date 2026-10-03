@@ -1,0 +1,21 @@
+name: Setup workspace
+description: Install pnpm and Node with the pnpm store cache, then install locked dependencies. Run actions/checkout first.
+inputs:
+  pnpm-version:
+    description: pnpm version to install
+    required: true
+  node-version:
+    description: Node.js version to install
+    required: true
+runs:
+  using: composite
+  steps:
+    - uses: pnpm/action-setup@v4
+      with:
+        version: ${{ inputs.pnpm-version }}
+    - uses: actions/setup-node@v4
+      with:
+        node-version: ${{ inputs.node-version }}
+        cache: pnpm
+    - run: pnpm install --frozen-lockfile
+      shell: bash

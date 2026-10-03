@@ -2,10 +2,9 @@ import { useState, useCallback, useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
-import { useCreateFlight, useFlights, type FlightInsert } from '@/hooks/useFlights'
+import { useFlights, type FlightInsert } from '@/hooks/useFlights'
 import { useParseImport, type ExtractedFlight, type RejectedFlight } from '@/hooks/useImport'
 import { useToast } from '@/hooks/useToast'
-import { useImportStore } from '@/stores/importStore'
 import { AppHeader } from '@/components/common/AppHeader'
 import { AppPageShell } from '@/components/layout/AppPageShell'
 import { MobileHeader } from '@/components/layout/MobileHeader'
@@ -25,43 +24,84 @@ import { PlaneAnimation } from '@/components/common/PlaneAnimation'
 import { useCountUp } from '@/hooks/useCountUp'
 import { abandonFlightCreateOperation, currentFlightOperationId, pendingFlightCreateOperation, pendingImportFlightOperations, rotateFlightOperationId } from '@/lib/flightCreateOperations'
 import { useAuthStore } from '@/stores/authStore'
-import { validateFlightInput } from '@kuuki/shared'
+import { createFlights } from '@/lib/flights'
+import { reconcileDerivedState } from '@/lib/derivedStateFeedback'
 
 type ImportStep = 'upload' | 'parsing' | 'review' | 'saving' | 'success'
 type InputType = 'text' | 'pdf' | 'image'
 type CreateInput = Omit<FlightInsert, 'id' | 'created_at' | 'user_id'>
-type FailedFlight = { flight: ExtractedFlight; operationId: string; originalInput?: CreateInput; expired?: boolean }
+type FailedFlight = { flight: ExtractedFlight; operationId: string; error: string; originalInput?: CreateInput; expired?: boolean }
 
-// Location state for resuming from background
-interface BackgroundState {
-  textContent?: string
-  enrichedFlights?: ExtractedFlight[]
-  basicFlights?: ExtractedFlight[]
-  fromBackground?: boolean
-  enrichmentFailed?: boolean
-  jobId?: string
+const flightLabel = (flight: ExtractedFlight) => `${flight.origin} → ${flight.destination} (${flight.date})`
+
+function buildCreateInput(flight: ExtractedFlight): CreateInput {
+  // Look up airport coordinates for distance calculation
+  const originAirport = findAirport(flight.origin)
+  const destAirport = findAirport(flight.destination)
+  const aircraft = flight.aircraft_icao ? findAircraft(flight.aircraft_icao) : null
+
+  let distanceKm: number | undefined
+  let durationMinutes: number | undefined
+
+  if (originAirport && destAirport) {
+    distanceKm = calculateFlightDistance(
+      originAirport.latitude,
+      originAirport.longitude,
+      destAirport.latitude,
+      destAirport.longitude
+    )
+
+    // Use actual times if available (timezone-aware), otherwise estimate
+    if (flight.departure_time && flight.arrival_time) {
+      durationMinutes = calculateFlightDuration(
+        flight.departure_time,
+        flight.arrival_time,
+        flight.date,
+        originAirport.timezone,
+        destAirport.timezone
+      ) ?? undefined
+    }
+    if (!durationMinutes) {
+      durationMinutes = estimateFlightDuration(distanceKm, aircraft?.type)
+    }
+  }
+
+  return {
+    date: flight.date,
+    origin: flight.origin,
+    destination: flight.destination,
+    airline_iata: flight.airline_iata,
+    flight_number: flight.flight_number || null,
+    aircraft_icao: flight.aircraft_icao || null,
+    departure_time: flight.departure_time || null,
+    arrival_time: flight.arrival_time || null,
+    distance_km: distanceKm ?? null,
+    duration_minutes: durationMinutes ?? null,
+    origin_tz: originAirport?.timezone || null,
+    dest_tz: destAirport?.timezone || null,
+    source: 'ai_import',
+    // Pass enrichment status from parse result (or default based on aircraft presence)
+    enrichment_status: flight.enrichment_status || (flight.aircraft_icao ? 'skipped' : 'pending'),
+  }
 }
 
 export function ImportPage() {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const location = useLocation()
-  const queryClient = useQueryClient()
   const userId = useAuthStore((state) => state.user?.id)
   const importRunId = useRef(currentFlightOperationId('import'))
   const recoveryCheckedFor = useRef<string | null>(null)
   const [failedFlights, setFailedFlights] = useState<FailedFlight[]>([])
 
-  // Background state from location (resume from toast notification)
-  const locationState = location.state as BackgroundState | null
-  const initialTextContent = locationState?.textContent
+  // Text content handed over from EmptyState
+  const initialTextContent = (location.state as { textContent?: string } | null)?.textContent
 
   const [step, setStep] = useState<ImportStep>('upload')
   const [inputType, setInputType] = useState<InputType>('text')
   const [extractedFlights, setExtractedFlights] = useState<ExtractedFlight[]>([])
   const [rejectedFlights, setRejectedFlights] = useState<RejectedFlight[]>([])
   const [geminiCount, setGeminiCount] = useState<number | undefined>()
-  const [cleanedText, setCleanedText] = useState<string | undefined>()
   const [savedCount, setSavedCount] = useState(0)
   const [isFormOpen, setIsFormOpen] = useState(false)
   const [pendingFlights, setPendingFlights] = useState<ExtractedFlight[] | undefined>()
@@ -69,8 +109,6 @@ export function ImportPage() {
   // Animated count for success screen - only animates when step becomes 'success'
   const animatedSavedCount = useCountUp(step === 'success' ? savedCount : 0, 800)
   const [parseError, setParseError] = useState<string | null>(null)
-  const [saveErrors, setSaveErrors] = useState<Array<{ index: number; flightLabel: string; error: string }>>([]) // Track failed flights with details
-  const [enrichmentJobId, setEnrichmentJobId] = useState<string | undefined>()
 
   useEffect(() => {
     if (!userId || recoveryCheckedFor.current === userId) return
@@ -81,6 +119,9 @@ export function ImportPage() {
         operationId,
         originalInput: input,
         expired,
+        error: expired
+          ? t('import.success.expired', 'This save is too old to retry safely. Check your flights before starting a new import.')
+          : t('import.success.unconfirmed', 'Save status unconfirmed. Retry the original request.'),
         flight: {
           date: input.date ?? '', origin: input.origin ?? '', destination: input.destination ?? '',
           airline_iata: input.airline_iata ?? '', flight_number: input.flight_number ?? undefined,
@@ -91,19 +132,12 @@ export function ImportPage() {
     })
     if (recovered.length === 0) return
     setFailedFlights(recovered)
-    setSaveErrors(recovered.map((item, index) => ({
-      index, flightLabel: `${item.flight.origin} → ${item.flight.destination} (${item.flight.date})`,
-      error: item.expired
-        ? t('import.success.expired', 'This save is too old to retry safely. Check your flights before starting a new import.')
-        : t('import.success.unconfirmed', 'Save status unconfirmed. Retry the original request.'),
-    })))
     setStep('success')
   }, [userId, t])
 
   const parseMutation = useParseImport()
-  const createFlightMutation = useCreateFlight()
+  const queryClient = useQueryClient()
   const { showError } = useToast()
-  const { addBackgroundJob, removeBackgroundJob } = useImportStore()
 
   // Get existing flights for duplicate detection
   const { data: existingFlightsData } = useFlights(undefined, undefined, 1000)
@@ -114,29 +148,9 @@ export function ImportPage() {
     })
   })
 
-  // Handle initial state: text content from EmptyState or resuming from background
+  // Handle initial state: text content from EmptyState
   useEffect(() => {
     if (userId && pendingImportFlightOperations(userId).length > 0) return
-    // Resume from background notification
-    if (locationState?.fromBackground) {
-      if (locationState.enrichedFlights) {
-        // Enrichment completed - show enriched flights
-        setExtractedFlights(locationState.enrichedFlights)
-        setStep('review')
-      } else if (locationState.basicFlights) {
-        // Enrichment failed - show basic flights
-        setExtractedFlights(locationState.basicFlights)
-        setStep('review')
-      }
-      // Remove the background job
-      if (locationState.jobId) {
-        removeBackgroundJob(locationState.jobId)
-      }
-      // Clear location state
-      navigate(location.pathname, { replace: true, state: {} })
-      return
-    }
-
     // Auto-submit text content from EmptyState
     if (initialTextContent && step === 'upload') {
       handleUploadSubmit({ type: 'text', content: initialTextContent })
@@ -148,16 +162,12 @@ export function ImportPage() {
     setInputType(data.type)
     setStep('parsing')
     setParseError(null) // Clear any previous error
-    setEnrichmentJobId(undefined)
 
     try {
       const result = await parseMutation.mutateAsync(data)
       setExtractedFlights(result.flights)
       setRejectedFlights(result.rejected || [])
       setGeminiCount(result.gemini_count)
-      setCleanedText(result.cleaned_text)
-      // Track enrichment job ID for two-phase import
-      setEnrichmentJobId(result.enrichmentJobId)
 
       // If flights found, pass them to modal for reveal animation before transitioning
       if (result.flights.length > 0) {
@@ -184,7 +194,6 @@ export function ImportPage() {
       setExtractedFlights([])
       setRejectedFlights([])
       setGeminiCount(undefined)
-      setCleanedText(undefined)
       setStep('review')
     }
   }, [parseMutation])
@@ -192,95 +201,55 @@ export function ImportPage() {
   const handleSaveFlights = useCallback(async (flights: ExtractedFlight[], retryEntries?: FailedFlight[]) => {
     setStep('saving')
     setSavedCount(0)
-    setSaveErrors([])
+    setFailedFlights([])
 
     let successCount = 0
-    const failedDetails: Array<{ index: number; flightLabel: string; error: string }> = []
     const failedForRetry: FailedFlight[] = []
+    const operationIds = flights.map((_, i) => retryEntries?.[i]?.operationId ?? `${importRunId.current}:${i}`)
+    const errors: Array<Error | null> = flights.map(() => null)
+    const entries: Array<{ index: number; operationId: string; flight: CreateInput }> = []
 
-    for (let i = 0; i < flights.length; i++) {
-      const flight = flights[i]
-      const operationId = retryEntries?.[i]?.operationId ?? `${importRunId.current}:${i}`
-      try {
-        if (flight.field_confidence?.date_year_explicit === false && !retryEntries?.[i]?.originalInput) throw new Error('Confirm the inferred year before saving')
-        // Look up airport coordinates for distance calculation
-        const originAirport = findAirport(flight.origin)
-        const destAirport = findAirport(flight.destination)
-        const aircraft = flight.aircraft_icao ? findAircraft(flight.aircraft_icao) : null
-
-        let distanceKm: number | undefined
-        let durationMinutes: number | undefined
-
-        if (originAirport && destAirport) {
-          distanceKm = calculateFlightDistance(
-            originAirport.latitude,
-            originAirport.longitude,
-            destAirport.latitude,
-            destAirport.longitude
-          )
-
-          // Use actual times if available (timezone-aware), otherwise estimate
-          if (flight.departure_time && flight.arrival_time) {
-            durationMinutes = calculateFlightDuration(
-              flight.departure_time,
-              flight.arrival_time,
-              flight.date,
-              originAirport.timezone,
-              destAirport.timezone
-            ) ?? undefined
-          }
-          if (!durationMinutes) {
-            durationMinutes = estimateFlightDuration(distanceKm, aircraft?.type)
-          }
-        }
-
-        const input: CreateInput = retryEntries?.[i]?.originalInput ?? {
-          date: flight.date,
-          origin: flight.origin,
-          destination: flight.destination,
-          airline_iata: flight.airline_iata,
-          flight_number: flight.flight_number || null,
-          aircraft_icao: flight.aircraft_icao || null,
-          departure_time: flight.departure_time || null,
-          arrival_time: flight.arrival_time || null,
-          distance_km: distanceKm ?? null,
-          duration_minutes: durationMinutes ?? null,
-          origin_tz: originAirport?.timezone || null,
-          dest_tz: destAirport?.timezone || null,
-          source: 'ai_import',
-          // Pass enrichment status from parse result (or default based on aircraft presence)
-          enrichment_status: flight.enrichment_status || (flight.aircraft_icao ? 'skipped' : 'pending'),
-        }
-        validateFlightInput(input, 'create')
-        await createFlightMutation.mutateAsync({ flight: input, operationId })
-
-        successCount++
-        setSavedCount(successCount)
-      } catch (error) {
-        console.error('Failed to save flight:', error)
-        const flightLabel = `${flight.origin} → ${flight.destination} (${flight.date})`
-        const errorMsg = error instanceof Error ? error.message : String(error)
-        failedDetails.push({ index: i, flightLabel, error: errorMsg })
-        const pending = userId ? pendingFlightCreateOperation(userId, operationId) : null
-        failedForRetry.push({ flight, operationId, originalInput: pending?.body as CreateInput | undefined, expired: pending?.expired })
-        // Continue with other flights - don't block on individual failures
+    flights.forEach((flight, i) => {
+      const originalInput = retryEntries?.[i]?.originalInput
+      if (flight.field_confidence?.date_year_explicit === false && !originalInput) {
+        errors[i] = new Error('Confirm the inferred year before saving')
+        return
       }
+      entries.push({ index: i, operationId: operationIds[i], flight: originalInput ?? buildCreateInput(flight) })
+    })
+
+    if (entries.length > 0) {
+      const outcomes = userId
+        ? await createFlights(userId, entries, (ack, saved) => {
+            reconcileDerivedState(ack, queryClient, userId)
+            successCount += saved
+            setSavedCount(successCount)
+          })
+        : entries.map(() => new Error('Not authenticated'))
+      outcomes.forEach((error, i) => { errors[entries[i].index] = error })
     }
 
-    // Track failed saves for potential retry
-    setSaveErrors(failedDetails)
+    flights.forEach((flight, i) => {
+      const error = errors[i]
+      if (!error) return
+      console.error('Failed to save flight:', error)
+      const operationId = operationIds[i]
+      const pending = userId ? pendingFlightCreateOperation(userId, operationId) : null
+      failedForRetry.push({
+        flight, operationId, error: error.message,
+        originalInput: pending?.body as CreateInput | undefined, expired: pending?.expired,
+      })
+    })
+
+    // Track failed saves for potential retry (each accepted chunk already refreshed its queries)
     setFailedFlights(failedForRetry)
 
-    // Invalidate queries to refresh data
-    await queryClient.invalidateQueries({ queryKey: ['flights'] })
-    await queryClient.invalidateQueries({ queryKey: ['flightStats'] })
-
     // Show toast for failures
-    if (failedDetails.length > 0 && successCount > 0) {
+    if (failedForRetry.length > 0 && successCount > 0) {
       showError(new Error('Some flights could not be saved'), {
         context: 'save-partial',
       })
-    } else if (successCount === 0 && failedDetails.length > 0) {
+    } else if (successCount === 0 && failedForRetry.length > 0) {
       showError(new Error('All flights failed to save'), {
         context: 'save-failed',
       })
@@ -288,10 +257,9 @@ export function ImportPage() {
 
     setSavedCount(successCount)
     setStep('success')
-  }, [createFlightMutation, queryClient, showError, userId])
+  }, [queryClient, showError, userId])
 
   const retryFailedFlights = useCallback(() => {
-    if (failedFlights.some(item => item.expired)) return
     void handleSaveFlights(failedFlights.map(item => item.flight), failedFlights)
   }, [failedFlights, handleSaveFlights])
 
@@ -305,29 +273,10 @@ export function ImportPage() {
     setExtractedFlights([])
     setRejectedFlights([])
     setGeminiCount(undefined)
-    setCleanedText(undefined)
     setParseError(null)
-    setSaveErrors([])
-    setEnrichmentJobId(undefined)
     setPendingFlights(undefined)
     parseMutation.reset()
   }, [parseMutation])
-
-  // Handle "Continue in Background" - save job to store and navigate away
-  const handleContinueInBackground = useCallback(() => {
-    if (enrichmentJobId && extractedFlights.length > 0) {
-      // Save to background store for later notification
-      addBackgroundJob({
-        jobId: enrichmentJobId,
-        basicFlights: extractedFlights,
-        startedAt: Date.now(),
-        returnPath: '/import',
-      })
-
-      // Navigate to flights list
-      navigate('/flights')
-    }
-  }, [enrichmentJobId, extractedFlights, addBackgroundJob, navigate])
 
   const handleManualAdd = useCallback(() => {
     setIsFormOpen(true)
@@ -346,11 +295,9 @@ export function ImportPage() {
     setExtractedFlights([])
     setRejectedFlights([])
     setGeminiCount(undefined)
-    setCleanedText(undefined)
     setSavedCount(0)
     setParseError(null)
-    setSaveErrors([])
-    setEnrichmentJobId(undefined)
+    setFailedFlights([])
     setPendingFlights(undefined)
     parseMutation.reset()
   }, [parseMutation])
@@ -393,7 +340,6 @@ export function ImportPage() {
           <FlightProgressModal
             isOpen={step === 'parsing'}
             onCancel={handleCancel}
-            onContinueInBackground={enrichmentJobId ? handleContinueInBackground : undefined}
             inputType={inputType}
             flights={pendingFlights}
             onRevealComplete={handleRevealComplete}
@@ -477,9 +423,6 @@ export function ImportPage() {
               onManualAdd={handleManualAdd}
               rejected={rejectedFlights}
               geminiCount={geminiCount}
-              cleanedText={cleanedText}
-              enrichmentJobId={enrichmentJobId}
-              onEnrichmentComplete={(enrichedFlights) => setExtractedFlights(enrichedFlights)}
             />
           </>
         )}
@@ -503,8 +446,8 @@ export function ImportPage() {
         )}
 
         {step === 'success' && (() => {
-          const allFailed = savedCount === 0 && saveErrors.length > 0
-          const partialSuccess = savedCount > 0 && saveErrors.length > 0
+          const allFailed = savedCount === 0 && failedFlights.length > 0
+          const partialSuccess = savedCount > 0 && failedFlights.length > 0
 
           return (
             <Card className="border-border/50" style={{ animationDelay: '100ms' }}>
@@ -537,21 +480,21 @@ export function ImportPage() {
                   {/* Subtitle */}
                   <p className="text-muted-foreground mb-6">
                     {allFailed
-                      ? t('import.success.allFailedCount', '{{count}} flight(s) could not be saved', { count: saveErrors.length })
+                      ? t('import.success.allFailedCount', '{{count}} flight(s) could not be saved', { count: failedFlights.length })
                       : partialSuccess
-                        ? t('import.success.partialCount', '{{success}} of {{total}} flight(s) saved', { success: animatedSavedCount, total: savedCount + saveErrors.length })
+                        ? t('import.success.partialCount', '{{success}} of {{total}} flight(s) saved', { success: animatedSavedCount, total: savedCount + failedFlights.length })
                         : t('import.success.count', '{{count}} flight(s) added to your log', { count: animatedSavedCount })}
                   </p>
 
                   {/* Per-flight error details */}
-                  {saveErrors.length > 0 && (
+                  {failedFlights.length > 0 && (
                     <Alert variant="destructive" className="mb-6 text-left max-w-md mx-auto">
                       <AlertCircle className="h-4 w-4" />
                       <AlertDescription>
                         <ul className="mt-1 space-y-1">
-                          {saveErrors.map((err, i) => (
-                            <li key={i} className="text-sm">
-                              {t('import.success.errorDetail', '{{flight}}: {{error}}', { flight: err.flightLabel, error: err.error })}
+                          {failedFlights.map((item) => (
+                            <li key={item.operationId} className="text-sm">
+                              {t('import.success.errorDetail', '{{flight}}: {{error}}', { flight: flightLabel(item.flight), error: item.error })}
                             </li>
                           ))}
                         </ul>

@@ -2,7 +2,7 @@
 
 import { runHandler, readJson, json, HttpError } from '../_lib/http'
 import { requireSameOrigin } from '../_lib/auth'
-import { getUserByEmail, createUserWithProfile } from '../_lib/users'
+import { EMAIL_RE, parsePassword, getUserByEmail, createUserWithProfile } from '../_lib/users'
 import { createSession } from '../_lib/session'
 import { setSessionCookies } from '../_lib/authCookies'
 import { getProfileRow, toOwnProfile } from '../_lib/profiles'
@@ -14,8 +14,6 @@ interface SignupBody {
   displayName?: string
 }
 
-const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/
-
 export const onRequestPost: PagesFunction<Env> = (context) =>
   runHandler(async () => {
     const { request, env } = context
@@ -24,9 +22,8 @@ export const onRequestPost: PagesFunction<Env> = (context) =>
 
     const body = await readJson<SignupBody>(request)
     const email = typeof body?.email === 'string' ? body.email.trim() : null
-    const password = body?.password
     if (!email || !EMAIL_RE.test(email)) throw new HttpError(400, 'A valid email is required', 'INVALID_EMAIL')
-    if (typeof password !== 'string' || password.length < 8 || password.length > 1024) throw new HttpError(400, 'Password must be 8–1024 characters', 'WEAK_PASSWORD')
+    const password = parsePassword(body?.password, 'new')
 
     // Account-enumeration tradeoff (security finding #8, LOW): a distinct 409 here reveals that
     // an email is registered. The privacy-preserving fix (accept-then-verify by email) needs

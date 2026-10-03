@@ -64,7 +64,7 @@ it('drains a bootstrap response before sending sign-in under a new cookie identi
   resolveResponse?.(new Response(JSON.stringify({ user: { id: 'old' } }), { status: 200 }))
   await expect(bootstrap).resolves.toMatchObject({ user: { id: 'old' } })
   await operation.ready
-  const signin = api.post('/api/auth/signin', { email: 'new@example.com' }, operation.token)
+  const signin = api.post('/api/auth/signin', { email: 'new@example.com' }, { identityToken: operation.token })
   expect(fetchMock).toHaveBeenCalledTimes(2)
   resolveResponse?.(new Response(JSON.stringify({ user: { id: 'new' } }), { status: 200 }))
   await expect(signin).resolves.toMatchObject({ user: { id: 'new' } })

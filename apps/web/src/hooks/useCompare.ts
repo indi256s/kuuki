@@ -1,14 +1,13 @@
 import { useQuery } from '@tanstack/react-query'
 import { getUserStats, type UserStats } from '@/lib/profiles'
-
-const COMPARE_STATS_KEY = 'compareStats'
+import { queryKeys } from '@/lib/queryKeys'
 
 /**
  * Hook for fetching stats for comparison
  */
 export function useCompareStats(userId: string | null) {
   return useQuery({
-    queryKey: [COMPARE_STATS_KEY, userId],
+    queryKey: queryKeys.compareStats(userId),
     queryFn: () => {
       if (!userId) return null
       return getUserStats(userId)

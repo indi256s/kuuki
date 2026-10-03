@@ -1,5 +1,5 @@
 // user_stats row + DTO. has_night_departure is the only 0/1 boolean; everything else is numeric or
-// text. recomputeUserStats deliberately leaves most_visited_*, world_completion_pct and
+// text. computedStatsStatement deliberately leaves most_visited_*, world_completion_pct and
 // time_zones_count at their defaults (parity quirk — the frontend tolerates it), but they are still
 // returned so the shape matches the old Supabase row.
 

@@ -7,17 +7,14 @@ import {
   type LeaderboardEntryWithProfile,
 } from '@/lib/leaderboard'
 import { useAuthStore } from '@/stores/authStore'
-
-export const LEADERBOARD_KEY = 'leaderboard'
-export const USER_POSITIONS_KEY = 'userLeaderboardPositions'
-export const TOTAL_USERS_KEY = 'totalRankedUsers'
+import { queryKeys } from '@/lib/queryKeys'
 
 /**
  * Hook for fetching leaderboard entries by category
  */
 export function useLeaderboard(category: LeaderboardCategory, limit = 50) {
   return useQuery({
-    queryKey: [LEADERBOARD_KEY, category, limit],
+    queryKey: queryKeys.leaderboard(category, limit),
     queryFn: () => getLeaderboard(category, { limit }),
     staleTime: 1000 * 60 * 5, // 5 minutes
   })
@@ -30,7 +27,7 @@ export function useUserLeaderboardPositions() {
   const userId = useAuthStore((state) => state.user?.id)
 
   return useQuery({
-    queryKey: [USER_POSITIONS_KEY, userId],
+    queryKey: queryKeys.leaderboardPositions(userId),
     queryFn: () => {
       if (!userId) return null
       return getUserLeaderboardPositions(userId)
@@ -45,7 +42,7 @@ export function useUserLeaderboardPositions() {
  */
 export function useTotalRankedUsers() {
   return useQuery({
-    queryKey: [TOTAL_USERS_KEY],
+    queryKey: queryKeys.totalRankedUsers(),
     queryFn: getTotalRankedUsers,
     staleTime: 1000 * 60 * 10, // 10 minutes
   })

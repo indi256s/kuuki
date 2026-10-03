@@ -3,8 +3,8 @@ import { requireStrictSameOrigin } from '../../_lib/auth'
 import { rateLimit, clientIp } from '../../_lib/ratelimit'
 import { activationEmailKey, requestActivation } from '../../_lib/activation'
 import { configuredActivationSender, configuredActivationOrigin } from '../../_lib/activationSender'
+import { EMAIL_RE } from '../../_lib/users'
 
-const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/
 const RESPONSE_HEADERS = { 'Cache-Control': 'no-store', 'Referrer-Policy': 'no-referrer' }
 
 export const onRequestPost: PagesFunction<Env> = async (context) => {

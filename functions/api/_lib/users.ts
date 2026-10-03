@@ -1,10 +1,11 @@
 // User + profile creation, porting Supabase's handle_new_user.
 //
 // handle_new_user (live): on auth.users INSERT → insert profiles(id, display_name, avatar_url).
-//   No username, no user_stats row (user_stats is created lazily by recomputeUserStats upsert).
+//   No username, no user_stats row (user_stats is created lazily by the derived-state repair).
 
 import { newId, hashPassword } from './crypto'
 import { nowIso } from './time'
+import { HttpError } from './http'
 
 export interface NewUserInput {
   email: string
@@ -16,6 +17,22 @@ export interface NewUserInput {
 export interface AuthUser {
   id: string
   email: string
+}
+
+/** Shape-only email check shared by signup and activation requests. */
+export const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/
+
+/**
+ * Password shape check. A new password needs 8+ characters; a current one only needs to be
+ * present. Both cap at 1024 to bound hashing cost.
+ */
+export function parsePassword(value: unknown, kind: 'new' | 'current'): string {
+  if (kind === 'new') {
+    if (typeof value !== 'string' || value.length < 8 || value.length > 1024) throw new HttpError(400, 'Password must be 8–1024 characters', 'WEAK_PASSWORD')
+  } else if (typeof value !== 'string' || !value || value.length > 1024) {
+    throw new HttpError(400, 'Password is required', 'MISSING_PASSWORD')
+  }
+  return value
 }
 
 export function normalizeEmail(email: string): string {

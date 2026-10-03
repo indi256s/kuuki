@@ -65,6 +65,45 @@ function runAuthOperation(action: (token: IdentityOperationToken, version: numbe
   })()
 }
 
+/** Invalidate in-flight requests and private caches from the previous cookie identity. */
+function startNewIdentity(): void {
+  advanceAuthGeneration()
+  resetPrivateClientState()
+}
+
+/** Apply a state patch only if no newer auth action has started since `version`. */
+function publishIf(version: number, patch: Partial<AuthStore>): () => void {
+  return () => { if (version === authActionVersion) useAuthStore.setState(patch) }
+}
+
+type AuthCall = (token: IdentityOperationToken) => Promise<{ success: boolean; error?: string; user?: AuthUser }>
+
+/** Sign-in/sign-up: on success, switch identity and publish the new user + profile. */
+function establishIdentity(call: AuthCall): Promise<{ success: boolean; error?: string }> {
+  return runAuthOperation(async (token, version) => {
+    const result = await call(token)
+    if (!result.success || !result.user) return { ...result, publish: publishIf(version, { isLoading: false }) }
+    if (version !== authActionVersion) return result
+    startNewIdentity()
+    const profile = await getProfile(result.user.id, token)
+    return { ...result, publish: publishIf(version, { user: result.user, profile, isLoading: false, isInitialized: true }) }
+  })
+}
+
+/** Sign-out/account deletion: on success, drop the identity and publish `cleared`. */
+function clearIdentity(
+  call: (token: IdentityOperationToken) => Promise<{ success: boolean; error?: string }>,
+  cleared: Partial<AuthStore>,
+): Promise<{ success: boolean; error?: string }> {
+  return runAuthOperation(async (token, version) => {
+    const result = await call(token)
+    if (version !== authActionVersion) return result
+    if (!result.success) return { ...result, publish: publishIf(version, { isLoading: false }) }
+    startNewIdentity()
+    return { ...result, publish: publishIf(version, { user: null, profile: null, isLoading: false, ...cleared }) }
+  })
+}
+
 const tabId = Math.random().toString(36).slice(2)
 const identityChannel = typeof window === 'undefined' || !('BroadcastChannel' in window)
   ? null
@@ -88,8 +127,7 @@ function retryIdentityLookup(version: number, delayMs = 1_000): void {
 
 async function reconcilePeerIdentity(): Promise<void> {
   const version = ++authActionVersion
-  advanceAuthGeneration()
-  resetPrivateClientState()
+  startNewIdentity()
   useAuthStore.setState({ user: null, profile: null, isLoading: true })
   try {
     const { user, profile } = await getMe()
@@ -114,8 +152,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
     // A failed session refresh (inside apiClient) hard-logs-out the user.
     setUnauthorizedHandler(() => {
       authActionVersion += 1
-      advanceAuthGeneration()
-      resetPrivateClientState()
+      startNewIdentity()
       set({ user: null, profile: null, isLoading: false, isInitialized: true })
     })
 
@@ -134,63 +171,13 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
     }
   },
 
-  signUp: (email, password) => runAuthOperation(async (token, version) => {
-    const result = await authSignUp(email, password, token)
+  signUp: (email, password) => establishIdentity(token => authSignUp(email, password, token)),
 
-    if (result.success && result.user) {
-      if (version !== authActionVersion) return result
-      advanceAuthGeneration()
-      resetPrivateClientState()
-      const profile = await getProfile(result.user.id, token)
-      return {
-        ...result,
-        publish: () => {
-          if (version === authActionVersion) set({ user: result.user!, profile, isLoading: false, isInitialized: true })
-        },
-      }
-    }
-    return { ...result, publish: () => { if (version === authActionVersion) set({ isLoading: false }) } }
-  }),
+  signIn: (email, password) => establishIdentity(token => authSignIn(email, password, token)),
 
-  signIn: (email, password) => runAuthOperation(async (token, version) => {
-    const result = await authSignIn(email, password, token)
+  signOut: () => clearIdentity(authSignOut, {}),
 
-    if (result.success && result.user) {
-      if (version !== authActionVersion) return result
-      advanceAuthGeneration()
-      resetPrivateClientState()
-      const profile = await getProfile(result.user.id, token)
-      return {
-        ...result,
-        publish: () => {
-          if (version === authActionVersion) set({ user: result.user!, profile, isLoading: false, isInitialized: true })
-        },
-      }
-    }
-    return { ...result, publish: () => { if (version === authActionVersion) set({ isLoading: false }) } }
-  }),
-
-  signOut: () => runAuthOperation(async (token, version) => {
-    const result = await authSignOut(token)
-    if (version !== authActionVersion) return result
-    if (result.success) {
-      advanceAuthGeneration()
-      resetPrivateClientState()
-      return { ...result, publish: () => { if (version === authActionVersion) set({ user: null, profile: null, isLoading: false }) } }
-    }
-    return { ...result, publish: () => { if (version === authActionVersion) set({ isLoading: false }) } }
-  }),
-
-  deleteAccount: password => runAuthOperation(async (token, version) => {
-    const result = await authDeleteAccount(password, token)
-    if (version !== authActionVersion) return result
-    if (result.success) {
-      advanceAuthGeneration()
-      resetPrivateClientState()
-      return { ...result, publish: () => { if (version === authActionVersion) set({ user: null, profile: null, isLoading: false, isInitialized: true }) } }
-    }
-    return { ...result, publish: () => { if (version === authActionVersion) set({ isLoading: false }) } }
-  }),
+  deleteAccount: password => clearIdentity(token => authDeleteAccount(password, token), { isInitialized: true }),
 
   refreshProfile: async () => {
     const { user } = get()

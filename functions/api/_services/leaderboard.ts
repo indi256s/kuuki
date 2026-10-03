@@ -11,6 +11,7 @@
 //     division). We add an explicit `total > 0` guard the live SQL lacks — see DEVIATION below.
 
 import { nowIso } from '../_lib/time'
+import { derivedStateJoin, PUBLISHED_DERIVED_STATE } from '../_lib/leaderboard'
 
 // Category → user_stats value column. Order is the live INSERT order. Note `cities` maps to
 // `airports_count` (the documented quirk) — there is NO `airports` category.
@@ -53,9 +54,9 @@ export async function refreshLeaderboards(db: D1Database): Promise<void> {
               us.airports_count, us.airlines_count
        FROM user_stats us
        JOIN profiles p ON p.id = us.user_id
-       LEFT JOIN user_derived_state ds ON ds.user_id = us.user_id
+       ${derivedStateJoin('us')}
        WHERE us.total_flights >= 5 AND p.show_on_leaderboards = 1
-         AND (ds.user_id IS NULL OR ds.revision = ds.published_revision)
+         AND ${PUBLISHED_DERIVED_STATE}
        ORDER BY p.created_at ASC`,
     )
     .all<EligibleRow>()

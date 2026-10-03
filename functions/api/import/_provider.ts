@@ -1,22 +1,26 @@
 import { ApiError } from '@google/genai'
+import { HttpError } from '../_lib/http'
+
+export const DEFAULT_MODEL = 'gemini-3.5-flash-lite'
+export const PROVIDER_TIMEOUT_MS = 45_000
 
 export class ProviderResponseError extends Error {}
 
 /** Stable, user-visible failures without leaking provider payloads or document text. */
-export function providerFailure(error: unknown): { status: number; code: string; message: string } {
+export function providerFailure(error: unknown): HttpError {
   if (error instanceof ProviderResponseError) {
-    return { status: 502, code: 'PROVIDER_INVALID_RESPONSE', message: 'The AI service returned an invalid response. Please try again.' }
+    return new HttpError(502, 'The AI service returned an invalid response. Please try again.', 'PROVIDER_INVALID_RESPONSE')
   }
   if (error instanceof ApiError) {
     if (error.status === 404) {
-      return { status: 502, code: 'MODEL_UNAVAILABLE', message: 'The AI model is unavailable. Please try again later.' }
+      return new HttpError(502, 'The AI model is unavailable. Please try again later.', 'MODEL_UNAVAILABLE')
     }
     if (error.status === 429) {
-      return { status: 503, code: 'PROVIDER_QUOTA', message: 'The AI service is at its usage limit. Please try again later.' }
+      return new HttpError(503, 'The AI service is at its usage limit. Please try again later.', 'PROVIDER_QUOTA')
     }
   }
   if (error instanceof Error && (error.name === 'AbortError' || /timed? out/i.test(error.message))) {
-    return { status: 504, code: 'PROVIDER_TIMEOUT', message: 'The AI service timed out. Please try again.' }
+    return new HttpError(504, 'The AI service timed out. Please try again.', 'PROVIDER_TIMEOUT')
   }
-  return { status: 502, code: 'PROVIDER_ERROR', message: 'The AI service could not process this request. Please try again.' }
+  return new HttpError(502, 'The AI service could not process this request. Please try again.', 'PROVIDER_ERROR')
 }

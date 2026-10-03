@@ -9,6 +9,8 @@ export interface DerivedAck { derived_state?: 'ready' | 'pending'; revision?: nu
 interface DerivedStatus { derived_state: 'ready' | 'pending' | 'error'; revision: number; published_revision: number }
 
 const polling = new Map<string, number>()
+// Capped backoff; gives up after ~31s, like the former fifteen 2s polls.
+const POLL_DELAYS_MS = [1000, 2000, 4000, 8000, 8000, 8000]
 
 /** An accepted write may precede derived stats; keep it visible until published or timed out. */
 export function reconcileDerivedState(ack: DerivedAck, queryClient: QueryClient, userId: string): void {
@@ -23,8 +25,8 @@ export function reconcileDerivedState(ack: DerivedAck, queryClient: QueryClient,
   toast.info(i18n.t('flights.statsUpdating'))
   void (async () => {
     try {
-      for (let attempt = 0; attempt < 15 && current() && polling.get(userId) === revision; attempt++) {
-        await new Promise(resolve => setTimeout(resolve, 2000))
+      for (const delay of POLL_DELAYS_MS) {
+        await new Promise(resolve => setTimeout(resolve, delay))
         if (!current() || polling.get(userId) !== revision) return
         const status = await api.get<DerivedStatus>('/api/me/derived-state')
         if (!current() || polling.get(userId) !== revision) return

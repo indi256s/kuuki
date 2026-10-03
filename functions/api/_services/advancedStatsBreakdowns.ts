@@ -17,6 +17,7 @@
 //     ORDER BY count DESC (SQLite GROUP BY ordering is otherwise unspecified).
 
 import { regionOf } from '../_lib/continents'
+import { firstOf, rowsOf, type BatchedRead } from './stats'
 
 // --- types ---------------------------------------------------------------------------------
 
@@ -65,8 +66,8 @@ export interface DeparturePatterns {
 //    COALESCE 'Unknown'. Both maps ordered by count DESC (manufacturers has no LIMIT).
 // =========================================================================================
 
-export async function computeAircraftBreakdown(db: D1Database, userId: string): Promise<AircraftBreakdown> {
-  const ac = await db
+export function computeAircraftBreakdown(db: D1Database, userId: string): BatchedRead<AircraftBreakdown> {
+  const ac = db
     .prepare(
       `SELECT aircraft_icao AS icao, COUNT(*) AS count
        FROM flights
@@ -78,12 +79,7 @@ export async function computeAircraftBreakdown(db: D1Database, userId: string): 
        LIMIT 10`,
     )
     .bind(userId)
-    .all<{ icao: string; count: number }>()
-
-  const aircraft: Record<string, number> = {}
-  for (const r of ac.results) aircraft[r.icao] = r.count
-
-  const mf = await db
+  const mf = db
     .prepare(
       `SELECT COALESCE(ar.manufacturer, 'Unknown') AS manufacturer, COUNT(*) AS count
        FROM flights f
@@ -95,12 +91,16 @@ export async function computeAircraftBreakdown(db: D1Database, userId: string): 
        ORDER BY count DESC`,
     )
     .bind(userId)
-    .all<{ manufacturer: string; count: number }>()
-
-  const manufacturers: Record<string, number> = {}
-  for (const r of mf.results) manufacturers[r.manufacturer] = r.count
-
-  return { aircraft, manufacturers }
+  return {
+    statements: [ac, mf],
+    derive([acResult, mfResult]) {
+      const aircraft: Record<string, number> = {}
+      for (const r of rowsOf<{ icao: string; count: number }>(acResult)) aircraft[r.icao] = r.count
+      const manufacturers: Record<string, number> = {}
+      for (const r of rowsOf<{ manufacturer: string; count: number }>(mfResult)) manufacturers[r.manufacturer] = r.count
+      return { aircraft, manufacturers }
+    },
+  }
 }
 
 // =========================================================================================
@@ -111,8 +111,8 @@ export async function computeAircraftBreakdown(db: D1Database, userId: string): 
 //    SUM over all groups (= total completed flights with aircraft_icao). null if none.
 // =========================================================================================
 
-export async function computeAircraftTypeBreakdown(db: D1Database, userId: string): Promise<AircraftTypeBreakdown> {
-  const tp = await db
+export function computeAircraftTypeBreakdown(db: D1Database, userId: string): BatchedRead<AircraftTypeBreakdown> {
+  const tp = db
     .prepare(
       `SELECT COALESCE(ar.type, 'unknown') AS type, COUNT(*) AS count
        FROM flights f
@@ -124,13 +124,9 @@ export async function computeAircraftTypeBreakdown(db: D1Database, userId: strin
        ORDER BY count DESC`,
     )
     .bind(userId)
-    .all<{ type: string; count: number }>()
-
-  const types: Record<string, number> = {}
-  for (const r of tp.results) types[r.type] = r.count
 
   // total = sum over all aircraft groups (SUM(COUNT(*)) OVER()); top aircraft by count.
-  const mostRow = await db
+  const most = db
     .prepare(
       `SELECT t.aircraft_icao AS icao,
               COALESCE(ar.name, t.aircraft_icao) AS name,
@@ -148,11 +144,8 @@ export async function computeAircraftTypeBreakdown(db: D1Database, userId: strin
        LEFT JOIN aircraft_reference ar ON t.aircraft_icao = ar.icao`,
     )
     .bind(userId)
-    .first<{ icao: string; name: string; count: number }>()
 
-  if (!mostRow) return { types, most_flown: null }
-
-  const totalRow = await db
+  const total = db
     .prepare(
       `SELECT COUNT(*) AS total
        FROM flights
@@ -161,15 +154,23 @@ export async function computeAircraftTypeBreakdown(db: D1Database, userId: strin
          AND (is_upcoming IS NULL OR is_upcoming = 0)`,
     )
     .bind(userId)
-    .first<{ total: number }>()
 
   return {
-    types,
-    most_flown: {
-      icao: mostRow.icao,
-      name: mostRow.name,
-      count: mostRow.count,
-      total_flights: totalRow?.total ?? 0,
+    statements: [tp, most, total],
+    derive([tpResult, mostResult, totalResult]) {
+      const types: Record<string, number> = {}
+      for (const r of rowsOf<{ type: string; count: number }>(tpResult)) types[r.type] = r.count
+      const mostRow = firstOf<{ icao: string; name: string; count: number }>(mostResult)
+      if (!mostRow) return { types, most_flown: null }
+      return {
+        types,
+        most_flown: {
+          icao: mostRow.icao,
+          name: mostRow.name,
+          count: mostRow.count,
+          total_flights: firstOf<{ total: number }>(totalResult)?.total ?? 0,
+        },
+      }
     },
   }
 }
@@ -179,11 +180,7 @@ export async function computeAircraftTypeBreakdown(db: D1Database, userId: strin
 //    { bucket -> COUNT(DISTINCT country_code) } over visits.
 // =========================================================================================
 
-export async function computeContinentBreakdown(db: D1Database, userId: string): Promise<ContinentBreakdown> {
-  return regionDistinctCounts(db, userId, false)
-}
-
-/** The same visit-based breakdown against visits awaiting atomic publication. */
+/** Visit-based breakdown against visits awaiting atomic publication. */
 export function continentBreakdownForCountries(countryCodes: Iterable<string>): ContinentBreakdown {
   return regionCountsForCountries(countryCodes, false)
 }
@@ -192,29 +189,14 @@ export function continentBreakdownForCountries(countryCodes: Iterable<string>): 
 // 4. compute_region_breakdown  (map B via regionOf; INCLUDES 'other')
 // =========================================================================================
 
-export async function computeRegionBreakdown(db: D1Database, userId: string): Promise<RegionBreakdown> {
-  return regionDistinctCounts(db, userId, true)
-}
-
 export function regionBreakdownForCountries(countryCodes: Iterable<string>): RegionBreakdown {
   return regionCountsForCountries(countryCodes, true)
 }
 
 /**
- * Shared core for continent/region breakdowns. Live groups visits by the map-B bucket and
- * counts DISTINCT country_code per bucket. We pull DISTINCT (bucket-input) country codes in
- * TS and tally distinct codes per bucket — identical result, deterministic. `includeOther`
- * toggles whether the 'other' bucket is emitted (continent excludes, region includes).
+ * Shared core for continent/region breakdowns: count DISTINCT country codes per map-B bucket.
+ * `includeOther` toggles whether the 'other' bucket is emitted (continent excludes, region includes).
  */
-async function regionDistinctCounts(db: D1Database, userId: string, includeOther: boolean): Promise<Record<string, number>> {
-  const rows = await db
-    .prepare('SELECT DISTINCT country_code FROM visits WHERE user_id = ? AND country_code IS NOT NULL')
-    .bind(userId)
-    .all<{ country_code: string }>()
-
-  return regionCountsForCountries(rows.results.map(r => r.country_code), includeOther)
-}
-
 function regionCountsForCountries(countryCodes: Iterable<string>, includeOther: boolean): Record<string, number> {
   const counts: Record<string, number> = {}
   for (const code of new Set(countryCodes)) {
@@ -237,8 +219,8 @@ function regionCountsForCountries(countryCodes: Iterable<string>, includeOther: 
 //    MIN(NULLIF(dur,0)) over all flights then id-selects completed with dur>0.
 // =========================================================================================
 
-export async function computeDurationStats(db: D1Database, userId: string): Promise<DurationStats> {
-  const agg = await db
+export function computeDurationStats(db: D1Database, userId: string): BatchedRead<DurationStats> {
+  const agg = db
     .prepare(
       `SELECT
          COALESCE(SUM(duration_minutes), 0) AS total_minutes,
@@ -252,17 +234,10 @@ export async function computeDurationStats(db: D1Database, userId: string): Prom
          AND duration_minutes IS NOT NULL`,
     )
     .bind(userId)
-    .first<{
-      total_minutes: number
-      avg_minutes: number
-      longest_minutes: number
-      shortest_minutes: number
-      flight_count: number
-    }>()
 
   // longest_flight_id: id of a completed flight whose duration = MAX(duration) over ALL
   // flights for the user (live inner MAX has no is_upcoming filter), LIMIT 1.
-  const longest = await db
+  const longest = db
     .prepare(
       `SELECT id FROM flights
        WHERE user_id = ?
@@ -271,11 +246,10 @@ export async function computeDurationStats(db: D1Database, userId: string): Prom
        LIMIT 1`,
     )
     .bind(userId, userId)
-    .first<{ id: number }>()
 
   // shortest_flight_id: id of a completed flight with dur>0 whose duration =
   // MIN(NULLIF(duration,0)) over ALL flights, LIMIT 1.
-  const shortest = await db
+  const shortest = db
     .prepare(
       `SELECT id FROM flights
        WHERE user_id = ?
@@ -285,16 +259,27 @@ export async function computeDurationStats(db: D1Database, userId: string): Prom
        LIMIT 1`,
     )
     .bind(userId, userId)
-    .first<{ id: number }>()
 
   return {
-    total_minutes: agg?.total_minutes ?? 0,
-    avg_minutes: agg?.avg_minutes ?? 0,
-    longest_minutes: agg?.longest_minutes ?? 0,
-    longest_flight_id: longest?.id ?? null,
-    shortest_minutes: agg?.shortest_minutes ?? 0,
-    shortest_flight_id: shortest?.id ?? null,
-    flight_count: agg?.flight_count ?? 0,
+    statements: [agg, longest, shortest],
+    derive([aggResult, longestResult, shortestResult]) {
+      const a = firstOf<{
+        total_minutes: number
+        avg_minutes: number
+        longest_minutes: number
+        shortest_minutes: number
+        flight_count: number
+      }>(aggResult)
+      return {
+        total_minutes: a?.total_minutes ?? 0,
+        avg_minutes: a?.avg_minutes ?? 0,
+        longest_minutes: a?.longest_minutes ?? 0,
+        longest_flight_id: firstOf<{ id: number }>(longestResult)?.id ?? null,
+        shortest_minutes: a?.shortest_minutes ?? 0,
+        shortest_flight_id: firstOf<{ id: number }>(shortestResult)?.id ?? null,
+        flight_count: a?.flight_count ?? 0,
+      }
+    },
   }
 }
 
@@ -305,8 +290,8 @@ export async function computeDurationStats(db: D1Database, userId: string): Prom
 //    SQLite has no EXTRACT: hour = CAST(substr(departure_time,1,2) AS INTEGER).
 // =========================================================================================
 
-export async function computeDeparturePatterns(db: D1Database, userId: string): Promise<DeparturePatterns | null> {
-  const r = await db
+export function computeDeparturePatterns(db: D1Database, userId: string): BatchedRead<DeparturePatterns | null> {
+  const statement = db
     .prepare(
       `SELECT
          COUNT(*) FILTER (WHERE departure_time IS NOT NULL) AS total_with_time,
@@ -334,16 +319,19 @@ export async function computeDeparturePatterns(db: D1Database, userId: string): 
        WHERE user_id = ?`,
     )
     .bind(userId)
-    .first<{ total_with_time: number; red_eye: number; early: number; business: number; evening: number }>()
-
-  if (!r || r.total_with_time === 0) return null
-
   return {
-    red_eye: r.red_eye,
-    early: r.early,
-    business: r.business,
-    evening: r.evening,
-    total_with_time: r.total_with_time,
+    statements: [statement],
+    derive([result]) {
+      const r = firstOf<{ total_with_time: number; red_eye: number; early: number; business: number; evening: number }>(result)
+      if (!r || r.total_with_time === 0) return null
+      return {
+        red_eye: r.red_eye,
+        early: r.early,
+        business: r.business,
+        evening: r.evening,
+        total_with_time: r.total_with_time,
+      }
+    },
   }
 }
 
@@ -352,8 +340,8 @@ export async function computeDeparturePatterns(db: D1Database, userId: string): 
 //    ROUND(count(duration>0) / count(all) * 100, 1) as a REAL. 0 when no flights.
 // =========================================================================================
 
-export async function computeDurationCoverage(db: D1Database, userId: string): Promise<number> {
-  const r = await db
+export function computeDurationCoverage(db: D1Database, userId: string): BatchedRead<number> {
+  const statement = db
     .prepare(
       `SELECT
          COUNT(*) AS total,
@@ -362,8 +350,12 @@ export async function computeDurationCoverage(db: D1Database, userId: string): P
        WHERE user_id = ?`,
     )
     .bind(userId)
-    .first<{ total: number; with_duration: number }>()
-
-  if (!r || r.total === 0) return 0
-  return Math.round((r.with_duration / r.total) * 100 * 10) / 10
+  return {
+    statements: [statement],
+    derive([result]) {
+      const r = firstOf<{ total: number; with_duration: number }>(result)
+      if (!r || r.total === 0) return 0
+      return Math.round((r.with_duration / r.total) * 100 * 10) / 10
+    },
+  }
 }

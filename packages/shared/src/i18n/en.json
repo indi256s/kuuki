@@ -794,7 +794,6 @@
       "hint": "This usually takes a few seconds",
       "analyzingText": "Analyzing flight data",
       "analyzingDocument": "Reading document",
-      "continueInBackground": "Continue in background",
       "inProgress": "in progress",
       "redirectHint": "Processing in overlay…",
       "flightsFound": "Flights found",
@@ -822,11 +821,7 @@
       "verify": "Verify",
       "confidence": "AI Confidence",
       "addManually": "Add manually",
-      "viewNormalized": "View normalized data",
       "count": "{{selected}} of {{total}} flights selected",
-      "enriching": "Enriching",
-      "enrichingFlights": "Fetching aircraft and timing details…",
-      "enrichingContinues": "You can import now - enrichment continues in background",
       "yearInferred": "Year not found",
       "yearInferredDesc": "The year was not found in the document and was inferred.",
       "confirmYear": "Confirm the year on each selected flight before importing.",
@@ -835,16 +830,6 @@
       "useYear": "Use {{year}}",
       "missingAirlines": "Missing airline codes",
       "missingAirlinesHint": "AI found {{count}} flight(s), but couldn't determine the airline. Fill in the 2-letter airline codes (like \"LY\", \"QR\", \"TK\") to import these flights, or skip for now."
-    },
-    "background": {
-      "ready_one": "{{count}} flight ready to review",
-      "ready_other": "{{count}} flights ready to review",
-      "review": "Review"
-    },
-    "enrichment": {
-      "failed": "Could not fetch aircraft and timing details",
-      "retry": "Try again",
-      "skip": "Skip and add later"
     },
     "noResults": {
       "title": "No flights found",
@@ -1077,7 +1062,7 @@
   "passport": {
     "land": "Land",
     "sea": "Sea",
-    "groundVisits": "Ground visit",
+    "groundVisits": "Ground Visits",
     "deleteVisitConfirm": "Are you sure?",
     "deleteVisit": "Remove from Passport",
     "deleteConfirm": "Remove this country from your passport? This will delete all ground visit records.",
@@ -1099,8 +1084,6 @@
     "totalVisits": "Total Visits",
     "airportsVisited": "Airports Visited",
     "entryMethod": "Entry Method",
-    "land": "Land",
-    "sea": "Sea",
     "note": "Note",
     "claimCountry": "Claim a Country",
     "claimDescription": "Add a country you’ve visited by land or sea.",
@@ -1116,7 +1099,6 @@
     "addVisit": "Add Visit",
     "addVisitDescription": "Add another visit to this country.",
     "addVisitButton": "Add Visit",
-    "groundVisits": "Ground Visits",
     "mapInstructions": "Check in countries you’ve visited",
     "mapInstructionsDetail": "Search below or browse the list to add countries you’ve reached by land or sea. Countries from your flights are already tracked automatically.",
     "visitedCountries_one": "{{count}} country visited",
@@ -1129,8 +1111,6 @@
     "toggleRoutes": "Show flight routes",
     "toggleClaimed": "Show claimed countries",
     "toggleHeatmap": "Toggle heatmap",
-    "deleteVisit": "Remove from Passport",
-    "deleteConfirm": "Remove this country from your passport? This will delete all ground visit records.",
     "continentBadges": {
       "europhile": "Europhile",
       "asianaut": "Asianaut",

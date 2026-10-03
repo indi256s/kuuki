@@ -29,11 +29,8 @@ interface RegisterFormProps {
 }
 
 /**
- * Streamlined registration form (open registration).
- *
- * Key differences from SignUpForm:
- * - No password confirmation field (reduces friction)
- * - Icons in form fields for visual polish
+ * Streamlined registration form (open registration): no password confirmation field,
+ * icons in form fields.
  */
 export function RegisterForm({ onSuccess, onSignInClick }: RegisterFormProps) {
   const { t } = useTranslation()

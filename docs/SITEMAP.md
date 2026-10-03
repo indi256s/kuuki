@@ -54,7 +54,6 @@ components/
 ├── passport/            # Visual passport book components
 ├── profile/             # Public profile views
 ├── settings/            # User settings forms
-├── stats/               # Visualization components (charts, graphs)
 └── ui/                  # shadcn/ui base primitives
 ```
 

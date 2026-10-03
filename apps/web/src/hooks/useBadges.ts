@@ -1,8 +1,8 @@
 import { useQuery } from '@tanstack/react-query'
 import { getUserBadges, getAllBadges, type BadgeDefinition, type UserBadge } from '@/lib/profiles'
 import { useAuthStore } from '@/stores/authStore'
+import { queryKeys } from '@/lib/queryKeys'
 
-const USER_BADGES_KEY = 'userBadges'
 const ALL_BADGES_KEY = 'allBadges'
 
 /**
@@ -13,7 +13,7 @@ export function useUserBadges() {
   const authLoading = useAuthStore((state) => state.isLoading)
 
   return useQuery({
-    queryKey: [USER_BADGES_KEY, userId],
+    queryKey: queryKeys.userBadges(userId),
     queryFn: () => {
       if (!userId) return []
       return getUserBadges(userId)

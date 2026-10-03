@@ -2,7 +2,7 @@
 
 import { runHandler, readJson, json, HttpError } from '../_lib/http'
 import { requireSameOrigin } from '../_lib/auth'
-import { getUserByEmail } from '../_lib/users'
+import { getUserByEmail, parsePassword } from '../_lib/users'
 import { verifyPassword, dummyVerify } from '../_lib/crypto'
 import { createSession } from '../_lib/session'
 import { setSessionCookies } from '../_lib/authCookies'
@@ -22,8 +22,8 @@ export const onRequestPost: PagesFunction<Env> = (context) =>
 
     const body = await readJson<SigninBody>(request)
     const email = typeof body?.email === 'string' ? body.email.trim() : null
-    const password = body?.password
-    if (!email || typeof password !== 'string' || !password || password.length > 1024) throw new HttpError(400, 'Email and password are required', 'MISSING_CREDENTIALS')
+    if (!email) throw new HttpError(400, 'Email and password are required', 'MISSING_CREDENTIALS')
+    const password = parsePassword(body?.password, 'current')
 
     const user = await getUserByEmail(env.DB, email)
     if (!user) {

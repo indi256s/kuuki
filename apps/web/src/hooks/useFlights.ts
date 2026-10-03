@@ -27,15 +27,7 @@ import {
 import { useAuthStore } from '@/stores/authStore'
 import { useEffect } from 'react'
 import { reconcileDerivedState } from '@/lib/derivedStateFeedback'
-
-const FLIGHTS_KEY = 'flights'
-const FLIGHT_KEY = 'flight'
-const FLIGHT_ROUTES_KEY = 'flightRoutes'
-const RECENT_FLIGHTS_KEY = 'recentFlights'
-const UPCOMING_FLIGHTS_KEY = 'upcomingFlights'
-const FLIGHT_YEARS_KEY = 'flightYears'
-const FLIGHT_AIRLINES_KEY = 'flightAirlines'
-const FLIGHT_AIRCRAFT_KEY = 'flightAircraft'
+import { queryKeys } from '@/lib/queryKeys'
 
 /**
  * Hook for paginated flight list with infinite scroll
@@ -44,7 +36,7 @@ export function useFlights(filters?: FlightFilters, sort?: SortConfig, pageSize 
   const userId = useAuthStore((state) => state.user?.id)
 
   return useInfiniteQuery({
-    queryKey: [FLIGHTS_KEY, userId, filters, sort],
+    queryKey: queryKeys.flights(userId, filters, sort),
     queryFn: async ({ pageParam = 0 }) => {
       if (!userId) throw new Error('Not authenticated')
       return getFlights(userId, {
@@ -72,7 +64,7 @@ export function useFlights(filters?: FlightFilters, sort?: SortConfig, pageSize 
 export function useFlight(flightId: number | null) {
   const userId = useAuthStore((state) => state.user?.id)
   return useQuery({
-    queryKey: [FLIGHT_KEY, userId, flightId],
+    queryKey: queryKeys.flight(userId, flightId),
     queryFn: () => {
       if (!flightId) return null
       return getFlight(flightId)
@@ -205,7 +197,7 @@ export function useFlightRoutes() {
   const userId = useAuthStore((state) => state.user?.id)
 
   return useQuery({
-    queryKey: [FLIGHT_ROUTES_KEY, userId],
+    queryKey: queryKeys.flightRoutes(userId),
     queryFn: () => {
       if (!userId) return []
       return getFlightRoutes(userId)
@@ -222,7 +214,7 @@ export function useRecentFlights(limit = 5) {
   const userId = useAuthStore((state) => state.user?.id)
 
   return useQuery({
-    queryKey: [RECENT_FLIGHTS_KEY, userId, limit],
+    queryKey: queryKeys.recentFlights(userId, limit),
     queryFn: () => {
       if (!userId) return []
       return getRecentFlights(userId, limit)
@@ -239,7 +231,7 @@ export function useUpcomingFlights(limit = 3) {
   const userId = useAuthStore((state) => state.user?.id)
 
   return useQuery({
-    queryKey: [UPCOMING_FLIGHTS_KEY, userId, limit],
+    queryKey: queryKeys.upcomingFlights(userId, limit),
     queryFn: () => {
       if (!userId) return []
       return getUpcomingFlights(userId, limit)
@@ -255,7 +247,7 @@ export function useFlightYears() {
   const userId = useAuthStore((state) => state.user?.id)
 
   return useQuery({
-    queryKey: [FLIGHT_YEARS_KEY, userId],
+    queryKey: queryKeys.flightYears(userId),
     queryFn: () => {
       if (!userId) return []
       return getFlightYears(userId)
@@ -271,7 +263,7 @@ export function useFlightAirlines() {
   const userId = useAuthStore((state) => state.user?.id)
 
   return useQuery({
-    queryKey: [FLIGHT_AIRLINES_KEY, userId],
+    queryKey: queryKeys.flightAirlines(userId),
     queryFn: () => {
       if (!userId) return []
       return getFlightAirlines(userId)
@@ -287,7 +279,7 @@ export function useFlightAircraft() {
   const userId = useAuthStore((state) => state.user?.id)
 
   return useQuery({
-    queryKey: [FLIGHT_AIRCRAFT_KEY, userId],
+    queryKey: queryKeys.flightAircraft(userId),
     queryFn: () => {
       if (!userId) return []
       return getFlightAircraft(userId)
@@ -304,7 +296,7 @@ export function useAllFlightIds(filters?: FlightFilters) {
   const userId = useAuthStore((state) => state.user?.id)
 
   return useQuery({
-    queryKey: ['allFlightIds', userId, filters],
+    queryKey: queryKeys.allFlightIds(userId, filters),
     queryFn: () => {
       if (!userId) return []
       return getAllFlightIds(userId, filters)

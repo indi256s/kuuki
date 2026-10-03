@@ -1,5 +1,5 @@
 import { api, ApiError } from './apiClient'
-import { validateFlightInput } from '@kuuki/shared'
+import { FLIGHT_BULK_CREATE_MAX, validateFlightInput } from '@kuuki/shared'
 import { completeFlightCreateOperation, getFlightCreateOperation } from './flightCreateOperations'
 import type { DerivedAck } from './derivedStateFeedback'
 import type { Tables, TablesInsert, TablesUpdate } from './database.types'
@@ -160,9 +160,60 @@ export async function createFlight(flight: Omit<FlightInsert, 'id' | 'created_at
   const { user_id, is_upcoming, ...body } = flight
   const input = validateFlightInput(body, 'create')
   const operation = getFlightCreateOperation(user_id, operationId, input)
-  const dto = await api.post<ApiFlight>('/api/flights', operation.body, undefined, undefined, { 'Idempotency-Key': operation.key })
+  const dto = await api.post<ApiFlight>('/api/flights', operation.body, { headers: { 'Idempotency-Key': operation.key } })
   completeFlightCreateOperation(user_id, operationId, operation.key)
   return toFlight(dto, user_id)
+}
+
+interface BulkCreateResult {
+  status: 'created' | 'replayed' | 'error'
+  http_status?: number
+  code?: string
+  error?: string
+}
+
+/**
+ * Create flights through /api/flights/bulk in server-sized chunks. Each flight keeps its own stored
+ * operation key, so an uncertain chunk retries without duplicates. Returns one error (or null when
+ * saved) per entry; onChunk receives each accepted chunk's derived-state ack and saved count.
+ */
+export async function createFlights(
+  userId: string,
+  entries: Array<{ operationId: string; flight: Omit<FlightInsert, 'id' | 'created_at' | 'user_id'> }>,
+  onChunk?: (ack: DerivedAck, saved: number) => void,
+): Promise<Array<Error | null>> {
+  const outcomes: Array<Error | null> = entries.map(() => null)
+  const ready: Array<{ index: number; operationId: string; key: string; body: object }> = []
+  entries.forEach(({ operationId, flight }, index) => {
+    try {
+      const { is_upcoming: _upcoming, ...body } = flight
+      ready.push({ index, operationId, ...getFlightCreateOperation(userId, operationId, validateFlightInput(body, 'create')) })
+    } catch (error) {
+      outcomes[index] = error instanceof Error ? error : new Error(String(error))
+    }
+  })
+  for (let start = 0; start < ready.length; start += FLIGHT_BULK_CREATE_MAX) {
+    const chunk = ready.slice(start, start + FLIGHT_BULK_CREATE_MAX)
+    try {
+      const response = await api.post<DerivedAck & { results: BulkCreateResult[] }>('/api/flights/bulk', {
+        items: chunk.map(({ key, body }) => ({ key, flight: body })),
+      })
+      let saved = 0
+      chunk.forEach((item, i) => {
+        const result = response.results[i]
+        if (result?.status === 'created' || result?.status === 'replayed') {
+          completeFlightCreateOperation(userId, item.operationId, item.key)
+          saved++
+        } else {
+          outcomes[item.index] = new ApiError(result?.http_status ?? 500, result?.error ?? 'Flight was not saved', result?.code)
+        }
+      })
+      if (response.derived_state) onChunk?.(response, saved)
+    } catch (error) {
+      for (const item of chunk) outcomes[item.index] = error instanceof Error ? error : new Error(String(error))
+    }
+  }
+  return outcomes
 }
 
 /**

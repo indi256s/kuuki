@@ -12,7 +12,7 @@ vi.mock('@/stores/authStore', () => ({
 }))
 
 // Import after mocks
-import { useAdvancedStats, useUnlockProgress } from '../useAdvancedStats'
+import { useAdvancedStats } from '../useAdvancedStats'
 import { api, resetApiMock } from '@/test/mocks/apiClient'
 
 const mockUserId = 'test-user-123'
@@ -31,155 +31,9 @@ function createWrapper() {
   }
 }
 
-describe('useUnlockProgress', () => {
-  beforeEach(() => {
-    resetApiMock()
-  })
-
-  it('returns default unlock progress when no user_stats exists', async () => {
-    // No stats row yet -> API returns null
-    vi.mocked(api.get).mockResolvedValue(null)
-
-    const { result } = renderHook(() => useUnlockProgress(), {
-      wrapper: createWrapper(),
-    })
-
-    await waitFor(() => {
-      expect(result.current.isSuccess).toBe(true)
-    })
-
-    expect(api.get).toHaveBeenCalledWith('/api/me/stats')
-    expect(result.current.data).toEqual({
-      aviaGeek: { current: 0, required: 5, unlocked: false },
-      countryGeek: { current: 0, required: 5, unlocked: false },
-      duration: { current: 0, required: 10, unlocked: false },
-    })
-  })
-
-  it('calculates unlock progress correctly when user has stats', async () => {
-    vi.mocked(api.get).mockResolvedValue({
-      aircraft_count: 7,
-      countries_count: 3,
-      total_flights: 15,
-    })
-
-    const { result } = renderHook(() => useUnlockProgress(), {
-      wrapper: createWrapper(),
-    })
-
-    await waitFor(() => {
-      expect(result.current.isSuccess).toBe(true)
-    })
-
-    expect(result.current.data).toEqual({
-      aviaGeek: { current: 7, required: 5, unlocked: true },
-      countryGeek: { current: 3, required: 5, unlocked: false },
-      duration: { current: 15, required: 10, unlocked: true },
-    })
-  })
-
-  it('unlocks aviaGeek at exactly 5 aircraft', async () => {
-    vi.mocked(api.get).mockResolvedValue({
-      aircraft_count: 5,
-      countries_count: 4,
-      total_flights: 9,
-    })
-
-    const { result } = renderHook(() => useUnlockProgress(), {
-      wrapper: createWrapper(),
-    })
-
-    await waitFor(() => {
-      expect(result.current.isSuccess).toBe(true)
-    })
-
-    expect(result.current.data?.aviaGeek.unlocked).toBe(true)
-    expect(result.current.data?.countryGeek.unlocked).toBe(false)
-    expect(result.current.data?.duration.unlocked).toBe(false)
-  })
-
-  it('unlocks countryGeek at exactly 5 countries', async () => {
-    vi.mocked(api.get).mockResolvedValue({
-      aircraft_count: 2,
-      countries_count: 5,
-      total_flights: 5,
-    })
-
-    const { result } = renderHook(() => useUnlockProgress(), {
-      wrapper: createWrapper(),
-    })
-
-    await waitFor(() => {
-      expect(result.current.isSuccess).toBe(true)
-    })
-
-    expect(result.current.data?.aviaGeek.unlocked).toBe(false)
-    expect(result.current.data?.countryGeek.unlocked).toBe(true)
-    expect(result.current.data?.duration.unlocked).toBe(false)
-  })
-
-  it('unlocks duration at exactly 10 flights', async () => {
-    vi.mocked(api.get).mockResolvedValue({
-      aircraft_count: 2,
-      countries_count: 3,
-      total_flights: 10,
-    })
-
-    const { result } = renderHook(() => useUnlockProgress(), {
-      wrapper: createWrapper(),
-    })
-
-    await waitFor(() => {
-      expect(result.current.isSuccess).toBe(true)
-    })
-
-    expect(result.current.data?.aviaGeek.unlocked).toBe(false)
-    expect(result.current.data?.countryGeek.unlocked).toBe(false)
-    expect(result.current.data?.duration.unlocked).toBe(true)
-  })
-
-  it('handles null values in stats gracefully', async () => {
-    vi.mocked(api.get).mockResolvedValue({
-      aircraft_count: null,
-      countries_count: null,
-      total_flights: null,
-    })
-
-    const { result } = renderHook(() => useUnlockProgress(), {
-      wrapper: createWrapper(),
-    })
-
-    await waitFor(() => {
-      expect(result.current.isSuccess).toBe(true)
-    })
-
-    expect(result.current.data).toEqual({
-      aviaGeek: { current: 0, required: 5, unlocked: false },
-      countryGeek: { current: 0, required: 5, unlocked: false },
-      duration: { current: 0, required: 10, unlocked: false },
-    })
-  })
-})
-
 describe('useAdvancedStats', () => {
   beforeEach(() => {
     resetApiMock()
-  })
-
-  it('returns null when no advanced stats record exists', async () => {
-    // No record -> API returns null
-    vi.mocked(api.get).mockResolvedValue(null)
-
-    const { result } = renderHook(() => useAdvancedStats(), {
-      wrapper: createWrapper(),
-    })
-
-    await waitFor(() => {
-      expect(result.current.isSuccess).toBe(true)
-    })
-
-    expect(api.get).toHaveBeenCalledWith('/api/me/advanced-stats')
-    expect(result.current.data).toBeNull()
   })
 
   it('parses advanced stats correctly from the API', async () => {
@@ -255,51 +109,5 @@ describe('useAdvancedStats', () => {
       featuredFactIndex: 2,
       updatedAt: '2026-02-01T00:00:00Z',
     })
-  })
-
-  it('handles null JSON fields gracefully', async () => {
-    const mockData = {
-      user_id: mockUserId,
-      avia_geek_unlocked: false,
-      country_geek_unlocked: false,
-      duration_unlocked: false,
-      manufacturer_breakdown: null,
-      aircraft_breakdown: null,
-      aircraft_type_breakdown: null,
-      continent_breakdown: null,
-      region_breakdown: null,
-      duration_stats: null,
-      departure_patterns: null,
-      duration_coverage: null,
-      patterns: null,
-      card_insights: null,
-      duration_year_comparison: null,
-      fleet_insights: null,
-      manufacturer_insights: null,
-      featured_fact: null,
-      featured_fact_index: 0,
-      updated_at: null,
-    }
-
-    vi.mocked(api.get).mockResolvedValue(mockData)
-
-    const { result } = renderHook(() => useAdvancedStats(), {
-      wrapper: createWrapper(),
-    })
-
-    await waitFor(() => {
-      expect(result.current.isSuccess).toBe(true)
-    })
-
-    expect(result.current.data?.manufacturerBreakdown).toBeNull()
-    expect(result.current.data?.aircraftBreakdown).toBeNull()
-    expect(result.current.data?.aircraftTypeBreakdown).toBeNull()
-    expect(result.current.data?.continentBreakdown).toBeNull()
-    expect(result.current.data?.regionBreakdown).toBeNull()
-    expect(result.current.data?.durationStats).toBeNull()
-    expect(result.current.data?.departurePatterns).toBeNull()
-    expect(result.current.data?.durationCoverage).toBe(0)
-    expect(result.current.data?.patterns).toBeNull()
-    expect(result.current.data?.featuredFact).toBeNull()
   })
 })

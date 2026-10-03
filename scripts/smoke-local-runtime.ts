@@ -1,9 +1,8 @@
 // Isolated synthetic app fixture for functional browser checks on real local workerd.
 // Build the web app and Pages Functions first. No .dev.vars, snapshot, or cloud bindings.
-import { readFileSync, readdirSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { Miniflare, Log, LogLevel, Request as WorkerRequest, Response as WorkerResponse } from 'miniflare'
-import { unstable_splitSqlQuery } from 'wrangler'
+import { applyMigrations } from './_migrations'
 
 const port = Number(process.env.KUUKI_SMOKE_PORT ?? 8799)
 if (!Number.isInteger(port) || port < 1024 || port > 65535) throw new Error('Invalid KUUKI_SMOKE_PORT')
@@ -24,7 +23,6 @@ const mf = new Miniflare({
   compatibilityFlags: ['nodejs_compat'],
   host: '127.0.0.1', port,
   d1Databases: { DB: 'kuuki-synthetic-browser-fixture' },
-  kvNamespaces: ['IMPORT_JOBS'],
   bindings: {
     AUTH_SECRET: 'synthetic-browser-pepper', PAGES_ORIGIN: origin,
     GEMINI_API_KEY: 'synthetic-provider-key',
@@ -66,8 +64,7 @@ const mf = new Miniflare({
     if (body.includes('google_search') || body.includes('googleSearch')) {
       return new WorkerResponse(JSON.stringify({ candidates: [{ content: { parts: [{ text: JSON.stringify({ results: [{ index: 1, icao: null, name: null, confidence: 0 }] }) }] } }] }), { headers: { 'Content-Type': 'application/json' } })
     }
-    const isCleaning = !body.includes('responseMimeType')
-    const text = isCleaning ? '2026-01-03 JFK BOS AA100 10:00 11:30' : JSON.stringify({ flights: [fixtureFlight] })
+    const text = JSON.stringify({ flights: [fixtureFlight] })
     return new WorkerResponse(JSON.stringify({ candidates: [{ content: { parts: [{ text }] }, finishReason: 'STOP' }] }), {
       headers: { 'Content-Type': 'application/json' },
     })
@@ -77,12 +74,7 @@ const mf = new Miniflare({
 async function main() {
 try {
   const db = await mf.getD1Database('DB')
-  for (const file of readdirSync('db/migrations').filter(file => /^\d+.*\.sql$/.test(file)).sort()) {
-    const sql = readFileSync(resolve('db/migrations', file), 'utf8')
-    for (const statement of unstable_splitSqlQuery(sql)) {
-      await db.prepare(statement).run()
-    }
-  }
+  await applyMigrations(db)
   await db.batch([
     ...[
       ['JFK', 'John F Kennedy', 'New York', 40.6413, -73.7781],
@@ -97,7 +89,7 @@ try {
   ])
   // Hashing and signup happen inside the compiled workerd API, rather than in Node.
   for (const [email, username] of [['a@example.test', 'fixture-a'], ['b@example.test', 'fixture-b']]) {
-    const response = await mf.dispatchFetch(`${origin}/api/auth/signup`, {
+    const response = await mf.dispatchFetch(`${origin}/api/auth/sign-up/email`, {
       method: 'POST', headers: { Origin: origin, 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password: 'rehearsal-password-2026' }),
     })
@@ -123,7 +115,7 @@ try {
       await new Promise(resolve => setTimeout(resolve, 10))
     }
     if (mailCalls !== 1 || issued !== 1) throw new Error('Compiled activation sender failed')
-    const signin = await mf.dispatchFetch(`${origin}/api/auth/signin`, {
+    const signin = await mf.dispatchFetch(`${origin}/api/auth/sign-in/email`, {
       method: 'POST', headers: { Origin: origin, 'Content-Type': 'application/json' },
       body: JSON.stringify({ email: 'a@example.test', password: 'rehearsal-password-2026' }),
     })
@@ -161,11 +153,11 @@ try {
     const patched = await mf.dispatchFetch(`${origin}/api/flights/${saved.id}`, { method: 'PATCH', headers: mutationHeaders, body: JSON.stringify({ destination: 'BOS' }) })
     const changed = await patched.json() as { distance_km: number; derived_state: string }
     if (!patched.ok || changed.distance_km >= saved.distance_km || changed.derived_state !== 'ready') throw new Error('Compiled route recalculation failed')
-    const forbidden = await mf.dispatchFetch(`${origin}/api/auth/signout`, {
+    const forbidden = await mf.dispatchFetch(`${origin}/api/auth/sign-out`, {
       method: 'POST', headers: { Origin: origin, Cookie: cookie },
     })
     if (forbidden.status !== 403) throw new Error('Workerd accepted missing CSRF')
-    const signout = await mf.dispatchFetch(`${origin}/api/auth/signout`, {
+    const signout = await mf.dispatchFetch(`${origin}/api/auth/sign-out`, {
       method: 'POST', headers: { Origin: origin, Cookie: cookie, 'X-CSRF-Token': csrf },
     })
     if (!signout.ok) throw new Error(`Workerd signout failed: ${signout.status}`)

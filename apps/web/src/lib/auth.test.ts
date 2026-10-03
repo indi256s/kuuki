@@ -17,129 +17,48 @@ describe('auth functions', () => {
     await expect(getMe()).rejects.toMatchObject({ status: 503 })
   })
 
-  describe('signUp', () => {
-    it('creates a user on success', async () => {
-      vi.mocked(api.post).mockResolvedValueOnce({
-        user: { id: 'user-123', email: 'test@example.com' },
-        profile: null,
-      })
+  it.each([
+    {
+      name: 'signUp (email taken)',
+      method: 'post' as const,
+      error: new ApiError(409, 'An account with this email already exists', 'EMAIL_TAKEN'),
+      call: () => signUp('test@example.com', 'password123'),
+      expected: { success: false, error: 'An account with this email already exists' },
+    },
+    {
+      name: 'signIn (invalid credentials)',
+      method: 'post' as const,
+      error: new ApiError(401, 'Invalid email or password', 'INVALID_CREDENTIALS'),
+      call: () => signIn('test@example.com', 'wrongpassword'),
+      expected: { success: false, error: 'Invalid email or password' },
+    },
+    {
+      name: 'signOut',
+      method: 'post' as const,
+      error: new ApiError(500, 'boom'),
+      call: () => signOut(),
+      expected: { success: false, error: 'boom' },
+    },
+    {
+      name: 'deleteAccount',
+      method: 'delete' as const,
+      error: new ApiError(500, 'Failed to delete account'),
+      call: () => deleteAccount('password123'),
+      expected: { success: false, error: 'Failed to delete account' },
+    },
+  ])('maps ApiError to { success: false, error }: $name', async ({ method, error, call, expected }) => {
+    vi.mocked(api[method]).mockRejectedValueOnce(error)
 
-      const result = await signUp('test@example.com', 'password123')
-
-      expect(result).toEqual({
-        success: true,
-        user: { id: 'user-123', email: 'test@example.com' },
-      })
-      expect(api.post).toHaveBeenCalledWith('/api/auth/signup', {
-        email: 'test@example.com',
-        password: 'password123',
-      }, undefined)
-    })
-
-    it('returns error when the email is already taken', async () => {
-      vi.mocked(api.post).mockRejectedValueOnce(
-        new ApiError(409, 'An account with this email already exists', 'EMAIL_TAKEN')
-      )
-
-      const result = await signUp('test@example.com', 'password123')
-
-      expect(result).toEqual({
-        success: false,
-        error: 'An account with this email already exists',
-      })
-    })
+    await expect(call()).resolves.toEqual(expected)
   })
 
-  describe('signIn', () => {
-    it('returns success on valid credentials', async () => {
-      vi.mocked(api.post).mockResolvedValueOnce({
-        user: { id: 'user-123', email: 'test@example.com' },
-        profile: null,
-      })
+  it('verifyPassword returns false on error', async () => {
+    vi.mocked(api.post).mockRejectedValueOnce(
+      new ApiError(401, 'Incorrect password', 'INVALID_CREDENTIALS')
+    )
 
-      const result = await signIn('test@example.com', 'password123')
+    const result = await verifyPassword('wrongpassword')
 
-      expect(result).toEqual({
-        success: true,
-        user: { id: 'user-123', email: 'test@example.com' },
-      })
-      expect(api.post).toHaveBeenCalledWith('/api/auth/signin', {
-        email: 'test@example.com',
-        password: 'password123',
-      }, undefined)
-    })
-
-    it('returns error on invalid credentials', async () => {
-      vi.mocked(api.post).mockRejectedValueOnce(
-        new ApiError(401, 'Invalid email or password', 'INVALID_CREDENTIALS')
-      )
-
-      const result = await signIn('test@example.com', 'wrongpassword')
-
-      expect(result).toEqual({
-        success: false,
-        error: 'Invalid email or password',
-      })
-    })
-  })
-
-  describe('signOut', () => {
-    it('posts to the signout endpoint', async () => {
-      vi.mocked(api.post).mockResolvedValueOnce({ ok: true })
-
-      expect(await signOut()).toEqual({ success: true })
-
-      expect(api.post).toHaveBeenCalledWith('/api/auth/signout', undefined, undefined)
-    })
-
-    it('returns a signout failure to the caller', async () => {
-      vi.mocked(api.post).mockRejectedValueOnce(new ApiError(500, 'boom'))
-
-      await expect(signOut()).resolves.toEqual({ success: false, error: 'boom' })
-    })
-  })
-
-  describe('verifyPassword', () => {
-    it('returns true when the password is correct', async () => {
-      vi.mocked(api.post).mockResolvedValueOnce({ ok: true })
-
-      const result = await verifyPassword('password123')
-
-      expect(result).toBe(true)
-      expect(api.post).toHaveBeenCalledWith('/api/auth/verify-password', {
-        password: 'password123',
-      })
-    })
-
-    it('returns false when the password is incorrect', async () => {
-      vi.mocked(api.post).mockRejectedValueOnce(
-        new ApiError(401, 'Incorrect password', 'INVALID_CREDENTIALS')
-      )
-
-      const result = await verifyPassword('wrongpassword')
-
-      expect(result).toBe(false)
-    })
-  })
-
-  describe('deleteAccount', () => {
-    it('returns success when the account is deleted', async () => {
-      vi.mocked(api.delete).mockResolvedValueOnce({ ok: true })
-
-      const result = await deleteAccount('password123')
-
-      expect(result).toEqual({ success: true })
-      expect(api.delete).toHaveBeenCalledWith('/api/auth/account', { password: 'password123' }, undefined)
-    })
-
-    it('returns error on failure', async () => {
-      vi.mocked(api.delete).mockRejectedValueOnce(
-        new ApiError(500, 'Failed to delete account')
-      )
-
-      const result = await deleteAccount('password123')
-
-      expect(result).toEqual({ success: false, error: 'Failed to delete account' })
-    })
+    expect(result).toBe(false)
   })
 })

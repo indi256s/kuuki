@@ -235,9 +235,10 @@ async function performRequest<T>(method: HttpMethod, path: string, body: unknown
   if (!res.ok) {
     const errObj = (parsed && typeof parsed === 'object' ? (parsed as Record<string, unknown>) : {}) as {
       error?: string
+      message?: string
       code?: string
     }
-    throw new ApiError(res.status, errObj.error || `Request failed (${res.status})`, errObj.code, parsed)
+    throw new ApiError(res.status, errObj.error || errObj.message || `Request failed (${res.status})`, errObj.code, parsed)
   }
   return parsed as T
 }
@@ -276,10 +277,12 @@ function request<T>(method: HttpMethod, path: string, body?: unknown, opts: Requ
   return pending
 }
 
+export type CallOptions = Pick<RequestOptions, 'signal' | 'identityToken' | 'timeoutMs' | 'headers'>
+
 export const api = {
-  get: <T>(path: string, params?: QueryParams, signal?: AbortSignal, identityToken?: IdentityOperationToken) => request<T>('GET', path, undefined, { params, signal, identityToken }),
-  post: <T>(path: string, body?: unknown, identityToken?: IdentityOperationToken, timeoutMs?: number, headers?: Record<string, string>) => request<T>('POST', path, body, { identityToken, timeoutMs, headers }),
-  patch: <T>(path: string, body?: unknown) => request<T>('PATCH', path, body),
-  put: <T>(path: string, body?: unknown) => request<T>('PUT', path, body),
-  delete: <T>(path: string, body?: unknown, identityToken?: IdentityOperationToken) => request<T>('DELETE', path, body, { identityToken }),
+  get: <T>(path: string, params?: QueryParams, options?: CallOptions) => request<T>('GET', path, undefined, { ...options, params }),
+  post: <T>(path: string, body?: unknown, options?: CallOptions) => request<T>('POST', path, body, options),
+  patch: <T>(path: string, body?: unknown, options?: CallOptions) => request<T>('PATCH', path, body, options),
+  put: <T>(path: string, body?: unknown, options?: CallOptions) => request<T>('PUT', path, body, options),
+  delete: <T>(path: string, body?: unknown, options?: CallOptions) => request<T>('DELETE', path, body, options),
 }

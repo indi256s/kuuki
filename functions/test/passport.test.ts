@@ -1,23 +1,19 @@
 import { expect, it } from 'vitest'
-import { createApiDatabase, apiContext } from './harness'
+import { createApiDatabase, apiContext, csrfRequest, count } from './harness'
 import { onRequestDelete as unclaimCountry } from '../api/passport/claims/[cc]/index'
 import { onRequestPost as addGroundVisit } from '../api/passport/ground-visits/index'
+import { repairUserDerivedState } from '../api/_services/derivedState'
 
-const origin = 'https://kuuki.test'
 const user = { id: 'passport-user', email: 'passport@example.test' }
 
 function context(db: D1Database, path: string, method: string, body?: unknown, cc?: string) {
-  const request = new Request(`${origin}${path}`, {
-    method,
-    headers: {
-      Origin: origin,
-      Cookie: 'kuuki_csrf=test-csrf',
-      'X-CSRF-Token': 'test-csrf',
-      ...(body === undefined ? {} : { 'Content-Type': 'application/json' }),
-    },
-    ...(body === undefined ? {} : { body: JSON.stringify(body) }),
-  })
+  const request = csrfRequest(path, method, body)
   return { ...apiContext(db, request), data: { user }, params: cc ? { cc } : {} } as never
+}
+
+async function derivedState(db: D1Database) {
+  return db.prepare('SELECT revision, published_revision FROM user_derived_state WHERE user_id = ?')
+    .bind(user.id).first<{ revision: number; published_revision: number }>()
 }
 
 async function seed(db: D1Database) {
@@ -25,10 +21,6 @@ async function seed(db: D1Database) {
     db.prepare('INSERT INTO users (id,email,password_hash) VALUES (?,?,?)').bind(user.id, user.email, 'hash'),
     db.prepare('INSERT INTO profiles (id) VALUES (?)').bind(user.id),
   ])
-}
-
-async function count(db: D1Database, table: string): Promise<number> {
-  return (await db.prepare(`SELECT COUNT(*) AS n FROM ${table} WHERE user_id = ?`).bind(user.id).first<{ n: number }>())?.n ?? 0
 }
 
 it('unclaims and drops ground notes in one transaction, preserving both on a fault', async () => {
@@ -49,6 +41,8 @@ it('unclaims and drops ground notes in one transaction, preserving both on a fau
     expect(deleted.status).toBe(200)
     expect(await count(db, 'country_claims')).toBe(0)
     expect(await count(db, 'ground_visits')).toBe(0)
+    const state = await derivedState(db)
+    expect(state?.published_revision).toBe(state?.revision)
   } finally { await dispose() }
 })
 
@@ -71,5 +65,27 @@ it('rejects malformed ground country codes before storing evidence', async () =>
       expect((await addGroundVisit(context(db, '/api/passport/ground-visits', 'POST', { countryCode }))).status).toBe(400)
     }
     expect(await count(db, 'ground_visits')).toBe(0)
+  } finally { await dispose() }
+})
+
+it('keeps derived state published when unclaiming, including a no-op and ground-only unclaim', async () => {
+  const { db, dispose } = await createApiDatabase()
+  try {
+    await seed(db)
+    await repairUserDerivedState(db, user.id)
+    const before = await derivedState(db)
+
+    const noop = await unclaimCountry(context(db, '/api/passport/claims/FR', 'DELETE', undefined, 'FR'))
+    expect(noop.status).toBe(200)
+    expect(await derivedState(db)).toEqual(before)
+
+    // Ground visits need no claim; dropping only them must still repair.
+    await db.prepare('INSERT INTO ground_visits (id,user_id,country_code) VALUES (?,?,?)').bind('visit-2', user.id, 'FR').run()
+    const groundOnly = await unclaimCountry(context(db, '/api/passport/claims/FR', 'DELETE', undefined, 'FR'))
+    expect(await groundOnly.json()).toMatchObject({ ok: true, derived_state: 'ready' })
+    expect(await count(db, 'ground_visits')).toBe(0)
+    const after = await derivedState(db)
+    expect(after!.revision).toBeGreaterThan(before!.revision)
+    expect(after!.published_revision).toBe(after!.revision)
   } finally { await dispose() }
 })

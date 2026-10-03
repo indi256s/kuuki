@@ -1,10 +1,9 @@
 // Core write-path services — ported from the live PL/pgSQL (see db/_extracted/LOGIC_SPEC.md).
-// These replace the Postgres trigger chain that fired on flight writes:
-//   fill distance/duration → derive visits → recompute user_stats → unlock flags → evaluate badges.
+// Distance/duration fill runs on flight writes; the stats and badge statements below are
+// composed by derivedState.repairUserDerivedState.
 //
-// Parity notes (do not "fix"): countries/cities/continents are counted from `visits` only;
-// visits accumulate (no decrement on flight delete); recompute does NOT set most_visited_*,
-// world_completion_pct, or time_zones_count.
+// Parity notes (do not "fix"): recompute does NOT set most_visited_*, world_completion_pct,
+// or time_zones_count.
 
 import { nowIso } from '../_lib/time'
 import { continentOf7 } from '../_lib/continents'
@@ -67,256 +66,32 @@ export async function fillDistanceAndDuration(
   return { distanceKm: clampDistance(dist), durationMinutes: clampDuration(dur) }
 }
 
-// --- visits derivation (update_visits_from_flight) ---------------------------------------
-
-export interface FlightForVisits {
-  origin: string
-  destination: string
-  date: string
-  is_upcoming: number | boolean | null
+/** Reads that share one D1 batch; `derive` receives their results in statement order. */
+export interface BatchedRead<T> {
+  statements: D1PreparedStatement[]
+  derive(results: D1Result[]): T
 }
 
-/**
- * Upsert origin + destination visits for a flight. Mirrors update_visits_from_flight:
- * INSERT/UPDATE only (callers must NOT call this on delete — visits are cumulative),
- * skips upcoming flights, skips airports missing from airports_reference.
- */
-export async function syncVisitsFromFlight(db: D1Database, userId: string, flight: FlightForVisits): Promise<void> {
-  if (flight.is_upcoming) return
-  for (const iata of [flight.origin, flight.destination]) {
-    const ap = await db
-      .prepare('SELECT iata, country_code, city FROM airports_reference WHERE iata = ?')
-      .bind(iata)
-      .first<{ iata: string; country_code: string; city: string | null }>()
-    if (!ap) continue
-    await db
-      .prepare(
-        `INSERT INTO visits (user_id, country_code, city, airport_iata, first_visit, last_visit, visit_count)
-         VALUES (?, ?, ?, ?, ?, ?, 1)
-         ON CONFLICT (user_id, airport_iata) DO UPDATE SET
-           last_visit  = MAX(visits.last_visit, excluded.last_visit),
-           first_visit = MIN(visits.first_visit, excluded.first_visit),
-           visit_count = visits.visit_count + 1`,
-      )
-      .bind(userId, ap.country_code, ap.city, ap.iata, flight.date, flight.date)
-      .run()
+/** Concatenate reads into one batch and split the results back by position. */
+export function combineReads<T extends unknown[]>(
+  ...reads: { [K in keyof T]: BatchedRead<T[K]> }
+): BatchedRead<T> {
+  const parts = reads as BatchedRead<unknown>[]
+  return {
+    statements: parts.flatMap(read => read.statements),
+    derive(results) {
+      let offset = 0
+      return parts.map(read => read.derive(results.slice(offset, offset += read.statements.length))) as T
+    },
   }
 }
 
-/**
- * Rebuild the user's entire `visits` table from their current non-upcoming flights, in two
- * statements. Call this after a flight is DELETED — syncVisitsFromFlight only ever inserts/
- * updates, so without this, geo counts stay inflated forever (security finding: visits never
- * decrement on delete). Mirrors syncVisitsFromFlight's per-airport semantics:
- * first_visit = MIN(date), last_visit = MAX(date), visit_count = flights touching that airport.
- */
-export async function rebuildVisitsForUser(db: D1Database, userId: string): Promise<void> {
-  await db.batch([
-    db.prepare('DELETE FROM visits WHERE user_id = ?').bind(userId),
-    db
-      .prepare(
-        `INSERT INTO visits (user_id, country_code, city, airport_iata, first_visit, last_visit, visit_count)
-         SELECT ?, ar.country_code, ar.city, ar.iata, MIN(f.date), MAX(f.date), COUNT(*)
-         FROM (
-           SELECT origin AS iata, date FROM flights WHERE user_id = ? AND (is_upcoming IS NULL OR is_upcoming = 0)
-           UNION ALL
-           SELECT destination AS iata, date FROM flights WHERE user_id = ? AND (is_upcoming IS NULL OR is_upcoming = 0)
-         ) f
-         JOIN airports_reference ar ON ar.iata = f.iata
-         GROUP BY ar.iata`,
-      )
-      .bind(userId, userId, userId),
-  ])
-}
-
-// --- user_stats recompute (recalculate_user_stats) --------------------------------------
-
-export async function recomputeUserStats(db: D1Database, userId: string): Promise<void> {
-  const f = await db
-    .prepare(
-      `SELECT
-         COUNT(*) AS total_flights,
-         COALESCE(SUM(distance_km), 0) AS total_distance_km,
-         COALESCE(MAX(duration_minutes), 0) AS longest_flight_minutes,
-         COALESCE(SUM(duration_minutes), 0) AS total_duration_minutes,
-         COUNT(DISTINCT CASE WHEN airline_iata IS NOT NULL THEN airline_iata END) AS airlines_count,
-         COUNT(DISTINCT CASE WHEN aircraft_icao IS NOT NULL THEN aircraft_icao END) AS aircraft_count
-       FROM flights
-       WHERE user_id = ? AND (is_upcoming IS NULL OR is_upcoming = 0)`,
-    )
-    .bind(userId)
-    .first<{
-      total_flights: number
-      total_distance_km: number
-      longest_flight_minutes: number
-      total_duration_minutes: number
-      airlines_count: number
-      aircraft_count: number
-    }>()
-
-  const v = await db
-    .prepare(
-      `SELECT
-         COUNT(DISTINCT CASE WHEN airport_iata IS NOT NULL THEN airport_iata END) AS airports_count,
-         COUNT(DISTINCT country_code) AS countries_count,
-         COUNT(DISTINCT city) AS cities_count
-       FROM visits WHERE user_id = ?`,
-    )
-    .bind(userId)
-    .first<{ airports_count: number; countries_count: number; cities_count: number }>()
-
-  // Continents: distinct 7-bucket continent over visits' country codes (TS map for parity).
-  const ccRows = await db
-    .prepare('SELECT DISTINCT country_code FROM visits WHERE user_id = ? AND country_code IS NOT NULL')
-    .bind(userId)
-    .all<{ country_code: string }>()
-  const continents = new Set<string>()
-  for (const r of ccRows.results) continents.add(continentOf7(r.country_code))
-  const continentsCount = continents.size
-
-  const night = await db
-    .prepare(
-      `SELECT EXISTS(
-         SELECT 1 FROM flights
-         WHERE user_id = ? AND departure_time IS NOT NULL
-           AND CAST(substr(departure_time, 1, 2) AS INTEGER) < 5
-           AND (is_upcoming IS NULL OR is_upcoming = 0)
-       ) AS has_night`,
-    )
-    .bind(userId)
-    .first<{ has_night: number }>()
-
-  await db
-    .prepare(
-      `INSERT INTO user_stats (
-         user_id, total_flights, total_distance_km, countries_count, cities_count,
-         airlines_count, aircraft_count, continents_count, longest_flight_minutes,
-         has_night_departure, airports_count, total_duration_minutes, updated_at
-       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-       ON CONFLICT (user_id) DO UPDATE SET
-         total_flights = excluded.total_flights,
-         total_distance_km = excluded.total_distance_km,
-         countries_count = excluded.countries_count,
-         cities_count = excluded.cities_count,
-         airlines_count = excluded.airlines_count,
-         aircraft_count = excluded.aircraft_count,
-         continents_count = excluded.continents_count,
-         longest_flight_minutes = excluded.longest_flight_minutes,
-         has_night_departure = excluded.has_night_departure,
-         airports_count = excluded.airports_count,
-         total_duration_minutes = excluded.total_duration_minutes,
-         updated_at = excluded.updated_at`,
-    )
-    .bind(
-      userId,
-      f?.total_flights ?? 0,
-      Math.round(f?.total_distance_km ?? 0),
-      v?.countries_count ?? 0,
-      v?.cities_count ?? 0,
-      f?.airlines_count ?? 0,
-      f?.aircraft_count ?? 0,
-      continentsCount,
-      f?.longest_flight_minutes ?? 0,
-      night?.has_night ? 1 : 0,
-      v?.airports_count ?? 0,
-      f?.total_duration_minutes ?? 0,
-      nowIso(),
-    )
-    .run()
-}
-
-// --- advanced-stats unlock flags (update_advanced_stats_unlocks) -------------------------
-
-export async function updateAdvancedStatsUnlocks(db: D1Database, userId: string): Promise<void> {
-  const s = await db
-    .prepare('SELECT aircraft_count, countries_count, total_flights FROM user_stats WHERE user_id = ?')
-    .bind(userId)
-    .first<{ aircraft_count: number; countries_count: number; total_flights: number }>()
-  if (!s) return
-  await db
-    .prepare(
-      `INSERT INTO user_advanced_stats (user_id, avia_geek_unlocked, country_geek_unlocked, duration_unlocked, updated_at)
-       VALUES (?, ?, ?, ?, ?)
-       ON CONFLICT (user_id) DO UPDATE SET
-         avia_geek_unlocked = excluded.avia_geek_unlocked,
-         country_geek_unlocked = excluded.country_geek_unlocked,
-         duration_unlocked = excluded.duration_unlocked,
-         updated_at = excluded.updated_at`,
-    )
-    .bind(userId, s.aircraft_count >= 5 ? 1 : 0, s.countries_count >= 5 ? 1 : 0, s.total_flights >= 10 ? 1 : 0, nowIso())
-    .run()
-}
-
-// --- badges (evaluate_badges) -----------------------------------------------------------
+export const rowsOf = <T>(result: D1Result | undefined): T[] => (result?.results ?? []) as T[]
+export const firstOf = <T>(result: D1Result | undefined): T | null => rowsOf<T>(result)[0] ?? null
 
 interface BadgeRow {
   id: number
   criteria: string | null
-}
-
-export async function evaluateBadges(db: D1Database, userId: string): Promise<void> {
-  const s = await db
-    .prepare(
-      `SELECT total_flights, total_distance_km, airlines_count, aircraft_count, continents_count,
-              longest_flight_minutes, has_night_departure
-       FROM user_stats WHERE user_id = ?`,
-    )
-    .bind(userId)
-    .first<{
-      total_flights: number
-      total_distance_km: number
-      airlines_count: number
-      aircraft_count: number
-      continents_count: number
-      longest_flight_minutes: number
-      has_night_departure: number
-    }>()
-  if (!s) return
-
-  const prof = await db.prepare('SELECT created_at FROM profiles WHERE id = ?').bind(userId).first<{ created_at: string }>()
-  const un = await db
-    .prepare('SELECT COUNT(*) + 1 AS n FROM profiles WHERE created_at < ?')
-    .bind(prof?.created_at ?? nowIso())
-    .first<{ n: number }>()
-  const userNumber = un?.n ?? 1
-
-  const badges = await db.prepare('SELECT id, criteria FROM badge_definitions').all<BadgeRow>()
-  const toAward: number[] = []
-
-  for (const b of badges.results) {
-    let crit: Record<string, unknown> = {}
-    if (b.criteria) {
-      try {
-        crit = JSON.parse(b.criteria)
-      } catch {
-        crit = {}
-      }
-    }
-    const num = (k: string) => Number(crit[k])
-    let earned = false
-    // ELSIF chain — order matters, first match wins.
-    if ('flights' in crit && s.total_flights >= num('flights')) earned = true
-    else if ('distance_km' in crit && s.total_distance_km >= num('distance_km')) earned = true
-    else if ('airlines' in crit && s.airlines_count >= num('airlines')) earned = true
-    else if ('aircraft' in crit && s.aircraft_count >= num('aircraft')) earned = true
-    else if ('continents' in crit && s.continents_count >= num('continents')) earned = true
-    else if ('flight_minutes' in crit && s.longest_flight_minutes >= num('flight_minutes')) earned = true
-    else if ('night_departure' in crit && s.has_night_departure === 1) earned = true
-    else if ('early_adopter' in crit && userNumber <= num('early_adopter')) earned = true
-    // beta_invite is historical-only: existing awards remain, but new accounts do not earn it.
-    if (earned) toAward.push(b.id)
-  }
-
-  if (toAward.length) {
-    const now = nowIso()
-    await db.batch(
-      toAward.map((id) =>
-        db
-          .prepare('INSERT INTO user_badges (user_id, badge_id, earned_at) VALUES (?, ?, ?) ON CONFLICT (user_id, badge_id) DO NOTHING')
-          .bind(userId, id, now),
-      ),
-    )
-  }
 }
 
 /** The complete proposed visit row, calculated before any derived table is changed. */
@@ -343,36 +118,40 @@ export interface ComputedUserStats {
   has_night_departure: number
 }
 
-/** Read canonical flights and calculate stats against the proposed visits, never old visits. */
-export async function computeStatsForVisits(
+/** Read canonical flights; stats are calculated against the proposed visits, never old visits. */
+export function computeStatsForVisits(
   db: D1Database,
   userId: string,
-  visits: DerivedVisit[],
-): Promise<ComputedUserStats> {
-  const flights = await db.prepare(
-    `SELECT COUNT(*) AS total_flights, COALESCE(SUM(distance_km), 0) AS total_distance_km,
-            COALESCE(SUM(duration_minutes), 0) AS total_duration_minutes,
-            COALESCE(MAX(duration_minutes), 0) AS longest_flight_minutes,
-            COUNT(DISTINCT airline_iata) AS airlines_count,
-            COUNT(DISTINCT aircraft_icao) AS aircraft_count,
-            COALESCE(MAX(CASE WHEN departure_time IS NOT NULL
-              AND CAST(substr(departure_time, 1, 2) AS INTEGER) < 5 THEN 1 ELSE 0 END), 0) AS has_night_departure
-     FROM flights WHERE user_id = ? AND (is_upcoming IS NULL OR is_upcoming = 0)`,
-  ).bind(userId).first<Pick<ComputedUserStats,
-    'total_flights' | 'total_distance_km' | 'total_duration_minutes' |
-    'longest_flight_minutes' | 'airlines_count' | 'aircraft_count' | 'has_night_departure'>>()
+): BatchedRead<(visits: DerivedVisit[]) => ComputedUserStats> {
   return {
-    total_flights: flights?.total_flights ?? 0,
-    total_distance_km: Math.round(flights?.total_distance_km ?? 0),
-    total_duration_minutes: flights?.total_duration_minutes ?? 0,
-    longest_flight_minutes: flights?.longest_flight_minutes ?? 0,
-    airlines_count: flights?.airlines_count ?? 0,
-    aircraft_count: flights?.aircraft_count ?? 0,
-    has_night_departure: flights?.has_night_departure ?? 0,
-    airports_count: visits.length,
-    cities_count: new Set(visits.map(v => v.city).filter(Boolean)).size,
-    countries_count: new Set(visits.map(v => v.country_code)).size,
-    continents_count: new Set(visits.map(v => v.country_code).map(continentOf7)).size,
+    statements: [db.prepare(
+      `SELECT COUNT(*) AS total_flights, COALESCE(SUM(distance_km), 0) AS total_distance_km,
+              COALESCE(SUM(duration_minutes), 0) AS total_duration_minutes,
+              COALESCE(MAX(duration_minutes), 0) AS longest_flight_minutes,
+              COUNT(DISTINCT airline_iata) AS airlines_count,
+              COUNT(DISTINCT aircraft_icao) AS aircraft_count,
+              COALESCE(MAX(CASE WHEN departure_time IS NOT NULL
+                AND CAST(substr(departure_time, 1, 2) AS INTEGER) < 5 THEN 1 ELSE 0 END), 0) AS has_night_departure
+       FROM flights WHERE user_id = ? AND (is_upcoming IS NULL OR is_upcoming = 0)`,
+    ).bind(userId)],
+    derive: ([result]) => (visits) => {
+      const flights = firstOf<Pick<ComputedUserStats,
+        'total_flights' | 'total_distance_km' | 'total_duration_minutes' |
+        'longest_flight_minutes' | 'airlines_count' | 'aircraft_count' | 'has_night_departure'>>(result)
+      return {
+        total_flights: flights?.total_flights ?? 0,
+        total_distance_km: Math.round(flights?.total_distance_km ?? 0),
+        total_duration_minutes: flights?.total_duration_minutes ?? 0,
+        longest_flight_minutes: flights?.longest_flight_minutes ?? 0,
+        airlines_count: flights?.airlines_count ?? 0,
+        aircraft_count: flights?.aircraft_count ?? 0,
+        has_night_departure: flights?.has_night_departure ?? 0,
+        airports_count: visits.length,
+        cities_count: new Set(visits.map(v => v.city).filter(Boolean)).size,
+        countries_count: new Set(visits.map(v => v.country_code)).size,
+        continents_count: new Set(visits.map(v => v.country_code).map(continentOf7)).size,
+      }
+    },
   }
 }
 
@@ -405,18 +184,35 @@ export function computedStatsStatement(
 }
 
 /** Award-only badge evaluation from the new stats row; existing awards are never revoked. */
-export async function computedBadgeStatements(
+export function computedBadgeStatements(
+  db: D1Database,
+  userId: string,
+): BatchedRead<(stats: ComputedUserStats) => D1PreparedStatement[]> {
+  return {
+    statements: [
+      // Signup order counts only earlier rows through idx_profiles_created_at.
+      db.prepare(
+        `SELECT COUNT(*) + 1 AS n FROM profiles
+         WHERE created_at < COALESCE((SELECT created_at FROM profiles WHERE id = ?), ?)`,
+      ).bind(userId, nowIso()),
+      db.prepare('SELECT id, criteria FROM badge_definitions'),
+    ],
+    derive: ([orderResult, badgeResult]) => (stats) => badgeStatements(
+      db, userId, stats, firstOf<{ n: number }>(orderResult), rowsOf<BadgeRow>(badgeResult),
+    ),
+  }
+}
+
+function badgeStatements(
   db: D1Database,
   userId: string,
   stats: ComputedUserStats,
-): Promise<D1PreparedStatement[]> {
-  const profile = await db.prepare('SELECT created_at FROM profiles WHERE id = ?').bind(userId).first<{created_at:string}>()
-  const order = await db.prepare('SELECT COUNT(*) + 1 AS n FROM profiles WHERE created_at < ?')
-    .bind(profile?.created_at ?? nowIso()).first<{n:number}>()
-  const badges = await db.prepare('SELECT id, criteria FROM badge_definitions').all<BadgeRow>()
+  order: { n: number } | null,
+  badges: BadgeRow[],
+): D1PreparedStatement[] {
   const earnedAt = nowIso()
   const result: D1PreparedStatement[] = []
-  for (const badge of badges.results) {
+  for (const badge of badges) {
     let criteria: Record<string, unknown> = {}
     try { criteria = badge.criteria ? JSON.parse(badge.criteria) : {} } catch { /* malformed criteria earn nothing */ }
     const n = (name: string) => Number(criteria[name])

@@ -63,12 +63,17 @@ describe('durable derived repair', () => {
       .first())).toEqual({ published_revision: 0, last_error: 'DERIVED_REPAIR_FAILED' })
     await db.prepare('DROP TRIGGER fail_advanced').run()
 
-    // Interleave a newer canonical commit immediately before the old repair batch.
+    // Interleave a newer canonical commit immediately before the old publish batch.
+    let publishing = false
     let intercepted = false
     const interleaved = new Proxy(db, {
       get(target, property) {
+        if (property === 'prepare') return (sql: string) => {
+          if (sql.includes('SET published_revision')) publishing = true
+          return target.prepare(sql)
+        }
         if (property === 'batch') return async (statements: D1PreparedStatement[]) => {
-          if (!intercepted) {
+          if (publishing && !intercepted) {
             intercepted = true
             await target.batch([
               target.prepare("UPDATE flights SET distance_km = 200 WHERE id = 1 AND user_id = 'u1'"),
@@ -88,5 +93,49 @@ describe('durable derived repair', () => {
     expect(await repairUserDerivedState(db, 'u1')).toEqual({ derived_state: 'ready', revision: 2 })
     expect((await db.prepare("SELECT total_distance_km FROM user_stats WHERE user_id='u1'")
       .first<{total_distance_km:number}>())?.total_distance_km).toBe(200)
+  })
+
+  it('rewrites only changed visits and drops stale airports', async () => {
+    const db = await fixture()
+    await db.batch([
+      db.prepare("INSERT INTO airports_reference (iata,name,city,country,country_code) VALUES ('CCC','C','C city','Gamma','CC')"),
+      db.prepare("INSERT INTO flights (id,user_id,date,origin,destination,distance_km,is_upcoming) VALUES (2,'u1','2020-03-01','AAA','CCC',100,0)"),
+      dirtyUserStatement(db, 'u1'),
+    ])
+    expect(await repairUserDerivedState(db, 'u1')).toMatchObject({ derived_state: 'ready' })
+    const before = await db.prepare("SELECT airport_iata,id FROM visits WHERE user_id='u1' ORDER BY airport_iata")
+      .all<{ airport_iata: string; id: number }>()
+    expect(before.results.map(v => v.airport_iata)).toEqual(['AAA', 'BBB', 'CCC'])
+
+    await db.prepare(
+      "CREATE TRIGGER keep_aaa BEFORE UPDATE ON visits WHEN old.airport_iata = 'AAA' BEGIN SELECT RAISE(FAIL, 'unchanged rewrite'); END",
+    ).run()
+    await db.batch([
+      db.prepare("UPDATE flights SET destination = 'BBB' WHERE id = 2"),
+      dirtyUserStatement(db, 'u1'),
+    ])
+    expect(await repairUserDerivedState(db, 'u1')).toEqual({ derived_state: 'ready', revision: 2 })
+    const after = await db.prepare(
+      "SELECT airport_iata,id,visit_count,first_visit,last_visit FROM visits WHERE user_id='u1' ORDER BY airport_iata",
+    ).all()
+    const ids = Object.fromEntries(before.results.map(v => [v.airport_iata, v.id]))
+    expect(after.results).toEqual([
+      { airport_iata: 'AAA', id: ids.AAA, visit_count: 2, first_visit: '2020-01-02', last_visit: '2020-03-01' },
+      { airport_iata: 'BBB', id: ids.BBB, visit_count: 2, first_visit: '2020-01-02', last_visit: '2020-03-01' },
+    ])
+  })
+
+  it('awards early adopter badges from the user signup order', async () => {
+    const db = await fixture()
+    await db.batch([
+      db.prepare("INSERT INTO users (id,email,password_hash) VALUES ('u0','zero@example.test','test'),('u2','two@example.test','test')"),
+      db.prepare("INSERT INTO profiles (id,created_at) VALUES ('u0','2019-01-01T00:00:00.000Z'),('u2','2021-01-01T00:00:00.000Z')"),
+      db.prepare("INSERT INTO badge_definitions (id,code,name,criteria) VALUES (3,'first_one','First one','{\"early_adopter\":1}')"),
+      db.prepare("INSERT INTO badge_definitions (id,code,name,criteria) VALUES (4,'first_two','First two','{\"early_adopter\":2}')"),
+      dirtyUserStatement(db, 'u1'),
+    ])
+    expect(await repairUserDerivedState(db, 'u1')).toMatchObject({ derived_state: 'ready' })
+    const badges = await db.prepare('SELECT badge_id FROM user_badges WHERE user_id = ? ORDER BY badge_id').bind('u1').all()
+    expect(badges.results).toEqual([{ badge_id: 1 }, { badge_id: 4 }])
   })
 })
