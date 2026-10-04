@@ -44,11 +44,13 @@ const dateOptions: Record<DateStyle, Intl.DateTimeFormatOptions> = {
 function utcFromDateOnly(value: string): Date | null {
   const m = value.match(/^(\d{4})-(\d{2})(?:-(\d{2}))?/)
   if (!m) return null
-  const date = new Date(Date.UTC(Number(m[1]), Number(m[2]) - 1, Number(m[3] ?? 1), 12))
-  return Number.isNaN(date.getTime()) ? null : date
+  const year = Number(m[1]), month = Number(m[2]), day = Number(m[3] ?? 1)
+  const date = new Date(Date.UTC(year, month - 1, day, 12))
+  // Round-trip the components so impossible dates (2026-13-45, 2026-02-30) are rejected, not rolled over.
+  return date.getUTCFullYear() === year && date.getUTCMonth() === month - 1 && date.getUTCDate() === day ? date : null
 }
 
-/** Formats a 'YYYY-MM-DD' calendar date without ever shifting the day. Returns the input if unparseable. */
+/** Formats a 'YYYY-MM-DD' calendar date without ever shifting the day. Returns the input unchanged if it is not a real calendar date. */
 export function formatDateOnly(locale: Locale, value: string, style: DateStyle = 'medium'): string {
   const date = utcFromDateOnly(value)
   return date ? new Intl.DateTimeFormat(locale, { ...dateOptions[style], timeZone: 'UTC' }).format(date) : value

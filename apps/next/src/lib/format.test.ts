@@ -68,6 +68,12 @@ describe('date-only formatting', () => {
     expect(formatDateOnly('en', 'soon')).toBe('soon')
   })
 
+  it('rejects impossible dates instead of rolling them over', () => {
+    for (const bad of ['2026-13-45', '2026-02-30', '2026-00-10', '2026-04-31']) expect(formatDateOnly('en', bad), bad).toBe(bad)
+    expect(formatMonthYear('en', '2026-13-01')).toBe('2026-13-01')
+    expect(formatDateOnly('en', '2028-02-29', 'medium')).toBe('Feb 29, 2028')
+  })
+
   it('formats month and year from strings and dates without shifting the month', () => {
     expect(formatMonthYear('en', '2026-01-01')).toBe('January 2026')
     expect(formatMonthYear('en', '2026-12-31')).toBe('December 2026')

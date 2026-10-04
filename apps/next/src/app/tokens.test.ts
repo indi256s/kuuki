@@ -67,6 +67,24 @@ const textGrade = ['--text', '--text-muted', '--accent-text', '--danger-text', '
   '--rank-gold', '--rank-silver', '--rank-bronze']
 
 describe('design tokens', () => {
+  it('keeps CSS accents and ACCENTS in sync', () => {
+    const fromCss = [...new Set([...rules.keys()].map(key => key.match(/\[data-accent=([\w-]+)\]$/)?.[1]).filter(Boolean))]
+    expect(['terracotta', ...fromCss].sort()).toEqual([...ACCENTS].sort())
+  })
+
+  it('declares blocks in cascade order: root, dark, accents, dark+accent', () => {
+    const order = [...rules.keys()]
+    const accents = order.flatMap(key => key.match(/^:root\[data-accent=([\w-]+)\]$/)?.[1] ?? [])
+    expect(accents.length).toBeGreaterThan(0)
+    expect(order[0]).toBe(':root')
+    expect(order[1]).toBe(':root[data-theme=dark]')
+    for (const accent of accents) {
+      const light = order.indexOf(`:root[data-accent=${accent}]`), dark = order.indexOf(`:root[data-theme=dark][data-accent=${accent}]`)
+      expect(light, accent).toBeGreaterThan(1)
+      expect(dark, `${accent} dark`).toBeGreaterThan(light)
+    }
+  })
+
   it('defines every themed accent', () => {
     for (const accent of ACCENTS.filter(name => name !== 'terracotta')) {
       expect(rules.has(`:root[data-accent=${accent}]`), accent).toBe(true)
