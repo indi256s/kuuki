@@ -12,7 +12,6 @@
     "./airlines": "./src/airlines.json",
     "./airport-lookup": "./src/airport-lookup.ts",
     "./aircraft-lookup": "./src/aircraft-lookup.ts",
-    "./airline-lookup": "./src/airline-lookup.ts",
     "./countries.json": "./src/countries.json"
   },
   "scripts": {

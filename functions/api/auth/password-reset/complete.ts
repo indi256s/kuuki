@@ -22,7 +22,6 @@ export async function completePasswordReset(request: Request, env: Env): Promise
     clearBetterAuthCookie(result.headers, request)
     return result
   })
-  response.headers.set('Cache-Control', 'no-store')
   response.headers.set('Referrer-Policy', 'no-referrer')
   return response
 }

@@ -2,6 +2,7 @@ import { toPublicProfile, type ProfileRow } from '../_lib/profiles'
 import { toUserStats, type UserStatsRow } from '../_lib/stats'
 import { toUserBadgeWithDefinition, type UserBadgeRow, type BadgeDefinitionRow } from '../_lib/badges'
 import { toLeaderboardEntry, derivedStateJoin, PUBLISHED_DERIVED_STATE, type LeaderboardCacheRow } from '../_lib/leaderboard'
+import { assertRows } from '../_lib/d1'
 
 function privateShell(profile: ProfileRow) {
   return {
@@ -26,7 +27,7 @@ export async function readPublicProfile(db: D1Database, username: string) {
     db.prepare('SELECT revision, published_revision FROM user_derived_state WHERE user_id = ?').bind(profile.id),
   ]
   const results = await db.batch(statements)
-  if (results.length !== statements.length || results.some(result => !result.success || !Array.isArray(result.results))) throw new Error('Public profile read failed')
+  assertRows(results, 'Public profile read failed', statements.length)
   const stats = results[0].results[0] as UserStatsRow | undefined
   const badgeRows = results[1].results as Array<UserBadgeRow & BadgeDefinitionRow & { ub_id: number; ub_user_id: string; ub_badge_id: number; ub_earned_at: string }>
   const revision = results[2].results[0] as { revision: number; published_revision: number } | undefined
@@ -42,7 +43,7 @@ export async function readPublicProfile(db: D1Database, username: string) {
       JOIN user_stats us ON us.user_id = lc.user_id ${derivedStateJoin('lc')}
       WHERE lc.user_id = ? AND p.is_public = 1 AND p.show_on_leaderboards = 1
       AND us.total_flights >= 5 AND ${PUBLISHED_DERIVED_STATE}`).bind(profile.id).all<LeaderboardCacheRow>()
-    if (!rows.success || !Array.isArray(rows.results)) throw new Error('Public profile rankings unavailable')
+    assertRows(rows, 'Public profile rankings unavailable')
     rankings = rows.results.map(toLeaderboardEntry)
   }
   const current = await db.prepare('SELECT * FROM profiles WHERE id = ?').bind(profile.id).first<ProfileRow>()

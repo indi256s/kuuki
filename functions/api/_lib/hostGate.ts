@@ -1,4 +1,5 @@
 import { configuredActivationOrigin } from './activationSender'
+import { jsonError } from './http'
 
 /** Run before assets, API dispatch, rendering, or a session/database lookup. */
 export function gateActivationHost(request: Request, env: Env): Response | 'activation' | null {
@@ -27,7 +28,5 @@ export function gateActivationHost(request: Request, env: Env): Response | 'acti
 /** Enforce a maintenance hold before D1 work on private reads and all API routes. */
 export function maintenanceResponse(env: Env): Response | null {
   if (env.MAINTENANCE_MODE !== 'true') return null
-  return new Response(JSON.stringify({ error: 'Service temporarily unavailable', code: 'MAINTENANCE' }), {
-    status: 503, headers: { 'Content-Type': 'application/json; charset=utf-8', 'Retry-After': '300', 'Cache-Control': 'no-store' },
-  })
+  return jsonError(503, 'Service temporarily unavailable', 'MAINTENANCE', { headers: { 'Retry-After': '300' } })
 }

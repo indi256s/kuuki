@@ -2,6 +2,7 @@
 // aggregated; coordinates come from D1's authoritative airport reference.
 import { runHandler, json, HttpError } from '../_lib/http'
 import { requireUser, type RequestData } from '../_lib/auth'
+import { assertRows } from '../_lib/d1'
 
 type RouteRow = {
   origin: string; destination: string; count: number; last_date: string
@@ -27,7 +28,7 @@ export const onRequestGet: PagesFunction<Env, string, RequestData> = context => 
     GROUP BY f.origin, f.destination
     ORDER BY last_date DESC, f.origin, f.destination
   `).bind(...binds).all<RouteRow>()
-  if (!result.success || !Array.isArray(result.results)) throw new Error('Route projection query failed')
+  assertRows(result, 'Route projection query failed')
   return json({ period, ownerId: user.id, routes: result.results.map(row => ({
     origin: row.origin, destination: row.destination, count: row.count, lastDate: row.last_date,
     originCountry: row.origin_country, destinationCountry: row.destination_country,

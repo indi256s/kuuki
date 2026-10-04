@@ -1,15 +1,9 @@
-import { test, expect, type Page } from '@playwright/test'
+import { test, expect } from '@playwright/test'
+import { signIn } from './helpers'
 
 // The @next/playwright instant() shell-timing gate is deferred until the
 // Cloudflare adapter can serve the required Cache Components configuration.
 // These checks cover final navigation and privacy under standard streaming.
-
-async function signIn(page: Page, baseURL: string, email = 'a@example.test') {
-  const response = await page.request.post('/api/auth/sign-in/email', {
-    headers: { Origin: baseURL }, data: { email, password: 'rehearsal-password-2026' },
-  })
-  expect(response.status()).toBe(200)
-}
 
 test('direct Overview navigation renders authorized summary', async ({ page, baseURL }) => {
   await signIn(page, baseURL!)

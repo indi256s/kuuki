@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { QueryClient, QueryClientProvider, useQuery, useQueryClient } from '@tanstack/react-query'
 import * as Dialog from '@radix-ui/react-dialog'
@@ -79,7 +79,8 @@ function Inner({ ownerId, locale, initial, period }: { ownerId: string; locale: 
       finally { untrack() }
     }, staleTime: 30_000,
   })
-  const name = (code: string) => { try { return new Intl.DisplayNames([locale], { type: 'region' }).of(code) ?? code } catch { return code } }
+  const regions = useMemo(() => new Intl.DisplayNames([locale], { type: 'region' }), [locale])
+  const name = (code: string) => { try { return regions.of(code) ?? code } catch { return code } }
   const date = (value: string) => value ? new Intl.DateTimeFormat(locale, { month: 'short', year: 'numeric', timeZone: 'UTC' }).format(new Date(`${value.slice(0, 10)}T12:00:00Z`)) : t.unknown
   const entries = merge(collection.data ?? initial)
   entries.sort((a,b) => sort === 'visits' ? b.count - a.count || name(a.code).localeCompare(name(b.code), locale) : sort === 'alpha' ? name(a.code).localeCompare(name(b.code), locale) : (b.last || '').localeCompare(a.last || '') || name(a.code).localeCompare(name(b.code), locale))

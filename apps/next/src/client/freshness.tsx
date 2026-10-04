@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { api, getAuthGeneration } from '../../../web/src/lib/apiClient'
+import { getAuthGeneration } from '../../../web/src/lib/apiClient'
 import { trackPrivateOperation } from './activity'
+import { awaitPublication } from './write-feedback'
 
 type Props = {
   ownerId: string
@@ -11,8 +12,6 @@ type Props = {
   publishedRevision: number
   locale: 'en' | 'ru'
 }
-type Status = { revision: number; published_revision: number; derived_state: 'ready' | 'pending' | 'error' }
-const delays = [1000, 2000, 4000, 8000, 8000, 8000]
 
 /** RSC owns summaries; this status-only bridge never fetches a second summary. */
 export function ReadFreshness({ ownerId, revision, publishedRevision, locale }: Props) {
@@ -31,30 +30,10 @@ export function ReadFreshness({ ownerId, revision, publishedRevision, locale }: 
     }
     window.addEventListener('focus', refresh)
     document.addEventListener('visibilitychange', refresh)
-    const wait = (milliseconds: number) => new Promise<void>(resolve => {
-      const finish = () => { clearTimeout(timer); controller.signal.removeEventListener('abort', finish); resolve() }
-      const timer = setTimeout(finish, milliseconds)
-      controller.signal.addEventListener('abort', finish, { once: true })
-      if (controller.signal.aborted) finish()
+    if (revision > publishedRevision) void awaitPublication(revision, controller.signal, current).then(result => {
+      if (result === 'ready') router.refresh()
+      else if (result === 'delayed') setDelayed(true)
     })
-    if (revision > publishedRevision) void (async () => {
-      try {
-        for (const delay of delays) {
-          await wait(delay)
-          if (!current()) return
-          const status = await api.get<Status>('/api/me/derived-state', undefined, { signal: controller.signal })
-          if (!current()) return
-          if (status.published_revision >= revision && status.derived_state === 'ready') {
-            router.refresh()
-            return
-          }
-          if (status.derived_state === 'error') break
-        }
-        if (current()) setDelayed(true)
-      } catch {
-        if (current()) setDelayed(true)
-      }
-    })()
     return () => {
       controller.abort()
       release()

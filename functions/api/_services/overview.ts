@@ -1,6 +1,7 @@
 import type { OverviewPeriod, OverviewSummary } from '../../../packages/shared/src/overview'
 import { continentOf7 } from '../_lib/continents'
 import { buildFlightWhere, type FlightFilters } from '../_lib/flightQuery'
+import { assertRows } from '../_lib/d1'
 
 type CountRow = { id: string; count: number }
 type TotalsRow = {
@@ -18,11 +19,7 @@ type RouteRow = { origin: string; destination: string; count: number }
 const MAX_COUNTRY_CODES = 512
 
 function rows<T>(results: D1Result[], index: number): T[] {
-  const result = results[index]
-  if (!result?.success || !Array.isArray(result.results)) {
-    throw new Error(`Overview read ${index} failed`)
-  }
-  return result.results as T[]
+  return results[index].results as T[]
 }
 
 function first<T>(results: D1Result[], index: number): T | null {
@@ -40,7 +37,6 @@ export async function readOverview(db: D1Database, userId: string, period: Overv
   // variable limit instead of doubling their placeholders for both endpoints.
   const endpoints = `WITH selected AS (SELECT origin, destination FROM flights f WHERE ${completedWhere}),
     endpoints AS (SELECT origin AS iata FROM selected UNION ALL SELECT destination AS iata FROM selected)`
-  const bindEndpoints = (sql: string) => db.prepare(sql).bind(...binds)
   const monthStart = period === 'all'
     ? new Date(Date.UTC(new Date(started).getUTCFullYear(), new Date(started).getUTCMonth() - 11, 1)).toISOString().slice(0, 7)
     : `${period}-01`
@@ -54,10 +50,10 @@ export async function readOverview(db: D1Database, userId: string, period: Overv
       COALESCE(SUM(f.duration_minutes), 0) AS duration_minutes,
       COUNT(DISTINCT f.airline_iata) AS airlines, COUNT(DISTINCT f.aircraft_icao) AS aircraft
       FROM flights f WHERE ${completedWhere}`),
-    bindEndpoints(`${endpoints} SELECT COUNT(DISTINCT e.iata) AS airports,
+    bindPeriod(`${endpoints} SELECT COUNT(DISTINCT e.iata) AS airports,
       COUNT(DISTINCT CASE WHEN a.city IS NOT NULL THEN a.country_code || ':' || a.city END) AS cities
       FROM endpoints e LEFT JOIN airports_reference a ON a.iata = e.iata`),
-    bindEndpoints(`${endpoints} SELECT DISTINCT a.country_code AS id FROM endpoints e
+    bindPeriod(`${endpoints} SELECT DISTINCT a.country_code AS id FROM endpoints e
       JOIN airports_reference a ON a.iata = e.iata WHERE a.country_code IS NOT NULL ORDER BY id LIMIT ${MAX_COUNTRY_CODES + 1}`),
     bindPeriod(`SELECT f.origin, f.destination, f.distance_km FROM flights f WHERE ${completedWhere}
       AND f.distance_km IS NOT NULL ORDER BY f.distance_km DESC, f.id ASC LIMIT 1`),
@@ -65,11 +61,11 @@ export async function readOverview(db: D1Database, userId: string, period: Overv
       GROUP BY f.origin, f.destination ORDER BY count DESC, f.origin, f.destination LIMIT 1`),
     bindPeriod(`SELECT f.airline_iata AS id, COUNT(*) AS count FROM flights f WHERE ${completedWhere}
       AND f.airline_iata IS NOT NULL GROUP BY f.airline_iata ORDER BY count DESC, id LIMIT 5`),
-    bindEndpoints(`${endpoints} SELECT e.iata AS id, COUNT(*) AS count FROM endpoints e
+    bindPeriod(`${endpoints} SELECT e.iata AS id, COUNT(*) AS count FROM endpoints e
       GROUP BY e.iata ORDER BY count DESC, id LIMIT 5`),
     bindPeriod(`SELECT f.aircraft_icao AS id, COUNT(*) AS count FROM flights f WHERE ${completedWhere}
       AND f.aircraft_icao IS NOT NULL GROUP BY f.aircraft_icao ORDER BY count DESC, id LIMIT 5`),
-    bindEndpoints(`${endpoints} SELECT a.country_code AS id, COUNT(*) AS count FROM endpoints e
+    bindPeriod(`${endpoints} SELECT a.country_code AS id, COUNT(*) AS count FROM endpoints e
       JOIN airports_reference a ON a.iata = e.iata WHERE a.country_code IS NOT NULL
       GROUP BY a.country_code ORDER BY count DESC, id LIMIT 5`),
     bindPeriod(`SELECT substr(f.date, 1, 7) AS month, COUNT(*) AS flights FROM flights f WHERE ${completedWhere}
@@ -82,9 +78,7 @@ export async function readOverview(db: D1Database, userId: string, period: Overv
   const d1Started = Date.now()
   const results = await db.batch(statements)
   const d1Ms = Date.now() - d1Started
-  if (results.length !== statements.length || results.some(result => !result.success || !Array.isArray(result.results))) {
-    throw new Error('Overview batch failed')
-  }
+  assertRows(results, 'Overview batch failed', statements.length)
   const state = first<StateRow>(results, 0)
   const aggregate = first<TotalsRow>(results, 1)
   const places = first<PlaceRow>(results, 2)

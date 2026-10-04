@@ -1,11 +1,5 @@
 import { test, expect, type Page } from '@playwright/test'
-
-async function signIn(page: Page, baseURL: string) {
-  const response = await page.request.post('/api/auth/sign-in/email', {
-    headers: { Origin: baseURL }, data: { email: 'a@example.test', password: 'rehearsal-password-2026' },
-  })
-  expect(response.status()).toBe(200)
-}
+import { signIn } from './helpers'
 
 const extracted = (date: string, origin: string, destination: string, explicit = true) => ({
   date, origin, destination, airline_iata: 'AA', confidence: .71,

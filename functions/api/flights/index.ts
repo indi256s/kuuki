@@ -18,6 +18,7 @@ import {
 import { computeFlightDuration } from '../_services/flightDuration'
 import { fillDistanceAndDuration } from '../_services/stats'
 import { dirtyUserStatement, repairUserDerivedState } from '../_services/derivedState'
+import { assertRows } from '../_lib/d1'
 
 // Explicit FlightRow column allowlist (never SELECT *) — drives both SELECT and INSERT/UPDATE RETURNING.
 export const FLIGHT_COLUMNS =
@@ -57,7 +58,7 @@ export function listFlights(request: Request, env: Env, data: RequestData): Prom
     )
       .bind(...binds, limit, offset)
       .all<FlightRow>()
-    if (!list.success || !Array.isArray(list.results)) throw new Error('Flight list unavailable')
+    assertRows(list, 'Flight list unavailable')
 
     const count = await env.DB.prepare(`SELECT COUNT(*) AS total FROM flights WHERE ${where}`)
       .bind(...binds)

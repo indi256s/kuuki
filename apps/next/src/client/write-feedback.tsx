@@ -4,10 +4,30 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { api, getAuthGeneration } from '../../../web/src/lib/apiClient'
 import { trackPrivateOperation } from './activity'
+import type { DerivedAck } from '../../../web/src/lib/derivedState'
 
-export type WriteAcknowledgement = { derived_state?: 'ready' | 'pending'; revision?: number }
 type Publication = { derived_state: 'ready' | 'pending' | 'error'; published_revision: number }
 const delays = [1000, 2000, 4000, 8000, 8000, 8000]
+
+/** Bounded backoff poll for derived publication; 'stale' means the caller was aborted or the account changed. */
+export async function awaitPublication(revision: number, signal: AbortSignal, current: () => boolean): Promise<'ready' | 'delayed' | 'stale'> {
+  try {
+    for (const delay of delays) {
+      await new Promise<void>(resolve => {
+        const finish = () => { clearTimeout(timer); signal.removeEventListener('abort', finish); resolve() }
+        const timer = setTimeout(finish, delay)
+        signal.addEventListener('abort', finish, { once: true })
+        if (signal.aborted) finish()
+      })
+      if (!current()) return 'stale'
+      const result = await api.get<Publication>('/api/me/derived-state', undefined, { signal })
+      if (!current()) return 'stale'
+      if (result.derived_state === 'ready' && result.published_revision >= revision) return 'ready'
+      if (result.derived_state === 'error') break
+    }
+  } catch { /* reported as delayed */ }
+  return current() ? 'delayed' : 'stale'
+}
 
 /** Canonical success is independent of the bounded derived-publication check. */
 export function useWriteFeedback(ownerId: string) {
@@ -18,7 +38,7 @@ export function useWriteFeedback(ownerId: string) {
     operation.current?.controller.abort()
     operation.current?.release()
   }, [ownerId])
-  const acknowledge = useCallback((ack: WriteAcknowledgement) => {
+  const acknowledge = useCallback((ack: DerivedAck) => {
     operation.current?.controller.abort()
     operation.current?.release()
     operation.current = null
@@ -37,29 +57,12 @@ export function useWriteFeedback(ownerId: string) {
     operation.current = { controller, release }
     const generation = getAuthGeneration()
     const current = () => !controller.signal.aborted && generation === getAuthGeneration()
-    void (async () => {
-      try {
-        for (const delay of delays) {
-          await new Promise<void>(resolve => {
-            const finish = () => { clearTimeout(timer); controller.signal.removeEventListener('abort', finish); resolve() }
-            const timer = setTimeout(finish, delay)
-            controller.signal.addEventListener('abort', finish, { once: true })
-            if (controller.signal.aborted) finish()
-          })
-          if (!current()) return
-          const result = await api.get<Publication>('/api/me/derived-state', undefined, { signal: controller.signal })
-          if (!current()) return
-          if (result.derived_state === 'ready' && result.published_revision >= ack.revision!) {
-            setStatus('ready')
-            router.refresh()
-            return
-          }
-          if (result.derived_state === 'error') break
-        }
-        if (current()) setStatus('delayed')
-      } catch { if (current()) setStatus('delayed') }
-      finally { release(); if (operation.current?.controller === controller) operation.current = null }
-    })()
+    void awaitPublication(ack.revision, controller.signal, current).then(result => {
+      if (result === 'ready') {
+        setStatus('ready')
+        router.refresh()
+      } else if (result === 'delayed') setStatus('delayed')
+    }).finally(() => { release(); if (operation.current?.controller === controller) operation.current = null })
   }, [router])
   return { acknowledge, status }
 }

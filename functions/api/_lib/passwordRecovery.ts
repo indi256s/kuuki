@@ -1,14 +1,11 @@
 import { generateToken, hashPassword, newId, sha256Hex } from './crypto'
-import { activationEmailKey } from './activation'
-import type { RecoverySender } from './activationSender'
+import type { MailSender } from './activationSender'
 import { getUserByEmail } from './users'
 import { nowIso, isoPlusSeconds } from './time'
 import { HttpError } from './http'
 
 const PREFIX = 'password-reset:'
 const TTL_SECONDS = 30 * 60
-
-export { activationEmailKey as recoveryEmailKey }
 
 /** The main app origin is the sole destination; activation has its own isolated host. */
 export function configuredRecoveryOrigin(env: Env): string {
@@ -20,7 +17,7 @@ export function configuredRecoveryOrigin(env: Env): string {
   throw new HttpError(503, 'Password recovery is temporarily unavailable', 'RECOVERY_UNAVAILABLE')
 }
 
-export async function requestPasswordRecovery(db: D1Database, email: string, origin: string, sender: RecoverySender): Promise<void> {
+export async function requestPasswordRecovery(db: D1Database, email: string, origin: string, sender: MailSender): Promise<void> {
   const user = await getUserByEmail(db, email)
   if (!user || user.password_hash === 'RESET_REQUIRED') return
   const credential = await db.prepare(`SELECT id FROM auth_accounts WHERE userId = ? AND providerId = 'credential' AND password IS NOT NULL`)

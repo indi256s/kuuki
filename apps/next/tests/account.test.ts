@@ -1,10 +1,6 @@
 import { test, expect } from '@playwright/test'
+import { signIn } from './helpers'
 import { readFile } from 'node:fs/promises'
-
-async function signIn(page: import('@playwright/test').Page, origin: string) {
-  const response = await page.request.post('/api/auth/sign-in/email', { headers: { Origin: origin }, data: { email: 'a@example.test', password: 'rehearsal-password-2026' } })
-  expect(response.status()).toBe(200)
-}
 
 test('settings saves owned profile and privacy on a fresh account', async ({ page, baseURL }) => {
   const email = `settings-${crypto.randomUUID()}@example.test`

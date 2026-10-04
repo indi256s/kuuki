@@ -2,8 +2,9 @@ import 'server-only'
 import { buildFlightWhere, orderByClause, parseFlightFilters, parseSort } from '../../../../functions/api/_lib/flightQuery'
 import { toOwnFlight, type FlightRow } from '../../../../functions/api/_lib/flights'
 import { getRequestEnv, getRequestIdentity } from './identity'
+import { assertRows } from '../../../../functions/api/_lib/d1'
+import { FLIGHT_COLUMNS } from '../../../../functions/api/flights/index'
 
-const columns = 'id, user_id, date, origin, destination, airline_iata, aircraft_icao, flight_number, departure_time, arrival_time, departure_utc, arrival_utc, origin_tz, dest_tz, distance_km, duration_minutes, source, is_upcoming, enrichment_status, aircraft_lookup_attempts, created_at'
 export const journalPageSize = 20
 
 export function journalParams(input: Record<string, string | string[] | undefined>) {
@@ -43,12 +44,12 @@ export async function getOwnJournal(input: Record<string, string | string[] | un
   const normalized = journalParams(input)
   const { where, binds } = buildFlightWhere(identity.id, normalized.filters)
   const statements = [
-    env.DB.prepare(`SELECT ${columns} FROM flights f WHERE ${where} ${orderByClause(normalized.sort)} LIMIT ? OFFSET ?`).bind(...binds, journalPageSize, (normalized.page - 1) * journalPageSize),
+    env.DB.prepare(`SELECT ${FLIGHT_COLUMNS} FROM flights f WHERE ${where} ${orderByClause(normalized.sort)} LIMIT ? OFFSET ?`).bind(...binds, journalPageSize, (normalized.page - 1) * journalPageSize),
     env.DB.prepare(`SELECT COUNT(*) AS total FROM flights f WHERE ${where}`).bind(...binds),
     env.DB.prepare('SELECT revision, published_revision FROM user_derived_state WHERE user_id = ?').bind(identity.id),
   ]
   const results = await env.DB.batch(statements)
-  if (results.length !== statements.length || results.some(result => !result.success || !Array.isArray(result.results))) throw new Error('Journal read failed')
+  assertRows(results, 'Journal read failed', statements.length)
   const state = results[2].results[0] as { revision: number; published_revision: number } | undefined
   const data: JournalData = {
     flights: (results[0].results as FlightRow[]).map(toOwnFlight),

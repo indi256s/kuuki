@@ -1,7 +1,7 @@
 import { generateToken, hashPassword, newId, sha256Hex } from './crypto'
 import { normalizeEmail, getUserByEmail } from './users'
 import { nowIso, isoPlusSeconds } from './time'
-import type { ActivationSender } from './activationSender'
+import type { MailSender } from './activationSender'
 
 const TOKEN_TTL_SECONDS = 30 * 60
 
@@ -14,7 +14,7 @@ export async function activationEmailKey(email: string, secret: string): Promise
 }
 
 /** Only RESET_REQUIRED accounts receive a link; callers always return the same public result. */
-export async function requestActivation(db: D1Database, email: string, origin: string, sender: ActivationSender): Promise<void> {
+export async function requestActivation(db: D1Database, email: string, origin: string, sender: MailSender): Promise<void> {
   const user = await getUserByEmail(db, email)
   if (!user || user.password_hash !== 'RESET_REQUIRED') return
   const token = generateToken()

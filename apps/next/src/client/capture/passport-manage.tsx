@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import * as Dialog from '@radix-ui/react-dialog'
 import countries from '@kuuki/data/countries.json'
@@ -101,11 +101,15 @@ export function PassportManage({ ownerId, locale, initialCountry = '' }: { owner
       if (result.some(item => item.status === 'accepted')) loadFlights()
     }
   }
+  const countryOptions = useMemo(() => {
+    const regions = new Intl.DisplayNames([locale], { type: 'region' })
+    return Object.entries(countries).sort((a,b) => a[1].name.localeCompare(b[1].name)).map(([code, item]) => <option key={code} value={code}>{regions.of(code) ?? item.name}</option>)
+  }, [locale])
   const claimed = data?.claims.some(item => item.country_code === country)
   const countryVisits = visits.filter(item => item.countryCode === country)
   const eligible = flights.filter(row => !row.aircraft_icao)
   return <div className="capture-manage">
-    <section className="capture-card"><h2>{ru ? 'Страны' : 'Countries'}</h2><label>{ru ? 'Страна' : 'Country'}<select value={country} disabled={busy} onChange={event => setCountry(event.target.value)}><option value="">{ru ? 'Выберите страну' : 'Select country'}</option>{Object.entries(countries).sort((a,b) => a[1].name.localeCompare(b[1].name)).map(([code, item]) => <option key={code} value={code}>{new Intl.DisplayNames([locale], { type: 'region' }).of(code) ?? item.name}</option>)}</select></label>
+    <section className="capture-card"><h2>{ru ? 'Страны' : 'Countries'}</h2><label>{ru ? 'Страна' : 'Country'}<select value={country} disabled={busy} onChange={event => setCountry(event.target.value)}><option value="">{ru ? 'Выберите страну' : 'Select country'}</option>{countryOptions}</select></label>
       {countryStatus === 'loading' && <p role="status">{ru ? 'Загружаем страны…' : 'Loading countries…'}</p>}
       {countryStatus === 'error' && <p role="alert">{ru ? 'Не удалось загрузить страны.' : 'Could not load countries.'} <button type="button" onClick={refreshCountries}>{ru ? 'Повторить' : 'Retry'}</button></p>}
       {country && countryStatus === 'ready' && <><p>{claimed ? (ru ? 'Отмечена в паспорте' : 'Claimed in passport') : (ru ? 'Пока не отмечена' : 'Not claimed')}</p><div className="read-actions">{!claimed && <button className="button primary" disabled={busy} onClick={() => void mutate(() => claimCountry(ownerId, country))}>{ru ? 'Отметить страну' : 'Claim country'}</button>}{claimed && <button className="button secondary" disabled={busy} onClick={event => { confirmTrigger.current = event.currentTarget; setConfirm({ kind: 'claim', id: country }) }}>{ru ? 'Удалить отметку и наземные посещения' : 'Remove claim and ground visits'}</button>}</div><form onSubmit={event => { event.preventDefault(); void addVisit() }}><h3>{ru ? 'Добавить наземное посещение' : 'Add land or sea visit'}</h3><label>{ru ? 'Год (необязательно)' : 'Year (optional)'}<input disabled={busy} type="number" min="1800" max="2200" value={year} onChange={event => setYear(event.target.value)} /></label><label>{ru ? 'Способ' : 'Entry method'}<select disabled={busy} value={entry} onChange={event => setEntry(event.target.value as typeof entry)}><option value="">{ru ? 'Не указан' : 'Unspecified'}</option><option value="land">{ru ? 'По земле' : 'Land'}</option><option value="sea">{ru ? 'По морю' : 'Sea'}</option></select></label><label>{ru ? 'Заметка' : 'Note'}<input disabled={busy} value={note} onChange={event => setNote(event.target.value)} maxLength={200} /></label><button className="button primary" disabled={busy} type="submit">{ru ? 'Добавить посещение' : 'Add visit'}</button></form>{countryVisits.length > 0 && <ul>{countryVisits.map(visit => <li key={visit.id}>{visit.visitYear ?? '—'} · {visit.entryMethod ?? '—'}{visit.note && <> · {visit.note}</>} <button type="button" disabled={busy} onClick={event => { confirmTrigger.current = event.currentTarget; setConfirm({ kind: 'ground', id: visit.id }) }}>{ru ? 'Удалить' : 'Delete'}</button></li>)}</ul>}</>}

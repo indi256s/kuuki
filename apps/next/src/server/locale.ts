@@ -1,10 +1,11 @@
 import 'server-only'
+import { cache } from 'react'
 import { headers } from 'next/headers'
 import { parseCookies } from '../../../../functions/api/_lib/cookies'
 
 export type Locale = 'en' | 'ru'
 
-export async function getRequestLocale(): Promise<Locale> {
+export const getRequestLocale = cache(async (): Promise<Locale> => {
   const requestHeaders = await headers()
   const saved = parseCookies(requestHeaders.get('cookie')).kuuki_locale
   if (saved === 'en' || saved === 'ru') return saved
@@ -20,9 +21,4 @@ export async function getRequestLocale(): Promise<Locale> {
     if (/^en(?:-|$)/.test(entry.tag)) return 'en'
   }
   return 'en'
-}
-
-export const copy = {
-  en: { loading: 'Loading your flights…', signIn: 'Sign in to see your flights.', error: 'Your flights could not be loaded.', flights: 'Flights', countries: 'Countries', distance: 'Distance', empty: 'Your first flight will appear here.' },
-  ru: { loading: 'Загружаем ваши перелёты…', signIn: 'Войдите, чтобы увидеть свои перелёты.', error: 'Не удалось загрузить перелёты.', flights: 'Перелёты', countries: 'Страны', distance: 'Расстояние', empty: 'Ваш первый перелёт появится здесь.' },
-} satisfies Record<Locale, Record<string, string>>
+})

@@ -1,14 +1,13 @@
 import 'server-only'
 import { getRequestEnv, getRequestIdentity } from './identity'
 import { getProfileRow, toOwnProfile } from '../../../../functions/api/_lib/profiles'
-import { readPublicProfile } from '../../../../functions/api/_services/publicProfiles'
 
 export async function getOwnProfile() {
   const identity = await getRequestIdentity()
   if (!identity) return null
   const env = await getRequestEnv()
   const profile = await getProfileRow(env.DB, identity.id)
-  return profile ? { ownerId: identity.id, profile: toOwnProfile(profile), publicView: profile.username ? await readPublicProfile(env.DB, profile.username) : null } : null
+  return profile ? { ownerId: identity.id, profile: toOwnProfile(profile) } : null
 }
 
 export async function getOwnProfileStats(userId: string) {

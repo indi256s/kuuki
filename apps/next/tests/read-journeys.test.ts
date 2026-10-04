@@ -1,11 +1,5 @@
-import { test, expect, type Page } from '@playwright/test'
-
-async function signIn(page: Page, baseURL: string, email = 'a@example.test') {
-  const response = await page.request.post('/api/auth/sign-in/email', {
-    headers: { Origin: baseURL }, data: { email, password: 'rehearsal-password-2026' },
-  })
-  expect(response.status()).toBe(200)
-}
+import { test, expect } from '@playwright/test'
+import { signIn } from './helpers'
 
 test('Journal filters survive refresh and back without a duplicate mount list read', async ({ page, baseURL }) => {
   await signIn(page, baseURL!)

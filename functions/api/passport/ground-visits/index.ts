@@ -7,6 +7,7 @@ import { nowIso } from '../../_lib/time'
 import { toGroundVisit, type GroundVisitRow } from '../../_lib/passportDtos'
 import { parseCountryCode } from '../../_lib/params'
 import { dirtyUserStatement, repairUserDerivedState } from '../../_services/derivedState'
+import { assertRows } from '../../_lib/d1'
 
 interface GroundVisitBody {
   countryCode?: string
@@ -23,7 +24,7 @@ export function listGroundVisitsRequest(request: Request, env: Env, data: Reques
   return runHandler(async () => {
     const user = requireUser(data)
     const rows = await env.DB.prepare('SELECT id, user_id, country_code, visit_year, entry_method, note, created_at FROM ground_visits WHERE user_id = ? ORDER BY created_at DESC, id').bind(user.id).all<GroundVisitRow>()
-    if (!rows.success || !Array.isArray(rows.results)) throw new Error('Ground visits unavailable')
+    assertRows(rows, 'Ground visits unavailable')
     return json(rows.results.map(toGroundVisit))
   })
 }

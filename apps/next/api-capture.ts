@@ -11,9 +11,11 @@ import { deleteGroundVisitRequest } from '../../functions/api/passport/ground-vi
 import { updateProfileRequest } from '../../functions/api/profiles/me'
 import { deleteAccountRequest } from '../../functions/api/auth/account'
 import { parseImportRequest } from '../../functions/api/import/parse'
+import { requestPasswordReset } from '../../functions/api/auth/password-reset/request'
+import { completePasswordReset } from '../../functions/api/auth/password-reset/complete'
 
 /** One active transport per migrated family; Pages wrappers remain for rollback. */
-export function captureHandler(request: Request, env: Env): (() => Promise<Response>) | null {
+export function captureHandler(request: Request, env: Env, ctx: ExecutionContext): (() => Promise<Response>) | null {
   const path = new URL(request.url).pathname
   const method = request.method
   const data: RequestData = { user: null }
@@ -33,5 +35,8 @@ export function captureHandler(request: Request, env: Env): (() => Promise<Respo
   else if (path === '/api/profiles/me' && method === 'PATCH') handler = () => updateProfileRequest(request, env, data)
   else if (path === '/api/auth/account') handler = () => deleteAccountRequest(request, env, data)
   else if (path === '/api/import/parse') handler = () => parseImportRequest(request, env, data)
+  // Pre-auth recovery: the shared middleware skips session handling for these paths.
+  else if (path === '/api/auth/password-reset/request') handler = () => requestPasswordReset(request, env, task => ctx.waitUntil(task))
+  else if (path === '/api/auth/password-reset/complete') handler = () => completePasswordReset(request, env)
   return handler ? () => runApiRequest(request, env, data, handler!) : null
 }

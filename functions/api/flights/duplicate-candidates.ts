@@ -1,5 +1,6 @@
 import { runHandler, readJson, json, HttpError } from '../_lib/http'
 import { requireCsrf, requireUser, type RequestData } from '../_lib/auth'
+import { assertRows } from '../_lib/d1'
 
 interface Candidate { date: string; origin: string; destination: string; excludeId?: number }
 
@@ -32,6 +33,6 @@ export const onRequestPost: PagesFunction<Env, string, RequestData> = context =>
          AND (json_extract(c.value, '$.excludeId') IS NULL OR f.id != json_extract(c.value, '$.excludeId'))
        GROUP BY c.key ORDER BY CAST(c.key AS INTEGER)`,
     ).bind(JSON.stringify(candidates), user.id).all<{ candidateIndex: number; flightId: number }>()
-    if (!result.success || !Array.isArray(result.results)) throw new Error('Duplicate candidate read failed')
+    assertRows(result, 'Duplicate candidate read failed')
     return json({ matches: result.results }, { headers: { 'Cache-Control': 'no-store' } })
   })

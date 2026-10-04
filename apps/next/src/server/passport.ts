@@ -1,5 +1,6 @@
 import 'server-only'
 import { getRequestEnv, getRequestIdentity } from './identity'
+import { assertRows } from '../../../../functions/api/_lib/d1'
 
 export type Visit = { country_code: string; first_visit: string; last_visit: string; visit_count: number; airport_iata: string | null; city: string | null }
 export type Claim = { country_code: string; claimed_at: string }
@@ -16,7 +17,7 @@ export async function getOwnPassport() {
     env.DB.prepare('SELECT country_code, visit_year, entry_method FROM ground_visits WHERE user_id = ?').bind(identity.id),
     env.DB.prepare('SELECT revision, published_revision FROM user_derived_state WHERE user_id = ?').bind(identity.id),
   ])
-  if (results.length !== 4 || results.some(result => !result.success || !Array.isArray(result.results))) throw new Error('Passport read failed')
+  assertRows(results, 'Passport read failed', 4)
   const state = results[3].results[0] as { revision: number; published_revision: number } | undefined
   const data: PassportData = {
     visits: results[0].results as Visit[], claims: results[1].results as Claim[], groundVisits: results[2].results as GroundVisit[],

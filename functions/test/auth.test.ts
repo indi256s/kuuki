@@ -1,7 +1,7 @@
 import { afterEach, expect, it, vi } from 'vitest'
 import { createApiDatabase, apiContext } from './harness'
 import { requestActivation, completeActivation } from '../api/_lib/activation'
-import type { ActivationSender } from '../api/_lib/activationSender'
+import type { MailSender } from '../api/_lib/activationSender'
 import { hashPassword, verifyPassword, sha256Hex } from '../api/_lib/crypto'
 import { createSession } from '../api/_lib/session'
 import { rateLimit } from '../api/_lib/ratelimit'
@@ -45,7 +45,7 @@ it('activates only a RESET_REQUIRED user once and keeps an active account unchan
     await seedUser(db, 'active', 'active@example.test', activeHash)
     const activeSession = await createSession(db, 'active')
     const links: string[] = []
-    const sender: ActivationSender = { async send(_to, link) { links.push(link) } }
+    const sender: MailSender = { async send(_to, link) { links.push(link) } }
     await requestActivation(db, 'missing@example.test', ORIGIN, sender)
     await requestActivation(db, 'active@example.test', ORIGIN, sender)
     expect(links).toHaveLength(0)
@@ -197,7 +197,7 @@ it('rolls back activation claim, password change, and session revocation on a D1
     await seedUser(db, 'legacy', 'legacy@example.test')
     await createSession(db, 'legacy')
     const links: string[] = []
-    const sender: ActivationSender = { async send(_to, link) { links.push(link) } }
+    const sender: MailSender = { async send(_to, link) { links.push(link) } }
     await requestActivation(db, 'legacy@example.test', ACTIVATION_ORIGIN, sender)
     await requestActivation(db, 'legacy@example.test', ACTIVATION_ORIGIN, sender)
     const token = new URL(links[0]).hash.slice('#token='.length)
