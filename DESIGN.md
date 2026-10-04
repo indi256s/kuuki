@@ -69,7 +69,7 @@ Names are fixed; values live only in `apps/next/src/app/styles.css` (`:root`, `:
 
 ## Typeface decision
 
-Onest is confirmed. The specimen in [`docs/design/font-specimen.html`](docs/design/font-specimen.html) compares Onest, Golos Text and Manrope on real RU/EN navigation, field, airport-route, numeral and plural strings (screenshot: `docs/design/font-specimen.png`). Onest keeps full Cyrillic coverage, has tabular figures, and keeps IATA codes legible beside city names. Golos Text and Manrope load from Google Fonts for the specimen only and are never shipped.
+Onest is confirmed (frozen earlier by the architecture session; the specimen is confirming evidence, not a re-opened choice). The specimen in [`docs/design/font-specimen.html`](docs/design/font-specimen.html) compares Onest, Golos Text and Manrope on real RU/EN navigation, field, airport-route, numeral and plural strings (screenshot: `docs/design/font-specimen.png`). In the specimen, Onest renders the Cyrillic strings, tabular numerals (0123456789, 141 255 км) and IATA codes beside city names cleanly, without fallback glyphs or clipping of «Авиакомпании». Golos Text and Manrope load from Google Fonts for the specimen only and are never shipped.
 
 ## Surfaces and elevation
 
@@ -92,7 +92,16 @@ Rules: ease-in is banned; exits use ease-out and run about 20% faster than enter
 
 | Never animates | Animates |
 |---|---|
-| Route and tab changes (focus moves to H1), keyboard actions, filter/sort/period changes (optional 150ms opacity on chart values), ambient loops, WindLoader, glow pulses | Press (scale 0.96, 120ms; static rows and cards excluded), hover color 150ms on fine pointers only, segmented thumb 200ms, tooltip/popover/menu 150ms opacity + scale 0.96–0.97→1 from trigger, dialog 200ms (exit 150ms), sheet 300ms `--ease-drawer` with finger-follow, velocity above about 0.11 px/ms dismissing and rubber-band past bounds, disclosure 300ms, toast 300ms in / 200ms out, icon swap by scale, opacity and blur 200ms, skeleton to content 150ms |
+| Route and tab changes (focus moves to H1), keyboard actions, filter/sort/period changes (optional 150ms opacity on chart values), ambient loops, WindLoader, glow pulses; the one exception is the auth brand panel: one slow path, at most 3 planes, paused when the tab is hidden, static under reduced motion | Press (scale 0.96, 120ms; static rows and cards excluded), hover color 150ms on fine pointers only, segmented thumb 200ms, tooltip/popover/menu 150ms opacity + scale 0.96–0.97→1 from trigger, dialog 200ms (exit 150ms), sheet 300ms `--ease-drawer` with finger-follow, velocity above about 0.11 px/ms dismissing and rubber-band past bounds, disclosure 300ms, toast 300ms in / 200ms out, icon swap by scale, opacity and blur 200ms, skeleton to content 150ms |
+
+More rules (the UX brief §8 is the full table):
+- Popover/menu exit 120ms; after the first tooltip, adjacent tooltips open instantly with no animation.
+- Multi-step dialog: height 250ms `--ease-in-out` plus 150ms content crossfade.
+- Import found-row: translateY 6px→0, 200ms, 40ms stagger, never blocks interaction.
+- Onboarding reveal and import done: summary chunks staggered about 100ms (title, numbers, stamps, actions).
+- First achievement: one-time 600ms badge tilt-in, no loops.
+- Sheet drag-release spring bounce capped at 0.1–0.2; no bounce elsewhere.
+- Stamp press includes a 1-frame ink darkening; max 8 animated, the rest appear instantly.
 
 Delight moments (stamp press, arrival confirm, import done, first achievement) use `--dur-moment`: stamp from scale 1.06, opacity 0, blur 2px settling to 1; stagger 80ms, at most 8 animated, the rest instant. Auto-confirmed and bulk beyond 8 appear instantly.
 

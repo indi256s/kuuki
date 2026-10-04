@@ -85,8 +85,12 @@ A country is transit-only for an account when every flight endpoint touching it 
 -- Preserved evidence: claims, ground visits, contributing legacy evidence
 SELECT user_id, country_code FROM country_claims
 UNION SELECT user_id, country_code FROM ground_visits
-UNION SELECT user_id, country_code FROM legacy_visit_evidence
-  WHERE contributes = 1 AND country_code IS NOT NULL;
+UNION SELECT l.user_id, COALESCE(l.country_code, a.country_code)
+  FROM legacy_visit_evidence l
+  LEFT JOIN airports_reference a ON a.iata = l.airport_iata
+  WHERE l.contributes = 1
+    AND COALESCE(l.country_code, a.country_code) IS NOT NULL;
+-- legacy rows may carry only airport_iata (country_code is nullable), so resolve via airports_reference
 ```
 
 Compute per `(user_id, country_code)`: `total_endpoints` (all completed flight endpoints in that country) versus `transit_endpoints` (endpoints that are a linked chain's interior hub from query 1). Transit-only iff `transit_endpoints = total_endpoints`, the country is not the chain start or final country, and the pair is absent from the preserved-evidence set. Report the three buckets separately: **exact-time**, **estimated (date-only)**, **ambiguous (review-only, excluded from the headline)**. A country mixing buckets is classified by its weakest bucket.

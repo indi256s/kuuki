@@ -73,8 +73,8 @@ Nothing scheduled. Your suitcase called. It's worried.
 **Normal:**
 Something went wrong. Please try again.
 
-**Sarcastic:**
-That didn't work. Surprising absolutely no one, probably.
+**Direct (no sarcastic variant; errors are a trust context):**
+Couldn't save the flight. Check your connection and try again.
 
 ### First Flight Added
 **Normal:**
@@ -88,7 +88,7 @@ First flight logged. We were starting to wonder.
 10 countries! You're becoming a world traveler.
 
 **Sarcastic:**
-10 countries. Only 185 to go. For science.
+10 countries. The passport is filling up. For science.
 
 ## When NOT to Use Sarcastic
 

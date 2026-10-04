@@ -75,6 +75,8 @@ For the Next Redesign 2.0 surface, [DESIGN.md](../DESIGN.md) is authoritative wh
 
 ### Font Stack
 
+> **Superseded by [DESIGN.md](../DESIGN.md) for Next:** Onest replaces DM Sans (JetBrains Mono stays for ticket data). The table below describes the Vite compatibility UI only.
+
 | Role | Font | Weight | Class |
 |------|------|--------|-------|
 | Display/Headings | DM Sans | 600 | `font-display font-semibold` |
