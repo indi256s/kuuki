@@ -1,0 +1,30 @@
+# W3 map implementation and evidence
+
+The Next Overview uses a small SSR SVG preview. Passport imports the MapLibre island only when the user opens the map. The opened map requests a private, no-store, owner-scoped D1 projection of **directed grouped routes**: origin/destination code, count, latest date, airport coordinates, and country codes. It does not ship an airport corpus or raw flight history to the browser. The endpoint excludes upcoming flights and accepts `all` or a four-digit year. Identity operations abort pending map reads; the response owner and period are checked before display.
+
+## Source and copied-code boundary
+
+- mapcn [`src/registry/map.tsx`](https://github.com/AnmolSaini16/mapcn/blob/d160bd767bc6388618720c6038a4dd9948c97362/src/registry/map.tsx) at `d160bd767bc6388618720c6038a4dd9948c97362` (MIT): [mapcn.tsx](../../apps/next/src/client/maps/mapcn.tsx) copies/adapts its `Map` lifecycle, blank style, context/useMap, and `MapGeoJSON` source/layer hook. Kuuki strips external CARTO/unpkg defaults and unused markers, popups and controls. File SHA-256 at this handoff: `54cab0eaf8d4c908df3866f7833b9278b7c2bb15e66f64cf0ba27fa6aa931ac2`.
+- flightcn [`src/registry/flight.tsx`](https://github.com/ridemountainpig/flightcn/blob/5c9061ef36bb2cd3cfa9f11f6463419944566a9d/src/registry/flight.tsx) at `5c9061ef36bb2cd3cfa9f11f6463419944566a9d` (MIT): [geometry.ts](../../apps/next/src/client/maps/geometry.ts) adapts `generateArcGeometry` great circles and dateline seam splitting. [renderer.tsx](../../apps/next/src/client/maps/renderer.tsx) adapts its route layer composition through mapcn `useMap`, batching routes into one source and three line layers. It uses Kuuki's D1 coordinates, not flightcn's demonstration airport subset. Geometry SHA-256: `c72f0a79f75aefa931c6d43bb8c7a721f9d52cbb70abb8c386957f15c45220ce`.
+- MapLibre `6.12.0` is the exact rendering dependency. Its installed `dist` worker, sibling `maplibre-gl-shared.mjs`, and CSS were copied unchanged to `apps/next/public/maps/maplibre-6.12.0/`. Their SHA-256 hashes respectively are `1ecca7178f0a496b7980dc7a3c6a8c3575eda673cf3e9fa3324dcce7ef3890c2`, `df3d0b4ba965ebafd2deae3c568500308be2982d87dadd771ba82dc5a49a4631`, and `8456072adc2cbf04f7b845bc83b90cec571b293bd37816970e6566f34946ab8b`.
+- Country source: [`world-atlas@2.0.2/countries-110m.json`](https://github.com/topojson/world-atlas/blob/v2.0.2/countries-110m.json), input SHA-256 `2516c915867c7baf18ddec727aec46c315541a07cfb3d79a6559b05d5e94eee8`. Numeric IDs were converted to ISO alpha-2 with [datasets/country-codes CSV](https://github.com/datasets/country-codes/blob/master/data/country-codes.csv), fetched on 4 October 2026, input SHA-256 `07918cb63dd8bc43e52110def00d490998634360605e9d8c602865e2260802fd`. [map-build-geometry.py](../../scripts/map-build-geometry.py) is deterministic from those two inputs. The generated GeoJSON contains 174 countries; North Cyprus, Somaliland and Kosovo have no numeric ID in this topology. Many small territories are absent from this low-detail atlas. The complete Passport list remains available, and the map labels its period and claim semantics; no map absence is interpreted as no visit.
+
+## Behavior and limits
+
+The legend uses fixed visit buckets 1, 2–3, 4–9 and 10+, colored by a ramp derived from the active design accent and inset surface tokens. Claimed borders are dashed and stated in text. A selected route is emphasized through a separate line layer; the hit layer is 20 px wide. Route and country lists provide keyboard and screen-reader access. A first loaded route set fits sampled, wrapped geometry without camera animation; later data refreshes preserve the user's viewport. Explicit Fit routes and zoom buttons remain available. Invalid, coincident, antipodal and missing-coordinate routes stay in the list without a misleading drawn line. WebGL2, worker or geometry failure leaves the lists visible. The renderer and listeners are removed on close.
+
+MapLibre world copies are enabled so antimeridian-split Pacific routes can appear together in the short wrapped viewport; repeated country/route copies retain the same stable ISO/route IDs. Canvas clicks are only an alternate selection path to the canonical lists.
+
+Year views color countries reached by completed flight endpoints in that year; the always-visible Passport list retains all-time flight, ground and claim evidence. Undated ground/claim evidence is not silently attributed to a year.
+
+## Focused proof
+
+`pnpm exec tsx scripts/map-geometry.test.ts` passes missing/invalid/coincident/antipodal, Pacific dateline and finite polar samples. `pnpm --filter @kuuki/next typecheck`, `pnpm --filter @kuuki/next exec eslint src/client/maps`, and `pnpm --filter @kuuki/data build` pass at this handoff. `scripts/map-benchmark.ts` constructs distinct synthetic directed routes and compares serialized batched versus per-route source payloads on this CPU (one run; not GPU evidence):
+
+| Routes | Valid | Geometry CPU | One batched source | One source per route |
+| ---: | ---: | ---: | ---: | ---: |
+| 50 | 50 | 3.1 ms | 77,311 B | 79,320 B |
+| 500 | 500 | 10.6 ms | 771,939 B | 792,398 B |
+| 5,000 | 5,000 | 76.1 ms | 7,726,426 B | 7,931,385 B |
+
+One source avoids 50/500/5,000 source and layer lifecycles. This local serialization benchmark does **not** measure worker transfer, GPU frames, memory, interaction latency or first usable map. The required built-browser 50/500/5,000 route/theme/navigation/WebGL-worker failure proof remains for the primary integration check. If that proof fails, the list and SVG preview remain the shipped fallback; do not claim the interactive map accepted.
