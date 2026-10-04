@@ -125,11 +125,12 @@ export function dismissDraft(ownerId: string, id: string): void {
   try { localStorage.removeItem(PREFIX + ownerId + ':' + id); if (typeof window !== 'undefined') window.dispatchEvent(new Event('kuuki:draft-change')) } catch { /* Identity reset still clears UI. */ }
 }
 
-export function clearDrafts(): void {
+export function clearDrafts(ownerId?: string): void {
   try {
+    const prefix = ownerId === undefined ? PREFIX : PREFIX + ownerId + ':'
     for (let i = localStorage.length - 1; i >= 0; i--) {
       const key = localStorage.key(i)
-      if (key?.startsWith(PREFIX)) localStorage.removeItem(key)
+      if (key?.startsWith(prefix)) localStorage.removeItem(key)
     }
     if (typeof window !== 'undefined') window.dispatchEvent(new Event('kuuki:draft-change'))
   } catch { /* Storage unavailable. */ }

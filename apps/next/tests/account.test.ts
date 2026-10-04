@@ -56,15 +56,88 @@ test('ground visit export preserves year, entry and note while neutralizing spre
 test('sign out clears local drafts and retry receipts', async ({ page, baseURL }) => {
   await signIn(page, baseURL!)
   await page.goto('/settings')
-  await page.evaluate(() => {
-    localStorage.setItem('kuuki-import-draft:v1:test:00000000-0000-0000-0000-000000000001', '{}')
-    localStorage.setItem('kuuki-flight-create-operation:test:manual', '{}')
-  })
+  const me = await page.request.get('/api/auth/me')
+  const owner = (await me.json() as { user: { id: string } }).user.id
+  const keys = await page.evaluate(ownerId => {
+    const otherOwner = 'another-owner'
+    const owned = [`kuuki-import-draft:v1:${ownerId}:00000000-0000-0000-0000-000000000001`, `kuuki-flight-create-operation:${ownerId}:manual`]
+    const other = [`kuuki-import-draft:v1:${otherOwner}:00000000-0000-0000-0000-000000000002`, `kuuki-flight-create-operation:${otherOwner}:manual`]
+    for (const key of [...owned, ...other]) localStorage.setItem(key, '{}')
+    return { owned, other }
+  }, owner)
   await page.getByRole('button', { name: 'Sign out' }).click()
   await page.waitForURL('**/signin')
-  const keys = await page.evaluate(() => Object.keys(localStorage))
-  expect(keys).not.toContain('kuuki-import-draft:v1:test:00000000-0000-0000-0000-000000000001')
-  expect(keys).not.toContain('kuuki-flight-create-operation:test:manual')
+  const remaining = await page.evaluate(() => Object.keys(localStorage))
+  for (const key of keys.owned) expect(remaining).not.toContain(key)
+  for (const key of keys.other) expect(remaining).toContain(key)
+})
+
+test('sign out remains available when the owner lookup fails', async ({ page, baseURL }) => {
+  await signIn(page, baseURL!)
+  await page.goto('/settings')
+  const key = 'kuuki-import-draft:v1:another-owner:00000000-0000-0000-0000-000000000002'
+  await page.evaluate(key => localStorage.setItem(key, '{}'), key)
+  await page.route('**/api/auth/me', route => route.fulfill({ status: 503, contentType: 'application/json', body: '{"error":"Temporary failure"}' }))
+  await page.getByRole('button', { name: 'Sign out', exact: true }).click()
+  await page.waitForURL('**/signin')
+  expect(await page.evaluate(key => localStorage.getItem(key), key)).toBe('{}')
+  await page.unroute('**/api/auth/me')
+  const response = await page.request.get('/api/auth/me')
+  expect(await response.json()).toMatchObject({ user: null })
+})
+
+test('an old tab preserves the new account draft and retry receipt on focus', async ({ page: oldTab, context, baseURL }) => {
+  await signIn(oldTab, baseURL!)
+  const oldOwner = (await (await context.request.get('/api/auth/me')).json() as { user: { id: string } }).user.id
+  await oldTab.goto('/overview')
+  await expect(oldTab.getByTestId('overview-data')).toBeVisible()
+  await oldTab.evaluate(() => Object.defineProperty(document, 'visibilityState', { configurable: true, get: () => 'visible' }))
+  const bootstrap = oldTab.waitForResponse(response => response.url().endsWith('/api/auth/me'))
+  await oldTab.evaluate(() => window.dispatchEvent(new Event('focus')))
+  await (await bootstrap).finished()
+  await oldTab.evaluate(() => new Promise(resolve => setTimeout(resolve, 0)))
+  await oldTab.evaluate(() => Object.defineProperty(document, 'visibilityState', { configurable: true, get: () => 'hidden' }))
+
+  const newTab = await context.newPage()
+  await newTab.goto('/settings')
+  await newTab.getByRole('button', { name: 'Sign out', exact: true }).click()
+  await newTab.waitForURL('**/signin')
+  await newTab.getByLabel('Email', { exact: true }).fill('b@example.test')
+  await newTab.getByLabel('Password', { exact: true }).fill('rehearsal-password-2026')
+  await newTab.getByRole('button', { name: 'Sign in', exact: true }).click()
+  await newTab.waitForURL('**/overview')
+
+  await newTab.route('**/api/import/parse', route => route.fulfill({ status: 200, contentType: 'application/json',
+    body: JSON.stringify({ flights: [{ date: '2025-03-01', origin: 'JFK', destination: 'BOS', airline_iata: 'AA', confidence: .8 }] }) }))
+  await newTab.route('**/api/flights/duplicate-candidates', route => route.fulfill({ status: 200, contentType: 'application/json', body: '{"matches":[]}' }))
+  await newTab.route('**/api/flights/bulk', route => route.fulfill({ status: 503, contentType: 'application/json', body: '{"error":"Temporary failure"}' }))
+  await newTab.goto('/import')
+  await newTab.getByLabel('Or paste text').fill('synthetic itinerary')
+  await newTab.getByRole('button', { name: 'Find flights', exact: true }).click()
+  await expect(newTab.getByRole('heading', { name: 'Review flights', exact: true })).toBeVisible()
+  await newTab.getByRole('button', { name: /Save selected/ }).click()
+  await expect(newTab.getByText('Saved: 0. Unconfirmed or failed: 1.')).toBeVisible()
+
+  const owner = (await (await context.request.get('/api/auth/me')).json() as { user: { id: string } }).user.id
+  expect(owner).not.toBe(oldOwner)
+  const stored = await newTab.evaluate(ownerId => {
+    const draftKey = Object.keys(localStorage).find(key => key.startsWith(`kuuki-import-draft:v1:${ownerId}:`))
+    const receiptKey = Object.keys(localStorage).find(key => key.startsWith(`kuuki-flight-create-operation:${ownerId}:`))
+    return { draftKey, receiptKey, draft: draftKey && localStorage.getItem(draftKey), receipt: receiptKey && localStorage.getItem(receiptKey) }
+  }, owner)
+  expect(stored.draftKey).toBeTruthy()
+  expect(stored.receiptKey).toBeTruthy()
+  expect(JSON.parse(stored.draft!)).toMatchObject({ schema: 1, ownerId: owner })
+  expect(JSON.parse(stored.receipt!)).toMatchObject({ key: expect.any(String), payload: expect.any(String), createdAt: expect.any(Number) })
+
+  const oldTabReload = oldTab.waitForNavigation({ waitUntil: 'domcontentloaded' })
+  await oldTab.evaluate(() => {
+    Object.defineProperty(document, 'visibilityState', { configurable: true, get: () => 'visible' })
+    window.dispatchEvent(new Event('focus'))
+  })
+  await oldTabReload
+  const remaining = await newTab.evaluate(keys => ({ draft: localStorage.getItem(keys.draftKey!), receipt: localStorage.getItem(keys.receiptKey!) }), stored)
+  expect(remaining).toEqual({ draft: stored.draft, receipt: stored.receipt })
 })
 
 test('reset fragment is removed before hydration and invalid tokens show a recovery path', async ({ page }) => {

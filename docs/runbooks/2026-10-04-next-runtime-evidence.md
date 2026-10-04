@@ -56,6 +56,9 @@ Cache interception was disabled. The initial
 incremental cache is read-only Static Assets; no runtime application-data
 cache or persistent cache resources have been provisioned. Production testing
 APIs were enabled only for the explicit `next:build:test` fixture build.
+That diagnostic build command and flag were removed on 5 October after the
+streaming fallback was accepted. The artifact admission check still rejects
+production testing APIs.
 
 The stable local workerd `1.20260730.1` supports compatibility dates only through
 `2026-08-06`; that supported date is selected for the candidate. A diagnostic

@@ -28,12 +28,14 @@ export function trackPrivateOperation(controller: AbortController): () => void {
   return () => tracked.delete(controller)
 }
 
-function resetPrivateState(targetPath?: string) {
+function resetPrivateState(previousOwner: string | null | undefined, targetPath?: string) {
   const target = safeTargetPath(targetPath)
   for (const controller of tracked) controller.abort(new DOMException('Session changed', 'AbortError'))
   tracked.clear()
-  clearFlightCreateOperations()
-  clearDrafts()
+  if (previousOwner) {
+    clearFlightCreateOperations(previousOwner)
+    clearDrafts(previousOwner)
+  }
   window.dispatchEvent(new Event('kuuki:identity-reset'))
   // A document navigation discards Next segment cache as well as client stores.
   window.location.assign(target)
@@ -43,8 +45,9 @@ async function checkIdentity() {
   const reply = await api.get<IdentityReply>('/api/auth/me')
   const id = reply.user?.id ?? null
   if (knownIdentity !== undefined && knownIdentity !== id) {
+    const previousOwner = knownIdentity
     publishIdentity(id)
-    resetPrivateState()
+    resetPrivateState(previousOwner)
     return
   }
   publishIdentity(id)
@@ -60,6 +63,13 @@ export async function withIdentityMutation<T>(run: (token: symbol) => Promise<T>
   const operation = beginIdentityOperation()
   await operation.ready
   try {
+    // Resolve the departing cookie owner while the account lock is held. A newly
+    // mounted tab may not have finished bootstrap, and its remembered owner may
+    // already be stale after another tab changed the cookie.
+    let previousOwner: string | null = null
+    try {
+      previousOwner = (await api.get<IdentityReply>('/api/auth/me', undefined, { identityToken: operation.token })).user?.id ?? null
+    } catch { /* An unavailable owner lookup must not block the account action. */ }
     const result = await run(operation.token)
     publishIdentity(null) // Hide any previous owner's streamed payload immediately.
     if ('BroadcastChannel' in window) {
@@ -67,7 +77,7 @@ export async function withIdentityMutation<T>(run: (token: symbol) => Promise<T>
       channel.postMessage({ tabId })
       channel.close()
     }
-    resetPrivateState(targetPath)
+    resetPrivateState(previousOwner, targetPath)
     return result
   } finally {
     operation.release()

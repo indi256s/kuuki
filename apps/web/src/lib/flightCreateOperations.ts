@@ -114,12 +114,14 @@ export function completeFlightCreateOperation(userId: string, operationId: strin
   try { localStorage.removeItem(STORAGE_PREFIX + id) } catch { /* Storage may be unavailable. */ }
 }
 
-export function clearFlightCreateOperations(): void {
-  fallback.clear()
+export function clearFlightCreateOperations(userId?: string): void {
+  const scopePrefix = userId === undefined ? '' : `${userId}:`
+  for (const id of fallback.keys()) if (id.startsWith(scopePrefix)) fallback.delete(id)
   try {
+    const prefix = STORAGE_PREFIX + scopePrefix
     for (let i = localStorage.length - 1; i >= 0; i--) {
       const key = localStorage.key(i)
-      if (key?.startsWith(STORAGE_PREFIX)) localStorage.removeItem(key)
+      if (key?.startsWith(prefix)) localStorage.removeItem(key)
     }
   } catch { /* Storage may be unavailable. */ }
 }

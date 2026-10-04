@@ -12,19 +12,13 @@ import {
   parseFlightFilters,
   parsePagination,
   parseSort,
-  buildFlightWhere,
-  orderByClause,
 } from '../_lib/flightQuery'
+import { FLIGHT_COLUMNS, readJournal } from '../_services/journal'
 import { computeFlightDuration } from '../_services/flightDuration'
 import { fillDistanceAndDuration } from '../_services/stats'
 import { dirtyUserStatement, repairUserDerivedState } from '../_services/derivedState'
-import { assertRows } from '../_lib/d1'
 
-// Explicit FlightRow column allowlist (never SELECT *) — drives both SELECT and INSERT/UPDATE RETURNING.
-export const FLIGHT_COLUMNS =
-  'id, user_id, date, origin, destination, airline_iata, aircraft_icao, flight_number, ' +
-  'departure_time, arrival_time, departure_utc, arrival_utc, origin_tz, dest_tz, distance_km, ' +
-  'duration_minutes, source, is_upcoming, enrichment_status, aircraft_lookup_attempts, created_at'
+export { FLIGHT_COLUMNS } from '../_services/journal'
 
 /** Use the UTC calendar day, consistently with sync-upcoming in the Workers runtime. */
 export function isUpcomingFlight(date: string): boolean {
@@ -51,20 +45,7 @@ export function listFlights(request: Request, env: Env, data: RequestData): Prom
     const filters = parseFlightFilters(params)
     const { limit, offset } = parsePagination(params, 20)
     const sort = parseSort(params)
-    const { where, binds } = buildFlightWhere(user.id, filters)
-
-    const list = await env.DB.prepare(
-      `SELECT ${FLIGHT_COLUMNS} FROM flights WHERE ${where} ${orderByClause(sort)} LIMIT ? OFFSET ?`,
-    )
-      .bind(...binds, limit, offset)
-      .all<FlightRow>()
-    assertRows(list, 'Flight list unavailable')
-
-    const count = await env.DB.prepare(`SELECT COUNT(*) AS total FROM flights WHERE ${where}`)
-      .bind(...binds)
-      .first<{ total: number }>()
-
-    return json({ flights: list.results.map(toOwnFlight), total: count?.total ?? 0 })
+    return json(await readJournal(env.DB, user.id, filters, sort, limit, offset))
   })
 }
 

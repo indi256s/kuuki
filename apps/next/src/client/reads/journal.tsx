@@ -34,8 +34,7 @@ function JournalInner({ ownerId, locale, initial, query, page, filtered }: Props
       const untrack = trackPrivateOperation(controller)
       signal.addEventListener('abort', () => controller.abort(), { once: true })
       try {
-        const value = await api.get<{ flights: Flight[]; total: number }>('/api/flights', { ...Object.fromEntries(params), page: undefined, limit: 20, offset: (page - 1) * 20 }, { signal: controller.signal })
-        return { ...value, updatedAt: Date.now(), revision: initial.revision, publishedRevision: initial.publishedRevision }
+        return await api.get<JournalData>('/api/flights', { ...Object.fromEntries(params), page: undefined, limit: 20, offset: (page - 1) * 20 }, { signal: controller.signal })
       } finally { untrack() }
     },
     initialData: initial,
@@ -72,7 +71,7 @@ function JournalInner({ ownerId, locale, initial, query, page, filtered }: Props
   const goPage = (number: number) => { const next = new URLSearchParams(params); next.set('page', String(number)); router.push(`/journal?${next}`) }
   return <section data-testid="journal-data" className="journal-data read-stack">
     <DraftLinks ownerId={ownerId} locale={locale} />
-    {initial.revision > initial.publishedRevision && <p role="status" className="status-note">{t.pending}</p>}
+    {(data ?? initial).revision > (data ?? initial).publishedRevision && <p role="status" className="status-note">{t.pending}</p>}
     <div className="journal-toolbar"><form onSubmit={event => { event.preventDefault(); navigate('q', search.trim()) }} role="search"><label className="sr-only" htmlFor="journal-search">{t.search}</label><input id="journal-search" type="search" value={search} onChange={event => setSearch(event.target.value)} placeholder={t.search} /><button type="submit" className="button secondary">{locale === 'ru' ? 'Найти' : 'Search'}</button></form>
       <label>{t.year}<input type="number" min="1900" max="2199" value={year} onChange={event => setYear(event.target.value)} onBlur={() => { if (!year || /^(19|20|21)\d{2}$/.test(year)) navigate('year', year) }} placeholder={t.all} /></label>
       <label>{t.status}<select value={params.get('isUpcoming') ?? ''} onChange={event => navigate('isUpcoming', event.target.value)}><option value="">{t.all}</option><option value="false">{t.completed}</option><option value="true">{t.upcoming}</option></select></label>

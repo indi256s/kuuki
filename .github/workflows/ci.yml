@@ -41,8 +41,6 @@ jobs:
       - run: pnpm build:maintenance
       - run: pnpm smoke:runtime
       - run: pnpm next:build
-        env:
-          KUUKI_TESTING_API: '0'
       - run: pnpm --filter @kuuki/next typecheck:worker
       - run: pnpm --filter @kuuki/next exec playwright install --with-deps chromium
       - run: pnpm next:smoke
