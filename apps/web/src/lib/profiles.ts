@@ -1,4 +1,4 @@
-import { api } from './apiClient'
+import { api, ApiError } from './apiClient'
 import type { Tables } from './database.types'
 
 export type Profile = Tables<'profiles'>
@@ -34,7 +34,7 @@ export interface PublicProfileData {
 
 /**
  * Fetch a public profile by username
- * Returns null if user doesn't exist or profile is private
+ * Returns null only when the username does not exist. Private profiles return a public shell.
  */
 export async function getPublicProfile(username: string): Promise<PublicProfileData | null> {
   try {
@@ -54,8 +54,8 @@ export async function getPublicProfile(username: string): Promise<PublicProfileD
       rankings: data.rankings ?? [],
     }
   } catch (error) {
-    console.error('Error fetching public profile:', error)
-    return null
+    if (error instanceof ApiError && error.status === 404) return null
+    throw error
   }
 }
 
@@ -68,14 +68,9 @@ export async function searchUsers(query: string, limit = 10): Promise<Profile[]>
     return []
   }
 
-  try {
-    // The search endpoint returns public profile DTOs; consumers read only public columns.
-    const results = await api.get<Profile[]>('/api/profiles/search', { q: query })
-    return (results ?? []).slice(0, limit)
-  } catch (error) {
-    console.error('Error searching users:', error)
-    return []
-  }
+  // The search endpoint returns public profile DTOs; consumers read only public columns.
+  const results = await api.get<Profile[]>('/api/profiles/search', { q: query })
+  return (results ?? []).slice(0, limit)
 }
 
 /**
@@ -83,12 +78,7 @@ export async function searchUsers(query: string, limit = 10): Promise<Profile[]>
  * (userId is accepted for signature compatibility; the API resolves the user from the session.)
  */
 export async function getUserStats(_userId: string): Promise<UserStats | null> {
-  try {
-    return await api.get<UserStats | null>('/api/me/stats')
-  } catch (error) {
-    console.error('Error fetching user stats:', error)
-    return null
-  }
+  return api.get<UserStats | null>('/api/me/stats')
 }
 
 /**
@@ -98,26 +88,16 @@ export async function getUserStats(_userId: string): Promise<UserStats | null> {
 export async function getUserBadges(
   _userId: string
 ): Promise<Array<UserBadge & { badge: BadgeDefinition }>> {
-  try {
-    const badges = await api.get<Array<UserBadge & { badge: BadgeDefinition }>>('/api/me/badges')
-    return badges ?? []
-  } catch (error) {
-    console.error('Error fetching user badges:', error)
-    return []
-  }
+  const badges = await api.get<Array<UserBadge & { badge: BadgeDefinition }>>('/api/me/badges')
+  return badges ?? []
 }
 
 /**
  * Get all badge definitions (for showing progress)
  */
 export async function getAllBadges(): Promise<BadgeDefinition[]> {
-  try {
-    const badges = await api.get<BadgeDefinition[]>('/api/badges')
-    return badges ?? []
-  } catch (error) {
-    console.error('Error fetching badge definitions:', error)
-    return []
-  }
+  const badges = await api.get<BadgeDefinition[]>('/api/badges')
+  return badges ?? []
 }
 
 /**
@@ -125,13 +105,8 @@ export async function getAllBadges(): Promise<BadgeDefinition[]> {
  * (userId is accepted for signature compatibility; the API resolves the user from the session.)
  */
 export async function getUserRankings(_userId: string): Promise<LeaderboardEntry[]> {
-  try {
-    const rankings = await api.get<LeaderboardEntry[]>('/api/me/rankings')
-    return rankings ?? []
-  } catch (error) {
-    console.error('Error fetching user rankings:', error)
-    return []
-  }
+  const rankings = await api.get<LeaderboardEntry[]>('/api/me/rankings')
+  return rankings ?? []
 }
 
 /**
@@ -143,13 +118,8 @@ export async function checkUsernameAvailable(
   username: string,
   _excludeUserId?: string
 ): Promise<boolean> {
-  try {
-    const data = await api.get<{ available: boolean }>('/api/profiles/check-username', { username })
-    return data.available ?? false
-  } catch (error) {
-    console.error('Error checking username:', error)
-    return false
-  }
+  const data = await api.get<{ available: boolean }>('/api/profiles/check-username', { username })
+  return data.available
 }
 
 

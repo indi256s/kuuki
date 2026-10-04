@@ -1,0 +1,36 @@
+- generic
+  - generic [ref=e934] clickable [onclick]
+    - region "Notifications alt+T" [ref=e936]
+  - dialog "Добавить полёт"
+    - heading "Добавить полёт" [level=2, ref=e1107]
+      - StaticText "Добавить полёт"
+    - form
+      - heading "ROUTE" [level=3, ref=e1108]
+      - generic
+        - generic
+          - LabelText
+            - StaticText "Откуда"
+            - StaticText "*"
+          - textbox "Откуда *" [required, ref=e1119]
+        - button "Поменять" [ref=e1117]
+        - generic
+          - LabelText
+            - StaticText "Куда"
+            - StaticText "*"
+          - textbox "Куда *" [required, ref=e1120]
+      - heading "FLIGHT DETAILS" [level=3, ref=e1109]
+      - LabelText
+        - StaticText "Дата"
+        - StaticText "*"
+      - button "3 окт. 2026" [expanded=false, ref=e1110]
+        - StaticText "3 окт. 2026"
+      - generic
+        - LabelText
+          - StaticText "Авиакомпания"
+        - textbox "Авиакомпания" [ref=e1118]
+      - button "Самолёт" [ref=e1111]
+      - button "Номер рейса" [ref=e1112]
+      - button "Вылет" [ref=e1113]
+      - button "Прилёт" [ref=e1114]
+      - button "Отмена" [ref=e1115]
+      - button "Добавить полёт" [ref=e1116]

@@ -1,0 +1,7 @@
+- generic "Skip to main contentくうきKuukiВнешний видДобавитьくうきKuukiГлавнаяПолётыПаспортРейтингИмпортДобавить пол" [ref=e974] clickable [onclick]
+  - generic "EuropeAsiaAmericasAfricaOceania" [ref=e1467] clickable [onclick]
+  - region "Notifications alt+T" [ref=e976]
+- listbox [ref=e1836]
+  - option "Все полёты" [selected, ref=e1837]
+  - option "Предстоящие" [ref=e1838]
+  - option "Прошедшие" [ref=e1839]

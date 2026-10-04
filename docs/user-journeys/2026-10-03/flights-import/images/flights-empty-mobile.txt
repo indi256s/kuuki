@@ -1,0 +1,23 @@
+- generic "Skip to main contentくうきKuukiВнешний видくうきKuukiГлавнаяПолётыПаспортРейтингИмпортДобавить полётВнешни" [ref=e63] clickable [onclick]
+  - link "Skip to main content" [ref=e64]
+  - link "Kuuki" [ref=e67]
+  - button "Внешний вид" [expanded=false, ref=e68]
+  - heading "Полёты" [level=1, ref=e69]
+  - button "Фильтры" [ref=e70]
+  - textbox "City or code" [ref=e80]
+  - textbox "City or code" [ref=e81]
+  - combobox [expanded=false, ref=e76]: Все годы
+    - generic "Все годы" [ref=e82] clickable [onclick]
+  - combobox [expanded=false, ref=e77]: Все авиакомпании
+    - generic "Все авиакомпании" [ref=e83] clickable [onclick]
+  - combobox [expanded=false, ref=e78]: Все самолёты
+    - generic "Все самолёты" [ref=e84] clickable [onclick]
+  - combobox [expanded=false, ref=e79]: Все полёты
+    - generic "Все полёты" [ref=e85] clickable [onclick]
+  - button "Добавить" [ref=e65]
+  - link "Главная" [ref=e71]
+  - link "Полёты" [ref=e72]
+  - link "Импорт" [ref=e73]
+  - link "Паспорт" [ref=e74]
+  - link "Настройки" [ref=e75]
+  - region "Notifications alt+T" [ref=e66]

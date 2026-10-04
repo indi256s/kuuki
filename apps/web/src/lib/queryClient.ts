@@ -1,10 +1,18 @@
 import { QueryClient, QueryCache } from '@tanstack/react-query'
+import { ApiError } from './apiClient'
 
 /** Cancelled requests were dropped on purpose. The account-lock rejection is transient, so it still retries. */
 function isCancellation(error: unknown): boolean {
   if (!(error instanceof Error)) return false
   if (error.message === 'Request cancelled') return true
   return error.name === 'AbortError' && error.message !== 'Account action in progress'
+}
+
+/** Retry only reads that can recover without a user changing input or account state. */
+export function shouldRetryRead(failureCount: number, error: unknown): boolean {
+  if (failureCount >= 2 || isCancellation(error)) return false
+  if (error instanceof ApiError) return error.status === 408 || error.status >= 500
+  return error instanceof TypeError || (error instanceof Error && /network|fetch|timed out/i.test(error.message))
 }
 
 /**
@@ -18,7 +26,7 @@ function isCancellation(error: unknown): boolean {
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      retry: (failureCount, error) => failureCount < 3 && !isCancellation(error),
+      retry: shouldRetryRead,
       retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
       staleTime: 60_000, // 1 minute (reduced API calls)
       gcTime: 5 * 60 * 1000, // 5 minutes

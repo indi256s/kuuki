@@ -1,0 +1,7 @@
+- main
+  - heading "Activate your account" [level=1, ref=e1]
+  - paragraph
+    - StaticText "Choose a personal password to access your existing Kuuki profile."
+  - status
+    - StaticText "Your account is active. Sign in with your new password."
+  - link "Back to sign in" [ref=e2]

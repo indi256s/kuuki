@@ -1,0 +1,24 @@
+- generic [ref=e934] clickable [onclick]
+  - link "Skip to main content" [ref=e935]
+  - generic
+    - banner
+      - link "Kuuki" [ref=e937]
+        - StaticText "Kuuki"
+      - navigation
+        - link "Главная" [ref=e944]
+        - link "Полёты" [ref=e945]
+        - link "Паспорт" [ref=e946]
+        - link "Рейтинг" [ref=e947]
+        - link "Импорт" [ref=e948]
+      - button "Внешний вид" [expanded=false, ref=e938]
+        - StaticText "Внешний вид"
+      - button "FI" [expanded=false, ref=e939]
+        - StaticText "FI"
+    - main
+      - heading "Импорт" [level=1, ref=e940]
+      - heading "Полёты импортированы!" [level=3, ref=e975]
+      - paragraph
+        - StaticText "1 полёт добавлен в журнал"
+      - button "Импортировать ещё" [ref=e976]
+      - button "Посмотреть полёты" [ref=e977]
+  - region "Notifications alt+T" [ref=e936]

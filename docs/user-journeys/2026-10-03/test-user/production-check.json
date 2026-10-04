@@ -1,0 +1,23 @@
+{
+  "origin": "https://kuuki.marchstudio.uk",
+  "email": "atlas-ui-20261004@example.test",
+  "username": "",
+  "flights": 69,
+  "is_public": false,
+  "show_on_leaderboards": false,
+  "public_username_disabled": true,
+  "visibility_note": "Published API exposed profile to guests despite is_public=false; public username cleared. Former public URL verified404. Application code not changed.",
+  "verified_at": "2026-10-04T00:33:23.805118+04:00",
+  "fresh_browser_signin": "passed",
+  "former_public_url_guest_status": 404,
+  "created_duplicate_removed": true,
+  "last_readback_at": "2026-10-03T21:03:22.852570+00:00",
+  "last_readback": {
+    "email": "atlas-ui-20261004@example.test",
+    "username": "",
+    "is_public": false,
+    "show_on_leaderboards": false,
+    "flights": 69,
+    "former_public_url_guest_status": 404
+  }
+}

@@ -20,10 +20,14 @@ export function LeaderboardPage() {
   const { user, profile } = useAuth()
   const [activeCategory, setActiveCategory] = useState<LeaderboardCategory>('flights')
 
-  const { data: leaderboardData, isLoading: isLoadingLeaderboard } = useLeaderboard(activeCategory)
-  const { data: userPositions, isLoading: isLoadingPositions } = useUserLeaderboardPositions()
-  const { data: totalUsers } = useTotalRankedUsers()
-  const { data: stats } = useFlightStats()
+  const leaderboard = useLeaderboard(activeCategory)
+  const positions = useUserLeaderboardPositions()
+  const totals = useTotalRankedUsers()
+  const statsQuery = useFlightStats()
+  const { data: leaderboardData, isLoading: isLoadingLeaderboard } = leaderboard
+  const { data: userPositions, isLoading: isLoadingPositions } = positions
+  const totalUsers = totals.data
+  const stats = statsQuery.data
 
   const currentPosition = userPositions?.[activeCategory] ?? null
 
@@ -37,6 +41,19 @@ export function LeaderboardPage() {
       mobileTabBar={user ? <MobileTabBar /> : undefined}
     >
         <div className="space-y-6 animate-fade-up stagger-children">
+          {(leaderboard.error || positions.error || totals.error || statsQuery.error) && (
+            <div role="alert" className="rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">
+              {leaderboardData || userPositions || totalUsers !== undefined || stats
+                ? t('errors.backgroundRefresh', 'Some rankings could not refresh. Showing the last loaded data where available.')
+                : t('errors.leaderboardLoadFailed', 'Could not load rankings. Please try again.')}
+              <Button variant="link" onClick={() => {
+                if (leaderboard.error) void leaderboard.refetch()
+                if (positions.error) void positions.refetch()
+                if (totals.error) void totals.refetch()
+                if (statsQuery.error) void statsQuery.refetch()
+              }}>{t('common.retry', 'Try again')}</Button>
+            </div>
+          )}
           {/* Page header */}
           <div>
             <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">
@@ -62,7 +79,7 @@ export function LeaderboardPage() {
           />
 
           {/* User's rank card (if logged in) */}
-          {user && (
+          {user && (isLoadingPositions || userPositions !== undefined) && (!statsQuery.error || stats !== undefined) && (
             <UserRankCard
               position={currentPosition}
               category={activeCategory}
@@ -73,12 +90,14 @@ export function LeaderboardPage() {
           )}
 
           {/* Leaderboard table */}
-          <LeaderboardTable
-            entries={leaderboardData?.entries ?? []}
-            category={activeCategory}
-            isLoading={isLoadingLeaderboard}
-            currentUserId={user?.id}
-          />
+          {(isLoadingLeaderboard || leaderboardData) && (
+            <LeaderboardTable
+              entries={leaderboardData?.entries ?? []}
+              category={activeCategory}
+              isLoading={isLoadingLeaderboard}
+              currentUserId={user?.id}
+            />
+          )}
 
           {/* Empty state for non-logged-in users */}
           {!user && (

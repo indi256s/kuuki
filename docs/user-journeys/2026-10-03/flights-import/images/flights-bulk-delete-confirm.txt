@@ -1,0 +1,11 @@
+- generic
+  - generic [ref=e934] clickable [onclick]
+    - region "Notifications alt+T" [ref=e936]
+  - dialog "Удалить 1 полёт?"
+    - heading "Удалить 1 полёт?" [level=2, ref=e1076]
+    - paragraph
+      - StaticText "Это действие нельзя отменить. Все выбранные полёты будут удалены из вашего журнала."
+    - button "Отмена" [ref=e1077]
+    - button "Удалить 1" [ref=e1078]
+    - button "Close" [ref=e1079]
+      - StaticText "Close"

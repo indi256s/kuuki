@@ -1,0 +1,28 @@
+- generic [ref=e147] clickable [onclick]
+  - link "Skip to main content" [ref=e148]
+  - banner
+    - link "Kuuki" [ref=e150]
+      - StaticText "Kuuki"
+    - button "Toggle language" [ref=e151]
+      - StaticText "EN"
+  - main
+    - heading "Добавьте ваши полёты" [level=1, ref=e152]
+    - paragraph
+      - StaticText "Как вы хотите начать?"
+    - generic
+      - StaticText "ИИ найдёт все рейсы из Gmail и Календаря за тебя"
+      - paragraph
+        - StaticText "Скопируй промпт → скорми его Gemini → вставь результат сюда"
+      - paragraph
+        - StaticText "Gemini работает лучше всех (он читает твой Календарь). Claude тоже сойдёт. ChatGPT… не надо."
+      - button "Показать промпт" [ref=e157]
+      - StaticText "@Gmail @Google Calendar Search for all flight bookings, boarding passes, itineraries, and travel confirmations.\n\nFor each flight, try to find (include only what you can find):\n- Date (any format is fine)\n- Origin and destination airports (city names or airport codes)\n- Airline name or code\n- Flight number (if available)\n- Departure/arrival times (if available)\n\nFormat: one flight per line, include whatever info you found.\n\nExample outputs:\n2024-03-15 | JFK → LAX | American Airlines 123 | 08:30-11:45\n2024-03-20 | Los Angeles to New York | Delta\nMarch 25 | SVO-LED | Aeroflot\n\nList ALL flights. Partial info is OK - just include what's available."
+    - StaticText "Вставьте данные о рейсе"
+    - textbox "Вставьте подтверждение бронирования, маршрут…" [ref=e153]
+    - generic [ref=e154] clickable [cursor:pointer, onclick]
+      - StaticText "Перетащите файл сюда"
+    - button "Распознать рейсы" [disabled, ref=e155]
+    - button "Сделаю это позже" [ref=e156]
+  - contentinfo
+    - progressbar "Step 2 of 2": 2
+  - region "Notifications alt+T" [ref=e149]

@@ -1,0 +1,34 @@
+- generic [ref=e212] clickable [onclick]
+  - link "Skip to main content" [ref=e213]
+  - generic
+    - banner
+      - link "Kuuki" [ref=e215]
+        - StaticText "Kuuki"
+      - navigation
+        - link "Главная" [ref=e221]
+        - link "Полёты" [ref=e222]
+        - link "Паспорт" [ref=e223]
+        - link "Рейтинг" [ref=e224]
+        - link "Импорт" [ref=e225]
+      - button "Внешний вид" [expanded=false, ref=e216]
+        - StaticText "Внешний вид"
+      - button "JO" [expanded=false, ref=e217]
+        - StaticText "JO"
+    - main
+      - generic
+        - generic
+          - generic
+          - StaticText "Приватный"
+        - heading "journey-demo" [level=1, ref=e226]
+        - paragraph
+          - StaticText "@journey-demoВы"
+        - StaticText "Участник с October 2026"
+        - button "Share" [ref=e227]
+      - heading "СТАТИСТИКА" [level=2, ref=e218]
+      - heading "ВАШЕ МЕСТО" [level=2, ref=e219]
+      - paragraph
+        - StaticText "Добавьте больше рейсов для участия в рейтинге"
+      - heading "ДОСТИЖЕНИЯ" [level=2, ref=e220]
+      - paragraph
+        - StaticText "Продолжайте летать, чтобы получить награды"
+  - region "Notifications alt+T" [ref=e214]

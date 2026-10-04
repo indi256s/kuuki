@@ -8,6 +8,7 @@
 |----------|---------|--------------|
 | **[PRD.md](./PRD.md)** | **Product requirements, features, philosophy** | **Always read first** |
 | [APP_FLOW.md](./APP_FLOW.md) | User navigation paths, screen inventory | Building UI or flows |
+| [Screenshot atlas](./user-journeys/README.md) | Captured UI states, user journeys, searchable gallery and agent-readable manifest | Navigating the current UI, planning features or redesign |
 | [TECH_STACK.md](./TECH_STACK.md) | Dependencies with exact versions | Installing packages |
 | [FRONTEND_GUIDELINES.md](./FRONTEND_GUIDELINES.md) | Design system, components, patterns | Writing UI code |
 | [BACKEND_STRUCTURE.md](./BACKEND_STRUCTURE.md) | Database schema, RLS, API contracts | Working with data |

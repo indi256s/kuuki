@@ -1,0 +1,21 @@
+- generic [ref=e275] clickable [onclick]
+  - link "Skip to main content" [ref=e276]
+  - generic
+    - banner
+      - link "Kuuki" [ref=e278]
+        - StaticText "Kuuki"
+    - main
+      - generic
+        - generic
+          - generic
+          - StaticText "Приватный"
+        - heading "journey-demo" [level=1, ref=e279]
+        - paragraph
+          - StaticText "@journey-demo"
+        - StaticText "Участник с October 2026"
+        - StaticText "Этот пользователь предпочитает приватность"
+      - generic
+        - paragraph
+          - StaticText "Этот пользователь предпочитает приватность"
+        - generic
+  - region "Notifications alt+T" [ref=e277]

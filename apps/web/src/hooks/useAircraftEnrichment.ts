@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { api } from '@/lib/apiClient'
 import { queryKeys } from '@/lib/queryKeys'
 import { useAuthStore } from '@/stores/authStore'
+import { reconcileDerivedState, type DerivedAck } from '@/lib/derivedStateFeedback'
 
 export interface FlightToEnrich {
   id: string
@@ -18,12 +19,21 @@ export interface EnrichmentResult {
   aircraft_icao: string | null
   aircraft_name: string | null
   confidence: number
+  evidence?: string | null
+  uncertainty?: string | null
   source?: 'gemini'
 }
 
 export interface EnrichmentResponse {
   results: EnrichmentResult[]
   error?: string
+}
+
+export interface AircraftBatchResponse extends DerivedAck {
+  results: Array<
+    | { id: number; status: 'accepted'; flight: { id: number; aircraft_icao: string | null } }
+    | { id: number | null; status: 'error'; http_status: number; code: string; error: string }
+  >
 }
 
 /**
@@ -47,21 +57,13 @@ export function useUpdateFlightAircraft() {
   const userId = useAuthStore((state) => state.user?.id)
 
   return useMutation({
-    mutationFn: async (updates: { id: number; aircraft_icao: string }[]) => {
-      // PATCH each flight individually; ownership is enforced server-side per id.
-      const results = await Promise.all(
-        updates.map(({ id, aircraft_icao }) =>
-          api.patch(`/api/flights/${id}`, { aircraft_icao })
-        )
-      )
-
-      return results
-    },
-    onSuccess: () => {
-      // Invalidate flight-related queries to refresh the UI
-      queryClient.invalidateQueries({ queryKey: queryKeys.flights(userId) })
-      queryClient.invalidateQueries({ queryKey: queryKeys.flightAircraft(userId) })
-      queryClient.invalidateQueries({ queryKey: queryKeys.flightStats(userId) })
+    mutationFn: (updates: { id: number; aircraft_icao: string }[]) =>
+      api.post<AircraftBatchResponse>('/api/flights/aircraft-batch', { items: updates }),
+    onSuccess: (ack) => {
+      if (!userId || !ack.results.some(result => result.status === 'accepted')) return
+      reconcileDerivedState(ack, queryClient, userId)
+      // Aircraft-specific reads can be outside the main flight list prefix.
+      void queryClient.invalidateQueries({ queryKey: queryKeys.flightAircraft(userId) })
     },
   })
 }

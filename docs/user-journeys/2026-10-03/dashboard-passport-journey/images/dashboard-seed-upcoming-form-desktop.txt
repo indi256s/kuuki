@@ -1,0 +1,18 @@
+- generic "Skip to main contentくうきKuukiВнешний видДобавитьくうきKuukiГлавнаяПолётыПаспортРейтингИмпортДобавить пол" [ref=e974] clickable [onclick]
+  - generic "EuropeAsiaAmericasAfricaOceania" [ref=e1467] clickable [onclick]
+  - region "Notifications alt+T" [ref=e976]
+- heading "Добавить полёт" [level=2, ref=e1663]
+- heading "ROUTE" [level=3, ref=e1665]
+- textbox "Откуда *" [required, ref=e1676]: TBS
+- button "Поменять" [ref=e1674]
+- textbox "Куда *" [required, ref=e1677]: DOH
+- heading "FLIGHT DETAILS" [level=3, ref=e1666]
+- button "5 окт. 2026" [expanded=false, ref=e1667]
+- textbox "Авиакомпания" [ref=e1675]: QR
+- button "Самолёт" [ref=e1668]
+- button "Номер рейса" [ref=e1669]
+- button "Вылет" [ref=e1670]
+- button "Прилёт" [ref=e1671]
+- button "Отмена" [ref=e1672]
+- button "Добавить полёт" [ref=e1673]
+- button "Close" [ref=e1664]

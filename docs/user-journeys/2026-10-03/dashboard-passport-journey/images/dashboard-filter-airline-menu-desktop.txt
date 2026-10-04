@@ -1,0 +1,8 @@
+- generic "Skip to main contentくうきKuukiВнешний видДобавитьくうきKuukiГлавнаяПолётыПаспортРейтингИмпортДобавить пол" [ref=e974] clickable [onclick]
+  - generic "EuropeAsiaAmericasAfricaOceania" [ref=e1467] clickable [onclick]
+  - region "Notifications alt+T" [ref=e976]
+- listbox [ref=e1828]
+  - option "Все авиакомпании" [selected, ref=e1829]
+  - option "○ Oneworld" [ref=e1830]
+  - option "American Airlines (AA)" [ref=e1831]
+  - option "Qatar Airways (QR)" [ref=e1832]

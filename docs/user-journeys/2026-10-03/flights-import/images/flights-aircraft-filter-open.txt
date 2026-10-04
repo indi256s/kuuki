@@ -1,0 +1,5 @@
+- generic "Skip to main contentくうきKuukiВнешний видくうきKuukiГлавнаяПолётыПаспортРейтингИмпортДобавить полётВнешни" [ref=e157] clickable [onclick]
+  - region "Notifications alt+T" [ref=e159]
+- listbox [ref=e790]
+  - option "Все самолёты" [selected, ref=e791]
+  - option "737-800" [ref=e792]

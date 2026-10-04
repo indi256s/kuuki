@@ -1,0 +1,2199 @@
+{
+  "area": "flights-import",
+  "states": [
+    {
+      "id": "flights-empty-desktop",
+      "title": "Пустой журнал полётов · desktop",
+      "route": "/flights",
+      "status": "captured",
+      "screenshot": "images/flights-empty-desktop.png",
+      "snapshot": "images/flights-empty-desktop.txt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "authenticated",
+      "fixture": "Локальный frozen fixture на localhost:8799, пользователь b@example.test; искусственные данные только в одноразовой БД.",
+      "preconditions": [
+        "Вход выполнен пользователем b@example.test; у аккаунта нет записей."
+      ],
+      "recognition": [
+        "Заголовок «Полёты», предложение добавить первый полёт, таблицы с записями нет."
+      ],
+      "actions": [
+        {
+          "label": "Добавить полёт",
+          "to": "flight-add-form-desktop",
+          "effect": "Открывается форма создания рейса."
+        }
+      ],
+      "source": [
+        "apps/web/src/routes/FlightsPage.tsx",
+        "apps/web/src/components/flights/FlightList.tsx",
+        "apps/web/src/components/flights/FlightTable.tsx",
+        "apps/web/src/components/flights/FlightCard.tsx",
+        "apps/web/src/components/flights/FlightFilters.tsx",
+        "apps/web/src/hooks/useFlights.ts"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "flights-empty-mobile",
+      "title": "Пустой журнал полётов · mobile",
+      "route": "/flights",
+      "status": "captured",
+      "screenshot": "images/flights-empty-mobile.png",
+      "snapshot": "images/flights-empty-mobile.txt",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "auth": "authenticated",
+      "fixture": "Локальный frozen fixture на localhost:8799, пользователь b@example.test; искусственные данные только в одноразовой БД.",
+      "preconditions": [
+        "Вход выполнен; журнал пуст."
+      ],
+      "recognition": [
+        "Мобильная навигация внизу, короткий заголовок «Полёты», пустой список и кнопка добавления."
+      ],
+      "actions": [
+        {
+          "label": "Добавить",
+          "to": "flight-add-form-mobile",
+          "effect": "Открывается адаптивная форма создания рейса."
+        }
+      ],
+      "source": [
+        "apps/web/src/routes/FlightsPage.tsx",
+        "apps/web/src/components/flights/FlightList.tsx",
+        "apps/web/src/components/flights/FlightTable.tsx",
+        "apps/web/src/components/flights/FlightCard.tsx",
+        "apps/web/src/components/flights/FlightFilters.tsx",
+        "apps/web/src/hooks/useFlights.ts"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "import-upload-desktop",
+      "title": "Импорт · загрузка · desktop",
+      "route": "/import",
+      "status": "captured",
+      "screenshot": "images/import-upload-desktop.png",
+      "snapshot": "images/import-upload-desktop.txt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "authenticated",
+      "fixture": "Локальный frozen fixture на localhost:8799, пользователь b@example.test; искусственные данные только в одноразовой БД.",
+      "preconditions": [
+        "Открыт /import."
+      ],
+      "recognition": [
+        "Поле для текста, зона выбора файла, кнопки «Показать промпт» и «Распознать рейсы»."
+      ],
+      "actions": [
+        {
+          "label": "Раскрыть инструкции",
+          "to": "import-prompt-expanded",
+          "effect": "Промпт показан."
+        },
+        {
+          "label": "Ввести текст",
+          "to": "import-text-ready",
+          "effect": "Распознавание становится доступным."
+        },
+        {
+          "label": "Выбрать PDF",
+          "to": "import-file-pdf",
+          "effect": "Появляется имя файла."
+        }
+      ],
+      "source": [
+        "apps/web/src/routes/ImportPage.tsx",
+        "apps/web/src/components/import/ImportUpload.tsx",
+        "apps/web/src/components/import/ImportReview.tsx",
+        "apps/web/src/components/import/FlightEditRow.tsx",
+        "apps/web/src/components/import/FlightProgressModal.tsx",
+        "apps/web/src/hooks/useImport.ts",
+        "apps/web/src/hooks/useFlights.ts"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "import-prompt-expanded",
+      "title": "Импорт · промпт раскрыт",
+      "route": "/import",
+      "status": "captured",
+      "screenshot": "images/import-prompt-expanded.png",
+      "snapshot": "images/import-prompt-expanded.txt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "authenticated",
+      "fixture": "Локальный frozen fixture на localhost:8799, пользователь b@example.test; искусственные данные только в одноразовой БД.",
+      "preconditions": [
+        "Открыт /import."
+      ],
+      "recognition": [
+        "Видны инструкции для подготовки данных и кнопка свернуть."
+      ],
+      "actions": [],
+      "source": [
+        "apps/web/src/routes/ImportPage.tsx",
+        "apps/web/src/components/import/ImportUpload.tsx",
+        "apps/web/src/components/import/ImportReview.tsx",
+        "apps/web/src/components/import/FlightEditRow.tsx",
+        "apps/web/src/components/import/FlightProgressModal.tsx",
+        "apps/web/src/hooks/useImport.ts",
+        "apps/web/src/hooks/useFlights.ts"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "import-text-ready",
+      "title": "Импорт · текст готов",
+      "route": "/import",
+      "status": "captured",
+      "screenshot": "images/import-text-ready.png",
+      "snapshot": "images/import-text-ready.txt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "authenticated",
+      "fixture": "Локальный frozen fixture на localhost:8799, пользователь b@example.test; искусственные данные только в одноразовой БД.",
+      "preconditions": [
+        "Введён синтетический текст с перелётом."
+      ],
+      "recognition": [
+        "Поле содержит маршрут/подтверждение; распознавание доступно."
+      ],
+      "actions": [
+        {
+          "label": "Распознать рейсы",
+          "to": "import-parsing-text",
+          "effect": "Показывается состояние анализа."
+        }
+      ],
+      "source": [
+        "apps/web/src/routes/ImportPage.tsx",
+        "apps/web/src/components/import/ImportUpload.tsx",
+        "apps/web/src/components/import/ImportReview.tsx",
+        "apps/web/src/components/import/FlightEditRow.tsx",
+        "apps/web/src/components/import/FlightProgressModal.tsx",
+        "apps/web/src/hooks/useImport.ts",
+        "apps/web/src/hooks/useFlights.ts"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "import-parsing-text",
+      "title": "Импорт · распознавание текста",
+      "route": "/import",
+      "status": "captured",
+      "screenshot": "images/import-parsing-text.png",
+      "snapshot": "images/import-parsing-text.txt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "authenticated",
+      "fixture": "Локальный frozen fixture на localhost:8799, пользователь b@example.test; искусственные данные только в одноразовой БД.",
+      "preconditions": [
+        "Запущен разбор тестового текста; используются локальные fake providers."
+      ],
+      "recognition": [
+        "Модальное состояние «Анализ данных о полётах» и «Отмена»."
+      ],
+      "actions": [
+        {
+          "label": "Успешный разбор",
+          "to": "import-review-text",
+          "effect": "Открывается список найденных рейсов."
+        }
+      ],
+      "source": [
+        "apps/web/src/routes/ImportPage.tsx",
+        "apps/web/src/components/import/ImportUpload.tsx",
+        "apps/web/src/components/import/ImportReview.tsx",
+        "apps/web/src/components/import/FlightEditRow.tsx",
+        "apps/web/src/components/import/FlightProgressModal.tsx",
+        "apps/web/src/hooks/useImport.ts",
+        "apps/web/src/hooks/useFlights.ts"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "import-review-text",
+      "title": "Импорт · проверка распознанного рейса",
+      "route": "/import",
+      "status": "captured",
+      "screenshot": "images/import-review-text.png",
+      "snapshot": "images/import-review-text.txt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "authenticated",
+      "fixture": "Локальный frozen fixture на localhost:8799, пользователь b@example.test; искусственные данные только в одноразовой БД.",
+      "preconditions": [
+        "Текстовый парсер вернул тестовый JFK→BOS, AA100, 03.01.2026."
+      ],
+      "recognition": [
+        "Заголовок «Проверьте найденные полёты», редактируемые дата, маршрут, авиакомпания и времена."
+      ],
+      "actions": [
+        {
+          "label": "Раскрыть детали",
+          "to": "import-review-expanded",
+          "effect": "Показываются поля редактирования."
+        },
+        {
+          "label": "Снять выбор",
+          "to": "import-review-none-selected",
+          "effect": "Импорт становится недоступным."
+        },
+        {
+          "label": "Удалить рейс",
+          "to": "import-review-removed-all",
+          "effect": "Строка исчезает из проверки."
+        }
+      ],
+      "source": [
+        "apps/web/src/routes/ImportPage.tsx",
+        "apps/web/src/components/import/ImportUpload.tsx",
+        "apps/web/src/components/import/ImportReview.tsx",
+        "apps/web/src/components/import/FlightEditRow.tsx",
+        "apps/web/src/components/import/FlightProgressModal.tsx",
+        "apps/web/src/hooks/useImport.ts",
+        "apps/web/src/hooks/useFlights.ts"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "import-review-expanded",
+      "title": "Импорт · поля найденного рейса",
+      "route": "/import",
+      "status": "captured",
+      "screenshot": "images/import-review-expanded.png",
+      "snapshot": "images/import-review-expanded.txt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "authenticated",
+      "fixture": "Локальный frozen fixture на localhost:8799, пользователь b@example.test; искусственные данные только в одноразовой БД.",
+      "preconditions": [
+        "Разбор текста завершился успешно."
+      ],
+      "recognition": [
+        "Раскрытая карточка проверки показывает редактируемые детали рейса."
+      ],
+      "actions": [
+        {
+          "label": "Снять выбор",
+          "to": "import-review-none-selected",
+          "effect": "Можно исключить найденную строку."
+        },
+        {
+          "label": "Импортировать",
+          "to": "import-success",
+          "effect": "Избранная запись отправляется на сохранение."
+        }
+      ],
+      "source": [
+        "apps/web/src/routes/ImportPage.tsx",
+        "apps/web/src/components/import/ImportUpload.tsx",
+        "apps/web/src/components/import/ImportReview.tsx",
+        "apps/web/src/components/import/FlightEditRow.tsx",
+        "apps/web/src/components/import/FlightProgressModal.tsx",
+        "apps/web/src/hooks/useImport.ts",
+        "apps/web/src/hooks/useFlights.ts"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "import-review-none-selected",
+      "title": "Импорт · снять выбор",
+      "route": "/import",
+      "status": "captured",
+      "screenshot": "images/import-review-none-selected.png",
+      "snapshot": "images/import-review-none-selected.txt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "authenticated",
+      "fixture": "Локальный frozen fixture на localhost:8799, пользователь b@example.test; искусственные данные только в одноразовой БД.",
+      "preconditions": [
+        "Есть один найденный рейс."
+      ],
+      "recognition": [
+        "Чекбокс рейса выключен, кнопка импорта disabled/счётчик равен нулю."
+      ],
+      "actions": [
+        {
+          "label": "Выбрать строку",
+          "to": "import-review-text",
+          "effect": "Импорт снова доступен."
+        }
+      ],
+      "source": [
+        "apps/web/src/routes/ImportPage.tsx",
+        "apps/web/src/components/import/ImportUpload.tsx",
+        "apps/web/src/components/import/ImportReview.tsx",
+        "apps/web/src/components/import/FlightEditRow.tsx",
+        "apps/web/src/components/import/FlightProgressModal.tsx",
+        "apps/web/src/hooks/useImport.ts",
+        "apps/web/src/hooks/useFlights.ts"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "import-review-removed-all",
+      "title": "Импорт · все рейсы удалены из проверки",
+      "route": "/import",
+      "status": "captured",
+      "screenshot": "images/import-review-removed-all.png",
+      "snapshot": "images/import-review-removed-all.txt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "authenticated",
+      "fixture": "Локальный frozen fixture на localhost:8799, пользователь b@example.test; искусственные данные только в одноразовой БД.",
+      "preconditions": [
+        "На экране проверки удалена последняя строка."
+      ],
+      "recognition": [
+        "Список пуст после удаления строки; доступно добавить рейс вручную или отменить."
+      ],
+      "actions": [
+        {
+          "label": "Добавить вручную",
+          "to": "import-manual-add-form-desktop",
+          "effect": "Открывает модальную форму ручного добавления, оставаясь на /import."
+        },
+        {
+          "label": "Импортировать ещё раз",
+          "to": "import-upload-desktop",
+          "effect": "Возврат к загрузке."
+        }
+      ],
+      "source": [
+        "apps/web/src/routes/ImportPage.tsx",
+        "apps/web/src/components/import/ImportUpload.tsx",
+        "apps/web/src/components/import/ImportReview.tsx",
+        "apps/web/src/components/import/FlightEditRow.tsx",
+        "apps/web/src/components/import/FlightProgressModal.tsx",
+        "apps/web/src/hooks/useImport.ts",
+        "apps/web/src/hooks/useFlights.ts"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "import-manual-add-form-desktop",
+      "title": "Импорт · ручное добавление рейса · desktop",
+      "route": "/import",
+      "status": "captured",
+      "screenshot": "images/import-manual-add-form-desktop.png",
+      "snapshot": "images/import-manual-add-form-desktop.txt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "authenticated",
+      "fixture": "Локальный frozen fixture на localhost:8799, пользователь b@example.test; для вызова формы полёт не сохранялся.",
+      "preconditions": [
+        "На /import открыт пустой результат проверки после удаления последнего распознанного рейса; нажата кнопка «Добавить вручную»."
+      ],
+      "recognition": [
+        "Модальное окно «Добавить полёт» поверх экрана /import; доступны маршрут и дата, авиакомпания и необязательные данные рейса."
+      ],
+      "actions": [
+        {
+          "label": "Отмена",
+          "to": "import-review-removed-all",
+          "effect": "Закрывает форму и возвращает к пустому результату проверки на /import."
+        }
+      ],
+      "source": [
+        "apps/web/src/routes/ImportPage.tsx",
+        "apps/web/src/components/import/ImportReview.tsx",
+        "apps/web/src/components/flights/FlightForm.tsx",
+        "apps/web/src/hooks/useFlights.ts"
+      ],
+      "notes": "Форма открыта через ImportPage.handleManualAdd; маршрут остаётся /import. Снимок сделан до сохранения, в fixture рейс не добавлялся."
+    },
+    {
+      "id": "import-success",
+      "title": "Импорт · результат сохранения",
+      "route": "/import",
+      "status": "captured",
+      "screenshot": "images/import-success.png",
+      "snapshot": "images/import-success.txt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "authenticated",
+      "fixture": "Локальный frozen fixture на localhost:8799, пользователь b@example.test; искусственные данные только в одноразовой БД.",
+      "preconditions": [
+        "Один рейс выбран и сохранён в локальной базе."
+      ],
+      "recognition": [
+        "Заголовок «Полёты импортированы!», действие «Посмотреть полёты»."
+      ],
+      "actions": [],
+      "source": [
+        "apps/web/src/routes/ImportPage.tsx",
+        "apps/web/src/components/import/ImportUpload.tsx",
+        "apps/web/src/components/import/ImportReview.tsx",
+        "apps/web/src/components/import/FlightEditRow.tsx",
+        "apps/web/src/components/import/FlightProgressModal.tsx",
+        "apps/web/src/hooks/useImport.ts",
+        "apps/web/src/hooks/useFlights.ts"
+      ],
+      "notes": "Наблюдаемое несоответствие: интерфейс показывает «0 flights added to your log», но toast сообщает Flight added to your log, а список полётов подтверждает сохранённую запись."
+    },
+    {
+      "id": "flight-add-form-desktop",
+      "title": "Добавить полёт · форма desktop",
+      "route": "/flights",
+      "status": "captured",
+      "screenshot": "images/flight-add-form-desktop.png",
+      "snapshot": "images/flight-add-form-desktop.txt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "authenticated",
+      "fixture": "Локальный frozen fixture на localhost:8799, пользователь b@example.test; искусственные данные только в одноразовой БД.",
+      "preconditions": [
+        "Открыт экран /flights; fixture бсх пуст до создания рейсов."
+      ],
+      "recognition": [
+        "Форма содержит маршрут, дату, авиакомпанию; номер рейса, самолёт и времена раскрываются отдельно."
+      ],
+      "actions": [
+        {
+          "label": "Открыть дату",
+          "to": "flight-date-calendar",
+          "effect": "Появляется календарь выбора даты."
+        },
+        {
+          "label": "Заполнить маршрут",
+          "to": "flight-origin-suggestions",
+          "effect": "Показываются подсказки аэропорта."
+        }
+      ],
+      "source": [
+        "apps/web/src/routes/FlightsPage.tsx",
+        "apps/web/src/components/flights/FlightForm.tsx",
+        "apps/web/src/components/flights/AirportAutocomplete.tsx",
+        "apps/web/src/components/flights/AirlineAutocomplete.tsx",
+        "apps/web/src/components/flights/AircraftPicker.tsx",
+        "apps/web/src/hooks/useFlights.ts"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "flight-date-calendar",
+      "title": "Добавить полёт · календарь",
+      "route": "/flights",
+      "status": "captured",
+      "screenshot": "images/flight-date-calendar.png",
+      "snapshot": "images/flight-date-calendar.txt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "authenticated",
+      "fixture": "Локальный frozen fixture на localhost:8799, пользователь b@example.test; искусственные данные только в одноразовой БД.",
+      "preconditions": [
+        "Открыта форма добавления."
+      ],
+      "recognition": [
+        "Кнопка даты раскрывает календарь с выбором даты."
+      ],
+      "actions": [
+        {
+          "label": "Выбрать дату",
+          "to": "flight-add-form-desktop",
+          "effect": "Календарь закрывается и обновляет дату."
+        }
+      ],
+      "source": [
+        "apps/web/src/routes/FlightsPage.tsx",
+        "apps/web/src/components/flights/FlightForm.tsx",
+        "apps/web/src/components/flights/AirportAutocomplete.tsx",
+        "apps/web/src/components/flights/AirlineAutocomplete.tsx",
+        "apps/web/src/components/flights/AircraftPicker.tsx",
+        "apps/web/src/hooks/useFlights.ts"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "flight-origin-suggestions",
+      "title": "Добавить полёт · подсказки аэропорта",
+      "route": "/flights",
+      "status": "captured",
+      "screenshot": "images/flight-origin-suggestions.png",
+      "snapshot": "images/flight-origin-suggestions.txt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "authenticated",
+      "fixture": "Локальный frozen fixture на localhost:8799, пользователь b@example.test; искусственные данные только в одноразовой БД.",
+      "preconditions": [
+        "В форме введён код/часть названия аэропорта."
+      ],
+      "recognition": [
+        "Поле «Откуда» содержит JFK; показаны варианты аэропортов."
+      ],
+      "actions": [
+        {
+          "label": "Перейти к авиакомпании",
+          "to": "flight-airline-suggestions",
+          "effect": "Появляются подсказки авиакомпании."
+        }
+      ],
+      "source": [
+        "apps/web/src/routes/FlightsPage.tsx",
+        "apps/web/src/components/flights/FlightForm.tsx",
+        "apps/web/src/components/flights/AirportAutocomplete.tsx",
+        "apps/web/src/components/flights/AirlineAutocomplete.tsx",
+        "apps/web/src/components/flights/AircraftPicker.tsx",
+        "apps/web/src/hooks/useFlights.ts"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "flight-airline-suggestions",
+      "title": "Добавить полёт · подсказки авиакомпании",
+      "route": "/flights",
+      "status": "captured",
+      "screenshot": "images/flight-airline-suggestions.png",
+      "snapshot": "images/flight-airline-suggestions.txt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "authenticated",
+      "fixture": "Локальный frozen fixture на localhost:8799, пользователь b@example.test; искусственные данные только в одноразовой БД.",
+      "preconditions": [
+        "Маршрут введён; фокус в поле авиакомпании."
+      ],
+      "recognition": [
+        "Поле авиакомпании показывает варианты по введённому коду/названию."
+      ],
+      "actions": [
+        {
+          "label": "Раскрыть детали",
+          "to": "flight-add-optional-fields",
+          "effect": "Появляются номер рейса, самолёт и времена."
+        }
+      ],
+      "source": [
+        "apps/web/src/routes/FlightsPage.tsx",
+        "apps/web/src/components/flights/FlightForm.tsx",
+        "apps/web/src/components/flights/AirportAutocomplete.tsx",
+        "apps/web/src/components/flights/AirlineAutocomplete.tsx",
+        "apps/web/src/components/flights/AircraftPicker.tsx",
+        "apps/web/src/hooks/useFlights.ts"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "flight-add-optional-fields",
+      "title": "Добавить полёт · необязательные поля",
+      "route": "/flights",
+      "status": "captured",
+      "screenshot": "images/flight-add-optional-fields.png",
+      "snapshot": "images/flight-add-optional-fields.txt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "authenticated",
+      "fixture": "Локальный frozen fixture на localhost:8799, пользователь b@example.test; искусственные данные только в одноразовой БД.",
+      "preconditions": [
+        "Открыта форма добавления."
+      ],
+      "recognition": [
+        "Развёрнуты номер рейса, самолёт, время вылета и прилёта."
+      ],
+      "actions": [
+        {
+          "label": "Искать самолёт",
+          "to": "flight-aircraft-suggestions",
+          "effect": "Показываются типы из каталога."
+        }
+      ],
+      "source": [
+        "apps/web/src/routes/FlightsPage.tsx",
+        "apps/web/src/components/flights/FlightForm.tsx",
+        "apps/web/src/components/flights/AirportAutocomplete.tsx",
+        "apps/web/src/components/flights/AirlineAutocomplete.tsx",
+        "apps/web/src/components/flights/AircraftPicker.tsx",
+        "apps/web/src/hooks/useFlights.ts"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "flight-aircraft-suggestions",
+      "title": "Добавить полёт · подсказки самолёта",
+      "route": "/flights",
+      "status": "captured",
+      "screenshot": "images/flight-aircraft-suggestions.png",
+      "snapshot": "images/flight-aircraft-suggestions.txt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "authenticated",
+      "fixture": "Локальный frozen fixture на localhost:8799, пользователь b@example.test; искусственные данные только в одноразовой БД.",
+      "preconditions": [
+        "В форме раскрыто поле самолёта; введён поисковый запрос."
+      ],
+      "recognition": [
+        "Поле модели самолёта показывает подходящие варианты каталога."
+      ],
+      "actions": [
+        {
+          "label": "Заполнить запись",
+          "to": "flight-add-filled",
+          "effect": "Форма готова к сохранению."
+        }
+      ],
+      "source": [
+        "apps/web/src/routes/FlightsPage.tsx",
+        "apps/web/src/components/flights/FlightForm.tsx",
+        "apps/web/src/components/flights/AirportAutocomplete.tsx",
+        "apps/web/src/components/flights/AirlineAutocomplete.tsx",
+        "apps/web/src/components/flights/AircraftPicker.tsx",
+        "apps/web/src/hooks/useFlights.ts"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "flight-add-filled",
+      "title": "Добавить полёт · заполненная форма",
+      "route": "/flights",
+      "status": "captured",
+      "screenshot": "images/flight-add-filled.png",
+      "snapshot": "images/flight-add-filled.txt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "authenticated",
+      "fixture": "Локальный frozen fixture на localhost:8799, пользователь b@example.test; искусственные данные только в одноразовой БД.",
+      "preconditions": [
+        "Введён тестовый будущий рейс JFK→BOS на 04.05.2027."
+      ],
+      "recognition": [
+        "Поля даты, маршрута, авиакомпании, номера, самолёта и времени заполнены."
+      ],
+      "actions": [
+        {
+          "label": "Ввести дату и маршрут существующей записи",
+          "to": "flight-manual-duplicate",
+          "effect": "Предупреждение о дубле появляется до сохранения."
+        }
+      ],
+      "source": [
+        "apps/web/src/routes/FlightsPage.tsx",
+        "apps/web/src/components/flights/FlightForm.tsx",
+        "apps/web/src/components/flights/AirportAutocomplete.tsx",
+        "apps/web/src/components/flights/AirlineAutocomplete.tsx",
+        "apps/web/src/components/flights/AircraftPicker.tsx",
+        "apps/web/src/hooks/useFlights.ts"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "flight-manual-duplicate",
+      "title": "Добавить полёт · предупреждение о дубле",
+      "route": "/flights",
+      "status": "captured",
+      "screenshot": "images/flight-manual-duplicate.png",
+      "snapshot": "images/flight-manual-duplicate.txt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "authenticated",
+      "fixture": "Локальный frozen fixture на localhost:8799, пользователь b@example.test; искусственные данные только в одноразовой БД.",
+      "preconditions": [
+        "Введены дата/маршрут уже существующей записи."
+      ],
+      "recognition": [
+        "Предупреждение о совпадении даты и маршрута; интерфейс позволяет продолжить сохранение."
+      ],
+      "actions": [],
+      "source": [
+        "apps/web/src/routes/FlightsPage.tsx",
+        "apps/web/src/components/flights/FlightForm.tsx",
+        "apps/web/src/components/flights/AirportAutocomplete.tsx",
+        "apps/web/src/components/flights/AirlineAutocomplete.tsx",
+        "apps/web/src/components/flights/AircraftPicker.tsx",
+        "apps/web/src/hooks/useFlights.ts"
+      ],
+      "notes": "Снимок фиксирует предупреждение; дубль из этой формы не сохранялся."
+    },
+    {
+      "id": "flights-populated-desktop",
+      "title": "Журнал с рейсами · desktop",
+      "route": "/flights",
+      "status": "captured",
+      "screenshot": "images/flights-populated-desktop.png",
+      "snapshot": "images/flights-populated-desktop.txt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "authenticated",
+      "fixture": "Локальный frozen fixture на localhost:8799, пользователь b@example.test; искусственные данные только в одноразовой БД.",
+      "preconditions": [
+        "Есть один импортированный и один вручную добавленный синтетический рейс."
+      ],
+      "recognition": [
+        "Таблица содержит прошлый и будущий перелёты; видны заголовки колонок и действия."
+      ],
+      "actions": [
+        {
+          "label": "Фильтр типа",
+          "to": "flights-type-filter-open",
+          "effect": "Раскрывается выбор будущих/прошедших."
+        },
+        {
+          "label": "Режим выбора",
+          "to": "flights-bulk-select-mode",
+          "effect": "В таблице появляются чекбоксы."
+        }
+      ],
+      "source": [
+        "apps/web/src/routes/FlightsPage.tsx",
+        "apps/web/src/components/flights/FlightList.tsx",
+        "apps/web/src/components/flights/FlightTable.tsx",
+        "apps/web/src/components/flights/FlightCard.tsx",
+        "apps/web/src/components/flights/FlightFilters.tsx",
+        "apps/web/src/hooks/useFlights.ts"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "flights-type-filter-open",
+      "title": "Журнал · фильтр предстоящих/прошедших",
+      "route": "/flights",
+      "status": "captured",
+      "screenshot": "images/flights-type-filter-open.png",
+      "snapshot": "images/flights-type-filter-open.txt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "authenticated",
+      "fixture": "Локальный frozen fixture на localhost:8799, пользователь b@example.test; искусственные данные только в одноразовой БД.",
+      "preconditions": [
+        "В журнале есть прошлые и будущие рейсы."
+      ],
+      "recognition": [
+        "Раскрыт список фильтра типа поездки: все, предстоящие, прошедшие."
+      ],
+      "actions": [
+        {
+          "label": "Предстоящие",
+          "to": "flights-filter-upcoming",
+          "effect": "Остаются будущие рейсы."
+        },
+        {
+          "label": "Прошедшие",
+          "to": "flights-filter-past",
+          "effect": "Остаются прошедшие рейсы."
+        }
+      ],
+      "source": [
+        "apps/web/src/routes/FlightsPage.tsx",
+        "apps/web/src/components/flights/FlightList.tsx",
+        "apps/web/src/components/flights/FlightTable.tsx",
+        "apps/web/src/components/flights/FlightCard.tsx",
+        "apps/web/src/components/flights/FlightFilters.tsx",
+        "apps/web/src/hooks/useFlights.ts"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "flights-filter-upcoming",
+      "title": "Журнал · предстоящие рейсы",
+      "route": "/flights",
+      "status": "captured",
+      "screenshot": "images/flights-filter-upcoming.png",
+      "snapshot": "images/flights-filter-upcoming.txt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "authenticated",
+      "fixture": "Локальный frozen fixture на localhost:8799, пользователь b@example.test; искусственные данные только в одноразовой БД.",
+      "preconditions": [
+        "Выбран фильтр предстоящих рейсов."
+      ],
+      "recognition": [
+        "В таблице остаётся будущий рейс с меткой дней до вылета."
+      ],
+      "actions": [],
+      "source": [
+        "apps/web/src/routes/FlightsPage.tsx",
+        "apps/web/src/components/flights/FlightList.tsx",
+        "apps/web/src/components/flights/FlightTable.tsx",
+        "apps/web/src/components/flights/FlightCard.tsx",
+        "apps/web/src/components/flights/FlightFilters.tsx",
+        "apps/web/src/hooks/useFlights.ts"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "flights-filter-past",
+      "title": "Журнал · прошедшие рейсы",
+      "route": "/flights",
+      "status": "captured",
+      "screenshot": "images/flights-filter-past.png",
+      "snapshot": "images/flights-filter-past.txt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "authenticated",
+      "fixture": "Локальный frozen fixture на localhost:8799, пользователь b@example.test; искусственные данные только в одноразовой БД.",
+      "preconditions": [
+        "Выбран фильтр прошедших рейсов."
+      ],
+      "recognition": [
+        "В таблице остаётся прошедший рейс."
+      ],
+      "actions": [],
+      "source": [
+        "apps/web/src/routes/FlightsPage.tsx",
+        "apps/web/src/components/flights/FlightList.tsx",
+        "apps/web/src/components/flights/FlightTable.tsx",
+        "apps/web/src/components/flights/FlightCard.tsx",
+        "apps/web/src/components/flights/FlightFilters.tsx",
+        "apps/web/src/hooks/useFlights.ts"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "flights-year-filter-open",
+      "title": "Журнал · список годов",
+      "route": "/flights",
+      "status": "captured",
+      "screenshot": "images/flights-year-filter-open.png",
+      "snapshot": "images/flights-year-filter-open.txt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "authenticated",
+      "fixture": "Локальный frozen fixture на localhost:8799, пользователь b@example.test; искусственные данные только в одноразовой БД.",
+      "preconditions": [
+        "Есть рейсы в нескольких годах."
+      ],
+      "recognition": [
+        "Раскрыт выбор года."
+      ],
+      "actions": [
+        {
+          "label": "Выбрать 2027",
+          "to": "flights-filter-year-2027",
+          "effect": "Список ограничивается выбранным годом."
+        }
+      ],
+      "source": [
+        "apps/web/src/routes/FlightsPage.tsx",
+        "apps/web/src/components/flights/FlightList.tsx",
+        "apps/web/src/components/flights/FlightTable.tsx",
+        "apps/web/src/components/flights/FlightCard.tsx",
+        "apps/web/src/components/flights/FlightFilters.tsx",
+        "apps/web/src/hooks/useFlights.ts"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "flights-filter-year-2027",
+      "title": "Журнал · год 2027",
+      "route": "/flights",
+      "status": "captured",
+      "screenshot": "images/flights-filter-year-2027.png",
+      "snapshot": "images/flights-filter-year-2027.txt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "authenticated",
+      "fixture": "Локальный frozen fixture на localhost:8799, пользователь b@example.test; искусственные данные только в одноразовой БД.",
+      "preconditions": [
+        "Выбран фильтр года 2027."
+      ],
+      "recognition": [
+        "Выбран 2027; в списке будущий JFK→BOS."
+      ],
+      "actions": [],
+      "source": [
+        "apps/web/src/routes/FlightsPage.tsx",
+        "apps/web/src/components/flights/FlightList.tsx",
+        "apps/web/src/components/flights/FlightTable.tsx",
+        "apps/web/src/components/flights/FlightCard.tsx",
+        "apps/web/src/components/flights/FlightFilters.tsx",
+        "apps/web/src/hooks/useFlights.ts"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "flights-airline-filter-open",
+      "title": "Журнал · список авиакомпаний",
+      "route": "/flights",
+      "status": "captured",
+      "screenshot": "images/flights-airline-filter-open.png",
+      "snapshot": "images/flights-airline-filter-open.txt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "authenticated",
+      "fixture": "Локальный frozen fixture на localhost:8799, пользователь b@example.test; искусственные данные только в одноразовой БД.",
+      "preconditions": [
+        "В журнале есть American Airlines."
+      ],
+      "recognition": [
+        "Раскрыт фильтр авиакомпании."
+      ],
+      "actions": [
+        {
+          "label": "Выбрать AA",
+          "to": "flights-filter-airline-aa",
+          "effect": "Список ограничивается авиакомпанией."
+        }
+      ],
+      "source": [
+        "apps/web/src/routes/FlightsPage.tsx",
+        "apps/web/src/components/flights/FlightList.tsx",
+        "apps/web/src/components/flights/FlightTable.tsx",
+        "apps/web/src/components/flights/FlightCard.tsx",
+        "apps/web/src/components/flights/FlightFilters.tsx",
+        "apps/web/src/hooks/useFlights.ts"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "flights-filter-airline-aa",
+      "title": "Журнал · American Airlines",
+      "route": "/flights",
+      "status": "captured",
+      "screenshot": "images/flights-filter-airline-aa.png",
+      "snapshot": "images/flights-filter-airline-aa.txt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "authenticated",
+      "fixture": "Локальный frozen fixture на localhost:8799, пользователь b@example.test; искусственные данные только в одноразовой БД.",
+      "preconditions": [
+        "Выбрана American Airlines."
+      ],
+      "recognition": [
+        "Фильтр AA применён; видны подходящие полёты."
+      ],
+      "actions": [],
+      "source": [
+        "apps/web/src/routes/FlightsPage.tsx",
+        "apps/web/src/components/flights/FlightList.tsx",
+        "apps/web/src/components/flights/FlightTable.tsx",
+        "apps/web/src/components/flights/FlightCard.tsx",
+        "apps/web/src/components/flights/FlightFilters.tsx",
+        "apps/web/src/hooks/useFlights.ts"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "flights-aircraft-filter-open",
+      "title": "Журнал · список типов самолёта",
+      "route": "/flights",
+      "status": "captured",
+      "screenshot": "images/flights-aircraft-filter-open.png",
+      "snapshot": "images/flights-aircraft-filter-open.txt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "authenticated",
+      "fixture": "Локальный frozen fixture на localhost:8799, пользователь b@example.test; искусственные данные только в одноразовой БД.",
+      "preconditions": [
+        "В журнале есть записанный Boeing 737-800."
+      ],
+      "recognition": [
+        "Раскрыт фильтр самолёта."
+      ],
+      "actions": [
+        {
+          "label": "Выбрать B738",
+          "to": "flights-filter-aircraft-b738",
+          "effect": "Список ограничивается типом самолёта."
+        }
+      ],
+      "source": [
+        "apps/web/src/components/flights/AircraftEnrichButton.tsx",
+        "apps/web/src/components/flights/AircraftEnrichDialog.tsx",
+        "apps/web/src/components/flights/AircraftPicker.tsx",
+        "apps/web/src/hooks/useAircraftEnrichment.ts"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "flights-filter-aircraft-b738",
+      "title": "Журнал · B738",
+      "route": "/flights",
+      "status": "captured",
+      "screenshot": "images/flights-filter-aircraft-b738.png",
+      "snapshot": "images/flights-filter-aircraft-b738.txt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "authenticated",
+      "fixture": "Локальный frozen fixture на localhost:8799, пользователь b@example.test; искусственные данные только в одноразовой БД.",
+      "preconditions": [
+        "Выбран самолёт B738."
+      ],
+      "recognition": [
+        "Фильтр B738 применён к American Airlines и году 2027."
+      ],
+      "actions": [],
+      "source": [
+        "apps/web/src/components/flights/AircraftEnrichButton.tsx",
+        "apps/web/src/components/flights/AircraftEnrichDialog.tsx",
+        "apps/web/src/components/flights/AircraftPicker.tsx",
+        "apps/web/src/hooks/useAircraftEnrichment.ts"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "import-file-pdf",
+      "title": "Импорт · PDF выбран",
+      "route": "/import",
+      "status": "captured",
+      "screenshot": "images/import-file-pdf.png",
+      "snapshot": "images/import-file-pdf.txt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "authenticated",
+      "fixture": "Локальный frozen fixture на localhost:8799, пользователь b@example.test; искусственные данные только в одноразовой БД.",
+      "preconditions": [
+        "Выбран локальный синтетический PDF."
+      ],
+      "recognition": [
+        "В поле файла отображается itinerary.pdf; распознавание доступно."
+      ],
+      "actions": [
+        {
+          "label": "Распознать документ",
+          "to": "import-review-duplicate",
+          "effect": "Парсер выдаёт тестовую запись, совпадающую с журналом."
+        }
+      ],
+      "source": [
+        "apps/web/src/routes/ImportPage.tsx",
+        "apps/web/src/components/import/ImportUpload.tsx",
+        "apps/web/src/components/import/ImportReview.tsx",
+        "apps/web/src/components/import/FlightEditRow.tsx",
+        "apps/web/src/components/import/FlightProgressModal.tsx",
+        "apps/web/src/hooks/useImport.ts",
+        "apps/web/src/hooks/useFlights.ts"
+      ],
+      "notes": "Файл не содержит персональных данных."
+    },
+    {
+      "id": "import-review-duplicate",
+      "title": "Импорт · найден дубль",
+      "route": "/import",
+      "status": "captured",
+      "screenshot": "images/import-review-duplicate.png",
+      "snapshot": "images/import-review-duplicate.txt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "authenticated",
+      "fixture": "Локальный frozen fixture на localhost:8799, пользователь b@example.test; искусственные данные только в одноразовой БД.",
+      "preconditions": [
+        "Распознан рейс, уже находящийся в журнале."
+      ],
+      "recognition": [
+        "Одна запись 03.01.2026 JFK→BOS помечена как совпадающая и снята с выбора."
+      ],
+      "actions": [
+        {
+          "label": "Выбрать дубль вручную",
+          "to": "import-review-duplicate-selected",
+          "effect": "Явно выбранную запись разрешено импортировать."
+        }
+      ],
+      "source": [
+        "apps/web/src/routes/ImportPage.tsx",
+        "apps/web/src/components/import/ImportUpload.tsx",
+        "apps/web/src/components/import/ImportReview.tsx",
+        "apps/web/src/components/import/FlightEditRow.tsx",
+        "apps/web/src/components/import/FlightProgressModal.tsx",
+        "apps/web/src/hooks/useImport.ts",
+        "apps/web/src/hooks/useFlights.ts"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "import-review-duplicate-selected",
+      "title": "Импорт · дубль выбран вручную",
+      "route": "/import",
+      "status": "captured",
+      "screenshot": "images/import-review-duplicate-selected.png",
+      "snapshot": "images/import-review-duplicate-selected.txt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "authenticated",
+      "fixture": "Локальный frozen fixture на localhost:8799, пользователь b@example.test; искусственные данные только в одноразовой БД.",
+      "preconditions": [
+        "Нажата команда выбрать всё."
+      ],
+      "recognition": [
+        "Дубликат явно отмечен чекбоксом; импорт разрешён после ручного выбора."
+      ],
+      "actions": [
+        {
+          "label": "Сохранить",
+          "to": "import-success",
+          "effect": "Создаётся копия; fixture разрешает ручной выбор дубля."
+        }
+      ],
+      "source": [
+        "apps/web/src/routes/ImportPage.tsx",
+        "apps/web/src/components/import/ImportUpload.tsx",
+        "apps/web/src/components/import/ImportReview.tsx",
+        "apps/web/src/components/import/FlightEditRow.tsx",
+        "apps/web/src/components/import/FlightProgressModal.tsx",
+        "apps/web/src/hooks/useImport.ts",
+        "apps/web/src/hooks/useFlights.ts"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "import-file-image",
+      "title": "Импорт · изображение выбрано",
+      "route": "/import",
+      "status": "captured",
+      "screenshot": "images/import-file-image.png",
+      "snapshot": "images/import-file-image.txt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "authenticated",
+      "fixture": "Локальный frozen fixture на localhost:8799, пользователь b@example.test; искусственные данные только в одноразовой БД.",
+      "preconditions": [
+        "Выбран локальный синтетический PNG."
+      ],
+      "recognition": [
+        "В поле файла показан ticket.png/preview; распознавание доступно."
+      ],
+      "actions": [
+        {
+          "label": "Распознать документ",
+          "to": "import-parsing-image",
+          "effect": "Показывается состояние анализа изображения."
+        }
+      ],
+      "source": [
+        "apps/web/src/routes/ImportPage.tsx",
+        "apps/web/src/components/import/ImportUpload.tsx",
+        "apps/web/src/components/import/ImportReview.tsx",
+        "apps/web/src/components/import/FlightEditRow.tsx",
+        "apps/web/src/components/import/FlightProgressModal.tsx",
+        "apps/web/src/hooks/useImport.ts",
+        "apps/web/src/hooks/useFlights.ts"
+      ],
+      "notes": "Файл не содержит персональных данных."
+    },
+    {
+      "id": "import-parsing-image",
+      "title": "Импорт · распознавание изображения",
+      "route": "/import",
+      "status": "captured",
+      "screenshot": "images/import-parsing-image.png",
+      "snapshot": "images/import-parsing-image.txt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "authenticated",
+      "fixture": "Локальный frozen fixture на localhost:8799, пользователь b@example.test; искусственные данные только в одноразовой БД.",
+      "preconditions": [
+        "PNG отправлен в fake parser."
+      ],
+      "recognition": [
+        "Виден экран распознавания/индикатор анализа после загрузки PNG."
+      ],
+      "actions": [
+        {
+          "label": "Разбор завершён",
+          "to": "import-review-duplicate",
+          "effect": "Показывается найденный дубль."
+        }
+      ],
+      "source": [
+        "apps/web/src/routes/ImportPage.tsx",
+        "apps/web/src/components/import/ImportUpload.tsx",
+        "apps/web/src/components/import/ImportReview.tsx",
+        "apps/web/src/components/import/FlightEditRow.tsx",
+        "apps/web/src/components/import/FlightProgressModal.tsx",
+        "apps/web/src/hooks/useImport.ts",
+        "apps/web/src/hooks/useFlights.ts"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "import-error-provider-quota",
+      "title": "Импорт · ошибка лимита провайдера",
+      "route": "/import",
+      "status": "captured",
+      "screenshot": "images/import-error-provider-quota.png",
+      "snapshot": "images/import-error-provider-quota.txt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "authenticated",
+      "fixture": "Локальный frozen fixture на localhost:8799, пользователь b@example.test; искусственные данные только в одноразовой БД.",
+      "preconditions": [
+        "В текст распознавания передан маркер FAKE_PROVIDER_QUOTA; локальный endpoint ответил ошибкой."
+      ],
+      "recognition": [
+        "Alert: «Не удалось прочитать документ. Попробуйте другой формат.» и состояние «Полёты не найдены»."
+      ],
+      "actions": [
+        {
+          "label": "Попробовать другой файл",
+          "to": "import-upload-desktop",
+          "effect": "Форма ввода сбрасывается."
+        }
+      ],
+      "source": [
+        "apps/web/src/routes/ImportPage.tsx",
+        "apps/web/src/components/import/ImportUpload.tsx",
+        "apps/web/src/components/import/ImportReview.tsx",
+        "apps/web/src/components/import/FlightEditRow.tsx",
+        "apps/web/src/components/import/FlightProgressModal.tsx",
+        "apps/web/src/hooks/useImport.ts",
+        "apps/web/src/hooks/useFlights.ts"
+      ],
+      "notes": "Для обоих fake provider markers приложение показало одно и то же обобщённое сообщение, не отдельную квоту."
+    },
+    {
+      "id": "import-error-model-missing",
+      "title": "Импорт · модель недоступна",
+      "route": "/import",
+      "status": "captured",
+      "screenshot": "images/import-error-model-missing.png",
+      "snapshot": "images/import-error-model-missing.txt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "authenticated",
+      "fixture": "Локальный frozen fixture на localhost:8799, пользователь b@example.test; искусственные данные только в одноразовой БД.",
+      "preconditions": [
+        "В текст распознавания передан маркер FAKE_MODEL_MISSING; локальный endpoint ответил ошибкой."
+      ],
+      "recognition": [
+        "Alert: «Не удалось прочитать документ. Попробуйте другой формат.» и состояние «Полёты не найдены»."
+      ],
+      "actions": [
+        {
+          "label": "Попробовать другой файл",
+          "to": "import-upload-desktop",
+          "effect": "Форма ввода сбрасывается."
+        }
+      ],
+      "source": [
+        "apps/web/src/routes/ImportPage.tsx",
+        "apps/web/src/components/import/ImportUpload.tsx",
+        "apps/web/src/components/import/ImportReview.tsx",
+        "apps/web/src/components/import/FlightEditRow.tsx",
+        "apps/web/src/components/import/FlightProgressModal.tsx",
+        "apps/web/src/hooks/useImport.ts",
+        "apps/web/src/hooks/useFlights.ts"
+      ],
+      "notes": "Сообщение совпадает с ошибкой лимита; различие причины не видно пользователю."
+    },
+    {
+      "id": "import-save-error-retry",
+      "title": "Импорт · ошибка сохранения с повтором",
+      "route": "/import",
+      "status": "simulated",
+      "screenshot": "images/import-save-error-retry.png",
+      "snapshot": "images/import-save-error-retry.txt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "authenticated",
+      "fixture": "Локальный frozen fixture на localhost:8799, пользователь b@example.test; искусственные данные только в одноразовой БД.",
+      "preconditions": [
+        "Включён явный перехват POST /api/flights в браузере; запрос прерван для проверки восстановления."
+      ],
+      "recognition": [
+        "«Ошибка импорта», Failed to fetch для JFK→BOS, кнопки повторить неудачные сохранения или начать заново."
+      ],
+      "actions": [
+        {
+          "label": "Повторить неудачные сохранения",
+          "to": "import-save-retried",
+          "effect": "После снятия тестового перехвата повторная запись сохранена."
+        }
+      ],
+      "source": [
+        "apps/web/src/routes/ImportPage.tsx",
+        "apps/web/src/components/import/ImportUpload.tsx",
+        "apps/web/src/components/import/ImportReview.tsx",
+        "apps/web/src/components/import/FlightEditRow.tsx",
+        "apps/web/src/components/import/FlightProgressModal.tsx",
+        "apps/web/src/hooks/useImport.ts",
+        "apps/web/src/hooks/useFlights.ts"
+      ],
+      "notes": "Состояние simulated: сетевой запрос остановлен тестовым перехватом, backend не получил эту попытку."
+    },
+    {
+      "id": "import-save-retried",
+      "title": "Импорт · повторное сохранение",
+      "route": "/import",
+      "status": "simulated",
+      "screenshot": "images/import-save-retried.png",
+      "snapshot": "images/import-save-retried.txt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "authenticated",
+      "fixture": "Локальный frozen fixture на localhost:8799, пользователь b@example.test; искусственные данные только в одноразовой БД.",
+      "preconditions": [
+        "Перехват POST /api/flights снят; нажат повтор неудачных сохранений."
+      ],
+      "recognition": [
+        "Экран успешного импорта и toast Flight added to your log после повтора."
+      ],
+      "actions": [
+        {
+          "label": "Посмотреть полёты",
+          "to": "flights-populated-after-import",
+          "effect": "Открывается журнал с тестовыми записями."
+        }
+      ],
+      "source": [
+        "apps/web/src/routes/ImportPage.tsx",
+        "apps/web/src/components/import/ImportUpload.tsx",
+        "apps/web/src/components/import/ImportReview.tsx",
+        "apps/web/src/components/import/FlightEditRow.tsx",
+        "apps/web/src/components/import/FlightProgressModal.tsx",
+        "apps/web/src/hooks/useImport.ts",
+        "apps/web/src/hooks/useFlights.ts"
+      ],
+      "notes": "Сценарий simulated end-to-end: повторный запрос дошёл до локального fixture и сохранил синтетический рейс. Экран снова ошибочно показал 0 flights added."
+    },
+    {
+      "id": "flights-populated-after-import",
+      "title": "Журнал после повтора импорта · desktop",
+      "route": "/flights",
+      "status": "captured",
+      "screenshot": "images/flights-populated-after-import.png",
+      "snapshot": "images/flights-populated-after-import.txt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "authenticated",
+      "fixture": "Локальный frozen fixture на localhost:8799, пользователь b@example.test; искусственные данные только в одноразовой БД.",
+      "preconditions": [
+        "Перед снимком сохранены импортированный и manually-added рейс; два дополнительных импорта сделаны во время проверки retry."
+      ],
+      "recognition": [
+        "Список содержит 3 одинаковых прошлых синтетических рейса плюс один будущий рейс."
+      ],
+      "actions": [],
+      "source": [
+        "apps/web/src/routes/FlightsPage.tsx",
+        "apps/web/src/components/flights/FlightList.tsx",
+        "apps/web/src/components/flights/FlightTable.tsx",
+        "apps/web/src/components/flights/FlightCard.tsx",
+        "apps/web/src/components/flights/FlightFilters.tsx",
+        "apps/web/src/hooks/useFlights.ts"
+      ],
+      "notes": "Повторяющиеся синтетические записи были удалены из локального аккаунта после съёмки; не использовать это изображение как каталог реальных данных."
+    },
+    {
+      "id": "flight-edit-form",
+      "title": "Редактировать полёт · форма",
+      "route": "/flights",
+      "status": "captured",
+      "screenshot": "images/flight-edit-form.png",
+      "snapshot": "images/flight-edit-form.txt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "authenticated",
+      "fixture": "Локальный frozen fixture на localhost:8799, пользователь b@example.test; искусственные данные только в одноразовой БД.",
+      "preconditions": [
+        "Открыта строка прошедшего синтетического рейса."
+      ],
+      "recognition": [
+        "Диалог с заголовком «Редактировать полёт», заполненными значениями и кнопкой «Удалить полёт»."
+      ],
+      "actions": [
+        {
+          "label": "Удалить полёт",
+          "to": "flight-delete-confirm",
+          "effect": "Открывается подтверждение удаления."
+        }
+      ],
+      "source": [
+        "apps/web/src/components/flights/FlightTable.tsx",
+        "apps/web/src/components/flights/FlightCardActions.tsx",
+        "apps/web/src/components/flights/FlightForm.tsx",
+        "apps/web/src/hooks/useFlights.ts"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "flight-delete-confirm",
+      "title": "Редактировать полёт · подтверждение удаления",
+      "route": "/flights",
+      "status": "captured",
+      "screenshot": "images/flight-delete-confirm.png",
+      "snapshot": "images/flight-delete-confirm.txt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "authenticated",
+      "fixture": "Локальный frozen fixture на localhost:8799, пользователь b@example.test; искусственные данные только в одноразовой БД.",
+      "preconditions": [
+        "Нажата «Удалить полёт» внутри формы; подтверждение отменено после съёмки."
+      ],
+      "recognition": [
+        "Подтверждение «Удалить полёт?» с действиями отменить и удалить."
+      ],
+      "actions": [],
+      "source": [
+        "apps/web/src/components/flights/FlightTable.tsx",
+        "apps/web/src/components/flights/FlightCardActions.tsx",
+        "apps/web/src/components/flights/FlightForm.tsx",
+        "apps/web/src/hooks/useFlights.ts"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "flights-bulk-select-mode",
+      "title": "Журнал · режим пакетного выбора",
+      "route": "/flights",
+      "status": "captured",
+      "screenshot": "images/flights-bulk-select-mode.png",
+      "snapshot": "images/flights-bulk-select-mode.txt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "authenticated",
+      "fixture": "Локальный frozen fixture на localhost:8799, пользователь b@example.test; искусственные данные только в одноразовой БД.",
+      "preconditions": [
+        "Нажата «Выбрать» при четырёх синтетических рейсах."
+      ],
+      "recognition": [
+        "Таблица показывает чекбоксы; удаление отключено, пока ничего не выбрано."
+      ],
+      "actions": [
+        {
+          "label": "Выбрать запись",
+          "to": "flights-bulk-selected",
+          "effect": "Кнопка пакетного удаления становится активной."
+        }
+      ],
+      "source": [
+        "apps/web/src/routes/FlightsPage.tsx",
+        "apps/web/src/components/flights/FlightList.tsx",
+        "apps/web/src/components/flights/FlightTable.tsx",
+        "apps/web/src/components/flights/FlightCard.tsx",
+        "apps/web/src/components/flights/FlightFilters.tsx",
+        "apps/web/src/hooks/useFlights.ts"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "flights-bulk-selected",
+      "title": "Журнал · выбран один рейс",
+      "route": "/flights",
+      "status": "captured",
+      "screenshot": "images/flights-bulk-selected.png",
+      "snapshot": "images/flights-bulk-selected.txt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "authenticated",
+      "fixture": "Локальный frozen fixture на localhost:8799, пользователь b@example.test; искусственные данные только в одноразовой БД.",
+      "preconditions": [
+        "В режиме пакетного выбора отмечен один прошлый рейс."
+      ],
+      "recognition": [
+        "Выбран один чекбокс; активна кнопка удаления."
+      ],
+      "actions": [
+        {
+          "label": "Удалить выбранное",
+          "to": "flights-bulk-delete-confirm",
+          "effect": "Открывается подтверждение с количеством записей."
+        }
+      ],
+      "source": [
+        "apps/web/src/routes/FlightsPage.tsx",
+        "apps/web/src/components/flights/FlightList.tsx",
+        "apps/web/src/components/flights/FlightTable.tsx",
+        "apps/web/src/components/flights/FlightCard.tsx",
+        "apps/web/src/components/flights/FlightFilters.tsx",
+        "apps/web/src/hooks/useFlights.ts"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "flights-bulk-delete-confirm",
+      "title": "Журнал · подтверждение пакетного удаления",
+      "route": "/flights",
+      "status": "captured",
+      "screenshot": "images/flights-bulk-delete-confirm.png",
+      "snapshot": "images/flights-bulk-delete-confirm.txt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "authenticated",
+      "fixture": "Локальный frozen fixture на localhost:8799, пользователь b@example.test; искусственные данные только в одноразовой БД.",
+      "preconditions": [
+        "Запущено удаление выбранного рейса; снимок был отменён."
+      ],
+      "recognition": [
+        "Подтверждение «Удалить 1 полёт?» с отменой и подтверждением."
+      ],
+      "actions": [],
+      "source": [
+        "apps/web/src/routes/FlightsPage.tsx",
+        "apps/web/src/components/flights/FlightList.tsx",
+        "apps/web/src/components/flights/FlightTable.tsx",
+        "apps/web/src/components/flights/FlightCard.tsx",
+        "apps/web/src/components/flights/FlightFilters.tsx",
+        "apps/web/src/hooks/useFlights.ts"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "flights-populated-mobile",
+      "title": "Журнал с рейсами · mobile",
+      "route": "/flights",
+      "status": "captured",
+      "screenshot": "images/flights-populated-mobile.png",
+      "snapshot": "images/flights-populated-mobile.txt",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "auth": "authenticated",
+      "fixture": "Локальный frozen fixture на localhost:8799, пользователь b@example.test; искусственные данные только в одноразовой БД.",
+      "preconditions": [
+        "Открыт /flights при ширине 390 px; четыре синтетических записи."
+      ],
+      "recognition": [
+        "Компактные карточки рейсов, мобильная нижняя навигация и фильтры."
+      ],
+      "actions": [],
+      "source": [
+        "apps/web/src/routes/FlightsPage.tsx",
+        "apps/web/src/components/flights/FlightList.tsx",
+        "apps/web/src/components/flights/FlightTable.tsx",
+        "apps/web/src/components/flights/FlightCard.tsx",
+        "apps/web/src/components/flights/FlightFilters.tsx",
+        "apps/web/src/hooks/useFlights.ts"
+      ],
+      "notes": "В тексте accessibility snapshot карточки раскрыты хуже, чем на изображении."
+    },
+    {
+      "id": "flight-add-form-mobile",
+      "title": "Добавить полёт · форма mobile",
+      "route": "/flights",
+      "status": "captured",
+      "screenshot": "images/flight-add-form-mobile.png",
+      "snapshot": "images/flight-add-form-mobile.txt",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "auth": "authenticated",
+      "fixture": "Локальный frozen fixture на localhost:8799, пользователь b@example.test; искусственные данные только в одноразовой БД.",
+      "preconditions": [
+        "На mobile нажата кнопка добавления полёта."
+      ],
+      "recognition": [
+        "Модальная форма добавления с маршрутными, датой и необязательными полями при ширине 390 px."
+      ],
+      "actions": [],
+      "source": [
+        "apps/web/src/routes/FlightsPage.tsx",
+        "apps/web/src/components/flights/FlightForm.tsx",
+        "apps/web/src/components/flights/AirportAutocomplete.tsx",
+        "apps/web/src/components/flights/AirlineAutocomplete.tsx",
+        "apps/web/src/components/flights/AircraftPicker.tsx",
+        "apps/web/src/hooks/useFlights.ts"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "import-upload-mobile",
+      "title": "Импорт · загрузка · mobile",
+      "route": "/import",
+      "status": "captured",
+      "screenshot": "images/import-upload-mobile.png",
+      "snapshot": "images/import-upload-mobile.txt",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "auth": "authenticated",
+      "fixture": "Локальный frozen fixture на localhost:8799, пользователь b@example.test; искусственные данные только в одноразовой БД.",
+      "preconditions": [
+        "Открыт /import на mobile."
+      ],
+      "recognition": [
+        "Поле текста, загрузка файла и нижняя мобильная навигация при ширине 390 px."
+      ],
+      "actions": [
+        {
+          "label": "Ввести текст и распознать",
+          "to": "import-review-mobile",
+          "effect": "Открывается адаптивная проверка результата."
+        }
+      ],
+      "source": [
+        "apps/web/src/routes/ImportPage.tsx",
+        "apps/web/src/components/import/ImportUpload.tsx",
+        "apps/web/src/components/import/ImportReview.tsx",
+        "apps/web/src/components/import/FlightEditRow.tsx",
+        "apps/web/src/components/import/FlightProgressModal.tsx",
+        "apps/web/src/hooks/useImport.ts",
+        "apps/web/src/hooks/useFlights.ts"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "import-review-mobile",
+      "title": "Импорт · проверка · mobile",
+      "route": "/import",
+      "status": "captured",
+      "screenshot": "images/import-review-mobile.png",
+      "snapshot": "images/import-review-mobile.txt",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "auth": "authenticated",
+      "fixture": "Локальный frozen fixture на localhost:8799, пользователь b@example.test; искусственные данные только в одноразовой БД.",
+      "preconditions": [
+        "Распознан один тестовый рейс на /import при ширине 390 px."
+      ],
+      "recognition": [
+        "Редактируемый найденный рейс в адаптивной раскладке и нижняя навигация."
+      ],
+      "actions": [],
+      "source": [
+        "apps/web/src/routes/ImportPage.tsx",
+        "apps/web/src/components/import/ImportUpload.tsx",
+        "apps/web/src/components/import/ImportReview.tsx",
+        "apps/web/src/components/import/FlightEditRow.tsx",
+        "apps/web/src/components/import/FlightProgressModal.tsx",
+        "apps/web/src/hooks/useImport.ts",
+        "apps/web/src/hooks/useFlights.ts"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "flights-aircraft-enrich-error",
+      "title": "Журнал · ошибка поиска самолётов",
+      "route": "/flights",
+      "status": "captured",
+      "screenshot": "images/flights-aircraft-enrich-error.png",
+      "snapshot": "images/flights-aircraft-enrich-error.txt",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "auth": "authenticated",
+      "fixture": "Локальный frozen fixture на localhost:8799, пользователь b@example.test; искусственные данные только в одноразовой БД.",
+      "preconditions": [
+        "Нажата пакетная команда enrichment для трёх рейсов без типа самолёта; fake Gemini endpoint вернул 502."
+      ],
+      "recognition": [
+        "После «Найти самолёт (3)» отображается toast ошибки поиска."
+      ],
+      "actions": [
+        {
+          "label": "Указать тип вручную",
+          "to": "flights-aircraft-picker-suggestions",
+          "effect": "Открывается каталог типов самолётов."
+        }
+      ],
+      "source": [
+        "apps/web/src/components/flights/AircraftEnrichButton.tsx",
+        "apps/web/src/components/flights/AircraftEnrichDialog.tsx",
+        "apps/web/src/components/flights/AircraftPicker.tsx",
+        "apps/web/src/hooks/useAircraftEnrichment.ts"
+      ],
+      "notes": "Ни results dialog, ни empty-result dialog не открылись: запрос завершился ошибкой."
+    },
+    {
+      "id": "flights-aircraft-picker-suggestions",
+      "title": "Указать самолёт · подсказки каталога",
+      "route": "/flights",
+      "status": "captured",
+      "screenshot": "images/flights-aircraft-picker-suggestions.png",
+      "snapshot": "images/flights-aircraft-picker-suggestions.txt",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "auth": "authenticated",
+      "fixture": "Локальный frozen fixture на localhost:8799, пользователь b@example.test; искусственные данные только в одноразовой БД.",
+      "preconditions": [
+        "Нажата кнопка «Добавить самолёт» для рейса; каталог самолётов локальный."
+      ],
+      "recognition": [
+        "Диалог содержит поиск «737» и варианты B37M/B38M/B39M/B732…/B738."
+      ],
+      "actions": [
+        {
+          "label": "Закрыть каталог",
+          "to": "flights-populated-mobile",
+          "effect": "Каталог закрывается."
+        }
+      ],
+      "source": [
+        "apps/web/src/components/flights/AircraftEnrichButton.tsx",
+        "apps/web/src/components/flights/AircraftEnrichDialog.tsx",
+        "apps/web/src/components/flights/AircraftPicker.tsx",
+        "apps/web/src/hooks/useAircraftEnrichment.ts"
+      ],
+      "notes": "Кандидаты каталога наблюдаемы; клик по B738 закрыл picker, но в network log не увидели подтверждённого обновления самолёта."
+    },
+    {
+      "id": "flights-aircraft-enrichment-empty",
+      "title": "Обогащение самолётов · пустой результат",
+      "route": "/flights",
+      "status": "simulated",
+      "screenshot": "images/flights-aircraft-enrichment-empty.png",
+      "snapshot": "images/flights-aircraft-enrichment-empty.txt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "authenticated",
+      "fixture": "Локальный frozen fixture на localhost:8799, пользователь b@example.test; искусственные данные только в одноразовой БД.",
+      "preconditions": [
+        "POST /api/enrich/aircraft перехвачен с успешным контрактным ответом results: []."
+      ],
+      "recognition": [
+        "В диалоге показано состояние «не удалось определить самолёт»; кнопка принятия disabled."
+      ],
+      "actions": [
+        {
+          "label": "Отмена",
+          "to": "flights-populated-desktop",
+          "effect": "Возврат в журнал."
+        }
+      ],
+      "source": [
+        "apps/web/src/components/flights/AircraftEnrichButton.tsx",
+        "apps/web/src/components/flights/AircraftEnrichDialog.tsx",
+        "apps/web/src/components/flights/AircraftPicker.tsx",
+        "apps/web/src/hooks/useAircraftEnrichment.ts"
+      ],
+      "notes": "Состояние simulated по AircraftEnrichDialog; реальный provider fixture отвечает 502."
+    },
+    {
+      "id": "flights-aircraft-enrichment-results",
+      "title": "Обогащение самолётов · кандидат B738",
+      "route": "/flights",
+      "status": "simulated",
+      "screenshot": "images/flights-aircraft-enrichment-results.png",
+      "snapshot": "images/flights-aircraft-enrichment-results.txt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "authenticated",
+      "fixture": "Локальный frozen fixture на localhost:8799, пользователь b@example.test; искусственные данные только в одноразовой БД.",
+      "preconditions": [
+        "POST /api/enrich/aircraft заменён контрактным результатом для flight_id 76."
+      ],
+      "recognition": [
+        "Диалог показывает 1 из 1 найденных: AA100 JFK→BOS, B738, Boeing 737-800, confidence 98%, чекбокс выбран."
+      ],
+      "actions": [
+        {
+          "label": "Принять выбранный самолёт",
+          "to": "flights-aircraft-enrichment-apply-error",
+          "effect": "Тестовый отказ PATCH оставляет диалог открытым."
+        },
+        {
+          "label": "Принять после retry",
+          "to": "flights-aircraft-enrichment-applied",
+          "effect": "После снятия перехвата самолёт сохраняется."
+        }
+      ],
+      "source": [
+        "apps/web/src/components/flights/AircraftEnrichButton.tsx",
+        "apps/web/src/components/flights/AircraftEnrichDialog.tsx",
+        "apps/web/src/components/flights/AircraftPicker.tsx",
+        "apps/web/src/hooks/useAircraftEnrichment.ts"
+      ],
+      "notes": "Состояние simulated: payload подменён по интерфейсу EnrichmentResponse; последующий сохранённый PATCH прошёл через fixture."
+    },
+    {
+      "id": "flights-aircraft-enrichment-apply-error",
+      "title": "Обогащение самолётов · ошибка сохранения",
+      "route": "/flights",
+      "status": "simulated",
+      "screenshot": "images/flights-aircraft-enrichment-apply-error.png",
+      "snapshot": "images/flights-aircraft-enrichment-apply-error.txt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "authenticated",
+      "fixture": "Локальный frozen fixture на localhost:8799, пользователь b@example.test; искусственные данные только в одноразовой БД.",
+      "preconditions": [
+        "PATCH /api/flights/76 прерван тестовым перехватом после выбора результата."
+      ],
+      "recognition": [
+        "Результат B738 остаётся выбран, внизу сообщение «Не удалось сохранить данные о самолётах. Попробуйте ещё раз»."
+      ],
+      "actions": [
+        {
+          "label": "Повторить сохранение",
+          "to": "flights-aircraft-enrichment-applied",
+          "effect": "PATCH проходит и обновляет запись."
+        }
+      ],
+      "source": [
+        "apps/web/src/components/flights/AircraftEnrichButton.tsx",
+        "apps/web/src/components/flights/AircraftEnrichDialog.tsx",
+        "apps/web/src/components/flights/AircraftPicker.tsx",
+        "apps/web/src/hooks/useAircraftEnrichment.ts"
+      ],
+      "notes": "Состояние simulated: backend не получил неудачную попытку."
+    },
+    {
+      "id": "flights-aircraft-enrichment-applied",
+      "title": "Обогащение самолётов · результат применён",
+      "route": "/flights",
+      "status": "simulated",
+      "screenshot": "images/flights-aircraft-enrichment-applied.png",
+      "snapshot": "images/flights-aircraft-enrichment-applied.txt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "authenticated",
+      "fixture": "Локальный frozen fixture на localhost:8799, пользователь b@example.test; искусственные данные только в одноразовой БД.",
+      "preconditions": [
+        "Перехват PATCH снят и выбранный B738 сохранён локальным API."
+      ],
+      "recognition": [
+        "Строка JFK→BOS AA100 показывает Boeing 737-800; toast сообщает, что сохранён 1 самолёт."
+      ],
+      "actions": [
+        {
+          "label": "Вернуться к журналу",
+          "to": "flights-populated-after-import",
+          "effect": "Строка показывает обновлённый тип."
+        }
+      ],
+      "source": [
+        "apps/web/src/components/flights/AircraftEnrichButton.tsx",
+        "apps/web/src/components/flights/AircraftEnrichDialog.tsx",
+        "apps/web/src/components/flights/AircraftPicker.tsx",
+        "apps/web/src/hooks/useAircraftEnrichment.ts"
+      ],
+      "notes": "Ответ подсказки был synthetic; реальная мутация PATCH подтверждена по UI и строке журнала."
+    },
+    {
+      "id": "flights-filter-route-jfk-bos",
+      "title": "Журнал · маршрут JFK→BOS",
+      "route": "/flights",
+      "status": "captured",
+      "screenshot": "images/flights-filter-route-jfk-bos.png",
+      "snapshot": "images/flights-filter-route-jfk-bos.txt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "authenticated",
+      "fixture": "Локальный frozen fixture на localhost:8799, пользователь b@example.test; искусственные данные только в одноразовой БД.",
+      "preconditions": [
+        "В журнале есть синтетический JFK→BOS; задан фильтр аэропортов."
+      ],
+      "recognition": [
+        "Оба поля маршрута заполнены кодами JFK и BOS; таблица показывает совпадающий рейс."
+      ],
+      "actions": [],
+      "source": [
+        "apps/web/src/routes/FlightsPage.tsx",
+        "apps/web/src/components/flights/FlightList.tsx",
+        "apps/web/src/components/flights/FlightTable.tsx",
+        "apps/web/src/components/flights/FlightCard.tsx",
+        "apps/web/src/components/flights/FlightFilters.tsx",
+        "apps/web/src/hooks/useFlights.ts"
+      ],
+      "notes": ""
+    }
+  ],
+  "journeys": [
+    {
+      "id": "flights-create-manual",
+      "title": "Добавить полёт вручную и проверить дубликат",
+      "states": [
+        "flights-empty-desktop",
+        "flight-add-form-desktop",
+        "flight-date-calendar",
+        "flight-origin-suggestions",
+        "flight-airline-suggestions",
+        "flight-add-optional-fields",
+        "flight-aircraft-suggestions",
+        "flight-add-filled",
+        "flight-manual-duplicate"
+      ],
+      "steps": [
+        "Открыть форму из журнала.",
+        "Выбрать дату и маршрут из автоподсказок.",
+        "Раскрыть поля номера, самолёта и времени.",
+        "Заполнить рейс и сохранить.",
+        "При совпадении даты/маршрута увидеть предупреждение и решить, сохранять ли запись."
+      ],
+      "outcome": "Создан будущий JFK→BOS; отдельный дубль из предупреждения не сохранялся."
+    },
+    {
+      "id": "flights-browse-filter",
+      "title": "Просмотреть журнал и фильтровать записи",
+      "states": [
+        "flights-populated-desktop",
+        "flights-type-filter-open",
+        "flights-filter-upcoming",
+        "flights-filter-past",
+        "flights-year-filter-open",
+        "flights-filter-year-2027",
+        "flights-airline-filter-open",
+        "flights-filter-airline-aa",
+        "flights-aircraft-filter-open",
+        "flights-filter-aircraft-b738",
+        "flights-filter-route-jfk-bos"
+      ],
+      "steps": [
+        "Загрузить записи журнала.",
+        "Отфильтровать предстоящие и прошедшие рейсы.",
+        "Выбрать год, авиакомпанию и тип самолёта."
+      ],
+      "outcome": "Фильтры комбинируются; для 2027/AA/B738 остаётся будущая запись."
+    },
+    {
+      "id": "flights-edit-delete",
+      "title": "Править один полёт или выбрать пакетное удаление",
+      "states": [
+        "flights-populated-after-import",
+        "flight-edit-form",
+        "flight-delete-confirm",
+        "flights-bulk-select-mode",
+        "flights-bulk-selected",
+        "flights-bulk-delete-confirm"
+      ],
+      "steps": [
+        "Открыть строку и форму редактирования.",
+        "Открыть подтверждение удаления записи; отменить действие.",
+        "Перейти в режим выбора, выбрать запись и открыть пакетное подтверждение."
+      ],
+      "outcome": "Подтверждения и количество выбранных записей видны; тестовые записи очищены после съёмки."
+    },
+    {
+      "id": "flights-mobile-layout",
+      "title": "Просмотреть журнал и добавить полёт на мобильном экране",
+      "states": [
+        "flights-empty-mobile",
+        "flights-populated-mobile",
+        "flight-add-form-mobile"
+      ],
+      "steps": [
+        "Открыть пустой список.",
+        "Загрузить синтетические рейсы и проверить карточную раскладку.",
+        "Открыть мобильную форму добавления."
+      ],
+      "outcome": "Подтверждён мобильный layout списка и формы при 390×844."
+    },
+    {
+      "id": "import-text-review-save",
+      "title": "Распознать текст, проверить и сохранить рейс",
+      "states": [
+        "import-upload-desktop",
+        "import-prompt-expanded",
+        "import-text-ready",
+        "import-parsing-text",
+        "import-review-text",
+        "import-review-expanded",
+        "import-success"
+      ],
+      "steps": [
+        "Показать инструкции и ввести текст подтверждения.",
+        "Запустить распознавание.",
+        "Проверить и раскрыть поля результата, менять выбор/удалять строки.",
+        "Сохранить выбранный рейс или добавить вручную."
+      ],
+      "outcome": "Синтетический JFK→BOS AA100 появился в журнале; success counter показал 0 вопреки toast и записи в журнале."
+    },
+    {
+      "id": "import-file-pdf-image",
+      "title": "Загрузить PDF или изображение",
+      "states": [
+        "import-upload-desktop",
+        "import-file-pdf",
+        "import-review-duplicate",
+        "import-review-duplicate-selected",
+        "import-file-image",
+        "import-parsing-image"
+      ],
+      "steps": [
+        "Выбрать синтетический PDF или PNG.",
+        "Запустить парсер и проверить результат.",
+        "Дубликат автоматически снят с выбора; пользователь может выбрать его сам."
+      ],
+      "outcome": "Оба типа файлов проходят в fake parser; результат детерминированный и совпадает с сохранённым рейсом."
+    },
+    {
+      "id": "import-provider-errors",
+      "title": "Увидеть общую ошибку распознавания",
+      "states": [
+        "import-upload-desktop",
+        "import-error-provider-quota",
+        "import-error-model-missing"
+      ],
+      "steps": [
+        "Ввести маркер fake quota или fake missing model.",
+        "Запустить распознавание и прочитать сообщение ошибки."
+      ],
+      "outcome": "Обе причины отображаются одной общей ошибкой чтения документа; детали причины не раскрываются."
+    },
+    {
+      "id": "import-retry-save",
+      "title": "Повторить сбой сохранения",
+      "states": [
+        "import-review-duplicate",
+        "import-save-error-retry",
+        "import-save-retried"
+      ],
+      "steps": [
+        "Явно выбрать найденный дубль.",
+        "Тестовый перехват прерывает POST /api/flights; UI предлагает повторить неудачное сохранение.",
+        "Снять перехват и повторить сохранение."
+      ],
+      "outcome": "Retry реально сохранил запись в локальном fixture; начальный отказ помечен simulated."
+    },
+    {
+      "id": "import-mobile-layout",
+      "title": "Распознать рейс на мобильном экране",
+      "states": [
+        "import-upload-mobile",
+        "import-review-mobile"
+      ],
+      "steps": [
+        "Открыть загрузку на ширине 390 px.",
+        "Ввести тестовый текст и перейти к проверке."
+      ],
+      "outcome": "Зафиксированы мобильные состояния загрузки и редактирования результата."
+    },
+    {
+      "id": "flights-aircraft",
+      "title": "Искать самолёт и выбрать тип вручную",
+      "states": [
+        "flights-populated-mobile",
+        "flights-aircraft-enrich-error",
+        "flights-aircraft-picker-suggestions",
+        "flights-aircraft-enrichment-empty",
+        "flights-aircraft-enrichment-results",
+        "flights-aircraft-enrichment-apply-error",
+        "flights-aircraft-enrichment-applied"
+      ],
+      "steps": [
+        "Запустить пакетный поиск самолётов для записей без типа.",
+        "Fake provider вызов завершился 502; диалог empty/results повторно воспроизведён контрактными payload.",
+        "Прервать PATCH, увидеть ошибку сохранения, затем повторить и сохранить B738."
+      ],
+      "outcome": "Пустой и непустой диалоги подтверждены по source contract; успешный PATCH обновил локальный журнал. Настоящий внешний provider не проверен."
+    },
+    {
+      "id": "import-review-selection",
+      "title": "Исключить и снова выбрать распознанный рейс",
+      "states": [
+        "import-review-text",
+        "import-review-none-selected",
+        "import-review-text"
+      ]
+    },
+    {
+      "id": "import-review-manual-add",
+      "title": "Открыть ручное добавление из пустой проверки",
+      "states": [
+        "import-review-text",
+        "import-review-removed-all",
+        "import-manual-add-form-desktop"
+      ]
+    }
+  ],
+  "gaps": [
+    {
+      "state": "import-success",
+      "reason": "Страница успеха пишет «0 flights added to your log», хотя API создал запись; показан toast Flight added to your log и запись есть в /flights. Это наблюдаемый product inconsistency, не предположение.",
+      "source": "apps/web/src/routes/ImportPage.tsx; apps/web/src/hooks/useImport.ts"
+    },
+    {
+      "state": "flights-aircraft-enrichment-empty / flights-aircraft-enrichment-results",
+      "reason": "Реальный локальный POST /api/enrich/aircraft вернул 502 из-за fake provider, поэтому candidate/no-result dialogs воспроизведены перехватом успешного тела, строго по EnrichmentResponse и фильтру confidence ≥ 0.7 в компоненте. Снимки помечены simulated. Ошибка и успешный PATCH-применение также проверены simulated/реальным retry соответственно.",
+      "source": "apps/web/src/components/flights/AircraftEnrichButton.tsx; apps/web/src/components/flights/AircraftEnrichDialog.tsx; apps/web/src/hooks/useAircraftEnrichment.ts"
+    },
+    {
+      "state": "import-error-provider-quota / import-error-model-missing",
+      "reason": "Fake markers дали API ответы 503 и 502, однако клиент отобразил одинаковую общую ошибку «Не удалось прочитать документ. Попробуйте другой формат». Это проверяет локальную обработку, не реальный провайдер.",
+      "source": "apps/web/src/routes/ImportPage.tsx; apps/web/src/hooks/useImport.ts"
+    },
+    {
+      "state": "flight-detail",
+      "reason": "Отдельного route или просмотра подробностей записи в журнале не обнаружено; доступны карточка/строка и форма редактирования.",
+      "source": "apps/web/src/routes/FlightsPage.tsx; apps/web/src/components/flights/FlightCard.tsx; apps/web/src/components/flights/FlightTable.tsx"
+    }
+  ]
+}

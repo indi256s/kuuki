@@ -22,7 +22,7 @@ export function ProfilePage() {
   const { username } = useParams<{ username: string }>()
   const { t } = useTranslation()
   const { user } = useAuth()
-  const { data: profileData, isLoading, error } = usePublicProfile(username)
+  const { data: profileData, isLoading, isFetching, error, refetch } = usePublicProfile(username)
 
   const [showMiniHeader, setShowMiniHeader] = useState(false)
   const statsRef = useRef<HTMLDivElement>(null)
@@ -107,22 +107,22 @@ export function ProfilePage() {
         </div>
       </>
     )
-  } else if (error || !profileData) {
+  } else if (!profileData) {
     content = (
       <div className="py-16 md:py-24 text-center animate-fade-up">
         <UserX className="w-16 h-16 mx-auto mb-6 text-muted-foreground/30" strokeWidth={1} />
         <h1 className="text-2xl font-display font-semibold mb-2">
-          {t('profile.notFound', 'Profile not found')}
+          {error ? t('errors.profileLoadFailed', 'Could not load profile') : t('profile.notFound', 'Profile not found')}
         </h1>
         <p className="text-muted-foreground mb-8 max-w-md mx-auto">
-          {t('profile.notFoundDescription', 'This user doesn\'t exist or has a private profile.')}
+          {error ? t('errors.tryAgain', 'Please try again.') : t('profile.notFoundDescription', 'This user does not exist.')}
         </p>
-        <Button asChild variant="outline">
+        {error ? <Button variant="outline" onClick={() => void refetch()} disabled={isFetching}>{t('common.retry', 'Try again')}</Button> : <Button asChild variant="outline">
           <Link to="/">
             <ArrowLeft className="w-4 h-4 mr-2" />
             {t('common.back', 'Back')}
           </Link>
-        </Button>
+        </Button>}
       </div>
     )
   } else if (profileData && profile && !profile.is_public && !isOwnProfile) {
@@ -213,6 +213,12 @@ export function ProfilePage() {
       beforeMain={beforeMain}
       mobileTabBar={mobileTabBar}
     >
+      {error && profileData && (
+        <div role="alert" className="rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">
+          {t('errors.backgroundRefresh', 'Could not refresh this profile. Showing the last loaded data.')}
+          <Button variant="link" onClick={() => void refetch()} disabled={isFetching}>{t('common.retry', 'Try again')}</Button>
+        </div>
+      )}
       {content}
     </AppPageShell>
   )

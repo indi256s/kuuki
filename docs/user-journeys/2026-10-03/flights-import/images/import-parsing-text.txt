@@ -1,0 +1,91 @@
+- generic [ref=e892] clickable [onclick]
+  - link "Skip to main content" [ref=e893]
+  - generic
+    - banner
+      - link "Kuuki" [ref=e895]
+        - StaticText "Kuuki"
+      - navigation
+        - link "Главная" [ref=e902]
+        - link "Полёты" [ref=e903]
+        - link "Паспорт" [ref=e904]
+        - link "Рейтинг" [ref=e905]
+        - link "Импорт" [ref=e906]
+      - button "Внешний вид" [expanded=false, ref=e896]
+        - StaticText "Внешний вид"
+      - button "FI" [expanded=false, ref=e897]
+        - StaticText "FI"
+    - main
+      - heading "Импорт" [level=1, ref=e898]
+      - StaticText "Проверка"
+      - heading "Проверьте найденные полёты" [level=2, ref=e911]
+      - paragraph
+        - StaticText "Проверьте и выберите рейсы для импорта"
+      - generic
+        - StaticText "0 / 1выбрано"
+      - button "Добавить вручную" [ref=e912]
+      - button "Отмена" [ref=e913]
+      - button "Import 0" [disabled, ref=e914]
+        - StaticText "Import 0"
+      - button "Выбрать все" [ref=e915]
+        - StaticText "Выбрать все"
+      - button "Снять выбор" [disabled, ref=e916]
+        - StaticText "Снять выбор"
+      - StaticText "1 возможный дубликат"
+      - button "Исключить дубликаты" [ref=e917]
+        - StaticText "Исключить дубликаты"
+      - checkbox [checked=false, ref=e918]
+      - StaticText "#"
+      - StaticText "1"
+      - StaticText "3 Jan 2026"
+      - StaticText "JFK"
+      - StaticText "New York"
+      - StaticText "BOS"
+      - StaticText "Boston"
+      - StaticText "AA"
+      - StaticText "American Airlines"
+      - StaticText "Дубликат"
+      - button [ref=e919]
+      - button [ref=e920]
+      - LabelText
+        - StaticText "Дата"
+      - textbox "dd.mm.yyyy" [ref=e921]: 03.01.2026
+        - StaticText "03.01.2026"
+      - LabelText
+        - StaticText "Откуда"
+      - generic
+        - textbox "Поиск по коду или городу…" [ref=e925]: JFK
+          - StaticText "JFK"
+        - generic
+          - StaticText "John F. Kennedy International Airport, New York"
+      - LabelText
+        - StaticText "Куда"
+      - generic
+        - textbox "Поиск по коду или городу…" [ref=e926]: BOS
+          - StaticText "BOS"
+        - generic
+          - StaticText "Boston Logan International Airport, Boston"
+      - LabelText
+        - StaticText "Авиакомпания"
+      - generic
+        - textbox "Поиск по коду или названию…" [ref=e927]: AA
+          - StaticText "AA"
+        - StaticText "American Airlines"
+      - LabelText
+        - StaticText "Номер рейса"
+      - textbox "123" [ref=e922]: 100
+        - StaticText "100"
+      - LabelText
+        - StaticText "Самолёт"
+      - textbox "Поиск по коду или названию…" [ref=e928]
+      - LabelText
+        - StaticText "Вылет"
+      - textbox "HH:MM" [ref=e923]: 10:00
+        - StaticText "10:00"
+      - LabelText
+        - StaticText "Прилёт"
+      - textbox "HH:MM" [ref=e924]: 11:30
+        - StaticText "11:30"
+      - StaticText "Уверенность ИИ"
+      - StaticText "80"
+      - StaticText "%"
+  - region "Notifications alt+T" [ref=e894]

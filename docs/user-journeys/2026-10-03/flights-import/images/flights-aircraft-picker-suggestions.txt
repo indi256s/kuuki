@@ -1,0 +1,160 @@
+- generic
+  - generic [ref=e934] clickable [onclick]
+    - link "Skip to main content" [ref=e935]
+    - banner
+      - link "Kuuki" [ref=e1152]
+        - StaticText "Kuuki"
+      - button "Внешний вид" [expanded=false, ref=e1153]
+        - StaticText "Внешний вид"
+    - main
+      - heading "Полёты" [level=1, ref=e1154]
+      - StaticText "4"
+      - StaticText "полётов"
+      - button "Фильтры" [ref=e1155]
+      - textbox "City or code" [ref=e1173]
+      - StaticText "→"
+      - textbox "City or code" [ref=e1174]
+      - combobox [expanded=false, ref=e1169]: Все годы
+        - generic [ref=e1175] clickable [onclick]
+          - StaticText "Все годы"
+      - combobox [expanded=false, ref=e1170]: Все авиакомпании
+        - generic [ref=e1176] clickable [onclick]
+          - StaticText "Все авиакомпании"
+      - combobox [expanded=false, ref=e1171]: Все самолёты
+        - generic [ref=e1177] clickable [onclick]
+          - StaticText "Все самолёты"
+      - combobox [expanded=false, ref=e1172]: Все полёты
+        - generic [ref=e1178] clickable [onclick]
+          - StaticText "Все полёты"
+      - button "Найти самолёт (3)" [ref=e1156]
+      - StaticText "JFK"
+      - StaticText "New York"
+      - StaticText "→"
+      - StaticText "BOS"
+      - StaticText "Boston"
+      - StaticText "04.05.27"
+      - StaticText "+"
+      - StaticText "212"
+      - StaticText "d"
+      - StaticText "AA"
+      - StaticText "100"
+      - button "Редактировать" [ref=e1157]
+      - StaticText "1h 30m"
+      - StaticText "American Airlines"
+      - StaticText "737-800"
+      - StaticText "330 km"
+      - StaticText "JFK"
+      - StaticText "New York"
+      - StaticText "→"
+      - StaticText "BOS"
+      - StaticText "Boston"
+      - StaticText "03.01.26"
+      - StaticText "AA"
+      - StaticText "100"
+      - button "Редактировать" [ref=e1158]
+      - StaticText "1h 30m"
+      - StaticText "American Airlines"
+      - generic [ref=e1159] clickable [cursor:pointer, onclick]
+        - StaticText "Добавить самолёт"
+      - StaticText "330 km"
+      - StaticText "JFK"
+      - StaticText "New York"
+      - StaticText "→"
+      - StaticText "BOS"
+      - StaticText "Boston"
+      - StaticText "03.01.26"
+      - StaticText "AA"
+      - StaticText "100"
+      - button "Редактировать" [ref=e1160]
+      - StaticText "1h 30m"
+      - StaticText "American Airlines"
+      - generic [ref=e1161] clickable [cursor:pointer, onclick]
+        - StaticText "Добавить самолёт"
+      - StaticText "330 km"
+      - StaticText "JFK"
+      - StaticText "New York"
+      - StaticText "→"
+      - StaticText "BOS"
+      - StaticText "Boston"
+      - StaticText "03.01.26"
+      - StaticText "AA"
+      - StaticText "100"
+      - button "Редактировать" [ref=e1162]
+      - StaticText "1h 30m"
+      - StaticText "American Airlines"
+      - generic [ref=e1163] clickable [cursor:pointer, onclick]
+        - StaticText "Добавить самолёт"
+      - StaticText "330 km"
+    - button "Добавить" [ref=e1151]
+    - navigation
+      - link "Главная" [ref=e1164]
+        - StaticText "Главная"
+      - link "Полёты" [ref=e1165]
+        - StaticText "Полёты"
+      - link "Импорт" [ref=e1166]
+        - StaticText "Импорт"
+      - link "Паспорт" [ref=e1167]
+        - StaticText "Паспорт"
+      - link "Настройки" [ref=e1168]
+        - StaticText "Настройки"
+    - region "Notifications alt+T" [ref=e936]
+  - dialog
+    - StaticText "Указать самолёт"
+    - paragraph
+      - StaticText "Выберите тип самолёта для этого рейса."
+    - generic
+      - textbox "Выберите самолёт…" [ref=e1183]: 737
+        - StaticText "737"
+      - list
+        - listitem [level=1, ref=e1184] clickable [cursor:pointer, onclick]
+          - StaticText "B37M"
+          - StaticText "- "
+          - StaticText "Boeing"
+          - StaticText "737 MAX 7"
+        - listitem [level=1, ref=e1185] clickable [cursor:pointer, onclick]
+          - StaticText "B38M"
+          - StaticText "- "
+          - StaticText "Boeing"
+          - StaticText "737 MAX 8"
+        - listitem [level=1, ref=e1186] clickable [cursor:pointer, onclick]
+          - StaticText "B39M"
+          - StaticText "- "
+          - StaticText "Boeing"
+          - StaticText "737 MAX 9"
+        - listitem [level=1, ref=e1187] clickable [cursor:pointer, onclick]
+          - StaticText "B732"
+          - StaticText "- "
+          - StaticText "Boeing"
+          - StaticText "737-200"
+        - listitem [level=1, ref=e1188] clickable [cursor:pointer, onclick]
+          - StaticText "B733"
+          - StaticText "- "
+          - StaticText "Boeing"
+          - StaticText "737-300"
+        - listitem [level=1, ref=e1189] clickable [cursor:pointer, onclick]
+          - StaticText "B734"
+          - StaticText "- "
+          - StaticText "Boeing"
+          - StaticText "737-400"
+        - listitem [level=1, ref=e1190] clickable [cursor:pointer, onclick]
+          - StaticText "B735"
+          - StaticText "- "
+          - StaticText "Boeing"
+          - StaticText "737-500"
+        - listitem [level=1, ref=e1191] clickable [cursor:pointer, onclick]
+          - StaticText "B736"
+          - StaticText "- "
+          - StaticText "Boeing"
+          - StaticText "737-600"
+        - listitem [level=1, ref=e1192] clickable [cursor:pointer, onclick]
+          - StaticText "B737"
+          - StaticText "- "
+          - StaticText "Boeing"
+          - StaticText "737-700"
+        - listitem [level=1, ref=e1193] clickable [cursor:pointer, onclick]
+          - StaticText "B738"
+          - StaticText "- "
+          - StaticText "Boeing"
+          - StaticText "737-800"
+    - button "Отмена" [ref=e1181]
+    - button "Сохранить" [disabled, ref=e1182]

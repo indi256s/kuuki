@@ -48,17 +48,12 @@ export async function getLeaderboard(
 ): Promise<{ entries: LeaderboardEntryWithProfile[]; total: number }> {
   const { limit = 50, offset = 0 } = options
 
-  try {
-    const data = await api.get<{ entries: ApiLeaderboardEntry[]; total: number }>('/api/leaderboard', {
-      category,
-      limit,
-      offset,
-    })
-    return { entries: (data.entries ?? []).map(withProfile), total: data.total ?? 0 }
-  } catch (error) {
-    console.error('Error fetching leaderboard:', error)
-    return { entries: [], total: 0 }
-  }
+  const data = await api.get<{ entries: ApiLeaderboardEntry[]; total: number }>('/api/leaderboard', {
+    category,
+    limit,
+    offset,
+  })
+  return { entries: (data.entries ?? []).map(withProfile), total: data.total ?? 0 }
 }
 
 /**
@@ -76,15 +71,11 @@ export async function getUserLeaderboardPositions(
     airlines: null,
   }
 
-  try {
-    const entries = await api.get<ApiLeaderboardEntry[]>('/api/me/rankings')
-    for (const entry of entries ?? []) {
-      if (CATEGORIES.includes(entry.category as LeaderboardCategory)) {
-        result[entry.category as LeaderboardCategory] = entry
-      }
+  const entries = await api.get<ApiLeaderboardEntry[]>('/api/me/rankings')
+  for (const entry of entries ?? []) {
+    if (CATEGORIES.includes(entry.category as LeaderboardCategory)) {
+      result[entry.category as LeaderboardCategory] = entry
     }
-  } catch (error) {
-    console.error('Error fetching user leaderboard positions:', error)
   }
 
   return result
@@ -94,11 +85,6 @@ export async function getUserLeaderboardPositions(
  * Get total number of ranked users.
  */
 export async function getTotalRankedUsers(): Promise<number> {
-  try {
-    const data = await api.get<{ total: number }>('/api/leaderboard/total-users')
-    return data.total ?? 0
-  } catch (error) {
-    console.error('Error fetching total ranked users:', error)
-    return 0
-  }
+  const data = await api.get<{ total: number }>('/api/leaderboard/total-users')
+  return data.total ?? 0
 }

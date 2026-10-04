@@ -1,0 +1,19 @@
+- generic "Skip to main contentくうきKuukiВнешний видくうきKuukiГлавнаяПолётыПаспортРейтингИмпортДобавить полётВнешни" [ref=e157] clickable [onclick]
+  - region "Notifications alt+T" [ref=e159]
+- heading "Добавить полёт" [level=2, ref=e197]
+- heading "ROUTE" [level=3, ref=e199]
+- textbox "Откуда *" [required, ref=e210]: JFK
+- button "Поменять" [ref=e208]
+- textbox "Куда *" [required, ref=e211]: BOS
+- heading "FLIGHT DETAILS" [level=3, ref=e200]
+- button "4 мая 2027" [expanded=false, ref=e201]
+- textbox "Авиакомпания" [ref=e209]: AA
+- heading "AIRCRAFT & TIMES" [level=3, ref=e728]
+- textbox "Самолёт" [ref=e730]: B738
+- listitem "B738- Boeing 737-800" [level=1, ref=e733] clickable [cursor:pointer, onclick]
+- textbox "123" [ref=e729]
+- textbox "HH:MM" [ref=e731]
+- textbox "HH:MM" [ref=e732]
+- button "Отмена" [ref=e206]
+- button "Добавить полёт" [ref=e207]
+- button "Close" [ref=e198]

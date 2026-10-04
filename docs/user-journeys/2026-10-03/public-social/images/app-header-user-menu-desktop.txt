@@ -1,0 +1,5 @@
+- generic "Skip to main contentくうきТестовый путешественник69 flightsくうきKuukiГлавнаяПолётыПаспортРейтингИмпортВне" [ref=e160] clickable [onclick]
+  - region "Notifications alt+T" [ref=e159]
+- menuitem "Настройки" [ref=e173]
+- menuitem "English" [ref=e174]
+- menuitem "Выйти" [ref=e175]

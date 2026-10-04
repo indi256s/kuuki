@@ -1,0 +1,6 @@
+- generic "Skip to main contentくうきKuukiВнешний видくうきKuukiГлавнаяПолётыПаспортРейтингИмпортДобавить полётВнешни" [ref=e157] clickable [onclick]
+  - region "Notifications alt+T" [ref=e159]
+- listbox [ref=e762]
+  - option "Все годы" [selected, ref=e763]
+  - option "2027" [ref=e764]
+  - option "2026" [ref=e765]

@@ -1,0 +1,60 @@
+# Kuuki architecture decisions and planning handoff
+
+Saved: 4 October 2026. Audited source baseline: `13034853df51874d20da95a3f4f3c2f7ea74f538`.
+
+## Authority and next deliverable
+
+The user requested a technical architecture/services audit, current Next.js Instant Navigations and caching, independent Opus 5.5 review, evaluation of TanStack Charts, and a GPT-6 Luna search for modern open-source maps. The latest clarification accepts **mapcn + flightcn as the map component layer**, with MapLibre underneath as their rendering dependency.
+
+The current request is: “save all decisions and run fresh thread on sol 6.1 xhigh to write an implementation plan.” The next thread must use **GPT-6.1 Sol with xhigh reasoning**, inspect the current repository and save the implementation plan. This authorizes planning and documentation. Application implementation, production cutover, cloud mutations and resource retirement remain separate work.
+
+This record is the compact source of decision status. The linked audits contain the evidence and limitations; their recommendations are not proof that proposed dependencies have been installed or benchmarked.
+
+## Decisions to carry into the plan
+
+| Area | Direction | Status and boundary |
+| --- | --- | --- |
+| App framework | Next.js App Router on Cloudflare Workers + Static Assets through OpenNext. | Selected architectural direction under the explicit Next requirement. Plan an incremental migration preserving existing users and behavior. |
+| Instant Navigations | Use persistent layouts, Link, Suspense and the current Cache Components/Partial Prefetching model. Audit-date proposed flags: `cacheComponents: true`, `partialPrefetching: true`. | Required capability. Audit-date candidate pair: Next 16.3.8 / OpenNext Cloudflare 1.20.8. Recheck latest stable documentation/compatibility and prove the exact selected pair on workerd before implementation depends on it. |
+| Initial caching | Prerender/prefetch reusable shells, version static/reference assets, and stream authenticated request-time summaries. Public aggregates also begin request-time behind visibility checks. | Selected starting policy. Navigation reuse and static caching satisfy useful cache goals without immediately creating a shared application-data cache. |
+| Persistent runtime caching | Introduce `use cache` storage/invalidation for a measured hot path only. | Conditional: R2 backend; D1 tag metadata for on-demand invalidation; DO queue if time-based revalidation is used. Static Assets is read-only and rejects runtime composable entries. Keep PPR-incompatible cache interception off. |
+| Database | Keep D1 and existing relational/domain functions. Reduce payloads, batch independent reads and publish compact read models. | Selected. Sessions/bookmarks/read replication and Worker placement need regional benchmarks. Postgres/Hyperdrive require demonstrated needs. |
+| Authentication | Keep Better Auth + D1; preserve accounts, credentials, sessions, revocation and same-origin routing. Add password recovery through the existing email service. | Selected. Explicitly map renewal/cookie writes, CSRF, maintenance and activation-host isolation into the Next/Worker boundary. RSC reads cannot write cookies; asset-first routing cannot bypass the host gate. |
+| Write consistency | Preserve atomic canonical writes + dirty markers, idempotent save recovery, derived revision guards and scheduled recovery. | Required invariant. Show truthful pending/ready state; asynchronous publication or business Queues depend on measured latency/backlog. |
+| Interactive client data | Keep TanStack Query for pagination, mutations, polling and interactive queries; use server data for initial summaries. Keep Zustand for UI/drafts. | Selected. Assign one freshness owner per data path; reset route, Query and draft state on identity changes. |
+| UI primitives | Keep Tailwind, shadcn/Radix, React Hook Form and Zod; implement the redesign through a coherent token system. | Selected. Read the existing UX brief and reconcile its design decisions with this architecture; preserve EN/RU, light/dark and accessibility requirements. |
+| Charts | Evaluate the requested TanStack Charts shadcn collection. Retain Recharts until the retained chart surfaces pass a comparable prototype. | Candidate, not an unconditional migration. Audit-date package is `@tanstack/charts` 1.0.0; validate shipped APIs and React 19/Next behavior. Correct mixed-unit axes and percentage domains regardless of renderer. Keep simple CSS visualizations where appropriate. |
+| Map components | Use selected **mapcn + flightcn** components and flight-history patterns. MapLibre is the underlying engine installed by mapcn, rather than a third independent integration or hosted service. | Selected prototype direction. Pin compatible registry revisions and a tested renderer; flightcn's demo uses v5 while current mapcn uses v6. Preserve Kuuki airport/domain data; avoid a second bundled airport corpus. |
+| Map UX/performance | Keep a light SVG preview/fallback; defer the full interactive map until visible/opened; use accurate great-circle geometry and wrapped route bounds. | Selected design boundary. Prove dateline/polar routes, journey fit, selection, theme restoration, navigation/memory, touch and keyboard/list access. Benchmark batched layers against per-route components. |
+| Map geography/delivery | Start with a tile-less country map and pinned geometry/worker assets through Static Assets. | Selected starting policy. Detailed basemaps are conditional: PMTiles/R2 or an explicit hosted provider. deck.gl is conditional on visualization/volume needs. No additional GIS database is justified. |
+| AI/import | Keep Gemini and `@google/genai` provisionally; improve errors, prompts, timeout alignment, deduplication and human review. | Provider replacement requires a representative consented/redacted benchmark. Preserve uncertain-year confirmation and review-before-save. Resumable jobs, Workflows and temporary private R2 uploads are conditional on flow requirements. |
+| Email | Keep Cloudflare Email Sending. | Selected. Verify activation/recovery delivery during an authorized implementation/staging proof. |
+| Public/browser assets | Self-host pinned fonts, country geometry and suitable decorative assets with licensing respected; split reference corpora by consumer. | Selected. Count total dependency/worker/asset bytes, not just wrapper size. |
+| Operations | Start with Cloudflare observability plus app metrics: request/D1 timing, Web Vitals, save latency, AI outcomes/usage, dirty backlog and maintenance health. | Selected. Another analytics vendor or AI Gateway is optional and requires a concrete operational benefit. |
+| Legacy services / CLI | Retain migration artifacts; retire unused Supabase resources only after accepted cutover. Keep the existing Wrangler project workflow. | Conditional retirement; no cloud deletion or CLI migration is part of this planning request. |
+
+Privacy remains a delivery contract: authenticate and check authoritative visibility outside cached scopes; keep private flights/passport/routes outside public HTTP/CDN caches. Cache keys and invalidation alone do not authorize access. Public profiles and leaderboards expose only permitted aggregates. Previously delivered/prefetched browser content cannot be retracted by a server invalidation.
+
+## Work the plan must cover
+
+Create a phased, repository-grounded plan that starts with concrete correctness and feasibility issues: errors disguised as empty data, the obsolete KV preview admission check, dashboard request/payload duplication, save/repair waiting, partial aircraft-update failures, AI timeout/historical-aircraft prompting, import duplicate coverage, and recovery/maintenance behavior. The audits give exact source evidence. Plan the Next migration boundary, route/read-model contracts, navigation and cache behavior, then map/chart/redesign work according to dependencies. A library change does not fix the data contracts by itself.
+
+Define the same-origin API coexistence or port strategy, middleware responsibility owners, canonical/published revisions, rollout stages and rollback compatibility for schemas, credentials, cookies and CSRF. Include package/Worker size/CPU constraints and placement proof. Resolve the documented leaderboard threshold/cities-versus-airports mismatch as an explicit product decision rather than silently selecting a rule.
+
+Use a small number of meaningful waves, concrete file/module ownership, dependency gates and proportionate checks. State observable acceptance criteria and separate measured baseline, implementation choices and unresolved assumptions. The UX brief may remove/redesign existing charts; prototype the actual retained requirements rather than copying an old dashboard wholesale. Save the plan to **`docs/plans/2026-10-04-kuuki-architecture-implementation.md`** and link it when complete.
+
+## Evidence to read
+
+1. [Architecture and services audit](2026-10-04-architecture-and-services.md): primary source findings, Next/CF/cache/auth migration requirements, execution order and evidence gates.
+2. [Service inventory/research](../research/2026-10-04-services-audit.md): active versus historical integrations and provider decisions.
+3. [Opus architecture review](2026-10-04-opus-architecture-review.md) and [Opus charts review](2026-10-04-opus-charts-review.md): independent original responses plus the primary agent's verified corrections. Read the corrections before treating review claims as facts.
+4. [Map options](../research/2026-10-04-maps-options.md): Luna repository snapshot, Context7/Firecrawl evidence, mapcn/flightcn dependencies, v6 worker/WebGL2 constraints and basemap alternatives. No map speedup or trend growth was established.
+5. [UX/UI redesign brief](../plans/2026-10-04-redesign-2.0-ux-ui.md), [user-journey atlas](../user-journeys/README.md), `PRODUCT.md`, `DESIGN.md` and `docs/FRONTEND_GUIDELINES.md`: related design/product evidence. These are independently authored work; preserve and reconcile them.
+
+## Existing verification and workspace state
+
+The audit's fresh web build passed; initial generated dependency closure was approximately 270 KB gzip JS + 24 KB gzip CSS. API tests passed: 9 files / 75 tests. Preview admission failed because it expects KV bindings no longer configured. Those are baseline checks, not a migrated Next build, live production proof or measured Core Web Vitals. No production/provider/load/visual checks were performed during this architecture audit.
+
+All audit/research files are saved in the shared root checkout and currently untracked. Existing independently edited work includes `docs/README.md`, `docs/user-journeys/`, `docs/plans/2026-10-04-redesign-2.0-ux-ui.md` and `.scratch/redesign-2-0/`. Preserve it. Use the root workspace so the fresh thread can read these uncommitted files; a new worktree would not contain them automatically.
+
+Planning completion means a saved, internally consistent implementation plan with ownership, dependencies, migration/rollback strategy, proof gates and clearly bounded open decisions. The requested exact profile applies to the new planning thread; any implementation-agent preferences in the plan should faithfully reflect the user's global model-routing contract rather than imply automatic authorization to execute.

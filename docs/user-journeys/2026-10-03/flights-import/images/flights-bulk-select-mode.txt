@@ -1,0 +1,135 @@
+- generic [ref=e934] clickable [onclick]
+  - link "Skip to main content" [ref=e935]
+  - banner
+    - link "Kuuki" [ref=e980]
+      - StaticText "Kuuki"
+    - navigation
+      - link "Главная" [ref=e991]
+      - link "Полёты" [ref=e992]
+      - link "Паспорт" [ref=e993]
+      - link "Рейтинг" [ref=e994]
+      - link "Импорт" [ref=e995]
+    - button "Добавить полёт" [ref=e981]
+      - StaticText "Добавить полёт"
+    - button "Внешний вид" [expanded=false, ref=e982]
+      - StaticText "Внешний вид"
+    - button "FI" [expanded=false, ref=e983]
+      - StaticText "FI"
+  - main
+    - heading "ПолётыYour complete flight history" [level=1, ref=e984]
+      - StaticText "ПолётыYour complete flight history"
+    - StaticText "0"
+    - StaticText "selected"
+    - button "Выбрать все" [ref=e1063]
+    - button "Удалить" [disabled, ref=e1064]
+    - button "Отмена" [ref=e1065]
+    - table
+      - rowgroup
+        - row
+          - columnheader "Выбрать все" [ref=e1070]
+            - checkbox "Выбрать все" [checked=false, ref=e1075]
+          - columnheader "ДАТА" [ref=e1026] clickable [cursor:pointer, onclick]
+            - StaticText "ДАТА"
+          - columnheader "МАРШРУТ" [ref=e1027] clickable [cursor:pointer, onclick]
+            - StaticText "МАРШРУТ"
+          - columnheader "ДЛИТЕЛЬНОСТЬ" [ref=e1028] clickable [cursor:pointer, onclick]
+            - StaticText "ДЛИТЕЛЬНОСТЬ"
+          - columnheader "АВИАКОМПАНИЯ" [ref=e1029] clickable [cursor:pointer, onclick]
+            - StaticText "АВИАКОМПАНИЯ"
+          - columnheader "САМОЛЁТ" [ref=e1030] clickable [cursor:pointer, onclick]
+            - StaticText "САМОЛЁТ"
+          - columnheader "РАССТОЯНИЕ" [ref=e1031] clickable [cursor:pointer, onclick]
+            - StaticText "РАССТОЯНИЕ"
+          - columnheader "ДЕЙСТВИЯ" [ref=e1032]
+            - StaticText "ДЕЙСТВИЯ"
+      - row
+        - cell "Выбрать полёт" [ref=e1066]
+          - checkbox "Выбрать полёт" [checked=false, ref=e1071]
+        - cell "04.05.27 +212d" [ref=e1002]
+          - StaticText "04.05.27"
+          - StaticText "+"
+          - StaticText "212"
+          - StaticText "d"
+        - cell "JFK New York → BOS Boston" [ref=e1003]
+          - StaticText "JFK"
+          - StaticText "New York"
+          - StaticText "→"
+          - StaticText "BOS"
+          - StaticText "Boston"
+        - cell "1h 30m" [ref=e1004]
+        - cell "American Airlines AA100" [ref=e1005]
+          - StaticText "American Airlines"
+          - StaticText "AA"
+          - StaticText "100"
+        - cell "Boeing 737-800" [ref=e1006]
+          - StaticText "Boeing 737-800"
+        - cell "330 km" [ref=e1007]
+        - cell
+          - button [ref=e1033]
+      - row
+        - cell "Выбрать полёт" [ref=e1067]
+          - checkbox "Выбрать полёт" [checked=false, ref=e1072]
+        - cell "03.01.26" [ref=e1008]
+          - StaticText "03.01.26"
+        - cell "JFK New York → BOS Boston" [ref=e1009]
+          - StaticText "JFK"
+          - StaticText "New York"
+          - StaticText "→"
+          - StaticText "BOS"
+          - StaticText "Boston"
+        - cell "1h 30m" [ref=e1010]
+        - cell "American Airlines AA100" [ref=e1011]
+          - StaticText "American Airlines"
+          - StaticText "AA"
+          - StaticText "100"
+        - cell "Добавить самолёт" [ref=e1012]
+          - generic [ref=e1034] clickable [cursor:pointer, onclick]
+            - StaticText "Добавить самолёт"
+        - cell "330 km" [ref=e1013]
+        - cell
+          - button [ref=e1035]
+      - row
+        - cell "Выбрать полёт" [ref=e1068]
+          - checkbox "Выбрать полёт" [checked=false, ref=e1073]
+        - cell "03.01.26" [ref=e1014]
+          - StaticText "03.01.26"
+        - cell "JFK New York → BOS Boston" [ref=e1015]
+          - StaticText "JFK"
+          - StaticText "New York"
+          - StaticText "→"
+          - StaticText "BOS"
+          - StaticText "Boston"
+        - cell "1h 30m" [ref=e1016]
+        - cell "American Airlines AA100" [ref=e1017]
+          - StaticText "American Airlines"
+          - StaticText "AA"
+          - StaticText "100"
+        - cell "Добавить самолёт" [ref=e1018]
+          - generic [ref=e1036] clickable [cursor:pointer, onclick]
+            - StaticText "Добавить самолёт"
+        - cell "330 km" [ref=e1019]
+        - cell
+          - button [ref=e1037]
+      - row
+        - cell "Выбрать полёт" [ref=e1069]
+          - checkbox "Выбрать полёт" [checked=false, ref=e1074]
+        - cell "03.01.26" [ref=e1020]
+          - StaticText "03.01.26"
+        - cell "JFK New York → BOS Boston" [ref=e1021]
+          - StaticText "JFK"
+          - StaticText "New York"
+          - StaticText "→"
+          - StaticText "BOS"
+          - StaticText "Boston"
+        - cell "1h 30m" [ref=e1022]
+        - cell "American Airlines AA100" [ref=e1023]
+          - StaticText "American Airlines"
+          - StaticText "AA"
+          - StaticText "100"
+        - cell "Добавить самолёт" [ref=e1024]
+          - generic [ref=e1038] clickable [cursor:pointer, onclick]
+            - StaticText "Добавить самолёт"
+        - cell "330 km" [ref=e1025]
+        - cell
+          - button [ref=e1039]
+  - region "Notifications alt+T" [ref=e936]

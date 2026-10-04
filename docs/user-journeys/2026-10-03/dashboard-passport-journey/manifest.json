@@ -1,0 +1,2321 @@
+{
+  "area": "dashboard-passport-journey",
+  "states": [
+    {
+      "id": "dashboard-add-flight-form-desktop",
+      "title": "Пустая форма добавления полёта",
+      "route": "/dashboard",
+      "status": "captured",
+      "screenshot": "images/dashboard-add-flight-form-desktop.png",
+      "snapshot": "images/dashboard-add-flight-form-desktop.txt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "authenticated",
+      "fixture": "Синтетический локальный аккаунт atlas-dashboard; пустые экраны сняты до добавления тестовых рейсов.",
+      "preconditions": [
+        "Открыт маршрут /dashboard.",
+        "Пользователь авторизован в локальном приложении."
+      ],
+      "recognition": [
+        "Пустая форма добавления полёта",
+        "Обязательные поля «Откуда *», «Куда *»",
+        "Дата формы «3 окт. 2026»",
+        "Кнопка «Добавить полёт»"
+      ],
+      "actions": [
+        {
+          "label": "Ввести аэропорт отправления",
+          "to": "dashboard-add-flight-origin-suggestions-desktop",
+          "effect": "Показывает совпадения аэропортов."
+        },
+        {
+          "label": "Сохранить пустую форму",
+          "to": "dashboard-add-flight-validation-desktop",
+          "effect": "Подсвечивает отсутствующие обязательные значения."
+        }
+      ],
+      "source": [
+        "apps/web/src/routes/DashboardPage.tsx",
+        "apps/web/src/components/flights/FlightForm.tsx",
+        "apps/web/src/hooks/useFlights.ts"
+      ],
+      "notes": "Состояние снято в локальном приложении; парный .txt содержит accessibility snapshot этого состояния."
+    },
+    {
+      "id": "dashboard-add-flight-origin-suggestions-desktop",
+      "title": "Подсказки аэропорта отправления",
+      "route": "/dashboard",
+      "status": "captured",
+      "screenshot": "images/dashboard-add-flight-origin-suggestions-desktop.png",
+      "snapshot": "images/dashboard-add-flight-origin-suggestions-desktop.txt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "authenticated",
+      "fixture": "Синтетический локальный аккаунт atlas-dashboard; пустые экраны сняты до добавления тестовых рейсов.",
+      "preconditions": [
+        "Открыт маршрут /dashboard.",
+        "Пользователь авторизован в локальном приложении."
+      ],
+      "recognition": [
+        "Подсказки аэропорта отправления",
+        "Введено «TBILISI» в поле отправления",
+        "Подсказка «TBS — Tbilisi International Airport, Tbilisi, Georgia»",
+        "Поле назначения «Куда *» пустое"
+      ],
+      "actions": [
+        {
+          "label": "Продолжить заполнение и сохранить",
+          "to": "dashboard-add-flight-validation-desktop",
+          "effect": "Проверяет обязательные поля формы."
+        }
+      ],
+      "source": [
+        "apps/web/src/routes/DashboardPage.tsx",
+        "apps/web/src/components/flights/FlightFilters.tsx",
+        "apps/web/src/components/flights/FlightForm.tsx",
+        "apps/web/src/hooks/useFlights.ts"
+      ],
+      "notes": "Состояние снято в локальном приложении; парный .txt содержит accessibility snapshot этого состояния."
+    },
+    {
+      "id": "dashboard-add-flight-validation-desktop",
+      "title": "Проверка обязательных полей полёта",
+      "route": "/dashboard",
+      "status": "captured",
+      "screenshot": "images/dashboard-add-flight-validation-desktop.png",
+      "snapshot": "images/dashboard-add-flight-validation-desktop.txt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "authenticated",
+      "fixture": "Синтетический локальный аккаунт atlas-dashboard; пустые экраны сняты до добавления тестовых рейсов.",
+      "preconditions": [
+        "Открыт маршрут /dashboard.",
+        "Пользователь авторизован в локальном приложении."
+      ],
+      "recognition": [
+        "Проверка обязательных полей полёта",
+        "Обязательные поля «Откуда *», «Куда *» пусты",
+        "Дата формы «3 окт. 2026»",
+        "Кнопка «Добавить полёт»"
+      ],
+      "actions": [
+        {
+          "label": "Заполнить форму и сохранить",
+          "to": "/dashboard",
+          "effect": "После валидного сохранения возвращает на главную; точное состояние с одним только новым рейсом не снято."
+        }
+      ],
+      "source": [
+        "apps/web/src/routes/DashboardPage.tsx",
+        "apps/web/src/components/flights/FlightForm.tsx",
+        "apps/web/src/hooks/useFlights.ts"
+      ],
+      "notes": "Состояние снято в локальном приложении; парный .txt содержит accessibility snapshot этого состояния."
+    },
+    {
+      "id": "dashboard-empty-desktop",
+      "title": "Главная без полётов — компьютер",
+      "route": "/dashboard",
+      "status": "captured",
+      "screenshot": "images/dashboard-empty-desktop.png",
+      "snapshot": "images/dashboard-empty-desktop.txt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "authenticated",
+      "fixture": "Синтетический локальный аккаунт atlas-dashboard; исходное состояние без рейсов и стран, до seed-рейсов и добавления Spain.",
+      "preconditions": [
+        "Открыт маршрут /dashboard.",
+        "Пользователь авторизован в локальном приложении."
+      ],
+      "recognition": [
+        "Главная без полётов — компьютер",
+        "Приветствие «atlas-dashboard»",
+        "Пустой экран «Start Your Journey»",
+        "Кнопка «Добавить полёт»"
+      ],
+      "actions": [
+        {
+          "label": "Добавить полёт",
+          "to": "dashboard-add-flight-form-desktop",
+          "effect": "Открывает пустую форму полёта."
+        },
+        {
+          "label": "Паспорт",
+          "to": "passport-empty-desktop",
+          "effect": "Переходит на /passport."
+        }
+      ],
+      "source": [
+        "apps/web/src/routes/DashboardPage.tsx"
+      ],
+      "notes": "Состояние снято в локальном приложении; парный .txt содержит accessibility snapshot этого состояния."
+    },
+    {
+      "id": "dashboard-empty-mobile",
+      "title": "Главная без полётов — телефон",
+      "route": "/dashboard",
+      "status": "captured",
+      "screenshot": "images/dashboard-empty-mobile.png",
+      "snapshot": "images/dashboard-empty-mobile.txt",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "auth": "authenticated",
+      "fixture": "Синтетический локальный аккаунт atlas-dashboard; исходное состояние без рейсов и стран, до seed-рейсов и добавления Spain.",
+      "preconditions": [
+        "Открыт маршрут /dashboard.",
+        "Пользователь авторизован в локальном приложении."
+      ],
+      "recognition": [
+        "Главная без полётов — телефон",
+        "Приветствие «atlas-dashboard»",
+        "Пустой экран «Start Your Journey»",
+        "Кнопка «Добавить полёт»"
+      ],
+      "actions": [
+        {
+          "label": "Добавить полёт",
+          "to": "/dashboard",
+          "effect": "Открывает форму добавления на мобильной главной; снимка формы в мобильном размере нет."
+        },
+        {
+          "label": "Паспорт",
+          "to": "passport-empty-mobile",
+          "effect": "Переходит на /passport через нижнюю навигацию."
+        }
+      ],
+      "source": [
+        "apps/web/src/routes/DashboardPage.tsx"
+      ],
+      "notes": "Состояние снято в локальном приложении; парный .txt содержит accessibility snapshot этого состояния."
+    },
+    {
+      "id": "dashboard-filter-aircraft-menu-desktop",
+      "title": "Фильтр по самолёту открыт",
+      "route": "/dashboard",
+      "status": "captured",
+      "screenshot": "images/dashboard-filter-aircraft-menu-desktop.png",
+      "snapshot": "images/dashboard-filter-aircraft-menu-desktop.txt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "authenticated",
+      "fixture": "Синтетический локальный аккаунт atlas-dashboard: прошлый JFK—LAX (AA 100, B738, 03.01.2026) и предстоящий TBS—DOH (QR, 05.10.2026).",
+      "preconditions": [
+        "Открыт маршрут /dashboard.",
+        "Пользователь авторизован в локальном приложении.",
+        "Для нужной выборки рейсов в fixture должны быть загружены данные, указанные ниже."
+      ],
+      "recognition": [
+        "Фильтр по самолёту открыт",
+        "Выбрано «Все самолёты»",
+        "Вариант «737-800»",
+        "Открыт список фильтра «Самолёт»"
+      ],
+      "actions": [
+        {
+          "label": "Выбрать самолёт",
+          "to": "/dashboard",
+          "effect": "Выбор 737-800 фильтрует рейсы текущего аккаунта; точный экран после выбора отдельно не снят."
+        }
+      ],
+      "source": [
+        "apps/web/src/routes/DashboardPage.tsx",
+        "apps/web/src/components/flights/FlightFilters.tsx"
+      ],
+      "notes": "Состояние снято в локальном приложении; парный .txt содержит accessibility snapshot этого состояния."
+    },
+    {
+      "id": "dashboard-filter-airline-menu-desktop",
+      "title": "Фильтр по авиакомпании открыт",
+      "route": "/dashboard",
+      "status": "captured",
+      "screenshot": "images/dashboard-filter-airline-menu-desktop.png",
+      "snapshot": "images/dashboard-filter-airline-menu-desktop.txt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "authenticated",
+      "fixture": "Синтетический локальный аккаунт atlas-dashboard: прошлый JFK—LAX (AA 100, B738, 03.01.2026) и предстоящий TBS—DOH (QR, 05.10.2026).",
+      "preconditions": [
+        "Открыт маршрут /dashboard.",
+        "Пользователь авторизован в локальном приложении.",
+        "Для нужной выборки рейсов в fixture должны быть загружены данные, указанные ниже."
+      ],
+      "recognition": [
+        "Фильтр по авиакомпании открыт",
+        "Выбрано «Все авиакомпании»",
+        "Группа альянса «Oneworld»",
+        "Авиакомпании «American Airlines (AA)», «Qatar Airways (QR)»"
+      ],
+      "actions": [
+        {
+          "label": "Выбрать авиакомпанию",
+          "to": "dashboard-route-filter-tbs-doh-desktop",
+          "effect": "Меняет состав полётов и маршрутов по выбранной авиакомпании; целевой пример фильтра показан отдельно."
+        }
+      ],
+      "source": [
+        "apps/web/src/routes/DashboardPage.tsx",
+        "apps/web/src/components/flights/FlightFilters.tsx"
+      ],
+      "notes": "Состояние снято в локальном приложении; парный .txt содержит accessibility snapshot этого состояния."
+    },
+    {
+      "id": "dashboard-filter-status-menu-desktop",
+      "title": "Фильтр по статусу полёта открыт",
+      "route": "/dashboard",
+      "status": "captured",
+      "screenshot": "images/dashboard-filter-status-menu-desktop.png",
+      "snapshot": "images/dashboard-filter-status-menu-desktop.txt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "authenticated",
+      "fixture": "Синтетический локальный аккаунт atlas-dashboard: прошлый JFK—LAX (AA 100, B738, 03.01.2026) и предстоящий TBS—DOH (QR, 05.10.2026).",
+      "preconditions": [
+        "Открыт маршрут /dashboard.",
+        "Пользователь авторизован в локальном приложении.",
+        "Для нужной выборки рейсов в fixture должны быть загружены данные, указанные ниже."
+      ],
+      "recognition": [
+        "Фильтр по статусу полёта открыт",
+        "Выбрано «Все полёты»",
+        "Варианты «Предстоящие», «Прошедшие»",
+        "Открыт список фильтра «Статус полёта»"
+      ],
+      "actions": [
+        {
+          "label": "Выбрать статус",
+          "to": "dashboard-route-filter-tbs-doh-desktop",
+          "effect": "Оставляет будущие либо завершённые полёты."
+        }
+      ],
+      "source": [
+        "apps/web/src/routes/DashboardPage.tsx",
+        "apps/web/src/components/flights/FlightFilters.tsx"
+      ],
+      "notes": "Состояние снято в локальном приложении; парный .txt содержит accessibility snapshot этого состояния."
+    },
+    {
+      "id": "dashboard-filtered-2025-desktop",
+      "title": "Главная с фильтром по 2025 году",
+      "route": "/dashboard",
+      "status": "captured",
+      "screenshot": "images/dashboard-filtered-2025-desktop.png",
+      "snapshot": "images/dashboard-filtered-2025-desktop.txt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "authenticated",
+      "fixture": "Локальный аккаунт тестового путешественника; снимок чтения исходных данных, профиль не изменялся.",
+      "preconditions": [
+        "Открыт маршрут /dashboard.",
+        "Пользователь авторизован в локальном приложении.",
+        "Для нужной выборки рейсов в fixture должны быть загружены данные, указанные ниже."
+      ],
+      "recognition": [
+        "Главная с фильтром по 2025 году",
+        "Приветствие «Тестовый путешественник»",
+        "Фильтр года «2025»",
+        "Фильтры компании/самолёта/статуса без ограничений"
+      ],
+      "actions": [],
+      "source": [
+        "apps/web/src/routes/DashboardPage.tsx",
+        "apps/web/src/components/flights/FlightFilters.tsx"
+      ],
+      "notes": "Состояние снято в локальном приложении; парный .txt содержит accessibility snapshot этого состояния."
+    },
+    {
+      "id": "dashboard-filters-expanded-mobile",
+      "title": "Фильтры главной раскрыты — телефон",
+      "route": "/dashboard",
+      "status": "captured",
+      "screenshot": "images/dashboard-filters-expanded-mobile.png",
+      "snapshot": "images/dashboard-filters-expanded-mobile.txt",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "auth": "authenticated",
+      "fixture": "Синтетический локальный аккаунт atlas-dashboard: прошлый JFK—LAX (AA 100, B738, 03.01.2026) и предстоящий TBS—DOH (QR, 05.10.2026).",
+      "preconditions": [
+        "Открыт маршрут /dashboard.",
+        "Пользователь авторизован в локальном приложении.",
+        "Для нужной выборки рейсов в fixture должны быть загружены данные, указанные ниже."
+      ],
+      "recognition": [
+        "Фильтры главной раскрыты — телефон",
+        "Приветствие «Тестовый путешественник»",
+        "Мобильная панель «Фильтры» раскрыта",
+        "Поля маршрута «City or code» ×2"
+      ],
+      "actions": [
+        {
+          "label": "Нажать «Фильтры»",
+          "to": "/dashboard",
+          "effect": "Сворачивает фильтры в текущем аккаунте atlas-dashboard; соответствующий снимок с закрытой панелью не снят."
+        }
+      ],
+      "source": [
+        "apps/web/src/routes/DashboardPage.tsx",
+        "apps/web/src/components/flights/FlightFilters.tsx"
+      ],
+      "notes": "Состояние снято в локальном приложении; парный .txt содержит accessibility snapshot этого состояния."
+    },
+    {
+      "id": "dashboard-map-expanded-desktop",
+      "title": "Карта главной развёрнута",
+      "route": "/dashboard",
+      "status": "captured",
+      "screenshot": "images/dashboard-map-expanded-desktop.png",
+      "snapshot": "images/dashboard-map-expanded-desktop.txt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "authenticated",
+      "fixture": "Локальный аккаунт тестового путешественника; снимок чтения исходных данных, профиль не изменялся.",
+      "preconditions": [
+        "Открыт маршрут /dashboard.",
+        "Пользователь авторизован в локальном приложении.",
+        "Для нужной выборки рейсов в fixture должны быть загружены данные, указанные ниже."
+      ],
+      "recognition": [
+        "Карта главной развёрнута",
+        "Приветствие «Тестовый путешественник»",
+        "Управление картой «Collapse map»",
+        "Панель данных «Ваш флот», «Производители», «Мировой охват»"
+      ],
+      "actions": [
+        {
+          "label": "Свернуть карту",
+          "to": "dashboard-populated-desktop",
+          "effect": "Возвращает к сетке карты и карточек."
+        }
+      ],
+      "source": [
+        "apps/web/src/routes/DashboardPage.tsx",
+        "apps/web/src/components/map/MapCard.tsx",
+        "apps/web/src/components/dashboard/AnalysisDeck.tsx"
+      ],
+      "notes": "Состояние снято в локальном приложении; парный .txt содержит accessibility snapshot этого состояния."
+    },
+    {
+      "id": "dashboard-map-routes-off-desktop",
+      "title": "Карта главной без маршрутов",
+      "route": "/dashboard",
+      "status": "captured",
+      "screenshot": "images/dashboard-map-routes-off-desktop.png",
+      "snapshot": "images/dashboard-map-routes-off-desktop.txt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "authenticated",
+      "fixture": "Локальный аккаунт тестового путешественника; снимок чтения исходных данных, профиль не изменялся.",
+      "preconditions": [
+        "Открыт маршрут /dashboard.",
+        "Пользователь авторизован в локальном приложении.",
+        "Для нужной выборки рейсов в fixture должны быть загружены данные, указанные ниже."
+      ],
+      "recognition": [
+        "Карта главной без маршрутов",
+        "Приветствие «Тестовый путешественник»",
+        "Переключатель маршрутов «Показать маршруты» (слой выключен)",
+        "Карточки «Ваш флот», «Производители»"
+      ],
+      "actions": [
+        {
+          "label": "Включить маршруты",
+          "to": "dashboard-populated-desktop",
+          "effect": "Показывает линии маршрутов на карте."
+        }
+      ],
+      "source": [
+        "apps/web/src/routes/DashboardPage.tsx",
+        "apps/web/src/components/map/MapCard.tsx",
+        "apps/web/src/components/dashboard/AnalysisDeck.tsx"
+      ],
+      "notes": "Состояние снято в локальном приложении; парный .txt содержит accessibility snapshot этого состояния."
+    },
+    {
+      "id": "dashboard-origin-filter-tbs-desktop",
+      "title": "Главная: аэропорт отправления TBS",
+      "route": "/dashboard",
+      "status": "captured",
+      "screenshot": "images/dashboard-origin-filter-tbs-desktop.png",
+      "snapshot": "images/dashboard-origin-filter-tbs-desktop.txt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "authenticated",
+      "fixture": "Синтетический локальный аккаунт atlas-dashboard: прошлый JFK—LAX (AA 100, B738, 03.01.2026) и предстоящий TBS—DOH (QR, 05.10.2026).",
+      "preconditions": [
+        "Открыт маршрут /dashboard.",
+        "Пользователь авторизован в локальном приложении.",
+        "Для нужной выборки рейсов в fixture должны быть загружены данные, указанные ниже."
+      ],
+      "recognition": [
+        "Главная: аэропорт отправления TBS",
+        "Приветствие «atlas-dashboard»",
+        "Фильтр отправления «TBS»",
+        "Карточка маршрута «TBS → DOH QR»"
+      ],
+      "actions": [
+        {
+          "label": "Задать пункт назначения DOH",
+          "to": "dashboard-route-filter-tbs-doh-desktop",
+          "effect": "Сужает маршруты до TBS—DOH."
+        }
+      ],
+      "source": [
+        "apps/web/src/routes/DashboardPage.tsx",
+        "apps/web/src/components/flights/FlightFilters.tsx"
+      ],
+      "notes": "Состояние снято в локальном приложении; парный .txt содержит accessibility snapshot этого состояния."
+    },
+    {
+      "id": "dashboard-populated-desktop",
+      "title": "Главная с полётами — компьютер",
+      "route": "/dashboard",
+      "status": "captured",
+      "screenshot": "images/dashboard-populated-desktop.png",
+      "snapshot": "images/dashboard-populated-desktop.txt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "authenticated",
+      "fixture": "Локальный аккаунт тестового путешественника; снимок чтения исходных данных, профиль не изменялся.",
+      "preconditions": [
+        "Открыт маршрут /dashboard.",
+        "Пользователь авторизован в локальном приложении.",
+        "Для нужной выборки рейсов в fixture должны быть загружены данные, указанные ниже."
+      ],
+      "recognition": [
+        "Главная с полётами — компьютер",
+        "Приветствие «Тестовый путешественник»",
+        "Статистические блоки «Ваш флот», «Производители»",
+        "Карта и фильтры маршрута/года/авиакомпании/самолёта"
+      ],
+      "actions": [],
+      "source": [
+        "apps/web/src/routes/DashboardPage.tsx",
+        "apps/web/src/components/map/MapCard.tsx",
+        "apps/web/src/components/dashboard/AnalysisDeck.tsx"
+      ],
+      "notes": "Состояние снято в локальном приложении; парный .txt содержит accessibility snapshot этого состояния."
+    },
+    {
+      "id": "dashboard-populated-full-mobile",
+      "title": "Полная мобильная главная с полётами",
+      "route": "/dashboard",
+      "status": "captured",
+      "screenshot": "images/dashboard-populated-full-mobile.png",
+      "snapshot": "images/dashboard-populated-full-mobile.txt",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "auth": "authenticated",
+      "fixture": "Локальный аккаунт тестового путешественника; снимок чтения исходных данных, профиль не изменялся.",
+      "preconditions": [
+        "Открыт маршрут /dashboard.",
+        "Пользователь авторизован в локальном приложении.",
+        "Для нужной выборки рейсов в fixture должны быть загружены данные, указанные ниже."
+      ],
+      "recognition": [
+        "Полная мобильная главная с полётами",
+        "Приветствие «Тестовый путешественник»",
+        "Мобильное меню «Фильтры»",
+        "Статистические блоки и карта на ширине 390 px"
+      ],
+      "actions": [],
+      "source": [
+        "apps/web/src/routes/DashboardPage.tsx",
+        "apps/web/src/components/map/MapCard.tsx",
+        "apps/web/src/components/dashboard/AnalysisDeck.tsx"
+      ],
+      "notes": "Viewport 390×844, но PNG 442×2399: страница выходит за ширину viewport; горизонтальный overflow виден на полном скриншоте.",
+      "capture_mode": "fullpage",
+      "image_size": {
+        "width": 442,
+        "height": 2399
+      }
+    },
+    {
+      "id": "dashboard-populated-full",
+      "title": "Полная главная с полётами — компьютер",
+      "route": "/dashboard",
+      "status": "captured",
+      "screenshot": "images/dashboard-populated-full.png",
+      "snapshot": "images/dashboard-populated-full.txt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "authenticated",
+      "fixture": "Локальный аккаунт тестового путешественника; снимок чтения исходных данных, профиль не изменялся.",
+      "preconditions": [
+        "Открыт маршрут /dashboard.",
+        "Пользователь авторизован в локальном приложении.",
+        "Для нужной выборки рейсов в fixture должны быть загружены данные, указанные ниже."
+      ],
+      "recognition": [
+        "Полная главная с полётами — компьютер",
+        "Приветствие «Тестовый путешественник»",
+        "Статистические блоки «Ваш флот», «Производители», «Мировой охват»",
+        "Полностраничная карта и лента карточек"
+      ],
+      "actions": [],
+      "source": [
+        "apps/web/src/routes/DashboardPage.tsx",
+        "apps/web/src/components/map/MapCard.tsx",
+        "apps/web/src/components/dashboard/AnalysisDeck.tsx"
+      ],
+      "notes": "Полностраничный захват, viewport при съёмке 1440×1000.",
+      "capture_mode": "fullpage",
+      "image_size": {
+        "width": 1440,
+        "height": 1239
+      }
+    },
+    {
+      "id": "dashboard-populated-mobile",
+      "title": "Главная с полётами — телефон",
+      "route": "/dashboard",
+      "status": "captured",
+      "screenshot": "images/dashboard-populated-mobile.png",
+      "snapshot": "images/dashboard-populated-mobile.txt",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "auth": "authenticated",
+      "fixture": "Локальный аккаунт тестового путешественника; снимок чтения исходных данных, профиль не изменялся.",
+      "preconditions": [
+        "Открыт маршрут /dashboard.",
+        "Пользователь авторизован в локальном приложении.",
+        "Для нужной выборки рейсов в fixture должны быть загружены данные, указанные ниже."
+      ],
+      "recognition": [
+        "Главная с полётами — телефон",
+        "Приветствие «Тестовый путешественник»",
+        "Мобильное меню «Фильтры»",
+        "Поля маршрута «City or code» ×2"
+      ],
+      "actions": [],
+      "source": [
+        "apps/web/src/routes/DashboardPage.tsx",
+        "apps/web/src/components/map/MapCard.tsx",
+        "apps/web/src/components/dashboard/AnalysisDeck.tsx"
+      ],
+      "notes": "Состояние снято в локальном приложении; парный .txt содержит accessibility snapshot этого состояния."
+    },
+    {
+      "id": "dashboard-route-filter-tbs-doh-desktop",
+      "title": "Главная: маршрут TBS—DOH",
+      "route": "/dashboard",
+      "status": "captured",
+      "screenshot": "images/dashboard-route-filter-tbs-doh-desktop.png",
+      "snapshot": "images/dashboard-route-filter-tbs-doh-desktop.txt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "authenticated",
+      "fixture": "Синтетический локальный аккаунт atlas-dashboard: прошлый JFK—LAX (AA 100, B738, 03.01.2026) и предстоящий TBS—DOH (QR, 05.10.2026).",
+      "preconditions": [
+        "Открыт маршрут /dashboard.",
+        "Пользователь авторизован в локальном приложении.",
+        "Для нужной выборки рейсов в fixture должны быть загружены данные, указанные ниже."
+      ],
+      "recognition": [
+        "Главная: маршрут TBS—DOH",
+        "Приветствие «atlas-dashboard»",
+        "Поля фильтра «TBS» → «DOH»",
+        "Карточка маршрута «TBS → DOH QR»"
+      ],
+      "actions": [
+        {
+          "label": "Очистить фильтры",
+          "to": "/dashboard",
+          "effect": "Снимает фильтры в текущем аккаунте atlas-dashboard; полный нефильтрованный экран этого аккаунта отдельно не снят."
+        }
+      ],
+      "source": [
+        "apps/web/src/routes/DashboardPage.tsx",
+        "apps/web/src/components/flights/FlightFilters.tsx"
+      ],
+      "notes": "Состояние снято в локальном приложении; парный .txt содержит accessibility snapshot этого состояния."
+    },
+    {
+      "id": "dashboard-seed-b738-form-desktop",
+      "title": "Форма тестового полёта JFK—LAX на B738",
+      "route": "/dashboard",
+      "status": "captured",
+      "screenshot": "images/dashboard-seed-b738-form-desktop.png",
+      "snapshot": "images/dashboard-seed-b738-form-desktop.txt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "authenticated",
+      "fixture": "Синтетический локальный аккаунт atlas-dashboard; пустые экраны сняты до добавления тестовых рейсов.",
+      "preconditions": [
+        "Открыт маршрут /dashboard.",
+        "Пользователь авторизован в локальном приложении."
+      ],
+      "recognition": [
+        "Форма тестового полёта JFK—LAX на B738",
+        "Маршрут «JFK» → «LAX»",
+        "Дата «3 янв. 2026»; авиакомпания «AA»",
+        "Самолёт «B738», номер «100»"
+      ],
+      "actions": [
+        {
+          "label": "Сохранить JFK—LAX, AA 100, B738",
+          "to": "/dashboard",
+          "effect": "Сохраняет JFK—LAX в текущем аккаунте; итоговый экран с одним добавленным рейсом не снят."
+        }
+      ],
+      "source": [
+        "apps/web/src/routes/DashboardPage.tsx",
+        "apps/web/src/components/flights/FlightForm.tsx",
+        "apps/web/src/hooks/useFlights.ts"
+      ],
+      "notes": "Состояние снято в локальном приложении; парный .txt содержит accessibility snapshot этого состояния."
+    },
+    {
+      "id": "dashboard-seed-upcoming-form-desktop",
+      "title": "Форма предстоящего полёта TBS—DOH",
+      "route": "/dashboard",
+      "status": "captured",
+      "screenshot": "images/dashboard-seed-upcoming-form-desktop.png",
+      "snapshot": "images/dashboard-seed-upcoming-form-desktop.txt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "authenticated",
+      "fixture": "Синтетический локальный аккаунт atlas-dashboard; пустые экраны сняты до добавления тестовых рейсов.",
+      "preconditions": [
+        "Открыт маршрут /dashboard.",
+        "Пользователь авторизован в локальном приложении."
+      ],
+      "recognition": [
+        "Форма предстоящего полёта TBS—DOH",
+        "Маршрут «TBS» → «DOH»",
+        "Дата «5 окт. 2026»; авиакомпания «QR»",
+        "Кнопка «Добавить полёт»"
+      ],
+      "actions": [
+        {
+          "label": "Сохранить TBS—DOH, QR, 05.10.2026",
+          "to": "/dashboard",
+          "effect": "Сохраняет предстоящий TBS—DOH в текущем аккаунте; отдельный промежуточный снимок не снят."
+        }
+      ],
+      "source": [
+        "apps/web/src/routes/DashboardPage.tsx",
+        "apps/web/src/components/dashboard/UpcomingFlightsBanner.tsx",
+        "apps/web/src/components/flights/FlightForm.tsx",
+        "apps/web/src/hooks/useFlights.ts"
+      ],
+      "notes": "Состояние снято в локальном приложении; парный .txt содержит accessibility snapshot этого состояния."
+    },
+    {
+      "id": "dashboard-synthetic-fixture-full",
+      "title": "Полная главная синтетического аккаунта",
+      "route": "/dashboard",
+      "status": "captured",
+      "screenshot": "images/dashboard-synthetic-fixture-full.png",
+      "snapshot": "images/dashboard-synthetic-fixture-full.txt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "authenticated",
+      "fixture": "Синтетический локальный аккаунт atlas-dashboard: прошлый JFK—LAX (AA 100, B738, 03.01.2026) и предстоящий TBS—DOH (QR, 05.10.2026).",
+      "preconditions": [
+        "Открыт маршрут /dashboard.",
+        "Пользователь авторизован в локальном приложении.",
+        "Для нужной выборки рейсов в fixture должны быть загружены данные, указанные ниже."
+      ],
+      "recognition": [
+        "Полная главная синтетического аккаунта",
+        "Приветствие «atlas-dashboard»",
+        "Карточка будущего рейса «TBS → DOH QR»",
+        "Набор синтетического аккаунта: JFK—LAX и TBS—DOH"
+      ],
+      "actions": [],
+      "source": [
+        "apps/web/src/routes/DashboardPage.tsx",
+        "apps/web/src/components/map/MapCard.tsx",
+        "apps/web/src/components/dashboard/AnalysisDeck.tsx"
+      ],
+      "notes": "Полностраничный захват синтетического аккаунта, viewport 1440×1000; предстоящий рейс — отдельный баннер.",
+      "capture_mode": "fullpage",
+      "image_size": {
+        "width": 1440,
+        "height": 1924
+      }
+    },
+    {
+      "id": "dashboard-synthetic-fleet-manufacturer-desktop",
+      "title": "Статистика парка и производителей",
+      "route": "/dashboard",
+      "status": "captured",
+      "screenshot": "images/dashboard-synthetic-fleet-manufacturer-desktop.png",
+      "snapshot": "images/dashboard-synthetic-fleet-manufacturer-desktop.txt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "authenticated",
+      "fixture": "Синтетический локальный аккаунт atlas-dashboard: прошлый JFK—LAX (AA 100, B738, 03.01.2026) и предстоящий TBS—DOH (QR, 05.10.2026).",
+      "preconditions": [
+        "Открыт маршрут /dashboard.",
+        "Пользователь авторизован в локальном приложении.",
+        "Для нужной выборки рейсов в fixture должны быть загружены данные, указанные ниже."
+      ],
+      "recognition": [
+        "Статистика парка и производителей",
+        "Статистика парка «737-800 — 100%»",
+        "Производители «Boeing — 100%»",
+        "Карточка будущего рейса «TBS → DOH QR»"
+      ],
+      "actions": [],
+      "source": [
+        "apps/web/src/routes/DashboardPage.tsx",
+        "apps/web/src/components/map/MapCard.tsx",
+        "apps/web/src/components/dashboard/AnalysisDeck.tsx"
+      ],
+      "notes": "Состояние снято в локальном приложении; парный .txt содержит accessibility snapshot этого состояния."
+    },
+    {
+      "id": "dashboard-upcoming-banner-desktop",
+      "title": "Баннер предстоящего рейса",
+      "route": "/dashboard",
+      "status": "captured",
+      "screenshot": "images/dashboard-upcoming-banner-desktop.png",
+      "snapshot": "images/dashboard-upcoming-banner-desktop.txt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "authenticated",
+      "fixture": "Синтетический локальный аккаунт atlas-dashboard: прошлый JFK—LAX (AA 100, B738, 03.01.2026) и предстоящий TBS—DOH (QR, 05.10.2026).",
+      "preconditions": [
+        "Открыт маршрут /dashboard.",
+        "Пользователь авторизован в локальном приложении.",
+        "Для нужной выборки рейсов в fixture должны быть загружены данные, указанные ниже."
+      ],
+      "recognition": [
+        "Баннер предстоящего рейса",
+        "Будущий маршрут «TBS → DOH»",
+        "Авиакомпания «Qatar Airways (QR)»",
+        "Дата вылета «5 окт. 2026»"
+      ],
+      "actions": [
+        {
+          "label": "Редактировать",
+          "to": "dashboard-upcoming-edit-form-desktop",
+          "effect": "Открывает форму этого будущего рейса."
+        },
+        {
+          "label": "Удалить",
+          "to": "dashboard-upcoming-delete-confirm-desktop",
+          "effect": "Открывает подтверждение удаления."
+        }
+      ],
+      "source": [
+        "apps/web/src/routes/DashboardPage.tsx",
+        "apps/web/src/components/dashboard/UpcomingFlightsBanner.tsx",
+        "apps/web/src/components/flights/FlightForm.tsx"
+      ],
+      "notes": "Рейс на 05.10.2026 отображался как «завтра» при дате приложения 04.10.2026."
+    },
+    {
+      "id": "dashboard-upcoming-delete-confirm-desktop",
+      "title": "Подтверждение удаления предстоящего рейса",
+      "route": "/dashboard",
+      "status": "captured",
+      "screenshot": "images/dashboard-upcoming-delete-confirm-desktop.png",
+      "snapshot": "images/dashboard-upcoming-delete-confirm-desktop.txt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "authenticated",
+      "fixture": "Синтетический локальный аккаунт atlas-dashboard: прошлый JFK—LAX (AA 100, B738, 03.01.2026) и предстоящий TBS—DOH (QR, 05.10.2026).",
+      "preconditions": [
+        "Открыт маршрут /dashboard.",
+        "Пользователь авторизован в локальном приложении.",
+        "Для нужной выборки рейсов в fixture должны быть загружены данные, указанные ниже."
+      ],
+      "recognition": [
+        "Подтверждение удаления предстоящего рейса",
+        "Диалог «Удалить полёт?»",
+        "Кнопки «Отмена» и «Удалить»",
+        "Кнопка закрытия диалога «Close»"
+      ],
+      "actions": [],
+      "source": [
+        "apps/web/src/routes/DashboardPage.tsx",
+        "apps/web/src/components/dashboard/UpcomingFlightsBanner.tsx",
+        "apps/web/src/components/flights/FlightForm.tsx"
+      ],
+      "notes": "Состояние снято в локальном приложении; парный .txt содержит accessibility snapshot этого состояния."
+    },
+    {
+      "id": "dashboard-upcoming-edit-form-desktop",
+      "title": "Редактирование предстоящего рейса",
+      "route": "/dashboard",
+      "status": "captured",
+      "screenshot": "images/dashboard-upcoming-edit-form-desktop.png",
+      "snapshot": "images/dashboard-upcoming-edit-form-desktop.txt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "authenticated",
+      "fixture": "Синтетический локальный аккаунт atlas-dashboard: прошлый JFK—LAX (AA 100, B738, 03.01.2026) и предстоящий TBS—DOH (QR, 05.10.2026).",
+      "preconditions": [
+        "Открыт маршрут /dashboard.",
+        "Пользователь авторизован в локальном приложении.",
+        "Для нужной выборки рейсов в fixture должны быть загружены данные, указанные ниже."
+      ],
+      "recognition": [
+        "Редактирование предстоящего рейса",
+        "Диалог «Редактировать полёт»",
+        "Маршрут «TBS» → «DOH»",
+        "Дата «5 окт. 2026»; авиакомпания «QR»"
+      ],
+      "actions": [
+        {
+          "label": "Отмена",
+          "to": "dashboard-upcoming-banner-desktop",
+          "effect": "Закрывает форму без сохранения."
+        },
+        {
+          "label": "Удалить полёт",
+          "to": "dashboard-upcoming-delete-confirm-desktop",
+          "effect": "Переходит к подтверждению удаления."
+        }
+      ],
+      "source": [
+        "apps/web/src/routes/DashboardPage.tsx",
+        "apps/web/src/components/dashboard/UpcomingFlightsBanner.tsx",
+        "apps/web/src/components/flights/FlightForm.tsx"
+      ],
+      "notes": "Состояние снято в локальном приложении; парный .txt содержит accessibility snapshot этого состояния."
+    },
+    {
+      "id": "dashboard-year-filter-open-desktop",
+      "title": "Список годов фильтра открыт",
+      "route": "/dashboard",
+      "status": "captured",
+      "screenshot": "images/dashboard-year-filter-open-desktop.png",
+      "snapshot": "images/dashboard-year-filter-open-desktop.txt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "authenticated",
+      "fixture": "Локальный аккаунт тестового путешественника; снимок чтения исходных данных, профиль не изменялся.",
+      "preconditions": [
+        "Открыт маршрут /dashboard.",
+        "Пользователь авторизован в локальном приложении.",
+        "Для нужной выборки рейсов в fixture должны быть загружены данные, указанные ниже."
+      ],
+      "recognition": [
+        "Список годов фильтра открыт",
+        "Выбрано «Все годы»",
+        "Варианты годов «2026», «2025»",
+        "Список продолжается до «2016»"
+      ],
+      "actions": [
+        {
+          "label": "Выбрать 2025",
+          "to": "dashboard-filtered-2025-desktop",
+          "effect": "Оставляет данные за 2025 год."
+        }
+      ],
+      "source": [
+        "apps/web/src/routes/DashboardPage.tsx",
+        "apps/web/src/components/flights/FlightFilters.tsx"
+      ],
+      "notes": "Состояние снято в локальном приложении; парный .txt содержит accessibility snapshot этого состояния."
+    },
+    {
+      "id": "journey-full-mobile",
+      "title": "Планировщик Journey целиком — телефон",
+      "route": "/journey",
+      "status": "captured",
+      "screenshot": "images/journey-full-mobile.png",
+      "snapshot": "images/journey-full-mobile.txt",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "auth": "authenticated",
+      "fixture": "Прототип: статические сегменты TBS—DOH и DOH—NRT; данные заданы в INITIAL_TRIP.",
+      "preconditions": [
+        "Открыт маршрут /journey.",
+        "Пользователь авторизован в локальном приложении."
+      ],
+      "recognition": [
+        "Планировщик Journey целиком — телефон",
+        "Заголовок «Journey Planner»",
+        "План TBS → DOH → NRT; даты 24 окт. — 12 нояб.",
+        "Кнопка «Save Trip»; мобильная timeline"
+      ],
+      "actions": [
+        {
+          "label": "Свайпнуть по временной шкале",
+          "to": "/journey",
+          "effect": "Прокрутка/перестановка меняет мобильный прототип; мобильное состояние после перестановки не снято, сохранения данных нет."
+        }
+      ],
+      "source": [
+        "apps/web/src/routes/JourneyPlannerPage.tsx",
+        "apps/web/src/components/journey/JourneyMap.tsx",
+        "apps/web/src/components/journey/JourneyTimeline.tsx",
+        "apps/web/src/components/journey/FlightGanttBlock.tsx"
+      ],
+      "notes": "Прототип с hardcoded данными из INITIAL_TRIP; экран и drag-and-drop наблюдались в работающем UI. Перестановка меняет React state, persistence отсутствует.",
+      "capture_mode": "fullpage",
+      "image_size": {
+        "width": 390,
+        "height": 844
+      }
+    },
+    {
+      "id": "journey-initial-desktop",
+      "title": "Планировщик Journey — исходный план",
+      "route": "/journey",
+      "status": "captured",
+      "screenshot": "images/journey-initial-desktop.png",
+      "snapshot": "images/journey-initial-desktop.txt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "authenticated",
+      "fixture": "Прототип: статические сегменты TBS—DOH и DOH—NRT; данные заданы в INITIAL_TRIP.",
+      "preconditions": [
+        "Открыт маршрут /journey.",
+        "Пользователь авторизован в локальном приложении."
+      ],
+      "recognition": [
+        "Планировщик Journey — исходный план",
+        "Заголовок «Journey Planner»",
+        "Порядок сегментов TBS → DOH → NRT",
+        "Даты плана 24 окт. — 12 нояб.; «Save Trip»"
+      ],
+      "actions": [
+        {
+          "label": "Перетащить сегмент",
+          "to": "journey-reordered-desktop",
+          "effect": "Меняет порядок в локальном состоянии React; сохранения на сервере нет."
+        },
+        {
+          "label": "Save Trip / Add Segment / +",
+          "to": "journey-initial-desktop",
+          "effect": "В текущем прототипе у этих кнопок нет обработчиков; интерфейс не меняется и план не сохраняется."
+        }
+      ],
+      "source": [
+        "apps/web/src/routes/JourneyPlannerPage.tsx",
+        "apps/web/src/components/journey/JourneyMap.tsx",
+        "apps/web/src/components/journey/JourneyTimeline.tsx",
+        "apps/web/src/components/journey/FlightGanttBlock.tsx"
+      ],
+      "notes": "Прототип с hardcoded данными из INITIAL_TRIP; экран и drag-and-drop наблюдались в работающем UI. Перестановка меняет React state, persistence отсутствует."
+    },
+    {
+      "id": "journey-initial-mobile",
+      "title": "Планировщик Journey — телефон",
+      "route": "/journey",
+      "status": "captured",
+      "screenshot": "images/journey-initial-mobile.png",
+      "snapshot": "images/journey-initial-mobile.txt",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "auth": "authenticated",
+      "fixture": "Прототип: статические сегменты TBS—DOH и DOH—NRT; данные заданы в INITIAL_TRIP.",
+      "preconditions": [
+        "Открыт маршрут /journey.",
+        "Пользователь авторизован в локальном приложении."
+      ],
+      "recognition": [
+        "Планировщик Journey — телефон",
+        "Заголовок «Journey Planner»",
+        "Порядок сегментов TBS → DOH → NRT",
+        "Мобильная timeline; «Save Trip»"
+      ],
+      "actions": [
+        {
+          "label": "Перетащить сегмент",
+          "to": "/journey",
+          "effect": "Drag меняет порядок в текущем мобильном прототипе; мобильное состояние после перестановки не снято."
+        }
+      ],
+      "source": [
+        "apps/web/src/routes/JourneyPlannerPage.tsx",
+        "apps/web/src/components/journey/JourneyMap.tsx",
+        "apps/web/src/components/journey/JourneyTimeline.tsx",
+        "apps/web/src/components/journey/FlightGanttBlock.tsx"
+      ],
+      "notes": "Прототип с hardcoded данными из INITIAL_TRIP; экран и drag-and-drop наблюдались в работающем UI. Перестановка меняет React state, persistence отсутствует."
+    },
+    {
+      "id": "journey-reordered-desktop",
+      "title": "Journey после перестановки сегментов",
+      "route": "/journey",
+      "status": "captured",
+      "screenshot": "images/journey-reordered-desktop.png",
+      "snapshot": "images/journey-reordered-desktop.txt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "authenticated",
+      "fixture": "Прототип: статические сегменты TBS—DOH и DOH—NRT; данные заданы в INITIAL_TRIP.",
+      "preconditions": [
+        "Открыт маршрут /journey.",
+        "Пользователь авторизован в локальном приложении."
+      ],
+      "recognition": [
+        "Journey после перестановки сегментов",
+        "Заголовок «Journey Planner»",
+        "Порядок сегментов после drag: DOH → NRT → TBS",
+        "Даты плана 24 окт. — 12 нояб.; «Save Trip»"
+      ],
+      "actions": [
+        {
+          "label": "Save Trip",
+          "to": "journey-reordered-desktop",
+          "effect": "Кнопка не подключена; порядок остаётся только в React state, серверного сохранения нет."
+        }
+      ],
+      "source": [
+        "apps/web/src/routes/JourneyPlannerPage.tsx",
+        "apps/web/src/components/journey/JourneyMap.tsx",
+        "apps/web/src/components/journey/JourneyTimeline.tsx",
+        "apps/web/src/components/journey/FlightGanttBlock.tsx"
+      ],
+      "notes": "Прототип с hardcoded данными из INITIAL_TRIP; экран и drag-and-drop наблюдались в работающем UI. Перестановка меняет React state, persistence отсутствует."
+    },
+    {
+      "id": "passport-add-visit-filled-desktop",
+      "title": "Форма второго визита заполнена",
+      "route": "/passport",
+      "status": "captured",
+      "screenshot": "images/passport-add-visit-filled-desktop.png",
+      "snapshot": "images/passport-add-visit-filled-desktop.txt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "authenticated",
+      "fixture": "Синтетический локальный аккаунт atlas-dashboard; Spain добавлена для демонстрации штампа, остальные подписи/даты в формах учебные.",
+      "preconditions": [
+        "Открыт маршрут /passport.",
+        "Пользователь авторизован в локальном приложении."
+      ],
+      "recognition": [
+        "Форма второго визита заполнена",
+        "Диалог «Добавить визит»",
+        "Выбранный год «2025»; способы «Суша» / «Море»",
+        "Заметка «Морской визит для демонстрации»"
+      ],
+      "actions": [
+        {
+          "label": "Нажать «Добавить визит»",
+          "to": "passport-after-second-visit-desktop",
+          "effect": "Добавляет демонстрационный визит 2025 года по морю."
+        }
+      ],
+      "source": [
+        "apps/web/src/routes/PassportPage.tsx",
+        "apps/web/src/components/passport/CountryClaimMap.tsx",
+        "apps/web/src/components/passport/CountryListSheet.tsx",
+        "apps/web/src/components/passport/ClaimDialog.tsx"
+      ],
+      "notes": "Состояние снято в локальном приложении; парный .txt содержит accessibility snapshot этого состояния."
+    },
+    {
+      "id": "passport-after-claim-mobile",
+      "title": "Паспорт после добавления Испании",
+      "route": "/passport",
+      "status": "captured",
+      "screenshot": "images/passport-after-claim-mobile.png",
+      "snapshot": "images/passport-after-claim-mobile.txt",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "auth": "authenticated",
+      "fixture": "Синтетический локальный аккаунт atlas-dashboard; Spain добавлена для демонстрации штампа, остальные подписи/даты в формах учебные.",
+      "preconditions": [
+        "Открыт маршрут /passport.",
+        "Пользователь авторизован в локальном приложении."
+      ],
+      "recognition": [
+        "Паспорт после добавления Испании",
+        "Раздел «Europe 1»",
+        "Штамп «Spain — España», посещено Today",
+        "Toast «Added ES to your passport»"
+      ],
+      "actions": [
+        {
+          "label": "Открыть штамп Spain",
+          "to": "passport-stamp-popup-mobile",
+          "effect": "Показывает детали страны и действия."
+        }
+      ],
+      "source": [
+        "apps/web/src/routes/PassportPage.tsx",
+        "apps/web/src/components/passport/CountryClaimMap.tsx",
+        "apps/web/src/components/passport/CountryListSheet.tsx",
+        "apps/web/src/components/passport/ClaimDialog.tsx",
+        "apps/web/src/components/passport/PassportStamps.tsx",
+        "apps/web/src/components/passport/StampPopup.tsx",
+        "apps/web/src/components/map/MapCard.tsx"
+      ],
+      "notes": "Состояние снято в локальном приложении; парный .txt содержит accessibility snapshot этого состояния."
+    },
+    {
+      "id": "passport-after-second-visit-desktop",
+      "title": "Паспорт после добавления второго визита",
+      "route": "/passport",
+      "status": "captured",
+      "screenshot": "images/passport-after-second-visit-desktop.png",
+      "snapshot": "images/passport-after-second-visit-desktop.txt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "authenticated",
+      "fixture": "Синтетический локальный аккаунт atlas-dashboard; Spain добавлена для демонстрации штампа, остальные подписи/даты в формах учебные.",
+      "preconditions": [
+        "Открыт маршрут /passport.",
+        "Пользователь авторизован в локальном приложении."
+      ],
+      "recognition": [
+        "Паспорт после добавления второго визита",
+        "Раздел «Europe 1»",
+        "Штамп «España — SPAIN», счётчик визитов ×2",
+        "Toast «Visit added»"
+      ],
+      "actions": [
+        {
+          "label": "Открыть штамп страны",
+          "to": "passport-stamp-popup-atlas-account-desktop",
+          "effect": "Показывает сумму визитов, связанные аэропорты и наземные визиты."
+        }
+      ],
+      "source": [
+        "apps/web/src/routes/PassportPage.tsx",
+        "apps/web/src/components/passport/CountryClaimMap.tsx",
+        "apps/web/src/components/passport/CountryListSheet.tsx",
+        "apps/web/src/components/passport/ClaimDialog.tsx",
+        "apps/web/src/components/passport/PassportStamps.tsx",
+        "apps/web/src/components/passport/StampPopup.tsx",
+        "apps/web/src/components/map/MapCard.tsx"
+      ],
+      "notes": "Состояние снято в локальном приложении; парный .txt содержит accessibility snapshot этого состояния."
+    },
+    {
+      "id": "passport-claim-existing-desktop",
+      "title": "Форма визита в уже добавленную страну",
+      "route": "/passport",
+      "status": "captured",
+      "screenshot": "images/passport-claim-existing-desktop.png",
+      "snapshot": "images/passport-claim-existing-desktop.txt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "authenticated",
+      "fixture": "Синтетический локальный аккаунт atlas-dashboard; Spain добавлена для демонстрации штампа, остальные подписи/даты в формах учебные.",
+      "preconditions": [
+        "Открыт маршрут /passport.",
+        "Пользователь авторизован в локальном приложении."
+      ],
+      "recognition": [
+        "Форма визита в уже добавленную страну",
+        "Диалог «Добавить визит»",
+        "Способы въезда «Суша», «Море»",
+        "Поле заметки «Воспоминания об этой поездке…»"
+      ],
+      "actions": [
+        {
+          "label": "Выбрать год, тип визита и примечание",
+          "to": "passport-add-visit-filled-desktop",
+          "effect": "Заполняет форму дополнительного визита."
+        }
+      ],
+      "source": [
+        "apps/web/src/routes/PassportPage.tsx",
+        "apps/web/src/components/passport/CountryClaimMap.tsx",
+        "apps/web/src/components/passport/CountryListSheet.tsx",
+        "apps/web/src/components/passport/ClaimDialog.tsx"
+      ],
+      "notes": "Состояние снято в локальном приложении; парный .txt содержит accessibility snapshot этого состояния."
+    },
+    {
+      "id": "passport-claim-filled-mobile",
+      "title": "Форма нового штампа заполнена",
+      "route": "/passport",
+      "status": "captured",
+      "screenshot": "images/passport-claim-filled-mobile.png",
+      "snapshot": "images/passport-claim-filled-mobile.txt",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "auth": "authenticated",
+      "fixture": "Синтетический локальный аккаунт atlas-dashboard; Spain добавлена для демонстрации штампа, остальные подписи/даты в формах учебные.",
+      "preconditions": [
+        "Открыт маршрут /passport.",
+        "Пользователь авторизован в локальном приложении."
+      ],
+      "recognition": [
+        "Форма нового штампа заполнена",
+        "Диалог «Добавить страну»",
+        "Выбранный год «2024»; способы «Суша» / «Море»",
+        "Заметка «Тестовый штамп для атласа»"
+      ],
+      "actions": [
+        {
+          "label": "Нажать «Добавить штамп»",
+          "to": "passport-after-claim-mobile",
+          "effect": "Сохраняет новый штамп; примечание и год относятся к демонстрационным данным."
+        }
+      ],
+      "source": [
+        "apps/web/src/routes/PassportPage.tsx",
+        "apps/web/src/components/passport/CountryClaimMap.tsx",
+        "apps/web/src/components/passport/CountryListSheet.tsx",
+        "apps/web/src/components/passport/ClaimDialog.tsx"
+      ],
+      "notes": "Состояние снято в локальном приложении; парный .txt содержит accessibility snapshot этого состояния."
+    },
+    {
+      "id": "passport-claim-new-mobile",
+      "title": "Пустая форма нового штампа",
+      "route": "/passport",
+      "status": "captured",
+      "screenshot": "images/passport-claim-new-mobile.png",
+      "snapshot": "images/passport-claim-new-mobile.txt",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "auth": "authenticated",
+      "fixture": "Синтетический локальный аккаунт atlas-dashboard; Spain добавлена для демонстрации штампа, остальные подписи/даты в формах учебные.",
+      "preconditions": [
+        "Открыт маршрут /passport.",
+        "Пользователь авторизован в локальном приложении."
+      ],
+      "recognition": [
+        "Пустая форма нового штампа",
+        "Диалог «Добавить страну»",
+        "Год и заметка ещё не заполнены",
+        "Кнопки «Суша», «Море», «Добавить штамп»"
+      ],
+      "actions": [
+        {
+          "label": "Выбрать год и добавить штамп",
+          "to": "passport-after-claim-mobile",
+          "effect": "Добавляет Spain в паспорт."
+        }
+      ],
+      "source": [
+        "apps/web/src/routes/PassportPage.tsx",
+        "apps/web/src/components/passport/CountryClaimMap.tsx",
+        "apps/web/src/components/passport/CountryListSheet.tsx",
+        "apps/web/src/components/passport/ClaimDialog.tsx"
+      ],
+      "notes": "Состояние снято в локальном приложении; парный .txt содержит accessibility snapshot этого состояния."
+    },
+    {
+      "id": "passport-country-picker-desktop",
+      "title": "Выбор страны — компьютер",
+      "route": "/passport",
+      "status": "captured",
+      "screenshot": "images/passport-country-picker-desktop.png",
+      "snapshot": "images/passport-country-picker-desktop.txt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "authenticated",
+      "fixture": "Синтетический локальный аккаунт atlas-dashboard; Spain добавлена для демонстрации штампа, остальные подписи/даты в формах учебные.",
+      "preconditions": [
+        "Открыт маршрут /passport.",
+        "Пользователь авторизован в локальном приложении."
+      ],
+      "recognition": [
+        "Выбор страны — компьютер",
+        "Диалог «Выберите страну…»",
+        "Группированный список стран: выбрана «Albania (AL)»",
+        "Видимые варианты «Andorra (AD)», «Austria (AT)»"
+      ],
+      "actions": [
+        {
+          "label": "Выбрать страну на карте",
+          "to": "/passport",
+          "effect": "После выбора открывает форму штампа на маршруте паспорта; точная форма для desktop не снята."
+        }
+      ],
+      "source": [
+        "apps/web/src/routes/PassportPage.tsx",
+        "apps/web/src/components/passport/CountryClaimMap.tsx",
+        "apps/web/src/components/passport/CountryListSheet.tsx",
+        "apps/web/src/components/passport/ClaimDialog.tsx"
+      ],
+      "notes": "Состояние снято в локальном приложении; парный .txt содержит accessibility snapshot этого состояния."
+    },
+    {
+      "id": "passport-country-picker-mobile",
+      "title": "Список стран — телефон",
+      "route": "/passport",
+      "status": "captured",
+      "screenshot": "images/passport-country-picker-mobile.png",
+      "snapshot": "images/passport-country-picker-mobile.txt",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "auth": "authenticated",
+      "fixture": "Синтетический локальный аккаунт atlas-dashboard; Spain добавлена для демонстрации штампа, остальные подписи/даты в формах учебные.",
+      "preconditions": [
+        "Открыт маршрут /passport.",
+        "Пользователь авторизован в локальном приложении."
+      ],
+      "recognition": [
+        "Список стран — телефон",
+        "Диалог «Выберите страну…»",
+        "Поиск «Поиск страны…»",
+        "Раскрытая группа «A-C 58»"
+      ],
+      "actions": [
+        {
+          "label": "Ввести Spain",
+          "to": "passport-country-picker-search-mobile",
+          "effect": "Оставляет совпадение Spain (ES)."
+        }
+      ],
+      "source": [
+        "apps/web/src/routes/PassportPage.tsx",
+        "apps/web/src/components/passport/CountryClaimMap.tsx",
+        "apps/web/src/components/passport/CountryListSheet.tsx",
+        "apps/web/src/components/passport/ClaimDialog.tsx"
+      ],
+      "notes": "Состояние снято в локальном приложении; парный .txt содержит accessibility snapshot этого состояния."
+    },
+    {
+      "id": "passport-country-picker-search-mobile",
+      "title": "Поиск страны — Испания",
+      "route": "/passport",
+      "status": "captured",
+      "screenshot": "images/passport-country-picker-search-mobile.png",
+      "snapshot": "images/passport-country-picker-search-mobile.txt",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "auth": "authenticated",
+      "fixture": "Синтетический локальный аккаунт atlas-dashboard; Spain добавлена для демонстрации штампа, остальные подписи/даты в формах учебные.",
+      "preconditions": [
+        "Открыт маршрут /passport.",
+        "Пользователь авторизован в локальном приложении."
+      ],
+      "recognition": [
+        "Поиск страны — Испания",
+        "Диалог «Выберите страну…»",
+        "В поле поиска введено «Spain»",
+        "Результат «Spain (ES)»"
+      ],
+      "actions": [
+        {
+          "label": "Выбрать Spain",
+          "to": "passport-claim-new-mobile",
+          "effect": "Открывает форму добавления нового штампа."
+        }
+      ],
+      "source": [
+        "apps/web/src/routes/PassportPage.tsx",
+        "apps/web/src/components/passport/CountryClaimMap.tsx",
+        "apps/web/src/components/passport/CountryListSheet.tsx",
+        "apps/web/src/components/passport/ClaimDialog.tsx"
+      ],
+      "notes": "Состояние снято в локальном приложении; парный .txt содержит accessibility snapshot этого состояния."
+    },
+    {
+      "id": "passport-delete-country-confirm-desktop",
+      "title": "Подтверждение удаления страны",
+      "route": "/passport",
+      "status": "captured",
+      "screenshot": "images/passport-delete-country-confirm-desktop.png",
+      "snapshot": "images/passport-delete-country-confirm-desktop.txt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "authenticated",
+      "fixture": "Синтетический локальный аккаунт atlas-dashboard; Spain добавлена для демонстрации штампа, остальные подписи/даты в формах учебные.",
+      "preconditions": [
+        "Открыт маршрут /passport.",
+        "Пользователь авторизован в локальном приложении."
+      ],
+      "recognition": [
+        "Подтверждение удаления страны",
+        "Выбранная страна «Spain» в разделе «Europe 1»",
+        "Подтверждение удаления страны открыто",
+        "Кнопки «Отмена» и «Удалить»"
+      ],
+      "actions": [
+        {
+          "label": "Отмена",
+          "to": "passport-stamp-popup-atlas-account-desktop",
+          "effect": "Возвращает к деталям без изменения паспорта."
+        },
+        {
+          "label": "Удалить",
+          "to": "passport-empty-desktop",
+          "effect": "Удаляет отмеченную страну и все её записи наземных визитов; подтверждение в атласе не нажималось."
+        }
+      ],
+      "source": [
+        "apps/web/src/routes/PassportPage.tsx",
+        "apps/web/src/components/passport/PassportStamps.tsx",
+        "apps/web/src/components/passport/StampPopup.tsx",
+        "apps/web/src/components/map/MapCard.tsx"
+      ],
+      "notes": "Подтверждение показано, но действие удаления не подтверждали."
+    },
+    {
+      "id": "passport-delete-visit-confirm-desktop",
+      "title": "Подтверждение удаления наземного визита",
+      "route": "/passport",
+      "status": "captured",
+      "screenshot": "images/passport-delete-visit-confirm-desktop.png",
+      "snapshot": "images/passport-delete-visit-confirm-desktop.txt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "authenticated",
+      "fixture": "Синтетический локальный аккаунт atlas-dashboard; Spain добавлена для демонстрации штампа, остальные подписи/даты в формах учебные.",
+      "preconditions": [
+        "Открыт маршрут /passport.",
+        "Пользователь авторизован в локальном приложении."
+      ],
+      "recognition": [
+        "Подтверждение удаления наземного визита",
+        "Выбранная страна «Spain», всего два визита",
+        "Подтверждение удаления наземного визита открыто",
+        "В действиях штампа видны кнопки «Удалить» и «Удалить из паспорта»"
+      ],
+      "actions": [
+        {
+          "label": "Отмена",
+          "to": "passport-stamp-popup-atlas-account-desktop",
+          "effect": "Оставляет визит на месте."
+        },
+        {
+          "label": "Удалить визит",
+          "to": "passport-stamp-popup-atlas-account-desktop",
+          "effect": "Удаляет только выбранный наземный визит; подтверждение в атласе не нажималось."
+        }
+      ],
+      "source": [
+        "apps/web/src/routes/PassportPage.tsx",
+        "apps/web/src/components/passport/CountryClaimMap.tsx",
+        "apps/web/src/components/passport/CountryListSheet.tsx",
+        "apps/web/src/components/passport/ClaimDialog.tsx",
+        "apps/web/src/components/passport/PassportStamps.tsx",
+        "apps/web/src/components/passport/StampPopup.tsx",
+        "apps/web/src/components/map/MapCard.tsx"
+      ],
+      "notes": "Подтверждение показано, но действие удаления не подтверждали."
+    },
+    {
+      "id": "passport-empty-desktop",
+      "title": "Паспорт без добавленных стран — компьютер",
+      "route": "/passport",
+      "status": "captured",
+      "screenshot": "images/passport-empty-desktop.png",
+      "snapshot": "images/passport-empty-desktop.txt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "authenticated",
+      "fixture": "Синтетический локальный аккаунт atlas-dashboard; исходное состояние без рейсов и стран, до seed-рейсов и добавления Spain.",
+      "preconditions": [
+        "Открыт маршрут /passport.",
+        "Пользователь авторизован в локальном приложении."
+      ],
+      "recognition": [
+        "Паспорт без добавленных стран — компьютер",
+        "Сообщение «Ваше путешествие начинается здесь»",
+        "Кнопка «Добавить первую страну»",
+        "Ссылка «Импортировать полёты»"
+      ],
+      "actions": [
+        {
+          "label": "Добавить первую страну",
+          "to": "passport-country-picker-desktop",
+          "effect": "Открывает выбор страны."
+        }
+      ],
+      "source": [
+        "apps/web/src/routes/PassportPage.tsx"
+      ],
+      "notes": "Состояние снято в локальном приложении; парный .txt содержит accessibility snapshot этого состояния."
+    },
+    {
+      "id": "passport-empty-mobile",
+      "title": "Паспорт без добавленных стран — телефон",
+      "route": "/passport",
+      "status": "captured",
+      "screenshot": "images/passport-empty-mobile.png",
+      "snapshot": "images/passport-empty-mobile.txt",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "auth": "authenticated",
+      "fixture": "Синтетический локальный аккаунт atlas-dashboard; исходное состояние без рейсов и стран, до seed-рейсов и добавления Spain.",
+      "preconditions": [
+        "Открыт маршрут /passport.",
+        "Пользователь авторизован в локальном приложении."
+      ],
+      "recognition": [
+        "Паспорт без добавленных стран — телефон",
+        "Сообщение «Ваше путешествие начинается здесь»",
+        "Кнопка «Добавить первую страну»",
+        "Мобильная нижняя навигация: Главная / Полёты / Паспорт / Настройки"
+      ],
+      "actions": [
+        {
+          "label": "Добавить первую страну",
+          "to": "passport-country-picker-mobile",
+          "effect": "Открывает список стран на телефоне."
+        }
+      ],
+      "source": [
+        "apps/web/src/routes/PassportPage.tsx"
+      ],
+      "notes": "Состояние снято в локальном приложении; парный .txt содержит accessibility snapshot этого состояния."
+    },
+    {
+      "id": "passport-map-countries-off-desktop",
+      "title": "Карта паспорта без слоя стран",
+      "route": "/passport",
+      "status": "captured",
+      "screenshot": "images/passport-map-countries-off-desktop.png",
+      "snapshot": "images/passport-map-countries-off-desktop.txt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "authenticated",
+      "fixture": "Локальный аккаунт тестового путешественника; просмотр без изменения данных.",
+      "preconditions": [
+        "Открыт маршрут /passport.",
+        "Пользователь авторизован в локальном приложении.",
+        "Для состояния нужны записи паспорта тестового путешественника."
+      ],
+      "recognition": [
+        "Карта паспорта без слоя стран",
+        "Континент «Asia 10»",
+        "Слой стран выключен: «Показать добавленные страны»",
+        "Видимые штампы: Russia, Armenia, Turkey"
+      ],
+      "actions": [
+        {
+          "label": "Включить страны",
+          "to": "passport-populated-desktop",
+          "effect": "Возвращает выделение стран на карте."
+        }
+      ],
+      "source": [
+        "apps/web/src/routes/PassportPage.tsx",
+        "apps/web/src/components/passport/PassportStamps.tsx",
+        "apps/web/src/components/passport/StampPopup.tsx",
+        "apps/web/src/components/map/MapCard.tsx"
+      ],
+      "notes": "Состояние снято в локальном приложении; парный .txt содержит accessibility snapshot этого состояния."
+    },
+    {
+      "id": "passport-map-expanded-desktop",
+      "title": "Карта паспорта развёрнута",
+      "route": "/passport",
+      "status": "captured",
+      "screenshot": "images/passport-map-expanded-desktop.png",
+      "snapshot": "images/passport-map-expanded-desktop.txt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "authenticated",
+      "fixture": "Локальный аккаунт тестового путешественника; просмотр без изменения данных.",
+      "preconditions": [
+        "Открыт маршрут /passport.",
+        "Пользователь авторизован в локальном приложении.",
+        "Для состояния нужны записи паспорта тестового путешественника."
+      ],
+      "recognition": [
+        "Карта паспорта развёрнута",
+        "Континент «Asia 10»",
+        "Карта развёрнута: кнопка «Collapse map»",
+        "Видимые штампы Russia, Armenia, Turkey"
+      ],
+      "actions": [
+        {
+          "label": "Свернуть карту",
+          "to": "passport-populated-desktop",
+          "effect": "Возвращает обычную раскладку паспорта."
+        }
+      ],
+      "source": [
+        "apps/web/src/routes/PassportPage.tsx",
+        "apps/web/src/components/passport/PassportStamps.tsx",
+        "apps/web/src/components/passport/StampPopup.tsx",
+        "apps/web/src/components/map/MapCard.tsx"
+      ],
+      "notes": "Состояние снято в локальном приложении; парный .txt содержит accessibility snapshot этого состояния."
+    },
+    {
+      "id": "passport-map-heatmap-desktop",
+      "title": "Тепловая карта паспорта",
+      "route": "/passport",
+      "status": "captured",
+      "screenshot": "images/passport-map-heatmap-desktop.png",
+      "snapshot": "images/passport-map-heatmap-desktop.txt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "authenticated",
+      "fixture": "Локальный аккаунт тестового путешественника; просмотр без изменения данных.",
+      "preconditions": [
+        "Открыт маршрут /passport.",
+        "Пользователь авторизован в локальном приложении.",
+        "Для состояния нужны записи паспорта тестового путешественника."
+      ],
+      "recognition": [
+        "Тепловая карта паспорта",
+        "Континент «Asia 10»",
+        "Переключатель «Тепловая карта» на карте",
+        "Видимые штампы Russia, Armenia, Turkey"
+      ],
+      "actions": [
+        {
+          "label": "Отключить тепловую карту",
+          "to": "passport-populated-desktop",
+          "effect": "Возвращает обычное оформление карты."
+        }
+      ],
+      "source": [
+        "apps/web/src/routes/PassportPage.tsx",
+        "apps/web/src/components/passport/PassportStamps.tsx",
+        "apps/web/src/components/passport/StampPopup.tsx",
+        "apps/web/src/components/map/MapCard.tsx"
+      ],
+      "notes": "Состояние снято в локальном приложении; парный .txt содержит accessibility snapshot этого состояния."
+    },
+    {
+      "id": "passport-map-routes-off-desktop",
+      "title": "Карта паспорта без маршрутов",
+      "route": "/passport",
+      "status": "captured",
+      "screenshot": "images/passport-map-routes-off-desktop.png",
+      "snapshot": "images/passport-map-routes-off-desktop.txt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "authenticated",
+      "fixture": "Локальный аккаунт тестового путешественника; просмотр без изменения данных.",
+      "preconditions": [
+        "Открыт маршрут /passport.",
+        "Пользователь авторизован в локальном приложении.",
+        "Для состояния нужны записи паспорта тестового путешественника."
+      ],
+      "recognition": [
+        "Карта паспорта без маршрутов",
+        "Континент «Asia 10»",
+        "Маршруты выключены: «Показать маршруты»",
+        "Видимые штампы Russia, Armenia, Turkey"
+      ],
+      "actions": [
+        {
+          "label": "Включить маршруты",
+          "to": "passport-populated-desktop",
+          "effect": "Возвращает линии перелётов."
+        }
+      ],
+      "source": [
+        "apps/web/src/routes/PassportPage.tsx",
+        "apps/web/src/components/passport/PassportStamps.tsx",
+        "apps/web/src/components/passport/StampPopup.tsx",
+        "apps/web/src/components/map/MapCard.tsx"
+      ],
+      "notes": "Состояние снято в локальном приложении; парный .txt содержит accessibility snapshot этого состояния."
+    },
+    {
+      "id": "passport-populated-desktop",
+      "title": "Паспорт с посещёнными странами — компьютер",
+      "route": "/passport",
+      "status": "captured",
+      "screenshot": "images/passport-populated-desktop.png",
+      "snapshot": "images/passport-populated-desktop.txt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "authenticated",
+      "fixture": "Локальный аккаунт тестового путешественника; просмотр без изменения данных.",
+      "preconditions": [
+        "Открыт маршрут /passport.",
+        "Пользователь авторизован в локальном приложении.",
+        "Для состояния нужны записи паспорта тестового путешественника."
+      ],
+      "recognition": [
+        "Паспорт с посещёнными странами — компьютер",
+        "Континент «Asia 10»",
+        "Россия: последний визит 9 месяцев назад",
+        "Armenia 3 года назад; Türkiye 2 месяца назад"
+      ],
+      "actions": [
+        {
+          "label": "Развернуть карту",
+          "to": "passport-map-expanded-desktop",
+          "effect": "Расширяет карту; статистический блок сворачивается."
+        },
+        {
+          "label": "Переключить слой карты",
+          "to": "passport-map-routes-off-desktop",
+          "effect": "Меняет видимость маршрутов."
+        }
+      ],
+      "source": [
+        "apps/web/src/routes/PassportPage.tsx",
+        "apps/web/src/components/passport/PassportStamps.tsx",
+        "apps/web/src/components/passport/StampPopup.tsx",
+        "apps/web/src/components/map/MapCard.tsx"
+      ],
+      "notes": "Состояние снято в локальном приложении; парный .txt содержит accessibility snapshot этого состояния."
+    },
+    {
+      "id": "passport-populated-full-mobile",
+      "title": "Полная мобильная страница паспорта",
+      "route": "/passport",
+      "status": "captured",
+      "screenshot": "images/passport-populated-full-mobile.png",
+      "snapshot": "images/passport-populated-full-mobile.txt",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "auth": "authenticated",
+      "fixture": "Локальный аккаунт тестового путешественника; просмотр без изменения данных.",
+      "preconditions": [
+        "Открыт маршрут /passport.",
+        "Пользователь авторизован в локальном приложении.",
+        "Для состояния нужны записи паспорта тестового путешественника."
+      ],
+      "recognition": [
+        "Полная мобильная страница паспорта",
+        "Континент «Asia 10»",
+        "Мобильный вид: Russia 9 месяцев назад, Armenia 3 года назад",
+        "Штампы Turkey, Georgia, Qatar также видны"
+      ],
+      "actions": [
+        {
+          "label": "Прокрутить штампы",
+          "to": "/passport",
+          "effect": "Прокручивает штампы того же test-traveler паспорта; мобильная карточка подробностей не снята."
+        }
+      ],
+      "source": [
+        "apps/web/src/routes/PassportPage.tsx",
+        "apps/web/src/components/passport/PassportStamps.tsx",
+        "apps/web/src/components/passport/StampPopup.tsx",
+        "apps/web/src/components/map/MapCard.tsx"
+      ],
+      "notes": "Полностраничный захват, viewport 390×844; полная высота страницы 1762 px. На мобильном переходе к карточке штампа остаёмся в том же test-traveler аккаунте; Spain-popup принадлежит atlas-dashboard и не является целью этого действия. Мобильная карточка не снята.",
+      "capture_mode": "fullpage",
+      "image_size": {
+        "width": 390,
+        "height": 1762
+      }
+    },
+    {
+      "id": "passport-populated-full",
+      "title": "Полная страница паспорта — компьютер",
+      "route": "/passport",
+      "status": "captured",
+      "screenshot": "images/passport-populated-full.png",
+      "snapshot": "images/passport-populated-full.txt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "authenticated",
+      "fixture": "Локальный аккаунт тестового путешественника; просмотр без изменения данных.",
+      "preconditions": [
+        "Открыт маршрут /passport.",
+        "Пользователь авторизован в локальном приложении.",
+        "Для состояния нужны записи паспорта тестового путешественника."
+      ],
+      "recognition": [
+        "Полная страница паспорта — компьютер",
+        "Континент «Asia 10»",
+        "Полностраничные штампы; Россия 9 месяцев назад",
+        "Раздел «Europe 6» включает Belarus, Germany и Netherlands"
+      ],
+      "actions": [],
+      "source": [
+        "apps/web/src/routes/PassportPage.tsx",
+        "apps/web/src/components/passport/PassportStamps.tsx",
+        "apps/web/src/components/passport/StampPopup.tsx",
+        "apps/web/src/components/map/MapCard.tsx"
+      ],
+      "notes": "Полностраничный захват, viewport 1440×1000.",
+      "capture_mode": "fullpage",
+      "image_size": {
+        "width": 1440,
+        "height": 1454
+      }
+    },
+    {
+      "id": "passport-populated-mobile",
+      "title": "Паспорт с посещёнными странами — телефон",
+      "route": "/passport",
+      "status": "captured",
+      "screenshot": "images/passport-populated-mobile.png",
+      "snapshot": "images/passport-populated-mobile.txt",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "auth": "authenticated",
+      "fixture": "Локальный аккаунт тестового путешественника; просмотр без изменения данных.",
+      "preconditions": [
+        "Открыт маршрут /passport.",
+        "Пользователь авторизован в локальном приложении.",
+        "Для состояния нужны записи паспорта тестового путешественника."
+      ],
+      "recognition": [
+        "Паспорт с посещёнными странами — телефон",
+        "Континент «Asia 10»",
+        "Мобильные штампы: Russia 9 месяцев назад; Armenia 3 года назад",
+        "Добавление страны доступно в верхней панели"
+      ],
+      "actions": [
+        {
+          "label": "Развернуть карту",
+          "to": "/passport",
+          "effect": "Разворачивает карту паспорта в текущем аккаунте; мобильное развёрнутое состояние не снято."
+        },
+        {
+          "label": "Добавить страну",
+          "to": "/passport",
+          "effect": "Открывает выбор страны в test-traveler паспорте; точный экран выбора для этого аккаунта не снят."
+        }
+      ],
+      "source": [
+        "apps/web/src/routes/PassportPage.tsx",
+        "apps/web/src/components/passport/PassportStamps.tsx",
+        "apps/web/src/components/passport/StampPopup.tsx",
+        "apps/web/src/components/map/MapCard.tsx"
+      ],
+      "notes": "Состояние снято в локальном приложении; парный .txt содержит accessibility snapshot этого состояния."
+    },
+    {
+      "id": "passport-stamp-details-test-traveler",
+      "title": "Подробности штампа в тестовом паспорте",
+      "route": "/passport",
+      "status": "captured",
+      "screenshot": "images/passport-stamp-details-test-traveler.png",
+      "snapshot": "images/passport-stamp-details-test-traveler.txt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "authenticated",
+      "fixture": "Локальный аккаунт тестового путешественника; просмотр без изменения данных.",
+      "preconditions": [
+        "Открыт маршрут /passport.",
+        "Пользователь авторизован в локальном приложении.",
+        "Для состояния нужны записи паспорта тестового путешественника."
+      ],
+      "recognition": [
+        "Подробности штампа в тестовом паспорте",
+        "Страна в карточке штампа «Turkey»",
+        "Паспорт тестового путешественника: «Asia 10»",
+        "Штамп Turkey посещён 2 месяца назад"
+      ],
+      "actions": [],
+      "source": [
+        "apps/web/src/routes/PassportPage.tsx",
+        "apps/web/src/components/passport/PassportStamps.tsx",
+        "apps/web/src/components/passport/StampPopup.tsx",
+        "apps/web/src/components/map/MapCard.tsx"
+      ],
+      "notes": "Состояние снято в локальном приложении; парный .txt содержит accessibility snapshot этого состояния."
+    },
+    {
+      "id": "passport-stamp-popup-atlas-account-desktop",
+      "title": "Подробности штампа Испании — синтетический аккаунт",
+      "route": "/passport",
+      "status": "captured",
+      "screenshot": "images/passport-stamp-popup-atlas-account-desktop.png",
+      "snapshot": "images/passport-stamp-popup-atlas-account-desktop.txt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "authenticated",
+      "fixture": "Синтетический локальный аккаунт atlas-dashboard; Spain добавлена для демонстрации штампа, остальные подписи/даты в формах учебные.",
+      "preconditions": [
+        "Открыт маршрут /passport.",
+        "Пользователь авторизован в локальном приложении."
+      ],
+      "recognition": [
+        "Подробности штампа Испании — синтетический аккаунт",
+        "Раздел «Europe 1»; штамп «Spain — España», Today ×2",
+        "Карточка штампа «Spain»",
+        "Действия карточки включают «Удалить из паспорта»"
+      ],
+      "actions": [
+        {
+          "label": "Удалить страну",
+          "to": "passport-delete-country-confirm-desktop",
+          "effect": "Показывает подтверждение; действие оставлено неподтверждённым."
+        }
+      ],
+      "source": [
+        "apps/web/src/routes/PassportPage.tsx",
+        "apps/web/src/components/passport/PassportStamps.tsx",
+        "apps/web/src/components/passport/StampPopup.tsx",
+        "apps/web/src/components/map/MapCard.tsx"
+      ],
+      "notes": "Состояние снято в локальном приложении; парный .txt содержит accessibility snapshot этого состояния."
+    },
+    {
+      "id": "passport-stamp-popup-mobile",
+      "title": "Подробности штампа Испании — телефон",
+      "route": "/passport",
+      "status": "captured",
+      "screenshot": "images/passport-stamp-popup-mobile.png",
+      "snapshot": "images/passport-stamp-popup-mobile.txt",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "auth": "authenticated",
+      "fixture": "Синтетический локальный аккаунт atlas-dashboard; Spain добавлена для демонстрации штампа, остальные подписи/даты в формах учебные.",
+      "preconditions": [
+        "Открыт маршрут /passport.",
+        "Пользователь авторизован в локальном приложении."
+      ],
+      "recognition": [
+        "Подробности штампа Испании — телефон",
+        "Мобильная карточка «Spain»",
+        "Раздел «Europe 1»; «Spain — España», Today",
+        "Кнопки карточки «Закрыть» и «Удалить»"
+      ],
+      "actions": [
+        {
+          "label": "Удалить страну",
+          "to": "/passport",
+          "effect": "Открывает подтверждение удаления для текущего штампа; мобильное подтверждение не снято."
+        }
+      ],
+      "source": [
+        "apps/web/src/routes/PassportPage.tsx",
+        "apps/web/src/components/passport/PassportStamps.tsx",
+        "apps/web/src/components/passport/StampPopup.tsx",
+        "apps/web/src/components/map/MapCard.tsx"
+      ],
+      "notes": "Состояние снято в локальном приложении; парный .txt содержит accessibility snapshot этого состояния."
+    },
+    {
+      "id": "dashboard-badge-toast-source-only",
+      "title": "Уведомление о новом значке",
+      "route": "/dashboard",
+      "status": "source-only",
+      "screenshot": null,
+      "snapshot": null,
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "authenticated",
+      "fixture": "Локальный аккаунт; среди собственных двух тестовых рейсов новые значки не открылись.",
+      "preconditions": [
+        "Войти с аккаунтом, у которого есть ещё не показанный значок; ключи показа хранятся в localStorage."
+      ],
+      "recognition": [
+        "Всплывающая награда содержит название значка.",
+        "Founding Crew имеет отдельный одноразовый показ."
+      ],
+      "actions": [],
+      "source": [
+        "apps/web/src/App.tsx",
+        "apps/web/src/components/badges/BadgeNotificationManager.tsx",
+        "apps/web/src/components/badges/BadgeNotificationToast.tsx"
+      ],
+      "notes": "Это временный toast после выдачи значка, а не отдельное действие для навигации; он исчезает автоматически. Снимок недоступен без соответствующего события/награды."
+    },
+    {
+      "id": "dashboard-crash-screen-source-only",
+      "title": "Экран ошибки маршрута",
+      "route": "/dashboard",
+      "status": "source-only",
+      "screenshot": null,
+      "snapshot": null,
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "authenticated",
+      "fixture": "Не требуется; экран возникает при исключении React во время render.",
+      "preconditions": [
+        "Нужно искусственно вызвать render-ошибку дочернего компонента маршрута; такая ошибка не возникала в рабочем локальном сценарии."
+      ],
+      "recognition": [
+        "Заголовок Something went wrong.",
+        "Кнопка Reload Page; dev-сборка может показать текст и stack ошибки."
+      ],
+      "actions": [
+        {
+          "label": "Reload Page",
+          "to": "/dashboard",
+          "effect": "Повторно загружает защищённый маршрут; при сохранённой сессии остаются текущая учётная запись и её данные."
+        }
+      ],
+      "source": [
+        "apps/web/src/App.tsx",
+        "apps/web/src/components/error/ErrorBoundary.tsx",
+        "apps/web/src/components/error/CrashScreen.tsx"
+      ],
+      "notes": "Источник: RouteErrorBoundary. Это отдельный аварийный экран, который не снимался; Reload повторяет текущий маршрут и сохраняет ту же сессию и данные, если сервер доступен."
+    },
+    {
+      "id": "journey-save-add-controls-source-only",
+      "title": "Добавление сегмента и сохранение Journey",
+      "route": "/journey",
+      "status": "source-only",
+      "screenshot": null,
+      "snapshot": null,
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "authenticated",
+      "fixture": "Прототип: статические сегменты TBS—DOH и DOH—NRT; данные заданы в INITIAL_TRIP.",
+      "preconditions": [
+        "Открыть /journey и нажать Save Trip, Add Segment или круглый +."
+      ],
+      "recognition": [
+        "Кнопки видимы в screenshots исходного Journey.",
+        "В JourneyPlannerPage у кнопок нет onClick; реальный рабочий drag меняет только useState."
+      ],
+      "actions": [],
+      "source": [
+        "apps/web/src/routes/JourneyPlannerPage.tsx",
+        "apps/web/src/components/journey/JourneyTimeline.tsx"
+      ],
+      "notes": "Поведение «ничего не происходит» подтверждено просмотром исходника. Состояние ошибки либо модальное окно не появляется."
+    }
+  ],
+  "journeys": [
+    {
+      "id": "dashboard-first-flight",
+      "title": "Первый полёт и обзор статистики",
+      "states": [
+        "dashboard-empty-desktop",
+        "dashboard-empty-mobile",
+        "dashboard-add-flight-form-desktop",
+        "dashboard-add-flight-origin-suggestions-desktop",
+        "dashboard-add-flight-validation-desktop",
+        "dashboard-seed-b738-form-desktop",
+        "dashboard-synthetic-fleet-manufacturer-desktop",
+        "dashboard-synthetic-fixture-full"
+      ],
+      "steps": [
+        "На пустой главной выберите «Добавить полёт».",
+        "Введите аэропорт — появляются подсказки; незаполненная форма показывает валидацию.",
+        "Для демонстрационных данных заполните JFK—LAX, AA 100, B738, дата 03.01.2026.",
+        "После сохранения обзор показывает карту и карточки анализа; синтетический аккаунт также содержит будущий TBS—DOH от 05.10.2026."
+      ],
+      "outcome": "Один завершённый полёт в статистике; fleet и manufacturer показывают 737-800 / Boeing. Синтетический аккаунт локальный."
+    },
+    {
+      "id": "dashboard-filters-map",
+      "title": "Фильтры и карта главной",
+      "states": [
+        "dashboard-filter-airline-menu-desktop",
+        "dashboard-filter-aircraft-menu-desktop",
+        "dashboard-filter-status-menu-desktop",
+        "dashboard-year-filter-open-desktop",
+        "dashboard-filtered-2025-desktop",
+        "dashboard-origin-filter-tbs-desktop",
+        "dashboard-route-filter-tbs-doh-desktop",
+        "dashboard-map-expanded-desktop",
+        "dashboard-map-routes-off-desktop",
+        "dashboard-filters-expanded-mobile"
+      ],
+      "steps": [
+        "Раскройте фильтр года, авиакомпании, самолёта или статуса; поиск аэропорта применяется по коду или городу.",
+        "Можно ограничить маршруты отправлением TBS и направлением DOH; очистка возвращает все данные.",
+        "Раскройте карту или скройте её линии маршрутов. На телефоне фильтры раскрываются отдельной кнопкой."
+      ],
+      "outcome": "Фильтры влияют на выборку и маршруты карты; screenshots с тестовым путешественником сделаны в read-only контексте."
+    },
+    {
+      "id": "dashboard-upcoming-flight",
+      "title": "Предстоящий полёт",
+      "states": [
+        "dashboard-seed-upcoming-form-desktop",
+        "dashboard-upcoming-banner-desktop",
+        "dashboard-upcoming-edit-form-desktop",
+        "dashboard-upcoming-delete-confirm-desktop"
+      ],
+      "steps": [
+        "Добавьте будущий рейс TBS—DOH, QR, 05.10.2026.",
+        "Проверьте баннер — при дате приложения 04.10 он обозначен как «завтра».",
+        "Откройте редактирование либо удаление. Удаление требует подтверждения."
+      ],
+      "outcome": "Будущий полёт виден отдельно от завершённой статистики; destructive confirmation в атласе не подтверждалось."
+    },
+    {
+      "id": "passport-first-country",
+      "title": "Добавить первую страну в паспорт",
+      "states": [
+        "passport-empty-desktop",
+        "passport-empty-mobile",
+        "passport-country-picker-desktop",
+        "passport-country-picker-mobile",
+        "passport-country-picker-search-mobile",
+        "passport-claim-new-mobile",
+        "passport-claim-filled-mobile",
+        "passport-after-claim-mobile"
+      ],
+      "steps": [
+        "На пустом паспорте выберите добавление страны. На телефоне откроется сгруппированный список; найдите Spain.",
+        "Выберите страну и добавьте штамп, выбрав год и тип наземный/морской при необходимости.",
+        "Откройте штамп, чтобы увидеть карточку деталей страны."
+      ],
+      "outcome": "Spain появляется в секции Europe; профиль используется только для локального атласа."
+    },
+    {
+      "id": "passport-visits-and-delete",
+      "title": "Детали страны, визиты и удаление",
+      "states": [
+        "passport-claim-existing-desktop",
+        "passport-add-visit-filled-desktop",
+        "passport-after-second-visit-desktop",
+        "passport-stamp-popup-atlas-account-desktop",
+        "passport-stamp-popup-mobile",
+        "passport-delete-country-confirm-desktop",
+        "passport-delete-visit-confirm-desktop"
+      ],
+      "steps": [
+        "Откройте ранее добавленный штамп и выберите добавление визита.",
+        "Пример формы заполнен годом 2025, морским въездом и демонстрационной заметкой.",
+        "В деталях страны проверьте визиты, аэропорты и действие удаления страны или отдельного наземного визита.",
+        "Подтверждения показаны, но не активированы."
+      ],
+      "outcome": "Добавление визита наблюдалось в локальном синтетическом аккаунте; удаления оставлены в стадии подтверждения."
+    },
+    {
+      "id": "passport-map",
+      "title": "Слои и масштаб карты паспорта",
+      "states": [
+        "passport-populated-desktop",
+        "passport-populated-mobile",
+        "passport-populated-full",
+        "passport-populated-full-mobile",
+        "passport-map-expanded-desktop",
+        "passport-map-routes-off-desktop",
+        "passport-map-countries-off-desktop",
+        "passport-map-heatmap-desktop",
+        "passport-stamp-details-test-traveler"
+      ],
+      "steps": [
+        "В обычном паспорте доступны слои маршрутов, добавленных стран и тепловой карты.",
+        "Разверните карту для крупного вида; нажмите штамп/страну для подробностей."
+      ],
+      "outcome": "Показаны отдельные состояния слоёв и карта на двух viewport; заполненный паспорт тестового путешественника открыт только для чтения."
+    },
+    {
+      "id": "journey-reorder-prototype",
+      "title": "Переставить сегменты Journey",
+      "states": [
+        "journey-initial-desktop",
+        "journey-initial-mobile",
+        "journey-full-mobile",
+        "journey-reordered-desktop",
+        "journey-save-add-controls-source-only"
+      ],
+      "steps": [
+        "Откройте /journey: прототип содержит TBS—DOH и DOH—NRT.",
+        "Перетащите блоки временной шкалы: их порядок меняется в локальном состоянии React.",
+        "Кнопки Save Trip, Add Segment и + не имеют обработчиков."
+      ],
+      "outcome": "Можно увидеть порядок сегментов до и после drag; добавление и постоянное сохранение не реализованы."
+    }
+  ],
+  "gaps": [
+    {
+      "state": "dashboard-badge-toast-source-only",
+      "reason": "Toast открывается при новом незамеченном значке; локальные рейсы не вызвали получение нового значка, поэтому изображение недоступно.",
+      "source": "apps/web/src/components/badges/BadgeNotificationManager.tsx"
+    },
+    {
+      "state": "dashboard-crash-screen-source-only",
+      "reason": "ErrorBoundary/CrashScreen появляются только после render-ошибки; без искусственного сбоя приложение их не показало.",
+      "source": "apps/web/src/components/error/ErrorBoundary.tsx"
+    },
+    {
+      "state": "journey-save-add-controls-source-only",
+      "reason": "Кнопки Add Segment, + и Save Trip не подключены к обработчикам; текущая версия поддерживает только drag-перестановку в памяти.",
+      "source": "apps/web/src/routes/JourneyPlannerPage.tsx"
+    },
+    {
+      "state": "dashboard-populated-full-mobile",
+      "reason": "Полностраничный PNG шире заданного viewport: 442 px против ширины 390 px; сохраняется как наблюдаемый mobile overflow.",
+      "source": "apps/web/src/routes/DashboardPage.tsx"
+    }
+  ]
+}

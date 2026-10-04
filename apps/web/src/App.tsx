@@ -19,14 +19,17 @@ import { Agentation } from 'agentation'
  */
 function lazyWithRetry(factory: () => Promise<{ default: React.ComponentType }>) {
   return lazy(() =>
-    factory().catch((error: unknown) => {
+    factory().then((module) => {
+      // A successful import after one reload completes recovery for this navigation.
+      sessionStorage.removeItem('chunk_retry')
+      return module
+    }).catch((error: unknown) => {
       const alreadyRetried = sessionStorage.getItem('chunk_retry')
       if (!alreadyRetried) {
         sessionStorage.setItem('chunk_retry', '1')
         window.location.reload()
         return new Promise<never>(() => {})
       }
-      sessionStorage.removeItem('chunk_retry')
       throw error
     })
   )

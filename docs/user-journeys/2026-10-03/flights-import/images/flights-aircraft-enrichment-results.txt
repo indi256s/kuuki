@@ -1,0 +1,28 @@
+- generic
+  - generic [ref=e934] clickable [onclick]
+    - region "Notifications alt+T" [ref=e936]
+  - dialog "Результаты идентификации самолётов"
+    - heading "Результаты идентификации самолётов" [level=2, ref=e1379]
+      - StaticText "Результаты идентификации самолётов"
+    - paragraph
+      - StaticText "Определено 1 из 1 самолётов"
+    - button "Снять выбор" [ref=e1380]
+      - checkbox [checked=true, ref=e1385]
+      - StaticText "Снять выбор"
+    - StaticText "Выбрано: 1"
+    - checkbox [checked=true, ref=e1381]
+    - StaticText "AA"
+    - StaticText "100"
+    - StaticText "JFK"
+    - StaticText " → "
+    - StaticText "BOS"
+    - generic
+      - StaticText "New York to Boston · 3 Oct 2026"
+    - StaticText "B738"
+    - StaticText "737-800"
+    - StaticText "98"
+    - StaticText "%"
+    - button "Отмена" [ref=e1382]
+    - button "Принять выбранный (1)" [ref=e1383]
+    - button "Close" [ref=e1384]
+      - StaticText "Close"

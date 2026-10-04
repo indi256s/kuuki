@@ -1,0 +1,11 @@
+- generic "Skip to main contentくうきKuukiВнешний видくうきKuukiГлавнаяПолётыПаспортРейтингИмпортВнешний видAT246 стр" [ref=e63] clickable [onclick]
+  - region "Notifications alt+T" [ref=e65]
+- heading "Добавить страну" [level=2, ref=e157]
+- combobox [expanded=false, ref=e158]: 2024
+  - generic "2024" [ref=e244] clickable [onclick]
+- button "Суша" [ref=e159]
+- button "Море" [ref=e160]
+- textbox "Воспоминания об этой поездке…" [ref=e161]: Тестовый штамп для атласа
+- button "Отмена" [ref=e162]
+- button "Добавить штамп" [ref=e163]
+- button "Close" [ref=e164]

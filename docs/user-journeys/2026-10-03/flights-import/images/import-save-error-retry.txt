@@ -1,0 +1,28 @@
+- generic [ref=e934] clickable [onclick]
+  - link "Skip to main content" [ref=e935]
+  - generic
+    - banner
+      - link "Kuuki" [ref=e937]
+        - StaticText "Kuuki"
+      - navigation
+        - link "Главная" [ref=e944]
+        - link "Полёты" [ref=e945]
+        - link "Паспорт" [ref=e946]
+        - link "Рейтинг" [ref=e947]
+        - link "Импорт" [ref=e948]
+      - button "Внешний вид" [expanded=false, ref=e938]
+        - StaticText "Внешний вид"
+      - button "FI" [expanded=false, ref=e939]
+        - StaticText "FI"
+    - main
+      - heading "Импорт" [level=1, ref=e940]
+      - heading "Ошибка импорта" [level=3, ref=e968]
+      - paragraph
+        - StaticText "Не удалось сохранить 1 полёт"
+      - alert
+        - list
+          - listitem [level=1]
+            - StaticText "JFK → BOS (2026-01-03): Failed to fetch"
+      - button "Повторить неудачные сохранения" [ref=e969]
+      - button "Начать новый импорт (отказаться от повторов)" [ref=e970]
+  - region "Notifications alt+T" [ref=e936]

@@ -1,0 +1,49 @@
+- generic [ref=e286] clickable [onclick]
+  - link "Skip to main content" [ref=e287]
+  - generic
+    - banner
+      - link "Kuuki" [ref=e289]
+        - StaticText "Kuuki"
+    - main
+      - generic
+        - generic
+        - heading "Тестовый путешественник" [level=1, ref=e293]
+        - paragraph
+          - StaticText "@test-traveler"
+        - paragraph
+          - StaticText "Локальный тестовый профиль для карты экранов"
+        - StaticText "Участник с October 2026"
+      - heading "СТАТИСТИКА" [level=2, ref=e290]
+      - paragraph
+        - StaticText "69"
+      - paragraph
+        - StaticText "ВСЕГО ПОЛЁТОВ"
+      - paragraph
+        - StaticText "141,255 km"
+      - paragraph
+        - StaticText "ДИСТАНЦИЯ"
+      - paragraph
+        - StaticText "Вы облетели Землю 3 раза"
+      - paragraph
+        - StaticText "16"
+      - paragraph
+        - StaticText "СТРАНЫ"
+      - paragraph
+        - StaticText "22"
+      - paragraph
+        - StaticText "АВИАКОМПАНИИ"
+      - paragraph
+        - StaticText "25"
+      - paragraph
+        - StaticText "ГОРОДА"
+      - paragraph
+        - StaticText "0"
+      - paragraph
+        - StaticText "ТИПЫ САМОЛЁТОВ"
+      - heading "ВАШЕ МЕСТО" [level=2, ref=e291]
+      - paragraph
+        - StaticText "Добавьте больше рейсов для участия в рейтинге"
+      - heading "ДОСТИЖЕНИЯ" [level=2, ref=e292]
+      - paragraph
+        - StaticText "Продолжайте летать, чтобы получить награды"
+  - region "Notifications alt+T" [ref=e288]

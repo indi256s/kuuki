@@ -48,6 +48,7 @@ export function FlightList({ onEdit }: FlightListProps) {
   const [selectionMode, setSelectionMode] = useState(false)
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set())
   const [batchDeleteConfirm, setBatchDeleteConfirm] = useState(false)
+  const [selectionError, setSelectionError] = useState(false)
 
   // Airport search inputs
   const [originSearch, setOriginSearch] = useState('')
@@ -115,6 +116,8 @@ export function FlightList({ onEdit }: FlightListProps) {
   const {
     data,
     isLoading,
+    isFetching,
+    refetch,
     isFetchingNextPage,
     hasNextPage,
     fetchNextPage,
@@ -171,8 +174,11 @@ export function FlightList({ onEdit }: FlightListProps) {
     } else {
       // Select ALL flights matching current filters (fetch IDs from server)
       const result = await fetchAllIds()
-      if (result.data) {
+      if (result.isSuccess && result.data) {
+        setSelectionError(false)
         setSelectedIds(new Set(result.data))
+      } else {
+        setSelectionError(true)
       }
     }
   }
@@ -215,11 +221,12 @@ export function FlightList({ onEdit }: FlightListProps) {
     )
   }
 
-  if (error) {
+  if (error && !data) {
     return (
       <Card className="border-destructive/30 bg-destructive/5">
         <CardContent className="p-4">
           <p className="text-sm text-destructive">{error.message}</p>
+          <Button variant="outline" className="mt-3" onClick={() => void refetch()}>{t('common.retry', 'Try again')}</Button>
         </CardContent>
       </Card>
     )
@@ -301,6 +308,13 @@ export function FlightList({ onEdit }: FlightListProps) {
 
   return (
     <div className="space-y-4">
+      {error && data && (
+        <div role="alert" className="rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">
+          {t('errors.backgroundRefresh', 'Could not refresh flights. Showing the last loaded data.')}
+          <Button variant="link" onClick={() => void refetch()} disabled={isFetching}>{t('common.retry', 'Try again')}</Button>
+        </div>
+      )}
+      {selectionError && <p role="alert" className="text-sm text-destructive">{t('flights.selectAllFailed', 'Could not load all flight IDs. Try again.')}</p>}
       {/* Filters and toolbar */}
       <div className="flex flex-wrap items-center gap-2">
         {!selectionMode ? (

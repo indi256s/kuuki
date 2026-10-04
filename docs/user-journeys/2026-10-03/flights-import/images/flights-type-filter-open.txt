@@ -1,0 +1,6 @@
+- generic "Skip to main contentくうきKuukiВнешний видくうきKuukiГлавнаяПолётыПаспортРейтингИмпортДобавить полётВнешни" [ref=e157] clickable [onclick]
+  - region "Notifications alt+T" [ref=e159]
+- listbox [ref=e744]
+  - option "Все полёты" [selected, ref=e745]
+  - option "Предстоящие" [ref=e746]
+  - option "Прошедшие" [ref=e747]

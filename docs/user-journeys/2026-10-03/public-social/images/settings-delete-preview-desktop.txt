@@ -1,0 +1,18 @@
+- generic
+  - generic [ref=e326] clickable [onclick]
+    - region "Notifications alt+T" [ref=e328]
+  - dialog "Удалить аккаунт?"
+    - heading "Удалить аккаунт?" [level=2, ref=e369]
+      - StaticText "Удалить аккаунт?"
+    - paragraph
+      - StaticText "Ну вот и всё. Финальный заход на посадку."
+    - paragraph
+      - StaticText "У вас 0 полётов и 0 стран в паспорте."
+    - paragraph
+      - StaticText "Все данные будут безвозвратно удалены. Это действие нельзя отменить."
+    - paragraph
+      - StaticText "\"Спасибо, что летали с нами. Или не летали. Дело ваше.\""
+    - button "Отмена" [ref=e370]
+    - button "Далее" [ref=e371]
+    - button "Close" [ref=e372]
+      - StaticText "Close"

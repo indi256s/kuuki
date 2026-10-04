@@ -125,15 +125,10 @@ export async function getFlights(
     sortOrder: sort?.order ?? 'desc',
   }
 
-  try {
-    const data = await api.get<{ flights: ApiFlight[]; total: number }>('/api/flights', params)
-    return {
-      flights: (data.flights ?? []).map((f) => toFlight(f, userId)),
-      total: data.total ?? 0,
-    }
-  } catch (error) {
-    console.error('Error fetching flights:', error)
-    return { flights: [], total: 0 }
+  const data = await api.get<{ flights: ApiFlight[]; total: number }>('/api/flights', params)
+  return {
+    flights: (data.flights ?? []).map((f) => toFlight(f, userId)),
+    total: data.total ?? 0,
   }
 }
 
@@ -146,8 +141,7 @@ export async function getFlight(flightId: number): Promise<Flight | null> {
     return toFlight(dto, '')
   } catch (error) {
     if (error instanceof ApiError && error.status === 404) return null
-    console.error('Error fetching flight:', error)
-    return null
+    throw error
   }
 }
 
@@ -252,37 +246,20 @@ export async function checkDuplicateFlight(
   destination: string,
   excludeId?: number
 ): Promise<Flight | null> {
-  try {
-    const dto = await api.get<ApiFlight | null>('/api/flights/check-duplicate', {
-      date,
-      origin,
-      destination,
-      excludeId,
-    })
-    return dto ? toFlight(dto, userId) : null
-  } catch (error) {
-    console.error('Error checking duplicate flight:', error)
-    return null
-  }
+  const dto = await api.get<ApiFlight | null>('/api/flights/check-duplicate', {
+    date,
+    origin,
+    destination,
+    excludeId,
+  })
+  return dto ? toFlight(dto, userId) : null
 }
 
 /**
  * Get flight statistics for a user
  */
 export async function getFlightStats(_userId: string): Promise<FlightStats> {
-  try {
-    return await api.get<FlightStats>('/api/flights/stats')
-  } catch (error) {
-    console.error('Error fetching flight stats:', error)
-    return {
-      totalFlights: 0,
-      totalDistance: 0,
-      countriesVisited: 0,
-      airlinesFlown: 0,
-      uniqueAirports: 0,
-      upcomingFlights: 0,
-    }
-  }
+  return api.get<FlightStats>('/api/flights/stats')
 }
 
 /**
@@ -301,78 +278,48 @@ export interface FlightRoute {
  * Get all flight routes for map rendering (lightweight: only route-relevant columns)
  */
 export async function getFlightRoutes(_userId: string): Promise<FlightRoute[]> {
-  try {
-    const rows = await api.get<FlightRoute[]>('/api/flights/routes')
-    return rows ?? []
-  } catch (error) {
-    console.error('Error fetching flight routes:', error)
-    return []
-  }
+  const rows = await api.get<FlightRoute[]>('/api/flights/routes')
+  return rows ?? []
 }
 
 /**
  * Get recent flights for dashboard display
  */
 export async function getRecentFlights(userId: string, limit = 5): Promise<Flight[]> {
-  try {
-    const rows = await api.get<ApiFlight[]>('/api/flights/recent', { limit })
-    return (rows ?? []).map((f) => toFlight(f, userId))
-  } catch (error) {
-    console.error('Error fetching recent flights:', error)
-    return []
-  }
+  const rows = await api.get<ApiFlight[]>('/api/flights/recent', { limit })
+  return (rows ?? []).map((f) => toFlight(f, userId))
 }
 
 /**
  * Get upcoming flights for dashboard display
  */
 export async function getUpcomingFlights(userId: string, limit = 3): Promise<Flight[]> {
-  try {
-    const rows = await api.get<ApiFlight[]>('/api/flights/upcoming', { limit })
-    return (rows ?? []).map((f) => toFlight(f, userId))
-  } catch (error) {
-    console.error('Error fetching upcoming flights:', error)
-    return []
-  }
+  const rows = await api.get<ApiFlight[]>('/api/flights/upcoming', { limit })
+  return (rows ?? []).map((f) => toFlight(f, userId))
 }
 
 /**
  * Get unique years from user's flights (for filter dropdown)
  */
 export async function getFlightYears(_userId: string): Promise<number[]> {
-  try {
-    const years = await api.get<number[]>('/api/flights/years')
-    return years ?? []
-  } catch (error) {
-    console.error('Error fetching flight years:', error)
-    return []
-  }
+  const years = await api.get<number[]>('/api/flights/years')
+  return years ?? []
 }
 
 /**
  * Get unique airlines from user's flights (for filter dropdown)
  */
 export async function getFlightAirlines(_userId: string): Promise<string[]> {
-  try {
-    const airlines = await api.get<string[]>('/api/flights/airlines')
-    return airlines ?? []
-  } catch (error) {
-    console.error('Error fetching flight airlines:', error)
-    return []
-  }
+  const airlines = await api.get<string[]>('/api/flights/airlines')
+  return airlines ?? []
 }
 
 /**
  * Get unique aircraft from user's flights (for filter dropdown)
  */
 export async function getFlightAircraft(_userId: string): Promise<string[]> {
-  try {
-    const aircraft = await api.get<string[]>('/api/flights/aircraft')
-    return aircraft ?? []
-  } catch (error) {
-    console.error('Error fetching flight aircraft:', error)
-    return []
-  }
+  const aircraft = await api.get<string[]>('/api/flights/aircraft')
+  return aircraft ?? []
 }
 
 /**
@@ -392,13 +339,8 @@ export async function getAllFlightIds(
   _userId: string,
   filters?: FlightFilters
 ): Promise<number[]> {
-  try {
-    const data = await api.get<{ ids: number[] }>('/api/flights/ids', filterParams(filters))
-    return data.ids ?? []
-  } catch (error) {
-    console.error('Error fetching flight IDs:', error)
-    return []
-  }
+  const data = await api.get<{ ids: number[] }>('/api/flights/ids', filterParams(filters))
+  return data.ids ?? []
 }
 
 /**

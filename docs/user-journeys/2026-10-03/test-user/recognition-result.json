@@ -1,0 +1,2570 @@
+{
+  "description": "Conservative normalization for local demo, not live AI recognition or verification that a flight was flown",
+  "source_sha256": "91d60062f99fe7a3eb26f00881a882b6272cf533c9b307788c8e455d8b3a818f",
+  "counts": {
+    "review": 27,
+    "accepted": 69,
+    "excluded": 26
+  },
+  "alias_policy": {
+    "Kaliningrad": "KGD",
+    "Rostov-on-Don": "ROV",
+    "Yerevan": "EVN",
+    "Tbilisi": "TBS",
+    "Istanbul Sabiha Gokcen": "SAW",
+    "Krasnodar": "KRR"
+  },
+  "records": [
+    {
+      "id": "input-001",
+      "line": 1,
+      "raw": "2015-05-21 | ROV → Moscow | 07:05 → 08:55 [calendar only; times from calendar]",
+      "section": "own",
+      "status": "review",
+      "reasons": [
+        "destination: ambiguous or absent airport Moscow"
+      ],
+      "flight": {
+        "date": "2015-05-21",
+        "origin": "ROV",
+        "destination": "Moscow",
+        "source": "manual",
+        "enrichment_status": "skipped",
+        "departure_time": "07:05",
+        "arrival_time": "08:55",
+        "origin_tz": "Europe/Moscow"
+      }
+    },
+    {
+      "id": "input-002",
+      "line": 2,
+      "raw": "2015-05-21 | DME → Kaliningrad | 12:50 → 13:55 [calendar only; times from calendar]",
+      "section": "own",
+      "status": "accepted",
+      "reasons": [],
+      "flight": {
+        "date": "2015-05-21",
+        "origin": "DME",
+        "destination": "KGD",
+        "source": "manual",
+        "enrichment_status": "skipped",
+        "departure_time": "12:50",
+        "arrival_time": "13:55",
+        "origin_tz": "Europe/Moscow",
+        "dest_tz": "Europe/Kaliningrad"
+      }
+    },
+    {
+      "id": "input-003",
+      "line": 3,
+      "raw": "2015-05-25 | KGD → Moscow | 15:00 → 17:50 [calendar only; times from calendar]",
+      "section": "own",
+      "status": "review",
+      "reasons": [
+        "destination: ambiguous or absent airport Moscow"
+      ],
+      "flight": {
+        "date": "2015-05-25",
+        "origin": "KGD",
+        "destination": "Moscow",
+        "source": "manual",
+        "enrichment_status": "skipped",
+        "departure_time": "15:00",
+        "arrival_time": "17:50",
+        "origin_tz": "Europe/Kaliningrad"
+      }
+    },
+    {
+      "id": "input-004",
+      "line": 4,
+      "raw": "2015-05-25 | DME → Rostov-on-Don | 20:00 → 21:40 [calendar only; times from calendar]",
+      "section": "own",
+      "status": "accepted",
+      "reasons": [],
+      "flight": {
+        "date": "2015-05-25",
+        "origin": "DME",
+        "destination": "ROV",
+        "source": "manual",
+        "enrichment_status": "skipped",
+        "departure_time": "20:00",
+        "arrival_time": "21:40",
+        "origin_tz": "Europe/Moscow",
+        "dest_tz": "Europe/Moscow"
+      }
+    },
+    {
+      "id": "input-005",
+      "line": 5,
+      "raw": "2016-03-31 | DME → KGD | S7 Airlines S767 | 17:00 → 18:05 [travel log only]",
+      "section": "own",
+      "status": "accepted",
+      "reasons": [],
+      "flight": {
+        "date": "2016-03-31",
+        "origin": "DME",
+        "destination": "KGD",
+        "source": "manual",
+        "enrichment_status": "skipped",
+        "airline_iata": "S7",
+        "flight_number": "67",
+        "departure_time": "17:00",
+        "arrival_time": "18:05",
+        "origin_tz": "Europe/Moscow",
+        "dest_tz": "Europe/Kaliningrad"
+      }
+    },
+    {
+      "id": "input-006",
+      "line": 6,
+      "raw": "2016-04-04 | KGD → SVO | Aeroflot SU1001 | 09:15 → 12:05 [travel log only]",
+      "section": "own",
+      "status": "accepted",
+      "reasons": [],
+      "flight": {
+        "date": "2016-04-04",
+        "origin": "KGD",
+        "destination": "SVO",
+        "source": "manual",
+        "enrichment_status": "skipped",
+        "airline_iata": "SU",
+        "flight_number": "1001",
+        "departure_time": "09:15",
+        "arrival_time": "12:05",
+        "origin_tz": "Europe/Kaliningrad",
+        "dest_tz": "Europe/Moscow"
+      }
+    },
+    {
+      "id": "input-007",
+      "line": 7,
+      "raw": "2017-03-24 | ROV → SVO | Nordwind Airlines N4188 | 02:45 → 04:45",
+      "section": "own",
+      "status": "accepted",
+      "reasons": [],
+      "flight": {
+        "date": "2017-03-24",
+        "origin": "ROV",
+        "destination": "SVO",
+        "source": "manual",
+        "enrichment_status": "skipped",
+        "airline_iata": "N4",
+        "flight_number": "188",
+        "departure_time": "02:45",
+        "arrival_time": "04:45",
+        "origin_tz": "Europe/Moscow",
+        "dest_tz": "Europe/Moscow"
+      }
+    },
+    {
+      "id": "input-008",
+      "line": 8,
+      "raw": "2017-03-24 | ZIA → MSQ | Belavia B2972 | 10:20 → 11:45",
+      "section": "own",
+      "status": "review",
+      "reasons": [
+        "origin: ambiguous or absent airport ZIA"
+      ],
+      "flight": {
+        "date": "2017-03-24",
+        "origin": "ZIA",
+        "destination": "MSQ",
+        "source": "manual",
+        "enrichment_status": "skipped",
+        "airline_iata": "B2",
+        "flight_number": "972",
+        "departure_time": "10:20",
+        "arrival_time": "11:45",
+        "dest_tz": "Europe/Minsk"
+      }
+    },
+    {
+      "id": "input-009",
+      "line": 9,
+      "raw": "2017-03-26 | MSQ → DME | Belavia B2993 | 19:30 → 20:50",
+      "section": "own",
+      "status": "accepted",
+      "reasons": [],
+      "flight": {
+        "date": "2017-03-26",
+        "origin": "MSQ",
+        "destination": "DME",
+        "source": "manual",
+        "enrichment_status": "skipped",
+        "airline_iata": "B2",
+        "flight_number": "993",
+        "departure_time": "19:30",
+        "arrival_time": "20:50",
+        "origin_tz": "Europe/Minsk",
+        "dest_tz": "Europe/Moscow"
+      }
+    },
+    {
+      "id": "input-010",
+      "line": 10,
+      "raw": "2017-03-27 | DME → ROV | S7 Airlines S71159 | 00:35 → 02:30",
+      "section": "own",
+      "status": "accepted",
+      "reasons": [],
+      "flight": {
+        "date": "2017-03-27",
+        "origin": "DME",
+        "destination": "ROV",
+        "source": "manual",
+        "enrichment_status": "skipped",
+        "airline_iata": "S7",
+        "flight_number": "1159",
+        "departure_time": "00:35",
+        "arrival_time": "02:30",
+        "origin_tz": "Europe/Moscow",
+        "dest_tz": "Europe/Moscow"
+      }
+    },
+    {
+      "id": "input-011",
+      "line": 11,
+      "raw": "2017-04-06 | MSQ → ZIA | Belavia B2973 | 18:05 → 19:30 [travel log only]",
+      "section": "own",
+      "status": "review",
+      "reasons": [
+        "destination: ambiguous or absent airport ZIA"
+      ],
+      "flight": {
+        "date": "2017-04-06",
+        "origin": "MSQ",
+        "destination": "ZIA",
+        "source": "manual",
+        "enrichment_status": "skipped",
+        "airline_iata": "B2",
+        "flight_number": "973",
+        "departure_time": "18:05",
+        "arrival_time": "19:30",
+        "origin_tz": "Europe/Minsk"
+      }
+    },
+    {
+      "id": "input-012",
+      "line": 12,
+      "raw": "2017-06-22 | LWN → Rostov-on-Don | H7727 | 15:55 → 16:20 [calendar only; times from calendar]",
+      "section": "own",
+      "status": "accepted",
+      "reasons": [],
+      "flight": {
+        "date": "2017-06-22",
+        "origin": "LWN",
+        "destination": "ROV",
+        "source": "manual",
+        "enrichment_status": "skipped",
+        "airline_iata": "H7",
+        "flight_number": "727",
+        "departure_time": "15:55",
+        "arrival_time": "16:20",
+        "origin_tz": "Asia/Yerevan",
+        "dest_tz": "Europe/Moscow"
+      }
+    },
+    {
+      "id": "input-013",
+      "line": 13,
+      "raw": "2017-07-08 | ROV → VKO | UT498 | 06:35 → 08:30 [travel log + calendar]",
+      "section": "own",
+      "status": "accepted",
+      "reasons": [],
+      "flight": {
+        "date": "2017-07-08",
+        "origin": "ROV",
+        "destination": "VKO",
+        "source": "manual",
+        "enrichment_status": "skipped",
+        "airline_iata": "UT",
+        "flight_number": "498",
+        "departure_time": "06:35",
+        "arrival_time": "08:30",
+        "origin_tz": "Europe/Moscow",
+        "dest_tz": "Europe/Moscow"
+      }
+    },
+    {
+      "id": "input-014",
+      "line": 14,
+      "raw": "2017-07-11 | VKO → ROV | UT497 | 23:55 → 01:45 (2017-07-12) [travel log + calendar]",
+      "section": "own",
+      "status": "accepted",
+      "reasons": [],
+      "flight": {
+        "date": "2017-07-11",
+        "origin": "VKO",
+        "destination": "ROV",
+        "source": "manual",
+        "enrichment_status": "skipped",
+        "airline_iata": "UT",
+        "flight_number": "497",
+        "departure_time": "23:55",
+        "arrival_time": "01:45",
+        "origin_tz": "Europe/Moscow",
+        "dest_tz": "Europe/Moscow"
+      }
+    },
+    {
+      "id": "input-015",
+      "line": 15,
+      "raw": "2017-09-30 | ROV → SVO | Aeroflot SU1163 | 12:00 → 13:55 [travel log + calendar]",
+      "section": "own",
+      "status": "accepted",
+      "reasons": [],
+      "flight": {
+        "date": "2017-09-30",
+        "origin": "ROV",
+        "destination": "SVO",
+        "source": "manual",
+        "enrichment_status": "skipped",
+        "airline_iata": "SU",
+        "flight_number": "1163",
+        "departure_time": "12:00",
+        "arrival_time": "13:55",
+        "origin_tz": "Europe/Moscow",
+        "dest_tz": "Europe/Moscow"
+      }
+    },
+    {
+      "id": "input-016",
+      "line": 16,
+      "raw": "2017-09-30 | SVO → FRA | Aeroflot SU2302 | 15:35 → 18:00 [travel log + calendar]",
+      "section": "own",
+      "status": "accepted",
+      "reasons": [],
+      "flight": {
+        "date": "2017-09-30",
+        "origin": "SVO",
+        "destination": "FRA",
+        "source": "manual",
+        "enrichment_status": "skipped",
+        "airline_iata": "SU",
+        "flight_number": "2302",
+        "departure_time": "15:35",
+        "arrival_time": "18:00",
+        "origin_tz": "Europe/Moscow",
+        "dest_tz": "Europe/Berlin"
+      }
+    },
+    {
+      "id": "input-017",
+      "line": 17,
+      "raw": "2017-12-21 | ROV → IST | Turkish Airlines TK294 | 05:20 → 07:50 [travel log + calendar]",
+      "section": "own",
+      "status": "accepted",
+      "reasons": [],
+      "flight": {
+        "date": "2017-12-21",
+        "origin": "ROV",
+        "destination": "IST",
+        "source": "manual",
+        "enrichment_status": "skipped",
+        "airline_iata": "TK",
+        "flight_number": "294",
+        "departure_time": "05:20",
+        "arrival_time": "07:50",
+        "origin_tz": "Europe/Moscow",
+        "dest_tz": "Europe/Istanbul"
+      }
+    },
+    {
+      "id": "input-018",
+      "line": 18,
+      "raw": "2017-12-21 | IST → MUC | Turkish Airlines TK1633 | 12:40 → 13:30 [travel log + calendar; time conflict; see source notes]",
+      "section": "own",
+      "status": "review",
+      "reasons": [
+        "source explicitly flags uncertainty or conflict"
+      ],
+      "flight": {
+        "date": "2017-12-21",
+        "origin": "IST",
+        "destination": "MUC",
+        "source": "manual",
+        "enrichment_status": "skipped",
+        "airline_iata": "TK",
+        "flight_number": "1633",
+        "departure_time": "12:40",
+        "arrival_time": "13:30",
+        "origin_tz": "Europe/Istanbul",
+        "dest_tz": "Europe/Berlin"
+      }
+    },
+    {
+      "id": "input-019",
+      "line": 19,
+      "raw": "2017-12-26 | MUC → AMS | EW1834 | 16:55 → 18:25 [travel log + calendar]",
+      "section": "own",
+      "status": "accepted",
+      "reasons": [],
+      "flight": {
+        "date": "2017-12-26",
+        "origin": "MUC",
+        "destination": "AMS",
+        "source": "manual",
+        "enrichment_status": "skipped",
+        "airline_iata": "EW",
+        "flight_number": "1834",
+        "departure_time": "16:55",
+        "arrival_time": "18:25",
+        "origin_tz": "Europe/Berlin",
+        "dest_tz": "Europe/Amsterdam"
+      }
+    },
+    {
+      "id": "input-020",
+      "line": 20,
+      "raw": "2017-12-28 | AMS → IST | Turkish Airlines TK1956 | 23:50 → 05:10 (2017-12-29) [travel log + calendar; time conflict; see source notes]",
+      "section": "own",
+      "status": "review",
+      "reasons": [
+        "source explicitly flags uncertainty or conflict"
+      ],
+      "flight": {
+        "date": "2017-12-28",
+        "origin": "AMS",
+        "destination": "IST",
+        "source": "manual",
+        "enrichment_status": "skipped",
+        "airline_iata": "TK",
+        "flight_number": "1956",
+        "departure_time": "23:50",
+        "arrival_time": "05:10",
+        "origin_tz": "Europe/Amsterdam",
+        "dest_tz": "Europe/Istanbul"
+      }
+    },
+    {
+      "id": "input-021",
+      "line": 21,
+      "raw": "2017-12-30 | IST → ROV | Turkish Airlines TK293 | 01:05 → 03:20 [travel log + calendar; time conflict; see source notes]",
+      "section": "own",
+      "status": "review",
+      "reasons": [
+        "source explicitly flags uncertainty or conflict"
+      ],
+      "flight": {
+        "date": "2017-12-30",
+        "origin": "IST",
+        "destination": "ROV",
+        "source": "manual",
+        "enrichment_status": "skipped",
+        "airline_iata": "TK",
+        "flight_number": "293",
+        "departure_time": "01:05",
+        "arrival_time": "03:20",
+        "origin_tz": "Europe/Istanbul",
+        "dest_tz": "Europe/Moscow"
+      }
+    },
+    {
+      "id": "input-022",
+      "line": 22,
+      "raw": "2018-02-27 | FRA → SVO | Aeroflot SU2657 | 17:40 → 22:45 [travel log + calendar]",
+      "section": "own",
+      "status": "accepted",
+      "reasons": [],
+      "flight": {
+        "date": "2018-02-27",
+        "origin": "FRA",
+        "destination": "SVO",
+        "source": "manual",
+        "enrichment_status": "skipped",
+        "airline_iata": "SU",
+        "flight_number": "2657",
+        "departure_time": "17:40",
+        "arrival_time": "22:45",
+        "origin_tz": "Europe/Berlin",
+        "dest_tz": "Europe/Moscow"
+      }
+    },
+    {
+      "id": "input-023",
+      "line": 23,
+      "raw": "2018-02-28 | SVO → ROV | Aeroflot SU1166 | 01:10 → 03:10 [travel log + calendar]",
+      "section": "own",
+      "status": "accepted",
+      "reasons": [],
+      "flight": {
+        "date": "2018-02-28",
+        "origin": "SVO",
+        "destination": "ROV",
+        "source": "manual",
+        "enrichment_status": "skipped",
+        "airline_iata": "SU",
+        "flight_number": "1166",
+        "departure_time": "01:10",
+        "arrival_time": "03:10",
+        "origin_tz": "Europe/Moscow",
+        "dest_tz": "Europe/Moscow"
+      }
+    },
+    {
+      "id": "input-024",
+      "line": 24,
+      "raw": "2018-04-08 | VKO → Rostov-on-Don | Pobeda DP105 | 18:10 → 20:00 [calendar only; times from calendar]",
+      "section": "own",
+      "status": "accepted",
+      "reasons": [],
+      "flight": {
+        "date": "2018-04-08",
+        "origin": "VKO",
+        "destination": "ROV",
+        "source": "manual",
+        "enrichment_status": "skipped",
+        "airline_iata": "DP",
+        "flight_number": "105",
+        "departure_time": "18:10",
+        "arrival_time": "20:00",
+        "origin_tz": "Europe/Moscow",
+        "dest_tz": "Europe/Moscow"
+      }
+    },
+    {
+      "id": "input-025",
+      "line": 25,
+      "raw": "2018-09-01 | VKO → ROV | Pobeda DP107 | 22:25 → 00:15 (2018-09-02) [calendar only; times from calendar]",
+      "section": "own",
+      "status": "accepted",
+      "reasons": [],
+      "flight": {
+        "date": "2018-09-01",
+        "origin": "VKO",
+        "destination": "ROV",
+        "source": "manual",
+        "enrichment_status": "skipped",
+        "airline_iata": "DP",
+        "flight_number": "107",
+        "departure_time": "22:25",
+        "arrival_time": "00:15",
+        "origin_tz": "Europe/Moscow",
+        "dest_tz": "Europe/Moscow"
+      }
+    },
+    {
+      "id": "input-026",
+      "line": 26,
+      "raw": "2019-01-22 | GRO → VKO | Pobeda DP832 | 11:35 → 17:50",
+      "section": "own",
+      "status": "review",
+      "reasons": [
+        "origin: ambiguous or absent airport GRO"
+      ],
+      "flight": {
+        "date": "2019-01-22",
+        "origin": "GRO",
+        "destination": "VKO",
+        "source": "manual",
+        "enrichment_status": "skipped",
+        "airline_iata": "DP",
+        "flight_number": "832",
+        "departure_time": "11:35",
+        "arrival_time": "17:50",
+        "dest_tz": "Europe/Moscow"
+      }
+    },
+    {
+      "id": "input-027",
+      "line": 27,
+      "raw": "2019-01-22 | VKO → ROV | Pobeda DP107 | 22:10 → 00:05 (2019-01-23)",
+      "section": "own",
+      "status": "accepted",
+      "reasons": [],
+      "flight": {
+        "date": "2019-01-22",
+        "origin": "VKO",
+        "destination": "ROV",
+        "source": "manual",
+        "enrichment_status": "skipped",
+        "airline_iata": "DP",
+        "flight_number": "107",
+        "departure_time": "22:10",
+        "arrival_time": "00:05",
+        "origin_tz": "Europe/Moscow",
+        "dest_tz": "Europe/Moscow"
+      }
+    },
+    {
+      "id": "input-028",
+      "line": 28,
+      "raw": "2019-03-11 | VKO → TXL | UT705 | 10:55 → 11:45 [travel log only]",
+      "section": "own",
+      "status": "review",
+      "reasons": [
+        "destination: ambiguous or absent airport TXL"
+      ],
+      "flight": {
+        "date": "2019-03-11",
+        "origin": "VKO",
+        "destination": "TXL",
+        "source": "manual",
+        "enrichment_status": "skipped",
+        "airline_iata": "UT",
+        "flight_number": "705",
+        "departure_time": "10:55",
+        "arrival_time": "11:45",
+        "origin_tz": "Europe/Moscow"
+      }
+    },
+    {
+      "id": "input-029",
+      "line": 29,
+      "raw": "2019-03-17 | TXL → VKO | Pobeda DP846 | 18:00 → 22:40 [travel log only]",
+      "section": "own",
+      "status": "review",
+      "reasons": [
+        "origin: ambiguous or absent airport TXL"
+      ],
+      "flight": {
+        "date": "2019-03-17",
+        "origin": "TXL",
+        "destination": "VKO",
+        "source": "manual",
+        "enrichment_status": "skipped",
+        "airline_iata": "DP",
+        "flight_number": "846",
+        "departure_time": "18:00",
+        "arrival_time": "22:40",
+        "dest_tz": "Europe/Moscow"
+      }
+    },
+    {
+      "id": "input-030",
+      "line": 30,
+      "raw": "2019-06-28 | ROV → VKO | UT498 | 06:35 → 08:30 [travel log + calendar; time conflict; see source notes]",
+      "section": "own",
+      "status": "review",
+      "reasons": [
+        "source explicitly flags uncertainty or conflict"
+      ],
+      "flight": {
+        "date": "2019-06-28",
+        "origin": "ROV",
+        "destination": "VKO",
+        "source": "manual",
+        "enrichment_status": "skipped",
+        "airline_iata": "UT",
+        "flight_number": "498",
+        "departure_time": "06:35",
+        "arrival_time": "08:30",
+        "origin_tz": "Europe/Moscow",
+        "dest_tz": "Europe/Moscow"
+      }
+    },
+    {
+      "id": "input-031",
+      "line": 31,
+      "raw": "2019-07-01 | VKO → ROV | UT493 | 17:40 → 19:40 [travel log + calendar]",
+      "section": "own",
+      "status": "accepted",
+      "reasons": [],
+      "flight": {
+        "date": "2019-07-01",
+        "origin": "VKO",
+        "destination": "ROV",
+        "source": "manual",
+        "enrichment_status": "skipped",
+        "airline_iata": "UT",
+        "flight_number": "493",
+        "departure_time": "17:40",
+        "arrival_time": "19:40",
+        "origin_tz": "Europe/Moscow",
+        "dest_tz": "Europe/Moscow"
+      }
+    },
+    {
+      "id": "input-032",
+      "line": 32,
+      "raw": "2019-07-25 | BUD → IST | Turkish Airlines TK1036 | 09:05 → 12:05 [travel log only; same-day travel-log sequence conflicts]",
+      "section": "own",
+      "status": "review",
+      "reasons": [
+        "source explicitly flags uncertainty or conflict"
+      ],
+      "flight": {
+        "date": "2019-07-25",
+        "origin": "BUD",
+        "destination": "IST",
+        "source": "manual",
+        "enrichment_status": "skipped",
+        "airline_iata": "TK",
+        "flight_number": "1036",
+        "departure_time": "09:05",
+        "arrival_time": "12:05",
+        "origin_tz": "Europe/Budapest",
+        "dest_tz": "Europe/Istanbul"
+      }
+    },
+    {
+      "id": "input-033",
+      "line": 33,
+      "raw": "2019-07-25 | CDG → BUD | AF1494 | 16:45 → 18:55 [travel log only; same-day travel-log sequence conflicts]",
+      "section": "own",
+      "status": "review",
+      "reasons": [
+        "source explicitly flags uncertainty or conflict"
+      ],
+      "flight": {
+        "date": "2019-07-25",
+        "origin": "CDG",
+        "destination": "BUD",
+        "source": "manual",
+        "enrichment_status": "skipped",
+        "airline_iata": "AF",
+        "flight_number": "1494",
+        "departure_time": "16:45",
+        "arrival_time": "18:55",
+        "origin_tz": "Europe/Paris",
+        "dest_tz": "Europe/Budapest"
+      }
+    },
+    {
+      "id": "input-034",
+      "line": 34,
+      "raw": "2019-07-26 | IST → ROV | Turkish Airlines TK293 | 00:35 → 02:50 [travel log only]",
+      "section": "own",
+      "status": "accepted",
+      "reasons": [],
+      "flight": {
+        "date": "2019-07-26",
+        "origin": "IST",
+        "destination": "ROV",
+        "source": "manual",
+        "enrichment_status": "skipped",
+        "airline_iata": "TK",
+        "flight_number": "293",
+        "departure_time": "00:35",
+        "arrival_time": "02:50",
+        "origin_tz": "Europe/Istanbul",
+        "dest_tz": "Europe/Moscow"
+      }
+    },
+    {
+      "id": "input-035",
+      "line": 35,
+      "raw": "2019-07-30 | VKO → ROV | UT493 | 17:40 → 19:40 [travel log + calendar]",
+      "section": "own",
+      "status": "accepted",
+      "reasons": [],
+      "flight": {
+        "date": "2019-07-30",
+        "origin": "VKO",
+        "destination": "ROV",
+        "source": "manual",
+        "enrichment_status": "skipped",
+        "airline_iata": "UT",
+        "flight_number": "493",
+        "departure_time": "17:40",
+        "arrival_time": "19:40",
+        "origin_tz": "Europe/Moscow",
+        "dest_tz": "Europe/Moscow"
+      }
+    },
+    {
+      "id": "input-036",
+      "line": 36,
+      "raw": "2020-03-15 | ROV → EVN | Azimuth A4225 | 08:30 → 11:00 [travel log only]",
+      "section": "own",
+      "status": "accepted",
+      "reasons": [],
+      "flight": {
+        "date": "2020-03-15",
+        "origin": "ROV",
+        "destination": "EVN",
+        "source": "manual",
+        "enrichment_status": "skipped",
+        "airline_iata": "A4",
+        "flight_number": "225",
+        "departure_time": "08:30",
+        "arrival_time": "11:00",
+        "origin_tz": "Europe/Moscow",
+        "dest_tz": "Asia/Yerevan"
+      }
+    },
+    {
+      "id": "input-037",
+      "line": 37,
+      "raw": "2020-03-15 | KRR → Yerevan | 17:40 → 21:10 [calendar only; times from calendar]",
+      "section": "own",
+      "status": "accepted",
+      "reasons": [],
+      "flight": {
+        "date": "2020-03-15",
+        "origin": "KRR",
+        "destination": "EVN",
+        "source": "manual",
+        "enrichment_status": "skipped",
+        "departure_time": "17:40",
+        "arrival_time": "21:10",
+        "origin_tz": "Europe/Moscow",
+        "dest_tz": "Asia/Yerevan"
+      }
+    },
+    {
+      "id": "input-038",
+      "line": 38,
+      "raw": "2020-03-20 | EVN → KRR | Ural Airlines U62872 | 16:40 → 17:20",
+      "section": "own",
+      "status": "accepted",
+      "reasons": [],
+      "flight": {
+        "date": "2020-03-20",
+        "origin": "EVN",
+        "destination": "KRR",
+        "source": "manual",
+        "enrichment_status": "skipped",
+        "airline_iata": "U6",
+        "flight_number": "2872",
+        "departure_time": "16:40",
+        "arrival_time": "17:20",
+        "origin_tz": "Asia/Yerevan",
+        "dest_tz": "Europe/Moscow"
+      }
+    },
+    {
+      "id": "input-039",
+      "line": 39,
+      "raw": "2020-03-25 | EVN → ROV | Azimuth A4226 | 12:55 → 12:35 [canceled; times from calendar]",
+      "section": "own",
+      "status": "excluded",
+      "reasons": [
+        "canceled, unpaid or superseded"
+      ],
+      "flight": {
+        "date": "2020-03-25",
+        "origin": "EVN",
+        "destination": "ROV",
+        "source": "manual",
+        "enrichment_status": "skipped",
+        "airline_iata": "A4",
+        "flight_number": "226",
+        "departure_time": "12:55",
+        "arrival_time": "12:35",
+        "origin_tz": "Asia/Yerevan",
+        "dest_tz": "Europe/Moscow"
+      }
+    },
+    {
+      "id": "input-040",
+      "line": 40,
+      "raw": "2020-03-28 | ROV → VKO | Pobeda DP106 | 16:30 → 18:20",
+      "section": "own",
+      "status": "accepted",
+      "reasons": [],
+      "flight": {
+        "date": "2020-03-28",
+        "origin": "ROV",
+        "destination": "VKO",
+        "source": "manual",
+        "enrichment_status": "skipped",
+        "airline_iata": "DP",
+        "flight_number": "106",
+        "departure_time": "16:30",
+        "arrival_time": "18:20",
+        "origin_tz": "Europe/Moscow",
+        "dest_tz": "Europe/Moscow"
+      }
+    },
+    {
+      "id": "input-041",
+      "line": 41,
+      "raw": "2021-05-23 | ROV → SVO | Aeroflot SU1159 | 10:20 → 12:30",
+      "section": "own",
+      "status": "accepted",
+      "reasons": [],
+      "flight": {
+        "date": "2021-05-23",
+        "origin": "ROV",
+        "destination": "SVO",
+        "source": "manual",
+        "enrichment_status": "skipped",
+        "airline_iata": "SU",
+        "flight_number": "1159",
+        "departure_time": "10:20",
+        "arrival_time": "12:30",
+        "origin_tz": "Europe/Moscow",
+        "dest_tz": "Europe/Moscow"
+      }
+    },
+    {
+      "id": "input-042",
+      "line": 42,
+      "raw": "2021-05-28 | SVO → ROV | Aeroflot SU1156 | 13:20 → 15:20",
+      "section": "own",
+      "status": "accepted",
+      "reasons": [],
+      "flight": {
+        "date": "2021-05-28",
+        "origin": "SVO",
+        "destination": "ROV",
+        "source": "manual",
+        "enrichment_status": "skipped",
+        "airline_iata": "SU",
+        "flight_number": "1156",
+        "departure_time": "13:20",
+        "arrival_time": "15:20",
+        "origin_tz": "Europe/Moscow",
+        "dest_tz": "Europe/Moscow"
+      }
+    },
+    {
+      "id": "input-043",
+      "line": 43,
+      "raw": "2021-06-11 | ROV → Moscow | 11:35 → 13:30 [calendar only; times from calendar]",
+      "section": "own",
+      "status": "review",
+      "reasons": [
+        "destination: ambiguous or absent airport Moscow"
+      ],
+      "flight": {
+        "date": "2021-06-11",
+        "origin": "ROV",
+        "destination": "Moscow",
+        "source": "manual",
+        "enrichment_status": "skipped",
+        "departure_time": "11:35",
+        "arrival_time": "13:30",
+        "origin_tz": "Europe/Moscow"
+      }
+    },
+    {
+      "id": "input-044",
+      "line": 44,
+      "raw": "2021-06-14 | DME → Rostov-on-Don | 20:05 → 21:50 [calendar only; times from calendar]",
+      "section": "own",
+      "status": "accepted",
+      "reasons": [],
+      "flight": {
+        "date": "2021-06-14",
+        "origin": "DME",
+        "destination": "ROV",
+        "source": "manual",
+        "enrichment_status": "skipped",
+        "departure_time": "20:05",
+        "arrival_time": "21:50",
+        "origin_tz": "Europe/Moscow",
+        "dest_tz": "Europe/Moscow"
+      }
+    },
+    {
+      "id": "input-045",
+      "line": 45,
+      "raw": "2021-07-25 | ROV → SVO | Aeroflot SU1163 | 11:50 → 14:00",
+      "section": "own",
+      "status": "accepted",
+      "reasons": [],
+      "flight": {
+        "date": "2021-07-25",
+        "origin": "ROV",
+        "destination": "SVO",
+        "source": "manual",
+        "enrichment_status": "skipped",
+        "airline_iata": "SU",
+        "flight_number": "1163",
+        "departure_time": "11:50",
+        "arrival_time": "14:00",
+        "origin_tz": "Europe/Moscow",
+        "dest_tz": "Europe/Moscow"
+      }
+    },
+    {
+      "id": "input-046",
+      "line": 46,
+      "raw": "2021-07-30 | SVO → ROV | Aeroflot SU1674 | 22:55 → 00:55 (2021-07-31)",
+      "section": "own",
+      "status": "accepted",
+      "reasons": [],
+      "flight": {
+        "date": "2021-07-30",
+        "origin": "SVO",
+        "destination": "ROV",
+        "source": "manual",
+        "enrichment_status": "skipped",
+        "airline_iata": "SU",
+        "flight_number": "1674",
+        "departure_time": "22:55",
+        "arrival_time": "00:55",
+        "origin_tz": "Europe/Moscow",
+        "dest_tz": "Europe/Moscow"
+      }
+    },
+    {
+      "id": "input-047",
+      "line": 47,
+      "raw": "2022-01-18 | VKO → BUD | Wizz Air W62490 | 11:05 → 11:45",
+      "section": "own",
+      "status": "accepted",
+      "reasons": [],
+      "flight": {
+        "date": "2022-01-18",
+        "origin": "VKO",
+        "destination": "BUD",
+        "source": "manual",
+        "enrichment_status": "skipped",
+        "airline_iata": "W6",
+        "flight_number": "2490",
+        "departure_time": "11:05",
+        "arrival_time": "11:45",
+        "origin_tz": "Europe/Moscow",
+        "dest_tz": "Europe/Budapest"
+      }
+    },
+    {
+      "id": "input-048",
+      "line": 48,
+      "raw": "2022-01-27 | BUD → VKO | Wizz Air W62489 | 05:55 → 10:25 [travel log only]",
+      "section": "own",
+      "status": "accepted",
+      "reasons": [],
+      "flight": {
+        "date": "2022-01-27",
+        "origin": "BUD",
+        "destination": "VKO",
+        "source": "manual",
+        "enrichment_status": "skipped",
+        "airline_iata": "W6",
+        "flight_number": "2489",
+        "departure_time": "05:55",
+        "arrival_time": "10:25",
+        "origin_tz": "Europe/Budapest",
+        "dest_tz": "Europe/Moscow"
+      }
+    },
+    {
+      "id": "input-049",
+      "line": 49,
+      "raw": "2022-02-28 | VKO → IST | Turkish Airlines TK420 | 07:15 → 10:20",
+      "section": "own",
+      "status": "accepted",
+      "reasons": [],
+      "flight": {
+        "date": "2022-02-28",
+        "origin": "VKO",
+        "destination": "IST",
+        "source": "manual",
+        "enrichment_status": "skipped",
+        "airline_iata": "TK",
+        "flight_number": "420",
+        "departure_time": "07:15",
+        "arrival_time": "10:20",
+        "origin_tz": "Europe/Moscow",
+        "dest_tz": "Europe/Istanbul"
+      }
+    },
+    {
+      "id": "input-050",
+      "line": 50,
+      "raw": "2022-03-13 | SAW → AYT | Pegasus Airlines PC2012 | 15:40 → 16:55 [unpaid reservation]",
+      "section": "own",
+      "status": "excluded",
+      "reasons": [
+        "canceled, unpaid or superseded"
+      ],
+      "flight": {
+        "date": "2022-03-13",
+        "origin": "SAW",
+        "destination": "AYT",
+        "source": "manual",
+        "enrichment_status": "skipped",
+        "airline_iata": "PC",
+        "flight_number": "2012",
+        "departure_time": "15:40",
+        "arrival_time": "16:55",
+        "origin_tz": "Europe/Istanbul",
+        "dest_tz": "Europe/Istanbul"
+      }
+    },
+    {
+      "id": "input-051",
+      "line": 51,
+      "raw": "2022-03-13 | SAW → AYT | Pegasus Airlines PC2020 | 18:25 → 19:40",
+      "section": "own",
+      "status": "accepted",
+      "reasons": [],
+      "flight": {
+        "date": "2022-03-13",
+        "origin": "SAW",
+        "destination": "AYT",
+        "source": "manual",
+        "enrichment_status": "skipped",
+        "airline_iata": "PC",
+        "flight_number": "2020",
+        "departure_time": "18:25",
+        "arrival_time": "19:40",
+        "origin_tz": "Europe/Istanbul",
+        "dest_tz": "Europe/Istanbul"
+      }
+    },
+    {
+      "id": "input-052",
+      "line": 52,
+      "raw": "2022-03-26 | AYT → ZIA | Red Wings WZ4610 | dep 01:55 [schedule updated]",
+      "section": "own",
+      "status": "review",
+      "reasons": [
+        "destination: ambiguous or absent airport ZIA"
+      ],
+      "flight": {
+        "date": "2022-03-26",
+        "origin": "AYT",
+        "destination": "ZIA",
+        "source": "manual",
+        "enrichment_status": "skipped",
+        "airline_iata": "WZ",
+        "flight_number": "4610",
+        "departure_time": "01:55",
+        "origin_tz": "Europe/Istanbul"
+      }
+    },
+    {
+      "id": "input-053",
+      "line": 53,
+      "raw": "2022-04-30 | VKO → ROV | Yakutia R3765 | 14:30 → 16:20 [canceled/refunded]",
+      "section": "own",
+      "status": "excluded",
+      "reasons": [
+        "canceled, unpaid or superseded"
+      ],
+      "flight": {
+        "date": "2022-04-30",
+        "origin": "VKO",
+        "destination": "ROV",
+        "source": "manual",
+        "enrichment_status": "skipped",
+        "airline_iata": "R3",
+        "flight_number": "765",
+        "departure_time": "14:30",
+        "arrival_time": "16:20",
+        "origin_tz": "Europe/Moscow",
+        "dest_tz": "Europe/Moscow"
+      }
+    },
+    {
+      "id": "input-054",
+      "line": 54,
+      "raw": "2022-05-04 | ROV → VKO | Yakutia R3766 | 17:20 → 19:20 [canceled/refunded]",
+      "section": "own",
+      "status": "excluded",
+      "reasons": [
+        "canceled, unpaid or superseded"
+      ],
+      "flight": {
+        "date": "2022-05-04",
+        "origin": "ROV",
+        "destination": "VKO",
+        "source": "manual",
+        "enrichment_status": "skipped",
+        "airline_iata": "R3",
+        "flight_number": "766",
+        "departure_time": "17:20",
+        "arrival_time": "19:20",
+        "origin_tz": "Europe/Moscow",
+        "dest_tz": "Europe/Moscow"
+      }
+    },
+    {
+      "id": "input-055",
+      "line": 55,
+      "raw": "2022-07-17 | LED → OSL | Nordwind Airlines N42305 | 17:20 → 18:25 [canceled]",
+      "section": "own",
+      "status": "excluded",
+      "reasons": [
+        "canceled, unpaid or superseded"
+      ],
+      "flight": {
+        "date": "2022-07-17",
+        "origin": "LED",
+        "destination": "OSL",
+        "source": "manual",
+        "enrichment_status": "skipped",
+        "airline_iata": "N4",
+        "flight_number": "2305",
+        "departure_time": "17:20",
+        "arrival_time": "18:25",
+        "origin_tz": "Europe/Moscow",
+        "dest_tz": "Europe/Oslo"
+      }
+    },
+    {
+      "id": "input-056",
+      "line": 56,
+      "raw": "2022-07-31 | OSL → LED | Nordwind Airlines N42306 | 19:30 → 22:35 [outbound canceled; return status unresolved]",
+      "section": "own",
+      "status": "excluded",
+      "reasons": [
+        "canceled, unpaid or superseded"
+      ],
+      "flight": {
+        "date": "2022-07-31",
+        "origin": "OSL",
+        "destination": "LED",
+        "source": "manual",
+        "enrichment_status": "skipped",
+        "airline_iata": "N4",
+        "flight_number": "2306",
+        "departure_time": "19:30",
+        "arrival_time": "22:35",
+        "origin_tz": "Europe/Oslo",
+        "dest_tz": "Europe/Moscow"
+      }
+    },
+    {
+      "id": "input-057",
+      "line": 57,
+      "raw": "2022-10-04 | TBS → SAW | Pegasus Airlines PC319 | 07:00 → 08:30",
+      "section": "own",
+      "status": "accepted",
+      "reasons": [],
+      "flight": {
+        "date": "2022-10-04",
+        "origin": "TBS",
+        "destination": "SAW",
+        "source": "manual",
+        "enrichment_status": "skipped",
+        "airline_iata": "PC",
+        "flight_number": "319",
+        "departure_time": "07:00",
+        "arrival_time": "08:30",
+        "origin_tz": "Asia/Tbilisi",
+        "dest_tz": "Europe/Istanbul"
+      }
+    },
+    {
+      "id": "input-058",
+      "line": 58,
+      "raw": "2022-10-31 | TBS → EVN | FLYONE Armenia 3F584 | 12:50 → 13:25 [schedule updated]",
+      "section": "own",
+      "status": "accepted",
+      "reasons": [],
+      "flight": {
+        "date": "2022-10-31",
+        "origin": "TBS",
+        "destination": "EVN",
+        "source": "manual",
+        "enrichment_status": "skipped",
+        "airline_iata": "3F",
+        "flight_number": "584",
+        "departure_time": "12:50",
+        "arrival_time": "13:25",
+        "origin_tz": "Asia/Tbilisi",
+        "dest_tz": "Asia/Yerevan"
+      }
+    },
+    {
+      "id": "input-059",
+      "line": 59,
+      "raw": "2022-11-02 | EVN → TBS | FLYONE Armenia 3F583 | 10:00 → 10:35",
+      "section": "own",
+      "status": "accepted",
+      "reasons": [],
+      "flight": {
+        "date": "2022-11-02",
+        "origin": "EVN",
+        "destination": "TBS",
+        "source": "manual",
+        "enrichment_status": "skipped",
+        "airline_iata": "3F",
+        "flight_number": "583",
+        "departure_time": "10:00",
+        "arrival_time": "10:35",
+        "origin_tz": "Asia/Yerevan",
+        "dest_tz": "Asia/Tbilisi"
+      }
+    },
+    {
+      "id": "input-060",
+      "line": 60,
+      "raw": "2023-01-20 | TBS → EVN | FLYONE Armenia 3F584 | 11:35 → 12:10",
+      "section": "own",
+      "status": "accepted",
+      "reasons": [],
+      "flight": {
+        "date": "2023-01-20",
+        "origin": "TBS",
+        "destination": "EVN",
+        "source": "manual",
+        "enrichment_status": "skipped",
+        "airline_iata": "3F",
+        "flight_number": "584",
+        "departure_time": "11:35",
+        "arrival_time": "12:10",
+        "origin_tz": "Asia/Tbilisi",
+        "dest_tz": "Asia/Yerevan"
+      }
+    },
+    {
+      "id": "input-061",
+      "line": 61,
+      "raw": "2023-01-31 | TBS → SAW | Pegasus Airlines PC315 | 04:30 → 05:55 [possible refund not conclusively linked]",
+      "section": "own",
+      "status": "review",
+      "reasons": [
+        "source explicitly flags uncertainty or conflict"
+      ],
+      "flight": {
+        "date": "2023-01-31",
+        "origin": "TBS",
+        "destination": "SAW",
+        "source": "manual",
+        "enrichment_status": "skipped",
+        "airline_iata": "PC",
+        "flight_number": "315",
+        "departure_time": "04:30",
+        "arrival_time": "05:55",
+        "origin_tz": "Asia/Tbilisi",
+        "dest_tz": "Europe/Istanbul"
+      }
+    },
+    {
+      "id": "input-062",
+      "line": 62,
+      "raw": "2023-02-03 | SAW → TBS | Pegasus Airlines PC318 | 23:00 → 02:10 (2023-02-04) [possible refund not conclusively linked]",
+      "section": "own",
+      "status": "review",
+      "reasons": [
+        "source explicitly flags uncertainty or conflict"
+      ],
+      "flight": {
+        "date": "2023-02-03",
+        "origin": "SAW",
+        "destination": "TBS",
+        "source": "manual",
+        "enrichment_status": "skipped",
+        "airline_iata": "PC",
+        "flight_number": "318",
+        "departure_time": "23:00",
+        "arrival_time": "02:10",
+        "origin_tz": "Europe/Istanbul",
+        "dest_tz": "Asia/Tbilisi"
+      }
+    },
+    {
+      "id": "input-063",
+      "line": 63,
+      "raw": "2023-04-01 | TBS → DOH | Qatar Airways QR254 | 02:40 → 04:45 [schedule updated]",
+      "section": "own",
+      "status": "accepted",
+      "reasons": [],
+      "flight": {
+        "date": "2023-04-01",
+        "origin": "TBS",
+        "destination": "DOH",
+        "source": "manual",
+        "enrichment_status": "skipped",
+        "airline_iata": "QR",
+        "flight_number": "254",
+        "departure_time": "02:40",
+        "arrival_time": "04:45",
+        "origin_tz": "Asia/Tbilisi",
+        "dest_tz": "Asia/Qatar"
+      }
+    },
+    {
+      "id": "input-064",
+      "line": 64,
+      "raw": "2023-04-02 | DOH → ICN | Qatar Airways QR858 | 02:10 → 16:55",
+      "section": "own",
+      "status": "accepted",
+      "reasons": [],
+      "flight": {
+        "date": "2023-04-02",
+        "origin": "DOH",
+        "destination": "ICN",
+        "source": "manual",
+        "enrichment_status": "skipped",
+        "airline_iata": "QR",
+        "flight_number": "858",
+        "departure_time": "02:10",
+        "arrival_time": "16:55",
+        "origin_tz": "Asia/Qatar",
+        "dest_tz": "Asia/Seoul"
+      }
+    },
+    {
+      "id": "input-065",
+      "line": 65,
+      "raw": "2023-04-24 | ICN → BKK | Thai Airways TG657 | 10:20 → 14:10",
+      "section": "own",
+      "status": "accepted",
+      "reasons": [],
+      "flight": {
+        "date": "2023-04-24",
+        "origin": "ICN",
+        "destination": "BKK",
+        "source": "manual",
+        "enrichment_status": "skipped",
+        "airline_iata": "TG",
+        "flight_number": "657",
+        "departure_time": "10:20",
+        "arrival_time": "14:10",
+        "origin_tz": "Asia/Seoul",
+        "dest_tz": "Asia/Bangkok"
+      }
+    },
+    {
+      "id": "input-066",
+      "line": 66,
+      "raw": "2023-04-27 | BKK → DOH | Qatar Airways QR835 | 20:00 → 23:00",
+      "section": "own",
+      "status": "accepted",
+      "reasons": [],
+      "flight": {
+        "date": "2023-04-27",
+        "origin": "BKK",
+        "destination": "DOH",
+        "source": "manual",
+        "enrichment_status": "skipped",
+        "airline_iata": "QR",
+        "flight_number": "835",
+        "departure_time": "20:00",
+        "arrival_time": "23:00",
+        "origin_tz": "Asia/Bangkok",
+        "dest_tz": "Asia/Qatar"
+      }
+    },
+    {
+      "id": "input-067",
+      "line": 67,
+      "raw": "2023-04-28 | DOH → TBS | Qatar Airways QR253 | 20:00 → 00:10 (2023-04-29)",
+      "section": "own",
+      "status": "accepted",
+      "reasons": [],
+      "flight": {
+        "date": "2023-04-28",
+        "origin": "DOH",
+        "destination": "TBS",
+        "source": "manual",
+        "enrichment_status": "skipped",
+        "airline_iata": "QR",
+        "flight_number": "253",
+        "departure_time": "20:00",
+        "arrival_time": "00:10",
+        "origin_tz": "Asia/Qatar",
+        "dest_tz": "Asia/Tbilisi"
+      }
+    },
+    {
+      "id": "input-068",
+      "line": 68,
+      "raw": "2023-12-29 | TBS → DOH | Qatar Airways QR254 | 20:55 → 23:00",
+      "section": "own",
+      "status": "accepted",
+      "reasons": [],
+      "flight": {
+        "date": "2023-12-29",
+        "origin": "TBS",
+        "destination": "DOH",
+        "source": "manual",
+        "enrichment_status": "skipped",
+        "airline_iata": "QR",
+        "flight_number": "254",
+        "departure_time": "20:55",
+        "arrival_time": "23:00",
+        "origin_tz": "Asia/Tbilisi",
+        "dest_tz": "Asia/Qatar"
+      }
+    },
+    {
+      "id": "input-069",
+      "line": 69,
+      "raw": "2023-12-30 | DOH → ICN | Qatar Airways QR858 | 02:05 → 16:55 [schedule updated]",
+      "section": "own",
+      "status": "accepted",
+      "reasons": [],
+      "flight": {
+        "date": "2023-12-30",
+        "origin": "DOH",
+        "destination": "ICN",
+        "source": "manual",
+        "enrichment_status": "skipped",
+        "airline_iata": "QR",
+        "flight_number": "858",
+        "departure_time": "02:05",
+        "arrival_time": "16:55",
+        "origin_tz": "Asia/Qatar",
+        "dest_tz": "Asia/Seoul"
+      }
+    },
+    {
+      "id": "input-070",
+      "line": 70,
+      "raw": "2024-01-16 | ICN → DOH | Qatar Airways QR859 | 00:15 → 05:10",
+      "section": "own",
+      "status": "accepted",
+      "reasons": [],
+      "flight": {
+        "date": "2024-01-16",
+        "origin": "ICN",
+        "destination": "DOH",
+        "source": "manual",
+        "enrichment_status": "skipped",
+        "airline_iata": "QR",
+        "flight_number": "859",
+        "departure_time": "00:15",
+        "arrival_time": "05:10",
+        "origin_tz": "Asia/Seoul",
+        "dest_tz": "Asia/Qatar"
+      }
+    },
+    {
+      "id": "input-071",
+      "line": 71,
+      "raw": "2024-01-16 | DOH → TBS | Qatar Airways QR255 | 09:05 → 13:25",
+      "section": "own",
+      "status": "accepted",
+      "reasons": [],
+      "flight": {
+        "date": "2024-01-16",
+        "origin": "DOH",
+        "destination": "TBS",
+        "source": "manual",
+        "enrichment_status": "skipped",
+        "airline_iata": "QR",
+        "flight_number": "255",
+        "departure_time": "09:05",
+        "arrival_time": "13:25",
+        "origin_tz": "Asia/Qatar",
+        "dest_tz": "Asia/Tbilisi"
+      }
+    },
+    {
+      "id": "input-072",
+      "line": 72,
+      "raw": "2024-03-02 | KUT → BER | Wizz Air W66407 | 06:40 → 07:50",
+      "section": "own",
+      "status": "accepted",
+      "reasons": [],
+      "flight": {
+        "date": "2024-03-02",
+        "origin": "KUT",
+        "destination": "BER",
+        "source": "manual",
+        "enrichment_status": "skipped",
+        "airline_iata": "W6",
+        "flight_number": "6407",
+        "departure_time": "06:40",
+        "arrival_time": "07:50",
+        "origin_tz": "Asia/Tbilisi",
+        "dest_tz": "Europe/Berlin"
+      }
+    },
+    {
+      "id": "input-073",
+      "line": 73,
+      "raw": "2024-03-14 | BER → KUT | Wizz Air W66408 | 08:35 → 15:25 [canceled]",
+      "section": "own",
+      "status": "excluded",
+      "reasons": [
+        "canceled, unpaid or superseded"
+      ],
+      "flight": {
+        "date": "2024-03-14",
+        "origin": "BER",
+        "destination": "KUT",
+        "source": "manual",
+        "enrichment_status": "skipped",
+        "airline_iata": "W6",
+        "flight_number": "6408",
+        "departure_time": "08:35",
+        "arrival_time": "15:25",
+        "origin_tz": "Europe/Berlin",
+        "dest_tz": "Asia/Tbilisi"
+      }
+    },
+    {
+      "id": "input-074",
+      "line": 74,
+      "raw": "2024-09-09 | TBS → VKO | Georgian Airways A9936 | 11:00 → 13:00",
+      "section": "own",
+      "status": "accepted",
+      "reasons": [],
+      "flight": {
+        "date": "2024-09-09",
+        "origin": "TBS",
+        "destination": "VKO",
+        "source": "manual",
+        "enrichment_status": "skipped",
+        "airline_iata": "A9",
+        "flight_number": "936",
+        "departure_time": "11:00",
+        "arrival_time": "13:00",
+        "origin_tz": "Asia/Tbilisi",
+        "dest_tz": "Europe/Moscow"
+      }
+    },
+    {
+      "id": "input-075",
+      "line": 75,
+      "raw": "2024-09-17 | VKO → TBS | Georgian Airways A9935 | 14:00 → 17:50",
+      "section": "own",
+      "status": "accepted",
+      "reasons": [],
+      "flight": {
+        "date": "2024-09-17",
+        "origin": "VKO",
+        "destination": "TBS",
+        "source": "manual",
+        "enrichment_status": "skipped",
+        "airline_iata": "A9",
+        "flight_number": "935",
+        "departure_time": "14:00",
+        "arrival_time": "17:50",
+        "origin_tz": "Europe/Moscow",
+        "dest_tz": "Asia/Tbilisi"
+      }
+    },
+    {
+      "id": "input-076",
+      "line": 76,
+      "raw": "2024-10-31 | TBS → DOH | Qatar Airways QR256 | dep 14:20 [replaced QR254; arrival unresolved]",
+      "section": "own",
+      "status": "review",
+      "reasons": [
+        "source explicitly flags uncertainty or conflict"
+      ],
+      "flight": {
+        "date": "2024-10-31",
+        "origin": "TBS",
+        "destination": "DOH",
+        "source": "manual",
+        "enrichment_status": "skipped",
+        "airline_iata": "QR",
+        "flight_number": "256",
+        "departure_time": "14:20",
+        "origin_tz": "Asia/Tbilisi",
+        "dest_tz": "Asia/Qatar"
+      }
+    },
+    {
+      "id": "input-077",
+      "line": 77,
+      "raw": "2024-10-31 | TBS → DOH | Qatar Airways QR254 | 20:55 → 23:00 [superseded; replaced by QR256 at 14:20]",
+      "section": "own",
+      "status": "excluded",
+      "reasons": [
+        "canceled, unpaid or superseded"
+      ],
+      "flight": {
+        "date": "2024-10-31",
+        "origin": "TBS",
+        "destination": "DOH",
+        "source": "manual",
+        "enrichment_status": "skipped",
+        "airline_iata": "QR",
+        "flight_number": "254",
+        "departure_time": "20:55",
+        "arrival_time": "23:00",
+        "origin_tz": "Asia/Tbilisi",
+        "dest_tz": "Asia/Qatar"
+      }
+    },
+    {
+      "id": "input-078",
+      "line": 78,
+      "raw": "2024-11-01 | DOH → NRT | Qatar Airways QR806 | 02:15 → 17:55",
+      "section": "own",
+      "status": "accepted",
+      "reasons": [],
+      "flight": {
+        "date": "2024-11-01",
+        "origin": "DOH",
+        "destination": "NRT",
+        "source": "manual",
+        "enrichment_status": "skipped",
+        "airline_iata": "QR",
+        "flight_number": "806",
+        "departure_time": "02:15",
+        "arrival_time": "17:55",
+        "origin_tz": "Asia/Qatar",
+        "dest_tz": "Asia/Tokyo"
+      }
+    },
+    {
+      "id": "input-079",
+      "line": 79,
+      "raw": "2024-11-29 | NRT → BKK | AirJapan NQ001 | 17:35 → 23:00 [email says 18:05; PDF says 17:35]",
+      "section": "own",
+      "status": "review",
+      "reasons": [
+        "source explicitly flags uncertainty or conflict"
+      ],
+      "flight": {
+        "date": "2024-11-29",
+        "origin": "NRT",
+        "destination": "BKK",
+        "source": "manual",
+        "enrichment_status": "skipped",
+        "airline_iata": "NQ",
+        "flight_number": "001",
+        "departure_time": "17:35",
+        "arrival_time": "23:00",
+        "origin_tz": "Asia/Tokyo",
+        "dest_tz": "Asia/Bangkok"
+      }
+    },
+    {
+      "id": "input-080",
+      "line": 80,
+      "raw": "2024-12-30 | BKK → IST | THAI AIRWAYS INTERNATIONAL TG900 | 23:45 → 06:05 (2024-12-31)",
+      "section": "own",
+      "status": "accepted",
+      "reasons": [],
+      "flight": {
+        "date": "2024-12-30",
+        "origin": "BKK",
+        "destination": "IST",
+        "source": "manual",
+        "enrichment_status": "skipped",
+        "airline_iata": "TG",
+        "flight_number": "900",
+        "departure_time": "23:45",
+        "arrival_time": "06:05",
+        "origin_tz": "Asia/Bangkok",
+        "dest_tz": "Europe/Istanbul"
+      }
+    },
+    {
+      "id": "input-081",
+      "line": 81,
+      "raw": "2024-12-31 | IST → TBS | TURKISH AIRLINES TK378 | 07:45 → 11:05",
+      "section": "own",
+      "status": "accepted",
+      "reasons": [],
+      "flight": {
+        "date": "2024-12-31",
+        "origin": "IST",
+        "destination": "TBS",
+        "source": "manual",
+        "enrichment_status": "skipped",
+        "airline_iata": "TK",
+        "flight_number": "378",
+        "departure_time": "07:45",
+        "arrival_time": "11:05",
+        "origin_tz": "Europe/Istanbul",
+        "dest_tz": "Asia/Tbilisi"
+      }
+    },
+    {
+      "id": "input-082",
+      "line": 82,
+      "raw": "2025-03-08 | Tbilisi → Istanbul Sabiha Gokcen | Pegasus Airlines PC315 | 05:00 → 06:30",
+      "section": "own",
+      "status": "accepted",
+      "reasons": [],
+      "flight": {
+        "date": "2025-03-08",
+        "origin": "TBS",
+        "destination": "SAW",
+        "source": "manual",
+        "enrichment_status": "skipped",
+        "airline_iata": "PC",
+        "flight_number": "315",
+        "departure_time": "05:00",
+        "arrival_time": "06:30",
+        "origin_tz": "Asia/Tbilisi",
+        "dest_tz": "Europe/Istanbul"
+      }
+    },
+    {
+      "id": "input-083",
+      "line": 83,
+      "raw": "2025-03-10 | SAW → TBS | Pegasus Airlines PC318 | 21:35 → 00:50 (2025-03-11)",
+      "section": "own",
+      "status": "accepted",
+      "reasons": [],
+      "flight": {
+        "date": "2025-03-10",
+        "origin": "SAW",
+        "destination": "TBS",
+        "source": "manual",
+        "enrichment_status": "skipped",
+        "airline_iata": "PC",
+        "flight_number": "318",
+        "departure_time": "21:35",
+        "arrival_time": "00:50",
+        "origin_tz": "Europe/Istanbul",
+        "dest_tz": "Asia/Tbilisi"
+      }
+    },
+    {
+      "id": "input-084",
+      "line": 84,
+      "raw": "2025-06-15 | TBS → BEG | Air Serbia JU891 | 14:25 → 15:40",
+      "section": "own",
+      "status": "accepted",
+      "reasons": [],
+      "flight": {
+        "date": "2025-06-15",
+        "origin": "TBS",
+        "destination": "BEG",
+        "source": "manual",
+        "enrichment_status": "skipped",
+        "airline_iata": "JU",
+        "flight_number": "891",
+        "departure_time": "14:25",
+        "arrival_time": "15:40",
+        "origin_tz": "Asia/Tbilisi",
+        "dest_tz": "Europe/Belgrade"
+      }
+    },
+    {
+      "id": "input-085",
+      "line": 85,
+      "raw": "2025-06-22 | BEG → TBS | Air Serbia JU890 | 07:55 → 12:55",
+      "section": "own",
+      "status": "accepted",
+      "reasons": [],
+      "flight": {
+        "date": "2025-06-22",
+        "origin": "BEG",
+        "destination": "TBS",
+        "source": "manual",
+        "enrichment_status": "skipped",
+        "airline_iata": "JU",
+        "flight_number": "890",
+        "departure_time": "07:55",
+        "arrival_time": "12:55",
+        "origin_tz": "Europe/Belgrade",
+        "dest_tz": "Asia/Tbilisi"
+      }
+    },
+    {
+      "id": "input-086",
+      "line": 86,
+      "raw": "2025-09-20 | Tbilisi → Moscow | 14:00 → 16:00 [calendar only; times from calendar; travel mode unconfirmed]",
+      "section": "own",
+      "status": "review",
+      "reasons": [
+        "destination: ambiguous or absent airport Moscow",
+        "source explicitly flags uncertainty or conflict"
+      ],
+      "flight": {
+        "date": "2025-09-20",
+        "origin": "TBS",
+        "destination": "Moscow",
+        "source": "manual",
+        "enrichment_status": "skipped",
+        "departure_time": "14:00",
+        "arrival_time": "16:00",
+        "origin_tz": "Asia/Tbilisi"
+      }
+    },
+    {
+      "id": "input-087",
+      "line": 87,
+      "raw": "2025-09-28 | SVO → PKX | China Eastern Airlines MU2076 | 17:15 → 10:50 (2025-09-29) [times from calendar; per-leg details from calendar; booking confirms journey]",
+      "section": "own",
+      "status": "accepted",
+      "reasons": [],
+      "flight": {
+        "date": "2025-09-28",
+        "origin": "SVO",
+        "destination": "PKX",
+        "source": "manual",
+        "enrichment_status": "skipped",
+        "airline_iata": "MU",
+        "flight_number": "2076",
+        "departure_time": "17:15",
+        "arrival_time": "10:50",
+        "origin_tz": "Europe/Moscow",
+        "dest_tz": "Asia/Shanghai"
+      }
+    },
+    {
+      "id": "input-088",
+      "line": 88,
+      "raw": "2025-09-29 | PKX → KIX | China Eastern Airlines MU277 | 17:10 → 21:00 [times from calendar; per-leg details from calendar; booking confirms journey]",
+      "section": "own",
+      "status": "accepted",
+      "reasons": [],
+      "flight": {
+        "date": "2025-09-29",
+        "origin": "PKX",
+        "destination": "KIX",
+        "source": "manual",
+        "enrichment_status": "skipped",
+        "airline_iata": "MU",
+        "flight_number": "277",
+        "departure_time": "17:10",
+        "arrival_time": "21:00",
+        "origin_tz": "Asia/Shanghai",
+        "dest_tz": "Asia/Tokyo"
+      }
+    },
+    {
+      "id": "input-089",
+      "line": 89,
+      "raw": "2025-10-26 | HND → PKX | China Eastern Airlines MU790 | 16:40 → 19:50",
+      "section": "own",
+      "status": "accepted",
+      "reasons": [],
+      "flight": {
+        "date": "2025-10-26",
+        "origin": "HND",
+        "destination": "PKX",
+        "source": "manual",
+        "enrichment_status": "skipped",
+        "airline_iata": "MU",
+        "flight_number": "790",
+        "departure_time": "16:40",
+        "arrival_time": "19:50",
+        "origin_tz": "Asia/Tokyo",
+        "dest_tz": "Asia/Shanghai"
+      }
+    },
+    {
+      "id": "input-090",
+      "line": 90,
+      "raw": "2025-10-27 | PKX → SVO | China Eastern Airlines MU2075 | 11:55 → 15:30",
+      "section": "own",
+      "status": "accepted",
+      "reasons": [],
+      "flight": {
+        "date": "2025-10-27",
+        "origin": "PKX",
+        "destination": "SVO",
+        "source": "manual",
+        "enrichment_status": "skipped",
+        "airline_iata": "MU",
+        "flight_number": "2075",
+        "departure_time": "11:55",
+        "arrival_time": "15:30",
+        "origin_tz": "Asia/Shanghai",
+        "dest_tz": "Europe/Moscow"
+      }
+    },
+    {
+      "id": "input-091",
+      "line": 91,
+      "raw": "2025-11-16 | VKO → TBS | Georgian Airways A9935 | 12:00 → 15:50",
+      "section": "own",
+      "status": "accepted",
+      "reasons": [],
+      "flight": {
+        "date": "2025-11-16",
+        "origin": "VKO",
+        "destination": "TBS",
+        "source": "manual",
+        "enrichment_status": "skipped",
+        "airline_iata": "A9",
+        "flight_number": "935",
+        "departure_time": "12:00",
+        "arrival_time": "15:50",
+        "origin_tz": "Europe/Moscow",
+        "dest_tz": "Asia/Tbilisi"
+      }
+    },
+    {
+      "id": "input-092",
+      "line": 92,
+      "raw": "2025-12-12 | TBS → KRR | Red Wings WZ1564 | 17:55 → 18:30",
+      "section": "own",
+      "status": "accepted",
+      "reasons": [],
+      "flight": {
+        "date": "2025-12-12",
+        "origin": "TBS",
+        "destination": "KRR",
+        "source": "manual",
+        "enrichment_status": "skipped",
+        "airline_iata": "WZ",
+        "flight_number": "1564",
+        "departure_time": "17:55",
+        "arrival_time": "18:30",
+        "origin_tz": "Asia/Tbilisi",
+        "dest_tz": "Europe/Moscow"
+      }
+    },
+    {
+      "id": "input-093",
+      "line": 93,
+      "raw": "2025-12-19 | Krasnodar → Tbilisi | Red Wings WZ1563 | 14:05 → 16:35",
+      "section": "own",
+      "status": "accepted",
+      "reasons": [],
+      "flight": {
+        "date": "2025-12-19",
+        "origin": "KRR",
+        "destination": "TBS",
+        "source": "manual",
+        "enrichment_status": "skipped",
+        "airline_iata": "WZ",
+        "flight_number": "1563",
+        "departure_time": "14:05",
+        "arrival_time": "16:35",
+        "origin_tz": "Europe/Moscow",
+        "dest_tz": "Asia/Tbilisi"
+      }
+    },
+    {
+      "id": "input-094",
+      "line": 94,
+      "raw": "2025-12-31 | TBS → TLV | EL AL LY5108 | 11:10 → 11:50",
+      "section": "own",
+      "status": "accepted",
+      "reasons": [],
+      "flight": {
+        "date": "2025-12-31",
+        "origin": "TBS",
+        "destination": "TLV",
+        "source": "manual",
+        "enrichment_status": "skipped",
+        "airline_iata": "LY",
+        "flight_number": "5108",
+        "departure_time": "11:10",
+        "arrival_time": "11:50",
+        "origin_tz": "Asia/Tbilisi",
+        "dest_tz": "Asia/Jerusalem"
+      }
+    },
+    {
+      "id": "input-095",
+      "line": 95,
+      "raw": "2026-01-07 | TLV → TBS | EL AL LY5109 | 18:15 → 22:50",
+      "section": "own",
+      "status": "accepted",
+      "reasons": [],
+      "flight": {
+        "date": "2026-01-07",
+        "origin": "TLV",
+        "destination": "TBS",
+        "source": "manual",
+        "enrichment_status": "skipped",
+        "airline_iata": "LY",
+        "flight_number": "5109",
+        "departure_time": "18:15",
+        "arrival_time": "22:50",
+        "origin_tz": "Asia/Jerusalem",
+        "dest_tz": "Asia/Tbilisi"
+      }
+    },
+    {
+      "id": "input-096",
+      "line": 96,
+      "raw": "2026-07-25 | TBS → SAW | Pegasus Airlines PC317 | 17:25 → 18:55",
+      "section": "own",
+      "status": "accepted",
+      "reasons": [],
+      "flight": {
+        "date": "2026-07-25",
+        "origin": "TBS",
+        "destination": "SAW",
+        "source": "manual",
+        "enrichment_status": "skipped",
+        "airline_iata": "PC",
+        "flight_number": "317",
+        "departure_time": "17:25",
+        "arrival_time": "18:55",
+        "origin_tz": "Asia/Tbilisi",
+        "dest_tz": "Europe/Istanbul"
+      }
+    },
+    {
+      "id": "input-097",
+      "line": 97,
+      "raw": "2026-07-27 | IST → TIV | Air Montenegro 4O401 | 14:35 → 15:25 [calendar only; times from calendar]",
+      "section": "own",
+      "status": "accepted",
+      "reasons": [],
+      "flight": {
+        "date": "2026-07-27",
+        "origin": "IST",
+        "destination": "TIV",
+        "source": "manual",
+        "enrichment_status": "skipped",
+        "airline_iata": "4O",
+        "flight_number": "401",
+        "departure_time": "14:35",
+        "arrival_time": "15:25",
+        "origin_tz": "Europe/Istanbul",
+        "dest_tz": "Europe/Podgorica"
+      }
+    },
+    {
+      "id": "input-099",
+      "line": 99,
+      "raw": "2017-01-24 | VKO → ROV | Pobeda DP107 | dep 19:10 [other passenger]",
+      "section": "other",
+      "status": "excluded",
+      "reasons": [
+        "other passenger or conflicting ownership"
+      ],
+      "flight": {
+        "date": "2017-01-24",
+        "origin": "VKO",
+        "destination": "ROV",
+        "source": "manual",
+        "enrichment_status": "skipped",
+        "airline_iata": "DP",
+        "flight_number": "107",
+        "departure_time": "19:10",
+        "origin_tz": "Europe/Moscow",
+        "dest_tz": "Europe/Moscow"
+      }
+    },
+    {
+      "id": "input-100",
+      "line": 100,
+      "raw": "2022-05-07 | VKO → ROV | Yakutia R3765 | 14:30 → 16:20 [canceled/refunded; other passenger; travel-log ownership conflicts]",
+      "section": "other",
+      "status": "excluded",
+      "reasons": [
+        "other passenger or conflicting ownership"
+      ],
+      "flight": {
+        "date": "2022-05-07",
+        "origin": "VKO",
+        "destination": "ROV",
+        "source": "manual",
+        "enrichment_status": "skipped",
+        "airline_iata": "R3",
+        "flight_number": "765",
+        "departure_time": "14:30",
+        "arrival_time": "16:20",
+        "origin_tz": "Europe/Moscow",
+        "dest_tz": "Europe/Moscow"
+      }
+    },
+    {
+      "id": "input-101",
+      "line": 101,
+      "raw": "2022-05-11 | ROV → VKO | Yakutia R3766 | 17:20 → 19:20 [canceled/refunded; other passenger; travel-log ownership conflicts]",
+      "section": "other",
+      "status": "excluded",
+      "reasons": [
+        "other passenger or conflicting ownership"
+      ],
+      "flight": {
+        "date": "2022-05-11",
+        "origin": "ROV",
+        "destination": "VKO",
+        "source": "manual",
+        "enrichment_status": "skipped",
+        "airline_iata": "R3",
+        "flight_number": "766",
+        "departure_time": "17:20",
+        "arrival_time": "19:20",
+        "origin_tz": "Europe/Moscow",
+        "dest_tz": "Europe/Moscow"
+      }
+    },
+    {
+      "id": "input-102",
+      "line": 102,
+      "raw": "2022-11-06 | MRV → GYD | Buta Airways J29718 | 17:40 → 20:05 [other passenger]",
+      "section": "other",
+      "status": "excluded",
+      "reasons": [
+        "origin: ambiguous or absent airport MRV",
+        "other passenger or conflicting ownership"
+      ],
+      "flight": {
+        "date": "2022-11-06",
+        "origin": "MRV",
+        "destination": "GYD",
+        "source": "manual",
+        "enrichment_status": "skipped",
+        "airline_iata": "J2",
+        "flight_number": "9718",
+        "departure_time": "17:40",
+        "arrival_time": "20:05",
+        "dest_tz": "Asia/Baku"
+      }
+    },
+    {
+      "id": "input-103",
+      "line": 103,
+      "raw": "2022-11-06 | GYD → TBS | Buta Airways J29225 | 21:45 → 22:55 [other passenger]",
+      "section": "other",
+      "status": "excluded",
+      "reasons": [
+        "other passenger or conflicting ownership"
+      ],
+      "flight": {
+        "date": "2022-11-06",
+        "origin": "GYD",
+        "destination": "TBS",
+        "source": "manual",
+        "enrichment_status": "skipped",
+        "airline_iata": "J2",
+        "flight_number": "9225",
+        "departure_time": "21:45",
+        "arrival_time": "22:55",
+        "origin_tz": "Asia/Baku",
+        "dest_tz": "Asia/Tbilisi"
+      }
+    },
+    {
+      "id": "input-104",
+      "line": 104,
+      "raw": "2022-12-01 | MRV → GYD | Azimuth A4559 | 03:05 → 05:40 [superseded; other passenger; reissued as Dec 2 A4573]",
+      "section": "other",
+      "status": "excluded",
+      "reasons": [
+        "origin: ambiguous or absent airport MRV",
+        "other passenger or conflicting ownership"
+      ],
+      "flight": {
+        "date": "2022-12-01",
+        "origin": "MRV",
+        "destination": "GYD",
+        "source": "manual",
+        "enrichment_status": "skipped",
+        "airline_iata": "A4",
+        "flight_number": "559",
+        "departure_time": "03:05",
+        "arrival_time": "05:40",
+        "dest_tz": "Asia/Baku"
+      }
+    },
+    {
+      "id": "input-105",
+      "line": 105,
+      "raw": "2022-12-01 | Buta Airways [partial booking evidence; other passenger]",
+      "section": "other",
+      "status": "excluded",
+      "reasons": [
+        "incomplete route/date",
+        "other passenger or conflicting ownership"
+      ],
+      "flight": null
+    },
+    {
+      "id": "input-106",
+      "line": 106,
+      "raw": "2022-12-02 | MRV → GYD | Azimuth A4573 | 02:40 → 05:15 [other passenger; arrival from calendar; schedule updated]",
+      "section": "other",
+      "status": "excluded",
+      "reasons": [
+        "origin: ambiguous or absent airport MRV",
+        "other passenger or conflicting ownership"
+      ],
+      "flight": {
+        "date": "2022-12-02",
+        "origin": "MRV",
+        "destination": "GYD",
+        "source": "manual",
+        "enrichment_status": "skipped",
+        "airline_iata": "A4",
+        "flight_number": "573",
+        "departure_time": "02:40",
+        "arrival_time": "05:15",
+        "dest_tz": "Asia/Baku"
+      }
+    },
+    {
+      "id": "input-107",
+      "line": 107,
+      "raw": "2022-12-02 | GYD → TBS | Buta Airways J29225 | 21:45 → 22:55 [other passenger]",
+      "section": "other",
+      "status": "excluded",
+      "reasons": [
+        "other passenger or conflicting ownership"
+      ],
+      "flight": {
+        "date": "2022-12-02",
+        "origin": "GYD",
+        "destination": "TBS",
+        "source": "manual",
+        "enrichment_status": "skipped",
+        "airline_iata": "J2",
+        "flight_number": "9225",
+        "departure_time": "21:45",
+        "arrival_time": "22:55",
+        "origin_tz": "Asia/Baku",
+        "dest_tz": "Asia/Tbilisi"
+      }
+    },
+    {
+      "id": "input-108",
+      "line": 108,
+      "raw": "2022-12-04 | TBS → EVN | FLYONE Armenia 3F584 | 11:35 → 12:10 [other passenger; travel-log ownership conflicts; seller code 5F584; erroneous calendar geography]",
+      "section": "other",
+      "status": "excluded",
+      "reasons": [
+        "other passenger or conflicting ownership"
+      ],
+      "flight": {
+        "date": "2022-12-04",
+        "origin": "TBS",
+        "destination": "EVN",
+        "source": "manual",
+        "enrichment_status": "skipped",
+        "airline_iata": "3F",
+        "flight_number": "584",
+        "departure_time": "11:35",
+        "arrival_time": "12:10",
+        "origin_tz": "Asia/Tbilisi",
+        "dest_tz": "Asia/Yerevan"
+      }
+    },
+    {
+      "id": "input-109",
+      "line": 109,
+      "raw": "2022-12-04 | EVN → MRV | Azimuth A4930 | 18:05 → 18:40 [superseded; other passenger; travel-log ownership conflicts; replaced by A4630 at 23:30]",
+      "section": "other",
+      "status": "excluded",
+      "reasons": [
+        "destination: ambiguous or absent airport MRV",
+        "other passenger or conflicting ownership"
+      ],
+      "flight": {
+        "date": "2022-12-04",
+        "origin": "EVN",
+        "destination": "MRV",
+        "source": "manual",
+        "enrichment_status": "skipped",
+        "airline_iata": "A4",
+        "flight_number": "930",
+        "departure_time": "18:05",
+        "arrival_time": "18:40",
+        "origin_tz": "Asia/Yerevan"
+      }
+    },
+    {
+      "id": "input-110",
+      "line": 110,
+      "raw": "2022-12-04 | EVN → MRV | Azimuth A4630 | 23:30 → 23:25 [other passenger; schedule updated]",
+      "section": "other",
+      "status": "excluded",
+      "reasons": [
+        "destination: ambiguous or absent airport MRV",
+        "other passenger or conflicting ownership"
+      ],
+      "flight": {
+        "date": "2022-12-04",
+        "origin": "EVN",
+        "destination": "MRV",
+        "source": "manual",
+        "enrichment_status": "skipped",
+        "airline_iata": "A4",
+        "flight_number": "630",
+        "departure_time": "23:30",
+        "arrival_time": "23:25",
+        "origin_tz": "Asia/Yerevan"
+      }
+    },
+    {
+      "id": "input-111",
+      "line": 111,
+      "raw": "2024-05-23 | AER → TBS | Red Wings WZ557 | 12:00 → 14:15 [other passenger; travel-log ownership conflicts]",
+      "section": "other",
+      "status": "excluded",
+      "reasons": [
+        "other passenger or conflicting ownership"
+      ],
+      "flight": {
+        "date": "2024-05-23",
+        "origin": "AER",
+        "destination": "TBS",
+        "source": "manual",
+        "enrichment_status": "skipped",
+        "airline_iata": "WZ",
+        "flight_number": "557",
+        "departure_time": "12:00",
+        "arrival_time": "14:15",
+        "origin_tz": "Europe/Moscow",
+        "dest_tz": "Asia/Tbilisi"
+      }
+    },
+    {
+      "id": "input-112",
+      "line": 112,
+      "raw": "2024-05-27 | TBS → AER | Red Wings WZ558 | 15:15 → 15:20 [other passenger; travel-log ownership conflicts]",
+      "section": "other",
+      "status": "excluded",
+      "reasons": [
+        "other passenger or conflicting ownership"
+      ],
+      "flight": {
+        "date": "2024-05-27",
+        "origin": "TBS",
+        "destination": "AER",
+        "source": "manual",
+        "enrichment_status": "skipped",
+        "airline_iata": "WZ",
+        "flight_number": "558",
+        "departure_time": "15:15",
+        "arrival_time": "15:20",
+        "origin_tz": "Asia/Tbilisi",
+        "dest_tz": "Europe/Moscow"
+      }
+    },
+    {
+      "id": "input-113",
+      "line": 113,
+      "raw": "2024-07-05 | AER → TBS | Red Wings WZ557 | dep 16:05 [other passenger; travel-log ownership conflicts; changed from 12:30; revised arrival unknown]",
+      "section": "other",
+      "status": "excluded",
+      "reasons": [
+        "other passenger or conflicting ownership"
+      ],
+      "flight": {
+        "date": "2024-07-05",
+        "origin": "AER",
+        "destination": "TBS",
+        "source": "manual",
+        "enrichment_status": "skipped",
+        "airline_iata": "WZ",
+        "flight_number": "557",
+        "departure_time": "16:05",
+        "origin_tz": "Europe/Moscow",
+        "dest_tz": "Asia/Tbilisi"
+      }
+    },
+    {
+      "id": "input-114",
+      "line": 114,
+      "raw": "2024-07-07 | TBS → AER | Red Wings WZ558 | 15:15 → 15:30 [other passenger; travel-log ownership conflicts]",
+      "section": "other",
+      "status": "excluded",
+      "reasons": [
+        "other passenger or conflicting ownership"
+      ],
+      "flight": {
+        "date": "2024-07-07",
+        "origin": "TBS",
+        "destination": "AER",
+        "source": "manual",
+        "enrichment_status": "skipped",
+        "airline_iata": "WZ",
+        "flight_number": "558",
+        "departure_time": "15:15",
+        "arrival_time": "15:30",
+        "origin_tz": "Asia/Tbilisi",
+        "dest_tz": "Europe/Moscow"
+      }
+    },
+    {
+      "id": "input-115",
+      "line": 115,
+      "raw": "2026-01-30 | TBS → GYD | Azal J28234 | 17:50 → 19:00 [other passenger]",
+      "section": "other",
+      "status": "excluded",
+      "reasons": [
+        "other passenger or conflicting ownership"
+      ],
+      "flight": {
+        "date": "2026-01-30",
+        "origin": "TBS",
+        "destination": "GYD",
+        "source": "manual",
+        "enrichment_status": "skipped",
+        "airline_iata": "J2",
+        "flight_number": "8234",
+        "departure_time": "17:50",
+        "arrival_time": "19:00",
+        "origin_tz": "Asia/Tbilisi",
+        "dest_tz": "Asia/Baku"
+      }
+    },
+    {
+      "id": "input-116",
+      "line": 116,
+      "raw": "2026-02-03 | GYD → TBS | Azal J28225 | 20:50 → 22:00 [other passenger]",
+      "section": "other",
+      "status": "excluded",
+      "reasons": [
+        "other passenger or conflicting ownership"
+      ],
+      "flight": {
+        "date": "2026-02-03",
+        "origin": "GYD",
+        "destination": "TBS",
+        "source": "manual",
+        "enrichment_status": "skipped",
+        "airline_iata": "J2",
+        "flight_number": "8225",
+        "departure_time": "20:50",
+        "arrival_time": "22:00",
+        "origin_tz": "Asia/Baku",
+        "dest_tz": "Asia/Tbilisi"
+      }
+    },
+    {
+      "id": "input-118",
+      "line": 118,
+      "raw": "2016-04-04 (calendar entry) | to Moscow [calendar only; arrival from calendar]",
+      "section": "partial",
+      "status": "review",
+      "reasons": [
+        "incomplete route/date",
+        "incomplete source record"
+      ],
+      "flight": null
+    },
+    {
+      "id": "input-119",
+      "line": 119,
+      "raw": "2016-04-04 (calendar entry) | to Rostov-on-Don [calendar only; arrival from calendar]",
+      "section": "partial",
+      "status": "review",
+      "reasons": [
+        "incomplete route/date",
+        "incomplete source record"
+      ],
+      "flight": null
+    },
+    {
+      "id": "input-120",
+      "line": 120,
+      "raw": "2023-01-22 (calendar entry) | to Tbilisi [calendar only; arrival from calendar]",
+      "section": "partial",
+      "status": "review",
+      "reasons": [
+        "incomplete route/date",
+        "incomplete source record"
+      ],
+      "flight": null
+    },
+    {
+      "id": "input-121",
+      "line": 121,
+      "raw": "2025-12-03 (calendar entry) [calendar only]",
+      "section": "partial",
+      "status": "review",
+      "reasons": [
+        "incomplete route/date",
+        "incomplete source record"
+      ],
+      "flight": null
+    },
+    {
+      "id": "input-122",
+      "line": 122,
+      "raw": "Undated | BUD → VKO | Wizz Air [partial booking evidence; possible duplicate of Jan 27, 2022 log entry]",
+      "section": "partial",
+      "status": "review",
+      "reasons": [
+        "incomplete route/date",
+        "incomplete source record"
+      ],
+      "flight": null
+    },
+    {
+      "id": "input-123",
+      "line": 123,
+      "raw": "Undated | BUD → ORY | Wizz Air [partial booking evidence]",
+      "section": "partial",
+      "status": "review",
+      "reasons": [
+        "incomplete route/date",
+        "incomplete source record"
+      ],
+      "flight": null
+    },
+    {
+      "id": "input-124",
+      "line": 124,
+      "raw": "Undated | ORY → BUD | Wizz Air [partial booking evidence]",
+      "section": "partial",
+      "status": "review",
+      "reasons": [
+        "incomplete route/date",
+        "incomplete source record"
+      ],
+      "flight": null
+    }
+  ]
+}

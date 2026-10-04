@@ -1,0 +1,12 @@
+- generic
+  - generic [ref=e326] clickable [onclick]
+    - region "Notifications alt+T" [ref=e328]
+  - dialog "Хотите сначала скачать свои данные?"
+    - heading "Хотите сначала скачать свои данные?" [level=2, ref=e369]
+      - StaticText "Хотите сначала скачать свои данные?"
+    - paragraph
+      - StaticText "У вас 0 полётов и 0 стран в паспорте."
+    - button "Нет, продолжить" [ref=e370]
+    - button "Скачать мои данные" [disabled, ref=e371]
+    - button "Close" [ref=e372]
+      - StaticText "Close"

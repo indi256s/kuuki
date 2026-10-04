@@ -1,0 +1,6 @@
+- generic "Skip to main contentくうきKuukiВнешний видくうきKuukiГлавнаяПолётыПаспортРейтингИмпортДобавить полётВнешни" [ref=e157] clickable [onclick]
+  - region "Notifications alt+T" [ref=e159]
+- listbox [ref=e786]
+  - option "Все авиакомпании" [selected, ref=e787]
+  - option "○ Oneworld" [ref=e788]
+  - option "American Airlines (AA)" [ref=e789]

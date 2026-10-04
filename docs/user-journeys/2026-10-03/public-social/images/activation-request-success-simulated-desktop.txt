@@ -1,0 +1,20 @@
+- generic [ref=e1] clickable [onclick]
+  - link "Перейти к основному содержимому" [ref=e2]
+  - generic
+    - generic
+      - generic
+      - main
+        - heading "Kuuki" [level=1, ref=e4]
+          - StaticText "Kuuki"
+        - generic
+          - button "Внешний вид" [expanded=false, ref=e6]
+            - StaticText "Внешний вид"
+          - button "What is Kuuki?" [ref=e7]
+          - button "Toggle language" [ref=e8]
+        - heading "Активировать прежний аккаунт" [level=2, ref=e13]
+        - status
+          - StaticText "Если этот адрес связан с аккаунтом для активации, вы получите ссылку."
+        - button "Вернуться ко входу" [ref=e14]
+        - paragraph
+          - StaticText "Делаем что можем. Билеты невозвратные."
+  - region "Notifications alt+T" [ref=e3]

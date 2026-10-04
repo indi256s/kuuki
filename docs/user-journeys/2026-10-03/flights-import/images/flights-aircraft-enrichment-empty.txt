@@ -1,0 +1,14 @@
+- generic
+  - generic [ref=e934] clickable [onclick]
+    - region "Notifications alt+T" [ref=e936]
+  - dialog "Результаты идентификации самолётов"
+    - heading "Результаты идентификации самолётов" [level=2, ref=e1375]
+      - StaticText "Результаты идентификации самолётов"
+    - paragraph
+      - StaticText "Определено 0 из 1 самолётов"
+    - paragraph
+      - StaticText "Не удалось определить самолёты. Попробуйте ещё раз или укажите вручную."
+    - button "Отмена" [ref=e1376]
+    - button "Accept 0 Selected" [disabled, ref=e1377]
+    - button "Close" [ref=e1378]
+      - StaticText "Close"

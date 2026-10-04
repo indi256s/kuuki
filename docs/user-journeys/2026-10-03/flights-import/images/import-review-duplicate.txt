@@ -1,0 +1,30 @@
+- generic "Skip to main contentくうきKuukiВнешний видくうきKuukiГлавнаяПолётыПаспортРейтингИмпортВнешний видFIИмпортП" [ref=e793] clickable [onclick]
+  - link "Skip to main content" [ref=e794]
+  - link "Kuuki" [ref=e796]
+  - link "Главная" [ref=e803]
+  - link "Полёты" [ref=e804]
+  - link "Паспорт" [ref=e805]
+  - link "Рейтинг" [ref=e806]
+  - link "Импорт" [ref=e807]
+  - button "Внешний вид" [expanded=false, ref=e797]
+  - button "FI" [expanded=false, ref=e798]
+  - heading "Импорт" [level=1, ref=e799]
+  - heading "Проверьте найденные полёты" [level=2, ref=e810]
+  - button "Добавить вручную" [ref=e811]
+  - button "Отмена" [ref=e812]
+  - button "Import 0" [disabled, ref=e813]
+  - button "Выбрать все" [ref=e814]
+  - button "Снять выбор" [disabled, ref=e815]
+  - button "Исключить дубликаты" [ref=e816]
+  - checkbox [checked=false, ref=e817]
+  - button [ref=e818]
+  - button [ref=e819]
+  - textbox "dd.mm.yyyy" [ref=e820]: 03.01.2026
+  - textbox "Поиск по коду или городу…" [ref=e824]: JFK
+  - textbox "Поиск по коду или городу…" [ref=e825]: BOS
+  - textbox "Поиск по коду или названию…" [ref=e826]: AA
+  - textbox "123" [ref=e821]: 100
+  - textbox "Поиск по коду или названию…" [ref=e827]
+  - textbox "HH:MM" [ref=e822]: 10:00
+  - textbox "HH:MM" [ref=e823]: 11:30
+  - region "Notifications alt+T" [ref=e795]

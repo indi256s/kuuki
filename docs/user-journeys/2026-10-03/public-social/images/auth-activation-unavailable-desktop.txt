@@ -1,0 +1,26 @@
+- generic [ref=e89] clickable [onclick]
+  - link "Skip to main content" [ref=e90]
+  - generic
+    - generic
+      - generic
+      - main
+        - heading "Kuuki" [level=1, ref=e92]
+          - StaticText "Kuuki"
+        - generic
+          - button "Внешний вид" [expanded=false, ref=e94]
+            - StaticText "Внешний вид"
+          - button "What is Kuuki?" [ref=e95]
+          - button "Toggle language" [ref=e96]
+        - heading "Активировать прежний аккаунт" [level=2, ref=e101]
+        - form
+          - LabelText
+            - StaticText "Email"
+          - textbox "Email" [required, ref=e103]: missing@example.test
+            - StaticText "missing@example.test"
+          - alert
+            - StaticText "Account activation is temporarily unavailable"
+          - button "Отправить ссылку" [ref=e104]
+        - button "Вернуться ко входу" [ref=e102]
+        - paragraph
+          - StaticText "Присылай посадочный. Мы всё сделаем."
+  - region "Notifications alt+T" [ref=e91]

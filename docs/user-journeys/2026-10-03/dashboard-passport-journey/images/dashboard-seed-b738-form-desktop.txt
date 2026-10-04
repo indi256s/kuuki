@@ -1,0 +1,18 @@
+- generic "Skip to main contentくうきKuukiВнешний видくうきKuukiГлавнаяПолётыПаспортРейтингИмпортВнешний видATПривет," [ref=e974] clickable [onclick]
+  - region "Notifications alt+T" [ref=e976]
+- heading "Добавить полёт" [level=2, ref=e1241]
+- heading "ROUTE" [level=3, ref=e1243]
+- textbox "Откуда *" [required, ref=e1254]: JFK
+- button "Поменять" [ref=e1252]
+- textbox "Куда *" [required, ref=e1255]: LAX
+- heading "FLIGHT DETAILS" [level=3, ref=e1244]
+- button "3 янв. 2026" [expanded=false, ref=e1245]
+- textbox "Авиакомпания" [ref=e1253]: AA
+- heading "AIRCRAFT & TIMES" [level=3, ref=e1265]
+- textbox "Самолёт" [ref=e1267]: B738
+- textbox "123" [ref=e1266]: 100
+- textbox "HH:MM" [ref=e1268]
+- textbox "HH:MM" [ref=e1269]
+- button "Отмена" [ref=e1250]
+- button "Добавить полёт" [ref=e1251]
+- button "Close" [ref=e1242]

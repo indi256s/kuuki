@@ -1,0 +1,90 @@
+- generic [ref=e2055] clickable [onclick]
+  - link "Skip to main content" [ref=e2056]
+  - generic
+    - banner
+      - link "Kuuki" [ref=e2058]
+        - StaticText "Kuuki"
+      - navigation
+        - link "Главная" [ref=e2089]
+        - link "Полёты" [ref=e2090]
+        - link "Паспорт" [ref=e2091]
+        - link "Рейтинг" [ref=e2092]
+        - link "Импорт" [ref=e2093]
+      - button "Внешний вид" [expanded=false, ref=e2059]
+        - StaticText "Внешний вид"
+      - button "AT" [expanded=false, ref=e2060]
+        - StaticText "AT"
+    - main
+      - heading "НастройкиУправление аккаунтом и данными" [level=1, ref=e2061]
+        - StaticText "НастройкиУправление аккаунтом и данными"
+      - heading "Внешний вид" [level=3, ref=e2062]
+      - StaticText "Выберите тему и акцентный цвет"
+      - LabelText
+        - StaticText "Тема"
+      - radiogroup "Тема"
+        - radio "Светлая" [checked=true, ref=e2094]
+          - StaticText "Светлая"
+        - radio "Тёмная" [checked=false, ref=e2095]
+          - StaticText "Тёмная"
+        - radio "Системная" [checked=false, ref=e2096]
+          - StaticText "Системная"
+      - LabelText
+        - StaticText "Акцентный цвет"
+      - button "Select blue accent color" [ref=e2063]
+      - button "Select cyan accent color" [ref=e2064]
+      - button "Select teal accent color" [ref=e2065]
+      - button "Select yellow accent color" [ref=e2066]
+      - button "Select orange accent color" [ref=e2067]
+      - button "Select coral accent color" [ref=e2068]
+      - button "Select red accent color" [ref=e2069]
+      - button "Select purple accent color" [ref=e2070]
+      - heading "Язык" [level=3, ref=e2071]
+      - StaticText "Выберите предпочтительный язык"
+      - button "English" [ref=e2072]
+      - button "Русский" [ref=e2073]
+      - heading "Профиль" [level=3, ref=e2074]
+      - StaticText "Настройте свой публичный профиль"
+      - LabelText
+        - StaticText "Отображаемое имя"
+      - textbox "Отображаемое имя" [ref=e2075]
+      - paragraph
+        - StaticText "Your display name or leave empty to use @atlas-dashboard"
+      - LabelText
+        - StaticText "О себе"
+      - textbox "О себе" [ref=e2076]
+      - paragraph
+        - StaticText "0/140"
+      - heading "Видимость" [level=3, ref=e2077]
+      - checkbox "Публичный профиль" [checked=false, ref=e2078]
+      - LabelText [ref=e2079] clickable [cursor:pointer]
+        - StaticText "Публичный профиль"
+      - paragraph
+        - StaticText "Любой сможет видеть вашу статистику и достижения"
+      - checkbox "Показывать в рейтинге" [checked=false, disabled, ref=e2080]
+      - LabelText [ref=e2081] clickable [cursor:pointer]
+        - StaticText "Показывать в рейтинге"
+      - paragraph
+        - StaticText "Участвовать в публичном рейтинге (требуется 5+ полётов)"
+      - button "Сохранить" [disabled, ref=e2082]
+        - StaticText "Сохранить"
+      - heading "Экспорт данных" [level=3, ref=e2083]
+      - StaticText "Скачайте историю полётов и паспорт посещённых стран в формате CSV"
+      - checkbox "Включить расширенные данные (названия стран, континенты)" [checked=false, ref=e2084]
+      - LabelText [ref=e2085] clickable [cursor:pointer]
+        - StaticText "Включить расширенные данные (названия стран, континенты)"
+      - button "Скачать 1 полёт в CSV" [ref=e2086]
+        - StaticText "Скачать 1 полёт в CSV"
+      - button "Скачать все 2 посещённые страны в CSV" [ref=e2087]
+        - StaticText "Скачать все 2 посещённые страны в CSV"
+      - paragraph
+        - StaticText "Осталось 4 экспорта сегодня"
+      - heading "Опасная зона" [level=3, ref=e2088]
+      - StaticText "Безвозвратно удалить аккаунт и все данные"
+      - button "Удалить аккаунт" [ref=e2097]
+  - region "Notifications alt+T" [ref=e2057]
+    - list
+      - listitem [level=1, ref=e2098] focusable [tabindex]
+        - button "Close toast" [ref=e2099]
+          - image
+        - image
+        - StaticText "Экспорт стран"

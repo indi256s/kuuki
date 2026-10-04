@@ -47,7 +47,7 @@ export function AircraftEnrichButton({
 
   const handleClick = async () => {
     // Prepare flights for the API, including airline names for better search
-    const flightsToEnrich: FlightToEnrich[] = flights.map(f => {
+    const flightsToEnrich: FlightToEnrich[] = flights.slice(0, 20).map(f => {
       const airline = f.airline_iata ? findAirline(f.airline_iata) : null
       return {
         id: String(f.id),
@@ -72,9 +72,13 @@ export function AircraftEnrichButton({
 
   const handleAccept = async (updates: { id: number; aircraft_icao: string }[]) => {
     try {
-      await updateMutation.mutateAsync(updates)
-      onComplete?.()
-      toast.success(t('enrich.saveSuccess', '{{count}} aircraft saved', { count: updates.length }))
+      const ack = await updateMutation.mutateAsync(updates)
+      const saved = ack.results.filter(result => result.status === 'accepted').length
+      if (saved > 0) {
+        onComplete?.()
+        toast.success(t('enrich.saveSuccess', '{{count}} aircraft saved', { count: saved }))
+      }
+      return ack
     } catch (error) {
       console.error('Failed to save aircraft data:', error)
       throw error // Re-throw so dialog knows about the error

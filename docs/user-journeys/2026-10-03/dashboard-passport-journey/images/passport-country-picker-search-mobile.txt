@@ -1,0 +1,7 @@
+- generic "Skip to main contentくうきKuukiВнешний видくうきKuukiГлавнаяПолётыПаспортРейтингИмпортВнешний видAT246 стр" [ref=e63] clickable [onclick]
+  - region "Notifications alt+T" [ref=e65]
+- heading "Выберите страну…" [level=2, ref=e76]
+- textbox "Поиск страны…" [ref=e79]: Spain
+- button [ref=e156]
+- button "Spain (ES)" [ref=e155]
+- button "Отмена" [ref=e78]

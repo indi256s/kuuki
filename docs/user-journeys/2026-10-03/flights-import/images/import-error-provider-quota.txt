@@ -1,0 +1,28 @@
+- generic [ref=e856] clickable [onclick]
+  - link "Skip to main content" [ref=e854]
+  - generic
+    - banner
+      - link "Kuuki" [ref=e857]
+        - StaticText "Kuuki"
+      - navigation
+        - link "Главная" [ref=e864]
+        - link "Полёты" [ref=e865]
+        - link "Паспорт" [ref=e866]
+        - link "Рейтинг" [ref=e867]
+        - link "Импорт" [ref=e868]
+      - button "Внешний вид" [expanded=false, ref=e858]
+        - StaticText "Внешний вид"
+      - button "FI" [expanded=false, ref=e859]
+        - StaticText "FI"
+    - main
+      - heading "Импорт" [level=1, ref=e860]
+      - StaticText "Проверка"
+      - alert
+        - StaticText "Не удалось прочитать документ. Попробуйте другой формат."
+      - generic
+      - heading "Полёты не найдены" [level=3, ref=e870]
+      - paragraph
+        - StaticText "Не удалось извлечь данные о полётах из этого документа"
+      - button "Попробовать другой файл" [ref=e871]
+      - button "Добавить вручную" [ref=e872]
+  - region "Notifications alt+T" [ref=e855]

@@ -1,0 +1,36 @@
+- generic [ref=e228] clickable [onclick]
+  - link "Skip to main content" [ref=e229]
+  - banner
+    - link "Kuuki" [ref=e231]
+      - StaticText "Kuuki"
+    - navigation
+      - link "Главная" [ref=e240]
+      - link "Полёты" [ref=e241]
+      - link "Паспорт" [ref=e242]
+      - link "Рейтинг" [ref=e243]
+      - link "Импорт" [ref=e244]
+    - button "Внешний вид" [expanded=false, ref=e232]
+      - StaticText "Внешний вид"
+    - button "JO" [expanded=false, ref=e233]
+      - StaticText "JO"
+  - main
+    - heading "РейтингСравните себя с другими путешественниками" [level=1, ref=e234]
+      - StaticText "РейтингСравните себя с другими путешественниками"
+    - button "Полёты" [ref=e235]
+      - StaticText "Полёты"
+    - button "Расстояние" [ref=e236]
+      - StaticText "Расстояние"
+    - button "Страны" [ref=e237]
+      - StaticText "Страны"
+    - button "Города" [ref=e238]
+      - StaticText "Города"
+    - button "Авиакомпании" [ref=e239]
+      - StaticText "Авиакомпании"
+    - paragraph
+      - StaticText "Пока недоступно"
+    - paragraph
+      - StaticText "Log 5 more flights to appear on leaderboards"
+    - progressbar
+    - paragraph
+      - StaticText "Рейтинг пока пуст. Станьте первым!"
+  - region "Notifications alt+T" [ref=e230]

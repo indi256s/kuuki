@@ -5,6 +5,7 @@ import { useDashboardStore } from '@/stores/dashboardStore'
 import { findAirport, findCountry } from '@kuuki/data'
 import type { FlightFilters } from '@/lib/flights'
 import { queryKeys } from '@/lib/queryKeys'
+import type { OverviewSummary } from '@kuuki/shared'
 
 export interface DashboardStats {
     // Basic stats
@@ -48,29 +49,6 @@ export interface DashboardStats {
     }
 }
 
-/** Pre-computed user_stats row as returned inside GET /api/me/dashboard-stats. */
-interface ApiUserStats {
-    total_flights: number
-    total_distance_km: number
-    total_duration_minutes: number
-    countries_count: number
-    cities_count: number
-    airlines_count: number
-    aircraft_count: number
-    airports_count: number
-    continents_count: number
-}
-
-/** Completed-flight projection returned by the dashboard-stats fast path (no date column). */
-interface ApiCompletedFlight {
-    origin: string
-    destination: string
-    distance_km: number | null
-    duration_minutes: number | null
-    airline_iata: string | null
-    aircraft_icao: string | null
-}
-
 /** Upcoming-flight projection returned by the dashboard-stats fast path. */
 interface ApiUpcomingFlight {
     id: number
@@ -79,12 +57,6 @@ interface ApiUpcomingFlight {
     destination: string
     airline_iata: string | null
     flight_number: string | null
-}
-
-interface DashboardStatsResponse {
-    stats: ApiUserStats | null
-    upcomingFlights: ApiUpcomingFlight[]
-    completedFlights: ApiCompletedFlight[]
 }
 
 /** Full own-flight DTO as returned by GET /api/flights/all (used by the filtered path). */
@@ -152,7 +124,7 @@ function matchesFilters(flight: ApiFlight, filters: FlightFilters): boolean {
 
 /**
  * Hook for fetching all dashboard stats with filter support.
- * When no filters are active, uses the pre-computed user_stats table (fast path).
+ * When no filters are active, uses the compact Overview summary.
  * When any filter is active, queries raw flights and computes stats client-side.
  */
 export function useDashboardStats() {
@@ -177,28 +149,38 @@ export function useDashboardStats() {
 }
 
 /**
- * Fast path: no filters active, use pre-computed user_stats + completed flights for favorites.
+ * Fast path: one bounded Overview response, with no completed-flight history.
  */
 async function fetchUnfilteredStats(): Promise<DashboardStats> {
-    const { stats, upcomingFlights, completedFlights } =
-        await api.get<DashboardStatsResponse>('/api/me/dashboard-stats')
-
-    const flights = completedFlights ?? []
-    const visitedCountries = extractCountryCodes(flights)
-    const favorites = computeFavorites(flights)
+    const summary = await api.get<OverviewSummary>('/api/me/overview?period=all')
+    const { totals, topLists, nextFlight } = summary
+    const favorite = (list: Array<{ id: string; count: number }>, threshold: number) => {
+        const top = list[0]
+        return top && top.count >= threshold
+            ? { id: top.id, count: top.count, percentage: (top.count / totals.flights) * 100 }
+            : null
+    }
+    const threshold = totals.flights * 0.3
+    const airline = favorite(topLists.airlines, threshold)
+    const aircraft = favorite(topLists.aircraft, threshold)
+    const country = favorite(topLists.countries, threshold)
 
     return {
-        totalFlights: stats?.total_flights || 0,
-        totalDistance: stats?.total_distance_km || 0,
-        totalDuration: stats?.total_duration_minutes || 0,
-        uniqueCountries: stats?.countries_count || 0,
-        uniqueCities: stats?.cities_count || 0,
-        uniqueAirlines: stats?.airlines_count || 0,
-        uniqueAircraft: stats?.aircraft_count || 0,
-        uniqueAirports: stats?.airports_count || 0,
-        continentsCount: stats?.continents_count || 0,
-        visitedCountries,
-        upcomingFlights: filterValidUpcoming(upcomingFlights ?? []),
+        totalFlights: totals.flights,
+        totalDistance: totals.distanceKm,
+        totalDuration: totals.durationMinutes,
+        uniqueCountries: totals.countries,
+        uniqueCities: totals.cities,
+        uniqueAirlines: totals.airlines,
+        uniqueAircraft: totals.aircraft,
+        uniqueAirports: totals.airports,
+        continentsCount: totals.continents,
+        visitedCountries: summary.countryIds,
+        upcomingFlights: nextFlight?.airlineIata ? [{
+            id: nextFlight.id, date: nextFlight.date, origin: nextFlight.origin,
+            destination: nextFlight.destination, airline_iata: nextFlight.airlineIata,
+            flight_number: nextFlight.flightNumber,
+        }] : [],
         percentiles: {
             countries: null,
             cities: null,
@@ -206,7 +188,11 @@ async function fetchUnfilteredStats(): Promise<DashboardStats> {
             distance: null,
             airlines: null,
         },
-        favorites,
+        favorites: {
+            airline: airline ? { iata: airline.id, count: airline.count, percentage: airline.percentage } : null,
+            aircraft: aircraft ? { icao: aircraft.id, count: aircraft.count, percentage: aircraft.percentage } : null,
+            country: country ? { code: country.id, count: country.count, percentage: country.percentage } : null,
+        },
     }
 }
 

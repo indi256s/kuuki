@@ -1,0 +1,124 @@
+2015-05-21 | ROV → Moscow | 07:05 → 08:55 [calendar only; times from calendar]
+2015-05-21 | DME → Kaliningrad | 12:50 → 13:55 [calendar only; times from calendar]
+2015-05-25 | KGD → Moscow | 15:00 → 17:50 [calendar only; times from calendar]
+2015-05-25 | DME → Rostov-on-Don | 20:00 → 21:40 [calendar only; times from calendar]
+2016-03-31 | DME → KGD | S7 Airlines S767 | 17:00 → 18:05 [travel log only]
+2016-04-04 | KGD → SVO | Aeroflot SU1001 | 09:15 → 12:05 [travel log only]
+2017-03-24 | ROV → SVO | Nordwind Airlines N4188 | 02:45 → 04:45
+2017-03-24 | ZIA → MSQ | Belavia B2972 | 10:20 → 11:45
+2017-03-26 | MSQ → DME | Belavia B2993 | 19:30 → 20:50
+2017-03-27 | DME → ROV | S7 Airlines S71159 | 00:35 → 02:30
+2017-04-06 | MSQ → ZIA | Belavia B2973 | 18:05 → 19:30 [travel log only]
+2017-06-22 | LWN → Rostov-on-Don | H7727 | 15:55 → 16:20 [calendar only; times from calendar]
+2017-07-08 | ROV → VKO | UT498 | 06:35 → 08:30 [travel log + calendar]
+2017-07-11 | VKO → ROV | UT497 | 23:55 → 01:45 (2017-07-12) [travel log + calendar]
+2017-09-30 | ROV → SVO | Aeroflot SU1163 | 12:00 → 13:55 [travel log + calendar]
+2017-09-30 | SVO → FRA | Aeroflot SU2302 | 15:35 → 18:00 [travel log + calendar]
+2017-12-21 | ROV → IST | Turkish Airlines TK294 | 05:20 → 07:50 [travel log + calendar]
+2017-12-21 | IST → MUC | Turkish Airlines TK1633 | 12:40 → 13:30 [travel log + calendar; time conflict; see source notes]
+2017-12-26 | MUC → AMS | EW1834 | 16:55 → 18:25 [travel log + calendar]
+2017-12-28 | AMS → IST | Turkish Airlines TK1956 | 23:50 → 05:10 (2017-12-29) [travel log + calendar; time conflict; see source notes]
+2017-12-30 | IST → ROV | Turkish Airlines TK293 | 01:05 → 03:20 [travel log + calendar; time conflict; see source notes]
+2018-02-27 | FRA → SVO | Aeroflot SU2657 | 17:40 → 22:45 [travel log + calendar]
+2018-02-28 | SVO → ROV | Aeroflot SU1166 | 01:10 → 03:10 [travel log + calendar]
+2018-04-08 | VKO → Rostov-on-Don | Pobeda DP105 | 18:10 → 20:00 [calendar only; times from calendar]
+2018-09-01 | VKO → ROV | Pobeda DP107 | 22:25 → 00:15 (2018-09-02) [calendar only; times from calendar]
+2019-01-22 | GRO → VKO | Pobeda DP832 | 11:35 → 17:50
+2019-01-22 | VKO → ROV | Pobeda DP107 | 22:10 → 00:05 (2019-01-23)
+2019-03-11 | VKO → TXL | UT705 | 10:55 → 11:45 [travel log only]
+2019-03-17 | TXL → VKO | Pobeda DP846 | 18:00 → 22:40 [travel log only]
+2019-06-28 | ROV → VKO | UT498 | 06:35 → 08:30 [travel log + calendar; time conflict; see source notes]
+2019-07-01 | VKO → ROV | UT493 | 17:40 → 19:40 [travel log + calendar]
+2019-07-25 | BUD → IST | Turkish Airlines TK1036 | 09:05 → 12:05 [travel log only; same-day travel-log sequence conflicts]
+2019-07-25 | CDG → BUD | AF1494 | 16:45 → 18:55 [travel log only; same-day travel-log sequence conflicts]
+2019-07-26 | IST → ROV | Turkish Airlines TK293 | 00:35 → 02:50 [travel log only]
+2019-07-30 | VKO → ROV | UT493 | 17:40 → 19:40 [travel log + calendar]
+2020-03-15 | ROV → EVN | Azimuth A4225 | 08:30 → 11:00 [travel log only]
+2020-03-15 | KRR → Yerevan | 17:40 → 21:10 [calendar only; times from calendar]
+2020-03-20 | EVN → KRR | Ural Airlines U62872 | 16:40 → 17:20
+2020-03-25 | EVN → ROV | Azimuth A4226 | 12:55 → 12:35 [canceled; times from calendar]
+2020-03-28 | ROV → VKO | Pobeda DP106 | 16:30 → 18:20
+2021-05-23 | ROV → SVO | Aeroflot SU1159 | 10:20 → 12:30
+2021-05-28 | SVO → ROV | Aeroflot SU1156 | 13:20 → 15:20
+2021-06-11 | ROV → Moscow | 11:35 → 13:30 [calendar only; times from calendar]
+2021-06-14 | DME → Rostov-on-Don | 20:05 → 21:50 [calendar only; times from calendar]
+2021-07-25 | ROV → SVO | Aeroflot SU1163 | 11:50 → 14:00
+2021-07-30 | SVO → ROV | Aeroflot SU1674 | 22:55 → 00:55 (2021-07-31)
+2022-01-18 | VKO → BUD | Wizz Air W62490 | 11:05 → 11:45
+2022-01-27 | BUD → VKO | Wizz Air W62489 | 05:55 → 10:25 [travel log only]
+2022-02-28 | VKO → IST | Turkish Airlines TK420 | 07:15 → 10:20
+2022-03-13 | SAW → AYT | Pegasus Airlines PC2012 | 15:40 → 16:55 [unpaid reservation]
+2022-03-13 | SAW → AYT | Pegasus Airlines PC2020 | 18:25 → 19:40
+2022-03-26 | AYT → ZIA | Red Wings WZ4610 | dep 01:55 [schedule updated]
+2022-04-30 | VKO → ROV | Yakutia R3765 | 14:30 → 16:20 [canceled/refunded]
+2022-05-04 | ROV → VKO | Yakutia R3766 | 17:20 → 19:20 [canceled/refunded]
+2022-07-17 | LED → OSL | Nordwind Airlines N42305 | 17:20 → 18:25 [canceled]
+2022-07-31 | OSL → LED | Nordwind Airlines N42306 | 19:30 → 22:35 [outbound canceled; return status unresolved]
+2022-10-04 | TBS → SAW | Pegasus Airlines PC319 | 07:00 → 08:30
+2022-10-31 | TBS → EVN | FLYONE Armenia 3F584 | 12:50 → 13:25 [schedule updated]
+2022-11-02 | EVN → TBS | FLYONE Armenia 3F583 | 10:00 → 10:35
+2023-01-20 | TBS → EVN | FLYONE Armenia 3F584 | 11:35 → 12:10
+2023-01-31 | TBS → SAW | Pegasus Airlines PC315 | 04:30 → 05:55 [possible refund not conclusively linked]
+2023-02-03 | SAW → TBS | Pegasus Airlines PC318 | 23:00 → 02:10 (2023-02-04) [possible refund not conclusively linked]
+2023-04-01 | TBS → DOH | Qatar Airways QR254 | 02:40 → 04:45 [schedule updated]
+2023-04-02 | DOH → ICN | Qatar Airways QR858 | 02:10 → 16:55
+2023-04-24 | ICN → BKK | Thai Airways TG657 | 10:20 → 14:10
+2023-04-27 | BKK → DOH | Qatar Airways QR835 | 20:00 → 23:00
+2023-04-28 | DOH → TBS | Qatar Airways QR253 | 20:00 → 00:10 (2023-04-29)
+2023-12-29 | TBS → DOH | Qatar Airways QR254 | 20:55 → 23:00
+2023-12-30 | DOH → ICN | Qatar Airways QR858 | 02:05 → 16:55 [schedule updated]
+2024-01-16 | ICN → DOH | Qatar Airways QR859 | 00:15 → 05:10
+2024-01-16 | DOH → TBS | Qatar Airways QR255 | 09:05 → 13:25
+2024-03-02 | KUT → BER | Wizz Air W66407 | 06:40 → 07:50
+2024-03-14 | BER → KUT | Wizz Air W66408 | 08:35 → 15:25 [canceled]
+2024-09-09 | TBS → VKO | Georgian Airways A9936 | 11:00 → 13:00
+2024-09-17 | VKO → TBS | Georgian Airways A9935 | 14:00 → 17:50
+2024-10-31 | TBS → DOH | Qatar Airways QR256 | dep 14:20 [replaced QR254; arrival unresolved]
+2024-10-31 | TBS → DOH | Qatar Airways QR254 | 20:55 → 23:00 [superseded; replaced by QR256 at 14:20]
+2024-11-01 | DOH → NRT | Qatar Airways QR806 | 02:15 → 17:55
+2024-11-29 | NRT → BKK | AirJapan NQ001 | 17:35 → 23:00 [email says 18:05; PDF says 17:35]
+2024-12-30 | BKK → IST | THAI AIRWAYS INTERNATIONAL TG900 | 23:45 → 06:05 (2024-12-31)
+2024-12-31 | IST → TBS | TURKISH AIRLINES TK378 | 07:45 → 11:05
+2025-03-08 | Tbilisi → Istanbul Sabiha Gokcen | Pegasus Airlines PC315 | 05:00 → 06:30
+2025-03-10 | SAW → TBS | Pegasus Airlines PC318 | 21:35 → 00:50 (2025-03-11)
+2025-06-15 | TBS → BEG | Air Serbia JU891 | 14:25 → 15:40
+2025-06-22 | BEG → TBS | Air Serbia JU890 | 07:55 → 12:55
+2025-09-20 | Tbilisi → Moscow | 14:00 → 16:00 [calendar only; times from calendar; travel mode unconfirmed]
+2025-09-28 | SVO → PKX | China Eastern Airlines MU2076 | 17:15 → 10:50 (2025-09-29) [times from calendar; per-leg details from calendar; booking confirms journey]
+2025-09-29 | PKX → KIX | China Eastern Airlines MU277 | 17:10 → 21:00 [times from calendar; per-leg details from calendar; booking confirms journey]
+2025-10-26 | HND → PKX | China Eastern Airlines MU790 | 16:40 → 19:50
+2025-10-27 | PKX → SVO | China Eastern Airlines MU2075 | 11:55 → 15:30
+2025-11-16 | VKO → TBS | Georgian Airways A9935 | 12:00 → 15:50
+2025-12-12 | TBS → KRR | Red Wings WZ1564 | 17:55 → 18:30
+2025-12-19 | Krasnodar → Tbilisi | Red Wings WZ1563 | 14:05 → 16:35
+2025-12-31 | TBS → TLV | EL AL LY5108 | 11:10 → 11:50
+2026-01-07 | TLV → TBS | EL AL LY5109 | 18:15 → 22:50
+2026-07-25 | TBS → SAW | Pegasus Airlines PC317 | 17:25 → 18:55
+2026-07-27 | IST → TIV | Air Montenegro 4O401 | 14:35 → 15:25 [calendar only; times from calendar]
+Other-passenger bookings or conflicting ownership (18)
+2017-01-24 | VKO → ROV | Pobeda DP107 | dep 19:10 [other passenger]
+2022-05-07 | VKO → ROV | Yakutia R3765 | 14:30 → 16:20 [canceled/refunded; other passenger; travel-log ownership conflicts]
+2022-05-11 | ROV → VKO | Yakutia R3766 | 17:20 → 19:20 [canceled/refunded; other passenger; travel-log ownership conflicts]
+2022-11-06 | MRV → GYD | Buta Airways J29718 | 17:40 → 20:05 [other passenger]
+2022-11-06 | GYD → TBS | Buta Airways J29225 | 21:45 → 22:55 [other passenger]
+2022-12-01 | MRV → GYD | Azimuth A4559 | 03:05 → 05:40 [superseded; other passenger; reissued as Dec 2 A4573]
+2022-12-01 | Buta Airways [partial booking evidence; other passenger]
+2022-12-02 | MRV → GYD | Azimuth A4573 | 02:40 → 05:15 [other passenger; arrival from calendar; schedule updated]
+2022-12-02 | GYD → TBS | Buta Airways J29225 | 21:45 → 22:55 [other passenger]
+2022-12-04 | TBS → EVN | FLYONE Armenia 3F584 | 11:35 → 12:10 [other passenger; travel-log ownership conflicts; seller code 5F584; erroneous calendar geography]
+2022-12-04 | EVN → MRV | Azimuth A4930 | 18:05 → 18:40 [superseded; other passenger; travel-log ownership conflicts; replaced by A4630 at 23:30]
+2022-12-04 | EVN → MRV | Azimuth A4630 | 23:30 → 23:25 [other passenger; schedule updated]
+2024-05-23 | AER → TBS | Red Wings WZ557 | 12:00 → 14:15 [other passenger; travel-log ownership conflicts]
+2024-05-27 | TBS → AER | Red Wings WZ558 | 15:15 → 15:20 [other passenger; travel-log ownership conflicts]
+2024-07-05 | AER → TBS | Red Wings WZ557 | dep 16:05 [other passenger; travel-log ownership conflicts; changed from 12:30; revised arrival unknown]
+2024-07-07 | TBS → AER | Red Wings WZ558 | 15:15 → 15:30 [other passenger; travel-log ownership conflicts]
+2026-01-30 | TBS → GYD | Azal J28234 | 17:50 → 19:00 [other passenger]
+2026-02-03 | GYD → TBS | Azal J28225 | 20:50 → 22:00 [other passenger]
+Partial dates / incomplete records (7)
+2016-04-04 (calendar entry) | to Moscow [calendar only; arrival from calendar]
+2016-04-04 (calendar entry) | to Rostov-on-Don [calendar only; arrival from calendar]
+2023-01-22 (calendar entry) | to Tbilisi [calendar only; arrival from calendar]
+2025-12-03 (calendar entry) [calendar only]
+Undated | BUD → VKO | Wizz Air [partial booking evidence; possible duplicate of Jan 27, 2022 log entry]
+Undated | BUD → ORY | Wizz Air [partial booking evidence]
+Undated | ORY → BUD | Wizz Air [partial booking evidence]

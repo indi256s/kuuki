@@ -1,0 +1,14 @@
+- main
+  - heading "Activate your account" [level=1, ref=e111]
+  - paragraph
+    - StaticText "Choose a personal password to access your existing Kuuki profile."
+  - form
+    - LabelText
+      - StaticText "Password"
+    - textbox "Password" [required, ref=e113]
+    - LabelText
+      - StaticText "Confirm password"
+    - textbox "Confirm password" [required, ref=e114]
+    - button "Activate account" [ref=e115]
+  - status
+  - link "Back to sign in" [ref=e112]

@@ -1,0 +1,70 @@
+- generic
+  - generic [ref=e934] clickable [onclick]
+    - region "Notifications alt+T" [ref=e936]
+  - dialog "Редактировать полёт"
+    - heading "Редактировать полёт" [level=2, ref=e1040]
+      - StaticText "Редактировать полёт"
+    - button "Удалить полёт" [ref=e1041]
+    - form
+      - paragraph
+        - StaticText "У вас уже есть полёт в этот день по этому маршруту. Вы всё равно можете сохранить его."
+      - paragraph
+        - StaticText "JFK → BOS AA 100"
+      - heading "ROUTE" [level=3, ref=e1043]
+      - generic
+        - generic
+          - LabelText
+            - StaticText "Откуда"
+            - StaticText "*"
+          - textbox "Откуда *" [required, ref=e1057]: JFK
+            - StaticText "JFK"
+          - generic
+            - StaticText "John F. Kennedy International Airport, New York"
+        - button "Поменять" [ref=e1050]
+        - generic
+          - LabelText
+            - StaticText "Куда"
+            - StaticText "*"
+          - textbox "Куда *" [required, ref=e1058]: BOS
+            - StaticText "BOS"
+          - generic
+            - StaticText "Boston Logan International Airport, Boston"
+      - heading "FLIGHT DETAILS" [level=3, ref=e1044]
+      - LabelText
+        - StaticText "Дата"
+        - StaticText "*"
+      - button "3 янв. 2026" [expanded=false, ref=e1045]
+        - StaticText "3 янв. 2026"
+      - generic
+        - LabelText
+          - StaticText "Авиакомпания"
+        - textbox "Авиакомпания" [ref=e1051]: AA
+          - StaticText "AA"
+        - StaticText "American Airlines"
+      - heading "AIRCRAFT & TIMES" [level=3, ref=e1046]
+      - generic
+        - LabelText
+          - StaticText "Самолёт"
+        - textbox "Самолёт" [ref=e1052]
+      - LabelText
+        - StaticText "Номер рейса"
+      - textbox "123" [ref=e1047]: 100
+        - StaticText "100"
+      - LabelText
+        - StaticText "Вылет"
+      - generic
+        - textbox "HH:MM" [ref=e1053]: 10:00
+          - StaticText "10:00"
+        - button "Clear time" [ref=e1054]
+      - LabelText
+        - StaticText "Прилёт"
+      - generic
+        - textbox "HH:MM" [ref=e1055]: 11:30
+          - StaticText "11:30"
+        - button "Clear time" [ref=e1056]
+      - button "Отмена" [ref=e1048]
+      - button "Сохранить" [ref=e1049]
+      - paragraph
+        - StaticText "Ctrl+S для сохранения, Esc для закрытия"
+    - button "Close" [ref=e1042]
+      - StaticText "Close"

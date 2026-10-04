@@ -1,0 +1,6 @@
+- generic "Skip to main contentくうきKuukiВнешний видДобавитьくうきKuukiГлавнаяПолётыПаспортРейтингИмпортДобавить пол" [ref=e974] clickable [onclick]
+  - generic "EuropeAsiaAmericasAfricaOceania" [ref=e1467] clickable [onclick]
+  - region "Notifications alt+T" [ref=e976]
+- listbox [ref=e1833]
+  - option "Все самолёты" [selected, ref=e1834]
+  - option "737-800" [ref=e1835]

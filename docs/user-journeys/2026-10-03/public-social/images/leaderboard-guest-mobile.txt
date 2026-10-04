@@ -1,0 +1,21 @@
+- generic [ref=e257] clickable [onclick]
+  - link "Skip to main content" [ref=e258]
+  - banner
+    - link "Kuuki" [ref=e260]
+      - StaticText "Kuuki"
+    - button "Внешний вид" [expanded=false, ref=e261]
+      - StaticText "Внешний вид"
+  - main
+    - heading "Рейтинг" [level=1, ref=e262]
+    - button [ref=e263]
+    - button [ref=e264]
+    - button [ref=e265]
+    - button [ref=e266]
+    - button [ref=e267]
+    - paragraph
+      - StaticText "Рейтинг пока пуст. Станьте первым!"
+    - heading "Присоединяйтесь к рейтингу" [level=3, ref=e268]
+    - paragraph
+      - StaticText "Зарегистрируйтесь и добавьте 5 полётов, чтобы попасть в рейтинг"
+    - link "Войти" [ref=e269]
+  - region "Notifications alt+T" [ref=e259]

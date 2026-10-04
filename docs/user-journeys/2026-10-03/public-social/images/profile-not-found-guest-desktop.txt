@@ -1,0 +1,12 @@
+- generic [ref=e280] clickable [onclick]
+  - link "Skip to main content" [ref=e281]
+  - generic
+    - banner
+      - link "Kuuki" [ref=e283]
+        - StaticText "Kuuki"
+    - main
+      - heading "Профиль не найден" [level=1, ref=e284]
+      - paragraph
+        - StaticText "Этот пользователь не существует или у него приватный профиль."
+      - link "Назад" [ref=e285]
+  - region "Notifications alt+T" [ref=e282]

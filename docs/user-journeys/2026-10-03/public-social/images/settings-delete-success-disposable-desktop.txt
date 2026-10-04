@@ -1,0 +1,28 @@
+- generic [ref=e23] clickable [onclick]
+  - link "Skip to main content" [ref=e24]
+  - generic
+    - generic
+      - generic
+      - main
+        - heading "Kuuki" [level=1, ref=e72]
+          - StaticText "Kuuki"
+        - generic
+          - button "Внешний вид" [expanded=false, ref=e74]
+            - StaticText "Внешний вид"
+          - button "What is Kuuki?" [ref=e75]
+          - button "Toggle language" [ref=e76]
+        - form
+          - LabelText
+            - StaticText "Email"
+          - textbox "Email" [ref=e77]
+          - LabelText
+            - StaticText "Пароль"
+          - textbox "Пароль" [ref=e78]
+          - button "Создать аккаунт" [ref=e79]
+            - StaticText "Создать аккаунт"
+          - paragraph
+            - StaticText "Уже есть аккаунт?"
+            - button "Войти" [ref=e80]
+        - paragraph
+          - StaticText "Больше, чем сухая статистика. История твоих путешествий."
+  - region "Notifications alt+T" [ref=e25]

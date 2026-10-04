@@ -1,0 +1,63 @@
+{
+  "verified_at": "2026-10-03T21:32:41.116743+00:00",
+  "local_reproduction": {
+    "wrapper": "../tools/run-fixture.py",
+    "seed": "../tools/seed-test-user.py",
+    "isolated_validation_port": 8800,
+    "startup": "passed",
+    "first_seed_flights": 69,
+    "repeated_seed_flights": 69,
+    "stats_flights": 69,
+    "airports": 29,
+    "countries": 16,
+    "distance_km": 141255,
+    "active_fixture_seed_recheck_flights": 69
+  },
+  "recognition_dataset": {
+    "source_attachment_identical": true,
+    "unique_records": 122,
+    "accepted": 69,
+    "review": 27,
+    "excluded": 26
+  },
+  "production_account_check": "test-user/production-check.json",
+  "scope": "Screenshot fixture on port8799 stayed active; reproduction checked separately against current build. No application code deployed.",
+  "gallery": {
+    "browser": "agent-browser",
+    "route": "http://localhost:8801/gallery.html",
+    "initial_cards": 179,
+    "route_search": {
+      "query": "/import",
+      "visible": 29,
+      "hidden": 155
+    },
+    "state_search": {
+      "query": "flight-delete-confirm",
+      "target_found": true
+    },
+    "mobile": {
+      "viewport_width": 390,
+      "document_width": 390
+    },
+    "broken_gallery_resources": 0,
+    "broken_markdown_links": 0,
+    "production_password_leaks": 0,
+    "final_cards": 184,
+    "new_export_state_found": true,
+    "resource_references_checked": 721
+  },
+  "atlas": {
+    "states": 184,
+    "screenshots": 178,
+    "journeys": 29,
+    "counts": {
+      "captured": 169,
+      "simulated": 9,
+      "source-only": 6
+    },
+    "gaps": 14,
+    "all_screenshots_indexed": true,
+    "all_action_targets_resolve": true,
+    "recognition_and_preconditions_present": true
+  }
+}

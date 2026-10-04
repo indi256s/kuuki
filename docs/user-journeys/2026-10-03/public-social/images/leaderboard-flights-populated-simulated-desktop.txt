@@ -1,0 +1,93 @@
+- generic [ref=e275] clickable [onclick]
+  - link "Skip to main content" [ref=e276]
+  - banner
+    - link "Kuuki" [ref=e278]
+      - StaticText "Kuuki"
+    - navigation
+      - link "Dashboard" [ref=e287]
+      - link "Flights" [ref=e288]
+      - link "Passport" [ref=e289]
+      - link "Leaderboard" [ref=e290]
+      - link "Import" [ref=e291]
+    - button "Appearance" [expanded=false, ref=e279]
+      - StaticText "Appearance"
+    - button "ТЕ" [expanded=false, ref=e280]
+      - StaticText "ТЕ"
+  - main
+    - heading "LeaderboardSee how you rank against other travelers" [level=1, ref=e281]
+      - StaticText "LeaderboardSee how you rank against other travelers"
+    - StaticText "5 travelers ranked"
+    - button "Flights" [ref=e282]
+      - StaticText "Flights"
+    - button "Distance" [ref=e283]
+      - StaticText "Distance"
+    - button "Countries" [ref=e284]
+      - StaticText "Countries"
+    - button "Cities" [ref=e285]
+      - StaticText "Cities"
+    - button "Airlines" [ref=e286]
+      - StaticText "Airlines"
+    - table
+      - rowgroup
+        - row
+          - columnheader "Rank" [ref=e304]
+          - columnheader "User" [ref=e305]
+          - columnheader "Value" [ref=e306]
+      - row
+        - cell
+        - cell "Sky Log @skylog" [ref=e292]
+          - link "Sky Log @skylog" [ref=e307]
+            - generic
+            - paragraph
+              - StaticText "Sky Log"
+            - paragraph
+              - StaticText "@skylog"
+        - cell "142" [ref=e293]
+          - StaticText "142"
+      - row
+        - cell
+        - cell "North Star @northstar" [ref=e294]
+          - link "North Star @northstar" [ref=e308]
+            - generic
+            - paragraph
+              - StaticText "North Star"
+            - paragraph
+              - StaticText "@northstar"
+        - cell "118" [ref=e295]
+          - StaticText "118"
+      - row
+        - cell
+        - cell "Cloud Trail @cloudtrail" [ref=e296]
+          - link "Cloud Trail @cloudtrail" [ref=e309]
+            - generic
+            - paragraph
+              - StaticText "Cloud Trail"
+            - paragraph
+              - StaticText "@cloudtrail"
+        - cell "96" [ref=e297]
+          - StaticText "96"
+      - row
+        - cell "4" [ref=e298]
+          - StaticText "4"
+        - cell "Wing Notes @wingnotes" [ref=e299]
+          - link "Wing Notes @wingnotes" [ref=e310]
+            - generic
+            - paragraph
+              - StaticText "Wing Notes"
+            - paragraph
+              - StaticText "@wingnotes"
+        - cell "84" [ref=e300]
+          - StaticText "84"
+      - row
+        - cell "5" [ref=e301]
+          - StaticText "5"
+        - cell "Тестовый путешественник @test-traveler" [ref=e302]
+          - link "Тестовый путешественник @test-traveler" [ref=e311]
+            - generic
+            - paragraph
+              - StaticText "Тестовый путешественник"
+            - paragraph
+              - StaticText "@test-traveler"
+        - cell "69" [ref=e303]
+          - StaticText "69"
+  - region "Notifications alt+T" [ref=e277]

@@ -1,0 +1,90 @@
+- generic [ref=e934] clickable [onclick]
+  - link "Skip to main content" [ref=e935]
+  - generic
+    - banner
+      - link "Kuuki" [ref=e1121]
+        - StaticText "Kuuki"
+      - button "Внешний вид" [expanded=false, ref=e1122]
+        - StaticText "Внешний вид"
+    - main
+      - heading "Импорт" [level=1, ref=e1123]
+      - heading "Проверьте найденные полёты" [level=2, ref=e1133]
+      - paragraph
+        - StaticText "Проверьте и выберите рейсы для импорта"
+      - generic
+        - StaticText "0 / 1выбрано"
+      - button "Добавить вручную" [ref=e1134]
+      - button "Отмена" [ref=e1135]
+      - button "Import 0" [disabled, ref=e1136]
+        - StaticText "Import 0"
+      - button [ref=e1137]
+      - button [disabled, ref=e1138]
+      - StaticText "1 возможный дубликат"
+      - button [ref=e1139]
+      - checkbox [checked=false, ref=e1140]
+      - StaticText "#"
+      - StaticText "1"
+      - StaticText "3 Jan 2026"
+      - StaticText "JFK"
+      - StaticText "New York"
+      - StaticText "BOS"
+      - StaticText "Boston"
+      - StaticText "AA"
+      - StaticText "American Airlines"
+      - StaticText "Дубликат"
+      - button [ref=e1141]
+      - button [ref=e1142]
+      - LabelText
+        - StaticText "Дата"
+      - textbox "dd.mm.yyyy" [ref=e1143]: 03.01.2026
+        - StaticText "03.01.2026"
+      - LabelText
+        - StaticText "Откуда"
+      - generic
+        - textbox "Поиск по коду или городу…" [ref=e1147]: JFK
+          - StaticText "JFK"
+        - generic
+          - StaticText "John F. Kennedy International Airport, New York"
+      - LabelText
+        - StaticText "Куда"
+      - generic
+        - textbox "Поиск по коду или городу…" [ref=e1148]: BOS
+          - StaticText "BOS"
+        - generic
+          - StaticText "Boston Logan International Airport, Boston"
+      - LabelText
+        - StaticText "Авиакомпания"
+      - generic
+        - textbox "Поиск по коду или названию…" [ref=e1149]: AA
+          - StaticText "AA"
+        - StaticText "American Airlines"
+      - LabelText
+        - StaticText "Номер рейса"
+      - textbox "123" [ref=e1144]: 100
+        - StaticText "100"
+      - LabelText
+        - StaticText "Самолёт"
+      - textbox "Поиск по коду или названию…" [ref=e1150]
+      - LabelText
+        - StaticText "Вылет"
+      - textbox "HH:MM" [ref=e1145]: 10:00
+        - StaticText "10:00"
+      - LabelText
+        - StaticText "Прилёт"
+      - textbox "HH:MM" [ref=e1146]: 11:30
+        - StaticText "11:30"
+      - StaticText "Уверенность ИИ"
+      - StaticText "80"
+      - StaticText "%"
+    - navigation
+      - link "Главная" [ref=e1127]
+        - StaticText "Главная"
+      - link "Полёты" [ref=e1128]
+        - StaticText "Полёты"
+      - link "Импорт" [ref=e1129]
+        - StaticText "Импорт"
+      - link "Паспорт" [ref=e1130]
+        - StaticText "Паспорт"
+      - link "Настройки" [ref=e1131]
+        - StaticText "Настройки"
+  - region "Notifications alt+T" [ref=e936]

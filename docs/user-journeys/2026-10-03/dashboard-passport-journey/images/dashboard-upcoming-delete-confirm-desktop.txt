@@ -1,0 +1,7 @@
+- generic "Skip to main contentくうきKuukiВнешний видДобавитьくうきKuukiГлавнаяПолётыПаспортРейтингИмпортДобавить пол" [ref=e974] clickable [onclick]
+  - generic "EuropeAsiaAmericasAfricaOceania" [ref=e1467] clickable [onclick]
+  - region "Notifications alt+T" [ref=e976]
+- heading "Удалить полёт?" [level=2, ref=e1823]
+- button "Отмена" [ref=e1824]
+- button "Удалить" [ref=e1825]
+- button "Close" [ref=e1826]

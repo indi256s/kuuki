@@ -1,0 +1,85 @@
+- generic [ref=e326] clickable [onclick]
+  - link "Skip to main content" [ref=e327]
+  - generic
+    - banner
+      - link "Kuuki" [ref=e329]
+        - StaticText "Kuuki"
+      - navigation
+        - link "Главная" [ref=e360]
+        - link "Полёты" [ref=e361]
+        - link "Паспорт" [ref=e362]
+        - link "Рейтинг" [ref=e363]
+        - link "Импорт" [ref=e364]
+      - button "Внешний вид" [expanded=false, ref=e330]
+        - StaticText "Внешний вид"
+      - button "FI" [expanded=false, ref=e331]
+        - StaticText "FI"
+    - main
+      - heading "НастройкиУправление аккаунтом и данными" [level=1, ref=e332]
+        - StaticText "НастройкиУправление аккаунтом и данными"
+      - heading "Внешний вид" [level=3, ref=e333]
+      - StaticText "Выберите тему и акцентный цвет"
+      - LabelText
+        - StaticText "Тема"
+      - radiogroup "Тема"
+        - radio "Светлая" [checked=true, ref=e365]
+          - StaticText "Светлая"
+        - radio "Тёмная" [checked=false, ref=e366]
+          - StaticText "Тёмная"
+        - radio "Системная" [checked=false, ref=e367]
+          - StaticText "Системная"
+      - LabelText
+        - StaticText "Акцентный цвет"
+      - button "Select blue accent color" [ref=e334]
+      - button "Select cyan accent color" [ref=e335]
+      - button "Select teal accent color" [ref=e336]
+      - button "Select yellow accent color" [ref=e337]
+      - button "Select orange accent color" [ref=e338]
+      - button "Select coral accent color" [ref=e339]
+      - button "Select red accent color" [ref=e340]
+      - button "Select purple accent color" [ref=e341]
+      - heading "Язык" [level=3, ref=e342]
+      - StaticText "Выберите предпочтительный язык"
+      - button "English" [ref=e343]
+      - button "Русский" [ref=e344]
+      - heading "Профиль" [level=3, ref=e345]
+      - StaticText "Настройте свой публичный профиль"
+      - LabelText
+        - StaticText "Отображаемое имя"
+      - textbox "Отображаемое имя" [ref=e346]: fixture-a
+        - StaticText "fixture-a"
+      - paragraph
+        - StaticText "Your display name or leave empty to use @fixture-a"
+      - LabelText
+        - StaticText "О себе"
+      - textbox "О себе" [ref=e347]
+      - paragraph
+        - StaticText "0/140"
+      - heading "Видимость" [level=3, ref=e348]
+      - checkbox "Публичный профиль" [checked=false, ref=e349]
+      - LabelText [ref=e350] clickable [cursor:pointer]
+        - StaticText "Публичный профиль"
+      - paragraph
+        - StaticText "Любой сможет видеть вашу статистику и достижения"
+      - checkbox "Показывать в рейтинге" [checked=false, disabled, ref=e351]
+      - LabelText [ref=e352] clickable [cursor:pointer]
+        - StaticText "Показывать в рейтинге"
+      - paragraph
+        - StaticText "Участвовать в публичном рейтинге (требуется 5+ полётов)"
+      - button "Сохранить" [disabled, ref=e353]
+        - StaticText "Сохранить"
+      - heading "Экспорт данных" [level=3, ref=e354]
+      - StaticText "Скачайте историю полётов и паспорт посещённых стран в формате CSV"
+      - checkbox "Включить расширенные данные (названия стран, континенты)" [checked=false, ref=e355]
+      - LabelText [ref=e356] clickable [cursor:pointer]
+        - StaticText "Включить расширенные данные (названия стран, континенты)"
+      - button "Нет полётов для экспорта" [disabled, ref=e357]
+        - StaticText "Нет полётов для экспорта"
+      - button "Нет стран для экспорта" [disabled, ref=e358]
+        - StaticText "Нет стран для экспорта"
+      - paragraph
+        - StaticText "5 exports remaining today"
+      - heading "Опасная зона" [level=3, ref=e359]
+      - StaticText "Безвозвратно удалить аккаунт и все данные"
+      - button "Удалить аккаунт" [ref=e368]
+  - region "Notifications alt+T" [ref=e328]

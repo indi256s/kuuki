@@ -3,7 +3,6 @@ import { useTranslation } from 'react-i18next'
 import { Plus } from 'lucide-react'
 
 import { useAuth } from '@/hooks/useAuth'
-import { useFlightStats } from '@/hooks/useStats'
 import { useDashboardStats } from '@/hooks/useDashboardStats'
 import { useSyncUpcomingFlights } from '@/hooks/useFlights'
 import {
@@ -65,8 +64,7 @@ function AnalysisDeckSkeleton() {
 export function DashboardPage() {
   const { t } = useTranslation()
   const { profile } = useAuth()
-  const { data: stats } = useFlightStats()
-  const { data: dashStats } = useDashboardStats()
+  const { data: dashStats, isPending: statsPending, isError: statsError } = useDashboardStats()
   const [isFormOpen, setIsFormOpen] = useState(false)
   const [mapExpanded, setMapExpanded] = useState(false)
 
@@ -118,7 +116,7 @@ export function DashboardPage() {
   // Sync upcoming flights on dashboard load
   useSyncUpcomingFlights()
 
-  const hasFlights = (stats?.totalFlights ?? 0) > 0 || (stats?.upcomingFlights ?? 0) > 0
+  const hasFlights = (dashStats?.totalFlights ?? 0) > 0 || (dashStats?.upcomingFlights.length ?? 0) > 0
 
   const displayName = profile?.display_name || profile?.username || 'User'
 
@@ -206,7 +204,12 @@ export function DashboardPage() {
       mobileTabBar={<MobileTabBar />}
     >
 
-        {hasFlights ? (
+        {statsError && (
+          <div role="alert" className="mb-4 rounded-lg border border-destructive/40 bg-card p-4 text-sm">
+            {t('common.error', 'Unable to refresh your flights. Try again later.')}
+          </div>
+        )}
+        {statsPending ? <Skeleton className="h-32 w-full rounded-2xl" /> : hasFlights ? (
           <div className="space-y-4 animate-fade-up stagger-children">
             {/* Upcoming flights banner */}
             <UpcomingFlightsBanner />

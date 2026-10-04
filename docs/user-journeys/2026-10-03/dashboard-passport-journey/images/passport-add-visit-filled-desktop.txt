@@ -1,0 +1,11 @@
+- generic "Skip to main contentくうきKuukiВнешний видДобавить странуくうきKuukiГлавнаяПолётыПаспортРейтингИмпортВнешн" [ref=e438] clickable [onclick]
+  - region "Notifications alt+T" [ref=e440]
+- heading "Добавить визит" [level=2, ref=e884]
+- combobox [expanded=false, ref=e885]: 2025
+  - generic "2025" [ref=e971] clickable [onclick]
+- button "Суша" [ref=e886]
+- button "Море" [ref=e887]
+- textbox "Воспоминания об этой поездке…" [ref=e888]: Морской визит для демонстрации
+- button "Отмена" [ref=e889]
+- button "Добавить визит" [ref=e890]
+- button "Close" [ref=e891]

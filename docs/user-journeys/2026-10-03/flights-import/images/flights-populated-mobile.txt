@@ -1,0 +1,99 @@
+- generic [ref=e934] clickable [onclick]
+  - link "Skip to main content" [ref=e935]
+  - banner
+    - link "Kuuki" [ref=e1081]
+      - StaticText "Kuuki"
+    - button "Внешний вид" [expanded=false, ref=e1082]
+      - StaticText "Внешний вид"
+  - main
+    - heading "Полёты" [level=1, ref=e984]
+    - StaticText "4"
+    - StaticText "полётов"
+    - button "Фильтры" [ref=e1095]
+    - textbox "City or code" [ref=e1101]
+    - StaticText "→"
+    - textbox "City or code" [ref=e1102]
+    - combobox [expanded=false, ref=e1097]: Все годы
+      - generic [ref=e1103] clickable [onclick]
+        - StaticText "Все годы"
+    - combobox [expanded=false, ref=e1098]: Все авиакомпании
+      - generic [ref=e1104] clickable [onclick]
+        - StaticText "Все авиакомпании"
+    - combobox [expanded=false, ref=e1099]: Все самолёты
+      - generic [ref=e1105] clickable [onclick]
+        - StaticText "Все самолёты"
+    - combobox [expanded=false, ref=e1100]: Все полёты
+      - generic [ref=e1106] clickable [onclick]
+        - StaticText "Все полёты"
+    - button "Найти самолёт (3)" [ref=e1096]
+    - StaticText "JFK"
+    - StaticText "New York"
+    - StaticText "→"
+    - StaticText "BOS"
+    - StaticText "Boston"
+    - StaticText "04.05.27"
+    - StaticText "+"
+    - StaticText "212"
+    - StaticText "d"
+    - StaticText "AA"
+    - StaticText "100"
+    - button "Редактировать" [ref=e1083]
+    - StaticText "1h 30m"
+    - StaticText "American Airlines"
+    - StaticText "737-800"
+    - StaticText "330 km"
+    - StaticText "JFK"
+    - StaticText "New York"
+    - StaticText "→"
+    - StaticText "BOS"
+    - StaticText "Boston"
+    - StaticText "03.01.26"
+    - StaticText "AA"
+    - StaticText "100"
+    - button "Редактировать" [ref=e1084]
+    - StaticText "1h 30m"
+    - StaticText "American Airlines"
+    - generic [ref=e1085] clickable [cursor:pointer, onclick]
+      - StaticText "Добавить самолёт"
+    - StaticText "330 km"
+    - StaticText "JFK"
+    - StaticText "New York"
+    - StaticText "→"
+    - StaticText "BOS"
+    - StaticText "Boston"
+    - StaticText "03.01.26"
+    - StaticText "AA"
+    - StaticText "100"
+    - button "Редактировать" [ref=e1086]
+    - StaticText "1h 30m"
+    - StaticText "American Airlines"
+    - generic [ref=e1087] clickable [cursor:pointer, onclick]
+      - StaticText "Добавить самолёт"
+    - StaticText "330 km"
+    - StaticText "JFK"
+    - StaticText "New York"
+    - StaticText "→"
+    - StaticText "BOS"
+    - StaticText "Boston"
+    - StaticText "03.01.26"
+    - StaticText "AA"
+    - StaticText "100"
+    - button "Редактировать" [ref=e1088]
+    - StaticText "1h 30m"
+    - StaticText "American Airlines"
+    - generic [ref=e1089] clickable [cursor:pointer, onclick]
+      - StaticText "Добавить самолёт"
+    - StaticText "330 km"
+  - button "Добавить" [ref=e1080]
+  - navigation
+    - link "Главная" [ref=e1090]
+      - StaticText "Главная"
+    - link "Полёты" [ref=e1091]
+      - StaticText "Полёты"
+    - link "Импорт" [ref=e1092]
+      - StaticText "Импорт"
+    - link "Паспорт" [ref=e1093]
+      - StaticText "Паспорт"
+    - link "Настройки" [ref=e1094]
+      - StaticText "Настройки"
+  - region "Notifications alt+T" [ref=e936]

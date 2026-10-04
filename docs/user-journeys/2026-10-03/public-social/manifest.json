@@ -1,0 +1,3314 @@
+{
+  "area": "public-social",
+  "states": [
+    {
+      "id": "activation-no-token-desktop",
+      "title": "Страница активации без токена — desktop",
+      "route": "/activate",
+      "status": "captured",
+      "screenshot": "images/activate-no-token-desktop.png",
+      "snapshot": "images/activate-no-token-desktop.txt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "guest",
+      "theme": "light",
+      "fixture": "Статическая страница открыта без fragment token; запрос к endpoint активации не выполняется.",
+      "preconditions": [
+        "Гостевая сессия на локальной fixture localhost:8799; пользователь не вошёл.",
+        "В fragment URL нет token; UI показывает инструкцию запросить новую ссылку или войти."
+      ],
+      "recognition": [
+        "Activate your account",
+        "Choose a personal password to access your existing Kuuki profile.",
+        "Back to sign in"
+      ],
+      "actions": [
+        {
+          "label": "Back to sign in",
+          "to": "/?mode=signin",
+          "effect": "Открывает экран входа в SPA."
+        }
+      ],
+      "source": [
+        "apps/web/public/activate.html",
+        "apps/web/public/activate.js"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "activation-no-token-mobile",
+      "title": "Страница активации без токена — mobile",
+      "route": "/activate",
+      "status": "captured",
+      "screenshot": "images/activate-no-token-mobile.png",
+      "snapshot": "images/activate-no-token-mobile.txt",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "auth": "guest",
+      "theme": "light",
+      "fixture": "Статическая страница открыта без fragment token; запрос к endpoint активации не выполняется.",
+      "preconditions": [
+        "Гостевая сессия на локальной fixture localhost:8799; пользователь не вошёл.",
+        "В fragment URL нет token; UI показывает инструкцию запросить новую ссылку или войти."
+      ],
+      "recognition": [
+        "Activate your account",
+        "Choose a personal password to access your existing Kuuki profile.",
+        "Back to sign in"
+      ],
+      "actions": [
+        {
+          "label": "Back to sign in",
+          "to": "/?mode=signin",
+          "effect": "Открывает экран входа в SPA."
+        }
+      ],
+      "source": [
+        "apps/web/public/activate.html",
+        "apps/web/public/activate.js"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "activation-password-mismatch-desktop",
+      "title": "Пароли при активации не совпадают",
+      "route": "/activate#token=<synthetic>",
+      "status": "captured",
+      "screenshot": "images/activate-password-mismatch-desktop.png",
+      "snapshot": "images/activate-password-mismatch-desktop.txt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "guest",
+      "theme": "light",
+      "fixture": "Локальная fixture; запрос/завершение активации штатно отвечают 503, токен для формы синтетический.",
+      "preconditions": [
+        "Гостевая сессия на локальной fixture localhost:8799; пользователь не вошёл."
+      ],
+      "recognition": [
+        "Activate your account",
+        "Password",
+        "Passwords do not match",
+        "Confirm password"
+      ],
+      "actions": [
+        {
+          "label": "Activate account",
+          "to": "activation-password-mismatch-desktop",
+          "effect": "Пока пароли не совпадают, клиент блокирует отправку и показывает ошибку валидации."
+        }
+      ],
+      "source": [
+        "apps/web/public/activate.html",
+        "apps/web/public/activate.js"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "activation-request-success-simulated-desktop",
+      "title": "Успешный экран запроса ссылки (симуляция)",
+      "route": "/?mode=signin",
+      "status": "simulated",
+      "screenshot": "images/activation-request-success-simulated-desktop.png",
+      "snapshot": "images/activation-request-success-simulated-desktop.txt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "guest",
+      "theme": "light",
+      "fixture": "Успех интерфейса симулирован через локальный agent-browser mock: POST /api/auth/activation/request ответил 200 с {\"ok\":true}; письмо не отправлялось.",
+      "preconditions": [
+        "Гостевая сессия на локальной fixture localhost:8799; пользователь не вошёл."
+      ],
+      "recognition": [
+        "Активировать прежний аккаунт",
+        "Если этот адрес связан с аккаунтом для активации, вы получите ссылку.",
+        "Вернуться ко входу"
+      ],
+      "actions": [
+        {
+          "label": "Вернуться ко входу",
+          "to": "auth-signin-desktop",
+          "effect": "Закрывает success-сообщение и возвращает форму входа."
+        }
+      ],
+      "source": [
+        "apps/web/src/routes/AuthPage.tsx",
+        "apps/web/src/components/auth/ActivationRequestForm.tsx",
+        "apps/web/src/lib/auth.ts"
+      ],
+      "notes": "Локальный POST mock вернул 200; показано нейтральное сообщение, письмо не отправлялось."
+    },
+    {
+      "id": "activation-server-unavailable-desktop",
+      "title": "Сервер активации временно недоступен",
+      "route": "/activate#token=<synthetic>",
+      "status": "captured",
+      "screenshot": "images/activate-server-unavailable-desktop.png",
+      "snapshot": "images/activate-server-unavailable-desktop.txt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "guest",
+      "theme": "light",
+      "fixture": "Локальная fixture отвечает 503 на завершение активации; синтетический token не подтверждался и его валидность не проверена.",
+      "preconditions": [
+        "Гостевая сессия на локальной fixture localhost:8799; пользователь не вошёл."
+      ],
+      "recognition": [
+        "Activate your account",
+        "Account activation is temporarily unavailable",
+        "Activate account",
+        "Back to sign in"
+      ],
+      "actions": [
+        {
+          "label": "Back to sign in",
+          "to": "/?mode=signin",
+          "effect": "Открывает экран входа в SPA."
+        }
+      ],
+      "source": [
+        "apps/web/public/activate.html",
+        "apps/web/public/activate.js"
+      ],
+      "notes": "Код 503 означает временную недоступность сервиса в fixture; о действительности или сроке token этот экран ничего не подтверждает."
+    },
+    {
+      "id": "activation-success-simulated-desktop",
+      "title": "Активация аккаунта — успех (симуляция)",
+      "route": "/activate#token=<synthetic>",
+      "status": "simulated",
+      "screenshot": "images/activation-success-simulated-desktop.png",
+      "snapshot": "images/activation-success-simulated-desktop.txt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "guest",
+      "theme": "light",
+      "fixture": "Успех интерфейса симулирован через локальный agent-browser mock: POST /api/auth/activation/complete ответил 200 с {\"ok\":true}; токен синтетический.",
+      "preconditions": [
+        "Гостевая сессия на локальной fixture localhost:8799; пользователь не вошёл."
+      ],
+      "recognition": [
+        "Activate your account",
+        "Your account is active. Sign in with your new password.",
+        "Back to sign in"
+      ],
+      "actions": [
+        {
+          "label": "Back to sign in",
+          "to": "/?mode=signin",
+          "effect": "Открывает экран входа в SPA."
+        }
+      ],
+      "source": [
+        "apps/web/public/activate.html",
+        "apps/web/public/activate.js"
+      ],
+      "notes": "Только локальный POST mock 200 с синтетическим token. Экран подтверждает success renderer; реальная ссылка и смена пароля аккаунта не проверялись."
+    },
+    {
+      "id": "activation-token-form-desktop",
+      "title": "Форма задания пароля по ссылке активации",
+      "route": "/activate#token=<synthetic>",
+      "status": "captured",
+      "screenshot": "images/activate-token-form-desktop.png",
+      "snapshot": "images/activate-token-form-desktop.txt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "guest",
+      "theme": "light",
+      "fixture": "Локальная fixture; запрос/завершение активации штатно отвечают 503, токен для формы синтетический.",
+      "preconditions": [
+        "Гостевая сессия на локальной fixture localhost:8799; пользователь не вошёл."
+      ],
+      "recognition": [
+        "Activate your account",
+        "Password",
+        "Confirm password",
+        "Activate account"
+      ],
+      "actions": [
+        {
+          "label": "Activate account",
+          "to": "activation-server-unavailable-desktop",
+          "effect": "Реальный POST в локальной fixture возвращает 503; success renderer показан отдельно с браузерным mock 200."
+        }
+      ],
+      "source": [
+        "apps/web/public/activate.html",
+        "apps/web/public/activate.js"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "app-header-appearance-menu-desktop",
+      "title": "Меню темы и акцентного цвета в шапке",
+      "route": "/fly/test-traveler",
+      "status": "captured",
+      "screenshot": "images/app-header-appearance-menu-desktop.png",
+      "snapshot": "images/app-header-appearance-menu-desktop.txt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "authenticated",
+      "theme": "light",
+      "fixture": "Локальная fixture; профиль test-traveler, подготовленный родительским агентом: 69 полётов, 29 аэропортов, 16 стран, 22 авиакомпании.",
+      "preconditions": [
+        "Синтетический профиль test-traveler открыт на локальной fixture; авторизованные варианты сняты под journey-demo, гостевые — без входа."
+      ],
+      "recognition": [
+        "Светлая",
+        "Тёмная",
+        "Системная",
+        "Blue"
+      ],
+      "actions": [
+        {
+          "label": "Светлая",
+          "to": "/fly/test-traveler",
+          "effect": "Меняет локальное оформление и оставляет открытым профиль."
+        },
+        {
+          "label": "Тёмная",
+          "to": "/fly/test-traveler",
+          "effect": "Меняет локальное оформление и оставляет открытым профиль."
+        },
+        {
+          "label": "Системная",
+          "to": "/fly/test-traveler",
+          "effect": "Меняет локальное оформление и оставляет открытым профиль."
+        },
+        {
+          "label": "Blue",
+          "to": "/fly/test-traveler",
+          "effect": "Меняет локальное оформление и оставляет открытым профиль."
+        },
+        {
+          "label": "Cyan",
+          "to": "/fly/test-traveler",
+          "effect": "Меняет локальное оформление и оставляет открытым профиль."
+        },
+        {
+          "label": "Teal",
+          "to": "/fly/test-traveler",
+          "effect": "Меняет локальное оформление и оставляет открытым профиль."
+        },
+        {
+          "label": "Yellow",
+          "to": "/fly/test-traveler",
+          "effect": "Меняет локальное оформление и оставляет открытым профиль."
+        },
+        {
+          "label": "Orange",
+          "to": "/fly/test-traveler",
+          "effect": "Меняет локальное оформление и оставляет открытым профиль."
+        },
+        {
+          "label": "Coral",
+          "to": "/fly/test-traveler",
+          "effect": "Меняет локальное оформление и оставляет открытым профиль."
+        },
+        {
+          "label": "Red",
+          "to": "/fly/test-traveler",
+          "effect": "Меняет локальное оформление и оставляет открытым профиль."
+        },
+        {
+          "label": "Purple",
+          "to": "/fly/test-traveler",
+          "effect": "Меняет локальное оформление и оставляет открытым профиль."
+        }
+      ],
+      "source": [
+        "apps/web/src/components/common/AppHeader.tsx",
+        "apps/web/src/components/common/AppearanceToggle.tsx",
+        "apps/web/src/components/layout/MobileHeader.tsx",
+        "apps/web/src/components/layout/MobileTabBar.tsx"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "app-header-user-menu-desktop",
+      "title": "Меню пользователя в шапке",
+      "route": "/fly/test-traveler",
+      "status": "captured",
+      "screenshot": "images/app-header-user-menu-desktop.png",
+      "snapshot": "images/app-header-user-menu-desktop.txt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "authenticated",
+      "theme": "light",
+      "fixture": "Локальная fixture; профиль test-traveler, подготовленный родительским агентом: 69 полётов, 29 аэропортов, 16 стран, 22 авиакомпании.",
+      "preconditions": [
+        "Синтетический профиль test-traveler открыт на локальной fixture; авторизованные варианты сняты под journey-demo, гостевые — без входа."
+      ],
+      "recognition": [
+        "Настройки",
+        "English",
+        "Выйти"
+      ],
+      "actions": [
+        {
+          "label": "Настройки",
+          "to": "/settings",
+          "effect": "Открывает настройки аккаунта."
+        },
+        {
+          "label": "English",
+          "to": "/fly/test-traveler",
+          "effect": "Меняет язык интерфейса и остаётся на профиле."
+        },
+        {
+          "label": "Выйти",
+          "to": "/",
+          "effect": "Завершает локальную сессию и возвращает к авторизации."
+        }
+      ],
+      "source": [
+        "apps/web/src/components/common/AppHeader.tsx",
+        "apps/web/src/components/common/AppearanceToggle.tsx",
+        "apps/web/src/components/layout/MobileHeader.tsx",
+        "apps/web/src/components/layout/MobileTabBar.tsx"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "auth-about-dialog-desktop",
+      "title": "Диалог «Что такое Kuuki?»",
+      "route": "/",
+      "status": "captured",
+      "screenshot": "images/auth-about-dialog-desktop.png",
+      "snapshot": "images/auth-about-dialog-desktop.txt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "guest",
+      "theme": "light",
+      "fixture": "Гость на локальной fixture; тестовые адреса только для воспроизведения ошибок, секреты не записаны.",
+      "preconditions": [
+        "Гостевая сессия на локальной fixture localhost:8799; пользователь не вошёл."
+      ],
+      "recognition": [
+        "Что такое Kuuki?",
+        "Close"
+      ],
+      "actions": [
+        {
+          "label": "Close",
+          "to": "/",
+          "effect": "Закрывает справочный диалог и показывает текущую форму авторизации."
+        }
+      ],
+      "source": [
+        "apps/web/src/routes/AuthPage.tsx",
+        "apps/web/src/components/auth/SignInForm.tsx",
+        "apps/web/src/components/auth/RegisterForm.tsx"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "auth-activation-request-desktop",
+      "title": "Форма запроса ссылки для прежнего аккаунта",
+      "route": "/?mode=signin",
+      "status": "captured",
+      "screenshot": "images/auth-activation-request-desktop.png",
+      "snapshot": "images/auth-activation-request-desktop.txt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "guest",
+      "theme": "light",
+      "fixture": "Локальная fixture; запрос/завершение активации штатно отвечают 503, токен для формы синтетический.",
+      "preconditions": [
+        "Гостевая сессия на локальной fixture localhost:8799; пользователь не вошёл."
+      ],
+      "recognition": [
+        "Активировать прежний аккаунт",
+        "Email",
+        "What is Kuuki?",
+        "Отправить ссылку"
+      ],
+      "actions": [
+        {
+          "label": "Отправить ссылку",
+          "to": "auth-activation-unavailable-desktop",
+          "effect": "После ввода email fixture отвечает временной ошибкой 503."
+        },
+        {
+          "label": "Вернуться ко входу",
+          "to": "auth-signin-desktop",
+          "effect": "Возвращает форму входа."
+        }
+      ],
+      "source": [
+        "apps/web/src/routes/AuthPage.tsx",
+        "apps/web/src/components/auth/ActivationRequestForm.tsx",
+        "apps/web/src/lib/auth.ts"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "auth-activation-unavailable-desktop",
+      "title": "Запрос ссылки активации — fixture недоступен",
+      "route": "/?mode=signin",
+      "status": "captured",
+      "screenshot": "images/auth-activation-unavailable-desktop.png",
+      "snapshot": "images/auth-activation-unavailable-desktop.txt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "guest",
+      "theme": "light",
+      "fixture": "Локальная fixture; запрос/завершение активации штатно отвечают 503, токен для формы синтетический.",
+      "preconditions": [
+        "Гостевая сессия на локальной fixture localhost:8799; пользователь не вошёл."
+      ],
+      "recognition": [
+        "Активировать прежний аккаунт",
+        "Account activation is temporarily unavailable",
+        "missing@example.test",
+        "Email"
+      ],
+      "actions": [
+        {
+          "label": "Отправить ссылку",
+          "to": "auth-activation-unavailable-desktop",
+          "effect": "Повторный запрос снова получает временную ошибку fixture."
+        },
+        {
+          "label": "Вернуться ко входу",
+          "to": "auth-signin-desktop",
+          "effect": "Возвращает форму входа."
+        }
+      ],
+      "source": [
+        "apps/web/src/routes/AuthPage.tsx",
+        "apps/web/src/components/auth/ActivationRequestForm.tsx",
+        "apps/web/src/lib/auth.ts"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "auth-appearance-menu-desktop",
+      "title": "Меню темы на экране авторизации",
+      "route": "/",
+      "status": "captured",
+      "screenshot": "images/auth-appearance-menu-desktop.png",
+      "snapshot": "images/auth-appearance-menu-desktop.txt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "guest",
+      "theme": "light",
+      "fixture": "Гость на локальной fixture; тестовые адреса только для воспроизведения ошибок, секреты не записаны.",
+      "preconditions": [
+        "Гостевая сессия на локальной fixture localhost:8799; пользователь не вошёл."
+      ],
+      "recognition": [
+        "Светлая",
+        "Тёмная",
+        "Системная",
+        "Blue"
+      ],
+      "actions": [
+        {
+          "label": "Светлая",
+          "to": "/",
+          "effect": "Меняет локальное оформление и остаётся на экране авторизации."
+        },
+        {
+          "label": "Тёмная",
+          "to": "/",
+          "effect": "Меняет локальное оформление и остаётся на экране авторизации."
+        },
+        {
+          "label": "Системная",
+          "to": "/",
+          "effect": "Меняет локальное оформление и остаётся на экране авторизации."
+        },
+        {
+          "label": "Blue",
+          "to": "/",
+          "effect": "Меняет локальное оформление и остаётся на экране авторизации."
+        },
+        {
+          "label": "Cyan",
+          "to": "/",
+          "effect": "Меняет локальное оформление и остаётся на экране авторизации."
+        },
+        {
+          "label": "Teal",
+          "to": "/",
+          "effect": "Меняет локальное оформление и остаётся на экране авторизации."
+        },
+        {
+          "label": "Yellow",
+          "to": "/",
+          "effect": "Меняет локальное оформление и остаётся на экране авторизации."
+        },
+        {
+          "label": "Orange",
+          "to": "/",
+          "effect": "Меняет локальное оформление и остаётся на экране авторизации."
+        },
+        {
+          "label": "Coral",
+          "to": "/",
+          "effect": "Меняет локальное оформление и остаётся на экране авторизации."
+        },
+        {
+          "label": "Red",
+          "to": "/",
+          "effect": "Меняет локальное оформление и остаётся на экране авторизации."
+        },
+        {
+          "label": "Purple",
+          "to": "/",
+          "effect": "Меняет локальное оформление и остаётся на экране авторизации."
+        }
+      ],
+      "source": [
+        "apps/web/src/routes/AuthPage.tsx",
+        "apps/web/src/components/auth/SignInForm.tsx",
+        "apps/web/src/components/auth/RegisterForm.tsx"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "auth-register-desktop",
+      "title": "Создание аккаунта — desktop",
+      "route": "/",
+      "status": "captured",
+      "screenshot": "images/auth-register-desktop.png",
+      "snapshot": "images/auth-register-desktop.txt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "guest",
+      "theme": "light",
+      "fixture": "Гость на локальной fixture; тестовые адреса только для воспроизведения ошибок, секреты не записаны.",
+      "preconditions": [
+        "Гостевая сессия на локальной fixture localhost:8799; пользователь не вошёл."
+      ],
+      "recognition": [
+        "Email",
+        "Пароль",
+        "What is Kuuki?",
+        "Создать аккаунт"
+      ],
+      "actions": [
+        {
+          "label": "Создать аккаунт",
+          "to": "auth-register-validation-desktop",
+          "effect": "Пустая форма показывает клиентские ошибки."
+        },
+        {
+          "label": "Войти",
+          "to": "auth-signin-desktop",
+          "effect": "Переключает форму на вход."
+        }
+      ],
+      "source": [
+        "apps/web/src/routes/AuthPage.tsx",
+        "apps/web/src/components/auth/SignInForm.tsx",
+        "apps/web/src/components/auth/RegisterForm.tsx"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "auth-register-mobile",
+      "title": "Создание аккаунта — mobile",
+      "route": "/",
+      "status": "captured",
+      "screenshot": "images/auth-register-mobile.png",
+      "snapshot": "images/auth-register-mobile.txt",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "auth": "guest",
+      "theme": "light",
+      "fixture": "Гость на локальной fixture; тестовые адреса только для воспроизведения ошибок, секреты не записаны.",
+      "preconditions": [
+        "Гостевая сессия на локальной fixture localhost:8799; пользователь не вошёл."
+      ],
+      "recognition": [
+        "Email",
+        "Пароль",
+        "What is Kuuki?",
+        "Создать аккаунт"
+      ],
+      "actions": [
+        {
+          "label": "Создать аккаунт",
+          "to": "auth-register-validation-desktop",
+          "effect": "Пустая форма показывает клиентские ошибки."
+        },
+        {
+          "label": "Войти",
+          "to": "auth-signin-desktop",
+          "effect": "Переключает форму на вход."
+        }
+      ],
+      "source": [
+        "apps/web/src/routes/AuthPage.tsx",
+        "apps/web/src/components/auth/SignInForm.tsx",
+        "apps/web/src/components/auth/RegisterForm.tsx"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "auth-register-success-source-only",
+      "title": "Успешная регистрация перед onboarding",
+      "route": "/dashboard → /onboarding",
+      "status": "source-only",
+      "screenshot": null,
+      "snapshot": null,
+      "viewport": {},
+      "auth": "new-user",
+      "theme": "light",
+      "fixture": "Новый аккаунт journey-demo был создан кликом через UI; пароль и email не включены.",
+      "preconditions": [
+        "Гость отправил валидный email и пароль."
+      ],
+      "recognition": [
+        "AuthPage ведёт в dashboard, а guard отправляет аккаунт без username в onboarding."
+      ],
+      "actions": [
+        {
+          "label": "Выбрать username",
+          "to": "onboarding-username-desktop",
+          "effect": "Открывается первый onboarding шаг."
+        }
+      ],
+      "source": [
+        "apps/web/src/routes/OnboardingPage.tsx",
+        "apps/web/src/components/onboarding/UsernamePicker.tsx",
+        "apps/web/src/components/import/ImportUpload.tsx",
+        "apps/web/src/lib/auth.ts"
+      ],
+      "notes": "Промежуточный переход; экран выбора username снят отдельно."
+    },
+    {
+      "id": "auth-register-validation-desktop",
+      "title": "Валидация формы создания аккаунта",
+      "route": "/",
+      "status": "captured",
+      "screenshot": "images/auth-register-validation-desktop.png",
+      "snapshot": "images/auth-register-validation-desktop.txt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "guest",
+      "theme": "light",
+      "fixture": "Гость на локальной fixture; тестовые адреса только для воспроизведения ошибок, секреты не записаны.",
+      "preconditions": [
+        "Гостевая сессия на локальной fixture localhost:8799; пользователь не вошёл."
+      ],
+      "recognition": [
+        "Email",
+        "Пароль",
+        "What is Kuuki?",
+        "Создать аккаунт"
+      ],
+      "actions": [
+        {
+          "label": "Создать аккаунт",
+          "to": "auth-register-validation-desktop",
+          "effect": "Пока поля невалидны, остаются видны ошибки валидации."
+        },
+        {
+          "label": "Войти",
+          "to": "auth-signin-desktop",
+          "effect": "Переключает форму на вход."
+        }
+      ],
+      "source": [
+        "apps/web/src/routes/AuthPage.tsx",
+        "apps/web/src/components/auth/SignInForm.tsx",
+        "apps/web/src/components/auth/RegisterForm.tsx"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "auth-signin-desktop",
+      "title": "Вход — desktop",
+      "route": "/?mode=signin",
+      "status": "captured",
+      "screenshot": "images/auth-signin-desktop.png",
+      "snapshot": "images/auth-signin-desktop.txt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "guest",
+      "theme": "light",
+      "fixture": "Гость на локальной fixture; тестовые адреса только для воспроизведения ошибок, секреты не записаны.",
+      "preconditions": [
+        "Гостевая сессия на локальной fixture localhost:8799; пользователь не вошёл."
+      ],
+      "recognition": [
+        "Email",
+        "Пароль",
+        "What is Kuuki?",
+        "Войти"
+      ],
+      "actions": [
+        {
+          "label": "Войти",
+          "to": "auth-signin-validation-desktop",
+          "effect": "Пустые/невалидные поля показывают клиентскую валидацию."
+        },
+        {
+          "label": "Создать аккаунт",
+          "to": "auth-register-desktop",
+          "effect": "Переключает форму на регистрацию."
+        },
+        {
+          "label": "Activate an existing account",
+          "to": "auth-activation-request-desktop",
+          "effect": "Открывает запрос ссылки для прежнего аккаунта."
+        }
+      ],
+      "source": [
+        "apps/web/src/routes/AuthPage.tsx",
+        "apps/web/src/components/auth/SignInForm.tsx",
+        "apps/web/src/components/auth/RegisterForm.tsx"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "auth-signin-invalid-credentials-desktop",
+      "title": "Вход: неверные учётные данные",
+      "route": "/?mode=signin",
+      "status": "captured",
+      "screenshot": "images/auth-signin-invalid-credentials-desktop.png",
+      "snapshot": "images/auth-signin-invalid-credentials-desktop.txt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "guest",
+      "theme": "light",
+      "fixture": "Гость на локальной fixture; тестовые адреса только для воспроизведения ошибок, секреты не записаны.",
+      "preconditions": [
+        "Гостевая сессия на локальной fixture localhost:8799; пользователь не вошёл."
+      ],
+      "recognition": [
+        "Invalid email or password",
+        "missing@example.test",
+        "•••••••••••••••••••",
+        "Email"
+      ],
+      "actions": [
+        {
+          "label": "Войти",
+          "to": "auth-signin-invalid-credentials-desktop",
+          "effect": "Повторная отправка с невалидными или неверными данными показывает текущую ошибку."
+        },
+        {
+          "label": "Создать аккаунт",
+          "to": "auth-register-desktop",
+          "effect": "Переключает форму на регистрацию."
+        },
+        {
+          "label": "Activate an existing account",
+          "to": "auth-activation-request-desktop",
+          "effect": "Открывает запрос ссылки для прежнего аккаунта."
+        }
+      ],
+      "source": [
+        "apps/web/src/routes/AuthPage.tsx",
+        "apps/web/src/components/auth/SignInForm.tsx",
+        "apps/web/src/components/auth/RegisterForm.tsx"
+      ],
+      "notes": "В снимке повторно использован только тестовый адрес missing@example.test; пароль в sidecar замаскирован."
+    },
+    {
+      "id": "auth-signin-mobile",
+      "title": "Вход — mobile",
+      "route": "/?mode=signin",
+      "status": "captured",
+      "screenshot": "images/auth-signin-mobile.png",
+      "snapshot": "images/auth-signin-mobile.txt",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "auth": "guest",
+      "theme": "light",
+      "fixture": "Гость на локальной fixture; тестовые адреса только для воспроизведения ошибок, секреты не записаны.",
+      "preconditions": [
+        "Гостевая сессия на локальной fixture localhost:8799; пользователь не вошёл."
+      ],
+      "recognition": [
+        "Email",
+        "Пароль",
+        "What is Kuuki?",
+        "Войти"
+      ],
+      "actions": [
+        {
+          "label": "Войти",
+          "to": "auth-signin-validation-desktop",
+          "effect": "Пустые/невалидные поля показывают клиентскую валидацию."
+        },
+        {
+          "label": "Создать аккаунт",
+          "to": "auth-register-desktop",
+          "effect": "Переключает форму на регистрацию."
+        },
+        {
+          "label": "Activate an existing account",
+          "to": "auth-activation-request-desktop",
+          "effect": "Открывает запрос ссылки для прежнего аккаунта."
+        }
+      ],
+      "source": [
+        "apps/web/src/routes/AuthPage.tsx",
+        "apps/web/src/components/auth/SignInForm.tsx",
+        "apps/web/src/components/auth/RegisterForm.tsx"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "auth-signin-success-source-only",
+      "title": "Успешный вход и защищённый раздел",
+      "route": "/dashboard",
+      "status": "source-only",
+      "screenshot": null,
+      "snapshot": null,
+      "viewport": {},
+      "auth": "authenticated",
+      "theme": "light",
+      "fixture": "Синтетический account a существует; снимок целевой dashboard есть в соседней зоне атласа.",
+      "preconditions": [
+        "Гость отправил корректные тестовые данные."
+      ],
+      "recognition": [
+        "Успешный sign-in создаёт сессию и направляет на защищённый маршрут."
+      ],
+      "actions": [
+        {
+          "label": "Открыть профиль/рейтинг/настройки",
+          "to": "/settings",
+          "effect": "Переходы показаны в соседних снимках или ниже в этой зоне."
+        }
+      ],
+      "source": [
+        "apps/web/src/routes/AuthPage.tsx",
+        "apps/web/src/components/auth/SignInForm.tsx",
+        "apps/web/src/App.tsx"
+      ],
+      "notes": "Отдельный скриншот успеха авторизации принадлежит dashboard зоне; здесь зафиксирован переход."
+    },
+    {
+      "id": "auth-signin-validation-desktop",
+      "title": "Вход: обязательные поля и формат email",
+      "route": "/?mode=signin",
+      "status": "captured",
+      "screenshot": "images/auth-signin-validation-desktop.png",
+      "snapshot": "images/auth-signin-validation-desktop.txt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "guest",
+      "theme": "light",
+      "fixture": "Гость на локальной fixture; тестовые адреса только для воспроизведения ошибок, секреты не записаны.",
+      "preconditions": [
+        "Гостевая сессия на локальной fixture localhost:8799; пользователь не вошёл."
+      ],
+      "recognition": [
+        "Email",
+        "Пароль",
+        "What is Kuuki?",
+        "Войти"
+      ],
+      "actions": [
+        {
+          "label": "Войти",
+          "to": "auth-signin-validation-desktop",
+          "effect": "Повторная отправка с невалидными или неверными данными показывает текущую ошибку."
+        },
+        {
+          "label": "Создать аккаунт",
+          "to": "auth-register-desktop",
+          "effect": "Переключает форму на регистрацию."
+        },
+        {
+          "label": "Activate an existing account",
+          "to": "auth-activation-request-desktop",
+          "effect": "Открывает запрос ссылки для прежнего аккаунта."
+        }
+      ],
+      "source": [
+        "apps/web/src/routes/AuthPage.tsx",
+        "apps/web/src/components/auth/SignInForm.tsx",
+        "apps/web/src/components/auth/RegisterForm.tsx"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "landing-desktop",
+      "title": "Стартовый экран и первый showcase-слайд",
+      "route": "/landing",
+      "status": "captured",
+      "screenshot": "images/landing-desktop.png",
+      "snapshot": "images/landing-desktop.txt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "guest",
+      "theme": "light",
+      "fixture": "Гость на локальной fixture.",
+      "preconditions": [
+        "Гостевая сессия на локальной fixture localhost:8799; пользователь не вошёл."
+      ],
+      "recognition": [
+        "Ваш архив авиастатистики",
+        "Учёт полётов",
+        "Посещённые места",
+        "Статистика"
+      ],
+      "actions": [
+        {
+          "label": "Войти",
+          "to": "/?mode=signin",
+          "effect": "Открывает форму входа."
+        },
+        {
+          "label": "Открытая бета",
+          "to": "/",
+          "effect": "Открывает режим beta/signup."
+        }
+      ],
+      "source": [
+        "apps/web/src/routes/LandingPage.tsx"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "landing-features-desktop",
+      "title": "Описание возможностей на стартовой странице",
+      "route": "/landing",
+      "status": "captured",
+      "screenshot": "images/landing-features-desktop.png",
+      "snapshot": "images/landing-features-desktop.txt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "guest",
+      "theme": "light",
+      "fixture": "Гость на локальной fixture.",
+      "preconditions": [
+        "Гостевая сессия на локальной fixture localhost:8799; пользователь не вошёл."
+      ],
+      "recognition": [
+        "Ваш архив авиастатистики",
+        "Учёт полётов",
+        "Посещённые места",
+        "Статистика"
+      ],
+      "actions": [
+        {
+          "label": "Войти",
+          "to": "/?mode=signin",
+          "effect": "Открывает форму входа."
+        },
+        {
+          "label": "Открытая бета",
+          "to": "/",
+          "effect": "Открывает режим beta/signup."
+        }
+      ],
+      "source": [
+        "apps/web/src/routes/LandingPage.tsx"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "landing-mobile",
+      "title": "Стартовая страница — mobile",
+      "route": "/landing",
+      "status": "captured",
+      "screenshot": "images/landing-mobile.png",
+      "snapshot": "images/landing-mobile.txt",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "auth": "guest",
+      "theme": "light",
+      "fixture": "Гость на локальной fixture.",
+      "preconditions": [
+        "Гостевая сессия на локальной fixture localhost:8799; пользователь не вошёл."
+      ],
+      "recognition": [
+        "Your Flight Stats Vault",
+        "Flight Tracking",
+        "Visited Places",
+        "Travel Stats"
+      ],
+      "actions": [
+        {
+          "label": "Sign In",
+          "to": "/?mode=signin",
+          "effect": "Открывает форму входа."
+        },
+        {
+          "label": "Join Open Beta",
+          "to": "/",
+          "effect": "Открывает режим beta/signup."
+        }
+      ],
+      "source": [
+        "apps/web/src/routes/LandingPage.tsx"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "landing-showcase-step1-desktop",
+      "title": "Showcase — шаг 1",
+      "route": "/landing",
+      "status": "captured",
+      "screenshot": "images/landing-showcase-step1-desktop.png",
+      "snapshot": "images/landing-showcase-step1-desktop.txt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "guest",
+      "theme": "light",
+      "fixture": "Гость на локальной fixture.",
+      "preconditions": [
+        "Гостевая сессия на локальной fixture localhost:8799; пользователь не вошёл."
+      ],
+      "recognition": [
+        "Log Your Journeys",
+        "Go to slide 1",
+        "Go to slide 2",
+        "Go to slide 3"
+      ],
+      "actions": [
+        {
+          "label": "Go to slide 1",
+          "to": "landing-showcase-step1-desktop",
+          "effect": "Показывает первый слайд."
+        },
+        {
+          "label": "Go to slide 2",
+          "to": "landing-showcase-step2-desktop",
+          "effect": "Показывает второй слайд."
+        },
+        {
+          "label": "Go to slide 3",
+          "to": "landing-showcase-step3-desktop",
+          "effect": "Показывает третий слайд."
+        },
+        {
+          "label": "Skip",
+          "to": "/landing",
+          "effect": "Закрывает showcase и помечает его завершённым."
+        },
+        {
+          "label": "Next",
+          "to": "landing-showcase-step2-desktop",
+          "effect": "Переходит к следующему слайду; на последнем завершает showcase."
+        },
+        {
+          "label": "Close",
+          "to": "/landing",
+          "effect": "Закрывает showcase и помечает его завершённым."
+        }
+      ],
+      "source": [
+        "apps/web/src/routes/LandingPage.tsx"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "landing-showcase-step2-desktop",
+      "title": "Showcase — шаг 2",
+      "route": "/landing",
+      "status": "captured",
+      "screenshot": "images/landing-showcase-step2-desktop.png",
+      "snapshot": "images/landing-showcase-step2-desktop.txt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "guest",
+      "theme": "light",
+      "fixture": "Гость на локальной fixture.",
+      "preconditions": [
+        "Гостевая сессия на локальной fixture localhost:8799; пользователь не вошёл."
+      ],
+      "recognition": [
+        "Изучайте статистику",
+        "Go to slide 1",
+        "Go to slide 2",
+        "Go to slide 3"
+      ],
+      "actions": [
+        {
+          "label": "Go to slide 1",
+          "to": "landing-showcase-step1-desktop",
+          "effect": "Показывает первый слайд."
+        },
+        {
+          "label": "Go to slide 2",
+          "to": "landing-showcase-step2-desktop",
+          "effect": "Показывает второй слайд."
+        },
+        {
+          "label": "Go to slide 3",
+          "to": "landing-showcase-step3-desktop",
+          "effect": "Показывает третий слайд."
+        },
+        {
+          "label": "Пропустить",
+          "to": "/landing",
+          "effect": "Закрывает showcase и помечает его завершённым."
+        },
+        {
+          "label": "Далее",
+          "to": "landing-showcase-step3-desktop",
+          "effect": "Переходит к следующему слайду; на последнем завершает showcase."
+        },
+        {
+          "label": "Close",
+          "to": "/landing",
+          "effect": "Закрывает showcase и помечает его завершённым."
+        }
+      ],
+      "source": [
+        "apps/web/src/routes/LandingPage.tsx"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "landing-showcase-step3-desktop",
+      "title": "Showcase — шаг 3",
+      "route": "/landing",
+      "status": "captured",
+      "screenshot": "images/landing-showcase-step3-desktop.png",
+      "snapshot": "images/landing-showcase-step3-desktop.txt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "guest",
+      "theme": "light",
+      "fixture": "Гость на локальной fixture.",
+      "preconditions": [
+        "Гостевая сессия на локальной fixture localhost:8799; пользователь не вошёл."
+      ],
+      "recognition": [
+        "Сравнивайте и делитесь",
+        "Go to slide 1",
+        "Go to slide 2",
+        "Go to slide 3"
+      ],
+      "actions": [
+        {
+          "label": "Go to slide 1",
+          "to": "landing-showcase-step1-desktop",
+          "effect": "Показывает первый слайд."
+        },
+        {
+          "label": "Go to slide 2",
+          "to": "landing-showcase-step2-desktop",
+          "effect": "Показывает второй слайд."
+        },
+        {
+          "label": "Go to slide 3",
+          "to": "landing-showcase-step3-desktop",
+          "effect": "Показывает третий слайд."
+        },
+        {
+          "label": "Пропустить",
+          "to": "/landing",
+          "effect": "Закрывает showcase и помечает его завершённым."
+        },
+        {
+          "label": "Готово",
+          "to": "/landing",
+          "effect": "Переходит к следующему слайду; на последнем завершает showcase."
+        },
+        {
+          "label": "Close",
+          "to": "/landing",
+          "effect": "Закрывает showcase и помечает его завершённым."
+        }
+      ],
+      "source": [
+        "apps/web/src/routes/LandingPage.tsx"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "leaderboard-airlines-authenticated-desktop",
+      "title": "Рейтинг: Авиакомпании — пустой cache в локальной fixture",
+      "route": "/leaderboard",
+      "status": "captured",
+      "screenshot": "images/leaderboard-airlines-authenticated-desktop.png",
+      "snapshot": "images/leaderboard-airlines-authenticated-desktop.txt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "authenticated",
+      "theme": "light",
+      "fixture": "Локальный leaderboard_cache пуст: fixture не запускала cron rebuild. При этом test-traveler имеет 69 полётов и opt-in рейтинга; account a сам не проходит порог 5 полётов.",
+      "preconditions": [
+        "Локальная fixture localhost:8799; пустой cache рейтинга. Авторизованные снимки сняты как journey-demo, гостевые — без входа."
+      ],
+      "recognition": [
+        "РейтингСравните себя с другими путешественниками",
+        "Выбрана категория «Авиакомпании»",
+        "Пока недоступно — нужно ещё 5 полётов",
+        "Рейтинг пока пуст. Станьте первым!"
+      ],
+      "actions": [
+        {
+          "label": "Полёты",
+          "to": "/leaderboard",
+          "effect": "Переключает категорию; читаемый локальный cache остаётся пустым."
+        },
+        {
+          "label": "Расстояние",
+          "to": "/leaderboard",
+          "effect": "Переключает категорию; читаемый локальный cache остаётся пустым."
+        },
+        {
+          "label": "Страны",
+          "to": "/leaderboard",
+          "effect": "Переключает категорию; читаемый локальный cache остаётся пустым."
+        },
+        {
+          "label": "Города",
+          "to": "/leaderboard",
+          "effect": "Переключает категорию; читаемый локальный cache остаётся пустым."
+        }
+      ],
+      "source": [
+        "apps/web/src/routes/LeaderboardPage.tsx"
+      ],
+      "notes": "Пустая таблица отражает отсутствующие строки в leaderboard_cache, а не отсутствие eligible/opted-in профилей."
+    },
+    {
+      "id": "leaderboard-cities-authenticated-desktop",
+      "title": "Рейтинг: Города — пустой cache в локальной fixture",
+      "route": "/leaderboard",
+      "status": "captured",
+      "screenshot": "images/leaderboard-cities-authenticated-desktop.png",
+      "snapshot": "images/leaderboard-cities-authenticated-desktop.txt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "authenticated",
+      "theme": "light",
+      "fixture": "Локальный leaderboard_cache пуст: fixture не запускала cron rebuild. При этом test-traveler имеет 69 полётов и opt-in рейтинга; account a сам не проходит порог 5 полётов.",
+      "preconditions": [
+        "Локальная fixture localhost:8799; пустой cache рейтинга. Авторизованные снимки сняты как journey-demo, гостевые — без входа."
+      ],
+      "recognition": [
+        "РейтингСравните себя с другими путешественниками",
+        "Выбрана категория «Города»",
+        "Пока недоступно — нужно ещё 5 полётов",
+        "Рейтинг пока пуст. Станьте первым!"
+      ],
+      "actions": [
+        {
+          "label": "Полёты",
+          "to": "/leaderboard",
+          "effect": "Переключает категорию; читаемый локальный cache остаётся пустым."
+        },
+        {
+          "label": "Расстояние",
+          "to": "/leaderboard",
+          "effect": "Переключает категорию; читаемый локальный cache остаётся пустым."
+        },
+        {
+          "label": "Страны",
+          "to": "/leaderboard",
+          "effect": "Переключает категорию; читаемый локальный cache остаётся пустым."
+        },
+        {
+          "label": "Авиакомпании",
+          "to": "/leaderboard",
+          "effect": "Переключает категорию; читаемый локальный cache остаётся пустым."
+        }
+      ],
+      "source": [
+        "apps/web/src/routes/LeaderboardPage.tsx"
+      ],
+      "notes": "Пустая таблица отражает отсутствующие строки в leaderboard_cache, а не отсутствие eligible/opted-in профилей."
+    },
+    {
+      "id": "leaderboard-countries-authenticated-desktop",
+      "title": "Рейтинг: Страны — пустой cache в локальной fixture",
+      "route": "/leaderboard",
+      "status": "captured",
+      "screenshot": "images/leaderboard-countries-authenticated-desktop.png",
+      "snapshot": "images/leaderboard-countries-authenticated-desktop.txt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "authenticated",
+      "theme": "light",
+      "fixture": "Локальный leaderboard_cache пуст: fixture не запускала cron rebuild. При этом test-traveler имеет 69 полётов и opt-in рейтинга; account a сам не проходит порог 5 полётов.",
+      "preconditions": [
+        "Локальная fixture localhost:8799; пустой cache рейтинга. Авторизованные снимки сняты как journey-demo, гостевые — без входа."
+      ],
+      "recognition": [
+        "РейтингСравните себя с другими путешественниками",
+        "Выбрана категория «Страны»",
+        "Пока недоступно — нужно ещё 5 полётов",
+        "Рейтинг пока пуст. Станьте первым!"
+      ],
+      "actions": [
+        {
+          "label": "Полёты",
+          "to": "/leaderboard",
+          "effect": "Переключает категорию; читаемый локальный cache остаётся пустым."
+        },
+        {
+          "label": "Расстояние",
+          "to": "/leaderboard",
+          "effect": "Переключает категорию; читаемый локальный cache остаётся пустым."
+        },
+        {
+          "label": "Города",
+          "to": "/leaderboard",
+          "effect": "Переключает категорию; читаемый локальный cache остаётся пустым."
+        },
+        {
+          "label": "Авиакомпании",
+          "to": "/leaderboard",
+          "effect": "Переключает категорию; читаемый локальный cache остаётся пустым."
+        }
+      ],
+      "source": [
+        "apps/web/src/routes/LeaderboardPage.tsx"
+      ],
+      "notes": "Пустая таблица отражает отсутствующие строки в leaderboard_cache, а не отсутствие eligible/opted-in профилей."
+    },
+    {
+      "id": "leaderboard-distance-authenticated-desktop",
+      "title": "Рейтинг: Расстояние — пустой cache в локальной fixture",
+      "route": "/leaderboard",
+      "status": "captured",
+      "screenshot": "images/leaderboard-distance-authenticated-desktop.png",
+      "snapshot": "images/leaderboard-distance-authenticated-desktop.txt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "authenticated",
+      "theme": "light",
+      "fixture": "Локальный leaderboard_cache пуст: fixture не запускала cron rebuild. При этом test-traveler имеет 69 полётов и opt-in рейтинга; account a сам не проходит порог 5 полётов.",
+      "preconditions": [
+        "Локальная fixture localhost:8799; пустой cache рейтинга. Авторизованные снимки сняты как journey-demo, гостевые — без входа."
+      ],
+      "recognition": [
+        "РейтингСравните себя с другими путешественниками",
+        "Выбрана категория «Расстояние»",
+        "Пока недоступно — нужно ещё 5 полётов",
+        "Рейтинг пока пуст. Станьте первым!"
+      ],
+      "actions": [
+        {
+          "label": "Полёты",
+          "to": "/leaderboard",
+          "effect": "Переключает категорию; читаемый локальный cache остаётся пустым."
+        },
+        {
+          "label": "Страны",
+          "to": "/leaderboard",
+          "effect": "Переключает категорию; читаемый локальный cache остаётся пустым."
+        },
+        {
+          "label": "Города",
+          "to": "/leaderboard",
+          "effect": "Переключает категорию; читаемый локальный cache остаётся пустым."
+        },
+        {
+          "label": "Авиакомпании",
+          "to": "/leaderboard",
+          "effect": "Переключает категорию; читаемый локальный cache остаётся пустым."
+        }
+      ],
+      "source": [
+        "apps/web/src/routes/LeaderboardPage.tsx"
+      ],
+      "notes": "Пустая таблица отражает отсутствующие строки в leaderboard_cache, а не отсутствие eligible/opted-in профилей."
+    },
+    {
+      "id": "leaderboard-flights-authenticated-desktop",
+      "title": "Рейтинг: Полёты — пустой cache в локальной fixture",
+      "route": "/leaderboard",
+      "status": "captured",
+      "screenshot": "images/leaderboard-flights-authenticated-desktop.png",
+      "snapshot": "images/leaderboard-flights-authenticated-desktop.txt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "authenticated",
+      "theme": "light",
+      "fixture": "Локальный leaderboard_cache пуст: fixture не запускала cron rebuild. При этом test-traveler имеет 69 полётов и opt-in рейтинга; account a сам не проходит порог 5 полётов.",
+      "preconditions": [
+        "Локальная fixture localhost:8799; пустой cache рейтинга. Авторизованные снимки сняты как journey-demo, гостевые — без входа."
+      ],
+      "recognition": [
+        "РейтингСравните себя с другими путешественниками",
+        "Выбрана категория «Полёты»",
+        "Пока недоступно — нужно ещё 5 полётов",
+        "Рейтинг пока пуст. Станьте первым!"
+      ],
+      "actions": [
+        {
+          "label": "Расстояние",
+          "to": "/leaderboard",
+          "effect": "Переключает категорию; читаемый локальный cache остаётся пустым."
+        },
+        {
+          "label": "Страны",
+          "to": "/leaderboard",
+          "effect": "Переключает категорию; читаемый локальный cache остаётся пустым."
+        },
+        {
+          "label": "Города",
+          "to": "/leaderboard",
+          "effect": "Переключает категорию; читаемый локальный cache остаётся пустым."
+        },
+        {
+          "label": "Авиакомпании",
+          "to": "/leaderboard",
+          "effect": "Переключает категорию; читаемый локальный cache остаётся пустым."
+        }
+      ],
+      "source": [
+        "apps/web/src/routes/LeaderboardPage.tsx"
+      ],
+      "notes": "Пустая таблица отражает отсутствующие строки в leaderboard_cache, а не отсутствие eligible/opted-in профилей."
+    },
+    {
+      "id": "leaderboard-flights-guest-desktop",
+      "title": "Рейтинг полётов для гостя",
+      "route": "/leaderboard",
+      "status": "captured",
+      "screenshot": "images/leaderboard-flights-guest-desktop.png",
+      "snapshot": "images/leaderboard-flights-guest-desktop.txt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "guest",
+      "theme": "light",
+      "fixture": "Гостевой экран локальной fixture; endpoint leaderboard возвращает пустой список, поскольку cron rebuild не заполнял leaderboard_cache, хотя test-traveler имеет 69 полётов и включённый opt-in.",
+      "preconditions": [
+        "Гостевая сессия на локальной fixture localhost:8799; пользователь не вошёл."
+      ],
+      "recognition": [
+        "РейтингСравните себя с другими путешественниками",
+        "Рейтинг пока пуст. Станьте первым!",
+        "Присоединяйтесь к рейтингу",
+        "Зарегистрируйтесь и добавьте 5 полётов, чтобы попасть в рейтинг"
+      ],
+      "actions": [
+        {
+          "label": "Войти",
+          "to": "/?mode=signin",
+          "effect": "Открывает форму входа."
+        }
+      ],
+      "source": [
+        "apps/web/src/routes/LeaderboardPage.tsx"
+      ],
+      "notes": "Гостевой CTA сообщает условия участия; пустой список связан с локальным cache, а не с отсутствием подходящего профиля."
+    },
+    {
+      "id": "leaderboard-flights-populated-simulated-desktop",
+      "title": "Рейтинг полётов — заполненная таблица (симуляция)",
+      "route": "/leaderboard",
+      "status": "simulated",
+      "screenshot": "images/leaderboard-flights-populated-simulated-desktop.png",
+      "snapshot": "images/leaderboard-flights-populated-simulated-desktop.txt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "authenticated",
+      "theme": "dark",
+      "fixture": "Только локальный browser route mock для GET /api/leaderboard возвращает пять синтетических строк в точной DTO-форме; live fixture отвечает {\"entries\":[],\"total\":0}. Таблица не отражает состояние базы данных.",
+      "preconditions": [
+        "Выполнен вход как atlas-user; локальный browser-only mock подменяет только GET /api/leaderboard."
+      ],
+      "recognition": [
+        "LeaderboardSee how you rank against other travelers",
+        "5 travelers ranked",
+        "142 · 118 · 96 flights",
+        "Тестовый путешественник @test-traveler — 69"
+      ],
+      "actions": [
+        {
+          "label": "Тестовый путешественник @test-traveler",
+          "to": "/fly/test-traveler",
+          "effect": "Открывает локальный публичный профиль test-traveler."
+        }
+      ],
+      "source": [
+        "apps/web/src/routes/LeaderboardPage.tsx",
+        "apps/web/src/components/leaderboard/LeaderboardTable.tsx",
+        "apps/web/src/lib/leaderboard.ts",
+        "functions/api/leaderboard/index.ts",
+        "functions/api/_lib/leaderboard.ts"
+      ],
+      "notes": "Mock содержит поля id, user_id, category, value, rank, percentile, username, display_name, avatar_url из серверного DTO; app source, API и cache не менялись."
+    },
+    {
+      "id": "leaderboard-guest-mobile",
+      "title": "Рейтинг для гостя — mobile",
+      "route": "/leaderboard",
+      "status": "captured",
+      "screenshot": "images/leaderboard-guest-mobile.png",
+      "snapshot": "images/leaderboard-guest-mobile.txt",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "auth": "guest",
+      "theme": "light",
+      "fixture": "Гостевой экран локальной fixture; endpoint leaderboard возвращает пустой список, поскольку cron rebuild не заполнял leaderboard_cache, хотя test-traveler имеет 69 полётов и включённый opt-in.",
+      "preconditions": [
+        "Гостевая сессия на локальной fixture localhost:8799; пользователь не вошёл."
+      ],
+      "recognition": [
+        "Рейтинг пока пуст. Станьте первым!",
+        "Присоединяйтесь к рейтингу",
+        "Зарегистрируйтесь и добавьте 5 полётов, чтобы попасть в рейтинг",
+        "Войти"
+      ],
+      "actions": [
+        {
+          "label": "Войти",
+          "to": "/?mode=signin",
+          "effect": "Открывает форму входа."
+        }
+      ],
+      "source": [
+        "apps/web/src/routes/LeaderboardPage.tsx"
+      ],
+      "notes": "Гостевой CTA сообщает условия участия; пустой список связан с локальным cache, а не с отсутствием подходящего профиля."
+    },
+    {
+      "id": "onboarding-import-empty-desktop",
+      "title": "Первый импорт: пустая форма и пример промпта",
+      "route": "/onboarding",
+      "status": "captured",
+      "screenshot": "images/onboarding-import-empty-desktop.png",
+      "snapshot": "images/onboarding-import-empty-desktop.txt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "new-user",
+      "theme": "light",
+      "fixture": "Локальная fixture; новый аккаунт journey-demo создан через UI; пароль и email в документацию не записаны.",
+      "preconditions": [
+        "Выполнен вход как новый пользователь journey-demo на локальной fixture localhost:8799."
+      ],
+      "recognition": [
+        "Добавьте ваши полёты",
+        "Скопируй промпт → скорми его Gemini → вставь результат сюда",
+        "Показать промпт",
+        "Сделаю это позже"
+      ],
+      "actions": [
+        {
+          "label": "Показать промпт",
+          "to": "onboarding-import-prompt-desktop",
+          "effect": "Раскрывает инструкцию для внешнего AI-помощника."
+        },
+        {
+          "label": "Сделаю это позже",
+          "to": "/dashboard",
+          "effect": "Завершает onboarding без импорта."
+        }
+      ],
+      "source": [
+        "apps/web/src/routes/OnboardingPage.tsx",
+        "apps/web/src/components/onboarding/UsernamePicker.tsx",
+        "apps/web/src/components/import/ImportUpload.tsx",
+        "apps/web/src/lib/auth.ts"
+      ],
+      "notes": "«Распознать рейсы» disabled при пустом поле. При submit с текстом handleImportSubmit передаёт его в /import."
+    },
+    {
+      "id": "onboarding-import-mobile",
+      "title": "Первый импорт — mobile",
+      "route": "/onboarding",
+      "status": "captured",
+      "screenshot": "images/onboarding-import-mobile.png",
+      "snapshot": "images/onboarding-import-mobile.txt",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "auth": "new-user",
+      "theme": "light",
+      "fixture": "Локальная fixture; новый аккаунт journey-demo создан через UI; пароль и email в документацию не записаны.",
+      "preconditions": [
+        "Выполнен вход как новый пользователь journey-demo на локальной fixture localhost:8799."
+      ],
+      "recognition": [
+        "Добавьте ваши полёты",
+        "Скопируй промпт → скорми его Gemini → вставь результат сюда",
+        "Показать промпт",
+        "Сделаю это позже"
+      ],
+      "actions": [
+        {
+          "label": "Показать промпт",
+          "to": "onboarding-import-prompt-desktop",
+          "effect": "Раскрывает инструкцию для внешнего AI-помощника."
+        },
+        {
+          "label": "Сделаю это позже",
+          "to": "/dashboard",
+          "effect": "Завершает onboarding без импорта."
+        }
+      ],
+      "source": [
+        "apps/web/src/routes/OnboardingPage.tsx",
+        "apps/web/src/components/onboarding/UsernamePicker.tsx",
+        "apps/web/src/components/import/ImportUpload.tsx",
+        "apps/web/src/lib/auth.ts"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "onboarding-import-prompt-desktop",
+      "title": "Первый импорт: промпт раскрыт",
+      "route": "/onboarding",
+      "status": "captured",
+      "screenshot": "images/onboarding-import-prompt-desktop.png",
+      "snapshot": "images/onboarding-import-prompt-desktop.txt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "new-user",
+      "theme": "light",
+      "fixture": "Локальная fixture; новый аккаунт journey-demo создан через UI; пароль и email в документацию не записаны.",
+      "preconditions": [
+        "Выполнен вход как новый пользователь journey-demo на локальной fixture localhost:8799."
+      ],
+      "recognition": [
+        "Добавьте ваши полёты",
+        "Скопируй промпт → скорми его Gemini → вставь результат сюда",
+        "Скрыть промпт",
+        "Копировать"
+      ],
+      "actions": [
+        {
+          "label": "Скрыть промпт",
+          "to": "onboarding-import-empty-desktop",
+          "effect": "Сворачивает AI-инструкцию."
+        },
+        {
+          "label": "Копировать",
+          "to": "onboarding-import-prompt-desktop",
+          "effect": "Копирует prompt в clipboard."
+        },
+        {
+          "label": "Сделаю это позже",
+          "to": "/dashboard",
+          "effect": "Завершает onboarding без импорта."
+        }
+      ],
+      "source": [
+        "apps/web/src/routes/OnboardingPage.tsx",
+        "apps/web/src/components/onboarding/UsernamePicker.tsx",
+        "apps/web/src/components/import/ImportUpload.tsx",
+        "apps/web/src/lib/auth.ts"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "onboarding-import-ready-desktop",
+      "title": "Первый импорт: текст введён, распознавание доступно",
+      "route": "/onboarding",
+      "status": "captured",
+      "screenshot": "images/onboarding-import-ready-desktop.png",
+      "snapshot": "images/onboarding-import-ready-desktop.txt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "new-user",
+      "theme": "light",
+      "fixture": "Локальная fixture; новый аккаунт journey-demo создан через UI; пароль и email в документацию не записаны.",
+      "preconditions": [
+        "Выполнен вход как новый пользователь journey-demo на локальной fixture localhost:8799."
+      ],
+      "recognition": [
+        "Добавьте ваши полёты",
+        "Скопируй промпт → скорми его Gemini → вставь результат сюда",
+        "JFK-LAX | Delta flight 123",
+        "Распознать рейсы"
+      ],
+      "actions": [
+        {
+          "label": "Скрыть промпт",
+          "to": "onboarding-import-empty-desktop",
+          "effect": "Сворачивает AI-инструкцию."
+        },
+        {
+          "label": "Копировать",
+          "to": "onboarding-import-ready-desktop",
+          "effect": "Копирует prompt в clipboard."
+        },
+        {
+          "label": "Очистить текст",
+          "to": "onboarding-import-empty-desktop",
+          "effect": "Удаляет подготовленный текст из поля."
+        },
+        {
+          "label": "Распознать рейсы",
+          "to": "/import",
+          "effect": "Передаёт введённый текст в ImportPage через navigation state textContent."
+        },
+        {
+          "label": "Сделаю это позже",
+          "to": "/dashboard",
+          "effect": "Завершает onboarding без импорта."
+        }
+      ],
+      "source": [
+        "apps/web/src/routes/OnboardingPage.tsx",
+        "apps/web/src/components/onboarding/UsernamePicker.tsx",
+        "apps/web/src/components/import/ImportUpload.tsx",
+        "apps/web/src/lib/auth.ts"
+      ],
+      "notes": "Строка JFK-LAX | Delta flight 123 передаётся в /import; экран onboarding сам результат распознавания не показывает."
+    },
+    {
+      "id": "onboarding-username-desktop",
+      "title": "Первый вход: выбор имени пользователя",
+      "route": "/onboarding",
+      "status": "captured",
+      "screenshot": "images/onboarding-username-desktop.png",
+      "snapshot": "images/onboarding-username-desktop.txt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "new-user",
+      "theme": "light",
+      "fixture": "Локальная fixture; новый аккаунт journey-demo создан через UI; пароль и email в документацию не записаны.",
+      "preconditions": [
+        "Выполнен вход как новый пользователь journey-demo на локальной fixture localhost:8799."
+      ],
+      "recognition": [
+        "Выберите имя пользователя",
+        "Это будет URL вашего публичного профиля",
+        "Ваш профиль будет доступен по адресу",
+        "Продолжить"
+      ],
+      "actions": [],
+      "source": [
+        "apps/web/src/routes/OnboardingPage.tsx",
+        "apps/web/src/components/onboarding/UsernamePicker.tsx",
+        "apps/web/src/components/import/ImportUpload.tsx",
+        "apps/web/src/lib/auth.ts"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "onboarding-username-normalized-desktop",
+      "title": "Имя пользователя нормализуется в URL-формат",
+      "route": "/onboarding",
+      "status": "captured",
+      "screenshot": "images/onboarding-username-normalized-desktop.png",
+      "snapshot": "images/onboarding-username-normalized-desktop.txt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "new-user",
+      "theme": "light",
+      "fixture": "Локальная fixture; новый аккаунт journey-demo создан через UI; пароль и email в документацию не записаны.",
+      "preconditions": [
+        "Выполнен вход как новый пользователь journey-demo на локальной fixture localhost:8799."
+      ],
+      "recognition": [
+        "Выберите имя пользователя",
+        "kuuki.app/@journey-demo",
+        "Will be saved as: journey-demo",
+        "Продолжить"
+      ],
+      "actions": [
+        {
+          "label": "Продолжить",
+          "to": "onboarding-import-empty-desktop",
+          "effect": "Сохраняет нормализованное имя journey-demo и открывает шаг импорта."
+        }
+      ],
+      "source": [
+        "apps/web/src/routes/OnboardingPage.tsx",
+        "apps/web/src/components/onboarding/UsernamePicker.tsx",
+        "apps/web/src/components/import/ImportUpload.tsx",
+        "apps/web/src/lib/auth.ts"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "onboarding-username-validation-desktop",
+      "title": "Имя пользователя короче минимума",
+      "route": "/onboarding",
+      "status": "captured",
+      "screenshot": "images/onboarding-username-validation-desktop.png",
+      "snapshot": "images/onboarding-username-validation-desktop.txt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "new-user",
+      "theme": "light",
+      "fixture": "Локальная fixture; новый аккаунт journey-demo создан через UI; пароль и email в документацию не записаны.",
+      "preconditions": [
+        "Выполнен вход как новый пользователь journey-demo на локальной fixture localhost:8799."
+      ],
+      "recognition": [
+        "Выберите имя пользователя",
+        "Имя пользователя: aa",
+        "Имя пользователя должно быть не менее 3 символов",
+        "Продолжить"
+      ],
+      "actions": [],
+      "source": [
+        "apps/web/src/routes/OnboardingPage.tsx",
+        "apps/web/src/components/onboarding/UsernamePicker.tsx",
+        "apps/web/src/components/import/ImportUpload.tsx",
+        "apps/web/src/lib/auth.ts"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "profile-not-found-guest-desktop",
+      "title": "Профиль не найден — гость",
+      "route": "/fly/user-that-does-not-exist",
+      "status": "captured",
+      "screenshot": "images/profile-not-found-guest-desktop.png",
+      "snapshot": "images/profile-not-found-guest-desktop.txt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "guest",
+      "theme": "light",
+      "fixture": "Локальная fixture; URL для несуществующего username.",
+      "preconditions": [
+        "Гостевая сессия на локальной fixture localhost:8799; пользователь не вошёл."
+      ],
+      "recognition": [
+        "Профиль не найден",
+        "Этот пользователь не существует или у него приватный профиль.",
+        "Назад"
+      ],
+      "actions": [
+        {
+          "label": "Назад",
+          "to": "/",
+          "effect": "Возврат к стартовой странице."
+        }
+      ],
+      "source": [
+        "apps/web/src/routes/ProfilePage.tsx"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "profile-own-private-desktop",
+      "title": "Собственный приватный профиль — авторизованный владелец",
+      "route": "/fly/journey-demo",
+      "status": "captured",
+      "screenshot": "images/profile-own-private-desktop.png",
+      "snapshot": "images/profile-own-private-desktop.txt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "authenticated",
+      "theme": "light",
+      "fixture": "Локальная fixture; профиль journey-demo без полётов, профиль закрыт.",
+      "preconditions": [
+        "Выполнен вход как journey-demo — владелец закрытого профиля /fly/journey-demo."
+      ],
+      "recognition": [
+        "journey-demo · @journey-demo",
+        "Приватный",
+        "Share",
+        "Добавьте больше рейсов для участия в рейтинге"
+      ],
+      "actions": [
+        {
+          "label": "Share",
+          "to": "/fly/journey-demo",
+          "effect": "Копирует URL текущего /fly/journey-demo в clipboard; приватность профиля не меняется."
+        }
+      ],
+      "source": [
+        "apps/web/src/routes/ProfilePage.tsx"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "profile-private-guest-desktop",
+      "title": "Приватный профиль — гость desktop",
+      "route": "/fly/journey-demo",
+      "status": "captured",
+      "screenshot": "images/profile-private-guest-desktop.png",
+      "snapshot": "images/profile-private-guest-desktop.txt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "guest",
+      "theme": "light",
+      "fixture": "Локальная fixture; профиль journey-demo без полётов, профиль закрыт.",
+      "preconditions": [
+        "Гостевая сессия на локальной fixture localhost:8799; пользователь не вошёл."
+      ],
+      "recognition": [
+        "journey-demo · @journey-demo",
+        "Приватный",
+        "Этот пользователь предпочитает приватность"
+      ],
+      "actions": [
+        {
+          "label": "Kuuki",
+          "to": "/",
+          "effect": "Переходит на стартовый экран."
+        }
+      ],
+      "source": [
+        "apps/web/src/routes/ProfilePage.tsx"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "profile-private-guest-mobile",
+      "title": "Приватный профиль — гость mobile",
+      "route": "/fly/journey-demo",
+      "status": "captured",
+      "screenshot": "images/profile-private-guest-mobile.png",
+      "snapshot": "images/profile-private-guest-mobile.txt",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "auth": "guest",
+      "theme": "light",
+      "fixture": "Локальная fixture; профиль journey-demo без полётов, профиль закрыт.",
+      "preconditions": [
+        "Гостевая сессия на локальной fixture localhost:8799; пользователь не вошёл."
+      ],
+      "recognition": [
+        "journey-demo · @journey-demo",
+        "Приватный",
+        "Этот пользователь предпочитает приватность"
+      ],
+      "actions": [
+        {
+          "label": "Kuuki",
+          "to": "/",
+          "effect": "Переходит на стартовый экран."
+        }
+      ],
+      "source": [
+        "apps/web/src/routes/ProfilePage.tsx"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "profile-public-dark-theme-desktop",
+      "title": "Публичный профиль в тёмной теме",
+      "route": "/fly/test-traveler",
+      "status": "captured",
+      "screenshot": "images/profile-public-dark-theme-desktop.png",
+      "snapshot": "images/profile-public-dark-theme-desktop.txt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "guest",
+      "theme": "dark",
+      "fixture": "Локальная fixture; профиль test-traveler, подготовленный родительским агентом: 69 полётов, 29 аэропортов, 16 стран, 22 авиакомпании.",
+      "preconditions": [
+        "Гостевая сессия на локальной fixture localhost:8799; пользователь не вошёл."
+      ],
+      "recognition": [
+        "Тестовый путешественник",
+        "@test-traveler",
+        "69 полётов · 29 аэропортов · 16 стран",
+        "СТАТИСТИКА"
+      ],
+      "actions": [],
+      "source": [
+        "apps/web/src/routes/ProfilePage.tsx"
+      ],
+      "notes": "Тёмная тема включена только для этого снимка."
+    },
+    {
+      "id": "profile-public-guest-desktop",
+      "title": "Публичный профиль — гость desktop",
+      "route": "/fly/test-traveler",
+      "status": "captured",
+      "screenshot": "images/profile-public-guest-desktop.png",
+      "snapshot": "images/profile-public-guest-desktop.txt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "guest",
+      "theme": "light",
+      "fixture": "Локальная fixture.",
+      "preconditions": [
+        "Гостевая сессия на локальной fixture localhost:8799; пользователь не вошёл."
+      ],
+      "recognition": [
+        "Тестовый путешественник",
+        "@test-traveler",
+        "69 полётов · 29 аэропортов · 16 стран",
+        "СТАТИСТИКА"
+      ],
+      "actions": [],
+      "source": [
+        "apps/web/src/routes/ProfilePage.tsx"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "profile-public-guest-mobile",
+      "title": "Публичный профиль — гость mobile",
+      "route": "/fly/test-traveler",
+      "status": "captured",
+      "screenshot": "images/profile-public-guest-mobile.png",
+      "snapshot": "images/profile-public-guest-mobile.txt",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "auth": "guest",
+      "theme": "light",
+      "fixture": "Локальная fixture.",
+      "preconditions": [
+        "Гостевая сессия на локальной fixture localhost:8799; пользователь не вошёл."
+      ],
+      "recognition": [
+        "Тестовый путешественник",
+        "@test-traveler",
+        "69 полётов · 29 аэропортов · 16 стран",
+        "СТАТИСТИКА"
+      ],
+      "actions": [
+        {
+          "label": "СТАТИСТИКА",
+          "to": "/fly/test-traveler",
+          "effect": "Сворачивает или раскрывает соответствующую секцию."
+        },
+        {
+          "label": "ВАШЕ МЕСТО",
+          "to": "/fly/test-traveler",
+          "effect": "Сворачивает или раскрывает соответствующую секцию."
+        },
+        {
+          "label": "ДОСТИЖЕНИЯ",
+          "to": "/fly/test-traveler",
+          "effect": "Сворачивает или раскрывает соответствующую секцию."
+        }
+      ],
+      "source": [
+        "apps/web/src/routes/ProfilePage.tsx"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "profile-public-test-traveler-desktop",
+      "title": "Публичный профиль test-traveler с историей полётов",
+      "route": "/fly/test-traveler",
+      "status": "captured",
+      "screenshot": "images/profile-public-test-traveler-desktop.png",
+      "snapshot": "images/profile-public-test-traveler-desktop.txt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "authenticated",
+      "theme": "light",
+      "fixture": "Локальная fixture; профиль test-traveler, подготовленный родительским агентом: 69 полётов, 29 аэропортов, 16 стран, 22 авиакомпании.",
+      "preconditions": [
+        "Синтетический профиль test-traveler открыт на локальной fixture; авторизованные варианты сняты под journey-demo, гостевые — без входа."
+      ],
+      "recognition": [
+        "Тестовый путешественник",
+        "@test-traveler",
+        "69 полётов · 29 аэропортов · 16 стран",
+        "СТАТИСТИКА"
+      ],
+      "actions": [],
+      "source": [
+        "apps/web/src/routes/ProfilePage.tsx"
+      ],
+      "notes": "Синтетический профиль с 69 полётами и приготовленной историей; все данные локальные."
+    },
+    {
+      "id": "profile-public-test-traveler-mobile",
+      "title": "Публичный профиль test-traveler — mobile",
+      "route": "/fly/test-traveler",
+      "status": "captured",
+      "screenshot": "images/profile-public-test-traveler-mobile.png",
+      "snapshot": "images/profile-public-test-traveler-mobile.txt",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "auth": "authenticated",
+      "theme": "light",
+      "fixture": "Локальная fixture; профиль test-traveler, подготовленный родительским агентом: 69 полётов, 29 аэропортов, 16 стран, 22 авиакомпании.",
+      "preconditions": [
+        "Синтетический профиль test-traveler открыт на локальной fixture; авторизованные варианты сняты под journey-demo, гостевые — без входа."
+      ],
+      "recognition": [
+        "Тестовый путешественник",
+        "@test-traveler",
+        "69 полётов · 29 аэропортов · 16 стран",
+        "СТАТИСТИКА"
+      ],
+      "actions": [
+        {
+          "label": "СТАТИСТИКА",
+          "to": "/fly/test-traveler",
+          "effect": "Сворачивает или раскрывает соответствующую секцию."
+        },
+        {
+          "label": "ВАШЕ МЕСТО",
+          "to": "/fly/test-traveler",
+          "effect": "Сворачивает или раскрывает соответствующую секцию."
+        },
+        {
+          "label": "ДОСТИЖЕНИЯ",
+          "to": "/fly/test-traveler",
+          "effect": "Сворачивает или раскрывает соответствующую секцию."
+        }
+      ],
+      "source": [
+        "apps/web/src/routes/ProfilePage.tsx"
+      ],
+      "notes": "Синтетический профиль; мобильные карточки и навигация."
+    },
+    {
+      "id": "profile-sections-expanded-mobile",
+      "title": "Развёрнутые разделы статистики и профиля — mobile",
+      "route": "/fly/test-traveler",
+      "status": "captured",
+      "screenshot": "images/profile-sections-expanded-mobile.png",
+      "snapshot": "images/profile-sections-expanded-mobile.txt",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "auth": "guest",
+      "theme": "light",
+      "fixture": "Локальная fixture; профиль test-traveler, подготовленный родительским агентом: 69 полётов, 29 аэропортов, 16 стран, 22 авиакомпании.",
+      "preconditions": [
+        "Гостевая сессия на локальной fixture localhost:8799; пользователь не вошёл."
+      ],
+      "recognition": [
+        "Тестовый путешественник",
+        "@test-traveler",
+        "СТАТИСТИКА",
+        "ВАШЕ МЕСТО · ДОСТИЖЕНИЯ"
+      ],
+      "actions": [
+        {
+          "label": "СТАТИСТИКА",
+          "to": "/fly/test-traveler",
+          "effect": "Сворачивает или раскрывает соответствующую секцию."
+        },
+        {
+          "label": "ВАШЕ МЕСТО",
+          "to": "/fly/test-traveler",
+          "effect": "Сворачивает или раскрывает соответствующую секцию."
+        },
+        {
+          "label": "ДОСТИЖЕНИЯ",
+          "to": "/fly/test-traveler",
+          "effect": "Сворачивает или раскрывает соответствующую секцию."
+        }
+      ],
+      "source": [
+        "apps/web/src/routes/ProfilePage.tsx"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "profile-sticky-header-mobile",
+      "title": "Публичный профиль после прокрутки — mobile",
+      "route": "/fly/test-traveler",
+      "status": "captured",
+      "screenshot": "images/profile-sticky-header-mobile.png",
+      "snapshot": "images/profile-sticky-header-mobile.txt",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "auth": "guest",
+      "theme": "light",
+      "fixture": "Локальная fixture; профиль test-traveler, подготовленный родительским агентом: 69 полётов, 29 аэропортов, 16 стран, 22 авиакомпании.",
+      "preconditions": [
+        "Гостевая сессия на локальной fixture localhost:8799; пользователь не вошёл."
+      ],
+      "recognition": [
+        "Тестовый путешественник",
+        "@test-traveler",
+        "69 полётов · 29 аэропортов · 16 стран",
+        "СТАТИСТИКА"
+      ],
+      "actions": [
+        {
+          "label": "СТАТИСТИКА",
+          "to": "/fly/test-traveler",
+          "effect": "Сворачивает или раскрывает соответствующую секцию."
+        },
+        {
+          "label": "ВАШЕ МЕСТО",
+          "to": "/fly/test-traveler",
+          "effect": "Сворачивает или раскрывает соответствующую секцию."
+        },
+        {
+          "label": "ДОСТИЖЕНИЯ",
+          "to": "/fly/test-traveler",
+          "effect": "Сворачивает или раскрывает соответствующую секцию."
+        }
+      ],
+      "source": [
+        "apps/web/src/routes/ProfilePage.tsx"
+      ],
+      "notes": "Снимок после прокрутки показывает содержимое профиля, но компактная sticky-шапка не проявилась."
+    },
+    {
+      "id": "settings-dark-theme-desktop",
+      "title": "Настройки: выбрана тёмная тема",
+      "route": "/settings",
+      "status": "captured",
+      "screenshot": "images/settings-dark-theme-desktop.png",
+      "snapshot": "images/settings-dark-theme-desktop.txt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "authenticated",
+      "theme": "dark",
+      "fixture": "Локальная fixture; авторизованный account a, 0 полётов и 0 стран. Переключатели публичности на двух снимках не сохранялись.",
+      "preconditions": [
+        "Выполнен вход как account a (fixture-a) на локальной fixture localhost:8799; у аккаунта 0 полётов и 0 стран."
+      ],
+      "recognition": [
+        "НастройкиУправление аккаунтом и данными",
+        "Тема оформления: Тёмная",
+        "Публичный профиль — unchecked",
+        "Показывать в рейтинге — unchecked/disabled"
+      ],
+      "actions": [
+        {
+          "label": "Публичный профиль",
+          "to": "/settings",
+          "effect": "Меняет локальную видимость в этой же viewport/theme; изменённый вариант отдельно не снят."
+        },
+        {
+          "label": "Удалить аккаунт",
+          "to": "settings-delete-preview-desktop",
+          "effect": "Открывает многошаговый диалог удаления account a."
+        }
+      ],
+      "source": [
+        "apps/web/src/routes/SettingsPage.tsx",
+        "apps/web/src/components/settings/AppearanceSection.tsx",
+        "apps/web/src/components/settings/LanguageSection.tsx",
+        "apps/web/src/components/settings/ProfileSection.tsx",
+        "apps/web/src/components/settings/DataExportSection.tsx",
+        "apps/web/src/components/settings/DeleteAccountSection.tsx",
+        "apps/web/src/components/settings/DeleteAccountDialog.tsx"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "settings-data-export-populated-desktop",
+      "title": "Экспорт: активны выгрузки 69 полётов и 16 стран",
+      "route": "/settings",
+      "status": "captured",
+      "screenshot": "images/settings-data-export-populated-desktop.png",
+      "snapshot": "images/settings-data-export-populated-desktop.txt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "authenticated",
+      "theme": "dark",
+      "fixture": "Локальная fixture; atlas-user имеет 69 полётов и 16 посещённых стран, кнопки выгрузки доступны.",
+      "preconditions": [
+        "Выполнен вход как atlas-user на локальной fixture localhost:8799; личный набор содержит 69 полётов и 16 посещённых стран."
+      ],
+      "recognition": [
+        "Download all 69 flights as CSV",
+        "Download all 16 visited countries as CSV",
+        "4 exports remaining today",
+        "Show on Leaderboards — checked"
+      ],
+      "actions": [
+        {
+          "label": "Download all 69 flights as CSV",
+          "to": "settings-data-export-success-desktop",
+          "effect": "Скачивает flights CSV через интерфейс и показывает toast Export Flights."
+        }
+      ],
+      "source": [
+        "apps/web/src/routes/SettingsPage.tsx",
+        "apps/web/src/components/settings/DataExportSection.tsx",
+        "apps/web/src/lib/export.ts"
+      ],
+      "notes": "Обе export-кнопки визуально активны; фактически выполнена только выгрузка полётов."
+    },
+    {
+      "id": "settings-data-export-success-desktop",
+      "title": "Экспорт полётов завершён успешно",
+      "route": "/settings",
+      "status": "captured",
+      "screenshot": "images/settings-data-export-success-desktop.png",
+      "snapshot": "images/settings-data-export-success-desktop.txt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "authenticated",
+      "theme": "dark",
+      "fixture": "Локальная fixture; UI экспортировал 69 полётов atlas-user через настоящий DataExportSection flow.",
+      "preconditions": [
+        "Выполнен вход как atlas-user на локальной fixture localhost:8799; личный набор содержит 69 полётов и 16 посещённых стран."
+      ],
+      "recognition": [
+        "Download all 69 flights as CSV",
+        "Download all 16 visited countries as CSV",
+        "Export Flights",
+        "4 exports remaining today"
+      ],
+      "actions": [],
+      "source": [
+        "apps/web/src/components/settings/DataExportSection.tsx",
+        "apps/web/src/lib/export.ts"
+      ],
+      "notes": "Экспортный CSV сохранён только во временный путь /tmp и удалён сразу после проверки; данные профиля не менялись."
+    },
+    {
+      "id": "settings-delete-export-prompt-desktop",
+      "title": "Удаление аккаунта: предложение выгрузить данные",
+      "route": "/settings",
+      "status": "captured",
+      "screenshot": "images/settings-delete-export-prompt-desktop.png",
+      "snapshot": "images/settings-delete-export-prompt-desktop.txt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "authenticated",
+      "theme": "dark",
+      "fixture": "Локальная fixture; авторизованный account a, 0 полётов и 0 стран. Переключатели публичности на двух снимках не сохранялись.",
+      "preconditions": [
+        "Выполнен вход как account a (fixture-a) на локальной fixture localhost:8799; у аккаунта 0 полётов и 0 стран.",
+        "Состояние диалога снято до подтверждения удаления account a."
+      ],
+      "recognition": [
+        "Хотите сначала скачать свои данные?",
+        "У вас 0 полётов и 0 стран в паспорте.",
+        "Нет, продолжить",
+        "Скачать мои данные"
+      ],
+      "actions": [
+        {
+          "label": "Нет, продолжить",
+          "to": "settings-delete-password-desktop",
+          "effect": "Переходит к проверке пароля."
+        },
+        {
+          "label": "Close",
+          "to": "/settings",
+          "effect": "Закрывает диалог без удаления."
+        }
+      ],
+      "source": [
+        "apps/web/src/routes/SettingsPage.tsx",
+        "apps/web/src/components/settings/AppearanceSection.tsx",
+        "apps/web/src/components/settings/LanguageSection.tsx",
+        "apps/web/src/components/settings/ProfileSection.tsx",
+        "apps/web/src/components/settings/DataExportSection.tsx",
+        "apps/web/src/components/settings/DeleteAccountSection.tsx",
+        "apps/web/src/components/settings/DeleteAccountDialog.tsx"
+      ],
+      "notes": "«Скачать мои данные» disabled: 0 полётов и 0 стран."
+    },
+    {
+      "id": "settings-delete-export-prompt-disposable-desktop",
+      "title": "Удаление disposable-аккаунта: предложение выгрузить данные",
+      "route": "/settings",
+      "status": "captured",
+      "screenshot": "images/settings-delete-export-prompt-disposable-desktop.png",
+      "snapshot": "images/settings-delete-export-prompt-disposable-desktop.txt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "authenticated",
+      "theme": "dark",
+      "fixture": "Временный disposable-аккаунт создан через UI без полётов, экран снят и аккаунт затем удалён в локальной fixture.",
+      "preconditions": [
+        "Одноразовый пустой disposable account на локальной fixture; после success-состояния пользователь вышел."
+      ],
+      "recognition": [
+        "Хотите сначала скачать свои данные?",
+        "У вас 0 полётов и 0 стран в паспорте.",
+        "Нет, продолжить",
+        "Скачать мои данные"
+      ],
+      "actions": [
+        {
+          "label": "Нет, продолжить",
+          "to": "settings-delete-password-disposable-desktop",
+          "effect": "Переходит к проверке пароля disposable-аккаунта."
+        },
+        {
+          "label": "Close",
+          "to": "/settings",
+          "effect": "Закрывает диалог без удаления."
+        }
+      ],
+      "source": [
+        "apps/web/src/routes/SettingsPage.tsx",
+        "apps/web/src/components/settings/AppearanceSection.tsx",
+        "apps/web/src/components/settings/LanguageSection.tsx",
+        "apps/web/src/components/settings/ProfileSection.tsx",
+        "apps/web/src/components/settings/DataExportSection.tsx",
+        "apps/web/src/components/settings/DeleteAccountSection.tsx",
+        "apps/web/src/components/settings/DeleteAccountDialog.tsx"
+      ],
+      "notes": "«Скачать мои данные» disabled: 0 полётов и 0 стран."
+    },
+    {
+      "id": "settings-delete-password-desktop",
+      "title": "Удаление аккаунта: подтверждение паролем",
+      "route": "/settings",
+      "status": "captured",
+      "screenshot": "images/settings-delete-password-desktop.png",
+      "snapshot": "images/settings-delete-password-desktop.txt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "authenticated",
+      "theme": "dark",
+      "fixture": "Локальная fixture; авторизованный account a, 0 полётов и 0 стран. Переключатели публичности на двух снимках не сохранялись.",
+      "preconditions": [
+        "Выполнен вход как account a (fixture-a) на локальной fixture localhost:8799; у аккаунта 0 полётов и 0 стран.",
+        "Состояние диалога снято до подтверждения удаления account a."
+      ],
+      "recognition": [
+        "Удалить аккаунт?",
+        "Введите пароль для подтверждения",
+        "Отмена",
+        "Удалить всё"
+      ],
+      "actions": [
+        {
+          "label": "Отмена",
+          "to": "/settings",
+          "effect": "Закрывает диалог без изменений."
+        },
+        {
+          "label": "Close",
+          "to": "/settings",
+          "effect": "Закрывает диалог без изменений."
+        }
+      ],
+      "source": [
+        "apps/web/src/routes/SettingsPage.tsx",
+        "apps/web/src/components/settings/AppearanceSection.tsx",
+        "apps/web/src/components/settings/LanguageSection.tsx",
+        "apps/web/src/components/settings/ProfileSection.tsx",
+        "apps/web/src/components/settings/DataExportSection.tsx",
+        "apps/web/src/components/settings/DeleteAccountSection.tsx",
+        "apps/web/src/components/settings/DeleteAccountDialog.tsx"
+      ],
+      "notes": "«Удалить всё» disabled до ввода пароля; этот шаг не запускался."
+    },
+    {
+      "id": "settings-delete-password-disposable-desktop",
+      "title": "Удаление disposable-аккаунта: ввод пароля",
+      "route": "/settings",
+      "status": "captured",
+      "screenshot": "images/settings-delete-password-disposable-desktop.png",
+      "snapshot": "images/settings-delete-password-disposable-desktop.txt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "authenticated",
+      "theme": "dark",
+      "fixture": "Временный disposable-аккаунт создан через UI без полётов, экран снят и аккаунт затем удалён в локальной fixture.",
+      "preconditions": [
+        "Одноразовый пустой disposable account на локальной fixture; после success-состояния пользователь вышел."
+      ],
+      "recognition": [
+        "Удалить аккаунт?",
+        "Введите пароль для подтверждения",
+        "Отмена",
+        "Удалить всё"
+      ],
+      "actions": [
+        {
+          "label": "Отмена",
+          "to": "/settings",
+          "effect": "Закрывает диалог."
+        },
+        {
+          "label": "Close",
+          "to": "/settings",
+          "effect": "Закрывает диалог."
+        }
+      ],
+      "source": [
+        "apps/web/src/routes/SettingsPage.tsx",
+        "apps/web/src/components/settings/AppearanceSection.tsx",
+        "apps/web/src/components/settings/LanguageSection.tsx",
+        "apps/web/src/components/settings/ProfileSection.tsx",
+        "apps/web/src/components/settings/DataExportSection.tsx",
+        "apps/web/src/components/settings/DeleteAccountSection.tsx",
+        "apps/web/src/components/settings/DeleteAccountDialog.tsx"
+      ],
+      "notes": "PNG показывает пустое поле пароля и disabled кнопку. В отдельном локальном UI-шаге введён правильный пароль, verify-password и DELETE account вернули 200; screenshot success сохранён отдельно."
+    },
+    {
+      "id": "settings-delete-preview-desktop",
+      "title": "Удаление аккаунта: предупреждение и сводка данных",
+      "route": "/settings",
+      "status": "captured",
+      "screenshot": "images/settings-delete-preview-desktop.png",
+      "snapshot": "images/settings-delete-preview-desktop.txt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "authenticated",
+      "theme": "dark",
+      "fixture": "Локальная fixture; авторизованный account a, 0 полётов и 0 стран. Переключатели публичности на двух снимках не сохранялись.",
+      "preconditions": [
+        "Выполнен вход как account a (fixture-a) на локальной fixture localhost:8799; у аккаунта 0 полётов и 0 стран.",
+        "Состояние диалога снято до подтверждения удаления account a."
+      ],
+      "recognition": [
+        "Удалить аккаунт?",
+        "У вас 0 полётов и 0 стран в паспорте.",
+        "Все данные будут безвозвратно удалены. Это действие нельзя отменить.",
+        "Ну вот и всё. Финальный заход на посадку."
+      ],
+      "actions": [
+        {
+          "label": "Далее",
+          "to": "settings-delete-export-prompt-desktop",
+          "effect": "Открывает export prompt для account a."
+        },
+        {
+          "label": "Отмена",
+          "to": "/settings",
+          "effect": "Закрывает диалог без изменений."
+        }
+      ],
+      "source": [
+        "apps/web/src/routes/SettingsPage.tsx",
+        "apps/web/src/components/settings/AppearanceSection.tsx",
+        "apps/web/src/components/settings/LanguageSection.tsx",
+        "apps/web/src/components/settings/ProfileSection.tsx",
+        "apps/web/src/components/settings/DataExportSection.tsx",
+        "apps/web/src/components/settings/DeleteAccountSection.tsx",
+        "apps/web/src/components/settings/DeleteAccountDialog.tsx"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "settings-delete-preview-disposable-desktop",
+      "title": "Удаление disposable-аккаунта: предупреждение и сводка",
+      "route": "/settings",
+      "status": "captured",
+      "screenshot": "images/settings-delete-preview-disposable-desktop.png",
+      "snapshot": "images/settings-delete-preview-disposable-desktop.txt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "authenticated",
+      "theme": "dark",
+      "fixture": "Временный disposable-аккаунт создан через UI без полётов, экран снят и аккаунт затем удалён в локальной fixture.",
+      "preconditions": [
+        "Одноразовый пустой disposable account на локальной fixture; после success-состояния пользователь вышел."
+      ],
+      "recognition": [
+        "Удалить аккаунт?",
+        "У вас 0 полётов и 0 стран в паспорте.",
+        "Все данные будут безвозвратно удалены. Это действие нельзя отменить.",
+        "Ну вот и всё. Финальный заход на посадку."
+      ],
+      "actions": [
+        {
+          "label": "Далее",
+          "to": "settings-delete-export-prompt-disposable-desktop",
+          "effect": "Открывает export prompt именно для disposable-аккаунта."
+        },
+        {
+          "label": "Отмена",
+          "to": "/settings",
+          "effect": "Закрывает диалог без изменений."
+        }
+      ],
+      "source": [
+        "apps/web/src/routes/SettingsPage.tsx",
+        "apps/web/src/components/settings/AppearanceSection.tsx",
+        "apps/web/src/components/settings/LanguageSection.tsx",
+        "apps/web/src/components/settings/ProfileSection.tsx",
+        "apps/web/src/components/settings/DataExportSection.tsx",
+        "apps/web/src/components/settings/DeleteAccountSection.tsx",
+        "apps/web/src/components/settings/DeleteAccountDialog.tsx"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "settings-delete-success-disposable-desktop",
+      "title": "После удаления disposable-аккаунта: возврат к регистрации",
+      "route": "/settings",
+      "status": "captured",
+      "screenshot": "images/settings-delete-success-disposable-desktop.png",
+      "snapshot": "images/settings-delete-success-disposable-desktop.txt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "guest",
+      "theme": "dark",
+      "fixture": "Временный disposable-аккаунт создан через UI без полётов, экран снят и аккаунт затем удалён в локальной fixture.",
+      "preconditions": [
+        "Гостевая сессия на локальной fixture localhost:8799; пользователь не вошёл.",
+        "Только disposable fixture account; основной account a и профили с подготовленными данными не затронуты."
+      ],
+      "recognition": [
+        "Email",
+        "Пароль",
+        "Создать аккаунт",
+        "Уже есть аккаунт?"
+      ],
+      "actions": [
+        {
+          "label": "Создать аккаунт",
+          "to": "/",
+          "effect": "Открывает режим регистрации."
+        },
+        {
+          "label": "Войти",
+          "to": "/?mode=signin",
+          "effect": "Переключает на форму входа."
+        }
+      ],
+      "source": [
+        "apps/web/src/routes/SettingsPage.tsx",
+        "apps/web/src/components/settings/AppearanceSection.tsx",
+        "apps/web/src/components/settings/LanguageSection.tsx",
+        "apps/web/src/components/settings/ProfileSection.tsx",
+        "apps/web/src/components/settings/DataExportSection.tsx",
+        "apps/web/src/components/settings/DeleteAccountSection.tsx",
+        "apps/web/src/components/settings/DeleteAccountDialog.tsx"
+      ],
+      "notes": "После клика был виден toast «Ваш аккаунт удалён.» и переход на /; PNG снят после истечения короткоживущего toast. Network log подтвердил POST /api/auth/verify-password 200 и DELETE /api/auth/account 200."
+    },
+    {
+      "id": "settings-delete-wrong-password-desktop",
+      "title": "Удаление аккаунта: неверный пароль",
+      "route": "/settings",
+      "status": "captured",
+      "screenshot": "images/settings-delete-wrong-password-desktop.png",
+      "snapshot": "images/settings-delete-wrong-password-desktop.txt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "authenticated",
+      "theme": "dark",
+      "fixture": "Локальная fixture; авторизованный account a, 0 полётов и 0 стран. Переключатели публичности на двух снимках не сохранялись.",
+      "preconditions": [
+        "Выполнен вход как account a (fixture-a) на локальной fixture localhost:8799; у аккаунта 0 полётов и 0 стран.",
+        "Диалог открыт в dark theme; проверен заведомо неверный ввод, профиль не удалён.",
+        "Состояние диалога снято до подтверждения удаления account a."
+      ],
+      "recognition": [
+        "Удалить аккаунт?",
+        "Введите пароль для подтверждения",
+        "Неверный пароль. Попробуйте ещё раз.",
+        "Удалить всё"
+      ],
+      "actions": [
+        {
+          "label": "Удалить всё",
+          "to": "settings-delete-wrong-password-desktop",
+          "effect": "Оставляет ошибку, если повторно отправить неверный пароль."
+        },
+        {
+          "label": "Отмена",
+          "to": "/settings",
+          "effect": "Закрывает диалог без удаления."
+        }
+      ],
+      "source": [
+        "apps/web/src/routes/SettingsPage.tsx",
+        "apps/web/src/components/settings/AppearanceSection.tsx",
+        "apps/web/src/components/settings/LanguageSection.tsx",
+        "apps/web/src/components/settings/ProfileSection.tsx",
+        "apps/web/src/components/settings/DataExportSection.tsx",
+        "apps/web/src/components/settings/DeleteAccountSection.tsx",
+        "apps/web/src/components/settings/DeleteAccountDialog.tsx"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "settings-leaderboards-optin-enabled-desktop",
+      "title": "Настройки: рейтинг разрешён и включён как цель профиля",
+      "route": "/settings",
+      "status": "captured",
+      "screenshot": "images/settings-leaderboards-optin-enabled-desktop.png",
+      "snapshot": "images/settings-leaderboards-optin-enabled-desktop.txt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "authenticated",
+      "theme": "light",
+      "fixture": "Локальная fixture; авторизованный account a, 0 полётов и 0 стран. Переключатели публичности на двух снимках не сохранялись.",
+      "preconditions": [
+        "Выполнен вход как account a (fixture-a) на локальной fixture localhost:8799; у аккаунта 0 полётов и 0 стран."
+      ],
+      "recognition": [
+        "НастройкиУправление аккаунтом и данными",
+        "Тема оформления: Светлая",
+        "Публичный профиль — unchecked",
+        "Показывать в рейтинге — checked"
+      ],
+      "actions": [
+        {
+          "label": "Публичный профиль",
+          "to": "settings-main-desktop",
+          "effect": "Выключает публичность в локальном несохранённом состоянии."
+        },
+        {
+          "label": "Показывать в рейтинге",
+          "to": "settings-public-profile-enabled-desktop",
+          "effect": "Выключает opt-in рейтинга, сохраняя публичный профиль."
+        },
+        {
+          "label": "Удалить аккаунт",
+          "to": "settings-delete-preview-desktop",
+          "effect": "Открывает многошаговый диалог удаления account a."
+        }
+      ],
+      "source": [
+        "apps/web/src/routes/SettingsPage.tsx",
+        "apps/web/src/components/settings/AppearanceSection.tsx",
+        "apps/web/src/components/settings/LanguageSection.tsx",
+        "apps/web/src/components/settings/ProfileSection.tsx",
+        "apps/web/src/components/settings/DataExportSection.tsx",
+        "apps/web/src/components/settings/DeleteAccountSection.tsx",
+        "apps/web/src/components/settings/DeleteAccountDialog.tsx"
+      ],
+      "notes": "Оба privacy-флажка включены только в форме и не сохранены."
+    },
+    {
+      "id": "settings-main-desktop",
+      "title": "Настройки — desktop: светлая тема и пустые данные",
+      "route": "/settings",
+      "status": "captured",
+      "screenshot": "images/settings-main-desktop.png",
+      "snapshot": "images/settings-main-desktop.txt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "authenticated",
+      "theme": "light",
+      "fixture": "Локальная fixture; авторизованный account a, 0 полётов и 0 стран. Переключатели публичности на двух снимках не сохранялись.",
+      "preconditions": [
+        "Выполнен вход как account a (fixture-a) на локальной fixture localhost:8799; у аккаунта 0 полётов и 0 стран."
+      ],
+      "recognition": [
+        "НастройкиУправление аккаунтом и данными",
+        "Тема оформления: Светлая",
+        "Публичный профиль — unchecked",
+        "Показывать в рейтинге — unchecked/disabled"
+      ],
+      "actions": [
+        {
+          "label": "Публичный профиль",
+          "to": "settings-public-profile-enabled-desktop",
+          "effect": "Включает публичность; соответствующее несохранённое состояние снято отдельно."
+        },
+        {
+          "label": "Удалить аккаунт",
+          "to": "settings-delete-preview-desktop",
+          "effect": "Открывает многошаговый диалог удаления account a."
+        }
+      ],
+      "source": [
+        "apps/web/src/routes/SettingsPage.tsx",
+        "apps/web/src/components/settings/AppearanceSection.tsx",
+        "apps/web/src/components/settings/LanguageSection.tsx",
+        "apps/web/src/components/settings/ProfileSection.tsx",
+        "apps/web/src/components/settings/DataExportSection.tsx",
+        "apps/web/src/components/settings/DeleteAccountSection.tsx",
+        "apps/web/src/components/settings/DeleteAccountDialog.tsx"
+      ],
+      "notes": "Profile/export dataset пуст; Export flights и Export claims disabled."
+    },
+    {
+      "id": "settings-main-mobile",
+      "title": "Настройки — mobile: нижняя навигация",
+      "route": "/settings",
+      "status": "captured",
+      "screenshot": "images/settings-main-mobile.png",
+      "snapshot": "images/settings-main-mobile.txt",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "auth": "authenticated",
+      "theme": "light",
+      "fixture": "Локальная fixture; авторизованный account a, 0 полётов и 0 стран. Переключатели публичности на двух снимках не сохранялись.",
+      "preconditions": [
+        "Выполнен вход как account a (fixture-a) на локальной fixture localhost:8799; у аккаунта 0 полётов и 0 стран."
+      ],
+      "recognition": [
+        "НастройкиУправление аккаунтом и данными",
+        "Тема оформления: Светлая",
+        "Публичный профиль — unchecked",
+        "Показывать в рейтинге — unchecked/disabled"
+      ],
+      "actions": [
+        {
+          "label": "Публичный профиль",
+          "to": "/settings",
+          "effect": "Меняет локальную видимость в этой же viewport/theme; изменённый вариант отдельно не снят."
+        },
+        {
+          "label": "Удалить аккаунт",
+          "to": "/settings",
+          "effect": "Открывает диалог в текущем mobile viewport; следующие состояния удаления сняты только на desktop."
+        }
+      ],
+      "source": [
+        "apps/web/src/routes/SettingsPage.tsx",
+        "apps/web/src/components/settings/AppearanceSection.tsx",
+        "apps/web/src/components/settings/LanguageSection.tsx",
+        "apps/web/src/components/settings/ProfileSection.tsx",
+        "apps/web/src/components/settings/DataExportSection.tsx",
+        "apps/web/src/components/settings/DeleteAccountSection.tsx",
+        "apps/web/src/components/settings/DeleteAccountDialog.tsx"
+      ],
+      "notes": "В нижней мобильной панели доступны Главная, Полёты, Импорт, Паспорт, Настройки."
+    },
+    {
+      "id": "settings-public-profile-enabled-desktop",
+      "title": "Настройки: публичный профиль включён, без сохранения",
+      "route": "/settings",
+      "status": "captured",
+      "screenshot": "images/settings-public-profile-enabled-desktop.png",
+      "snapshot": "images/settings-public-profile-enabled-desktop.txt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "authenticated",
+      "theme": "light",
+      "fixture": "Локальная fixture; авторизованный account a, 0 полётов и 0 стран. Переключатели публичности на двух снимках не сохранялись.",
+      "preconditions": [
+        "Выполнен вход как account a (fixture-a) на локальной fixture localhost:8799; у аккаунта 0 полётов и 0 стран."
+      ],
+      "recognition": [
+        "НастройкиУправление аккаунтом и данными",
+        "Тема оформления: Светлая",
+        "Публичный профиль — checked",
+        "Показывать в рейтинге — unchecked/disabled"
+      ],
+      "actions": [
+        {
+          "label": "Публичный профиль",
+          "to": "settings-main-desktop",
+          "effect": "Выключает публичность в локальном несохранённом состоянии."
+        },
+        {
+          "label": "Показывать в рейтинге",
+          "to": "settings-leaderboards-optin-enabled-desktop",
+          "effect": "Включает opt-in рейтинга; состояние показано без сохранения."
+        },
+        {
+          "label": "Удалить аккаунт",
+          "to": "settings-delete-preview-desktop",
+          "effect": "Открывает многошаговый диалог удаления account a."
+        }
+      ],
+      "source": [
+        "apps/web/src/routes/SettingsPage.tsx",
+        "apps/web/src/components/settings/AppearanceSection.tsx",
+        "apps/web/src/components/settings/LanguageSection.tsx",
+        "apps/web/src/components/settings/ProfileSection.tsx",
+        "apps/web/src/components/settings/DataExportSection.tsx",
+        "apps/web/src/components/settings/DeleteAccountSection.tsx",
+        "apps/web/src/components/settings/DeleteAccountDialog.tsx"
+      ],
+      "notes": "Public включён только в локальном состоянии формы и не сохранён."
+    },
+    {
+      "id": "settings-system-theme-desktop",
+      "title": "Настройки: системная тема",
+      "route": "/settings",
+      "status": "captured",
+      "screenshot": "images/settings-system-theme-desktop.png",
+      "snapshot": "images/settings-system-theme-desktop.txt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "auth": "authenticated",
+      "theme": "system",
+      "fixture": "Локальная fixture; авторизованный account a, 0 полётов и 0 стран. Переключатели публичности на двух снимках не сохранялись.",
+      "preconditions": [
+        "Выполнен вход как account a (fixture-a) на локальной fixture localhost:8799; у аккаунта 0 полётов и 0 стран."
+      ],
+      "recognition": [
+        "НастройкиУправление аккаунтом и данными",
+        "Тема оформления: Системная",
+        "Публичный профиль — unchecked",
+        "Показывать в рейтинге — unchecked/disabled"
+      ],
+      "actions": [
+        {
+          "label": "Публичный профиль",
+          "to": "/settings",
+          "effect": "Меняет локальную видимость в этой же viewport/theme; изменённый вариант отдельно не снят."
+        },
+        {
+          "label": "Удалить аккаунт",
+          "to": "settings-delete-preview-desktop",
+          "effect": "Открывает многошаговый диалог удаления account a."
+        }
+      ],
+      "source": [
+        "apps/web/src/routes/SettingsPage.tsx",
+        "apps/web/src/components/settings/AppearanceSection.tsx",
+        "apps/web/src/components/settings/LanguageSection.tsx",
+        "apps/web/src/components/settings/ProfileSection.tsx",
+        "apps/web/src/components/settings/DataExportSection.tsx",
+        "apps/web/src/components/settings/DeleteAccountSection.tsx",
+        "apps/web/src/components/settings/DeleteAccountDialog.tsx"
+      ],
+      "notes": "Выбрана системная тема; в данной browser context её эффективный вид светлый."
+    },
+    {
+      "id": "settings-country-export-success-source-only",
+      "title": "Экспорт двух посещённых стран — успех (source-only)",
+      "route": "/settings",
+      "status": "source-only",
+      "screenshot": null,
+      "snapshot": "images/settings-country-export-success-source-only.txt",
+      "viewport": {},
+      "auth": "authenticated",
+      "theme": "light",
+      "fixture": "Авторизованная локальная сессия kuuki-atlas-dashboard: форма Settings показывает кнопку выгрузки двух посещённых стран; код DataExportSection экспортирует country claims. Кнопка скачала CSV и показала toast «Экспорт стран». Файл удалён после проверки.",
+      "preconditions": [
+        "Выполнен вход как atlas-dashboard на локальной fixture localhost:8799; UI показывает одну запись полёта и кнопку «Скачать все 2 посещённые страны в CSV»."
+      ],
+      "recognition": [
+        "Скачать все 2 посещённые страны в CSV",
+        "Экспорт стран",
+        "Осталось 4 экспорта сегодня"
+      ],
+      "actions": [],
+      "source": [
+        "apps/web/src/components/settings/DataExportSection.tsx",
+        "apps/web/src/lib/export.ts"
+      ],
+      "notes": "Успешное действие подтверждено непосредственным доступным деревом страницы после клика. Снимок подтверждает активную кнопку для двух посещённых стран; содержимое CSV не изучалось. PNG не удалось сохранить: agent-browser screenshot и прямой CDP capture зависали. Дневной export quota изменился с 5 на 4; профиль и claims не редактировались."
+    }
+  ],
+  "journeys": [
+    {
+      "id": "public-social-landing-showcase",
+      "title": "Изучить стартовую страницу и showcase",
+      "states": [
+        "landing-desktop",
+        "landing-mobile",
+        "landing-features-desktop",
+        "landing-showcase-step1-desktop",
+        "landing-showcase-step2-desktop",
+        "landing-showcase-step3-desktop"
+      ],
+      "steps": [
+        "Гость открывает /landing.",
+        "На desktop пролистывает три showcase-примера и знакомится с возможностями.",
+        "На mobile проверяет вертикальную компоновку.",
+        "Действие создания аккаунта ведёт на /."
+      ],
+      "outcome": "Представлены hero, showcase и описание возможностей; регистрационная воронка начинается на /."
+    },
+    {
+      "id": "public-social-registration-onboarding",
+      "title": "Создать аккаунт и пройти первые шаги",
+      "states": [
+        "auth-register-desktop",
+        "auth-register-mobile",
+        "auth-register-validation-desktop",
+        "auth-register-success-source-only",
+        "onboarding-username-desktop",
+        "onboarding-username-validation-desktop",
+        "onboarding-username-normalized-desktop",
+        "onboarding-import-empty-desktop",
+        "onboarding-import-prompt-desktop",
+        "onboarding-import-ready-desktop",
+        "onboarding-import-mobile"
+      ],
+      "steps": [
+        "На / заполнить email и пароль; client validation показывает ошибки до отправки.",
+        "При успехе AuthPage ведёт на /dashboard, а маршрут без username перенаправляет на /onboarding.",
+        "Ввести username; имя короче трёх символов блокирует продолжение, пробелы нормализуются в дефисы.",
+        "На шаге импорта открыть/скрыть AI prompt, подготовить текст и при распознавании перейти на /import с initial text; продолжение описано в sibling flights-import atlas."
+      ],
+      "outcome": "Username сохранён и доступен как URL профиля; шаг импорта необязателен. Распознавание текста в onboarding передаёт его в /import; там продолжается основной import journey."
+    },
+    {
+      "id": "public-social-sign-in",
+      "title": "Войти, обработать валидацию и ошибку данных",
+      "states": [
+        "auth-signin-desktop",
+        "auth-signin-mobile",
+        "auth-signin-validation-desktop",
+        "auth-signin-invalid-credentials-desktop",
+        "auth-signin-success-source-only"
+      ],
+      "steps": [
+        "Открыть /?mode=signin.",
+        "Пустые/невалидные поля показывают клиентские сообщения.",
+        "Неверная тестовая пара email/password оставляет пользователя гостем и показывает API ошибку.",
+        "Корректная пара открывает защищённую часть."
+      ],
+      "outcome": "Успешный экран находится в соседней dashboard зоне; переход зафиксирован по AuthPage и guard."
+    },
+    {
+      "id": "public-social-activation",
+      "title": "Запросить ссылку и активировать прежний аккаунт",
+      "states": [
+        "auth-activation-request-desktop",
+        "auth-activation-unavailable-desktop",
+        "activation-request-success-simulated-desktop",
+        "activation-token-form-desktop",
+        "activation-no-token-desktop",
+        "activation-no-token-mobile",
+        "activation-password-mismatch-desktop",
+        "activation-server-unavailable-desktop",
+        "activation-success-simulated-desktop"
+      ],
+      "steps": [
+        "Из входа открыть режим запроса ссылки для прежнего аккаунта.",
+        "В живой локальной fixture request и complete отвечают 503; это временная недоступность, не доказательство invalid token. Request/complete success-renderers показаны только с браузерным mock 200.",
+        "На /activate без fragment token UI сообщает о пропущенной ссылке; синтетический token открывает форму установки пароля.",
+        "Несовпадение паролей блокирует submit на клиенте; правильная пара отправляется на fixture endpoint и получает 503.",
+        "Отдельный UI success после mock 200 остаётся simulated; письмо или реальная ссылка не создавались."
+      ],
+      "outcome": "Полный реальный цикл email/token нельзя проверить в локальной fixture: endpoint временно отвечает 503 и не доставляет письма. Invalid token не подтверждён; success UI для request и complete отдельно помечен simulated."
+    },
+    {
+      "id": "public-social-shared-header",
+      "title": "Пользоваться меню общей шапки",
+      "states": [
+        "app-header-user-menu-desktop",
+        "app-header-appearance-menu-desktop"
+      ],
+      "steps": [
+        "На публичном профиле открыть пользовательское меню.",
+        "Переходить в настройки, менять язык или завершить сессию.",
+        "Открыть панель темы/акцента и выбрать вариант."
+      ],
+      "outcome": "Меню пользователя и панель внешнего вида доступны поверх публичного профиля."
+    },
+    {
+      "id": "public-social-settings",
+      "title": "Настроить внешний вид и публичность профиля",
+      "states": [
+        "settings-main-desktop",
+        "settings-main-mobile",
+        "settings-system-theme-desktop",
+        "settings-dark-theme-desktop",
+        "settings-public-profile-enabled-desktop",
+        "settings-leaderboards-optin-enabled-desktop",
+        "settings-data-export-populated-desktop",
+        "settings-data-export-success-desktop",
+        "settings-country-export-success-source-only"
+      ],
+      "steps": [
+        "Открыть /settings; desktop показывает секции настроек, а mobile добавляет нижнюю навигацию.",
+        "Переключить светлую, тёмную или системную тему; проверить язык, accent color и видимость профиля.",
+        "С account a показать disabled экспорт при нулевых данных; отдельно войти в atlas-user и проверить активные выгрузки для 69 полётов/16 стран.",
+        "Скачать CSV полётов и зафиксировать success toast; claims export остаётся лишь визуально включённым и не запускается."
+      ],
+      "outcome": "Настройки, видимость и выгрузка полётов/посещённых стран задокументированы. Экспорт 69 полётов и двух country claims UI-проверен; у результата claims нет PNG и он помечен source-only."
+    },
+    {
+      "id": "public-social-account-deletion",
+      "title": "Проверить защитные шаги удаления аккаунта",
+      "states": [
+        "settings-delete-preview-desktop",
+        "settings-delete-export-prompt-desktop",
+        "settings-delete-password-desktop",
+        "settings-delete-wrong-password-desktop"
+      ],
+      "steps": [
+        "Просмотреть число полётов/стран и предупреждение.",
+        "На вопрос об экспорте выбрать «Нет, продолжить»; disabled «Скачать мои данные» не ведёт к паролю.",
+        "Ввести неверный пароль и отправить «Удалить всё»; fixture возвращает ошибку."
+      ],
+      "outcome": "Неверный пароль возвращает ошибку; account a не удалялся и не менялся."
+    },
+    {
+      "id": "public-social-disposable-account-deletion",
+      "title": "Удалить только временный пустой аккаунт",
+      "states": [
+        "settings-delete-preview-disposable-desktop",
+        "settings-delete-export-prompt-disposable-desktop",
+        "settings-delete-password-disposable-desktop",
+        "settings-delete-success-disposable-desktop"
+      ],
+      "steps": [
+        "Создать одноразовый local fixture account через UI без полётов.",
+        "Пройти disposable preview, выбрать «Нет, продолжить» (download disabled) и перейти к password step.",
+        "Ввести правильный пароль и подтвердить удаление disposable account; локальные verify-password и DELETE вернули 200."
+      ],
+      "outcome": "Disposable account удалён; отображается экран регистрации после redirect. Account a и богатый профиль test-traveler не затронуты."
+    },
+    {
+      "id": "public-social-profile-visibility",
+      "title": "Открыть профили с разными уровнями видимости",
+      "states": [
+        "profile-own-private-desktop",
+        "profile-private-guest-desktop",
+        "profile-private-guest-mobile",
+        "profile-public-guest-desktop",
+        "profile-public-guest-mobile",
+        "profile-public-test-traveler-desktop",
+        "profile-public-test-traveler-mobile",
+        "profile-public-dark-theme-desktop",
+        "profile-sections-expanded-mobile",
+        "profile-sticky-header-mobile",
+        "profile-not-found-guest-desktop"
+      ],
+      "steps": [
+        "Владелец journey-demo видит статус «Приватный» и Share; Share копирует текущий URL /fly/journey-demo и не меняет видимость.",
+        "Гость видит приватный профиль journey-demo с минимальным сообщением без секций и Share; неизвестный username открывает not-found.",
+        "Публичный test-traveler доступен гостю и авторизованному viewer; на mobile секции раскрываются кнопками.",
+        "Сравнить dark-theme состояние и страницу профиля после прокрутки."
+      ],
+      "outcome": "Публичный, приватный и отсутствующий профиль различимы; текущий экран профиля не содержит control сравнения."
+    },
+    {
+      "id": "public-social-leaderboard",
+      "title": "Просмотреть категории рейтинга гостем и участником",
+      "states": [
+        "leaderboard-flights-authenticated-desktop",
+        "leaderboard-distance-authenticated-desktop",
+        "leaderboard-countries-authenticated-desktop",
+        "leaderboard-cities-authenticated-desktop",
+        "leaderboard-airlines-authenticated-desktop",
+        "leaderboard-flights-guest-desktop",
+        "leaderboard-guest-mobile",
+        "leaderboard-flights-populated-simulated-desktop"
+      ],
+      "steps": [
+        "Авторизованный account a и гость открывают все пять категорий; live API возвращает пустые таблицы.",
+        "Проверить причину: локальный leaderboard_cache не заполнен cron rebuild; test-traveler имеет 69 полётов и opt-in=true.",
+        "Для изображения наполненного состояния подменить ответ GET /api/leaderboard в браузере DTO-совместимым локальным набором и пометить его simulated."
+      ],
+      "outcome": "Все пять реальных категорий и гостевой экран пусты в fixture из-за отсутствия cache rebuild; DTO-совместимая таблица показана отдельно как simulated."
+    }
+  ],
+  "gaps": [
+    {
+      "state": "Сценарии активации",
+      "reason": "Локальная fixture возвращает 503 для request/complete и не выпускает действующий одноразовый token или письмо. Два success renderer отдельно сняты как simulated при подмене только локального браузерного ответа 200.",
+      "source": "apps/web/src/components/auth/ActivationRequestForm.tsx; apps/web/public/activate.js"
+    },
+    {
+      "state": "Сравнение профилей",
+      "reason": "В текущем ProfilePage не найден control сравнения; публичный профиль можно открыть, но отдельный compare journey недоступен из этой сборки.",
+      "source": "apps/web/src/routes/ProfilePage.tsx"
+    },
+    {
+      "state": "Компактный sticky header профиля",
+      "reason": "После прокрутки снято mobile-состояние страницы, но отдельная компактная sticky-шапка не проявилась в этом профиле/позиции прокрутки.",
+      "source": "apps/web/src/routes/ProfilePage.tsx"
+    },
+    {
+      "state": "Пустые leaderboard таблицы",
+      "reason": "В живом GET /api/leaderboard пустые строки из-за локального leaderboard_cache без cron rebuild. При этом test-traveler имеет 69 полётов и opt-in=true; таблица с наполненными данными дополнительно показана как simulated по точной форме DTO. Реальный populated cache в fixture не захвачен.",
+      "source": "functions/api/_services/leaderboard.ts; functions/api/leaderboard/index.ts; functions/api/_lib/leaderboard.ts"
+    },
+    {
+      "state": "Полнота русских переводов",
+      "reason": "Основные экраны сняты с выбранным русским языком, однако часть текста в auth header, onboarding AI prompt и отдельные подписи остаются английскими. Статический /activate целиком англоязычный в источнике.",
+      "source": "apps/web/src/routes/AuthPage.tsx; apps/web/src/routes/OnboardingPage.tsx; apps/web/public/activate.html"
+    },
+    {
+      "state": "Экспорт claims в Settings",
+      "reason": "Кнопка «Скачать все 2 посещённые страны в CSV» в авторизованной сессии atlas-dashboard сработала и показала toast «Экспорт стран»; доступное дерево сохранено как source-only sidecar, CSV удалён. PNG не получен: agent-browser screenshot и прямой CDP capture зависали. Проверка уменьшила дневной лимит экспортов с 5 до 4; профиль и claims не редактировались.",
+      "source": "apps/web/src/components/settings/DataExportSection.tsx; apps/web/src/lib/export.ts"
+    }
+  ]
+}

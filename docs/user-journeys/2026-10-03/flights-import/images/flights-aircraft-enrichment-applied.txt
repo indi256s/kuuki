@@ -1,0 +1,83 @@
+- generic [ref=e934] clickable [onclick]
+  - link "Skip to main content" [ref=e935]
+  - banner
+    - link "Kuuki" [ref=e1194]
+      - StaticText "Kuuki"
+    - navigation
+      - link "Главная" [ref=e1203]
+      - link "Полёты" [ref=e1204]
+      - link "Паспорт" [ref=e1205]
+      - link "Рейтинг" [ref=e1206]
+      - link "Импорт" [ref=e1207]
+    - button "Добавить полёт" [ref=e1195]
+      - StaticText "Добавить полёт"
+    - button "Внешний вид" [expanded=false, ref=e1196]
+      - StaticText "Внешний вид"
+    - button "FI" [expanded=false, ref=e1197]
+      - StaticText "FI"
+  - main
+    - heading "ПолётыYour complete flight history" [level=1, ref=e1154]
+      - StaticText "ПолётыYour complete flight history"
+    - generic
+      - textbox "City or code" [ref=e1273]: JFK
+        - StaticText "JFK"
+      - button "Clear origin filter" [ref=e1329]
+    - StaticText "→"
+    - generic
+      - textbox "City or code" [ref=e1274]: BOS
+        - StaticText "BOS"
+      - button "Clear destination filter" [ref=e1330]
+    - combobox [expanded=false, ref=e1269]: Все годы
+      - generic [ref=e1275] clickable [onclick]
+        - StaticText "Все годы"
+    - combobox [expanded=false, ref=e1270]: Все авиакомпании
+      - generic [ref=e1276] clickable [onclick]
+        - StaticText "Все авиакомпании"
+    - combobox [expanded=false, ref=e1271]: Все самолёты
+      - generic [ref=e1277] clickable [onclick]
+        - StaticText "Все самолёты"
+    - combobox [expanded=false, ref=e1272]: Все полёты
+      - generic [ref=e1278] clickable [onclick]
+        - StaticText "Все полёты"
+    - button "Clear" [ref=e1328]
+    - StaticText "1"
+    - StaticText "полётов"
+    - button "Выбрать" [ref=e1310]
+      - StaticText "Выбрать"
+    - table
+      - rowgroup
+        - row
+          - columnheader "ДАТА" [ref=e1319] clickable [cursor:pointer, onclick]
+            - StaticText "ДАТА"
+          - columnheader "МАРШРУТ" [ref=e1320] clickable [cursor:pointer, onclick]
+            - StaticText "МАРШРУТ"
+          - columnheader "ДЛИТЕЛЬНОСТЬ" [ref=e1321] clickable [cursor:pointer, onclick]
+            - StaticText "ДЛИТЕЛЬНОСТЬ"
+          - columnheader "АВИАКОМПАНИЯ" [ref=e1322] clickable [cursor:pointer, onclick]
+            - StaticText "АВИАКОМПАНИЯ"
+          - columnheader "САМОЛЁТ" [ref=e1323] clickable [cursor:pointer, onclick]
+            - StaticText "САМОЛЁТ"
+          - columnheader "РАССТОЯНИЕ" [ref=e1324] clickable [cursor:pointer, onclick]
+            - StaticText "РАССТОЯНИЕ"
+          - columnheader "ДЕЙСТВИЯ" [ref=e1325]
+            - StaticText "ДЕЙСТВИЯ"
+      - row
+        - cell "03.10.26" [ref=e1313]
+          - StaticText "03.10.26"
+        - cell "JFK New York → BOS Boston" [ref=e1314]
+          - StaticText "JFK"
+          - StaticText "New York"
+          - StaticText "→"
+          - StaticText "BOS"
+          - StaticText "Boston"
+        - cell "55m" [ref=e1315]
+        - cell "American Airlines AA100" [ref=e1316]
+          - StaticText "American Airlines"
+          - StaticText "AA"
+          - StaticText "100"
+        - cell "Boeing 737-800" [ref=e1317]
+          - StaticText "Boeing 737-800"
+        - cell "330 km" [ref=e1318]
+        - cell
+          - button [ref=e1327]
+  - region "Notifications alt+T" [ref=e936]

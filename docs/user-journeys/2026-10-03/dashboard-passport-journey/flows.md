@@ -1,0 +1,227 @@
+# Атлас пользовательских сценариев: Dashboard, Passport, Journey
+
+Снимки сделаны в локальном приложении 3–4 октября 2026 года. [manifest.json](manifest.json) — машинно-читаемый индекс состояний, условий, переходов и исходников. Для каждого состояния с PNG рядом лежит accessibility snapshot `.txt`; используйте его вместе с изображением.
+
+## Условия и границы
+
+- Охвачены только маршруты `/dashboard`, `/passport`, `/journey`. Основной маршрут приложения через нижнюю/верхнюю навигацию; на телефоне в Dashboard и Passport есть нижняя панель.
+- Состояния `captured` имеют PNG и snapshot. `simulated` — состояния, достигнутые только сетевым перехватом или синтетическим ответом; `source-only` описывает ветки исходника без доступного изображения. Все четыре экрана Journey сняты из реального локального UI: данные `INITIAL_TRIP` зашиты в прототипе, а drag меняет React state без persistence. Переходы, ведущие прямо на `/dashboard` или `/passport`, отмечают экран после действия, для которого снимка в том же аккаунте и viewport нет.
+- Тестовые рейсы, добавленные для атласа, принадлежат локальному синтетическому аккаунту `atlas-dashboard`: прошлый JFK—LAX (AA 100, B738, 03.01.2026) и будущий TBS—DOH (QR, 05.10.2026). Другие полные примеры Dashboard/Passport взяты из аккаунта тестового путешественника в режиме чтения. В атласе нет паролей, токенов и cookie.
+- Размер заданного viewport: компьютер 1440×1000, телефон 390×844. Полные изображения содержат `capture_mode` и реальные `image_size` в manifest. Полная мобильная главная Dashboard имеет размер 442×2399 при viewport 390×844 — на ней виден горизонтальный overflow. Полный мобильный Journey — 390×844 и укладывается в один экран.
+
+## Сценарии
+
+### Первый полёт и обзор статистики (`dashboard-first-flight`)
+
+Один завершённый полёт в статистике; fleet и manufacturer показывают 737-800 / Boeing. Синтетический аккаунт локальный.
+
+Шаги:
+- На пустой главной выберите «Добавить полёт».
+- Введите аэропорт — появляются подсказки; незаполненная форма показывает валидацию.
+- Для демонстрационных данных заполните JFK—LAX, AA 100, B738, дата 03.01.2026.
+- После сохранения обзор показывает карту и карточки анализа; синтетический аккаунт также содержит будущий TBS—DOH от 05.10.2026.
+
+Экраны: `dashboard-empty-desktop`, `dashboard-empty-mobile`, `dashboard-add-flight-form-desktop`, `dashboard-add-flight-origin-suggestions-desktop`, `dashboard-add-flight-validation-desktop`, `dashboard-seed-b738-form-desktop`, `dashboard-synthetic-fleet-manufacturer-desktop`, `dashboard-synthetic-fixture-full`.
+
+### Фильтры и карта главной (`dashboard-filters-map`)
+
+Фильтры влияют на выборку и маршруты карты. Состояния test-traveler сняты в read-only контексте; TBS—DOH фильтр отдельно снят в `atlas-dashboard` (AT avatar, `Привет, atlas-dashboard`, карточка QR). Очистка ведёт на `/dashboard` в том же аккаунте, поскольку нефильтрованный экран этого аккаунта отдельно не снят.
+
+Шаги:
+- Раскройте фильтр года, авиакомпании, самолёта или статуса; поиск аэропорта применяется по коду или городу. Для выбора 737-800 есть меню, но точное состояние после применения фильтра в этом аккаунте не снято; действие ведёт на `/dashboard`.
+- Можно ограничить рейсы отправлением TBS и направлением DOH. Очистка снимает фильтры для текущего аккаунта; целевой скриншот полного atlas-dashboard не представлен.
+- Раскройте карту или скройте её линии маршрутов. На телефоне фильтры раскрываются отдельной кнопкой.
+
+Экраны: `dashboard-filter-airline-menu-desktop`, `dashboard-filter-aircraft-menu-desktop`, `dashboard-filter-status-menu-desktop`, `dashboard-year-filter-open-desktop`, `dashboard-filtered-2025-desktop`, `dashboard-origin-filter-tbs-desktop`, `dashboard-route-filter-tbs-doh-desktop`, `dashboard-map-expanded-desktop`, `dashboard-map-routes-off-desktop`, `dashboard-filters-expanded-mobile`.
+
+### Предстоящий полёт (`dashboard-upcoming-flight`)
+
+Будущий полёт виден отдельно от завершённой статистики; destructive confirmation в атласе не подтверждалось.
+
+Шаги:
+- Добавьте будущий рейс TBS—DOH, QR, 05.10.2026.
+- Проверьте баннер — при дате приложения 04.10 он обозначен как «завтра».
+- Откройте редактирование либо удаление. Удаление требует подтверждения.
+
+Экраны: `dashboard-seed-upcoming-form-desktop`, `dashboard-upcoming-banner-desktop`, `dashboard-upcoming-edit-form-desktop`, `dashboard-upcoming-delete-confirm-desktop`.
+
+### Добавить первую страну в паспорт (`passport-first-country`)
+
+Spain появляется в секции Europe; профиль используется только для локального атласа.
+
+Шаги:
+- На пустом паспорте выберите добавление страны. На компьютере откроется поисковый сгруппированный диалог, на телефоне — нижний лист с поиском и алфавитными группами; для мобильного сценария найдите Spain.
+- На телефоне выберите Spain, затем добавьте штамп с годом и типом «Суша» или «Море». Для выбора страны из desktop-диалога точная форма в том же viewport не снята; действие остаётся на `/passport`.
+- Откройте штамп, чтобы увидеть карточку деталей страны.
+
+Экраны: `passport-empty-desktop`, `passport-empty-mobile`, `passport-country-picker-desktop`, `passport-country-picker-mobile`, `passport-country-picker-search-mobile`, `passport-claim-new-mobile`, `passport-claim-filled-mobile`, `passport-after-claim-mobile`.
+
+### Детали страны, визиты и удаление (`passport-visits-and-delete`)
+
+Добавление визита наблюдалось в локальном синтетическом аккаунте; удаления оставлены в стадии подтверждения.
+
+Шаги:
+- Откройте ранее добавленный штамп и выберите добавление визита.
+- Пример формы заполнен годом 2025, морским въездом и демонстрационной заметкой.
+- В деталях страны проверьте визиты, аэропорты и действие удаления страны или отдельного наземного визита.
+- Подтверждения показаны, но не активированы.
+
+Экраны: `passport-claim-existing-desktop`, `passport-add-visit-filled-desktop`, `passport-after-second-visit-desktop`, `passport-stamp-popup-atlas-account-desktop`, `passport-stamp-popup-mobile`, `passport-delete-country-confirm-desktop`, `passport-delete-visit-confirm-desktop`.
+
+### Слои и масштаб карты паспорта (`passport-map`)
+
+Показаны отдельные состояния слоёв и карта на двух viewport; заполненный паспорт тестового путешественника открыт только для чтения.
+
+Шаги:
+- В обычном паспорте доступны слои маршрутов, добавленных стран и тепловой карты.
+- Разверните карту для крупного вида; нажмите штамп/страну для подробностей.
+
+Экраны: `passport-populated-desktop`, `passport-populated-mobile`, `passport-populated-full`, `passport-populated-full-mobile`, `passport-map-expanded-desktop`, `passport-map-routes-off-desktop`, `passport-map-countries-off-desktop`, `passport-map-heatmap-desktop`, `passport-stamp-details-test-traveler`. Test-traveler сохранён между связанными действиями: мобильное добавление страны/открытие карточки ведёт на `/passport`, потому что соответствующие экраны в этом аккаунте не сняты. Не связывайте их с Spain-popup аккаунта `atlas-dashboard`.
+
+### Переставить сегменты Journey (`journey-reorder-prototype`)
+
+Экран и drag-and-drop работают в настоящем локальном UI. Начальные сегменты заданы в коде; перестановка меняет React state, но сохранение на сервер не реализовано.
+
+Шаги:
+- Откройте /journey: прототип содержит TBS—DOH и DOH—NRT.
+- Перетащите блоки временной шкалы: их порядок меняется в локальном состоянии React. Мобильный маршрут после перестановки не снят; для мобильных действий цель указана как `/journey`, без перехода на desktop-снимок.
+- Кнопки Save Trip, Add Segment и + не имеют обработчиков.
+
+Экраны: `journey-initial-desktop`, `journey-initial-mobile`, `journey-full-mobile`, `journey-reordered-desktop`, `journey-save-add-controls-source-only`.
+
+## Полный каталог снимков
+
+Каждая ссылка ведёт на PNG; рядом находится парный `.txt` с accessibility snapshot. Непоказанные ветки и наблюдаемые ограничения перечислены в конце.
+
+### Dashboard `/dashboard`
+
+| Состояние | PNG | Тип |
+|---|---|---|
+| `dashboard-add-flight-form-desktop` — Пустая форма добавления полёта | [PNG](images/dashboard-add-flight-form-desktop.png) · [.txt](images/dashboard-add-flight-form-desktop.txt) | `captured` |
+| `dashboard-add-flight-origin-suggestions-desktop` — Подсказки аэропорта отправления | [PNG](images/dashboard-add-flight-origin-suggestions-desktop.png) · [.txt](images/dashboard-add-flight-origin-suggestions-desktop.txt) | `captured` |
+| `dashboard-add-flight-validation-desktop` — Проверка обязательных полей полёта | [PNG](images/dashboard-add-flight-validation-desktop.png) · [.txt](images/dashboard-add-flight-validation-desktop.txt) | `captured` |
+| `dashboard-empty-desktop` — Главная без полётов — компьютер | [PNG](images/dashboard-empty-desktop.png) · [.txt](images/dashboard-empty-desktop.txt) | `captured` |
+| `dashboard-empty-mobile` — Главная без полётов — телефон | [PNG](images/dashboard-empty-mobile.png) · [.txt](images/dashboard-empty-mobile.txt) | `captured` |
+| `dashboard-filter-aircraft-menu-desktop` — Фильтр по самолёту открыт | [PNG](images/dashboard-filter-aircraft-menu-desktop.png) · [.txt](images/dashboard-filter-aircraft-menu-desktop.txt) | `captured` |
+| `dashboard-filter-airline-menu-desktop` — Фильтр по авиакомпании открыт | [PNG](images/dashboard-filter-airline-menu-desktop.png) · [.txt](images/dashboard-filter-airline-menu-desktop.txt) | `captured` |
+| `dashboard-filter-status-menu-desktop` — Фильтр по статусу полёта открыт | [PNG](images/dashboard-filter-status-menu-desktop.png) · [.txt](images/dashboard-filter-status-menu-desktop.txt) | `captured` |
+| `dashboard-filtered-2025-desktop` — Главная с фильтром по 2025 году | [PNG](images/dashboard-filtered-2025-desktop.png) · [.txt](images/dashboard-filtered-2025-desktop.txt) | `captured` |
+| `dashboard-filters-expanded-mobile` — Фильтры главной раскрыты — телефон | [PNG](images/dashboard-filters-expanded-mobile.png) · [.txt](images/dashboard-filters-expanded-mobile.txt) | `captured` |
+| `dashboard-map-expanded-desktop` — Карта главной развёрнута | [PNG](images/dashboard-map-expanded-desktop.png) · [.txt](images/dashboard-map-expanded-desktop.txt) | `captured` |
+| `dashboard-map-routes-off-desktop` — Карта главной без маршрутов | [PNG](images/dashboard-map-routes-off-desktop.png) · [.txt](images/dashboard-map-routes-off-desktop.txt) | `captured` |
+| `dashboard-origin-filter-tbs-desktop` — Главная: аэропорт отправления TBS | [PNG](images/dashboard-origin-filter-tbs-desktop.png) · [.txt](images/dashboard-origin-filter-tbs-desktop.txt) | `captured` |
+| `dashboard-populated-desktop` — Главная с полётами — компьютер | [PNG](images/dashboard-populated-desktop.png) · [.txt](images/dashboard-populated-desktop.txt) | `captured` |
+| `dashboard-populated-full-mobile` — Полная мобильная главная с полётами | [PNG](images/dashboard-populated-full-mobile.png) · [.txt](images/dashboard-populated-full-mobile.txt) | `captured` |
+| `dashboard-populated-full` — Полная главная с полётами — компьютер | [PNG](images/dashboard-populated-full.png) · [.txt](images/dashboard-populated-full.txt) | `captured` |
+| `dashboard-populated-mobile` — Главная с полётами — телефон | [PNG](images/dashboard-populated-mobile.png) · [.txt](images/dashboard-populated-mobile.txt) | `captured` |
+| `dashboard-route-filter-tbs-doh-desktop` — Главная: маршрут TBS—DOH | [PNG](images/dashboard-route-filter-tbs-doh-desktop.png) · [.txt](images/dashboard-route-filter-tbs-doh-desktop.txt) | `captured` |
+| `dashboard-seed-b738-form-desktop` — Форма тестового полёта JFK—LAX на B738 | [PNG](images/dashboard-seed-b738-form-desktop.png) · [.txt](images/dashboard-seed-b738-form-desktop.txt) | `captured` |
+| `dashboard-seed-upcoming-form-desktop` — Форма предстоящего полёта TBS—DOH | [PNG](images/dashboard-seed-upcoming-form-desktop.png) · [.txt](images/dashboard-seed-upcoming-form-desktop.txt) | `captured` |
+| `dashboard-synthetic-fixture-full` — Полная главная синтетического аккаунта | [PNG](images/dashboard-synthetic-fixture-full.png) · [.txt](images/dashboard-synthetic-fixture-full.txt) | `captured` |
+| `dashboard-synthetic-fleet-manufacturer-desktop` — Статистика парка и производителей | [PNG](images/dashboard-synthetic-fleet-manufacturer-desktop.png) · [.txt](images/dashboard-synthetic-fleet-manufacturer-desktop.txt) | `captured` |
+| `dashboard-upcoming-banner-desktop` — Баннер предстоящего рейса | [PNG](images/dashboard-upcoming-banner-desktop.png) · [.txt](images/dashboard-upcoming-banner-desktop.txt) | `captured` |
+| `dashboard-upcoming-delete-confirm-desktop` — Подтверждение удаления предстоящего рейса | [PNG](images/dashboard-upcoming-delete-confirm-desktop.png) · [.txt](images/dashboard-upcoming-delete-confirm-desktop.txt) | `captured` |
+| `dashboard-upcoming-edit-form-desktop` — Редактирование предстоящего рейса | [PNG](images/dashboard-upcoming-edit-form-desktop.png) · [.txt](images/dashboard-upcoming-edit-form-desktop.txt) | `captured` |
+| `dashboard-year-filter-open-desktop` — Список годов фильтра открыт | [PNG](images/dashboard-year-filter-open-desktop.png) · [.txt](images/dashboard-year-filter-open-desktop.txt) | `captured` |
+
+### Passport `/passport`
+
+| Состояние | PNG | Тип |
+|---|---|---|
+| `passport-add-visit-filled-desktop` — Форма второго визита заполнена | [PNG](images/passport-add-visit-filled-desktop.png) · [.txt](images/passport-add-visit-filled-desktop.txt) | `captured` |
+| `passport-after-claim-mobile` — Паспорт после добавления Испании | [PNG](images/passport-after-claim-mobile.png) · [.txt](images/passport-after-claim-mobile.txt) | `captured` |
+| `passport-after-second-visit-desktop` — Паспорт после добавления второго визита | [PNG](images/passport-after-second-visit-desktop.png) · [.txt](images/passport-after-second-visit-desktop.txt) | `captured` |
+| `passport-claim-existing-desktop` — Форма визита в уже добавленную страну | [PNG](images/passport-claim-existing-desktop.png) · [.txt](images/passport-claim-existing-desktop.txt) | `captured` |
+| `passport-claim-filled-mobile` — Форма нового штампа заполнена | [PNG](images/passport-claim-filled-mobile.png) · [.txt](images/passport-claim-filled-mobile.txt) | `captured` |
+| `passport-claim-new-mobile` — Пустая форма нового штампа | [PNG](images/passport-claim-new-mobile.png) · [.txt](images/passport-claim-new-mobile.txt) | `captured` |
+| `passport-country-picker-desktop` — Выбор страны — компьютер | [PNG](images/passport-country-picker-desktop.png) · [.txt](images/passport-country-picker-desktop.txt) | `captured` |
+| `passport-country-picker-mobile` — Список стран — телефон | [PNG](images/passport-country-picker-mobile.png) · [.txt](images/passport-country-picker-mobile.txt) | `captured` |
+| `passport-country-picker-search-mobile` — Поиск страны — Испания | [PNG](images/passport-country-picker-search-mobile.png) · [.txt](images/passport-country-picker-search-mobile.txt) | `captured` |
+| `passport-delete-country-confirm-desktop` — Подтверждение удаления страны | [PNG](images/passport-delete-country-confirm-desktop.png) · [.txt](images/passport-delete-country-confirm-desktop.txt) | `captured` |
+| `passport-delete-visit-confirm-desktop` — Подтверждение удаления наземного визита | [PNG](images/passport-delete-visit-confirm-desktop.png) · [.txt](images/passport-delete-visit-confirm-desktop.txt) | `captured` |
+| `passport-empty-desktop` — Паспорт без добавленных стран — компьютер | [PNG](images/passport-empty-desktop.png) · [.txt](images/passport-empty-desktop.txt) | `captured` |
+| `passport-empty-mobile` — Паспорт без добавленных стран — телефон | [PNG](images/passport-empty-mobile.png) · [.txt](images/passport-empty-mobile.txt) | `captured` |
+| `passport-map-countries-off-desktop` — Карта паспорта без слоя стран | [PNG](images/passport-map-countries-off-desktop.png) · [.txt](images/passport-map-countries-off-desktop.txt) | `captured` |
+| `passport-map-expanded-desktop` — Карта паспорта развёрнута | [PNG](images/passport-map-expanded-desktop.png) · [.txt](images/passport-map-expanded-desktop.txt) | `captured` |
+| `passport-map-heatmap-desktop` — Тепловая карта паспорта | [PNG](images/passport-map-heatmap-desktop.png) · [.txt](images/passport-map-heatmap-desktop.txt) | `captured` |
+| `passport-map-routes-off-desktop` — Карта паспорта без маршрутов | [PNG](images/passport-map-routes-off-desktop.png) · [.txt](images/passport-map-routes-off-desktop.txt) | `captured` |
+| `passport-populated-desktop` — Паспорт с посещёнными странами — компьютер | [PNG](images/passport-populated-desktop.png) · [.txt](images/passport-populated-desktop.txt) | `captured` |
+| `passport-populated-full-mobile` — Полная мобильная страница паспорта | [PNG](images/passport-populated-full-mobile.png) · [.txt](images/passport-populated-full-mobile.txt) | `captured` |
+| `passport-populated-full` — Полная страница паспорта — компьютер | [PNG](images/passport-populated-full.png) · [.txt](images/passport-populated-full.txt) | `captured` |
+| `passport-populated-mobile` — Паспорт с посещёнными странами — телефон | [PNG](images/passport-populated-mobile.png) · [.txt](images/passport-populated-mobile.txt) | `captured` |
+| `passport-stamp-details-test-traveler` — Подробности штампа в тестовом паспорте | [PNG](images/passport-stamp-details-test-traveler.png) · [.txt](images/passport-stamp-details-test-traveler.txt) | `captured` |
+| `passport-stamp-popup-atlas-account-desktop` — Подробности штампа Испании — синтетический аккаунт | [PNG](images/passport-stamp-popup-atlas-account-desktop.png) · [.txt](images/passport-stamp-popup-atlas-account-desktop.txt) | `captured` |
+| `passport-stamp-popup-mobile` — Подробности штампа Испании — телефон | [PNG](images/passport-stamp-popup-mobile.png) · [.txt](images/passport-stamp-popup-mobile.txt) | `captured` |
+
+### Journey `/journey`
+
+| Состояние | PNG | Тип |
+|---|---|---|
+| `journey-full-mobile` — Планировщик Journey целиком — телефон | [PNG](images/journey-full-mobile.png) · [.txt](images/journey-full-mobile.txt) | `captured` |
+| `journey-initial-desktop` — Планировщик Journey — исходный план | [PNG](images/journey-initial-desktop.png) · [.txt](images/journey-initial-desktop.txt) | `captured` |
+| `journey-initial-mobile` — Планировщик Journey — телефон | [PNG](images/journey-initial-mobile.png) · [.txt](images/journey-initial-mobile.txt) | `captured` |
+| `journey-reordered-desktop` — Journey после перестановки сегментов | [PNG](images/journey-reordered-desktop.png) · [.txt](images/journey-reordered-desktop.txt) | `captured` |
+
+## Непоказанные ветки
+
+- `dashboard-badge-toast-source-only` — Toast открывается при новом незамеченном значке; локальные рейсы не вызвали получение нового значка, поэтому изображение недоступно. Исходник: `apps/web/src/components/badges/BadgeNotificationManager.tsx`.
+- `dashboard-crash-screen-source-only` — ErrorBoundary/CrashScreen появляются только после render-ошибки; без искусственного сбоя приложение их не показало. Исходник: `apps/web/src/components/error/ErrorBoundary.tsx`.
+- `journey-save-add-controls-source-only` — Кнопки Add Segment, + и Save Trip не подключены к обработчикам; текущая версия поддерживает только drag-перестановку в памяти. Исходник: `apps/web/src/routes/JourneyPlannerPage.tsx`.
+
+## Наблюдаемое ограничение
+
+- `dashboard-populated-full-mobile` — Полностраничный PNG шире заданного viewport: 442 px против ширины 390 px; сохраняется как наблюдаемый mobile overflow. Источник: `apps/web/src/routes/DashboardPage.tsx`.
+
+## Исходники
+
+- Dashboard: `apps/web/src/routes/DashboardPage.tsx`; основные части — `components/flights/FlightForm.tsx`, `FlightFilters.tsx`, `components/map/MapCard.tsx`, `components/dashboard/UpcomingFlightsBanner.tsx`, `AnalysisDeck.tsx`.
+- Passport: `apps/web/src/routes/PassportPage.tsx`; выбор страны/штамп — `components/passport/CountryClaimMap.tsx`, `CountryListSheet.tsx`, `ClaimDialog.tsx`, `PassportStamps.tsx`, `StampPopup.tsx`.
+- Journey: `apps/web/src/routes/JourneyPlannerPage.tsx`, `components/journey/JourneyMap.tsx`, `JourneyTimeline.tsx`, `FlightGanttBlock.tsx`.
+- Общие ветки: `components/badges/BadgeNotificationManager.tsx`, `BadgeNotificationToast.tsx`, `components/error/ErrorBoundary.tsx`, `CrashScreen.tsx`.
+
+<!-- audit:start -->
+## Аудит интерфейса (2026-10-04)
+
+Находки `$impeccable audit`, видимые на экранах этого раздела: 38. Общая оценка 11/20, системные находки без снимков и подробности — в [отчёте](../audit/AUDIT.md). Блок генерируется `build-atlas.py`.
+
+| P | Находка | Экраны раздела |
+| --- | --- | --- |
+| P1 | [Текстовые цвета ниже 4.5:1: destructive, success, warning и muted-foreground с opacity /40–/80](../audit/AUDIT.md#contrast-text-tokens-below-aa) | `dashboard-populated-mobile`, `dashboard-populated-desktop`, `dashboard-filtered-2025-desktop`, `dashboard-synthetic-fleet-manufacturer-desktop`, `passport-populated-desktop`, `passport-empty-mobile`, `passport-empty-desktop` |
+| P1 | [Кольцо фокуса ring-ring/50 у Button/Input/Select/Checkbox даёт 1.2-2.0:1 на светлом фоне](../audit/AUDIT.md#focus-ring-half-opacity-below-3-to-1) | `passport-country-picker-mobile` |
+| P1 | [`<html lang>` всегда «en», даже когда интерфейс русский](../audit/AUDIT.md#html-lang-static-en) | `dashboard-populated-mobile` |
+| P1 | [Каждая страна на карте — безымянная tab-остановка (177 шт.), а Enter ничего не делает](../audit/AUDIT.md#map-geographies-177-tab-stops-no-keyboard-action) | `dashboard-populated-desktop`, `dashboard-populated-mobile`, `dashboard-filtered-2025-desktop`, `dashboard-map-expanded-desktop`, `dashboard-map-routes-off-desktop`, `passport-populated-desktop`, `passport-populated-mobile`, `passport-map-expanded-desktop`, `passport-map-heatmap-desktop`, `passport-map-routes-off-desktop`, `passport-map-countries-off-desktop`, `journey-initial-desktop` |
+| P1 | [Маркеры аэропортов, подписи, счётчики и кнопка «развернуть» на карте захардкожены белым и невидимы в светлой теме](../audit/AUDIT.md#map-overlays-white-on-light-theme) | `dashboard-populated-desktop`, `dashboard-populated-mobile`, `dashboard-filtered-2025-desktop`, `dashboard-map-expanded-desktop`, `dashboard-map-routes-off-desktop`, `passport-populated-desktop`, `passport-populated-mobile`, `passport-map-expanded-desktop`, `passport-map-heatmap-desktop`, `passport-map-routes-off-desktop`, `passport-map-countries-off-desktop` |
+| P1 | [Смена маршрута и режима не меняет document.title и не переносит фокус](../audit/AUDIT.md#spa-route-change-no-title-no-focus) | `dashboard-populated-mobile` |
+| P1 | [В русском интерфейсе остаются английские строки: зашитые литералы, отсутствующие ключи, ошибки валидации и сервера](../audit/AUDIT.md#i18n-hardcoded-english-and-missing-keys) | `dashboard-populated-desktop`, `dashboard-upcoming-banner-desktop`, `dashboard-filtered-2025-desktop`, `dashboard-filters-expanded-mobile`, `passport-populated-desktop`, `passport-populated-mobile`, `passport-country-picker-desktop`, `passport-claim-new-mobile`, `passport-delete-visit-confirm-desktop`, `passport-stamp-popup-mobile` |
+| P1 | [На mobile нет пути в рейтинг, а ссылки на собственный публичный профиль нет нигде](../audit/AUDIT.md#mobile-nav-missing-leaderboard-and-own-profile) | `dashboard-populated-mobile` |
+| P1 | [Акцент перекрывает OKLCH-токены одним hex для обеих тем; дефолтный red не проходит AA](../audit/AUDIT.md#accent-picker-overrides-tokens-fails-contrast) | `dashboard-populated-mobile` |
+| P1 | [Кнопка удаления наземного визита видна только при hover; подтверждающие кнопки без имён](../audit/AUDIT.md#ground-visit-delete-hidden-until-hover) | `passport-delete-visit-confirm-desktop`, `passport-stamp-popup-atlas-account-desktop`, `passport-stamp-popup-mobile`, `passport-stamp-details-test-traveler` |
+| P1 | [Мобильный переключатель фильтров без aria-expanded, нельзя свернуть при активных фильтрах, а скрытые контролы остаются в tab-порядке](../audit/AUDIT.md#mobile-filters-toggle-not-disclosure) | `dashboard-filters-expanded-mobile`, `dashboard-populated-mobile`, `dashboard-filtered-2025-desktop` |
+| P1 | [Мобильный Dashboard шире экрана: карточки статистики выпирают за правый край (442px при viewport 390)](../audit/AUDIT.md#dashboard-mobile-horizontal-overflow-442px) | `dashboard-populated-full-mobile`, `dashboard-populated-mobile` |
+| P1 | [Легенда тепловой карты не рисуется, а сама тепловая карта кодирует частоту прозрачностью флагового цвета каждой страны](../audit/AUDIT.md#heatmap-legend-invisible-and-scale-mismatch) | `passport-map-heatmap-desktop`, `passport-map-expanded-desktop` |
+| P2 | [Иерархия заголовков: h4 без h2/h3 на Dashboard, нет h1 у пустого Passport, одинаковый h1 «Kuuki» у всех режимов входа](../audit/AUDIT.md#heading-structure-gaps) | `dashboard-populated-desktop`, `passport-empty-desktop`, `passport-empty-mobile` |
+| P2 | [Слишком мелкий текст: 9–10px в карточках статистики и 5.5–7px в SVG штампов на мобильном](../audit/AUDIT.md#micro-text-9-10px-and-stamp-svg-text) | `dashboard-populated-desktop`, `dashboard-synthetic-fleet-manufacturer-desktop`, `passport-populated-mobile`, `passport-populated-full-mobile`, `dashboard-upcoming-banner-desktop` |
+| P2 | [DM Sans не содержит кириллицы: весь русский интерфейс рисуется системным шрифтом, а не брендовым](../audit/AUDIT.md#dm-sans-has-no-cyrillic-fallback-system-font) | `dashboard-populated-mobile` |
+| P2 | [DialogContent без max-height и прокрутки: высокие диалоги («Что такое Kuuki?», удаление аккаунта) обрезаются на телефоне](../audit/AUDIT.md#dialog-no-max-height-no-scroll) | `passport-claim-new-mobile` |
+| P2 | [Касательные цели меньше 44×44: свотчи, вкладки, крестики, чекбоксы, слои карты, точки шоукейса, текстовые ссылки](../audit/AUDIT.md#touch-targets-below-44px) | `dashboard-populated-mobile`, `dashboard-filters-expanded-mobile`, `passport-populated-mobile` |
+| P2 | [Цвета стран (dominantColor) — хардкод-hex из countries.json; на тёмной теме 137 из 246 ниже 3:1, на светлой 25 ниже 3:1](../audit/AUDIT.md#country-dominant-colors-hex-low-contrast-dark) | `passport-populated-desktop`, `passport-map-heatmap-desktop`, `dashboard-populated-desktop`, `passport-country-picker-desktop` |
+| P2 | [Цвета вне токенов: 36 hex, 27 классов палитры Tailwind (blue-500, amber-500…), rgba/white в карте и журнале](../audit/AUDIT.md#hardcoded-color-literals) | `dashboard-populated-mobile` |
+| P2 | [Карточки сочетают рамку и тень/ореол вопреки правилу «один материал», карта получает постоянный розовый ореол](../audit/AUDIT.md#one-material-border-plus-shadow) | `dashboard-populated-desktop`, `passport-populated-desktop`, `passport-map-expanded-desktop`, `dashboard-upcoming-banner-desktop` |
+| P2 | [Ридж-график, радар, полосы и вафля: нет текстового эквивалента, тултипы только по мыши, вложенные role="img" на 64 квадратах](../audit/AUDIT.md#charts-lack-text-alternative-and-keyboard) | `dashboard-synthetic-fleet-manufacturer-desktop`, `dashboard-populated-full`, `dashboard-synthetic-fixture-full`, `dashboard-populated-full-mobile` |
+| P2 | [Фильтры, форма добавления визита и подсказки: поля без программных подписей и переключатели без состояния](../audit/AUDIT.md#form-controls-unlabeled-filters-claim-dialog) | `dashboard-populated-desktop`, `dashboard-filters-expanded-mobile`, `passport-claim-new-mobile`, `passport-claim-existing-desktop`, `passport-country-picker-mobile` |
+| P2 | [Перестановка сегментов Journey — только нативный HTML5 drag-and-drop: нет клавиатуры, на touch не работает; кнопка «Reorder segment» ничего не делает](../audit/AUDIT.md#journey-reorder-mouse-only-dnd) | `journey-initial-desktop`, `journey-initial-mobile`, `journey-reordered-desktop`, `journey-full-mobile` |
+| P2 | [Навигация без aria-current и aria-label, кнопка пользователя подписана инициалами](../audit/AUDIT.md#nav-landmarks-missing-aria-current-and-labels) | `dashboard-populated-mobile` |
+| P2 | [Попап штампа — не диалог: нет роли/имени, фокус не переносится, позиция не ограничена экраном и уходит под таб-бар](../audit/AUDIT.md#stamp-popup-semantics-focus-and-position) | `passport-stamp-popup-mobile`, `passport-delete-visit-confirm-desktop`, `passport-stamp-popup-atlas-account-desktop`, `passport-stamp-details-test-traveler` |
+| P2 | [Модель континентов расходится: хардкод-итоги радара, «/ 7», подписи «americas» и пропуск Антарктиды](../audit/AUDIT.md#continent-model-inconsistent-totals-and-labels) | `dashboard-populated-full`, `dashboard-populated-full-mobile`, `passport-populated-desktop`, `passport-populated-full` |
+| P2 | [Поиск страны: cmdk повторно фильтрует по имени, поэтому код (ES) и родное название (España) не находятся; русские запросы не работают нигде](../audit/AUDIT.md#country-picker-search-double-filter) | `passport-country-picker-desktop`, `passport-country-picker-mobile`, `passport-country-picker-search-mobile` |
+| P2 | [Фильтры Dashboard и карта расходятся: aircraft-фильтр не применяется к карте, страны не фильтруются, а origin/destination из persist-стора стираются при монтировании](../audit/AUDIT.md#dashboard-filters-vs-map-and-persistence) | `dashboard-filter-aircraft-menu-desktop`, `dashboard-filtered-2025-desktop`, `dashboard-origin-filter-tbs-desktop`, `dashboard-route-filter-tbs-doh-desktop` |
+| P2 | [Journey: Save Trip, «+» и Add Segment не подключены; шапка и итоги — статичный текст; прототип с жёсткими данными доступен по URL](../audit/AUDIT.md#journey-dead-controls-fake-data-unreachable-nav) | `journey-initial-desktop`, `journey-initial-mobile`, `journey-reordered-desktop`, `journey-save-add-controls-source-only` |
+| P2 | [Карта обрезается фиксированным viewBox 800×600: жёсткий вертикальный срез у России/Тихого океана, обрезан юг](../audit/AUDIT.md#map-viewbox-clips-world-edges) | `passport-populated-desktop`, `passport-map-expanded-desktop`, `passport-map-heatmap-desktop`, `dashboard-populated-desktop` |
+| P2 | [Карта не мемоизирована: каждый ввод в поле фильтра перерисовывает 177 Geography](../audit/AUDIT.md#map-rerenders-on-every-filter-keystroke) | `dashboard-origin-filter-tbs-desktop`, `dashboard-add-flight-origin-suggestions-desktop` |
+| P2 | [Геометрия карты тянется на каждый запуск со стороннего CDN без fallback и обработки ошибок](../audit/AUDIT.md#map-topojson-third-party-cdn-no-fallback) | `dashboard-populated-desktop`, `dashboard-populated-mobile`, `dashboard-filtered-2025-desktop`, `dashboard-map-expanded-desktop`, `dashboard-map-routes-off-desktop`, `passport-populated-desktop`, `passport-populated-mobile`, `passport-map-expanded-desktop`, `passport-map-heatmap-desktop`, `passport-map-routes-off-desktop`, `passport-map-countries-off-desktop`, `journey-initial-desktop` |
+| P2 | [Journey: на десктопе 1440×1000 таймлайн вытесняется за экран (h-screen + overflow-hidden), на мобильном шапка ломается](../audit/AUDIT.md#journey-layout-timeline-offscreen-and-mobile-header-wrap) | `journey-initial-desktop`, `journey-reordered-desktop`, `journey-initial-mobile`, `journey-full-mobile` |
+| P2 | [Карта перехватывает вертикальный свайп и колесо: прокрутка страницы застревает на карте](../audit/AUDIT.md#map-touch-scroll-and-wheel-hijack) | `dashboard-populated-mobile`, `dashboard-filters-expanded-mobile`, `passport-populated-mobile` |
+| P2 | [Коннекторы и кнопка добавления сегмента в таймлайне Journey захардкожены bg-white/10, border-white/20, text-white/30 — на светлой карточке их нет](../audit/AUDIT.md#journey-timeline-white-literals-invisible) | `journey-reordered-desktop`, `journey-initial-mobile`, `journey-full-mobile` |
+| P3 | [Анимации max-height / bottom / height при раскрытии строк, карты Passport и шторки](../audit/AUDIT.md#layout-property-animations) | `passport-map-expanded-desktop`, `passport-country-picker-mobile` |
+| P3 | [Баннер предстоящего рейса: нет региона/имени, десятипиксельный бейдж, удаление под значком «×»](../audit/AUDIT.md#upcoming-banner-semantics-and-delete-icon) | `dashboard-upcoming-banner-desktop`, `dashboard-upcoming-delete-confirm-desktop` |
+<!-- audit:end -->

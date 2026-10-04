@@ -21,6 +21,8 @@ export interface EnrichmentResult {
   aircraft_icao: string | null
   aircraft_name: string | null
   confidence: number
+  evidence?: string | null
+  uncertainty?: string | null
   source?: 'gemini'
 }
 
@@ -46,16 +48,14 @@ function buildFlightLine(f: FlightToEnrich, index: number): string {
 
 /**
  * Build the batch prompt for Gemini to identify aircraft types.
- * Uses grounded web search for accurate, real-time information.
+ * Searches for evidence about the dated flight, not current route equipment.
  */
 export function buildBatchPrompt(flights: FlightToEnrich[]): string {
   const flightLines = flights.map((f, i) => buildFlightLine(f, i)).join('\n')
 
-  return `You are an aviation expert. For each flight below, identify the aircraft CURRENTLY operated on this route.
+  return `You are researching historical flight equipment. Each date below is the date of that flight. Find evidence that applies to that flight on that date, including historical schedules or flight records. Today's route or fleet equipment is not evidence for a past flight.
 
-IMPORTANT: Return the aircraft type the airline flies TODAY on this route, not historical equipment.
-
-Search the web to find current information. Use your judgment on which sources are accessible and reliable.
+Search the web for dated evidence. An aircraft type is a suggestion for the user to review, never a confirmed fact. If the exact dated flight cannot be supported, prefer unknown. State uncertainty and cite the source and relevant date in a short evidence field. Do not invent sources.
 
 Flights to identify:
 ${flightLines}
@@ -65,10 +65,11 @@ For each flight, provide:
 - icao: 4-letter ICAO aircraft type code (e.g., B77W, A388, B789)
 - name: Full aircraft name (e.g., "Boeing 777-300ER")
 - confidence: Score from 0 to 1 based on these rules:
-  * 0.9-1.0: Single aircraft type found in 2+ reliable sources
-  * 0.8-0.89: Single aircraft type found in 1 source
-  * 0.7-0.79: Two types historically but one clearly dominant currently
-  * Below 0.7: Multiple types with unclear current assignment → return null
+  * 0.9-1.0: Dated record for this specific flight confirms one type
+  * 0.7-0.89: Dated schedule or multiple historical sources support one type, but the exact flight is unconfirmed
+  * Below 0.7: Evidence is absent or conflicts → return null
+- evidence: Short dated source or record supporting this suggestion, or null
+- uncertainty: What remains unverified, or null
 
 Common ICAO codes by family:
 
@@ -94,14 +95,13 @@ De Havilland: DH8A, DH8B, DH8C, DH8D
 
 Regional/Other: RJ85, RJ1H, F70, F100, SU95, C919, ARJ21, AN24, AN26, T204, T214
 
-If you cannot determine the aircraft with confidence ≥0.7, return icao: null and confidence: 0.
-Do NOT guess - it's better to return null than an uncertain result.
+If dated evidence does not support confidence ≥0.7, return icao: null, name: null and confidence: 0. Never infer historical equipment solely from today's service.
 
 Return JSON:
 {
   "results": [
-    { "index": 1, "icao": "B77W", "name": "Boeing 777-300ER", "confidence": 0.95 },
-    { "index": 2, "icao": null, "name": null, "confidence": 0 }
+    { "index": 1, "icao": "B77W", "name": "Boeing 777-300ER", "confidence": 0.85, "evidence": "Dated schedule, source and date", "uncertainty": "Exact tail unverified" },
+    { "index": 2, "icao": null, "name": null, "confidence": 0, "evidence": null, "uncertainty": "No dated record found" }
   ]
 }`
 }

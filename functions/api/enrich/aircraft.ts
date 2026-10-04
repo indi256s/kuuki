@@ -10,7 +10,10 @@ import { corsHeaders, corsPreflight } from '../_lib/cors'
 import { requireCsrf, requireUser, type RequestData } from '../_lib/auth'
 import { HttpError, readJson, runHandler } from '../_lib/http'
 import { rateLimit } from '../_lib/ratelimit'
-import { DEFAULT_MODEL, PROVIDER_TIMEOUT_MS, ProviderResponseError, providerFailure } from '../import/_provider'
+import { DEFAULT_MODEL, ProviderResponseError, providerFailure } from '../import/_provider'
+
+// Below the 30s web client deadline; cancellation stops local work even if the provider stalls.
+const ENRICHMENT_DEADLINE_MS = 20_000
 
 // JSON schema for structured output from Gemini
 const ENRICHMENT_RESPONSE_SCHEMA = {
@@ -39,6 +42,8 @@ const ENRICHMENT_RESPONSE_SCHEMA = {
             type: Type.NUMBER,
             description: 'Confidence score between 0 and 1',
           },
+          evidence: { type: Type.STRING, nullable: true },
+          uncertainty: { type: Type.STRING, nullable: true },
         },
         required: ['index', 'confidence'],
       },
@@ -93,12 +98,20 @@ export const onRequestPost: PagesFunction<Env, string, RequestData> = async (con
       // --- Gemini enrichment (grounded web search) ---
       const geminiResults = new Map<string, EnrichmentResult>()
 
-      const ai = new GoogleGenAI({ apiKey: context.env.GEMINI_API_KEY })
+      const ai = new GoogleGenAI({ apiKey: context.env.GEMINI_API_KEY, maxRetries: 0 })
       const prompt = buildBatchPrompt(flights)
+      const controller = new AbortController()
+      let deadlineExpired = false
+      const deadline = setTimeout(() => {
+        deadlineExpired = true
+        controller.abort()
+      }, ENRICHMENT_DEADLINE_MS)
 
       console.log(JSON.stringify({ event: 'gemini_enrichment_start', flight_count: flights.length }))
 
-      const response = await ai.models.generateContent({
+      let response: Awaited<ReturnType<typeof ai.models.generateContent>>
+      try {
+        response = await ai.models.generateContent({
         model: context.env.GEMINI_ENRICH_MODEL?.trim() || DEFAULT_MODEL,
         contents: prompt,
         config: {
@@ -107,12 +120,19 @@ export const onRequestPost: PagesFunction<Env, string, RequestData> = async (con
           ],
           responseMimeType: 'application/json',
           responseSchema: ENRICHMENT_RESPONSE_SCHEMA,
-          httpOptions: { timeout: PROVIDER_TIMEOUT_MS },
+          httpOptions: { timeout: ENRICHMENT_DEADLINE_MS },
+          abortSignal: controller.signal,
         },
-      })
+        })
+      } catch (error) {
+        if (deadlineExpired) throw new HttpError(504, 'The AI service timed out. Please try again.', 'PROVIDER_TIMEOUT')
+        throw error
+      } finally {
+        clearTimeout(deadline)
+      }
 
       if (!response.text) throw new ProviderResponseError('Empty enrichment response')
-      let parsedResponse: { results: Array<{ index: number; icao: string | null; name: string | null; confidence: number }> }
+      let parsedResponse: { results: Array<{ index: number; icao: string | null; name: string | null; confidence: number; evidence?: string | null; uncertainty?: string | null }> }
       try {
         parsedResponse = JSON.parse(response.text)
       } catch {
@@ -125,6 +145,8 @@ export const onRequestPost: PagesFunction<Env, string, RequestData> = async (con
             r.index < 1 || r.index > flights.length ||
             (r.icao != null && typeof r.icao !== 'string') ||
             (r.name != null && typeof r.name !== 'string') ||
+            (r.evidence != null && typeof r.evidence !== 'string') ||
+            (r.uncertainty != null && typeof r.uncertainty !== 'string') ||
             !Number.isFinite(r.confidence))) {
         throw new ProviderResponseError('Invalid enrichment response shape')
       }
@@ -133,9 +155,11 @@ export const onRequestPost: PagesFunction<Env, string, RequestData> = async (con
         if (geminiResult) {
           geminiResults.set(flight.id, {
             flight_id: flight.id,
-            aircraft_icao: geminiResult.icao?.toUpperCase() || null,
+            aircraft_icao: geminiResult.confidence >= 0.7 && geminiResult.evidence?.trim() ? geminiResult.icao?.toUpperCase() || null : null,
             aircraft_name: geminiResult.name || null,
-            confidence: Math.min(1, Math.max(0, geminiResult.confidence)),
+            confidence: geminiResult.evidence?.trim() ? Math.min(1, Math.max(0, geminiResult.confidence)) : 0,
+            evidence: geminiResult.evidence ?? null,
+            uncertainty: geminiResult.uncertainty ?? null,
             source: 'gemini',
           })
         }
@@ -161,6 +185,7 @@ export const onRequestPost: PagesFunction<Env, string, RequestData> = async (con
         { headers: cors }
       )
     } catch (error) {
+      if (error instanceof HttpError) throw error
       const failure = providerFailure(error)
       console.error(JSON.stringify({ event: 'enrichment_provider_error', code: failure.code }))
       throw failure

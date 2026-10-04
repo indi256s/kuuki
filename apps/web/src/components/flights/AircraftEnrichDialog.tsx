@@ -15,14 +15,14 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { AlertCircle, Check, Sparkles } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { Flight } from '@/hooks/useFlights'
-import type { EnrichmentResult } from '@/hooks/useAircraftEnrichment'
+import type { AircraftBatchResponse, EnrichmentResult } from '@/hooks/useAircraftEnrichment'
 
 interface AircraftEnrichDialogProps {
   isOpen: boolean
   onClose: () => void
   flights: Flight[]
   results: EnrichmentResult[]
-  onAccept: (updates: { id: number; aircraft_icao: string }[]) => Promise<void>
+  onAccept: (updates: { id: number; aircraft_icao: string }[]) => Promise<AircraftBatchResponse>
   isApplying: boolean
   error: string | null
 }
@@ -38,15 +38,19 @@ export function AircraftEnrichDialog({
 }: AircraftEnrichDialogProps) {
   const { t } = useTranslation()
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
+  const [saveFailures, setSaveFailures] = useState<Array<{ id: number | null; error: string }>>([])
+  const [savedIds, setSavedIds] = useState<Set<string>>(new Set())
 
   // Filter results to only show ≥0.7 confidence (hide low-confidence entirely)
-  const displayableResults = results.filter(r => r.aircraft_icao && r.confidence >= 0.7)
+  const displayableResults = results.filter(r => r.aircraft_icao && r.confidence >= 0.7 && !savedIds.has(r.flight_id))
 
   // Initialize selection with all displayable results
   useEffect(() => {
+    setSavedIds(new Set())
+    setSaveFailures([])
     if (isOpen && displayableResults.length > 0) {
       const identifiedIds = new Set(
-        displayableResults.map(r => r.flight_id)
+        results.filter(r => r.aircraft_icao && r.confidence >= 0.7).map(r => r.flight_id)
       )
       setSelectedIds(identifiedIds)
     }
@@ -93,8 +97,12 @@ export function AircraftEnrichDialog({
 
     if (updates.length > 0) {
       try {
-        await onAccept(updates)
-        onClose()
+        const ack = await onAccept(updates)
+        const failures = ack.results.filter((result): result is Extract<AircraftBatchResponse['results'][number], { status: 'error' }> => result.status === 'error')
+        setSavedIds(new Set([...savedIds, ...ack.results.filter(result => result.status === 'accepted').map(result => String(result.id))]))
+        setSaveFailures(failures.map(result => ({ id: result.id, error: result.error })))
+        if (failures.length === 0) onClose()
+        else setSelectedIds(new Set(failures.flatMap(result => result.id == null ? [] : [String(result.id)])))
       } catch {
         // Error is surfaced via the error prop from the parent mutation state
       }
@@ -164,7 +172,7 @@ export function AircraftEnrichDialog({
                 .filter((flight) => {
                   const result = resultMap.get(String(flight.id))
                   // Only show flights with displayable results (≥0.7 confidence)
-                  return result?.aircraft_icao && result.confidence >= 0.7
+                  return result?.aircraft_icao && result.confidence >= 0.7 && !savedIds.has(String(flight.id))
                 })
                 .map((flight) => {
                   const result = resultMap.get(String(flight.id))!
@@ -221,6 +229,8 @@ export function AircraftEnrichDialog({
                           <div className="text-xs text-muted-foreground truncate max-w-32">
                             {aircraft?.model || result.aircraft_name || ''}
                           </div>
+                          {result.evidence && <div className="text-xs text-muted-foreground max-w-48">{result.evidence}</div>}
+                          {result.uncertainty && <div className="text-xs text-muted-foreground max-w-48">{result.uncertainty}</div>}
                         </div>
                         {getConfidenceBadge(result.confidence)}
                         <Check aria-hidden="true" className="w-4 h-4 text-success" />
@@ -247,6 +257,11 @@ export function AircraftEnrichDialog({
             <div className="w-full flex items-center gap-2 text-sm text-destructive mb-2">
               <AlertCircle aria-hidden="true" className="w-4 h-4 flex-shrink-0" />
               <span>{t('enrich.saveFailed', 'Failed to save aircraft data. Please try again.')}</span>
+            </div>
+          )}
+          {saveFailures.length > 0 && (
+            <div className="w-full text-sm text-destructive mb-2" role="alert">
+              {saveFailures.map(failure => <div key={failure.id ?? failure.error}>{failure.id ?? 'Unknown flight'}: {failure.error}</div>)}
             </div>
           )}
           <Button variant="outline" onClick={onClose} disabled={isApplying}>

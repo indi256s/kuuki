@@ -1,0 +1,28 @@
+- generic [ref=e118] clickable [onclick]
+  - link "Skip to main content" [ref=e119]
+  - banner
+    - link "Kuuki" [ref=e134]
+      - StaticText "Kuuki"
+    - button "Toggle language" [ref=e135]
+      - StaticText "EN"
+  - main
+    - generic
+    - heading "Выберите имя пользователя" [level=1, ref=e136]
+    - paragraph
+      - StaticText "Это будет URL вашего публичного профиля"
+    - form
+      - generic
+        - LabelText
+          - StaticText "Имя пользователя"
+        - textbox "Имя пользователя" [ref=e138]: Journey Demo
+          - StaticText "Journey Demo"
+      - paragraph
+        - StaticText "Ваш профиль будет доступен по адресу"
+      - paragraph
+        - StaticText "kuuki.app/@journey-demo"
+      - paragraph
+        - StaticText "Will be saved as: journey-demo"
+      - button "Продолжить" [ref=e137]
+  - contentinfo
+    - progressbar "Step 1 of 2": 1
+  - region "Notifications alt+T" [ref=e120]

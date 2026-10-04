@@ -1,0 +1,86 @@
+- generic [ref=e230] clickable [onclick]
+  - link "Skip to main content" [ref=e231]
+  - generic
+    - banner
+      - link "Kuuki" [ref=e233]
+        - StaticText "Kuuki"
+      - navigation
+        - link "Dashboard" [ref=e264]
+        - link "Flights" [ref=e265]
+        - link "Passport" [ref=e266]
+        - link "Leaderboard" [ref=e267]
+        - link "Import" [ref=e268]
+      - button "Appearance" [expanded=false, ref=e234]
+        - StaticText "Appearance"
+      - button "ТЕ" [expanded=false, ref=e235]
+        - StaticText "ТЕ"
+    - main
+      - heading "SettingsAccount and data management" [level=1, ref=e236]
+        - StaticText "SettingsAccount and data management"
+      - heading "Appearance" [level=3, ref=e237]
+      - StaticText "Choose your theme and accent color"
+      - LabelText
+        - StaticText "Theme"
+      - radiogroup "Theme"
+        - radio "Light" [checked=false, ref=e269]
+          - StaticText "Light"
+        - radio "Dark" [checked=true, ref=e270]
+          - StaticText "Dark"
+        - radio "System" [checked=false, ref=e271]
+          - StaticText "System"
+      - LabelText
+        - StaticText "Accent Color"
+      - button "Select blue accent color" [ref=e238]
+      - button "Select cyan accent color" [ref=e239]
+      - button "Select teal accent color" [ref=e240]
+      - button "Select yellow accent color" [ref=e241]
+      - button "Select orange accent color" [ref=e242]
+      - button "Select coral accent color" [ref=e243]
+      - button "Select red accent color" [ref=e244]
+      - button "Select purple accent color" [ref=e245]
+      - heading "Language" [level=3, ref=e246]
+      - StaticText "Choose your preferred language"
+      - button "English" [ref=e247]
+      - button "Русский" [ref=e248]
+      - heading "Profile" [level=3, ref=e249]
+      - StaticText "Customize your public profile"
+      - LabelText
+        - StaticText "Display Name"
+      - textbox "Display Name" [ref=e250]: Тестовый путешественник
+        - StaticText "Тестовый путешественник"
+      - paragraph
+        - StaticText "Your display name or leave empty to use @test-traveler"
+      - LabelText
+        - StaticText "Bio"
+      - textbox "Bio" [ref=e251]: Локальный тестовый профиль для карты экранов
+        - StaticText "Локальный тестовый профиль для карты экранов"
+      - paragraph
+        - StaticText "44/140"
+      - heading "Visibility" [level=3, ref=e252]
+      - checkbox "Public Profile" [checked=true, ref=e253]
+      - LabelText [ref=e254] clickable [cursor:pointer]
+        - StaticText "Public Profile"
+      - paragraph
+        - StaticText "Anyone can view your stats and badges"
+      - checkbox "Show on Leaderboards" [checked=true, ref=e255]
+      - LabelText [ref=e256] clickable [cursor:pointer]
+        - StaticText "Show on Leaderboards"
+      - paragraph
+        - StaticText "Appear in public rankings (requires 5+ flights)"
+      - button "Save" [disabled, ref=e257]
+        - StaticText "Save"
+      - heading "Data Export" [level=3, ref=e258]
+      - StaticText "Download your flight history and country passport as CSV files"
+      - checkbox "Include enriched data (country names, continents)" [checked=false, ref=e259]
+      - LabelText [ref=e260] clickable [cursor:pointer]
+        - StaticText "Include enriched data (country names, continents)"
+      - button "Download all 69 flights as CSV" [ref=e261]
+        - StaticText "Download all 69 flights as CSV"
+      - button "Download all 16 visited countries as CSV" [ref=e262]
+        - StaticText "Download all 16 visited countries as CSV"
+      - paragraph
+        - StaticText "5 exports remaining today"
+      - heading "Danger Zone" [level=3, ref=e263]
+      - StaticText "Permanently delete your account and all data"
+      - button "Delete Account" [ref=e272]
+  - region "Notifications alt+T" [ref=e232]

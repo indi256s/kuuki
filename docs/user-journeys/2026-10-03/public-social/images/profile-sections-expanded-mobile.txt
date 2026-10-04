@@ -1,0 +1,65 @@
+- generic [ref=e198] clickable [onclick]
+  - link "Skip to main content" [ref=e199]
+  - generic
+    - banner
+      - link "Kuuki" [ref=e201]
+        - StaticText "Kuuki"
+      - button "Внешний вид" [expanded=false, ref=e202]
+        - StaticText "Внешний вид"
+    - main
+      - generic
+        - generic
+        - heading "Тестовый путешественник" [level=1, ref=e211]
+        - paragraph
+          - StaticText "@test-traveler"
+        - paragraph
+          - StaticText "Локальный тестовый профиль для карты экранов"
+        - StaticText "Участник с October 2026"
+      - button "СТАТИСТИКА" [expanded=true, ref=e203]
+        - StaticText "СТАТИСТИКА"
+      - paragraph
+        - StaticText "69"
+      - paragraph
+        - StaticText "ВСЕГО ПОЛЁТОВ"
+      - paragraph
+        - StaticText "141,255 km"
+      - paragraph
+        - StaticText "ДИСТАНЦИЯ"
+      - paragraph
+        - StaticText "Вы облетели Землю 3 раза"
+      - paragraph
+        - StaticText "16"
+      - paragraph
+        - StaticText "СТРАНЫ"
+      - paragraph
+        - StaticText "22"
+      - paragraph
+        - StaticText "АВИАКОМПАНИИ"
+      - paragraph
+        - StaticText "25"
+      - paragraph
+        - StaticText "ГОРОДА"
+      - paragraph
+        - StaticText "0"
+      - paragraph
+        - StaticText "ТИПЫ САМОЛЁТОВ"
+      - button "ВАШЕ МЕСТО" [expanded=true, ref=e204]
+        - StaticText "ВАШЕ МЕСТО"
+      - paragraph
+        - StaticText "Добавьте больше рейсов для участия в рейтинге"
+      - button "ДОСТИЖЕНИЯ" [expanded=true, ref=e205]
+        - StaticText "ДОСТИЖЕНИЯ"
+      - paragraph
+        - StaticText "Продолжайте летать, чтобы получить награды"
+    - navigation
+      - link "Главная" [ref=e206]
+        - StaticText "Главная"
+      - link "Полёты" [ref=e207]
+        - StaticText "Полёты"
+      - link "Импорт" [ref=e208]
+        - StaticText "Импорт"
+      - link "Паспорт" [ref=e209]
+        - StaticText "Паспорт"
+      - link "Настройки" [ref=e210]
+        - StaticText "Настройки"
+  - region "Notifications alt+T" [ref=e200]

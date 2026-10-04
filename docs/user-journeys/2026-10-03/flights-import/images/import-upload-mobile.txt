@@ -1,0 +1,35 @@
+- generic [ref=e934] clickable [onclick]
+  - link "Skip to main content" [ref=e935]
+  - generic
+    - banner
+      - link "Kuuki" [ref=e1121]
+        - StaticText "Kuuki"
+      - button "Внешний вид" [expanded=false, ref=e1122]
+        - StaticText "Внешний вид"
+    - main
+      - heading "Импорт" [level=1, ref=e1123]
+      - generic
+        - StaticText "ИИ найдёт все рейсы из Gmail и Календаря за тебя"
+        - paragraph
+          - StaticText "Скопируй промпт → скорми его Gemini → вставь результат сюда"
+        - paragraph
+          - StaticText "Gemini работает лучше всех (он читает твой Календарь). Claude тоже сойдёт. ChatGPT… не надо."
+        - button "Показать промпт" [ref=e1132]
+        - StaticText "@Gmail @Google Calendar Search for all flight bookings, boarding passes, itineraries, and travel confirmations.\n\nFor each flight, try to find (include only what you can find):\n- Date (any format is fine)\n- Origin and destination airports (city names or airport codes)\n- Airline name or code\n- Flight number (if available)\n- Departure/arrival times (if available)\n\nFormat: one flight per line, include whatever info you found.\n\nExample outputs:\n2024-03-15 | JFK → LAX | American Airlines 123 | 08:30-11:45\n2024-03-20 | Los Angeles to New York | Delta\nMarch 25 | SVO-LED | Aeroflot\n\nList ALL flights. Partial info is OK - just include what's available."
+      - StaticText "Вставьте данные о рейсе"
+      - textbox "Вставьте подтверждение бронирования, маршрут…" [ref=e1124]
+      - generic [ref=e1125] clickable [cursor:pointer, onclick]
+        - StaticText "Перетащите файл сюда"
+      - button "Распознать рейсы" [disabled, ref=e1126]
+    - navigation
+      - link "Главная" [ref=e1127]
+        - StaticText "Главная"
+      - link "Полёты" [ref=e1128]
+        - StaticText "Полёты"
+      - link "Импорт" [ref=e1129]
+        - StaticText "Импорт"
+      - link "Паспорт" [ref=e1130]
+        - StaticText "Паспорт"
+      - link "Настройки" [ref=e1131]
+        - StaticText "Настройки"
+  - region "Notifications alt+T" [ref=e936]

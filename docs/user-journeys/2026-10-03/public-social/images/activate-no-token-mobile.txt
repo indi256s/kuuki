@@ -1,0 +1,7 @@
+- main
+  - heading "Activate your account" [level=1, ref=e116]
+  - paragraph
+    - StaticText "Choose a personal password to access your existing Kuuki profile."
+  - status
+    - StaticText "This link is missing its token. If you already set a password, sign in with it. Otherwise, request a new link from sign in."
+  - link "Back to sign in" [ref=e117]
