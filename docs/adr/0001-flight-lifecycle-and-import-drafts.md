@@ -1,145 +1,236 @@
 # ADR 0001: Flight lifecycle, country evidence and import drafts
 
-- **Status:** Accepted for implementation, 2026-10-05. One item (§9, H5 runtime) is an open owner decision.
+- **Status:** Accepted for implementation, 2026-10-05. Revised after the independent review, fix round 1. One item (§9, H5 runtime) is still an open owner decision.
 - **Scope:** Binding spec for W3 (T07–T11) of [Redesign 2.0](../plans/2026-10-04-redesign-2.0-implementation.md). Resolves contracts C2–C5 under Addendum A (A1, A2, A6).
 - **Vocabulary:** [GLOSSARY.md](../../GLOSSARY.md), "Flight lifecycle & evidence vocabulary".
 
 ## Context
 
-The current schema has one lifecycle flag. `flights.is_upcoming INTEGER NOT NULL DEFAULT 0` (`db/migrations/0001_init.sql:129`) is set at create from the UTC calendar day (`functions/api/flights/index.ts:29-32`). On edit it is recomputed only when the patch carries a date (`functions/api/flights/[id].ts:75-76`). Two writers clear it with `date <= today` (UTC): the owner sync (`functions/api/flights/sync-upcoming.ts:15-18`) and the cron (`workers/maintenance/index.ts:20-45`). So a same-day upcoming flight becomes completed on its own departure day, and nothing records how a flight became completed.
+**Lifecycle today.** The only lifecycle flag is `flights.is_upcoming INTEGER NOT NULL DEFAULT 0` (`db/migrations/0001_init.sql:129`).
 
-Derived data is revision-published. Each canonical mutation adds `dirtyUserStatement` to its D1 batch (`functions/api/_services/derivedState.ts:47-61`). `repairUserDerivedState` reads every canonical source in one batch and publishes `visits`, `user_stats`, `user_advanced_stats` and badges in a second batch. That second batch is guarded by a CHECK violation that rolls it back if a newer revision exists (`derivedState.ts:170-224`, schema `0003_derived_recovery.sql:2-12`). `visits` is an airport aggregate built from both endpoints of every non-upcoming flight, max-merged with contributing `legacy_visit_evidence` (`derivedState.ts:63-132`). Countries are also read from it: `countries_count` and `continents_count` (`functions/api/_services/stats.ts:151-152`), the passport endpoints (`functions/api/passport/countries/index.ts:11-26`, `countries/[cc]/stats.ts:21-27`) and `apps/next/src/server/passport.ts`. Claims and ground visits mark the user dirty, but they feed no derived table today.
+- It is set at create from the UTC calendar day (`functions/api/flights/index.ts:29-32`).
+- On edit it is recomputed only when the patch carries a date (`functions/api/flights/[id].ts:75-76`).
+- Two writers clear it with `date <= today` (UTC): the owner sync (`functions/api/flights/sync-upcoming.ts:15-18`) and the cron (`workers/maintenance/index.ts:20-45`).
+- The sync is called only by the legacy SPA (`apps/web/src/lib/flights.ts:352`). Nothing in `apps/next` calls it.
 
-Create replay uses `flight_idempotency` (`0003:18-26`). Its rows are written in the same batch as the flight using a `changes()` chain (`flights/index.ts:99-132`) and purged after 7 days (`workers/maintenance/index.ts:56-63`). The client stops retrying after 6 days (`apps/web/src/lib/flightCreateOperations.ts:9`). Import makes one synchronous `generateContent` call (`functions/api/import/parse.ts:112`) and returns `raw_text` to the browser (`parse.ts:241`). Review drafts live only in `localStorage` (`apps/next/src/client/capture/drafts.ts:9-13`: 10 drafts, 100 rows, 30 days). `apps/next/wrangler.toml` binds only D1, with no Durable Object, Queue or Workflow (A2/H5). Both checked-in maintenance configs set `MAINTENANCE_MODE = "true"` (`workers/maintenance/wrangler.toml:9,25`). The release-candidate runbook (gate 6) defers lifecycle, transit, auto-confirm and undo to this work.
+So a same-day flight completes on its departure day, Next users rely on a cron that is held, and nothing records how a flight became completed.
+
+**Derived data.** Derived data is revision-published.
+
+- Each canonical mutation adds `dirtyUserStatement` to its D1 batch (`functions/api/_services/derivedState.ts:47-61`).
+- `repairUserDerivedState` reads canonical sources in one batch. It publishes `visits`, `user_stats`, `user_advanced_stats` and badges in a second batch, guarded by a CHECK violation against newer revisions (`derivedState.ts:170-224`, `0003_derived_recovery.sql:2-12`).
+- `visits` is the airport aggregate: both endpoints of every non-upcoming flight, max-merged with `legacy_visit_evidence` (`derivedState.ts:63-132`).
+
+Countries are read from `visits` or straight from flight endpoints:
+
+- `countries_count` and `continents_count` (`_services/stats.ts:151-152`);
+- the `regionOf` advanced-stats breakdowns persisted in `user_advanced_stats` (`_services/advancedStats.ts:76-78`, `advancedStatsBreakdowns.ts:179-210`);
+- the passport endpoints (`passport/countries/index.ts:11-26`, `countries/[cc]/stats.ts:21-27`, `apps/next/src/server/passport.ts:15`);
+- Overview, which uses live canonical endpoints (`_services/overview.ts:38-57,109-114`).
+
+Claims and ground visits mark the user dirty, but they feed no derived table.
+
+**Replay and import.**
+
+- Create replay uses `flight_idempotency` (`0003:18-26`, primary key `(user_id, key)`). It is chained through `changes()` (`flights/index.ts:99-132`), purged after 7 days (`workers/maintenance/index.ts:56-63`), and the client retries for 6 days (`apps/web/src/lib/flightCreateOperations.ts:9`).
+- Import makes one synchronous `generateContent` call (`functions/api/import/parse.ts:112`) and returns `raw_text` (`parse.ts:241`).
+- Review drafts are browser-local (`apps/next/src/client/capture/drafts.ts:9-13`).
+- `apps/next/wrangler.toml` binds only D1 (A2/H5).
+- Both maintenance configs set `MAINTENANCE_MODE = "true"` (`workers/maintenance/wrangler.toml:9,25`).
+- Runbook gate 6 defers lifecycle, transit, auto-confirm and undo to this work.
+
+**Shared code.** `functions/api` is bundled once by `build:api` (`package.json:16`) into `.wrangler/functions-build`. That bundle is imported by `apps/next/worker.ts:2`, proxied at `worker.ts:33-47` and partly called in-process via `apps/next/api-capture.ts`. The same code therefore serves the Next and the fallback Pages surface.
 
 ## Decision
 
 ### 1. Lifecycle columns (migration `0006_flight_lifecycle.sql`)
 
-Columns are added with `ALTER TABLE flights ADD COLUMN`. The table is not rebuilt. A rebuild would have to carry `sqlite_sequence` forward: a reused deleted `id` would turn a `flight_idempotency` tombstone (`flight_id` of a deleted flight, `flights/index.ts:158-160`) into a replay of an unrelated flight.
+Columns are added with `ALTER TABLE flights ADD COLUMN`; there is no table rebuild. A rebuild would have to carry `sqlite_sequence`: a reused deleted `id` would turn a `flight_idempotency` tombstone (`flights/index.ts:158-160`) into a replay of an unrelated flight.
 
-| Column | Type / constraint | Default | Meaning |
-|---|---|---|---|
-| `lifecycle_state` | `TEXT NOT NULL CHECK (lifecycle_state IN ('upcoming','awaiting','logged'))` | `'logged'` | Canonical state. Never `draft`. |
-| `confirmation_source` | `TEXT CHECK (confirmation_source IS NULL OR confirmation_source IN ('save','user','automatic','legacy'))` | NULL | Non-null exactly when `logged`. |
-| `confirmed_at` | `TEXT` (canonical ISO UTC, `_lib/time.ts`) | NULL | Set for `save`/`user`/`automatic`. NULL for `legacy`. |
-| `lifecycle_timezone` | `TEXT CHECK (lifecycle_timezone IS NULL OR length(lifecycle_timezone) BETWEEN 1 AND 64)` | NULL | Captured IANA zone. Required when `upcoming`/`awaiting`. |
-| `awaiting_after` | `TEXT` (ISO UTC) | NULL | Start of local day `date + 1` in `lifecycle_timezone`. Required when `upcoming`/`awaiting`. |
-| `auto_confirm_after` | `TEXT` (ISO UTC) | NULL | Start of local day `date + 8`, i.e. 7 calendar days after `awaiting_after`. Required when `upcoming`/`awaiting`. |
-| `arrival_transit` | `INTEGER CHECK (arrival_transit IS NULL OR arrival_transit IN (0,1))` | NULL | NULL means no decision yet. 1 means transit (no country evidence at the destination). 0 means the member left the airport. |
-| `is_upcoming` (existing) | unchanged | | Compatibility projection: `1` iff `lifecycle_state = 'upcoming'`. |
+| Column | Type / constraint | Meaning |
+|---|---|---|
+| `lifecycle_state` | `TEXT CHECK (lifecycle_state IS NULL OR lifecycle_state IN ('upcoming','awaiting','logged'))`, no default | Canonical state, never `draft`. NULL never survives the inserting statement (see the adapter below). |
+| `confirmation_source` | `TEXT CHECK (… IS NULL OR … IN ('save','user','automatic','legacy'))` | Non-null iff `logged`. |
+| `confirmed_at` | `TEXT` (canonical ISO UTC, `_lib/time.ts`) | NULL iff not logged or `legacy`. |
+| `lifecycle_timezone` | `TEXT CHECK (… IS NULL OR length(…) BETWEEN 1 AND 64)` | Captured IANA zone. Required when `upcoming`/`awaiting`. |
+| `awaiting_after` | `TEXT` (ISO UTC) | Start of local day `date + 1`. Required when `upcoming`/`awaiting`. |
+| `auto_confirm_after` | `TEXT` (ISO UTC) | Start of local day `date + 8` (7 calendar days after `awaiting_after`). Required when `upcoming`/`awaiting`. |
+| `arrival_transit` | `INTEGER CHECK (… IS NULL OR … IN (0,1))` | NULL: no decision. 1: transit. 0: the member left the airport. |
+| `arrival_transit_leg_id` | `INTEGER` | Outgoing leg matched when a transit decision was written (§4). Non-null only when `arrival_transit = 1`. |
+| `is_upcoming` (existing) | unchanged | Compatibility projection: `1` iff `upcoming`. |
 
-Cross-column invariants are enforced by `BEFORE INSERT` and `BEFORE UPDATE OF lifecycle_state, is_upcoming, confirmation_source, confirmed_at, lifecycle_timezone, awaiting_after, auto_confirm_after` triggers that `RAISE(ABORT, 'LIFECYCLE_INVARIANT')` unless all of these hold:
+**Invariant** `INV(row)`, all conjuncts required:
 
-- `is_upcoming = (lifecycle_state = 'upcoming')`.
-- `(confirmation_source IS NOT NULL) = (lifecycle_state = 'logged')`.
-- `confirmed_at IS NULL OR lifecycle_state = 'logged'`.
-- When `lifecycle_state IN ('upcoming','awaiting')`: `lifecycle_timezone`, `awaiting_after` and `auto_confirm_after` are not null.
+- `lifecycle_state IS NOT NULL`;
+- `is_upcoming = (lifecycle_state = 'upcoming')`;
+- `(confirmation_source IS NOT NULL) = (lifecycle_state = 'logged')`;
+- `lifecycle_state <> 'logged' OR (confirmation_source = 'legacy') = (confirmed_at IS NULL)`;
+- `lifecycle_state = 'logged' OR confirmed_at IS NULL`;
+- `lifecycle_state = 'logged' OR (lifecycle_timezone, awaiting_after, auto_confirm_after all NOT NULL)`;
+- `arrival_transit_leg_id IS NULL OR arrival_transit = 1`.
 
-Triggers are used because SQLite cannot add a table-level CHECK without a rebuild. They also fail closed against pre-lifecycle writers (§10): an old create of a future flight, the old sync and the old cron all violate the first two invariants.
+**Triggers (controller ruling R2: adapt pre-lifecycle writers, don't abort them).** SQLite triggers cannot assign `NEW.*`. The construct is therefore four `AFTER` triggers with disjoint `WHEN` clauses, so their firing order never matters:
 
-Indexes:
+1. `flights_lifecycle_adapt_insert`: `AFTER INSERT WHEN NEW.lifecycle_state IS NULL`. Only a pre-lifecycle writer inserts without the column; T07 code always writes it. It runs `UPDATE flights SET … WHERE id = NEW.id`, deriving the state from the old flag:
+   - `is_upcoming = 1` → `upcoming`, zone `'UTC'`, `awaiting_after = strftime('%Y-%m-%dT%H:%M:%fZ', NEW.date, '+1 day')`, `auto_confirm_after = … '+8 days'`. The old writer decided "upcoming" in UTC, so these deadlines match its own rule.
+   - `is_upcoming = 0` → `logged`, `save`, `confirmed_at = NEW.created_at`.
+2. `flights_lifecycle_adapt_update`: `AFTER UPDATE OF is_upcoming WHEN NEW.lifecycle_state IS OLD.lifecycle_state AND NEW.is_upcoming <> (NEW.lifecycle_state = 'upcoming')`. This means only the old flag changed, which is the old sync, old cron or old date edit. It derives the state:
+   - `1 → 0` → `awaiting`, never silently logged. Deadlines are kept unless `NEW.date <> OLD.date`, in which case they are recomputed in UTC with zone `'UTC'`.
+   - `0 → 1` → `upcoming`. Clears `confirmation_source`, `confirmed_at`, `arrival_transit` and `arrival_transit_leg_id`. Recomputes UTC deadlines with zone `'UTC'`.
+3. `flights_lifecycle_check_insert`: `AFTER INSERT WHEN NEW.lifecycle_state IS NOT NULL AND NOT INV(NEW)` → `RAISE(ABORT, 'LIFECYCLE_INVARIANT')`.
+4. `flights_lifecycle_check_update`: `AFTER UPDATE WHEN NOT INV(NEW) AND NOT (<trigger 2 condition>)` → `RAISE(ABORT, 'LIFECYCLE_INVARIANT')`.
 
-- `idx_flights_user_lifecycle ON flights(user_id, lifecycle_state, date)`.
-- `idx_flights_due_upcoming ON flights(awaiting_after, id) WHERE lifecycle_state = 'upcoming'`.
+The nested `UPDATE` in triggers 1 and 2 never sets `is_upcoming`, so trigger 2 cannot re-fire. Trigger 4 validates the adapted row. Recursion is impossible, and `recursive_triggers` only affects a trigger firing itself. `RAISE(ABORT)` undoes the statement and fails the D1 batch, which rolls the batch back; acceptance test A1 must prove this. `changes()` counts only direct changes, never trigger changes, so the `changes()` chains in §5 and §6 are unaffected.
+
+Why not reject the old writer: R2 requires migrate-then-deploy with no create outage. With the adapter, the pre-lifecycle build keeps working against `0006` until T07 code replaces it. Its degradations are bounded: UTC eligibility, no confirmation, and no auto-confirm, because the old cron never logs. Its writes can never corrupt the lifecycle. Not adapted, by design: an old edit without a date leaves lifecycle untouched, and an old route edit does not reset `arrival_transit`. Both are harmless (§10).
+
+**Indexes:**
+
+- `idx_flights_user_lifecycle ON flights(user_id, lifecycle_state, date)`;
+- `idx_flights_due_upcoming ON flights(awaiting_after, id) WHERE lifecycle_state = 'upcoming'`;
 - `idx_flights_due_awaiting ON flights(auto_confirm_after, id) WHERE lifecycle_state = 'awaiting'`.
 
-`FLIGHT_COLUMNS` (`flights/index.ts:24-27`), `FlightRow` and `toOwnFlight` (`_lib/flights.ts`) gain the lifecycle fields additively. `is_upcoming` stays in every DTO.
+`FLIGHT_COLUMNS` (`flights/index.ts:24-27`), `FlightRow` and `toOwnFlight` (`_lib/flights.ts`) gain the fields additively, and `is_upcoming` stays.
 
-**Calendar rule.** A new pure helper (`packages/shared/src/calendar.ts`) does all date-only arithmetic. `date` stays a `YYYY-MM-DD` label and is never passed to `new Date(date)` for presentation.
+**Calendar rule.** A pure helper `packages/shared/src/calendar.ts` handles date arithmetic. `date` is a `YYYY-MM-DD` label and is never passed to `new Date(date)` for presentation.
 
 - `localToday(tz, now)` returns the calendar date at `now` in `tz`.
-- `startOfLocalDay(dateLabel, tz)` returns the UTC instant of local 00:00. If local midnight does not exist (DST gap), it returns the first existing instant after it. If midnight is ambiguous, it returns the earlier instant.
-- Day arithmetic works on labels (`addDays('2026-03-28', 1)`). It never adds 24 hours.
-- Tests cover DST at midnight, ±14h offsets, `UTC` and month/year rollover.
+- `startOfLocalDay(label, tz)` returns the UTC instant of local 00:00. In a DST gap it returns the first existing instant after midnight; for an ambiguous midnight it returns the earlier instant.
+- `addDays(label, n)` is label arithmetic. It never adds 24 hours.
 
-**Time zone capture.** Create, bulk create, draft conversion and date edits accept an optional `timezone` request field. It is validated with `Intl.DateTimeFormat(undefined, { timeZone })` and canonicalized via `resolvedOptions().timeZone`. If it is missing, an edit falls back to the flight's stored zone and everything else falls back to `UTC` (old clients). An invalid value returns `400 INVALID_TIMEZONE`. `timezone` is request context, not part of `FlightInput`. It is excluded from `digestInput` (`flights/index.ts:38-41`), so replays that were stored before the deploy keep their digest. Deadlines are computed once, at create or date edit. Transitions compare `now` with the stored instants and never with the time a transition ran. A late sync or a missed cron day never restarts the clock. Countdown labels use the viewer's locale and zone; eligibility does not.
+**Time zone capture.**
 
-### 2. Transition table
+- Create, bulk create, draft conversion and date edits take an optional `timezone` request field. It is validated with `Intl.DateTimeFormat(undefined, { timeZone })` and canonicalized via `resolvedOptions().timeZone`. An invalid value returns `400 INVALID_TIMEZONE`.
+- Fallback order: the request value, then the flight's stored zone (edits only), then `UTC` (old clients).
+- `timezone` is request context, outside `FlightInput`, and excluded from `digestInput` (`flights/index.ts:38-41`). Replays that were stored before the deploy therefore keep their digest.
+- Deadlines are computed only at create or date edit. Transitions compare `now` with stored instants, so a late sync or a missed cron never restarts the clock. Countdown labels use the viewer's zone; eligibility does not.
 
-`today` means `localToday(capturedTz, now)`. "Recompute" means recomputing `awaiting_after` and `auto_confirm_after` from `date` and the zone.
+### 2. Transition table and the owner sync trigger
+
+In this table, `today` means `localToday(capturedTz, now)`. "Recompute" means recomputing both deadlines from `date` and the zone.
 
 | Operation | From | Result |
 |---|---|---|
-| Create / bulk create / draft conversion, `date <= today` | none | `logged`, `save`, `confirmed_at = now`. Deadlines NULL. `arrival_transit` NULL (existing endpoint policy, §3). Response lists newly pressed countries after publication. |
-| Same, `date > today` | none | `upcoming`. Deadlines computed. No completed totals, visits or stamps. |
-| Owner sync (`POST /api/flights/sync-upcoming`) or cron, `now >= awaiting_after` | `upcoming` | `awaiting`. Counts in completed totals and airport visits. Its countries are pending unless pressed elsewhere. |
-| Same pass, `now >= auto_confirm_after` | `awaiting` | `logged`, `automatic`. `arrival_transit` set to the effective policy (§3). No animation. A flight past both deadlines makes both moves in one pass. |
-| `POST /api/flights/confirm` | `awaiting` | `logged`, `user`, `confirmed_at = now`. `arrival_transit` = submitted value, else the effective default. Always written as 0/1. |
-| Edit `date` to future | `upcoming`/`awaiting`/`logged` | `upcoming`. Clears `confirmation_source`, `confirmed_at` and `arrival_transit`. Recompute. |
-| Edit `date` to today/past | `upcoming` | `awaiting` if `now >= awaiting_after` after recompute, else stays `upcoming`. A corrected upcoming flight never skips the queue (gap in C2, §11). |
-| Edit `date` to today/past | `awaiting` | Stays `awaiting`. Recompute from the corrected date, never from the edit time. "Changed" does not answer the arrival question. |
-| Edit `date` to today/past | `logged` | Stays `logged`. Provenance kept. Deadlines untouched. |
-| Edit `origin`/`destination` | any | Lifecycle unchanged. `arrival_transit` reset to NULL, because the decision referred to the old airport. |
-| Other field edits | any | Lifecycle and decision unchanged. |
-| Delete / bulk delete | any | Row removed as today. "Did not fly" is client-only: the card hides, then the existing `DELETE /api/flights/:id` is sent after a 6 s undo window. Closing before submission leaves the flight `awaiting`. There is no server-side "did not fly" state. |
-| Transit review apply (§4) | `logged` with `confirmation_source IN ('legacy','save')` | `arrival_transit = 1` on the selected flights. Lifecycle and provenance unchanged. |
+| Create / bulk create / draft conversion, `date <= today` | none | `logged`, `save`, `confirmed_at = now`. Deadlines and `arrival_transit` NULL (existing endpoint policy, §4). Newly pressed countries per §5 "Newly stamped". |
+| Same, `date > today` | none | `upcoming`; deadlines set. No completed totals, visits or stamps. |
+| Owner sync or cron, `now >= awaiting_after` | `upcoming` | `awaiting`. Counts in completed totals and airport visits. Its countries are pending unless pressed elsewhere. |
+| Same pass, `now >= auto_confirm_after` | `awaiting` | `logged`, `automatic`, `confirmed_at = now`. `arrival_transit` set to the effective policy, plus `arrival_transit_leg_id` when the result is transit (§4). No animation. A flight past both deadlines makes both moves in one pass. |
+| `POST /api/flights/confirm` | `awaiting` | `logged`, `user`, `confirmed_at = now`. `arrival_transit` = submitted value, else the effective default; always 0/1. `arrival_transit_leg_id` is set when the result is transit. |
+| Edit `date` to future | any | `upcoming`. Clears confirmation fields, `arrival_transit` and `arrival_transit_leg_id`. Recompute. |
+| Edit `date` to today/past | `upcoming` | Recompute. `awaiting` if `now >= awaiting_after`, else stays `upcoming`. A corrected upcoming flight never skips the queue (gap in C2, §11). If `auto_confirm_after` has also passed, the next owner sync or cron pass logs it as `automatic`; the edit never does it inline. |
+| Edit `date` to today/past | `awaiting` | Stays `awaiting`; recompute from the corrected date, never from the edit time. |
+| Edit `date` to today/past | `logged` | Stays `logged`. Provenance kept. |
+| Edit `origin`/`destination` | any | Lifecycle unchanged. `arrival_transit` and `arrival_transit_leg_id` reset to NULL. |
+| Other field edits | any | No lifecycle change. |
+| Delete / bulk delete | any | Row removed as today. "Did not fly" is client-only: the card hides and the existing `DELETE /api/flights/:id` is sent after a 6 s undo window. Closing before then leaves the flight `awaiting`. There is no server-side state for it. |
+| Transit review apply (§5) | `logged`, `legacy`/`save`, `arrival_transit` NULL | `arrival_transit = 1` plus `arrival_transit_leg_id`. Lifecycle and provenance unchanged. |
 
-Owner sync and cron share one domain function: `applyDueTransitions(db, { userId?, now, limits })` in `functions/api/_services/lifecycle.ts`. Its updates are guarded by the source state and the deadline (`WHERE lifecycle_state = 'awaiting' AND auto_confirm_after <= ?`) and batched with `dirtyUserStatement(..., true)`, the same pattern as `workers/maintenance/index.ts:36-42`. A concurrent winner therefore makes the loser a no-op. Sync keeps its response shape `{ synced, ...derived }`: `synced` counts flights moved, and the response adds `awaited` and `autoConfirmed`.
+**`applyDueTransitions(db, { userId?, now, limit })`** (`functions/api/_services/lifecycle.ts`) is the only implementation of the two due transitions. It is used by the owner sync and by the cron.
 
-### 3. Historical backfill (inside `0006`)
+- One read batch captures the user's flights and `user_derived_state.revision` = R.
+- Upcoming→awaiting updates are guarded by state and deadline.
+- Auto-confirm updates are also guarded by `EXISTS (SELECT 1 FROM user_derived_state WHERE user_id = ? AND revision = R)`, so a policy computed from a stale snapshot never applies. That pass becomes a no-op and the next pass retries.
+- `dirtyUserStatement(…, true)` comes last in the batch.
+
+**Owner sync contract (controller ruling R1).** `POST /api/flights/sync-upcoming`:
+
+- owner-scoped and CSRF-checked, with an empty body;
+- at most 100 flights per direction per call;
+- returns `{ synced, awaited, autoConfirmed, more, derived_state?, revision? }`.
+
+`synced` counts distinct flights whose state changed. A flight making both moves counts once in `synced` and once in each of `awaited` and `autoConfirmed`. `apps/web` reads only `synced`, so it stays compatible.
+
+**Where the trigger lives.** `ActivityBridge` in `apps/next/src/client/activity.tsx` (mounted in `apps/next/src/app/layout.tsx:27`) is the member shell's client activity island.
+
+- **When it fires:** after `checkIdentity()` publishes a non-null member id, if `localStorage['kuuki:lifecycle-sync:<userId>']` is older than 10 minutes or absent. The timestamp is written before the request, so tabs share the throttle, and identity reset clears it.
+- **Follow-ups:** while `more` is true, at most 2 more calls.
+- **On changes:** when `synced > 0`, it calls `router.refresh()` for server-owned routes and dispatches `kuuki:lifecycle-changed` for Query-owned queue and badge reads.
+- **On failure:** it does nothing visible and the next window retries.
+
+`GET /api/me/awaiting` stays read-only. When the cron is enabled it runs the same function for all accounts (§8).
+
+### 3. Historical backfill (inside `0006`, before the triggers are created)
 
 ```sql
--- after ADD COLUMN (all rows default 'logged'), before triggers are created
-UPDATE flights SET confirmation_source = 'legacy' WHERE is_upcoming = 0;
+UPDATE flights SET lifecycle_state = 'logged', confirmation_source = 'legacy' WHERE is_upcoming <> 1;
 UPDATE flights SET lifecycle_state = 'upcoming', lifecycle_timezone = 'UTC',
   awaiting_after     = strftime('%Y-%m-%dT%H:%M:%fZ', date, '+1 day'),
   auto_confirm_after = strftime('%Y-%m-%dT%H:%M:%fZ', date, '+8 days')
 WHERE is_upcoming = 1;
+-- fail the migration loudly if any guard is violated
+CREATE TABLE _m0006_assert (ok INTEGER NOT NULL CHECK (ok = 1));
+INSERT INTO _m0006_assert SELECT NOT EXISTS (SELECT 1 FROM flights WHERE is_upcoming NOT IN (0,1)
+  OR lifecycle_state IS NULL OR (lifecycle_state = 'logged' AND confirmation_source IS NULL)
+  OR (lifecycle_state = 'upcoming' AND (awaiting_after IS NULL OR auto_confirm_after IS NULL)));
+INSERT INTO _m0006_assert SELECT NOT EXISTS (SELECT 1 FROM visits WHERE country_code = '');
+DROP TABLE _m0006_assert;
 ```
 
-- Old non-upcoming flights become `logged`/`legacy` with `arrival_transit` NULL. Their effective policy includes both endpoints, as today, so no stamp changes. IDs, `flight_idempotency`, claims, ground visits, `legacy_visit_evidence`, `visits` and `user_stats` are not touched.
-- Old upcoming flights keep `upcoming` with UTC deadlines, which is the zone the old system used. Overdue ones go through the ordinary transitions. A flight more than 7 days past its date makes both moves in one pass and lands as `automatic`. Only flights within their 7-day window enter the queue, and those are genuinely unconfirmed recent flights. No historical *logged* flight ever becomes `awaiting`.
-- `0006` seeds `country_visit_evidence` (§4) from the published `visits`, `country_claims` and `ground_visits`. The seed equals what a repair produces when there are no awaiting flights and no transit decisions, so the migration needs **no** mass dirty mark. A mass mark (as in `0003:14-16`) would leave every account "updating" until it mutates while production cron is held. Accounts that were already dirty repair as usual.
-- Acceptance (T07): apply `0001`–`0005` to Miniflare D1, then load the fixture: upcoming-past, upcoming-future, upcoming beyond 7 days, completed, legacy-evidence-only, claim-only, a ground visit, a deleted-flight idempotency tombstone and an already-dirty account. Then apply `0006`. Assert identical `flights.id`, `visits`, `user_stats.countries_count`, claims and badges, and the expected lifecycle per row. The triggers must reject the old sync statement and an old-style insert. A fresh-database test alone does not count.
+- **Malformed dates.** An upcoming row with a malformed `date` gets NULL deadlines and fails the assertion instead of becoming a row that can never come due. T07 ships the matching read-only pre-check `SELECT`.
+- **Empty country codes.** `mergeVisits` can write `country_code = ''` (`derivedState.ts:101`), and `countries_count` would count it (`stats.ts:151`). The projection excludes `''`/NULL. The second assertion proves no such row exists before seeding. If the pre-check finds one, T07 fixes the reference data first.
+- **Old non-upcoming flights** become `logged`/`legacy` with `arrival_transit` NULL, which includes both endpoints as today. IDs, `flight_idempotency`, claims, ground visits, `legacy_visit_evidence`, `visits` and `user_stats` are untouched.
+- **Old upcoming flights** keep `upcoming` with UTC deadlines, the old system's own zone. Overdue ones move through ordinary transitions. A flight more than 7 days past its date makes both moves in one pass and lands as `automatic`. Only flights still inside their 7-day window enter the queue. No historical *logged* flight ever becomes `awaiting`.
+- **Projection seed.** `0006` seeds `country_visit_evidence` (§4) from published `visits` (excluding `''`), `country_claims` and `ground_visits`. With no awaiting flights and no transit decisions, the seed equals what the first repair produces, so there is no mass dirty mark. A mass mark (`0003:14-16`) would show every account as "updating" while the cron is held. Already-dirty accounts repair as usual.
 
 ### 4. Country evidence and connections (C3)
 
-**Projection.** `visits` stays the airport aggregate with both endpoints of every non-upcoming flight, so airport counts keep their meaning. `0006` adds:
+**Projection.** `visits` stays the airport aggregate (both endpoints of every non-upcoming flight). `0006` adds `country_visit_evidence`:
 
 | Column | Type / constraint |
 |---|---|
 | `user_id` | `TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE` |
-| `country_code` | `TEXT NOT NULL` (ISO-2) |
+| `country_code` | `TEXT NOT NULL CHECK (length(country_code) = 2)` |
 | `status` | `TEXT NOT NULL CHECK (status IN ('pressed','pending'))` |
-| `logged_visit_count` | `INTEGER NOT NULL DEFAULT 0 CHECK (logged_visit_count >= 0)`: Σ airport visit counts of country-contributing endpoints of logged flights, max-merged with legacy evidence exactly as `derivedState.ts:109-130` |
-| `awaiting_visit_count` | `INTEGER NOT NULL DEFAULT 0 CHECK (awaiting_visit_count >= 0)` |
+| `logged_visit_count` | `INTEGER NOT NULL DEFAULT 0 CHECK (… >= 0)`: Σ airport visit counts of country-contributing endpoints of logged flights, max-merged with legacy evidence as in `derivedState.ts:109-130` |
+| `awaiting_visit_count` | `INTEGER NOT NULL DEFAULT 0 CHECK (… >= 0)` |
 | `claimed` | `INTEGER NOT NULL DEFAULT 0 CHECK (claimed IN (0,1))` |
-| `ground_visit_count` | `INTEGER NOT NULL DEFAULT 0 CHECK (ground_visit_count >= 0)` |
-| `first_visit`, `last_visit` | `TEXT` (`YYYY-MM-DD`; NULL when only claim/ground evidence) |
+| `ground_visit_count` | `INTEGER NOT NULL DEFAULT 0 CHECK (… >= 0)` |
+| `first_visit`, `last_visit` | `TEXT` (`YYYY-MM-DD`; NULL for claim/ground-only) |
 | `policy_version` | `INTEGER NOT NULL DEFAULT 1` |
 | key / index | `PRIMARY KEY (user_id, country_code)`; `idx_country_evidence_user_status ON (user_id, status)` |
 
-A row exists only when at least one count or `claimed` is positive. `status = 'pressed'` iff `logged_visit_count > 0 OR claimed = 1 OR ground_visit_count > 0`. Otherwise the status is `pending` (awaiting-only).
+- A row exists only when a count or `claimed` is positive.
+- `pressed` iff `logged_visit_count > 0 OR claimed = 1 OR ground_visit_count > 0`. Otherwise the row is `pending` (awaiting-only).
+- `country_evidence_suppressions` has columns `user_id … REFERENCES users(id) ON DELETE CASCADE`, `flight_id INTEGER NOT NULL`, `endpoint TEXT NOT NULL CHECK (endpoint IN ('origin','destination'))` and `country_code TEXT NOT NULL`, with `PRIMARY KEY (user_id, flight_id, endpoint)`. It lists only suppressed endpoints and is created empty, because no transit decisions exist at migration.
 
-**Publish flow.** `repairUserDerivedState` adds one batched read to its existing `combineReads` round trip. The read covers lifecycle and time columns of the user's flights (including upcoming flights as potential outgoing legs), claims and ground visits. A pure `deriveCountryEvidence` (`functions/api/_services/countryEvidence.ts`) and a pure `connectionChains` (`_services/connections.ts`) compute the projection. It is written in the same guarded publish batch with the diff-upsert pattern of `visitStatements` (`derivedState.ts:145-168`): delete stale countries, then upsert changed rows. All consumers read only the published projection: passport list and detail, `apps/next/src/server/passport.ts`, `_services/overview.ts`, `me/dashboard-stats.ts` and advanced-stats region breakdowns.
+**Publish flow.** `repairUserDerivedState` adds one read to its `combineReads` batch: flights with lifecycle, time and decision columns (upcoming flights included as potential outgoing legs), claims and ground visits.
 
-- `user_stats.countries_count` counts rows with `logged_visit_count + awaiting_visit_count > 0`. These are flight and legacy countries after transit policy, without claims or ground visits, which is today's meaning. The leaderboard `countries` category, its 5-flight eligibility and `cities` → `airports_count` stay unchanged (`_services/leaderboard.ts:18-24,58`).
-- The passport collection count (pressed, including claims and ground visits) and `pendingCountryCount` are separate DTO fields with distinct labels.
-- `continents_count` and continent badges keep `continentOf7` (`_lib/continents.ts:25-34`, `stats.ts:224`) over the same flight country set, as versioned `badge-continents-v1`. Badges stay award-only (`stats.ts:186-233`), so suppression never revokes an award. The six-region collection model (catalog `continent`: africa 58, americas 54, asia 52, europe 51, oceania 28, antarctica 3; 246 total) is used for Overview, Passport, profile and geographic progress. `functions/` cannot import `@kuuki/data` today, so T08 generates a checked-in country→region map from `packages/data/src/countries.json` with a parity test.
+- Pure functions compute both tables: `connectionChains` (`_services/connections.ts`) and `deriveCountryEvidence` (`_services/countryEvidence.ts`).
+- Both tables are written in the existing guarded publish batch with the diff-upsert pattern of `visitStatements` (`derivedState.ts:145-168`).
+
+Consumers:
+
+- **Passport** list and detail (`passport/countries/*`, `apps/next/src/server/passport.ts`) read only the published projection. Detail derives contributing flight IDs with the same pure policy and returns `derivedState`.
+- **`user_stats.countries_count`** counts projection rows with `logged_visit_count + awaiting_visit_count > 0`: flight and legacy countries after transit policy, no claims or ground visits. That is today's meaning. `continents_count` uses `continentOf7` over the same set. The leaderboard `countries` category, the 5-flight eligibility and `cities` → `airports_count` stay unchanged (`_services/leaderboard.ts:18-24,58`).
+- **The passport collection count** (pressed, including claims and ground visits) and `pendingCountryCount` are separate DTO fields with distinct labels.
+- **Overview.** Overview counts country figures from published data only; it never mixes live endpoints with published suppressions.
+  - `period = 'all'` uses projection rows with `logged_visit_count + awaiting_visit_count > 0`. This now includes legacy evidence, matching Passport (an intentional change from `overview.ts:56-57`).
+  - A year uses canonical non-upcoming endpoints in that year, anti-joined with `country_evidence_suppressions`. Legacy evidence has no reliable per-year attribution, so it stays out of year periods, as today.
+  - While `revision ≠ published_revision`, Overview returns `countries: null` with `countryState: 'updating'` instead of a mixed figure, so a hub never appears as a country while a repair is pending.
+
+**Region models (three, by decision):**
+
+| Model | Where it is used |
+|---|---|
+| `continentOf7` (`_lib/continents.ts:25-34`) | `continents_count` and continent badges, as versioned `badge-continents-v1`. Badges stay award-only (`stats.ts:186-233`). |
+| `regionOf` (`continents.ts:37-45`) | Still drives the persisted `user_advanced_stats` continent and region breakdowns. Their input switches from `visits` countries to the projection's flight countries inside the same repair. At migration the two sets are identical (no transit decisions), so non-dirty accounts are not stale. |
+| Six-region catalog model (`packages/data/src/countries.json` `continent`: africa 58, americas 54, asia 52, europe 51, oceania 28, antarctica 3; 246 total) | Overview, Passport, profile and geographic progress. Computed **at read time** from the published projection through a T08-generated, checked-in country→region map (`functions/` cannot import `@kuuki/data`) with a parity test. Never persisted, so it needs no dirty mark. Retiring `regionOf` consumers later (W4) requires a policy bump plus a dirty mark. |
 
 **Connection chains** (deterministic, no trips entity):
 
-1. Legs are the user's flights, sorted by `departure_utc` when present, otherwise by `date`, with `id` as the stable tiebreak.
-2. A *precise* link A→B needs `A.destination = B.origin`, both `A.arrival_utc` and `B.departure_utc` present, and `0 <= B.departure_utc - A.arrival_utc <= 24h`.
-3. An *estimated* link has the same airport, at least one instant missing, and `B.date ∈ {A.date, A.date + 1 day}`.
-4. For incoming leg A, if one or more precise candidates exist, exactly one must exist. Otherwise exactly one estimated candidate must exist. B must also be the unique incoming candidate under the same rule. Anything else is *ambiguous*: shown for review only, never suppressed automatically.
-5. A maximal chain of unambiguous links has a start country (first origin) and a final country (last destination). A connection endpoint whose country equals either of them is not a third-country candidate.
+1. Sort legs by `departure_utc`, else `date`T00:00Z, with `id` as the tiebreak. The order affects traversal only, not link eligibility.
+2. *Precise* link A→B: `A.destination = B.origin`, both `A.arrival_utc` and `B.departure_utc` present, and `0 <= B.departure_utc - A.arrival_utc <= 24h`.
+3. *Estimated* link: same airport, an instant missing, and `B.date ∈ {A.date, addDays(A.date, 1)}`.
+4. For incoming A: if any precise candidate exists, exactly one must exist; otherwise exactly one estimated candidate must exist. B must be unique for A under the same rule. Anything else is *ambiguous*: review-only, never suppressed automatically. Precise candidates outrank estimated ones. That is this ADR's reading of C3's "equally plausible": a timed connection is more plausible than a date-only one.
+5. A maximal chain of unambiguous links has a start country and a final country. A connection endpoint in either of them is not a third-country candidate.
 
-**Effective arrival policy** for flight F's destination, used identically by queue DTOs, the projection, Overview/Passport, auto-confirm and cleanup:
+**Effective arrival policy** for F's destination, shared by queue DTOs, the projection, Overview, Passport, auto-confirm and cleanup:
 
-1. `arrival_transit` not NULL: use it.
-2. Otherwise, if F is `awaiting`: transit if F has an unambiguous outgoing link (precise or estimated; estimated is labelled) whose hub is a third-country candidate. Otherwise include.
-3. Otherwise (logged `legacy`/`save`, or a changed route): include. This is the existing endpoint policy. No prospective default reclassifies history.
+1. **Explicit decision.** If `arrival_transit` is not NULL, use it. For `= 1`, the suppressed outgoing origin is the stored `arrival_transit_leg_id`, not the live chain. If that leg no longer exists or no longer departs from F's destination airport, only F's destination is suppressed. A later or ambiguous leg never revives the stamp, and the suppression never moves to another leg.
+2. **Prospective default.** Otherwise, if F is `awaiting`: transit if F has an unambiguous outgoing link (estimated links are labelled) whose hub is a third-country candidate; else include. This is provisional and recomputed from the live chain until a decision is written.
+3. **Existing policy.** Otherwise (logged `legacy`/`save`, or route changed): include. No prospective default reclassifies history.
 
-When F's effective policy is transit, the hub country gets no country evidence from F's destination **or** from the matched outgoing leg's origin (whatever that leg's state). Airport evidence keeps both endpoints. A country supported by any other flight, legacy row, claim or ground visit stays. «Выходил в город» (`arrival_transit = 0`) includes the hub, as pending or pressed according to lifecycle.
-
-Period-scoped reads (`_services/overview.ts:56-57,85-114` counts countries straight from flight endpoints, not from `visits`) need the suppressed endpoints in SQL. The same publish batch therefore writes `country_evidence_suppressions`:
-
-- columns: `user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE`, `flight_id INTEGER NOT NULL`, `endpoint TEXT NOT NULL CHECK (endpoint IN ('origin','destination'))`, `country_code TEXT NOT NULL`;
-- key: `PRIMARY KEY (user_id, flight_id, endpoint)`.
-
-It holds only suppressed endpoints, so it stays small. Period queries anti-join it. `0006` creates it empty, because no transit decisions exist at migration time.
+Under transit, the hub country gets no country evidence from F's destination or from the matched leg's origin, whatever that leg's state. Airport evidence keeps both endpoints. A country supported by another flight, legacy row, claim or ground visit stays. «Выходил в город» (`arrival_transit = 0`) includes the hub, as pending or pressed according to lifecycle.
 
 ### 5. Queue, confirmation and transit cleanup (C4)
 
@@ -147,150 +238,268 @@ It holds only suppressed endpoints, so it stays small. Period queries anti-join 
 
 | Table | Columns / constraints |
 |---|---|
-| `lifecycle_operation_receipts` | `user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE`, `operation_id TEXT NOT NULL CHECK (length(operation_id) BETWEEN 8 AND 128)`, `kind TEXT NOT NULL CHECK (kind IN ('confirm','transit_review'))`, `request_digest TEXT NOT NULL`, `batch_nonce TEXT NOT NULL`, `expected_count INTEGER NOT NULL`, `applied_count INTEGER CHECK (applied_count IS NULL OR applied_count = expected_count)`, `pressed_before_json TEXT NOT NULL`, `result_json TEXT`, `created_at TEXT NOT NULL`. `PRIMARY KEY (user_id, operation_id)`; `idx_lifecycle_receipts_created ON (created_at)` |
-| `transit_cleanup_markers` | `user_id TEXT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE`, `status TEXT NOT NULL CHECK (status IN ('dismissed','completed'))`, `candidate_revision TEXT NOT NULL`, `updated_at TEXT NOT NULL` |
+| `lifecycle_operation_receipts` | `user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE`; `operation_id TEXT NOT NULL CHECK (length(operation_id) BETWEEN 8 AND 128)`; `kind TEXT NOT NULL CHECK (kind IN ('confirm','transit_review'))`; `request_digest TEXT NOT NULL`; `batch_nonce TEXT NOT NULL`; `expected_count INTEGER NOT NULL CHECK (expected_count >= 0)`; `applied_count INTEGER NOT NULL DEFAULT 0`; `complete INTEGER NOT NULL DEFAULT 0 CHECK (complete IN (0,1))`; `pressed_before_json TEXT`; `result_json TEXT`; `created_at TEXT NOT NULL`; table `CHECK (applied_count <= expected_count AND (complete = 0 OR applied_count = expected_count))`. `PRIMARY KEY (user_id, operation_id)`; `idx_lifecycle_receipts_created ON (created_at)` |
+| `transit_cleanup_markers` | `user_id TEXT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE`; `status TEXT NOT NULL CHECK (status IN ('dismissed','completed'))`; `candidate_set_digest TEXT NOT NULL`; `updated_at TEXT NOT NULL` |
 
-Endpoints are owner-scoped. Writes require CSRF. They are composed through `apps/next/api-capture.ts` and the generated route table (A1).
+All endpoints are owner-scoped, writes require CSRF, and they are composed through `apps/next/api-capture.ts` and the generated route table (A1).
 
-- **`GET /api/me/awaiting`** has no side effects. It returns:
-  - awaiting flights, each with its candidate link, label (`precise`/`estimated`/`ambiguous`) and effective default;
-  - `candidateRevision`;
-  - unresolved server draft summaries;
-  - `awaitingFlightCount`, `draftRowCount` (server `import_drafts` with `status = 'review'` in unexpired batches) and `actionableCount = awaitingFlightCount + draftRowCount`;
-  - `derivedState` and `revision`.
+**`GET /api/me/awaiting`** has no side effects. It returns:
 
-  A transport failure is an error, never an empty queue. Browser-local legacy drafts (`drafts.ts`) are not counted. They remain readable locally until their own 30-day expiry and are not uploaded.
-- **`candidateRevision`** is the SHA-256 of the canonical JSON of `[flightId, lifecycle_state, date, origin, destination, linkedLegId, label, effectiveDefault]` over the owner's awaiting flights and their linked legs. It is deliberately not `user_derived_state.revision`, which unrelated claims and edits also bump.
-- **`POST /api/flights/confirm`** takes `{operationId, candidateRevision, timezone?, items:[{flightId, arrivalTransit?}]}`, with 1–100 unique items.
-  - Validation is all-or-nothing: an unknown or foreign ID returns `404 NOT_FOUND` for the whole request, and nothing is disclosed. A non-awaiting item returns `409 STATE_CONFLICT` with a per-item `cause` (`logged`/`upcoming`). A recomputed revision that differs returns `409 CANDIDATES_CHANGED`, and the client refetches.
-  - Before the commit, pressed countries are read from the published projection into `pressed_before_json`.
-  - One D1 batch then: inserts the receipt (`ON CONFLICT DO NOTHING`, fresh `batch_nonce`); runs one guarded `UPDATE flights ... WHERE user_id = ? AND id = ? AND lifecycle_state = 'awaiting' AND EXISTS (receipt with this batch_nonce)` per item; sets `applied_count` to the number of rows now `logged` and `user` with this `confirmed_at`, where a mismatch violates the CHECK and rolls back the whole batch (the `derivedState.ts:205-211` technique); and adds `dirtyUserStatement`. A replay carries a different nonce, so its updates are no-ops.
-  - Afterwards, the receipt digest is compared with the request digest: a mismatch returns `409 IDEMPOTENCY_CONFLICT`, and a match returns the replay.
-  - Repair then runs. On success, `result_json = {results, newlyStampedCountries (pressed after − pressed_before), pendingCountryCount}` is stored once and returned with `derivedState: 'ready'` and `revision`. If repair fails, the response is `200` with `derivedState: 'pending'` and `newlyStampedCountries: null`. That is committed-but-pending: the UI shows "finishing save", polls publication and never re-submits the canonical mutation. A replay after publication computes and freezes `result_json` once, then returns it verbatim.
-  - Receipts are kept 14 days. The supported client replay interval is 6 days, the same as create operations.
-- **`GET /api/me/transit-review`** has no side effects. It returns candidates among logged `legacy`/`save` flights with `arrival_transit` NULL and an unambiguous third-country link, with estimate labels, `wouldRemoveStamp` per country (false when the country is supported elsewhere), `candidateRevision` and the marker status.
-- **`POST /api/me/transit-review`** takes `{operationId, candidateRevision, action: 'apply'|'dismiss', flightIds?}`. It uses the same receipt, nonce and all-or-nothing rules. `apply` sets `arrival_transit = 1` on the selected flights, upserts the marker as `completed`, repairs and returns the actual `removedCountries`. `dismiss` writes only the marker. The banner shows only when candidates exist and no marker does. The GET stays reachable from Passport.
+- awaiting flights, each with its candidate link, label (`precise`/`estimated`/`ambiguous`), effective default and `candidateToken`;
+- unresolved server draft summaries;
+- `awaitingFlightCount`, `draftRowCount` (`import_drafts.status = 'review'` in unexpired batches) and `actionableCount = awaitingFlightCount + draftRowCount`;
+- `derivedState` and `revision`.
+
+A transport failure is an error, never an empty queue. Browser-local legacy drafts are not counted. They stay readable locally until their own 30-day expiry and are not uploaded.
+
+**`candidateToken`** is a per flight SHA-256 over:
+
+- the flight's `[id, lifecycle_state, date, origin, destination]`;
+- the linked leg's `[id, date, origin, departure_utc]`;
+- `label` and `effectiveDefault`.
+
+It is scoped per item, so cron or sync ticks on other flights cause no spurious conflicts. It is deliberately not `user_derived_state.revision`.
+
+**`POST /api/flights/confirm`** takes `{operationId, items:[{flightId, candidateToken, arrivalTransit?}]}`, with 1–100 unique flight IDs and no `timezone`. The request digest is the SHA-256 of canonical JSON `{kind:'confirm', items: [[flightId, arrivalTransit ?? null]] sorted by flightId}`. Tokens are excluded, so a refreshed token does not break an exact replay.
+
+1. **Receipt first.** Read `(user_id, operation_id)`.
+   - Digest mismatch → `409 IDEMPOTENCY_CONFLICT`.
+   - Match with `result_json` → return it.
+   - Match without `result_json` → attempt repair, then compute and freeze the result if publication is ready; otherwise return the committed-but-pending outcome.
+   - Validation never runs for a known operation, so an exact replay always returns the recorded result.
+2. **Validate (new operations only).** All-or-nothing:
+   - unknown or foreign ID → `404 NOT_FOUND` for the whole request;
+   - non-awaiting item → `409 STATE_CONFLICT` with a per-item `cause` (`logged`/`upcoming`);
+   - recomputed token differs → `409 CANDIDATES_CHANGED`.
+3. **Snapshot.** If the account is dirty, run `repairUserDerivedState` first. If it is ready, read the pressed set from the published projection into `pressed_before_json`; otherwise store NULL.
+4. **One D1 batch:**
+   - insert the receipt (`ON CONFLICT DO NOTHING`, fresh `batch_nonce`, `expected_count = items.length`);
+   - per item, `UPDATE flights … WHERE user_id = ? AND id = ? AND lifecycle_state = 'awaiting' AND EXISTS (receipt with this nonce)`, followed by `UPDATE lifecycle_operation_receipts SET applied_count = applied_count + changes() WHERE user_id = ? AND operation_id = ? AND batch_nonce = ?`;
+   - `UPDATE … SET complete = 1 WHERE … AND batch_nonce = ?`, where a count mismatch violates the CHECK and rolls back the whole batch (the `derivedState.ts:205-211` technique);
+   - `dirtyUserStatement`.
+
+   A concurrent same-operation request loses the receipt insert, so its nonce matches nothing and the batch commits no change.
+5. **After the batch**, re-read the receipt:
+   - Our nonce → repair.
+   - Another nonce → step 1 (replay or `409 IDEMPOTENCY_CONFLICT`).
+   - A batch error (CHECK or `LIFECYCLE_INVARIANT`) → re-read. If a same-operation winner exists, go to step 1; otherwise re-validate and return `409 STATE_CONFLICT` with causes (or `CANDIDATES_CHANGED`).
+6. **Result.** After a successful repair, `result_json = {results, newlyStampedCountries, pendingCountryCount}` is stored once, with `derivedState: 'ready'` and `revision`. If repair fails, the response is `200` with `derivedState: 'pending'` and `newlyStampedCountries: null`. This is committed-but-pending: the UI shows "finishing save", polls publication and never re-submits.
+
+**Newly stamped (confirm, create, bulk, conversion).** `newlyStampedCountries = (pressed after publication − pressed_before) ∩ countries contributed by the operation's own flights` (their non-suppressed endpoints). It is null when `pressed_before` is NULL or publication is pending.
+
+- Creates take the same snapshot only when the account is already published. They return `newly_stamped_countries` (snake_case, as on the legacy DTO) on fresh `created` results; it is null on `replayed` items or pending publication.
+- The intersection prevents a concurrent claim or edit from being attributed to the operation. The remaining residual (a concurrent mutation that presses the same country) is accepted.
+
+**Retention.** Receipts are kept 14 days; the supported client replay interval is 6 days, as for creates.
+
+**`GET /api/me/transit-review`** has no side effects. It returns:
+
+- candidates among logged `legacy`/`save` flights with `arrival_transit` NULL and an unambiguous third-country link, with `candidateToken`, estimate label and the matched leg;
+- `wouldRemoveStamp` per country (false when supported elsewhere);
+- the marker status.
+
+**`POST /api/me/transit-review`** takes `{operationId, action: 'apply'|'dismiss', items?:[{flightId, candidateToken}]}`. The digest is `{kind:'transit_review', action, flightIds sorted}`. It follows the same receipt-first, nonce and progress rules:
+
+- `apply`: `expected_count = items.length >= 1`. Each update is guarded by `lifecycle_state = 'logged' AND confirmation_source IN ('legacy','save') AND arrival_transit IS NULL` and writes `arrival_transit = 1` plus `arrival_transit_leg_id`. It upserts the marker as `completed`, repairs, and returns the actual `removedCountries` (pressed before minus after).
+- `dismiss`: `expected_count = 0`, marker upsert only.
+
+The banner shows only when candidates exist and no marker does. The GET stays reachable from Passport.
 
 ### 6. Import drafts (migration `0007_import_drafts.sql`)
 
 | Table | Columns / constraints |
 |---|---|
-| `import_batches` | `id TEXT PRIMARY KEY` (UUID); `user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE`; `source_type TEXT NOT NULL CHECK (source_type IN ('pdf','image','text'))`; `source_label TEXT CHECK (source_label IS NULL OR length(source_label) <= 120)` (sanitized base filename or a fixed text label, never content); `status TEXT NOT NULL CHECK (status IN ('processing','review','partial','failed','cancelled','completed'))`; `stage TEXT CHECK (stage IS NULL OR stage IN ('accepted','recognizing','validating','review_ready'))`; `sequence INTEGER NOT NULL DEFAULT 0 CHECK (sequence >= 0)` (monotonic event/revision); `generation INTEGER NOT NULL DEFAULT 1` (job lease fence); `submission_operation_id TEXT NOT NULL`; `error_code TEXT`; `retry_after TEXT`; `processing_deadline TEXT`; `created_at`, `updated_at`, `expires_at TEXT NOT NULL` (`created_at + 30 days`). `UNIQUE (user_id, submission_operation_id)`; `idx_import_batches_user ON (user_id, status, created_at)`; `idx_import_batches_expiry ON (expires_at)` |
-| `import_drafts` | `id TEXT PRIMARY KEY` (immutable UUID); `user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE`; `batch_id TEXT NOT NULL REFERENCES import_batches(id) ON DELETE CASCADE`; `ordinal INTEGER NOT NULL CHECK (ordinal >= 0)`; `fields_json TEXT NOT NULL CHECK (length(fields_json) <= 2048)` (ExtractedFlight fields only); `confidence REAL CHECK (confidence IS NULL OR confidence BETWEEN 0 AND 1)`; `field_confidence_json TEXT CHECK (field_confidence_json IS NULL OR length(field_confidence_json) <= 1024)`; `year_explicit`, `year_confirmed`, `selected`, `edited`, `duplicate_acknowledged` `INTEGER NOT NULL DEFAULT 0 CHECK (… IN (0,1))`; `status TEXT NOT NULL DEFAULT 'review' CHECK (status IN ('review','dismissed','converted'))`; `version INTEGER NOT NULL DEFAULT 1 CHECK (version >= 1)`; `converted_flight_id INTEGER`; `created_at`, `updated_at`. `UNIQUE (batch_id, ordinal)`; `idx_import_drafts_user_status ON (user_id, status)` |
-| `import_conversion_receipts` | `user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE`; `operation_key TEXT NOT NULL`; `draft_id TEXT NOT NULL`; `batch_id TEXT NOT NULL`; `request_digest TEXT NOT NULL`; `flight_id INTEGER NOT NULL`; `created_at TEXT NOT NULL`. `PRIMARY KEY (user_id, operation_key)`; `UNIQUE (user_id, draft_id)`; `idx_import_conversion_receipts_created ON (created_at)`. No FK to drafts, batches or flights, so receipts outlive them as tombstones. |
+| `import_batches` | `id TEXT PRIMARY KEY` (UUID); `user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE`; `source_type TEXT NOT NULL CHECK (source_type IN ('pdf','image','text'))`; `source_label TEXT CHECK (source_label IS NULL OR length(source_label) <= 120)` (sanitized base filename or fixed label, never content); `status TEXT NOT NULL CHECK (status IN ('processing','review','partial','failed','cancelled','completed'))`; `stage TEXT CHECK (stage IS NULL OR stage IN ('accepted','recognizing','validating','review_ready'))`; `sequence INTEGER NOT NULL DEFAULT 0 CHECK (sequence >= 0)`; `generation INTEGER NOT NULL DEFAULT 1`; `submission_operation_id TEXT NOT NULL`; `error_code TEXT`; `retry_after TEXT`; `processing_deadline TEXT`; `created_at`, `updated_at`, `expires_at TEXT NOT NULL` (creation + 30 days). `UNIQUE (user_id, submission_operation_id)`; `idx_import_batches_user ON (user_id, status, created_at)`; `idx_import_batches_expiry ON (expires_at)` |
+| `import_drafts` | `id TEXT PRIMARY KEY` (immutable UUID); `user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE`; `batch_id TEXT NOT NULL REFERENCES import_batches(id) ON DELETE CASCADE`; `ordinal INTEGER NOT NULL CHECK (ordinal >= 0)`; `fields_json TEXT NOT NULL CHECK (length(fields_json) <= 2048)` (ExtractedFlight fields only); `confidence REAL CHECK (confidence IS NULL OR confidence BETWEEN 0 AND 1)`; `field_confidence_json TEXT CHECK (… IS NULL OR length(…) <= 1024)`; `year_explicit`, `year_confirmed`, `selected`, `edited`, `duplicate_acknowledged` `INTEGER NOT NULL DEFAULT 0 CHECK (… IN (0,1))`; `status TEXT NOT NULL DEFAULT 'review' CHECK (status IN ('review','dismissed','converted'))`; `version INTEGER NOT NULL DEFAULT 1 CHECK (version >= 1)`; `converted_flight_id INTEGER`; `created_at`, `updated_at`. `UNIQUE (batch_id, ordinal)`; `idx_import_drafts_user_status ON (user_id, status)` |
+| `import_conversion_receipts` | `user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE`; `operation_key TEXT NOT NULL`; `draft_id TEXT NOT NULL`; `batch_id TEXT NOT NULL`; `request_digest TEXT NOT NULL`; `flight_id INTEGER NOT NULL`; `created_at TEXT NOT NULL`. `PRIMARY KEY (user_id, operation_key)`; `UNIQUE (user_id, draft_id)`; `idx_import_conversion_receipts_created ON (created_at)`. No FK to drafts, batches or flights: receipts are tombstones. |
 
-- **Limits.** A batch holds at most 100 drafts (the current `MAX_DRAFT_ROWS`). An owner may have 10 unexpired batches and 1 batch in `processing`. Invalid references stay correctable drafts and never enter `flights`.
-- **Never persisted.** Uploaded bytes, base64, pasted text, provider responses and `raw_text` are never written to D1, DO storage, queues, R2, logs or browser storage. The job path drops `raw_text` at normalization. No snippet is stored until a verified parser field exists.
-- **Shared bulk-create service.** `createFlightStatements` and the result reconciliation move from `flights/bulk.ts:40-77` into `functions/api/_services/flightCreate.ts` as `bulkCreate(db, userId, items, {timezone, conversion?})`. `/flights/bulk` and draft confirmation both call it. There is no internal HTTP round trip and no second validation path (`parseFlightBodies`, `_lib/flightValidation.ts:26-51`).
-- **Draft conversion.** `POST /api/import/batches/:id/confirm` takes `{timezone?, items:[{draftId, version, key}]}`, with at most `FLIGHT_BULK_CREATE_MAX` (50) items. The batch must be unexpired. Each key is used as the `flight_idempotency` key.
-  - In the same batch as the flight: `INSERT INTO import_conversion_receipts ... SELECT ... FROM flight_idempotency WHERE key = ? AND flight_id IS NOT NULL ON CONFLICT DO NOTHING`, plus `UPDATE import_drafts SET status = 'converted', converted_flight_id = ..., version = version + 1 WHERE id = ? AND version = ? AND status = 'review'`.
-  - Before creating, the service checks the conversion receipt. A matching digest replays. A deleted flight returns `410 CONVERTED_FLIGHT_DELETED` and is never recreated. A differing digest returns `409`.
-  - Receipts are kept **37 days** from creation: the 30-day draft lifetime, plus the 6-day client retry window, plus a 1-day margin. That outlives the 7-day `flight_idempotency` purge.
-  - Lifecycle per row follows the create rows of §2.
-- **`PATCH /api/import/drafts/:id`** is version-checked: `409 DRAFT_VERSION_CONFLICT` when the version is stale or the draft is already converted.
-- **Duplicate matching** runs against the full owned history at batch read and confirm, using the `duplicate-candidates.ts` json_each tuple query (`date`, `origin`, `destination`, excluding `converted_flight_id`). It is never computed from client pages.
-- **Expiry.** Expired batches cannot convert. Cleanup (§8) deletes drafts at `expires_at` and batch rows 7 days later, which equals the 37-day receipt horizon.
-- **Account deletion.** `deleteUserCascade` (`functions/api/_lib/users.ts:72-96`) adds `import_conversion_receipts`, `import_drafts`, `import_batches`, `lifecycle_operation_receipts`, `transit_cleanup_markers`, `country_evidence_suppressions` and `country_visit_evidence` ahead of `flights`, in the same atomic batch. There is no reliance on the FK cascade.
-- **Deletion fence.** Every job write is `INSERT … SELECT … WHERE EXISTS (SELECT 1 FROM import_batches WHERE id = ? AND user_id = ? AND status = 'processing' AND generation = ?)`. After cancel, discard (`DELETE`) or account deletion, late writes match nothing. Discard deletes the batch row, so a later callback cannot resurrect it.
+**Limits and storage rules.**
 
-### 7. Migration numbering
+- **Limits:** 100 drafts per batch (the current `MAX_DRAFT_ROWS`), 10 unexpired batches per owner, and 1 batch `processing` per owner. Invalid references stay correctable drafts and never enter `flights`.
+- **Never persisted:** uploaded bytes, base64, pasted text, provider responses and `raw_text`, in any of D1, DO storage, queues, R2, logs or browser storage. Normalization drops `raw_text`. No snippet is stored until a verified parser field exists.
 
-The next free numbers are confirmed from `db/migrations` (latest `0005_profiles_created_at.sql`): **`0006_flight_lifecycle.sql`** (lifecycle columns, triggers, backfill, `country_visit_evidence` plus seed, `country_evidence_suppressions`, `lifecycle_operation_receipts`, `transit_cleanup_markers`) and **`0007_import_drafts.sql`**. Both are additive (no DROP, no rename) and ship as separate files so deployment can be sequenced. Numbering is rechecked against the architecture migration ledger (H5) before T07 lands.
+**Shared services.**
+
+- **`bulkCreate`.** `createFlightStatements` and result reconciliation move from `flights/bulk.ts:40-77` into `functions/api/_services/flightCreate.ts` as `bulkCreate(db, userId, items, {timezone, conversion?})`. `/flights/bulk` and draft confirmation both call it, with no internal HTTP round trip and no second validation path (`parseFlightBodies`, `_lib/flightValidation.ts:26-51`).
+- **Synchronous batch writer (controller ruling R3, T10 scope).** `POST /api/import/jobs` exists in T10 regardless of H5. It authenticates, CSRF-checks and rate-limits (`parse.ts:267`), and is idempotent on `submission_operation_id`.
+  - **No job binding:** it runs the parse normalization extracted from `parse.ts` (`extractFlights`, the same prompt, schema, model and limits) synchronously in the request. It then writes the batch plus all drafts in one D1 batch through the shared `persistDraftRows` (status `review`, `partial` or `failed` with a structured `error_code`) and returns the batch snapshot.
+  - **H5 option (a) with a binding:** the same endpoint dispatches to the DO (§9).
+  - Clients poll `GET /api/import/batches/:id`, which is also T10. The synchronous `POST /api/import/parse` stays for old clients.
+
+**Draft endpoints.**
+
+- **Draft conversion.** `POST /api/import/batches/:id/confirm` takes `{timezone?, items:[{draftId, version, key}]}`, with at most `FLIGHT_BULK_CREATE_MAX` (50) items. Each `key` is the `flight_idempotency` key.
+  1. **Receipt first.** For each item, read the conversion receipt by `(user_id, operation_key)`, and also by `(user_id, draft_id)`. This happens before any batch-existence or expiry check, so a replay survives batch deletion and expiry.
+     - Matching digest → replay.
+     - Flight gone → `410 CONVERTED_FLIGHT_DELETED`, never recreated.
+     - Differing digest → `409 IDEMPOTENCY_CONFLICT`.
+     - The draft was already converted under another key → `409 DRAFT_ALREADY_CONVERTED` with that flight id.
+  2. Otherwise the batch must exist and be unexpired.
+  3. **Per item, in one D1 batch, in this order:**
+     - `UPDATE import_drafts SET status = 'converted', version = version + 1 WHERE id = ? AND user_id = ? AND version = ? AND status = 'review'`;
+     - the ledger insert `INSERT INTO flight_idempotency … SELECT … WHERE changes() = 1 ON CONFLICT DO NOTHING`;
+     - the flight insert `WHERE changes() = 1`;
+     - the ledger link `SET flight_id = last_insert_rowid() … AND changes() = 1`;
+     - `INSERT INTO import_conversion_receipts SELECT ?, ?, ?, ?, ?, flight_id, ? FROM flight_idempotency WHERE user_id = ? AND key = ? AND flight_id IS NOT NULL ON CONFLICT DO NOTHING`;
+     - `UPDATE import_drafts SET converted_flight_id = (SELECT flight_id FROM flight_idempotency WHERE user_id = ? AND key = ?) WHERE id = ? AND user_id = ?`.
+
+     A second tab or a retry with a new key fails the version-guarded draft update, so the chain creates nothing.
+  4. **Afterwards**, a missing ledger or receipt for the item maps to `DRAFT_VERSION_CONFLICT`, or to `DRAFT_ALREADY_CONVERTED` when a receipt exists for the draft.
+
+  Lifecycle per row follows the create rows of §2. Conversion receipts are kept **37 days from their own creation**: the 30-day draft life, plus the 6-day client retry, plus a 1-day margin. That outlives the 7-day `flight_idempotency` purge.
+- **`PATCH /api/import/drafts/:id`** is version-checked and owner-scoped. It returns `409 DRAFT_VERSION_CONFLICT` when the version is stale or the draft is converted.
+- **Duplicate matching** runs over the full owned history at batch read and confirm, with the `duplicate-candidates.ts` json_each tuple query (`date`, `origin`, `destination`, excluding `converted_flight_id`).
+
+**Retention and deletion.**
+
+- **Expiry.** Expired batches cannot convert. Cleanup (§8) deletes drafts at `expires_at` and batch rows at `expires_at + 7 days`. Receipts age independently from their own `created_at`.
+- **Discard** (`DELETE /api/import/batches/:id`) deletes the batch's drafts explicitly, then the batch, in one batch. It never relies on the FK cascade (`0001_init.sql:13-14`).
+- **Account deletion.** `deleteUserCascade` (`functions/api/_lib/users.ts:72-96`) adds `import_conversion_receipts`, `import_drafts`, `import_batches`, `lifecycle_operation_receipts`, `transit_cleanup_markers`, `country_evidence_suppressions` and `country_visit_evidence` ahead of `flights`, in the same atomic batch.
+- **Deletion fence.** Every job write is `INSERT … SELECT … WHERE EXISTS (SELECT 1 FROM import_batches WHERE id = ? AND user_id = ? AND status = 'processing' AND generation = ?)`. After cancel (`generation + 1`), discard or account deletion, late writes match nothing.
+
+### 7. Migration numbering and deploy order
+
+The next free numbers come from `db/migrations` (latest `0005_profiles_created_at.sql`):
+
+- **`0006_flight_lifecycle.sql`**: columns, backfill and assertions, triggers, indexes, `country_visit_evidence` plus seed, `country_evidence_suppressions`, `lifecycle_operation_receipts`, `transit_cleanup_markers`.
+- **`0007_import_drafts.sql`**.
+
+Both are additive (no DROP or rename), and the numbers are rechecked against the architecture ledger (H5).
+
+**Deploy order:** apply `0006`, then deploy T07+ code; apply `0007`, then deploy T10 code. T07 code writes the new columns and cannot run on a pre-`0006` schema. The pre-lifecycle build keeps creating flights through the §1 adapter between the two steps, so there is no outage.
 
 ### 8. Maintenance ordering (T09)
 
-The order in `workers/maintenance/index.ts`:
-
-1. `MAINTENANCE_MODE === 'true'` → return before any DB access (unchanged, line 15).
-2. `applyDueTransitions` upcoming→awaiting. Up to 50 users per cycle, chosen by oldest `awaiting_after`, and up to 100 flights per user. Each user is one batch with a dirty mark.
-3. The same function for awaiting→logged `automatic`, with the same bounds and effective-policy computation.
-4. Dirty repair (the existing 100 oldest-first loop, lines 48-54). This publishes steps 2–3.
+1. `MAINTENANCE_MODE === 'true'` → return before any DB access (unchanged, `workers/maintenance/index.ts:15`).
+2. `applyDueTransitions` upcoming→awaiting: up to 50 users by oldest `awaiting_after`, up to 100 flights per user, one batch per user.
+3. The same for awaiting→logged `automatic`, with the revision guard of §2.
+4. Dirty repair (the existing loop, lines 48-54). This publishes steps 2–3.
 5. `refreshLeaderboards`.
-6. Cleanup of: existing auth/session rows; `flight_idempotency` older than 7 days; `lifecycle_operation_receipts` older than 14 days; `import_drafts` of expired batches; `import_batches` older than `expires_at + 7 days`; `import_conversion_receipts` older than 37 days. Batches in `processing` past `processing_deadline` become `partial` (if they have rows) or `failed` with `JOB_INTERRUPTED`, and `generation` increments.
-7. Status update. Remaining dirty users or remaining due transitions make the cycle a retryable failure, as at line 72, never a false success.
+6. Cleanup:
+   - existing auth/session rows;
+   - `flight_idempotency` > 7 days;
+   - `lifecycle_operation_receipts` > 14 days;
+   - drafts of expired batches;
+   - batches past `expires_at + 7 days`;
+   - `import_conversion_receipts` > 37 days.
 
-Ordering by due instant and capping work per user is the fairness rule. The cursor is the stored deadline itself, so a missed day or a long outage catches up without moving eligibility. The 5-minute cron (`wrangler.toml:6`) bounds the lag. Both checked-in configs keep `MAINTENANCE_MODE = "true"`, and no task flips production. Until the authorized release enables the cron, owner sync (§2) still applies due transitions on visit. T09 delivers preview enablement steps only.
+   `processing` batches past `processing_deadline` become `partial` (rows exist) or `failed`, with `JOB_INTERRUPTED` and `generation + 1`.
+7. Status update. Remaining dirty users or remaining due transitions make the cycle a retryable failure (line 72), never a false success.
+
+**Fairness and catch-up.** Work is ordered by due instant and capped per user; the stored deadline is the cursor. Missed days and outages catch up without moving eligibility, and the cron runs every 5 minutes (`wrangler.toml:6`).
+
+**Production state.** Both checked-in configs keep `MAINTENANCE_MODE = "true"`, and no task flips production. While the cron is held, the Next member shell's owner sync (§2, R1) is the only path for both due transitions. It runs when a member uses the app, and a member who never visits keeps upcoming flights until the cron is enabled. T09 ships preview-enablement steps only.
 
 ### 9. Recognition job runtime (C5, A6): OPEN owner decision
 
-**Target design**, used if the binding exists:
+**Target design** (requires a binding):
 
-- `workers/import/{index.ts, ImportJob.ts, tsconfig.json}`. One Durable Object per batch, named `idFromName(`${userId}:${batchId}`)`, reached only through the same-origin API adapter via a service/DO binding. There is no public endpoint.
-- `POST /api/import/jobs` (auth, CSRF, `import-parse` rate limit, `parse.ts:267`): insert the batch (`processing`, `accepted`, idempotent on `submission_operation_id`), then hand the in-memory input to the DO, then respond with `{batchId}`. A duplicate submission returns the same batch and never starts a second provider call.
-- The DO runs `generateContentStream` with the unchanged prompt, schema and normalization (extracted from `parse.ts`). A bounded incremental scanner emits only complete `flights[]` objects. Each row is validated and persisted (fenced insert, `sequence + 1`) **before** the notify. The final envelope reconciles ordinals. An invalid tail keeps the valid rows as `partial`.
-- `GET /api/import/batches/:id/events?after=N` is SSE carrying `{sequence, rowIds}` only. D1 is authoritative. A sequence gap returns a snapshot instruction. A disconnect only unsubscribes.
-- Cancel aborts the provider and increments `generation`. Discard deletes the batch.
-- A runtime restart loses the unextracted input. Reconciliation marks the batch interrupted, keeps its rows and asks for a reupload.
-- Limits stay as today: 10 MiB file, 14 MiB body, 100,000 characters, 90 s provider timeout (`parse.ts:18-22`, `_provider.ts:6`). Output, events and drafts are bounded.
+- `workers/import/{index.ts, ImportJob.ts, tsconfig.json}`: one Durable Object per batch, `idFromName(`${userId}:${batchId}`)`. It is reached only through the same-origin API adapter via a service/DO binding, with no public endpoint.
+- **Submission.** `POST /api/import/jobs` inserts the batch (`processing`, `accepted`), hands the in-memory input to the DO, then responds `{batchId}`. A duplicate submission returns the same batch and never starts a second provider call.
+- **Extraction.** The DO runs `generateContentStream` with the unchanged prompt, schema and normalization (`extractFlights`). A bounded incremental scanner emits only complete `flights[]` objects. Each row is persisted (fenced insert through `persistDraftRows`, `sequence + 1`) **before** the notify. The final envelope reconciles ordinals, and an invalid tail keeps the valid rows as `partial`.
+- **Events.** `GET /api/import/batches/:id/events?after=N` is SSE carrying `{sequence, rowIds}`. D1 is authoritative. A sequence gap returns a snapshot instruction, and a disconnect only unsubscribes.
+- **Cancel and discard.** Cancel aborts the provider and increments `generation`. Discard follows §6.
+- **Restart.** A restart loses the unextracted input. Reconciliation marks the batch interrupted, keeps its rows and asks for a reupload.
+- **Limits.** As today: 10 MiB file, 14 MiB body, 100,000 characters, 90 s (`parse.ts:18-22`, `_provider.ts:6`). Output, events and drafts are bounded.
 
 **Options:**
 
-- (a) T11 builds `workers/import` plus a **local-only** binding and a Miniflare disconnect/interrupt proof. Production wiring (Wrangler, DO migration tag, compatibility date) goes to architecture.
-- (b) Wait for the architecture session.
-- (c) Narrow T11 to server-persisted drafts over the existing synchronous parse: same tables and API, no SSE, the client polls `GET /api/import/batches/:id`.
+- **(a)** T11 builds `workers/import`, a local-only binding and a Miniflare disconnect/interrupt proof. Production wiring (Wrangler, DO migration tag, compatibility date) goes to architecture.
+- **(b)** Wait for architecture.
+- **(c)** No streaming: the T10 synchronous batch writer (§6) is the whole runtime and clients poll the batch.
 
 **Recommendation: (a).**
 
-- It honours the user-selected streaming scope, which (c) silently drops.
-- It does not stall W3 on an unscheduled dependency, which (b) does.
-- Everything (c) needs (§6 tables, conversion, the synchronous path kept for old clients) is built in T10 regardless. If architecture declines or delays production wiring, (a) degrades to (c) with no rework.
-- Risks: a Durable Object needs its own Worker script and binding, outside the OpenNext bundle. The keep-alive compatibility claim in C5 (Cloudflare changelog 2026-10-01) is unverified here, and the Miniflare proof must establish it.
+- It honours the user-selected streaming scope, which (c) drops.
+- It does not stall W3 on an unscheduled dependency, as (b) would.
+- (c) is fully built in T10 under R3. `POST /api/import/jobs` dispatches to the DO only when the binding is present, so if architecture declines or delays the wiring, (a) degrades to (c) through configuration, without rework.
+- Risks: the DO needs its own Worker script and binding outside the OpenNext bundle, and the keep-alive and compatibility claims in C5 (Cloudflare changelog 2026-10-01) are unverified until the Miniflare proof.
 
-**This is the owner's decision (A6) and must be recorded before T11 starts.** T07–T10 do not depend on it.
+**The owner decides before T11 starts (A6).** T07–T10 do not depend on the choice.
 
 ### 10. Rollback floor
 
-Once `0006` has run, the rollback floor is a build of the post-T07 `functions/api` (the lifecycle-aware compatibility writer that dual-writes `is_upcoming`). That applies to both the Next worker and the fallback Pages worker, which share this code (`apps/next/worker.ts:33-47`). The current production Pages and maintenance builds are **below** the floor. If they resume, the §1 triggers make their sync, cron and future-create writes fail with `LIFECYCLE_INVARIANT` instead of corrupting state. That is intended, and rollback procedures must not drop the triggers.
+**The floor.** After `0006`, the rollback floor for normal operation is a build of the post-T07 `functions/api`, the lifecycle-aware writer. That covers both the Next worker and the fallback Pages worker, which share the bundle (Context).
 
-During rollback:
+**Below the floor.** Builds below the floor (current production Pages and maintenance) are *tolerated* by the §1 adapter rather than blocked:
 
-- hold `MAINTENANCE_MODE=true` (no automatic transitions);
-- stop new job starts (the DO binding is absent or the jobs route returns 503; the synchronous parse remains);
+- old creates become `save`/`upcoming` (UTC);
+- the old sync and cron move flights to `awaiting`, never silently `logged`;
+- the old edit-to-future becomes `upcoming`.
+
+So the plan's "old silent sync must not resume" holds in effect. Such builds still lose confirmation, auto-confirm, transit decisions and drafts, so rollback targets the floor. The adapter only prevents outage and corruption. Rollback procedures must not drop the triggers.
+
+**During rollback:**
+
+- hold `MAINTENANCE_MODE=true`;
+- stop new job starts (the binding is absent or the jobs route returns 503; the synchronous paths remain);
 - keep all additive tables, drafts and receipts;
-- let repair reconcile dirty state;
-- rely on the `generation`/status fences for cancelled or deleted jobs.
+- let repair reconcile;
+- rely on the `generation`/status fences.
 
-No down-migration exists, and no rollback deletes user data. T07 extends `scripts/rehearse-next-rollback.ts` to a post-`0006` database.
+No down-migration exists and no rollback deletes user data. T07 extends `scripts/rehearse-next-rollback.ts` to a post-`0006` database with a pre-lifecycle Pages bundle.
 
 ### 11. Conflicts between C2–C5 and the code, and their resolutions
 
 | # | Conflict | Resolution |
 |---|---|---|
-| 1 | Sync and cron flip on `date <= today` (UTC), so same-day flights complete on departure day (`sync-upcoming.ts:18`, maintenance `:24`). C2: awaiting only from the next local midnight. | Replaced by stored `awaiting_after`. Same-day creates still log directly (`save`). |
-| 2 | Create uses UTC "today" (`flights/index.ts:29-32`). | Captured zone; UTC only as the old-client fallback. |
-| 3 | An edit without `date` keeps `is_upcoming` (`[id].ts:76`). A date edit has no awaiting concept. | §2 edit rows. Adds the C2-missing "upcoming edited to past → awaiting/upcoming" row. |
-| 4 | `digestInput` hashes the full input. Adding `timezone` to it would conflict every pre-deploy replay. | `timezone` is excluded from the digest. |
-| 5 | Countries come from `visits` in four consumers, and Overview derives period countries from raw flight endpoints (`overview.ts:56-57`). Suppression must keep airport rows. | `country_visit_evidence` for all-time reads and `country_evidence_suppressions` anti-join for period reads. Every country consumer switches. `visits` is unchanged. |
-| 6 | `continents_count` uses the 7-way `continentOf7` (NA/SA split, `OTHER` counts), not the six regions. Badges read it. | Badges and the stat keep `continentOf7` (`badge-continents-v1`). Six regions are a separate collection metric. |
-| 7 | Claims and ground visits mark dirty but feed no derived table. | They now feed the projection; the existing marks become meaningful. |
-| 8 | C5 status enum has no `interrupted`. | `partial`/`failed` plus `error_code = 'JOB_INTERRUPTED'`. |
-| 9 | C4 says "reuse create replay". `flight_idempotency` lives 7 days, but drafts live 30. | Conversion receipts with 37-day retention. Lifecycle receipts get their own table (14 days). |
-| 10 | A table rebuild for CHECKs risks `sqlite_sequence` id reuse against tombstones. | `ADD COLUMN` plus triggers (§1). |
-| 11 | `parse.ts:241` returns `raw_text` to clients. | The synchronous endpoint keeps it for old clients. Job and draft paths never store it. |
-| 12 | A mass dirty mark (the `0003` precedent) would show "updating" for every account while cron is held. | An exact seed of the projection (§3). No mass mark. |
+| 1 | Sync and cron flip on `date <= today` (UTC), so a same-day flight completes on its departure day (`sync-upcoming.ts:18`, maintenance `:24`). | Stored `awaiting_after`. Same-day creates log directly (`save`). |
+| 2 | Create uses UTC today (`flights/index.ts:29-32`). | Captured zone; UTC only as the old-client fallback. |
+| 3 | An edit without a date keeps `is_upcoming` (`[id].ts:76`). C2 has no "upcoming edited to past" row. | §2 rows, including the added one. |
+| 4 | `digestInput` hashes the full input. | `timezone` is excluded. |
+| 5 | Countries come from `visits`, and Overview reads them live from endpoints (`overview.ts:38-57`). | Published projection plus suppressions. Overview reads only published data and returns `updating` while a repair is pending. |
+| 6 | Three region models exist: `continentOf7`, `regionOf` and the six-region catalog. | §4 table. Six regions are read-time only. |
+| 7 | Claims and ground visits feed no derived table. | They feed the projection. |
+| 8 | C5 has no `interrupted` status. | `partial`/`failed` plus `JOB_INTERRUPTED`. |
+| 9 | `flight_idempotency` lives 7 days; drafts live 30. | 37-day conversion receipts. Lifecycle receipts are kept 14 days. |
+| 10 | A rebuild risks `sqlite_sequence` id reuse. | `ADD COLUMN` plus triggers. |
+| 11 | `parse.ts:241` returns `raw_text`. | Kept for old clients; never stored. |
+| 12 | The `0003` mass dirty mark precedent. | Exact seed; no mass mark. |
+| 13 | Next never calls sync-upcoming, and the cron is held, so D11 would never fire for Next users. | R1 activity-island trigger (§2). |
+| 14 | C4 names one top-level `candidateRevision`. | Per-item `candidateToken`. Same validation intent, without spurious conflicts. |
 
 ## Consequences
 
-- Most `is_upcoming` readers (overview, dashboard-stats, routes, durations, stats, advanced stats) are correct without change, because `awaiting` projects to `0` and counts as completed, which C2 wants. T07 still audits each reader and switches new code to `lifecycle_state`.
-- Old `apps/web` clients keep working. They send no zone (UTC fallback), see awaiting flights as completed and never confirm, and auto-confirm or owner sync resolves those flights.
-- Pre-lifecycle writers fail loudly after `0006`. The release order must deploy compatible code with or before the migration (architecture-owned release step).
-- Repair does more work per mutation: one more read and a country diff of at most 246 rows.
-- Seven new tables are added to the account-deletion cascade.
+- Most `is_upcoming` readers (routes, durations, stats, advanced stats, dashboard-stats) stay correct because `awaiting` projects to `0`, which counts as completed, as C2 requires. T07 audits every reader and moves new code to `lifecycle_state`.
+- Old `apps/web` clients keep working. They send no zone (UTC), see awaiting flights as completed and never confirm. Their own sync calls and the Next shell's sync resolve those flights.
+- Migrate-then-deploy has no create outage. Pre-lifecycle writers degrade but never corrupt.
+- Repair does more work per mutation: one more read and a country diff of at most 246 rows. Confirm and create add one published-projection read.
+- Seven new tables join the account-deletion cascade.
 
 ## Alternatives considered
 
-- **Table rebuild with full CHECKs:** rejected because of id-reuse and FK/rebuild risk on D1 (§11 #10).
-- **`user_derived_state.revision` as the candidate revision:** rejected because unrelated mutations would cause spurious conflicts.
-- **Per-item partial confirmation:** rejected. All-or-nothing makes replay and the "state conflict" contract unambiguous.
-- **Storing contributing flight IDs per country:** rejected. The detail endpoint derives them with the same pure policy at the published revision and returns `derivedState` if a repair is pending.
-- **A dedicated `did_not_fly` state:** rejected (C2: a client-deferred delete).
-- **Auto-confirm in cron only:** rejected, because production cron is held. Owner sync shares the function.
+- **Table rebuild with full CHECKs:** rejected (id reuse, §11 #10).
+- **Abort pre-lifecycle writers:** rejected under R2 (create outage between migrate and deploy).
+- **`BEFORE` triggers:** SQLite cannot assign `NEW.*` in a trigger, so adaptation requires `AFTER` plus an `UPDATE`.
+- **`user_derived_state.revision` or a whole-queue hash as the candidate revision:** rejected (spurious conflicts).
+- **Per-item partial confirmation:** rejected. All-or-nothing keeps replay and conflict semantics unambiguous.
+- **Recomputing explicit-transit suppression from the live chain:** rejected (stamp revival, review I2). The matched leg is stored.
+- **Storing contributing flight IDs per country:** rejected. Derived at read with the same policy.
+- **A dedicated `did_not_fly` state:** rejected (C2).
+- **Auto-confirm in the cron only:** rejected, because the cron is held. The owner sync shares the function (R1).
+
+## Acceptance tests (must be proven)
+
+| # | Proof | Task |
+|---|---|---|
+| A1 | `CREATE TRIGGER … BEGIN … END;` applies through `wrangler d1 migrations apply` (statement splitting) on Miniflare, and later on remote isolated D1. A `RAISE(ABORT)` inside `db.batch` rolls back the whole batch. | T07 |
+| A2 | Upgrade `0001`→`0005`→fixture→`0006`: identical IDs, `visits`, `countries_count` and badges; the seed equals the first repair, including the `''`-country case. Old sync, old past and future insert, and old edit-to-future behave per §1. | T07 |
+| A3 | Concurrent same-operation and different-operation confirms. Exact replay after commit and after the rolled-back path. Committed-but-pending, then a replay. | T09 |
+| A4 | Two-tab conversion with different keys yields exactly one flight. Replay after 8 and after 36 days. `410` tombstone after the flight is deleted. | T10 |
+| A5 | Explicit transit, then each of: adding an ambiguous leg, deleting the matched leg, adding an unrelated leg D. The hub stamp neither reappears from A nor from the stored leg, and never moves (see open item 7 for D). | T08 |
+| A6 | DST-midnight zones (America/Santiago, America/Havana), ±14h, UTC; multi-week missed-cron catch-up; the 7-day boundary ±1 ms. | T07/T09 |
+| A7 | Overview, Passport and the queue agree before and after confirm and during a pending repair. | T08/T09 |
+| A8 | `newlyStampedCountries` with a concurrent claim and a stale published projection. | T09 |
+| A9 | A Next-only session (no `apps/web`) moves flights to `awaiting` and auto-confirms with the cron held, through the R1 trigger. | T09 |
+| A10 | A job write after cancel, discard or account deletion matches nothing. Under option (a), DO keep-alive after client disconnect. | T10/T11 |
 
 ## Open items
 
-1. **H5 runtime (§9):** owner chooses (a), (b) or (c) before T11. The recommendation is (a).
-2. **D1 trigger support in migrations** is assumed. T07's Miniflare upgrade test must prove it. If triggers are unavailable, the invariants become application-only and the rollback floor becomes procedural.
-3. **Migration ledger:** confirm `0006`/`0007` with the architecture owner (H5) before T07 writes them.
-4. **DO compatibility date and keep-alive behaviour** (C5 citation) are unverified and must be proven in the T11 Miniflare and isolated-environment checks.
-5. **Production enablement** of the maintenance cron and of job bindings stays in the architecture release procedure.
-6. **Transit-only production estimate:** see `docs/research/2026-10-05-transit-validation-proposal.md`. It runs only with authorization.
+1. **H5 runtime (§9):** owner chooses (a), (b) or (c) before T11; the recommendation is (a).
+2. **D1 support for triggers and the migration assertion table** is assumed and proven by A1. If triggers fail, the invariants become application-only and old-writer adaptation is lost. The deploy order would then need a short write hold, which is an owner decision.
+3. **Migration ledger:** confirm `0006`/`0007` with the architecture owner before T07.
+4. **DO compatibility date and keep-alive** (C5 citation) are unverified and must be proven in T11.
+5. **Production enablement** of the cron and the job bindings stays in the architecture release procedure.
+6. **Transit-only production estimate:** `docs/research/2026-10-05-transit-validation-proposal.md`. It runs only with authorization.
+7. **Review test 5, the "add D" case (partially contested).** This ADR does not suppress an unrelated later leg D that departs from the hub, because a separate departure is genuine evidence of presence in that country. D can make the hub pressed. That is not revival of A's suppressed evidence, which stays suppressed through the stored `arrival_transit_leg_id`. If the owner wants D suppressed too, that needs a new rule, which this ADR does not invent.
+8. **The Overview `'all'` period now includes legacy evidence** (§4). The figure can rise for accounts with legacy-only countries. W4 labels it accordingly.
