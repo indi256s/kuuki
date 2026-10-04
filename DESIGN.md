@@ -57,19 +57,19 @@ Names are fixed; values live only in `apps/next/src/app/styles.css` (`:root`, `:
 | `--success-fill`, `--warning-fill`, `--info-fill`, `--danger-fill` | Fill grade for backgrounds and icons; never used for text. |
 | `--rank-gold`, `--rank-silver`, `--rank-bronze` | Text grade, ≥4.5:1 on surface; always paired with the rank number. |
 | `--radius-xs` (6px), `--radius-sm` (10), `--radius-md` (14), `--radius-lg` (20), `--radius-full` (9999px) | Chips; controls; cards/popovers; dialogs/sheets; pills and avatars. |
-| `--space-1` … `--space-12` (4, 8, 12, 16, 20, 24, 32, 48px as `--space-1/2/3/4/5/6/8/12`) | 4pt spacing scale. |
+| `--space-1` (4px), `--space-2` (8), `--space-3` (12), `--space-4` (16), `--space-5` (20), `--space-6` (24), `--space-8` (32), `--space-12` (48) | 4pt spacing scale. |
 | `--surface-floating` | Level 2 fill: equals `--surface` in light, one step lighter in dark. |
 | `--shadow-floating`, `--shadow-modal`, `--ring-floating` | Level 2/3 shadows; dark theme uses the ring instead of a shadow. |
 | `--scrim` | Modal backdrop (black 40% light, 60% dark). |
 | `--outline-media` | 1px outline on images and avatars (black 10% light, white 10% dark). |
 | `--font-sans`, `--font-mono` | Onest stack; JetBrains Mono stack for ticket data only. |
 | `--map-land`, `--map-border`, `--map-route` | Map base layers; follow theme. |
-| `--map-bucket-1` … `--map-bucket-4` | Sequential ramp from the current accent over `--map-land`, bucket 1 lightest; thresholds 1, 2–3, 4–9, 10+ from one shared function; follows `data-accent` and theme. |
+| `--map-bucket-1`, `--map-bucket-2`, `--map-bucket-3`, `--map-bucket-4` | Sequential ramp from the current accent over `--map-land`, bucket 1 lightest; thresholds 1, 2–3, 4–9, 10+ from one shared function; follows `data-accent` and theme. |
 | `--ease-out`, `--ease-in-out`, `--ease-drawer`, `--ease-icon`, `--dur-press`, `--dur-fast`, `--dur-base`, `--dur-sheet`, `--dur-moment` | Motion tokens, see Motion. |
 
 ## Typeface decision
 
-Onest is confirmed. The specimen in [`docs/design/font-specimen.html`](docs/design/font-specimen.html) compares Onest, Golos Text and Manrope on real RU/EN navigation, field, airport-route, numeral and plural strings. Onest keeps full Cyrillic coverage, has tabular figures, and keeps IATA codes legible beside city names. Golos Text and Manrope load from Google Fonts for the specimen only and are never shipped.
+Onest is confirmed. The specimen in [`docs/design/font-specimen.html`](docs/design/font-specimen.html) compares Onest, Golos Text and Manrope on real RU/EN navigation, field, airport-route, numeral and plural strings (screenshot: `docs/design/font-specimen.png`). Onest keeps full Cyrillic coverage, has tabular figures, and keeps IATA codes legible beside city names. Golos Text and Manrope load from Google Fonts for the specimen only and are never shipped.
 
 ## Surfaces and elevation
 
