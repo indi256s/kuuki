@@ -1,4 +1,9 @@
-/** Compact, owner-only Overview read contract. Collections have fixed upper bounds. */
+/** Compact, owner-only Overview read contract. Top lists have 5 items, months 12,
+ * and countryIds at most 512 reference codes. Flight totals and countryIds use
+ * completed flights in the selected period, including when period is "all".
+ * Undated claims and ground visits, and legacy visit evidence without a flight,
+ * remain Passport evidence; they are not assigned to a flight period.
+ */
 export type OverviewPeriod = 'all' | `${number}`
 
 export interface OverviewSummary {
@@ -39,5 +44,6 @@ export interface OverviewSummary {
     countries: Array<{ id: string; count: number }>
   }
   months: Array<{ month: string; flights: number }>
+  /** Distinct airport-reference country codes reached by completed period flights. */
   countryIds: string[]
 }

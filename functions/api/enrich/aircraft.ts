@@ -10,7 +10,7 @@ import { corsHeaders, corsPreflight } from '../_lib/cors'
 import { requireCsrf, requireUser, type RequestData } from '../_lib/auth'
 import { HttpError, readJson, runHandler } from '../_lib/http'
 import { rateLimit } from '../_lib/ratelimit'
-import { DEFAULT_MODEL, ProviderResponseError, providerFailure } from '../import/_provider'
+import { DEFAULT_MODEL, ProviderResponseError, providerFailure, usageBucket } from '../import/_provider'
 
 // Below the 30s web client deadline; cancellation stops local work even if the provider stalls.
 const ENRICHMENT_DEADLINE_MS = 20_000
@@ -94,11 +94,13 @@ export const onRequestPost: PagesFunction<Env, string, RequestData> = async (con
       throw new HttpError(400, 'Flight IDs must be unique')
     }
 
+    const model = context.env.GEMINI_ENRICH_MODEL?.trim() || DEFAULT_MODEL
+    const started = Date.now()
     try {
       // --- Gemini enrichment (grounded web search) ---
       const geminiResults = new Map<string, EnrichmentResult>()
 
-      const ai = new GoogleGenAI({ apiKey: context.env.GEMINI_API_KEY, maxRetries: 0 })
+      const ai = new GoogleGenAI({ apiKey: context.env.GEMINI_API_KEY })
       const prompt = buildBatchPrompt(flights)
       const controller = new AbortController()
       let deadlineExpired = false
@@ -107,12 +109,12 @@ export const onRequestPost: PagesFunction<Env, string, RequestData> = async (con
         controller.abort()
       }, ENRICHMENT_DEADLINE_MS)
 
-      console.log(JSON.stringify({ event: 'gemini_enrichment_start', flight_count: flights.length }))
+      console.log(JSON.stringify({ event: 'gemini_enrichment_start', model, flight_count: flights.length }))
 
       let response: Awaited<ReturnType<typeof ai.models.generateContent>>
       try {
         response = await ai.models.generateContent({
-        model: context.env.GEMINI_ENRICH_MODEL?.trim() || DEFAULT_MODEL,
+        model,
         contents: prompt,
         config: {
           tools: [
@@ -178,7 +180,8 @@ export const onRequestPost: PagesFunction<Env, string, RequestData> = async (con
         }
       })
 
-      console.log(JSON.stringify({ event: 'enrichment_complete', identified: results.filter(r => r.aircraft_icao).length, total: flights.length }))
+      console.log(JSON.stringify({ event: 'enrichment_complete', model, outcome: 'success', duration_ms: Date.now() - started,
+        usage_bucket: usageBucket(response.usageMetadata?.totalTokenCount), identified: results.filter(r => r.aircraft_icao).length, total: flights.length }))
 
       return Response.json(
         { results } as EnrichmentResponse,
@@ -187,7 +190,7 @@ export const onRequestPost: PagesFunction<Env, string, RequestData> = async (con
     } catch (error) {
       if (error instanceof HttpError) throw error
       const failure = providerFailure(error)
-      console.error(JSON.stringify({ event: 'enrichment_provider_error', code: failure.code }))
+      console.error(JSON.stringify({ event: 'enrichment_provider_error', model, code: failure.code, duration_ms: Date.now() - started }))
       throw failure
     }
   }, { headers: cors, fields: { results: [] } })

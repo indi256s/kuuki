@@ -1,13 +1,13 @@
-import { useState, useCallback, useMemo } from 'react'
+import { useState, useCallback, useEffect, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { FlightEditRow } from './FlightEditRow'
 import { Button } from '@/components/ui/button'
 import { Plane, AlertTriangle, Loader2, CheckSquare, Square, Plus, Copy, Info } from 'lucide-react'
 import type { ExtractedFlight, RejectedFlight } from '../../hooks/useImport'
+import { useImportDuplicates } from '@/hooks/useImportDuplicates'
 
 interface ImportReviewProps {
   flights: ExtractedFlight[]
-  existingRoutes?: Set<string> // Format: "YYYY-MM-DD:ORIGIN:DESTINATION"
   onSave: (flights: ExtractedFlight[]) => void
   onCancel: () => void
   onManualAdd: () => void
@@ -19,7 +19,6 @@ interface ImportReviewProps {
 
 export function ImportReview({
   flights: initialFlights,
-  existingRoutes = new Set(),
   onSave,
   onCancel,
   onManualAdd,
@@ -52,6 +51,7 @@ export function ImportReview({
   }, [flights, rejectedAsFlights])
 
   const showingRejectedFlights = flights.length === 0 && rejectedAsFlights.length > 0
+  const duplicateCheck = useImportDuplicates(allFlights)
 
   const [selectedIds, setSelectedIds] = useState<Set<number>>(() => {
     // Pre-select all valid flights, excluding duplicates and placeholder airlines
@@ -61,11 +61,9 @@ export function ImportReview({
         .map((_, i) => i)
         .filter((i) => {
           const f = flightsToCheck[i]
-          const isDuplicate = existingRoutes.has(`${f.date}:${f.origin}:${f.destination}`)
           // Don't auto-select flights with placeholder airline
           const hasPlaceholderAirline = f.airline_iata === 'ZZ'
           return (
-            !isDuplicate &&
             !hasPlaceholderAirline &&
             f.date &&
             f.origin?.length === 3 &&
@@ -77,17 +75,18 @@ export function ImportReview({
     )
   })
 
-  // Check for duplicates
-  const duplicateIndices = useMemo(() => {
-    const indices = new Set<number>()
-    allFlights.forEach((flight, i) => {
-      const key = `${flight.date}:${flight.origin}:${flight.destination}`
-      if (existingRoutes.has(key)) {
-        indices.add(i)
-      }
+  const duplicateIndices = useMemo(() => duplicateCheck.data ?? new Set<number>(), [duplicateCheck.data])
+  const duplicateCheckReady = duplicateCheck.data !== undefined && !duplicateCheck.error && !duplicateCheck.isFetching
+
+  // A confirmed match starts unselected; users may explicitly include it afterwards.
+  useEffect(() => {
+    if (!duplicateCheckReady) return
+    setSelectedIds(previous => {
+      const next = new Set(previous)
+      for (const index of duplicateIndices) next.delete(index)
+      return next.size === previous.size ? previous : next
     })
-    return indices
-  }, [allFlights, existingRoutes])
+  }, [duplicateIndices, duplicateCheckReady])
 
   // Count flights with placeholder airlines
   const placeholderCount = useMemo(() => {
@@ -169,11 +168,12 @@ export function ImportReview({
   }, [showingRejectedFlights, rejectedAsFlights])
 
   const handleSave = useCallback(() => {
+    if (!duplicateCheckReady) return
     // Scroll to top for better UX during save
     window.scrollTo({ top: 0, behavior: 'smooth' })
     const selectedFlights = allFlights.filter((_, i) => selectedIds.has(i))
     onSave(selectedFlights)
-  }, [allFlights, selectedIds, onSave])
+  }, [allFlights, selectedIds, onSave, duplicateCheckReady])
 
   const selectedCount = selectedIds.size
   const selectedHasInferredYear = allFlights.some((flight, index) => selectedIds.has(index) && flight.field_confidence?.date_year_explicit === false)
@@ -277,6 +277,13 @@ export function ImportReview({
       )}
 
       {/* Action toolbar - minimal floating buttons */}
+      {!duplicateCheckReady && (
+        <div role="status" className="text-sm text-muted-foreground">
+          {duplicateCheck.error
+            ? <>{t('errors.duplicateCheckFailed', 'Could not check existing flights.')} <Button variant="link" onClick={() => void duplicateCheck.refetch()}>{t('common.retry', 'Try again')}</Button></>
+            : t('import.review.checkingDuplicates', 'Checking existing flights...')}
+        </div>
+      )}
       {selectedHasInferredYear && (
         <p className="text-sm text-warning" role="alert">
           {t('import.review.confirmYear', 'Confirm the year on each selected flight before importing.')}
@@ -304,7 +311,7 @@ export function ImportReview({
               </Button>
               <Button
                 onClick={handleSave}
-                disabled={saving || selectedCount === 0 || selectedHasInferredYear}
+                disabled={saving || !duplicateCheckReady || selectedCount === 0 || selectedHasInferredYear}
                 className="rounded-xl min-w-[140px]"
               >
                 {saving ? (
@@ -332,7 +339,7 @@ export function ImportReview({
               </Button>
               <Button
                 onClick={handleSave}
-                disabled={saving || selectedCount === 0 || selectedHasInferredYear}
+                disabled={saving || !duplicateCheckReady || selectedCount === 0 || selectedHasInferredYear}
                 className="rounded-xl min-w-[140px]"
               >
                 {saving ? (

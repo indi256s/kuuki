@@ -5,7 +5,8 @@ import { invalidateUserData } from './queryInvalidation'
 import { useAuthStore } from '@/stores/authStore'
 import i18n from './i18n'
 
-export interface DerivedAck { derived_state?: 'ready' | 'pending'; revision?: number }
+import type { DerivedAck } from './derivedState'
+export type { DerivedAck } from './derivedState'
 interface DerivedStatus { derived_state: 'ready' | 'pending' | 'error'; revision: number; published_revision: number }
 
 const polling = new Map<string, number>()

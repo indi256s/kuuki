@@ -1,0 +1,263 @@
+// Production-mode custom Worker on local workerd. Synthetic D1, no live secrets or outbound calls.
+import { execFileSync } from 'node:child_process'
+import { gzipSync } from 'node:zlib'
+import { readFileSync, readdirSync, statSync } from 'node:fs'
+import { resolve, join } from 'node:path'
+import { Miniflare, Log, LogLevel, Request as WorkerRequest, Response as WorkerResponse } from 'miniflare'
+import { applyMigrations } from './_migrations'
+import { hashPassword } from '../functions/api/_lib/crypto'
+import { SESSION_TTL_SECONDS } from '../functions/api/_lib/cookies'
+
+const root = resolve('.')
+const port = Number(process.env.KUUKI_NEXT_PORT ?? 8800)
+if (!Number.isInteger(port) || port < 1024 || port > 65535) throw new Error('Invalid KUUKI_NEXT_PORT')
+const boundaryOnly = process.argv.includes('--check-boundary')
+const check = process.argv.includes('--check') || boundaryOnly
+const nextOnly = process.argv.includes('--next-only')
+const origin = check ? 'https://app.fixture.test' : `http://127.0.0.1:${port}`
+const bundleDir = join(root, nextOnly ? '.wrangler/next-only' : '.wrangler/next-build')
+const assetsDir = join(root, 'apps/next/.open-next/assets')
+let mailCalls = 0
+
+execFileSync('pnpm', ['--filter', '@kuuki/next', 'exec', 'wrangler', 'deploy', ...(nextOnly ? ['.open-next/worker.js'] : []), '--dry-run', '--env', '', '--config', 'wrangler.toml', '--outdir', bundleDir], {
+  cwd: root, stdio: 'inherit', env: { ...process.env, WRANGLER_SEND_METRICS: 'false' },
+})
+const bundle = readdirSync(bundleDir).find(name => /^worker\.(?:js|mjs)$/.test(name))
+if (!bundle) throw new Error('Wrangler dry-run Worker bundle missing')
+
+const mf = new Miniflare({
+  name: 'kuuki-next-fixture', log: new Log(LogLevel.WARN),
+  modules: [{ type: 'ESModule', path: join(bundleDir, bundle) }], compatibilityDate: '2026-08-06',
+  compatibilityFlags: ['nodejs_compat'], host: '127.0.0.1', port,
+  d1Databases: { DB: 'kuuki-next-synthetic-fixture' },
+  bindings: {
+    AUTH_SECRET: 'synthetic-browser-pepper', BETTER_AUTH_SECRET: 'synthetic-better-auth-secret-for-runtime-proof',
+    PAGES_ORIGIN: origin, MAINTENANCE_MODE: 'false',
+    ...(check ? { ACTIVATION_ORIGIN: 'https://activate.fixture.test',
+      ACTIVATION_MAIL_ACCOUNT_ID: '00000000000000000000000000000001',
+      ACTIVATION_MAIL_AUTH_TOKEN: 'synthetic-mail-token', ACTIVATION_MAIL_FROM: 'accounts@example.test' } : {}),
+    GEMINI_API_KEY: 'synthetic-provider-key',
+  },
+  assets: {
+    workerName: 'kuuki-next-fixture', directory: assetsDir, binding: 'ASSETS',
+    routerConfig: { invoke_user_worker_ahead_of_assets: true, has_user_worker: true },
+    assetConfig: { not_found_handling: 'none' },
+  },
+  outboundService: async (request: WorkerRequest) => {
+    if (check && request.url === 'https://api.cloudflare.com/client/v4/accounts/00000000000000000000000000000001/email/sending/send') {
+      const body = await request.json() as { from: string; to: string[]; text: string }
+      if (body.from !== 'accounts@example.test' || body.to[0] !== 'reset@example.test' ||
+        !body.text.includes('https://activate.fixture.test/activate#token=')) return new WorkerResponse('Bad synthetic mail', { status: 400 })
+      mailCalls++
+      return new WorkerResponse(JSON.stringify({ success: true, errors: [], result: { delivered: [], queued: body.to, permanent_bounces: [] } }),
+        { headers: { 'Content-Type': 'application/json' } })
+    }
+    return new WorkerResponse('Outbound network disabled in Next fixture', { status: 502 })
+  },
+})
+
+type FixtureRequestInit = Parameters<typeof mf.dispatchFetch>[1]
+
+async function request(path: string, init?: FixtureRequestInit) {
+  return mf.dispatchFetch(new URL(path, origin).toString(), init)
+}
+async function assertResponse(path: string, expected: number, init?: FixtureRequestInit) {
+  const response = await request(path, init)
+  if (response.status !== expected) throw new Error(`${path}: expected ${expected}, got ${response.status}: ${(await response.text()).slice(0, 300)}`)
+  return response
+}
+
+function artifact() {
+  let bytes = 0, gzipBytes = 0, count = 0
+  function walk(path: string) {
+    for (const entry of readdirSync(path, { withFileTypes: true })) {
+      const file = join(path, entry.name)
+      if (entry.isDirectory()) walk(file)
+      else if (!file.endsWith('.map') && !file.endsWith('.md')) { const data = readFileSync(file); bytes += data.length; gzipBytes += gzipSync(data).length; count++ }
+    }
+  }
+  walk(bundleDir)
+  let assets = 0, assetBytes = 0
+  function walkAssets(path: string) {
+    for (const entry of readdirSync(path, { withFileTypes: true })) {
+      const file = join(path, entry.name)
+      if (entry.isDirectory()) walkAssets(file)
+      else { assets++; assetBytes += statSync(file).size }
+    }
+  }
+  walkAssets(assetsDir)
+  return { node: process.version, workerModules: count, workerBytes: bytes, workerGzipBytes: gzipBytes, staticAssets: assets, staticBytes: assetBytes,
+    next: '16.3.8', openNext: '1.20.8', compatibilityDate: '2026-08-06' }
+}
+
+async function maintenanceProbe() {
+  const hold = new Miniflare({
+    name: 'kuuki-next-maintenance-probe', modules: [{ type: 'ESModule', path: join(bundleDir, bundle!) }],
+    compatibilityDate: '2026-08-06', compatibilityFlags: ['nodejs_compat'],
+    bindings: { PAGES_ORIGIN: origin, MAINTENANCE_MODE: 'true' },
+    outboundService: async () => new WorkerResponse('Outbound disabled', { status: 502 }),
+  })
+  try {
+    for (const path of ['/api/auth/me', '/overview', '/journal', '/passport']) {
+      const response = await hold.dispatchFetch(new URL(path, origin).toString(), { redirect: 'manual' })
+      if (response.status !== 503 || response.headers.get('Retry-After') !== '300' || response.headers.get('Cache-Control') !== 'no-store') {
+        throw new Error(`Maintenance gate failed before D1 for ${path}: ${response.status}`)
+      }
+    }
+  } finally { await hold.dispose() }
+}
+
+async function main() {
+  try {
+    if (nextOnly) {
+      await mf.ready
+      const bootstrap = await fetch(`http://127.0.0.1:${port}/bootstrap.js`)
+      console.log(JSON.stringify({ nextOnly: true, bootstrapStatus: bootstrap.status, bootstrapType: bootstrap.headers.get('Content-Type'), bootstrapBody: (await bootstrap.text()).slice(0, 100) }))
+      const shell = await fetch(`http://127.0.0.1:${port}/`)
+      console.log(JSON.stringify({ nextOnly: true, status: shell.status, body: (await shell.text()).slice(0, 300) }))
+      if (shell.status !== 200) throw new Error('Direct OpenNext worker did not serve public shell')
+      return
+    }
+    const db = await mf.getD1Database('DB')
+    await applyMigrations(db)
+    await db.batch([
+      db.prepare("INSERT INTO airports_reference(iata,name,city,country,country_code,latitude,longitude) VALUES('JFK','John F Kennedy','New York','United States','US',40.6413,-73.7781)"),
+      db.prepare("INSERT INTO airports_reference(iata,name,city,country,country_code,latitude,longitude) VALUES('BOS','Logan','Boston','United States','US',42.3656,-71.0096)"),
+      db.prepare("INSERT INTO aircraft_reference(icao,name,manufacturer,model,type,engine_type,engine_count) VALUES('A320','Airbus A320','Airbus','A320','narrowbody','jet',2)"),
+      db.prepare("INSERT INTO _code_adjectives(word) VALUES('calm'),('bright'),('swift')"),
+      db.prepare("INSERT INTO _code_nouns(word) VALUES('cloud'),('wing'),('sky')"),
+    ])
+    for (const [email, username] of [['a@example.test', 'fixture-a'], ['b@example.test', 'fixture-b']]) {
+      const signup = await request('/api/auth/sign-up/email', {
+        method: 'POST', headers: { Origin: origin, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password: 'rehearsal-password-2026' }),
+      })
+      if (!signup.ok) throw new Error(`Synthetic signup failed: ${signup.status} ${await signup.text()}`)
+      const result = await signup.json() as { user: { id: string } }
+      await db.prepare('UPDATE profiles SET username = ?, display_name = ? WHERE id = ?').bind(username, username, result.user.id).run()
+    }
+    // A credential row written before Better Auth cutover must still authenticate.
+    const legacyId = crypto.randomUUID()
+    const legacyHash = await hashPassword('rehearsal-password-2026', 'synthetic-browser-pepper')
+    const now = new Date().toISOString()
+    await db.batch([
+      db.prepare('INSERT INTO users(id,email,password_hash,name,email_verified,updated_at) VALUES(?,?,?,?,?,?)')
+        .bind(legacyId, 'legacy@example.test', legacyHash, 'legacy-fixture', 1, now),
+      db.prepare('INSERT INTO profiles(id,username,display_name) VALUES(?,?,?)')
+        .bind(legacyId, 'legacy-fixture', 'legacy-fixture'),
+      db.prepare('INSERT INTO auth_accounts(id,accountId,providerId,userId,password,createdAt,updatedAt) VALUES(?,?,?,?,?,?,?)')
+        .bind(`credential:${legacyId}`, legacyId, 'credential', legacyId, legacyHash, now, now),
+    ])
+    if (check) {
+      const legacySignIn = await request('/api/auth/sign-in/email', {
+        method: 'POST', headers: { Origin: origin, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: 'legacy@example.test', password: 'rehearsal-password-2026' }),
+      })
+      if (!legacySignIn.ok) throw new Error(`Composed legacy credential sign-in failed: ${legacySignIn.status} ${await legacySignIn.text()}`)
+      await db.prepare("INSERT INTO users(id,email,password_hash) VALUES('reset-fixture','reset@example.test','RESET_REQUIRED')").run()
+      const activationRequest = await request('/api/auth/activation/request', { method: 'POST',
+        headers: { Origin: origin, 'Content-Type': 'application/json' }, body: JSON.stringify({ email: 'reset@example.test' }) })
+      if (!activationRequest.ok) throw new Error(`Composed activation request failed: ${activationRequest.status}`)
+      const deadline = Date.now() + 5_000
+      let tokens = 0
+      while (Date.now() < deadline) {
+        tokens = (await db.prepare("SELECT COUNT(*) AS n FROM account_activation_tokens WHERE user_id='reset-fixture'").first<{ n: number }>())?.n ?? 0
+        if (tokens === 1 && mailCalls === 1) break
+        await new Promise(resolve => setTimeout(resolve, 10))
+      }
+      if (tokens !== 1 || mailCalls !== 1) throw new Error('Composed waitUntil activation delivery did not complete')
+    }
+    const seedSignIn = await request('/api/auth/sign-in/email', {
+      method: 'POST', headers: { Origin: origin, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: 'a@example.test', password: 'rehearsal-password-2026' }),
+    })
+    if (!seedSignIn.ok) throw new Error(`Synthetic seed sign-in failed: ${seedSignIn.status}`)
+    const seedCookies = seedSignIn.headers.getSetCookie()
+    const seedCookie = seedCookies.map(value => value.split(';', 1)[0]).join('; ')
+    const csrf = /(?:^|; )kuuki_csrf=([^;]+)/.exec(seedCookie)?.[1]
+    if (!csrf) throw new Error('Synthetic seed sign-in omitted CSRF cookie')
+    const created = await request('/api/flights', {
+      method: 'POST', headers: { Origin: origin, Cookie: seedCookie, 'X-CSRF-Token': csrf,
+        'Content-Type': 'application/json', 'Idempotency-Key': 'next-fixture-flight-001' },
+      body: JSON.stringify({ date: '2026-01-03', origin: 'JFK', destination: 'BOS' }),
+    })
+    if (created.status !== 201) throw new Error(`Synthetic flight create failed: ${created.status} ${await created.text()}`)
+    await mf.ready
+    if (!check) {
+      console.log(`Next synthetic fixture ready: ${origin}`)
+      console.log('Accounts a@example.test / b@example.test; password rehearsal-password-2026. Ctrl-C stops and discards the fixture.')
+      await new Promise<void>(resolve => { process.once('SIGINT', resolve); process.once('SIGTERM', resolve) })
+      return
+    }
+    const unknown = await assertResponse('/api/no-such-route', 404)
+    if (!unknown.headers.get('Content-Type')?.includes('application/json')) throw new Error('Unknown API returned non-JSON content')
+    const wrongMethod = await assertResponse('/api/flights/aircraft-batch', 405, { method: 'GET' })
+    if (wrongMethod.headers.get('Allow') !== 'POST') throw new Error('Static API route lost to dynamic route')
+    await assertResponse('/api', 404)
+    const csrfDenied = await assertResponse('/api/auth/sign-out', 403, { method: 'POST', headers: { Origin: origin } })
+    if (!csrfDenied.headers.get('Content-Type')?.includes('application/json')) throw new Error('CSRF denial was not JSON')
+    const signIn = await assertResponse('/api/auth/sign-in/email', 200, {
+      method: 'POST', headers: { Origin: origin, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: 'a@example.test', password: 'rehearsal-password-2026' }),
+    })
+    const cookies = signIn.headers.getSetCookie()
+    if (cookies.length < 2) throw new Error('Sign-in lost multiple Set-Cookie headers')
+    const cookie = cookies.map(value => value.split(';', 1)[0]).join('; ')
+    const overviewApi = await assertResponse('/api/me/overview', 200, { headers: { Cookie: cookie } })
+    if (!overviewApi.headers.get('Content-Type')?.includes('application/json')) throw new Error('Overview API is not JSON')
+    const activation = await assertResponse('/activate', 200)
+    if (activation.headers.get('Cache-Control') !== 'no-store' || activation.headers.get('Referrer-Policy') !== 'no-referrer' ||
+      !activation.headers.get('Content-Security-Policy')?.includes("default-src 'none'")) throw new Error('Activation isolation headers missing')
+    const alias = await mf.dispatchFetch('https://activate.fixture.test/_next/static/chunk.js', { redirect: 'manual' })
+    if (alias.status !== 302 || !alias.headers.get('Location')?.endsWith('/#')) throw new Error('Activation alias leaked Next assets or token fragment')
+    for (const path of ['/legacy/flights', '/legacy/dashboard', '/legacy/fly/fixture-a']) {
+      const document = await assertResponse(path, 200)
+      if (!document.headers.get('Content-Type')?.includes('text/html')) throw new Error(`${path} returned non-HTML`)
+    }
+    const missingLegacy = await assertResponse('/legacy/assets/missing.js', 404)
+    if (missingLegacy.headers.get('Content-Type')?.includes('text/html')) throw new Error('Missing legacy asset returned HTML')
+    const legacyEntry = await assertResponse('/legacy/flights', 200)
+    const scriptPath = /src="(\/legacy\/assets\/[^" ]+\.js)"/.exec(await legacyEntry.text())?.[1]
+    if (!scriptPath) throw new Error('Legacy entry has no versioned script')
+    const legacyScript = await assertResponse(scriptPath, 200)
+    const etag = legacyScript.headers.get('ETag')
+    if (!etag) throw new Error('Legacy static script has no ETag')
+    const unchanged = await assertResponse(scriptPath, 304, { headers: { 'If-None-Match': etag } })
+    if (!unchanged.headers.get('Content-Type')?.includes('javascript')) throw new Error('Conditional legacy script lost its MIME type')
+    for (const path of ['/legacy/flights', '/activate', '/activate.js', '/sw.js', '/registerSW.js']) {
+      const initial = await assertResponse(path, 200)
+      const tag = initial.headers.get('ETag')
+      if (!tag) throw new Error(`Static boundary has no ETag: ${path}`)
+      const conditional = await assertResponse(path, 304, { headers: { 'If-None-Match': tag } })
+      if (conditional.headers.get('Cache-Control') !== 'no-store') throw new Error(`Conditional boundary lost no-store: ${path}`)
+    }
+    await maintenanceProbe()
+    if (boundaryOnly) { console.log(JSON.stringify({ result: 'Next boundary smoke passed', artifact: artifact() })); return }
+    const publicShell = await fetch(`http://127.0.0.1:${port}/`)
+    if (publicShell.status !== 200) throw new Error(`Public Next shell failed: ${publicShell.status} ${(await publicShell.text()).slice(0, 300)}`)
+    await assertResponse('/signin', 200)
+    const oldUpdate = new Date(Date.now() - 2 * 86_400_000).toISOString()
+    const oldExpiry = new Date(Date.now() + SESSION_TTL_SECONDS * 1000 - 2 * 86_400_000).toISOString()
+    await db.prepare("UPDATE auth_sessions SET updatedAt = ?, expiresAt = ? WHERE userId = (SELECT id FROM users WHERE email = 'a@example.test')")
+      .bind(oldUpdate, oldExpiry).run()
+    const overview = await assertResponse('/overview', 200, { headers: { Cookie: cookie } })
+    if (!overview.headers.get('Content-Type')?.includes('text/html')) throw new Error('Next overview is not HTML')
+    if (overview.headers.getSetCookie().length) throw new Error('Server page read wrote a renewal cookie')
+    const reader = overview.body?.getReader()
+    if (!reader) throw new Error('Next response has no streaming body')
+    const first = await reader.read()
+    if (!first.value?.length) throw new Error('Next response did not stream an initial chunk')
+    await reader.cancel()
+    const updateAfterPage = await db.prepare("SELECT MAX(updatedAt) AS updatedAt FROM auth_sessions WHERE userId = (SELECT id FROM users WHERE email = 'a@example.test')")
+      .first<{ updatedAt: string }>()
+    if (updateAfterPage?.updatedAt !== oldUpdate) throw new Error('Server page read slid the session')
+    const renewal = await assertResponse('/api/auth/me', 200, { headers: { Cookie: cookie } })
+    if (!renewal.headers.getSetCookie().length) throw new Error('Cookie-writing API did not renew an old session')
+    const updateAfterRenewal = await db.prepare("SELECT MAX(updatedAt) AS updatedAt FROM auth_sessions WHERE userId = (SELECT id FROM users WHERE email = 'a@example.test')")
+      .first<{ updatedAt: string }>()
+    if (!updateAfterRenewal?.updatedAt || updateAfterRenewal.updatedAt <= oldUpdate) throw new Error('Cookie-writing API did not slide session expiry')
+    console.log(JSON.stringify({ result: 'Next workerd smoke passed', artifact: artifact() }))
+  } finally { await mf.dispose() }
+}
+
+void main().catch(error => { console.error(error); process.exitCode = 1 })

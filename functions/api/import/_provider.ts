@@ -2,7 +2,16 @@ import { ApiError } from '@google/genai'
 import { HttpError } from '../_lib/http'
 
 export const DEFAULT_MODEL = 'gemini-3.5-flash-lite'
-export const PROVIDER_TIMEOUT_MS = 45_000
+// Import UI has a 120s deadline; leave time for validation and response delivery.
+export const PROVIDER_TIMEOUT_MS = 90_000
+
+export function usageBucket(tokens: number | undefined): string {
+  if (tokens == null || !Number.isFinite(tokens) || tokens < 0) return 'unknown'
+  if (tokens < 1_000) return '<1k'
+  if (tokens < 10_000) return '1k-10k'
+  if (tokens < 100_000) return '10k-100k'
+  return '100k+'
+}
 
 export class ProviderResponseError extends Error {}
 

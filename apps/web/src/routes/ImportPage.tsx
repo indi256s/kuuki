@@ -2,7 +2,7 @@ import { useState, useCallback, useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
-import { useFlights, type FlightInsert } from '@/hooks/useFlights'
+import { type FlightInsert } from '@/hooks/useFlights'
 import { useParseImport, type ExtractedFlight, type RejectedFlight } from '@/hooks/useImport'
 import { useToast } from '@/hooks/useToast'
 import { AppHeader } from '@/components/common/AppHeader'
@@ -26,6 +26,7 @@ import { abandonFlightCreateOperation, currentFlightOperationId, pendingFlightCr
 import { useAuthStore } from '@/stores/authStore'
 import { createFlights } from '@/lib/flights'
 import { reconcileDerivedState } from '@/lib/derivedStateFeedback'
+import { allowedLegacyReturn, returnAfterLegacyWrite } from '@/lib/legacyBridge'
 
 type ImportStep = 'upload' | 'parsing' | 'review' | 'saving' | 'success'
 type InputType = 'text' | 'pdf' | 'image'
@@ -138,15 +139,6 @@ export function ImportPage() {
   const parseMutation = useParseImport()
   const queryClient = useQueryClient()
   const { showError } = useToast()
-
-  // Get existing flights for duplicate detection
-  const { data: existingFlightsData } = useFlights(undefined, undefined, 1000)
-  const existingRoutes = new Set<string>()
-  existingFlightsData?.pages.forEach(page => {
-    page.flights.forEach(flight => {
-      existingRoutes.add(`${flight.date}:${flight.origin}:${flight.destination}`)
-    })
-  })
 
   // Handle initial state: text content from EmptyState
   useEffect(() => {
@@ -287,8 +279,12 @@ export function ImportPage() {
   }, [])
 
   const handleGoToFlights = useCallback(() => {
+    if (import.meta.env.BASE_URL === '/legacy/' && allowedLegacyReturn(new URLSearchParams(location.search).get('returnTo'))) {
+      returnAfterLegacyWrite(location.search)
+      return
+    }
     navigate('/flights')
-  }, [navigate])
+  }, [navigate, location.search])
 
   const handleImportMore = useCallback(() => {
     setStep('upload')
@@ -390,7 +386,6 @@ export function ImportPage() {
           <ImportUpload
             onSubmit={handleUploadSubmit}
             disabled={parseMutation.isPending}
-            hasExistingFlights={(existingFlightsData?.pages[0]?.flights.length ?? 0) > 0}
           />
         )}
 
@@ -417,7 +412,6 @@ export function ImportPage() {
             )}
             <ImportReview
               flights={extractedFlights}
-              existingRoutes={existingRoutes}
               onSave={handleSaveFlights}
               onCancel={handleCancel}
               onManualAdd={handleManualAdd}

@@ -9,9 +9,12 @@ interface Body {
   ids?: number[]
 }
 
-export const onRequestPost: PagesFunction<Env, string, RequestData> = (context) =>
-  runHandler(async () => {
-    const { request, env, data } = context
+export const onRequestPost: PagesFunction<Env, string, RequestData> = context =>
+  bulkDeleteRequest(context.request, context.env, context.data)
+
+/** Actual Request/Response domain entry, shared by the Pages compatibility transport. */
+export function bulkDeleteRequest(request: Request, env: Env, data: RequestData): Promise<Response> {
+  return runHandler(async () => {
     requireCsrf(request)
     const user = requireUser(data)
 
@@ -29,3 +32,4 @@ export const onRequestPost: PagesFunction<Env, string, RequestData> = (context) 
     const deleted = result.meta.changes ?? 0
     return json({ deleted, ...(deleted ? await repairUserDerivedState(env.DB, user.id) : {}) })
   })
+}

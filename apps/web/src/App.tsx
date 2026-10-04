@@ -21,12 +21,20 @@ function lazyWithRetry(factory: () => Promise<{ default: React.ComponentType }>)
   return lazy(() =>
     factory().then((module) => {
       // A successful import after one reload completes recovery for this navigation.
-      sessionStorage.removeItem('chunk_retry')
+      try { sessionStorage.removeItem('chunk_retry') } catch { /* Storage may be disabled. */ }
       return module
     }).catch((error: unknown) => {
-      const alreadyRetried = sessionStorage.getItem('chunk_retry')
+      // Only reload stale chunks. Ordinary module failures belong to the boundary.
+      if (!(error instanceof Error) || !/Failed to fetch dynamically imported module|Importing a module script failed|Loading chunk .* failed/i.test(error.message)) throw error
+      let alreadyRetried: string | null
+      try {
+        alreadyRetried = sessionStorage.getItem('chunk_retry')
+        if (!alreadyRetried) sessionStorage.setItem('chunk_retry', '1')
+      } catch {
+        // Without a durable guard, reloading could loop forever.
+        throw error
+      }
       if (!alreadyRetried) {
-        sessionStorage.setItem('chunk_retry', '1')
         window.location.reload()
         return new Promise<never>(() => {})
       }
@@ -137,7 +145,7 @@ function AppRoutes() {
 export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
+      <BrowserRouter basename={import.meta.env.BASE_URL === '/legacy/' ? '/legacy' : undefined}>
         <SkipLink />
         <AppRoutes />
         <ToastProvider />

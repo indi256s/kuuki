@@ -4,6 +4,7 @@
 // frontend FlightFilters in apps/web/src/lib/flights.ts (Phase 6 maps those onto these query params).
 
 export interface FlightFilters {
+  q?: string
   year?: number
   airlineIata?: string
   aircraftIcao?: string
@@ -41,6 +42,8 @@ function csv(value: string | null): string[] | undefined {
 /** Parse FlightFilters from the request query string (?year=&airlineIata=&originCodes=a,b ...). */
 export function parseFlightFilters(params: URLSearchParams): FlightFilters {
   const filters: FlightFilters = {}
+  const q = params.get('q')?.trim().slice(0, 100)
+  if (q) filters.q = q
   const year = params.get('year')
   if (year && /^\d{4}$/.test(year)) filters.year = Number(year)
   const airlineIata = params.get('airlineIata')
@@ -67,6 +70,10 @@ export function parseFlightFilters(params: URLSearchParams): FlightFilters {
 export function buildFlightWhere(userId: string, filters: FlightFilters): { where: string; binds: (string | number)[] } {
   const clauses: string[] = ['user_id = ?']
   const binds: (string | number)[] = [userId]
+  if (filters.q) {
+    clauses.push("instr(lower(origin || ' ' || destination || ' ' || COALESCE(flight_number, '') || ' ' || date), lower(?)) > 0")
+    binds.push(filters.q.trim().slice(0, 100))
+  }
   if (filters.year) {
     clauses.push('date >= ? AND date <= ?')
     binds.push(`${filters.year}-01-01`, `${filters.year}-12-31`)

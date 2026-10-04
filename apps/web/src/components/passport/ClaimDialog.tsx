@@ -26,11 +26,12 @@ import type { EntryMethod } from '@kuuki/shared'
 interface ClaimDialogProps {
   isOpen: boolean
   onClose: () => void
+  onSaved?: () => void
   preselectedCountry?: string | null
   isAlreadyClaimed?: boolean
 }
 
-export function ClaimDialog({ isOpen, onClose, preselectedCountry, isAlreadyClaimed = false }: ClaimDialogProps) {
+export function ClaimDialog({ isOpen, onClose, onSaved, preselectedCountry, isAlreadyClaimed = false }: ClaimDialogProps) {
   const { t } = useTranslation()
   const claimCountry = useClaimCountry()
   const addGroundVisit = useAddGroundVisit()
@@ -63,10 +64,11 @@ export function ClaimDialog({ isOpen, onClose, preselectedCountry, isAlreadyClai
       })
 
       onClose()
+      onSaved?.()
     } catch (error) {
       console.error('Failed to save:', error)
     }
-  }, [preselectedCountry, visitYear, note, entryMethod, mutation, onClose])
+  }, [preselectedCountry, visitYear, note, entryMethod, mutation, onClose, onSaved])
 
   const handleClose = useCallback(() => {
     onClose()

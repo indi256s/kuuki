@@ -1,5 +1,5 @@
 import { api } from './apiClient'
-import type { DerivedAck } from './derivedStateFeedback'
+import type { DerivedAck } from './derivedState'
 import type { Tables, TablesInsert } from './database.types'
 import type { PassportEntry, CountryStats, GroundVisit, Continent, EntryMethod } from '@kuuki/shared'
 import countriesData from '@kuuki/data/countries.json'

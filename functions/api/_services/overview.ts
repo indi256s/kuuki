@@ -1,5 +1,6 @@
 import type { OverviewPeriod, OverviewSummary } from '../../../packages/shared/src/overview'
 import { continentOf7 } from '../_lib/continents'
+import { buildFlightWhere, type FlightFilters } from '../_lib/flightQuery'
 
 type CountRow = { id: string; count: number }
 type TotalsRow = {
@@ -12,19 +13,16 @@ type NextRow = { id: number; date: string; origin: string; destination: string; 
 type LongestRow = { origin: string; destination: string; distance_km: number }
 type RouteRow = { origin: string; destination: string; count: number }
 
-const completedWhere = 'f.user_id = ? AND f.is_upcoming = 0 AND (? = \'all\' OR (f.date >= ? AND f.date < ?))'
-const endpoints = `WITH endpoints AS (
-  SELECT f.origin AS iata FROM flights f WHERE ${completedWhere}
-  UNION ALL
-  SELECT f.destination AS iata FROM flights f WHERE ${completedWhere}
-)`
-
-function periodBounds(period: OverviewPeriod): [string, string, string] {
-  return period === 'all' ? ['all', '', ''] : [period, `${period}-01-01`, `${Number(period) + 1}-01-01`]
-}
+// Reference country codes are finite, but fail rather than truncate if the imported
+// reference set ever grows beyond a reasonable country/territory universe.
+const MAX_COUNTRY_CODES = 512
 
 function rows<T>(results: D1Result[], index: number): T[] {
-  return (results[index]?.results ?? []) as T[]
+  const result = results[index]
+  if (!result?.success || !Array.isArray(result.results)) {
+    throw new Error(`Overview read ${index} failed`)
+  }
+  return result.results as T[]
 }
 
 function first<T>(results: D1Result[], index: number): T | null {
@@ -32,12 +30,17 @@ function first<T>(results: D1Result[], index: number): T | null {
 }
 
 /** One batch provides a consistent canonical/revision snapshot for a single owner and period. */
-export async function readOverview(db: D1Database, userId: string, period: OverviewPeriod = 'all'): Promise<OverviewSummary> {
+export async function readOverview(db: D1Database, userId: string, period: OverviewPeriod = 'all', filters: FlightFilters = {}): Promise<OverviewSummary> {
   const started = Date.now()
   const generatedAt = new Date(started).toISOString()
-  const [periodKey, start, end] = periodBounds(period)
-  const bindPeriod = (sql: string, ...extra: string[]) => db.prepare(sql).bind(userId, periodKey, start, end, ...extra)
-  const bindEndpoints = (sql: string) => db.prepare(sql).bind(userId, periodKey, start, end, userId, periodKey, start, end)
+  const { where, binds } = buildFlightWhere(userId, { ...filters, ...(period === 'all' ? {} : { year: Number(period) }) })
+  const completedWhere = `${where} AND f.is_upcoming = 0`
+  const bindPeriod = (sql: string, ...extra: string[]) => db.prepare(sql).bind(...binds, ...extra)
+  // Bind the filtered selection once; three 25-code filters remain under D1's
+  // variable limit instead of doubling their placeholders for both endpoints.
+  const endpoints = `WITH selected AS (SELECT origin, destination FROM flights f WHERE ${completedWhere}),
+    endpoints AS (SELECT origin AS iata FROM selected UNION ALL SELECT destination AS iata FROM selected)`
+  const bindEndpoints = (sql: string) => db.prepare(sql).bind(...binds)
   const monthStart = period === 'all'
     ? new Date(Date.UTC(new Date(started).getUTCFullYear(), new Date(started).getUTCMonth() - 11, 1)).toISOString().slice(0, 7)
     : `${period}-01`
@@ -55,7 +58,7 @@ export async function readOverview(db: D1Database, userId: string, period: Overv
       COUNT(DISTINCT CASE WHEN a.city IS NOT NULL THEN a.country_code || ':' || a.city END) AS cities
       FROM endpoints e LEFT JOIN airports_reference a ON a.iata = e.iata`),
     bindEndpoints(`${endpoints} SELECT DISTINCT a.country_code AS id FROM endpoints e
-      JOIN airports_reference a ON a.iata = e.iata WHERE a.country_code IS NOT NULL ORDER BY id`),
+      JOIN airports_reference a ON a.iata = e.iata WHERE a.country_code IS NOT NULL ORDER BY id LIMIT ${MAX_COUNTRY_CODES + 1}`),
     bindPeriod(`SELECT f.origin, f.destination, f.distance_km FROM flights f WHERE ${completedWhere}
       AND f.distance_km IS NOT NULL ORDER BY f.distance_km DESC, f.id ASC LIMIT 1`),
     bindPeriod(`SELECT f.origin, f.destination, COUNT(*) AS count FROM flights f WHERE ${completedWhere}
@@ -67,7 +70,8 @@ export async function readOverview(db: D1Database, userId: string, period: Overv
     bindPeriod(`SELECT f.aircraft_icao AS id, COUNT(*) AS count FROM flights f WHERE ${completedWhere}
       AND f.aircraft_icao IS NOT NULL GROUP BY f.aircraft_icao ORDER BY count DESC, id LIMIT 5`),
     bindEndpoints(`${endpoints} SELECT a.country_code AS id, COUNT(*) AS count FROM endpoints e
-      JOIN airports_reference a ON a.iata = e.iata GROUP BY a.country_code ORDER BY count DESC, id LIMIT 5`),
+      JOIN airports_reference a ON a.iata = e.iata WHERE a.country_code IS NOT NULL
+      GROUP BY a.country_code ORDER BY count DESC, id LIMIT 5`),
     bindPeriod(`SELECT substr(f.date, 1, 7) AS month, COUNT(*) AS flights FROM flights f WHERE ${completedWhere}
       AND substr(f.date, 1, 7) >= ? AND substr(f.date, 1, 7) < ?
       GROUP BY month ORDER BY month`, monthStart, monthEnd),
@@ -78,10 +82,14 @@ export async function readOverview(db: D1Database, userId: string, period: Overv
   const d1Started = Date.now()
   const results = await db.batch(statements)
   const d1Ms = Date.now() - d1Started
+  if (results.length !== statements.length || results.some(result => !result.success || !Array.isArray(result.results))) {
+    throw new Error('Overview batch failed')
+  }
   const state = first<StateRow>(results, 0)
   const aggregate = first<TotalsRow>(results, 1)
   const places = first<PlaceRow>(results, 2)
   const countryIds = rows<{ id: string }>(results, 3).map(row => row.id)
+  if (countryIds.length > MAX_COUNTRY_CODES) throw new Error('Overview country reference limit exceeded')
   const next = first<NextRow>(results, 11)
   const monthsByKey = new Map(rows<{ month: string; flights: number }>(results, 10).map(row => [row.month, row.flights]))
   const months = Array.from({ length: 12 }, (_, index) => {

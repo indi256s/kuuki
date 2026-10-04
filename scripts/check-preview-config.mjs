@@ -26,6 +26,7 @@ function sections(source, name) {
 const validDb = id => /^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/i.test(id ?? '') && !/^0+$/.test(id.replaceAll('-', ''))
 const validKv = id => /^[a-f0-9]{32}$/i.test(id ?? '') && !/^0+$/.test(id)
 const problems = []
+const caches = []
 function databases(source, prefix) {
   const production = sections(source, 'd1_databases')
   const preview = sections(source, 'env.preview.d1_databases')
@@ -58,7 +59,16 @@ for (const [name, source] of [['Pages', config], ['Maintenance', maintenance]]) 
   const preview = sections(source, 'env.preview.kv_namespaces')
   if (production.length || preview.length) {
     const prodIds = new Set(production.map(row => row.id))
-    if (production.some(row => !validKv(row.id)) || preview.some(row => !validKv(row.id) || prodIds.has(row.id)) || production.some(row => !preview.some(p => p.binding === row.binding))) problems.push(`${name}: optional KV bindings require valid isolated preview IDs`)
+    if (production.some(row => !validKv(row.id)) || preview.some(row => !validKv(row.id) || prodIds.has(row.id)) || production.some(row => preview.filter(p => p.binding === row.binding).length !== 1) || preview.some(row => production.filter(p => p.binding === row.binding).length !== 1)) problems.push(`${name}: optional KV bindings require valid isolated preview IDs`)
+  }
+  caches.push({ name, production, preview })
+}
+// A declared maintenance cache must target the matching application cache.
+for (const environment of ['production', 'preview']) {
+  for (const row of caches[1][environment]) {
+    if (!caches[0][environment].some(app => app.binding === row.binding && app.id === row.id)) {
+      problems.push(`Maintenance: optional ${environment} KV bindings must align with Pages`)
+    }
   }
 }
 if (problems.length) {

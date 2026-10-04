@@ -15,9 +15,12 @@ function failure(id: number | null, error: HttpError): ItemResult {
   return { id, status: 'error', http_status: error.status, code: error.code ?? 'INVALID_FLIGHT', error: error.message }
 }
 
-export const onRequestPost: PagesFunction<Env, string, RequestData> = (context) =>
-  runHandler(async () => {
-    const { request, env, data } = context
+export const onRequestPost: PagesFunction<Env, string, RequestData> = context =>
+  aircraftBatchRequest(context.request, context.env, context.data)
+
+/** Actual Request/Response domain entry, shared by the Pages compatibility transport. */
+export function aircraftBatchRequest(request: Request, env: Env, data: RequestData): Promise<Response> {
+  return runHandler(async () => {
     requireCsrf(request)
     const user = requireUser(data)
     const body = await readJson<{ items?: unknown }>(request, { maxBytes: 16 * 1024 })
@@ -74,3 +77,4 @@ export const onRequestPost: PagesFunction<Env, string, RequestData> = (context) 
     }
     return json({ results, ...await repairUserDerivedState(env.DB, user.id) })
   })
+}

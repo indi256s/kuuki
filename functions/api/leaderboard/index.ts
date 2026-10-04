@@ -1,50 +1,13 @@
-// GET /api/leaderboard?category=&limit=&offset= — public ranked list read from leaderboard_cache.
-
 import { runHandler, json, HttpError } from '../_lib/http'
-import type { RequestData } from '../_lib/auth'
-import { derivedStateJoin, PUBLISHED_DERIVED_STATE, toLeaderboardEntry } from '../_lib/leaderboard'
-import type { LeaderboardCacheRow } from '../_lib/leaderboard'
+import { leaderboardCategories, readPublicLeaderboard, type LeaderboardCategory } from '../_services/publicLeaderboard'
 
-const CATEGORIES = ['flights', 'distance', 'countries', 'cities', 'airlines']
-
-export const onRequestGet: PagesFunction<Env, string, RequestData> = (context) =>
-  runHandler(async () => {
-    const url = new URL(context.request.url)
-    const category = url.searchParams.get('category') ?? ''
-    if (!CATEGORIES.includes(category)) {
-      throw new HttpError(400, 'Invalid category', 'INVALID_CATEGORY')
-    }
-
-    const limit = Math.min(Math.max(Number(url.searchParams.get('limit')) || 50, 1), 200)
-    const offset = Math.max(Number(url.searchParams.get('offset')) || 0, 0)
-
-    const db = context.env.DB
-    // Filter on the LIVE show_on_leaderboards flag at read time (security finding: the cache is
-    // never refreshed in production — no cron — so an opted-out user otherwise stays visible).
-    const { results } = await db
-      .prepare(
-        `SELECT lc.* FROM leaderboard_cache lc
-         JOIN profiles p ON p.id = lc.user_id
-         JOIN user_stats us ON us.user_id = lc.user_id
-         ${derivedStateJoin('lc')}
-         WHERE lc.category = ? AND p.show_on_leaderboards = 1 AND us.total_flights >= 5
-           AND ${PUBLISHED_DERIVED_STATE}
-         ORDER BY lc.rank ASC LIMIT ? OFFSET ?`,
-      )
-      .bind(category, limit, offset)
-      .all<LeaderboardCacheRow>()
-
-    const countRow = await db
-      .prepare(
-        `SELECT COUNT(*) AS total FROM leaderboard_cache lc
-         JOIN profiles p ON p.id = lc.user_id
-         JOIN user_stats us ON us.user_id = lc.user_id
-         ${derivedStateJoin('lc')}
-         WHERE lc.category = ? AND p.show_on_leaderboards = 1 AND us.total_flights >= 5
-           AND ${PUBLISHED_DERIVED_STATE}`,
-      )
-      .bind(category)
-      .first<{ total: number }>()
-
-    return json({ entries: (results ?? []).map(toLeaderboardEntry), total: countRow?.total ?? 0 })
-  })
+export const onRequestGet: PagesFunction<Env> = context => runHandler(async () => {
+  const params = new URL(context.request.url).searchParams
+  const category = params.get('category') ?? ''
+  if (!leaderboardCategories.includes(category as LeaderboardCategory)) {
+    throw new HttpError(400, 'Invalid category', 'INVALID_CATEGORY')
+  }
+  const limit = Number(params.get('limit')) || 50
+  const offset = Number(params.get('offset')) || 0
+  return json(await readPublicLeaderboard(context.env.DB, category as LeaderboardCategory, limit, offset))
+})

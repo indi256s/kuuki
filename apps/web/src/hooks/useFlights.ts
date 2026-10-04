@@ -193,14 +193,14 @@ export function useCheckDuplicate() {
 /**
  * Hook for all flight routes (map rendering - lightweight, no limit)
  */
-export function useFlightRoutes() {
+export function useFlightRoutes(filters?: FlightFilters) {
   const userId = useAuthStore((state) => state.user?.id)
 
   return useQuery({
-    queryKey: queryKeys.flightRoutes(userId),
+    queryKey: queryKeys.flightRoutes(userId, filters),
     queryFn: () => {
       if (!userId) return []
-      return getFlightRoutes(userId)
+      return getFlightRoutes(userId, filters)
     },
     enabled: !!userId,
     staleTime: 2 * 60 * 1000,

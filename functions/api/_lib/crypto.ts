@@ -58,7 +58,8 @@ async function pepper(password: string, secret: string): Promise<ArrayBuffer> {
 async function pbkdf2(peppered: ArrayBuffer, salt: Uint8Array, iterations: number): Promise<Uint8Array> {
   const keyMaterial = await crypto.subtle.importKey('raw', peppered, 'PBKDF2', false, ['deriveBits'])
   const bits = await crypto.subtle.deriveBits(
-    { name: 'PBKDF2', salt, iterations, hash: 'SHA-256' },
+    // Copy into an ArrayBuffer-backed view for TS DOM BufferSource across runtimes.
+    { name: 'PBKDF2', salt: new Uint8Array(salt), iterations, hash: 'SHA-256' },
     keyMaterial,
     KEY_LEN_BYTES * 8,
   )

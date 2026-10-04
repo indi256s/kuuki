@@ -87,8 +87,8 @@ export async function getProfile(userId: string, identityToken?: IdentityOperati
   try {
     return await api.get<Profile>(`/api/profiles/${userId}`, undefined, { identityToken })
   } catch (error) {
-    console.error('Error fetching profile:', error)
-    return null
+    if (error instanceof ApiError && error.status === 404) return null
+    throw error
   }
 }
 

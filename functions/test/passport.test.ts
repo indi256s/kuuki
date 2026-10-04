@@ -1,7 +1,7 @@
 import { expect, it } from 'vitest'
 import { createApiDatabase, apiContext, csrfRequest, count } from './harness'
 import { onRequestDelete as unclaimCountry } from '../api/passport/claims/[cc]/index'
-import { onRequestPost as addGroundVisit } from '../api/passport/ground-visits/index'
+import { onRequestPost as addGroundVisit, onRequestGet as listGroundVisits } from '../api/passport/ground-visits/index'
 import { repairUserDerivedState } from '../api/_services/derivedState'
 
 const user = { id: 'passport-user', email: 'passport@example.test' }
@@ -22,6 +22,23 @@ async function seed(db: D1Database) {
     db.prepare('INSERT INTO profiles (id) VALUES (?)').bind(user.id),
   ])
 }
+
+it('exports complete ground evidence only for the authenticated owner', async () => {
+  const { db, dispose } = await createApiDatabase()
+  try {
+    await seed(db)
+    await db.prepare("INSERT INTO users(id,email,password_hash) VALUES('other','other@example.test','hash')").run()
+    await db.batch([
+      db.prepare('INSERT INTO ground_visits(id,user_id,country_code,visit_year,entry_method,note) VALUES(?,?,?,?,?,?)').bind('own-visit', user.id, 'GE', 2024, 'land', 'Train through Tbilisi'),
+      db.prepare('INSERT INTO ground_visits(id,user_id,country_code,note) VALUES(?,?,?,?)').bind('other-visit', 'other', 'US', 'Private other note'),
+    ])
+    const response = await listGroundVisits(context(db, '/api/passport/ground-visits', 'GET'))
+    expect(response.status).toBe(200)
+    expect(await response.json()).toEqual([expect.objectContaining({ id: 'own-visit', countryCode: 'GE', visitYear: 2024, entryMethod: 'land', note: 'Train through Tbilisi' })])
+    const anonymous = await listGroundVisits(apiContext(db, new Request('https://kuuki.test/api/passport/ground-visits')) as never)
+    expect(anonymous.status).toBe(401)
+  } finally { await dispose() }
+})
 
 it('unclaims and drops ground notes in one transaction, preserving both on a fault', async () => {
   const { db, dispose } = await createApiDatabase()

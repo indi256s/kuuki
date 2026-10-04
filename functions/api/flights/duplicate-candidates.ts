@@ -32,5 +32,6 @@ export const onRequestPost: PagesFunction<Env, string, RequestData> = context =>
          AND (json_extract(c.value, '$.excludeId') IS NULL OR f.id != json_extract(c.value, '$.excludeId'))
        GROUP BY c.key ORDER BY CAST(c.key AS INTEGER)`,
     ).bind(JSON.stringify(candidates), user.id).all<{ candidateIndex: number; flightId: number }>()
+    if (!result.success || !Array.isArray(result.results)) throw new Error('Duplicate candidate read failed')
     return json({ matches: result.results }, { headers: { 'Cache-Control': 'no-store' } })
   })

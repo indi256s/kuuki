@@ -24,6 +24,7 @@ export function UpcomingFlightsCard({ className }: { className?: string }) {
     const deleteFlight = useDeleteFlight()
 
     const upcomingFlights = stats?.upcomingFlights || []
+    const upcomingFlightCount = stats?.upcomingFlightCount ?? 0
 
     const handleDeleteClick = (flight: Flight) => {
         setSelectedFlightId(null)
@@ -113,9 +114,9 @@ export function UpcomingFlightsCard({ className }: { className?: string }) {
                 </div>
 
                 {/* Footer / Count */}
-                {upcomingFlights.length > 1 && (
+                {upcomingFlightCount > 1 && (
                     <div className="mt-auto pt-3 border-t border-border/30 flex justify-between items-center text-[10px] text-muted-foreground z-10">
-                        <span>+ {upcomingFlights.length - 1} pending</span>
+                        <span>+ {upcomingFlightCount - 1} {t('dashboard.pending', 'pending')}</span>
                     </div>
                 )}
 

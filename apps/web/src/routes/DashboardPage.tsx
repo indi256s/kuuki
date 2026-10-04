@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useMemo, lazy, Suspense } from 'react'
+import { useState, useCallback, useEffect, lazy, Suspense } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Plus } from 'lucide-react'
 
@@ -64,7 +64,7 @@ function AnalysisDeckSkeleton() {
 export function DashboardPage() {
   const { t } = useTranslation()
   const { profile } = useAuth()
-  const { data: dashStats, isPending: statsPending, isError: statsError } = useDashboardStats()
+  const { data: dashStats, isPending: statsPending, isError: statsError, refetch: refetchStats, isFetching: statsFetching } = useDashboardStats()
   const [isFormOpen, setIsFormOpen] = useState(false)
   const [mapExpanded, setMapExpanded] = useState(false)
 
@@ -82,41 +82,16 @@ export function DashboardPage() {
   const { data: aircraftCodes = [] } = useFlightAircraft()
 
   // Flight routes for map
-  const { data: allFlights = [] } = useFlightRoutes()
+  const routesQuery = useFlightRoutes(filters)
   const { data: passportCountries } = usePassportCountries()
 
-  // Filter flights client-side using dashboard filters
-  const filteredFlights = useMemo(() => {
-    let result = allFlights
-    if (filters.year) {
-      const yearStr = String(filters.year)
-      result = result.filter(f => f.date.startsWith(yearStr))
-    }
-    if (filters.airlineIata) {
-      result = result.filter(f => f.airline_iata === filters.airlineIata)
-    }
-    if (filters.airlineIataCodes && filters.airlineIataCodes.length > 0) {
-      const set = new Set(filters.airlineIataCodes)
-      result = result.filter(f => f.airline_iata && set.has(f.airline_iata))
-    }
-    if (filters.originCodes && filters.originCodes.length > 0) {
-      const set = new Set(filters.originCodes)
-      result = result.filter(f => set.has(f.origin))
-    }
-    if (filters.destinationCodes && filters.destinationCodes.length > 0) {
-      const set = new Set(filters.destinationCodes)
-      result = result.filter(f => set.has(f.destination))
-    }
-    if (filters.isUpcoming !== undefined) {
-      result = result.filter(f => f.is_upcoming === filters.isUpcoming)
-    }
-    return result
-  }, [allFlights, filters])
+  // The same server filter parser owns both totals and routes.
+  const filteredFlights = routesQuery.data ?? []
 
   // Sync upcoming flights on dashboard load
   useSyncUpcomingFlights()
 
-  const hasFlights = (dashStats?.totalFlights ?? 0) > 0 || (dashStats?.upcomingFlights.length ?? 0) > 0
+  const hasFlights = (dashStats?.totalFlights ?? 0) > 0 || (dashStats?.upcomingFlightCount ?? 0) > 0
 
   const displayName = profile?.display_name || profile?.username || 'User'
 
@@ -204,12 +179,25 @@ export function DashboardPage() {
       mobileTabBar={<MobileTabBar />}
     >
 
+        {dashStats && dashStats.derivedState !== 'ready' && (
+          <p role="status" className="mb-4 text-sm text-muted-foreground">
+            {t('errors.statisticsPending')}
+          </p>
+        )}
         {statsError && (
           <div role="alert" className="mb-4 rounded-lg border border-destructive/40 bg-card p-4 text-sm">
-            {t('common.error', 'Unable to refresh your flights. Try again later.')}
+            {dashStats
+              ? t('errors.backgroundRefresh', 'Could not refresh your overview. Showing the last loaded data.')
+              : t('common.error', 'Unable to load your overview. Try again.')}
+            <Button variant="link" onClick={() => void refetchStats()} disabled={statsFetching}>{t('common.retry', 'Try again')}</Button>
           </div>
         )}
-        {statsPending ? <Skeleton className="h-32 w-full rounded-2xl" /> : hasFlights ? (
+        {dashStats && routesQuery.error && (
+          <div role="alert" className="mb-4 rounded-lg border border-destructive/40 bg-card p-4 text-sm">
+            {t('errors.backgroundRefresh', 'Could not refresh the map. Showing the last loaded routes when available.')}
+          </div>
+        )}
+        {statsPending ? <Skeleton className="h-32 w-full rounded-2xl" /> : !dashStats ? null : hasFlights ? (
           <div className="space-y-4 animate-fade-up stagger-children">
             {/* Upcoming flights banner */}
             <UpcomingFlightsBanner />
@@ -255,13 +243,17 @@ export function DashboardPage() {
                   ? 'col-span-1'
                   : 'md:col-span-2'
               )}>
-                <MapCard
+                {routesQuery.data ? <MapCard
                   flights={filteredFlights}
                   passportEntries={passportCountries ?? []}
                   className="h-full w-full"
                   isExpanded={mapExpanded}
                   onExpandChange={setMapExpanded}
-                />
+                /> : routesQuery.isPending ? <Skeleton className="h-full min-h-[400px] w-full rounded-2xl" /> : (
+                  <div className="flex h-full min-h-[400px] items-center justify-center rounded-2xl border border-border/50 bg-card p-6 text-center text-sm text-muted-foreground">
+                    {t('errors.mapLoadFailed', 'Map routes are unavailable. Try again later.')}
+                  </div>
+                )}
               </div>
 
               {/* 6 stat cards in 2-col grid beside map (hidden when map expanded) */}

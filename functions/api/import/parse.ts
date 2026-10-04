@@ -9,7 +9,7 @@ import {
   EXTRACTION_PROMPT,
 } from './_shared'
 import { decodedBase64Size } from './_body'
-import { DEFAULT_MODEL, PROVIDER_TIMEOUT_MS, ProviderResponseError, providerFailure } from './_provider'
+import { DEFAULT_MODEL, PROVIDER_TIMEOUT_MS, ProviderResponseError, providerFailure, usageBucket } from './_provider'
 import { corsHeaders, corsPreflight } from '../_lib/cors'
 import { requireCsrf, requireUser, type RequestData } from '../_lib/auth'
 import { HttpError, readJson, runHandler } from '../_lib/http'
@@ -101,6 +101,7 @@ async function extractFlightsWithGemini(
   ai: GoogleGenAI,
   model: string,
   contents: (string | { inlineData: { data: string; mimeType: string } })[],
+  signal: AbortSignal,
 ): Promise<{
   flights: ExtractedFlight[]
   raw_text?: string
@@ -115,6 +116,7 @@ async function extractFlightsWithGemini(
       responseMimeType: 'application/json',
       responseSchema: FLIGHT_RESPONSE_SCHEMA,
       httpOptions: { timeout: PROVIDER_TIMEOUT_MS },
+      abortSignal: signal,
     },
   })
 
@@ -137,6 +139,7 @@ async function extractFlightsWithGemini(
   }
 
   console.log(JSON.stringify({ event: 'gemini_parsed', flight_count: parsedResponse.flights?.length ?? 0 }))
+  console.log(JSON.stringify({ event: 'import_provider_usage', model, usage_bucket: usageBucket(response.usageMetadata?.totalTokenCount) }))
 
   // Validate and normalize flights, collecting rejected ones for diagnostics
   const rejectedFlights: RejectedFlight[] = []
@@ -243,8 +246,11 @@ async function extractFlightsWithGemini(
   }
 }
 
-export const onRequestPost: PagesFunction<Env, string, RequestData> = async (context) => {
-  const { request, env, data } = context
+export const onRequestPost: PagesFunction<Env, string, RequestData> = context =>
+  parseImportRequest(context.request, context.env, context.data)
+
+/** Real Request/Response transport entry; provider execution remains single-call. */
+export async function parseImportRequest(request: Request, env: Env, data: RequestData): Promise<Response> {
   const cors = corsHeaders(request, env, 'POST, OPTIONS')
 
   // Handle preflight
@@ -292,12 +298,21 @@ export const onRequestPost: PagesFunction<Env, string, RequestData> = async (con
 
     const model = env.GEMINI_IMPORT_MODEL?.trim() || DEFAULT_MODEL
     let result: ParseResponse
+    const started = Date.now()
+    const controller = new AbortController()
+    let deadlineExpired = false
+    const deadline = setTimeout(() => { deadlineExpired = true; controller.abort() }, PROVIDER_TIMEOUT_MS)
     try {
-      result = await extractFlightsWithGemini(ai, model, contents)
+      result = await extractFlightsWithGemini(ai, model, contents, controller.signal)
+      console.log(JSON.stringify({ event: 'import_provider_result', model, outcome: 'success', duration_ms: Date.now() - started }))
     } catch (error) {
-      const failure = providerFailure(error)
-      console.error(JSON.stringify({ event: 'parse_provider_error', code: failure.code }))
+      const failure = deadlineExpired
+        ? new HttpError(504, 'The AI service timed out. Please try again.', 'PROVIDER_TIMEOUT')
+        : providerFailure(error)
+      console.error(JSON.stringify({ event: 'import_provider_result', model, outcome: failure.code, duration_ms: Date.now() - started }))
       throw failure
+    } finally {
+      clearTimeout(deadline)
     }
 
     return Response.json(result, { headers: cors })

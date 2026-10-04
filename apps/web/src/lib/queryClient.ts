@@ -11,7 +11,10 @@ function isCancellation(error: unknown): boolean {
 /** Retry only reads that can recover without a user changing input or account state. */
 export function shouldRetryRead(failureCount: number, error: unknown): boolean {
   if (failureCount >= 2 || isCancellation(error)) return false
-  if (error instanceof ApiError) return error.status === 408 || error.status >= 500
+  if (error instanceof ApiError) {
+    if (error.code && /quota|rate.?limit|billing|payment|invalid.?input|unauthorized|forbidden/i.test(error.code)) return false
+    return error.status === 408 || error.status >= 500
+  }
   return error instanceof TypeError || (error instanceof Error && /network|fetch|timed out/i.test(error.message))
 }
 

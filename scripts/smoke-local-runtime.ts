@@ -19,7 +19,7 @@ const mf = new Miniflare({
   log: new Log(LogLevel.WARN),
   modules: true,
   scriptPath: resolve('.wrangler/functions-build/index.js'),
-  compatibilityDate: '2026-01-01',
+  compatibilityDate: '2025-09-23',
   compatibilityFlags: ['nodejs_compat'],
   host: '127.0.0.1', port,
   d1Databases: { DB: 'kuuki-synthetic-browser-fixture' },

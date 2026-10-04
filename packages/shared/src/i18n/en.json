@@ -800,6 +800,7 @@
       "scanning": "Scanning document…"
     },
     "review": {
+      "checkingDuplicates": "Checking existing flights…",
       "title": "Review extracted flights",
       "subtitle": "Verify and select which flights to import",
       "subtitleRejected": "Fill in missing airline codes to import these flights",
@@ -938,6 +939,13 @@
     "noData": "Unable to load comparison data"
   },
   "errors": {
+    "statisticsPending": "Statistics are still updating. Refresh later to check them.",
+    "duplicateCheckFailed": "Could not check existing flights.",
+    "mapLoadFailed": "Map routes are unavailable. Try again later.",
+    "sessionCheckFailed": "Could not verify your session. Please try again.",
+    "backgroundRefresh": "Could not refresh. Showing the last loaded data.",
+    "profileLoadFailed": "Could not load this profile. Please try again.",
+    "leaderboardLoadFailed": "Could not load the leaderboard. Please try again.",
     "generic": {
       "1": "We’ve hit some unexpected turbulence. Please stand by.",
       "2": "Our instruments are acting up. Give us a moment.",

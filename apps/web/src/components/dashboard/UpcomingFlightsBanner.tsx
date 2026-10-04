@@ -25,6 +25,7 @@ export function UpcomingFlightsBanner() {
   const deleteFlight = useDeleteFlight()
 
   const upcomingFlights = stats?.upcomingFlights || []
+  const upcomingFlightCount = stats?.upcomingFlightCount ?? 0
 
   if (upcomingFlights.length === 0) return null
 
@@ -85,9 +86,9 @@ export function UpcomingFlightsBanner() {
         <div className="flex-1" />
 
         {/* Pending count */}
-        {upcomingFlights.length > 1 && (
+        {upcomingFlightCount > 1 && (
           <span className="text-xs text-muted-foreground shrink-0">
-            +{upcomingFlights.length - 1} {t('dashboard.pending', 'pending')}
+            +{upcomingFlightCount - 1} {t('dashboard.pending', 'pending')}
           </span>
         )}
 

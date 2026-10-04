@@ -9,7 +9,7 @@ export interface ErrorShape {
 export function json(data: unknown, init: ResponseInit = {}): Response {
   return new Response(JSON.stringify(data), {
     ...init,
-    headers: { 'Content-Type': 'application/json; charset=utf-8', ...(init.headers ?? {}) },
+    headers: { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store', ...(init.headers ?? {}) },
   })
 }
 
@@ -71,7 +71,8 @@ export async function runHandler(fn: () => Promise<Response>, shape: ErrorShape 
     return await fn()
   } catch (err) {
     if (err instanceof HttpError) return jsonError(err.status, err.message, err.code, shape)
-    console.error(JSON.stringify({ event: 'handler_error', error: String(err) }))
+    // Database/provider error messages can contain user input or payload fragments.
+    console.error(JSON.stringify({ event: 'handler_error', code: 'INTERNAL' }))
     return jsonError(500, 'Internal server error', 'INTERNAL', shape)
   }
 }

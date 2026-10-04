@@ -4,7 +4,7 @@ import { runHandler, json, readJson, HttpError } from '../../_lib/http'
 import { requireUser, requireCsrf, type RequestData } from '../../_lib/auth'
 import { newId } from '../../_lib/crypto'
 import { nowIso } from '../../_lib/time'
-import { toGroundVisit } from '../../_lib/passportDtos'
+import { toGroundVisit, type GroundVisitRow } from '../../_lib/passportDtos'
 import { parseCountryCode } from '../../_lib/params'
 import { dirtyUserStatement, repairUserDerivedState } from '../../_services/derivedState'
 
@@ -15,11 +15,27 @@ interface GroundVisitBody {
   entryMethod?: string | null
 }
 
-export const onRequestPost: PagesFunction<Env, string, RequestData> = (context) =>
-  runHandler(async () => {
-    const { request, env } = context
+export const onRequestGet: PagesFunction<Env, string, RequestData> = context =>
+  listGroundVisitsRequest(context.request, context.env, context.data)
+
+/** Owner-scoped management/export projection includes the preserved note. */
+export function listGroundVisitsRequest(request: Request, env: Env, data: RequestData): Promise<Response> {
+  return runHandler(async () => {
+    const user = requireUser(data)
+    const rows = await env.DB.prepare('SELECT id, user_id, country_code, visit_year, entry_method, note, created_at FROM ground_visits WHERE user_id = ? ORDER BY created_at DESC, id').bind(user.id).all<GroundVisitRow>()
+    if (!rows.success || !Array.isArray(rows.results)) throw new Error('Ground visits unavailable')
+    return json(rows.results.map(toGroundVisit))
+  })
+}
+
+export const onRequestPost: PagesFunction<Env, string, RequestData> = context =>
+  createGroundVisitRequest(context.request, context.env, context.data)
+
+/** Request/Response entry keeps compatibility transport separate from domain writes. */
+export function createGroundVisitRequest(request: Request, env: Env, data: RequestData): Promise<Response> {
+  return runHandler(async () => {
     requireCsrf(request)
-    const user = requireUser(context.data)
+    const user = requireUser(data)
 
     const body = await readJson<GroundVisitBody>(request)
     const countryCode = parseCountryCode(body?.countryCode)
@@ -59,3 +75,4 @@ export const onRequestPost: PagesFunction<Env, string, RequestData> = (context) 
       { status: 201 },
     )
   })
+}

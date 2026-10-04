@@ -89,6 +89,7 @@ export async function deleteUserCascade(db: D1Database, userId: string): Promise
   await db.batch([
     ...childTables.map((t) => db.prepare(`DELETE FROM ${t} WHERE user_id = ?`).bind(userId)),
     db.prepare('DELETE FROM auth_sessions WHERE userId = ?').bind(userId),
+    db.prepare("DELETE FROM auth_verifications WHERE identifier = ? AND id LIKE 'password-reset:%'").bind(`password-reset:${userId}`),
     db.prepare('DELETE FROM auth_accounts WHERE userId = ?').bind(userId),
     db.prepare('DELETE FROM profiles WHERE id = ?').bind(userId),
     db.prepare('DELETE FROM users WHERE id = ?').bind(userId),

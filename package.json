@@ -18,7 +18,13 @@
     "preflight": "tsx scripts/migration-preflight.ts",
     "clean": "turbo clean",
     "smoke:runtime": "tsx scripts/smoke-local-runtime.ts --check",
-    "dev:fixture": "tsx scripts/smoke-local-runtime.ts"
+    "dev:fixture": "tsx scripts/smoke-local-runtime.ts",
+    "next:build": "node scripts/build-next.mjs",
+    "next:build:test": "KUUKI_TESTING_API=1 node scripts/build-next.mjs",
+    "next:preview": "tsx scripts/smoke-next-runtime.ts",
+    "next:smoke": "tsx scripts/smoke-next-runtime.ts --check",
+    "next:smoke:boundary": "tsx scripts/smoke-next-runtime.ts --check-boundary",
+    "test:next:navigation": "pnpm --filter @kuuki/next exec playwright test --config tests/playwright.config.ts"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^5.20261003.1",

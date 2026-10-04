@@ -1,0 +1,43 @@
+import { test, expect } from '@playwright/test'
+
+test('the opened map uses local assets, selectable routes and survives a theme change', async ({ page, baseURL }) => {
+  expect((await page.request.post('/api/auth/sign-in/email', { headers: { Origin: baseURL! }, data: { email: 'a@example.test', password: 'rehearsal-password-2026' } })).status()).toBe(200)
+  const assets: string[] = []
+  page.on('request', request => { if (new URL(request.url()).pathname.startsWith('/maps/')) assets.push(request.url()) })
+  await page.goto('/passport?view=map&period=2026')
+  const routes = page.getByRole('list', { name: 'Route list', exact: true })
+  await expect(routes.getByRole('button', { name: /JFK → BOS/ })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Fit routes' })).toBeVisible({ timeout: 20_000 })
+  await routes.getByRole('button').first().click()
+  await expect(routes.getByRole('button').first()).toHaveAttribute('aria-pressed', 'true')
+  await page.getByRole('combobox', { name: 'Theme', exact: true }).selectOption('dark')
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark')
+  await expect(routes.getByRole('button').first()).toHaveAttribute('aria-pressed', 'true')
+  await page.getByRole('button', { name: 'Fit routes' }).click()
+  expect(assets.some(url => url.endsWith('maplibre-gl-worker.mjs'))).toBe(true)
+  expect(assets.some(url => url.endsWith('maplibre-gl-shared.mjs'))).toBe(true)
+  expect(assets.some(url => url.endsWith('countries-110m-2.0.2.geojson'))).toBe(true)
+  expect(assets.every(url => new URL(url).origin === baseURL)).toBe(true)
+  await page.getByRole('button', { name: 'Close map', exact: true }).click()
+  await expect(page.locator('.maplibregl-canvas')).toHaveCount(0)
+  await page.getByRole('button', { name: 'Open map', exact: true }).click()
+  await expect(page.getByRole('button', { name: 'Fit routes' })).toBeVisible({ timeout: 20_000 })
+})
+
+test('WebGL failure keeps a keyboard usable route and country list', async ({ page, baseURL }) => {
+  await page.addInitScript(() => {
+    const original = HTMLCanvasElement.prototype.getContext
+    HTMLCanvasElement.prototype.getContext = function(this: HTMLCanvasElement, type: string, options?: unknown) {
+      if (type === 'webgl2') return null
+      return original.call(this, type as '2d', options as CanvasRenderingContext2DSettings)
+    } as typeof original
+  })
+  expect((await page.request.post('/api/auth/sign-in/email', { headers: { Origin: baseURL! }, data: { email: 'a@example.test', password: 'rehearsal-password-2026' } })).status()).toBe(200)
+  await page.goto('/passport?view=map')
+  await expect(page.getByRole('status').filter({ hasText: 'Map unavailable.' })).toBeVisible()
+  const route = page.getByRole('list', { name: 'Route list', exact: true }).getByRole('button').first()
+  await route.focus()
+  await page.keyboard.press('Enter')
+  await expect(route).toHaveAttribute('aria-pressed', 'true')
+  await expect(page.getByRole('list', { name: 'Visited countries', exact: true })).toContainText('United States')
+})

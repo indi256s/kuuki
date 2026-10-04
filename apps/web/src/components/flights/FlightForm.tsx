@@ -58,11 +58,12 @@ type FlightFormData = z.infer<typeof flightSchema>
 interface FlightFormProps {
   isOpen: boolean
   onClose: () => void
+  onSaved?: () => void
   editFlight?: Flight | null
   onDelete?: (flight: Flight) => void
 }
 
-export function FlightForm({ isOpen, onClose, editFlight, onDelete }: FlightFormProps) {
+export function FlightForm({ isOpen, onClose, onSaved, editFlight, onDelete }: FlightFormProps) {
   const { t } = useTranslation()
   const isMobile = useIsMobile()
   const createFlight = useCreateFlight()
@@ -214,12 +215,13 @@ export function FlightForm({ isOpen, onClose, editFlight, onDelete }: FlightForm
         setOperationId(rotateFlightOperationId('manual'))
       }
       onClose()
+      onSaved?.()
     } catch (err) {
       form.setError('root', {
         message: err instanceof Error ? err.message : t('errors.generic'),
       })
     }
-  }, [form, t, isEditing, editFlight, updateFlight, createFlight, onClose, operationId])
+  }, [form, t, isEditing, editFlight, updateFlight, createFlight, onClose, onSaved, operationId])
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -254,6 +256,7 @@ export function FlightForm({ isOpen, onClose, editFlight, onDelete }: FlightForm
       })
       setOperationId(rotateFlightOperationId('manual'))
       onClose()
+      onSaved?.()
     } catch (error) {
       form.setError('root', { message: error instanceof Error ? error.message : t('errors.generic') })
     }

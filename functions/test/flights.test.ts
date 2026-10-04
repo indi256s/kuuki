@@ -1,11 +1,13 @@
 import { afterEach, expect, it, vi } from 'vitest'
 import { createApiDatabase, apiContext, csrfRequest, count } from './harness'
-import { onRequestPost, isUpcomingFlight } from '../api/flights/index'
+import { onRequestPost, onRequestGet as listFlights, isUpcomingFlight } from '../api/flights/index'
 import { onRequestGet, onRequestPatch, onRequestDelete } from '../api/flights/[id]'
 import { onRequestPost as bulkDelete } from '../api/flights/bulk-delete'
 import { onRequestPost as bulkCreate } from '../api/flights/bulk'
 import { onRequestPost as syncUpcoming } from '../api/flights/sync-upcoming'
+import { onRequestPost as aircraftBatch } from '../api/flights/aircraft-batch'
 import { repairUserDerivedState } from '../api/_services/derivedState'
+import maintenance from '../../workers/maintenance/index'
 
 const user = { id: 'u1', email: 'u1@example.test' }
 const flight = { date: '2025-04-03', origin: 'TBS', destination: 'IST' }
@@ -36,6 +38,31 @@ function context(db: D1Database, path: string, method: string, body?: unknown, k
   const request = csrfRequest(path, method, body, key ? { 'Idempotency-Key': key } : {})
   return { ...apiContext(db, request), data: { user }, params: id ? { id } : {} } as never
 }
+
+it('searches owned flight fields literally with matching pagination totals', async () => {
+  const { db, dispose } = await createApiDatabase()
+  try {
+    await seed(db)
+    await db.batch([
+      db.prepare('INSERT INTO users (id,email,password_hash) VALUES (?,?,?)').bind('u2', 'other@example.test', 'hash'),
+      ...[
+        [user.id, '2025-04-03', 'TBS', 'IST', 'Q%99'],
+        [user.id, '2025-04-04', 'TBS', 'JFK', 'Q100'],
+        ['u2', '2025-04-03', 'TBS', 'IST', 'PRIVATE'],
+      ].map(row => db.prepare('INSERT INTO flights (user_id,date,origin,destination,flight_number,source,is_upcoming) VALUES (?,?,?,?,?,\'manual\',0)').bind(...row)),
+    ])
+    const searched = await listFlights(context(db, '/api/flights?q=tbs&limit=1', 'GET'))
+    expect(searched.status).toBe(200)
+    const body = await searched.json() as { flights: Array<{ flight_number: string }>; total: number }
+    expect(body.total).toBe(2)
+    expect(body.flights).toHaveLength(1)
+    expect(body.flights[0].flight_number).not.toBe('PRIVATE')
+    const literal = await listFlights(context(db, '/api/flights?q=%25', 'GET'))
+    expect(await literal.json()).toMatchObject({ total: 1, flights: [{ flight_number: 'Q%99' }] })
+    const missing = await listFlights(context(db, '/api/flights?q=not-a-route', 'GET'))
+    expect(await missing.json()).toMatchObject({ total: 0, flights: [] })
+  } finally { await dispose() }
+})
 
 it('requires a key, rejects invalid values, and validates airport references before writing', async () => {
   const { db, dispose } = await createApiDatabase()
@@ -172,6 +199,69 @@ it('publishes two flights that become completed in one sync', async () => {
     expect(await response.json()).toMatchObject({ synced: 2, derived_state: 'ready' })
     expect((await db.prepare('SELECT total_flights FROM user_stats WHERE user_id = ?').bind(user.id).first<{ total_flights: number }>())?.total_flights).toBe(2)
     expect(await count(db, 'visits')).toBe(3)
+  } finally { await dispose() }
+})
+
+it('accepts valid aircraft changes in a mixed batch and publishes one revision', async () => {
+  const { db, dispose } = await createApiDatabase()
+  try {
+    await seed(db)
+    await db.prepare("INSERT INTO aircraft_reference (icao, name, manufacturer, model, type, engine_type, engine_count) VALUES ('A320', 'Airbus A320', 'Airbus', 'A320', 'jet', 'jet', 2)").run()
+    const [first, second] = await db.batch([
+      db.prepare("INSERT INTO flights (user_id,date,origin,destination,is_upcoming) VALUES ('u1','2025-04-03','TBS','IST',0)"),
+      db.prepare("INSERT INTO flights (user_id,date,origin,destination,is_upcoming) VALUES ('u1','2025-04-03','TBS','JFK',0)"),
+    ])
+    const ids = [first.meta.last_row_id as number, second.meta.last_row_id as number]
+    const response = await aircraftBatch(context(db, '/api/flights/aircraft-batch', 'POST', { items: [
+      { id: ids[0], aircraft_icao: 'A320' },
+      { id: ids[1], aircraft_icao: 'XXXX' },
+      { id: 99999, aircraft_icao: 'A320' },
+    ] }))
+    expect(response.status).toBe(200)
+    const body = await response.json() as { results: Array<{ status: string; code?: string; flight?: { aircraft_icao: string } }>; derived_state: string }
+    expect(body.results.map(result => [result.status, result.code])).toEqual([
+      ['accepted', undefined], ['error', 'UNKNOWN_AIRCRAFT'], ['error', 'NOT_FOUND'],
+    ])
+    expect(body.results[0].flight?.aircraft_icao).toBe('A320')
+    expect(body.derived_state).toBe('ready')
+    expect(await db.prepare("SELECT revision,published_revision FROM user_derived_state WHERE user_id='u1'").first())
+      .toEqual({ revision: 1, published_revision: 1 })
+    expect(await db.prepare('SELECT aircraft_icao FROM flights WHERE id = ?').bind(ids[1]).first())
+      .toEqual({ aircraft_icao: null })
+  } finally { await dispose() }
+})
+
+it('rolls back aircraft writes when the dirty marker cannot commit', async () => {
+  const { db, dispose } = await createApiDatabase()
+  try {
+    await seed(db)
+    await db.prepare("INSERT INTO aircraft_reference (icao, name, manufacturer, model, type, engine_type, engine_count) VALUES ('A320', 'Airbus A320', 'Airbus', 'A320', 'jet', 'jet', 2)").run()
+    const inserted = await db.prepare("INSERT INTO flights (user_id,date,origin,destination,is_upcoming) VALUES ('u1','2025-04-03','TBS','IST',0)").run()
+    const id = inserted.meta.last_row_id as number
+    await db.prepare("CREATE TRIGGER reject_dirty BEFORE INSERT ON user_derived_state BEGIN SELECT RAISE(ABORT, 'synthetic dirty failure'); END").run()
+    const response = await aircraftBatch(context(db, '/api/flights/aircraft-batch', 'POST', {
+      items: [{ id, aircraft_icao: 'A320' }],
+    }))
+    expect(response.status).toBe(500)
+    expect(await db.prepare('SELECT aircraft_icao FROM flights WHERE id = ?').bind(id).first())
+      .toEqual({ aircraft_icao: null })
+  } finally { await dispose() }
+})
+
+it('rolls over overdue flights on cron without a page visit and resumes after the bounded batch', async () => {
+  const { db, dispose } = await createApiDatabase()
+  try {
+    await seed(db)
+    const inserts = Array.from({ length: 101 }, () =>
+      db.prepare("INSERT INTO flights (user_id,date,origin,destination,is_upcoming) VALUES ('u1','2025-04-03','TBS','IST',1)"))
+    await db.batch(inserts)
+    await maintenance.scheduled({} as ScheduledEvent, { DB: db })
+    expect((await db.prepare("SELECT COUNT(*) AS n FROM flights WHERE is_upcoming=1").first<{ n: number }>())?.n).toBe(1)
+    expect((await db.prepare("SELECT total_flights FROM user_stats WHERE user_id='u1'").first<{ total_flights: number }>())?.total_flights).toBe(100)
+    await maintenance.scheduled({} as ScheduledEvent, { DB: db })
+    expect((await db.prepare("SELECT total_flights FROM user_stats WHERE user_id='u1'").first<{ total_flights: number }>())?.total_flights).toBe(101)
+    expect(await db.prepare("SELECT revision,published_revision FROM user_derived_state WHERE user_id='u1'").first())
+      .toEqual({ revision: 2, published_revision: 2 })
   } finally { await dispose() }
 })
 

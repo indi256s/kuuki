@@ -1,7 +1,7 @@
-import { api, ApiError } from './apiClient'
+import { api, ApiError, type CallOptions } from './apiClient'
 import { FLIGHT_BULK_CREATE_MAX, validateFlightInput } from '@kuuki/shared'
 import { completeFlightCreateOperation, getFlightCreateOperation } from './flightCreateOperations'
-import type { DerivedAck } from './derivedStateFeedback'
+import type { DerivedAck } from './derivedState'
 import type { Tables, TablesInsert, TablesUpdate } from './database.types'
 
 export type Flight = Tables<'flights'>
@@ -80,7 +80,7 @@ function toFlight(dto: ApiFlight, userId: string): Flight {
  * Mirrors functions/api/_lib/flightQuery.ts (parseFlightFilters / parseSort / parsePagination):
  * scalar filters, CSV arrays for the *Codes filters, sortField/sortOrder, limit/offset.
  */
-function filterParams(filters: FlightFilters = {}): Record<string, string | number> {
+export function filterParams(filters: FlightFilters = {}): Record<string, string | number> {
   const params: Record<string, string | number> = {}
   if (filters.year) params.year = filters.year
   if (filters.airlineIataCodes && filters.airlineIataCodes.length > 0) {
@@ -135,9 +135,9 @@ export async function getFlights(
 /**
  * Get a single flight by ID
  */
-export async function getFlight(flightId: number): Promise<Flight | null> {
+export async function getFlight(flightId: number, options?: CallOptions): Promise<Flight | null> {
   try {
-    const dto = await api.get<ApiFlight>(`/api/flights/${flightId}`)
+    const dto = await api.get<ApiFlight>(`/api/flights/${flightId}`, undefined, options)
     return toFlight(dto, '')
   } catch (error) {
     if (error instanceof ApiError && error.status === 404) return null
@@ -244,14 +244,15 @@ export async function checkDuplicateFlight(
   date: string,
   origin: string,
   destination: string,
-  excludeId?: number
+  excludeId?: number,
+  options?: CallOptions
 ): Promise<Flight | null> {
   const dto = await api.get<ApiFlight | null>('/api/flights/check-duplicate', {
     date,
     origin,
     destination,
     excludeId,
-  })
+  }, options)
   return dto ? toFlight(dto, userId) : null
 }
 
@@ -277,8 +278,8 @@ export interface FlightRoute {
 /**
  * Get all flight routes for map rendering (lightweight: only route-relevant columns)
  */
-export async function getFlightRoutes(_userId: string): Promise<FlightRoute[]> {
-  const rows = await api.get<FlightRoute[]>('/api/flights/routes')
+export async function getFlightRoutes(_userId: string, filters: FlightFilters = {}): Promise<FlightRoute[]> {
+  const rows = await api.get<FlightRoute[]>('/api/flights/routes', filterParams(filters))
   return rows ?? []
 }
 
@@ -326,8 +327,8 @@ export async function getFlightAircraft(_userId: string): Promise<string[]> {
  * Get all flights for a user (for export)
  * No pagination - returns everything
  */
-export async function getAllFlights(userId: string): Promise<Flight[]> {
-  const rows = await api.get<ApiFlight[]>('/api/flights/all')
+export async function getAllFlights(userId: string, options?: CallOptions): Promise<Flight[]> {
+  const rows = await api.get<ApiFlight[]>('/api/flights/all', undefined, options)
   return rows.map((f) => toFlight(f, userId))
 }
 

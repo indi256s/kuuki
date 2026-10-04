@@ -1,4 +1,5 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
+import { useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { formatDistanceToNow } from 'date-fns'
 import { useAuth } from '@/hooks/useAuth'
@@ -17,6 +18,8 @@ import { MobileTabBar } from '@/components/layout/MobileTabBar'
 import { Button } from '@/components/ui/button'
 import { MapCard } from '@/components/map/MapCard'
 import { cn } from '@/lib/utils'
+import { allowedLegacyReturn, parseLegacyEntry, returnAfterLegacyWrite } from '@/lib/legacyBridge'
+import { getCountryByCode } from '@/lib/passport'
 import {
   Stamp,
   Plus,
@@ -32,6 +35,9 @@ function countryCodeToFlag(code: string): string {
 
 export function PassportPage() {
   const { t } = useTranslation()
+  const location = useLocation()
+  const entryHandled = useRef<string | null>(null)
+  const returnTo = allowedLegacyReturn(new URLSearchParams(location.search).get('returnTo'))
   const { profile } = useAuth()
   const isMobile = useIsMobile()
   const { data: countries, isLoading: countriesLoading } = usePassportCountries()
@@ -42,6 +48,21 @@ export function PassportPage() {
   const [mapExpanded, setMapExpanded] = useState(false)
   const [preselectedCountry, setPreselectedCountry] = useState<string | null>(null)
   const [isAlreadyClaimed, setIsAlreadyClaimed] = useState(false)
+
+  useEffect(() => {
+    if (import.meta.env.BASE_URL !== '/legacy/' || countriesLoading || entryHandled.current === location.search) return
+    entryHandled.current = location.search
+    const entry = parseLegacyEntry(location.search)
+    if (entry?.action === 'addCountry') {
+      setIsMapOpen(true)
+      return
+    }
+    if (entry?.action !== 'claim' || !getCountryByCode(entry.countryCode)) return
+    const existing = countries?.find((country) => country.countryCode === entry.countryCode)
+    setPreselectedCountry(entry.countryCode)
+    setIsAlreadyClaimed(existing?.source === 'claim' || existing?.source === 'both')
+    setIsClaimDialogOpen(true)
+  }, [location.search, countries, countriesLoading])
 
   const themeColor = profile?.theme_color || 'teal'
   const hasCountries = (countries?.length ?? 0) > 0
@@ -102,6 +123,7 @@ export function PassportPage() {
           <ClaimDialog
             isOpen={isClaimDialogOpen}
             onClose={handleClaimDialogClose}
+            onSaved={() => returnAfterLegacyWrite(location.search)}
             preselectedCountry={preselectedCountry}
             isAlreadyClaimed={isAlreadyClaimed}
           />
@@ -110,6 +132,7 @@ export function PassportPage() {
       mobileTabBar={<MobileTabBar />}
     >
 
+        {returnTo && <a className="mb-4 inline-block text-sm underline" href={returnTo}>Return to Kuuki</a>}
         {/* Hero Section: Map & Stats */}
         {hasCountries && (
           <div className={cn(

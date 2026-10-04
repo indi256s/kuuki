@@ -5,6 +5,8 @@ node_modules/
 # Build outputs
 dist/
 .next/
+.open-next/
+dist-legacy/
 .turbo/
 *.tsbuildinfo
 
@@ -42,6 +44,9 @@ pnpm-debug.log*
 
 # Test coverage
 coverage/
+test-results/
+playwright-report/
+docs/research/.local-performance.json
 
 # Supabase
 .supabase/

@@ -1,4 +1,6 @@
 import { useTranslation } from 'react-i18next'
+import { useLocation } from 'react-router-dom'
+import { allowedLegacyReturn } from '@/lib/legacyBridge'
 import { AppPageShell } from '@/components/layout/AppPageShell'
 import { MobileHeader } from '@/components/layout/MobileHeader'
 import { MobileTabBar } from '@/components/layout/MobileTabBar'
@@ -13,7 +15,9 @@ import {
 } from '@/components/settings'
 
 export function SettingsPage() {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
+  const location = useLocation()
+  const returnTo = allowedLegacyReturn(new URLSearchParams(location.search).get('returnTo'))
 
   return (
     <AppPageShell
@@ -26,6 +30,7 @@ export function SettingsPage() {
       mobileTabBar={<MobileTabBar />}
     >
         {/* Page title */}
+        {returnTo && <a href={returnTo}>{i18n.language.startsWith('ru') ? 'Вернуться в Kuuki' : 'Return to Kuuki'}</a>}
         <div className="mb-8 animate-fade-up">
           <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">
             {t('settings.title')}

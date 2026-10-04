@@ -39,9 +39,12 @@ export function digestInput(input: object): Promise<string> {
   return sha256Hex(JSON.stringify(sorted))
 }
 
-export const onRequestGet: PagesFunction<Env, string, RequestData> = (context) =>
-  runHandler(async () => {
-    const { request, env, data } = context
+export const onRequestGet: PagesFunction<Env, string, RequestData> = context =>
+  listFlights(context.request, context.env, context.data)
+
+/** Actual Request/Response domain entry, shared by the Pages compatibility transport. */
+export function listFlights(request: Request, env: Env, data: RequestData): Promise<Response> {
+  return runHandler(async () => {
     const user = requireUser(data)
     const params = new URL(request.url).searchParams
     const filters = parseFlightFilters(params)
@@ -54,6 +57,7 @@ export const onRequestGet: PagesFunction<Env, string, RequestData> = (context) =
     )
       .bind(...binds, limit, offset)
       .all<FlightRow>()
+    if (!list.success || !Array.isArray(list.results)) throw new Error('Flight list unavailable')
 
     const count = await env.DB.prepare(`SELECT COUNT(*) AS total FROM flights WHERE ${where}`)
       .bind(...binds)
@@ -61,6 +65,7 @@ export const onRequestGet: PagesFunction<Env, string, RequestData> = (context) =
 
     return json({ flights: list.results.map(toOwnFlight), total: count?.total ?? 0 })
   })
+}
 
 /** Ledger insert, conditional flight insert and ledger link for one create; batch them with a dirty mark. */
 export async function createFlightStatements(db: D1Database, userId: string, key: string, input: FlightInput): Promise<{ digest: string; statements: D1PreparedStatement[] }> {
@@ -127,9 +132,13 @@ export async function createFlightStatements(db: D1Database, userId: string, key
   return { digest, statements }
 }
 
-export const onRequestPost: PagesFunction<Env, string, RequestData> = (context) =>
-  runHandler(async () => {
-    const { request, env, data } = context
+export const onRequestPost: PagesFunction<Env, string, RequestData> = context =>
+  createFlightRequest(context.request, context.env, context.data)
+
+/** Actual Request/Response domain entry, shared by the Pages compatibility transport. */
+export function createFlightRequest(request: Request, env: Env, data: RequestData): Promise<Response> {
+  return runHandler(async () => {
+    const started = Date.now()
     requireCsrf(request)
     const user = requireUser(data)
 
@@ -138,7 +147,9 @@ export const onRequestPost: PagesFunction<Env, string, RequestData> = (context) 
     const body = await readJson<unknown>(request)
     const input = await parseFlightBody(env.DB, body, 'create')
     const { digest, statements } = await createFlightStatements(env.DB, user.id, key, input)
+    const canonicalStarted = Date.now()
     const batch = await env.DB.batch([...statements, dirtyUserStatement(env.DB, user.id, true)])
+    const canonicalMs = Date.now() - canonicalStarted
     const ledger = await env.DB.prepare('SELECT payload_digest, flight_id FROM flight_idempotency WHERE user_id = ? AND key = ?')
       .bind(user.id, key).first<{ payload_digest: string; flight_id: number | null }>()
     if (!ledger) throw new HttpError(500, 'Flight receipt missing', 'RECEIPT_MISSING')
@@ -147,6 +158,10 @@ export const onRequestPost: PagesFunction<Env, string, RequestData> = (context) 
       .bind(ledger.flight_id, user.id).first<FlightRow>()
     if (!row) throw new HttpError(410, 'Original flight was deleted', 'IDEMPOTENCY_GONE')
     const created = (batch[0].meta.changes ?? 0) > 0
+    const repairStarted = Date.now()
     const derived = await repairUserDerivedState(env.DB, user.id)
+    console.log(JSON.stringify({ event: 'flight_save', outcome: created ? 'created' : 'replayed', canonicalMs,
+      repairMs: Date.now() - repairStarted, durationMs: Date.now() - started, derivedState: derived.derived_state }))
     return json({ ...toOwnFlight(row), ...derived }, { status: created ? 201 : 200 })
   })
+}

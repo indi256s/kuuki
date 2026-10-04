@@ -2,12 +2,27 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import { VitePWA } from 'vite-plugin-pwa'
+import { readFileSync } from 'node:fs'
+import { fileURLToPath } from 'node:url'
 
-export default defineConfig({
+const publicAsset = (name: string) => readFileSync(fileURLToPath(new URL(`./public/${name}`, import.meta.url)))
+
+export default defineConfig(({ mode }) => ({
+  base: mode === 'legacy' ? '/legacy/' : '/',
+  publicDir: mode === 'legacy' ? false : undefined,
   plugins: [
     react(),
     tailwindcss(),
-    VitePWA({
+    ...(mode === 'legacy' ? [{
+      name: 'legacy-public-assets',
+      transformIndexHtml: (html: string) => html.replace(/\s*<link rel="manifest"[^>]*\/>/, ''),
+      generateBundle(this: { emitFile: (file: { type: 'asset'; fileName: string; source: Uint8Array }) => void }) {
+        for (const name of ['kuuki.svg', 'apple-touch-icon.png']) {
+          this.emitFile({ type: 'asset', fileName: name, source: publicAsset(name) })
+        }
+      },
+    }] : []),
+    ...(mode === 'legacy' ? [] : [VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['kuuki.svg', 'apple-touch-icon.png'],
       manifest: false, // Use our custom manifest.webmanifest
@@ -63,9 +78,10 @@ export default defineConfig({
           },
         ],
       },
-    }),
+    })]),
   ],
   build: {
+    outDir: mode === 'legacy' ? 'dist-legacy' : 'dist',
     rollupOptions: {
       output: {
         manualChunks: {
@@ -122,4 +138,4 @@ export default defineConfig({
       '@': '/src',
     },
   },
-})
+}))

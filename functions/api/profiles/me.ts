@@ -33,11 +33,14 @@ const TEXT_FIELDS = [
   'theme_color',
 ] as const
 
-export const onRequestPatch: PagesFunction<Env, string, RequestData> = (context) =>
-  runHandler(async () => {
-    const { request, env } = context
+export const onRequestPatch: PagesFunction<Env, string, RequestData> = context =>
+  updateProfileRequest(context.request, context.env, context.data)
+
+/** Request/Response entry keeps compatibility transport separate from domain writes. */
+export function updateProfileRequest(request: Request, env: Env, data: RequestData): Promise<Response> {
+  return runHandler(async () => {
     requireCsrf(request)
-    const user = requireUser(context.data)
+    const user = requireUser(data)
 
     const body = await readJson<UpdateBody>(request)
     if (!body) throw new HttpError(400, 'Invalid request body', 'BAD_REQUEST')
@@ -102,3 +105,4 @@ export const onRequestPatch: PagesFunction<Env, string, RequestData> = (context)
     if (!row) throw new HttpError(404, 'Profile not found', 'NOT_FOUND')
     return json(toOwnProfile(row))
   })
+}

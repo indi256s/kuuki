@@ -8,12 +8,15 @@ import { nowIso } from '../../../_lib/time'
 import { parseCountryCode } from '../../../_lib/params'
 import { dirtyUserStatement, repairUserDerivedState } from '../../../_services/derivedState'
 
-export const onRequestPut: PagesFunction<Env, string, RequestData> = (context) =>
-  runHandler(async () => {
-    const { request, env } = context
+export const onRequestPut: PagesFunction<Env, string, RequestData> = context =>
+  claimCountryRequest(context.request, context.env, context.data, context.params.cc)
+
+/** Request/Response entry keeps compatibility transport separate from domain writes. */
+export function claimCountryRequest(request: Request, env: Env, data: RequestData, rawCode: string | string[]): Promise<Response> {
+  return runHandler(async () => {
     requireCsrf(request)
-    const user = requireUser(context.data)
-    const cc = parseCountryCode(context.params.cc)
+    const user = requireUser(data)
+    const cc = parseCountryCode(rawCode)
 
     const [inserted] = await env.DB.batch([
       env.DB.prepare(
@@ -30,13 +33,17 @@ export const onRequestPut: PagesFunction<Env, string, RequestData> = (context) =
 
     return json({ ...claim, ...(inserted.meta.changes ? await repairUserDerivedState(env.DB, user.id) : {}) }, { status: 201 })
   })
+}
 
-export const onRequestDelete: PagesFunction<Env, string, RequestData> = (context) =>
-  runHandler(async () => {
-    const { request, env } = context
+export const onRequestDelete: PagesFunction<Env, string, RequestData> = context =>
+  unclaimCountryRequest(context.request, context.env, context.data, context.params.cc)
+
+/** Request/Response entry keeps compatibility transport separate from domain writes. */
+export function unclaimCountryRequest(request: Request, env: Env, data: RequestData, rawCode: string | string[]): Promise<Response> {
+  return runHandler(async () => {
     requireCsrf(request)
-    const user = requireUser(context.data)
-    const cc = parseCountryCode(context.params.cc)
+    const user = requireUser(data)
+    const cc = parseCountryCode(rawCode)
 
     // Ground visits can exist without a claim, so each DELETE gets its own
     // only-if-changed dirty mark (changes() sees just the preceding statement).
@@ -50,3 +57,4 @@ export const onRequestDelete: PagesFunction<Env, string, RequestData> = (context
     const changed = visits.meta.changes || claims.meta.changes
     return json({ ok: true, ...(changed ? await repairUserDerivedState(env.DB, user.id) : {}) })
   })
+}

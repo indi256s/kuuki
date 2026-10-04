@@ -26,20 +26,28 @@ async function loadFlight(db: D1Database, id: number, userId: string): Promise<F
   return row
 }
 
-export const onRequestGet: PagesFunction<Env, string, RequestData> = (context) =>
-  runHandler(async () => {
-    const user = requireUser(context.data)
-    const id = parseId(context.params.id as string)
-    const row = await loadFlight(context.env.DB, id, user.id)
+export const onRequestGet: PagesFunction<Env, string, RequestData> = context =>
+  readFlightRequest(context.request, context.env, context.data, context.params.id as string)
+
+/** Actual Request/Response domain entry, shared by the Pages compatibility transport. */
+export function readFlightRequest(request: Request, env: Env, data: RequestData, rawId: string): Promise<Response> {
+  return runHandler(async () => {
+    const user = requireUser(data)
+    const id = parseId(rawId)
+    const row = await loadFlight(env.DB, id, user.id)
     return json(toOwnFlight(row))
   })
+}
 
-export const onRequestPatch: PagesFunction<Env, string, RequestData> = (context) =>
-  runHandler(async () => {
-    const { request, env, data } = context
+export const onRequestPatch: PagesFunction<Env, string, RequestData> = context =>
+  updateFlightRequest(context.request, context.env, context.data, context.params.id as string)
+
+/** Actual Request/Response domain entry, shared by the Pages compatibility transport. */
+export function updateFlightRequest(request: Request, env: Env, data: RequestData, rawId: string): Promise<Response> {
+  return runHandler(async () => {
     requireCsrf(request)
     const user = requireUser(data)
-    const id = parseId(context.params.id as string)
+    const id = parseId(rawId)
 
     const existing = await loadFlight(env.DB, id, user.id)
     const patch = await parseFlightBody(env.DB, await readJson<unknown>(request), 'patch', existing)
@@ -111,13 +119,17 @@ export const onRequestPatch: PagesFunction<Env, string, RequestData> = (context)
     const derived = await repairUserDerivedState(env.DB, user.id)
     return json({ ...toOwnFlight(updated), ...derived })
   })
+}
 
-export const onRequestDelete: PagesFunction<Env, string, RequestData> = (context) =>
-  runHandler(async () => {
-    const { request, env, data } = context
+export const onRequestDelete: PagesFunction<Env, string, RequestData> = context =>
+  deleteFlightRequest(context.request, context.env, context.data, context.params.id as string)
+
+/** Actual Request/Response domain entry, shared by the Pages compatibility transport. */
+export function deleteFlightRequest(request: Request, env: Env, data: RequestData, rawId: string): Promise<Response> {
+  return runHandler(async () => {
     requireCsrf(request)
     const user = requireUser(data)
-    const id = parseId(context.params.id as string)
+    const id = parseId(rawId)
 
     const [deleted] = await env.DB.batch([
       env.DB.prepare('DELETE FROM flights WHERE id = ? AND user_id = ?').bind(id, user.id),
@@ -127,3 +139,4 @@ export const onRequestDelete: PagesFunction<Env, string, RequestData> = (context
     const derived = await repairUserDerivedState(env.DB, user.id)
     return json({ ok: true, ...derived })
   })
+}

@@ -8,57 +8,22 @@ import { resolveSession, slideSession, revokeSession } from './api/_lib/session'
 import { parseCookies, SESSION_COOKIE, CSRF_COOKIE, clearCookie } from './api/_lib/cookies'
 import { refreshSessionCookie } from './api/_lib/authCookies'
 import { generateToken } from './api/_lib/crypto'
-import { configuredActivationOrigin } from './api/_lib/activationSender'
+import { gateRequest } from './api/_lib/workerBoundary'
 import type { RequestData } from './api/_lib/auth'
 import { createAuth, hasBetterAuthCookie, appendCsrfCookie, BETTER_AUTH_COOKIE } from './api/_lib/betterAuth'
 import { runHandler } from './api/_lib/http'
 
-export const onRequest: PagesFunction<Env, string, RequestData> = async (context) => {
-  const { request, env, next, data } = context
+async function handleRequest(request: Request, env: Env, data: RequestData, next: () => Promise<Response>): Promise<Response> {
   data.user = null
 
   const url = new URL(request.url)
-  if (url.pathname.startsWith('/api/') && env.MAINTENANCE_MODE === 'true') {
-    return new Response(JSON.stringify({ error: 'Service temporarily unavailable', code: 'MAINTENANCE' }), {
-      status: 503,
-      headers: {
-        'Content-Type': 'application/json; charset=utf-8',
-        'Retry-After': '300',
-        'Cache-Control': 'no-store',
-      },
-    })
-  }
-  // The activation alias serves only the isolated token page and its completion API.
-  // Gate here before any session lookup, including old SPA/service-worker URLs.
-  if (env.ACTIVATION_ORIGIN) {
-    let activationOrigin: string
-    try {
-      activationOrigin = configuredActivationOrigin(env)
-    } catch {
-      return new Response('Service temporarily unavailable', { status: 503, headers: { 'Cache-Control': 'no-store' } })
-    }
-    if (url.origin === activationOrigin) {
-      if ((request.method === 'GET' || request.method === 'HEAD') &&
-          (url.pathname === '/activate' || url.pathname === '/activate.html' || url.pathname === '/activate.js')) return next()
-      if (request.method === 'POST' && url.pathname === '/api/auth/activation/complete') return next()
-      if (request.method === 'GET' || request.method === 'HEAD') {
-        const signIn = url.pathname === '/' && url.searchParams.get('mode') === 'signin'
-        return new Response(null, {
-          status: 302,
-          headers: {
-            // An explicit empty fragment prevents browsers inheriting a bearer token.
-            Location: new URL(signIn ? '/?mode=signin#' : '/#', env.PAGES_ORIGIN).toString(),
-            'Cache-Control': 'no-store',
-            'Referrer-Policy': 'no-referrer',
-          },
-        })
-      }
-      return new Response('Forbidden', { status: 403, headers: { 'Cache-Control': 'no-store' } })
-    }
-  }
+  const boundary = gateRequest(request, env)
+  if (boundary) return boundary
   if (!url.pathname.startsWith('/api/') || !env.DB) {
     return next()
   }
+  // Recovery is a pre-auth token operation; it must never refresh an old session.
+  if (url.pathname === '/api/auth/password-reset/request' || url.pathname === '/api/auth/password-reset/complete') return next()
 
   if (hasBetterAuthCookie(request)) {
     return runHandler(async () => {
@@ -102,4 +67,22 @@ export const onRequest: PagesFunction<Env, string, RequestData> = async (context
     return res
   }
   return response
+}
+
+export const onRequest: PagesFunction<Env, string, RequestData> = context =>
+  runApiRequest(context.request, context.env, context.data, () => context.next())
+
+/** Shared transport boundary; Next and Pages call it with real request arguments. */
+export async function runApiRequest(request: Request, env: Env, data: RequestData, next: () => Promise<Response>): Promise<Response> {
+  if (!new URL(request.url).pathname.startsWith('/api/')) return handleRequest(request, env, data, next)
+  const started = Date.now()
+  const requestId = crypto.randomUUID()
+  const response = await runHandler(() => handleRequest(request, env, data, next))
+  const result = new Response(response.body, response)
+  const durationMs = Date.now() - started
+  result.headers.set('X-Request-Id', requestId)
+  result.headers.set('Server-Timing', `api;dur=${durationMs}`)
+  result.headers.set('Cache-Control', 'no-store')
+  console.log(JSON.stringify({ event: 'api_request', requestId, method: request.method, status: result.status, durationMs }))
+  return result
 }

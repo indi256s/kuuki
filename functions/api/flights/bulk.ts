@@ -22,9 +22,12 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return !!value && typeof value === 'object' && !Array.isArray(value)
 }
 
-export const onRequestPost: PagesFunction<Env, string, RequestData> = (context) =>
-  runHandler(async () => {
-    const { request, env, data } = context
+export const onRequestPost: PagesFunction<Env, string, RequestData> = context =>
+  bulkCreateRequest(context.request, context.env, context.data)
+
+/** Actual Request/Response domain entry, shared by the Pages compatibility transport. */
+export function bulkCreateRequest(request: Request, env: Env, data: RequestData): Promise<Response> {
+  return runHandler(async () => {
     requireCsrf(request)
     const user = requireUser(data)
 
@@ -73,3 +76,4 @@ export const onRequestPost: PagesFunction<Env, string, RequestData> = (context) 
     }
     return json({ results, ...await repairUserDerivedState(env.DB, user.id) })
   })
+}

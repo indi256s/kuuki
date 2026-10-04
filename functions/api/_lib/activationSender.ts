@@ -4,6 +4,10 @@ export interface ActivationSender {
   send(to: string, link: string): Promise<void>
 }
 
+export interface RecoverySender {
+  send(to: string, link: string): Promise<void>
+}
+
 /** Dedicated static activation host; keep it separate from the main application's origin. */
 export function configuredActivationOrigin(env: Env): string {
   const raw = env.ACTIVATION_ORIGIN
@@ -69,13 +73,13 @@ function acknowledged(response: unknown, to: string): boolean {
 }
 
 /** Use Cloudflare Email Sending only when its account and verified sender are configured. */
-export function configuredActivationSender(env: Env): ActivationSender {
+function configuredMailSender(env: Env, purpose: 'activation' | 'recovery'): ActivationSender {
   const accountId = env.ACTIVATION_MAIL_ACCOUNT_ID
   const bearer = env.ACTIVATION_MAIL_AUTH_TOKEN
   const from = env.ACTIVATION_MAIL_FROM
   if (!accountId || !/^[0-9a-f]{32}$/i.test(accountId) || !bearer || /\s/.test(bearer) ||
       !from || !/^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+$/.test(from)) {
-    throw new HttpError(503, 'Account activation is temporarily unavailable', 'ACTIVATION_UNAVAILABLE')
+    throw new HttpError(503, purpose === 'activation' ? 'Account activation is temporarily unavailable' : 'Password recovery is temporarily unavailable', purpose === 'activation' ? 'ACTIVATION_UNAVAILABLE' : 'RECOVERY_UNAVAILABLE')
   }
   const url = `https://api.cloudflare.com/client/v4/accounts/${accountId}/email/sending/send`
   return {
@@ -90,9 +94,9 @@ export function configuredActivationSender(env: Env): ActivationSender {
           signal: controller.signal,
           headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${bearer}` },
           body: JSON.stringify({
-            from, to: [to], subject: 'Activate your Kuuki account',
-            text: `Activate your Kuuki account using this link:\n\n${link}\n`,
-            html: `<p>Activate your Kuuki account using this link:</p><p><a href="${escapeHtml(link)}">Activate account</a></p>`,
+            from, to: [to], subject: purpose === 'activation' ? 'Activate your Kuuki account' : 'Reset your Kuuki password',
+            text: purpose === 'activation' ? `Activate your Kuuki account using this link:\n\n${link}\n` : `Reset your Kuuki password using this link:\n\n${link}\n`,
+            html: purpose === 'activation' ? `<p>Activate your Kuuki account using this link:</p><p><a href="${escapeHtml(link)}">Activate account</a></p>` : `<p>Reset your Kuuki password using this link:</p><p><a href="${escapeHtml(link)}">Reset password</a></p>`,
           }),
         })
         if (!response.ok || !acknowledged(await readBoundedResponse(response), to)) throw new Error(SENDER_FAILURE)
@@ -104,4 +108,12 @@ export function configuredActivationSender(env: Env): ActivationSender {
       }
     },
   }
+}
+
+export function configuredActivationSender(env: Env): ActivationSender {
+  return configuredMailSender(env, 'activation')
+}
+
+export function configuredRecoverySender(env: Env): RecoverySender {
+  return configuredMailSender(env, 'recovery')
 }

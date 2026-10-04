@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { advanceAuthGeneration, beginIdentityOperation, setUnauthorizedHandler, type IdentityOperationToken } from '@/lib/apiClient'
 import { resetPrivateClientState } from '@/lib/identityReset'
+import { allowedLegacyReturn } from '@/lib/legacyBridge'
 import {
   type AuthUser,
   type Profile,
@@ -17,6 +18,7 @@ interface AuthStore {
   profile: Profile | null
   isLoading: boolean
   isInitialized: boolean
+  initializationError: boolean
 
   // Actions
   initialize: () => Promise<void>
@@ -85,8 +87,16 @@ function establishIdentity(call: AuthCall): Promise<{ success: boolean; error?: 
     if (!result.success || !result.user) return { ...result, publish: publishIf(version, { isLoading: false }) }
     if (version !== authActionVersion) return result
     startNewIdentity()
-    const profile = await getProfile(result.user.id, token)
-    return { ...result, publish: publishIf(version, { user: result.user, profile, isLoading: false, isInitialized: true }) }
+    let profile: Profile | null = null
+    let profileLoadFailed = false
+    try {
+      profile = await getProfile(result.user.id, token)
+    } catch (error) {
+      // Authentication succeeded even when the profile read is unavailable.
+      console.error('Profile load after sign-in failed:', error)
+      profileLoadFailed = true
+    }
+    return { ...result, publish: publishIf(version, { user: result.user, profile, isLoading: false, isInitialized: !profileLoadFailed, initializationError: profileLoadFailed }) }
   })
 }
 
@@ -100,7 +110,13 @@ function clearIdentity(
     if (version !== authActionVersion) return result
     if (!result.success) return { ...result, publish: publishIf(version, { isLoading: false }) }
     startNewIdentity()
-    return { ...result, publish: publishIf(version, { user: null, profile: null, isLoading: false, ...cleared }) }
+    const publish = publishIf(version, { user: null, profile: null, isLoading: false, ...cleared })
+    return { ...result, publish: () => {
+      publish?.()
+      if (import.meta.env.BASE_URL === '/legacy/' && allowedLegacyReturn(new URLSearchParams(window.location.search).get('returnTo'))) {
+        window.location.assign('/signin')
+      }
+    } }
   })
 }
 
@@ -113,14 +129,19 @@ function broadcastIdentityChange(): void {
   identityChannel?.postMessage({ tabId })
 }
 
-/** Keep private routes blocked until /auth/me confirms the current cookie identity. */
-function retryIdentityLookup(version: number, delayMs = 1_000): void {
+/** Keep private routes blocked until /auth/me confirms the cookie identity, then expose retry. */
+function retryIdentityLookup(version: number, attempt = 0): void {
+  if (attempt >= 2) {
+    if (version === authActionVersion) useAuthStore.setState({ isLoading: false, initializationError: true })
+    return
+  }
+  const delayMs = 1_000 * 2 ** attempt
   setTimeout(() => {
     if (version !== authActionVersion) return
     void getMe().then(({ user, profile }) => {
-      if (version === authActionVersion) useAuthStore.setState({ user, profile, isLoading: false, isInitialized: true })
+      if (version === authActionVersion) useAuthStore.setState({ user, profile, isLoading: false, isInitialized: true, initializationError: false })
     }).catch(() => {
-      if (version === authActionVersion) retryIdentityLookup(version, Math.min(delayMs * 2, 15_000))
+      if (version === authActionVersion) retryIdentityLookup(version, attempt + 1)
     })
   }, delayMs)
 }
@@ -128,10 +149,10 @@ function retryIdentityLookup(version: number, delayMs = 1_000): void {
 async function reconcilePeerIdentity(): Promise<void> {
   const version = ++authActionVersion
   startNewIdentity()
-  useAuthStore.setState({ user: null, profile: null, isLoading: true })
+  useAuthStore.setState({ user: null, profile: null, isLoading: true, isInitialized: false, initializationError: false })
   try {
     const { user, profile } = await getMe()
-    if (version === authActionVersion) useAuthStore.setState({ user, profile, isLoading: false, isInitialized: true })
+    if (version === authActionVersion) useAuthStore.setState({ user, profile, isLoading: false, isInitialized: true, initializationError: false })
   } catch {
     if (version === authActionVersion) retryIdentityLookup(version)
   }
@@ -142,25 +163,26 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
   profile: null,
   isLoading: true,
   isInitialized: false,
+  initializationError: false,
 
   initialize: async () => {
-    if (get().isInitialized) return
+    if (get().isInitialized && !get().initializationError) return
 
     const version = authActionVersion
-    set({ isLoading: true })
+    set({ isLoading: true, initializationError: false })
 
     // A failed session refresh (inside apiClient) hard-logs-out the user.
     setUnauthorizedHandler(() => {
       authActionVersion += 1
       startNewIdentity()
-      set({ user: null, profile: null, isLoading: false, isInitialized: true })
+      set({ user: null, profile: null, isLoading: false, isInitialized: true, initializationError: false })
     })
 
     try {
       // Bootstrap the session from the httpOnly cookie.
       const { user, profile } = await getMe()
       if (version !== authActionVersion) return
-      set({ user, profile, isLoading: false, isInitialized: true })
+      set({ user, profile, isLoading: false, isInitialized: true, initializationError: false })
     } catch (error) {
       // A transport failure cannot establish that the cookie is anonymous.
       console.error('Auth initialization failed:', error)
@@ -182,8 +204,14 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
   refreshProfile: async () => {
     const { user } = get()
     if (user && !get().isLoading) {
-      const profile = await getProfile(user.id)
-      if (get().user?.id === user.id) set({ profile })
+      try {
+        const profile = await getProfile(user.id)
+        if (get().user?.id === user.id) set({ profile })
+      } catch (error) {
+        // Keep the last confirmed profile on a background failure.
+        console.error('Profile refresh failed:', error)
+        throw error
+      }
     }
   },
 }))
