@@ -25,7 +25,7 @@ export function Disclosure({ summary, children, defaultOpen = false, open: contr
         <span className="ui-disclosure-chevron" aria-hidden="true"><ChevronDown size={18} strokeWidth={2} /></span>
       </button>
       <div className="ui-disclosure-panel" data-open={open ? 'true' : 'false'}>
-        <div id={id} className="ui-disclosure-inner" role="region" aria-labelledby={`${id}-t`} aria-hidden={open ? undefined : true} inert={!open}>{children}</div>
+        <div id={id} className="ui-disclosure-inner" aria-hidden={open ? undefined : true} inert={!open}>{children}</div>
       </div>
     </div>
   )

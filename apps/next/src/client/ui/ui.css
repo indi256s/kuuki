@@ -20,7 +20,7 @@
 @media(pointer:coarse){.ui-button[data-dense=true]::after{inset:-6px}.ui-button-group{gap:var(--space-3)}}
 @media(hover:hover) and (pointer:fine){
   .ui-button:hover:not([aria-disabled=true]){background:var(--surface-inset)}
-  .ui-button[data-variant=primary]:hover:not([aria-disabled=true]){background:var(--accent-text)}
+  .ui-button[data-variant=primary]:hover:not([aria-disabled=true]){background:var(--accent-hover)}
   .ui-button[data-variant=danger]:hover:not([aria-disabled=true]){background:var(--surface-inset)}
 }
 .ui-button:focus-visible,.ui-switch:focus-visible,.ui-segment:focus-visible,.ui-swatch:focus-visible,.ui-disclosure-trigger:focus-visible,.ui-menu-item:focus-visible,.ui-icon-button:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
@@ -142,13 +142,14 @@
 .ui-disclosure-panel[data-open=true] .ui-disclosure-inner{opacity:1;visibility:visible;transition:opacity var(--dur-fast) var(--ease-out) 60ms,visibility 0s}
 
 /* ---------- Toast ---------- */
-.ui-toast-region{position:fixed;z-index:70;left:var(--space-4);right:var(--space-4);bottom:calc(var(--space-4) + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:var(--space-2);align-items:center;pointer-events:none}
+.ui-toast-region{position:fixed;z-index:70;left:var(--space-4);right:var(--space-4);bottom:calc(var(--space-4) + var(--toast-bottom-offset,0px) + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:var(--space-2);align-items:center;pointer-events:none}
 .ui-toast-live{display:flex;flex-direction:column;gap:var(--space-2);align-items:center;width:100%}
 .ui-toast{pointer-events:auto;display:flex;align-items:center;gap:var(--space-3);width:min(420px,100%);padding:12px 12px 12px 16px;border-radius:var(--radius-md);background:var(--surface-floating);color:var(--text);box-shadow:var(--shadow-floating),var(--ring-floating)}
 .ui-toast[data-kind=error]{border-left:4px solid var(--danger-fill)}
 .ui-toast[data-kind=success]{border-left:4px solid var(--success-fill)}
 .ui-toast[data-state=open]{animation:ui-toast-in var(--dur-sheet) var(--ease-out)}
 .ui-toast[data-state=closed]{animation:ui-toast-out 200ms var(--ease-out) forwards}
+.ui-toast-icon{flex:none;display:inline-grid;color:var(--text-muted)}.ui-toast-icon[data-kind=success]{color:var(--success-text)}.ui-toast-icon[data-kind=error]{color:var(--danger-text)}
 .ui-toast-message{flex:1;min-width:0;margin:0;font-size:15px}
 .ui-toast-action{font-weight:600}
 @keyframes ui-toast-in{from{opacity:0;transform:translateY(calc(100% + var(--space-4)))}to{opacity:1;transform:translateY(0)}}

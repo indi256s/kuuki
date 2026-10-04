@@ -32,7 +32,7 @@ export type TicketProps = {
 const STATUS: Record<TicketState, { en: string; ru: string }> = {
   upcoming: { en: 'Upcoming', ru: 'Скоро' },
   today: { en: 'Today', ru: 'Сегодня' },
-  awaiting: { en: 'Landed, waiting for you', ru: 'Приземлился, ждёт отметки' },
+  awaiting: { en: 'Landed, waiting for you', ru: 'Рейс приземлился, ждёт отметки' },
   logged: { en: 'Logged', ru: 'В журнале' },
 }
 const TO = { en: 'to', ru: '—' } as const

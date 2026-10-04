@@ -1,6 +1,6 @@
 'use client'
 
-import { X } from 'lucide-react'
+import { CircleAlert, CircleCheck, Info, X } from 'lucide-react'
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import './ui.css'
 
@@ -26,14 +26,21 @@ export function useToast(): ToastApi {
   return api
 }
 
-export function ToastProvider({ children, dismissLabel = 'Dismiss' }: { children: ReactNode; dismissLabel?: string }) {
+type KindLabels = Record<ToastKind, string>
+const DEFAULT_KIND_LABELS: KindLabels = { info: 'Notice', success: 'Success', error: 'Error' }
+const ICONS = { info: Info, success: CircleCheck, error: CircleAlert } as const
+
+export function ToastProvider({ children, dismissLabel = 'Dismiss', kindLabels = DEFAULT_KIND_LABELS }: { children: ReactNode; dismissLabel?: string; kindLabels?: KindLabels }) {
   const [items, setItems] = useState<Item[]>([])
   const nextId = useRef(1)
+  const exits = useRef(new Set<number>())
+  useEffect(() => { const pending = exits.current; return () => { pending.forEach(id => window.clearTimeout(id)); pending.clear() } }, [])
 
   const remove = useCallback((id: number) => setItems(list => list.filter(item => item.id !== id)), [])
   const dismiss = useCallback((id: number) => {
     setItems(list => list.map(item => item.id === id ? { ...item, leaving: true } : item))
-    window.setTimeout(() => remove(id), EXIT_MS)
+    const timeout = window.setTimeout(() => { exits.current.delete(timeout); remove(id) }, EXIT_MS)
+    exits.current.add(timeout)
   }, [remove])
   const show = useCallback((toast: ToastInput) => {
     const id = nextId.current++
@@ -49,14 +56,14 @@ export function ToastProvider({ children, dismissLabel = 'Dismiss' }: { children
       {children}
       <div className="ui-toast-region">
         {/* Both live regions stay mounted so screen readers register them before the first message. */}
-        <div className="ui-toast-live" role="status" aria-live="polite">{polite.map(item => <ToastView key={item.id} item={item} dismissLabel={dismissLabel} onDismiss={dismiss} />)}</div>
-        <div className="ui-toast-live" role="alert" aria-live="assertive">{assertive.map(item => <ToastView key={item.id} item={item} dismissLabel={dismissLabel} onDismiss={dismiss} />)}</div>
+        <div className="ui-toast-live" role="status" aria-live="polite">{polite.map(item => <ToastView key={item.id} item={item} dismissLabel={dismissLabel} kindLabels={kindLabels} onDismiss={dismiss} />)}</div>
+        <div className="ui-toast-live" role="alert" aria-live="assertive">{assertive.map(item => <ToastView key={item.id} item={item} dismissLabel={dismissLabel} kindLabels={kindLabels} onDismiss={dismiss} />)}</div>
       </div>
     </ToastContext.Provider>
   )
 }
 
-function ToastView({ item, dismissLabel, onDismiss }: { item: Item; dismissLabel: string; onDismiss: (id: number) => void }) {
+function ToastView({ item, dismissLabel, kindLabels, onDismiss }: { item: Item; dismissLabel: string; kindLabels: KindLabels; onDismiss: (id: number) => void }) {
   const total = item.duration ?? (item.kind === 'error' ? 8000 : 5000)
   const remaining = useRef(total)
   const startedAt = useRef(0)
@@ -91,6 +98,7 @@ function ToastView({ item, dismissLabel, onDismiss }: { item: Item; dismissLabel
       onFocus={() => { holds.current.focus = true; sync() }}
       onBlur={() => { holds.current.focus = false; sync() }}
     >
+      <span className="ui-toast-icon" data-kind={item.kind}>{(() => { const Icon = ICONS[item.kind]; return <Icon size={18} strokeWidth={2} aria-hidden="true" /> })()}<span className="sr-only">{kindLabels[item.kind]}: </span></span>
       <p className="ui-toast-message">{item.message}</p>
       {item.actionLabel ? <button type="button" className="ui-button ui-toast-action" data-variant="ghost" data-dense="true" onClick={() => { item.onAction?.(); onDismiss(item.id) }}><span>{item.actionLabel}</span></button> : null}
       <button type="button" className="ui-icon-button" style={{ margin: 0 }} aria-label={dismissLabel} onClick={() => onDismiss(item.id)}><X size={18} strokeWidth={2} aria-hidden="true" /></button>

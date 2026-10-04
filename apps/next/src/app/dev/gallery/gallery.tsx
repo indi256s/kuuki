@@ -29,7 +29,7 @@ export function Gallery({ initialTheme, initialLocale }: { initialTheme: Theme; 
   const ru = locale === 'ru'
   const t = (en: string, rus: string) => (ru ? rus : en)
   return (
-    <ToastProvider dismissLabel={t('Dismiss', 'Закрыть')}>
+    <ToastProvider dismissLabel={t('Dismiss', 'Закрыть')} kindLabels={{ info: t('Notice', 'Уведомление'), success: t('Success', 'Успех'), error: t('Error', 'Ошибка') }}>
       <div className="gallery" lang={locale}>
         <h1>{t('UI gallery (development only)', 'Галерея интерфейса (только для разработки)')}</h1>
         <div className="gallery-controls">
@@ -126,7 +126,7 @@ function Sections({ locale, theme, t }: { locale: Locale; theme: Theme; t: (en: 
         <div className="gallery-tickets">
           <Ticket {...ticket} state="upcoming" statusLabel={t('In 12 days', 'Через 12 дней')} actions={<Button dense>{t('Details', 'Подробнее')}</Button>} />
           <Ticket {...ticket} state="today" />
-          <Ticket {...ticket} state="awaiting" prompt={t('Did you land in Boston?', 'Вы долетели до Бостона?')} actions={<><Button variant="primary">{t('Confirm', 'Отметить')}</Button><Button>{t('Changed', 'Изменилось')}</Button><Button variant="ghost">{t('Did not fly', 'Не летал')}</Button></>} />
+          <Ticket {...ticket} state="awaiting" prompt={t('Did you land in Boston?', 'Вы долетели до Бостона?')} actions={<><Button variant="primary">{t('Confirm', 'Отметить')}</Button><Button>{t('Changed', 'Изменилось')}</Button><Button variant="ghost">{t('Did not fly', 'Перелёта не было')}</Button></>} />
           <Ticket {...ticket} state="logged" stub={<Stamp {...stamp} countryCode="US" nativeName="USA" name={t('United States', 'Соединённые Штаты')} kind="air" visits={2} firstYear={2019} static />} />
         </div>
       </section>

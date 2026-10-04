@@ -32,6 +32,9 @@ export function DestructiveConfirm({ open, onOpenChange, title, consequence, con
   const [pending, setPending] = useState(false)
   const [failed, setFailed] = useState(false)
   const [typed, setTyped] = useState('')
+  // Reset whenever the dialog closes, whichever path closed it (adjusting state during render, not in an effect).
+  const [wasOpen, setWasOpen] = useState(open)
+  if (wasOpen !== open) { setWasOpen(open); if (!open) { setTyped(''); setFailed(false) } }
   const needsPhrase = typedConfirmation ? typed.trim() !== typedConfirmation.phrase : false
 
   const confirm = async () => {

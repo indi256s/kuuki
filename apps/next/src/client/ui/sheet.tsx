@@ -88,7 +88,7 @@ export function Sheet({ open, onOpenChange, title, description, side = 'bottom',
     if (!viewport) return
     const update = () => {
       const node = contentRef.current
-      if (!node) return
+      if (!node || viewport.scale !== 1) return // pinch-zoom also shrinks the visual viewport; not a keyboard
       const inset = Math.max(0, Math.round(window.innerHeight - viewport.height - viewport.offsetTop))
       node.style.setProperty('--sheet-kb', `${inset}px`)
       node.dataset.keyboard = String(inset > 80)

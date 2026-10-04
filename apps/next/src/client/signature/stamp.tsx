@@ -34,11 +34,10 @@ export type StampProps = {
 }
 
 /**
- * Ring count by visits: 1 visit = 1 ring, 2–3 visits = 2 rings, 4 or more = 3 rings.
- * (The UX brief §6.4 suggests 1 / 2–9 / 10+; this task's rule is 1 / 2–3 / 4+ so progression is visible earlier.)
+ * Ring count by visits (UX brief §6.4): 1 visit = 1 ring, 2–9 visits = 2 rings, 10 or more = 3 rings.
  */
 export function ringCount(visits: number): 1 | 2 | 3 {
-  return visits >= 4 ? 3 : visits >= 2 ? 2 : 1
+  return visits >= 10 ? 3 : visits >= 2 ? 2 : 1
 }
 
 // ----- one-shot press: module-level Set + sessionStorage, so remount / refetch / route changes never replay -----
@@ -84,7 +83,8 @@ export function Stamp({ countryCode, nativeName, name, kind, visits = 1, firstYe
 
   const ink = pending ? undefined : stampInk(color, theme)
   const style = ink ? ({ '--stamp-ink': ink } as CSSProperties) : undefined
-  const tag = pending ? COPY.pending[locale] : kind === 'claim' ? COPY.claim[locale] : null
+  const tag = !pending && kind === 'claim' ? COPY.claim[locale] : null
+  const waiting = pending ? COPY.pending[locale] : null
 
   return (
     <figure className={clsx('stamp', className)} data-kind={kind} data-status={status} data-shape={round ? 'round' : 'rect'} data-press={play ? 'play' : 'idle'} style={style}>
@@ -103,6 +103,7 @@ export function Stamp({ countryCode, nativeName, name, kind, visits = 1, firstYe
         </div>
       </div>
       <span className="sr-only">{COPY.kind[kind][locale]}</span>
+      {waiting ? <span className="stamp-tag stamp-tag-below">{waiting}</span> : null}
       {caption ? <figcaption className="stamp-caption">{caption}</figcaption> : null}
     </figure>
   )

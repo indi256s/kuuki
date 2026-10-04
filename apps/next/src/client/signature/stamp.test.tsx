@@ -19,7 +19,7 @@ describe('Stamp', () => {
     expect(third.container.querySelector('.stamp')).toHaveAttribute('data-press', 'play')
   })
 
-  it('remembers events in sessionStorage across a module reload', () => {
+  it('persists played event IDs to sessionStorage', () => {
     render(<Stamp {...base} kind="air" pressEventId="evt-9" />).unmount()
     expect(window.sessionStorage.getItem('kuuki:stamp-press')).toContain('evt-9')
   })
@@ -52,7 +52,7 @@ describe('Stamp', () => {
     expect(screen.getByText('×3 · 2 mo ago').tagName).toBe('FIGCAPTION')
   })
 
-  it('maps visits to rings: 1, 2-3, 4+', () => {
-    expect([1, 2, 3, 4, 12].map(ringCount)).toEqual([1, 2, 2, 3, 3])
+  it('maps visits to rings: 1, 2-9, 10+', () => {
+    expect([1, 2, 3, 9, 10, 12].map(ringCount)).toEqual([1, 2, 2, 2, 3, 3])
   })
 })
