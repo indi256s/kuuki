@@ -6,16 +6,13 @@ import { Map as MapCanvas, MapGeoJSON, useMap } from './mapcn'
 import { routeGeometry, wrappedBounds } from './geometry'
 import type { CountryVisit, MapLocale } from './preview'
 import type { ProjectedRoute } from './types'
+import { resolveColor } from './resolve-color'
+import { BUCKET_LABELS, BUCKET_TOKENS, visitBucket } from '../../lib/map-buckets'
 
 type Countries = GeoJSON.FeatureCollection<GeoJSON.Geometry, { id: string; name: string; count?: number; claimed?: boolean }>
 const asset = '/maps/countries-110m-2.0.2.geojson'
-const token = (name: string) => getComputedStyle(document.documentElement).getPropertyValue(name).trim()
-function mix(a: string, b: string, p: number) {
-  const x = a.match(/^#([a-f\d]{6})$/i)?.[1], y = b.match(/^#([a-f\d]{6})$/i)?.[1]
-  if (!x || !y) return b
-  return '#' + [0, 2, 4].map(i => Math.round(parseInt(x.slice(i, i + 2), 16) * (1 - p) +
-    parseInt(y.slice(i, i + 2), 16) * p).toString(16).padStart(2, '0')).join('')
-}
+// MapLibre needs resolved colors: read the computed token and let the browser resolve color-mix()/var().
+const token = (name: string) => resolveColor(getComputedStyle(document.documentElement).getPropertyValue(name).trim())
 
 function CountriesLayer({ visits, onSelect, fail }: { visits: CountryVisit[]; onSelect?: (id: string) => void; fail: () => void }) {
   const { map, ready, themeRevision } = useMap()
@@ -37,16 +34,15 @@ function CountriesLayer({ visits, onSelect, fail }: { visits: CountryVisit[]; on
       const value = counts.get(f.properties.id)
       const count = value?.count ?? 0
       return { ...f, properties: { ...f.properties,
-        bucket: count === 0 ? 0 : count === 1 ? 1 : count <= 3 ? 2 : count <= 9 ? 3 : 4,
+        bucket: visitBucket(count),
         claimed: !!value?.claimed } }
     }) }
   }, [raw, visits])
   const paints = useMemo(() => {
-    const neutral = token('--surface-inset'), accent = token('--accent')
-    const colors = [neutral, .24, .43, .65, .9].map((v, i) => i ? mix(neutral, accent, v as number) : neutral)
+    const colors = BUCKET_TOKENS.map(token)
     return { fill: { 'fill-color': ['match', ['get', 'bucket'], 0, colors[0], 1, colors[1], 2, colors[2],
       3, colors[3], colors[4]] } as Record<string, unknown>,
-      line: { 'line-color': token('--hairline'), 'line-width': .55 } as Record<string, unknown> }
+      line: { 'line-color': token('--map-border'), 'line-width': .55 } as Record<string, unknown> }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [themeRevision])
   useEffect(() => {
@@ -80,11 +76,11 @@ function FlightRoutes({ routes, selected, onSelect, locale, viewportKey }: { rou
     if (!map || !ready) return
     map.addSource('routes-source', { type: 'geojson', data: data as never })
     map.addLayer({ id: 'routes-line', type: 'line', source: 'routes-source', paint: {
-      'line-color': token('--accent'), 'line-width': 1.5, 'line-opacity': .8 } })
+      'line-color': token('--map-route'), 'line-width': 1.5, 'line-opacity': .8 } })
     map.addLayer({ id: 'routes-selected', type: 'line', source: 'routes-source',
       filter: ['==', ['get', 'id'], ''], paint: { 'line-color': token('--accent-text'), 'line-width': 3 } })
     map.addLayer({ id: 'routes-hit', type: 'line', source: 'routes-source', paint: {
-      'line-color': token('--accent'), 'line-width': 20, 'line-opacity': 0 } })
+      'line-color': token('--map-route'), 'line-width': 20, 'line-opacity': 0 } })
     const click = (e: GL.MapLayerMouseEvent) => { const id = e.features?.[0]?.properties?.id;
       if (typeof id === 'string') callback.current(id) }
     const enter = () => { map.getCanvas().style.cursor = 'pointer' }
@@ -98,8 +94,8 @@ function FlightRoutes({ routes, selected, onSelect, locale, viewportKey }: { rou
   useEffect(() => { if (map && ready) (map.getSource('routes-source') as GL.GeoJSONSource | undefined)?.setData(data as never) }, [map, ready, data])
   useEffect(() => { if (map?.getLayer('routes-selected')) map.setFilter('routes-selected', ['==', ['get', 'id'], selected ?? '']) }, [map, selected])
   useEffect(() => { if (!map?.getLayer('routes-line')) return
-    map.setPaintProperty('routes-line', 'line-color', token('--accent'))
-    map.setPaintProperty('routes-hit', 'line-color', token('--accent'))
+    map.setPaintProperty('routes-line', 'line-color', token('--map-route'))
+    map.setPaintProperty('routes-hit', 'line-color', token('--map-route'))
     map.setPaintProperty('routes-selected', 'line-color', token('--accent-text'))
   }, [map, themeRevision])
   useEffect(() => { if (!map || !ready || !bounds || fitted.current) return
@@ -130,6 +126,10 @@ export function FullRouteMap({ routes, visits, locale, viewportKey, selected, on
         <CountriesLayer visits={visits} onSelect={onSelectCountry} fail={() => setFailed(true)} />
         <FlightRoutes routes={routes} selected={selected} onSelect={onSelect} locale={locale} viewportKey={viewportKey} />
       </MapCanvas>}
-    <p className="route-map-legend">{locale === 'ru' ? 'Посещений' : 'Visits'}: 1 · 2–3 · 4–9 · 10+; {locale === 'ru' ? 'пунктир — отмечено вами' : 'dashed — claimed'}</p>
+    <div className="route-map-legend" role="group" aria-label={locale === 'ru' ? 'Визиты' : 'Visits'}>
+      <span className="route-map-legend-title">{locale === 'ru' ? 'Визиты' : 'Visits'}</span>
+      <ol>{BUCKET_LABELS[locale].map((label, index) => <li key={label}><span className="route-map-swatch" style={{ background: `var(${BUCKET_TOKENS[index + 1]})` }} aria-hidden="true" />{label}</li>)}</ol>
+      <span>{locale === 'ru' ? 'пунктир — отмечено вами' : 'dashed — claimed'}</span>
+    </div>
   </div>
 }

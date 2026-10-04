@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect } from 'react'
+import { THEME_COLOR, isAccent, type Accent } from '../lib/theme-colors'
 
 type Theme = 'light' | 'dark' | 'system'
 type Locale = 'en' | 'ru'
@@ -24,6 +25,14 @@ export function setTheme(theme: Theme) {
   window.dispatchEvent(new Event('kuuki:appearance'))
 }
 
+/** Same cookie and `data-accent` contract as public/bootstrap.js; unknown names are ignored. */
+export function setAccent(accent: Accent) {
+  if (!isAccent(accent)) return
+  cookie('kuuki_accent', accent)
+  document.documentElement.dataset.accent = accent
+  window.dispatchEvent(new Event('kuuki:appearance'))
+}
+
 function currentTheme(): Theme {
   let legacy: string | null = null
   try { legacy = localStorage.getItem('kuuki-theme-mode') } catch { /* storage unavailable */ }
@@ -36,7 +45,7 @@ function applyTheme(theme: Theme) {
   const effective = theme === 'system' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme
   document.documentElement.dataset.theme = effective
   document.documentElement.style.colorScheme = effective
-  document.querySelector('meta[name="theme-color"]')?.setAttribute('content', effective === 'dark' ? '#292827' : '#fbfaf8')
+  document.querySelector('meta[name="theme-color"]')?.setAttribute('content', THEME_COLOR[effective])
 }
 
 export function AppearanceProvider() {

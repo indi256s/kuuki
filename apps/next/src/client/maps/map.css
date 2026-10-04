@@ -13,5 +13,9 @@
 .route-map-list li, .route-map-country-list li { margin-block: .25rem; }
 .route-map-list button, .route-map-country-list button { text-align: left; }
 .route-map-list button[aria-pressed="true"] { font-weight: 700; text-decoration: underline; }
-.route-map-legend { margin: .5rem 0 0; font-size: .85rem; }
+.route-map-legend { margin: .5rem 0 0; font-size: .85rem; display: flex; flex-wrap: wrap; align-items: center; gap: .25rem 1rem; }
+.route-map-legend ol { display: flex; gap: .75rem; list-style: none; margin: 0; padding: 0; }
+.route-map-legend li { display: inline-flex; align-items: center; gap: .35rem; font-variant-numeric: tabular-nums; }
+.route-map-legend-title { font-weight: 600; }
+.route-map-swatch { width: 14px; height: 14px; border-radius: var(--radius-xs); box-shadow: inset 0 0 0 1px var(--hairline); }
 @media (max-width: 40rem) { .route-map-canvas { height: 300px !important; } .route-map-controls { position: static; margin-top: .5rem; } }

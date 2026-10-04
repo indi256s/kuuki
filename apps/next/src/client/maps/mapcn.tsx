@@ -6,7 +6,7 @@ import * as MapLibreGL from 'maplibre-gl'
 import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from 'react'
 
 const blankStyle: MapLibreGL.StyleSpecification = { version: 8, sources: {}, layers: [
-  { id: 'background', type: 'background', paint: { 'background-color': 'rgba(0,0,0,0)' } },
+  { id: 'background', type: 'background', paint: { 'background-color': 'transparent' } },
 ] }
 type MapContextValue = { map: MapLibreGL.Map | null; ready: boolean; themeRevision: number }
 const MapContext = createContext<MapContextValue>({ map: null, ready: false, themeRevision: 0 })

@@ -63,7 +63,7 @@ export function RouteMapPanel({ ownerId, locale, period = 'all', countryVisits =
   const previewIds = period === 'all' || !currentProjection ? countryIds : mapVisits.map(visit => visit.countryCode)
   return <section aria-label={label} className="route-map-panel">
     {!open ? <>
-      <CountryPreview countryIds={previewIds} locale={locale} period={currentProjection ? period : 'all'} />
+      <CountryPreview countryIds={previewIds} locale={locale} period={currentProjection ? period : 'all'} visits={period === 'all' || !currentProjection ? visits : mapVisits} />
       {period !== 'all' && !currentProjection ? <p>{locale === 'ru' ? 'На превью показаны страны за всё время.' : 'Preview shows all-time countries.'}</p> : null}
       <button type="button" onClick={() => { setErrorKey(null); setOpen(true) }}>{locale === 'ru' ? 'Открыть карту' : 'Open map'}</button>
     </> : <>
