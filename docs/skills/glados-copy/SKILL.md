@@ -1,11 +1,19 @@
 ---
 name: glados-copy
-description: Use when writing UI copy for Kuuki - empty states, fun facts, loading messages, tooltips, error messages. Always provide sarcastic variant for user to choose.
+description: Use when writing UI copy for Kuuki - empty states, fun facts, loading messages, tooltips, error messages. Wit is allowed only in non-critical contexts; trust contexts are calm and direct.
 ---
+
+> Design and voice are governed by [DESIGN.md](../../../DESIGN.md) (see "Copy and trust"). Where this file conflicts, DESIGN.md wins.
 
 # Sarcastic Copy Variants
 
-When writing any user-facing text in Kuuki, provide two variants:
+## Where wit is allowed
+
+Sober trust contexts get one calm, direct, precise version and **no jokes**: capture and import, authentication and activation, privacy and settings, errors and validation, destructive actions (including delete confirmations), and anything about stamping or confirming flights. Wit is allowed only as a secondary line in non-critical places (empty states, loading flavour of one line, achievements, profile insights, landing), and never replaces the instruction.
+
+Russian copy addresses the user as «вы» (never «ты»). Write every string in RU and EN together, with real plural forms.
+
+For allowed contexts, provide two variants:
 1. **Normal** - Friendly, helpful, professional
 2. **Sarcastic** - Dry wit, passive-aggressive warmth, deadpan observations
 
@@ -84,6 +92,8 @@ First flight logged. We were starting to wonder.
 
 ## When NOT to Use Sarcastic
 
+- Capture, import, authentication and activation
+- Destructive actions and confirmations
 - Critical error messages that need clarity
 - Legal/privacy text
 - Accessibility descriptions
