@@ -8,6 +8,7 @@ import { onRequestPost as bulkRoute } from '../api/flights/bulk'
 import { onRequestPatch as patchRoute } from '../api/flights/[id]'
 import { onRequestPost as syncRoute } from '../api/flights/sync-upcoming'
 import { deadlinesFor } from '../api/_services/lifecycle'
+import maintenance from '../../workers/maintenance/index'
 
 const user = { id: 'u1', email: 'u1@example.test' }
 const NOW = '2026-10-05T12:00:00.000Z'
@@ -301,6 +302,33 @@ describe('owner sync', () => {
       setNow('2026-10-20T00:00:00.000Z')
       expect((await sync()).synced).toBe(0) // late syncs never restart or move the deadlines
       expect((await lifecycleOf(db, json.id))?.auto_confirm_after).toBe('2026-10-14T00:00:00.000Z')
+    } finally { await dispose() }
+  })
+})
+
+describe('maintenance cron', () => {
+  it('moves due flights to awaiting on the same stored boundary as the sync, without firing an adapter', async () => {
+    const { db, dispose } = await createApiDatabase()
+    try {
+      await seed(db); setNow(NOW)
+      const firings = await countAdapterFirings(db)
+      const early = (await create(db, { ...flight, date: '2026-10-06' })).json.id
+      const late = (await create(db, { ...flight, date: '2026-10-09', timezone: 'Pacific/Pago_Pago' })).json.id
+      setNow('2026-10-06T23:59:59.999Z') // departure day: the old UTC rule would flip `early` here
+      await maintenance.scheduled({} as ScheduledEvent, { DB: db })
+      expect((await lifecycleOf(db, early))?.lifecycle_state).toBe('upcoming')
+      setNow('2026-10-07T00:00:00.000Z')
+      await maintenance.scheduled({} as ScheduledEvent, { DB: db })
+      expect(await lifecycleOf(db, early)).toMatchObject({ lifecycle_state: 'awaiting', is_upcoming: 0, confirmation_source: null })
+      expect((await lifecycleOf(db, late))?.lifecycle_state).toBe('upcoming') // 10-09 in Pago Pago ends at 10-10T11:00Z
+      expect((await db.prepare('SELECT total_flights FROM user_stats WHERE user_id = ?').bind(user.id).first<{ total_flights: number }>())?.total_flights).toBe(1)
+      setNow('2026-10-10T10:59:59.999Z')
+      await maintenance.scheduled({} as ScheduledEvent, { DB: db })
+      expect((await lifecycleOf(db, late))?.lifecycle_state).toBe('upcoming')
+      setNow('2026-10-10T11:00:00.000Z')
+      await maintenance.scheduled({} as ScheduledEvent, { DB: db })
+      expect((await lifecycleOf(db, late))?.lifecycle_state).toBe('awaiting')
+      expect(await firings()).toEqual({})
     } finally { await dispose() }
   })
 })

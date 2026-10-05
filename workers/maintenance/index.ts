@@ -1,5 +1,6 @@
 import { refreshLeaderboards } from '../../functions/api/_services/leaderboard'
-import { dirtyUserStatement, repairUserDerivedState } from '../../functions/api/_services/derivedState'
+import { repairUserDerivedState } from '../../functions/api/_services/derivedState'
+import { applyDueTransitions } from '../../functions/api/_services/lifecycle'
 
 interface MaintenanceEnv {
   DB: D1Database
@@ -7,7 +8,7 @@ interface MaintenanceEnv {
 }
 
 const errorCode = 'MAINTENANCE_CYCLE_FAILED'
-const ROLLOVER_LIMIT = 100
+const ROLLOVER_USERS = 50
 
 export default {
   async scheduled(_event: ScheduledEvent, env: MaintenanceEnv): Promise<void> {
@@ -17,31 +18,17 @@ export default {
     const started = Date.now()
     try {
       const now = new Date()
-      const today = now.toISOString().slice(0, 10)
-      // Bound each cron invocation. The next invocation picks up the remaining rows.
-      const overdue = await db.prepare(
-        `SELECT id, user_id FROM flights
-         WHERE is_upcoming = 1 AND date <= ? ORDER BY date, id LIMIT ?`,
-      ).bind(today, ROLLOVER_LIMIT).all<{ id: number; user_id: string }>()
-      const byUser = new Map<string, number[]>()
-      for (const flight of overdue.results) {
-        const ids = byUser.get(flight.user_id) ?? []
-        ids.push(flight.id)
-        byUser.set(flight.user_id, ids)
-      }
+      // ADR 0001 §2/§8: due upcoming flights move to awaiting on their stored boundary, oldest first.
+      // Each user's batch is capped inside applyDueTransitions; the next invocation continues.
+      const due = await db.prepare(
+        `SELECT user_id FROM flights WHERE lifecycle_state = 'upcoming' AND awaiting_after <= ?
+         GROUP BY user_id ORDER BY MIN(awaiting_after), user_id LIMIT ?`,
+      ).bind(now.toISOString(), ROLLOVER_USERS).all<{ user_id: string }>()
       let rolledOver = 0
-      for (const [userId, ids] of byUser) {
-        // The conditional dirty mark shares the canonical transaction and fires only
-        // when this batch actually changed rows (a concurrent sync may have won).
-        const [updated] = await db.batch([
-          db.prepare(
-            `UPDATE flights SET is_upcoming = 0 WHERE user_id = ? AND is_upcoming = 1
-             AND date <= ? AND id IN (SELECT value FROM json_each(?))`,
-          ).bind(userId, today, JSON.stringify(ids)),
-          dirtyUserStatement(db, userId, true),
-        ])
-        if ((updated.meta.changes ?? 0) > 0) {
-          rolledOver += updated.meta.changes ?? 0
+      for (const { user_id: userId } of due.results) {
+        const { awaited } = await applyDueTransitions(db, { userId, now })
+        if (awaited > 0) {
+          rolledOver += awaited
           await repairUserDerivedState(db, userId)
         }
       }
@@ -67,8 +54,8 @@ export default {
          FROM user_derived_state WHERE revision != published_revision`,
       ).first<{ n: number; oldest: string | null }>()
       const overdueRemaining = await db.prepare(
-        'SELECT COUNT(*) AS n FROM flights WHERE is_upcoming = 1 AND date <= ?',
-      ).bind(today).first<{ n: number }>()
+        "SELECT COUNT(*) AS n FROM flights WHERE lifecycle_state = 'upcoming' AND awaiting_after <= ?",
+      ).bind(now.toISOString()).first<{ n: number }>()
       if ((remaining?.n ?? 0) > 0) throw new Error('Dirty derived users remain')
       await db.prepare(
         'UPDATE maintenance_status SET last_success_at = ?, last_error = NULL WHERE id = 1',
