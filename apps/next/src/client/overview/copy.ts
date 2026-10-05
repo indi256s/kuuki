@@ -41,6 +41,8 @@ export const S = {
   arrivedPrompt: p('Did you arrive?', 'Вы долетели?'),
   reviewQueue: p('Review in Journal', 'Открыть в журнале'),
   editFlight: p('Edit flight', 'Изменить перелёт'),
+  queueStale: p('The confirmation queue could not be refreshed. What you see may be out of date.', 'Не удалось обновить очередь подтверждения. Показанное может быть устаревшим.'),
+  queueChecking: p('Checking the confirmation queue.', 'Проверяем очередь подтверждения.'),
   queueUnavailable: p('The confirmation queue could not be loaded.', 'Не удалось загрузить очередь подтверждения.'),
   moreWaiting: p('Other flights are waiting too.', 'Ждут и другие перелёты.'),
 

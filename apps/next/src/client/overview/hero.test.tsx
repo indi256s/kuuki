@@ -57,10 +57,29 @@ describe('OverviewHero', () => {
     const { container } = render(<OverviewHero locale="en" upcoming={null} />)
     expect(container).toBeEmptyDOMElement()
   })
-  it('keeps a stale queue rather than flagging an error when a refresh fails', () => {
-    queue.value = { data: awaiting([flight(2, '2026-04-01')]), error: true, reload: () => {} }
+  it('keeps the usable ticket but says the queue is stale, with a retry, when a refresh fails', async () => {
+    const reload = vi.fn()
+    queue.value = { data: awaiting([flight(2, '2026-04-01')]), error: true, reload }
     render(<OverviewHero locale="en" upcoming={null} />)
     expect(document.querySelector('[data-hero=awaiting]')).not.toBeNull()
+    expect(screen.getByRole('alert')).toHaveTextContent(/could not be refreshed/)
+    await userEvent.click(screen.getByRole('button', { name: /Try again/ }))
+    expect(reload).toHaveBeenCalledTimes(1)
+  })
+  it('a stale empty queue is not read as nothing awaiting: the upcoming flight shows beside the stale notice', () => {
+    queue.value = { data: awaiting([]), error: true, reload: () => {} }
+    render(<OverviewHero locale="ru" upcoming={upcoming} />)
+    expect(screen.getByRole('alert')).toHaveTextContent('Не удалось обновить очередь')
+    expect(document.querySelector('[data-queue=stale]')).not.toBeNull()
+    expect(document.querySelector('[data-hero=upcoming]')).not.toBeNull()
+  })
+  it('initial loading is announced as checking, and is neither an error nor an empty queue', () => {
+    render(<OverviewHero locale="en" upcoming={upcoming} />)
+    expect(screen.getByRole('status')).toHaveTextContent('Checking the confirmation queue.')
     expect(screen.queryByRole('alert')).toBeNull()
+    cleanup()
+    queue.value = { data: awaiting([]), error: false, reload: () => {} }
+    render(<OverviewHero locale="en" upcoming={upcoming} />)
+    expect(screen.queryByRole('status')).toBeNull()
   })
 })
