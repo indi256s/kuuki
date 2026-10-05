@@ -105,6 +105,15 @@ describe('CountrySheet', () => {
     expect(within(dialog).getByRole('button', { name: 'Claim without a visit' })).toBeInTheDocument()
   })
 
+  it('dates a country known only from land and sea visits by their years', async () => {
+    mount(detail({ firstVisit: null as unknown as string, lastVisit: null as unknown as string, isClaimed: false, flightIds: [], airports: [],
+      groundVisits: [{ id: 'g1', countryCode: 'GR', visitYear: 2021, entryMethod: 'sea', note: null, createdAt: '' }, { id: 'g3', countryCode: 'GR', visitYear: 2019, entryMethod: 'land', note: null, createdAt: '' }],
+      entries: [{ kind: 'ground', id: 'g1', visitYear: 2021, entryMethod: 'sea' }, { kind: 'ground', id: 'g3', visitYear: 2019, entryMethod: 'land' }] }))
+    const dialog = await screen.findByRole('dialog', { name: 'Greece' })
+    expect((await within(dialog).findByText('First visit')).nextElementSibling).toHaveTextContent(/^2019$/)
+    expect(within(dialog).getByText('Last visit').nextElementSibling).toHaveTextContent(/^2021$/)
+  })
+
   it('never opens an actionable sheet for a code outside the catalog', async () => {
     mount(detail({ countryCode: 'ZZ', status: 'none' as CountryDetail['status'], entries: [], groundVisits: [], airports: [], isClaimed: false }))
     await new Promise(resolve => setTimeout(resolve, 0))

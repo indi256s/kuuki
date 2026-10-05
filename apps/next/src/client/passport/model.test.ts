@@ -47,9 +47,36 @@ describe('passportEntries', () => {
   })
 })
 
+describe('visit chronology', () => {
+  const only = (countries: Row[], groundVisits: PassportData['groundVisits']) => {
+    const list = passportEntries({ countries, groundVisits })
+    const counts = { pressedCountryCount: list.filter(entry => entry.status === 'pressed').length, pendingCountryCount: list.filter(entry => entry.status === 'pending').length }
+    return { list, figures: headerFigures(counts, list, now) }
+  }
+  it('dates a land or sea visit by its year alone, and counts it as new this year and as the latest stamp', () => {
+    const { list, figures } = only([row('NO', { ground_visit_count: 1, region: 'europe' })], [{ country_code: 'NO', visit_year: 2026, entry_method: 'land' }])
+    expect(list[0]).toMatchObject({ firstYear: 2026, first: { year: 2026, date: null }, last: { year: 2026, date: null } })
+    expect(figures).toMatchObject({ newThisYear: 1, latest: { code: 'NO' } })
+  })
+  it('takes an earlier land visit as the first visit even when the first flight is dated', () => {
+    const { list, figures } = only([row('IT', { logged_visit_count: 1, ground_visit_count: 1, first_visit: '2026-03-01', last_visit: '2026-03-01', region: 'europe' })],
+      [{ country_code: 'IT', visit_year: 2018, entry_method: 'land' }])
+    expect(list[0]).toMatchObject({ firstYear: 2018, first: { year: 2018, date: null }, last: { year: 2026, date: '2026-03-01' } })
+    expect(figures.newThisYear).toBe(0)
+  })
+  it('shows a year when a dated flight and a land visit share it, and keeps undated evidence undated', () => {
+    const { list } = only([
+      row('AT', { logged_visit_count: 1, ground_visit_count: 1, first_visit: '2025-06-01', last_visit: '2025-06-01', region: 'europe' }),
+      row('GR', { ground_visit_count: 1, claimed: 1, region: 'europe' }),
+    ], [{ country_code: 'AT', visit_year: 2025, entry_method: 'land' }, { country_code: 'GR', visit_year: null, entry_method: 'sea' }])
+    expect(list[0]).toMatchObject({ first: { year: 2025, date: null }, last: { year: 2025, date: null } })
+    expect(list[1]).toMatchObject({ firstYear: null, first: null, last: null })
+  })
+})
+
 describe('sorting and grouping', () => {
   it('puts the pending slot first under Recent, then the latest visit', () => {
-    expect(sortEntries(entries, 'recent', name, 'en').map(entry => entry.code)).toEqual(['PT', 'US', 'JP', 'GR', 'IS', 'CH'])
+    expect(sortEntries(entries, 'recent', name, 'en').map(entry => entry.code)).toEqual(['PT', 'US', 'JP', 'CH', 'GR', 'IS'])
   })
   it('sorts by visits and by localized name', () => {
     expect(sortEntries(entries, 'visits', name, 'en').map(entry => entry.code)).toEqual(['JP', 'US', 'CH', 'GR', 'PT', 'IS'])
@@ -58,7 +85,7 @@ describe('sorting and grouping', () => {
   it('groups by region in the order the sort reaches each region first', () => {
     const groups = groupByRegion(sortEntries(entries, 'recent', name, 'en'))
     expect(groups.map(group => [group.region, group.entries.map(entry => entry.code)])).toEqual([
-      ['europe', ['PT', 'GR', 'IS', 'CH']], ['americas', ['US']], ['asia', ['JP']],
+      ['europe', ['PT', 'CH', 'GR', 'IS']], ['americas', ['US']], ['asia', ['JP']],
     ])
   })
 })
@@ -80,7 +107,8 @@ describe('stampCaption', () => {
   it('writes the count and relative time in readable text, localized', () => {
     expect(stampCaption('en', by('JP'), now)).toBe('×12 · 2 mo. ago')
     expect(stampCaption('ru', by('JP'), now)).toBe('×12 · 2 мес. назад')
-    expect(stampCaption('en', by('CH'), now)).toBe('×2')
+    expect(stampCaption('en', by('CH'), now)).toBe('×2 · 2018')
+    expect(stampCaption('en', by('GR'), now)).toBe('×1')
     expect(stampCaption('en', by('IS'), now)).toBeUndefined()
   })
 })
@@ -88,7 +116,8 @@ describe('stampCaption', () => {
 describe('suggestions', () => {
   it('suggests uncollected neighbors of pressed countries and recent pressed countries', () => {
     const result = suggestCountries(entries)
-    expect(result.recent).toEqual(['US', 'JP'])
+    // CH is dated only by its land years (2018), which still place it among recent visits.
+    expect(result.recent).toEqual(['US', 'JP', 'CH'])
     // Uncollected neighbors of pressed CH, GR and US (each bordered once here), capped at six. Portugal is
     // only pending, so Spain is not suggested through it; collected countries are never suggested.
     expect(result.neighbors).toEqual(['AL', 'AT', 'BG', 'CA', 'DE', 'FR'])

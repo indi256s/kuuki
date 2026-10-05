@@ -3,9 +3,9 @@
 import type { CSSProperties } from 'react'
 import { Stamp, type StampKind } from '../signature/stamp'
 import { Button } from '../ui/button'
-import { formatCount, formatMonthYear, formatNumber, type Locale } from '../../lib/format'
+import { formatCount, formatNumber, type Locale } from '../../lib/format'
 import type { PassportData } from '../../server/passport'
-import { CATALOG_TOTAL, REGION_LABELS, arrivalHref, catalogCountry, stampCaption, type HeaderFigures, type PassportEntry, type RegionGroup } from './model'
+import { CATALOG_TOTAL, REGION_LABELS, arrivalHref, catalogCountry, formatVisitPoint, stampCaption, type HeaderFigures, type PassportEntry, type RegionGroup } from './model'
 import './passport.css'
 
 type Awaiting = Parameters<typeof arrivalHref>[1]
@@ -68,7 +68,7 @@ export function PassportCover({ locale, figures, regions, name, onAdd, now }: {
         <span className="eyebrow">{ru ? 'Последний штамп' : 'Latest stamp'}</span>
         {figures.latest ? <div className="passport-latest">
           <Stamp {...stampProps(figures.latest, locale, name)} static />
-          <p className="passport-caption"><span>{name(figures.latest.code)}</span><br />{formatMonthYear(locale, figures.latest.firstVisit!.slice(0, 10), 'long')}</p>
+          <p className="passport-caption"><span>{name(figures.latest.code)}</span><br />{formatVisitPoint(locale, figures.latest.first!, 'month')}</p>
         </div> : <p className="passport-caption">{ru ? 'Пока нет' : 'None yet'}</p>}
       </div>
     </div>

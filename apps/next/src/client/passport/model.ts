@@ -6,7 +6,7 @@ import { COUNTRY_NEIGHBORS } from '@kuuki/data/country-neighbors'
 import { findAirport } from '@kuuki/data/airport-lookup'
 import type { CountryDetail, PassportData } from '../../server/passport'
 import type { StampKind } from '../signature/stamp'
-import { formatNumber, formatRelativeDate, type Locale } from '../../lib/format'
+import { formatDateOnly, formatMonthYear, formatNumber, formatRelativeDate, type Locale } from '../../lib/format'
 import { PASSPORT_SORTS } from '../../lib/url-state'
 
 export type PassportSort = (typeof PASSPORT_SORTS)[number]
@@ -26,6 +26,45 @@ export const REGION_LABELS: Record<RegionId, Record<Locale, string>> = {
   oceania: { en: 'Oceania', ru: 'Океания' },
 }
 
+/**
+ * A known point in a country's chronology. Flights and archived evidence carry a date; a land or sea visit carries
+ * only its year (ADR 0001 §4 leaves the projection's dates NULL for ground-only countries), so `date` is null then.
+ */
+export type VisitPoint = { year: number; date: string | null }
+
+/**
+ * First and last known visit from dated evidence and land/sea years together, at their real precision. When a dated
+ * visit and a year-only visit fall in the same year, their order is unknown, so that end shows just the year.
+ * Undated evidence (claims, visits without a year) adds nothing.
+ */
+export function chronology(dates: readonly (string | null | undefined)[], years: readonly (number | null | undefined)[]): { first: VisitPoint | null; last: VisitPoint | null } {
+  const points: VisitPoint[] = [
+    ...dates.filter((date): date is string => !!date).map(date => ({ year: Number(date.slice(0, 4)), date: date.slice(0, 10) })),
+    ...years.filter((year): year is number => typeof year === 'number' && year > 0).map(year => ({ year, date: null })),
+  ]
+  const end = (pick: (a: number, b: number) => boolean, better: (a: string, b: string) => boolean): VisitPoint | null => {
+    let best: VisitPoint | null = null
+    for (const point of points) {
+      if (!best || pick(point.year, best.year)) best = point
+      else if (point.year === best.year) {
+        if (best.date === null || point.date === null) best = { year: point.year, date: null }
+        else if (better(point.date, best.date)) best = point
+      }
+    }
+    return best
+  }
+  return { first: end((a, b) => a < b, (a, b) => a < b), last: end((a, b) => a > b, (a, b) => a > b) }
+}
+
+/** Sort key for a point: a year-only point sorts at the start of its year. */
+const pointKey = (point: VisitPoint | null) => point ? point.date ?? String(point.year) : ''
+
+/** «2026» for a year-only point, otherwise the date (or month and year) it carries. */
+export function formatVisitPoint(locale: Locale, point: VisitPoint, style: 'date' | 'month'): string {
+  if (!point.date) return String(point.year)
+  return style === 'month' ? formatMonthYear(locale, point.date, 'long') : formatDateOnly(locale, point.date)
+}
+
 export type PassportEntry = {
   code: string
   status: 'pressed' | 'pending'
@@ -33,8 +72,8 @@ export type PassportEntry = {
   kind: StampKind
   /** Logged + awaiting + ground visits; drives the rings. */
   visits: number
-  firstVisit: string | null
-  lastVisit: string | null
+  first: VisitPoint | null
+  last: VisitPoint | null
   firstYear: number | null
   claimed: boolean
   ground: number
@@ -67,15 +106,15 @@ export function passportEntries(data: Pick<PassportData, 'countries' | 'groundVi
     const kind: StampKind = flights > 0 ? 'air'
       : row.ground_visit_count > 0 ? (visits && visits.sea > 0 && visits.other === 0 ? 'sea' : 'land')
         : row.claimed === 1 ? 'claim' : 'air'
-    const firstYear = row.first_visit ? Number(row.first_visit.slice(0, 4)) : visits?.years.length ? Math.min(...visits.years) : null
+    const { first, last } = chronology([row.first_visit, row.last_visit], visits?.years ?? [])
     return {
       code: row.country_code,
       status: row.status,
       kind,
       visits: flights + row.ground_visit_count,
-      firstVisit: row.first_visit,
-      lastVisit: row.last_visit,
-      firstYear,
+      first,
+      last,
+      firstYear: first?.year ?? null,
       claimed: row.claimed === 1,
       ground: row.ground_visit_count,
       region: row.region,
@@ -87,7 +126,7 @@ export function passportEntries(data: Pick<PassportData, 'countries' | 'groundVi
 export function sortEntries(entries: PassportEntry[], sort: PassportSort, name: (code: string) => string, locale: Locale): PassportEntry[] {
   const byName = (a: PassportEntry, b: PassportEntry) => name(a.code).localeCompare(name(b.code), locale)
   const compare: Record<PassportSort, (a: PassportEntry, b: PassportEntry) => number> = {
-    recent: (a, b) => (a.status === 'pending' ? 0 : 1) - (b.status === 'pending' ? 0 : 1) || (b.lastVisit ?? '').localeCompare(a.lastVisit ?? '') || byName(a, b),
+    recent: (a, b) => (a.status === 'pending' ? 0 : 1) - (b.status === 'pending' ? 0 : 1) || pointKey(b.last).localeCompare(pointKey(a.last)) || byName(a, b),
     visits: (a, b) => b.visits - a.visits || byName(a, b),
     name: byName,
   }
@@ -117,13 +156,13 @@ export type HeaderFigures = {
 export function headerFigures(data: Pick<PassportData, 'pressedCountryCount' | 'pendingCountryCount'>, entries: PassportEntry[], now = new Date()): HeaderFigures {
   const year = String(now.getUTCFullYear())
   const pressed = entries.filter(entry => entry.status === 'pressed')
-  const dated = pressed.filter(entry => entry.firstVisit)
-  const latest = dated.reduce<PassportEntry | null>((best, entry) => !best || entry.firstVisit! > best.firstVisit! ? entry : best, null)
+  const dated = pressed.filter(entry => entry.first)
+  const latest = dated.reduce<PassportEntry | null>((best, entry) => !best || pointKey(entry.first) > pointKey(best.first) ? entry : best, null)
   return {
     total: data.pressedCountryCount + data.pendingCountryCount,
     pressed: data.pressedCountryCount,
     pending: data.pendingCountryCount,
-    newThisYear: dated.filter(entry => entry.firstVisit!.startsWith(year)).length,
+    newThisYear: dated.filter(entry => String(entry.first!.year) === year).length,
     latest,
   }
 }
@@ -132,7 +171,8 @@ export function headerFigures(data: Pick<PassportData, 'pressedCountryCount' | '
 export function stampCaption(locale: Locale, entry: PassportEntry, now = new Date()): string | undefined {
   if (entry.visits === 0) return undefined
   const count = `×${formatNumber(locale, entry.visits)}`
-  return entry.lastVisit ? `${count} · ${formatRelativeDate(locale, entry.lastVisit, now)}` : count
+  if (!entry.last) return count
+  return `${count} · ${entry.last.date ? formatRelativeDate(locale, entry.last.date, now) : entry.last.year}`
 }
 
 export type Suggestions = { recent: string[]; neighbors: string[] }
@@ -143,8 +183,8 @@ export type Suggestions = { recent: string[]; neighbors: string[] }
  */
 export function suggestCountries(entries: PassportEntry[], limits = { recent: 4, neighbors: 6 }): Suggestions {
   const collected = new Set(entries.map(entry => entry.code))
-  const recent = entries.filter(entry => entry.status === 'pressed' && entry.lastVisit)
-    .sort((a, b) => b.lastVisit!.localeCompare(a.lastVisit!) || a.code.localeCompare(b.code))
+  const recent = entries.filter(entry => entry.status === 'pressed' && entry.last)
+    .sort((a, b) => pointKey(b.last).localeCompare(pointKey(a.last)) || a.code.localeCompare(b.code))
     .slice(0, limits.recent).map(entry => entry.code)
   const score = new Map<string, number>()
   for (const entry of entries) {

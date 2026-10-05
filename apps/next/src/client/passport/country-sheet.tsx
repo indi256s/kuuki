@@ -19,7 +19,7 @@ import { formatCount, formatDateOnly, formatNumber, pluralCategory, type Locale 
 import { journalHref } from '../../lib/url-state'
 import type { CountryDetail } from '../../server/passport'
 import { stampProps } from './collection'
-import { arrivalHref, isCatalogCountry, removalOutcome, type PassportEntry } from './model'
+import { arrivalHref, chronology, formatVisitPoint, isCatalogCountry, removalOutcome, type PassportEntry } from './model'
 import './passport.css'
 
 type Awaiting = Parameters<typeof arrivalHref>[1]
@@ -101,6 +101,8 @@ export function CountrySheet({ ownerId, locale, code: selected, entry, mobile, a
   const ground = (data?.entries.filter(item => item.kind === 'ground') ?? []) as GroundEntry[]
   const claim = data?.entries.find(item => item.kind === 'claim')
   const outcome = data ? removalOutcome(data) : null
+  // The projection leaves first/last NULL for land/sea-only countries; their years still date the visit.
+  const dates = chronology([data?.firstVisit, data?.lastVisit], data?.groundVisits.map(visit => visit.visitYear) ?? [])
 
   return <Sheet open={!!code} onOpenChange={open => { if (!open) onClose() }} side={mobile ? 'bottom' : 'right'} title={title}
     closeLabel={ru ? 'Закрыть' : 'Close'} className="passport-sheet-panel" onCloseAutoFocus={onCloseAutoFocus}
@@ -113,8 +115,8 @@ export function CountrySheet({ ownerId, locale, code: selected, entry, mobile, a
       {!data && !detail.isError ? <p role="status" className="passport-note">{ru ? 'Загружаем…' : 'Loading…'}</p> : null}
       {data ? <>
         {inPassport ? <dl>
-          <div><dt>{ru ? 'Первый визит' : 'First visit'}</dt><dd>{data.firstVisit ? formatDateOnly(locale, data.firstVisit.slice(0, 10)) : (ru ? 'без даты' : 'no date')}</dd></div>
-          <div><dt>{ru ? 'Последний визит' : 'Last visit'}</dt><dd>{data.lastVisit ? formatDateOnly(locale, data.lastVisit.slice(0, 10)) : (ru ? 'без даты' : 'no date')}</dd></div>
+          <div><dt>{ru ? 'Первый визит' : 'First visit'}</dt><dd>{dates.first ? formatVisitPoint(locale, dates.first, 'date') : (ru ? 'без даты' : 'no date')}</dd></div>
+          <div><dt>{ru ? 'Последний визит' : 'Last visit'}</dt><dd>{dates.last ? formatVisitPoint(locale, dates.last, 'date') : (ru ? 'без даты' : 'no date')}</dd></div>
         </dl> : null}
 
         {flights.length || legacy.length || claim || ground.length || data.suppressed.length ? <section aria-labelledby="passport-visits">

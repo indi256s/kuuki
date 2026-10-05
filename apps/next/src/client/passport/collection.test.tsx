@@ -41,8 +41,18 @@ describe('PassportCover', () => {
     expect(regions).toHaveLength(6)
     expect([...regions].filter(li => li.getAttribute('data-filled') === 'true').map(li => li.textContent)).toEqual(['Азия 1 из 52', 'Европа 2 из 51'])
     expect(screen.getByText('Новые в 2026')).toBeInTheDocument()
-    expect(within(container.querySelector('.passport-latest') as HTMLElement).getByText('Япония', { selector: 'span:not(.stamp-name)' })).toBeInTheDocument()
+    // Greece's 2023 sea visit is a newer first visit than Japan's 2019 flight.
+    expect(within(container.querySelector('.passport-latest') as HTMLElement).getByText('Греция', { selector: 'span:not(.stamp-name)' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: '＋ Добавить страну' })).toBeInTheDocument()
+  })
+})
+
+describe('PassportCover chronology', () => {
+  it('captions a latest stamp known only by its year with the year, not an invented month', () => {
+    const ground = { countries: [row('NO', { ground_visit_count: 1, region: 'europe' })], groundVisits: [{ country_code: 'NO', visit_year: 2026, entry_method: 'land' }] }
+    const list = passportEntries(ground)
+    const { container } = render(<PassportCover locale="en" figures={headerFigures({ pressedCountryCount: 1, pendingCountryCount: 0 }, list, now)} regions={data.regions} name={countryNamer('en')} onAdd={() => {}} now={now} />)
+    expect(container.querySelector('.passport-latest .passport-caption')).toHaveTextContent(/^Norway2026$/)
   })
 })
 
