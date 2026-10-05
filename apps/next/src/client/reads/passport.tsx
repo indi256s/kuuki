@@ -19,23 +19,18 @@ const words = {
 
 type CountryStats = { countryCode: string; firstVisit: string; lastVisit: string; totalVisits: number; airports: { iata: string; city: string; visitCount: number }[]; isClaimed: boolean; groundVisits: { id:string; visitYear:number|null; entryMethod:string|null; note:string|null }[] }
 type Entry = { code: string; count: number; first: string; last: string; claimed: boolean; ground: number; air: boolean }
+// Stamps follow the published country evidence (ADR 0001 §4): only pressed countries, so a pending-only country
+// (awaiting flights alone) or a transit-suppressed hub is never stamped. The airport aggregate stays airport data.
 function merge(data: PassportData): Entry[] {
-  const entries = new Map<string, Entry>()
-  const ensure = (code: string) => {
-    let entry = entries.get(code)
-    if (!entry) { entry = { code, count: 0, first: '', last: '', claimed: false, ground: 0, air: false }; entries.set(code, entry) }
-    return entry
-  }
-  for (const row of data.visits) {
-    const entry = ensure(row.country_code)
-    entry.count += row.visit_count ?? 1
-    entry.air = true
-    if (row.first_visit && (!entry.first || row.first_visit < entry.first)) entry.first = row.first_visit
-    if (row.last_visit && (!entry.last || row.last_visit > entry.last)) entry.last = row.last_visit
-  }
-  for (const row of data.claims) ensure(row.country_code).claimed = true
-  for (const row of data.groundVisits) { const entry = ensure(row.country_code); entry.ground++; entry.count++ }
-  return [...entries.values()]
+  return data.countries.filter(row => row.status === 'pressed').map(row => ({
+    code: row.country_code,
+    count: row.logged_visit_count + row.awaiting_visit_count + row.ground_visit_count,
+    first: row.first_visit ?? '',
+    last: row.last_visit ?? '',
+    claimed: row.claimed === 1,
+    ground: row.ground_visit_count,
+    air: row.logged_visit_count + row.awaiting_visit_count > 0,
+  }))
 }
 function Inner({ ownerId, locale, initial, period }: { ownerId: string; locale: Locale; initial: PassportData; period?: OverviewPeriod }) {
   const router = useRouter()
@@ -51,8 +46,8 @@ function Inner({ ownerId, locale, initial, period }: { ownerId: string; locale: 
       const controller = new AbortController(); const untrack = trackPrivateOperation(controller)
       signal.addEventListener('abort', () => controller.abort(), { once: true })
       try {
-        const rows = await api.get<Pick<PassportData, 'visits'|'claims'|'groundVisits'>>('/api/passport/countries', undefined, { signal: controller.signal })
-        return { ...rows, updatedAt: Date.now(), revision: initial.revision, publishedRevision: initial.publishedRevision }
+        const rows = await api.get<Omit<PassportData, 'updatedAt'>>('/api/passport/countries', undefined, { signal: controller.signal })
+        return { ...rows, updatedAt: Date.now() }
       } finally { untrack() }
     },
     initialData: initial, initialDataUpdatedAt: initial.updatedAt, staleTime: 60_000, refetchOnWindowFocus: true,
@@ -88,7 +83,7 @@ function Inner({ ownerId, locale, initial, period }: { ownerId: string; locale: 
   const countryVisits = entries.map(entry => ({ countryCode: entry.code, count: entry.count, claimed: entry.claimed }))
   const changeView = (next: 'stamps'|'map') => { const p = new URLSearchParams(search.toString()); if (next === 'map') p.set('view','map'); else p.delete('view'); router.push(`/passport${p.size ? `?${p}` : ''}`) }
   return <section data-testid="passport-data" className="read-stack passport-data">
-    {initial.revision > initial.publishedRevision && <p role="status" className="status-note">{t.pending}</p>}
+    {initial.derivedState !== 'ready' && <p role="status" className="status-note">{t.pending}</p>}
     {collection.isError && <p role="alert" className="status-note">{t.error} <button onClick={() => void collection.refetch()}>{t.retry}</button></p>}
     <div className="figure-strip passport-figures"><div><span className="eyebrow">{t.countries}</span><strong>{formatNumber(locale, entries.length)}</strong></div><div><span className="eyebrow">{t.flights}</span><strong>{formatNumber(locale, entries.filter(e => e.air).length)}</strong></div><div><span className="eyebrow">{t.claims}</span><strong>{formatNumber(locale, entries.filter(e => e.claimed).length)}</strong></div><div><span className="eyebrow">{t.ground}</span><strong>{formatNumber(locale, entries.filter(e => e.ground > 0).length)}</strong></div></div>
     <div className="section-heading"><div className="period-switch" role="group" aria-label={t.countries}><button aria-pressed={view === 'stamps'} onClick={() => changeView('stamps')}>{t.stamps}</button><button aria-pressed={view === 'map'} onClick={() => changeView('map')}>{t.map}</button></div><a className="button primary" href="/passport/manage">{t.add}</a></div>
