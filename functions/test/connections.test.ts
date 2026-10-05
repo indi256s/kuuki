@@ -1,5 +1,5 @@
 // ADR 0001 §4 connection chains (T08): a deterministic, table-driven calculation with no trips entity.
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { connectionChains, MAX_CONNECTION_GAP_MS, type ConnectionLeg } from '../api/_services/connections'
 
 const COUNTRY: Record<string, string> = {
@@ -193,14 +193,27 @@ describe('connectionChains', () => {
     expect(decisions.get(1)).toMatchObject({ kind: 'link', label: 'estimated' })
   })
 
-  it('stays linear enough for a long hub history', () => {
-    const legs: ConnectionLeg[] = []
-    for (let i = 0; i < 2000; i += 1) {
-      const day = new Date(Date.UTC(2020, 0, 1 + i * 3)).toISOString().slice(0, 10)
-      legs.push(leg(2 * i + 1, day, 'TBS', 'IST'), leg(2 * i + 2, day, 'IST', 'TBS'))
+  it('scales bounded graph work for long timed chains, repeated hubs, estimates and ambiguity', () => {
+    const measure = (size: number) => {
+      const legs: ConnectionLeg[] = []
+      for (let i = 0; i < size; i++) {
+        const dep = at('2020-01-01T00:00:00.000Z', i * 24)
+        legs.push(leg(i + 1, dep.slice(0, 10), i % 2 ? 'IST' : 'TBS', i % 2 ? 'TBS' : 'IST', dep,
+          at(dep, 2)))
+      }
+      const day = at('2020-01-01T00:00:00.000Z', (size + 10) * 24).slice(0, 10)
+      legs.push(leg(size + 1, day, 'JFK', 'LHR'), leg(size + 2, day, 'LHR', 'DXB'),
+        leg(size + 3, day, 'TBS', 'IST'), leg(size + 4, day, 'IST', 'BKK'), leg(size + 5, day, 'IST', 'ADB'))
+      const get = vi.spyOn(Map.prototype, 'get')
+      let decisions: ReturnType<typeof connectionChains>
+      let operations: number
+      try { decisions = connectionChains(legs); operations = get.mock.calls.length }
+      finally { get.mockRestore() }
+      expect(decisions.get(1)).toMatchObject({ kind: 'link', label: 'precise', chainIds: Array.from({ length: size }, (_, i) => i + 1) })
+      expect(decisions.get(size + 1)).toMatchObject({ kind: 'link', label: 'estimated' })
+      expect(decisions.get(size + 3)).toEqual({ kind: 'ambiguous', candidateIds: [size + 4, size + 5] })
+      return operations
     }
-    const started = Date.now()
-    connectionChains(legs)
-    expect(Date.now() - started).toBeLessThan(2000)
+    expect(measure(800)).toBeLessThan(measure(400) * 2.7)
   })
 })

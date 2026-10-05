@@ -69,7 +69,7 @@ export async function getPasswordHashById(
  * migration plan + the schema. The whole thing runs as a single db.batch() so a failure
  * rolls back rather than leaving a half-deleted account.
  */
-export async function deleteUserCascade(db: D1Database, userId: string): Promise<void> {
+export async function deleteUserCascade(db: D1Database, userId: string): Promise<string[]> {
   const childTables = [
     // ADR 0001 §6: drafts, receipts and evidence first, then the flights they point at.
     'import_conversion_receipts',
@@ -94,7 +94,9 @@ export async function deleteUserCascade(db: D1Database, userId: string): Promise
     'legacy_visit_evidence',
     'flight_idempotency',
   ]
-  await db.batch([
+  const [jobs] = await db.batch([
+    // Capture live jobs in the same transaction as their deletion fence, including racing submissions.
+    db.prepare("SELECT id FROM import_batches WHERE user_id = ? AND status = 'processing'").bind(userId),
     ...childTables.map((t) => db.prepare(`DELETE FROM ${t} WHERE user_id = ?`).bind(userId)),
     db.prepare('DELETE FROM auth_sessions WHERE userId = ?').bind(userId),
     db.prepare("DELETE FROM auth_verifications WHERE identifier = ? AND id LIKE 'password-reset:%'").bind(`password-reset:${userId}`),
@@ -102,6 +104,7 @@ export async function deleteUserCascade(db: D1Database, userId: string): Promise
     db.prepare('DELETE FROM profiles WHERE id = ?').bind(userId),
     db.prepare('DELETE FROM users WHERE id = ?').bind(userId),
   ])
+  return (jobs.results as Array<{ id: string }>).map(job => job.id)
 }
 
 /**

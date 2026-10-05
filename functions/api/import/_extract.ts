@@ -141,9 +141,15 @@ async function extractFlightsWithGemini(
   console.log(JSON.stringify({ event: 'gemini_parsed', flight_count: parsedResponse.flights?.length ?? 0 }))
   console.log(JSON.stringify({ event: 'import_provider_usage', model, usage_bucket: usageBucket(response.usageMetadata?.totalTokenCount) }))
 
-  const result = normalizeFlights(parsedResponse)
-  logValidation(result.flights.length, parsedResponse.flights.length, result.rejected?.length ?? 0)
-  return result
+  try {
+    const result = normalizeFlights(parsedResponse)
+    logValidation(result.flights.length, parsedResponse.flights.length, result.rejected?.length ?? 0)
+    return result
+  } catch (error) {
+    // Normalization refuses a non-empty envelope only when every row was rejected.
+    if (error instanceof ProviderResponseError) logValidation(0, parsedResponse.flights.length, parsedResponse.flights.length)
+    throw error
+  }
 }
 
 /** One summary per extraction. Per-row normalization logs only actual problems (`flight_rejected`). */
