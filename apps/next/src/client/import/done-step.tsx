@@ -77,7 +77,7 @@ export function DoneStep({ locale, savedCount, requested, totalKm, newCountries,
     {aircraftTargets.length > 0 ? <AircraftPanel locale={locale} targets={aircraftTargets} onSaved={onAircraftSaved} api={aircraftApi} /> : null}
 
     <div className="import-actions import-final-actions">
-      {/* Stamps appear only after the write refreshed the router, so a full prefetch from here is already fresh. */}
+      {/* Stamps appear only after the write refreshed the router, and every later write refreshes it again, so a full prefetch from here stays fresh. */}
       <Link className="ui-button" data-variant="primary" href="/passport" prefetch={hero ? true : undefined}>{S.passport[locale]}</Link>
       <a className="ui-button" data-variant="secondary" href="/journal">{S.journal[locale]}</a>
       <Button onClick={onImportMore}>{S.importMore[locale]}</Button>

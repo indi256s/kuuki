@@ -151,8 +151,9 @@ export function ImportClient({ ownerId, locale, initialBatchId = null, initialSo
   const acknowledgeWrites = (acks: Array<{ derived_state?: 'ready' | 'pending'; revision?: number }>) => {
     const last = acks.at(-1) ?? {}
     feedback.acknowledge(last)
-    // An answer without derived state cannot start the publication check; still refresh what the server rendered.
-    if (!last.derived_state) router.refresh()
+    // A ready answer refreshes through the feedback. Any other answer refreshes now: that drops a prefetched Passport
+    // from before this write, so Open Passport shows the new revision and waits for its publication itself.
+    if (last.derived_state !== 'ready') router.refresh()
   }
 
   /** Save the given drafts and manual rows. Runs the server confirm sequentially, then re-reads the stored snapshot. */
