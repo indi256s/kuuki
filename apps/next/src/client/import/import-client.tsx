@@ -3,6 +3,8 @@
 import clsx from 'clsx'
 import { useRouter } from 'next/navigation'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import type { Flight } from '../../../../web/src/lib/flights'
+import type { BulkItemResult } from '../../../../../functions/api/_services/flightCreate'
 import type { Locale } from '../../lib/format'
 import { useMobile } from '../ui/use-mobile'
 import { useWriteFeedback } from '../write-feedback'
@@ -42,13 +44,15 @@ function Stepper({ locale, step }: { locale: Locale; step: Step }) {
 const themeNow = (): 'light' | 'dark' => (typeof document !== 'undefined' && document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light')
 const writeUrl = (batchId: string | null) => window.history.replaceState(window.history.state, '', batchId ? `/import?batch=${batchId}` : '/import')
 
-export function ImportClient({ ownerId, locale, initialBatchId = null, initialSource = null, batchApi, aircraftApi }: {
-  ownerId: string; locale: Locale; initialBatchId?: string | null; initialSource?: 'file' | 'text' | null; batchApi?: BatchApi; aircraftApi?: AircraftApi
+export interface ImportResult { flights?: Flight[]; eventId: string; flightIds: number[]; savedCount: number; publication: 'idle' | 'ready' | 'pending' | 'delayed'; newCodes: string[] | null }
+
+export function ImportClient({ ownerId, locale, initialBatchId = null, initialSource = null, batchApi, aircraftApi, onBatchId = writeUrl, onResult }: {
+  ownerId: string; locale: Locale; initialBatchId?: string | null; initialSource?: 'file' | 'text' | null; batchApi?: BatchApi; aircraftApi?: AircraftApi; onBatchId?: (id: string | null) => void; onResult?: (result: ImportResult) => void
 }) {
   const router = useRouter()
   const feedback = useWriteFeedback(ownerId)
   const mobile = useMobile()
-  const batch = useImportBatch({ api: batchApi, initialBatchId, onBatchId: writeUrl })
+  const batch = useImportBatch({ api: batchApi, initialBatchId, onBatchId })
   const { setDraft } = batch
 
   const [saveStates, setSaveStates] = useState<Record<string, SaveState>>({})
@@ -78,6 +82,7 @@ export function ImportClient({ ownerId, locale, initialBatchId = null, initialSo
   const [showDone, setShowDone] = useState(false)
   const [rows, setRows] = useState<Map<string, RowOutcome>>(new Map())
   const [manualSaved, setManualSaved] = useState<ManualRowState[]>([])
+  const [canonicalSaved, setCanonicalSaved] = useState<Flight[]>([])
   const [requestedKeys, setRequestedKeys] = useState<ReadonlySet<string>>(new Set())
   const [checking, setChecking] = useState(false)
   const [checkFailed, setCheckFailed] = useState(false)
@@ -155,8 +160,8 @@ export function ImportClient({ ownerId, locale, initialBatchId = null, initialSo
   }, [batch])
 
   const reset = useCallback(() => {
-    batch.reset(); writeUrl(null); resetEdits()
-    setRows(new Map()); setManualRows([]); setManualSaved([]); setManualOnly(false); setShowDone(false); setReviewing(false); setHoldDone(false); setRequestedKeys(new Set())
+    batch.reset(); onBatchId(null); resetEdits()
+    setRows(new Map()); setManualRows([]); setManualSaved([]); setCanonicalSaved([]); setManualOnly(false); setShowDone(false); setReviewing(false); setHoldDone(false); setRequestedKeys(new Set())
     setNewCodes(null); setUnfinished(null); setNotice(null); setCheckFailed(false); setAircraftSaved(new Set())
     baseline.current = undefined; stampsFor.current = -1; lastSource.current = null; settledOperations.current.clear()
     setSourceKey(key => key + 1)
@@ -171,7 +176,7 @@ export function ImportClient({ ownerId, locale, initialBatchId = null, initialSo
       const type = batch.batch?.sourceType
       reset(); setSourceMode(type === 'text' ? 'text' : 'file'); setNotice(S.sourceAgain[locale])
     } else if (action === 'manual') {
-      batch.reset(); writeUrl(null); resetEdits(); setManualOnly(true); setManualRows([newManualRow(emptyValues(), 'solo')])
+      batch.reset(); onBatchId(null); resetEdits(); setManualOnly(true); setManualRows([newManualRow(emptyValues(), 'solo')])
     } else if (action === 'otherFile' || action === 'pasteText') {
       reset(); setSourceMode(action === 'otherFile' ? 'file' : 'text')
     } else if (action === 'newImport') reset()
@@ -204,6 +209,9 @@ export function ImportClient({ ownerId, locale, initialBatchId = null, initialSo
 
   const acknowledgeWrites = (acks: Array<{ derived_state?: 'ready' | 'pending'; revision?: number }>) => {
     const last = acks.at(-1) ?? {}
+    // Bulk manual acknowledgements already carry canonical flights; expose them to a hosted result.
+    const flights = acks.flatMap(ack => ((ack as typeof ack & { results?: BulkItemResult[] }).results ?? []).flatMap(item => (item.status === 'created' || item.status === 'replayed') && item.flight && Number.isSafeInteger(item.flight.id) && typeof item.flight.is_upcoming === 'boolean' ? [{ ...item.flight, user_id: ownerId } as Flight] : []))
+    if (flights.length) setCanonicalSaved(previous => [...new Map([...previous, ...flights].map(flight => [flight.id, flight])).values()])
     feedback.acknowledge(last)
     // An answer without derived state cannot start the publication check; still refresh what the server rendered.
     if (!last.derived_state) router.refresh()
@@ -331,6 +339,13 @@ export function ImportClient({ ownerId, locale, initialBatchId = null, initialSo
     return () => { live = false }
   }, [feedback.status, savedCount, touched])
 
+  const result = useMemo<ImportResult | null>(() => savedCount > 0 && requestedKeys.size > 0 && step === 'done' ? {
+    eventId: `import:${ownerId}:${batch.batch?.id ?? [...requestedKeys].sort().join(':')}`,
+    flightIds: [...rows.values()].flatMap(row => row.status === 'saved' ? [row.flightId] : []),
+    flights: canonicalSaved, savedCount, publication: feedback.status, newCodes,
+  } : null, [ownerId, batch.batch?.id, requestedKeys, rows, canonicalSaved, savedCount, step, feedback.status, newCodes])
+  useEffect(() => { if (result) onResult?.(result) }, [result, onResult])
+
   const names = useMemo(() => new Intl.DisplayNames([locale], { type: 'region' }), [locale])
   const stamps: NewStamp[] = (newCodes ?? []).map(code => ({ code, name: names.of(code) ?? code, eventId: `import:${batch.batch?.id ?? 'manual'}:${code}` }))
   const totalKm = [...savedDrafts.map(draft => draft.fields), ...manualSaved.map(row => row.values)].reduce((sum, fields) => sum + routeKm(fields.origin, fields.destination), 0)
@@ -360,7 +375,7 @@ export function ImportClient({ ownerId, locale, initialBatchId = null, initialSo
       onChange={onChange} onSelectAll={(drafts, selected) => void onSelectAll(drafts, selected)} onRetry={id => void saver.retry(id)} onDiscardEdit={id => saver.discard(id)}
       onConfirm={onConfirm} onDiscardImport={onDiscardImport} /> : null}
     {step === 'done' ? <DoneStep locale={locale} savedCount={savedCount} requested={requestedKeys.size} totalKm={totalKm}
-      newCountries={newCodes === null ? null : newCodes.length} stamps={stamps} publication={feedback.status}
+      newCountries={newCodes === null ? null : newCodes.length} stamps={onResult ? [] : stamps} publication={feedback.status}
       failures={failures} retryCount={retryable.length} retryBlocked={unsent ? S.unsavedDone[locale] : undefined} retrying={confirming || recoveryRetrying !== null} checking={checking} checkFailed={checkFailed}
       remaining={groups.active.length + groups.duplicates.length + manualRows.length} aircraftTargets={aircraftTargets} aircraftApi={aircraftApi} theme={themeNow()}
       onRetry={onRetry} onReview={() => { setShowDone(false); setReviewing(true) }} onImportMore={reset} onAircraftSaved={onAircraftSaved} /> : null}

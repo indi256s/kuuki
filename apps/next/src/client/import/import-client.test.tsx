@@ -66,10 +66,12 @@ describe('ImportClient journeys', () => {
       server.state.drafts = server.state.drafts.map(row => items.some(item => item.draftId === row.id) ? { ...row, status: 'converted', convertedFlightId: 100 } : row)
       return response(items.map(created))
     })
-    render(<ImportClient ownerId="u1" locale="en" initialBatchId="b1" batchApi={server.api} />)
+    const onResult = vi.fn()
+    render(<ImportClient ownerId="u1" locale="en" initialBatchId="b1" batchApi={server.api} onResult={onResult} />)
     await user.click(await screen.findByRole('button', { name: /import 3/i }))
     expect(await screen.findByRole('heading', { name: /some flights were not saved/i })).toBeInTheDocument()
     expect(screen.getByTestId('import-summary')).toHaveTextContent('Saved 2 of 3')
+    await waitFor(() => expect(onResult).toHaveBeenCalledWith(expect.objectContaining({ eventId: 'import:u1:b1', flightIds: [100, 100], savedCount: 2, publication: 'idle', newCodes: null })))
     expect(confirmItems.mock.calls[0][1]).toEqual([{ draftId: 'a', version: 2 }, { draftId: 'b', version: 2 }, { draftId: 'c', version: 2 }])
     expect(acknowledge).toHaveBeenCalledTimes(1) // a partial success still refreshes the freshness owners
     const failedList = screen.getByRole('heading', { name: 'Not saved' }).parentElement!
@@ -480,4 +482,19 @@ describe('I9 and I10 the way back and the deadline', () => {
     render(<ImportClient ownerId="u1" locale="en" initialBatchId="b1" batchApi={api} />)
     expect(await screen.findByTestId('import-retention')).toHaveTextContent('Kept until Nov 4, 2026.')
   })
+})
+
+it('exposes the existing bulk acknowledgement canonical manual flight to a hosted result', async () => {
+  const user = userEvent.setup(), onResult = vi.fn()
+  const server = serverWith([])
+  const canonical = { id: 66, date: '2026-03-01', origin: 'JFK', destination: 'BOS', is_upcoming: false, lifecycle_state: 'logged' }
+  createFlights.mockImplementation(async (_owner: string, _entries: unknown[], notify: (ack: object, count: number) => void) => { notify({ derived_state: 'ready', revision: 9, results: [{ status: 'created', flight: canonical }] }, 1); return [null] })
+  render(<ImportClient ownerId="u1" locale="en" initialBatchId="b1" batchApi={server.api} onResult={onResult} />)
+  await user.click(await screen.findByRole('button', { name: /add a flight manually/i }))
+  const row = within(manualRow())
+  await user.type(row.getByLabelText(/^From \(airport code\)/), 'JFK')
+  await user.type(row.getByLabelText(/^To \(airport code\)/), 'BOS')
+  await user.type(row.getByLabelText(/^Date$/), '2026-03-01')
+  await user.click(await importButton(/import 1/i))
+  await waitFor(() => expect(onResult).toHaveBeenCalledWith(expect.objectContaining({ savedCount: 1, flights: [{ ...canonical, user_id: 'u1' }] })))
 })

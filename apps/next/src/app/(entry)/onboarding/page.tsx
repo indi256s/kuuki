@@ -1,27 +1,27 @@
 import { redirect } from 'next/navigation'
 import { getGateProfile, hasSavedFlight } from '../../../server/gates'
+import { getProfileShareUrl } from '../../../server/profile'
 import { pageMetadata } from '../../../server/metadata'
 import { IdentitySnapshot } from '../../../client/activity'
 import { getRequestLocale } from '../../../server/locale'
 import { OnboardingName } from '../../../client/public/onboarding-name'
-import { normalizeOnboardingQuery, withQuery, type OnboardingStep } from '../../../lib/url-state'
+import { OnboardingFlow } from '../../../client/public/onboarding-flow'
+import { normalizeOnboardingQuery, normalizeImportQuery, withQuery } from '../../../lib/url-state'
+import '../../../client/public/onboarding.css'
 
 export const generateMetadata = () => pageMetadata('Welcome', 'Добро пожаловать')
-
-function Placeholder({ step, ru }: { step: Exclude<OnboardingStep, 'name'>; ru: boolean }) {
-  return step === 'capture'
-    ? <div className="onboarding-page"><p className="eyebrow">{ru ? '2 / 3 · Первые перелёты' : '2 / 3 · First flights'}</p><h1>{ru ? 'Добавьте первый перелёт' : 'Add your first flight'}</h1><div className="actions"><a className="button secondary" href="/add">{ru ? 'Добавить перелёт' : 'Add a flight'}</a><a className="button secondary" href="/import">{ru ? 'Импортировать документ' : 'Import a document'}</a></div></div>
-    : <div className="onboarding-page"><p className="eyebrow">{ru ? '3 / 3 · Результат' : '3 / 3 · Reveal'}</p><h1>{ru ? 'Посмотрите свой путь' : 'See your story'}</h1><div className="actions"><a className="button primary" href="/overview">{ru ? 'Перейти в Обзор' : 'Go to Overview'}</a></div></div>
-}
 export default async function Onboarding({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const [own, locale, query] = await Promise.all([getGateProfile(), getRequestLocale(), searchParams])
-  const ru = locale === 'ru'
   if (!own) redirect('/signin')
+  const ru = locale === 'ru'
   const hasUsername = !!own.profile.username
   const normalized = normalizeOnboardingQuery(query, { hasUsername, hasFlight: hasUsername && await hasSavedFlight(own.ownerId) })
-  if (!normalized.canonical) redirect(withQuery('/onboarding', normalized.query))
-  if (normalized.state.step !== 'name') return <IdentitySnapshot ownerId={own.ownerId}><Placeholder step={normalized.state.step} ru={ru} /></IdentitySnapshot>
-  return <IdentitySnapshot ownerId={own.ownerId}><div className="onboarding-page"><p className="eyebrow">{ru ? '1 / 3 · Ваш профиль' : '1 / 3 · Your profile'}</p><h1>{ru ? 'Сделайте журнал своим' : 'Make this journal yours'}</h1><p className="lead">{ru ? 'Выберите имя для вашего профиля. Его можно оставить скрытым в настройках.' : 'Choose a name people can use to find your public profile. You can keep the profile private in Settings.'}</p><OnboardingName username={own.profile.username ?? ''} displayName={own.profile.display_name ?? ''} locale={locale} />
-    <div className="onboarding-next"><p className="eyebrow">{ru ? '2 / 3 · Первые перелёты' : '2 / 3 · First flights'}</p><h2>{ru ? 'Добавьте первый перелёт' : 'Add your first flight'}</h2><p>{ru ? 'Введите рейс вручную или импортируйте посадочный талон. Журнал обновится после сохранения.' : 'Enter a flight or import a boarding pass. Your journal updates after each save.'}</p><a className="button secondary" href="/add">{ru ? 'Добавить перелёт' : 'Add a flight'}</a><a className="button secondary" href="/import">{ru ? 'Импортировать документ' : 'Import a document'}</a></div>
-    <div className="onboarding-next"><p className="eyebrow">{ru ? '3 / 3 · Результат' : '3 / 3 · Reveal'}</p><h2>{ru ? 'Посмотрите свой путь' : 'See your story'}</h2><p>{ru ? 'Обзор и Паспорт покажут сохранённые перелёты и страны.' : 'Your Overview and Passport will show the flights and places you saved.'}</p><a className="button primary" href="/overview">{ru ? 'Перейти в Обзор' : 'Go to Overview'}</a><p><a href="/settings">{ru ? 'Настройки' : 'Settings'}</a></p></div></div></IdentitySnapshot>
+  const importQuery = normalizeImportQuery(new URLSearchParams(normalized.query))
+  if (!normalized.canonical || !importQuery.canonical) redirect(withQuery('/onboarding', importQuery.query))
+  const step = normalized.state.step
+  return <IdentitySnapshot ownerId={own.ownerId}><div className="onboarding-flow">
+    <ol className="onboarding-progress" aria-label={ru ? 'Шаги знакомства' : 'Getting started steps'}>{(['name', 'capture', 'reveal'] as const).map((value, index) => <li key={value} aria-current={step === value ? 'step' : undefined}><span>{index + 1}</span> {({ name: ru ? 'Имя' : 'Name', capture: ru ? 'Перелёты' : 'Capture', reveal: ru ? 'Результат' : 'Reveal' })[value]}</li>)}</ol>
+    {step === 'name' ? <><h1>{ru ? 'Сделайте журнал своим' : 'Make this journal yours'}</h1><p>{ru ? 'Выберите имя. Видимость профиля можно изменить в настройках.' : 'Choose a name. You can change profile visibility in Settings.'}</p><OnboardingName ownerId={own.ownerId} username={own.profile.username ?? ''} displayName={own.profile.display_name ?? ''} profileUrl={await getProfileShareUrl(own.profile.username ?? 'your-name')} locale={locale} /></>
+      : <OnboardingFlow key={own.ownerId} ownerId={own.ownerId} locale={locale} step={step} batchId={importQuery.state.batch} source={importQuery.state.source} />}
+  </div></IdentitySnapshot>
 }
