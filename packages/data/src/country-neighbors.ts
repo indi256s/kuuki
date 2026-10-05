@@ -3,9 +3,11 @@
 // Source: Natural Earth 1:110m Admin 0 countries (public domain, https://www.naturalearthdata.com/about/terms-of-use/),
 // as packaged in world-atlas 2.0.2 (https://github.com/topojson/world-atlas/tree/v2.0.2, ISC) and pinned in
 // apps/next/public/maps/countries-110m-2.0.2.geojson (see docs/research/2026-10-04-map-implementation.md).
-// Two catalog countries are neighbors when their low-detail outlines share a land boundary edge. Countries absent
-// from that atlas (microstates, many islands, Kosovo) have no entry: suggestions fall back to recent countries and
-// search. Used only for "add a country" suggestions, never for evidence.
+// Two catalog countries are neighbors when their low-detail outlines share a land boundary edge. A catalog code has
+// no entry when the atlas has no outline for it (microstates, many small islands and territories, Kosovo) or when its
+// outline shares no land boundary at this resolution (for example Australia, Iceland and Japan). Suggestions then fall
+// back to recent countries, and search always covers the whole catalog. Used only for "add a country" suggestions,
+// never for evidence.
 
 export const COUNTRY_NEIGHBORS: Readonly<Record<string, readonly string[]>> = {
   AE: ['OM', 'SA'],
