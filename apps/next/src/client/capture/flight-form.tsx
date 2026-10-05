@@ -86,7 +86,7 @@ export function FlightForm({ ownerId, locale, editId, initialEditing = true, foc
     const controller = new AbortController(); const release = trackPrivateOperation(controller); const generation = getAuthGeneration()
     void getFlight(editId, { signal: controller.signal }).then(row => { if (!current(generation, controller)) return; setFlight(row); if (row) { reset({ date: row.date, origin: row.origin, destination: row.destination, airline: row.airline_iata ?? '', aircraft: row.aircraft_icao ?? '', number: row.flight_number ?? '', departure: row.departure_time?.slice(0,5) ?? '', arrival: row.arrival_time?.slice(0,5) ?? '' }); setShowDetails(readCapturePreference(ownerId, 'details', false) || !!(row.airline_iata || row.aircraft_icao || row.flight_number || row.departure_time || row.arrival_time) || !!focusField) } }).catch(cause => { if (current(generation, controller)) setError(flightErrorMessage(cause, locale, 'load')) }).finally(() => { if (current(generation, controller)) setLoading(false) })
     return () => { controller.abort(); release() }
-  }, [editId, reset, ownerId])
+  }, [editId, reset, ownerId, locale, focusField])
   useEffect(() => {
     setDuplicate(null)
     if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || origin?.length !== 3 || destination?.length !== 3) return
