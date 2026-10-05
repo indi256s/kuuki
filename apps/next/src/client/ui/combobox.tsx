@@ -26,7 +26,10 @@ export function Combobox({ label, value, onChange, onBlur, inputRef, choices, lo
   const restoringFocus = useRef(false)
   const searchRef = useRef<HTMLInputElement>(null)
   const committed = useRef(value)
+  const typed = useRef<string | null>(null)
   if (query === null) committed.current = value
+  // A value changed from outside (swap, reset) while text was being typed: show the new value, not the stale text.
+  else if (value !== typed.current) setQuery(null)
   const selected = choices.find(choice => choice.code === value)
   const needle = (query ?? '').trim().toLocaleLowerCase()
   const all = choices.filter(choice => !needle || `${choice.code} ${choice.label} ${choice.detail ?? ''} ${choice.search ?? ''}`.toLocaleLowerCase().includes(needle))
@@ -38,8 +41,9 @@ export function Combobox({ label, value, onChange, onBlur, inputRef, choices, lo
   const settle = () => {
     if (query === null) return
     const text = foldSearchText(query.trim())
+    if (!text) { onChange(''); setQuery(null); return } // clearing the field is deliberate
     const exact = choices.find(choice => choice.code.toLocaleLowerCase() === text)
-    const found = exact ?? (text ? (all.length === 1 ? all[0] : undefined) : undefined)
+    const found = exact ?? (all.length === 1 ? all[0] : undefined)
     if (found) { onChange(found.code); onSelect?.(found.code); setQuery(null) } else revert()
   }
   const keydown = (event: KeyboardEvent<HTMLInputElement>) => {
@@ -52,7 +56,7 @@ export function Combobox({ label, value, onChange, onBlur, inputRef, choices, lo
     }
     if (event.key === 'Enter' && open && matches[active]) { event.preventDefault(); choose(matches[active]) }
   }
-  const input = (search: boolean) => <input id={search ? `${id}-search` : id} ref={search ? searchRef : node => { originRef.current = node; if (typeof inputRef === 'function') inputRef(node); else if (inputRef) inputRef.current = node }} role="combobox" aria-label={search ? label : undefined} aria-expanded={open} aria-controls={open ? `${id}-list` : undefined} aria-activedescendant={open && matches[active] ? `${id}-option-${active}` : undefined} aria-autocomplete="list" aria-invalid={!!error} aria-describedby={error ? `${id}-error` : undefined} autoComplete="off" disabled={disabled} value={query ?? (search ? '' : value)} onChange={event => { setQuery(event.target.value); onChange(event.target.value.toUpperCase()); setActive(0); setOpen(true) }} onClick={() => { if (!disabled && !open) { setOpen(true); setActive(0); setQuery(null) } }} onFocus={() => { if (!disabled && !restoringFocus.current) { setOpen(true); setActive(0); if (!search) setQuery(null) } }} onBlur={() => { if (!mobile) { setOpen(false); settle() } onBlur?.() }} onKeyDown={keydown} />
+  const input = (search: boolean) => <input id={search ? `${id}-search` : id} ref={search ? searchRef : node => { originRef.current = node; if (typeof inputRef === 'function') inputRef(node); else if (inputRef) inputRef.current = node }} role="combobox" aria-label={search ? label : undefined} aria-expanded={open} aria-controls={open ? `${id}-list` : undefined} aria-activedescendant={open && matches[active] ? `${id}-option-${active}` : undefined} aria-autocomplete="list" aria-invalid={!!error} aria-describedby={error ? `${id}-error` : undefined} autoComplete="off" disabled={disabled} value={query ?? (search ? '' : value)} onChange={event => { setQuery(event.target.value); typed.current = event.target.value.toUpperCase(); onChange(typed.current); setActive(0); setOpen(true) }} onClick={() => { if (!disabled && !open) { setOpen(true); setActive(0); setQuery(null) } }} onFocus={() => { if (!disabled && !restoringFocus.current) { setOpen(true); setActive(0); if (!search) setQuery(null) } }} onBlur={() => { if (!mobile) { setOpen(false); settle() } onBlur?.() }} onKeyDown={keydown} />
   const list = <><p role="status">{formatCount(locale, all.length, counts)}</p><ul id={`${id}-list`} role="listbox" aria-label={label}>{matches.map((choice, index) => <li ref={index === active ? node => node?.scrollIntoView?.({ block: 'nearest' }) : undefined} key={choice.code} id={`${id}-option-${index}`} role="option" aria-selected={active === index} onMouseDown={event => event.preventDefault()} onClick={() => choose(choice)}><span className="flight-choice-code">{highlight(choice.code, needle)}</span> {highlight(choice.label, needle)}{choice.detail && <small>{highlight(choice.detail, needle)}</small>}{choice.fallback && <small>{locale === 'ru' ? 'Название на английском' : 'English reference name'}</small>}</li>)}</ul></>
   return <div className="flight-combobox"><label htmlFor={id}>{label}</label>{input(false)}{!open && selected && <small>{selected.label}{selected.fallback && (locale === 'ru' ? ' · название на английском' : ' · English reference name')}</small>}{error && <p role="alert" id={`${id}-error`}>{error}</p>}
     {open && !mobile && <div className="flight-search-popover">{list}</div>}
