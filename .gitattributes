@@ -13,6 +13,9 @@
 *.ttf binary
 *.eot binary
 *.pdf binary
+# Huge one-line GeoJSON: keep it out of diffs and git grep output
+*.geojson -diff
+apps/next/public/maps/maplibre-*/** -diff
 
 # Ensure shell scripts use LF
 *.sh text eol=lf

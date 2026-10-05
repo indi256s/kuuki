@@ -58,6 +58,7 @@ function Sections({ locale, theme, t }: { locale: Locale; theme: Theme; t: (en: 
   const origin = { iata: 'JFK', city: 'New York' }, destination = { iata: 'BOS', city: 'Boston' }
   const ru = locale === 'ru'
   const ticket = { locale, origin, destination, date: '2026-10-12', flightNumber: 'B6 618', airline: 'JetBlue', distanceKm: 300 } as const
+  // eslint-disable-next-line no-restricted-syntax -- sample stamp ink is data (a country flag colour), not a UI colour
   const stamp = { theme, locale, color: '#bc002d' } as const
 
   return (
@@ -133,11 +134,13 @@ function Sections({ locale, theme, t }: { locale: Locale; theme: Theme; t: (en: 
       <section><h2>Stamp</h2>
         <div className="gallery-stamps">
           <Stamp {...stamp} countryCode="JP" nativeName="日本" name={t('Japan', 'Япония')} kind="air" visits={1} firstYear={2019} caption={t('×1 · 2 mo ago', '×1 · 2 мес. назад')} pressEventId="gallery-jp" />
+          {/* eslint-disable no-restricted-syntax -- sample stamp ink is data (country flag colours), not UI colours */}
           <Stamp {...stamp} color="#006aa7" countryCode="SE" nativeName="Sverige" name={t('Sweden', 'Швеция')} kind="air" visits={3} firstYear={2021} caption={t('×3 · 1 y ago', '×3 · 1 г. назад')} />
           <Stamp {...stamp} color="#009246" countryCode="IT" nativeName="Italia" name={t('Italy', 'Италия')} kind="air" visits={12} firstYear={2015} caption={t('×12 · 3 w ago', '×12 · 3 нед. назад')} />
           <Stamp {...stamp} color="#ffffff" countryCode="CH" nativeName="Schweiz" name={t('Switzerland', 'Швейцария')} kind="land" visits={2} firstYear={2022} caption={t('×2 · 8 mo ago', '×2 · 8 мес. назад')} />
           <Stamp {...stamp} color="#ce1126" countryCode="GR" nativeName="Ελλάδα" name={t('Greece', 'Греция')} kind="sea" visits={1} firstYear={2023} caption={t('×1 · 1 y ago', '×1 · 1 г. назад')} />
           <Stamp {...stamp} color="#0000cd" countryCode="NO" nativeName="Norge" name={t('Norway', 'Норвегия')} kind="claim" firstYear={2018} caption={t('Added by hand', 'Добавлена вручную')} />
+          {/* eslint-enable no-restricted-syntax */}
           <Stamp {...stamp} countryCode="US" nativeName="United States" name={t('United States', 'Соединённые Штаты')} kind="air" status="pending" caption={t('Waiting for you', 'Ждёт вашей отметки')} />
         </div>
       </section>
