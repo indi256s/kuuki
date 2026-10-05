@@ -32,10 +32,14 @@ export interface ReviewStepProps {
   onDirty: (id: string, dirty: boolean) => void
   manualRows: ManualRowState[]
   onManualRows: (rows: ManualRowState[]) => void
-  /** A new empty manual row scoped to this batch (so its receipt can be found after a reload). */
+  /** A new empty manual row labelled with the batch on screen, or `solo` without one. */
   makeManualRow?: () => ManualRowState
   onManualRetryOriginal: (key: string) => void
   onManualNewOperation: (key: string) => void
+  /** Whether the unresolved save holding a row back is on the page (listed, or owned by a manual row). */
+  canShowSave?: (operationId: string) => boolean
+  /** Move to that unresolved save. */
+  onShowSave?: (operationId: string) => void
   confirming: boolean
   notice?: string | null
   onChange: (draft: Draft, change: DraftChange) => void
@@ -47,7 +51,7 @@ export interface ReviewStepProps {
 }
 
 export function ReviewStep(props: ReviewStepProps) {
-  const { locale, mobile, drafts, saveStates, partial, cancelled = false, failure, expiresAt = null, dirty, onDirty, manualRows, onManualRows, makeManualRow, onManualRetryOriginal, onManualNewOperation, confirming, notice, onChange, onSelectAll, onRetry, onDiscardEdit, onConfirm, onDiscardImport } = props
+  const { locale, mobile, drafts, saveStates, partial, cancelled = false, failure, expiresAt = null, dirty, onDirty, manualRows, onManualRows, makeManualRow, onManualRetryOriginal, onManualNewOperation, canShowSave, onShowSave, confirming, notice, onChange, onSelectAll, onRetry, onDiscardEdit, onConfirm, onDiscardImport } = props
   const shown = useMemo(() => drafts.map(draft => withUnsent(draft, saveStates[draft.id]?.unsent)), [drafts, saveStates])
   const groups = useMemo(() => partition(shown), [shown])
   const [discard, setDiscard] = useState(false)
@@ -96,6 +100,7 @@ export function ReviewStep(props: ReviewStepProps) {
     {manualRows.length > 0 ? <ul className="import-rows">{manualRows.map(manual =>
       <ManualRow key={manual.key} locale={locale} row={manual} showErrors={hasValues(manual.values)} disabled={confirming} retryBlocked={unsaved ? S.unsavedBlock[locale] : undefined}
         onRetryOriginal={() => onManualRetryOriginal(manual.key)} onNewOperation={() => onManualNewOperation(manual.key)}
+        onShowHeld={manual.failure?.heldBy && onShowSave && canShowSave?.(manual.failure.heldBy) ? () => onShowSave(manual.failure!.heldBy!) : undefined}
         // A refusal wrote nothing, so editing clears it; an unconfirmed save keeps its notice until the member resolves it.
         onChange={values => onManualRows(manualRows.map(item => item.key === manual.key ? { ...item, values, failure: item.failure?.kind === 'refused' || item.failure?.kind === 'duplicate' ? undefined : item.failure } : item))}
         onRemove={() => onManualRows(manualRows.filter(item => item.key !== manual.key))} />)}</ul> : null}

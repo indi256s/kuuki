@@ -16,12 +16,13 @@ import { FailurePanel } from './failure-panel'
 import { fetchPressedCountries, cancelBatch, confirmItems, discardBatch, listUnfinished, patchDraft, type ImportSource } from './import-api'
 import type { FailureAction } from './import-errors'
 import type { Draft, UnfinishedImport } from './import-types'
-import { newManualRow, restoreManualRows, saveManualRows, startNewOperation, type ManualRowState } from './manual-save'
+import { newManualRow, retryUnconfirmedSave, saveManualRows, settleUnconfirmedSave, startNewOperation, unconfirmedSaves, type ManualFailure, type ManualRowState, type UnconfirmedSave } from './manual-save'
 import { ProgressStep } from './progress-step'
 import { emptyValues, hasValues, isChosen, partition, validateValues, withSaved } from './review-model'
 import { ReviewStep } from './review-step'
 import { newlyPressed, routeCountries, routeKm } from './flight-input'
 import { SourceStep } from './source-step'
+import { showSave, UnconfirmedSaves } from './unconfirmed-saves'
 import { useImportBatch, type BatchApi } from './use-import-batch'
 
 type Step = 'source' | 'processing' | 'review' | 'done'
@@ -89,18 +90,23 @@ export function ImportClient({ ownerId, locale, initialBatchId = null, initialSo
   const [sourceMode, setSourceMode] = useState<'file' | 'text' | null>(initialSource)
   const [sourceKey, setSourceKey] = useState(0)
   const [aircraftSaved, setAircraftSaved] = useState<Set<number>>(new Set())
-  // Manual saves are scoped to the batch they were made in, so an unresolved one can be found again after a reload.
-  const manualScope = batch.batch?.id ?? initialBatchId ?? 'solo'
-  const makeManualRow = () => newManualRow(emptyValues(), manualScope)
-  // A save whose answer was lost keeps its receipt in this browser; bring it back as a recovery row instead of
-  // letting the member add the same flight again under a fresh key.
-  useEffect(() => {
-    const restored = restoreManualRows(ownerId, initialBatchId ?? 'solo')
-    if (restored.length === 0) return
-    setManualRows(previous => previous.length > 0 ? previous : restored)
-    if (!initialBatchId) setManualOnly(true)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  // A manual row is labelled with the batch on screen, or `solo` once the member has left it.
+  const makeManualRow = () => newManualRow(emptyValues(), !manualOnly && batch.batch ? batch.batch.id : 'solo')
+  // Every unresolved create of this member in this browser, whatever batch, screen or version wrote it. It is listed on
+  // every step until it is settled; a row of this page that owns one shows its own recovery instead.
+  const [receipts, setReceipts] = useState<UnconfirmedSave[]>([])
+  const [recoveryFailures, setRecoveryFailures] = useState<Record<string, ManualFailure>>({})
+  const [recoveryRetrying, setRecoveryRetrying] = useState<string | null>(null)
+  const [recoveryNotice, setRecoveryNotice] = useState<string | null>(null)
+  const refreshReceipts = useCallback(() => {
+    const found = unconfirmedSaves(ownerId)
+    setReceipts(found)
+    // A row held back by a save that is now settled may be sent.
+    const open = new Set(found.map(save => save.operationId))
+    const stale = (row: ManualRowState) => row.failure?.kind === 'duplicate' && row.failure.heldBy !== undefined && !open.has(row.failure.heldBy)
+    setManualRows(previous => previous.some(stale) ? previous.map(row => stale(row) ? { ...row, failure: undefined } : row) : previous)
+  }, [ownerId])
+  useEffect(() => { refreshReceipts() }, [refreshReceipts])
   const lastSource = useRef<{ source: ImportSource; operationId: string } | null>(null)
   const settledOperations = useRef(new Set<string>())
   const baseline = useRef<Set<string> | null | undefined>(undefined)
@@ -167,7 +173,7 @@ export function ImportClient({ ownerId, locale, initialBatchId = null, initialSo
       const type = batch.batch?.sourceType
       reset(); setSourceMode(type === 'text' ? 'text' : 'file'); setNotice(S.sourceAgain[locale])
     } else if (action === 'manual') {
-      batch.reset(); writeUrl(null); resetEdits(); setManualOnly(true); setManualRows([...restoreManualRows(ownerId, 'solo'), makeManualRow()])
+      batch.reset(); writeUrl(null); resetEdits(); setManualOnly(true); setManualRows([newManualRow(emptyValues(), 'solo')])
     } else if (action === 'otherFile' || action === 'pasteText') {
       reset(); setSourceMode(action === 'otherFile' ? 'file' : 'text')
     } else if (action === 'newImport') reset()
@@ -209,7 +215,7 @@ export function ImportClient({ ownerId, locale, initialBatchId = null, initialSo
   const save = async (draftIds: string[], manualKeys: string[], originalKeys: ReadonlySet<string> = new Set()) => {
     // Every path that can leave the review (Import, Retry original save, Done retry) is held back while a correction
     // is typed or unsent: leaving would unmount the form and lose it. The review shows the reason beside the control.
-    if (confirming || unsent) return
+    if (confirming || recoveryRetrying !== null || unsent) return
     setConfirming(true); setCheckFailed(false)
     if (baseline.current === undefined) baseline.current = await fetchPressedCountries()
     const byId = new Map(drafts.map(draft => [draft.id, draft]))
@@ -239,6 +245,7 @@ export function ImportClient({ ownerId, locale, initialBatchId = null, initialSo
     if (batch.batch) { try { await batch.reload() } catch { setCheckFailed(true) } }
     setChecking(false)
     setConfirming(false)
+    refreshReceipts()
     // A correction that appeared while saving would be lost with the form: stay on review until it is saved or discarded.
     if (unsentNow.current) { setHoldDone(true); setNotice(S.heldDone[locale]) } else setShowDone(true)
   }
@@ -265,7 +272,39 @@ export function ImportClient({ ownerId, locale, initialBatchId = null, initialSo
   const retryable = failures.filter(item => item.retryable)
 
   const onManualRetryOriginal = (key: string) => { void save([], [key], new Set([key])) }
-  const onManualNewOperation = (key: string) => setManualRows(previous => previous.map(row => row.key === key ? startNewOperation(ownerId, row) : row))
+  const onManualNewOperation = (key: string) => {
+    const row = manualRows.find(item => item.key === key)
+    if (!row) return
+    const next = startNewOperation(ownerId, row)
+    setManualRows(previous => previous.map(item => item.key === key ? next : item))
+    refreshReceipts()
+  }
+
+  const shownSaves = receipts.filter(save => !manualRows.some(row => row.operationId === save.operationId))
+  const saveLabel = (operationId: string) => { const values = receipts.find(save => save.operationId === operationId)?.values; return values ? rowLabel(locale, values) : S.unreadableSave[locale] }
+  const forgetRecoveryFailure = (operationId: string) => setRecoveryFailures(previous => { const next = { ...previous }; delete next[operationId]; return next })
+  const onRecoveryRetry = async (operationId: string) => {
+    if (confirming || recoveryRetrying !== null) return
+    const label = saveLabel(operationId)
+    setRecoveryRetrying(operationId); setRecoveryNotice(null)
+    try {
+      const result = await retryUnconfirmedSave(ownerId, operationId)
+      if (result.failure) setRecoveryFailures(previous => ({ ...previous, [operationId]: result.failure! }))
+      else forgetRecoveryFailure(operationId)
+      if (result.saved) { acknowledgeWrites(result.acks); setRecoveryNotice(S.recoverySaved[locale].replace('{flight}', label)) }
+    } finally {
+      setRecoveryRetrying(null)
+      refreshReceipts()
+    }
+  }
+  const onRecoverySettle = (operationId: string) => {
+    if (confirming || recoveryRetrying !== null) return
+    const label = saveLabel(operationId)
+    settleUnconfirmedSave(ownerId, operationId)
+    forgetRecoveryFailure(operationId)
+    setRecoveryNotice(S.recoverySettled[locale].replace('{flight}', label))
+    refreshReceipts()
+  }
 
   const onRetry = () => {
     const draftIds = retryable.filter(item => rows.has(item.key)).map(item => item.key)
@@ -300,6 +339,8 @@ export function ImportClient({ ownerId, locale, initialBatchId = null, initialSo
   return <div className={clsx('import-page', mobile && 'is-mobile')}>
     <div className="page-heading"><p className="eyebrow">{S.eyebrow[locale]}</p><h1>{S.title[locale]}</h1><p className="lead">{S.lead[locale]}</p></div>
     <Stepper locale={locale} step={step} />
+    <UnconfirmedSaves locale={locale} saves={shownSaves} failures={recoveryFailures} retrying={recoveryRetrying} paused={confirming} notice={recoveryNotice}
+      onRetry={operationId => void onRecoveryRetry(operationId)} onSettle={onRecoverySettle} />
     {step === 'source' ? <>
       {failure ? <FailurePanel failure={failure} locale={locale} onAction={action => void onFailureAction(action)} unfinished={unfinished} /> : null}
       <SourceStep key={sourceKey} locale={locale} busy={false} initialMode={sourceMode} onSubmit={start} notice={notice} />
@@ -307,12 +348,13 @@ export function ImportClient({ ownerId, locale, initialBatchId = null, initialSo
     {step === 'processing' ? <ProgressStep locale={locale} batch={batch.batch} drafts={batch.drafts} sourceName={sourceName} onCancel={() => void onCancelRun()} cancelling={cancelling} error={cancelError} /> : null}
     {step === 'review' ? <ReviewStep locale={locale} mobile={mobile === true} drafts={drafts} saveStates={saveStates} partial={batch.partial} cancelled={batch.cancelled} failure={batch.failure}
       expiresAt={batch.batch?.expiresAt ?? null} dirty={dirty} onDirty={onDirty}
-      manualRows={manualRows} onManualRows={setManualRows} makeManualRow={makeManualRow} onManualRetryOriginal={onManualRetryOriginal} onManualNewOperation={onManualNewOperation} confirming={confirming} notice={notice}
+      manualRows={manualRows} onManualRows={setManualRows} makeManualRow={makeManualRow} onManualRetryOriginal={onManualRetryOriginal} onManualNewOperation={onManualNewOperation}
+      canShowSave={operationId => receipts.some(save => save.operationId === operationId)} onShowSave={showSave} confirming={confirming || recoveryRetrying !== null} notice={notice}
       onChange={onChange} onSelectAll={(drafts, selected) => void onSelectAll(drafts, selected)} onRetry={id => void saver.retry(id)} onDiscardEdit={id => saver.discard(id)}
       onConfirm={onConfirm} onDiscardImport={onDiscardImport} /> : null}
     {step === 'done' ? <DoneStep locale={locale} savedCount={savedCount} requested={requestedKeys.size} totalKm={totalKm}
       newCountries={newCodes === null ? null : newCodes.length} stamps={stamps} publication={feedback.status}
-      failures={failures} retryCount={retryable.length} retryBlocked={unsent ? S.unsavedDone[locale] : undefined} retrying={confirming} checking={checking} checkFailed={checkFailed}
+      failures={failures} retryCount={retryable.length} retryBlocked={unsent ? S.unsavedDone[locale] : undefined} retrying={confirming || recoveryRetrying !== null} checking={checking} checkFailed={checkFailed}
       remaining={groups.active.length + groups.duplicates.length + manualRows.length} aircraftTargets={aircraftTargets} aircraftApi={aircraftApi} theme={themeNow()}
       onRetry={onRetry} onReview={() => setShowDone(false)} onImportMore={reset} onAircraftSaved={onAircraftSaved} /> : null}
   </div>

@@ -101,15 +101,19 @@ export function pendingImportFlightOperations(userId: string): Array<{ operation
   return receipts.sort((a, b) => a.operationId.localeCompare(b.operationId))
 }
 
-/** This user's stored receipts whose operation id starts with `operationPrefix` (for example `manual:<batch>:`), oldest id first. */
-export function pendingFlightOperationsWithPrefix(userId: string, operationPrefix: string): Array<{ operationId: string; key: string; body: object; expired: boolean }> {
-  const scoped = `${userId}:${operationPrefix}`
+/**
+ * Every stored create receipt of this user, whatever wrote it and whatever its operation id looks like (a plain UUID,
+ * a run and row number, or any prefixed id), so an unresolved save can be found again after a reload. A damaged receipt
+ * is listed as expired with an empty body and no key.
+ */
+export function pendingFlightCreateOperations(userId: string): Array<{ operationId: string; key: string; body: object; expired: boolean }> {
+  const owner = `${userId}:`
   const ids = new Set<string>()
-  for (const id of fallback.keys()) if (id.startsWith(scoped)) ids.add(id.slice(userId.length + 1))
+  for (const id of fallback.keys()) if (id.startsWith(owner)) ids.add(id.slice(owner.length))
   try {
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i)
-      if (key?.startsWith(STORAGE_PREFIX + scoped)) ids.add(key.slice(STORAGE_PREFIX.length + userId.length + 1))
+      if (key?.startsWith(STORAGE_PREFIX + owner)) ids.add(key.slice(STORAGE_PREFIX.length + owner.length))
     }
   } catch { /* Storage may be unavailable. */ }
   const receipts: Array<{ operationId: string; key: string; body: object; expired: boolean }> = []
