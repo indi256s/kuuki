@@ -14,6 +14,7 @@ it('shares distinct C4 counts with navigation/capture, retains cached counts on 
   render(<AwaitingProvider ownerId="owner"><QueueSummarySlot /><AddActions variant="sheet" /></AwaitingProvider>)
   expect(await screen.findByRole('link', { name: '5 awaiting action: 2 flights awaiting confirmation, 3 draft rows to review' })).toHaveTextContent('5')
   expect(screen.getByText('Awaiting action: 5')).toBeInTheDocument()
+  expect(screen.getByText('Awaiting action: 5').closest('a')).toHaveClass('add-action')
   act(() => window.dispatchEvent(new Event('kuuki:lifecycle-changed')))
   await waitFor(() => expect(api.get).toHaveBeenCalledTimes(2))
   expect(screen.getByRole('link', { name: '5 awaiting action: 2 flights awaiting confirmation, 3 draft rows to review' })).toHaveTextContent('5')
