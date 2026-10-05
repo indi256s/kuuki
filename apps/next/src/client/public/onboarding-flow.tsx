@@ -31,6 +31,8 @@ export function OnboardingFlow({ ownerId, locale, step, batchId, source }: { own
   const [receipt, setReceipt] = useState<{ ownerId: string; generation: number; result: ImportResult } | null>(null)
   const imported = receipt?.ownerId === ownerId && receipt.generation === generation ? receipt.result : null
   const [reads, setReads] = useState<CanonicalReads | null>(null)
+  const readStore = useRef<CanonicalReads | null>(null)
+  const consumedRetry = useRef<object | null>(null)
   const [retry, setRetry] = useState<{ key: string; ids: number[] } | null>(null)
   const [codes, setCodes] = useState<string[] | null>(null)
   const [baselineLoaded, setBaselineLoaded] = useState(false)
@@ -52,15 +54,22 @@ export function OnboardingFlow({ ownerId, locale, step, batchId, source }: { own
   // Bulk manual imports already return canonical DTOs; read only missing IDs.
   const suppliedIds = new Set((imported?.flights ?? []).map(flight => flight.id))
   const importedIds = [...new Set(imported?.flightIds ?? [])].filter(id => !suppliedIds.has(id)).join(',')
-  const readKey = `${ownerId}:${generation}:${imported?.eventId ?? ''}:${importedIds}`
+  const readKey = `${ownerId}:${generation}:${imported?.eventId ?? ''}`
   const currentReads = reads?.key === readKey ? reads : null
   useEffect(() => {
     if (!importedIds) return
     const controller = new AbortController(); const release = trackPrivateOperation(controller)
-    const ids = retry?.key === readKey ? retry.ids : importedIds.split(',').map(Number)
+    const previous = readStore.current?.key === readKey ? readStore.current : null
+    const explicitRetry = retry?.key === readKey && retry !== consumedRetry.current ? retry.ids : []
+    if (explicitRetry.length) consumedRetry.current = retry
+    const ids = importedIds.split(',').map(Number).filter(id => !previous?.rows.some(flight => flight.id === id) && (!previous?.failed.includes(id) || explicitRetry.includes(id)))
     const active = () => !controller.signal.aborted && generation === getAuthGeneration()
     const update = (change: (previous: CanonicalReads) => CanonicalReads) => {
-      if (active()) setReads(previous => change(previous?.key === readKey ? previous : { key: readKey, rows: [], pending: [], failed: [] }))
+      if (!active()) return
+      const previous = readStore.current
+      const next = change(previous?.key === readKey ? previous : { key: readKey, rows: [], pending: [], failed: [] })
+      readStore.current = next
+      setReads(next)
     }
     void (async () => {
       await Promise.resolve()
@@ -88,8 +97,8 @@ export function OnboardingFlow({ ownerId, locale, step, batchId, source }: { own
     void fetchPressedCountries(controller.signal).then(after => { if (!controller.signal.aborted && generation === getAuthGeneration() && after) setCodes(newlyPressed(baseline.current!, after, routeCountries(flight.origin, flight.destination))) }).finally(release)
     return () => { controller.abort(); release() }
   }, [manual])
-  const flights = manual ? [manual.flight] : [...new Map([...(imported?.flights ?? []), ...(currentReads?.rows ?? [])].map(flight => [flight.id, flight])).values()]
-  const detailsLoading = !!importedIds && (!currentReads || currentReads.pending.length > 0)
+  const flights = manual ? [manual.flight] : [...new Map([...(imported?.flights ?? []), ...(currentReads?.rows.filter(flight => imported?.flightIds.includes(flight.id)) ?? [])].map(flight => [flight.id, flight])).values()]
+  const detailsLoading = !!importedIds && (!currentReads || currentReads.pending.length > 0 || importedIds.split(',').map(Number).some(id => !currentReads.rows.some(flight => flight.id === id) && !currentReads.failed.includes(id)))
   const detailsIncomplete = !!imported && flights.length < imported.savedCount
   const publication = manual?.publication ?? imported?.publication
   const futureOnly = flights.length > 0 && flights.length === (manual ? 1 : imported?.savedCount) && flights.every(flight => flight.is_upcoming)
