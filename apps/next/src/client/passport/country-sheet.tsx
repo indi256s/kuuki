@@ -196,7 +196,7 @@ export function CountrySheet({ ownerId, locale, code, entry, mobile, awaiting, n
     <DestructiveConfirm open={!!deleting} onOpenChange={open => { if (!open) setDeleting(null) }}
       title={deleting?.visitYear ? (ru ? `Удалить визит ${deleting.visitYear} года?` : `Delete the ${deleting.visitYear} visit?`) : (ru ? 'Удалить визит без даты?' : 'Delete the undated visit?')}
       consequence={deleting && data ? groundCopy(locale, data, name(data.countryCode)) : ''}
-      confirmLabel={ru ? 'Удалить визит' : 'Delete visit'} cancelLabel={ru ? 'Отмена' : 'Cancel'} pendingLabel={ru ? 'Удаляем…' : 'Deleting…'}
+      confirmLabel={ru ? 'Удалить визит' : 'Delete visit'} cancelLabel={ru ? 'Отмена' : 'Cancel'} closeLabel={ru ? 'Закрыть' : 'Close'} pendingLabel={ru ? 'Удаляем…' : 'Deleting…'}
       errorMessage={ru ? 'Не удалось удалить визит. Повторите.' : 'Could not delete the visit. Try again.'}
       onCloseAutoFocus={event => { if (menuTrigger.current?.isConnected) { event.preventDefault(); menuTrigger.current.focus() } }}
       onConfirm={async () => { const target = deleting!; await write(() => deleteGroundVisit(ownerId, target.id), ru ? 'Визит удалён.' : 'Visit deleted.'); setDeleting(null) }} />
@@ -204,7 +204,7 @@ export function CountrySheet({ ownerId, locale, code, entry, mobile, awaiting, n
     <DestructiveConfirm open={removing} onOpenChange={setRemoving}
       title={ru ? `Удалить из паспорта: ${title}?` : `Remove ${title} from your passport?`}
       consequence={outcome ? removalCopy(locale, outcome) : ''}
-      confirmLabel={ru ? 'Удалить страну' : 'Remove country'} cancelLabel={ru ? 'Отмена' : 'Cancel'} pendingLabel={ru ? 'Удаляем…' : 'Removing…'}
+      confirmLabel={ru ? 'Удалить страну' : 'Remove country'} cancelLabel={ru ? 'Отмена' : 'Cancel'} closeLabel={ru ? 'Закрыть' : 'Close'} pendingLabel={ru ? 'Удаляем…' : 'Removing…'}
       errorMessage={ru ? 'Не удалось удалить страну. Повторите.' : 'Could not remove the country. Try again.'}
       onConfirm={async () => {
         const target = code!

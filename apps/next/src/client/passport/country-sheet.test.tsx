@@ -30,11 +30,12 @@ const detail = (patch: Partial<CountryDetail>): CountryDetail => ({
   ...patch,
 } as CountryDetail)
 
-function mount(value: CountryDetail, props: { onRemoved?: (code: string) => void; onChanged?: () => void } = {}) {
+function mount(value: CountryDetail, props: { onRemoved?: (code: string) => void; onChanged?: () => void; locale?: 'en' | 'ru' } = {}) {
   mocks.get.mockResolvedValue(value)
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
+  const locale = props.locale ?? 'en'
   return render(<QueryClientProvider client={client}>
-    <CountrySheet ownerId="owner" locale="en" code={value.countryCode} entry={undefined} mobile={false} awaiting={[]} name={countryNamer('en')}
+    <CountrySheet ownerId="owner" locale={locale} code={value.countryCode} entry={undefined} mobile={false} awaiting={[]} name={countryNamer(locale)}
       onClose={() => {}} onChanged={props.onChanged ?? (() => {})} onRemoved={props.onRemoved ?? (() => {})} />
   </QueryClientProvider>)
 }
@@ -108,6 +109,24 @@ describe('CountrySheet', () => {
     mount(detail({ suppressed: [{ flightId: 9, endpoint: 'destination', airport: 'ATH' }] }))
     const list = await screen.findByRole('list', { name: 'Connections not counted as a visit' })
     expect(within(list).getByRole('link', { name: 'ATH' })).toHaveAttribute('href', '/journal?flight=9')
+  })
+})
+
+describe('CountrySheet in Russian', () => {
+  it('names the close button of both destructive confirmations in Russian', async () => {
+    const user = userEvent.setup()
+    mount(detail({}), { locale: 'ru' })
+    const dialog = await screen.findByRole('dialog', { name: 'Греция' })
+    await user.click(await within(dialog).findByRole('button', { name: 'Действия: визит 2018 · по морю' }))
+    await user.click(await screen.findByRole('menuitem', { name: 'Удалить визит' }))
+    const deleteVisit = await screen.findByRole('dialog', { name: 'Удалить визит 2018 года?' })
+    expect(within(deleteVisit).getByRole('button', { name: 'Закрыть' })).toBeInTheDocument()
+    expect(within(deleteVisit).queryByRole('button', { name: 'Close' })).toBeNull()
+    await user.click(within(deleteVisit).getByRole('button', { name: 'Отмена' }))
+    await user.click(within(dialog).getByRole('button', { name: 'Удалить страну' }))
+    const remove = await screen.findByRole('dialog', { name: 'Удалить из паспорта: Греция?' })
+    expect(within(remove).getByRole('button', { name: 'Закрыть' })).toBeInTheDocument()
+    expect(within(remove).queryByRole('button', { name: 'Close' })).toBeNull()
   })
 })
 
