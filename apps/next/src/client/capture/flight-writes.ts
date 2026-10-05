@@ -17,7 +17,7 @@ export function browserTimezone(): string | null {
 const omit = <T extends object>(value: T, ...keys: string[]): Record<string, unknown> =>
   Object.fromEntries(Object.entries(value).filter(([key]) => !keys.includes(key)))
 
-const withZone = <T extends object>(body: T, zone: boolean = true): T & { timezone?: string } => {
+export const withZone = <T extends object>(body: T, zone: boolean = true): T & { timezone?: string } => {
   const timezone = zone ? browserTimezone() : null
   return timezone ? { ...body, timezone } : body
 }
@@ -27,7 +27,7 @@ const withZone = <T extends object>(body: T, zone: boolean = true): T & { timezo
  * write or idempotency record), send the same operation once more without it so the server falls back to UTC.
  * The stored retry payload never contains the zone, so a failing zone is not persisted or retried again.
  */
-async function sendWithZone<T>(send: (zone: boolean) => Promise<T>): Promise<T> {
+export async function sendWithZone<T>(send: (zone: boolean) => Promise<T>): Promise<T> {
   try {
     return await send(true)
   } catch (error) {

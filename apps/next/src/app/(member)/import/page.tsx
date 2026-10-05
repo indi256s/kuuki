@@ -13,6 +13,5 @@ export default async function Import({ searchParams }: { searchParams: Promise<R
   const identity = { id: own.ownerId }
   const normalized = normalizeImportQuery(params)
   if (!normalized.canonical) redirect(withQuery('/import', normalized.query))
-  const draft = typeof params.draft === 'string' ? params.draft : undefined
-  return <IdentitySnapshot ownerId={identity.id}><ImportClient ownerId={identity.id} locale={locale} initialDraftId={draft} /></IdentitySnapshot>
+  return <IdentitySnapshot ownerId={identity.id}><ImportClient ownerId={identity.id} locale={locale} initialBatchId={normalized.state.batch} initialSource={normalized.state.source} /></IdentitySnapshot>
 }
