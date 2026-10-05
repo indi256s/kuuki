@@ -22,16 +22,21 @@ export interface OverviewDelta {
 export interface OverviewMapCountry {
   id: string
   visits: number
-  /** Only awaiting evidence supports it; it is counted as waiting, never as a pressed stamp. */
+  /**
+   * The account-wide published C3 status (ADR 0001 section 4), not a statement about the period's own flights: only
+   * awaiting evidence supports the country anywhere in the account, so it is counted as waiting, never as a pressed
+   * stamp. A country whose only flight this year is awaiting is still pressed if a logged flight, a claim, ground
+   * evidence or an archived visit supports it in another period. Membership and `visits` are period-specific.
+   */
   pending: boolean
 }
 
 export interface OverviewRegion {
   id: string
   total: number
-  /** Distinct period countries with logged evidence. */
+  /** Distinct period countries whose account-wide C3 status is pressed (membership of the period set is period-specific). */
   pressed: number
-  /** Distinct period countries with only awaiting evidence. */
+  /** Distinct period countries whose account-wide C3 status is pending (only awaiting evidence supports them anywhere). */
   pending: number
 }
 
@@ -62,7 +67,7 @@ export interface OverviewSummary {
     aircraft: number
     /** Distinct catalog collection regions among `countries`; null while updating. */
     continents: number | null
-    /** Of `countries`, how many are supported only by awaiting flights (waiting for a stamp); null while updating. */
+    /** Of `countries` (the period's set), how many have the account-wide C3 status pending, i.e. only awaiting evidence anywhere (waiting for a stamp); null while updating. */
     pendingCountries: number | null
     upcomingFlights: number
   }

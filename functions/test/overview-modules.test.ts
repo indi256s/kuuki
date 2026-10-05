@@ -326,3 +326,20 @@ describe('a legacy-only account keeps its real geography', () => {
     } finally { await dispose() }
   })
 })
+
+describe('pressed or pending is the account-wide status, membership is period-specific', () => {
+  it('a country whose only flight this year is awaiting stays pressed when another year has it logged', async () => {
+    const flights: OverviewFlight[] = [
+      logged(1, '2024-05-01', 'TBS', 'JFK'),
+      { id: 2, date: '2025-05-01', origin: 'TBS', destination: 'JFK', state: 'awaiting' },
+      { id: 3, date: '2025-06-01', origin: 'TBS', destination: 'LHR', state: 'awaiting' },
+    ]
+    const { db, dispose } = await overviewAccount(flights)
+    try {
+      const y2025 = await readOverviewSummary(db, 'period=2025')
+      expect(y2025.map.countries.find(country => country.id === 'US')).toEqual({ id: 'US', visits: 1, pending: false })
+      expect(y2025.map.countries.find(country => country.id === 'GB')).toMatchObject({ pending: true })
+      expect(y2025.totals.pendingCountries).toBe(1)
+    } finally { await dispose() }
+  })
+})

@@ -6,7 +6,7 @@ import { OverviewMap } from './map-band'
 import { OverviewNotable } from './notable'
 import { OverviewRankings } from './rankings'
 import { OverviewRhythm } from './rhythm'
-import { busySummary, emptySummary, fakeLabels, singleFlightSummary } from './fixtures'
+import { busySummary, emptySummary, fakeLabels, singleFlightSummary, stressSummary } from './fixtures'
 
 vi.mock('next/navigation', () => ({ useRouter: () => ({ push: vi.fn(), refresh: vi.fn() }) }))
 afterEach(cleanup)
@@ -100,6 +100,10 @@ describe('notable', () => {
     ])
     expect(screen.getByText('New countries in 2026')).toBeInTheDocument()
     expect(screen.getByText(/Country AU \(waiting for a stamp\)/)).toBeInTheDocument()
+    expect(screen.queryByText(/more/)).toBeNull()
+  })
+  it('stress: more new countries than the list holds says how many more', () => {
+    render(<OverviewNotable summary={stressSummary()} locale="en" labels={fakeLabels} />)
     expect(screen.getByText(/and 2 more/)).toBeInTheDocument()
   })
   it('omits every row the period has no fact for, and has a sentence when there are none', () => {
@@ -122,7 +126,7 @@ describe('rankings', () => {
     expect(hrefs(airlines)).toEqual(['/journal?year=2026&status=completed&sort=airline_iata', ...['TK', 'PC', 'BA', 'LH', 'AF'].map(code => `/journal?year=2026&status=completed&airline=${code}`)])
     expect(hrefs(screen.getByRole('region', { name: 'Airports' }))[1]).toBe('/journal?year=2026&status=completed&airport=IST')
     expect(hrefs(screen.getByRole('region', { name: 'Aircraft' }))).toContain('/journal?year=2026&status=completed&aircraft=A320')
-    expect(document.querySelector(".ov-manufacturers")).toHaveTextContent("Airbus (6), Boeing (2)")
+    expect(document.querySelector(".ov-manufacturers")).toHaveTextContent("Airbus (5), Boeing (2)")
   })
   it('all time links carry no year', () => {
     render(<OverviewRankings summary={busySummary(10, 'all')} locale="en" labels={fakeLabels} />)
@@ -156,8 +160,8 @@ describe('rhythm', () => {
   it('has a text for every month, the busiest month and six region chips with waiting shown apart', () => {
     render(<OverviewRhythm summary={busySummary(500)} locale="en" />)
     expect(document.querySelectorAll('.ov-months li')).toHaveLength(12)
-    expect(screen.getByText('September 2026: 5 flights')).toBeInTheDocument()
-    expect(screen.getByText('Busiest month: September 2026, 5 flights.')).toBeInTheDocument()
+    expect(screen.getByText('April 2026: 150 flights')).toBeInTheDocument()
+    expect(screen.getByText('Busiest month: April 2026, 150 flights.')).toBeInTheDocument()
     const chips = [...document.querySelectorAll('.ov-regions li')].map(li => li.textContent)
     expect(chips).toHaveLength(6)
     expect(chips).toContain('Asia3 of 52')
