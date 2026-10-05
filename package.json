@@ -16,6 +16,7 @@
     "build:api": "wrangler pages functions build --outdir .wrangler/functions-build --metafile .wrangler/functions-build/bundle-meta.json",
     "build:maintenance": "wrangler deploy --dry-run --config workers/maintenance/wrangler.toml --outdir .wrangler/maintenance-build",
     "preflight": "tsx scripts/migration-preflight.ts",
+    "generate:regions": "tsx scripts/generate-country-regions.ts",
     "clean": "turbo clean",
     "smoke:runtime": "tsx scripts/smoke-local-runtime.ts --check",
     "dev:fixture": "tsx scripts/smoke-local-runtime.ts",
