@@ -1,0 +1,21 @@
+# Local development/build fixture only; production wiring is owned by architecture (ADR §9).
+name = "kuuki-import-local"
+main = "./index.ts"
+compatibility_date = "2026-10-01"
+compatibility_flags = ["enable_request_signal", "request_signal_passthrough"]
+workers_dev = false
+preview_urls = false
+
+[[durable_objects.bindings]]
+name = "IMPORT_JOBS"
+class_name = "ImportJob"
+
+[[migrations]]
+tag = "import-job-v1"
+new_sqlite_classes = ["ImportJob"]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "kuuki-import-local"
+database_id = "00000000-0000-0000-0000-000000000011"
+migrations_dir = "../../db/migrations"

@@ -3,6 +3,7 @@
 //
 // Nothing about the source is persisted: the content lives in this call's memory only, `raw_text` is dropped and
 // the provider response never leaves `extractFlights`.
+import { jobStub } from './importRuntime'
 import { HttpError } from '../_lib/http'
 import { extractFlights } from '../import/_extract'
 import type { ExtractedFlight, ParseRequest } from '../import/_shared'
@@ -19,7 +20,7 @@ export interface ImportSubmission {
 
 const SCORE_KEYS = ['date', 'origin', 'destination', 'airline_iata', 'flight_number', 'aircraft_icao', 'departure_time', 'arrival_time'] as const
 
-function rowOf(flight: ExtractedFlight): DraftRowInput {
+export function rowOf(flight: ExtractedFlight): DraftRowInput {
   const yearExplicit = flight.field_confidence?.date_year_explicit === true
   const scores: Record<string, number> = {}
   for (const key of SCORE_KEYS) {
@@ -43,16 +44,33 @@ export async function submitImport(
   env: Env, source: ParseRequest, { userId, operationId, sourceLabel }: ImportSubmission, now: Date,
 ): Promise<{ created: boolean; snapshot: BatchSnapshot }> {
   const db = env.DB
+  const accept = async (fence: BatchFence) => {
+    if (!env.IMPORT_JOBS) return
+    try {
+      const response = await jobStub(env.IMPORT_JOBS, fence).fetch('https://import.internal/start', {
+        method: 'POST', body: JSON.stringify({ fence, source }),
+      })
+      if (!response.ok) throw new HttpError(503, 'Import service unavailable', 'IMPORT_SERVICE_UNAVAILABLE')
+    } catch {
+      await persistDraftRows(db, fence, [], { status: 'failed', errorCode: 'IMPORT_SERVICE_UNAVAILABLE' })
+      throw new HttpError(503, 'Import service unavailable', 'IMPORT_SERVICE_UNAVAILABLE')
+    }
+  }
   const replay = async () => {
     const existing = await batchByOperation(db, userId, operationId)
     if (!existing) return null
+    // An insert can become visible before its first dispatcher has established ownership.
+    // Repeating the handshake is safe: the DO serializes starts and calls the provider once.
+    if (env.IMPORT_JOBS && existing.status === 'processing' && existing.stage === 'accepted') {
+      await accept({ userId, batchId: existing.id, generation: existing.generation })
+    }
     const snapshot = await readBatchSnapshot(db, userId, existing.id, now)
     if (!snapshot) throw discarded()
     return { created: false, snapshot }
   }
   const replayed = await replay()
   if (replayed) return replayed
-  if (!env.GEMINI_API_KEY) throw new HttpError(500, 'Gemini API key not configured')
+  if (!env.IMPORT_JOBS && !env.GEMINI_API_KEY) throw new HttpError(500, 'Gemini API key not configured')
 
   const batchId = crypto.randomUUID()
   if (!await createProcessingBatch(db, { id: batchId, userId, sourceType: source.type, sourceLabel, operationId }, now)) {
@@ -62,8 +80,12 @@ export async function submitImport(
   }
   const fence: BatchFence = { userId, batchId, generation: 1 }
 
-  // T11 seam: with an import-job binding, dispatch to the Durable Object here and return the `processing` snapshot
-  // instead of extracting inline. The fence, the limits and the reads are already the DO's contract.
+  if (env.IMPORT_JOBS) {
+    await accept(fence)
+    const snapshot = await readBatchSnapshot(db, userId, batchId, new Date())
+    if (!snapshot) throw discarded()
+    return { created: true, snapshot }
+  }
   let rows: DraftRowInput[] = []
   let final: FinalState
   try {
