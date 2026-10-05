@@ -8,6 +8,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { JournalView } from './journal'
 import { Sheet } from '../ui/sheet'
 import { normalizeJournalQuery } from '../../lib/url-state'
+import type { JournalData } from '../../server/journal'
 import { api } from '../../../../web/src/lib/apiClient'
 
 const nav = vi.hoisted(() => ({ push: vi.fn(), replace: vi.fn(), refresh: vi.fn(), set: vi.fn<(query: string) => void>() }))
@@ -27,11 +28,12 @@ vi.mock('../capture/flight-panels', () => ({
 vi.mock('../../../../web/src/lib/apiClient', () => ({ api: { get: vi.fn(), delete: vi.fn(), post: vi.fn() } }))
 
 type Row = { id: number; date: string; lifecycle_state: string; origin?: string; destination?: string; aircraft_icao?: string | null; duration_minutes?: number | null; flight_number?: string | null; distance_km?: number | null }
-const flight = (row: Row) => ({ origin: 'TBS', destination: 'IST', aircraft_icao: 'B738', duration_minutes: null, flight_number: null, distance_km: null, departure_utc: null, arrival_utc: null, airline_iata: null, ...row })
+type Flight = JournalData['flights'][number]
+const flight = (row: Row) => ({ origin: 'TBS', destination: 'IST', aircraft_icao: 'B738', duration_minutes: null, flight_number: null, distance_km: null, departure_utc: null, arrival_utc: null, airline_iata: null, ...row }) as Flight
 const logged = [1, 2, 3].map(id => flight({ id, date: `2025-04-0${id}`, lifecycle_state: 'logged' }))
-const initialFor = (flights: unknown[], total = flights.length) => ({ flights: flights as never, total, revision: 0, publishedRevision: 0, derivedState: 'ready' as const, updatedAt: Date.now() })
+const initialFor = (flights: Flight[], total = flights.length): JournalData => ({ flights, total, revision: 0, publishedRevision: 0, derivedState: 'ready', updatedAt: Date.now() })
 
-function Harness({ start = '', flights = logged, total, locale = 'en' }: { start?: string; flights?: unknown[]; total?: number; locale?: 'en' | 'ru' }) {
+function Harness({ start = '', flights = logged, total, locale = 'en' }: { start?: string; flights?: Flight[]; total?: number; locale?: 'en' | 'ru' }) {
   const [query, setQuery] = useState(start)
   useEffect(() => { nav.set.mockImplementation(setQuery) }, [])
   const state = normalizeJournalQuery(new URLSearchParams(query))
@@ -45,25 +47,35 @@ beforeEach(() => {
   nav.replace.mockReset().mockImplementation((href: string) => act(() => nav.set(hrefQuery(href))))
   nav.refresh.mockReset()
   nav.set.mockReset()
-  vi.mocked(api.get).mockReset().mockImplementation(async path => (path === '/api/flights' ? { flights: logged, total: 3 } : { revision: 0, published_revision: 0, derived_state: 'ready' }) as never)
-  vi.mocked(api.delete).mockReset().mockResolvedValue({ derived_state: 'ready' } as never)
-  vi.mocked(api.post).mockReset().mockResolvedValue({ derived_state: 'ready' } as never)
+  // `/api/flights` returns the full Journal contract in one response; every other endpoint this view may call is stubbed explicitly.
+  vi.mocked(api.get).mockReset().mockImplementation((async (path: string) => {
+    if (path === '/api/flights') return initialFor(logged, 3)
+    if (path === '/api/flights/ids') return { ids: logged.map(row => row.id) }
+    throw new Error(`unstubbed GET ${path}`)
+  }) as typeof api.get)
+  vi.mocked(api.delete).mockReset().mockResolvedValue({ derived_state: 'ready' })
+  vi.mocked(api.post).mockReset().mockResolvedValue({ derived_state: 'ready' })
 })
 afterEach(() => { vi.useRealTimers(); vi.restoreAllMocks() })
 
-it('refetches derived readiness instead of retaining the initial ready state, even with equal revisions', async () => {
-  // `/api/flights` carries the shared Journal contract, including the current derived state.
-  vi.mocked(api.get).mockImplementation(async path => (path === '/api/flights' ? { flights: [], total: 0, revision: 4, publishedRevision: 4, derivedState: 'pending', updatedAt: Date.now() } : {}) as never)
-  render(<JournalView ownerId="journal-owner" locale="en" query="" page={1} filtered={false} initial={{ flights: [], total: 0, revision: 4, publishedRevision: 4, derivedState: 'ready', updatedAt: Date.now() }} />)
+it('refetches derived readiness with one /api/flights request, even with equal revisions', async () => {
+  // `/api/flights` carries the shared Journal contract, including the current derived state, so no separate derived-state read is made.
+  vi.mocked(api.get).mockImplementation((async (path: string) => {
+    if (path === '/api/flights') return { ...initialFor([]), revision: 4, publishedRevision: 4, derivedState: 'pending' }
+    throw new Error(`unstubbed GET ${path}`)
+  }) as typeof api.get)
+  render(<JournalView ownerId="journal-owner" locale="en" query="" page={1} filtered={false} initial={{ ...initialFor([]), revision: 4, publishedRevision: 4 }} />)
   expect(screen.queryByText('Recent changes are still being prepared.')).not.toBeInTheDocument()
+  expect(api.get).not.toHaveBeenCalled()
   act(() => window.dispatchEvent(new Event('kuuki:lifecycle-changed')))
   await screen.findByText('Recent changes are still being prepared.')
+  expect(vi.mocked(api.get).mock.calls.map(call => call[0])).toEqual(['/api/flights'])
+  expect(vi.mocked(api.get).mock.calls.some(call => String(call[0]).includes('derived-state'))).toBe(false)
 })
 
-
 it('groups upcoming flights first, then awaiting and logged history by year', () => {
-  const flights = [{ id: 1, date: '2025-01-01', lifecycle_state: 'logged' }, { id: 2, date: '2026-10-03', lifecycle_state: 'awaiting' }, { id: 3, date: '2026-12-01', lifecycle_state: 'upcoming' }].map(flight => ({ ...flight, origin: 'TBS', destination: 'IST', departure_utc: null, arrival_utc: null }))
-  render(<JournalView ownerId="group-owner" locale="en" query="" page={1} filtered={false} initial={{ flights: flights as never, total: 3, revision: 0, publishedRevision: 0, derivedState: 'ready', updatedAt: Date.now() }} />)
+  const flights = [flight({ id: 1, date: '2025-01-01', lifecycle_state: 'logged' }), flight({ id: 2, date: '2026-10-03', lifecycle_state: 'awaiting' }), flight({ id: 3, date: '2026-12-01', lifecycle_state: 'upcoming' })]
+  render(<JournalView ownerId="group-owner" locale="en" query="" page={1} filtered={false} initial={initialFor(flights)} />)
   expect(within(screen.getByTestId('journal-data')).getAllByRole('heading', { level: 3 }).map(heading => heading.textContent)).toEqual(['Upcoming', '2025 · Logged', '2026 · Awaiting'])
   expect(screen.getAllByRole('checkbox')).toHaveLength(3)
 })
