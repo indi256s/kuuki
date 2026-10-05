@@ -9,6 +9,7 @@ import { useWriteFeedback } from '../write-feedback'
 import { acceptAircraft, AIRCRAFT_BATCH, retryableAircraft, type AircraftOutcome } from '../import/aircraft-review'
 import { S } from '../import/copy'
 import { acceptAircraftBatch } from '../import/import-api'
+import { formatDateOnly, formatNumber } from '../../lib/format'
 import type { Locale } from '../../server/locale'
 import './capture.css'
 
@@ -62,7 +63,7 @@ export function PassportManage({ ownerId, locale }: { ownerId: string; locale: L
   const eligible = flights.filter(row => !row.aircraft_icao)
   const chosen = selected.filter(id => eligible.some(row => row.id === id))
   const retryIds = retryableAircraft({ rows: outcomes, acks: [], uncertain: false })
-  const label = (id: number) => { const row = seen.current.get(id); return row ? `${row.date} · ${row.origin} → ${row.destination} · ${row.flight_number ?? '—'}` : String(id) }
+  const label = (id: number) => { const row = seen.current.get(id); return row ? `${formatDateOnly(locale, row.date, 'medium')} · ${row.origin} → ${row.destination} · ${row.flight_number ?? '—'}` : String(id) }
   const tag = (outcome: AircraftOutcome, id: number) => {
     if (outcome.status === 'saved') return <><span>{S.aircraftSavedTag[locale]}</span> · <span>{sent.current.get(id) ?? outcome.icao}</span></>
     if (outcome.status === 'uncertain') return <><span>{S.aircraftUncertainTag[locale]}</span><p>{S.aircraftUncertainNote[locale]}</p></>
@@ -70,6 +71,14 @@ export function PassportManage({ ownerId, locale }: { ownerId: string; locale: L
     return null
   }
   const reported = [...outcomes].filter(([, outcome]) => outcome.status !== 'unsent')
+  const tally = (status: AircraftOutcome['status']) => reported.filter(([, outcome]) => outcome.status === status).length
+  const [savedN, failedN, uncertainN] = [tally('saved'), tally('failed'), tally('uncertain')]
+  // Finished submissions are announced with counts. Nothing saved is a problem, so it is assertive; anything saved is polite.
+  const summary = reported.length === 0 ? '' : [
+    savedN > 0 && `${S.aircraftSavedTag[locale]}: ${formatNumber(locale, savedN)}`,
+    failedN > 0 && `${S.aircraftFailedTag[locale]}: ${formatNumber(locale, failedN)}`,
+    uncertainN > 0 && `${S.aircraftUncertainTag[locale]}: ${formatNumber(locale, uncertainN)}`,
+  ].filter(Boolean).join(' · ') + (uncertainN > 0 ? `. ${S.aircraftUncertainNote[locale]}` : '')
   return <div className="capture-manage">
     <section className="capture-card"><p>{ru ? 'Выберите до 20 своих перелётов без самолёта и назначьте тип.' : 'Select up to 20 of your flights without aircraft and assign a type.'}</p>
       {flightStatus === 'unloaded' && <button className="button secondary" onClick={() => loadFlights()}>{ru ? 'Загрузить перелёты' : 'Load flights'}</button>}
@@ -79,6 +88,7 @@ export function PassportManage({ ownerId, locale }: { ownerId: string; locale: L
       {reported.length > 0 && <><ul className="capture-outcomes" aria-label={ru ? 'Результат' : 'Result'}>{reported.map(([id, outcome]) => <li key={id} data-state={outcome.status}>{label(id)} — {tag(outcome, id)}</li>)}</ul>
         {retryIds.length > 0 && <button type="button" className="button secondary" disabled={busy} onClick={() => void accept(retryIds.flatMap(id => { const icao = sent.current.get(id); return icao ? [{ id, aircraft_icao: icao }] : [] }))}>{S.aircraftRetry[locale]}</button>}</>}
     </section>
-    {message && <p role="status">{message} {feedback.status === 'ready' ? (ru ? 'Итоги обновлены.' : 'Totals updated.') : feedback.status === 'delayed' ? (ru ? 'Публикация итогов пока не подтверждена.' : 'Totals publication is not yet confirmed.') : ''}</p>}
+    <p role="status">{[savedN > 0 ? summary : '', message, message ? (feedback.status === 'ready' ? (ru ? 'Итоги обновлены.' : 'Totals updated.') : feedback.status === 'delayed' ? (ru ? 'Публикация итогов пока не подтверждена.' : 'Totals publication is not yet confirmed.') : '') : ''].filter(Boolean).join(' ')}</p>
+    <p role="alert">{savedN === 0 ? summary : ''}</p>
   </div>
 }

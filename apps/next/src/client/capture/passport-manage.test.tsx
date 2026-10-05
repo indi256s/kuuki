@@ -2,6 +2,7 @@
 import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { formatDateOnly } from '../../lib/format'
 import { PassportManage } from './passport-manage'
 
 const mocks = vi.hoisted(() => ({ list: vi.fn(), accept: vi.fn(), acknowledge: vi.fn() }))
@@ -12,7 +13,7 @@ vi.mock('../activity', () => ({ trackPrivateOperation: () => () => {} }))
 vi.mock('../write-feedback', () => ({ useWriteFeedback: () => ({ acknowledge: mocks.acknowledge, status: 'ready' }) }))
 
 const flight = (id: number, aircraft_icao: string | null = null) => ({ id, date: `2026-03-0${id}`, origin: 'JFK', destination: 'BOS', flight_number: `AA${id}`, aircraft_icao })
-const label = (id: number) => `2026-03-0${id} · JFK → BOS · AA${id}`
+const label = (id: number, locale: 'en' | 'ru' = 'en') => `${formatDateOnly(locale, `2026-03-0${id}`, 'medium')} · JFK → BOS · AA${id}`
 
 async function load(user: ReturnType<typeof userEvent.setup>, locale: 'en' | 'ru' = 'en') {
   render(<PassportManage ownerId="a" locale={locale} />)
@@ -51,6 +52,10 @@ describe('PassportManage aircraft outcomes', () => {
     expect(within(rows[1]).getByText('Not saved · UNKNOWN_AIRCRAFT')).toBeInTheDocument()
     expect(within(rows[2]).getByText('May not be saved')).toBeInTheDocument()
     expect(within(rows[2]).getByText(/trying again is safe/i)).toBeInTheDocument()
+    expect(label(1)).not.toContain('2026-03-01')
+    // Something saved: one polite announcement with every count, nothing assertive.
+    expect(screen.getByRole('status')).toHaveTextContent('Saved: 1 · Not saved: 1 · May not be saved: 1')
+    expect(screen.getByRole('alert')).toBeEmptyDOMElement()
     expect(mocks.accept).toHaveBeenCalledWith([{ id: 1, aircraft_icao: 'A320' }, { id: 2, aircraft_icao: 'A320' }, { id: 3, aircraft_icao: 'A320' }])
     expect(mocks.acknowledge).toHaveBeenCalledWith({ derived_state: 'pending', revision: 3 })
     // The saved flight left the eligible set; the failed and uncertain ones stay selected for another attempt.
@@ -70,6 +75,8 @@ describe('PassportManage aircraft outcomes', () => {
     await user.click(screen.getByRole('button', { name: 'Apply to selected' }))
     await waitFor(() => expect(screen.getAllByText('May not be saved')).toHaveLength(2))
     expect(mocks.acknowledge).not.toHaveBeenCalled()
+    expect(screen.getByRole('alert')).toHaveTextContent('May not be saved: 2. We did not get an answer')
+    expect(screen.getByRole('status')).toBeEmptyDOMElement()
     expect(mocks.list).toHaveBeenCalledTimes(2)
     const fieldset = screen.getByRole('group', { name: 'Flights' })
     expect(within(fieldset).getAllByRole('checkbox').filter(box => (box as HTMLInputElement).checked)).toHaveLength(2)
@@ -86,6 +93,23 @@ describe('PassportManage aircraft outcomes', () => {
     expect(mocks.accept).toHaveBeenLastCalledWith([{ id: 1, aircraft_icao: 'A320' }, { id: 2, aircraft_icao: 'A320' }])
     expect(screen.queryByRole('button', { name: 'Try again for the rest' })).not.toBeInTheDocument()
     expect(mocks.acknowledge).toHaveBeenCalledWith({ derived_state: 'ready', revision: 2 })
+  })
+
+  it('announces an all-failed submission assertively with its count, in either language', async () => {
+    const user = userEvent.setup()
+    mocks.accept.mockResolvedValueOnce({ results: [
+      { id: 1, status: 'error', http_status: 400, code: 'UNKNOWN_AIRCRAFT', error: 'no' },
+      { id: 2, status: 'error', http_status: 404, code: 'NOT_FOUND', error: 'gone' },
+    ] })
+    await load(user, 'ru')
+    await user.click(screen.getAllByRole('checkbox')[0])
+    await user.click(screen.getAllByRole('checkbox')[1])
+    await user.selectOptions(screen.getByLabelText('Тип самолёта'), 'A320')
+    await user.click(screen.getByRole('button', { name: 'Применить к выбранным' }))
+    await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent('Не сохранено: 2'))
+    expect(screen.getByRole('status')).toBeEmptyDOMElement()
+    expect(mocks.acknowledge).not.toHaveBeenCalled()
+    expect(within(screen.getByRole('list', { name: 'Результат' })).getAllByRole('listitem')[0]).toHaveTextContent(label(1, 'ru'))
   })
 
   it('keeps the 20-item limit', async () => {
