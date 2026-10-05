@@ -11,12 +11,12 @@ describe('QueueSummarySlot', () => {
 
   it('renders the count with a localized accessible name', () => {
     render(<QueueSummarySlot count={3} />)
-    const link = screen.getByRole('link', { name: '3 awaiting confirmation' })
+    const link = screen.getByRole('link', { name: '3 awaiting action' })
     expect(link).toHaveTextContent('3')
   })
 
   it('uses Russian plural forms', () => {
     render(<QueueSummarySlot count={2} locale="ru" />)
-    expect(screen.getByRole('link', { name: '2 ждут отметки' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: '2 в очереди' })).toBeInTheDocument()
   })
 })
