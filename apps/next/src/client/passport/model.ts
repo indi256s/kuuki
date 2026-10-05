@@ -3,7 +3,6 @@
 // transit-suppressed hubs have no published row, so they never appear at all.
 import catalog from '@kuuki/data/countries.json'
 import { COUNTRY_NEIGHBORS } from '@kuuki/data/country-neighbors'
-import { findAirport } from '@kuuki/data/airport-lookup'
 import type { CountryDetail, PassportData } from '../../server/passport'
 import type { StampKind } from '../signature/stamp'
 import { formatDateOnly, formatMonthYear, formatNumber, formatRelativeDate, type Locale } from '../../lib/format'
@@ -209,16 +208,22 @@ export function searchCountries(query: string, name: (code: string) => string): 
   }).sort((a, b) => Number(!fold(name(a)).startsWith(needle)) - Number(!fold(name(b)).startsWith(needle)) || name(a).localeCompare(name(b)))
 }
 
-type AwaitingEntry = { flight: { id: number; origin: string; destination: string }; effectiveDefault: { transit: boolean } }
+/** The awaiting queue, where every pending slot leads. */
+export const AWAITING_QUEUE_HREF = '/journal?queue=awaiting'
+
 /**
- * Where a pending slot leads: the arrival card of an awaiting flight with an endpoint in that country
- * (a destination only when it is not a default transit), else the queue itself.
+ * The awaiting flight whose arrival card a pending country leads to, read from the country's published evidence
+ * (`GET /api/passport/countries/:cc/stats`). Only contributing endpoints are listed there; transit-suppressed ones,
+ * including the matched outgoing origin of a connection, sit in `suppressed`, so the queue's own flags are never
+ * reinterpreted here. An arrival is preferred over a departure, then the latest date.
  */
-export function arrivalHref(code: string, awaiting: readonly AwaitingEntry[] | undefined): string {
-  const countryOf = (iata: string) => findAirport(iata)?.countryCode
-  const match = awaiting?.find(entry => (countryOf(entry.flight.destination) === code && !entry.effectiveDefault.transit) || countryOf(entry.flight.origin) === code)
-  return match ? `/journal?queue=awaiting#arrival-${match.flight.id}` : '/journal?queue=awaiting'
+export function arrivalFlightId(detail: Pick<CountryDetail, 'entries'>): number | null {
+  const awaiting = detail.entries.flatMap(entry => entry.kind === 'flight' && entry.state === 'awaiting' ? [entry] : [])
+  awaiting.sort((a, b) => Number(b.endpoint === 'destination') - Number(a.endpoint === 'destination') || b.date.localeCompare(a.date) || b.flightId - a.flightId)
+  return awaiting[0]?.flightId ?? null
 }
+
+export const arrivalHref = (flightId: number | null) => flightId ? `${AWAITING_QUEUE_HREF}#arrival-${flightId}` : AWAITING_QUEUE_HREF
 
 export type RemovalOutcome = {
   /** Only claims and land/sea visits are removed from the passport directly; flight stamps go through the Journal. */

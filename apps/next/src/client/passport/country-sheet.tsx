@@ -19,10 +19,9 @@ import { formatCount, formatDateOnly, formatNumber, pluralCategory, type Locale 
 import { journalHref } from '../../lib/url-state'
 import type { CountryDetail } from '../../server/passport'
 import { stampProps } from './collection'
-import { arrivalHref, chronology, formatVisitPoint, isCatalogCountry, removalOutcome, type PassportEntry } from './model'
+import { arrivalFlightId, arrivalHref, chronology, formatVisitPoint, isCatalogCountry, removalOutcome, type PassportEntry } from './model'
 import './passport.css'
 
-type Awaiting = Parameters<typeof arrivalHref>[1]
 type GroundEntry = Extract<CountryDetail['entries'][number], { kind: 'ground' }>
 
 const LAND_SEA_FORMS = {
@@ -34,8 +33,22 @@ const ENTRY_METHOD: Record<string, Record<Locale, string>> = {
   sea: { en: 'by sea', ru: 'по морю' },
 }
 
-export function CountrySheet({ ownerId, locale, code: selected, entry, mobile, awaiting, name, onClose, onChanged, onRemoved, onCloseAutoFocus }: {
-  ownerId: string; locale: Locale; code: string | null; entry: PassportEntry | undefined; mobile: boolean; awaiting: Awaiting
+/** One country's published evidence, shared by the sheet and the pending slots that resolve their arrival card from it. */
+export function countryDetailQuery(ownerId: string, code: string) {
+  return {
+    queryKey: ['passport-country', ownerId, code] as const,
+    staleTime: 30_000,
+    queryFn: async ({ signal }: { signal: AbortSignal }) => {
+      const controller = new AbortController(); const untrack = trackPrivateOperation(controller)
+      signal.addEventListener('abort', () => controller.abort(), { once: true })
+      try { return await api.get<CountryDetail>(`/api/passport/countries/${code}/stats`, undefined, { signal: controller.signal }) }
+      finally { untrack() }
+    },
+  }
+}
+
+export function CountrySheet({ ownerId, locale, code: selected, entry, mobile, name, onClose, onChanged, onRemoved, onCloseAutoFocus }: {
+  ownerId: string; locale: Locale; code: string | null; entry: PassportEntry | undefined; mobile: boolean
   name: (code: string) => string; onClose: () => void
   /** A write landed: refresh the collection; `added` is true when the country was not in the passport before. */
   onChanged: (code: string, added: boolean) => Promise<void> | void
@@ -46,17 +59,7 @@ export function CountrySheet({ ownerId, locale, code: selected, entry, mobile, a
   // Only catalog countries get a sheet: its write actions would otherwise press a code with no region or outline.
   const code = selected && isCatalogCountry(selected) ? selected : null
   const feedback = useWriteFeedback(ownerId)
-  const detail = useQuery({
-    queryKey: ['passport-country', ownerId, code],
-    enabled: !!code,
-    staleTime: 30_000,
-    queryFn: async ({ signal }) => {
-      const controller = new AbortController(); const untrack = trackPrivateOperation(controller)
-      signal.addEventListener('abort', () => controller.abort(), { once: true })
-      try { return await api.get<CountryDetail>(`/api/passport/countries/${code}/stats`, undefined, { signal: controller.signal }) }
-      finally { untrack() }
-    },
-  })
+  const detail = useQuery({ ...countryDetailQuery(ownerId, code ?? ''), enabled: !!code })
   const [busy, setBusy] = useState(false)
   const [notice, setNotice] = useState('')
   const [error, setError] = useState('')
@@ -110,7 +113,7 @@ export function CountrySheet({ ownerId, locale, code: selected, entry, mobile, a
     <div className="passport-sheet">
       {entry ? <div className="passport-sheet-stamp"><Stamp {...stampProps(entry, locale, name)} static /></div> : null}
       {status === 'pending' ? <p className="passport-note">{ru ? 'Перелёт в эту страну ещё не подтверждён, поэтому штамп не поставлен.' : 'A flight to this country is not confirmed yet, so the stamp is not pressed.'}{' '}
-        <a href={arrivalHref(code ?? '', awaiting)}>{ru ? 'Открыть карточку прилёта' : 'Open the arrival card'}</a></p> : null}
+        <a href={arrivalHref(data ? arrivalFlightId(data) : null)}>{ru ? 'Открыть карточку прилёта' : 'Open the arrival card'}</a></p> : null}
       {detail.isError && !data ? <p role="alert">{ru ? 'Не удалось загрузить страну.' : 'Could not load this country.'} <Button dense onClick={() => void detail.refetch()}>{ru ? 'Повторить' : 'Try again'}</Button></p> : null}
       {!data && !detail.isError ? <p role="status" className="passport-note">{ru ? 'Загружаем…' : 'Loading…'}</p> : null}
       {data ? <>

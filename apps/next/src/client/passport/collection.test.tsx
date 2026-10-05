@@ -28,7 +28,6 @@ const data = {
   ] as PassportData['regions'],
 }
 const entries = passportEntries(data)
-const queue = [{ flight: { id: 31, origin: 'JFK', destination: 'LIS' }, effectiveDefault: { transit: false } }]
 
 describe('PassportCover', () => {
   it('states the total of the 246-country catalog with the waiting caption, six regions and the latest stamp', () => {
@@ -58,8 +57,8 @@ describe('PassportCover chronology', () => {
 
 describe('StampGroups', () => {
   const name = countryNamer('en')
-  const renderGroups = (onOpen = vi.fn()) => render(<StampGroups groups={groupByRegion(sortEntries(entries, 'recent', name, 'en'))} locale="en" name={name}
-    awaiting={queue} onOpen={onOpen} pressed={new Map()} now={now} />)
+  const renderGroups = (onOpen = vi.fn(), onOpenArrival = vi.fn()) => render(<StampGroups groups={groupByRegion(sortEntries(entries, 'recent', name, 'en'))} locale="en" name={name}
+    onOpen={onOpen} onOpenArrival={onOpenArrival} pressed={new Map()} now={now} />)
 
   it('groups under region H2s with counts, pending first under Recent', () => {
     renderGroups()
@@ -68,10 +67,15 @@ describe('StampGroups', () => {
     expect(within(europe).getAllByRole('listitem')[0]).toHaveAttribute('data-status', 'pending')
   })
 
-  it('links a pending slot to its arrival card and opens pressed stamps in the sheet', () => {
+  it('resolves a pending slot\'s arrival card through the country evidence and opens pressed stamps in the sheet', () => {
     const onOpen = vi.fn()
-    renderGroups(onOpen)
-    expect(screen.getByRole('link', { name: 'Portugal: waiting for confirmation. Open the arrival card' })).toHaveAttribute('href', '/journal?queue=awaiting#arrival-31')
+    const onOpenArrival = vi.fn()
+    renderGroups(onOpen, onOpenArrival)
+    const pending = screen.getByRole('link', { name: 'Portugal: waiting for confirmation. Open the arrival card' })
+    // Without script (or with a modified click) the slot still reaches the queue.
+    expect(pending).toHaveAttribute('href', '/journal?queue=awaiting')
+    fireEvent.click(pending)
+    expect(onOpenArrival).toHaveBeenCalledWith('PT')
     fireEvent.click(screen.getByRole('button', { name: 'Japan, by air, ×12 · 2 mo. ago' }))
     expect(onOpen).toHaveBeenCalledWith('JP')
   })

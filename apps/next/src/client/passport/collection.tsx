@@ -5,10 +5,8 @@ import { Stamp, type StampKind } from '../signature/stamp'
 import { Button } from '../ui/button'
 import { formatCount, formatNumber, type Locale } from '../../lib/format'
 import type { PassportData } from '../../server/passport'
-import { CATALOG_TOTAL, REGION_LABELS, arrivalHref, catalogCountry, formatVisitPoint, stampCaption, type HeaderFigures, type PassportEntry, type RegionGroup } from './model'
+import { AWAITING_QUEUE_HREF, CATALOG_TOTAL, REGION_LABELS, catalogCountry, formatVisitPoint, stampCaption, type HeaderFigures, type PassportEntry, type RegionGroup } from './model'
 import './passport.css'
-
-type Awaiting = Parameters<typeof arrivalHref>[1]
 
 const PENDING_FORMS = {
   en: { one: '{count} waiting for confirmation', other: '{count} waiting for confirmation' },
@@ -49,7 +47,7 @@ export function PassportCover({ locale, figures, regions, name, onAdd, now }: {
         <span className="eyebrow">{ru ? 'Страны и территории' : 'Countries and territories'}</span>
         <p className="passport-caption"><strong>{formatNumber(locale, figures.total)}</strong> <span className="passport-figure-of">{ru ? `из ${formatNumber(locale, CATALOG_TOTAL)}` : `of ${formatNumber(locale, CATALOG_TOTAL)}`}</span></p>
         <div className="passport-progress" aria-hidden="true"><span style={{ width: `${share}%` } as CSSProperties} /></div>
-        {figures.pending > 0 ? <p className="passport-caption">· <a href="/journal?queue=awaiting">{formatCount(locale, figures.pending, PENDING_FORMS)}</a></p> : null}
+        {figures.pending > 0 ? <p className="passport-caption">· <a href={AWAITING_QUEUE_HREF}>{formatCount(locale, figures.pending, PENDING_FORMS)}</a></p> : null}
       </div>
       <div className="passport-figure passport-figure-regions">
         <span className="eyebrow">{ru ? 'Регионы' : 'Regions'}</span>
@@ -79,9 +77,12 @@ export function PassportCover({ locale, figures, regions, name, onAdd, now }: {
 }
 
 /** Region groups (H2 with a count), each a grid whose columns follow its own width (passport.css). */
-export function StampGroups({ groups, locale, name, awaiting, onOpen, pressed, now }: {
-  groups: RegionGroup[]; locale: Locale; name: (code: string) => string; awaiting: Awaiting
-  onOpen: (code: string) => void; pressed: ReadonlyMap<string, string>; now: Date
+export function StampGroups({ groups, locale, name, onOpen, onOpenArrival, pressed, now }: {
+  groups: RegionGroup[]; locale: Locale; name: (code: string) => string
+  onOpen: (code: string) => void
+  /** A pending slot resolves its arrival card from the country's evidence; the href is the queue fallback. */
+  onOpenArrival: (code: string) => void
+  pressed: ReadonlyMap<string, string>; now: Date
 }) {
   const ru = locale === 'ru'
   return <div className="passport-groups">
@@ -95,7 +96,8 @@ export function StampGroups({ groups, locale, name, awaiting, onOpen, pressed, n
           return <li key={entry.code} className="passport-cell" data-status={entry.status}>
             <Stamp {...stampProps(entry, locale, name)} caption={caption} static={!press} pressEventId={press} />
             {entry.status === 'pending'
-              ? <a className="passport-cell-action" href={arrivalHref(entry.code, awaiting)}
+              ? <a className="passport-cell-action" href={AWAITING_QUEUE_HREF}
+                onClick={event => { if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return; event.preventDefault(); onOpenArrival(entry.code) }}
                 aria-label={ru ? `${name(entry.code)}: ждёт отметки. Открыть карточку прилёта` : `${name(entry.code)}: waiting for confirmation. Open the arrival card`} />
               : <button type="button" className="passport-cell-action" aria-label={label} onClick={() => onOpen(entry.code)} />}
           </li>

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import catalog from '@kuuki/data/countries.json'
 import { COUNTRY_NEIGHBORS } from '@kuuki/data/country-neighbors'
-import { CATALOG_TOTAL, arrivalHref, countryNamer, groupByRegion, headerFigures, passportEntries, removalOutcome, searchCountries, sortEntries, stampCaption, suggestCountries } from './model'
+import { CATALOG_TOTAL, arrivalFlightId, arrivalHref, countryNamer, groupByRegion, headerFigures, passportEntries, removalOutcome, searchCountries, sortEntries, stampCaption, suggestCountries } from './model'
 import type { PassportData } from '../../server/passport'
 
 type Row = PassportData['countries'][number]
@@ -154,17 +154,22 @@ describe('country neighbors dataset', () => {
   })
 })
 
-describe('arrivalHref', () => {
-  const queue = [
-    { flight: { id: 7, origin: 'JFK', destination: 'IST' }, effectiveDefault: { transit: true } },
-    { flight: { id: 8, origin: 'IST', destination: 'LIS' }, effectiveDefault: { transit: false } },
-  ]
-  it('links a pending country to the arrival card of a flight that reaches it', () => {
-    expect(arrivalHref('PT', queue)).toBe('/journal?queue=awaiting#arrival-8')
+describe('arrivalFlightId', () => {
+  type Entries = Parameters<typeof arrivalFlightId>[0]['entries']
+  const flight = (flightId: number, endpoint: 'origin' | 'destination', date: string, state: 'awaiting' | 'logged' = 'awaiting') =>
+    ({ kind: 'flight' as const, flightId, endpoint, airport: 'IST', date, state })
+  it('follows the published evidence, so a transit-suppressed outgoing leg is never chosen', () => {
+    // Turkey is pending only through flight 8 (CDG → IST). Flight 9 lands at IST as a transit matched to flight 10,
+    // so the server lists both of their IST endpoints as suppressed and neither among the entries.
+    expect(arrivalFlightId({ entries: [flight(8, 'destination', '2026-10-01')] as Entries })).toBe(8)
+    expect(arrivalHref(8)).toBe('/journal?queue=awaiting#arrival-8')
   })
-  it('skips a default-transit destination and falls back to the queue', () => {
-    expect(arrivalHref('TR', [queue[0]])).toBe('/journal?queue=awaiting')
-    expect(arrivalHref('PT', undefined)).toBe('/journal?queue=awaiting')
+  it('prefers an arrival, then the latest awaiting flight, and ignores logged ones', () => {
+    expect(arrivalFlightId({ entries: [flight(3, 'origin', '2026-10-04'), flight(4, 'destination', '2026-09-01'), flight(5, 'destination', '2026-09-20'), flight(6, 'destination', '2026-10-03', 'logged')] as Entries })).toBe(5)
+  })
+  it('falls back to the queue when no awaiting flight contributes', () => {
+    expect(arrivalFlightId({ entries: [{ kind: 'claim', claimedAt: null }] as Entries })).toBeNull()
+    expect(arrivalHref(null)).toBe('/journal?queue=awaiting')
   })
 })
 

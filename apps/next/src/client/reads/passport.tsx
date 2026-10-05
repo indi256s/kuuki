@@ -5,15 +5,14 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { QueryClient, QueryClientProvider, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api } from '../../../../web/src/lib/apiClient'
 import { trackPrivateOperation } from '../activity'
-import { useAwaiting } from '../awaiting'
 import { RouteMapPanel, type MapLayer } from '../maps/panel'
 import type { CountryVisit } from '../maps/preview'
 import { SegmentedControl } from '../ui/segmented-control'
 import { useMobile } from '../ui/use-mobile'
 import { AddCountrySheet } from '../passport/add-country-sheet'
 import { EmptyPassport, PassportCover, StampGroups, StampKey } from '../passport/collection'
-import { CountrySheet } from '../passport/country-sheet'
-import { countryNamer, groupByRegion, headerFigures, isCatalogCountry, passportEntries, sortEntries, type PassportSort } from '../passport/model'
+import { CountrySheet, countryDetailQuery } from '../passport/country-sheet'
+import { arrivalFlightId, arrivalHref, countryNamer, groupByRegion, headerFigures, isCatalogCountry, passportEntries, sortEntries, type PassportSort } from '../passport/model'
 import type { PassportData } from '../../server/passport'
 import type { Locale } from '../../server/locale'
 import { normalizePassportQuery, withQuery } from '../../lib/url-state'
@@ -28,7 +27,6 @@ function Inner({ ownerId, locale, initial, period }: { ownerId: string; locale: 
   const state = normalizePassportQuery(search, isCatalogCountry).state
   const ru = locale === 'ru'
   const mobile = useMobile()
-  const { data: queue } = useAwaiting()
   const [adding, setAdding] = useState(false)
   const [notice, setNotice] = useState('')
   // Countries added in this session press onto the grid once (Stamp keeps the per-ID memory).
@@ -83,6 +81,12 @@ function Inner({ ownerId, locale, initial, period }: { ownerId: string; locale: 
     navigate({ country: code })
   }, [navigate])
 
+  // A pending slot's arrival card comes from the country's published evidence, not from the queue page's flags.
+  async function openArrival(code: string) {
+    const flight = await queryClient.fetchQuery(countryDetailQuery(ownerId, code)).then(arrivalFlightId, () => null)
+    router.push(arrivalHref(flight))
+  }
+
   async function changed(code: string, added: boolean) {
     if (added) setPressed(current => new Map(current).set(code, `added:${code}:${Date.now()}`))
     await Promise.all([
@@ -130,11 +134,11 @@ function Inner({ ownerId, locale, initial, period }: { ownerId: string; locale: 
         ? <EmptyPassport locale={locale} onAdd={() => setAdding(true)} />
         : <>
           <StampKey locale={locale} />
-          <StampGroups groups={groups} locale={locale} name={name} awaiting={queue?.awaitingFlights} onOpen={openCountry} pressed={pressed} now={now} />
+          <StampGroups groups={groups} locale={locale} name={name} onOpen={openCountry} onOpenArrival={openArrival} pressed={pressed} now={now} />
         </>}
     {mobile === null ? null : <>
       <CountrySheet ownerId={ownerId} locale={locale} code={state.country} entry={entries.find(entry => entry.code === state.country)} mobile={mobile}
-        awaiting={queue?.awaitingFlights} name={name} onClose={() => navigate({ country: null })} onChanged={changed} onRemoved={removed}
+        name={name} onClose={() => navigate({ country: null })} onChanged={changed} onRemoved={removed}
         onCloseAutoFocus={restoreFocus} />
       <AddCountrySheet open={adding} onOpenChange={setAdding} locale={locale} mobile={mobile} entries={entries} name={name}
         onPick={(code, addOpener) => { setAdding(false); opener.current = addOpener; navigate({ country: code }) }} />

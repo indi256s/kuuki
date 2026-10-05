@@ -35,7 +35,7 @@ function mount(value: CountryDetail, props: { onRemoved?: (code: string) => void
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
   const locale = props.locale ?? 'en'
   return render(<QueryClientProvider client={client}>
-    <CountrySheet ownerId="owner" locale={locale} code={value.countryCode} entry={undefined} mobile={false} awaiting={[]} name={countryNamer(locale)}
+    <CountrySheet ownerId="owner" locale={locale} code={value.countryCode} entry={undefined} mobile={false} name={countryNamer(locale)}
       onClose={() => {}} onChanged={props.onChanged ?? (() => {})} onRemoved={props.onRemoved ?? (() => {})} />
   </QueryClientProvider>)
 }
