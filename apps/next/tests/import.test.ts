@@ -87,8 +87,12 @@ class FakeImport {
   }
 }
 
+// Sign-in is limited per address (20 per 15 minutes) and the whole browser suite shares that budget, so this file
+// signs in once and gives every journey the same session cookies.
+let session: Awaited<ReturnType<ReturnType<Page['context']>['cookies']>> | null = null
 async function setup(page: Page, baseURL: string | undefined) {
-  await signIn(page, baseURL!)
+  if (session) await page.context().addCookies(session)
+  else { await signIn(page, baseURL!); session = await page.context().cookies() }
   const server = new FakeImport()
   await server.install(page)
   return server
