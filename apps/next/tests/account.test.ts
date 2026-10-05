@@ -109,19 +109,29 @@ test('an old tab preserves the new account draft and retry receipt on focus', as
   await newTab.getByRole('button', { name: 'Sign in', exact: true }).click()
   await newTab.waitForURL('**/overview')
 
-  await newTab.route('**/api/import/parse', route => route.fulfill({ status: 200, contentType: 'application/json',
-    body: JSON.stringify({ flights: [{ date: '2025-03-01', origin: 'JFK', destination: 'BOS', airline_iata: 'AA', confidence: .8 }] }) }))
-  await newTab.route('**/api/flights/duplicate-candidates', route => route.fulfill({ status: 200, contentType: 'application/json', body: '{"matches":[]}' }))
-  await newTab.route('**/api/flights/bulk', route => route.fulfill({ status: 503, contentType: 'application/json', body: '{"error":"Temporary failure"}' }))
-  await newTab.goto('/import')
-  await newTab.getByLabel('Or paste text').fill('synthetic itinerary')
-  await newTab.getByRole('button', { name: 'Find flights', exact: true }).click()
-  await expect(newTab.getByRole('heading', { name: 'Review flights', exact: true })).toBeVisible()
-  await newTab.getByRole('button', { name: /Save selected/ }).click()
-  await expect(newTab.getByText('Saved: 0. Unconfirmed or failed: 1.')).toBeVisible()
+  // Manual capture is the remaining writer of an owner-scoped create receipt; the import UI keeps its drafts in D1.
+  await newTab.route('**/api/flights', route => route.request().method() === 'POST'
+    ? route.fulfill({ status: 503, contentType: 'application/json', body: '{"error":"Temporary failure"}' })
+    : route.continue())
+  await newTab.goto('/add')
+  await newTab.getByLabel('Date').fill('2025-06-01')
+  for (const [label, code] of [['From', 'JFK'], ['To', 'BOS']]) {
+    await newTab.getByRole('combobox', { name: label }).click()
+    const search = newTab.getByRole('dialog', { name: label, exact: true })
+    await search.getByRole('combobox', { name: label }).fill(code)
+    await search.getByRole('option', { name: new RegExp(`^${code} `) }).click()
+  }
+  await newTab.getByRole('button', { name: 'Save flight' }).click()
+  await expect(newTab.getByRole('button', { name: 'Retry original save' })).toBeVisible()
 
   const owner = (await (await context.request.get('/api/auth/me')).json() as { user: { id: string } }).user.id
   expect(owner).not.toBe(oldOwner)
+  // Legacy local import drafts are still listed per owner, so seed one for each account.
+  const oldDraftKey = `kuuki-import-draft:v1:${oldOwner}:legacy`
+  await newTab.evaluate(keys => {
+    localStorage.setItem(`kuuki-import-draft:v1:${keys.owner}:legacy`, JSON.stringify({ schema: 1, ownerId: keys.owner }))
+    localStorage.setItem(keys.oldDraftKey, JSON.stringify({ schema: 1, ownerId: keys.oldOwner }))
+  }, { owner, oldOwner, oldDraftKey })
   const stored = await newTab.evaluate(ownerId => {
     const draftKey = Object.keys(localStorage).find(key => key.startsWith(`kuuki-import-draft:v1:${ownerId}:`))
     const receiptKey = Object.keys(localStorage).find(key => key.startsWith(`kuuki-flight-create-operation:${ownerId}:`))
@@ -140,6 +150,8 @@ test('an old tab preserves the new account draft and retry receipt on focus', as
   await oldTabReload
   const remaining = await newTab.evaluate(keys => ({ draft: localStorage.getItem(keys.draftKey!), receipt: localStorage.getItem(keys.receiptKey!) }), stored)
   expect(remaining).toEqual({ draft: stored.draft, receipt: stored.receipt })
+  // The old tab clears only its own departing owner.
+  expect(await newTab.evaluate(key => localStorage.getItem(key), oldDraftKey)).toBeNull()
 })
 
 test('reset fragment is removed before hydration and invalid tokens show a recovery path', async ({ page }) => {
