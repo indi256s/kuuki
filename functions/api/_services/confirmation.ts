@@ -16,10 +16,9 @@
 // the receipt keeps no outcome; the next replay of the same operation repairs, freezes the outcome once and returns
 // it, without applying anything a second time.
 import { HttpError } from '../_lib/http'
-import { countryContributions, type EvidenceFlight } from './countryEvidence'
+import { countryContributions, evidenceFlightsStatement, type EvidenceFlight } from './countryEvidence'
 import { dirtyUserStatement, ensureDerivedStateRow, isDerivedReady, repairUserDerivedState, stateOf, type DerivedStateRow } from './derivedState'
 import { QUEUE_PAGE_LIMIT, candidateTokenOf, describeAwaiting } from './queue'
-import { evidenceFlightsStatement } from './countryEvidence'
 import {
   MAX_ATTEMPTS, STATE_SELECT, assertReplayable, concurrentUpdate, digestOf, freezeResult, isConstraintError, readyState,
   receiptStatement, type Receipt,

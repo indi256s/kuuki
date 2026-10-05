@@ -10,7 +10,7 @@ import { toOwnFlight, FLIGHT_COLUMNS, type FlightRow } from '../_lib/flights'
 import { sha256Hex } from '../_lib/crypto'
 import { connectionChains } from './connections'
 import {
-  deriveCountryEvidence, evidenceFlightsStatement, prospectiveTransit, type CountryEvidenceRow, type EvidenceFlight,
+  deriveCountryEvidence, prospectiveTransit, type CountryEvidenceRow, type EvidenceFlight,
 } from './countryEvidence'
 import {
   dirtyUserStatement, ensureDerivedStateRow, isDerivedReady, legacyEvidenceStatement, mergeVisits, repairUserDerivedState,
