@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { QueryClient, QueryClientProvider, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api } from '../../../../web/src/lib/apiClient'
 import { trackPrivateOperation } from '../activity'
+import { ROUTE_LINK_EVENT } from '../navigation-link'
 import { RouteMapPanel, type MapLayer } from '../maps/panel'
 import type { CountryVisit } from '../maps/preview'
 import { SegmentedControl } from '../ui/segmented-control'
@@ -35,7 +36,12 @@ function Inner({ ownerId, locale, initial, period }: { ownerId: string; locale: 
   useEffect(() => {
     const cancelArrival = () => { arrivalIntent.current = null; setOpening(null) }
     window.addEventListener('popstate', cancelArrival)
-    return () => { arrivalIntent.current = null; window.removeEventListener('popstate', cancelArrival) }
+    window.addEventListener(ROUTE_LINK_EVENT, cancelArrival)
+    return () => {
+      arrivalIntent.current = null
+      window.removeEventListener('popstate', cancelArrival)
+      window.removeEventListener(ROUTE_LINK_EVENT, cancelArrival)
+    }
   }, [])
   // Countries added in this session press onto the grid once (Stamp keeps the per-ID memory).
   const [pressed, setPressed] = useState<ReadonlyMap<string, string>>(new Map())

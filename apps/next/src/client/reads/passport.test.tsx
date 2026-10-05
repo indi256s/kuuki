@@ -4,7 +4,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { PassportData } from '../../server/passport'
 
 const mocks = vi.hoisted(() => ({ get: vi.fn(), push: vi.fn() }))
-vi.mock('next/navigation', () => ({ useRouter: () => ({ push: mocks.push, refresh: vi.fn(), replace: vi.fn() }), useSearchParams: () => new URLSearchParams('') }))
+vi.mock('next/navigation', () => ({ useRouter: () => ({ push: mocks.push, refresh: vi.fn(), replace: vi.fn() }), useSearchParams: () => new URLSearchParams(''), usePathname: () => '/passport' }))
+vi.mock('next/link', async () => ({ default: (await import('../../test/next-link')).linkStandIn(href => mocks.push(href)) }))
 vi.mock('../../../../web/src/lib/apiClient', () => ({ api: { get: mocks.get }, getAuthGeneration: () => 1 }))
 vi.mock('../activity', () => ({ trackPrivateOperation: () => () => {} }))
 vi.mock('../write-feedback', () => ({ useWriteFeedback: () => ({ acknowledge: vi.fn(), status: 'idle' }) }))
@@ -12,6 +13,7 @@ vi.mock('../ui/use-mobile', () => ({ useMobile: () => false }))
 vi.mock('../maps/panel', () => ({ RouteMapPanel: () => null }))
 
 const { PassportView } = await import('./passport')
+const { PrimaryNav } = await import('../nav')
 
 const initial = {
   visits: [], claims: [], groundVisits: [],
@@ -117,6 +119,29 @@ describe('pending slot navigation', () => {
       expect(mocks.push).not.toHaveBeenCalled()
       expect(screen.queryByText('Opening the arrival card for Portugal…')).toBeNull()
     } finally { window.history.replaceState(null, '', before) }
+  })
+
+  it('lets a cold shell navigation supersede a pending arrival before its URL commits', async () => {
+    render(<><PrimaryNav /><PassportView ownerId="owner" locale="en" initial={initial} /></>)
+    fireEvent.click(pendingLink('Portugal'))
+    await settle()
+    fireEvent.click(screen.getByRole('link', { name: /Overview/ }))
+    expect(mocks.push.mock.calls).toEqual([['/overview']])
+    expect(screen.queryByText('Opening the arrival card for Portugal…')).toBeNull()
+    reads.get('PT')!.resolve(awaitingDetail('PT', 8))
+    await settle()
+    expect(mocks.push.mock.calls).toEqual([['/overview']])
+  })
+
+  it('keeps a pending arrival when a shell link opens in another tab', async () => {
+    render(<><PrimaryNav /><PassportView ownerId="owner" locale="en" initial={initial} /></>)
+    fireEvent.click(pendingLink('Portugal'))
+    await settle()
+    fireEvent.click(screen.getByRole('link', { name: /Overview/ }), { ctrlKey: true })
+    expect(screen.getByText('Opening the arrival card for Portugal…')).toBeInTheDocument()
+    reads.get('PT')!.resolve(awaitingDetail('PT', 8))
+    await settle()
+    expect(mocks.push.mock.calls).toEqual([['/journal?queue=awaiting#arrival-8']])
   })
 
   it('leaves modified clicks to the browser', () => {

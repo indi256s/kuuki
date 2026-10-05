@@ -1,6 +1,6 @@
 'use client'
 
-import Link from 'next/link'
+import { NavigationLink as Link } from './navigation-link'
 import { useRouter } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
 import { api, getAuthGeneration } from '../../../web/src/lib/apiClient'

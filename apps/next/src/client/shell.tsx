@@ -1,4 +1,4 @@
-import Link from 'next/link'
+import { NavigationLink as Link } from './navigation-link'
 import type { ReactNode } from 'react'
 import { AwaitingProvider } from './awaiting'
 import { AvatarMenu } from './avatar-menu'
