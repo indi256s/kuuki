@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 /**
  * The only route changes allowed to animate (DESIGN.md "Motion"). A stage remounts its transition boundary
@@ -14,16 +14,20 @@ const isProfile = (path: string) => /^\/fly\/[^/]+$/.test(path)
 /** Import done → Passport, forward only. */
 export const isStampHero = (from: string, to: string) => from === '/import' && to === '/passport'
 
-/** Leaderboard → a public profile, and Back. */
-export const isProfileDrill = (from: string, to: string) =>
-  (from === '/leaderboard' && isProfile(to)) || (isProfile(from) && to === '/leaderboard')
+/** Leaderboard → a public profile, and Back. A link from a profile to the leaderboard is not Back, so it stays instant. */
+export const isProfileDrill = (from: string, to: string, traversal: boolean) =>
+  (from === '/leaderboard' && isProfile(to)) || (traversal && isProfile(from) && to === '/leaderboard')
 
 /** Sign in ↔ sign up ↔ forgot password. */
 export const isAuthSwap = (from: string, to: string) => from !== to && isAuthPath(from) && isAuthPath(to)
 
-export function isApprovedPair(stage: StageKind, from: string, to: string) {
-  return stage === 'auth' ? isAuthSwap(from, to) : isStampHero(from, to) || isProfileDrill(from, to)
+export function isApprovedPair(stage: StageKind, from: string, to: string, traversal = false) {
+  return stage === 'auth' ? isAuthSwap(from, to) : isStampHero(from, to) || isProfileDrill(from, to, traversal)
 }
+
+// The pathname the last Back or Forward landed on, until the stage renders a pathname change.
+let traversedTo: string | null = null
+if (typeof window !== 'undefined') window.addEventListener('popstate', () => { traversedTo = location.pathname })
 
 /**
  * The boundary keeps its key, and so its DOM node, unless the pathname change is an approved pair. ssgoi
@@ -31,8 +35,9 @@ export function isApprovedPair(stage: StageKind, from: string, to: string) {
  */
 export function useTransitionKey(stage: StageKind, pathname: string) {
   const [state, setState] = useState({ pathname, key: 0 })
+  useEffect(() => { traversedTo = null }, [pathname])
   if (state.pathname === pathname) return state.key
-  const key = isApprovedPair(stage, state.pathname, pathname) ? state.key + 1 : state.key
+  const key = isApprovedPair(stage, state.pathname, pathname, traversedTo === pathname) ? state.key + 1 : state.key
   setState({ pathname, key })
   return key
 }

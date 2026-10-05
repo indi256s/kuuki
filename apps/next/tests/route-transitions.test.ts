@@ -68,6 +68,20 @@ test.describe('leaderboard → public profile', () => {
     await expect(page.locator('[data-ssgoi-transition]')).toHaveCount(1)
   })
 
+  test('a link from the profile back to the leaderboard stays instant', async ({ page }) => {
+    await recordRouteTransitions(page)
+    await page.goto('/leaderboard')
+    await page.getByRole('link', { name: 'Ranked', exact: true }).click()
+    await expect(heading(page, 'Ranked')).toBeFocused()
+    await settled(page)
+    await resetRouteTransitions(page)
+
+    await page.getByRole('link', { name: 'View leaderboard', exact: true }).click()
+    await expect(page).toHaveURL(/\/leaderboard$/)
+    await expect(heading(page, 'Leaderboard')).toBeFocused()
+    expect(await routeTransitions(page)).toMatchObject({ markers: [], boundaries: 1 })
+  })
+
   test('opens the profile instantly under reduced motion', async ({ page }) => {
     await page.emulateMedia({ reducedMotion: 'reduce' })
     await recordRouteTransitions(page)
