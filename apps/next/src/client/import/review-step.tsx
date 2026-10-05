@@ -12,7 +12,7 @@ import type { DraftChange, SaveState } from './draft-saver'
 import type { Failure } from './import-errors'
 import type { Draft } from './import-types'
 import { ManualRow } from './manual-row'
-import { newManualRow, type ManualRowState } from './manual-save'
+import { flightIdentity, newManualRow, type ManualRowState } from './manual-save'
 import { ReviewRow } from './review-row'
 import { emptyValues, hasValues, isChosen, partition, readiness, validateValues, withUnsent } from './review-model'
 
@@ -101,8 +101,8 @@ export function ReviewStep(props: ReviewStepProps) {
       <ManualRow key={manual.key} locale={locale} row={manual} showErrors={hasValues(manual.values)} disabled={confirming} retryBlocked={unsaved ? S.unsavedBlock[locale] : undefined}
         onRetryOriginal={() => onManualRetryOriginal(manual.key)} onNewOperation={() => onManualNewOperation(manual.key)}
         onShowHeld={manual.failure?.heldBy && onShowSave && canShowSave?.(manual.failure.heldBy) ? () => onShowSave(manual.failure!.heldBy!) : undefined}
-        // A refusal wrote nothing, so editing clears it; an unconfirmed save keeps its notice until the member resolves it.
-        onChange={values => onManualRows(manualRows.map(item => item.key === manual.key ? { ...item, values, failure: item.failure?.kind === 'refused' || item.failure?.kind === 'duplicate' ? undefined : item.failure } : item))}
+        // Optional edits keep a date/route hold tied to its original receipt until recovery settles it.
+        onChange={values => onManualRows(manualRows.map(item => item.key === manual.key ? { ...item, values, failure: item.failure?.kind === 'refused' || item.failure?.kind === 'duplicate' && flightIdentity(item.values) !== flightIdentity(values) ? undefined : item.failure } : item))}
         onRemove={() => onManualRows(manualRows.filter(item => item.key !== manual.key))} />)}</ul> : null}
     <div className="import-actions"><Button onClick={addManual} disabled={confirming}><Plus size={16} strokeWidth={2} aria-hidden="true" /> {S.addManual[locale]}</Button></div>
 

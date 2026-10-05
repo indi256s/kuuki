@@ -16,7 +16,7 @@ import { FailurePanel } from './failure-panel'
 import { fetchPressedCountries, cancelBatch, confirmItems, discardBatch, listUnfinished, patchDraft, type ImportSource } from './import-api'
 import type { FailureAction } from './import-errors'
 import type { Draft, UnfinishedImport } from './import-types'
-import { newManualRow, retryUnconfirmedSave, saveManualRows, settleUnconfirmedSave, startNewOperation, unconfirmedSaves, type ManualFailure, type ManualRowState, type UnconfirmedSave } from './manual-save'
+import { flightIdentity, newManualRow, retryUnconfirmedSave, saveManualRows, settleUnconfirmedSave, startNewOperation, unconfirmedSaves, type ManualFailure, type ManualRowState, type UnconfirmedSave } from './manual-save'
 import { ProgressStep } from './progress-step'
 import { emptyValues, hasValues, isChosen, partition, validateValues, withSaved } from './review-model'
 import { ReviewStep } from './review-step'
@@ -233,7 +233,7 @@ export function ImportClient({ ownerId, locale, initialBatchId = null, initialSo
       acks.push(...result.acks)
       wrote ||= result.saved.length > 0
       setManualSaved(previous => [...previous, ...result.saved])
-      setManualRows(previous => previous.flatMap(row => result.saved.some(item => item.key === row.key || row.failure?.heldBy === item.operationId) ? [] : [result.rows.get(row.key) ?? row]))
+      setManualRows(previous => previous.flatMap(row => result.saved.some(item => item.key === row.key || flightIdentity(row.values) === flightIdentity(item.values)) ? [] : [result.rows.get(row.key) ?? row]))
     }
     // The denominator counts each row once, however often it is retried.
     setRequestedKeys(previous => new Set([...previous, ...items.map(item => item.draftId), ...manual.map(row => row.key)]))
@@ -290,9 +290,10 @@ export function ImportClient({ ownerId, locale, initialBatchId = null, initialSo
       if (result.failure) setRecoveryFailures(previous => ({ ...previous, [operationId]: result.failure! }))
       else forgetRecoveryFailure(operationId)
       if (result.saved) {
-        const matches = (row: ManualRowState) => row.operationId === operationId || row.failure?.heldBy === operationId
-        const reconciled = manualRows.find(matches)
         const pinned = receipts.find(save => save.operationId === operationId)?.values
+        const identity = pinned && flightIdentity(pinned)
+        const matches = (row: ManualRowState) => row.operationId === operationId || identity !== null && identity !== undefined && flightIdentity(row.values) === identity
+        const reconciled = manualRows.find(matches)
         if (reconciled) setManualSaved(previous => [...previous, { ...reconciled, values: pinned ?? reconciled.values }])
         setManualRows(previous => previous.filter(row => !matches(row)))
         acknowledgeWrites(result.acks); setRecoveryNotice(S.recoverySaved[locale].replace('{flight}', label))

@@ -66,7 +66,7 @@ export function unconfirmedSaves(ownerId: string): UnconfirmedSave[] {
 }
 
 /** Conservative flight identity: derived metadata and optional details cannot release an unresolved date/route hold. */
-const flightIdentity = (payload: object): string | null => {
+export const flightIdentity = (payload: object): string | null => {
   const body = payload as Record<string, unknown>
   if (![body.date, body.origin, body.destination].every(value => typeof value === 'string' && value.trim() !== '')) return null
   return JSON.stringify([String(body.date).trim(), String(body.origin).trim().toUpperCase(), String(body.destination).trim().toUpperCase()])

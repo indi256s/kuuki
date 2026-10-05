@@ -98,7 +98,7 @@ describe('R3-C1 an unresolved save in the earlier plain-UUID format is recoverab
     expect(committed.size).toBe(1)
   })
 
-  it('lost committed response, remount: an identical re-add is held, points at the listed save, and nothing is committed twice', async () => {
+  it.each(['untouched', 'optional edit', 'optional edit restored', 'route edit restored', 'different route'])('lost committed response, %s: an identical re-add remains tied to recovery and is not saved twice', async edit => {
     const user = userEvent.setup()
     const old = await loseOldFormatSave()
     render(<ImportClient ownerId="u1" locale="en" initialBatchId="b1" batchApi={api()} />)
@@ -114,13 +114,30 @@ describe('R3-C1 an unresolved save in the earlier plain-UUID format is recoverab
     expect(document.activeElement).toBe(entries()[0])
     expect(entries()[0].id).toContain(old)
 
+    if (edit !== 'untouched') {
+      const input = within(manualRows()[0]).getByLabelText(edit === 'route edit restored' || edit === 'different route' ? /^To \(airport code\)/ : /^Flight number/)
+      if (edit === 'route edit restored' || edit === 'different route') await user.clear(input)
+      await user.type(input, edit === 'route edit restored' || edit === 'different route' ? 'LAX' : '123')
+      if (edit.endsWith('restored')) {
+        await user.clear(input)
+        if (edit === 'route edit restored') await user.type(input, 'BOS')
+      }
+    }
     serverCommits()
     await user.click(within(entries()[0]).getByRole('button', { name: /retry original save/i }))
     await within(recovery()).findByText(/saved: jfk → bos/i)
-    expect(screen.queryByRole('button', { name: /import 1/i })).toBeNull()
-    expect(screen.queryByText('Flight added by hand')).toBeNull()
-    expect(new Set(sentKeys()).size).toBe(1)
-    expect(committed.size).toBe(1)
+    if (edit === 'different route') {
+      expect(within(manualRows()[0]).getByLabelText(/^To \(airport code\)/)).toHaveValue('LAX')
+      serverCommits()
+      await user.click(screen.getByRole('button', { name: /import 1/i }))
+      await screen.findByRole('heading', { name: /import finished/i })
+      expect(committed.size).toBe(2) // The changed route is a different flight, not a recovered alias.
+    } else {
+      expect(screen.queryByRole('button', { name: /import 1/i })).toBeNull()
+      expect(screen.queryByText('Flight added by hand')).toBeNull()
+      expect(new Set(sentKeys()).size).toBe(1)
+      expect(committed.size).toBe(1)
+    }
   })
 })
 
