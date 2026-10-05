@@ -16,6 +16,7 @@ Use `gh-axi` for GitHub and `chrome-devtools-axi` for browser automation.
 - **UI work:** read `DESIGN.md`. Tokens live only in `apps/next/src/app/styles.css`.
 - **Domain work:** read `GLOSSARY.md`, then only the sections of `docs/adr/` that your task touches.
 - **Plans and specs:** they are in `docs/plans/` and `.scratch/<feature>/`. Conventions are in `docs/agents/issue-tracker.md`.
+- **Resuming a plan:** read its adjacent `*-handoff.md` first and locate the owning checkout with `git worktree list` before creating progress files.
 - **Reviewing a diff:** apply `CODING_STANDARDS.md`.
 - **Runtime or release work:** read `docs/runbooks/2026-10-04-next-release-candidate.md`; for D1 migration/cutover gates, read `docs/runbooks/audit-remediation-release.md`.
 - **Documentation drift:** use `docs/skills/update-docs-after-feature/SKILL.md` when changes invalidate instructions, architecture, commands or operational contracts.
@@ -49,4 +50,4 @@ Run builds and browser/runtime fixtures serially: they share `.wrangler/next-bui
 - After moving an App Router route, run `pnpm --filter @kuuki/next exec next typegen` before typechecking. Stale `.next/types` report TS2307.
 - The root Miniflare rejects compatibility dates newer than its build. Check its installed version in `pnpm-lock.yaml`; a fixture that needs a newer date uses the Miniflare bundled with Wrangler.
 - Downscale screenshots before reading them: `sips -Z 1200 <file>.png`.
-- A running subagent-driven plan keeps its progress ledger at `.superpowers/sdd/<plan>/progress.md`, which is untracked.
+- At a session handoff, update `docs/plans/<plan>-handoff.md` with the owning branch/checkout, scope, accepted progress, latest checks and next action or blocker; include it in the handoff commit. Detailed `.superpowers/sdd/<plan>/progress.md` ledgers stay local. Reconcile the note with current Git and review evidence before acting.
