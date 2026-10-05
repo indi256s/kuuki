@@ -148,7 +148,8 @@ test('an old tab preserves the new account draft and retry receipt on focus', as
   expect(JSON.parse(stored.draft!)).toMatchObject({ schema: 1, ownerId: owner })
   expect(JSON.parse(stored.receipt!)).toMatchObject({ key: expect.any(String), payload: expect.any(String), createdAt: expect.any(Number) })
 
-  const oldTabReload = oldTab.waitForNavigation({ waitUntil: 'domcontentloaded' })
+  // A new document, not a same-document history update: a focus refresh can commit before the identity reload.
+  const oldTabReload = oldTab.waitForEvent('domcontentloaded')
   await oldTab.evaluate(() => {
     Object.defineProperty(document, 'visibilityState', { configurable: true, get: () => 'visible' })
     window.dispatchEvent(new Event('focus'))
