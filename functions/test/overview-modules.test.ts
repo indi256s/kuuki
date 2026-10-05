@@ -343,3 +343,44 @@ describe('pressed or pending is the account-wide status, membership is period-sp
     } finally { await dispose() }
   })
 })
+
+describe('missing-aircraft review targets', () => {
+  const targets = async (db: D1Database, query: string, limit = 200) => {
+    const params = new URL(`https://kuuki.test/api/flights?${query}`).searchParams
+    return readJournal(db, USER.id, parseFlightFilters(params), { field: 'date', order: 'desc' }, limit, 0)
+  }
+
+  it('is exactly the set the summary counts: completed, in the period, owned, with no aircraft', async () => {
+    const flights: OverviewFlight[] = [
+      logged(1, '2026-01-10', 'TBS', 'IST'), // missing
+      { id: 2, date: '2026-02-10', origin: 'IST', destination: 'TBS', state: 'awaiting' }, // missing, awaiting counts
+      logged(3, '2026-03-10', 'TBS', 'IST', { aircraft: 'A320' }),
+      { id: 4, date: '2026-12-10', origin: 'TBS', destination: 'LHR', state: 'upcoming' }, // upcoming never counts
+      logged(5, '2025-04-10', 'TBS', 'JFK'), // other year
+    ]
+    const { db, dispose } = await overviewAccount(flights, d => [
+      d.prepare('INSERT INTO users (id,email,password_hash) VALUES (?,?,?)').bind('other', 'other@example.test', 'hash'),
+      d.prepare("INSERT INTO flights (user_id,date,origin,destination) VALUES ('other','2026-01-01','LHR','DXB')"),
+    ])
+    try {
+      for (const [period, ids] of [['all', [1, 2, 5]], ['2026', [1, 2]], ['2025', [5]]] as const) {
+        const summary = await readOverviewSummary(db, `period=${period}`)
+        const found = await targets(db, `status=completed&missing=aircraft${period === 'all' ? '' : `&year=${period}`}`)
+        expect(summary.dataAvailability.missingAircraft).toBe(ids.length)
+        expect(found.total).toBe(summary.dataAvailability.missingAircraft)
+        expect(found.flights.map(flight => flight.id).sort()).toEqual([...ids])
+      }
+    } finally { await dispose() }
+  })
+
+  it('n=500 is bounded to the requested page while the total stays exact', async () => {
+    const { db, dispose } = await overviewAccount([], d => [bulkFlights(d, 500, 'TBS', 'IST')])
+    try {
+      const summary = await readOverviewSummary(db)
+      const page = await targets(db, 'status=completed&missing=aircraft', 100)
+      expect(summary.dataAvailability.missingAircraft).toBe(500)
+      expect(page.total).toBe(500)
+      expect(page.flights).toHaveLength(100)
+    } finally { await dispose() }
+  })
+})
