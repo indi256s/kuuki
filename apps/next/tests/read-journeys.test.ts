@@ -42,17 +42,24 @@ test('Journal filters survive refresh and back without a duplicate mount list re
 test('the period stays with the map while ordinary read navigation stays lightweight', async ({ page, baseURL }) => {
   await signIn(page, baseURL!)
   const heavy: string[] = []
+  const projections: string[] = []
   page.on('request', request => {
-    const path = new URL(request.url()).pathname
-    if (path.startsWith('/maps/') && !path.endsWith('.svg') || path.includes('route-projection')) heavy.push(path)
+    const url = new URL(request.url())
+    if (url.pathname.startsWith('/maps/') && !url.pathname.endsWith('.svg')) heavy.push(url.pathname)
+    if (url.pathname.includes('route-projection')) projections.push(url.search)
   })
   await page.goto('/overview?period=2026')
   await expect(page.getByTestId('overview-flights')).toHaveText('1')
+  // The preview draws the period's arcs from the shared projection without loading the interactive map.
+  await expect(page.locator('.ov-map path[data-route]')).toHaveCount(1)
+  await expect(page.locator('.ov-legend-line')).toContainText('1 route')
+  expect(projections).toEqual(['?period=2026'])
   expect(heavy).toHaveLength(0)
   const mapLink = page.getByRole('link', { name: /Open Passport map/ })
   await expect(mapLink).toHaveAttribute('href', /year=2026/)
   await page.goto('/passport')
   await expect(page.getByTestId('passport-data')).toBeVisible()
+  expect(projections).toEqual(['?period=2026'])
   expect(heavy).toHaveLength(0)
   await page.getByRole('button', { name: /United States/ }).first().click()
   await expect(page.getByRole('dialog')).toBeVisible()

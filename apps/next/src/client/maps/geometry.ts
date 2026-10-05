@@ -10,7 +10,8 @@ function valid(point: [number, number] | null): point is [number, number] {
     Math.abs(point[0]) <= 180 && Math.abs(point[1]) <= 90
 }
 
-export function routeGeometry(route: ProjectedRoute): RouteGeometry | null {
+/** Great-circle line between the two ends of a directed route or an undirected pair; null when it is undefined. */
+export function routeGeometry(route: Pick<ProjectedRoute, 'from' | 'to'>): RouteGeometry | null {
   const { from, to } = route
   if (!valid(from) || !valid(to)) return null
   const lon1 = from[0] * Math.PI / 180, lon2 = to[0] * Math.PI / 180

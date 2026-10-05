@@ -13,8 +13,8 @@ import { OverviewRankings } from './rankings'
 import { OverviewRhythm } from './rhythm'
 import './overview.css'
 
-/** Server-rendered Overview for one summary. Only the hero (queue) and the period control are interactive. */
-export function OverviewView({ summary, locale, labels }: { summary: OverviewSummary; locale: Locale; labels: OverviewLabels }) {
+/** Server-rendered Overview for one summary. The hero (queue), the period control and the map's route arcs are client islands. */
+export function OverviewView({ summary, locale, labels, ownerId }: { summary: OverviewSummary; locale: Locale; labels: OverviewLabels; ownerId: string }) {
   const mode = overviewMode(summary)
   return <div data-testid="overview-data" className="overview-data read-stack" data-mode={mode}>
     <PeriodControl locale={locale} period={summary.period} years={summary.years} />
@@ -24,7 +24,7 @@ export function OverviewView({ summary, locale, labels }: { summary: OverviewSum
       : mode === 'empty-year' ? <OverviewEmptyYear period={summary.period} locale={locale} />
       : <>
         <OverviewFigures summary={summary} locale={locale} />
-        <OverviewMap summary={summary} locale={locale} labels={labels} />
+        <OverviewMap summary={summary} locale={locale} labels={labels} ownerId={ownerId} />
         <OverviewNotable summary={summary} locale={locale} labels={labels} />
         <OverviewRankings summary={summary} locale={locale} labels={labels} />
         <OverviewRhythm summary={summary} locale={locale} />

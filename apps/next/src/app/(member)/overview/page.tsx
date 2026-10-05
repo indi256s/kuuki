@@ -30,7 +30,7 @@ async function OverviewData({ period, locale }: { period: OverviewPeriod; locale
   if (owned === 'failed') return <OverviewFailure period={period} locale={locale} />
   return <IdentitySnapshot ownerId={owned.ownerId}>
     <ReadFreshness ownerId={owned.ownerId} revision={owned.summary.revision} publishedRevision={owned.summary.publishedRevision} derivedState={owned.summary.derivedState} locale={locale} />
-    <OverviewView summary={owned.summary} locale={locale} labels={referenceLabels(locale)} />
+    <OverviewView ownerId={owned.ownerId} summary={owned.summary} locale={locale} labels={referenceLabels(locale)} />
   </IdentitySnapshot>
 }
 

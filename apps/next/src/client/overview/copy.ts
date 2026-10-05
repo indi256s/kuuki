@@ -18,9 +18,11 @@ const earth: CountForms = { en: { one: '{count} time around the Earth', other: '
 const noAircraft: CountForms = { en: { one: '{count} flight has no aircraft listed', other: '{count} flights have no aircraft listed' }, ru: { one: 'У {count} рейса не указан самолёт', few: 'У {count} рейсов не указан самолёт', many: 'У {count} рейсов не указан самолёт', other: 'У {count} рейсов не указан самолёт' } }
 const showNext: CountForms = { en: { one: 'Show the next {count} flight', other: 'Show the next {count} flights' }, ru: { one: 'Показать следующий {count} перелёт', few: 'Показать следующие {count} перелёта', many: 'Показать следующие {count} перелётов', other: 'Показать следующие {count} перелёта' } }
 const aircraftSaved: CountForms = { en: { one: '{count} aircraft saved.', other: '{count} aircraft saved.' }, ru: { one: 'Сохранён {count} самолёт.', few: 'Сохранено {count} самолёта.', many: 'Сохранено {count} самолётов.', other: 'Сохранено {count} самолёта.' } }
+const routesShown: CountForms = { en: { one: 'Showing the first {shown} of {count} route.', other: 'Showing the first {shown} of {count} routes.' }, ru: { one: 'Показаны первые {shown} из {count} маршрута.', few: 'Показаны первые {shown} из {count} маршрутов.', many: 'Показаны первые {shown} из {count} маршрутов.', other: 'Показаны первые {shown} из {count} маршрута.' } }
+const unplaced: CountForms = { en: { one: '{count} route has no known airport position and is not drawn.', other: '{count} routes have no known airport position and are not drawn.' }, ru: { one: '{count} маршрут без известных координат аэропорта не показан.', few: '{count} маршрута без известных координат аэропорта не показаны.', many: '{count} маршрутов без известных координат аэропорта не показаны.', other: '{count} маршрута без известных координат аэропорта не показаны.' } }
 const durationKnown: CountForms = { en: { one: 'Duration known for {known} of {count} flight', other: 'Duration known for {known} of {count} flights' }, ru: { one: 'Время известно для {known} из {count} перелёта', few: 'Время известно для {known} из {count} перелётов', many: 'Время известно для {known} из {count} перелётов', other: 'Время известно для {known} из {count} перелётов' } }
 
-export const forms = { flights, flightsOf, routes, airports, countries, visits, waiting, inDays, earth, noAircraft, durationKnown, showNext, aircraftSaved }
+export const forms = { flights, flightsOf, routes, routesShown, unplaced, airports, countries, visits, waiting, inDays, earth, noAircraft, durationKnown, showNext, aircraftSaved }
 
 export const S = {
   heading: p('Overview', 'Обзор'),
@@ -66,6 +68,8 @@ export const S = {
   legend: p('Visits per country', 'Посещений на страну'),
   countryList: p('Countries on the map', 'Страны на карте'),
   noCountries: p('No countries yet.', 'Пока нет стран.'),
+  routesUpdating: p('Route lines are updating.', 'Линии маршрутов обновляются.'),
+  routesUnavailable: p('Route lines are unavailable right now. Countries are still shown.', 'Линии маршрутов сейчас недоступны. Страны по-прежнему показаны.'),
 
   notable: p('Notable', 'Заметное'),
   longest: p('Longest flight', 'Самый длинный перелёт'),
