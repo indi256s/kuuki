@@ -76,18 +76,22 @@ describe('ActivityBridge owner sync', () => {
   })
 })
 
-it('clears capture recents and disclosure preferences when signing out', async () => {
+it("clears the departing owner's capture recents and disclosure preferences when signing out", async () => {
   const { beginIdentityOperation } = await import('../../../web/src/lib/apiClient')
   vi.mocked(beginIdentityOperation).mockReturnValue({ ready: Promise.resolve(), token: Symbol(), release: vi.fn() } as never)
+  // The departing cookie owner is resolved under the account lock before the mutation runs.
+  api.get.mockResolvedValueOnce({ user: { id: 'a' } })
   const { writeCapturePreference, readCapturePreference } = await import('./capture/capture-preferences')
   const { withIdentityMutation } = await import('./activity')
   writeCapturePreference('a', 'airports', ['TBS'])
   writeCapturePreference('a', 'details', true)
+  writeCapturePreference('b', 'airports', ['IST'])
   sessionStorage.setItem('unrelated', 'keep')
   // jsdom reports document navigation as unimplemented; the cleanup precedes it.
   const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
   try { await withIdentityMutation(async () => undefined, '/signin') } finally { consoleError.mockRestore() }
   expect(readCapturePreference('a', 'airports', [])).toEqual([])
   expect(readCapturePreference('a', 'details', false)).toBe(false)
+  expect(readCapturePreference('b', 'airports', [])).toEqual(['IST'])
   expect(sessionStorage.getItem('unrelated')).toBe('keep')
 })
