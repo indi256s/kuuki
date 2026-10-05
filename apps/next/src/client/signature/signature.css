@@ -30,7 +30,7 @@
 }
 
 /* ---------- Stamp ---------- */
-.stamp{--stamp-ink:var(--text-muted);display:grid;gap:var(--space-2);justify-items:center;margin:0;min-width:120px;width:100%;color:var(--text)}
+.stamp{--stamp-ink:var(--stamp-ink-light,var(--text-muted));display:grid;gap:var(--space-2);justify-items:center;margin:0;min-width:120px;width:100%;color:var(--text)}
 .stamp-face{position:relative;width:100%;container-type:inline-size}
 .stamp[data-shape=round] .stamp-face{aspect-ratio:1}
 .stamp[data-shape=rect] .stamp-face{aspect-ratio:4/3}
@@ -50,6 +50,8 @@
 .stamp[data-status=pending][data-shape=round] .stamp-face{border-radius:var(--radius-full)}
 .stamp[data-status=pending] .stamp-native{color:var(--text-muted);font-weight:500}
 .stamp-caption{font-size:13px;line-height:20px;color:var(--text-muted);text-align:center;font-variant-numeric:tabular-nums}
+
+:root[data-theme=dark] .stamp{--stamp-ink:var(--stamp-ink-dark,var(--text-muted))}
 
 /* One-shot press: scale 1.06 + blur 2px settling to 1, with a one-frame ink darkening. */
 .stamp[data-press=play] .stamp-face{animation:stamp-press var(--dur-moment) var(--ease-out) both}

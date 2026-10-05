@@ -77,3 +77,20 @@ export function formatDuration(locale: Locale, minutes: number): string {
   if (m || !h) parts.push(`${formatNumber(locale, m)}${NBSP}${mUnit}`)
   return parts.join(' ')
 }
+
+/**
+ * How long ago a 'YYYY-MM-DD' calendar date was, short and localized: "today", "3 days ago", "2 wk. ago",
+ * "2 mo. ago", "3 yr. ago" / «сегодня», «3 дн. назад», «2 мес. назад», «3 г. назад». Calendar arithmetic in UTC,
+ * so no runtime offset moves the day. A future date reads "today"; an invalid one is returned unchanged.
+ */
+export function formatRelativeDate(locale: Locale, value: string, now = new Date()): string {
+  const date = utcFromDateOnly(value)
+  if (!date) return value
+  const today = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 12)
+  const days = Math.max(0, Math.round((today - date.getTime()) / 86_400_000))
+  if (days < 7) return new Intl.RelativeTimeFormat(locale, { numeric: 'auto', style: 'short' }).format(-days, 'day')
+  const format = new Intl.RelativeTimeFormat(locale, { numeric: 'always', style: 'short' })
+  if (days < 30) return format.format(-Math.floor(days / 7), 'week')
+  const months = (now.getUTCFullYear() - date.getUTCFullYear()) * 12 + now.getUTCMonth() - date.getUTCMonth() - (now.getUTCDate() < date.getUTCDate() ? 1 : 0)
+  return months < 12 ? format.format(-Math.max(1, months), 'month') : format.format(-Math.floor(months / 12), 'year')
+}
