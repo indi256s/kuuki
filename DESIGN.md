@@ -111,6 +111,8 @@ Reduced motion means gentler, not none: remove translate and scale, keep opacity
 
 Lucide only, one SVG per icon, `currentColor`. Stroke 1.5 beside regular text, 2 beside semibold text (nav labels, buttons). Outline is the default; the active item is heavier, uses the accent, and has label weight 600, so active state never relies on color alone. No decorative icon discs. Icons accompany text labels.
 
+**Logo mark.** One stable mark: the kanji 空 (from 空気, *kuuki*) on a filled `--accent` tile with `--accent-foreground` glyph, set in the system Japanese stack `--font-kana` (no webfont). It replaces the brief's suggested く, which reads as a back chevron in every Japanese face; the mark is never a back button. The vertical くうき word stays for the auth brand panel and the profile watermark.
+
 ## Primitives
 
 Shared controls live in `apps/next/src/client/ui/` and build in hit areas (44px touch, 40px minimum dense desktop), press feedback, hover gating and focus rings:
