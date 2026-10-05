@@ -91,7 +91,7 @@ export function ReviewStep(props: ReviewStepProps) {
       : manualRows.length === 0 && groups.duplicates.length === 0 ? <p className="import-empty">{S.noRowsLeft[locale]}</p> : null}
 
     {manualRows.length > 0 ? <ul className="import-rows">{manualRows.map(manual =>
-      <ManualRow key={manual.key} locale={locale} row={manual} showErrors={hasValues(manual.values)} disabled={confirming}
+      <ManualRow key={manual.key} locale={locale} row={manual} showErrors={hasValues(manual.values)} disabled={confirming} retryBlocked={unsaved ? S.unsavedBlock[locale] : undefined}
         onRetryOriginal={() => onManualRetryOriginal(manual.key)} onNewOperation={() => onManualNewOperation(manual.key)}
         // A refusal wrote nothing, so editing clears it; an unconfirmed save keeps its notice until the member resolves it.
         onChange={values => onManualRows(manualRows.map(item => item.key === manual.key ? { ...item, values, failure: item.failure?.kind === 'refused' ? undefined : item.failure } : item))}

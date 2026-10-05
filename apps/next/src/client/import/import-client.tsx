@@ -187,7 +187,9 @@ export function ImportClient({ ownerId, locale, initialBatchId = null, initialSo
 
   /** Save the given drafts and manual rows. Runs the server confirm sequentially, then re-reads the stored snapshot. */
   const save = async (draftIds: string[], manualKeys: string[], originalKeys: ReadonlySet<string> = new Set()) => {
-    if (confirming) return
+    // Every path that can leave the review (Import, Retry original save, Done retry) is held back while a correction
+    // is typed or unsent: leaving would unmount the form and lose it. The review shows the reason beside the control.
+    if (confirming || unsent) return
     setConfirming(true); setCheckFailed(false)
     if (baseline.current === undefined) baseline.current = await fetchPressedCountries()
     const byId = new Map(drafts.map(draft => [draft.id, draft]))

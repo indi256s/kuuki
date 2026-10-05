@@ -348,6 +348,42 @@ describe('I7 manual flights keep their cause and receipt', () => {
   })
 })
 
+describe('N2 manual recovery goes through the same unsaved-correction gate', () => {
+  it('Retry original save is blocked with a visible reason while a typed correction is unsaved, and works once it is saved', async () => {
+    const user = userEvent.setup()
+    const server = serverWith([draft({ id: 'a', selected: false })])
+    patchDraft.mockImplementation(async (id: string, body: { version: number; fields?: Record<string, string> }) => {
+      const stored = server.state.drafts.find(row => row.id === id)!
+      return { ...stored, version: body.version + 1, fields: { ...stored.fields, ...body.fields } }
+    })
+    createFlights.mockResolvedValueOnce([new TypeError('Failed to fetch')])
+    render(<ImportClient ownerId="u1" locale="en" initialBatchId="b1" batchApi={server.api} />)
+    await user.click(await screen.findByRole('button', { name: /add a flight manually/i }))
+    await fillManual(user, ['JFK', 'BOS'])
+    await user.click(screen.getByRole('button', { name: /import 1/i }))
+    await screen.findByRole('heading', { name: /some flights were not saved/i })
+    await user.click(screen.getByRole('button', { name: /back to review/i }))
+
+    await typedDestination(user, 'LAX')
+    const retry = within(manualRow()).getByRole('button', { name: /retry original save/i })
+    expect(retry).toHaveAttribute('aria-disabled', 'true')
+    expect(within(manualRow()).getByText(/some edits are not saved yet/i)).toBeInTheDocument()
+    await user.click(retry)
+    expect(createFlights).toHaveBeenCalledTimes(1)
+    expect(screen.getByRole('heading', { name: /review flights/i })).toBeInTheDocument()
+    expect(screen.getAllByLabelText(/^To \(airport code\)/)[0]).toHaveValue('LAX')
+
+    await user.click(screen.getAllByRole('button', { name: /save changes/i })[0])
+    await waitFor(() => expect(patchDraft).toHaveBeenCalledTimes(1))
+    await waitFor(() => expect(within(manualRow()).getByRole('button', { name: /retry original save/i })).not.toHaveAttribute('aria-disabled', 'true'))
+    createFlights.mockResolvedValueOnce([null])
+    await user.click(within(manualRow()).getByRole('button', { name: /retry original save/i }))
+    await waitFor(() => expect(createFlights).toHaveBeenCalledTimes(2))
+    const [first, second] = createFlights.mock.calls.map(call => (call[1] as Array<{ operationId: string }>)[0].operationId)
+    expect(second).toBe(first)
+  })
+})
+
 describe('I9 and I10 the way back and the deadline', () => {
   it('after saving a subset, Done offers the remaining rows again', async () => {
     const user = userEvent.setup()
