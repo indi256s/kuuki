@@ -178,6 +178,23 @@ describe('CountrySheet freshness and failures', () => {
     expect(within(dialog).queryByRole('alert')).toBeNull()
   })
 
+  it('reports failed derived processing as an error with a retry, not as preparation', async () => {
+    const user = userEvent.setup()
+    const client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
+    mocks.get.mockResolvedValueOnce(detail({ revision: 4, publishedRevision: 3, derivedState: 'error' as CountryDetail['derivedState'] }))
+    render(<Harness client={client} publishedRevision={3} pressed />)
+    const dialog = await screen.findByRole('dialog', { name: 'Greece' })
+    const alert = await within(dialog).findByRole('alert')
+    expect(alert).toHaveTextContent("This country's totals could not be updated. Your visits are saved, but what you see here may be out of date.")
+    expect(within(dialog).queryByText('Recent changes are still being prepared. This country may lag behind them.')).toBeNull()
+    // Saved evidence stays visible.
+    expect(within(dialog).getByText('2018 · by sea')).toBeInTheDocument()
+    mocks.get.mockResolvedValueOnce(detail({ revision: 4, publishedRevision: 4 }))
+    await user.click(within(alert).getByRole('button', { name: 'Try again' }))
+    await waitFor(() => expect(within(dialog).queryByRole('alert')).toBeNull())
+    expect(mocks.get).toHaveBeenCalledTimes(2)
+  })
+
   it('keeps the form and reports a rejected claim, visit or deletion without refreshing', async () => {
     const user = userEvent.setup()
     const onChanged = vi.fn()
@@ -217,6 +234,15 @@ describe('CountrySheet in Russian', () => {
     const remove = await screen.findByRole('dialog', { name: 'Удалить из паспорта: Греция?' })
     expect(within(remove).getByRole('button', { name: 'Закрыть' })).toBeInTheDocument()
     expect(within(remove).queryByRole('button', { name: 'Close' })).toBeNull()
+  })
+})
+
+describe('CountrySheet derived failure in Russian', () => {
+  it('states the failure and offers a retry in Russian', async () => {
+    mount(detail({ revision: 4, publishedRevision: 3, derivedState: 'error' as CountryDetail['derivedState'] }), { locale: 'ru' })
+    const alert = await within(await screen.findByRole('dialog', { name: 'Греция' })).findByRole('alert')
+    expect(alert).toHaveTextContent('Не удалось обновить итоги по стране. Визиты сохранены, но данные здесь могут быть устаревшими.')
+    expect(within(alert).getByRole('button', { name: 'Повторить' })).toBeInTheDocument()
   })
 })
 

@@ -81,7 +81,9 @@ export function CountrySheet({ ownerId, locale, code: selected, entry, published
   const behind = !!data && publishedRevision > data.publishedRevision
   const { refetch } = detail
   useEffect(() => { if (behind) void refetch() }, [behind, publishedRevision, data?.publishedRevision, refetch])
-  const preparing = !!data && !behind && (data.derivedState !== 'ready' || data.publishedRevision < data.revision)
+  // C3 keeps failure apart from pending (`last_error`): a failed derivation is an error with a retry, not "preparing".
+  const derivedFailed = !!data && !behind && !detail.isError && data.derivedState === 'error'
+  const preparing = !!data && !behind && !derivedFailed && (data.derivedState !== 'ready' || data.publishedRevision < data.revision)
   const title = code ? name(code) : ''
   const yearValue = year.trim() ? Number(year) : null
   const yearInvalid = yearValue !== null && (!Number.isInteger(yearValue) || yearValue < 1800 || yearValue > 2200)
@@ -126,6 +128,10 @@ export function CountrySheet({ ownerId, locale, code: selected, entry, published
       {detail.isError ? <p role="alert">{data
         ? (ru ? 'Не удалось обновить страну. Показаны последние загруженные данные.' : 'Could not refresh this country. Showing the last loaded details.')
         : (ru ? 'Не удалось загрузить страну.' : 'Could not load this country.')} <Button dense onClick={() => void detail.refetch()}>{ru ? 'Повторить' : 'Try again'}</Button></p> : null}
+      {derivedFailed ? <p role="alert">{ru
+        ? 'Не удалось обновить итоги по стране. Визиты сохранены, но данные здесь могут быть устаревшими.'
+        : "This country's totals could not be updated. Your visits are saved, but what you see here may be out of date."}{' '}
+        <Button dense loading={detail.isFetching} loadingLabel={ru ? 'Проверяем…' : 'Checking…'} onClick={() => void detail.refetch()}>{ru ? 'Повторить' : 'Try again'}</Button></p> : null}
       {preparing || (behind && detail.isFetching) ? <p role="status" className="passport-note">{ru
         ? 'Последние изменения ещё обрабатываются. Данные страны могут отставать.'
         : 'Recent changes are still being prepared. This country may lag behind them.'}</p> : null}
