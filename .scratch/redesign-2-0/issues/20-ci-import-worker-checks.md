@@ -1,6 +1,6 @@
 # CI does not typecheck or build the import worker
 
-Status: ready-for-human
+Status: resolved
 Owner task: architecture (CI owner; T11 implementers do not edit `.github/workflows/ci.yml`)
 Source: rereview-T11-r1-sol.md finding M6; ADR 0001 §9 delegates the CI additions. Verified on wip/redesign-T11-fix2 @d55498a
 
@@ -20,3 +20,7 @@ A pull request that introduces a type error in `workers/import/ImportJob.ts` fai
 Import Worker CI ownership remains with the architecture/configuration lane. Local import typecheck/dry-build evidence does not establish the missing CI gate. No workflow or remote deployment was changed.
 
 Current integration and evidence: [redesign handoff](../../../docs/plans/2026-10-04-redesign-2.0-implementation-handoff.md). Visual/atlas and external release proof remain deferred under the explicit session constraints.
+
+## Resolution — 2026-10-06
+
+`.github/workflows/ci.yml` now runs `pnpm typecheck:import` after `pnpm typecheck:maintenance` and `WRANGLER_SEND_METRICS=false pnpm build:import` after `pnpm build:maintenance`. Both root scripts exit 0 locally. Gate proof: temporarily appending `const __bad: number = "x"` to `workers/import/ImportJob.ts` made `pnpm typecheck:import` fail with TS2322 (exit 2); the file was restored and is not committed. Commit: f7df55d. Nothing was pushed, so the remote CI run is not yet observed.

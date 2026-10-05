@@ -201,3 +201,11 @@ it.each([
   expect(body).toMatchObject({ code: 'PROVIDER_ERROR', flights: [] })
   expect(JSON.stringify(body)).not.toContain('PRIVATE-provider-canary')
 })
+
+it('keeps a non-JSON SDK error message generic without disclosing it', async () => {
+  provider.generateContent.mockRejectedValue(new ApiError({ status: 400, message: 'PRIVATE-provider-canary: unable to read the document' }))
+  const response = await parseImport(context('/api/import/parse', JSON.stringify({ type: 'pdf', content: 'JVBERi0x' })))
+  const body = await response.json()
+  expect(body).toMatchObject({ code: 'PROVIDER_ERROR', flights: [] })
+  expect(JSON.stringify(body)).not.toContain('PRIVATE-provider-canary')
+})
