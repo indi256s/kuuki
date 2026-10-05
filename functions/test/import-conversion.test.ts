@@ -8,7 +8,7 @@ import { hasSql, instrumentDb } from './db-hooks'
 import { getAwaiting } from './queue-fixture'
 import { onRequestPost as bulkRoute } from '../api/flights/bulk'
 import {
-  OTHER, USER, clock, confirm, daysAfter, getBatch, importAccount, itemKey, patchDraft, providerFlight, providerText, seedBatch,
+  OTHER, USER, clock, confirm, daysAfter, getBatch, importAccount, itemKey, patchDraft, postJob, providerFlight, providerText, seedBatch,
 } from './import-fixture'
 
 const provider = vi.hoisted(() => ({ generateContent: vi.fn() }))
@@ -336,6 +336,35 @@ describe('conversion', () => {
     const { body } = await confirm(db, created.batch.id, { items: created.drafts.map(draft => item(draft)) })
     expect(codes(body.results)).toEqual(['created', 'UNKNOWN_AIRPORT', 'created'])
     expect((await db.prepare('SELECT revision, published_revision FROM user_derived_state WHERE user_id = ?').bind(USER.id).first())).toEqual({ revision: 1, published_revision: 1 })
+  })
+})
+
+describe('T15 review fixes', () => {
+  it('C1: keeps a batch with impossible calendar dates readable and refuses only those rows', async () => {
+    clock()
+    provider.generateContent.mockResolvedValue({ text: providerText([
+      providerFlight({ date: '2026-13-10' }), providerFlight({ date: '2026-02-30' }), providerFlight({ date: '2026-03-11', origin: 'LHR', destination: 'JFK' }),
+    ]) })
+    const job = await postJob(db, {})
+    expect(job.status).toBe(201)
+    const snapshot = await getBatch(db, job.body.batch.id)
+    expect(snapshot.status).toBe(200)
+    const [month, day, valid] = snapshot.body.drafts
+    expect(snapshot.body.drafts.map((draft: any) => draft.fields.date)).toEqual(['2026-13-10', '2026-02-30', '2026-03-11'])
+    for (const invalid of [month, day]) {
+      expect(invalid).toMatchObject({ status: 'review', duplicateFlightId: null, issue: { code: 'INVALID_FLIGHT' } })
+    }
+    expect(valid).toMatchObject({ status: 'review', duplicateFlightId: null, issue: null })
+
+    const { status, body } = await confirm(db, job.body.batch.id, { items: [item(month), item(day), item(valid)] })
+    expect(status).toBe(200)
+    expect(codes(body.results)).toEqual(['INVALID_FLIGHT', 'INVALID_FLIGHT', 'created'])
+    expect(body.results[0]).toMatchObject({ http_status: 400 })
+    expect((await flightRows()).map(row => [row.date, row.origin, row.destination])).toEqual([['2026-03-11', 'LHR', 'JFK']])
+    expect(await count(db, 'flight_idempotency')).toBe(1)
+    for (const invalid of [month, day]) expect(await draftRow(invalid.id)).toMatchObject({ status: 'review', version: 1, converted_flight_id: null })
+    expect(body.batch).toMatchObject({ status: 'review', reviewRowCount: 2 })
+    expect((await getBatch(db, job.body.batch.id)).status).toBe(200)
   })
 })
 

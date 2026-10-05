@@ -5,7 +5,7 @@
 // Never stored: uploaded bytes, base64, pasted text, provider responses, `raw_text`. A draft holds only the
 // extracted flight fields and bounded confidence numbers.
 import { HttpError } from '../_lib/http'
-import { validateFlightInput, type FlightInput } from '../../../packages/shared/src/flightValidation'
+import { isCalendarDate, validateFlightInput, type FlightInput } from '../../../packages/shared/src/flightValidation'
 import { parseFlightBodies } from '../_lib/flightValidation'
 import type { EnrichmentStatus, ExtractedFlight } from '../import/_shared'
 import { findDuplicateMatches, type DuplicateCandidate } from './duplicates'
@@ -281,8 +281,8 @@ export interface BatchSnapshot { batch: BatchView; drafts: DraftView[] }
 
 const fieldsOf = (row: DraftRow) => JSON.parse(row.fields_json) as DraftFields
 
-const isTuple = (fields: DraftFields) => /^\d{4}-\d{2}-\d{2}$/.test(fields.date) && /^[A-Z]{3}$/.test(fields.origin) && /^[A-Z]{3}$/.test(fields.destination)
-  && new Date(fields.date).toISOString().slice(0, 10) === fields.date
+/** A draft can match a flight only with a real date and two airport codes; anything else stays a correctable row. */
+const isTuple = (fields: DraftFields) => isCalendarDate(fields.date) && /^[A-Z]{3}$/.test(fields.origin) && /^[A-Z]{3}$/.test(fields.destination)
 
 /** Duplicate flight id per draft id over the owner's whole history (`excludeId`: the flight a draft already became). */
 export async function duplicatesFor(db: D1Database, userId: string, rows: DraftRow[]): Promise<Map<string, number>> {
