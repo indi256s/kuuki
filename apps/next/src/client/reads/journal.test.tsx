@@ -13,17 +13,8 @@ import { api } from '../../../../web/src/lib/apiClient'
 
 const nav = vi.hoisted(() => ({ push: vi.fn(), replace: vi.fn(), refresh: vi.fn(), set: vi.fn<(query: string) => void>() }))
 vi.mock('next/navigation', () => ({ useRouter: () => nav }))
-// The real Link needs a mounted App Router. This one keeps its click contract: a plain click calls `onNavigate`, then navigates like `router.push`.
-vi.mock('next/link', () => ({
-  default: ({ href, onNavigate, children, ...rest }: { href: string; onNavigate?: (event: { preventDefault: () => void }) => void; children: React.ReactNode; className?: string }) =>
-    <a href={href} {...rest} onClick={event => {
-      if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
-      event.preventDefault()
-      let prevented = false
-      onNavigate?.({ preventDefault: () => { prevented = true } })
-      if (!prevented) nav.push(href)
-    }}>{children}</a>,
-}))
+// The real Link needs a mounted App Router; the stand-in follows its click contract and navigates through the mocked router.
+vi.mock('next/link', async () => ({ default: (await import('../../test/next-link')).linkStandIn((href, { replace }) => nav[replace ? 'replace' : 'push'](href)) }))
 vi.mock('../activity', () => ({ trackPrivateOperation: () => () => {} }))
 vi.mock('../ui/use-mobile', () => ({ useMobile: () => false }))
 vi.mock('./journal-queue', () => ({
@@ -67,7 +58,7 @@ beforeEach(() => {
   vi.mocked(api.delete).mockReset().mockResolvedValue({ derived_state: 'ready' })
   vi.mocked(api.post).mockReset().mockResolvedValue({ derived_state: 'ready' })
 })
-afterEach(() => { vi.useRealTimers(); vi.restoreAllMocks(); window.history.replaceState(null, '', '/') })
+afterEach(async () => { await act(async () => { waiting.splice(0).forEach(resolve => resolve()) }); vi.useRealTimers(); vi.restoreAllMocks(); window.history.replaceState(null, '', '/') })
 
 it('refetches derived readiness with one /api/flights request, even with equal revisions', async () => {
   // `/api/flights` carries the shared Journal contract, including the current derived state, so no separate derived-state read is made.
@@ -92,8 +83,9 @@ it('groups upcoming flights first, then awaiting and logged history by year', ()
 })
 
 // A router whose navigations stay pending (as in Next, where the transition lasts until the page commits) until `deliver(..., true)` settles them.
+// Navigations a slow router still holds; settled after each test so a failed assertion cannot leave a transition that blocks the next test.
+const waiting: Array<() => void> = []
 function slowRouter() {
-  const waiting: Array<() => void> = []
   const impl = () => new Promise<void>(resolve => { waiting.push(resolve) })
   nav.push.mockReset().mockImplementation(impl)
   nav.replace.mockReset().mockImplementation(impl)
