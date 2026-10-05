@@ -3,6 +3,9 @@
 // allowlisted because the column name is interpolated into SQL; every value is bound. Mirrors the
 // frontend FlightFilters in apps/web/src/lib/flights.ts (Phase 6 maps those onto these query params).
 
+import { resolveAirportCodes } from '../../../packages/shared/src/airportSearch'
+import airportCatalog from '../../../packages/data/src/airports.json'
+
 export interface FlightFilters {
   q?: string
   airport?: string
@@ -77,13 +80,16 @@ export function buildFlightWhere(userId: string, filters: FlightFilters): { wher
   const clauses: string[] = ['user_id = ?']
   const binds: (string | number)[] = [userId]
   if (filters.q) {
-    // Bind the entire word list once, leaving room for the three 25-code legacy filters in D1.
+    // Bind every word, with the airport codes it resolves to, as one JSON array. SQLite lower() folds only
+    // ASCII, so city and alias words (Russian, native script, diacritics) are resolved to IATA codes in JS
+    // with Unicode folding and then matched against origin/destination.
     const words = filters.q.trim().slice(0, 100).replace(/(?:→|->|—)/g, ' ').replace(/\b([A-Za-z]{3})-([A-Za-z]{3})\b/g, '$1 $2').split(/\s+/).filter(Boolean)
-    const patterns = (words.length ? words : [filters.q]).map(word => `%${word.replace(/[\\%_]/g, '\\$&')}%`)
+    const terms = (words.length ? words : [filters.q]).map(word => ({ p: `%${word.replace(/[\\%_]/g, '\\$&')}%`, c: resolveAirportCodes(word, airportCatalog) }))
     clauses.push(`NOT EXISTS (SELECT 1 FROM json_each(?) term WHERE NOT (
-      lower(origin || ' ' || destination || ' ' || COALESCE(flight_number, '') || ' ' || COALESCE(airline_iata, '') || ' ' || date) LIKE lower(term.value) ESCAPE '\\'
-      OR EXISTS (SELECT 1 FROM airports_reference a WHERE a.iata IN (origin, destination) AND lower(a.city || ' ' || a.name) LIKE lower(term.value) ESCAPE '\\')))`)
-    binds.push(JSON.stringify(patterns))
+      lower(origin || ' ' || destination || ' ' || COALESCE(flight_number, '') || ' ' || COALESCE(airline_iata, '') || ' ' || date) LIKE lower(json_extract(term.value, '$.p')) ESCAPE '\\'
+      OR EXISTS (SELECT 1 FROM json_each(term.value, '$.c') code WHERE code.value IN (origin, destination))
+      OR EXISTS (SELECT 1 FROM airports_reference a WHERE a.iata IN (origin, destination) AND lower(a.city || ' ' || a.name) LIKE lower(json_extract(term.value, '$.p')) ESCAPE '\\')))`)
+    binds.push(JSON.stringify(terms))
   }
   if (filters.airport) {
     clauses.push('(origin = ? OR destination = ?)')

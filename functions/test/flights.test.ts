@@ -95,6 +95,45 @@ it('shares airport, lifecycle, city/route search and exact filters across list, 
   } finally { await dispose() }
 })
 
+it('matches Russian and native airport aliases with Unicode case folding, across list, count and all IDs', async () => {
+  const { db, dispose } = await createApiDatabase()
+  try {
+    await seed(db)
+    await db.batch([
+      db.prepare('INSERT INTO users (id,email,password_hash) VALUES (?,?,?)').bind('u2', 'other@example.test', 'hash'),
+      ...[
+        [user.id, '2025-04-03', 'TBS', 'IST', 'Q1'],
+        [user.id, '2025-04-04', 'IST', 'TBS', 'Q2'],
+        [user.id, '2024-04-04', 'TBS', 'JFK', 'Q3'],
+        [user.id, '2025-04-05', 'JFK', 'IST', 'Q4'],
+        ['u2', '2025-04-03', 'TBS', 'IST', 'PRIVATE'],
+      ].map(row => db.prepare("INSERT INTO flights (user_id,date,origin,destination,flight_number,source,is_upcoming) VALUES (?,?,?,?,?,'manual',0)").bind(...row)),
+    ])
+    for (const [query, expected] of [
+      ['q=' + encodeURIComponent('Тбилиси'), 3],
+      ['q=' + encodeURIComponent('тбилиси'), 3],
+      ['q=' + encodeURIComponent('ТБИЛИСИ'), 3],
+      ['q=' + encodeURIComponent('тБиЛиСи'), 3],
+      ['q=' + encodeURIComponent('Стамбул'), 3],
+      ['q=' + encodeURIComponent('Стамбул тбилиси'), 2],
+      ['q=' + encodeURIComponent('İSTANBUL'), 3],
+      ['q=' + encodeURIComponent('თბილისი'), 3],
+      ['q=' + encodeURIComponent('Москва'), 0],
+      ['q=' + encodeURIComponent('Шереметьево'), 0],
+      ['q=' + encodeURIComponent('Тбилиси Москва'), 0],
+      ['q=' + encodeURIComponent('Неизвестный'), 0],
+    ] as const) {
+      const response = await listFlights(context(db, `/api/flights?${query}&limit=1`, 'GET'))
+      expect(response.status, query).toBe(200)
+      const body = await response.json() as { flights: Array<{ id: number; flight_number: string }>; total: number }
+      expect(body.total, query).toBe(expected)
+      const ids = await (await flightIds(context(db, `/api/flights/ids?${query}`, 'GET'))).json() as { ids: number[] }
+      expect(ids.ids, query).toHaveLength(expected)
+      expect(body.flights.every(row => row.flight_number !== 'PRIVATE' && ids.ids.includes(row.id))).toBe(true)
+    }
+  } finally { await dispose() }
+})
+
 it('requires a key, rejects invalid values, and validates airport references before writing', async () => {
   const { db, dispose } = await createApiDatabase()
   try {
