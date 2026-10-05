@@ -165,6 +165,19 @@ describe('filters', () => {
     expect(nav.push).toHaveBeenCalledWith('/journal?airline=TKY&airport=IST', { scroll: false })
   })
 
+  it('builds on the last requested URL while the previous navigation has not arrived yet', async () => {
+    const user = userEvent.setup()
+    nav.push.mockReset().mockImplementation(() => {}) // the server round trip has not answered yet
+    render(<Harness />)
+    await user.type(screen.getByRole('textbox', { name: 'Airline' }), 'tk')
+    await user.tab()
+    await user.keyboard('b738')
+    await user.tab()
+    expect(nav.push).toHaveBeenCalledTimes(2)
+    expect(hrefQuery(nav.push.mock.calls[0][0])).toBe('airline=TK')
+    expect(hrefQuery(nav.push.mock.calls[1][0])).toBe('airline=TK&aircraft=B738')
+  })
+
   it('adopts an external URL change (Reset, Back) but not its own navigation', () => {
     render(<Harness start="airline=TK" />)
     expect(screen.getByRole('textbox', { name: 'Airline' })).toHaveValue('TK')

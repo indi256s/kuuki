@@ -128,18 +128,23 @@ function JournalInner({ ownerId, locale, initial, query, page, filtered }: Props
   }, [queryClient, ownerId])
   const data = list.data
   /** One URL change. `refine` replaces the history entry when every changed field already had a value (editing within a field) and pushes otherwise. */
+  // The URL prop lags a navigation by a server round trip. Changes made in that window build on the last requested URL, not the stale prop.
+  const requested = useRef(query)
+  useEffect(() => { requested.current = query }, [query])
   const apply = (changes: Record<string, string>, mode: 'push' | 'replace' | 'refine' = 'push') => {
-    const next = new URLSearchParams(params)
+    const base = new URLSearchParams(requested.current)
+    const next = new URLSearchParams(base)
     let refine = true
     for (const [key, value] of Object.entries(changes)) {
-      if (!(params.get(key) ?? '') || !value) refine = false
+      if (!(base.get(key) ?? '') || !value) refine = false
       if (value) next.set(key, value); else next.delete(key)
     }
     const listChanged = Object.keys(changes).some(key => key !== 'flight' && key !== 'page')
     if (listChanged) next.delete('page')
     const target = normalizeJournalQuery(next).query
-    if (target === normalizeJournalQuery(params).query) return
+    if (target === normalizeJournalQuery(base).query) return
     if (listChanged) select([])
+    requested.current = target
     router[mode === 'replace' || (mode === 'refine' && refine) ? 'replace' : 'push'](withQuery('/journal', target), { scroll: false })
   }
   const navigate = (key: string, value: string, mode: 'push' | 'replace' = 'push') => apply({ [key]: value }, mode)
