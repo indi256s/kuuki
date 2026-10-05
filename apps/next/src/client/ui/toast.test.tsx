@@ -2,6 +2,8 @@
 import { act, fireEvent, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import { useState } from 'react'
+import { Sheet } from './sheet'
 import { ToastProvider, useToast } from './toast'
 
 function Trigger({ kind }: { kind?: 'error' }) {
@@ -40,4 +42,17 @@ describe('Toast', () => {
     act(() => { vi.advanceTimersByTime(250) })
     expect(screen.queryByText('Link copied')).not.toBeInTheDocument()
   })
+})
+
+it('keeps announcements exposed while a Radix modal sheet is open', async () => {
+  function Modal() {
+    const [open, setOpen] = useState(false)
+    return <Sheet title="Review" open={open} onOpenChange={setOpen} trigger={<button>Open review</button>}><Trigger /></Sheet>
+  }
+  render(<ToastProvider><Modal /></ToastProvider>)
+  await userEvent.click(screen.getByRole('button', { name: 'Open review' }))
+  await userEvent.click(screen.getByRole('button', { name: 'Show' }))
+  const announcement = screen.getByRole('status')
+  expect(announcement).toHaveTextContent('Link copied')
+  expect(announcement.closest('[aria-hidden="true"]')).toBeNull()
 })

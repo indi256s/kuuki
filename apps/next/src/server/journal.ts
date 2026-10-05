@@ -1,4 +1,5 @@
 import 'server-only'
+import { normalizeJournalQuery } from '../lib/url-state'
 import { buildFlightWhere, orderByClause, parseFlightFilters, parseSort } from '../../../../functions/api/_lib/flightQuery'
 import { toOwnFlight, type FlightRow } from '../../../../functions/api/_lib/flights'
 import { getRequestEnv, getRequestIdentity } from './identity'
@@ -9,31 +10,10 @@ import { isDerivedReady } from '../../../../functions/api/_services/derivedState
 export const journalPageSize = 20
 
 export function journalParams(input: Record<string, string | string[] | undefined>) {
-  const raw = new URLSearchParams()
-  for (const key of ['year', 'airlineIata', 'aircraftIcao', 'isUpcoming', 'origin', 'destination', 'originCodes', 'destinationCodes', 'airlineIataCodes', 'sortField', 'sortOrder']) {
-    const value = input[key]
-    if (typeof value === 'string') raw.set(key, value)
-  }
-  const search = typeof input.q === 'string' ? input.q.trim().slice(0, 100) : ''
-  if (search) raw.set('q', search)
-  const filters = parseFlightFilters(raw)
-  const sort = parseSort(raw)
-  const page = typeof input.page === 'string' && /^[1-9]\d{0,5}$/.test(input.page) ? Number(input.page) : 1
-  const params = new URLSearchParams()
-  if (filters.year) params.set('year', String(filters.year))
-  if (filters.airlineIata) params.set('airlineIata', filters.airlineIata)
-  if (filters.aircraftIcao) params.set('aircraftIcao', filters.aircraftIcao)
-  if (filters.isUpcoming !== undefined) params.set('isUpcoming', String(filters.isUpcoming))
-  if (filters.origin) params.set('origin', filters.origin)
-  if (filters.destination) params.set('destination', filters.destination)
-  if (filters.originCodes?.length) params.set('originCodes', filters.originCodes.join(','))
-  if (filters.destinationCodes?.length) params.set('destinationCodes', filters.destinationCodes.join(','))
-  if (filters.airlineIataCodes?.length) params.set('airlineIataCodes', filters.airlineIataCodes.join(','))
-  if (search) params.set('q', search)
-  params.set('sortField', sort.field)
-  params.set('sortOrder', sort.order)
-  if (page > 1) params.set('page', String(page))
-  return { params, page, search, filters, sort }
+  const normalized = normalizeJournalQuery(input)
+  const params = new URLSearchParams(normalized.query)
+  const filters = parseFlightFilters(params)
+  return { params, page: Number(params.get('page') ?? 1), search: filters.q ?? '', filters, sort: parseSort(params), canonical: normalized.canonical }
 }
 
 export type JournalData = { flights: ReturnType<typeof toOwnFlight>[]; total: number; updatedAt: number; revision: number; publishedRevision: number; derivedState: 'ready' | 'pending' | 'error' }
@@ -45,8 +25,8 @@ export async function getOwnJournal(input: Record<string, string | string[] | un
   const normalized = journalParams(input)
   const { where, binds } = buildFlightWhere(identity.id, normalized.filters)
   const statements = [
-    env.DB.prepare(`SELECT ${FLIGHT_COLUMNS} FROM flights f WHERE ${where} ${orderByClause(normalized.sort)} LIMIT ? OFFSET ?`).bind(...binds, journalPageSize, (normalized.page - 1) * journalPageSize),
-    env.DB.prepare(`SELECT COUNT(*) AS total FROM flights f WHERE ${where}`).bind(...binds),
+    env.DB.prepare(`SELECT ${FLIGHT_COLUMNS} FROM flights WHERE ${where} ${orderByClause(normalized.sort)} LIMIT ? OFFSET ?`).bind(...binds, journalPageSize, (normalized.page - 1) * journalPageSize),
+    env.DB.prepare(`SELECT COUNT(*) AS total FROM flights WHERE ${where}`).bind(...binds),
     env.DB.prepare('SELECT revision, published_revision, evidence_revision, last_error FROM user_derived_state WHERE user_id = ?').bind(identity.id),
   ]
   const results = await env.DB.batch(statements)

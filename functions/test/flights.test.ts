@@ -1,5 +1,6 @@
 import { afterEach, expect, it, vi } from 'vitest'
 import { createApiDatabase, apiContext, csrfRequest, count } from './harness'
+import { onRequestGet as flightIds } from '../api/flights/ids'
 import { onRequestPost, onRequestGet as listFlights } from '../api/flights/index'
 import { onRequestGet, onRequestPatch, onRequestDelete } from '../api/flights/[id]'
 import { onRequestPost as bulkDelete } from '../api/flights/bulk-delete'
@@ -51,6 +52,46 @@ it('searches owned flight fields literally with matching pagination totals', asy
     expect(await literal.json()).toMatchObject({ total: 1, flights: [{ flight_number: 'Q%99' }] })
     const missing = await listFlights(context(db, '/api/flights?q=not-a-route', 'GET'))
     expect(await missing.json()).toMatchObject({ total: 0, flights: [] })
+  } finally { await dispose() }
+})
+
+it('shares airport, lifecycle, city/route search and exact filters across list, count and all IDs', async () => {
+  const { db, dispose } = await createApiDatabase()
+  try {
+    await seed(db)
+    await db.prepare("UPDATE airports_reference SET city = 'Tbilisi' WHERE iata = 'TBS'").run()
+    await db.batch([
+      db.prepare('INSERT INTO users (id,email,password_hash) VALUES (?,?,?)').bind('u2', 'other@example.test', 'hash'),
+      ...[
+        [user.id, '2025-04-03', 'TBS', 'IST', 'Q%_99', 'TK'],
+        [user.id, '2025-04-04', 'IST', 'TBS', 'Q100', 'TK'],
+        [user.id, '2024-04-04', 'TBS', 'JFK', 'Q200', 'DL'],
+        [user.id, '2025-04-05', 'JFK', 'IST', 'Q300', 'TK'],
+        ['u2', '2025-04-03', 'TBS', 'IST', 'PRIVATE', 'TK'],
+      ].map(row => db.prepare("INSERT INTO flights (user_id,date,origin,destination,flight_number,airline_iata,source,is_upcoming) VALUES (?,?,?,?,?,?,'manual',0)").bind(...row)),
+    ])
+    for (const [query, expected] of [
+      ['airport=tbs&year=2025&airline=TK&status=logged', 2],
+      ['airport=IST&origin=TBS&year=2025', 1],
+      ['q=Tbilisi&year=2025', 2],
+      ['q=2025-04', 3],
+      ['q=TBS%20IST', 2],
+      ['q=TBS%E2%86%92IST', 2],
+      ['q=%25_', 1],
+      ['q=unknown-airport-alias', 0],
+      ['airport=ZZZ', 0],
+      ['status=awaiting', 0],
+      ['airport=TBS&airline=DL', 1],
+      ["q=' OR 1=1 --", 0],
+    ] as const) {
+      const response = await listFlights(context(db, `/api/flights?${query}&limit=1`, 'GET'))
+      expect(response.status).toBe(200)
+      const body = await response.json() as { flights: Array<{ id: number }>; total: number }
+      expect(body.total, query).toBe(expected)
+      const ids = await (await flightIds(context(db, `/api/flights/ids?${query}`, 'GET'))).json() as { ids: number[] }
+      expect(ids.ids, query).toHaveLength(expected)
+      expect(body.flights.every(row => ids.ids.includes(row.id))).toBe(true)
+    }
   } finally { await dispose() }
 })
 

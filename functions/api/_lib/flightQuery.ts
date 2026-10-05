@@ -5,6 +5,8 @@
 
 export interface FlightFilters {
   q?: string
+  airport?: string
+  status?: 'upcoming' | 'awaiting' | 'logged' | 'completed'
   year?: number
   airlineIata?: string
   aircraftIcao?: string
@@ -46,13 +48,17 @@ export function parseFlightFilters(params: URLSearchParams): FlightFilters {
   if (q) filters.q = q
   const year = params.get('year')
   if (year && /^\d{4}$/.test(year)) filters.year = Number(year)
-  const airlineIata = params.get('airlineIata')
+  const airlineIata = params.get('airline') ?? params.get('airlineIata')
   if (airlineIata) filters.airlineIata = airlineIata
-  const aircraftIcao = params.get('aircraftIcao')
+  const aircraftIcao = params.get('aircraft') ?? params.get('aircraftIcao')
   if (aircraftIcao) filters.aircraftIcao = aircraftIcao
   const isUpcoming = params.get('isUpcoming')
   if (isUpcoming === 'true') filters.isUpcoming = true
   else if (isUpcoming === 'false') filters.isUpcoming = false
+  const airport = params.get('airport')
+  if (airport && /^[A-Za-z]{3}$/.test(airport)) filters.airport = airport.toUpperCase()
+  const status = params.get('status')
+  if (status === 'upcoming' || status === 'awaiting' || status === 'logged' || status === 'completed') filters.status = status
   const origin = params.get('origin')
   if (origin) filters.origin = origin.toUpperCase()
   const destination = params.get('destination')
@@ -71,8 +77,21 @@ export function buildFlightWhere(userId: string, filters: FlightFilters): { wher
   const clauses: string[] = ['user_id = ?']
   const binds: (string | number)[] = [userId]
   if (filters.q) {
-    clauses.push("instr(lower(origin || ' ' || destination || ' ' || COALESCE(flight_number, '') || ' ' || date), lower(?)) > 0")
-    binds.push(filters.q.trim().slice(0, 100))
+    // Bind the entire word list once, leaving room for the three 25-code legacy filters in D1.
+    const words = filters.q.trim().slice(0, 100).replace(/(?:→|->|—)/g, ' ').replace(/\b([A-Za-z]{3})-([A-Za-z]{3})\b/g, '$1 $2').split(/\s+/).filter(Boolean)
+    const patterns = (words.length ? words : [filters.q]).map(word => `%${word.replace(/[\\%_]/g, '\\$&')}%`)
+    clauses.push(`NOT EXISTS (SELECT 1 FROM json_each(?) term WHERE NOT (
+      lower(origin || ' ' || destination || ' ' || COALESCE(flight_number, '') || ' ' || COALESCE(airline_iata, '') || ' ' || date) LIKE lower(term.value) ESCAPE '\\'
+      OR EXISTS (SELECT 1 FROM airports_reference a WHERE a.iata IN (origin, destination) AND lower(a.city || ' ' || a.name) LIKE lower(term.value) ESCAPE '\\')))`)
+    binds.push(JSON.stringify(patterns))
+  }
+  if (filters.airport) {
+    clauses.push('(origin = ? OR destination = ?)')
+    binds.push(filters.airport, filters.airport)
+  }
+  if (filters.status) {
+    clauses.push(filters.status === 'completed' ? "lifecycle_state IN ('awaiting', 'logged')" : 'lifecycle_state = ?')
+    if (filters.status !== 'completed') binds.push(filters.status)
   }
   if (filters.year) {
     clauses.push('date >= ? AND date <= ?')
@@ -89,7 +108,7 @@ export function buildFlightWhere(userId: string, filters: FlightFilters): { wher
     clauses.push('aircraft_icao = ?')
     binds.push(filters.aircraftIcao)
   }
-  if (filters.isUpcoming !== undefined) {
+  if (!filters.status && filters.isUpcoming !== undefined) {
     // `isUpcoming=false` keeps its meaning: completed, i.e. awaiting or logged (ADR 0001 §1).
     clauses.push(filters.isUpcoming ? "lifecycle_state = 'upcoming'" : "lifecycle_state IN ('awaiting', 'logged')")
   }
@@ -117,8 +136,8 @@ export interface SortConfig {
 
 /** Allowlisted sort (?sortField=&sortOrder=). Unknown fields fall back to date; default desc. */
 export function parseSort(params: URLSearchParams): SortConfig {
-  const field = params.get('sortField') ?? 'date'
-  const order = params.get('sortOrder') === 'asc' ? 'asc' : 'desc'
+  const field = params.get('sort') ?? params.get('sortField') ?? 'date'
+  const order = (params.get('order') ?? params.get('sortOrder')) === 'asc' ? 'asc' : 'desc'
   return { field: SORT_FIELDS.has(field) ? field : 'date', order }
 }
 

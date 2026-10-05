@@ -14,8 +14,9 @@ async function JournalData({ filters }: { filters: Record<string, string | strin
   if (!owned) redirect('/signin')
   const { ownerId, data, normalized } = owned
   const query = normalized.params.toString()
-  const filtered = !!(normalized.search || normalized.filters.year || normalized.filters.airlineIata || normalized.filters.airlineIataCodes?.length || normalized.filters.aircraftIcao || normalized.filters.isUpcoming !== undefined || normalized.filters.origin || normalized.filters.originCodes?.length || normalized.filters.destination || normalized.filters.destinationCodes?.length)
-  return <IdentitySnapshot ownerId={ownerId}><ReadFreshness ownerId={ownerId} revision={data.revision} publishedRevision={data.publishedRevision} derivedState={data.derivedState} locale={locale} /><JournalView key={`${ownerId}:${query}`} ownerId={ownerId} locale={locale} initial={data} query={query} page={normalized.page} filtered={filtered} /></IdentitySnapshot>
+  if (!normalized.canonical) redirect(`/journal${query ? `?${query}` : ''}`)
+  const filtered = !!(normalized.search || normalized.filters.year || normalized.filters.airlineIata || normalized.filters.aircraftIcao || normalized.filters.status || normalized.filters.airport || normalized.filters.origin || normalized.filters.destination)
+  return <IdentitySnapshot ownerId={ownerId}><ReadFreshness ownerId={ownerId} revision={data.revision} publishedRevision={data.publishedRevision} derivedState={data.derivedState} locale={locale} /><JournalView key={ownerId} ownerId={ownerId} locale={locale} initial={data} query={query} page={normalized.page} filtered={filtered} /></IdentitySnapshot>
 }
 export const generateMetadata = () => pageMetadata('Journal', 'Журнал')
 export default async function Journal({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {

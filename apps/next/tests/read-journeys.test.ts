@@ -1,5 +1,14 @@
-import { test, expect } from '@playwright/test'
-import { signIn } from './helpers'
+import { test, expect, type Page, type BrowserContext } from '@playwright/test'
+import { signIn as authenticate, claimUsername } from './helpers'
+
+// Share real sessions within this file so the suite stays inside production auth limits.
+let fixtureCookies: Awaited<ReturnType<BrowserContext['cookies']>> | undefined
+let journalCookies: Awaited<ReturnType<BrowserContext['cookies']>> | undefined
+async function signIn(page: Page, origin: string) {
+  if (fixtureCookies) return page.context().addCookies(fixtureCookies)
+  await authenticate(page, origin)
+  fixtureCookies = await page.context().cookies()
+}
 
 test('Journal filters survive refresh and back without a duplicate mount list read', async ({ page, baseURL }) => {
   await signIn(page, baseURL!)
@@ -20,8 +29,13 @@ test('Journal filters survive refresh and back without a duplicate mount list re
   await expect(page.locator('.flight-row')).toHaveCount(1)
   await page.locator('.flight-row').click()
   await expect(page.getByRole('dialog')).toBeVisible()
-  await page.getByRole('link', { name: 'Edit or delete flight' }).click()
-  await page.waitForURL(/\/journal\/\d+\/edit$/)
+  await page.waitForURL(url => url.searchParams.has('flight'))
+  const id = new URL(page.url()).searchParams.get('flight')!
+  await page.getByRole('button', { name: 'Edit flight', exact: true }).click()
+  await expect(page.getByRole('button', { name: 'Save flight' })).toBeVisible()
+  await page.keyboard.press('Escape')
+  await page.waitForURL(url => !url.searchParams.has('flight'))
+  await page.goto(`/journal/${id}/edit`)
   await expect(page.getByRole('button', { name: 'Save flight' })).toBeVisible()
 })
 
@@ -111,4 +125,161 @@ test('RU read controls fit narrow and desktop viewports in both themes', async (
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark')
   await page.goto('/journal')
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
+})
+
+
+async function journalAccount(page: Page, origin: string) {
+  if (journalCookies) await page.context().addCookies(journalCookies)
+  else {
+    const response = await page.request.post('/api/auth/sign-up/email', { headers: { Origin: origin }, data: { email: `journal-${crypto.randomUUID()}@example.test`, password: 'journal-password-2026' } })
+    expect(response.status()).toBe(201)
+    await claimUsername(page, origin)
+    journalCookies = await page.context().cookies()
+  }
+  const csrf = decodeURIComponent((await page.context().cookies()).find(cookie => cookie.name === 'kuuki_csrf')!.value)
+  const headers = { Origin: origin, 'X-CSRF-Token': csrf }
+  const create = async (date: string, flightNumber: string, details: Record<string, string> = {}) => {
+    const result = await page.request.post('/api/flights', { headers: { ...headers, 'Idempotency-Key': crypto.randomUUID() }, data: { date, origin: 'JFK', destination: 'BOS', flight_number: flightNumber, timezone: 'UTC', ...details } })
+    expect(result.status()).toBe(201)
+    return (await result.json()).id as number
+  }
+  const awaiting = async (number: string, details: Record<string, string> = {}) => {
+    const today = new Date().toISOString().slice(0, 10)
+    const future = new Date(Date.now() + 2 * 86400000).toISOString().slice(0, 10)
+    const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10)
+    expect(yesterday < today).toBe(true)
+    const id = await create(future, number, details)
+    const patch = await page.request.patch(`/api/flights/${id}`, { headers, data: { date: yesterday, timezone: 'UTC' } })
+    expect(patch.status()).toBe(200)
+    expect((await patch.json()).lifecycle_state).toBe('awaiting')
+    return id
+  }
+  return { create, awaiting, headers }
+}
+
+test('Journal stages mobile filters, preserves detail/reset state and maps legacy keys', async ({ page, baseURL }) => {
+  await signIn(page, baseURL!)
+  await page.goto('/flights?year=2026&airlineIata=AA&sortField=distance_km&sortOrder=asc&isUpcoming=false')
+  await page.waitForURL(url => url.pathname === '/journal')
+  expect(Object.fromEntries(new URL(page.url()).searchParams)).toEqual({ year: '2026', airline: 'AA', sort: 'distance_km', order: 'asc', status: 'completed' })
+  await page.goto('/journal?year=2026&airport=JFK&queue=awaiting&order=asc')
+  await page.getByRole('button', { name: 'Filters', exact: true }).click()
+  await page.getByRole('combobox', { name: 'Status', exact: true }).selectOption('logged')
+  await page.getByRole('button', { name: 'Close filters' }).click()
+  await page.getByRole('button', { name: 'Filters', exact: true }).click()
+  await expect(page.getByRole('combobox', { name: 'Status', exact: true })).toHaveValue('')
+  await page.getByRole('combobox', { name: 'Status', exact: true }).selectOption('upcoming')
+  expect(new URL(page.url()).searchParams.has('status')).toBe(false)
+  await page.getByRole('button', { name: 'Apply filters' }).click()
+  await page.waitForURL(url => url.searchParams.get('status') === 'upcoming')
+  await page.goBack()
+  await expect(page.locator('.flight-row')).toHaveCount(1)
+  await page.locator('.flight-row').click()
+  await page.waitForURL(url => url.searchParams.has('flight'))
+  expect(new URL(page.url()).searchParams.get('airport')).toBe('JFK')
+  await page.getByRole('button', { name: 'Close flight' }).click()
+  await page.waitForURL(url => !url.searchParams.has('flight'))
+  await page.getByRole('link', { name: 'Reset filters', exact: true }).click()
+  await page.waitForURL(url => !url.searchParams.has('airport'))
+  expect(Object.fromEntries(new URL(page.url()).searchParams)).toEqual({ queue: 'awaiting', order: 'asc' })
+  await page.getByRole('button', { name: 'Add aircraft', exact: true }).click()
+  await expect(page.getByRole('button', { name: 'Save flight' })).toBeVisible()
+  await page.keyboard.press('Escape')
+  await page.waitForURL(url => !url.searchParams.has('flight'))
+  await page.locator('.flight-row').click()
+  await page.getByRole('button', { name: 'Delete flight', exact: true }).click()
+  await page.getByRole('dialog', { name: 'Delete flight?' }).getByRole('button', { name: 'Delete flight', exact: true }).click()
+  await page.waitForURL(url => !url.searchParams.has('flight'))
+  await page.getByRole('button', { name: 'Undo', exact: true }).click()
+  await expect(page.locator('.flight-row')).toHaveCount(1)
+  expect(Object.fromEntries(new URL(page.url()).searchParams)).toEqual({ queue: 'awaiting', order: 'asc' })
+  await page.setViewportSize({ width: 1200, height: 800 })
+  await page.getByRole('button', { name: 'Distance', exact: true }).focus()
+  await page.keyboard.press('Enter')
+  await page.waitForURL(url => url.searchParams.get('sort') === 'distance_km')
+  await page.getByRole('combobox', { name: 'Status', exact: true }).selectOption('logged')
+  await page.waitForURL(url => url.searchParams.get('status') === 'logged')
+})
+
+test('Journal selects the full filtered dataset and deletes after Undo, preserving other years', async ({ page, baseURL }) => {
+  test.setTimeout(60000)
+  const { headers, create } = await journalAccount(page, baseURL!)
+  const bulk = await page.request.post('/api/flights/bulk', { headers, data: { items: Array.from({ length: 21 }, (_, index) => ({ key: crypto.randomUUID(), flight: { date: `2025-01-${String(index + 1).padStart(2, '0')}`, origin: 'JFK', destination: 'BOS', flight_number: `BULK${index}` } })) } })
+  expect(bulk.status()).toBe(200)
+  expect((await bulk.json()).results.every((result: { status: string }) => result.status === 'created')).toBe(true)
+  const keptId = await create('2024-01-01', 'KEPT')
+  await page.goto('/journal?year=2025&airport=BOS')
+  await expect(page.locator('.flight-row')).toHaveCount(20)
+  await expect(page.getByRole('heading', { name: '2025 · Logged' })).toBeVisible()
+  await page.getByRole('button', { name: 'Select all matching flights' }).click()
+  const actions = page.getByRole('region', { name: 'Selection actions' })
+  await expect(actions).toContainText('21 flights')
+  await actions.getByRole('button', { name: 'Delete selected flights' }).click()
+  await page.getByRole('dialog', { name: 'Delete selected flights' }).getByRole('button', { name: 'Delete selected flights' }).click()
+  await expect(page.locator('.flight-row')).toHaveCount(0)
+  await page.getByRole('button', { name: 'Undo', exact: true }).click()
+  await expect(page.locator('.flight-row')).toHaveCount(20)
+  expect((await (await page.request.get('/api/flights?year=2025')).json()).total).toBe(21)
+  await actions.getByRole('button', { name: 'Delete selected flights' }).click()
+  await page.getByRole('dialog').getByRole('button', { name: 'Delete selected flights' }).click()
+  await expect(page.getByRole('heading', { name: 'Nothing matches these filters.' })).toBeVisible({ timeout: 15000 })
+  expect((await (await page.request.get('/api/flights')).json()).total).toBe(1)
+  await page.getByRole('link', { name: 'Reset filters' }).first().click()
+  await expect(page.locator('.flight-row')).toHaveCount(1)
+  await expect(page.locator('.flight-row')).toContainText('KEPT')
+  // Leave this shared account without old country evidence for the confirmation journey.
+  expect((await page.request.delete(`/api/flights/${keptId}`, { headers })).status()).toBe(200)
+})
+
+test('awaiting queue survives filters, retries failures, confirms in bulk and hides an empty badge', async ({ page, baseURL }) => {
+  const { awaiting } = await journalAccount(page, baseURL!)
+  for (const [index, number] of ['QUEUE1', 'QUEUE2', 'QUEUE3'].entries()) await awaiting(number, { origin: index === 1 ? 'BOS' : 'JFK', destination: index === 1 ? 'JFK' : 'BOS', departure_time: `${8 + index * 3}:00`.padStart(5, '0'), arrival_time: `${9 + index * 3}:00`.padStart(5, '0'), origin_tz: 'UTC', dest_tz: 'UTC' })
+  await page.goto('/journal?q=NO-SUCH-FLIGHT&queue=awaiting')
+  await expect(page.getByRole('heading', { name: 'Nothing matches these filters.' })).toBeVisible()
+  await expect(page.locator('#awaiting-queue .awaiting-card')).toHaveCount(3)
+  await expect(page.locator('.queue-summary')).toContainText('3')
+  await expect(page.getByRole('button', { name: /Flight chain/ })).toHaveCount(1)
+  await expect(page.getByText('Left the airport', { exact: true })).toHaveCount(2)
+  await page.getByLabel('Left the airport', { exact: true }).first().uncheck()
+  let original: unknown
+  let writes = 0
+  await page.route('**/api/flights/confirm', async route => {
+    writes++
+    if (writes === 1) { original = route.request().postDataJSON(); expect((original as { items: { arrivalTransit?: boolean }[] }).items.some(item => item.arrivalTransit === true)).toBe(true); return route.fulfill({ status: 503, json: { error: 'Temporary failure' } }) }
+    expect(route.request().postDataJSON()).toEqual(original)
+    return route.continue()
+  })
+  await page.getByRole('button', { name: 'Confirm all shown' }).click()
+  await expect(page.getByRole('button', { name: 'Retry confirmation' })).toBeVisible()
+  await expect(page.locator('#awaiting-queue .awaiting-card')).toHaveCount(3)
+  await page.getByRole('button', { name: 'Retry confirmation' }).click()
+  await expect(page.getByRole('status').filter({ hasText: 'New stamps: United States.' })).toBeFocused()
+  await expect(page.locator('#awaiting-queue .awaiting-card')).toHaveCount(0)
+  await expect(page.locator('.queue-summary')).toHaveCount(0)
+  expect(writes).toBe(2)
+  expect((await (await page.request.get('/api/me/awaiting')).json()).actionableCount).toBe(0)
+})
+
+test('did-not-fly Undo, deletion failure and retry keep the actual flight and disable offline actions', async ({ page, context, baseURL }) => {
+  test.setTimeout(60000)
+  const { awaiting } = await journalAccount(page, baseURL!)
+  const id = await awaiting('CANCEL1')
+  await page.goto('/journal')
+  await page.getByRole('button', { name: 'Did not fly', exact: true }).click()
+  await expect(page.locator('#awaiting-queue .awaiting-card')).toHaveCount(0)
+  await page.getByRole('button', { name: 'Undo', exact: true }).click()
+  await expect(page.locator('#awaiting-queue .awaiting-card')).toHaveCount(1)
+  await context.setOffline(true)
+  await expect(page.getByRole('button', { name: 'Confirm arrival' })).toHaveAttribute('aria-disabled', 'true')
+  await expect(page.getByText('Offline. Connect to change flights.').first()).toBeVisible()
+  await context.setOffline(false)
+  await page.route(`**/api/flights/${id}`, route => route.request().method() === 'DELETE' ? route.fulfill({ status: 503, json: { error: 'Delete failed' } }) : route.continue())
+  await page.getByRole('button', { name: 'Did not fly', exact: true }).click()
+  await expect(page.getByRole('alert').filter({ hasText: 'Delete failed. Your flights are restored.' })).toBeVisible({ timeout: 15000 })
+  await expect(page.locator('#awaiting-queue .awaiting-card')).toHaveCount(1)
+  expect((await page.request.get(`/api/flights/${id}`)).status()).toBe(200)
+  await page.unroute(`**/api/flights/${id}`)
+  await page.getByRole('button', { name: 'Retry deletion' }).click()
+  await expect(page.locator('.queue-summary')).toHaveCount(0, { timeout: 15000 })
+  expect((await page.request.get(`/api/flights/${id}`)).status()).toBe(404)
 })
