@@ -20,8 +20,12 @@ test('a Next flight remains editable and deletable in the legacy app on the same
 
   await page.goto('/add')
   await page.getByLabel('Date').fill('2025-06-01')
-  await page.getByRole('combobox', { name: 'From' }).fill('JFK')
-  await page.getByRole('combobox', { name: 'To' }).fill('BOS')
+  for (const [label, code] of [['From', 'JFK'], ['To', 'BOS']]) {
+    await page.getByRole('combobox', { name: label }).click()
+    const search = page.getByRole('dialog', { name: label, exact: true })
+    await search.getByRole('combobox', { name: label }).fill(code)
+    await search.getByRole('option', { name: new RegExp(`^${code} `) }).click()
+  }
   const createRequest = page.waitForRequest(request => new URL(request.url()).pathname === '/api/flights' && request.method() === 'POST')
   await page.getByRole('button', { name: 'Save flight' }).click()
   const original = await createRequest
