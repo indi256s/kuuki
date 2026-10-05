@@ -277,9 +277,41 @@ describe('edit', () => {
       } } as unknown as D1Database
       const stale = await patchRoute(context(racing, `/api/flights/${json.id}`, 'PATCH', { flight_number: 'KU4' }, undefined, String(json.id)))
       expect(stale.status).toBe(409)
-      expect(await stale.json()).toMatchObject({ code: 'STATE_CONFLICT' })
+      expect(await stale.json()).toMatchObject({ code: 'STATE_CONFLICT', cause: 'flight_changed' })
       expect(await lifecycleOf(db, json.id)).toMatchObject({ lifecycle_state: 'awaiting', is_upcoming: 0 }) // not overwritten
       expect((await db.prepare('SELECT flight_number FROM flights WHERE id = ?').bind(json.id).first<{ flight_number: string | null }>())?.flight_number).toBeNull()
+    } finally { await dispose() }
+  })
+
+  it('does not overwrite an arrival decision a transit review wrote after the edit read the row', async () => {
+    const { db, dispose } = await createApiDatabase()
+    try {
+      await seed(db); setNow(NOW)
+      // A historical flight, logged by an old writer: the lifecycle state stays `logged` across a transit review,
+      // so the state guard alone would not notice it.
+      const { json } = await create(db, { ...flight, date: '2026-03-01' })
+      expect(await lifecycleOf(db, json.id)).toMatchObject({ lifecycle_state: 'logged', arrival_transit: null })
+      const racing = (write: string) => ({ prepare: (sql: string) => db.prepare(sql), batch: async (statements: D1PreparedStatement[]) => {
+        await db.prepare(write).bind(json.id).run()
+        return db.batch(statements)
+      } } as unknown as D1Database)
+      const read = (id: number) => db.prepare('SELECT arrival_transit AS t, arrival_transit_leg_id AS leg, flight_number AS n FROM flights WHERE id = ?').bind(id).first<any>()
+
+      // 1. NULL -> 1 with a leg (the apply). The edit's snapshot says NULL.
+      const decided = await patchRoute(context(racing('UPDATE flights SET arrival_transit = 1, arrival_transit_leg_id = 77 WHERE id = ?'), `/api/flights/${json.id}`, 'PATCH', { flight_number: 'KU5' }, undefined, String(json.id)))
+      expect(decided.status).toBe(409)
+      expect(await decided.json()).toMatchObject({ code: 'STATE_CONFLICT', cause: 'flight_changed' })
+      expect(await read(json.id)).toEqual({ t: 1, leg: 77, n: null })
+
+      // 2. Only the leg changes under an existing decision.
+      const moved = await patchRoute(context(racing('UPDATE flights SET arrival_transit_leg_id = 78 WHERE id = ?'), `/api/flights/${json.id}`, 'PATCH', { flight_number: 'KU6' }, undefined, String(json.id)))
+      expect(moved.status).toBe(409)
+      expect(await read(json.id)).toEqual({ t: 1, leg: 78, n: null })
+
+      // Without a race the edit still goes through and keeps the decision (the route did not change).
+      const plain = await patch(db, json.id, { flight_number: 'KU7' })
+      expect(plain.status).toBe(200)
+      expect(await read(json.id)).toEqual({ t: 1, leg: 78, n: 'KU7' })
     } finally { await dispose() }
   })
 })

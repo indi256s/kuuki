@@ -94,7 +94,8 @@ export function updateFlightRequest(request: Request, env: Env, data: RequestDat
          departure_time = ?, arrival_time = ?, departure_utc = ?, arrival_utc = ?, origin_tz = ?, dest_tz = ?,
          distance_km = ?, duration_minutes = ?, source = ?, enrichment_status = ?,
          ${LIFECYCLE_COLUMN_NAMES.map(name => `${name} = ?`).join(', ')}
-       WHERE id = ? AND user_id = ? AND lifecycle_state = ?`,
+       WHERE id = ? AND user_id = ? AND lifecycle_state = ?
+         AND arrival_transit IS ? AND arrival_transit_leg_id IS ?`,
     )
       .bind(
         date,
@@ -117,11 +118,15 @@ export function updateFlightRequest(request: Request, env: Env, data: RequestDat
         id,
         user.id,
         existing.lifecycle_state,
+        existing.arrival_transit,
+        existing.arrival_transit_leg_id,
       ), dirtyUserStatement(env.DB, user.id, true)])
     if (!update.meta.changes) {
-      // The state guard keeps a concurrent sync or confirmation from being overwritten by this edit's snapshot.
+      // The guard keeps a concurrent sync, confirmation or transit review from being overwritten by this edit's
+      // snapshot: the UPDATE writes every lifecycle column back, including the arrival decision. A flight deleted
+      // meanwhile is a 404, not a conflict.
       await loadFlight(env.DB, id, user.id)
-      throw new HttpError(409, 'Flight changed while it was being edited; reload and retry', 'STATE_CONFLICT')
+      throw new HttpError(409, 'Flight changed while it was being edited; reload and retry', 'STATE_CONFLICT', { cause: 'flight_changed' })
     }
     const updated = await loadFlight(env.DB, id, user.id)
     const derived = await repairUserDerivedState(env.DB, user.id)
