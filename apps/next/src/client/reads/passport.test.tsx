@@ -94,6 +94,31 @@ describe('pending slot navigation', () => {
     expect(mocks.push).not.toHaveBeenCalled()
   })
 
+  it('drops a pending arrival when history traversal supersedes it without unmounting', async () => {
+    render(<PassportView ownerId="owner" locale="en" initial={initial} />)
+    fireEvent.click(pendingLink('Portugal'))
+    await settle()
+    act(() => { window.dispatchEvent(new PopStateEvent('popstate')) })
+    expect(screen.queryByText('Opening the arrival card for Portugal…')).toBeNull()
+    reads.get('PT')!.resolve(awaitingDetail('PT', 8))
+    await settle()
+    expect(mocks.push).not.toHaveBeenCalled()
+  })
+
+  it('does not override another URL change while the lookup is pending', async () => {
+    render(<PassportView ownerId="owner" locale="en" initial={initial} />)
+    fireEvent.click(pendingLink('Portugal'))
+    await settle()
+    const before = window.location.href
+    try {
+      window.history.replaceState(null, '', '/passport?country=PT')
+      reads.get('PT')!.resolve(awaitingDetail('PT', 8))
+      await settle()
+      expect(mocks.push).not.toHaveBeenCalled()
+      expect(screen.queryByText('Opening the arrival card for Portugal…')).toBeNull()
+    } finally { window.history.replaceState(null, '', before) }
+  })
+
   it('leaves modified clicks to the browser', () => {
     render(<PassportView ownerId="owner" locale="en" initial={initial} />)
     const link = pendingLink('Portugal')

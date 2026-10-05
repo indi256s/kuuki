@@ -31,8 +31,12 @@ function Inner({ ownerId, locale, initial, period }: { ownerId: string; locale: 
   const [notice, setNotice] = useState('')
   // A pending slot resolving its arrival card: shown while the evidence loads, dropped when the member leaves or acts.
   const [opening, setOpening] = useState<string | null>(null)
-  const arrivalIntent = useRef<{ code: string } | null>(null)
-  useEffect(() => () => { arrivalIntent.current = null }, [])
+  const arrivalIntent = useRef<{ code: string; href: string } | null>(null)
+  useEffect(() => {
+    const cancelArrival = () => { arrivalIntent.current = null; setOpening(null) }
+    window.addEventListener('popstate', cancelArrival)
+    return () => { arrivalIntent.current = null; window.removeEventListener('popstate', cancelArrival) }
+  }, [])
   // Countries added in this session press onto the grid once (Stamp keeps the per-ID memory).
   const [pressed, setPressed] = useState<ReadonlyMap<string, string>>(new Map())
   const [now] = useState(() => new Date())
@@ -91,14 +95,14 @@ function Inner({ ownerId, locale, initial, period }: { ownerId: string; locale: 
   // supersedes it, so a late read never pulls the member away.
   async function openArrival(code: string) {
     if (arrivalIntent.current?.code === code) return
-    const intent = { code }
+    const intent = { code, href: window.location.href }
     arrivalIntent.current = intent
     setOpening(code)
     const flight = await queryClient.fetchQuery(countryDetailQuery(ownerId, code)).then(arrivalFlightId, () => null)
     if (arrivalIntent.current !== intent) return
     arrivalIntent.current = null
     setOpening(null)
-    router.push(arrivalHref(flight))
+    if (window.location.href === intent.href) router.push(arrivalHref(flight))
   }
   const startAdding = () => { arrivalIntent.current = null; setOpening(null); setAdding(true) }
 
