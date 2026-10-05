@@ -183,3 +183,5 @@
   .ui-disclosure-chevron{transition:none}
   .ui-disclosure-inner{transition:opacity var(--dur-fast) linear}
 }
+
+.ui-dialog,.ui-sheet{--ticket-backdrop:var(--surface-floating)}

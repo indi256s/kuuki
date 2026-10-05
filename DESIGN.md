@@ -19,7 +19,7 @@ Map fills use a sequential accent ramp and a titled legend with fixed buckets 1,
 | Sakura | `#8c4c65` | `#e7aac1` | `#fff` / `#292827` |
 | Sumi | `#4a4641` | `#d0cbc5` | `#fff` / `#292827` |
 
-For non-terracotta accents `--accent-text` equals `--accent` and `--focus` follows the fill. The brief suggests dark foreground on Kincha and Sakura; the built light fills are dark enough for white, so the code wins. `--swatch-<name>` mirrors each fill for the picker dots. The picker is **Planned (W5/T21)** in Settings; today it exists only in the dev gallery.
+For non-terracotta accents `--accent-text` equals `--accent` and `--focus` follows the fill. The brief suggests dark foreground on Kincha and Sakura; the built light fills are dark enough for white, so the code wins. `--swatch-<name>` mirrors each fill for the picker dots. The picker is built in Settings and the dev gallery.
 
 ## Type and layout
 
@@ -130,7 +130,7 @@ One material at a time.
 | 2 Floating | `--surface-floating`, `--shadow-floating`, no border | `--surface-floating` + `--ring-floating` | Popovers, menus, toasts, action bar |
 | 3 Modal | Level 2 with `--shadow-modal`; `--scrim` | Level 2; `--scrim` | Dialogs, sheets |
 
-Levels 2 and 3 are built on every ui-kit primitive. Level 1 in dark is built only for `Ticket` (border goes transparent); `.read-panel`, `.flight-ticket`, `.capture-card` and `.auth-card` keep the hairline in both themes, and the inner top highlight does not exist yet. **Planned (W4/T18)** with the theme acceptance pass. Images and avatars use `--outline-media`. Primary is one flat accent fill.
+Levels 2 and 3 are built on every ui-kit primitive. In dark, Ticket, read panels and capture/auth cards use a transparent border and a 1px inner top highlight through `--surface-highlight`. Light keeps its hairline. These are source contracts; visual proof remains deferred. Images and avatars use `--outline-media`. Primary is one flat accent fill.
 
 ## Motion
 
@@ -169,7 +169,7 @@ One breakpoint at 700px switches between desktop and mobile. The header and tab 
 
 **Desktop (above 700px).** Header 56px, solid `--background`, hairline bottom border, content aligned to 1200px. Left: wordmark, then Overview, Journal, Passport, Leaderboard (Обзор, Журнал, Паспорт, Рейтинг). Links are 44px high, radius `--radius-sm`, hover `--surface-inset`; active is `--accent-text`, 600, with a 2px accent underline inset 12px. Right: queue slot, split Add, avatar menu.
 - **Split Add.** Accent fill, `--control-h-sm` tall, radius `--radius-sm`. The main half is a link to `/add` (manual entry); the chevron half opens a Menu with Upload a boarding pass or PDF, Paste text, Enter manually. One shared list (`ADD_ACTIONS`) feeds this menu and the mobile sheet. The brief names two items; the built menu has three.
-- **Avatar menu.** A 40px circle button showing the name's initial, ringed by `--outline-media`. Menu: My profile (with Public or Hidden status), Public profile checkbox (turning it off also leaves leaderboards), Settings, Theme radios (Light, Dark, System), Language radios (EN, RU), Sign out. Accent is not in the menu; see Planned (W5/T21). The brief's blob avatar in place of the initial is not built.
+- **Avatar menu.** A 40px circle button using the shared profile photo or reactive blob fallback, ringed by `--outline-media`. Menu: My profile (with Public or Hidden status), Public profile checkbox (turning it off also leaves leaderboards), Settings, Theme radios (Light, Dark, System), Language radios (EN, RU), Sign out. Accent selection is in Settings.
 
 **Mobile (700px and below).** Header 48px with the wordmark; the split Add and avatar menu are hidden. A fixed bottom tab bar replaces the nav (`<nav aria-label="Tabs">`):
 - **Layout.** `--tabbar-h` 56px plus the safe-area inset, `--background`, hairline top border, five equal columns: Overview, Journal, Add, Passport, Me (Я). Leaderboard is reached from Me and the desktop nav; Settings leaves the tab bar.

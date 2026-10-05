@@ -52,3 +52,6 @@ a.ui-menu-item{color:inherit;text-decoration:none}
 }
 @media(max-width:360px){.tab{font-size:11px}}
 @media(prefers-reduced-motion:reduce){.tab-bar{transition:none}.split-add-main:active,.split-add-more:active{transform:none}}
+
+.mobile-page-title{display:none;margin:0;font-size:17px;line-height:24px;font-weight:600}
+@media(max-width:700px){.member-header .wordmark{display:none}.member-header .mobile-page-title{display:block}}

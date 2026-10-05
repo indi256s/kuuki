@@ -8,10 +8,11 @@ import { trackPrivateOperation, withIdentityMutation } from './activity'
 import { setLocale, setTheme } from './appearance'
 import { useAppearance } from './preferences'
 import { Menu, MenuCheckboxItem, MenuItem, MenuLabel, MenuRadioGroup, MenuRadioItem, MenuSeparator } from './ui/menu'
+import { ProfileAvatar } from './profile/avatar'
 
 type Theme = 'system' | 'light' | 'dark'
 
-export function AvatarMenu({ username, displayName, isPublic, locale = 'en' }: { username: string; displayName?: string | null; isPublic: boolean; locale?: 'en' | 'ru' }) {
+export function AvatarMenu({ username, id = username, avatarUrl, displayName, isPublic, locale = 'en' }: { id?: string; avatarUrl?: string | null; username: string; displayName?: string | null; isPublic: boolean; locale?: 'en' | 'ru' }) {
   const router = useRouter()
   const appearance = useAppearance(locale)
   const ru = appearance.locale === 'ru'
@@ -40,9 +41,8 @@ export function AvatarMenu({ username, displayName, isPublic, locale = 'en' }: {
     catch { if (mounted.current) setError(ru ? 'Не удалось выйти.' : 'Could not sign out.') }
   }
 
-  const initial = (displayName?.trim() || username).slice(0, 1).toUpperCase()
   const profileHref = `/fly/${encodeURIComponent(username)}`
-  return <Menu align="end" trigger={<button type="button" className="avatar-button" aria-label={ru ? 'Меню аккаунта' : 'Account menu'}><span aria-hidden="true">{initial}</span></button>}>
+  return <Menu align="end" trigger={<button type="button" className="avatar-button" aria-label={ru ? 'Меню аккаунта' : 'Account menu'}><span aria-hidden="true"><ProfileAvatar id={id} url={avatarUrl} name={displayName?.trim() || username} size={40} /></span></button>}>
     <MenuItem asChild>
       <Link href={profileHref} className="avatar-profile-link"><span>{ru ? 'Мой профиль' : 'My profile'}</span><span className="avatar-status">{publicProfile ? (ru ? 'Публичный' : 'Public') : (ru ? 'Скрыт' : 'Hidden')}</span></Link>
     </MenuItem>

@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { render, screen, within } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { isActive, isKeyboardOpen, isMeActive, PrimaryNav, TabBar } from './nav'
+import { isActive, isKeyboardOpen, isMeActive, MobilePageTitle, PrimaryNav, TabBar } from './nav'
 
 let pathname = '/overview'
 vi.mock('next/navigation', () => ({ usePathname: () => pathname }))
@@ -32,6 +32,16 @@ describe('isKeyboardOpen', () => {
 describe('navigation aria-current', () => {
   beforeEach(() => { pathname = '/overview' })
   const current = (nav: HTMLElement) => within(nav).queryAllByRole('link').filter(link => link.getAttribute('aria-current') === 'page').map(link => link.getAttribute('href'))
+
+  it('updates the mobile title when retained shell navigation changes route', () => {
+    const { rerender } = render(<MobilePageTitle />)
+    expect(screen.getByText('Overview')).toBeInTheDocument()
+    pathname = '/journal/123/edit'
+    rerender(<MobilePageTitle />)
+    expect(screen.getByText('Journal')).toBeInTheDocument()
+    expect(screen.getByText('Журнал')).toBeInTheDocument()
+    expect(screen.queryByText('Overview')).not.toBeInTheDocument()
+  })
 
   it('desktop: nested Journal path keeps Journal current', () => {
     pathname = '/journal/123/edit'

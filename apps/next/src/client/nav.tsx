@@ -35,6 +35,18 @@ export function isKeyboardOpen({ innerHeight, viewportHeight, scale }: { innerHe
 
 function NavLabel({ en, ru }: { en: string; ru: string }) { return <><span className="locale-en">{en}</span><span className="locale-ru" lang="ru">{ru}</span></> }
 
+export function MobilePageTitle() {
+  const pathname = usePathname()
+  const item = [...NAV_ITEMS,
+    { href: '/settings', label: 'Settings', ru: 'Настройки' },
+    { href: '/add', label: 'Add a flight', ru: 'Новый перелёт' },
+    { href: '/import', label: 'Import', ru: 'Импорт' },
+    { href: '/me', label: 'Me', ru: 'Я' },
+    { href: '/fly', label: 'Profile', ru: 'Профиль' },
+  ].find(item => isActive(pathname, item.href))
+  return <p className="mobile-page-title"><NavLabel en={item?.label ?? 'Kuuki'} ru={item?.ru ?? 'Kuuki'} /></p>
+}
+
 export function PrimaryNav({ locale = 'en' }: { locale?: Locale }) {
   const pathname = usePathname()
   return <nav aria-label={locale === 'ru' ? 'Основная навигация' : 'Primary'} className="desktop-nav"><ul className="main-nav">{NAV_ITEMS.map(item => <li key={item.href}><Link href={item.href} aria-current={isActive(pathname, item.href) ? 'page' : undefined}><NavLabel en={item.label} ru={item.ru} /></Link></li>)}</ul></nav>
