@@ -6,6 +6,21 @@
     if (token && /^[A-Za-z0-9_-]{43}$/.test(token)) window.__kuukiResetToken = token
     if (location.hash) history.replaceState(null, '', location.pathname + location.search)
   }
+  // App-owned entries carry a direction index before Next initializes its history payload.
+  // Keep Next's fields: Settings can restore Back and Forward even without the Navigation API.
+  const indexKey = '__kuukiHistoryIndex'
+  const indexed = state => Number.isSafeInteger(state?.[indexKey])
+  const replace = history.replaceState.bind(history)
+  const push = history.pushState.bind(history)
+  if (!indexed(history.state)) replace({ ...history.state, [indexKey]: 0 }, '')
+  let lastIndex = history.state[indexKey]
+  history.pushState = (state, title, url) => push({ ...state, [indexKey]: (history.state?.[indexKey] ?? 0) + 1 }, title, url)
+  history.replaceState = (state, title, url) => replace({ ...state, [indexKey]: history.state?.[indexKey] ?? 0 }, title, url)
+  window.addEventListener('popstate', () => { if (indexed(history.state)) lastIndex = history.state[indexKey] })
+  window.addEventListener('hashchange', () => {
+    if (!indexed(history.state)) replace({ ...history.state, [indexKey]: lastIndex + 1 }, '')
+    lastIndex = history.state[indexKey]
+  })
   const root = document.documentElement
   const read = name => document.cookie.split('; ').find(part => part.startsWith(`${name}=`))?.split('=')[1]
   let saved = read('kuuki_theme')

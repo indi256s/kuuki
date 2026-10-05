@@ -8,7 +8,9 @@ import type { Locale } from '../../lib/format'
 
 type BrowserNavigation = { currentEntry?: { index: number } }
 function entryIndex(): number | undefined {
-  return (window as Window & { navigation?: BrowserNavigation }).navigation?.currentEntry?.index
+  const nativeIndex = (window as Window & { navigation?: BrowserNavigation }).navigation?.currentEntry?.index
+  const fallback = window.history.state?.__kuukiHistoryIndex
+  return nativeIndex ?? (Number.isSafeInteger(fallback) ? fallback : undefined)
 }
 
 /** Settings owns this guard; preserve Next's history payload and restore a traversal before asking. */
@@ -42,13 +44,13 @@ export function useSettingsGuard(dirty: boolean, busy: boolean, locale: Locale) 
       if (!state.current.busy) setPending({ run: () => router.push(url.pathname + url.search + url.hash) })
     }
     const pop = (event: PopStateEvent) => {
-      if (permitTraversal.current) { permitTraversal.current = false; return }
-      if (restoring) { restoring = false; event.stopImmediatePropagation(); return }
-      if (!state.current.dirty && !state.current.busy) return
+      if (permitTraversal.current) { permitTraversal.current = false; originIndex = entryIndex(); return }
+      if (restoring) { restoring = false; originIndex = entryIndex(); event.stopImmediatePropagation(); return }
+      if (!state.current.dirty && !state.current.busy) { originIndex = entryIndex(); return }
       event.stopImmediatePropagation()
       const destinationIndex = entryIndex()
-      // Navigation API supplies traversal direction without modifying or truncating history.
-      // Older browsers have no index; a Back traversal is restored by one forward entry.
+      // Native indexes or bootstrap-tagged App Router entries preserve traversal direction.
+      // A pre-bootstrap document entry is handled by beforeunload.
       const delta = originIndex !== undefined && destinationIndex !== undefined ? destinationIndex - originIndex : -1
       if (!delta) return
       restoring = true
