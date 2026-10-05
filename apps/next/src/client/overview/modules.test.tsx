@@ -144,15 +144,17 @@ describe('rankings', () => {
     expect(screen.getAllByText('Nothing recorded for this period yet.')).toHaveLength(3)
     expect(document.querySelectorAll('a')).toHaveLength(0)
   })
-  it('turns missing aircraft into an actionable line with Russian plural forms', () => {
+  it('turns missing aircraft into an action that opens the review, with Russian plural forms', () => {
     const summary = busySummary(500)
     const { rerender } = render(<OverviewRankings summary={{ ...summary, dataAvailability: { ...summary.dataAvailability, missingAircraft: 69 } }} locale="ru" labels={fakeLabels} />)
     expect(screen.getByText('У 69 рейсов не указан самолёт')).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: /Найти в журнале/ })).toHaveAttribute('href', '/journal?year=2026&sort=aircraft_icao&order=asc')
+    expect(screen.getByRole('button', { name: 'Проверить самолёты' })).toBeInTheDocument()
+    expect(hrefs(document.body).some(href => href?.includes('sort=aircraft_icao&order=asc'))).toBe(false)
     rerender(<OverviewRankings summary={{ ...summary, dataAvailability: { ...summary.dataAvailability, missingAircraft: 1 } }} locale="ru" labels={fakeLabels} />)
     expect(screen.getByText('У 1 рейса не указан самолёт')).toBeInTheDocument()
     rerender(<OverviewRankings summary={{ ...summary, dataAvailability: { ...summary.dataAvailability, missingAircraft: 0 } }} locale="en" labels={fakeLabels} />)
     expect(screen.queryByText(/no aircraft listed/)).toBeNull()
+    expect(screen.queryByRole('button', { name: /Review aircraft/ })).toBeNull()
   })
 })
 

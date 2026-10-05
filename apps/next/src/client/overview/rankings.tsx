@@ -1,9 +1,10 @@
 import { Fragment } from 'react'
 import type { OverviewSummary } from '../../../../../packages/shared/src/overview'
-import { formatCount, formatNumber, type Locale } from '../../lib/format'
+import { formatNumber, type Locale } from '../../lib/format'
 import { journalHref, type JournalLink } from '../../lib/url-state'
-import { S, forms, t } from './copy'
+import { S, t } from './copy'
 import type { OverviewLabels } from './labels'
+import { MissingAircraftReview } from './missing-aircraft'
 import { rankingShape, sentenceLead, type RankingKind, type RankingRow } from './model'
 
 function Ranking({ kind, title, rows, flights, locale, allHref }: { kind: RankingKind; title: string; rows: RankingRow[]; flights: number; locale: Locale; allHref: string }) {
@@ -36,8 +37,6 @@ export function OverviewRankings({ summary, locale, labels }: { summary: Overvie
         {topLists.manufacturers.length ? <p className="ov-manufacturers"><span className="eyebrow">{t(S.manufacturers, locale)}</span>{' '}{topLists.manufacturers.map(row => `${row.id} (${formatNumber(locale, row.count)})`).join(', ')}</p> : null}
       </div>
     </div>
-    {dataAvailability.missingAircraft > 0 ? <p className="ov-missing"><span>{formatCount(locale, dataAvailability.missingAircraft, forms.noAircraft)}</span>{' '}
-      {/* Ascending aircraft puts flights without one first; each row there has its own "Add aircraft" action. */}
-      <a className="text-link" href={journalHref({ year, sort: 'aircraft_icao', order: 'asc' })}>{t(S.findAircraft, locale)} →</a></p> : null}
+    {dataAvailability.missingAircraft > 0 ? <MissingAircraftReview locale={locale} period={period} count={dataAvailability.missingAircraft} /> : null}
   </section>
 }

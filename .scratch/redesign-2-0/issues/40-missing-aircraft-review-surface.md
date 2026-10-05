@@ -1,14 +1,14 @@
-# Missing-aircraft line on Overview has no dedicated review surface
+# Missing-aircraft line on Overview opens the retained enrichment review
 
-Status: needs-triage
-Owner task: T18
+Status: closed (T17 fix round 1, review I2)
+Owner task: T17
 Source: T17 Overview rankings; ADR 0001 open item 8 (missing-aircraft line)
 
-## What differs
-Overview shows "N flights have no aircraft listed" from `dataAvailability.missingAircraft` and links to the Journal sorted by aircraft ascending (`/journal?[year=]&sort=aircraft_icao&order=asc`), which puts flights without an aircraft first. There is no Journal filter for "aircraft is missing", so the link can show completed flights that do have one after the missing ones, and the member cannot page only the missing set. Bulk entry belongs to issue 11 (bulk aircraft outcome contract).
+## Outcome
+The first T17 pass linked the line to the Journal sorted by aircraft ascending, which is not the set the summary counts. The line now opens the retained enrichment review (`AircraftPanel`, apps/next/src/client/import/aircraft-panel.tsx) in a `Sheet` (`client/overview/missing-aircraft.tsx`).
+- Targets come from `GET /api/flights?status=completed&missing=aircraft[&year=YYYY]&limit=100&sort=date&order=desc`, a bounded, owner-scoped read through the Journal list (new `missing=aircraft` filter in `functions/api/_lib/flightQuery.ts`, which also gives the Journal a "no aircraft" filter if a later task wants one).
+- `functions/test/overview-modules.test.ts` ("missing-aircraft review targets") proves the target set equals `dataAvailability.missingAircraft` for all-time and year periods (completed only, owner only), and that n=500 is bounded to the page while `total` stays exact.
+- After `onSaved` the page calls `router.refresh()`, so the count and every summary figure are re-read. Only the newest 100 flights load per opening; the sheet says so, and saving them brings the rest in on the next opening.
 
-## Decision needed
-Add a `missing=aircraft` Journal filter (and a matching count in the list API), or accept the sorted view. Recommendation: add the filter; then point the Overview link at it and drop the sort workaround in `apps/next/src/client/overview/rankings.tsx`.
-
-## Acceptance check
-A Journal URL with the new filter lists exactly the flights counted by `dataAvailability.missingAircraft` for the same period (API test using `overviewAccount` from `functions/test/overview-fixture.ts`); the Overview link uses it; its count equals the Journal total.
+## Still open (not part of this issue)
+Bulk entry for flights the service cannot identify stays with issue 11 (bulk aircraft outcome contract).

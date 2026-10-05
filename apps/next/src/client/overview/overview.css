@@ -21,7 +21,7 @@
 .ov-country-list summary{min-height:44px;display:flex;align-items:center;cursor:pointer;color:var(--accent-text);font-weight:600}
 .ov-country-list ul{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:var(--space-1) var(--space-6);margin:0;padding:0;list-style:none;color:var(--text-muted);font-size:13px}
 
-.insight-list a,.ov-ranking a,.ov-missing a{color:inherit}
+.insight-list a,.ov-ranking a{color:inherit}
 .insight-list a{text-decoration:underline;text-decoration-color:var(--hairline);text-underline-offset:3px}
 .ov-ranking .section-heading{margin-bottom:var(--space-3)}
 .ov-ranking .section-heading h3{margin:0}
@@ -55,3 +55,5 @@
   .ov-month-label{font-size:11px}
 }
 @media(max-width:420px){.rank-list li{grid-template-columns:minmax(0,1fr) auto}.rank-list .rank-track{display:none}}
+
+.ov-review.import-page{max-width:none;padding:0}
