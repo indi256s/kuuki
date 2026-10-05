@@ -1,6 +1,6 @@
 # ADR 0001: Flight lifecycle, country evidence and import drafts
 
-- **Status:** Accepted for implementation, 2026-10-05. Revised after the independent review, fix round 1. One item (§9, H5 runtime) is still an open owner decision.
+- **Status:** Accepted for implementation, 2026-10-05. Revised after the independent review (fix rounds 1 and 2). H5 runtime decided by the owner: option (a) (§9).
 - **Scope:** Binding spec for W3 (T07–T11) of [Redesign 2.0](../plans/2026-10-04-redesign-2.0-implementation.md). Resolves contracts C2–C5 under Addendum A (A1, A2, A6).
 - **Vocabulary:** [GLOSSARY.md](../../GLOSSARY.md), "Flight lifecycle & evidence vocabulary".
 
@@ -69,20 +69,37 @@ Columns are added with `ALTER TABLE flights ADD COLUMN`; there is no table rebui
 - `lifecycle_state = 'logged' OR (lifecycle_timezone, awaiting_after, auto_confirm_after all NOT NULL)`;
 - `arrival_transit_leg_id IS NULL OR arrival_transit = 1`.
 
-**Triggers (controller ruling R2: adapt pre-lifecycle writers, don't abort them).** SQLite triggers cannot assign `NEW.*`. The construct is therefore four `AFTER` triggers with disjoint `WHEN` clauses, so their firing order never matters:
+**Triggers (controller ruling R2: adapt pre-lifecycle writers, don't abort them).** SQLite triggers cannot assign `NEW.*`, so every adapter is an `AFTER` trigger that runs a nested `UPDATE flights … WHERE id = NEW.id`. A pre-lifecycle writer is recognised by its signature: it writes the old columns (`is_upcoming`, `date`, `origin`, `destination`) but never the lifecycle columns, so they keep their `OLD` values.
 
-1. `flights_lifecycle_adapt_insert`: `AFTER INSERT WHEN NEW.lifecycle_state IS NULL`. Only a pre-lifecycle writer inserts without the column; T07 code always writes it. It runs `UPDATE flights SET … WHERE id = NEW.id`, deriving the state from the old flag:
-   - `is_upcoming = 1` → `upcoming`, zone `'UTC'`, `awaiting_after = strftime('%Y-%m-%dT%H:%M:%fZ', NEW.date, '+1 day')`, `auto_confirm_after = … '+8 days'`. The old writer decided "upcoming" in UTC, so these deadlines match its own rule.
-   - `is_upcoming = 0` → `logged`, `save`, `confirmed_at = NEW.created_at`.
-2. `flights_lifecycle_adapt_update`: `AFTER UPDATE OF is_upcoming WHEN NEW.lifecycle_state IS OLD.lifecycle_state AND NEW.is_upcoming <> (NEW.lifecycle_state = 'upcoming')`. This means only the old flag changed, which is the old sync, old cron or old date edit. It derives the state:
-   - `1 → 0` → `awaiting`, never silently logged. Deadlines are kept unless `NEW.date <> OLD.date`, in which case they are recomputed in UTC with zone `'UTC'`.
-   - `0 → 1` → `upcoming`. Clears `confirmation_source`, `confirmed_at`, `arrival_transit` and `arrival_transit_leg_id`. Recomputes UTC deadlines with zone `'UTC'`.
-3. `flights_lifecycle_check_insert`: `AFTER INSERT WHEN NEW.lifecycle_state IS NOT NULL AND NOT INV(NEW)` → `RAISE(ABORT, 'LIFECYCLE_INVARIANT')`.
-4. `flights_lifecycle_check_update`: `AFTER UPDATE WHEN NOT INV(NEW) AND NOT (<trigger 2 condition>)` → `RAISE(ABORT, 'LIFECYCLE_INVARIANT')`.
+`SHIFT(x)` is `strftime('%Y-%m-%dT%H:%M:%fZ', OLD.x, printf('%+d days', julianday(NEW.date) - julianday(OLD.date)))`: the stored deadline moved by the whole-day date difference. It keeps the stored zone (SQLite cannot do IANA arithmetic) and is exact except across a DST change, where it is off by at most the DST delta until the next lifecycle-aware edit. `UTCDL` means zone `'UTC'`, `awaiting_after = strftime('%Y-%m-%dT%H:%M:%fZ', NEW.date, '+1 day')`, `auto_confirm_after = … '+8 days'`.
 
-The nested `UPDATE` in triggers 1 and 2 never sets `is_upcoming`, so trigger 2 cannot re-fire. Trigger 4 validates the adapted row. Recursion is impossible, and `recursive_triggers` only affects a trigger firing itself. `RAISE(ABORT)` undoes the statement and fails the D1 batch, which rolls the batch back; acceptance test A1 must prove this. `changes()` counts only direct changes, never trigger changes, so the `changes()` chains in §5 and §6 are unaffected.
+| # | Trigger | Fires | Effect |
+|---|---|---|---|
+| 1 | `flights_lifecycle_adapt_insert` | `AFTER INSERT WHEN NEW.lifecycle_state IS NULL` (only an old writer omits the column; T07 code always writes it) | `is_upcoming = 1` → `upcoming` + `UTCDL` (the old writer's own UTC rule). `is_upcoming = 0` → `logged`, `save`, `confirmed_at = NEW.created_at`. |
+| 2 | `flights_lifecycle_adapt_flag` | `AFTER UPDATE OF is_upcoming WHEN NEW.lifecycle_state IS OLD.lifecycle_state AND NEW.is_upcoming <> (NEW.lifecycle_state = 'upcoming')` (old sync, old cron, old date edit across today) | `1 → 0` → `awaiting`, never silently logged. Deadlines are kept if the date is unchanged; otherwise `SHIFT`. `0 → 1` → `upcoming`. Clears `confirmation_source`, `confirmed_at`, `arrival_transit` and `arrival_transit_leg_id`. Uses `SHIFT` when `OLD.awaiting_after` is not NULL, else `UTCDL`. |
+| 3 | `flights_lifecycle_adapt_redate` | `AFTER UPDATE OF date WHEN NEW.date IS NOT OLD.date AND NEW.is_upcoming = OLD.is_upcoming AND NEW.lifecycle_state IS OLD.lifecycle_state AND NEW.lifecycle_state IN ('upcoming','awaiting') AND NEW.awaiting_after IS OLD.awaiting_after AND NEW.lifecycle_timezone IS OLD.lifecycle_timezone` (old re-date that does not cross today: upcoming future→future, awaiting past→past) | `awaiting_after = SHIFT(awaiting_after)`, `auto_confirm_after = SHIFT(auto_confirm_after)`, state unchanged. This matches the §2 "edit `date`" rows: the state follows the old writer's flag, and deadlines follow the corrected date. If the shifted `auto_confirm_after` has already passed, the next pass auto-confirms. A lifecycle-aware re-date always writes new deadlines, and for an unchanged zone and a changed date they always differ, so it never matches. |
+| 4 | `flights_lifecycle_adapt_route` | `AFTER UPDATE OF origin, destination WHEN (NEW.origin IS NOT OLD.origin OR NEW.destination IS NOT OLD.destination) AND (NEW.arrival_transit IS NOT NULL OR NEW.arrival_transit_leg_id IS NOT NULL)` | Sets `arrival_transit = NULL, arrival_transit_leg_id = NULL`. This is the §2 route-edit rule enforced for every writer, so a decision about the old hub never suppresses a new destination. |
+| 5 | `flights_lifecycle_check_insert` | `AFTER INSERT WHEN NEW.lifecycle_state IS NOT NULL AND NOT INV(NEW)` | `RAISE(ABORT, 'LIFECYCLE_INVARIANT')` |
+| 6 | `flights_lifecycle_check_update` | `AFTER UPDATE WHEN NOT INV(NEW) AND NOT (<trigger 2 condition>)` | `RAISE(ABORT, 'LIFECYCLE_INVARIANT')` |
 
-Why not reject the old writer: R2 requires migrate-then-deploy with no create outage. With the adapter, the pre-lifecycle build keeps working against `0006` until T07 code replaces it. Its degradations are bounded: UTC eligibility, no confirmation, and no auto-confirm, because the old cron never logs. Its writes can never corrupt the lifecycle. Not adapted, by design: an old edit without a date leaves lifecycle untouched, and an old route edit does not reset `arrival_transit`. Both are harmless (§10).
+**Ordering and recursion.**
+
+- **Adapters 1–3 never act on the same row event.** 1 is INSERT only. 2 requires the flag to disagree with the state, while 3 requires the flag to be unchanged on a row that satisfied `INV`, so the flag agrees with the state.
+- **Adapter 4 can co-fire with 2 or 3** on an old edit that changes both route and date. Its writes either touch different columns or set the same NULLs, so the result is order-independent.
+- **No nested `UPDATE` re-fires an adapter.** None sets `is_upcoming`, `date`, `origin` or `destination`. Recursion is impossible either way, because `recursive_triggers` only matters when a trigger fires itself.
+- **Check 6 validates every adapted row.** On the outer statement only trigger 2's input can violate `INV`, which is why 6 excludes that case. The outer rows of triggers 3 and 4 already satisfy `INV`.
+- **Batch rollback.** `RAISE(ABORT)` fails the D1 batch, which rolls back the whole batch (A1).
+- **`changes()`.** It counts only the outer statement's direct changes, never trigger changes, so the chains in §5 and §6 and the old writers' `meta.changes` reads (`sync-upcoming.ts:21`, `workers/maintenance/index.ts:43-44`, `flights/index.ts:161`) are unaffected. A1 proves this, including that D1 `meta.changes` equals `sqlite3_changes()` and not a `total_changes` delta.
+- **T07 code never fires adapters 1–3.** A T07 test asserts that every lifecycle-aware writer (create, bulk, conversion, edit, sync, cron, confirm, transit review) leaves those triggers unfired; it uses a test-only counting trigger. An app bug writing NULL `lifecycle_state` or forgetting to recompute deadlines would otherwise be silently adapted.
+
+**Why not reject the old writer.** R2 requires migrate-then-deploy with no create outage. With the adapters, the pre-lifecycle build keeps working against `0006` until T07 code replaces it, and its writes never corrupt the lifecycle. Its known degradations are bounded and listed in §10:
+
+- UTC eligibility, so an old sync or cron moves a flight to `awaiting` on its UTC departure day;
+- no confirmation;
+- no auto-confirm;
+- DST-approximate shifted deadlines.
+
+An old edit that changes neither date nor route leaves lifecycle untouched, which is correct.
 
 **Indexes:**
 
@@ -127,10 +144,11 @@ In this table, `today` means `localToday(capturedTz, now)`. "Recompute" means re
 
 **`applyDueTransitions(db, { userId?, now, limit })`** (`functions/api/_services/lifecycle.ts`) is the only implementation of the two due transitions. It is used by the owner sync and by the cron.
 
-- One read batch captures the user's flights and `user_derived_state.revision` = R.
+- It first runs `INSERT INTO user_derived_state (user_id, revision, published_revision) VALUES (?, 0, 0) ON CONFLICT (user_id) DO NOTHING` as its own statement (upsert-then-guard). A user with no derived-state row would otherwise never pass the guard below.
+- One read batch then captures the user's flights and `user_derived_state.revision` = R.
 - Upcoming→awaiting updates are guarded by state and deadline.
 - Auto-confirm updates are also guarded by `EXISTS (SELECT 1 FROM user_derived_state WHERE user_id = ? AND revision = R)`, so a policy computed from a stale snapshot never applies. That pass becomes a no-op and the next pass retries.
-- `dirtyUserStatement(…, true)` comes last in the batch.
+- `dirtyUserStatement` comes last in the batch. It is unconditional whenever the read found due flights, because `changes() > 0` would only see the last `UPDATE`. A lost race costs one extra repair.
 
 **Owner sync contract (controller ruling R1).** `POST /api/flights/sync-upcoming`:
 
@@ -205,7 +223,7 @@ Consumers:
 - **The passport collection count** (pressed, including claims and ground visits) and `pendingCountryCount` are separate DTO fields with distinct labels.
 - **Overview.** Overview counts country figures from published data only; it never mixes live endpoints with published suppressions.
   - `period = 'all'` uses projection rows with `logged_visit_count + awaiting_visit_count > 0`. This now includes legacy evidence, matching Passport (an intentional change from `overview.ts:56-57`).
-  - A year uses canonical non-upcoming endpoints in that year, anti-joined with `country_evidence_suppressions`. Legacy evidence has no reliable per-year attribution, so it stays out of year periods, as today.
+  - A year uses canonical non-upcoming endpoints in that year, anti-joined with `country_evidence_suppressions`. `revision`/`published_revision` and these canonical rows are read in one D1 read batch, so the published-revision gate and the rows come from the same snapshot. Legacy evidence has no reliable per-year attribution, so it stays out of year periods, as today.
   - While `revision ≠ published_revision`, Overview returns `countries: null` with `countryState: 'updating'` instead of a mixed figure, so a hub never appears as a country while a repair is pending.
 
 **Region models (three, by decision):**
@@ -334,17 +352,26 @@ The banner shows only when candidates exist and no marker does. The GET stays re
      - Flight gone → `410 CONVERTED_FLIGHT_DELETED`, never recreated.
      - Differing digest → `409 IDEMPOTENCY_CONFLICT`.
      - The draft was already converted under another key → `409 DRAFT_ALREADY_CONVERTED` with that flight id.
-  2. Otherwise the batch must exist and be unexpired.
-  3. **Per item, in one D1 batch, in this order:**
-     - `UPDATE import_drafts SET status = 'converted', version = version + 1 WHERE id = ? AND user_id = ? AND version = ? AND status = 'review'`;
-     - the ledger insert `INSERT INTO flight_idempotency … SELECT … WHERE changes() = 1 ON CONFLICT DO NOTHING`;
-     - the flight insert `WHERE changes() = 1`;
-     - the ledger link `SET flight_id = last_insert_rowid() … AND changes() = 1`;
-     - `INSERT INTO import_conversion_receipts SELECT ?, ?, ?, ?, ?, flight_id, ? FROM flight_idempotency WHERE user_id = ? AND key = ? AND flight_id IS NOT NULL ON CONFLICT DO NOTHING`;
-     - `UPDATE import_drafts SET converted_flight_id = (SELECT flight_id FROM flight_idempotency WHERE user_id = ? AND key = ?) WHERE id = ? AND user_id = ?`.
+  2. **Ledger pre-check.** Read `flight_idempotency` by `(user_id, key)`. A ledger row with no conversion receipt for that key means the key was already used by a plain create, or by another client. The item returns `409 IDEMPOTENCY_CONFLICT` and nothing is written for it.
+  3. Otherwise the batch must exist and be unexpired.
+  4. **Per item, in one D1 batch, in this order.** Every statement after the first is gated on this batch's own previous write:
+     - the ledger insert `INSERT INTO flight_idempotency (user_id, key, payload_digest, flight_id, created_at) SELECT ?, ?, ?, NULL, ? WHERE EXISTS (SELECT 1 FROM import_drafts WHERE id = ? AND user_id = ? AND version = ? AND status = 'review') ON CONFLICT (user_id, key) DO NOTHING`;
+     - the flight insert `… WHERE changes() = 1`;
+     - the ledger link `UPDATE flight_idempotency SET flight_id = last_insert_rowid() WHERE user_id = ? AND key = ? AND flight_id IS NULL AND changes() = 1`;
+     - `UPDATE import_drafts SET status = 'converted', version = version + 1, converted_flight_id = last_insert_rowid() WHERE id = ? AND user_id = ? AND version = ? AND status = 'review' AND changes() = 1`. A ledger `UPDATE` does not change `last_insert_rowid()`, so it is still the new flight;
+     - `INSERT INTO import_conversion_receipts (…, flight_id, …) SELECT ?, ?, ?, ?, ?, converted_flight_id, ? FROM import_drafts WHERE id = ? AND user_id = ? AND changes() = 1`.
 
-     A second tab or a retry with a new key fails the version-guarded draft update, so the chain creates nothing.
-  4. **Afterwards**, a missing ledger or receipt for the item maps to `DRAFT_VERSION_CONFLICT`, or to `DRAFT_ALREADY_CONVERTED` when a receipt exists for the draft.
+     The receipt and `converted_flight_id` therefore come only from the flight this batch inserted, never from an existing ledger row.
+
+     **Why this is all-or-nothing per item without a `RAISE`.** A D1 batch is one serialized transaction. If the draft check in the first statement passes, nothing can change the draft before the fourth statement, so the chain either completes or stops at the first statement with nothing written.
+     - A second tab or a retry with a new key finds the draft no longer in `review` and writes nothing.
+     - A key already in the ledger (a race past step 2) hits `DO NOTHING` and writes nothing.
+
+     So no draft is ever left `converted` without a flight, and none is linked to an unrelated flight.
+  5. **Afterwards**, an item with no receipt for its key is classified on a re-read:
+     - a receipt exists for the draft under another key → `409 DRAFT_ALREADY_CONVERTED` with that flight id;
+     - a ledger row exists for the key → `409 IDEMPOTENCY_CONFLICT`;
+     - otherwise (stale `version` or draft dismissed) → `409 DRAFT_VERSION_CONFLICT`.
 
   Lifecycle per row follows the create rows of §2. Conversion receipts are kept **37 days from their own creation**: the 30-day draft life, plus the 6-day client retry, plus a 1-day margin. That outlives the 7-day `flight_idempotency` purge.
 - **`PATCH /api/import/drafts/:id`** is version-checked and owner-scoped. It returns `409 DRAFT_VERSION_CONFLICT` when the version is stale or the draft is converted.
@@ -366,7 +393,7 @@ The next free numbers come from `db/migrations` (latest `0005_profiles_created_a
 
 Both are additive (no DROP or rename), and the numbers are rechecked against the architecture ledger (H5).
 
-**Deploy order:** apply `0006`, then deploy T07+ code; apply `0007`, then deploy T10 code. T07 code writes the new columns and cannot run on a pre-`0006` schema. The pre-lifecycle build keeps creating flights through the §1 adapter between the two steps, so there is no outage.
+**Deploy order:** apply `0006`, then deploy T07+ code; apply `0007`, then deploy T10 code. T07 code writes the new columns and cannot run on a pre-`0006` schema. The pre-lifecycle build keeps creating flights through the §1 adapters between the two steps, so there is no outage.
 
 ### 8. Maintenance ordering (T09)
 
@@ -390,7 +417,7 @@ Both are additive (no DROP or rename), and the numbers are rechecked against the
 
 **Production state.** Both checked-in configs keep `MAINTENANCE_MODE = "true"`, and no task flips production. While the cron is held, the Next member shell's owner sync (§2, R1) is the only path for both due transitions. It runs when a member uses the app, and a member who never visits keeps upcoming flights until the cron is enabled. T09 ships preview-enablement steps only.
 
-### 9. Recognition job runtime (C5, A6): OPEN owner decision
+### 9. Recognition job runtime (C5, A6): option (a) decided
 
 **Target design** (requires a binding):
 
@@ -408,24 +435,25 @@ Both are additive (no DROP or rename), and the numbers are rechecked against the
 - **(b)** Wait for architecture.
 - **(c)** No streaming: the T10 synchronous batch writer (§6) is the whole runtime and clients poll the batch.
 
-**Recommendation: (a).**
+**Decision: (a), chosen by the owner on 2026-10-05.** Rationale:
 
 - It honours the user-selected streaming scope, which (c) drops.
 - It does not stall W3 on an unscheduled dependency, as (b) would.
 - (c) is fully built in T10 under R3. `POST /api/import/jobs` dispatches to the DO only when the binding is present, so if architecture declines or delays the wiring, (a) degrades to (c) through configuration, without rework.
 - Risks: the DO needs its own Worker script and binding outside the OpenNext bundle, and the keep-alive and compatibility claims in C5 (Cloudflare changelog 2026-10-01) are unverified until the Miniflare proof.
 
-**The owner decides before T11 starts (A6).** T07–T10 do not depend on the choice.
+T11 builds the local DO and the Miniflare proof in `workers/import`. Production binding and wiring go to the architecture owner. Without the binding, the runtime is (c) with no rework. T07–T10 do not depend on the binding.
 
 ### 10. Rollback floor
 
 **The floor.** After `0006`, the rollback floor for normal operation is a build of the post-T07 `functions/api`, the lifecycle-aware writer. That covers both the Next worker and the fallback Pages worker, which share the bundle (Context).
 
-**Below the floor.** Builds below the floor (current production Pages and maintenance) are *tolerated* by the §1 adapter rather than blocked:
+**Below the floor.** Builds below the floor (current production Pages and maintenance) are *tolerated* by the §1 adapters rather than blocked:
 
 - old creates become `save`/`upcoming` (UTC);
-- the old sync and cron move flights to `awaiting`, never silently `logged`;
-- the old edit-to-future becomes `upcoming`.
+- the old sync and cron move flights to `awaiting`, never silently `logged`. They do it on the UTC departure day, not the local day after: a known degradation;
+- old re-dates become `upcoming`/`awaiting` with deadlines that follow the new date (triggers 2–3). Across a DST change the deadlines are approximate, off by at most the DST delta;
+- an old route edit clears the transit decision (trigger 4), so a stale decision cannot suppress a new destination.
 
 So the plan's "old silent sync must not resume" holds in effect. Such builds still lose confirmation, auto-confirm, transit decisions and drafts, so rollback targets the floor. The adapter only prevents outage and corruption. Rollback procedures must not drop the triggers.
 
@@ -482,8 +510,8 @@ No down-migration exists and no rollback deletes user data. T07 extends `scripts
 
 | # | Proof | Task |
 |---|---|---|
-| A1 | `CREATE TRIGGER … BEGIN … END;` applies through `wrangler d1 migrations apply` (statement splitting) on Miniflare, and later on remote isolated D1. A `RAISE(ABORT)` inside `db.batch` rolls back the whole batch. | T07 |
-| A2 | Upgrade `0001`→`0005`→fixture→`0006`: identical IDs, `visits`, `countries_count` and badges; the seed equals the first repair, including the `''`-country case. Old sync, old past and future insert, and old edit-to-future behave per §1. | T07 |
+| A1 | `CREATE TRIGGER … BEGIN … END;` applies through `wrangler d1 migrations apply` (statement splitting) on Miniflare, and later on remote isolated D1. A `RAISE(ABORT)` inside `db.batch` rolls back the whole batch. D1 `meta.changes` equals `sqlite3_changes()` (excludes adapter writes), not a `total_changes` delta, for the old sync `synced`, cron `rolledOver` and create `created` reads. | T07 |
+| A2 | Upgrade `0001`→`0005`→fixture→`0006`: identical IDs, `visits`, `countries_count` and badges; the seed equals the first repair, including the `''`-country case. Old sync, old past and future insert, and old edit-to-future behave per §1. Old re-date without a flag change (upcoming future→future, awaiting past→past) shifts the deadlines with the date, and the flight is not awaiting or auto-confirmed before its new date. An old route edit on a flight with `arrival_transit = 1` clears the decision. No lifecycle-aware writer fires adapters 1–3. | T07 |
 | A3 | Concurrent same-operation and different-operation confirms. Exact replay after commit and after the rolled-back path. Committed-but-pending, then a replay. | T09 |
 | A4 | Two-tab conversion with different keys yields exactly one flight. Replay after 8 and after 36 days. `410` tombstone after the flight is deleted. | T10 |
 | A5 | Explicit transit, then each of: adding an ambiguous leg, deleting the matched leg, adding an unrelated leg D. The hub stamp neither reappears from A nor from the stored leg, and never moves (see open item 7 for D). | T08 |
@@ -495,11 +523,11 @@ No down-migration exists and no rollback deletes user data. T07 extends `scripts
 
 ## Open items
 
-1. **H5 runtime (§9):** owner chooses (a), (b) or (c) before T11; the recommendation is (a).
+1. **H5 runtime (§9): decided.** The owner chose option (a) on 2026-10-05: a local DO with a Miniflare proof in `workers/import`. Production binding and wiring are handed to the architecture owner. Without them the runtime falls back to (c) with no rework.
 2. **D1 support for triggers and the migration assertion table** is assumed and proven by A1. If triggers fail, the invariants become application-only and old-writer adaptation is lost. The deploy order would then need a short write hold, which is an owner decision.
 3. **Migration ledger:** confirm `0006`/`0007` with the architecture owner before T07.
 4. **DO compatibility date and keep-alive** (C5 citation) are unverified and must be proven in T11.
 5. **Production enablement** of the cron and the job bindings stays in the architecture release procedure.
 6. **Transit-only production estimate:** `docs/research/2026-10-05-transit-validation-proposal.md`. It runs only with authorization.
-7. **Review test 5, the "add D" case (partially contested).** This ADR does not suppress an unrelated later leg D that departs from the hub, because a separate departure is genuine evidence of presence in that country. D can make the hub pressed. That is not revival of A's suppressed evidence, which stays suppressed through the stored `arrival_transit_leg_id`. If the owner wants D suppressed too, that needs a new rule, which this ADR does not invent.
+7. **Review test 5, the "add D" case: resolved by controller ruling (fix round 2).** An unrelated later departure D from the hub country may count that country. A's suppressed evidence (its destination and the stored `arrival_transit_leg_id` origin) never reappears or moves. A5 tests exactly this.
 8. **The Overview `'all'` period now includes legacy evidence** (§4). The figure can rise for accounts with legacy-only countries. W4 labels it accordingly.
