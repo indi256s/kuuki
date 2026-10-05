@@ -160,6 +160,12 @@ export const apiRoutes = [
     ]
   },
   {
+    "route": "/api/flights/confirm",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
     "route": "/api/flights/duplicate-candidates",
     "methods": [
       "POST"
@@ -244,6 +250,12 @@ export const apiRoutes = [
     ]
   },
   {
+    "route": "/api/me/awaiting",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
     "route": "/api/me/badges",
     "methods": [
       "GET"
@@ -277,6 +289,13 @@ export const apiRoutes = [
     "route": "/api/me/stats",
     "methods": [
       "GET"
+    ]
+  },
+  {
+    "route": "/api/me/transit-review",
+    "methods": [
+      "GET",
+      "POST"
     ]
   },
   {
