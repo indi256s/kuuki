@@ -36,6 +36,9 @@ export async function sendWithZone<T>(send: (zone: boolean) => Promise<T>): Prom
   }
 }
 
+/** The exact payload a create stores in its receipt, so two flights can be compared as the server would see them. */
+export const flightCreatePayload = (flight: object): object => validateFlightInput(omit(flight, 'is_upcoming'), 'create')
+
 export async function createFlight(flight: Omit<FlightInsert, 'id' | 'created_at'>, operationId: string): Promise<Flight & DerivedAck> {
   const { user_id } = flight
   const operation = getFlightCreateOperation(user_id, operationId, validateFlightInput(omit(flight, 'user_id', 'is_upcoming'), 'create'))
@@ -57,7 +60,7 @@ export async function createFlights(
   const ready: Array<{ index: number; operationId: string; key: string; body: object }> = []
   entries.forEach(({ operationId, flight }, index) => {
     try {
-      ready.push({ index, operationId, ...getFlightCreateOperation(userId, operationId, validateFlightInput(omit(flight, 'is_upcoming'), 'create')) })
+      ready.push({ index, operationId, ...getFlightCreateOperation(userId, operationId, flightCreatePayload(flight)) })
     } catch (error) {
       outcomes[index] = error instanceof Error ? error : new Error(String(error))
     }

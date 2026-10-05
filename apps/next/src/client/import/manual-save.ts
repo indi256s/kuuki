@@ -7,11 +7,11 @@
 // that receipt is refused locally (UnconfirmedFlightOperationError). No second receipt store exists here.
 import { ApiError } from '../../../../web/src/lib/apiClient'
 import type { DerivedAck } from '../../../../web/src/lib/derivedState'
-import { abandonFlightCreateOperation, ExpiredFlightOperationError, pendingFlightCreateOperation, UnconfirmedFlightOperationError } from '../../../../web/src/lib/flightCreateOperations'
-import { createFlights } from '../capture/flight-writes'
+import { abandonFlightCreateOperation, ExpiredFlightOperationError, pendingFlightCreateOperation, pendingFlightOperationsWithPrefix, UnconfirmedFlightOperationError } from '../../../../web/src/lib/flightCreateOperations'
+import { createFlights, flightCreatePayload } from '../capture/flight-writes'
 import type { ManualFailureKind } from './copy'
 import { toFlightInput } from './flight-input'
-import { toValues, type FieldValues } from './review-model'
+import { emptyValues, toValues, type FieldValues } from './review-model'
 
 export interface ManualFailure { kind: ManualFailureKind; code: string | null }
 export interface ManualRowState {
@@ -23,7 +23,29 @@ export interface ManualRowState {
   failure?: ManualFailure
 }
 
-export const newManualRow = (values: FieldValues): ManualRowState => ({ key: crypto.randomUUID(), operationId: crypto.randomUUID(), values })
+/**
+ * Manual operation ids are `manual:<scope>:<uuid>`, where the scope is the import batch (or `solo` without one). The
+ * receipt store is keyed by that id, so after a reload the unresolved saves of this batch can be found again.
+ */
+const MANUAL_PREFIX = 'manual:'
+const operationScope = (operationId: string) => operationId.slice(0, operationId.lastIndexOf(':') + 1)
+const newOperationId = (scope: string) => `${MANUAL_PREFIX}${scope}:${crypto.randomUUID()}`
+const rotatedOperationId = (operationId: string) => `${operationScope(operationId) || `${MANUAL_PREFIX}solo:`}${crypto.randomUUID()}`
+
+export const newManualRow = (values: FieldValues, scope = 'solo'): ManualRowState => ({ key: crypto.randomUUID(), operationId: newOperationId(scope), values })
+
+/**
+ * The unresolved manual saves of one scope, as rows in the uncertain state. Each shows the payload its receipt pinned
+ * (nothing else is stored), so "Retry original save" replays it under its key and "I checked the journal" settles it.
+ */
+export function restoreManualRows(ownerId: string, scope: string): ManualRowState[] {
+  return pendingFlightOperationsWithPrefix(ownerId, `${MANUAL_PREFIX}${scope}:`).map(receipt => ({
+    key: crypto.randomUUID(),
+    operationId: receipt.operationId,
+    values: receipt.expired ? emptyValues() : toValues(receipt.body as Partial<Record<keyof FieldValues, string>>),
+    failure: { kind: receipt.expired ? 'expired' : 'uncertain', code: null } as ManualFailure,
+  }))
+}
 
 /** Server answers that come from validating the details, before any receipt or write exists. */
 const isValidationRefusal = (error: ApiError): boolean =>
@@ -60,12 +82,28 @@ export async function saveManualRows(ownerId: string, rows: ManualRowState[], or
   })
   // A receipt that exists before the send belongs to an earlier attempt whose outcome may never have been seen.
   const fresh = new Set(sent.filter(row => pendingFlightCreateOperation(ownerId, row.operationId) === null).map(row => row.key))
+  // A new row must not mint a second key for a flight whose earlier save is still unresolved (its recovery row is
+  // shown, or the member can check the journal): the identical payload is held back until that save is settled.
+  const unresolved = pendingFlightOperationsWithPrefix(ownerId, MANUAL_PREFIX)
+  const held = new Set<string>()
+  for (const row of sent) {
+    if (original.has(row.key) || !fresh.has(row.key)) continue
+    let payload: string
+    try { payload = JSON.stringify(flightCreatePayload(toFlightInput(row.values))) } catch { continue }
+    if (unresolved.some(receipt => receipt.operationId !== row.operationId && JSON.stringify(receipt.body) === payload)) held.add(row.key)
+  }
   const acks: DerivedAck[] = []
-  const results = await create(ownerId, sent.map(row => ({ operationId: row.operationId, flight: payloads.get(row.key) ?? toFlightInput(row.values) })), ack => acks.push(ack))
+  const sending = sent.filter(row => !held.has(row.key))
+  const results = sending.length === 0 ? [] : await create(ownerId, sending.map(row => ({ operationId: row.operationId, flight: payloads.get(row.key) ?? toFlightInput(row.values) })), ack => acks.push(ack))
   const saved: ManualRowState[] = []
   const failures = new Map<string, ManualFailure>()
   const next = new Map<string, ManualRowState>()
-  sent.forEach((row, index) => {
+  for (const row of sent.filter(item => held.has(item.key))) {
+    const failure: ManualFailure = { kind: 'duplicate', code: null }
+    failures.set(row.key, failure)
+    next.set(row.key, { ...row, failure })
+  }
+  sending.forEach((row, index) => {
     const error = results[index]
     if (error === null) { saved.push(row); return }
     const failure = classifyManualFailure(error, fresh.has(row.key))
@@ -74,7 +112,7 @@ export async function saveManualRows(ownerId: string, rows: ManualRowState[], or
     // operation instead of a clash. Every other failure keeps the receipt and the operation id.
     if (failure.kind === 'refused') {
       abandonFlightCreateOperation(ownerId, row.operationId)
-      next.set(row.key, { ...row, operationId: crypto.randomUUID(), failure })
+      next.set(row.key, { ...row, operationId: rotatedOperationId(row.operationId), failure })
     } else next.set(row.key, { ...row, failure })
   })
   return { saved, failures, acks, rows: next }
@@ -83,5 +121,5 @@ export async function saveManualRows(ownerId: string, rows: ManualRowState[], or
 /** The member checked the journal: drop the old receipt and give the row a new operation. */
 export function startNewOperation(ownerId: string, row: ManualRowState): ManualRowState {
   abandonFlightCreateOperation(ownerId, row.operationId)
-  return { key: row.key, operationId: crypto.randomUUID(), values: row.values }
+  return { key: row.key, operationId: rotatedOperationId(row.operationId), values: row.values }
 }

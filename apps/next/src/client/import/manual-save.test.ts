@@ -6,7 +6,7 @@ vi.mock('../../../../web/src/lib/apiClient', async importOriginal => ({ ...(awai
 
 import { clearFlightCreateOperations, pendingFlightCreateOperation } from '../../../../web/src/lib/flightCreateOperations'
 import { emptyValues } from './review-model'
-import { classifyManualFailure, newManualRow, saveManualRows, startNewOperation, type ManualRowState } from './manual-save'
+import { classifyManualFailure, newManualRow, restoreManualRows, saveManualRows, startNewOperation, type ManualRowState } from './manual-save'
 import { ApiError } from '../../../../web/src/lib/apiClient'
 
 const values = (over: Partial<ReturnType<typeof emptyValues>> = {}) => ({ ...emptyValues(), date: '2026-03-01', origin: 'JFK', destination: 'BOS', ...over })
@@ -133,6 +133,61 @@ describe('manual flights and the shared create receipt', () => {
       expect(first.failures.get(row.key)).toEqual({ kind: 'uncertain', code })
       expect(first.rows.get(row.key)!.operationId).toBe(row.operationId)
       expect(pendingFlightCreateOperation('u1', row.operationId)).not.toBeNull()
+    })
+  })
+
+  describe('an unresolved save survives a reload', () => {
+    const committed = new Set<string>()
+    const serverCommits = () => post.mockImplementationOnce(async (_path: string, body: { items: Array<{ key: string }> }) => {
+      const key = body.items[0].key
+      const status = committed.has(key) ? 'replayed' : 'created'
+      committed.add(key)
+      return answer({ status })
+    })
+    beforeEach(() => committed.clear())
+    const loseCommittedResponse = async (scope = 'b1') => {
+      post.mockImplementationOnce(async (_path: string, body: { items: Array<{ key: string }> }) => { committed.add(body.items[0].key); throw new TypeError('Failed to fetch') })
+      const row = newManualRow(values(), scope)
+      await saveManualRows('u1', [row])
+      return row
+    }
+
+    it('is restored as an uncertain row with its pinned payload, and retrying it ends with one committed key', async () => {
+      const lost = await loseCommittedResponse()
+      expect(lost.operationId.startsWith('manual:b1:')).toBe(true)
+      expect(restoreManualRows('u1', 'b2')).toEqual([]) // another batch's saves are not shown here
+      expect(restoreManualRows('other', 'b1')).toEqual([]) // nor another member's
+      const [restored] = restoreManualRows('u1', 'b1')
+      expect(restored.operationId).toBe(lost.operationId)
+      expect(restored.failure).toEqual({ kind: 'uncertain', code: null })
+      expect(restored.values).toMatchObject({ date: '2026-03-01', origin: 'JFK', destination: 'BOS' })
+
+      serverCommits()
+      const retry = await saveManualRows('u1', [restored], new Set([restored.key]))
+      expect(retry.saved).toHaveLength(1)
+      expect(sentItems(1)[0].key).toBe(sentItems(0)[0].key)
+      expect(committed.size).toBe(1)
+      expect(restoreManualRows('u1', 'b1')).toEqual([])
+    })
+
+    it('holds back an identical new row until the unresolved save is settled by the journal check', async () => {
+      const lost = await loseCommittedResponse()
+      const again = newManualRow(values(), 'b1')
+      const held = await saveManualRows('u1', [again])
+      expect(held.saved).toEqual([])
+      expect(held.failures.get(again.key)).toEqual({ kind: 'duplicate', code: null })
+      expect(post).toHaveBeenCalledTimes(1) // no second key was minted
+      expect(pendingFlightCreateOperation('u1', again.operationId)).toBeNull()
+      expect(pendingFlightCreateOperation('u1', lost.operationId)).not.toBeNull()
+
+      // A different flight is not held.
+      serverCommits()
+      expect((await saveManualRows('u1', [newManualRow(values({ destination: 'LAX' }), 'b1')])).saved).toHaveLength(1)
+
+      // The member checked the journal for the unresolved save: the identical row is now a normal new save.
+      startNewOperation('u1', restoreManualRows('u1', 'b1')[0])
+      serverCommits()
+      expect((await saveManualRows('u1', [again])).saved).toHaveLength(1)
     })
   })
 

@@ -16,7 +16,7 @@ import { FailurePanel } from './failure-panel'
 import { fetchPressedCountries, cancelBatch, confirmItems, discardBatch, listUnfinished, patchDraft, type ImportSource } from './import-api'
 import type { FailureAction } from './import-errors'
 import type { Draft, UnfinishedImport } from './import-types'
-import { newManualRow, saveManualRows, startNewOperation, type ManualRowState } from './manual-save'
+import { newManualRow, restoreManualRows, saveManualRows, startNewOperation, type ManualRowState } from './manual-save'
 import { ProgressStep } from './progress-step'
 import { emptyValues, hasValues, isChosen, partition, validateValues, withSaved } from './review-model'
 import { ReviewStep } from './review-step'
@@ -89,6 +89,18 @@ export function ImportClient({ ownerId, locale, initialBatchId = null, initialSo
   const [sourceMode, setSourceMode] = useState<'file' | 'text' | null>(initialSource)
   const [sourceKey, setSourceKey] = useState(0)
   const [aircraftSaved, setAircraftSaved] = useState<Set<number>>(new Set())
+  // Manual saves are scoped to the batch they were made in, so an unresolved one can be found again after a reload.
+  const manualScope = batch.batch?.id ?? initialBatchId ?? 'solo'
+  const makeManualRow = () => newManualRow(emptyValues(), manualScope)
+  // A save whose answer was lost keeps its receipt in this browser; bring it back as a recovery row instead of
+  // letting the member add the same flight again under a fresh key.
+  useEffect(() => {
+    const restored = restoreManualRows(ownerId, initialBatchId ?? 'solo')
+    if (restored.length === 0) return
+    setManualRows(previous => previous.length > 0 ? previous : restored)
+    if (!initialBatchId) setManualOnly(true)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
   const lastSource = useRef<{ source: ImportSource; operationId: string } | null>(null)
   const settledOperations = useRef(new Set<string>())
   const baseline = useRef<Set<string> | null | undefined>(undefined)
@@ -147,7 +159,7 @@ export function ImportClient({ ownerId, locale, initialBatchId = null, initialSo
       const type = batch.batch?.sourceType
       reset(); setSourceMode(type === 'text' ? 'text' : 'file'); setNotice(S.sourceAgain[locale])
     } else if (action === 'manual') {
-      batch.reset(); writeUrl(null); resetEdits(); setManualOnly(true); setManualRows([newManualRow(emptyValues())])
+      batch.reset(); writeUrl(null); resetEdits(); setManualOnly(true); setManualRows([...restoreManualRows(ownerId, 'solo'), makeManualRow()])
     } else if (action === 'otherFile' || action === 'pasteText') {
       reset(); setSourceMode(action === 'otherFile' ? 'file' : 'text')
     } else if (action === 'newImport') reset()
@@ -286,7 +298,7 @@ export function ImportClient({ ownerId, locale, initialBatchId = null, initialSo
     {step === 'processing' ? <ProgressStep locale={locale} batch={batch.batch} drafts={batch.drafts} sourceName={sourceName} onCancel={() => void onCancelRun()} cancelling={cancelling} error={cancelError} /> : null}
     {step === 'review' ? <ReviewStep locale={locale} mobile={mobile === true} drafts={drafts} saveStates={saveStates} partial={batch.partial} cancelled={batch.cancelled} failure={batch.failure}
       expiresAt={batch.batch?.expiresAt ?? null} dirty={dirty} onDirty={onDirty}
-      manualRows={manualRows} onManualRows={setManualRows} onManualRetryOriginal={onManualRetryOriginal} onManualNewOperation={onManualNewOperation} confirming={confirming} notice={notice}
+      manualRows={manualRows} onManualRows={setManualRows} makeManualRow={makeManualRow} onManualRetryOriginal={onManualRetryOriginal} onManualNewOperation={onManualNewOperation} confirming={confirming} notice={notice}
       onChange={onChange} onSelectAll={(drafts, selected) => void onSelectAll(drafts, selected)} onRetry={id => void saver.retry(id)} onDiscardEdit={id => saver.discard(id)}
       onConfirm={onConfirm} onDiscardImport={onDiscardImport} /> : null}
     {step === 'done' ? <DoneStep locale={locale} savedCount={savedCount} requested={requestedKeys.size} totalKm={totalKm}

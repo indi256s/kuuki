@@ -32,6 +32,8 @@ export interface ReviewStepProps {
   onDirty: (id: string, dirty: boolean) => void
   manualRows: ManualRowState[]
   onManualRows: (rows: ManualRowState[]) => void
+  /** A new empty manual row scoped to this batch (so its receipt can be found after a reload). */
+  makeManualRow?: () => ManualRowState
   onManualRetryOriginal: (key: string) => void
   onManualNewOperation: (key: string) => void
   confirming: boolean
@@ -45,7 +47,7 @@ export interface ReviewStepProps {
 }
 
 export function ReviewStep(props: ReviewStepProps) {
-  const { locale, mobile, drafts, saveStates, partial, cancelled = false, failure, expiresAt = null, dirty, onDirty, manualRows, onManualRows, onManualRetryOriginal, onManualNewOperation, confirming, notice, onChange, onSelectAll, onRetry, onDiscardEdit, onConfirm, onDiscardImport } = props
+  const { locale, mobile, drafts, saveStates, partial, cancelled = false, failure, expiresAt = null, dirty, onDirty, manualRows, onManualRows, makeManualRow, onManualRetryOriginal, onManualNewOperation, confirming, notice, onChange, onSelectAll, onRetry, onDiscardEdit, onConfirm, onDiscardImport } = props
   const shown = useMemo(() => drafts.map(draft => withUnsent(draft, saveStates[draft.id]?.unsent)), [drafts, saveStates])
   const groups = useMemo(() => partition(shown), [shown])
   const [discard, setDiscard] = useState(false)
@@ -64,7 +66,7 @@ export function ReviewStep(props: ReviewStepProps) {
   useEffect(() => { if (all.current) all.current.indeterminate = chosenActive.length > 0 && !everySelected }, [chosenActive.length, everySelected])
 
   const reason = confirming ? undefined : unsaved ? S.unsavedBlock[locale] : invalidManual > 0 ? S.manualInvalid[locale] : total === 0 ? S.nothingChosen[locale] : undefined
-  const addManual = () => onManualRows([...manualRows, newManualRow(emptyValues())])
+  const addManual = () => onManualRows([...manualRows, makeManualRow ? makeManualRow() : newManualRow(emptyValues())])
   const originalOf = (id: string) => drafts.find(draft => draft.id === id)!
 
   const row = (draft: Draft) => <ReviewRow key={draft.id} locale={locale} draft={draft} stored={originalOf(draft.id)} state={saveStates[draft.id]} mobile={mobile} onDirty={onDirty}
@@ -94,7 +96,7 @@ export function ReviewStep(props: ReviewStepProps) {
       <ManualRow key={manual.key} locale={locale} row={manual} showErrors={hasValues(manual.values)} disabled={confirming} retryBlocked={unsaved ? S.unsavedBlock[locale] : undefined}
         onRetryOriginal={() => onManualRetryOriginal(manual.key)} onNewOperation={() => onManualNewOperation(manual.key)}
         // A refusal wrote nothing, so editing clears it; an unconfirmed save keeps its notice until the member resolves it.
-        onChange={values => onManualRows(manualRows.map(item => item.key === manual.key ? { ...item, values, failure: item.failure?.kind === 'refused' ? undefined : item.failure } : item))}
+        onChange={values => onManualRows(manualRows.map(item => item.key === manual.key ? { ...item, values, failure: item.failure?.kind === 'refused' || item.failure?.kind === 'duplicate' ? undefined : item.failure } : item))}
         onRemove={() => onManualRows(manualRows.filter(item => item.key !== manual.key))} />)}</ul> : null}
     <div className="import-actions"><Button onClick={addManual} disabled={confirming}><Plus size={16} strokeWidth={2} aria-hidden="true" /> {S.addManual[locale]}</Button></div>
 
