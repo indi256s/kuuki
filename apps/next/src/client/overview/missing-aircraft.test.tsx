@@ -117,9 +117,59 @@ describe('MissingAircraftReview', () => {
     await waitFor(() => expect(refresh).toHaveBeenCalledTimes(1))
     await waitFor(() => expect(read).toHaveBeenCalledTimes(2))
     expect(read).toHaveBeenLastCalledWith('2026', null, expect.any(AbortSignal))
-    expect(await screen.findByText('1 aircraft saved. The list is up to date.')).toBeInTheDocument()
+    expect(await screen.findByText('1 aircraft saved.')).toBeInTheDocument()
     // The saved flight is gone and the one that moved up is offered: a fresh panel with the new targets.
     expect(await screen.findByRole('button', { name: /identify aircraft/i })).toBeEnabled()
+  })
+
+  it('keeps partial outcomes and unselected suggestions after rereading, and retries only the failed row', async () => {
+    const accept = vi.fn().mockResolvedValueOnce({ results: [
+      { id: 1, status: 'accepted', flight: { id: 1, aircraft_icao: 'B738' } },
+      { id: 2, status: 'error', http_status: 503, code: 'DOWN', error: 'Unavailable' },
+    ] }).mockResolvedValueOnce({ results: [{ id: 2, status: 'accepted', flight: { id: 2, aircraft_icao: 'B738' } }] })
+    const read = answer(page([1, 2, 3], 4, 0, 'cursor'), page([2, 3, 4], 3, 0, 'refreshed-cursor'), page([3, 4], 2), page([4], 2, 1))
+    render(<MissingAircraftReview locale="en" period="all" count={4} read={read} aircraftApi={aircraftApi(accept, 3)} />)
+    await open()
+    await userEvent.click(await screen.findByRole('button', { name: /identify aircraft/i }))
+    await userEvent.click(screen.getByRole('checkbox', { name: /103/ }))
+    await userEvent.click(screen.getByRole('button', { name: /save 2 aircraft/i }))
+    await waitFor(() => expect(read).toHaveBeenCalledTimes(2))
+    expect(await screen.findByText(/Not saved.*DOWN/)).toBeInTheDocument()
+    expect(screen.getByRole('checkbox', { name: /103/ })).not.toBeChecked()
+    await userEvent.click(screen.getByRole('button', { name: 'Try again for the rest' }))
+    expect(accept).toHaveBeenLastCalledWith([{ id: 2, aircraft_icao: 'B738' }])
+    await waitFor(() => expect(read).toHaveBeenCalledTimes(3))
+    expect(screen.getByRole('checkbox', { name: /103/ })).not.toBeChecked()
+    await userEvent.click(screen.getByRole('button', { name: 'Show the next 1 flight' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Discard and continue' }))
+    await waitFor(() => expect(read).toHaveBeenCalledTimes(4))
+    // Continue after the reviewed boundary, not after unseen flights that filled the refreshed page.
+    expect(read).toHaveBeenLastCalledWith('all', 'cursor', expect.any(AbortSignal))
+    expect(await screen.findByRole('button', { name: /identify aircraft/i })).toBeInTheDocument()
+  })
+
+  it('blocks paging and close during a save, then requires explicit discard of unresolved review work', async () => {
+    let finish!: (value: Awaited<ReturnType<AircraftApi['accept']>>) => void
+    const accept = vi.fn(() => new Promise<Awaited<ReturnType<AircraftApi['accept']>>>(resolve => { finish = resolve }))
+    const read = answer(page([1], 2, 0, 'cursor'), page([2], 2, 1))
+    render(<MissingAircraftReview locale="en" period="all" count={2} read={read} aircraftApi={aircraftApi(accept)} />)
+    await open()
+    await userEvent.click(await screen.findByRole('button', { name: /identify aircraft/i }))
+    await userEvent.click(screen.getByRole('button', { name: /save 1 aircraft/i }))
+    await userEvent.click(screen.getByRole('button', { name: 'Show the next 1 flight' }))
+    expect(read).toHaveBeenCalledTimes(1)
+    await userEvent.click(screen.getByRole('button', { name: 'Close' }))
+    expect(screen.getByRole('dialog')).toBeInTheDocument()
+    finish({ results: [{ id: 1, status: 'error', http_status: 503, code: 'DOWN', error: 'Unavailable' }] })
+    await screen.findByText(/Not saved.*DOWN/)
+    await userEvent.click(screen.getByRole('button', { name: 'Show the next 1 flight' }))
+    expect(read).toHaveBeenCalledTimes(1)
+    expect(screen.getByText('Leaving this review discards unsaved suggestions and retry outcomes.')).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: 'Keep reviewing' }))
+    expect(screen.getByText(/Not saved.*DOWN/)).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: 'Show the next 1 flight' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Discard and continue' }))
+    expect(await screen.findByText('Flights 2–2 of 2 without an aircraft.')).toBeInTheDocument()
   })
 
   it('a failed re-read after a save says the save worked and offers a retry of the list', async () => {

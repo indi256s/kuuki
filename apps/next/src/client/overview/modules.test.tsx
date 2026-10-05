@@ -84,7 +84,7 @@ describe('map band', () => {
     expect(document.querySelector('.ov-legend-line')).toHaveTextContent('7 routes · 8 airports · 6 countries and territories · 1 waiting for a stamp')
     expect(document.querySelectorAll('.ov-legend li')).toHaveLength(4)
     const list = document.querySelector('.ov-country-list ul') as HTMLElement
-    expect(within(list).getByText(/Country JP · 4 visits/)).toBeInTheDocument()
+    expect(within(list).getByText(/Country JP · 3 visits/)).toBeInTheDocument()
     expect(within(list).getByText(/Country AU · 1 visit · waiting for a stamp/)).toBeInTheDocument()
   })
   it('draws only pressed countries on the map, with the period visit buckets', () => {

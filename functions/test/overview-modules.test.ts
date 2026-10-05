@@ -352,6 +352,23 @@ describe('archived-evidence provenance of the all-time country figure', () => {
     } finally { await legacy.dispose(); await canonical.dispose() }
   })
 
+  it.each([
+    ['ZZZ', 'INVALID', false], // new invalid legacy country is excluded by the projection
+    ['DXB', null, true], // reference country fallback
+    ['TBS', 'INVALID', true], // a logged unsuppressed canonical airport supplies the effective country
+  ])('uses the effective country of archived airport %s (%s)', async (airport, country, expected) => {
+    const { db, dispose } = await overviewAccount([logged(1, '2025-01-10', 'TBS', 'IST')], d => [
+      d.prepare(`INSERT INTO legacy_visit_evidence (source_id,user_id,airport_iata,country_code,first_visit,last_visit,visit_count,source_digest,provenance,contributes,source_json)
+        VALUES ('validity',?,?,?,'2019-01-01','2019-01-01',2,'d','archive',1,'{}')`).bind(USER.id, airport, country),
+    ])
+    try {
+      const summary = await readOverviewSummary(db)
+      expect(summary.countryState).toBe('ready')
+      expect(summary.archivedEvidence).toBe(expected)
+      if (!expected) expect(summary.totals.countries).toBe(2)
+    } finally { await dispose() }
+  })
+
   it('ignores archived rows that do not contribute or belong to another owner', async () => {
     const { db, dispose } = await overviewAccount([logged(1, '2025-01-10', 'TBS', 'IST')], d => [
       legacyRow('quiet', 0)(d),

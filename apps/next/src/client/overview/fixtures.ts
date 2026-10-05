@@ -63,13 +63,13 @@ export function busySummary(flights: 10 | 500, period: OverviewSummary['period']
   const k = flights / 10
   const monthly = [1, 1, 0, 3, 1, 0, 0, 1, 2, 1, 0, 0].map(count => count * k)
   return emptySummary(period, {
-    totals: { flights, distanceKm: 18000 * k, durationMinutes: 600 * k, countries: 6, cities: 7, airports: 8, airlines: 5, aircraft: 3, continents: 4, pendingCountries: 1, upcomingFlights: 1 },
+    totals: { flights, distanceKm: 60000 * k, durationMinutes: 6000 * k, countries: 6, cities: 7, airports: 8, airlines: 5, aircraft: 3, continents: 4, pendingCountries: 1, upcomingFlights: 1 },
     comparison: period === 'all' ? null : { previousPeriod: '2025', firstYear: false, flights: { previous: flights * 2, delta: -flights, percent: -50 },
-      distanceKm: { previous: 18000 * k * 2, delta: -18000 * k, percent: -50 }, durationMinutes: { previous: 1200 * k, delta: -600 * k, percent: -50 }, countries: { previous: 4, delta: 2, percent: 50 } },
+      distanceKm: { previous: 60000 * k * 2, delta: -60000 * k, percent: -50 }, durationMinutes: { previous: 12000 * k, delta: -6000 * k, percent: -50 }, countries: { previous: 4, delta: 2, percent: 50 } },
     dataAvailability: { flights, durationKnown: flights - 2, distanceKnown: flights, missingAircraft: 3 * k },
     map: { routeCount: 7, countries: [
-      { id: 'GE', visits: 2 * k + 1, pending: false }, { id: 'TR', visits: 3 * k, pending: false }, { id: 'US', visits: 2, pending: false },
-      { id: 'GB', visits: 1, pending: false }, { id: 'JP', visits: 4 * k, pending: false }, { id: 'AU', visits: 1, pending: true }] },
+      { id: 'GE', visits: 5 * k, pending: false }, { id: 'TR', visits: 6 * k, pending: false }, { id: 'US', visits: 3 * k, pending: false },
+      { id: 'GB', visits: 2 * k, pending: false }, { id: 'JP', visits: 3 * k, pending: false }, { id: 'AU', visits: k, pending: true }] },
     nextFlight: { id: 99, date: '2026-12-01', origin: 'TBS', destination: 'LHR', airlineIata: null, flightNumber: 'BA 123' },
     insights: { longestFlight: { origin: 'JFK', destination: 'SYD', distanceKm: 15989 }, mostFrequentRoute: { origin: 'TBS', destination: 'IST', count: 3 * k },
       favoriteAirline: { id: 'TK', count: 4 * k },
@@ -80,7 +80,7 @@ export function busySummary(flights: 10 | 500, period: OverviewSummary['period']
       airlines: [{ id: 'TK', count: 4 * k }, { id: 'PC', count: 2 * k }, { id: 'BA', count: 2 * k }, { id: 'LH', count: k }, { id: 'AF', count: k }],
       airports: [{ id: 'IST', count: 6 * k }, { id: 'TBS', count: 5 * k }, { id: 'JFK', count: 3 * k }, { id: 'LHR', count: 2 * k }, { id: 'HND', count: k }],
       aircraft: [{ id: 'A320', count: 4 * k }, { id: 'B738', count: 2 * k }, { id: 'A359', count: k }],
-      countries: [{ id: 'TR', count: 3 * k }, { id: 'GE', count: 2 * k }], manufacturers: [{ id: 'Airbus', count: 5 * k }, { id: 'Boeing', count: 2 * k }] },
+      countries: [{ id: 'TR', count: 6 * k }, { id: 'GE', count: 5 * k }, { id: 'JP', count: 3 * k }, { id: 'US', count: 3 * k }, { id: 'GB', count: 2 * k }], manufacturers: [{ id: 'Airbus', count: 5 * k }, { id: 'Boeing', count: 2 * k }] },
     years: [2026, 2025, 2024, 2023, 2022, 2021, 2020], regions: regions({ asia: [3, 0], europe: [1, 0], americas: [1, 0], oceania: [0, 1] }),
     months: months(period, monthly), countryIds: ['AU', 'GB', 'GE', 'JP', 'TR', 'US'],
   })

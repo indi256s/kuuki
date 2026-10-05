@@ -1,7 +1,7 @@
 'use client'
 
 import { findAircraft } from '@kuuki/data/aircraft-lookup'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { formatDateOnly, type Locale } from '../../lib/format'
 import { Button } from '../ui/button'
 import { acceptAircraft, AIRCRAFT_BATCH, diagnose, retryableAircraft, toggleAll, type AircraftAccept, type AircraftRun, type AircraftTarget, type EnrichResult, type Suggested, type Unidentified } from './aircraft-review'
@@ -22,11 +22,12 @@ type Phase = 'idle' | 'searching' | 'results' | 'failed'
  * Suggestions, then one accept per selected flight through the batch endpoint, 20 at a time and never in parallel.
  * Each flight keeps its own outcome: saved, failed, or uncertain when the answer was lost.
  */
-export function AircraftPanel({ locale, targets, onSaved, api = defaultApi }: {
+export function AircraftPanel({ locale, targets, onSaved, onWorkChange, api = defaultApi }: {
   locale: Locale
   targets: AircraftTarget[]
   /** Called after any confirmed write, including a partial one, so every freshness owner refreshes. */
-  onSaved: (run: AircraftRun) => void
+  onSaved: (run: AircraftRun, unresolved: boolean) => void
+  onWorkChange?: (work: { busy: boolean; dirty: boolean }) => void
   api?: AircraftApi
 }) {
   const [phase, setPhase] = useState<Phase>('idle')
@@ -41,6 +42,7 @@ export function AircraftPanel({ locale, targets, onSaved, api = defaultApi }: {
   const byId = useMemo(() => new Map(targets.map(target => [target.id, target])), [targets])
   const suggestedById = useMemo(() => new Map(view.suggested.map(item => [item.flightId, item])), [view.suggested])
   const open = view.suggested.filter(item => outcomes.get(item.flightId)?.status !== 'saved')
+  useEffect(() => { onWorkChange?.({ busy: phase === 'searching' || applying, dirty: open.length > 0 }) }, [phase, applying, open.length, onWorkChange])
   const allSelected = open.length > 0 && open.every(item => selected.has(item.flightId))
 
   const search = async () => {
@@ -73,7 +75,7 @@ export function AircraftPanel({ locale, targets, onSaved, api = defaultApi }: {
     setOutcomes(previous => { const next = new Map(previous); for (const [id, outcome] of run.rows) next.set(id, outcome); return next })
     // Anything that is not saved stays selected so one press retries exactly those.
     setSelected(new Set([...run.rows].filter(([, outcome]) => outcome.status !== 'saved').map(([id]) => id)))
-    if ([...run.rows.values()].some(outcome => outcome.status === 'saved')) onSaved(run)
+    if ([...run.rows.values()].some(outcome => outcome.status === 'saved')) onSaved(run, view.suggested.some(item => (run.rows.get(item.flightId) ?? outcomes.get(item.flightId))?.status !== 'saved'))
   }
 
   const retryIds = retryableAircraft({ rows: outcomes, acks: [], uncertain: false })

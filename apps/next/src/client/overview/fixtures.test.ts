@@ -1,6 +1,7 @@
 // The reusable summaries must describe a possible account, or T18's volume acceptance proves nothing.
 import { describe, expect, it } from 'vitest'
 import type { OverviewSummary } from '../../../../../packages/shared/src/overview'
+import { findAirport } from '@kuuki/data/airport-lookup'
 import { busySummary, emptySummary, legacyOnlySummary, singleFlightSummary, stressSummary } from './fixtures'
 
 const sum = (rows: Array<{ count: number }>) => rows.reduce((total, row) => total + row.count, 0)
@@ -73,6 +74,21 @@ describe('reusable Overview fixtures describe possible accounts', () => {
     ['legacy-only', legacyOnlySummary()],
   ]
   it.each(cases)('%s', (_name, summary) => invariants(summary))
+
+  it.each([10, 500] as const)('n=%s country visits and rankings match its endpoint account', flights => {
+    const summary = busySummary(flights)
+    const k = flights / 10
+    // Three TBS–IST, two IST–LHR, then IST–JFK, TBS–NRT, TBS–KIX, JFK–HND and JFK–SYD.
+    const endpoints = [['IST', 6], ['TBS', 5], ['JFK', 3], ['LHR', 2], ['HND', 1], ['NRT', 1], ['KIX', 1], ['SYD', 1]] as const
+    const countries = new Map<string, number>()
+    for (const [iata, n] of endpoints) {
+      const code = findAirport(iata)!.countryCode
+      countries.set(code, (countries.get(code) ?? 0) + n * k)
+    }
+    expect(summary.map.countries.map(row => [row.id, row.visits]).sort()).toEqual([...countries].sort())
+    expect(summary.topLists.countries).toEqual([...countries].map(([id, count]) => ({ id, count }))
+      .sort((a, b) => b.count - a.count || a.id.localeCompare(b.id)).slice(0, 5))
+  })
 
   it('the stress fixture is separately named and breaks the new-country subset on purpose', () => {
     const stress = stressSummary()

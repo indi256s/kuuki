@@ -17,7 +17,7 @@ const inDays: CountForms = { en: { one: 'In {count} day', other: 'In {count} day
 const earth: CountForms = { en: { one: '{count} time around the Earth', other: '{count} times around the Earth' }, ru: { one: '{count} раз вокруг Земли', few: '{count} раза вокруг Земли', many: '{count} раз вокруг Земли', other: '{count} раза вокруг Земли' } }
 const noAircraft: CountForms = { en: { one: '{count} flight has no aircraft listed', other: '{count} flights have no aircraft listed' }, ru: { one: 'У {count} рейса не указан самолёт', few: 'У {count} рейсов не указан самолёт', many: 'У {count} рейсов не указан самолёт', other: 'У {count} рейсов не указан самолёт' } }
 const showNext: CountForms = { en: { one: 'Show the next {count} flight', other: 'Show the next {count} flights' }, ru: { one: 'Показать следующий {count} перелёт', few: 'Показать следующие {count} перелёта', many: 'Показать следующие {count} перелётов', other: 'Показать следующие {count} перелёта' } }
-const aircraftSaved: CountForms = { en: { one: '{count} aircraft saved. The list is up to date.', other: '{count} aircraft saved. The list is up to date.' }, ru: { one: 'Сохранён {count} самолёт. Список обновлён.', few: 'Сохранено {count} самолёта. Список обновлён.', many: 'Сохранено {count} самолётов. Список обновлён.', other: 'Сохранено {count} самолёта. Список обновлён.' } }
+const aircraftSaved: CountForms = { en: { one: '{count} aircraft saved.', other: '{count} aircraft saved.' }, ru: { one: 'Сохранён {count} самолёт.', few: 'Сохранено {count} самолёта.', many: 'Сохранено {count} самолётов.', other: 'Сохранено {count} самолёта.' } }
 const durationKnown: CountForms = { en: { one: 'Duration known for {known} of {count} flight', other: 'Duration known for {known} of {count} flights' }, ru: { one: 'Время известно для {known} из {count} перелёта', few: 'Время известно для {known} из {count} перелётов', many: 'Время известно для {known} из {count} перелётов', other: 'Время известно для {known} из {count} перелётов' } }
 
 export const forms = { flights, flightsOf, routes, airports, countries, visits, waiting, inDays, earth, noAircraft, durationKnown, showNext, aircraftSaved }
@@ -83,6 +83,12 @@ export const S = {
   manufacturers: p('By manufacturer', 'По производителям'),
   all_: p('All', 'Все'),
   noRanking: p('Nothing recorded for this period yet.', 'За этот период пока ничего не указано.'),
+  reviewReload: p('Review the refreshed list', 'Проверить обновлённый список'),
+  reviewRetained: p('Unsaved suggestions and retry outcomes remain in this review.', 'Несохранённые предложения и результаты для повторной попытки остаются в этой проверке.'),
+  reviewWorking: p('Wait for the aircraft search or save to finish before leaving this review.', 'Дождитесь окончания поиска или сохранения самолётов, прежде чем выйти из проверки.'),
+  reviewDiscard: p('Leaving this review discards unsaved suggestions and retry outcomes.', 'При выходе из проверки несохранённые предложения и результаты для повторной попытки будут потеряны.'),
+  reviewDiscardContinue: p('Discard and continue', 'Отбросить и продолжить'),
+  reviewKeep: p('Keep reviewing', 'Продолжить проверку'),
   reviewAircraft: p('Review aircraft', 'Проверить самолёты'),
   reviewTitle: p('Aircraft for flights without one', 'Самолёты для перелётов без указания'),
   reviewDescription: p('Suggestions are saved only after you confirm them.', 'Предложения сохраняются только после вашего подтверждения.'),
