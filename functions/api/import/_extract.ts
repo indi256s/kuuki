@@ -10,6 +10,7 @@ import {
   type EnrichmentStatus,
   detectImageMimeType,
   EXTRACTION_PROMPT,
+  EXTRACTION_TASK,
 } from './_shared'
 import { decodedBase64Size } from './_body'
 import { DEFAULT_MODEL, PROVIDER_TIMEOUT_MS, ProviderResponseError, providerFailure, usageBucket } from './_provider'
@@ -90,9 +91,11 @@ export const FLIGHT_RESPONSE_SCHEMA = {
     },
     raw_text: {
       type: Type.STRING,
-      description: 'Extracted text from the document',
+      description: 'At most one short sentence about the source, never a copy of the document',
     },
   },
+  // Flights first, so streamed rows arrive before the note; the note stays short so long sources cannot hit the output cap.
+  propertyOrdering: ['flights', 'raw_text'],
   required: ['flights'],
 }
 
@@ -309,7 +312,7 @@ export function extractionContents({ type, content }: ParseRequest) {
   type ContentPart = string | { inlineData: { data: string; mimeType: string } }
   const contents: ContentPart[] = [EXTRACTION_PROMPT]
   if (type === 'text') {
-    contents.push(`\n\nDocument content:\n${content}`)
+    contents.push(`<document>\n${content}\n</document>`)
   } else {
     const mimeType = type === 'pdf' ? 'application/pdf' : detectImageMimeType(content)
     contents.push({
@@ -319,6 +322,6 @@ export function extractionContents({ type, content }: ParseRequest) {
       },
     })
   }
-
+  contents.push(EXTRACTION_TASK)
   return contents
 }
