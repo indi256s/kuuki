@@ -6,13 +6,16 @@ import { join } from 'node:path'
 import { useEffect, useState } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { JournalView } from './journal'
+import { PrimaryNav } from '../nav'
+import { QueueSummarySlot } from '../queue-summary'
+import { announceJournalLink } from '../journal-links'
 import { Sheet } from '../ui/sheet'
 import { normalizeJournalQuery } from '../../lib/url-state'
 import type { JournalData } from '../../server/journal'
 import { api } from '../../../../web/src/lib/apiClient'
 
 const nav = vi.hoisted(() => ({ push: vi.fn(), replace: vi.fn(), refresh: vi.fn(), set: vi.fn<(query: string) => void>() }))
-vi.mock('next/navigation', () => ({ useRouter: () => nav }))
+vi.mock('next/navigation', () => ({ useRouter: () => nav, usePathname: () => '/journal' }))
 // The real Link needs a mounted App Router; the stand-in follows its click contract and navigates through the mocked router.
 vi.mock('next/link', async () => ({ default: (await import('../../test/next-link')).linkStandIn((href, { replace }) => nav[replace ? 'replace' : 'push'](href)) }))
 vi.mock('../activity', () => ({ trackPrivateOperation: () => () => {} }))
@@ -377,6 +380,71 @@ describe('filters', () => {
     await act(async () => { window.dispatchEvent(new PopStateEvent('popstate')) })
     await router.deliver('airline=LH', true)
     expect(airline).toHaveValue('LH')
+  })
+
+  describe('shell links to /journal while its own filter navigation is pending', () => {
+    const searchAfter = async (user: ReturnType<typeof userEvent.setup>) => {
+      nav.push.mockClear(); nav.replace.mockClear()
+      await user.type(screen.getByRole('searchbox'), 'x{Enter}')
+      return [...nav.push.mock.calls, ...nav.replace.mock.calls].map(call => hrefQuery(call[0]))
+    }
+    const commitAirline = async (user: ReturnType<typeof userEvent.setup>, value: string) => {
+      const airline = screen.getByRole('textbox', { name: 'Airline' })
+      await user.clear(airline)
+      await user.type(airline, value)
+      await user.tab()
+      return airline
+    }
+
+    it('adopts the Journal tab to the unchanged /journal', async () => {
+      const user = userEvent.setup()
+      const router = slowRouter()
+      render(<><PrimaryNav /><Harness /></>)
+      const airline = await commitAirline(user, 'aa')
+      expect(hrefQuery(nav.push.mock.calls.at(-1)![0])).toBe('airline=AA') // not answered yet
+      await user.click(within(screen.getByRole('navigation', { name: 'Primary' })).getByRole('link', { name: /^Journal/ }))
+      await router.deliver('', true) // the rendered URL does not change
+      expect(airline).toHaveValue('')
+      expect(await searchAfter(user)).toEqual(['q=x'])
+      await router.deliver('q=x', true)
+    })
+
+    it('adopts the queue link to a different destination', async () => {
+      const user = userEvent.setup()
+      const router = slowRouter()
+      render(<><QueueSummarySlot count={2} /><Harness start="airline=TK" /></>)
+      const airline = await commitAirline(user, 'aa')
+      await user.click(screen.getByRole('link', { name: '2 awaiting action' }))
+      await router.deliver('queue=awaiting', true)
+      expect(airline).toHaveValue('')
+      expect(await searchAfter(user)).toEqual(['q=x&queue=awaiting'])
+      await router.deliver('q=x&queue=awaiting', true)
+    })
+
+    it('adopts an announced filtered destination (airline=LH) before and after it arrives', async () => {
+      const user = userEvent.setup()
+      const router = slowRouter()
+      render(<Harness start="airline=TK" />)
+      const airline = await commitAirline(user, 'aa')
+      act(() => announceJournalLink('/journal?airline=LH')!())
+      expect(airline).toHaveValue('LH')
+      await router.deliver('airline=LH', true)
+      expect(airline).toHaveValue('LH')
+      expect(await searchAfter(user)).toEqual(['q=x&airline=LH'])
+      await router.deliver('q=x&airline=LH', true)
+    })
+
+    it('leaves the drafts alone for a modified click on the Journal tab, which opens another tab', async () => {
+      const user = userEvent.setup()
+      slowRouter()
+      render(<><PrimaryNav /><Harness /></>)
+      const airline = await commitAirline(user, 'aa')
+      await user.keyboard('{Control>}')
+      await user.click(within(screen.getByRole('navigation', { name: 'Primary' })).getByRole('link', { name: /^Journal/ }))
+      await user.keyboard('{/Control}')
+      expect(airline).toHaveValue('AA')
+      expect(nav.push).toHaveBeenCalledTimes(1)
+    })
   })
 
   it('adopts an external URL change (Reset, Back) but not its own navigation', () => {

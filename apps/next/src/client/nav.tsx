@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation'
 import { useEffect, useState, type ReactNode } from 'react'
 import { BookOpen, CircleUser, LayoutGrid, Plus, Stamp } from 'lucide-react'
 import { AddActions } from './add-actions'
+import { announceJournalLink } from './journal-links'
 import { Sheet } from './ui/sheet'
 
 type Locale = 'en' | 'ru'
@@ -37,7 +38,7 @@ function NavLabel({ en, ru }: { en: string; ru: string }) { return <><span class
 
 export function PrimaryNav({ locale = 'en' }: { locale?: Locale }) {
   const pathname = usePathname()
-  return <nav aria-label={locale === 'ru' ? 'Основная навигация' : 'Primary'} className="desktop-nav"><ul className="main-nav">{NAV_ITEMS.map(item => <li key={item.href}><Link href={item.href} aria-current={isActive(pathname, item.href) ? 'page' : undefined}><NavLabel en={item.label} ru={item.ru} /></Link></li>)}</ul></nav>
+  return <nav aria-label={locale === 'ru' ? 'Основная навигация' : 'Primary'} className="desktop-nav"><ul className="main-nav">{NAV_ITEMS.map(item => <li key={item.href}><Link href={item.href} onNavigate={announceJournalLink(item.href)} aria-current={isActive(pathname, item.href) ? 'page' : undefined}><NavLabel en={item.label} ru={item.ru} /></Link></li>)}</ul></nav>
 }
 
 /**
@@ -60,7 +61,7 @@ function useKeyboardFlag() {
 }
 
 function Tab({ href, active, icon, en, ru }: { href: string; active: boolean; icon: ReactNode; en: string; ru: string }) {
-  return <li><Link href={href} className="tab" aria-current={active ? 'page' : undefined}>{icon}<span className="tab-label"><NavLabel en={en} ru={ru} /></span></Link></li>
+  return <li><Link href={href} onNavigate={announceJournalLink(href)} className="tab" aria-current={active ? 'page' : undefined}>{icon}<span className="tab-label"><NavLabel en={en} ru={ru} /></span></Link></li>
 }
 
 export function TabBar({ locale = 'en', username }: { locale?: Locale; username?: string | null }) {
