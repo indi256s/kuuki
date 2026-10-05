@@ -132,6 +132,14 @@ function JournalInner({ ownerId, locale, initial, query, page, filtered }: Props
   const requested = useRef(query)
   useEffect(() => { requested.current = query }, [query])
   const [navigating, startNavigation] = useTransition()
+  // A navigation can end without arriving (Next catches the failure and keeps the rendered URL). When the transition `apply` started settles and the
+  // rendered query is not its target, the target is dropped so an identical retry navigates again. An explicit navigation (below) owns `requested` instead.
+  const ownRequest = useRef(false)
+  const wasNavigating = useRef(false)
+  useEffect(() => {
+    if (wasNavigating.current && !navigating && ownRequest.current) { ownRequest.current = false; requested.current = query }
+    wasNavigating.current = navigating
+  }, [navigating, query])
   /** Returns whether a navigation was started. It runs in a transition, so `navigating` stays true until the new page has committed. */
   const apply = (changes: Record<string, string>, mode: 'push' | 'replace' | 'refine' = 'push'): boolean => {
     const base = new URLSearchParams(requested.current)
@@ -147,6 +155,7 @@ function JournalInner({ ownerId, locale, initial, query, page, filtered }: Props
     if (target === normalizeJournalQuery(base).query) return false
     if (listChanged) select([])
     requested.current = target
+    ownRequest.current = true
     startNavigation(() => router[mode === 'replace' || (mode === 'refine' && refine) ? 'replace' : 'push'](withQuery('/journal', target), { scroll: false }))
     return true
   }
@@ -157,6 +166,7 @@ function JournalInner({ ownerId, locale, initial, query, page, filtered }: Props
   const navigateExternally = useCallback((target: string) => {
     const normalized = normalizeJournalQuery(new URLSearchParams(target)).query
     requested.current = normalized
+    ownRequest.current = false
     setExternal(old => ({ query: normalized, serial: old.serial + 1 }))
   }, [])
   useEffect(() => {
