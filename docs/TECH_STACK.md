@@ -1,5 +1,7 @@
 # Kuuki tech stack
 
+> Legacy: describes the Vite app (apps/web). For current work on apps/next, read [DESIGN.md](../DESIGN.md) for UI and [GLOSSARY.md](../GLOSSARY.md) for domain terms.
+
 Manifests specify compatible ranges; `pnpm-lock.yaml` records the installed versions. Use the lockfile rather than treating older documentation as a version pin.
 
 | Layer | Current implementation |
