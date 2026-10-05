@@ -4,7 +4,7 @@ import type { ConfirmItemResult, ConfirmResponse } from './import-types'
 
 const items = (n: number, from = 0): ConfirmItem[] => Array.from({ length: n }, (_, i) => ({ draftId: `d${from + i}`, version: 2 }))
 const flight = (id: number) => ({ id, aircraft_icao: null, origin: 'JFK', destination: 'BOS', date: '2026-03-01' })
-const created = (item: ConfirmItem, id: number): ConfirmItemResult => ({ draftId: item.draftId, key: importKey(item.draftId, item.version), status: 'created', flight: flight(id) })
+const created = (item: ConfirmItem, id: number): Extract<ConfirmItemResult, { flight: unknown }> => ({ draftId: item.draftId, key: importKey(item.draftId, item.version), status: 'created', flight: flight(id) })
 const failed = (item: ConfirmItem, code: string, http_status: number): ConfirmItemResult => ({ draftId: item.draftId, key: importKey(item.draftId, item.version), status: 'error', code, http_status, error: 'x' })
 const response = (results: ConfirmItemResult[], over: Partial<ConfirmResponse> = {}): ConfirmResponse =>
   ({ results, batch: { id: 'b1', status: 'review', sequence: 4, reviewRowCount: 0 }, derived_state: 'ready', revision: 3, ...over })

@@ -15,6 +15,8 @@ export const LOW_CONFIDENCE = 0.7
 
 export const emptyValues = (): FieldValues => ({ date: '', origin: '', destination: '', airline_iata: '', flight_number: '', aircraft_icao: '', departure_time: '', arrival_time: '' })
 
+export const hasValues = (values: FieldValues) => FIELDS.some(name => values[name].trim() !== '')
+
 export const toValues = (fields: Partial<DraftFields>): FieldValues => ({ ...emptyValues(),
   ...Object.fromEntries(FIELDS.map(name => [name, typeof fields[name] === 'string' ? fields[name] as string : ''])) })
 
