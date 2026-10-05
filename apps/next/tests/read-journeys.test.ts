@@ -1,5 +1,5 @@
 import { test, expect, type Page, type BrowserContext } from '@playwright/test'
-import { signIn as authenticate, claimUsername } from './helpers'
+import { signIn as authenticate, claimUsername, fixtureHeaders } from './helpers'
 
 // Share real sessions within this file so the suite stays inside production auth limits.
 let fixtureCookies: Awaited<ReturnType<BrowserContext['cookies']>> | undefined
@@ -131,7 +131,7 @@ test('RU read controls fit narrow and desktop viewports in both themes', async (
 async function journalAccount(page: Page, origin: string) {
   if (journalCookies) await page.context().addCookies(journalCookies)
   else {
-    const response = await page.request.post('/api/auth/sign-up/email', { headers: { Origin: origin }, data: { email: `journal-${crypto.randomUUID()}@example.test`, password: 'journal-password-2026' } })
+    const response = await page.request.post('/api/auth/sign-up/email', { headers: fixtureHeaders(origin), data: { email: `journal-${crypto.randomUUID()}@example.test`, password: 'journal-password-2026' } })
     expect(response.status()).toBe(201)
     await claimUsername(page, origin)
     journalCookies = await page.context().cookies()

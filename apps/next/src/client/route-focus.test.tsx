@@ -59,6 +59,20 @@ describe('RouteFocus', () => {
     expect(document.activeElement).toBe(h1)
   })
 
+  it('focuses Reveal while Capture remains mounted and follows a heading that becomes hidden', async () => {
+    pathname = '/onboarding'; search = new URLSearchParams('step=capture')
+    document.body.innerHTML = '<main id="main"><div hidden><h1>Capture</h1></div><section><h1>Reveal</h1></section></main>'
+    const view = render(<RouteFocus />)
+    search = new URLSearchParams('step=reveal'); view.rerender(<RouteFocus />)
+    expect(document.activeElement?.textContent).toBe('Reveal')
+    await act(async () => {
+      document.querySelector('section')!.setAttribute('hidden', '')
+      document.querySelector('main > div')!.removeAttribute('hidden')
+      await Promise.resolve()
+    })
+    expect(document.activeElement?.textContent).toBe('Capture')
+  })
+
   it('follows a loading heading that is replaced while focus is lost', async () => {
     const first = page()
     const view = render(<RouteFocus />)

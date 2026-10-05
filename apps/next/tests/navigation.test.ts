@@ -1,5 +1,5 @@
 import { test, expect, type BrowserContext, type Page } from '@playwright/test'
-import { signIn } from './helpers'
+import { signIn, fixtureHeaders } from './helpers'
 
 // The @next/playwright instant() shell-timing gate is deferred until the
 // Cloudflare adapter can serve the required Cache Components configuration.
@@ -131,7 +131,7 @@ test.describe('legacy and normalized URLs', () => {
     await asMember(page)
     await page.goto('/onboarding?step=bogus')
     await page.waitForURL(url => url.pathname === '/onboarding' && url.search !== '' && !url.search.includes('bogus'))
-    await expect(page.locator('main h1')).toBeVisible()
+    await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
   })
 })
 
@@ -171,7 +171,7 @@ test.describe('entry behavior', () => {
   test('a member without a username is sent to onboarding first', async ({ page, baseURL }) => {
     const email = `nousername-${Date.now()}@example.test`
     const created = await page.request.post('/api/auth/sign-up/email', {
-      headers: { Origin: baseURL! }, data: { name: 'New member', email, password: 'rehearsal-password-2026' },
+      headers: fixtureHeaders(baseURL!), data: { name: 'New member', email, password: 'rehearsal-password-2026' },
     })
     expect(created.status()).toBe(201)
     await signIn(page, baseURL!, email)

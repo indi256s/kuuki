@@ -1,8 +1,8 @@
 import { test, expect, type Page } from '@playwright/test'
-import { claimUsername } from './helpers'
+import { claimUsername, fixtureHeaders } from './helpers'
 
 async function signup(page: Page, origin: string, named = false) {
-  const response = await page.request.post('/api/auth/sign-up/email', { headers: { Origin: origin }, data: { email: `onboarding-${crypto.randomUUID()}@example.test`, password: 'onboarding-password-2026' } })
+  const response = await page.request.post('/api/auth/sign-up/email', { headers: fixtureHeaders(origin), data: { email: `onboarding-${crypto.randomUUID()}@example.test`, password: 'onboarding-password-2026' } })
   expect(response.status()).toBe(201)
   if (named) await claimUsername(page, origin)
 }
@@ -36,7 +36,7 @@ test('manual future save reveals a booked Ticket, then reload stays honest witho
   await page.getByRole('button', { name: 'Enter manually' }).click()
   const future = new Date(); future.setUTCFullYear(future.getUTCFullYear() + 1)
   await page.getByLabel('Date', { exact: true }).fill(future.toISOString().slice(0, 10))
-  for (const [label, code] of [['From', 'TBS'], ['To', 'IST']]) {
+  for (const [label, code] of [['From', 'JFK'], ['To', 'BOS']]) {
     await page.getByRole('combobox', { name: label, exact: true }).click()
     const picker = page.getByRole('dialog', { name: label, exact: true })
     await picker.getByRole('combobox', { name: label, exact: true }).fill(code)
@@ -44,7 +44,7 @@ test('manual future save reveals a booked Ticket, then reload stays honest witho
   }
   await page.getByRole('button', { name: 'Save flight', exact: true }).click()
   await page.getByRole('button', { name: 'See your result', exact: true }).click()
-  await expect(page.getByRole('heading', { name: 'Your flight is booked' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Your flight is booked' })).toBeFocused()
   await expect(page.locator('.onboarding-reveal .stamp')).toHaveCount(0)
   await page.reload()
   await expect(page.getByText('Your saved flights are in your journal.')).toBeVisible()

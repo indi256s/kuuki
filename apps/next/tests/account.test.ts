@@ -1,10 +1,10 @@
 import { test, expect } from '@playwright/test'
-import { claimUsername, signIn } from './helpers'
+import { claimUsername, signIn, fixtureHeaders } from './helpers'
 import { readFile } from 'node:fs/promises'
 
 test('settings saves owned profile and privacy on a fresh account', async ({ page, baseURL }) => {
   const email = `settings-${crypto.randomUUID()}@example.test`
-  const signup = await page.request.post('/api/auth/sign-up/email', { headers: { Origin: baseURL! }, data: { email, password: 'temporary-password-2026', displayName: 'Settings test' } })
+  const signup = await page.request.post('/api/auth/sign-up/email', { headers: fixtureHeaders(baseURL!), data: { email, password: 'temporary-password-2026', displayName: 'Settings test' } })
   expect(signup.status()).toBe(201)
   await claimUsername(page, baseURL!)
   const cookies = await page.context().cookies()
@@ -38,7 +38,7 @@ test('settings exports the existing fixture flights without mutating them', asyn
 
 test('ground visit export preserves year, entry and note while neutralizing spreadsheet formulas', async ({ page, baseURL }) => {
   const email = `ground-export-${crypto.randomUUID()}@example.test`
-  const signup = await page.request.post('/api/auth/sign-up/email', { headers: { Origin: baseURL! }, data: { email, password: 'temporary-password-2026' } })
+  const signup = await page.request.post('/api/auth/sign-up/email', { headers: fixtureHeaders(baseURL!), data: { email, password: 'temporary-password-2026' } })
   expect(signup.status()).toBe(201)
   await claimUsername(page, baseURL!)
   await page.goto('/settings')
@@ -173,7 +173,7 @@ test('reset fragment is removed before hydration and invalid tokens show a recov
 test('fresh account deletion requires its password and removes its identity', async ({ page, baseURL }) => {
   const email = `delete-${crypto.randomUUID()}@example.test`
   const password = 'temporary-password-2026'
-  const signup = await page.request.post('/api/auth/sign-up/email', { headers: { Origin: baseURL! }, data: { email, password, displayName: 'Delete test' } })
+  const signup = await page.request.post('/api/auth/sign-up/email', { headers: fixtureHeaders(baseURL!), data: { email, password, displayName: 'Delete test' } })
   expect(signup.status()).toBe(201)
   await claimUsername(page, baseURL!)
   await page.goto('/settings')

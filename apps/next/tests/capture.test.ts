@@ -1,10 +1,10 @@
 import { test, expect, type Page } from '@playwright/test'
-import { claimUsername } from './helpers'
+import { claimUsername, fixtureHeaders } from './helpers'
 
 async function freshAccount(page: Page, origin: string) {
   const email = `capture-${crypto.randomUUID()}@example.test`
   const response = await page.request.post('/api/auth/sign-up/email', {
-    headers: { Origin: origin }, data: { email, password: 'capture-password-2026' },
+    headers: fixtureHeaders(origin), data: { email, password: 'capture-password-2026' },
   })
   expect(response.status()).toBe(201)
   await claimUsername(page, origin)

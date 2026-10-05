@@ -20,7 +20,7 @@ export function RouteFocus() {
     if (previous.current === key) return
     previous.current = key
     const focusHeading = () => {
-      const heading = document.querySelector<HTMLElement>('main h1')
+      const heading = [...document.querySelectorAll<HTMLElement>('main h1')].find(node => !node.closest('[hidden], [inert]'))
       if (heading) { heading.tabIndex = -1; heading.focus({ preventScroll: true }) }
       else { const main = document.getElementById('main'); if (main) { main.tabIndex = -1; main.focus({ preventScroll: true }) } } // loading state without a heading
       return heading
@@ -30,11 +30,11 @@ export function RouteFocus() {
     const main = document.getElementById('main')
     if (!main) return
     const observer = new MutationObserver(() => {
-      if (heading?.isConnected) return
-      if (document.activeElement && document.activeElement !== document.body && document.activeElement !== main) { observer.disconnect(); return }
+      if (heading?.isConnected && !heading.closest('[hidden], [inert]')) return
+      if (document.activeElement !== heading && document.activeElement && document.activeElement !== document.body && document.activeElement !== main) { observer.disconnect(); return }
       heading = focusHeading()
     })
-    observer.observe(main, { childList: true, subtree: true })
+    observer.observe(main, { childList: true, subtree: true, attributes: true, attributeFilter: ['hidden', 'inert'] })
     const timer = setTimeout(() => observer.disconnect(), 4000)
     return () => { observer.disconnect(); clearTimeout(timer) }
   }, [key])

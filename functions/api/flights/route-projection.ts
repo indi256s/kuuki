@@ -29,7 +29,7 @@ const point = (lng: number | null, lat: number | null): [number, number] | null 
 export const onRequestGet: PagesFunction<Env, string, RequestData> = context => runHandler(async () => {
   const user = requireUser(context.data)
   const period = new URL(context.request.url).searchParams.get('period') ?? 'all'
-  if (period !== 'all' && !/^\d{4}$/.test(period)) throw new HttpError(400, 'Invalid period')
+  if (period !== 'all' && !/^(19|20|21)\d{2}$/.test(period)) throw new HttpError(400, 'Invalid period', 'INVALID_PERIOD')
   const db = context.env.DB
   const scope = completedScope(user.id, {}, period === 'all' ? undefined : Number(period))
   const selected = `WITH selected AS (SELECT origin, destination, date FROM flights f WHERE ${scope.where})`
