@@ -12,6 +12,7 @@ export const SAMPLE_SUMMARY: OverviewSummary = Object.freeze({
   publishedRevision: 0,
   derivedState: 'ready',
   countryState: 'ready',
+  archivedEvidence: false,
   regionPolicyVersion: 1,
   generatedAt: '2026-01-01T00:00:00.000Z',
   totals: { flights: 19, distanceKm: 61200, durationMinutes: 4380, countries: 5, cities: 7, airports: 8, airlines: 3, aircraft: 4, continents: 3, pendingCountries: 0, upcomingFlights: 0 },

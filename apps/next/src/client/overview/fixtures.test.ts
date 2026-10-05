@@ -20,6 +20,14 @@ function invariants(summary: OverviewSummary) {
   for (const airport of topLists.airports) expect(airport.count).toBeLessThanOrEqual(totals.flights)
   expect(sum(topLists.airports)).toBeLessThanOrEqual(totals.flights * 2)
   expect(topLists.airports.length).toBeLessThanOrEqual(totals.airports)
+  // Every distinct airport the account reached has at least one endpoint visit, listed or not.
+  expect(sum(topLists.airports) + Math.max(0, totals.airports - topLists.airports.length)).toBeLessThanOrEqual(totals.flights * 2)
+  expect(totals.cities).toBeLessThanOrEqual(totals.airports)
+  // A single flight cannot be longer than all of them together.
+  if (insights.longestFlight) {
+    expect(dataAvailability.distanceKnown).toBeGreaterThan(0)
+    expect(insights.longestFlight.distanceKm).toBeLessThanOrEqual(totals.distanceKm)
+  }
   // Archived (legacy) visits add to all-time visits without flights, so the bound holds for a year only.
   if (summary.period !== 'all') expect(sum(map.countries.map(country => ({ count: country.visits })))).toBeLessThanOrEqual(totals.flights * 2)
   if (insights.favoriteAirline) expect(insights.favoriteAirline).toEqual(topLists.airlines[0])
@@ -53,6 +61,12 @@ function invariants(summary: OverviewSummary) {
 }
 
 describe('reusable Overview fixtures describe possible accounts', () => {
+  it('the invariants catch the contradictions the n=10 fixture once had', () => {
+    const busy = busySummary(10)
+    expect(() => invariants({ ...busy, totals: { ...busy.totals, distanceKm: 4500 } })).toThrow() // longest 15,989 km in 4,500 km
+    expect(() => invariants({ ...busy, totals: { ...busy.totals, airports: 12 } })).toThrow() // 12 airports need at least 24 endpoint visits
+  })
+
   const cases: Array<[string, OverviewSummary]> = [
     ['n=0 all', emptySummary('all')], ['n=0 year', emptySummary('2026')], ['n=1', singleFlightSummary('2026')],
     ['n=10 year', busySummary(10)], ['n=10 all', busySummary(10, 'all')], ['n=500 year', busySummary(500)], ['n=500 all', busySummary(500, 'all')],

@@ -14,7 +14,7 @@ const months = (period: string, flights: number[] = []) => Array.from({ length: 
 /** n=0: nothing flown, nothing upcoming. */
 export function emptySummary(period: OverviewSummary['period'] = 'all', over: Partial<OverviewSummary> = {}): OverviewSummary {
   return {
-    schemaVersion: 1, period, revision: 1, publishedRevision: 1, derivedState: 'ready', countryState: 'ready', regionPolicyVersion: 1,
+    schemaVersion: 1, period, revision: 1, publishedRevision: 1, derivedState: 'ready', countryState: 'ready', archivedEvidence: false, regionPolicyVersion: 1,
     generatedAt: '2026-10-05T00:00:00.000Z',
     totals: { flights: 0, distanceKm: 0, durationMinutes: 0, countries: 0, cities: 0, airports: 0, airlines: 0, aircraft: 0, continents: 0, pendingCountries: 0, upcomingFlights: 0 },
     comparison: period === 'all' ? null : { previousPeriod: String(Number(period) - 1), firstYear: true,
@@ -33,6 +33,7 @@ export function emptySummary(period: OverviewSummary['period'] = 'all', over: Pa
 export function legacyOnlySummary(): OverviewSummary {
   return emptySummary('all', {
     totals: { flights: 0, distanceKm: 0, durationMinutes: 0, countries: 1, cities: 0, airports: 0, airlines: 0, aircraft: 0, continents: 0, pendingCountries: 0, upcomingFlights: 0 },
+    archivedEvidence: true,
     map: { countries: [{ id: 'AE', visits: 2, pending: false }], routeCount: 0 }, countryIds: ['AE'], regions: regions({ asia: [1, 0] }),
   })
 }
@@ -55,15 +56,16 @@ export function singleFlightSummary(period: OverviewSummary['period'] = '2026'):
 /**
  * n=10 and n=500: an internally consistent account (checked by `fixtures.test.ts`): the year's months add up to its flights,
  * ranked counts never exceed what the flights can contribute, new countries are a subset of the period's countries, and
- * one country is pending. `period: 'all'` keeps the same rankings with the last twelve months only.
+ * one country is pending, the longest flight fits inside the total distance and the unlisted airports still fit within
+ * two endpoints per flight. `period: 'all'` keeps the same rankings with the last twelve months only.
  */
 export function busySummary(flights: 10 | 500, period: OverviewSummary['period'] = '2026'): OverviewSummary {
   const k = flights / 10
   const monthly = [1, 1, 0, 3, 1, 0, 0, 1, 2, 1, 0, 0].map(count => count * k)
   return emptySummary(period, {
-    totals: { flights, distanceKm: 4500 * k, durationMinutes: 600 * k, countries: 6, cities: 9, airports: 12, airlines: 5, aircraft: 3, continents: 4, pendingCountries: 1, upcomingFlights: 1 },
+    totals: { flights, distanceKm: 18000 * k, durationMinutes: 600 * k, countries: 6, cities: 7, airports: 8, airlines: 5, aircraft: 3, continents: 4, pendingCountries: 1, upcomingFlights: 1 },
     comparison: period === 'all' ? null : { previousPeriod: '2025', firstYear: false, flights: { previous: flights * 2, delta: -flights, percent: -50 },
-      distanceKm: { previous: 4500 * k * 2, delta: -4500 * k, percent: -50 }, durationMinutes: { previous: 1200 * k, delta: -600 * k, percent: -50 }, countries: { previous: 4, delta: 2, percent: 50 } },
+      distanceKm: { previous: 18000 * k * 2, delta: -18000 * k, percent: -50 }, durationMinutes: { previous: 1200 * k, delta: -600 * k, percent: -50 }, countries: { previous: 4, delta: 2, percent: 50 } },
     dataAvailability: { flights, durationKnown: flights - 2, distanceKnown: flights, missingAircraft: 3 * k },
     map: { routeCount: 7, countries: [
       { id: 'GE', visits: 2 * k + 1, pending: false }, { id: 'TR', visits: 3 * k, pending: false }, { id: 'US', visits: 2, pending: false },
