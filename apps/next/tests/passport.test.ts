@@ -67,6 +67,20 @@ test('stamps open by keyboard and deep link, sort in the URL, and a pending slot
   await expect(page.getByRole('dialog', { name: 'Switzerland' })).toContainText('2018 · by land')
   await page.keyboard.press('Escape')
 
+  // A well-formed code outside the catalog never opens a sheet with write actions.
+  await page.goto('/passport?country=zz&sort=name')
+  await page.waitForURL(url => url.search === '?sort=name')
+  await expect(page.getByRole('dialog')).toHaveCount(0)
+
+  // The cover's Add country returns focus to itself when dismissed; places and aircraft stay one link away.
+  const add = data.getByRole('button', { name: '＋ Add country' })
+  await add.click()
+  await expect(page.getByRole('dialog', { name: 'Add country' })).toBeVisible()
+  await page.keyboard.press('Escape')
+  await expect(page.getByRole('dialog')).toHaveCount(0)
+  await expect(add).toBeFocused()
+  await expect(data.getByRole('link', { name: 'Manage places and aircraft' })).toHaveAttribute('href', '/passport/manage')
+
   await data.getByRole('link', { name: 'United States: waiting for confirmation. Open the arrival card' }).click()
   await page.waitForURL(url => url.pathname === '/journal' && url.hash === `#arrival-${pending}`)
   await expect(page.locator(`#awaiting-queue [data-confirm-flight="${pending}"]`)).toBeFocused()
@@ -80,8 +94,13 @@ test('a country is added from search, claimed, visited by sea, and removed with 
   await expect(data.getByRole('heading', { name: '246 countries are waiting for you' })).toBeVisible()
   await expect(data.locator('.passport-ghost')).toHaveCount(6)
 
-  await data.getByRole('button', { name: 'Add country', exact: true }).click()
+  const opener = data.getByRole('button', { name: 'Add country', exact: true })
+  await opener.click()
   const add = page.getByRole('dialog', { name: 'Add country' })
+  await add.getByRole('button', { name: 'Close' }).click()
+  await expect(add).toHaveCount(0)
+  await expect(opener).toBeFocused()
+  await opener.click()
   await add.getByRole('searchbox', { name: 'Find a country' }).fill('Iceland')
   await add.getByRole('list', { name: 'Countries' }).getByRole('button', { name: /^Iceland/ }).click()
   await page.waitForURL(url => url.searchParams.get('country') === 'IS')
