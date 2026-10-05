@@ -1,14 +1,28 @@
 // @vitest-environment jsdom
 import { renderHook } from '@testing-library/react'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { isApprovedPair, useTransitionKey, type StageKind } from './route-transition-pairs'
 
-/** Walks the paths as link clicks; a path starting with `<` is reached with Back, as the browser fires popstate. */
+// jsdom has no Navigation API; this stand-in reports entry changes the way the browser does.
+const navigation = vi.hoisted(() => {
+  const target = Object.assign(new EventTarget(), { currentEntry: { index: 0 } })
+  Object.defineProperty(window, 'navigation', { value: target, configurable: true })
+  return target
+})
+function moveTo(path: string, navigationType: 'push' | 'traverse', index: number) {
+  const from = { index: navigation.currentEntry.index }
+  history.replaceState(null, '', path)
+  navigation.currentEntry = { index }
+  navigation.dispatchEvent(Object.assign(new Event('currententrychange'), { navigationType, from }))
+}
+
+/** Walks the paths as link clicks; a path starting with `<` is reached with Back and one with `>` with Forward. */
 function walk(stage: StageKind, paths: string[]) {
+  moveTo(paths[0]!, 'push', 0)
   const view = renderHook(({ path }) => useTransitionKey(stage, path), { initialProps: { path: paths[0]! } })
   return paths.slice(1).map(step => {
-    const path = step.replace(/^</, '')
-    if (step.startsWith('<')) { history.pushState(null, '', path); window.dispatchEvent(new PopStateEvent('popstate')) }
+    const path = step.replace(/^[<>]/, ''), index = navigation.currentEntry.index
+    moveTo(path, step[0] === '<' || step[0] === '>' ? 'traverse' : 'push', step[0] === '<' ? index - 1 : index + 1)
     view.rerender({ path })
     return view.result.current
   })
@@ -19,6 +33,7 @@ describe('approved route transitions', () => {
     expect(isApprovedPair('page', '/import', '/passport')).toBe(true)
     expect(isApprovedPair('page', '/passport', '/import')).toBe(false)
     expect(isApprovedPair('page', '/leaderboard', '/fly/ana')).toBe(true)
+    expect(isApprovedPair('page', '/leaderboard', '/fly/ana', true)).toBe(false)
     expect(isApprovedPair('page', '/fly/ana', '/leaderboard', true)).toBe(true)
     expect(isApprovedPair('page', '/fly/ana', '/leaderboard')).toBe(false)
     expect(isApprovedPair('page', '/fly/ana', '/fly/ben')).toBe(false)
@@ -45,6 +60,10 @@ describe('approved route transitions', () => {
     expect(walk('page', ['/fly/ana', '/leaderboard', '/fly/ben', '</leaderboard', '/fly/ben', '/leaderboard'])).toEqual([0, 1, 2, 3, 3])
     // A Back that stays on the profile (a closed sheet) does not make the next link a Back.
     expect(walk('page', ['/leaderboard', '/fly/ana', '</fly/ana', '/leaderboard'])).toEqual([1, 1, 1])
+    // Back onto a profile is not the drill, and Forward redoes the link that led to the leaderboard: both stay instant.
+    expect(walk('page', ['/fly/ana', '/leaderboard', '</fly/ana', '>/leaderboard'])).toEqual([0, 0, 0])
+    // Forward redoes a drill into a profile, so it drills again.
+    expect(walk('page', ['/leaderboard', '/fly/ana', '</leaderboard', '>/fly/ana'])).toEqual([1, 2, 3])
     expect(walk('auth', ['/signin', '/signup', '/forgot-password', '/signin'])).toEqual([1, 2, 3])
   })
 })

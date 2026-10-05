@@ -14,20 +14,28 @@ const isProfile = (path: string) => /^\/fly\/[^/]+$/.test(path)
 /** Import done → Passport, forward only. */
 export const isStampHero = (from: string, to: string) => from === '/import' && to === '/passport'
 
-/** Leaderboard → a public profile, and Back. A link from a profile to the leaderboard is not Back, so it stays instant. */
-export const isProfileDrill = (from: string, to: string, traversal: boolean) =>
-  (from === '/leaderboard' && isProfile(to)) || (traversal && isProfile(from) && to === '/leaderboard')
+/** Leaderboard → a public profile, and Back. Back onto a profile, or a link from one to the leaderboard, stays instant. */
+export const isProfileDrill = (from: string, to: string, back: boolean) =>
+  back ? isProfile(from) && to === '/leaderboard' : from === '/leaderboard' && isProfile(to)
 
 /** Sign in ↔ sign up ↔ forgot password. */
 export const isAuthSwap = (from: string, to: string) => from !== to && isAuthPath(from) && isAuthPath(to)
 
-export function isApprovedPair(stage: StageKind, from: string, to: string, traversal = false) {
-  return stage === 'auth' ? isAuthSwap(from, to) : isStampHero(from, to) || isProfileDrill(from, to, traversal)
+export function isApprovedPair(stage: StageKind, from: string, to: string, back = false) {
+  return stage === 'auth' ? isAuthSwap(from, to) : isStampHero(from, to) || isProfileDrill(from, to, back)
 }
 
-// The pathname the last Back or Forward landed on, until the stage renders a pathname change.
-let traversedTo: string | null = null
-if (typeof window !== 'undefined') window.addEventListener('popstate', () => { traversedTo = location.pathname })
+// The pathname the last Back landed on, until the stage renders a pathname change. Only the Navigation API tells Back
+// from Forward; a browser without it treats every traversal as a link, so the drill does not reverse.
+type HistoryNavigation = EventTarget & { currentEntry: { index: number } | null }
+type EntryChange = Event & { navigationType: string | null; from: { index: number } }
+let backTo: string | null = null
+const navigation = typeof window === 'undefined' ? undefined : (window as Window & { navigation?: HistoryNavigation }).navigation
+navigation?.addEventListener('currententrychange', event => {
+  const { navigationType, from } = event as EntryChange
+  if (navigationType === 'push') backTo = null
+  if (navigationType === 'traverse') backTo = (navigation.currentEntry?.index ?? Infinity) < from.index ? location.pathname : null
+})
 
 /**
  * The boundary keeps its key, and so its DOM node, unless the pathname change is an approved pair. ssgoi
@@ -35,9 +43,9 @@ if (typeof window !== 'undefined') window.addEventListener('popstate', () => { t
  */
 export function useTransitionKey(stage: StageKind, pathname: string) {
   const [state, setState] = useState({ pathname, key: 0 })
-  useEffect(() => { traversedTo = null }, [pathname])
+  useEffect(() => { backTo = null }, [pathname])
   if (state.pathname === pathname) return state.key
-  const key = isApprovedPair(stage, state.pathname, pathname, traversedTo === pathname) ? state.key + 1 : state.key
+  const key = isApprovedPair(stage, state.pathname, pathname, backTo === pathname) ? state.key + 1 : state.key
   setState({ pathname, key })
   return key
 }

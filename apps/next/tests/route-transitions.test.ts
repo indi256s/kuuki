@@ -66,6 +66,12 @@ test.describe('leaderboard → public profile', () => {
     await settled(page)
     expect((await routeTransitions(page)).markers).toEqual(['drill', 'drill'])
     await expect(page.locator('[data-ssgoi-transition]')).toHaveCount(1)
+
+    // Forward redoes the drill.
+    await page.goForward()
+    await expect(heading(page, 'Ranked')).toBeFocused()
+    await settled(page)
+    expect((await routeTransitions(page)).markers).toEqual(['drill', 'drill', 'drill'])
   })
 
   test('a link from the profile back to the leaderboard stays instant', async ({ page }) => {
@@ -78,6 +84,12 @@ test.describe('leaderboard → public profile', () => {
 
     await page.getByRole('link', { name: 'View leaderboard', exact: true }).click()
     await expect(page).toHaveURL(/\/leaderboard$/)
+    await expect(heading(page, 'Leaderboard')).toBeFocused()
+
+    // Back onto the profile and Forward over that link are not the drill either.
+    await page.goBack()
+    await expect(heading(page, 'Ranked')).toBeFocused()
+    await page.goForward()
     await expect(heading(page, 'Leaderboard')).toBeFocused()
     expect(await routeTransitions(page)).toMatchObject({ markers: [], boundaries: 1 })
   })
