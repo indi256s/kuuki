@@ -2,7 +2,7 @@ import { BUCKET_TOKENS, visitBucket } from '../../lib/map-buckets'
 import centers from '../../../public/maps/country-centers-110m-2.0.2.json'
 
 /** `pending`: awaiting flights only. Listed, never filled as a visit. */
-export type CountryVisit = { countryCode: string; count: number; claimed?: boolean; pending?: boolean }
+export type CountryVisit = { countryCode: string; count: number; groundCount?: number; claimed?: boolean; pending?: boolean }
 export type MapLocale = 'en' | 'ru'
 
 export function CountryPreview({ countryIds, locale, period = 'all', visits }: { countryIds: string[]; locale: MapLocale; period?: 'all' | `${number}`; visits?: CountryVisit[] }) {

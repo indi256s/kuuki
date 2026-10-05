@@ -76,7 +76,7 @@ function Inner({ ownerId, locale, initial, period }: { ownerId: string; locale: 
   const groups = useMemo(() => groupByRegion(sortEntries(entries, state.sort, name, locale)), [entries, state.sort, name, locale])
   const figures = headerFigures(data, entries, now)
   const countryVisits = useMemo<CountryVisit[]>(() => entries.map(entry => ({
-    countryCode: entry.code, count: entry.visits, claimed: entry.kind !== 'air', pending: entry.status === 'pending',
+    countryCode: entry.code, count: entry.visits, groundCount: entry.ground, claimed: entry.claimed || entry.ground > 0, pending: entry.status === 'pending',
   })), [entries])
 
   // C1: view is a mode (a history entry and H1 focus, via the router); sort, layer and the detail sheet replace the
@@ -154,7 +154,7 @@ function Inner({ ownerId, locale, initial, period }: { ownerId: string; locale: 
     </div>
     {state.view === 'map'
       ? <RouteMapPanel ownerId={ownerId} locale={locale} period={period} countryVisits={countryVisits} initiallyOpen
-        revision={data.publishedRevision} onSelectCountry={openCountry} layer={state.layer}
+        revision={data.revision} publishedRevision={data.publishedRevision} onRefresh={() => { void collection.refetch() }} onSelectCountry={openCountry} layer={state.layer}
         onLayerChange={(layer: MapLayer) => navigate({ layer: layer === 'countries' ? null : layer })}
         describeCountry={visit => visit.pending ? (ru ? ' · ждёт отметки' : ' · waiting for confirmation') : null} />
       : entries.length === 0

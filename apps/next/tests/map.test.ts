@@ -6,7 +6,7 @@ test('the opened map uses local assets, selectable routes and survives a theme c
   page.on('request', request => { if (new URL(request.url()).pathname.startsWith('/maps/')) assets.push(request.url()) })
   await page.goto('/passport?view=map&layer=routes&year=2026')
   const routes = page.getByRole('list', { name: 'Route list', exact: true })
-  await expect(routes.getByRole('button', { name: /JFK → BOS/ })).toBeVisible()
+  await expect(routes.getByRole('button', { name: /BOS ↔ JFK/ })).toBeVisible()
   await expect(page.getByRole('button', { name: 'Fit routes' })).toBeVisible({ timeout: 20_000 })
   await routes.getByRole('button').first().click()
   await expect(routes.getByRole('button').first()).toHaveAttribute('aria-pressed', 'true')

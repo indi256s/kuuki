@@ -60,16 +60,16 @@ function perRouteCounts(list: ProjectedRoute[]) {
 }
 
 describe('batched route rendering', () => {
-  it('draws 500 routes and their airports with two sources and four layers', () => {
+  it.each([0, 1, 10, 500, 5000])('draws %i routes and their airports with two sources and four layers', count => {
     const { map, sources } = fakeMap()
-    const list = routes(500)
+    const list = routes(count)
     render(<><FlightRoutes routes={list} selected={null} onSelect={() => {}} layer="routes" /><AirportLayer routes={list} layer="routes" /></>, map)
     expect(map.addSource).toHaveBeenCalledTimes(2)
     expect(map.addLayer).toHaveBeenCalledTimes(4)
     const routeSource = sources.get('routes-source') as { data: { features: unknown[] } }
-    expect(routeSource.data.features).toHaveLength(500)
+    expect(routeSource.data.features).toHaveLength(count)
     // The per-route alternative grows linearly with the journal: 500 sources and 1000 layers for the same map.
-    expect(perRouteCounts(list)).toEqual({ sources: 500, layers: 1000 })
+    expect(perRouteCounts(list)).toEqual({ sources: count, layers: count * 2 })
   })
 
   it('keeps the same sources when routes change, replacing data instead of adding layers', () => {
