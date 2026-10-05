@@ -4,6 +4,28 @@
 - **Scope:** Binding spec for W3 (T07–T11) of [Redesign 2.0](../plans/2026-10-04-redesign-2.0-implementation.md). Resolves contracts C2–C5 under Addendum A (A1, A2, A6).
 - **Vocabulary:** [GLOSSARY.md](../../GLOSSARY.md), "Flight lifecycle & evidence vocabulary".
 
+## Section index by task
+
+Read only the sections listed for your task. §11 (conflicts and resolutions) applies to any task that touches a C2–C5 contract.
+
+| Task | Sections | Acceptance rows |
+|---|---|---|
+| T07 Additive schema, create/edit lifecycle | §1, §2, §3, §7, §10 | A1, A2, A6 |
+| T08 Country policy, pending passport, transit | §4 | A5, A7 |
+| T09 Queue, confirmation, cleanup, maintenance | §4, §5, §8 | A3, A6–A9 |
+| T10 Draft APIs and safe conversion | §6, §7 | A4, A10 |
+| T11 Server-owned recognition and events | §6 (job writes, deletion fence), §9, open items 1 and 4 | A10 |
+| T12 Manual add/edit and flight detail | §1 (lifecycle states on create and edit) | — |
+| T13 Journal filters and passport control | §4, §5 | — |
+| T14 Import UI, resume, aircraft review | §6 (draft endpoints, statuses, limits), §9 (event contract) | — |
+| T15 Capture integration acceptance | §4–§6, §9 | A3–A10 |
+| T16 Passport stamps, detail, claims, map | §4, open item 8 | A7 |
+| T17 Overview endpoint and modules | §4, §5, open item 8 | A7 |
+| T21 Settings, export, account deletion | §6 (retention, deletion fence), §9 (cancel on deletion) | A10 |
+| T24 Remove replaced code | §10 | — |
+
+T18–T20, T22, T23 and T25 do not depend on this ADR.
+
 ## Context
 
 **Lifecycle today.** The only lifecycle flag is `flights.is_upcoming INTEGER NOT NULL DEFAULT 0` (`db/migrations/0001_init.sql:129`).
