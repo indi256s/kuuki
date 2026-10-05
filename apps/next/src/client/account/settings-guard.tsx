@@ -28,7 +28,8 @@ export function useSettingsGuard(dirty: boolean, busy: boolean, locale: Locale) 
   }
   useEffect(() => {
     let originIndex = entryIndex()
-    const hash = () => { originIndex = entryIndex() }
+    let originHref = window.location.href
+    const hash = () => { originIndex = entryIndex(); originHref = window.location.href }
     let restoring = false
     const unload = (event: BeforeUnloadEvent) => {
       if (!permitUnload.current && (state.current.dirty || state.current.busy)) { event.preventDefault(); event.returnValue = '' }
@@ -44,9 +45,11 @@ export function useSettingsGuard(dirty: boolean, busy: boolean, locale: Locale) 
       if (!state.current.busy) setPending({ run: () => router.push(url.pathname + url.search + url.hash) })
     }
     const pop = (event: PopStateEvent) => {
-      if (permitTraversal.current) { permitTraversal.current = false; originIndex = entryIndex(); return }
-      if (restoring) { restoring = false; originIndex = entryIndex(); event.stopImmediatePropagation(); return }
-      if (!state.current.dirty && !state.current.busy) { originIndex = entryIndex(); return }
+      if (permitTraversal.current) { permitTraversal.current = false; hash(); return }
+      if (restoring) { restoring = false; hash(); event.stopImmediatePropagation(); return }
+      const origin = new URL(originHref), destination = new URL(window.location.href)
+      if (origin.pathname === destination.pathname && origin.search === destination.search && origin.hash !== destination.hash) { hash(); return }
+      if (!state.current.dirty && !state.current.busy) { hash(); return }
       event.stopImmediatePropagation()
       const destinationIndex = entryIndex()
       // Native indexes or bootstrap-tagged App Router entries preserve traversal direction.

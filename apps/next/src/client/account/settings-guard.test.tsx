@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
-import { act, fireEvent, render, screen } from '@testing-library/react'
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { readFileSync } from 'node:fs'
 import { useSettingsGuard } from './settings-guard'
 const router = vi.hoisted(() => ({ push: vi.fn() }))
 vi.mock('next/navigation', () => ({ useRouter: () => router }))
@@ -44,4 +45,18 @@ describe.each([true, false])('Settings traversal with Navigation API %s', native
     pop(1)
     expect(history.go).toHaveBeenLastCalledWith(1)
   })
+})
+
+it('keeps a real native hash entry usable without a leave prompt before bootstrap tags it', async () => {
+  Object.defineProperty(window, 'navigation', { configurable: true, value: undefined })
+  const push = history.pushState, replace = history.replaceState
+  try {
+    vi.stubGlobal('matchMedia', () => ({ matches: false }))
+    new Function(readFileSync('public/bootstrap.js', 'utf8'))()
+    render(<Harness />)
+    await act(async () => { window.location.hash = '#export'; await new Promise(resolve => setTimeout(resolve, 20)) })
+    await waitFor(() => expect(history.state.__kuukiHistoryIndex).toBe(2))
+    expect(history.go).not.toHaveBeenCalled()
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+  } finally { history.pushState = push; history.replaceState = replace; vi.unstubAllGlobals() }
 })
