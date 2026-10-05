@@ -6,7 +6,7 @@ const port = process.env.KUUKI_NEXT_PORT ?? '8800'
 export default defineConfig({
   testDir: '.', testMatch: '**/*.test.ts', fullyParallel: false, workers: 1,
   timeout: 30_000, expect: { timeout: 10_000 },
-  use: { baseURL: `http://127.0.0.1:${port}`, viewport: { width: 390, height: 844 }, trace: { mode: 'retain-on-failure', screenshots: false } },
+  use: { baseURL: `http://127.0.0.1:${port}`, viewport: { width: 390, height: 844 }, trace: 'retain-on-failure' },
   reporter: 'list',
   webServer: {
     command: 'pnpm next:preview', cwd: root,
