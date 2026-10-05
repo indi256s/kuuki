@@ -1,4 +1,5 @@
 // T08 / ADR 0001 §4: the six-region catalog policy is explicit, versioned and in parity with the catalog.
+import { createHash } from 'node:crypto'
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { expect, it } from 'vitest'
@@ -41,4 +42,17 @@ it('reports progress for all six regions with pressed and pending kept apart', (
   expect(progress.find(row => row.id === 'americas')).toEqual({ id: 'americas', total: 54, pressed: 1, pending: 0 })
   expect(progress.find(row => row.id === 'europe')).toEqual({ id: 'europe', total: 51, pressed: 0, pending: 1 })
   expect(progress.find(row => row.id === 'africa')).toEqual({ id: 'africa', total: 58, pressed: 0, pending: 0 })
+})
+
+// Moving a country between regions changes what Overview and Passport report for existing accounts, so it is a
+// policy change: bump REGION_POLICY.version (and `id`) together with this pin, never the pin alone.
+const MAPPING_HASH_BY_VERSION: Record<number, string> = {
+  1: '45318207958008cb5a864ce91833c54db446a5ded3d2c9aadf45ca4cb2707a66',
+}
+
+it('pins the country-to-region mapping to the policy version', () => {
+  const mapping = Object.entries(COUNTRY_REGION).sort(([a], [b]) => (a < b ? -1 : 1))
+  const hash = createHash('sha256').update(JSON.stringify(mapping)).digest('hex')
+  expect(hash, `the mapping changed: bump REGION_POLICY.version (${REGION_POLICY.version}) and pin ${hash}`)
+    .toBe(MAPPING_HASH_BY_VERSION[REGION_POLICY.version])
 })
