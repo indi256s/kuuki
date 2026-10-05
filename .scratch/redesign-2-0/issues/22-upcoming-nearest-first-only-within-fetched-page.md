@@ -1,6 +1,6 @@
 # Nearest upcoming flights are reordered only inside the fetched page
 
-Status: needs-triage
+Status: resolved
 Owner task: T13
 Source: T13 minor M6 (UI re-review round 1); `apps/next/src/client/reads/journal.tsx` (upcoming group sort), `apps/next/src/server/journal.ts`, `functions/api/_lib/flightQuery.ts` (`orderByClause`)
 
@@ -18,3 +18,9 @@ An API test with 25 upcoming flights asserts that page 1 holds the 20 nearest, i
 The accepted Journal orders upcoming rows within its fetched page. Globally nearest-first pagination still needs a shared API/list/ids ordering decision and the 25-upcoming acceptance fixture described above. No claim of global nearest-first acceptance is made.
 
 Current integration and evidence: [redesign handoff](../../../docs/plans/2026-10-04-redesign-2.0-implementation-handoff.md). Visual/atlas and external release proof remain deferred under the explicit session constraints.
+
+## Resolution — 2026-10-06
+
+Status: resolved. The default Journal sort (`date`, descending) now orders `lifecycle_state = 'upcoming'` rows first, ascending by date then id, followed by every other row in the existing date/id descending order. The change is in `orderByClause` (`functions/api/_lib/flightQuery.ts`), the only ORDER BY consumer (`readJournal`), so page, count and cursor offsets share it; `/api/flights/ids` returns an unordered id set that matches the list. Explicit sorts are unchanged. The Journal's client-side re-sort of the Upcoming group was removed.
+
+Tests: new API test in `functions/test/flights.test.ts` (25 upcoming and 3 past rows: page 1 holds the 20 nearest ascending, page 2 holds the remaining 5 then past rows descending, total and ids match, date asc and origin sorts unchanged); the Journal unit test now asserts the group keeps server order. `pnpm typecheck:api`, `pnpm test:api` (500), `@kuuki/next` test/lint/typecheck, `pnpm next:build`, and `read-journeys` plus `capture` navigation files on port 8802 pass.
