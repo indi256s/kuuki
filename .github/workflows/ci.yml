@@ -33,6 +33,7 @@ jobs:
       - run: pnpm typecheck:maintenance
       - run: pnpm --filter @kuuki/web test:run
       - run: pnpm test:api
+      - run: pnpm --filter @kuuki/next test
       - run: node --test scripts/draft-storage.test.mjs scripts/check-preview-config.test.mjs
       - run: pnpm exec tsx scripts/map-geometry.test.ts
       - run: node scripts/check-preview-config.mjs --config apps/next/wrangler.toml --maintenance-config workers/maintenance/wrangler.toml
@@ -40,12 +41,15 @@ jobs:
       - run: pnpm build:api
       - run: pnpm build:maintenance
       - run: pnpm smoke:runtime
+      - name: Check api-routes.generated.ts is current (run node scripts/build-next.mjs --inventory-only and commit the file)
+        run: node scripts/build-next.mjs --inventory-only && git diff --exit-code apps/next/api-routes.generated.ts
       - run: pnpm next:build
         env:
           KUUKI_TESTING_API: '0'
       - run: pnpm --filter @kuuki/next typecheck:worker
       - run: pnpm --filter @kuuki/next exec playwright install --with-deps chromium
       - run: pnpm next:smoke
+      - run: pnpm next:smoke:boundary
       - run: pnpm exec tsx scripts/rehearse-next-rollback.ts
       - run: pnpm test:next:navigation
       - run: node scripts/next-artifact-manifest.mjs
