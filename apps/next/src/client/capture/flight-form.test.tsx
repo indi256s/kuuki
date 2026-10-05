@@ -1,10 +1,14 @@
 // @vitest-environment jsdom
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
+import { renderToString } from 'react-dom/server'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { FlightForm } from './flight-form'
 import { FlightCaptureDialog, FlightDetailSheet } from './flight-panels'
 import { clearCapturePreferences } from './capture-preferences'
+import { useMobile } from '../ui/use-mobile'
 import type { Locale } from '../../lib/format'
 
 const mocks = vi.hoisted(() => ({ create: vi.fn(), update: vi.fn(), duplicate: vi.fn(), get: vi.fn(), remove: vi.fn(), acknowledge: vi.fn(), refresh: vi.fn(), push: vi.fn() }))
@@ -187,4 +191,36 @@ it.each(['delete', 'open journal'] as const)('returns embedded detail %s to its 
   }
   await waitFor(() => expect(close).toHaveBeenCalledWith(false))
   expect(mocks.push).not.toHaveBeenCalled()
+})
+
+describe('mobile first paint', () => {
+  const mobile = (matches: boolean) => Object.defineProperty(window, 'matchMedia', { configurable: true, value: () => ({ matches, addEventListener: vi.fn(), removeEventListener: vi.fn() }) })
+  function Probe({ seen }: { seen: Array<boolean | null> }) { const value = useMobile(); seen.push(value); return <output>{String(value)}</output> }
+  it('has no answer on the server, so no surface is chosen before the media query is known', () => {
+    mobile(true)
+    expect(renderToString(<Probe seen={[]} />)).toContain('null')
+    expect(renderToString(<FlightCaptureDialog ownerId="a" locale="en" />)).toBe('')
+  })
+  it('never reports desktop on the first client render of a phone', () => {
+    mobile(true)
+    const seen: Array<boolean | null> = []
+    render(<Probe seen={seen} />)
+    expect(seen).not.toContain(false)
+    expect(seen.at(-1)).toBe(true)
+  })
+  it('opens the full-height sheet on a phone and never the dialog', async () => {
+    mobile(true)
+    render(<FlightCaptureDialog ownerId="a" locale="en" />)
+    await screen.findByRole('dialog', { name: 'Add a flight' })
+    expect(document.querySelector('.ui-dialog')).toBeNull()
+    expect(document.querySelector('.ui-sheet')).not.toBeNull()
+  })
+  it('uses the dialog on desktop and keeps its width independent of CSS order', async () => {
+    mobile(false)
+    render(<FlightCaptureDialog ownerId="a" locale="en" />)
+    await screen.findByRole('dialog', { name: 'Add a flight' })
+    expect(document.querySelector('.ui-dialog.flight-add-dialog')).not.toBeNull()
+    const css = readFileSync(join(process.cwd(), 'src/client/ui/flight-controls.css'), 'utf8')
+    expect(css).toMatch(/\.ui-dialog\.flight-add-dialog\s*\{[^}]*width:/)
+  })
 })

@@ -17,7 +17,7 @@ export function Combobox({ label, value, onChange, onBlur, inputRef, choices, lo
   choices: Choice[]; locale: Locale; error?: string; disabled?: boolean; recents?: string[]; onSelect?: (code: string) => void
 }) {
   const id = useId()
-  const mobile = useMobile()
+  const mobile = useMobile() === true
   const [open, setOpen] = useState(false)
   const [query, setQuery] = useState<string | null>(null)
   const [active, setActive] = useState(0)

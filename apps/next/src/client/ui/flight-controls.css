@@ -20,7 +20,7 @@
 .flight-calendar-grid button{border:0;min-width:0;padding:0}
 .flight-calendar-grid button[data-outside=true]{color:var(--text-muted)}
 .flight-calendar-grid button[aria-pressed=true]{background:var(--accent);color:var(--accent-foreground)}
-.flight-add-dialog{width:min(560px,calc(100vw - 32px))}
+.ui-dialog.flight-add-dialog{width:min(560px,calc(100vw - 32px))}
 .flight-full-sheet.ui-sheet[data-side=bottom]{height:calc(100dvh - var(--sheet-kb));max-height:calc(100dvh - var(--sheet-kb));border-radius:0}
 .flight-editor.capture-card{max-width:none;margin:0;padding:0;border:0;background:transparent;gap:var(--space-6)}
 .flight-editor fieldset{display:grid;gap:var(--space-6);padding:0;border:0;min-width:0}
