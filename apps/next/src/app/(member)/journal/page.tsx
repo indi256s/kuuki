@@ -23,7 +23,7 @@ export const generateMetadata = () => pageMetadata('Journal', 'Журнал')
 export default async function Journal({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   await requireOnboardedMember()
   const filters = await searchParams
-  // Redirect before any D1 read. Because journal/loading.tsx streams its shell first, this is an in-stream redirect (HTTP 200), not a 307; see issue 21.
+  // Redirect before the Journal flight/count/publication batch (the member gate has already read the own profile). Because journal/loading.tsx streams its shell first, this is an in-stream redirect (HTTP 200), not a 307; see issue 21.
   const canonical = normalizeJournalQuery(filters)
   if (!canonical.canonical) redirect(withQuery('/journal', canonical.query))
   const locale = await getRequestLocale()
