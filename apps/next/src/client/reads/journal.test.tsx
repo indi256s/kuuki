@@ -340,6 +340,41 @@ describe('pending delete', () => {
   })
 })
 
+describe('pending delete while the request is in flight', () => {
+  it('moves focus to the list heading the moment Undo leaves, before the DELETE answers', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true })
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime })
+    let answer!: (ack: unknown) => void
+    vi.mocked(api.delete).mockReset().mockReturnValue(new Promise(resolve => { answer = resolve }) as never)
+    render(<Harness />)
+    await user.click(screen.getAllByRole('checkbox')[0])
+    await user.click(screen.getByRole('button', { name: 'Delete selected flights' }))
+    await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Delete selected flights' }))
+    expect(screen.getByRole('button', { name: 'Undo' })).toHaveFocus()
+    await act(async () => { await vi.advanceTimersByTimeAsync(6500) })
+    expect(api.delete).toHaveBeenCalledTimes(1) // still unresolved
+    expect(screen.queryByRole('button', { name: 'Undo' })).not.toBeInTheDocument()
+    expect(document.body).not.toHaveFocus()
+    expect(screen.getByRole('heading', { level: 2, name: 'Flights' })).toHaveFocus()
+    await act(async () => { answer({ derived_state: 'ready' }); await vi.advanceTimersByTimeAsync(50) })
+    expect(screen.getByRole('heading', { level: 2, name: 'Flights' })).toHaveFocus()
+  })
+
+  it('does not move a user who is elsewhere when the request starts', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true })
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime })
+    vi.mocked(api.delete).mockReset().mockReturnValue(new Promise(() => {}) as never)
+    render(<Harness />)
+    await user.click(screen.getAllByRole('checkbox')[0])
+    await user.click(screen.getByRole('button', { name: 'Delete selected flights' }))
+    await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Delete selected flights' }))
+    const search = screen.getByRole('searchbox')
+    search.focus()
+    await act(async () => { await vi.advanceTimersByTimeAsync(6500) })
+    expect(search).toHaveFocus()
+  })
+})
+
 describe('detail sheet', () => {
   it('returns focus to the row that opened it', async () => {
     const user = userEvent.setup()

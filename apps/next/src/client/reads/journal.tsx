@@ -80,6 +80,7 @@ function JournalInner({ ownerId, locale, initial, query, page, filtered }: Props
   const undo = () => { undoing.current = true; deletion.undo() }
   const focusRow = (id: number) => { const row = root.current?.querySelector<HTMLElement>(`[data-flight-row="${id}"]`); row?.focus(); return !!row }
   const isPending = deletion.pending !== null
+  const settleFocus = () => { if (document.activeElement === document.body || document.activeElement === null) listHeading.current?.focus() }
   useEffect(() => {
     const was = wasPending.current
     wasPending.current = isPending
@@ -93,9 +94,11 @@ function JournalInner({ ownerId, locale, initial, query, page, filtered }: Props
       else if (!target || !focusRow(target.id)) listHeading.current?.focus()
       return
     }
-    // Committed or failed: the Undo button has left the page. Only a user still resting there (focus fell to the body) is moved; anyone elsewhere keeps their place.
-    if (document.activeElement === document.body || document.activeElement === null) listHeading.current?.focus()
+    // Committed or failed: focus was already settled when the request started; this only catches a user who ended up on the body since.
+    settleFocus()
   }, [isPending])
+  // The Undo button leaves the page when the request starts, not when the network answers. A user resting on it (focus fell to the body) moves then; anyone elsewhere keeps their place.
+  useEffect(() => { if (deletion.submitting) settleFocus() }, [deletion.submitting])
   const hidden = [...removed, ...(deletion.pending?.ids ?? [])]
   const list = useQuery({
     queryKey: ['journal', ownerId, query],
