@@ -105,6 +105,14 @@ describe('CountrySheet', () => {
     expect(within(dialog).getByRole('button', { name: 'Claim without a visit' })).toBeInTheDocument()
   })
 
+  it('never opens an actionable sheet for a code outside the catalog', async () => {
+    mount(detail({ countryCode: 'ZZ', status: 'none' as CountryDetail['status'], entries: [], groundVisits: [], airports: [], isClaimed: false }))
+    await new Promise(resolve => setTimeout(resolve, 0))
+    expect(screen.queryByRole('dialog')).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Claim without a visit' })).toBeNull()
+    expect(mocks.get).not.toHaveBeenCalled()
+  })
+
   it('shows transit-suppressed endpoints as connections, not visits', async () => {
     mount(detail({ suppressed: [{ flightId: 9, endpoint: 'destination', airport: 'ATH' }] }))
     const list = await screen.findByRole('list', { name: 'Connections not counted as a visit' })

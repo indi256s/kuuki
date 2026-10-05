@@ -42,6 +42,8 @@ export type PassportEntry = {
 }
 
 export const catalogCountry = (code: string): CatalogCountry | undefined => Object.hasOwn(COUNTRIES, code) ? COUNTRIES[code] : undefined
+/** True for the 246 catalog countries and territories (upper-case ISO codes). */
+export const isCatalogCountry = (code: string): boolean => Object.hasOwn(COUNTRIES, code)
 
 export function countryNamer(locale: Locale): (code: string) => string {
   const names = new Intl.DisplayNames([locale], { type: 'region' })

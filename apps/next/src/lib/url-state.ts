@@ -74,10 +74,15 @@ export type PassportState = {
 const pick = <T extends string>(allowed: readonly T[], value: string | undefined, fallback: T): T =>
   (allowed as readonly string[]).includes(value ?? '') ? value as T : fallback
 
-export function normalizePassportQuery(raw: RawQuery, now = new Date()): Normalized<PassportState> {
+/**
+ * `isCountry` is the catalog check (`isCatalogCountry` in client/passport/model): a country deep link opens a sheet with
+ * write actions, so a well-formed code outside the catalog is dropped rather than shown. It is passed in to keep the
+ * catalog out of every page that shares this module.
+ */
+export function normalizePassportQuery(raw: RawQuery, isCountry: (code: string) => boolean, now = new Date()): Normalized<PassportState> {
   const entries = toEntries(raw)
-  const rawCountry = first(entries, 'country')
-  const country = rawCountry && /^[A-Za-z]{2}$/.test(rawCountry) ? rawCountry.toUpperCase() : null
+  const rawCountry = first(entries, 'country')?.toUpperCase()
+  const country = rawCountry && /^[A-Z]{2}$/.test(rawCountry) && isCountry(rawCountry) ? rawCountry : null
   const state: PassportState = {
     view: pick(PASSPORT_VIEWS, first(entries, 'view'), 'stamps'),
     sort: pick(PASSPORT_SORTS, first(entries, 'sort'), 'recent'),

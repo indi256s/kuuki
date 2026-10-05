@@ -19,7 +19,7 @@ import { formatCount, formatDateOnly, formatNumber, pluralCategory, type Locale 
 import { journalHref } from '../../lib/url-state'
 import type { CountryDetail } from '../../server/passport'
 import { stampProps } from './collection'
-import { arrivalHref, removalOutcome, type PassportEntry } from './model'
+import { arrivalHref, isCatalogCountry, removalOutcome, type PassportEntry } from './model'
 import './passport.css'
 
 type Awaiting = Parameters<typeof arrivalHref>[1]
@@ -34,7 +34,7 @@ const ENTRY_METHOD: Record<string, Record<Locale, string>> = {
   sea: { en: 'by sea', ru: 'по морю' },
 }
 
-export function CountrySheet({ ownerId, locale, code, entry, mobile, awaiting, name, onClose, onChanged, onRemoved, onCloseAutoFocus }: {
+export function CountrySheet({ ownerId, locale, code: selected, entry, mobile, awaiting, name, onClose, onChanged, onRemoved, onCloseAutoFocus }: {
   ownerId: string; locale: Locale; code: string | null; entry: PassportEntry | undefined; mobile: boolean; awaiting: Awaiting
   name: (code: string) => string; onClose: () => void
   /** A write landed: refresh the collection; `added` is true when the country was not in the passport before. */
@@ -43,6 +43,8 @@ export function CountrySheet({ ownerId, locale, code, entry, mobile, awaiting, n
   onCloseAutoFocus?: (event: Event) => void
 }) {
   const ru = locale === 'ru'
+  // Only catalog countries get a sheet: its write actions would otherwise press a code with no region or outline.
+  const code = selected && isCatalogCountry(selected) ? selected : null
   const feedback = useWriteFeedback(ownerId)
   const detail = useQuery({
     queryKey: ['passport-country', ownerId, code],

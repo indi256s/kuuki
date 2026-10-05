@@ -13,7 +13,7 @@ import { useMobile } from '../ui/use-mobile'
 import { AddCountrySheet } from '../passport/add-country-sheet'
 import { EmptyPassport, PassportCover, StampGroups, StampKey } from '../passport/collection'
 import { CountrySheet } from '../passport/country-sheet'
-import { countryNamer, groupByRegion, headerFigures, passportEntries, sortEntries, type PassportSort } from '../passport/model'
+import { countryNamer, groupByRegion, headerFigures, isCatalogCountry, passportEntries, sortEntries, type PassportSort } from '../passport/model'
 import type { PassportData } from '../../server/passport'
 import type { Locale } from '../../server/locale'
 import { normalizePassportQuery, withQuery } from '../../lib/url-state'
@@ -25,7 +25,7 @@ function Inner({ ownerId, locale, initial, period }: { ownerId: string; locale: 
   const router = useRouter()
   const queryClient = useQueryClient()
   const search = useSearchParams()
-  const state = normalizePassportQuery(search).state
+  const state = normalizePassportQuery(search, isCatalogCountry).state
   const ru = locale === 'ru'
   const mobile = useMobile()
   const { data: queue } = useAwaiting()
@@ -72,7 +72,7 @@ function Inner({ ownerId, locale, initial, period }: { ownerId: string; locale: 
   const navigate = useCallback((patch: Patch, mode: 'push' | 'replace' = 'replace') => {
     const params = new URLSearchParams(search.toString())
     for (const [key, value] of Object.entries(patch)) { if (value) params.set(key, value); else params.delete(key) }
-    const href = withQuery('/passport', normalizePassportQuery(params).query)
+    const href = withQuery('/passport', normalizePassportQuery(params, isCatalogCountry).query)
     if (mode === 'push') router.push(href, { scroll: false })
     // Passing Next's own history state would mark the call as router-internal and skip the useSearchParams sync.
     else window.history.replaceState(null, '', href)

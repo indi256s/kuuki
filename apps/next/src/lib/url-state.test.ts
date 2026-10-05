@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   normalizeJournalQuery, journalHref, resetJournalFilters, normalizeImportQuery, normalizeOnboardingQuery, normalizeOverviewQuery, normalizePassportQuery, resolveOnboardingStep, withQuery,
 } from './url-state'
+import { isCatalogCountry } from '../client/passport/model'
 
 const now = new Date('2026-10-05T00:00:00Z')
 const qs = (value: string) => new URLSearchParams(value)
@@ -23,11 +24,16 @@ describe('overview', () => {
 
 describe('passport', () => {
   it('omits defaults and uppercases the country', () => {
-    expect(normalizePassportQuery(qs('view=stamps&sort=recent&layer=countries&country=jp'), now).query).toBe('country=JP')
-    expect(normalizePassportQuery(qs('view=map&layer=routes&sort=visits&country=jp&year=2024'), now).query).toBe('view=map&sort=visits&country=JP&layer=routes&year=2024')
+    expect(normalizePassportQuery(qs('view=stamps&sort=recent&layer=countries&country=jp'), isCatalogCountry, now).query).toBe('country=JP')
+    expect(normalizePassportQuery(qs('view=map&layer=routes&sort=visits&country=jp&year=2024'), isCatalogCountry, now).query).toBe('view=map&sort=visits&country=JP&layer=routes&year=2024')
+  })
+  it('keeps catalog countries and territories in any case and drops well-formed codes outside the catalog', () => {
+    expect(normalizePassportQuery(qs('country=gi'), isCatalogCountry, now)).toMatchObject({ query: 'country=GI', state: { country: 'GI' } })
+    expect(normalizePassportQuery(qs('country=pR'), isCatalogCountry, now)).toMatchObject({ query: 'country=PR', state: { country: 'PR' } })
+    expect(normalizePassportQuery(qs('country=ZZ&sort=name'), isCatalogCountry, now)).toMatchObject({ query: 'sort=name', canonical: false, state: { country: null } })
   })
   it('drops invalid values without loops', () => {
-    const result = normalizePassportQuery(qs('view=bogus&sort=x&layer=y&country=JPN&year=1'), now)
+    const result = normalizePassportQuery(qs('view=bogus&sort=x&layer=y&country=JPN&year=1'), isCatalogCountry, now)
     expect(result).toMatchObject({ query: '', canonical: false, state: { view: 'stamps', sort: 'recent', layer: 'countries', country: null, year: null } })
   })
 })
@@ -68,7 +74,7 @@ describe('fixed point', () => {
     for (const input of inputs) {
       for (const run of [
         (s: string) => normalizeOverviewQuery(qs(s), now),
-        (s: string) => normalizePassportQuery(qs(s), now),
+        (s: string) => normalizePassportQuery(qs(s), isCatalogCountry, now),
         (s: string) => normalizeImportQuery(qs(s)),
         (s: string) => normalizeOnboardingQuery(qs(s), { hasUsername: true, hasFlight: false }),
       ]) {
