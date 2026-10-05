@@ -1,0 +1,149 @@
+import { test, expect, type Page } from '@playwright/test'
+import { recordRouteTransitions, resetRouteTransitions, routeTransitions, signIn } from './helpers'
+
+// DESIGN.md "Motion": three route changes animate (the import hero is covered in import.test.ts); everything else swaps instantly.
+
+const settled = (page: Page) => expect.poll(() => page.evaluate(() => document.documentElement.dataset.routeTransition ?? null)).toBeNull()
+const heading = (page: Page, name: string) => page.getByRole('heading', { level: 1, name, exact: true })
+
+/** Tags an element so a later check can tell whether React kept the same node. */
+const tag = (page: Page, selector: string) => page.locator(selector).evaluate(element => { (element as HTMLElement).dataset.kept = 'yes' })
+
+test.describe('sign in ↔ sign up ↔ forgot password', () => {
+  test('swaps only the form panel along the axis', async ({ page }) => {
+    await recordRouteTransitions(page)
+    await page.goto('/signin')
+    await expect(heading(page, 'Sign in')).toBeVisible()
+    await tag(page, '.site-header'); await tag(page, '.auth-brand')
+    await resetRouteTransitions(page)
+
+    const steps: Array<[string, RegExp, string, string]> = [
+      ['Create an account', /\/signup$/, 'Create an account', 'Your flights, places, and memories in one journal.'],
+      ['Already have an account? Sign in', /\/signin$/, 'Sign in', 'Your flights, places, and memories in one journal.'],
+      ['Forgot password?', /\/forgot-password$/, 'Reset your password', 'Return to your journeys.'],
+      ['Back to sign in', /\/signin$/, 'Sign in', 'Your flights, places, and memories in one journal.'],
+    ]
+    for (const [link, url, title, brand] of steps) {
+      await page.getByRole('link', { name: link, exact: true }).click()
+      await expect(page).toHaveURL(url)
+      await expect(heading(page, title)).toBeFocused()
+      await expect(page.locator('.auth-brand p')).toHaveText(brand)
+      await settled(page)
+    }
+    expect(await routeTransitions(page)).toMatchObject({ markers: ['axis', 'axis', 'axis', 'axis'], boundaries: 2 })
+    await expect(page.locator('[data-ssgoi-transition]')).toHaveCount(1)
+    await expect(page.locator('.site-header[data-kept="yes"]')).toHaveCount(1)
+    await expect(page.locator('.auth-brand[data-kept="yes"]')).toHaveCount(1)
+  })
+
+  test('swaps instantly under reduced motion', async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' })
+    await recordRouteTransitions(page)
+    await page.goto('/signin')
+    await page.getByRole('link', { name: 'Create an account', exact: true }).click()
+    await expect(heading(page, 'Create an account')).toBeFocused()
+    await expect(page.locator('[data-ssgoi-transition]')).toHaveCount(1)
+    expect((await routeTransitions(page)).markers).toEqual([])
+  })
+})
+
+test.describe('leaderboard → public profile', () => {
+  test('drills into the profile and Back reverses it', async ({ page }) => {
+    await recordRouteTransitions(page)
+    await page.goto('/leaderboard')
+    await expect(heading(page, 'Leaderboard')).toBeVisible()
+    await resetRouteTransitions(page)
+
+    await page.getByRole('link', { name: 'Ranked', exact: true }).click()
+    await expect(page).toHaveURL(/\/fly\/fixture-ranked$/)
+    await expect(heading(page, 'Ranked')).toBeFocused()
+    await settled(page)
+    expect(await routeTransitions(page)).toMatchObject({ markers: ['drill'], boundaries: 2, heroCopies: 0 })
+
+    await page.goBack()
+    await expect(page).toHaveURL(/\/leaderboard$/)
+    await expect(heading(page, 'Leaderboard')).toBeFocused()
+    await settled(page)
+    expect((await routeTransitions(page)).markers).toEqual(['drill', 'drill'])
+    await expect(page.locator('[data-ssgoi-transition]')).toHaveCount(1)
+  })
+
+  test('opens the profile instantly under reduced motion', async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' })
+    await recordRouteTransitions(page)
+    await page.goto('/leaderboard')
+    await page.getByRole('link', { name: 'Ranked', exact: true }).click()
+    await expect(heading(page, 'Ranked')).toBeFocused()
+    await expect(page.locator('[data-ssgoi-transition]')).toHaveCount(1)
+    expect((await routeTransitions(page)).markers).toEqual([])
+  })
+
+  test('category tabs stay instant', async ({ page }) => {
+    await recordRouteTransitions(page)
+    await page.goto('/leaderboard')
+    await resetRouteTransitions(page)
+    await page.getByRole('link', { name: 'Distance', exact: true }).click()
+    await expect(page).toHaveURL(/category=distance/)
+    await expect(page.getByRole('link', { name: 'Distance', exact: true })).toHaveAttribute('aria-current', 'page')
+    expect(await routeTransitions(page)).toMatchObject({ markers: [], boundaries: 1 })
+  })
+})
+
+test('a reload keeps the scroll position the browser restores', async ({ page, baseURL }) => {
+  await signIn(page, baseURL!)
+  await page.setViewportSize({ width: 390, height: 500 })
+  await page.goto('/journal')
+  await expect(heading(page, 'Journal')).toBeVisible()
+  await page.evaluate(() => scrollTo(0, 300))
+  await expect.poll(() => page.evaluate(() => scrollY)).toBe(300)
+  await page.reload()
+  await expect(heading(page, 'Journal')).toBeVisible()
+  await expect.poll(() => page.evaluate(() => scrollY)).toBe(300)
+  // ssgoi resets an entering page within its first frames; it must leave the loaded page alone.
+  await page.evaluate(() => new Promise(resolve => { let frames = 0; const tick = () => (++frames >= 20 ? resolve(null) : requestAnimationFrame(tick)); requestAnimationFrame(tick) }))
+  expect(await page.evaluate(() => scrollY)).toBe(300)
+})
+
+test('member tabs, header nav, Passport views, Journal filters, the flight sheet and Add stay instant', async ({ page, baseURL }) => {
+  await signIn(page, baseURL!)
+  await recordRouteTransitions(page)
+  await page.goto('/overview')
+  await expect(heading(page, 'Overview')).toBeVisible()
+  await resetRouteTransitions(page)
+  const tabs = page.getByRole('navigation', { name: 'Tabs' })
+
+  for (const title of ['Journal', 'Passport', 'Overview', 'Passport']) {
+    await tabs.getByRole('link', { name: title }).click()
+    await expect(heading(page, title)).toBeFocused()
+  }
+  await page.getByRole('button', { name: 'Map', exact: true }).click()
+  await expect(page).toHaveURL(/view=map/)
+  await expect(heading(page, 'Passport')).toBeFocused()
+
+  await tabs.getByRole('link', { name: 'Journal' }).click()
+  await page.getByRole('searchbox').fill('NO-SUCH-FLIGHT')
+  await page.getByRole('button', { name: 'Search', exact: true }).click()
+  await page.waitForURL(url => url.searchParams.get('q') === 'NO-SUCH-FLIGHT')
+  await page.goBack()
+  await page.locator('.flight-row').click()
+  await page.waitForURL(url => url.searchParams.has('flight'))
+  await expect(page.getByRole('dialog')).toBeVisible()
+  await page.keyboard.press('Escape')
+  await expect(page.getByRole('dialog')).toBeHidden()
+
+  await tabs.getByRole('button', { name: 'Add' }).click()
+  await page.getByRole('link', { name: 'Enter manually' }).click()
+  await expect(page).toHaveURL(/\/add$/)
+  await expect(page.getByRole('dialog', { name: 'Add a flight' })).toBeVisible()
+  await page.goBack()
+  await expect(heading(page, 'Journal')).toBeVisible()
+
+  // The header nav crosses into the public layout and back.
+  await page.setViewportSize({ width: 1440, height: 900 })
+  const primary = page.getByRole('navigation', { name: 'Primary' })
+  for (const title of ['Leaderboard', 'Overview']) {
+    await primary.getByRole('link', { name: title }).click()
+    await expect(heading(page, title)).toBeFocused()
+  }
+  expect(await routeTransitions(page)).toMatchObject({ markers: [], boundaries: 1, heroCopies: 0 })
+})

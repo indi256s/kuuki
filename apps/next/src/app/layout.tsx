@@ -5,6 +5,7 @@ import type { ReactNode } from 'react'
 import { ActivityBridge } from '../client/activity'
 import { AppearanceProvider } from '../client/appearance'
 import { RouteFocus } from '../client/route-focus'
+import { RouteTransitions } from '../client/route-transitions'
 import { THEME_COLOR } from '../lib/theme-colors'
 import { getRequestLocale } from '../server/locale'
 import './styles.css'
@@ -18,7 +19,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
   const locale = await getRequestLocale()
   return <html lang={locale} suppressHydrationWarning><head><Script src="/bootstrap.js" strategy="beforeInteractive" /></head><body>
     <a className="skip-link" href="#main"><span className="locale-en">Skip to content</span><span className="locale-ru" lang="ru">Перейти к содержимому</span></a>
-    {children}
+    <RouteTransitions>{children}</RouteTransitions>
     <Suspense fallback={null}><RouteFocus /></Suspense><AppearanceProvider /><ActivityBridge />
   </body></html>
 }

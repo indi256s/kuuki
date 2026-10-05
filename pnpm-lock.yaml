@@ -9,6 +9,11 @@ overrides:
   ws@>=8.18.0 <8.21.0: 8.21.0
   rollup@>=4.34.0 <4.59.0: 4.59.0
 
+patchedDependencies:
+  '@ssgoi/core@7.4.0':
+    hash: 5udwxqw2muoktzwbhz7yt5beve
+    path: patches/@ssgoi__core@7.4.0.patch
+
 importers:
 
   .:
@@ -70,13 +75,16 @@ importers:
         version: link:../../packages/shared
       '@opennextjs/cloudflare':
         specifier: 1.20.8
-        version: 1.20.8(next@16.3.8(@playwright/test@1.63.0)(@types/node@24.19.1)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(wrangler@4.147.0(@cloudflare/workers-types@5.20261003.1)(@types/node@24.19.1))
+        version: 1.20.8(next@16.3.8(@babel/core@7.28.6)(@playwright/test@1.63.0)(@types/node@24.19.1)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(wrangler@4.147.0(@cloudflare/workers-types@5.20261003.1)(@types/node@24.19.1))
       '@radix-ui/react-dialog':
         specifier: ^1.1.15
         version: 1.1.15(@types/react-dom@19.2.3(@types/react@19.2.10))(@types/react@19.2.10)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       '@radix-ui/react-dropdown-menu':
         specifier: ^2.1.16
         version: 2.1.16(@types/react-dom@19.2.3(@types/react@19.2.10))(@types/react@19.2.10)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+      '@ssgoi/react':
+        specifier: 7.4.0
+        version: 7.4.0(next@16.3.8(@babel/core@7.28.6)(@playwright/test@1.63.0)(@types/node@24.19.1)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react-dom@19.2.4(react@19.2.4))(react-router@7.18.4(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react@19.2.4)
       '@tanstack/react-query':
         specifier: ^5.62.0
         version: 5.90.20(react@19.2.4)
@@ -94,7 +102,7 @@ importers:
         version: 6.12.0
       next:
         specifier: 16.3.8
-        version: 16.3.8(@playwright/test@1.63.0)(@types/node@24.19.1)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+        version: 16.3.8(@babel/core@7.28.6)(@playwright/test@1.63.0)(@types/node@24.19.1)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       react:
         specifier: 19.2.4
         version: 19.2.4
@@ -3471,6 +3479,30 @@ packages:
 
   '@speed-highlight/core@1.2.14':
     resolution: {integrity: sha512-G4ewlBNhUtlLvrJTb88d2mdy2KRijzs4UhnlrOSRT4bmjh/IqNElZa3zkrZ+TC47TwtlDWzVLFADljF1Ijp5hA==}
+
+  '@ssgoi/core@7.4.0':
+    resolution: {integrity: sha512-7n3WhfSt2zGVwyy56gc2f1+Xfu9LT+ICVbRw0vZ2Sn8ErxlGXjub1/xC5aogc1xN2j4W8u/bMv51cGazDmuiPw==}
+    engines: {node: '>=18.0.0'}
+
+  '@ssgoi/react@7.4.0':
+    resolution: {integrity: sha512-x8OtzmJ7OF56K7LEDIdO8niNMMRbCZVdMN9BCXqD8qjGGDhdsxG1jyRvG+uX2IMkWVbcCiHHCXJxzmRYl+mCtQ==}
+    engines: {node: '>=18.0.0'}
+    peerDependencies:
+      '@remix-run/react': '*'
+      '@tanstack/react-router': '*'
+      next: '*'
+      react: ^18.0.0 || ^19.0.0
+      react-dom: ^18.0.0 || ^19.0.0
+      react-router: '*'
+    peerDependenciesMeta:
+      '@remix-run/react':
+        optional: true
+      '@tanstack/react-router':
+        optional: true
+      next:
+        optional: true
+      react-router:
+        optional: true
 
   '@standard-schema/spec@1.1.0':
     resolution: {integrity: sha512-l2aFy5jALhniG5HgqrD6jXLi/rUWrKvqN/qJx6yoJsgKhblVd+iqqU4RCXavm/jPityDo5TCvKMnpjKnOriy0w==}
@@ -7149,6 +7181,10 @@ packages:
     resolution: {integrity: sha512-pjy2bYhSsufwWlKwPc+l3cN7+wuJlK6uz0YdJEOlQDbl6jo/YlPi4mb8agUkVC8BF7V8NuzeyPNqRksA3hztKQ==}
     engines: {node: '>= 0.8'}
 
+  unplugin@2.3.11:
+    resolution: {integrity: sha512-5uKD0nqiYVzlmCRs01Fhs2BdkEgBS3SAVP6ndrBsuK42iC2+JHyxM05Rm9G8+5mkmRtzMZGY8Ct5+mliZxU/Ww==}
+    engines: {node: '>=18.12.0'}
+
   unrs-resolver@1.12.2:
     resolution: {integrity: sha512-dmlRxBJJayXjqTwC+JtF1HhJmgf3ftQ3YejFcZrf4+KKtJv0qDsK1pjqaaVjG7wJ5NJ6UVP1OqRMQ71Z4C3rxQ==}
 
@@ -7318,6 +7354,9 @@ packages:
   webidl-conversions@8.0.1:
     resolution: {integrity: sha512-BMhLD/Sw+GbJC21C/UgyaZX41nPt8bUTg+jWyDeg7e7YN4xOM05YPSIXceACnXVtqyEw/LMClUQMtMZ+PGGpqQ==}
     engines: {node: '>=20'}
+
+  webpack-virtual-modules@0.6.2:
+    resolution: {integrity: sha512-66/V2i5hQanC51vBQKPH4aI8NMAcBW59FVBs+rC7eGHupMyfn34q7rZIE+ETlJ+XTevqfUhVVBgSUNSW2flEUQ==}
 
   whatwg-mimetype@4.0.0:
     resolution: {integrity: sha512-QaKxh0eNIi2mE9p2vEdzfagOKHCcj1pJ56EEHGQOVxp8r9/iszLUUV7v89x9O1p/T+NlTM5W7jW6+cz4Fq1YVg==}
@@ -9774,7 +9813,7 @@ snapshots:
 
   '@nolyfill/is-core-module@1.0.39': {}
 
-  '@opennextjs/aws@4.1.7(next@16.3.8(@playwright/test@1.63.0)(@types/node@24.19.1)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))':
+  '@opennextjs/aws@4.1.7(next@16.3.8(@babel/core@7.28.6)(@playwright/test@1.63.0)(@types/node@24.19.1)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))':
     dependencies:
       '@ast-grep/napi': 0.40.5
       '@aws-sdk/client-cloudfront': 3.984.0
@@ -9790,24 +9829,24 @@ snapshots:
       cookie: 1.1.1
       esbuild: 0.25.4
       express: 5.2.1
-      next: 16.3.8(@playwright/test@1.63.0)(@types/node@24.19.1)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+      next: 16.3.8(@babel/core@7.28.6)(@playwright/test@1.63.0)(@types/node@24.19.1)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       path-to-regexp: 6.3.0
       urlpattern-polyfill: 10.1.0
       yaml: 2.9.1
     transitivePeerDependencies:
       - supports-color
 
-  '@opennextjs/cloudflare@1.20.8(next@16.3.8(@playwright/test@1.63.0)(@types/node@24.19.1)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(wrangler@4.147.0(@cloudflare/workers-types@5.20261003.1)(@types/node@24.19.1))':
+  '@opennextjs/cloudflare@1.20.8(next@16.3.8(@babel/core@7.28.6)(@playwright/test@1.63.0)(@types/node@24.19.1)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(wrangler@4.147.0(@cloudflare/workers-types@5.20261003.1)(@types/node@24.19.1))':
     dependencies:
       '@ast-grep/napi': 0.40.5
       '@dotenvx/dotenvx': 1.31.0
-      '@opennextjs/aws': 4.1.7(next@16.3.8(@playwright/test@1.63.0)(@types/node@24.19.1)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))
+      '@opennextjs/aws': 4.1.7(next@16.3.8(@babel/core@7.28.6)(@playwright/test@1.63.0)(@types/node@24.19.1)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))
       ci-info: 4.4.0
       cloudflare: 4.5.0
       comment-json: 4.6.2
       enquirer: 2.4.1
       glob: 12.0.0
-      next: 16.3.8(@playwright/test@1.63.0)(@types/node@24.19.1)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+      next: 16.3.8(@babel/core@7.28.6)(@playwright/test@1.63.0)(@types/node@24.19.1)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       ts-tqdm: 0.8.6
       wrangler: 4.147.0(@cloudflare/workers-types@5.20261003.1)(@types/node@24.19.1)
       yargs: 18.2.0
@@ -10662,6 +10701,21 @@ snapshots:
       tslib: 2.8.1
 
   '@speed-highlight/core@1.2.14': {}
+
+  '@ssgoi/core@7.4.0(patch_hash=5udwxqw2muoktzwbhz7yt5beve)': {}
+
+  '@ssgoi/react@7.4.0(next@16.3.8(@babel/core@7.28.6)(@playwright/test@1.63.0)(@types/node@24.19.1)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react-dom@19.2.4(react@19.2.4))(react-router@7.18.4(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react@19.2.4)':
+    dependencies:
+      '@babel/core': 7.28.6
+      '@ssgoi/core': 7.4.0(patch_hash=5udwxqw2muoktzwbhz7yt5beve)
+      react: 19.2.4
+      react-dom: 19.2.4(react@19.2.4)
+      unplugin: 2.3.11
+    optionalDependencies:
+      next: 16.3.8(@babel/core@7.28.6)(@playwright/test@1.63.0)(@types/node@24.19.1)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+      react-router: 7.18.4(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+    transitivePeerDependencies:
+      - supports-color
 
   '@standard-schema/spec@1.1.0': {}
 
@@ -13490,6 +13544,32 @@ snapshots:
 
   negotiator@1.0.0: {}
 
+  next@16.3.8(@babel/core@7.28.6)(@playwright/test@1.63.0)(@types/node@24.19.1)(react-dom@19.2.4(react@19.2.4))(react@19.2.4):
+    dependencies:
+      '@next/env': 16.3.8
+      '@swc/helpers': 0.5.23
+      baseline-browser-mapping: 2.11.27
+      caniuse-lite: 1.0.30001814
+      postcss: 8.5.23
+      react: 19.2.4
+      react-dom: 19.2.4(react@19.2.4)
+      styled-jsx: 5.1.6(@babel/core@7.28.6)(react@19.2.4)
+    optionalDependencies:
+      '@next/swc-darwin-arm64': 16.3.8
+      '@next/swc-darwin-x64': 16.3.8
+      '@next/swc-linux-arm64-gnu': 16.3.8
+      '@next/swc-linux-arm64-musl': 16.3.8
+      '@next/swc-linux-x64-gnu': 16.3.8
+      '@next/swc-linux-x64-musl': 16.3.8
+      '@next/swc-win32-arm64-msvc': 16.3.8
+      '@next/swc-win32-x64-msvc': 16.3.8
+      '@playwright/test': 1.63.0
+      sharp: 0.35.4(@types/node@24.19.1)
+    transitivePeerDependencies:
+      - '@babel/core'
+      - '@types/node'
+      - babel-plugin-macros
+
   next@16.3.8(@babel/core@7.28.6)(@playwright/test@1.63.0)(@types/node@25.1.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4):
     dependencies:
       '@next/env': 16.3.8
@@ -13542,6 +13622,7 @@ snapshots:
       - '@babel/core'
       - '@types/node'
       - babel-plugin-macros
+    optional: true
 
   node-abi@3.87.0:
     dependencies:
@@ -14701,6 +14782,13 @@ snapshots:
 
   unpipe@1.0.0: {}
 
+  unplugin@2.3.11:
+    dependencies:
+      '@jridgewell/remapping': 2.3.5
+      acorn: 8.18.0
+      picomatch: 4.0.7
+      webpack-virtual-modules: 0.6.2
+
   unrs-resolver@1.12.2:
     dependencies:
       napi-postinstall: 0.3.4
@@ -14899,6 +14987,8 @@ snapshots:
   webidl-conversions@3.0.1: {}
 
   webidl-conversions@8.0.1: {}
+
+  webpack-virtual-modules@0.6.2: {}
 
   whatwg-mimetype@4.0.0: {}
 

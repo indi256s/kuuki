@@ -7,6 +7,7 @@ import { Miniflare, Log, LogLevel, Request as WorkerRequest, Response as WorkerR
 import { applyMigrations } from './_migrations'
 import { hashPassword } from '../functions/api/_lib/crypto'
 import { SESSION_TTL_SECONDS } from '../functions/api/_lib/cookies'
+import { refreshLeaderboards } from '../functions/api/_services/leaderboard'
 
 const root = resolve('.')
 const port = Number(process.env.KUUKI_NEXT_PORT ?? 8800)
@@ -184,6 +185,13 @@ async function main() {
     if (created.status !== 201) throw new Error(`Synthetic flight create failed: ${created.status} ${await created.text()}`)
     await mf.ready
     if (!check) {
+      // A public, opted-in member with 5 flights gives /leaderboard one row that opens a real /fly profile.
+      await db.batch([
+        db.prepare("INSERT INTO users(id,email,password_hash) VALUES('ranked-fixture','ranked@example.test','RESET_REQUIRED')"),
+        db.prepare("INSERT INTO profiles(id,username,display_name,is_public,show_on_leaderboards) VALUES('ranked-fixture','fixture-ranked','Ranked',1,1)"),
+        db.prepare("INSERT INTO user_stats(user_id,total_flights,total_distance_km,airports_count,countries_count) VALUES('ranked-fixture',5,1000,2,1)"),
+      ])
+      await refreshLeaderboards(db)
       console.log(`Next synthetic fixture ready: ${origin}`)
       console.log('Accounts a@example.test / b@example.test; password rehearsal-password-2026. Ctrl-C stops and discards the fixture.')
       await new Promise<void>(resolve => { process.once('SIGINT', resolve); process.once('SIGTERM', resolve) })

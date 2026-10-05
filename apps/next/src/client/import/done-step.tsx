@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef, type ReactNode } from 'react'
+import Link from 'next/link'
 import { formatDateOnly, formatNumber, type Locale } from '../../lib/format'
 import { Button } from '../ui/button'
 import { Stamp } from '../signature/stamp'
@@ -42,6 +43,8 @@ export function DoneStep({ locale, savedCount, requested, totalKm, newCountries,
   useEffect(() => { heading.current?.focus() }, [])
   const partial = failures.length > 0
   const shown = stamps.slice(0, MAX_STAMPS)
+  // The Passport hero carries at most MAX_STAMPS stamps; with more, Passport opens without it.
+  const hero = stamps.length > 0 && stamps.length <= MAX_STAMPS
   const total = requested || savedCount + failures.length
   const chunks: ReactNode[] = [
     <strong key="added">{partial ? `${count(locale, 'savedOf', savedCount)} ${locale === 'ru' ? 'из' : 'of'} ${formatNumber(locale, total)}` : count(locale, 'added', savedCount)}</strong>,
@@ -59,7 +62,7 @@ export function DoneStep({ locale, savedCount, requested, totalKm, newCountries,
     {shown.length > 0 ? <div className="import-stamps">
       <h3>{S.newCountries[locale]}</h3>
       <div className="import-stamp-grid">{shown.map(stamp =>
-        <Stamp key={stamp.code} countryCode={stamp.code} nativeName={stamp.name} kind="air" theme={theme} locale={locale} pressEventId={stamp.eventId} />)}</div>
+        <Stamp key={stamp.code} countryCode={stamp.code} nativeName={stamp.name} kind="air" theme={theme} locale={locale} pressEventId={stamp.eventId} heroExitKey={hero ? stamp.code : undefined} />)}</div>
     </div> : null}
 
     {partial ? <div className="import-failed">
@@ -74,7 +77,8 @@ export function DoneStep({ locale, savedCount, requested, totalKm, newCountries,
     {aircraftTargets.length > 0 ? <AircraftPanel locale={locale} targets={aircraftTargets} onSaved={onAircraftSaved} api={aircraftApi} /> : null}
 
     <div className="import-actions import-final-actions">
-      <a className="ui-button" data-variant="primary" href="/passport">{S.passport[locale]}</a>
+      {/* Stamps appear only after the write refreshed the router, so a full prefetch from here is already fresh. */}
+      <Link className="ui-button" data-variant="primary" href="/passport" prefetch={hero ? true : undefined}>{S.passport[locale]}</Link>
       <a className="ui-button" data-variant="secondary" href="/journal">{S.journal[locale]}</a>
       <Button onClick={onImportMore}>{S.importMore[locale]}</Button>
     </div>

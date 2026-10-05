@@ -21,7 +21,7 @@ const words = {
   en: { signin: { heading: 'Sign in', action: 'Sign in', other: 'Create an account', otherPath: '/signup' }, signup: { heading: 'Create an account', action: 'Create account', other: 'Already have an account? Sign in', otherPath: '/signin' } },
   ru: { signin: { heading: 'С возвращением', action: 'Войти', other: 'Создать аккаунт', otherPath: '/signup' }, signup: { heading: 'Создать аккаунт', action: 'Создать аккаунт', other: 'Уже есть аккаунт? Войти', otherPath: '/signin' } },
 }
-const messages = { en: { brand: 'Your flights, places, and memories in one journal.', name: 'Name', email: 'Email', password: 'Password', hide: 'Hide', show: 'Show', invalidEmail: 'Enter a valid email.', shortPassword: 'Use at least 8 characters.', rule: 'At least 8 characters.', working: 'Working…', activation: 'Moving an existing account? Continue to activation', created: 'Your account was created, but sign-in did not finish. Please sign in to continue.', credentials: 'Email or password is incorrect.', taken: 'An account already uses this email. Sign in instead.', limited: 'Too many attempts. Please wait and try again.', failed: 'We could not complete this request. Please try again.' }, ru: { brand: 'Ваши перелёты, страны и воспоминания — в одном журнале.', name: 'Имя', email: 'Почта', password: 'Пароль', hide: 'Скрыть', show: 'Показать', invalidEmail: 'Введите действительный адрес почты.', shortPassword: 'Не менее 8 символов.', rule: 'Не менее 8 символов.', working: 'Подождите…', activation: 'Переносите старый аккаунт? Продолжить активацию', created: 'Аккаунт создан, но вход не завершился. Войдите, чтобы продолжить.', credentials: 'Неверная почта или пароль.', taken: 'Этот адрес уже используется. Войдите.', limited: 'Слишком много попыток. Подождите и повторите.', failed: 'Не удалось завершить запрос. Повторите попытку.' } }
+const messages = { en: { name: 'Name', email: 'Email', password: 'Password', hide: 'Hide', show: 'Show', invalidEmail: 'Enter a valid email.', shortPassword: 'Use at least 8 characters.', rule: 'At least 8 characters.', working: 'Working…', activation: 'Moving an existing account? Continue to activation', created: 'Your account was created, but sign-in did not finish. Please sign in to continue.', credentials: 'Email or password is incorrect.', taken: 'An account already uses this email. Sign in instead.', limited: 'Too many attempts. Please wait and try again.', failed: 'We could not complete this request. Please try again.' }, ru: { name: 'Имя', email: 'Почта', password: 'Пароль', hide: 'Скрыть', show: 'Показать', invalidEmail: 'Введите действительный адрес почты.', shortPassword: 'Не менее 8 символов.', rule: 'Не менее 8 символов.', working: 'Подождите…', activation: 'Переносите старый аккаунт? Продолжить активацию', created: 'Аккаунт создан, но вход не завершился. Войдите, чтобы продолжить.', credentials: 'Неверная почта или пароль.', taken: 'Этот адрес уже используется. Войдите.', limited: 'Слишком много попыток. Подождите и повторите.', failed: 'Не удалось завершить запрос. Повторите попытку.' } }
 
 export function AuthForm({ mode, locale, initialEmail = '' }: { mode: Mode; locale: Locale; initialEmail?: string }) {
   const [showPassword, setShowPassword] = useState(false)
@@ -53,8 +53,7 @@ export function AuthForm({ mode, locale, initialEmail = '' }: { mode: Mode; loca
       }
     }
   })
-  return <div className="auth-card"><div className="auth-brand"><span aria-hidden>くうき</span><p>{m.brand}</p></div>
-    <div className="auth-panel"><p className="eyebrow">Kuuki</p><h1>{t.heading}</h1>
+  return <><p className="eyebrow">Kuuki</p><h1>{t.heading}</h1>
       {created ? <Link className="button primary" href={`/signin?email=${encodeURIComponent(getValues('email'))}`}>Sign in</Link> : <form onSubmit={submit} noValidate>
         {mode === 'signup' && <div className="field"><label htmlFor="auth-name">{m.name}</label><input id="auth-name" autoComplete="name" {...register('name')} /><span className="error">{errors.name?.message}</span></div>}
         <div className="field"><label htmlFor="auth-email">{m.email}</label><input id="auth-email" type="email" autoComplete="email" {...register('email')} /><span className="error">{errors.email ? m.invalidEmail : ''}</span></div>
@@ -64,5 +63,5 @@ export function AuthForm({ mode, locale, initialEmail = '' }: { mode: Mode; loca
       {mode === 'signin' && <p className="auth-switch"><Link href="/forgot-password">{locale === 'ru' ? 'Забыли пароль?' : 'Forgot password?'}</Link></p>}
       <p className="auth-switch"><Link href={t.otherPath}>{t.other}</Link></p>
       <p className="auth-switch"><a href="/legacy/?mode=signin">{m.activation}</a></p>
-    </div></div>
+  </>
 }
