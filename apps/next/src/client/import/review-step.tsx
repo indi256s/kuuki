@@ -94,7 +94,7 @@ export function ReviewStep(props: ReviewStepProps) {
       <ManualRow key={manual.key} locale={locale} row={manual} showErrors={hasValues(manual.values)} disabled={confirming}
         onRetryOriginal={() => onManualRetryOriginal(manual.key)} onNewOperation={() => onManualNewOperation(manual.key)}
         // A refusal wrote nothing, so editing clears it; an unconfirmed save keeps its notice until the member resolves it.
-        onChange={values => onManualRows(manualRows.map(item => item.key === manual.key ? { ...item, values, failure: item.failure?.kind === 'refused' || item.failure?.kind === 'busy' ? undefined : item.failure } : item))}
+        onChange={values => onManualRows(manualRows.map(item => item.key === manual.key ? { ...item, values, failure: item.failure?.kind === 'refused' ? undefined : item.failure } : item))}
         onRemove={() => onManualRows(manualRows.filter(item => item.key !== manual.key))} />)}</ul> : null}
     <div className="import-actions"><Button onClick={addManual} disabled={confirming}><Plus size={16} strokeWidth={2} aria-hidden="true" /> {S.addManual[locale]}</Button></div>
 

@@ -258,16 +258,15 @@ export const ROW_FAILURE: Record<RowFailureKind, Pair> = {
   missing: p('This flight is no longer part of the import.', 'Этого перелёта больше нет в импорте.'),
   transient: p('The service had a problem. Trying again is safe.', 'У сервиса возникла проблема. Повторить безопасно.'),
 }
-export type ManualFailureKind = 'refused' | 'busy' | 'uncertain' | 'unconfirmed' | 'expired'
+export type ManualFailureKind = 'refused' | 'uncertain' | 'unconfirmed' | 'expired'
 /** What happened to a flight added by hand, in the words the member needs to choose the next step. */
 export const MANUAL_FAILURE: Record<ManualFailureKind, Pair> = {
   refused: p('The service refused these details, so nothing was saved. Fix the fields and save again.', 'Сервис отклонил эти данные, поэтому ничего не сохранено. Исправьте поля и сохраните ещё раз.'),
-  busy: p('Too many requests right now. Nothing was saved; try again in a moment.', 'Сейчас слишком много запросов. Ничего не сохранено; повторите через минуту.'),
   uncertain: p('We did not get a clear answer, so this flight may or may not be saved. Retry the original save, or check your journal first.', 'Мы не получили чёткого ответа, поэтому рейс мог сохраниться или нет. Повторите исходное сохранение или сначала проверьте журнал.'),
   unconfirmed: p('An earlier save of this flight is unconfirmed, so the changed details were not sent. Retry the original save, or check your journal and start a new save.', 'Предыдущее сохранение этого рейса не подтверждено, поэтому изменённые данные не отправлены. Повторите исходное сохранение или проверьте журнал и начните новое.'),
   expired: p('A safe retry is no longer possible for this flight. Check your journal, then start a new save.', 'Безопасный повтор для этого рейса уже невозможен. Проверьте журнал и начните новое сохранение.'),
 }
-export const MANUAL_ROW_RETRYABLE: Record<ManualFailureKind, boolean> = { refused: false, busy: true, uncertain: true, unconfirmed: false, expired: false }
+export const MANUAL_ROW_RETRYABLE: Record<ManualFailureKind, boolean> = { refused: false, uncertain: true, unconfirmed: false, expired: false }
 
 export function relativeInstant(locale: Locale, iso: string): string {
   const date = new Date(iso)
