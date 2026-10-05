@@ -308,6 +308,38 @@ describe('filters', () => {
     await router.deliver('q=x', true)
   })
 
+  it('sends a filter committed after a pending Reset even when it equals the URL still rendered', async () => {
+    const user = userEvent.setup()
+    const router = slowRouter()
+    render(<Harness start="airline=TK" />)
+    const airline = screen.getByRole('textbox', { name: 'Airline' })
+    await user.clear(airline)
+    await user.type(airline, 'aa')
+    await user.tab()
+    await user.click(screen.getByRole('link', { name: 'Reset filters' })) // pending too
+    expect(airline).toHaveValue('')
+    await user.type(airline, 'tk')
+    await user.tab() // before Reset returns
+    const sent = [...nav.push.mock.calls.map((call, index) => [nav.push.mock.invocationCallOrder[index], call[0]] as const), ...nav.replace.mock.calls.map((call, index) => [nav.replace.mock.invocationCallOrder[index], call[0]] as const)]
+    expect(sent.sort(([a], [b]) => a - b).map(([, href]) => hrefQuery(href))).toEqual(['airline=AA', '', 'airline=TK'])
+    await router.deliver('airline=TK', true) // the TK commit supersedes Reset
+    expect(airline).toHaveValue('TK')
+  })
+
+  it('shows the selects of a pending Reset destination, so a status equal to the superseded URL can be chosen again', async () => {
+    const user = userEvent.setup()
+    const router = slowRouter()
+    render(<Harness start="status=logged&airline=TK" />)
+    await user.click(screen.getByRole('link', { name: 'Reset filters' }))
+    const status = screen.getByRole('combobox', { name: 'Status' })
+    expect(status).toHaveValue('')
+    nav.push.mockClear(); nav.replace.mockClear()
+    await user.selectOptions(status, 'logged')
+    expect([...nav.push.mock.calls, ...nav.replace.mock.calls].map(call => hrefQuery(call[0]))).toEqual(['status=logged'])
+    await router.deliver('status=logged', true)
+    expect(status).toHaveValue('logged')
+  })
+
   it('adopts the empty-result Reset clicked while its own filter navigation is pending', async () => {
     const user = userEvent.setup()
     const router = slowRouter()

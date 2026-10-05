@@ -77,17 +77,19 @@ const textValues = (query: string): Values => {
 export function JournalFilters({ locale, query, filtered, apply, navigating, external, onExternal }: Props) {
   const t = text[locale]
   const base = useId()
-  const params = new URLSearchParams(query)
   const urlValues = textValues(query)
   const [drafts, setDrafts] = useState<Values>(urlValues)
   const [touched, setTouched] = useState<Record<string, boolean>>({})
   // Who changed the URL is told by the page, not guessed from values. While a navigation this component requested is pending (`navigating`, a router
   // transition), URL changes are its own responses or their intermediate steps, so the drafts stay. Once it settles, `sent` is dropped and any later
   // URL change (a link elsewhere) is external and replaces the drafts of the fields it touched.
-  // Reset, Back and Forward are announced by the page as they start (`external`): their destination replaces every draft at once and drops `sent`, so a
-  // navigation of ours that they supersede no longer counts, and the URL they bring is already known when it arrives.
+  // Reset, Back, Forward and links to /journal are announced by the page as they start (`external`): their destination replaces every draft at once,
+  // drops `sent` (a navigation of ours that they supersede no longer counts) and becomes the known URL until the rendered one catches up, so the next
+  // change is compared with where the member is going, not with the URL being left.
   const [sent, setSent] = useState<Record<string, string>>({})
-  const [lastUrl, setLastUrl] = useState(urlValues)
+  /** The URL as far as this component knows: the rendered query, or an announced destination that has not arrived yet. */
+  const [known, setKnown] = useState(query)
+  const knownValues = textValues(known)
   const [seen, setSeen] = useState(query)
   const [wasNavigating, setWasNavigating] = useState(navigating)
   const [adopted, setAdopted] = useState(external.serial)
@@ -97,30 +99,31 @@ export function JournalFilters({ locale, query, filtered, apply, navigating, ext
     setDrafts(old => ({ ...old, ...target }))
     setTouched({})
     setSent({})
-    setLastUrl(target)
+    setKnown(external.query)
   } else if (seen !== query || wasNavigating !== navigating) {
     const awaiting = Object.keys(sent).length > 0
     if (seen !== query) {
       setSeen(query)
-      setLastUrl(urlValues)
+      setKnown(query)
       if (!awaiting) {
         const adopt: Values = {}
-        for (const key of ['q', ...TEXT_KEYS]) if (urlValues[key] !== lastUrl[key]) adopt[key] = urlValues[key]
+        for (const key of ['q', ...TEXT_KEYS]) if (urlValues[key] !== knownValues[key]) adopt[key] = urlValues[key]
         if (Object.keys(adopt).length) setDrafts(old => ({ ...old, ...adopt }))
       }
     }
     if (wasNavigating && !navigating && awaiting) setSent({})
     setWasNavigating(navigating)
   }
-  /** What the field holds as far as this component knows: the last value it sent while that navigation is pending, otherwise the URL's. */
-  const effective = (key: string) => sent[key] ?? urlValues[key]
+  /** What the field holds as far as this component knows: the last value it sent while that navigation is pending, otherwise the known URL's. */
+  const effective = (key: string) => sent[key] ?? knownValues[key]
   const [open, setOpen] = useState(false)
   const [staged, setStaged] = useState<Values>({})
   const [stagedTouched, setStagedTouched] = useState<Record<string, boolean>>({})
   const formRef = useRef<HTMLFormElement>(null)
   const sheetRef = useRef<HTMLDivElement>(null)
 
-  const selectValues: Values = { status: params.get('status') ?? '', sort: params.get('sort') ?? 'date', order: params.get('order') ?? 'desc' }
+  const knownParams = new URLSearchParams(known)
+  const selectValues: Values = { status: knownParams.get('status') ?? '', sort: knownParams.get('sort') ?? 'date', order: knownParams.get('order') ?? 'desc' }
 
   const problems = (values: Values, shown: Record<string, boolean>) => {
     const result: Record<string, string | undefined> = {}
