@@ -8,7 +8,7 @@ import { hasSql, instrumentDb } from './db-hooks'
 import { getAwaiting } from './queue-fixture'
 import { onRequestPost as bulkRoute } from '../api/flights/bulk'
 import {
-  OTHER, USER, clock, confirm, daysAfter, getBatch, importAccount, itemKey, patchDraft, providerFlight, providerText, seedBatch,
+  NOW, OTHER, USER, clock, confirm, daysAfter, getBatch, importAccount, itemKey, patchDraft, postJob, providerFlight, providerText, seedBatch,
 } from './import-fixture'
 
 const provider = vi.hoisted(() => ({ generateContent: vi.fn() }))
@@ -28,6 +28,7 @@ afterEach(async () => {
     'user_derived_state', 'user_stats', 'visits'].map(table => db.prepare(`DELETE FROM ${table}`)))
   await db.prepare('DROP TRIGGER IF EXISTS fail_receipt').run()
   await db.prepare('DROP TRIGGER IF EXISTS fail_flight').run()
+  await db.prepare('DROP TRIGGER IF EXISTS fail_complete').run()
 })
 
 const seed = (flights: unknown[], user = USER) => seedBatch(db, list => provider.generateContent.mockResolvedValue({ text: providerText(list) }), flights, user)
@@ -336,6 +337,73 @@ describe('conversion', () => {
     const { body } = await confirm(db, created.batch.id, { items: created.drafts.map(draft => item(draft)) })
     expect(codes(body.results)).toEqual(['created', 'UNKNOWN_AIRPORT', 'created'])
     expect((await db.prepare('SELECT revision, published_revision FROM user_derived_state WHERE user_id = ?').bind(USER.id).first())).toEqual({ revision: 1, published_revision: 1 })
+  })
+})
+
+describe('T15 review fixes', () => {
+  it('C1: keeps a batch with impossible calendar dates readable and refuses only those rows', async () => {
+    clock()
+    provider.generateContent.mockResolvedValue({ text: providerText([
+      providerFlight({ date: '2026-13-10' }), providerFlight({ date: '2026-02-30' }), providerFlight({ date: '2026-03-11', origin: 'LHR', destination: 'JFK' }),
+    ]) })
+    const job = await postJob(db, {})
+    expect(job.status).toBe(201)
+    const snapshot = await getBatch(db, job.body.batch.id)
+    expect(snapshot.status).toBe(200)
+    const [month, day, valid] = snapshot.body.drafts
+    expect(snapshot.body.drafts.map((draft: any) => draft.fields.date)).toEqual(['2026-13-10', '2026-02-30', '2026-03-11'])
+    for (const invalid of [month, day]) {
+      expect(invalid).toMatchObject({ status: 'review', duplicateFlightId: null, issue: { code: 'INVALID_FLIGHT' } })
+    }
+    expect(valid).toMatchObject({ status: 'review', duplicateFlightId: null, issue: null })
+
+    const { status, body } = await confirm(db, job.body.batch.id, { items: [item(month), item(day), item(valid)] })
+    expect(status).toBe(200)
+    expect(codes(body.results)).toEqual(['INVALID_FLIGHT', 'INVALID_FLIGHT', 'created'])
+    expect(body.results[0]).toMatchObject({ http_status: 400 })
+    expect((await flightRows()).map(row => [row.date, row.origin, row.destination])).toEqual([['2026-03-11', 'LHR', 'JFK']])
+    expect(await count(db, 'flight_idempotency')).toBe(1)
+    for (const invalid of [month, day]) expect(await draftRow(invalid.id)).toMatchObject({ status: 'review', version: 1, converted_flight_id: null })
+    expect(body.batch).toMatchObject({ status: 'review', reviewRowCount: 2 })
+    expect((await getBatch(db, job.body.batch.id)).status).toBe(200)
+  })
+
+  it('I2: batch completion commits with the conversion, so a failed completion leaves nothing behind and the retry frees the slot', async () => {
+    clock()
+    const created = await seed([providerFlight()])
+    // Nine more open batches: with the seeded one the owner is at the open-batch limit.
+    await db.batch(Array.from({ length: 9 }, (_, index) => db.prepare(
+      "INSERT INTO import_batches (id,user_id,source_type,status,submission_operation_id,created_at,updated_at,expires_at) VALUES (?,?,'text','review',?,?,?,?)",
+    ).bind(`open-${index}`, USER.id, `open-op-${index}`, NOW.toISOString(), NOW.toISOString(), daysAfter(30).toISOString())))
+    expect((await postJob(db, {})).body.code).toBe('IMPORT_BATCH_LIMIT')
+    const batchRow = () => db.prepare('SELECT status, sequence FROM import_batches WHERE id = ?').bind(created.batch.id).first<{ status: string; sequence: number }>()
+    const before = await batchRow()
+
+    await db.prepare("CREATE TRIGGER fail_complete BEFORE UPDATE OF status ON import_batches WHEN NEW.status = 'completed' BEGIN SELECT RAISE(ABORT, 'synthetic completion failure'); END").run()
+    const items = [item(created.drafts[0], 'complete-key-01')]
+    const failed = await confirm(db, created.batch.id, { items })
+    expect(failed.status).toBe(500)
+    // Nothing of the conversion committed without its completion.
+    expect(await count(db, 'flights')).toBe(0)
+    expect(await count(db, 'import_conversion_receipts')).toBe(0)
+    expect(await draftRow(created.drafts[0].id)).toMatchObject({ status: 'review', version: 1 })
+    expect(await batchRow()).toEqual(before)
+    await db.prepare('DROP TRIGGER fail_complete').run()
+
+    const retry = await confirm(db, created.batch.id, { items })
+    expect(retry.status).toBe(200)
+    expect(codes(retry.body.results)).toEqual(['created'])
+    expect(retry.body.batch).toMatchObject({ status: 'completed', reviewRowCount: 0 })
+    expect(retry.body.batch.sequence).toBeGreaterThan(before!.sequence)
+    expect(await batchRow()).toEqual({ status: 'completed', sequence: retry.body.batch.sequence })
+    expect(await count(db, 'flights')).toBe(1)
+    expect(await count(db, 'import_conversion_receipts')).toBe(1)
+    // The completed batch no longer holds an open slot.
+    expect((await postJob(db, {})).status).toBe(201)
+    // A later receipt-only replay changes nothing.
+    const replay = await confirm(db, created.batch.id, { items })
+    expect(codes(replay.body.results)).toEqual(['replayed'])
+    expect(await batchRow()).toEqual({ status: 'completed', sequence: retry.body.batch.sequence })
   })
 })
 
