@@ -58,6 +58,7 @@ describe.each(['en', 'ru'] as const)('manual flight (%s)', locale => {
     await userEvent.click(screen.getByRole('button', { name: words[locale].save }))
     const override = await screen.findByRole('button', { name: words[locale].anyway })
     expect(mocks.create).not.toHaveBeenCalled()
+    await waitFor(() => expect(document.activeElement).toBe(override.closest('[role=status]')))
     expect(screen.getByRole('link', { name: locale === 'ru' ? 'Открыть существующий' : 'Open existing' })).toHaveAttribute('href', '/journal/7/edit')
     // An invalid optional value must never escape through the duplicate action.
     await userEvent.click(screen.getByRole('button', { name: words[locale].details }))
@@ -141,7 +142,9 @@ it.each(['en', 'ru'] as const)('pins mobile search input and adjusts the save pa
   await waitFor(() => expect(input).toHaveFocus())
   fireEvent.change(input, { target: { value: 'Tbilisi' } })
   await userEvent.click(within(search).getByRole('option', { name: /TBS/ }))
-  expect(screen.getByRole('combobox', { name: words[locale].from })).toHaveValue('TBS')
+  const origin = screen.getByRole('combobox', { name: words[locale].from })
+  expect(origin).toHaveValue('TBS')
+  await waitFor(() => expect(document.activeElement).toBe(origin))
   Object.assign(viewport, { height: 450 })
   act(() => { viewport.dispatchEvent(new Event('resize')) })
   expect(panel.style.getPropertyValue('--sheet-kb')).toBe(`${window.innerHeight - 450}px`)
@@ -152,7 +155,9 @@ it('keeps a failed duplicate lookup from silently admitting a save', async () =>
   render(<FlightForm ownerId="a" locale="en" />)
   await fill('en')
   await userEvent.click(screen.getByRole('button', { name: 'Save flight' }))
-  expect(await screen.findByRole('alert')).toHaveTextContent('Lookup unavailable')
+  const error = await screen.findByRole('alert')
+  expect(error).toHaveTextContent('Lookup unavailable')
+  await waitFor(() => expect(document.activeElement).toBe(error))
   expect(mocks.create).not.toHaveBeenCalled()
 })
 
@@ -162,5 +167,24 @@ it('closes an embedded edit via its owner callback, preserving the Journal navig
   await screen.findByRole('button', { name: 'Save flight' })
   await userEvent.click(screen.getByRole('button', { name: 'Cancel' }))
   expect(close).toHaveBeenCalledWith(false)
+  expect(mocks.push).not.toHaveBeenCalled()
+})
+
+it.each(['delete', 'open journal'] as const)('returns embedded detail %s to its host without replacing Journal filters', async action => {
+  const close = vi.fn()
+  render(<FlightDetailSheet ownerId="a" locale="en" flightId={7} initialEditing={action === 'open journal'} onOpenChange={close} />)
+  if (action === 'delete') {
+    await screen.findByRole('button', { name: 'Edit flight' })
+    await userEvent.click(screen.getByRole('button', { name: 'Delete flight' }))
+    const confirmation = await screen.findByRole('dialog', { name: 'Delete flight?' })
+    await userEvent.click(within(confirmation).getByRole('button', { name: 'Delete flight' }))
+    await waitFor(() => expect(mocks.remove).toHaveBeenCalledWith(7))
+  } else {
+    await screen.findByRole('button', { name: 'Save flight' })
+    await userEvent.click(screen.getByRole('button', { name: 'Save flight' }))
+    await screen.findByRole('heading', { name: 'Flight saved' })
+    await userEvent.click(screen.getByRole('link', { name: 'Open journal' }))
+  }
+  await waitFor(() => expect(close).toHaveBeenCalledWith(false))
   expect(mocks.push).not.toHaveBeenCalled()
 })

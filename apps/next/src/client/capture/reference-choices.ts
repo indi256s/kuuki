@@ -4,7 +4,10 @@ import aircraft from '@kuuki/data/aircraft'
 import type { Choice } from '../ui/combobox'
 import type { Locale } from '../../lib/format'
 
-// Curated spellings for these reference identities; the catalog itself has English names only.
+// Russian names: Russian Wikipedia airport articles «Шереметьево», «Домодедово»,
+// «Внуково», «Тбилиси (аэропорт)», «Стамбул (аэропорт)».
+// Native names: Tbilisi Airport (tbilisiairport.com) and İstanbul Airport (istairport.com).
+// The catalog itself has English names only; these five aliases are curated offline.
 const airportAliases: Record<string, { city: string; name: string; native: string }> = {
   SVO: { city: 'Москва', name: 'Шереметьево', native: 'Москва Шереметьево' },
   DME: { city: 'Москва', name: 'Домодедово', native: 'Москва Домодедово' },

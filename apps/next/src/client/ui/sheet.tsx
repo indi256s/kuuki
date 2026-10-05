@@ -23,6 +23,7 @@ export function rubberBand(overshoot: number, limit = 80): number {
 
 export type SheetProps = {
   initialFocusRef?: RefObject<HTMLElement | null>
+  onCloseAutoFocus?: (event: Event) => void
   className?: string
   open: boolean
   onOpenChange: (open: boolean) => void
@@ -39,7 +40,7 @@ export type SheetProps = {
 
 type Sample = { t: number; p: number }
 
-export function Sheet({ open, onOpenChange, title, description, side = 'bottom', trigger, children, footer, closeLabel = 'Close', className = '', initialFocusRef }: SheetProps) {
+export function Sheet({ open, onOpenChange, title, description, side = 'bottom', trigger, children, footer, closeLabel = 'Close', className = '', initialFocusRef, onCloseAutoFocus }: SheetProps) {
   const contentRef = useRef<HTMLDivElement>(null)
   const titleRef = useRef<HTMLHeadingElement>(null)
   const drag = useRef<{ id: number; start: number; samples: Sample[] } | null>(null)
@@ -112,6 +113,7 @@ export function Sheet({ open, onOpenChange, title, description, side = 'bottom',
           className={`ui-sheet ${className}`}
           data-side={side}
           {...(description ? {} : { 'aria-describedby': undefined })}
+          onCloseAutoFocus={onCloseAutoFocus}
           onOpenAutoFocus={event => { event.preventDefault(); (initialFocusRef?.current ?? titleRef.current)?.focus() }}
         >
           <div

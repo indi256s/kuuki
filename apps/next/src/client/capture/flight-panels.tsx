@@ -13,7 +13,7 @@ export function FlightDetailSheet({ ownerId, locale, flightId, open = true, onOp
   const router = useRouter()
   const mobile = useMobile()
   if (!open) return null
-  return <FlightForm key={flightId} ownerId={ownerId} locale={locale} editId={flightId} initialEditing={initialEditing} onCancel={() => { if (onOpenChange) onOpenChange(false); else router.push('/journal') }} surface={(content, footer) => <Sheet open={open} onOpenChange={onOpenChange ?? (next => { if (!next) router.push('/journal') })} title={locale === 'ru' ? 'Перелёт' : 'Flight'} closeLabel={locale === 'ru' ? 'Закрыть перелёт' : 'Close flight'} side={mobile ? 'bottom' : 'right'} className={mobile ? 'flight-full-sheet' : ''} footer={footer}>{content}</Sheet>} />
+  return <FlightForm key={flightId} ownerId={ownerId} locale={locale} editId={flightId} initialEditing={initialEditing} onOpenJournal={onOpenChange ? () => onOpenChange(false) : undefined} onCancel={() => { if (onOpenChange) onOpenChange(false); else router.push('/journal') }} surface={(content, footer) => <Sheet open={open} onOpenChange={onOpenChange ?? (next => { if (!next) router.push('/journal') })} title={locale === 'ru' ? 'Перелёт' : 'Flight'} closeLabel={locale === 'ru' ? 'Закрыть перелёт' : 'Close flight'} side={mobile ? 'bottom' : 'right'} className={mobile ? 'flight-full-sheet' : ''} footer={footer}>{content}</Sheet>} />
 }
 export function FlightCaptureDialog({ ownerId, locale }: { ownerId: string; locale: Locale }) {
   const router = useRouter()

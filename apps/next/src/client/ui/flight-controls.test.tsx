@@ -21,7 +21,7 @@ function SearchHarness({ locale }: { locale: Locale }) {
   return <><Combobox label="Airport" locale={locale} choices={airportChoices(locale)} value={value} onChange={setValue} /><output>{value}</output></>
 }
 describe.each(['en', 'ru'] as const)('flight controls (%s)', locale => {
-  it.each(['SVO', 'Sheremetyevo', 'Шереметьево', 'Москва'])('finds a verified reference identity by %s and selects by keyboard', async query => {
+  it.each(['SVO', 'Sheremetyevo', 'Шереметьево', 'Москва'])('matches a catalog airport by %s and selects by keyboard', async query => {
     render(<SearchHarness locale={locale} />)
     const input = screen.getByRole('combobox', { name: 'Airport' })
     await userEvent.click(input)
@@ -66,4 +66,51 @@ it.each([[1, 'Найден 1 вариант'], [2, 'Найдено 2 вариа�
   render(<Combobox label="Airport" locale="ru" choices={Array.from({ length: Number(count) }, (_, index) => ({ code: `A${index}`, label: 'Airport' }))} value="" onChange={() => {}} />)
   await userEvent.click(screen.getByRole('combobox'))
   expect(screen.getByRole('status')).toHaveTextContent(String(text))
+})
+
+it.each([false, true])('scrolls the active option into view (mobile=%s)', async mobile => {
+  Object.defineProperty(window, 'matchMedia', { configurable: true, value: () => ({ matches: mobile, addEventListener: vi.fn(), removeEventListener: vi.fn() }) })
+  const scroll = vi.fn()
+  Object.defineProperty(HTMLElement.prototype, 'scrollIntoView', { configurable: true, value: scroll })
+  try {
+    render(<SearchHarness locale="en" />)
+    await userEvent.click(screen.getByRole('combobox'))
+    const input = mobile ? screen.getByRole('dialog').querySelector('input')! : screen.getByRole('combobox')
+    await waitFor(() => expect(input).toHaveFocus())
+    scroll.mockClear()
+    fireEvent.keyDown(input, { key: 'ArrowDown' })
+    await waitFor(() => expect(scroll).toHaveBeenCalledWith({ block: 'nearest' }))
+    const active = document.getElementById(input.getAttribute('aria-activedescendant')!)!
+    expect(scroll.mock.instances.at(-1)).toBe(active)
+  } finally {
+    Reflect.deleteProperty(HTMLElement.prototype, 'scrollIntoView')
+  }
+})
+
+it.each(['en', 'ru'] as const)('returns mobile search focus after selection and Escape (%s)', async locale => {
+  Object.defineProperty(window, 'matchMedia', { configurable: true, value: () => ({ matches: true, addEventListener: vi.fn(), removeEventListener: vi.fn() }) })
+  render(<SearchHarness locale={locale} />)
+  const origin = screen.getByRole('combobox', { name: 'Airport' })
+  await userEvent.click(origin)
+  const search = await screen.findByRole('dialog')
+  fireEvent.change(search.querySelector('input')!, { target: { value: 'JFK' } })
+  await userEvent.click(screen.getByRole('option', { name: /JFK/ }))
+  await waitFor(() => expect(document.activeElement).toBe(origin))
+  expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+  await userEvent.click(origin)
+  const reopened = await screen.findByRole('dialog')
+  await waitFor(() => expect(reopened.querySelector('input')).toHaveFocus())
+  await userEvent.keyboard('{Escape}')
+  await waitFor(() => expect(document.activeElement).toBe(origin))
+  expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+})
+
+it.each(['en', 'ru'] as const)('returns calendar Escape focus to the date input (%s)', async locale => {
+  render(<DateHarness locale={locale} />)
+  await userEvent.click(screen.getByRole('button', { name: locale === 'ru' ? 'Календарь' : 'Calendar' }))
+  const day = screen.getByRole('button', { name: locale === 'ru' ? '5 октября 2026 г.' : 'October 5, 2026' })
+  day.focus()
+  await userEvent.keyboard('{Escape}')
+  expect(screen.queryByRole('group')).not.toBeInTheDocument()
+  expect(document.activeElement).toBe(screen.getByLabelText('Flight date'))
 })

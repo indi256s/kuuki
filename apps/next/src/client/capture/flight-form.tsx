@@ -34,7 +34,7 @@ function input(values: Values) {
 }
 export type FlightSurface = (content: ReactNode, footer?: ReactNode) => ReactNode
 
-export function FlightForm({ ownerId, locale, editId, initialEditing = true, surface, onCancel }: { ownerId: string; locale: Locale; editId?: number; initialEditing?: boolean; surface?: FlightSurface; onCancel?: () => void }) {
+export function FlightForm({ ownerId, locale, editId, initialEditing = true, surface, onCancel, onOpenJournal }: { ownerId: string; locale: Locale; editId?: number; initialEditing?: boolean; surface?: FlightSurface; onCancel?: () => void; onOpenJournal?: () => void }) {
   const router = useRouter()
   const feedback = useWriteFeedback(ownerId)
   const ru = locale === 'ru'
@@ -51,6 +51,16 @@ export function FlightForm({ ownerId, locale, editId, initialEditing = true, sur
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
   const [duplicate, setDuplicate] = useState<Flight | null>(null)
+  const errorRef = useRef<HTMLParagraphElement>(null)
+  const duplicateRef = useRef<HTMLDivElement>(null)
+  const focusBlockedSave = useRef(false)
+  useEffect(() => {
+    if (!busy && focusBlockedSave.current) {
+      focusBlockedSave.current = false
+      const notice = error ? errorRef.current : duplicateRef.current
+      notice?.focus()
+    }
+  }, [busy, error, duplicate])
   const deleteTrigger = useRef<HTMLButtonElement>(null)
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [saved, setSaved] = useState(false)
@@ -93,7 +103,7 @@ export function FlightForm({ ownerId, locale, editId, initialEditing = true, sur
         const existing = await checkDuplicateFlight(ownerId, values.date, values.origin, values.destination, editId, { signal: controller.signal })
         if (!current(generation, controller)) return
         setDuplicate(existing)
-        if (existing) return
+        if (existing) { focusBlockedSave.current = true; return }
       }
       const from = findAirport(values.origin), to = findAirport(values.destination), plane = values.aircraft ? findAircraft(values.aircraft) : undefined
       const distance = from && to ? calculateFlightDistance(from.latitude, from.longitude, to.latitude, to.longitude) : null
@@ -105,14 +115,14 @@ export function FlightForm({ ownerId, locale, editId, initialEditing = true, sur
       const nextRecents = [...new Set([values.origin, values.destination, ...recents.airports])].filter(Boolean).slice(0, 8)
       setRecents(previous => ({ ...previous, airports: nextRecents })); writeCapturePreference(ownerId, 'airports', nextRecents)
       feedback.acknowledge(ack); setSaved(true); router.refresh()
-    } catch (cause) { if (current(generation, controller)) setError(cause instanceof Error ? cause.message : String(cause)) }
+    } catch (cause) { if (current(generation, controller)) { focusBlockedSave.current = true; setError(cause instanceof Error ? cause.message : String(cause)) } }
     finally { saving.current = false; if (current(generation, controller)) setBusy(false); release() }
   }
   async function remove() {
     if (!flight || saving.current) return
     saving.current = true
     const controller = new AbortController(); const release = trackPrivateOperation(controller); const generation = getAuthGeneration(); setBusy(true); setError('')
-    try { const ack = await deleteFlight(flight.id); if (current(generation, controller)) { feedback.acknowledge(ack); router.push('/journal'); router.refresh() } }
+    try { const ack = await deleteFlight(flight.id); if (current(generation, controller)) { feedback.acknowledge(ack); if (onOpenJournal) onOpenJournal(); else router.push('/journal'); router.refresh() } }
     catch (cause) { if (current(generation, controller)) setError(cause instanceof Error ? cause.message : String(cause)) }
     finally { saving.current = false; if (current(generation, controller)) setBusy(false); release() }
   }
@@ -134,7 +144,7 @@ export function FlightForm({ ownerId, locale, editId, initialEditing = true, sur
   }, [])
   if (loading) return wrap(<p role="status">{ru ? 'Загружаем перелёт…' : 'Loading flight…'}</p>)
   if (editId && !flight) return wrap(<p role="alert">{error || (ru ? 'Перелёт не найден.' : 'Flight not found.')}</p>)
-  if (saved) return wrap(<section role="status"><h2>{ru ? 'Перелёт сохранён' : 'Flight saved'}</h2><p>{feedback.status === 'ready' ? (ru ? 'Итоги обновлены.' : 'Totals updated.') : feedback.status === 'pending' ? (ru ? 'Итоги обновляются. Перелёт уже в журнале.' : 'Totals are updating. Your flight is in the journal.') : (ru ? 'Итоги ещё не подтвердили обновление. Перелёт уже в журнале.' : 'Totals have not confirmed publication yet. Your flight is in the journal.')}</p><a className="button primary" href="/journal">{ru ? 'Открыть журнал' : 'Open journal'}</a></section>)
+  if (saved) return wrap(<section role="status"><h2>{ru ? 'Перелёт сохранён' : 'Flight saved'}</h2><p>{feedback.status === 'ready' ? (ru ? 'Итоги обновлены.' : 'Totals updated.') : feedback.status === 'pending' ? (ru ? 'Итоги обновляются. Перелёт уже в журнале.' : 'Totals are updating. Your flight is in the journal.') : (ru ? 'Итоги ещё не подтвердили обновление. Перелёт уже в журнале.' : 'Totals have not confirmed publication yet. Your flight is in the journal.')}</p><a className="button primary" href="/journal" onClick={onOpenJournal ? event => { event.preventDefault(); onOpenJournal() } : undefined}>{ru ? 'Открыть журнал' : 'Open journal'}</a></section>)
   const deletion = <Dialog.Root open={confirmDelete} onOpenChange={setConfirmDelete}><Dialog.Portal><Dialog.Overlay className="ui-overlay" /><Dialog.Content className="capture-confirm" onCloseAutoFocus={event => { event.preventDefault(); deleteTrigger.current?.focus() }}><Dialog.Title>{ru ? 'Удалить перелёт?' : 'Delete flight?'}</Dialog.Title><Dialog.Description>{ru ? 'Этот перелёт будет удалён из журнала.' : 'This flight will be removed from your journal.'}</Dialog.Description><Dialog.Close type="button">{ru ? 'Отмена' : 'Cancel'}</Dialog.Close><button type="button" disabled={busy} onClick={() => void remove()}>{ru ? 'Удалить перелёт' : 'Delete flight'}</button></Dialog.Content></Dialog.Portal></Dialog.Root>
   const deleteButton = flight && <div className="flight-danger"><button type="button" ref={deleteTrigger} className="button secondary" disabled={busy} onClick={() => setConfirmDelete(true)}>{ru ? 'Удалить перелёт' : 'Delete flight'}</button></div>
   if (flight && !editing) {
@@ -146,10 +156,10 @@ export function FlightForm({ ownerId, locale, editId, initialEditing = true, sur
   const footer = <>{onCancel ? <button type="button" className="button secondary" onClick={onCancel}>{ru ? 'Отмена' : 'Cancel'}</button> : <a className="button secondary" href="/journal">{ru ? 'Отмена' : 'Cancel'}</a>}<button className="button primary" form={formId} disabled={busy || !!receipt} type="submit">{busy ? (ru ? 'Сохраняем…' : 'Saving…') : (ru ? 'Сохранить перелёт' : 'Save flight')}</button><small className="flight-keyboard-hint">⌘/Ctrl + Enter</small></>
   return wrap(<form id={formId} className="capture-card flight-editor" noValidate onSubmit={submit()}>
     <fieldset disabled={busy}><legend className="eyebrow">{ru ? 'Маршрут' : 'Route'}</legend><div className="capture-grid">{combo('origin', ru ? 'Откуда' : 'From')}{combo('destination', ru ? 'Куда' : 'To')}<button type="button" className="button secondary capture-swap" onClick={() => { setValue('origin', destination, { shouldDirty: true }); setValue('destination', origin, { shouldDirty: true }) }}>{ru ? 'Поменять местами' : 'Swap route'}</button></div>
-    {duplicate && <div role="status" className="flight-duplicate"><p>{ru ? 'Перелёт с этой датой и маршрутом уже есть.' : 'A flight with this date and route already exists.'}</p><p>{duplicate.origin} → {duplicate.destination} · {formatDateOnly(locale, duplicate.date)}</p><a className="button secondary" href={`/journal/${duplicate.id}/edit`}>{ru ? 'Открыть существующий' : 'Open existing'}</a><button type="button" className="button secondary" disabled={busy || !!receipt} onClick={() => void submit(true)()}>{ru ? 'Всё равно сохранить' : 'Save anyway'}</button></div>}
+    {duplicate && <div ref={duplicateRef} tabIndex={-1} role="status" className="flight-duplicate"><p>{ru ? 'Перелёт с этой датой и маршрутом уже есть.' : 'A flight with this date and route already exists.'}</p><p>{duplicate.origin} → {duplicate.destination} · {formatDateOnly(locale, duplicate.date)}</p><a className="button secondary" href={`/journal/${duplicate.id}/edit`}>{ru ? 'Открыть существующий' : 'Open existing'}</a><button type="button" className="button secondary" disabled={busy || !!receipt} onClick={() => void submit(true)()}>{ru ? 'Всё равно сохранить' : 'Save anyway'}</button></div>}
     <Controller name="date" control={control} render={({ field }) => <Calendar label={ru ? 'Дата' : 'Date'} value={field.value} onChange={field.onChange} onBlur={field.onBlur} inputRef={field.ref} locale={locale} error={fieldError('date')} disabled={busy} />} />
     <Disclosure summary={ru ? '＋ Подробности' : '＋ Optional details'} open={showDetails} onOpenChange={open => { setShowDetails(open); writeCapturePreference(ownerId, 'details', open) }}><div className="capture-grid">{combo('airline', ru ? 'Авиакомпания (необязательно)' : 'Airline (optional)')}{optional('number', ru ? 'Номер рейса (необязательно)' : 'Flight number (optional)')}{combo('aircraft', ru ? 'Самолёт (необязательно)' : 'Aircraft (optional)')}{optional('departure', ru ? 'Вылет (необязательно)' : 'Departure (optional)', 'time')}{optional('arrival', ru ? 'Прилёт (необязательно)' : 'Arrival (optional)', 'time')}</div></Disclosure></fieldset>
     {receipt && <div className="status-note" role="alert"><p>{receipt.expired ? (ru ? 'Срок безопасного повтора истёк. Проверьте журнал.' : 'Safe retry expired. Check the journal before a new save.') : (ru ? 'Предыдущее сохранение не подтверждено. Повторите исходные данные.' : 'The last save is unconfirmed. Retry the original flight.')}</p>{!receipt.expired && <button type="button" disabled={busy} onClick={() => void save(empty, receipt.body)}>{ru ? 'Повторить исходное сохранение' : 'Retry original save'}</button>}<button type="button" disabled={busy} onClick={() => { abandonFlightCreateOperation(ownerId, operationId); setOperationId(rotateFlightOperationId(`next-manual:${ownerId}`)); setError('') }}>{ru ? 'Вы проверили журнал — новый перелёт' : 'I checked the journal — start a new save'}</button></div>}
-    {error && <p role="alert">{error}</p>}{deleteButton}{deletion}
+    {error && <p ref={errorRef} tabIndex={-1} role="alert">{error}</p>}{deleteButton}{deletion}
   </form>, surface ? footer : <footer className="capture-footer">{footer}</footer>)
 }
