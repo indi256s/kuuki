@@ -73,11 +73,11 @@ function proposedVisits(db: D1Database, userId: string): BatchedRead<DerivedVisi
   const flightSources = db.prepare(
     `SELECT ar.iata AS airport_iata, ar.country_code, ar.city, f.date
      FROM flights f JOIN airports_reference ar ON ar.iata = f.origin
-     WHERE f.user_id = ? AND (f.is_upcoming IS NULL OR f.is_upcoming = 0)
+     WHERE f.user_id = ? AND f.lifecycle_state IN ('awaiting', 'logged')
      UNION ALL
      SELECT ar.iata AS airport_iata, ar.country_code, ar.city, f.date
      FROM flights f JOIN airports_reference ar ON ar.iata = f.destination
-     WHERE f.user_id = ? AND (f.is_upcoming IS NULL OR f.is_upcoming = 0)`,
+     WHERE f.user_id = ? AND f.lifecycle_state IN ('awaiting', 'logged')`,
   ).bind(userId, userId)
 
   return {

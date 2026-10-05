@@ -90,8 +90,8 @@ export function buildFlightWhere(userId: string, filters: FlightFilters): { wher
     binds.push(filters.aircraftIcao)
   }
   if (filters.isUpcoming !== undefined) {
-    clauses.push('is_upcoming = ?')
-    binds.push(filters.isUpcoming ? 1 : 0)
+    // `isUpcoming=false` keeps its meaning: completed, i.e. awaiting or logged (ADR 0001 §1).
+    clauses.push(filters.isUpcoming ? "lifecycle_state = 'upcoming'" : "lifecycle_state IN ('awaiting', 'logged')")
   }
   if (filters.originCodes?.length) {
     clauses.push(`origin IN (${filters.originCodes.map(() => '?').join(', ')})`)

@@ -11,7 +11,7 @@ export const onRequestGet: PagesFunction<Env, string, RequestData> = (context) =
     const { where, binds } = buildFlightWhere(user.id, parseFlightFilters(new URL(context.request.url).searchParams))
     const rows = await context.env.DB
       .prepare(
-        `SELECT id, origin, destination, airline_iata, date, is_upcoming FROM flights WHERE ${where} ORDER BY date DESC`,
+        `SELECT id, origin, destination, airline_iata, date, is_upcoming, lifecycle_state FROM flights WHERE ${where} ORDER BY date DESC`,
       )
       .bind(...binds)
       .all<FlightRouteRow>()

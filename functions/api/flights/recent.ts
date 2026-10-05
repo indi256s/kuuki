@@ -13,7 +13,7 @@ export const onRequestGet: PagesFunction<Env, string, RequestData> = (context) =
     const rows = await context.env.DB
       .prepare(
         `SELECT ${FLIGHT_COLUMNS} FROM flights
-         WHERE user_id = ? AND (is_upcoming IS NULL OR is_upcoming = 0)
+         WHERE user_id = ? AND lifecycle_state IN ('awaiting', 'logged')
          ORDER BY date DESC LIMIT ?`,
       )
       .bind(user.id, limit)

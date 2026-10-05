@@ -11,8 +11,8 @@
 // user_advanced_stats TEXT columns (this module returns JS values, never strings).
 //
 // Parity notes (do NOT "fix"):
-//   * fleet/manufacturer insights aggregate COMPLETED flights only (is_upcoming
-//     false/null) with aircraft_icao not null, LEFT JOIN aircraft_reference on icao.
+//   * fleet/manufacturer insights aggregate COMPLETED flights only (lifecycle_state
+//     awaiting or logged) with aircraft_icao not null, LEFT JOIN aircraft_reference on icao.
 //   * Postgres ROUND(numeric) rounds HALF-AWAY-FROM-ZERO. All rounded values here are
 //     non-negative, so JS Math.round (half toward +Infinity) matches for 0-decimal
 //     cases; roundHalfAwayFromZero handles the 1-decimal cases for safety.
@@ -95,7 +95,7 @@ export function computeFleetInsights(db: D1Database, userId: string): BatchedRea
        FROM flights
        WHERE user_id = ?
          AND aircraft_icao IS NOT NULL
-         AND (is_upcoming IS NULL OR is_upcoming = 0)`,
+         AND lifecycle_state IN ('awaiting', 'logged')`,
     )
     .bind(userId)
 
@@ -114,7 +114,7 @@ export function computeFleetInsights(db: D1Database, userId: string): BatchedRea
        LEFT JOIN aircraft_reference ar ON f.aircraft_icao = ar.icao
        WHERE f.user_id = ?
          AND f.aircraft_icao IS NOT NULL
-         AND (f.is_upcoming IS NULL OR f.is_upcoming = 0)
+         AND f.lifecycle_state IN ('awaiting', 'logged')
        GROUP BY f.aircraft_icao, ar.model, ar.manufacturer, ar.name, ar.type
        ORDER BY COUNT(*) DESC
        LIMIT 1`,
@@ -196,7 +196,7 @@ export function computeManufacturerInsights(db: D1Database, userId: string): Bat
        FROM flights
        WHERE user_id = ?
          AND aircraft_icao IS NOT NULL
-         AND (is_upcoming IS NULL OR is_upcoming = 0)`,
+         AND lifecycle_state IN ('awaiting', 'logged')`,
     )
     .bind(userId)
 
@@ -211,7 +211,7 @@ export function computeManufacturerInsights(db: D1Database, userId: string): Bat
        LEFT JOIN aircraft_reference ar ON f.aircraft_icao = ar.icao
        WHERE f.user_id = ?
          AND f.aircraft_icao IS NOT NULL
-         AND (f.is_upcoming IS NULL OR f.is_upcoming = 0)
+         AND f.lifecycle_state IN ('awaiting', 'logged')
        GROUP BY COALESCE(ar.manufacturer, 'Unknown')
        ORDER BY COUNT(*) DESC
        LIMIT 1`,
@@ -406,7 +406,7 @@ export function computeDurationYearComparison(db: D1Database, userId: string): B
        FROM flights
        WHERE user_id = ?
          AND CAST(substr(date, 1, 4) AS INTEGER) = ?
-         AND (is_upcoming IS NULL OR is_upcoming = 0)
+         AND lifecycle_state IN ('awaiting', 'logged')
          AND duration_minutes IS NOT NULL`,
     )
     .bind(userId, currentYear)
@@ -417,7 +417,7 @@ export function computeDurationYearComparison(db: D1Database, userId: string): B
        FROM flights
        WHERE user_id = ?
          AND CAST(substr(date, 1, 4) AS INTEGER) = ?
-         AND (is_upcoming IS NULL OR is_upcoming = 0)
+         AND lifecycle_state IN ('awaiting', 'logged')
          AND duration_minutes IS NOT NULL`,
     )
     .bind(userId, currentYear - 1)

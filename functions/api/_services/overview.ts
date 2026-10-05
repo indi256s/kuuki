@@ -31,7 +31,7 @@ export async function readOverview(db: D1Database, userId: string, period: Overv
   const started = Date.now()
   const generatedAt = new Date(started).toISOString()
   const { where, binds } = buildFlightWhere(userId, { ...filters, ...(period === 'all' ? {} : { year: Number(period) }) })
-  const completedWhere = `${where} AND f.is_upcoming = 0`
+  const completedWhere = `${where} AND f.lifecycle_state IN ('awaiting', 'logged')`
   const bindPeriod = (sql: string, ...extra: string[]) => db.prepare(sql).bind(...binds, ...extra)
   // Bind the filtered selection once; three 25-code filters remain under D1's
   // variable limit instead of doubling their placeholders for both endpoints.
@@ -72,8 +72,8 @@ export async function readOverview(db: D1Database, userId: string, period: Overv
       AND substr(f.date, 1, 7) >= ? AND substr(f.date, 1, 7) < ?
       GROUP BY month ORDER BY month`, monthStart, monthEnd),
     db.prepare(`SELECT id, date, origin, destination, airline_iata, flight_number FROM flights
-      WHERE user_id = ? AND is_upcoming = 1 ORDER BY date ASC, id ASC LIMIT 1`).bind(userId),
-    db.prepare('SELECT COUNT(*) AS count FROM flights WHERE user_id = ? AND is_upcoming = 1').bind(userId),
+      WHERE user_id = ? AND lifecycle_state = 'upcoming' ORDER BY date ASC, id ASC LIMIT 1`).bind(userId),
+    db.prepare("SELECT COUNT(*) AS count FROM flights WHERE user_id = ? AND lifecycle_state = 'upcoming'").bind(userId),
   ]
   const d1Started = Date.now()
   const results = await db.batch(statements)

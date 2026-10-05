@@ -132,7 +132,7 @@ export function computeStatsForVisits(
               COUNT(DISTINCT aircraft_icao) AS aircraft_count,
               COALESCE(MAX(CASE WHEN departure_time IS NOT NULL
                 AND CAST(substr(departure_time, 1, 2) AS INTEGER) < 5 THEN 1 ELSE 0 END), 0) AS has_night_departure
-       FROM flights WHERE user_id = ? AND (is_upcoming IS NULL OR is_upcoming = 0)`,
+       FROM flights WHERE user_id = ? AND lifecycle_state IN ('awaiting', 'logged')`,
     ).bind(userId)],
     derive: ([result]) => (visits) => {
       const flights = firstOf<Pick<ComputedUserStats,

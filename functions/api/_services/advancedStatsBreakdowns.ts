@@ -7,7 +7,7 @@
 //
 // Parity notes (do NOT "fix"):
 //   * aircraft_*/aircraft_type/duration_stats aggregate COMPLETED flights only
-//     (is_upcoming false/null) with aircraft_icao not null where relevant.
+//     (lifecycle_state awaiting or logged) with aircraft_icao not null where relevant.
 //   * continent/region breakdowns read from `visits` (not flights), COUNT(DISTINCT
 //     country_code) per bucket — continent EXCLUDES 'other', region INCLUDES it.
 //   * departure_patterns + duration_coverage use ALL flights (incl upcoming).
@@ -73,7 +73,7 @@ export function computeAircraftBreakdown(db: D1Database, userId: string): Batche
        FROM flights
        WHERE user_id = ?
          AND aircraft_icao IS NOT NULL
-         AND (is_upcoming IS NULL OR is_upcoming = 0)
+         AND lifecycle_state IN ('awaiting', 'logged')
        GROUP BY aircraft_icao
        ORDER BY count DESC
        LIMIT 10`,
@@ -86,7 +86,7 @@ export function computeAircraftBreakdown(db: D1Database, userId: string): Batche
        LEFT JOIN aircraft_reference ar ON f.aircraft_icao = ar.icao
        WHERE f.user_id = ?
          AND f.aircraft_icao IS NOT NULL
-         AND (f.is_upcoming IS NULL OR f.is_upcoming = 0)
+         AND f.lifecycle_state IN ('awaiting', 'logged')
        GROUP BY COALESCE(ar.manufacturer, 'Unknown')
        ORDER BY count DESC`,
     )
@@ -119,7 +119,7 @@ export function computeAircraftTypeBreakdown(db: D1Database, userId: string): Ba
        LEFT JOIN aircraft_reference ar ON f.aircraft_icao = ar.icao
        WHERE f.user_id = ?
          AND f.aircraft_icao IS NOT NULL
-         AND (f.is_upcoming IS NULL OR f.is_upcoming = 0)
+         AND f.lifecycle_state IN ('awaiting', 'logged')
        GROUP BY COALESCE(ar.type, 'unknown')
        ORDER BY count DESC`,
     )
@@ -136,7 +136,7 @@ export function computeAircraftTypeBreakdown(db: D1Database, userId: string): Ba
          FROM flights f
          WHERE f.user_id = ?
            AND f.aircraft_icao IS NOT NULL
-           AND (f.is_upcoming IS NULL OR f.is_upcoming = 0)
+           AND f.lifecycle_state IN ('awaiting', 'logged')
          GROUP BY f.aircraft_icao
          ORDER BY flight_count DESC
          LIMIT 1
@@ -151,7 +151,7 @@ export function computeAircraftTypeBreakdown(db: D1Database, userId: string): Ba
        FROM flights
        WHERE user_id = ?
          AND aircraft_icao IS NOT NULL
-         AND (is_upcoming IS NULL OR is_upcoming = 0)`,
+         AND lifecycle_state IN ('awaiting', 'logged')`,
     )
     .bind(userId)
 
@@ -230,19 +230,19 @@ export function computeDurationStats(db: D1Database, userId: string): BatchedRea
          COUNT(*) AS flight_count
        FROM flights
        WHERE user_id = ?
-         AND (is_upcoming IS NULL OR is_upcoming = 0)
+         AND lifecycle_state IN ('awaiting', 'logged')
          AND duration_minutes IS NOT NULL`,
     )
     .bind(userId)
 
   // longest_flight_id: id of a completed flight whose duration = MAX(duration) over ALL
-  // flights for the user (live inner MAX has no is_upcoming filter), LIMIT 1.
+  // flights for the user (live inner MAX has no lifecycle filter), LIMIT 1.
   const longest = db
     .prepare(
       `SELECT id FROM flights
        WHERE user_id = ?
          AND duration_minutes = (SELECT MAX(duration_minutes) FROM flights WHERE user_id = ?)
-         AND (is_upcoming IS NULL OR is_upcoming = 0)
+         AND lifecycle_state IN ('awaiting', 'logged')
        LIMIT 1`,
     )
     .bind(userId, userId)
@@ -255,7 +255,7 @@ export function computeDurationStats(db: D1Database, userId: string): BatchedRea
        WHERE user_id = ?
          AND duration_minutes > 0
          AND duration_minutes = (SELECT MIN(NULLIF(duration_minutes, 0)) FROM flights WHERE user_id = ?)
-         AND (is_upcoming IS NULL OR is_upcoming = 0)
+         AND lifecycle_state IN ('awaiting', 'logged')
        LIMIT 1`,
     )
     .bind(userId, userId)

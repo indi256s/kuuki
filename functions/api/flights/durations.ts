@@ -11,7 +11,7 @@ export const onRequestGet: PagesFunction<Env, string, RequestData> = (context) =
       .prepare(
         `SELECT aircraft_icao, duration_minutes FROM flights
          WHERE user_id = ? AND aircraft_icao IS NOT NULL AND duration_minutes IS NOT NULL
-           AND (is_upcoming IS NULL OR is_upcoming = 0)`,
+           AND lifecycle_state IN ('awaiting', 'logged')`,
       )
       .bind(user.id)
       .all<{ aircraft_icao: string; duration_minutes: number }>()

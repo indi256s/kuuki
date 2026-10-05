@@ -43,7 +43,7 @@ export const onRequestGet: PagesFunction<Env, string, RequestData> = (context) =
       .prepare(
         `SELECT id, date, origin, destination, airline_iata, flight_number
          FROM flights
-         WHERE user_id = ? AND is_upcoming = 1
+         WHERE user_id = ? AND lifecycle_state = 'upcoming'
          ORDER BY date ASC
          LIMIT 5`,
       )
@@ -54,7 +54,7 @@ export const onRequestGet: PagesFunction<Env, string, RequestData> = (context) =
       .prepare(
         `SELECT origin, destination, distance_km, duration_minutes, airline_iata, aircraft_icao
          FROM flights
-         WHERE user_id = ? AND (is_upcoming IS NULL OR is_upcoming = 0)`,
+         WHERE user_id = ? AND lifecycle_state IN ('awaiting', 'logged')`,
       )
       .bind(user.id)
       .all<CompletedFlightRow>()

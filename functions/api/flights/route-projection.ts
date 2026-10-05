@@ -24,7 +24,7 @@ export const onRequestGet: PagesFunction<Env, string, RequestData> = context => 
     FROM flights f
     LEFT JOIN airports_reference o ON o.iata = f.origin
     LEFT JOIN airports_reference d ON d.iata = f.destination
-    WHERE f.user_id = ? AND f.is_upcoming = 0 ${where}
+    WHERE f.user_id = ? AND f.lifecycle_state IN ('awaiting', 'logged') ${where}
     GROUP BY f.origin, f.destination
     ORDER BY last_date DESC, f.origin, f.destination
   `).bind(...binds).all<RouteRow>()

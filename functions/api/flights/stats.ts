@@ -24,7 +24,7 @@ export const onRequestGet: PagesFunction<Env, string, RequestData> = (context) =
       }>()
 
     const up = await db
-      .prepare('SELECT COUNT(*) AS n FROM flights WHERE user_id = ? AND is_upcoming = 1')
+      .prepare("SELECT COUNT(*) AS n FROM flights WHERE user_id = ? AND lifecycle_state = 'upcoming'")
       .bind(user.id)
       .first<{ n: number }>()
 
