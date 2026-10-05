@@ -1,0 +1,14 @@
+# Overview mini map draws country dots only; route arcs need a period-scoped geometry read
+
+Status: needs-triage
+Owner task: T16 / T18
+Source: T17 brief ("period-correct mini map + legend"); `functions/api/flights/routes`
+
+## What differs
+`GET /api/me/overview` returns `map.countries[{id, visits, pending}]` and `map.routeCount`, enough for the period-correct country preview and its legend, but no per-route geometry. The Overview map therefore reuses T16's `CountryPreview` (pressed countries only, bucket colours from `BUCKET_TOKENS`) and shows the route count as text. Pending countries are listed and counted as "waiting for a stamp" but are not drawn, because `CountryPreview` has no pending ring. `client/maps/preview.tsx` and `lib/map-buckets.ts` are T16-owned and were not changed.
+
+## Decision needed
+Whether the Overview map should draw route arcs (extend `GET /api/flights/routes?year=` with deduplicated unordered pairs) and a pending ring (a `pending` prop on `CountryPreview`). Recommendation: do both in T16/T18 so Overview and Passport share one renderer.
+
+## Acceptance check
+`map.routeCount` equals the number of arcs drawn for the same period; a pending country renders a ring distinct from a pressed one; the Overview legend keeps matching `BUCKET_LABELS`.
