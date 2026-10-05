@@ -101,10 +101,6 @@ export function ImportClient({ ownerId, locale, initialBatchId = null, initialSo
   const refreshReceipts = useCallback(() => {
     const found = unconfirmedSaves(ownerId)
     setReceipts(found)
-    // A row held back by a save that is now settled may be sent.
-    const open = new Set(found.map(save => save.operationId))
-    const stale = (row: ManualRowState) => row.failure?.kind === 'duplicate' && row.failure.heldBy !== undefined && !open.has(row.failure.heldBy)
-    setManualRows(previous => previous.some(stale) ? previous.map(row => stale(row) ? { ...row, failure: undefined } : row) : previous)
   }, [ownerId])
   useEffect(() => { refreshReceipts() }, [refreshReceipts])
   // An explicit "Back to review" wins over showing a completed batch's summary.
@@ -237,7 +233,7 @@ export function ImportClient({ ownerId, locale, initialBatchId = null, initialSo
       acks.push(...result.acks)
       wrote ||= result.saved.length > 0
       setManualSaved(previous => [...previous, ...result.saved])
-      setManualRows(previous => previous.flatMap(row => result.saved.some(item => item.key === row.key) ? [] : [result.rows.get(row.key) ?? row]))
+      setManualRows(previous => previous.flatMap(row => result.saved.some(item => item.key === row.key || row.failure?.heldBy === item.operationId) ? [] : [result.rows.get(row.key) ?? row]))
     }
     // The denominator counts each row once, however often it is retried.
     setRequestedKeys(previous => new Set([...previous, ...items.map(item => item.draftId), ...manual.map(row => row.key)]))
@@ -278,11 +274,11 @@ export function ImportClient({ ownerId, locale, initialBatchId = null, initialSo
     const row = manualRows.find(item => item.key === key)
     if (!row) return
     const next = startNewOperation(ownerId, row)
-    setManualRows(previous => previous.map(item => item.key === key ? next : item))
+    setManualRows(previous => previous.map(item => item.key === key ? next : item.failure?.heldBy === row.operationId ? { ...item, failure: undefined } : item))
     refreshReceipts()
   }
 
-  const shownSaves = receipts.filter(save => !manualRows.some(row => row.operationId === save.operationId))
+  const shownSaves = receipts.filter(save => step !== 'review' || !manualRows.some(row => row.operationId === save.operationId))
   const saveLabel = (operationId: string) => { const values = receipts.find(save => save.operationId === operationId)?.values; return values ? rowLabel(locale, values) : S.unreadableSave[locale] }
   const forgetRecoveryFailure = (operationId: string) => setRecoveryFailures(previous => { const next = { ...previous }; delete next[operationId]; return next })
   const onRecoveryRetry = async (operationId: string) => {
@@ -290,10 +286,17 @@ export function ImportClient({ ownerId, locale, initialBatchId = null, initialSo
     const label = saveLabel(operationId)
     setRecoveryRetrying(operationId); setRecoveryNotice(null)
     try {
-      const result = await retryUnconfirmedSave(ownerId, operationId)
+      const result = await retryUnconfirmedSave(ownerId, operationId, undefined, receipts.find(save => save.operationId === operationId)?.retryKey ?? '')
       if (result.failure) setRecoveryFailures(previous => ({ ...previous, [operationId]: result.failure! }))
       else forgetRecoveryFailure(operationId)
-      if (result.saved) { acknowledgeWrites(result.acks); setRecoveryNotice(S.recoverySaved[locale].replace('{flight}', label)) }
+      if (result.saved) {
+        const matches = (row: ManualRowState) => row.operationId === operationId || row.failure?.heldBy === operationId
+        const reconciled = manualRows.find(matches)
+        const pinned = receipts.find(save => save.operationId === operationId)?.values
+        if (reconciled) setManualSaved(previous => [...previous, { ...reconciled, values: pinned ?? reconciled.values }])
+        setManualRows(previous => previous.filter(row => !matches(row)))
+        acknowledgeWrites(result.acks); setRecoveryNotice(S.recoverySaved[locale].replace('{flight}', label))
+      }
     } finally {
       setRecoveryRetrying(null)
       refreshReceipts()
@@ -303,6 +306,7 @@ export function ImportClient({ ownerId, locale, initialBatchId = null, initialSo
     if (confirming || recoveryRetrying !== null) return
     const label = saveLabel(operationId)
     settleUnconfirmedSave(ownerId, operationId)
+    setManualRows(previous => previous.map(row => row.operationId === operationId ? startNewOperation(ownerId, row) : row.failure?.heldBy === operationId ? { ...row, failure: undefined } : row))
     forgetRecoveryFailure(operationId)
     setRecoveryNotice(S.recoverySettled[locale].replace('{flight}', label))
     refreshReceipts()

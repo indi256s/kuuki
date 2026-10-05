@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { render, screen, waitFor, within } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { StrictMode } from 'react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
@@ -10,6 +10,7 @@ import type { Snapshot } from './import-types'
 const post = vi.fn()
 const refresh = vi.fn()
 const discardBatch = vi.fn(async () => ({ deleted: true }))
+vi.mock('../../../../web/src/lib/flights', async importOriginal => ({ ...(await importOriginal<typeof import('../../../../web/src/lib/flights')>()), checkDuplicateFlight: vi.fn(async () => null) }))
 vi.mock('next/navigation', () => ({ useRouter: () => ({ refresh }) }))
 vi.mock('../write-feedback', () => ({ useWriteFeedback: () => ({ acknowledge: vi.fn(), status: 'idle' }) }))
 vi.mock('../signature/stamp', () => ({ Stamp: () => null }))
@@ -21,6 +22,7 @@ vi.mock('./import-api', async importOriginal => ({
 }))
 
 import { clearFlightCreateOperations } from '../../../../web/src/lib/flightCreateOperations'
+import { FlightForm } from '../capture/flight-form'
 import { createFlights } from '../capture/flight-writes'
 import { toFlightInput } from './flight-input'
 import { ImportClient } from './import-client'
@@ -115,6 +117,8 @@ describe('R3-C1 an unresolved save in the earlier plain-UUID format is recoverab
     serverCommits()
     await user.click(within(entries()[0]).getByRole('button', { name: /retry original save/i }))
     await within(recovery()).findByText(/saved: jfk → bos/i)
+    expect(screen.queryByRole('button', { name: /import 1/i })).toBeNull()
+    expect(screen.queryByText('Flight added by hand')).toBeNull()
     expect(new Set(sentKeys()).size).toBe(1)
     expect(committed.size).toBe(1)
   })
@@ -259,5 +263,87 @@ describe('owner isolation', () => {
     expect(await screen.findByRole('heading', { name: /import finished/i })).toBeInTheDocument()
     expect(post).toHaveBeenCalledTimes(2)
     expect(Object.keys(localStorage).filter(key => key.startsWith(`${RECEIPT}u1:`))).toHaveLength(1) // u1's save is untouched
+  })
+})
+
+describe('R4 recovery continuation', () => {
+  it('an actual add-form lost save holds the identical Import row despite absent enrichment defaults', async () => {
+    const user = userEvent.setup()
+    const form = render(<FlightForm ownerId="u1" locale="en" />)
+    fireEvent.change(screen.getByRole('combobox', { name: 'From' }), { target: { value: 'JFK' } })
+    fireEvent.change(screen.getByRole('combobox', { name: 'To' }), { target: { value: 'BOS' } })
+    fireEvent.change(screen.getByLabelText('Date'), { target: { value: '03/01/2026' } })
+    post.mockImplementationOnce(async () => { throw new TypeError('Lost response') })
+    await user.click(screen.getByRole('button', { name: 'Save flight' }))
+    await screen.findByRole('button', { name: 'Retry original save' })
+    expect(post.mock.calls[0][1]).not.toHaveProperty('enrichment_status')
+    form.unmount()
+    render(<ImportClient ownerId="u1" locale="en" initialBatchId="b1" batchApi={api()} />)
+    await addManual(user)
+    await user.click(screen.getByRole('button', { name: /import 1/i }))
+    await screen.findByText(/same flight is still unconfirmed/i)
+    expect(post).toHaveBeenCalledTimes(1)
+  })
+
+  it.each(['null', '[]', '42', '"broken"', '{"date":"2026-03-01","origin":"JFK","destination":"BOS","airline_iata":{}}'])('malformed body %s stays visible and can be settled without a send', async payload => {
+    const user = userEvent.setup()
+    const id = crypto.randomUUID()
+    localStorage.setItem(`${RECEIPT}u1:${id}`, JSON.stringify({ key: crypto.randomUUID(), payload, createdAt: Date.now() }))
+    render(<ImportClient ownerId="u1" locale="en" />)
+    const entry = await waitFor(() => entries()[0])
+    expect(within(entry).getByRole('button', { name: /retry original save/i })).toHaveAttribute('aria-disabled', 'true')
+    await user.click(within(entry).getByRole('button', { name: /i checked the journal/i }))
+    expect(localStorage.getItem(`${RECEIPT}u1:${id}`)).toBeNull()
+    expect(post).not.toHaveBeenCalled()
+  })
+
+  it.each(['retry', 'check'])('a live lost save stays recoverable on expired Done and Source (%s)', async action => {
+    const user = userEvent.setup()
+    const batchApi = api()
+    render(<ImportClient ownerId="u1" locale="en" initialBatchId="b1" batchApi={batchApi} />)
+    await addManual(user)
+    vi.mocked(batchApi.readBatch).mockResolvedValue(snapshot([], { expired: true }))
+    commitThenLose()
+    await user.click(screen.getByRole('button', { name: /import 1/i }))
+    await screen.findByRole('heading', { name: /some flights were not saved/i })
+    expect(entries()).toHaveLength(1)
+    await user.click(screen.getByRole('button', { name: /^back to review$/i }))
+    await screen.findByRole('heading', { name: /expired/i })
+    expect(entries()).toHaveLength(1)
+    if (action === 'retry') {
+      serverCommits()
+      await user.click(within(entries()[0]).getByRole('button', { name: /retry original save/i }))
+      await within(recovery()).findByText(/saved: jfk → bos/i)
+      expect(new Set(sentKeys()).size).toBe(1)
+    } else {
+      await user.click(within(entries()[0]).getByRole('button', { name: /i checked the journal/i }))
+      expect(post).toHaveBeenCalledTimes(1)
+    }
+    expect(within(recovery()).queryAllByRole('listitem')).toHaveLength(0)
+  })
+})
+
+describe('original retry after cross-flow settlement', () => {
+  it.each(['retry', 'check'])('a stale add-form button sends nothing after Import %s', async action => {
+    const user = userEvent.setup()
+    const id = crypto.randomUUID()
+    const key = crypto.randomUUID()
+    // Freshly loaded owner: this intact receipt has never populated this module's fallback map.
+    localStorage.setItem(`${RECEIPT}u1:${id}`, JSON.stringify({ key, payload: JSON.stringify(flight()), createdAt: Date.now() }))
+    sessionStorage.setItem('kuuki-flight-operation-next-manual:u1', id)
+    const form = render(<FlightForm ownerId="u1" locale="en" />)
+    const staleRetry = within(form.container).getByRole('button', { name: 'Retry original save' })
+    render(<ImportClient ownerId="u1" locale="en" />)
+    await waitFor(() => expect(entries()).toHaveLength(1))
+    if (action === 'retry') {
+      serverCommits()
+      await user.click(within(entries()[0]).getByRole('button', { name: /retry original save/i }))
+      await within(recovery()).findByText(/saved: jfk → bos/i)
+    } else await user.click(within(entries()[0]).getByRole('button', { name: /i checked the journal/i }))
+    const count = post.mock.calls.length
+    await user.click(staleRetry)
+    expect(await within(form.container).findByText(/settled elsewhere/i)).toBeInTheDocument()
+    expect(post).toHaveBeenCalledTimes(count)
+    expect(localStorage.getItem(`${RECEIPT}u1:${id}`)).toBeNull()
   })
 })

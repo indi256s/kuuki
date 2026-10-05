@@ -39,9 +39,9 @@ export async function sendWithZone<T>(send: (zone: boolean) => Promise<T>): Prom
 /** The exact payload a create stores in its receipt, so two flights can be compared as the server would see them. */
 export const flightCreatePayload = (flight: object): object => validateFlightInput(omit(flight, 'is_upcoming'), 'create')
 
-export async function createFlight(flight: Omit<FlightInsert, 'id' | 'created_at'>, operationId: string): Promise<Flight & DerivedAck> {
+export async function createFlight(flight: Omit<FlightInsert, 'id' | 'created_at'>, operationId: string, retryKey?: string): Promise<Flight & DerivedAck> {
   const { user_id } = flight
-  const operation = getFlightCreateOperation(user_id, operationId, validateFlightInput(omit(flight, 'user_id', 'is_upcoming'), 'create'))
+  const operation = getFlightCreateOperation(user_id, operationId, validateFlightInput(omit(flight, 'user_id', 'is_upcoming'), 'create'), retryKey)
   const dto = await sendWithZone(zone => api.post<Omit<Flight, 'user_id'> & DerivedAck>(
     '/api/flights', withZone(operation.body, zone), { headers: { 'Idempotency-Key': operation.key } }))
   completeFlightCreateOperation(user_id, operationId, operation.key)
@@ -53,14 +53,14 @@ interface BulkCreateResult { status: 'created' | 'replayed' | 'error'; http_stat
 /** Same chunking, keys and per-entry outcomes as apps/web `createFlights`, with one timezone per request. */
 export async function createFlights(
   userId: string,
-  entries: Array<{ operationId: string; flight: Omit<FlightInsert, 'id' | 'created_at' | 'user_id'> }>,
+  entries: Array<{ operationId: string; retryKey?: string; flight: Omit<FlightInsert, 'id' | 'created_at' | 'user_id'> }>,
   onChunk?: (ack: DerivedAck, saved: number) => void,
 ): Promise<Array<Error | null>> {
   const outcomes: Array<Error | null> = entries.map(() => null)
   const ready: Array<{ index: number; operationId: string; key: string; body: object }> = []
-  entries.forEach(({ operationId, flight }, index) => {
+  entries.forEach(({ operationId, flight, retryKey }, index) => {
     try {
-      ready.push({ index, operationId, ...getFlightCreateOperation(userId, operationId, flightCreatePayload(flight)) })
+      ready.push({ index, operationId, ...getFlightCreateOperation(userId, operationId, flightCreatePayload(flight), retryKey) })
     } catch (error) {
       outcomes[index] = error instanceof Error ? error : new Error(String(error))
     }

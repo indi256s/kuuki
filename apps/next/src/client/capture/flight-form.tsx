@@ -110,7 +110,7 @@ export function FlightForm({ ownerId, locale, editId, initialEditing = true, foc
       const distance = from && to ? calculateFlightDistance(from.latitude, from.longitude, to.latitude, to.longitude) : null
       const duration = values.departure && values.arrival ? calculateFlightDuration(values.departure, values.arrival, values.date, from?.timezone, to?.timezone) : distance == null ? null : estimateFlightDuration(distance, plane?.type)
       const body = original ?? { date: values.date, origin: values.origin, destination: values.destination, airline_iata: values.airline || null, aircraft_icao: values.aircraft || null, flight_number: values.number || null, departure_time: values.departure || null, arrival_time: values.arrival || null, distance_km: distance, duration_minutes: duration, origin_tz: from?.timezone || null, dest_tz: to?.timezone || null }
-      const ack = flight ? await updateFlight(flight.id, body) : await createFlight({ ...body, source: 'manual', user_id: ownerId } as Parameters<typeof createFlight>[0], operationId)
+      const ack = flight ? await updateFlight(flight.id, body) : await createFlight({ ...body, source: 'manual', user_id: ownerId } as Parameters<typeof createFlight>[0], operationId, original ? receipt ? receipt.key : '' : undefined)
       if (!current(generation, controller)) return
       if (!flight) setOperationId(rotateFlightOperationId(`next-manual:${ownerId}`))
       const nextRecents = [...new Set([values.origin, values.destination, ...recents.airports])].filter(Boolean).slice(0, 8)

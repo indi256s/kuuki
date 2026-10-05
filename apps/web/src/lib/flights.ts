@@ -148,12 +148,12 @@ export async function getFlight(flightId: number, options?: CallOptions): Promis
 /**
  * Create a new flight
  */
-export async function createFlight(flight: Omit<FlightInsert, 'id' | 'created_at'>, operationId: string): Promise<Flight & DerivedAck> {
+export async function createFlight(flight: Omit<FlightInsert, 'id' | 'created_at'>, operationId: string, retryKey?: string): Promise<Flight & DerivedAck> {
   // The API derives the owner from the session and recomputes is_upcoming / enrichment defaults
   // server-side, so user_id (and any client is_upcoming) are dropped from the request body.
   const { user_id, is_upcoming, ...body } = flight
   const input = validateFlightInput(body, 'create')
-  const operation = getFlightCreateOperation(user_id, operationId, input)
+  const operation = getFlightCreateOperation(user_id, operationId, input, retryKey)
   const dto = await api.post<ApiFlight>('/api/flights', operation.body, { headers: { 'Idempotency-Key': operation.key } })
   completeFlightCreateOperation(user_id, operationId, operation.key)
   return toFlight(dto, user_id)
@@ -173,15 +173,15 @@ interface BulkCreateResult {
  */
 export async function createFlights(
   userId: string,
-  entries: Array<{ operationId: string; flight: Omit<FlightInsert, 'id' | 'created_at' | 'user_id'> }>,
+  entries: Array<{ operationId: string; retryKey?: string; flight: Omit<FlightInsert, 'id' | 'created_at' | 'user_id'> }>,
   onChunk?: (ack: DerivedAck, saved: number) => void,
 ): Promise<Array<Error | null>> {
   const outcomes: Array<Error | null> = entries.map(() => null)
   const ready: Array<{ index: number; operationId: string; key: string; body: object }> = []
-  entries.forEach(({ operationId, flight }, index) => {
+  entries.forEach(({ operationId, flight, retryKey }, index) => {
     try {
       const { is_upcoming: _upcoming, ...body } = flight
-      ready.push({ index, operationId, ...getFlightCreateOperation(userId, operationId, validateFlightInput(body, 'create')) })
+      ready.push({ index, operationId, ...getFlightCreateOperation(userId, operationId, validateFlightInput(body, 'create'), retryKey) })
     } catch (error) {
       outcomes[index] = error instanceof Error ? error : new Error(String(error))
     }

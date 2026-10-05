@@ -22,6 +22,13 @@ export class UnconfirmedFlightOperationError extends Error {
   }
 }
 
+export class SettledFlightOperationError extends Error {
+  constructor() {
+    super('The original save was settled or replaced elsewhere. Check your journal before starting a new save.')
+    this.name = 'SettledFlightOperationError'
+  }
+}
+
 const fallback = new Map<string, PendingOperation>()
 
 function read(id: string): PendingOperation | undefined {
@@ -56,11 +63,12 @@ function scope(userId: string, operationId: string): string {
   return `${userId}:${operationId}`
 }
 
-/** Keep the exact payload and key together so an uncertain response can be retried safely. */
-export function getFlightCreateOperation(userId: string, operationId: string, payload: object): { key: string; body: object } {
+/** Keep the exact payload and key together. An explicit retry must supply its captured key, never mint a new one. */
+export function getFlightCreateOperation(userId: string, operationId: string, payload: object, retryKey?: string): { key: string; body: object } {
   const serialized = JSON.stringify(payload)
   const id = scope(userId, operationId)
   const existing = read(id)
+  if (retryKey !== undefined && (!existing || existing.key !== retryKey)) throw new SettledFlightOperationError()
   if (existing && expired(existing)) throw new ExpiredFlightOperationError()
   if (existing?.payload === serialized) return { key: existing.key, body: JSON.parse(existing.payload) as object }
   if (existing) throw new UnconfirmedFlightOperationError()
@@ -72,7 +80,10 @@ export function getFlightCreateOperation(userId: string, operationId: string, pa
 export function pendingFlightCreateOperation(userId: string, operationId: string): { key: string; body: object; expired: boolean } | null {
   try {
     const pending = read(scope(userId, operationId))
-    return pending ? { key: pending.key, body: JSON.parse(pending.payload) as object, expired: expired(pending) } : null
+    if (!pending) return null
+    const body: unknown = JSON.parse(pending.payload)
+    if (!body || typeof body !== 'object' || Array.isArray(body)) throw new Error('Invalid receipt payload')
+    return { key: pending.key, body, expired: expired(pending) }
   } catch {
     return { key: '', body: {}, expired: true }
   }

@@ -1,6 +1,7 @@
 import { findAirport } from '@kuuki/data/airport-lookup'
 import { findAircraft } from '@kuuki/data/aircraft-lookup'
 import { ApiError } from '../../../../web/src/lib/apiClient'
+import { SettledFlightOperationError } from '../../../../web/src/lib/flightCreateOperations'
 import type { Locale } from '../../lib/format'
 
 export type FlightValues = { date: string; origin: string; destination: string; airline: string; aircraft: string; number: string; departure: string; arrival: string }
@@ -36,6 +37,7 @@ export function validateFlightValues(values: FlightValues, locale: Locale): Part
 
 /** Localized, calm copy for a failed load, save or delete. Never shows raw error text, class names or English developer messages. */
 export function flightErrorMessage(cause: unknown, locale: Locale, action: 'load' | 'save' | 'delete'): string {
+  if (cause instanceof SettledFlightOperationError) return say(locale, 'The original save was settled elsewhere. Check the journal before starting a new save.', 'Исходное сохранение уже завершено в другом окне. Проверьте журнал, прежде чем начать новое сохранение.')
   if (cause instanceof ApiError) {
     switch (cause.code) {
       case 'UNKNOWN_AIRPORT': return say(locale, 'Choose an airport from the list.', 'Выберите аэропорт из списка.')

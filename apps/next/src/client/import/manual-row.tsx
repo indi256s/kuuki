@@ -25,7 +25,7 @@ export function ManualRow({ locale, row, showErrors, onChange, onRemove, onRetry
 }) {
   const id = useId()
   const errors = showErrors ? validateValues(row.values) : {}
-  const unresolved = row.failure?.kind === 'uncertain' || row.failure?.kind === 'unconfirmed' || row.failure?.kind === 'expired'
+  const unresolved = row.failure?.kind === 'uncertain' || row.failure?.kind === 'unconfirmed' || row.failure?.kind === 'expired' || row.failure?.kind === 'settled'
   // The anchor lets a held-back identical row lead here while this row's own save is unresolved.
   return <li id={saveAnchor(row.operationId)} tabIndex={unresolved ? -1 : undefined} className="import-row import-manual" data-failed={row.failure ? 'true' : undefined}>
     <div className="import-manual-head">
@@ -35,7 +35,7 @@ export function ManualRow({ locale, row, showErrors, onChange, onRemove, onRetry
     {row.failure ? <div className="import-note" role="alert">
       <p>{MANUAL_FAILURE[row.failure.kind][locale]}</p>
       {unresolved ? <div className="import-actions">
-        {row.failure.kind !== 'expired' ? <Button dense disabled={disabled} disabledReason={retryBlocked} onClick={onRetryOriginal}>{S.retryOriginal[locale]}</Button> : null}
+        {row.failure.kind !== 'expired' && row.failure.kind !== 'settled' ? <Button dense disabled={disabled} disabledReason={retryBlocked} onClick={onRetryOriginal}>{S.retryOriginal[locale]}</Button> : null}
         <Button dense variant="ghost" disabled={disabled} onClick={onNewOperation}>{S.checkedJournal[locale]}</Button>
       </div> : null}
       {row.failure.kind === 'duplicate' && onShowHeld ? <div className="import-actions"><Button dense onClick={onShowHeld}>{S.showHeldSave[locale]}</Button></div> : null}

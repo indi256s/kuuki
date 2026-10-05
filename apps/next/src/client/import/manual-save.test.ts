@@ -170,11 +170,11 @@ describe('manual flights and the shared create receipt', () => {
       expect(unconfirmedSaves('u1')).toEqual([])
     })
 
-    it('a plain-UUID receipt from the earlier manual rows is listed and held against like any other', async () => {
+    it('a plain-UUID receipt holds the same flight despite derived and optional detail drift', async () => {
       post.mockImplementationOnce(async (_path: string, body: { items: Array<{ key: string }> }) => { committed.add(body.items[0].key); throw new TypeError('Failed to fetch') })
       const old = crypto.randomUUID()
       // Written as before (plain UUID), with its fields in another order and the empty optional ones left out.
-      const flight = Object.fromEntries(Object.entries(toFlightInput(values())).reverse().filter(([, value]) => value !== null))
+      const flight = Object.fromEntries(Object.entries({ ...toFlightInput(values({ airline_iata: 'AA', flight_number: '100' })), distance_km: 5, duration_minutes: 999, origin_tz: null, enrichment_status: undefined }).reverse().filter(([, value]) => value != null))
       await createFlights('u1', [{ operationId: old, flight: flight as never }])
       expect(unconfirmedSaves('u1').map(save => save.operationId)).toEqual([old])
       const again = newManualRow(values(), 'b2')
@@ -225,4 +225,34 @@ describe('manual flights and the shared create receipt', () => {
     expect(classifyManualFailure(new TypeError('x'), true).kind).toBe('uncertain')
     expect(classifyManualFailure(new Error('damaged receipt'), true).kind).toBe('expired')
   })
+})
+
+it('an alias cannot become a fresh save when another flow settles its hold', async () => {
+  post.mockRejectedValueOnce(new TypeError('Lost response'))
+  const first = newManualRow(values())
+  await saveManualRows('u1', [first])
+  const again = newManualRow(values())
+  const held = (await saveManualRows('u1', [again])).rows.get(again.key)!
+  settleUnconfirmedSave('u1', first.operationId)
+  expect((await saveManualRows('u1', [held])).failures.get(again.key)?.kind).toBe('settled')
+  expect(post).toHaveBeenCalledTimes(1)
+  const checked = startNewOperation('u1', held)
+  post.mockResolvedValueOnce(answer({ status: 'created' }))
+  expect((await saveManualRows('u1', [checked])).saved).toHaveLength(1)
+})
+
+
+it.each(['removed', 'replaced'])('an inline original retry keeps its captured key when its receipt is %s', async change => {
+  post.mockRejectedValueOnce(new TypeError('Lost response'))
+  const row = newManualRow(values())
+  const lost = (await saveManualRows('u1', [row])).rows.get(row.key)!
+  if (change === 'removed') settleUnconfirmedSave('u1', row.operationId)
+  else {
+    const storageKey = `kuuki-flight-create-operation:u1:${row.operationId}`
+    const receipt = JSON.parse(localStorage.getItem(storageKey)!)
+    localStorage.setItem(storageKey, JSON.stringify({ ...receipt, key: crypto.randomUUID() }))
+  }
+  const retry = await saveManualRows('u1', [lost], new Set([row.key]))
+  expect(retry.failures.get(row.key)?.kind).toBe('settled')
+  expect(post).toHaveBeenCalledTimes(1)
 })
