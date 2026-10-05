@@ -92,7 +92,7 @@ Gates before `0006` reaches production (ADR section 10 and the A1 release gate):
    to production.
 
 Before enabling the import DO binding, the deployer must run the explicit configured-model streaming gate in an authorized
-isolated environment: `GEMINI_API_KEY=<real credential> GEMINI_IMPORT_MODEL=<configured model> pnpm verify:import:provider`.
+isolated environment: `GEMINI_API_KEY=<real credential> GEMINI_IMPORT_MODEL=<configured model> pnpm verify:import:provider --real-provider`.
 It exercises synthetic text, PDF and blank PNG, uses the installed SDK and bounded scanner, and prints metadata only.
 Record the configured model and outcome, then prove hosted disconnect/keep-alive with the `2026-10-01` compatibility date
 and `enable_request_signal` / `request_signal_passthrough` on both workers, plus the environment's D1/DO binding (ADR §9 "T11 wiring handoff"). T11 did not run this gate or change production wiring.

@@ -28,7 +28,7 @@
     "test:next:navigation": "pnpm --filter @kuuki/next exec playwright test --config tests/playwright.config.ts",
     "typecheck:import": "tsc --noEmit -p workers/import/tsconfig.json",
     "build:import": "wrangler deploy --dry-run --config workers/import/wrangler.local.toml --outdir .wrangler/import-build",
-    "verify:import:provider": "tsx scripts/verify-import-provider.ts --real-provider"
+    "verify:import:provider": "tsx scripts/verify-import-provider.ts"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^5.20261003.1",

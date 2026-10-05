@@ -3,6 +3,7 @@ import { GoogleGenAI } from '@google/genai'
 import { extractionContents, FLIGHT_RESPONSE_SCHEMA, normalizeFlights } from '../functions/api/import/_extract'
 import type { ExtractedFlight, ParseRequest } from '../functions/api/import/_shared'
 import { DEFAULT_MODEL, PROVIDER_TIMEOUT_MS, providerFailure } from '../functions/api/import/_provider'
+import { HttpError } from '../functions/api/_lib/http'
 import { FlightScanner } from '../workers/import/scanner'
 
 function syntheticPdf(): string {
@@ -24,9 +25,8 @@ function syntheticPdf(): string {
 }
 
 async function main() {
-  if (!process.argv.includes('--real-provider') || !process.env.GEMINI_API_KEY) {
-    throw new Error('Explicit --real-provider and GEMINI_API_KEY are required')
-  }
+  if (!process.argv.includes('--real-provider')) throw new HttpError(400, 'Explicit --real-provider is required', 'PROVIDER_OPT_IN_REQUIRED')
+  if (!process.env.GEMINI_API_KEY?.trim()) throw new HttpError(400, 'GEMINI_API_KEY is required', 'PROVIDER_CREDENTIALS_REQUIRED')
   const model = process.env.GEMINI_IMPORT_MODEL?.trim() || DEFAULT_MODEL
   const provider = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY })
   const sources: ParseRequest[] = [
@@ -46,12 +46,13 @@ async function main() {
       const scanner = new FlightScanner(); let completeRows = 0
       for await (const chunk of stream) for (const _row of scanner.push(chunk.text ?? '')) completeRows++
       const flights = normalizeFlights({ flights: scanner.finish() as ExtractedFlight[] }).flights
-      if (source.type !== 'image' && (!flights.length || !completeRows)) throw new Error('Synthetic flight was not extracted')
+      if (source.type !== 'image' && (!flights.length || !completeRows)) throw new HttpError(502, 'Synthetic flight was not extracted', 'SYNTHETIC_FLIGHT_NOT_EXTRACTED')
       console.log(JSON.stringify({ event: 'import_streaming_capability', model, source_type: source.type, valid_rows: flights.length }))
     } finally { clearTimeout(deadline); controller.abort() }
   }
 }
 main().catch(error => {
-  console.error(JSON.stringify({ event: 'import_streaming_capability_failed', code: providerFailure(error).code }))
+  const failure = error instanceof HttpError ? error : providerFailure(error)
+  console.error(JSON.stringify({ event: 'import_streaming_capability_failed', code: failure.code, reason: failure.message }))
   process.exitCode = 1
 })
