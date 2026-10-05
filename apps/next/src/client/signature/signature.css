@@ -30,7 +30,7 @@
 }
 
 /* ---------- Stamp ---------- */
-.stamp{--stamp-ink:var(--stamp-ink-light,var(--text-muted));display:grid;gap:var(--space-2);justify-items:center;margin:0;min-width:120px;width:100%;color:var(--text)}
+.stamp{--stamp-ink:var(--stamp-ink-light,var(--text-muted));display:grid;gap:var(--space-2);justify-items:center;margin:0;min-width:0;width:100%;color:var(--text)}
 .stamp-face{position:relative;width:100%;container-type:inline-size}
 .stamp[data-shape=round] .stamp-face{aspect-ratio:1}
 .stamp[data-shape=rect] .stamp-face{aspect-ratio:4/3}

@@ -73,7 +73,9 @@ export function RouteMapPanel({ ownerId, locale, period = 'all', countryVisits =
       if (country) counts.set(country, (counts.get(country) ?? 0) + route.count)
     }
     const claims = new Set(visits.filter(visit => visit.claimed).map(visit => visit.countryCode))
-    return [...counts].map(([countryCode, count]) => ({ countryCode, count, claimed: claims.has(countryCode) }))
+    // Same C3 rule as all time: an awaiting-only country is listed but never filled as a visit.
+    const pending = new Set(visits.filter(visit => visit.pending).map(visit => visit.countryCode))
+    return [...counts].map(([countryCode, count]) => ({ countryCode, count, claimed: claims.has(countryCode), pending: pending.has(countryCode) }))
   }, [displayedProjection, visits])
   const yearView = period !== 'all' && !!currentProjection
   const preview = <CountryPreview countryIds={(yearView ? mapVisits : visits).filter(visit => !visit.pending).map(visit => visit.countryCode)} locale={locale}
@@ -114,7 +116,7 @@ export function RouteMapPanel({ ownerId, locale, period = 'all', countryVisits =
     </>}
     <ol className="route-map-country-list" aria-label={ru ? 'Посещённые страны' : 'Visited countries'}>
       {visits.map(visit => <li key={visit.countryCode}><button type="button" onClick={() => onSelectCountry?.(visit.countryCode)} disabled={!onSelectCountry}>
-        {countryNames.of(visit.countryCode.toUpperCase()) ?? visit.countryCode.toUpperCase()} · {visit.count}{visit.claimed ? ru ? ' · отмечено вами' : ' · claimed' : ''}{describeCountry?.(visit)}
+        {countryNames.of(visit.countryCode.toUpperCase()) ?? visit.countryCode.toUpperCase()}{visit.count > 0 ? ` · ${visit.count}` : ''}{visit.claimed ? ru ? ' · без перелётов' : ' · no flights' : ''}{describeCountry?.(visit)}
       </button></li>)}
     </ol>
   </section>

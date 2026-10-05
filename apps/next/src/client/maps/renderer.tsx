@@ -226,7 +226,7 @@ export function FullRouteMap({ routes, visits, locale, viewportKey, selected, on
     {layer === 'countries' ? <div className="route-map-legend" role="group" aria-label={ru ? 'Визиты' : 'Visits'}>
       <span className="route-map-legend-title">{ru ? 'Визиты' : 'Visits'}</span>
       <ol>{BUCKET_LABELS[locale].map((label, index) => <li key={label}><span className="route-map-swatch" style={{ background: `var(${BUCKET_TOKENS[index + 1]})` }} aria-hidden="true" />{label}</li>)}</ol>
-      <span>{ru ? 'пунктир — отмечено без перелётов' : 'dashed — claimed without flights'}</span>
+      <span>{ru ? 'пунктир — без перелётов' : 'dashed — no flights'}</span>
     </div> : layer === 'frequency' ? <div className="route-map-legend" role="group" aria-label={ru ? 'Перелётов по маршруту' : 'Flights per route'}>
       <span className="route-map-legend-title">{ru ? 'Перелётов по маршруту' : 'Flights per route'}</span>
       <ol>{BUCKET_LABELS[locale].map((label, index) => <li key={label}><span className="route-map-line" style={{ height: FREQUENCY_WIDTHS[index] }} aria-hidden="true" />{label}</li>)}</ol>
