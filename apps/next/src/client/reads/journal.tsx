@@ -190,7 +190,7 @@ function JournalInner({ ownerId, locale, initial, query, page, filtered }: Props
               <span className="flight-row-number" aria-hidden="true">{flight.flight_number ?? flight.airline_iata ?? '—'}</span>
               {flight.aircraft_icao
                 ? <span className="journal-aircraft-cell" aria-hidden="true">{flight.aircraft_icao}</span>
-                : <span className="journal-aircraft-cell" data-action="add-aircraft"><Button dense disabled={!online} aria-describedby={!online ? offlineId : undefined} onClick={() => open(flight.id, true, 'aircraft')}>{t.addAircraft}</Button></span>}
+                : <span className="journal-aircraft-cell" data-action="add-aircraft"><Button dense aria-label={`${t.addAircraft}, ${route(flight)}, ${formatDateOnly(locale, flight.date, 'long')}`} disabled={!online} aria-describedby={!online ? offlineId : undefined} onClick={() => open(flight.id, true, 'aircraft')}>{t.addAircraft}</Button></span>}
               <span className="flight-row-duration" aria-hidden="true">{flight.duration_minutes ? formatDuration(locale, flight.duration_minutes) : '—'}</span>
               <span className="flight-row-distance mono" aria-hidden="true">{flight.distance_km ? formatDistanceKm(locale, flight.distance_km) : '—'}</span>
             </div>

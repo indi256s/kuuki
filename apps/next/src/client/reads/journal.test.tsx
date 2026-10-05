@@ -464,7 +464,7 @@ describe('detail sheet', () => {
   it('opens "Add aircraft" in the editor with the aircraft field requested', async () => {
     const user = userEvent.setup()
     render(<Harness flights={[flight({ id: 7, date: '2025-04-03', lifecycle_state: 'logged', aircraft_icao: null })]} />)
-    await user.click(screen.getByRole('button', { name: 'Add aircraft' }))
+    await user.click(screen.getByRole('button', { name: /^Add aircraft/ }))
     expect(await screen.findByTestId('detail')).toHaveTextContent('editing:true field:aircraft')
     expect(nav.push).toHaveBeenCalledWith('/journal?flight=7', { scroll: false })
   })
@@ -481,11 +481,17 @@ describe('list', () => {
     expect(screen.getByRole('checkbox', { name: 'Select: TBS to IST, April 3, 2025' })).toBeInTheDocument()
   })
 
+  it.each([['en', 'Add aircraft, TBS to IST, April 3, 2025', 'Add aircraft, TBS to IST, April 2, 2025'], ['ru', 'Добавить самолёт, из TBS в IST, 3 апреля 2025 г.', 'Добавить самолёт, из TBS в IST, 2 апреля 2025 г.']] as const)('names each Add aircraft action after its flight (%s)', (locale, first, second) => {
+    render(<Harness locale={locale} flights={[flight({ id: 7, date: '2025-04-03', lifecycle_state: 'logged', aircraft_icao: null }), flight({ id: 8, date: '2025-04-02', lifecycle_state: 'logged', aircraft_icao: null })]} />)
+    const names = screen.getAllByRole('button', { name: /^(Add aircraft|Добавить самолёт)/ }).map(button => button.getAttribute('aria-label')!.replaceAll('\u00a0', ' '))
+    expect(names).toEqual([first, second])
+  })
+
   it('puts "Add aircraft" in the row\'s aircraft cell, not after the row and not inside the row button', () => {
     render(<Harness flights={[flight({ id: 7, date: '2025-04-03', lifecycle_state: 'logged', aircraft_icao: null }), flight({ id: 8, date: '2025-04-02', lifecycle_state: 'logged' })]} />)
     const missing = document.querySelector('[data-flight-row="7"]')!.closest('.flight-row')!
     const cell = missing.querySelector('.journal-aircraft-cell')!
-    expect(cell).toContainElement(screen.getByRole('button', { name: 'Add aircraft' }))
+    expect(cell).toContainElement(screen.getByRole('button', { name: /^Add aircraft/ }))
     expect(missing).toContainElement(cell as HTMLElement)
     expect(missing.querySelector('.flight-row-route')).toBeTruthy() // same row element as the other cells
     expect(document.querySelector('[data-flight-row="7"]')!.querySelector('button, a, input, select')).toBeNull()
@@ -559,6 +565,6 @@ describe('list', () => {
     render(<Harness flights={[flight({ id: 7, date: '2025-04-03', lifecycle_state: 'logged', aircraft_icao: null }), flight({ id: 8, date: '2025-04-02', lifecycle_state: 'logged', aircraft_icao: null })]} />)
     const notes = screen.getAllByText('Offline. Connect to change flights.')
     expect(notes).toHaveLength(1)
-    for (const button of screen.getAllByRole('button', { name: 'Add aircraft' })) { expect(button).toHaveAttribute('aria-disabled', 'true'); expect(button).toHaveAttribute('aria-describedby', notes[0].id) }
+    for (const button of screen.getAllByRole('button', { name: /^Add aircraft/ })) { expect(button).toHaveAttribute('aria-disabled', 'true'); expect(button).toHaveAttribute('aria-describedby', notes[0].id) }
   })
 })
