@@ -1,0 +1,86 @@
+import { describe, expect, it } from 'vitest'
+import {
+  normalizeImportQuery, normalizeOnboardingQuery, normalizeOverviewQuery, normalizePassportQuery, resolveOnboardingStep, withQuery,
+} from './url-state'
+
+const now = new Date('2026-10-05T00:00:00Z')
+const qs = (value: string) => new URLSearchParams(value)
+
+describe('overview', () => {
+  it('keeps a valid year and drops everything out of range or malformed', () => {
+    expect(normalizeOverviewQuery(qs('year=2024'), now)).toMatchObject({ query: 'year=2024', canonical: true, state: { year: '2024' } })
+    for (const bad of ['1899', '2028', '24', 'abcd', '2024x', '']) expect(normalizeOverviewQuery(qs(`year=${bad}`), now)).toMatchObject({ query: '', canonical: false, state: { year: null } })
+    expect(normalizeOverviewQuery(qs('year=2027'), now).state.year).toBe('2027')
+  })
+  it('rewrites the legacy period key and omits the default', () => {
+    expect(normalizeOverviewQuery(qs('period=2023'), now)).toMatchObject({ query: 'year=2023', canonical: false })
+    expect(normalizeOverviewQuery({}, now)).toMatchObject({ query: '', canonical: true })
+  })
+  it('keeps unrelated keys and accepts record input with arrays', () => {
+    expect(normalizeOverviewQuery({ year: ['2022', '2023'], utm: 'x' }, now)).toMatchObject({ query: 'year=2022&utm=x', canonical: false })
+  })
+})
+
+describe('passport', () => {
+  it('omits defaults and uppercases the country', () => {
+    expect(normalizePassportQuery(qs('view=stamps&sort=recent&layer=countries&country=jp'), now).query).toBe('country=JP')
+    expect(normalizePassportQuery(qs('view=map&layer=routes&sort=visits&country=jp&year=2024'), now).query).toBe('view=map&sort=visits&country=JP&layer=routes&year=2024')
+  })
+  it('drops invalid values without loops', () => {
+    const result = normalizePassportQuery(qs('view=bogus&sort=x&layer=y&country=JPN&year=1'), now)
+    expect(result).toMatchObject({ query: '', canonical: false, state: { view: 'stamps', sort: 'recent', layer: 'countries', country: null, year: null } })
+  })
+})
+
+describe('import', () => {
+  const id = '3f2b8c1e-5a4d-4e0b-9d7a-1c2b3a4d5e6f'
+  it('validates source and batch uuid', () => {
+    expect(normalizeImportQuery(qs(`source=text&batch=${id.toUpperCase()}`))).toMatchObject({ query: `source=text&batch=${id}`, canonical: false })
+    expect(normalizeImportQuery(qs('source=paste&batch=nope')).query).toBe('')
+  })
+  it('does not touch the draft handoff key', () => {
+    expect(normalizeImportQuery(qs('draft=abc'))).toMatchObject({ query: 'draft=abc', canonical: true })
+  })
+})
+
+describe('onboarding', () => {
+  const none = { hasUsername: false, hasFlight: false }
+  const named = { hasUsername: true, hasFlight: false }
+  const done = { hasUsername: true, hasFlight: true }
+  it('never shows an unearned step', () => {
+    expect(resolveOnboardingStep('reveal', none)).toBe('name')
+    expect(resolveOnboardingStep('capture', none)).toBe('name')
+    expect(resolveOnboardingStep('reveal', named)).toBe('capture')
+    expect(resolveOnboardingStep('reveal', done)).toBe('reveal')
+    expect(resolveOnboardingStep('name', done)).toBe('name')
+  })
+  it('defaults an invalid or missing step to the earned one', () => {
+    expect(resolveOnboardingStep('bogus', none)).toBe('name')
+    expect(resolveOnboardingStep(undefined, named)).toBe('capture')
+    expect(resolveOnboardingStep(undefined, done)).toBe('reveal')
+    expect(normalizeOnboardingQuery(qs('step=reveal'), named)).toMatchObject({ query: 'step=capture', canonical: false })
+  })
+})
+
+describe('fixed point', () => {
+  const inputs = ['', 'year=2024&view=map', 'view=bogus&country=jp&x=1&x=2', 'period=2020&year=zzzz', 'source=file&batch=bad&draft=1', 'step=reveal&a=b']
+  it('re-normalizing the canonical output changes nothing', () => {
+    for (const input of inputs) {
+      for (const run of [
+        (s: string) => normalizeOverviewQuery(qs(s), now),
+        (s: string) => normalizePassportQuery(qs(s), now),
+        (s: string) => normalizeImportQuery(qs(s)),
+        (s: string) => normalizeOnboardingQuery(qs(s), { hasUsername: true, hasFlight: false }),
+      ]) {
+        const once = run(input)
+        const twice = run(once.query)
+        expect(twice.query).toBe(once.query)
+        expect(twice.canonical).toBe(true)
+      }
+    }
+  })
+  it('withQuery omits an empty query', () => {
+    expect(withQuery('/passport', '')).toBe('/passport')
+    expect(withQuery('/passport', 'view=map')).toBe('/passport?view=map')
+  })
+})

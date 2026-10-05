@@ -36,7 +36,7 @@ test('the period stays with the map while ordinary read navigation stays lightwe
   await expect(page.getByTestId('overview-data').locator('.hero-stat strong')).toHaveText('1')
   expect(heavy).toHaveLength(0)
   const mapLink = page.getByRole('link', { name: /Open Passport map/ })
-  await expect(mapLink).toHaveAttribute('href', /period=2026/)
+  await expect(mapLink).toHaveAttribute('href', /year=2026/)
   await page.goto('/passport')
   await expect(page.getByTestId('passport-data')).toBeVisible()
   expect(heavy).toHaveLength(0)

@@ -1,4 +1,5 @@
 import { test, expect, type Page } from '@playwright/test'
+import { claimUsername } from './helpers'
 
 async function freshAccount(page: Page, origin: string) {
   const email = `capture-${crypto.randomUUID()}@example.test`
@@ -6,6 +7,7 @@ async function freshAccount(page: Page, origin: string) {
     headers: { Origin: origin }, data: { email, password: 'capture-password-2026' },
   })
   expect(response.status()).toBe(201)
+  await claimUsername(page, origin)
 }
 
 async function fillFlight(page: Page) {

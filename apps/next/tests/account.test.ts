@@ -1,11 +1,12 @@
 import { test, expect } from '@playwright/test'
-import { signIn } from './helpers'
+import { claimUsername, signIn } from './helpers'
 import { readFile } from 'node:fs/promises'
 
 test('settings saves owned profile and privacy on a fresh account', async ({ page, baseURL }) => {
   const email = `settings-${crypto.randomUUID()}@example.test`
   const signup = await page.request.post('/api/auth/sign-up/email', { headers: { Origin: baseURL! }, data: { email, password: 'temporary-password-2026', displayName: 'Settings test' } })
   expect(signup.status()).toBe(201)
+  await claimUsername(page, baseURL!)
   await page.goto('/settings')
   await expect(page.getByRole('heading', { name: 'Settings' })).toBeVisible()
   await page.getByLabel('Display name').fill('Account test name')
@@ -34,6 +35,7 @@ test('ground visit export preserves year, entry and note while neutralizing spre
   const email = `ground-export-${crypto.randomUUID()}@example.test`
   const signup = await page.request.post('/api/auth/sign-up/email', { headers: { Origin: baseURL! }, data: { email, password: 'temporary-password-2026' } })
   expect(signup.status()).toBe(201)
+  await claimUsername(page, baseURL!)
   await page.goto('/settings')
   const csrf = await page.evaluate(() => decodeURIComponent(document.cookie.split('; ').find(cookie => cookie.startsWith('kuuki_csrf='))?.split('=')[1] ?? ''))
   const note = '=HYPERLINK("https://example.test","trip")'
@@ -82,6 +84,7 @@ test('fresh account deletion requires its password and removes its identity', as
   const password = 'temporary-password-2026'
   const signup = await page.request.post('/api/auth/sign-up/email', { headers: { Origin: baseURL! }, data: { email, password, displayName: 'Delete test' } })
   expect(signup.status()).toBe(201)
+  await claimUsername(page, baseURL!)
   await page.goto('/settings')
   await page.getByRole('button', { name: 'Delete account', exact: true }).click()
   await page.getByLabel('Current password').fill('wrong-password')

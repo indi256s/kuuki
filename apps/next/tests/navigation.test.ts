@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test'
+import { test, expect, type BrowserContext, type Page } from '@playwright/test'
 import { signIn } from './helpers'
 
 // The @next/playwright instant() shell-timing gate is deferred until the
@@ -70,4 +70,153 @@ test('API misses and legacy asset misses never return app HTML', async ({ reques
 test('guest read routes settle at sign-in', async ({ page }) => {
   await page.goto('/journal')
   await page.waitForURL(url => url.pathname === '/signin')
+})
+
+// One real sign-in for the added scenarios: sign-in is rate limited per IP across the whole suite.
+let memberCookies: Awaited<ReturnType<BrowserContext['cookies']>> = []
+test.beforeAll(async ({ browser, baseURL }) => {
+  const context = await browser.newContext({ baseURL })
+  const page = await context.newPage()
+  await signIn(page, baseURL!)
+  memberCookies = await context.cookies()
+  await context.close()
+})
+async function asMember(page: Page) { await page.context().addCookies(memberCookies) }
+
+test.describe('legacy and normalized URLs', () => {
+  test('/journey replaces to Overview', async ({ page }) => {
+    await asMember(page)
+    await page.goto('/journey')
+    await page.waitForURL(url => url.pathname === '/overview')
+    await expect(page.locator('h1')).toHaveText('Overview')
+  })
+
+  test('/flights maps legacy params onto the journal', async ({ page }) => {
+    await asMember(page)
+    await page.goto('/flights?search=x')
+    await page.waitForURL(url => url.pathname === '/journal')
+    expect(new URL(page.url()).search).toBe('?q=x')
+    await expect(page.locator('h1')).toHaveText('Journal')
+  })
+
+  test('/dashboard keeps the year and drops obsolete filters', async ({ page }) => {
+    await asMember(page)
+    await page.goto('/dashboard?year=2024&airline=BA&route=A-B')
+    await page.waitForURL(url => url.pathname === '/overview')
+    expect(new URL(page.url()).search).toBe('?year=2024')
+  })
+
+  test('legacy period and invalid year normalize once', async ({ page }) => {
+    await asMember(page)
+    await page.goto('/overview?period=2024')
+    await page.waitForURL(url => url.search === '?year=2024')
+    await page.goto('/overview?year=nope')
+    await page.waitForURL(url => url.pathname === '/overview' && url.search === '')
+  })
+
+  test('invalid passport query normalizes without a loop', async ({ page }) => {
+    await asMember(page)
+    const documents: string[] = []
+    page.on('request', request => { if (request.isNavigationRequest()) documents.push(new URL(request.url()).pathname + new URL(request.url()).search) })
+    await page.goto('/passport?view=bogus&country=jp')
+    await page.waitForURL(url => url.pathname === '/passport' && url.search === '?country=JP')
+    await expect(page.locator('h1')).toHaveText('Passport')
+    await page.waitForTimeout(500)
+    expect(documents.filter(entry => entry.startsWith('/passport')).length).toBeLessThanOrEqual(2)
+    expect(new URL(page.url()).search).toBe('?country=JP')
+  })
+
+  test('onboarding falls back from unearned steps', async ({ page }) => {
+    await asMember(page)
+    await page.goto('/onboarding?step=bogus')
+    await page.waitForURL(url => url.pathname === '/onboarding' && url.search !== '' && !url.search.includes('bogus'))
+    await expect(page.locator('main h1')).toBeVisible()
+  })
+})
+
+test.describe('entry behavior', () => {
+  test('guest landing has no member navigation and offers sign in and sign up', async ({ page }) => {
+    await page.goto('/')
+    await expect(page.locator('h1')).toBeVisible()
+    await expect(page.locator('nav[aria-label="Primary"]')).toHaveCount(0)
+    await expect(page.locator('nav[aria-label="Mobile"]')).toHaveCount(0)
+    await expect(page.locator('header a[href="/add"]')).toHaveCount(0)
+    await expect(page.locator('a[href="/signin"]').first()).toBeVisible()
+    await expect(page.locator('a[href="/signup"]').first()).toBeVisible()
+  })
+
+  test('guest leaderboard shows the guest header, not member navigation', async ({ page }) => {
+    await page.goto('/leaderboard')
+    await expect(page.locator('h1')).toHaveText('Leaderboard')
+    await expect(page.locator('nav[aria-label="Primary"]')).toHaveCount(0)
+    await expect(page.locator('header a[href="/signin"]')).toBeVisible()
+    await expect(page.locator('header a[href="/signup"]')).toBeVisible()
+  })
+
+  test('signed-in members skip the landing and auth forms', async ({ page }) => {
+    await asMember(page)
+    for (const path of ['/', '/signin', '/signup', '/?mode=signin']) {
+      await page.goto(path)
+      await page.waitForURL(url => url.pathname === '/overview')
+    }
+  })
+
+  test('legacy /landing and /?mode links keep working for guests', async ({ page }) => {
+    await page.goto('/landing')
+    await page.waitForURL(url => url.pathname === '/')
+    await page.goto('/?mode=signup')
+    await page.waitForURL(url => url.pathname === '/signup')
+  })
+
+  test('a member without a username is sent to onboarding first', async ({ page, baseURL }) => {
+    const email = `nousername-${Date.now()}@example.test`
+    const created = await page.request.post('/api/auth/sign-up/email', {
+      headers: { Origin: baseURL! }, data: { name: 'New member', email, password: 'rehearsal-password-2026' },
+    })
+    expect(created.status()).toBe(201)
+    await signIn(page, baseURL!, email)
+    for (const path of ['/', '/signin', '/signup', '/overview', '/journal', '/passport', '/import', '/settings']) {
+      await page.goto(path)
+      await page.waitForURL(url => url.pathname === '/onboarding' && url.search === '?step=name')
+    }
+    await page.goto('/onboarding?step=reveal')
+    await page.waitForURL(url => url.pathname === '/onboarding' && url.search === '?step=name')
+    await expect(page.locator('main h1')).toBeVisible()
+  })
+})
+
+test.describe('titles, focus and not-found', () => {
+  test('unknown routes show a localized not-found page', async ({ page, context, baseURL }) => {
+    const response = await page.goto('/no-such-page')
+    expect(response?.status()).toBe(404)
+    await expect(page.locator('main h1')).toHaveText('Page not found')
+    await expect(page).toHaveTitle('Page not found · Kuuki')
+    await context.addCookies([{ name: 'kuuki_locale', value: 'ru', url: baseURL! }])
+    await page.goto('/no-such-page')
+    await expect(page.locator('main h1')).toHaveText('Страница не найдена')
+    await expect(page.locator('html')).toHaveAttribute('lang', 'ru')
+  })
+
+  test('client navigation updates the title and focuses the heading', async ({ page }) => {
+    await asMember(page)
+    await page.goto('/overview')
+    await expect(page).toHaveTitle('Overview · Kuuki')
+    await page.locator('header nav a[href="/journal"]:visible').click()
+    await page.waitForURL(url => url.pathname === '/journal')
+    await expect(page.locator('main h1')).toHaveText('Journal')
+    await expect(page.locator('main h1')).toBeFocused()
+    await expect(page).toHaveTitle('Journal · Kuuki')
+    await page.locator('header nav a[href="/passport"]:visible').click()
+    await page.waitForURL(url => url.pathname === '/passport')
+    await expect(page.locator('main h1')).toBeFocused()
+    await expect(page).toHaveTitle('Passport · Kuuki')
+  })
+
+  test('landmarks stay intact: skip link, banner and one main', async ({ page }) => {
+    await asMember(page)
+    await page.goto('/journal')
+    await expect(page.locator('a.skip-link')).toHaveAttribute('href', '#main')
+    await expect(page.locator('main#main')).toHaveCount(1)
+    await expect(page.locator('main#main header')).toHaveCount(0)
+  })
 })
