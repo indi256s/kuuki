@@ -1,6 +1,6 @@
 # H3: no bulk-aircraft outcome contract; T14 uses the existing aircraft-batch outcomes
 
-Status: ready-for-human
+Status: resolved
 Owner task: T15 / architecture
 Source: progress.md:176; docs/plans/2026-10-04-redesign-2.0-implementation.md:141, :470; task-T14-brief.md:12; verified at af92d26
 
@@ -18,3 +18,12 @@ Once decided: a contract test on `aircraft-batch` for the new outcome (for examp
 The architecture-owned server bulk-aircraft outcome/idempotency contract is still required. Accepted UI repairs preserve failed/uncertain outcomes and reconcile canonical reads within the bounded existing endpoint; they do not establish a new server contract.
 
 Current integration and evidence: [redesign handoff](../../../docs/plans/2026-10-04-redesign-2.0-implementation-handoff.md). Visual/atlas and external release proof remain deferred under the explicit session constraints.
+
+## Resolution — 2026-10-06
+
+Contract choice: replay-safe absolute set. `aircraft-batch` writes an absolute `aircraft_icao`, so an identical replay returns `accepted` with the same flight state, leaves the rows unchanged, and republishes derived state without double-counting. `uncertain` is a client-side outcome (lost or ambiguous answer) resolved by resending the same items and re-reading the flights list. A server receipt/idempotency table was deliberately not added, and there is no migration. The handler change is its header comment only; the new tests showed replay is already equivalent.
+
+- API contract tests (`functions/test/flights.test.ts`): identical replay gives equal per-item results and unchanged flight rows; a partial batch (valid, NOT_FOUND, UNKNOWN_AIRCRAFT) replays to the same outcome; `user_stats` and advanced aircraft breakdowns are equal after replay (revision advances, publication stays ready).
+- `/passport/manage` now uses the shared `acceptAircraft` runner and outcome types from `aircraft-review.ts`: saved, failed and uncertain rows are listed separately, uncertain rows stay selected with the same calm note and "Try again for the rest" (resends the type originally sent), the list reloads after every outcome, and the 20-item limit stays. The local two-state `BatchResult` and general `mutate` are gone.
+- Unit tests: `apps/next/src/client/capture/passport-manage.test.tsx`; navigation: `capture.test.ts` (port 8803).
+- Leftovers from C6 review: dead `.capture-manage form` rule removed; duplicate section `<h2>` removed (paragraph kept).

@@ -301,6 +301,75 @@ it('accepts valid aircraft changes in a mixed batch and publishes one revision',
   } finally { await dispose() }
 })
 
+// Contract: the endpoint sets an absolute aircraft value, so an identical replay is safe (a lost response can be retried).
+async function seedAircraftReplay(db: D1Database) {
+  await seed(db)
+  await db.prepare("INSERT INTO aircraft_reference (icao, name, manufacturer, model, type, engine_type, engine_count) VALUES ('A320', 'Airbus A320', 'Airbus', 'A320', 'jet', 'jet', 2)").run()
+  const rows = await db.batch([
+    db.prepare("INSERT INTO flights (user_id,date,origin,destination,is_upcoming) VALUES ('u1','2025-04-03','TBS','IST',0)"),
+    db.prepare("INSERT INTO flights (user_id,date,origin,destination,is_upcoming) VALUES ('u1','2025-04-04','TBS','JFK',0)"),
+  ])
+  return rows.map(row => row.meta.last_row_id as number)
+}
+type AircraftReplayBody = { results: Array<{ id: number | null; status: string; code?: string; flight?: { id: number; aircraft_icao: string } }>; derived_state?: string }
+const snapshotFlights = async (db: D1Database) => (await db.prepare('SELECT * FROM flights ORDER BY id').all()).results
+const snapshotDerived = async (db: D1Database) => ({
+  stats: await db.prepare('SELECT total_flights,aircraft_count FROM user_stats WHERE user_id = ?').bind(user.id).first(),
+  advanced: await db.prepare('SELECT aircraft_breakdown,aircraft_type_breakdown,manufacturer_breakdown FROM user_advanced_stats WHERE user_id = ?').bind(user.id).first(),
+})
+
+it('replays an identical aircraft batch to the same per-item results and unchanged flight rows', async () => {
+  const { db, dispose } = await createApiDatabase()
+  try {
+    const ids = await seedAircraftReplay(db)
+    const items = ids.map(id => ({ id, aircraft_icao: 'A320' }))
+    const first = await aircraftBatch(context(db, '/api/flights/aircraft-batch', 'POST', { items }))
+    expect(first.status).toBe(200)
+    const original = await first.json() as AircraftReplayBody
+    const rowsAfterFirst = await snapshotFlights(db)
+    const replay = await aircraftBatch(context(db, '/api/flights/aircraft-batch', 'POST', { items }))
+    expect(replay.status).toBe(200)
+    const replayed = await replay.json() as AircraftReplayBody
+    expect(original.results.map(result => [result.id, result.status, result.flight?.aircraft_icao])).toEqual(ids.map(id => [id, 'accepted', 'A320']))
+    expect(replayed.results).toEqual(original.results)
+    expect(replayed.derived_state).toBe('ready')
+    expect(await snapshotFlights(db)).toEqual(rowsAfterFirst)
+  } finally { await dispose() }
+})
+
+it('replays a partial aircraft batch to the same per-item outcome', async () => {
+  const { db, dispose } = await createApiDatabase()
+  try {
+    const [valid] = await seedAircraftReplay(db)
+    const items = [{ id: valid, aircraft_icao: 'A320' }, { id: 99999, aircraft_icao: 'A320' }, { id: valid + 1, aircraft_icao: 'XXXX' }]
+    const first = await (await aircraftBatch(context(db, '/api/flights/aircraft-batch', 'POST', { items }))).json() as AircraftReplayBody
+    const rowsAfterFirst = await snapshotFlights(db)
+    const replay = await (await aircraftBatch(context(db, '/api/flights/aircraft-batch', 'POST', { items }))).json() as AircraftReplayBody
+    expect(first.results.map(result => [result.id, result.status, result.code])).toEqual([
+      [valid, 'accepted', undefined], [99999, 'error', 'NOT_FOUND'], [valid + 1, 'error', 'UNKNOWN_AIRCRAFT'],
+    ])
+    expect(replay.results).toEqual(first.results)
+    expect(await snapshotFlights(db)).toEqual(rowsAfterFirst)
+    expect(await db.prepare('SELECT aircraft_icao FROM flights WHERE id = ?').bind(valid + 1).first()).toEqual({ aircraft_icao: null })
+  } finally { await dispose() }
+})
+
+it('keeps derived totals identical after an aircraft batch is replayed', async () => {
+  const { db, dispose } = await createApiDatabase()
+  try {
+    const ids = await seedAircraftReplay(db)
+    const items = ids.map(id => ({ id, aircraft_icao: 'A320' }))
+    await aircraftBatch(context(db, '/api/flights/aircraft-batch', 'POST', { items }))
+    const afterFirst = await snapshotDerived(db)
+    expect(afterFirst.stats).toEqual({ total_flights: 2, aircraft_count: 1 })
+    await aircraftBatch(context(db, '/api/flights/aircraft-batch', 'POST', { items }))
+    expect(await snapshotDerived(db)).toEqual(afterFirst)
+    // The replay marks the account dirty again and republishes: a later revision, never a pending one.
+    expect(await db.prepare("SELECT revision,published_revision FROM user_derived_state WHERE user_id='u1'").first())
+      .toEqual({ revision: 2, published_revision: 2 })
+  } finally { await dispose() }
+})
+
 it('rolls back aircraft writes when the dirty marker cannot commit', async () => {
   const { db, dispose } = await createApiDatabase()
   try {
