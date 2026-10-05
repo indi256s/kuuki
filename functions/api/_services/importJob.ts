@@ -8,7 +8,7 @@ import { HttpError } from '../_lib/http'
 import { extractFlights } from '../import/_extract'
 import type { ExtractedFlight, ParseRequest } from '../import/_shared'
 import {
-  MAX_DRAFTS_PER_BATCH, batchByOperation, createProcessingBatch, draftFieldsOf, persistDraftRows, readBatchSnapshot, refusalFor,
+  MAX_DRAFTS_PER_BATCH, batchByOperation, createProcessingBatch, ownedBatch, draftFieldsOf, persistDraftRows, readBatchSnapshot, refusalFor,
   type BatchFence, type BatchSnapshot, type DraftRowInput, type FinalState,
 } from './importDrafts'
 
@@ -37,6 +37,11 @@ export function rowOf(flight: ExtractedFlight): DraftRowInput {
   }
 }
 
+async function stillWaitingForStart(db: D1Database, fence: BatchFence) {
+  const batch = await ownedBatch(db, fence.userId, fence.batchId)
+  return batch?.status === 'processing' && batch.generation === fence.generation && batch.stage === 'accepted'
+}
+
 const discarded = () => new HttpError(410, 'This import was discarded', 'IMPORT_BATCH_DISCARDED')
 
 /** Replay, refuse at a limit, or extract and persist. `created` is false for a replayed submission. */
@@ -50,7 +55,10 @@ export async function submitImport(
       const response = await jobStub(env.IMPORT_JOBS, fence).fetch('https://import.internal/start', {
         method: 'POST', body: JSON.stringify({ fence, source }),
       })
-      if (!response.ok) throw new HttpError(503, 'Import service unavailable', 'IMPORT_SERVICE_UNAVAILABLE')
+      // A refused handshake is not an outage when the batch has moved on: the original job may have finished or been
+      // cancelled between this request's read and its handshake. D1 is the authority, so only a batch still waiting
+      // for its first start counts as a failed dispatch.
+      if (!response.ok && await stillWaitingForStart(db, fence)) throw new HttpError(503, 'Import service unavailable', 'IMPORT_SERVICE_UNAVAILABLE')
     } catch {
       await persistDraftRows(db, fence, [], { status: 'failed', errorCode: 'IMPORT_SERVICE_UNAVAILABLE' })
       throw new HttpError(503, 'Import service unavailable', 'IMPORT_SERVICE_UNAVAILABLE')

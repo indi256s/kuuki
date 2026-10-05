@@ -84,6 +84,18 @@ it.each(['apply', 'dismiss'] as const)('historical review %s preserves unselecte
 })
 
 
+it.each([['en', 'Based on flight times'], ['ru', 'Определено по времени рейсов']] as const)('words the historical review basis like the awaiting card (%s)', async (locale, phrase) => {
+  const snapshot = {
+    candidates: [{ flight: { id: 1, origin: 'TBS', destination: 'IST' }, candidate: { kind: 'link', label: 'times', leg: { destination: 'FRA' } }, candidateToken: 'review-1', affectedCountries: ['TR'] }],
+    wouldRemoveStamp: {}, marker: null, derivedState: 'ready', revision: 1,
+  }
+  vi.mocked(api.get).mockResolvedValue(snapshot)
+  render(<JournalQueue ownerId="queue-owner" locale={locale} hiddenIds={[]} onEdit={vi.fn()} onDelete={vi.fn()} />)
+  fireEvent.click(await screen.findByRole('button', { name: locale === 'en' ? 'Review historical connections' : /Проверить|историч/i }))
+  expect(await screen.findByText(new RegExp(phrase))).toBeInTheDocument()
+})
+
+
 it('shows a processing draft with no extracted rows without claiming that everything is reviewed', () => {
   state.data = { ...state.data!, awaitingFlights: [], awaitingFlightCount: 0, actionableCount: 0 }
   mount()

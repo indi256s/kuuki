@@ -21,6 +21,8 @@ export type DestructiveConfirmProps = {
   /** Rejecting keeps the dialog open and shows `errorMessage`. */
   onConfirm: () => void | Promise<void>
   errorMessage?: string
+  /** Blocks the action with a visible reason (for example offline). It can appear while the dialog is already open. */
+  confirmDisabledReason?: ReactNode
   /** Optional typed confirmation for irreversible actions (the user must type this exactly). */
   typedConfirmation?: { phrase: string; label: string; mismatchReason: string }
   trigger?: ReactNode
@@ -29,7 +31,7 @@ export type DestructiveConfirmProps = {
 }
 
 /** Dialog composition: Cancel has initial focus, the danger button never doubles as an icon, and closing is blocked while pending. */
-export function DestructiveConfirm({ open, onOpenChange, title, consequence, confirmLabel, cancelLabel, pendingLabel, closeLabel, onConfirm, errorMessage, typedConfirmation, trigger, onCloseAutoFocus }: DestructiveConfirmProps) {
+export function DestructiveConfirm({ open, onOpenChange, title, consequence, confirmLabel, cancelLabel, pendingLabel, closeLabel, onConfirm, errorMessage, confirmDisabledReason, typedConfirmation, trigger, onCloseAutoFocus }: DestructiveConfirmProps) {
   const cancelRef = useRef<HTMLButtonElement>(null)
   const [pending, setPending] = useState(false)
   const [failed, setFailed] = useState(false)
@@ -57,7 +59,7 @@ export function DestructiveConfirm({ open, onOpenChange, title, consequence, con
       onCloseAutoFocus={onCloseAutoFocus}
       footer={<>
         <Button ref={cancelRef} variant="secondary" disabled={pending} onClick={() => onOpenChange(false)}>{cancelLabel}</Button>
-        <Button variant="danger" loading={pending} loadingLabel={pendingLabel ?? confirmLabel} disabledReason={needsPhrase ? typedConfirmation?.mismatchReason : undefined} onClick={() => void confirm()}>{confirmLabel}</Button>
+        <Button variant="danger" loading={pending} loadingLabel={pendingLabel ?? confirmLabel} disabledReason={confirmDisabledReason ?? (needsPhrase ? typedConfirmation?.mismatchReason : undefined)} onClick={() => void confirm()}>{confirmLabel}</Button>
       </>}
     >
       <p className="ui-confirm-consequence">{consequence}</p>

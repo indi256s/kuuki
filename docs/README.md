@@ -9,11 +9,14 @@
 | **[PRD.md](./PRD.md)** | **Product requirements, features, philosophy** | Scoping features and non-goals |
 | [APP_FLOW.md](./APP_FLOW.md) | User navigation paths, screen inventory | Building UI or flows |
 | [Screenshot atlas](./user-journeys/README.md) | Captured UI states, user journeys, searchable gallery and agent-readable manifest | Navigating the current UI, planning features or redesign |
-| [TECH_STACK.md](./TECH_STACK.md) | Dependencies with exact versions | Installing packages |
+| [App manifest](../apps/next/package.json) and [lockfile](../pnpm-lock.yaml) | Current dependency ranges and resolved versions | Installing packages |
+| [Next release candidate](./runbooks/2026-10-04-next-release-candidate.md) | Current runtime, verification, rollback and hosted release gates | Runtime or release work |
+| [TECH_STACK.md](./TECH_STACK.md) | Legacy Vite stack and runtime context | Maintaining rollback |
 | [DESIGN.md](../DESIGN.md) | Design System 2.0 for `apps/next` | Writing UI code |
 | [FRONTEND_GUIDELINES.md](./FRONTEND_GUIDELINES.md) | Legacy Vite design guide | Changing `apps/web` only |
-| [BACKEND_STRUCTURE.md](./BACKEND_STRUCTURE.md) | Database schema, RLS, API contracts | Working with data |
-| [PLAN.md](./PLAN.md) | Implementation roadmap and status | Understanding progress |
+| [D1 migrations](../db/migrations/) and [API handlers](../functions/api/) | Current schema and API implementation | Working with data |
+| [BACKEND_STRUCTURE.md](./BACKEND_STRUCTURE.md) | Historical Supabase schema, RLS and API context | Source migration research |
+| [PLAN.md](./PLAN.md) | Original MVP roadmap and status | Historical context |
 
 ## Quick Reference
 
@@ -21,10 +24,11 @@
 |--------------|-----------|
 | Understand what we're building | [PRD.md](./PRD.md) |
 | See user navigation flows | [APP_FLOW.md](./APP_FLOW.md) |
-| Know exact package versions | [TECH_STACK.md](./TECH_STACK.md) |
+| Know exact package versions | [pnpm-lock.yaml](../pnpm-lock.yaml) |
 | Build UI components | [DESIGN.md](../DESIGN.md) |
-| Work with database | [BACKEND_STRUCTURE.md](./BACKEND_STRUCTURE.md) |
-| Check project status | [PLAN.md](./PLAN.md) |
+| Work with database | [D1 migrations](../db/migrations/) and [migration release gates](./runbooks/audit-remediation-release.md) |
+| Check Next implementation/release status | [Next release candidate](./runbooks/2026-10-04-next-release-candidate.md) |
+| Resume the active redesign plan | [Redesign handoff](./plans/2026-10-04-redesign-2.0-implementation-handoff.md) |
 
 ## Additional Documentation
 
@@ -52,9 +56,9 @@
 | Phase 5: Advanced Stats | Complete |
 | Phase 6: Polish | Complete |
 
-**Live:** https://kuuki.indi256.com
-
 ## Project Structure
+
+Current code is in `apps/next` (Next app and composed Worker), `functions/api` (shared API handlers), `db/migrations` (D1) and `workers/maintenance` (scheduled recovery). See the [root README](../README.md#structure) for the current structure. The tree below records the original Vite layout.
 
 ```
 kuuki/
@@ -92,6 +96,8 @@ kuuki/
 - `/cloudflare:wrangler` - Deployment
 
 **Workflow:**
+
+- [Reconcile documentation](./skills/update-docs-after-feature/SKILL.md) - Correct affected docs after features, fixes or structural changes
 - `/superpowers:brainstorming` - Before feature work
 - `/superpowers:test-driven-development` - Before implementation
 - `/superpowers:verification-before-completion` - Before claiming done
@@ -100,7 +106,7 @@ kuuki/
 
 | Server | Use For |
 |--------|---------|
-| `supabase` | DB schema, migrations, RLS, types |
+| `supabase` | Historical schema/migration context; current data uses D1 and application ownership checks |
 | `context7` | Library docs |
 | `shadcn` | Component registry |
 | `cloudflare-docs` | Cloudflare documentation |

@@ -58,34 +58,76 @@ type Props = {
   query: string
   filtered: boolean
   /** One navigation for the whole change set; the page owns history and selection rules. */
-  apply: (changes: Change) => void
+  apply: (changes: Change) => boolean
+  /** True while a navigation started by `apply` has not settled. */
+  navigating: boolean
+  /** The latest explicit navigation by the member (Reset, Back, Forward): its destination query, and a serial that changes with every one. */
+  external: { query: string; serial: number }
+  /** Called when the member follows this component's Reset link, with its destination query. */
+  onExternal: (query: string) => void
 }
 
-export function JournalFilters({ locale, query, filtered, apply }: Props) {
+const textValues = (query: string): Values => {
+  const params = new URLSearchParams(query)
+  const values: Values = { q: params.get('q') ?? '' }
+  for (const key of TEXT_KEYS) values[key] = params.get(key) ?? ''
+  return values
+}
+
+export function JournalFilters({ locale, query, filtered, apply, navigating, external, onExternal }: Props) {
   const t = text[locale]
   const base = useId()
-  const params = new URLSearchParams(query)
-  const urlValues: Values = { q: params.get('q') ?? '' }
-  for (const key of TEXT_KEYS) urlValues[key] = params.get(key) ?? ''
+  const urlValues = textValues(query)
   const [drafts, setDrafts] = useState<Values>(urlValues)
   const [touched, setTouched] = useState<Record<string, boolean>>({})
-  // What this component last sent or adopted per field. A different URL value is an external change (Reset, Back, a link) and replaces the draft;
-  // our own navigation arriving leaves whatever the user has typed since untouched.
-  const [known, setKnown] = useState<Values>(urlValues)
+  // Who changed the URL is told by the page, not guessed from values. While a navigation this component requested is pending (`navigating`, a router
+  // transition), URL changes are its own responses or their intermediate steps, so the drafts stay. Once it settles, `sent` is dropped and any later
+  // URL change (a link elsewhere) is external and replaces the drafts of the fields it touched.
+  // Reset, Back, Forward and links to /journal are announced by the page as they start (`external`): their destination replaces every draft at once,
+  // drops `sent` (a navigation of ours that they supersede no longer counts) and becomes the known URL until the rendered one catches up, so the next
+  // change is compared with where the member is going, not with the URL being left.
+  const [sent, setSent] = useState<Record<string, string>>({})
+  /** The URL as far as this component knows: the rendered query, or an announced destination that has not arrived yet. */
+  const [known, setKnown] = useState(query)
+  const knownValues = textValues(known)
   const [seen, setSeen] = useState(query)
-  if (seen !== query) {
-    setSeen(query)
-    const adopt: Values = {}
-    for (const key of ['q', ...TEXT_KEYS]) if (urlValues[key] !== known[key]) adopt[key] = urlValues[key]
-    if (Object.keys(adopt).length) { setDrafts(old => ({ ...old, ...adopt })); setKnown(old => ({ ...old, ...adopt })) }
+  const [wasNavigating, setWasNavigating] = useState(navigating)
+  const [adopted, setAdopted] = useState(external.serial)
+  if (adopted !== external.serial) {
+    const target = textValues(external.query)
+    setAdopted(external.serial)
+    setDrafts(old => ({ ...old, ...target }))
+    setTouched({})
+    setSent({})
+    setKnown(external.query)
+  } else if (seen !== query || wasNavigating !== navigating) {
+    const awaiting = Object.keys(sent).length > 0
+    if (seen !== query) {
+      setSeen(query)
+      setKnown(query)
+      if (!awaiting) {
+        const adopt: Values = {}
+        for (const key of ['q', ...TEXT_KEYS]) if (urlValues[key] !== knownValues[key]) adopt[key] = urlValues[key]
+        if (Object.keys(adopt).length) setDrafts(old => ({ ...old, ...adopt }))
+      }
+    }
+    if (wasNavigating && !navigating) {
+      // A superseding navigation can settle on the query already rendered (including select-only changes).
+      setKnown(query)
+      if (awaiting) setSent({})
+    }
+    setWasNavigating(navigating)
   }
+  /** What the field holds as far as this component knows: the last value it sent while that navigation is pending, otherwise the known URL's. */
+  const effective = (key: string) => sent[key] ?? knownValues[key]
   const [open, setOpen] = useState(false)
   const [staged, setStaged] = useState<Values>({})
   const [stagedTouched, setStagedTouched] = useState<Record<string, boolean>>({})
   const formRef = useRef<HTMLFormElement>(null)
   const sheetRef = useRef<HTMLDivElement>(null)
 
-  const selectValues: Values = { status: params.get('status') ?? '', sort: params.get('sort') ?? 'date', order: params.get('order') ?? 'desc' }
+  const knownParams = new URLSearchParams(known)
+  const selectValues: Values = { status: knownParams.get('status') ?? '', sort: knownParams.get('sort') ?? 'date', order: knownParams.get('order') ?? 'desc' }
 
   const problems = (values: Values, shown: Record<string, boolean>) => {
     const result: Record<string, string | undefined> = {}
@@ -100,14 +142,16 @@ export function JournalFilters({ locale, query, filtered, apply }: Props) {
     for (const key of keys) {
       const next = key === 'q' ? values.q.trim().slice(0, 100) : normalizeField(key, values[key] ?? '')
       if (next === null) continue
-      if (next !== urlValues[key]) changes[key] = next
+      if (next !== effective(key)) changes[key] = next
     }
     return changes
   }
   const send = (changes: Change) => {
     if (!Object.keys(changes).length) return
-    setKnown(old => { const next = { ...old }; for (const key of Object.keys(changes)) if (key in next) next[key] = changes[key]; return next })
-    apply(changes)
+    const keys = Object.keys(changes).filter(key => key === 'q' || (TEXT_KEYS as readonly string[]).includes(key))
+    // Recorded before the navigation starts, so a synchronous response is already known to be ours.
+    setSent(old => ({ ...old, ...Object.fromEntries(keys.map(key => [key, changes[key]])) }))
+    if (!apply(changes)) setSent(old => { const next = { ...old }; for (const key of keys) delete next[key]; return next })
   }
 
   const commitField = (key: string) => {
@@ -135,7 +179,7 @@ export function JournalFilters({ locale, query, filtered, apply }: Props) {
   }
 
   const openSheet = (next: boolean) => {
-    if (next) { setStaged({ ...urlValues, ...selectValues }); setStagedTouched({}) }
+    if (next) { setStaged({ ...Object.fromEntries(TEXT_KEYS.map(key => [key, effective(key)])), ...selectValues }); setStagedTouched({}) }
     setOpen(next)
   }
   const applyStaged = () => {
@@ -146,16 +190,19 @@ export function JournalFilters({ locale, query, filtered, apply }: Props) {
       return
     }
     const changes: Change = {}
-    for (const key of TEXT_KEYS) { const next = normalizeField(key, staged[key] ?? '')!; if (next !== urlValues[key]) changes[key] = next }
+    const accepted: Values = {}
+    for (const key of TEXT_KEYS) { const next = normalizeField(key, staged[key] ?? '')!; accepted[key] = next; if (next !== effective(key)) changes[key] = next }
     for (const key of SELECT_KEYS) if (staged[key] !== selectValues[key]) changes[key] = staged[key]
+    // Search submits the desktop drafts, so the accepted mobile values become the drafts.
+    setDrafts(old => ({ ...old, ...accepted }))
     send(changes)
     setOpen(false)
   }
 
-  const desktop = <Fields idBase={`${base}-d`} t={t} values={{ ...drafts, ...selectValues }} problems={problems(drafts, touched)}
+  const desktop = <Fields idBase={`${base}-d`} t={t} sortControls={false} values={{ ...drafts, ...selectValues }} problems={problems(drafts, touched)}
     onChange={(key, value) => { if ((SELECT_KEYS as readonly string[]).includes(key)) send({ [key]: value }); else setDrafts(old => ({ ...old, [key]: value })) }}
     onBlur={commitField} />
-  const mobile = <div ref={sheetRef} className="journal-filter-sheet"><Fields idBase={`${base}-m`} t={t} values={staged} problems={problems(staged, stagedTouched)}
+  const mobile = <div ref={sheetRef} className="journal-filter-sheet"><Fields idBase={`${base}-m`} t={t} sortControls values={staged} problems={problems(staged, stagedTouched)}
     onChange={(key, value) => setStaged(old => ({ ...old, [key]: value }))}
     onBlur={key => setStagedTouched(old => ({ ...old, [key]: true }))} /></div>
 
@@ -167,12 +214,13 @@ export function JournalFilters({ locale, query, filtered, apply }: Props) {
       <div className="journal-filter-fields journal-filters-desktop">{desktop}</div>
     </form>
     <Sheet open={open} onOpenChange={openSheet} title={t.filters} closeLabel={t.close} trigger={<Button className="journal-filters-trigger">{t.filters}</Button>} footer={<Button variant="primary" onClick={applyStaged}>{t.apply}</Button>}>{mobile}</Sheet>
-    {filtered && <Link className="text-link" href={withQuery('/journal', resetJournalFilters(query))}>{t.reset}</Link>}
+    {filtered && <Link className="text-link" href={withQuery('/journal', resetJournalFilters(query))} onNavigate={() => onExternal(resetJournalFilters(query))}>{t.reset}</Link>}
   </div>
 }
 
-function Fields({ idBase, t, values, problems, onChange, onBlur }: {
-  idBase: string; t: (typeof text)[Locale]; values: Values; problems: Record<string, string | undefined>
+/** `sortControls`: the Sort and Order selects. The desktop toolbar leaves them to the list's sort headers; the mobile sheet has no headers. */
+function Fields({ idBase, t, sortControls, values, problems, onChange, onBlur }: {
+  idBase: string; t: (typeof text)[Locale]; sortControls: boolean; values: Values; problems: Record<string, string | undefined>
   onChange: (key: string, value: string) => void; onBlur: (key: string) => void
 }) {
   const input = (key: TextKey, label: string, extra: { placeholder: string; maxLength: number; inputMode?: 'numeric' }): ReactNode => {
@@ -202,7 +250,7 @@ function Fields({ idBase, t, values, problems, onChange, onBlur }: {
     {input('airport', t.airport, { placeholder: 'IATA', maxLength: 3 })}
     {input('origin', t.origin, { placeholder: 'IATA', maxLength: 3 })}
     {input('destination', t.destination, { placeholder: 'IATA', maxLength: 3 })}
-    {select('sort', t.sort, JOURNAL_SORTS.map(sort => [sort, sortNames[sort]] as const))}
-    {select('order', t.order, [['desc', t.desc], ['asc', t.asc]])}
+    {sortControls && select('sort', t.sort, JOURNAL_SORTS.map(sort => [sort, sortNames[sort]] as const))}
+    {sortControls && select('order', t.order, [['desc', t.desc], ['asc', t.asc]])}
   </>
 }

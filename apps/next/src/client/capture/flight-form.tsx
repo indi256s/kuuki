@@ -120,11 +120,11 @@ export function FlightForm({ ownerId, locale, editId, initialEditing = true, foc
     finally { saving.current = false; if (current(generation, controller)) setBusy(false); release() }
   }
   async function remove() {
-    if (!online || !flight || saving.current) return
-    if (onDelete) { onDelete(flight.id); onOpenJournal?.(); return }
+    if (!online || !flight || saving.current) return false
+    if (onDelete) { onDelete(flight.id); onOpenJournal?.(); return true }
     saving.current = true
     const controller = new AbortController(); const release = trackPrivateOperation(controller); const generation = getAuthGeneration(); setBusy(true); setDeleteError('')
-    try { const ack = await deleteFlight(flight.id); if (current(generation, controller)) { feedback.acknowledge(ack); if (onOpenJournal) onOpenJournal(); else router.push('/journal'); router.refresh() } }
+    try { const ack = await deleteFlight(flight.id); if (current(generation, controller)) { feedback.acknowledge(ack); if (onOpenJournal) onOpenJournal(); else router.push('/journal'); router.refresh() } return true }
     catch (cause) { if (current(generation, controller)) { setDeleteError(flightErrorMessage(cause, locale, 'delete')); throw cause } }
     finally { saving.current = false; if (current(generation, controller)) setBusy(false); release() }
   }
@@ -162,7 +162,7 @@ export function FlightForm({ ownerId, locale, editId, initialEditing = true, foc
     title={ru ? `Удалить перелёт ${flight.origin} → ${flight.destination}, ${formatDateOnly(locale, flight.date)}?` : `Delete ${flight.origin} → ${flight.destination}, ${formatDateOnly(locale, flight.date)}?`}
     consequence={ru ? 'Этот перелёт будет удалён из журнала.' : 'This flight will be removed from your journal.'}
     confirmLabel={ru ? 'Удалить перелёт' : 'Delete flight'} cancelLabel={ru ? 'Отмена' : 'Cancel'} closeLabel={ru ? 'Закрыть' : 'Close'}
-    errorMessage={deleteError} onConfirm={async () => { await remove(); setConfirmDelete(false) }} /></div>
+    errorMessage={deleteError} confirmDisabledReason={deleteReason} onConfirm={async () => { if (await remove()) setConfirmDelete(false) }} /></div>
   if (flight && !editing) {
     const state = (flight as Flight & { lifecycle_state?: 'upcoming' | 'awaiting' | 'logged' }).lifecycle_state ?? (flight.is_upcoming ? 'upcoming' : 'logged')
     const time = (value: string | null) => value ? value.slice(0, 5) : null
