@@ -1,0 +1,99 @@
+// The reusable summaries must describe a possible account, or T18's volume acceptance proves nothing.
+import { describe, expect, it } from 'vitest'
+import type { OverviewSummary } from '../../../../../packages/shared/src/overview'
+import { findAirport } from '@kuuki/data/airport-lookup'
+import { busySummary, emptySummary, legacyOnlySummary, singleFlightSummary, stressSummary } from './fixtures'
+
+const sum = (rows: Array<{ count: number }>) => rows.reduce((total, row) => total + row.count, 0)
+
+function invariants(summary: OverviewSummary) {
+  const { totals, topLists, map, insights, months, dataAvailability, regions } = summary
+  expect(months).toHaveLength(12)
+  const monthTotal = months.reduce((total, month) => total + month.flights, 0)
+  if (summary.period === 'all') expect(monthTotal).toBeLessThanOrEqual(totals.flights)
+  else expect(monthTotal).toBe(totals.flights)
+  // A flight has one airline, one aircraft and two endpoints.
+  expect(sum(topLists.airlines)).toBeLessThanOrEqual(totals.flights)
+  expect(topLists.airlines.length).toBeLessThanOrEqual(totals.airlines)
+  expect(sum(topLists.aircraft)).toBeLessThanOrEqual(totals.flights - dataAvailability.missingAircraft)
+  expect(sum(topLists.manufacturers)).toBe(sum(topLists.aircraft))
+  expect(topLists.aircraft.length).toBeLessThanOrEqual(totals.aircraft)
+  for (const airport of topLists.airports) expect(airport.count).toBeLessThanOrEqual(totals.flights)
+  expect(sum(topLists.airports)).toBeLessThanOrEqual(totals.flights * 2)
+  expect(topLists.airports.length).toBeLessThanOrEqual(totals.airports)
+  // Every distinct airport the account reached has at least one endpoint visit, listed or not.
+  expect(sum(topLists.airports) + Math.max(0, totals.airports - topLists.airports.length)).toBeLessThanOrEqual(totals.flights * 2)
+  expect(totals.cities).toBeLessThanOrEqual(totals.airports)
+  // A single flight cannot be longer than all of them together.
+  if (insights.longestFlight) {
+    expect(dataAvailability.distanceKnown).toBeGreaterThan(0)
+    expect(insights.longestFlight.distanceKm).toBeLessThanOrEqual(totals.distanceKm)
+  }
+  // Archived (legacy) visits add to all-time visits without flights, so the bound holds for a year only.
+  if (summary.period !== 'all') expect(sum(map.countries.map(country => ({ count: country.visits })))).toBeLessThanOrEqual(totals.flights * 2)
+  if (insights.favoriteAirline) expect(insights.favoriteAirline).toEqual(topLists.airlines[0])
+  if (insights.mostFrequentRoute) expect(insights.mostFrequentRoute.count).toBeLessThanOrEqual(totals.flights)
+  expect(dataAvailability.flights).toBe(totals.flights)
+  expect(dataAvailability.missingAircraft).toBeLessThanOrEqual(totals.flights)
+  expect(dataAvailability.durationKnown).toBeLessThanOrEqual(totals.flights)
+  // Countries: the period set, with pending ones counted apart; every region figure comes from that set.
+  expect(totals.countries).toBe(map.countries.length)
+  expect(totals.pendingCountries).toBe(map.countries.filter(country => country.pending).length)
+  expect(summary.countryIds).toEqual([...map.countries.map(country => country.id)].sort())
+  expect(new Set(map.countries.map(country => country.id)).size).toBe(map.countries.length)
+  if (regions) {
+    expect(regions.reduce((total, region) => total + region.pressed, 0)).toBe(map.countries.length - (totals.pendingCountries ?? 0))
+    expect(regions.reduce((total, region) => total + region.pending, 0)).toBe(totals.pendingCountries)
+  }
+  const period = new Set(map.countries.map(country => country.id))
+  if (insights.newCountries) {
+    expect(insights.newCountries.count).toBeLessThanOrEqual(map.countries.length)
+    expect(insights.newCountries.count).toBeGreaterThanOrEqual(insights.newCountries.items.length)
+    for (const item of insights.newCountries.items) {
+      expect(period.has(item.id)).toBe(true)
+      expect(item.firstVisit.slice(0, 4)).toBe(summary.period)
+      expect(item.pending).toBe(map.countries.find(country => country.id === item.id)?.pending)
+    }
+  }
+  if (summary.comparison && summary.comparison.flights.percent !== null) {
+    expect(summary.comparison.flights.delta).toBe(totals.flights - summary.comparison.flights.previous)
+    expect(summary.comparison.countries?.delta).toBe((totals.countries ?? 0) - (summary.comparison.countries?.previous ?? 0))
+  }
+}
+
+describe('reusable Overview fixtures describe possible accounts', () => {
+  it('the invariants catch the contradictions the n=10 fixture once had', () => {
+    const busy = busySummary(10)
+    expect(() => invariants({ ...busy, totals: { ...busy.totals, distanceKm: 4500 } })).toThrow() // longest 15,989 km in 4,500 km
+    expect(() => invariants({ ...busy, totals: { ...busy.totals, airports: 12 } })).toThrow() // 12 airports need at least 24 endpoint visits
+  })
+
+  const cases: Array<[string, OverviewSummary]> = [
+    ['n=0 all', emptySummary('all')], ['n=0 year', emptySummary('2026')], ['n=1', singleFlightSummary('2026')],
+    ['n=10 year', busySummary(10)], ['n=10 all', busySummary(10, 'all')], ['n=500 year', busySummary(500)], ['n=500 all', busySummary(500, 'all')],
+    ['legacy-only', legacyOnlySummary()],
+  ]
+  it.each(cases)('%s', (_name, summary) => invariants(summary))
+
+  it.each([10, 500] as const)('n=%s country visits and rankings match its endpoint account', flights => {
+    const summary = busySummary(flights)
+    const k = flights / 10
+    // Three TBS–IST, two IST–LHR, then IST–JFK, TBS–NRT, TBS–KIX, JFK–HND and JFK–SYD.
+    const endpoints = [['IST', 6], ['TBS', 5], ['JFK', 3], ['LHR', 2], ['HND', 1], ['NRT', 1], ['KIX', 1], ['SYD', 1]] as const
+    const countries = new Map<string, number>()
+    for (const [iata, n] of endpoints) {
+      const code = findAirport(iata)!.countryCode
+      countries.set(code, (countries.get(code) ?? 0) + n * k)
+    }
+    expect(summary.map.countries.map(row => [row.id, row.visits]).sort()).toEqual([...countries].sort())
+    expect(summary.topLists.countries).toEqual([...countries].map(([id, count]) => ({ id, count }))
+      .sort((a, b) => b.count - a.count || a.id.localeCompare(b.id)).slice(0, 5))
+  })
+
+  it('the stress fixture is separately named and breaks the new-country subset on purpose', () => {
+    const stress = stressSummary()
+    expect(stress.insights.newCountries?.items).toHaveLength(12)
+    expect(stress.insights.newCountries!.count).toBeGreaterThan(stress.insights.newCountries!.items.length)
+    expect(() => invariants(stress)).toThrow()
+  })
+})
