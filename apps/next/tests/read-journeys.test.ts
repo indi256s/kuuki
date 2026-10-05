@@ -309,3 +309,30 @@ test('did-not-fly Undo, deletion failure and retry keep the actual flight and di
   await expect(page.locator('.queue-summary')).toHaveCount(0, { timeout: 15000 })
   expect((await page.request.get(`/api/flights/${id}`)).status()).toBe(404)
 })
+
+test('leaving the Journal during Undo cancels the delete, and the shell says so', async ({ page, baseURL }) => {
+  test.setTimeout(60000)
+  const { create, headers } = await journalAccount(page, baseURL!)
+  const id = await create('2023-03-03', 'LEAVE1')
+  const deletes: string[] = []
+  page.on('request', request => { if (request.url().includes('/api/flights') && (request.method() === 'DELETE' || request.url().includes('bulk-delete'))) deletes.push(request.url()) })
+  await page.goto('/journal?year=2023')
+  await expect(page.locator('.flight-row')).toHaveCount(1)
+  await page.getByRole('checkbox', { name: /^Select: JFK to BOS/ }).check()
+  await page.getByRole('region', { name: 'Selection actions' }).getByRole('button', { name: 'Delete selected flights' }).click()
+  await page.getByRole('dialog', { name: 'Delete selected flights' }).getByRole('button', { name: 'Delete selected flights' }).click()
+  // The Undo notice lives in the member shell's toast region, not in the Journal.
+  const host = page.locator('.ui-toast-region')
+  await expect(host.getByRole('button', { name: 'Undo', exact: true })).toBeFocused()
+  await page.getByRole('navigation', { name: 'Tabs' }).getByRole('link', { name: 'Overview' }).click()
+  await page.waitForURL(url => url.pathname === '/overview')
+  const message = host.getByRole('status').filter({ hasText: 'Delete cancelled — you left the Journal. Nothing was removed.' })
+  await expect(message).toBeVisible()
+  await expect(message).toHaveAttribute('aria-live', 'polite')
+  await expect(host.getByRole('button', { name: 'Undo', exact: true })).toHaveCount(0)
+  // Past the six-second window nothing was sent and the flight still exists.
+  await page.waitForTimeout(7000)
+  expect(deletes).toEqual([])
+  expect((await page.request.get(`/api/flights/${id}`)).status()).toBe(200)
+  expect((await page.request.delete(`/api/flights/${id}`, { headers })).status()).toBe(200)
+})

@@ -20,7 +20,7 @@ test('settings saves owned profile and privacy on a fresh account', async ({ pag
   await page.getByRole('switch', { name: 'Public profile' }).click()
   await page.getByRole('switch', { name: 'Show on leaderboards when eligible' }).click()
   await page.getByRole('button', { name: 'Save changes' }).click()
-  await expect(page.getByRole('status')).toContainText('Saved.')
+  await expect(page.locator('main').getByRole('status')).toContainText('Saved.')
   const profile = await page.request.get('/api/auth/me')
   expect(profile.status()).toBe(200)
   const profileData = await profile.json() as { profile: { display_name: string; bio: string; is_public: boolean; show_on_leaderboards: boolean } }

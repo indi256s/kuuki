@@ -19,6 +19,8 @@ import { JournalQueue } from './journal-queue'
 import { useDeferredDelete } from './deferred-delete'
 import { Button } from '../ui/button'
 import { DeleteUndo } from './delete-undo'
+import { ToastSlot } from '../ui/toast'
+import { announceShellNotice } from '../shell-notices'
 import { JournalFilters } from './journal-filters'
 import { FloatingActionBar } from '../ui/floating-action-bar'
 import { DestructiveConfirm } from '../ui/destructive-confirm'
@@ -34,8 +36,8 @@ const consequenceForms = {
   ru: { one: 'Будет удалён {count} выбранный перелёт. Отменить удаление можно в течение шести секунд.', few: 'Будут удалены {count} выбранных перелёта. Отменить удаление можно в течение шести секунд.', many: 'Будут удалены {count} выбранных перелётов. Отменить удаление можно в течение шести секунд.', other: 'Будут удалены {count} выбранных перелёта. Отменить удаление можно в течение шести секунд.' },
 } as const
 const labels = {
-  en: { origin: 'Origin', destination: 'Destination', sort: 'Sort', asc: 'ascending', desc: 'descending', upcoming: 'Upcoming', awaiting: 'Awaiting', reset: 'Reset filters', empty: 'Your journal is empty.', filtered: 'Nothing matches these filters.', pageEmpty: 'There are no flights on this page.', firstPage: 'Back to the first page', importFlights: 'Import flights', retry: 'Try again', backgroundError: 'Could not refresh the list. Showing the last loaded flights.', pending: 'Recent changes are still being prepared.', previous: 'Previous', next: 'Next', page: 'Page', of: 'of', select: 'Select', selectAll: 'Select all matching flights', clear: 'Clear selection', delete: 'Delete selected flights', cancel: 'Cancel', offline: 'Offline. Connect to change flights.', deleteFailed: 'Delete failed. Your flights are restored.', retryDelete: 'Retry deletion', addAircraft: 'Add aircraft', historical: 'Logged', distance: 'Distance', date: 'Date', airline: 'Airline', aircraft: 'Aircraft', duration: 'Duration', selectionActions: 'Selection actions' },
-  ru: { origin: 'Откуда', destination: 'Куда', sort: 'Сортировка', asc: 'по возрастанию', desc: 'по убыванию', upcoming: 'Предстоящие', awaiting: 'Ждут подтверждения', reset: 'Сбросить фильтры', empty: 'Журнал пока пуст.', filtered: 'По этим фильтрам ничего не найдено.', pageEmpty: 'На этой странице нет перелётов.', firstPage: 'Вернуться на первую страницу', importFlights: 'Импортировать перелёты', retry: 'Повторить', backgroundError: 'Не удалось обновить список. Показаны последние загруженные перелёты.', pending: 'Последние изменения ещё обрабатываются.', previous: 'Назад', next: 'Далее', page: 'Страница', of: 'из', select: 'Выбрать', selectAll: 'Выбрать все найденные перелёты', clear: 'Снять выделение', delete: 'Удалить выбранные перелёты', cancel: 'Отмена', offline: 'Нет сети. Подключитесь, чтобы изменить перелёты.', deleteFailed: 'Не удалось удалить. Перелёты восстановлены.', retryDelete: 'Повторить удаление', addAircraft: 'Добавить самолёт', historical: 'В журнале', distance: 'Расстояние', date: 'Дата', airline: 'Авиакомпания', aircraft: 'Самолёт', duration: 'Длительность', selectionActions: 'Действия с выбранными' },
+  en: { origin: 'Origin', destination: 'Destination', sort: 'Sort', asc: 'ascending', desc: 'descending', upcoming: 'Upcoming', awaiting: 'Awaiting', reset: 'Reset filters', empty: 'Your journal is empty.', filtered: 'Nothing matches these filters.', pageEmpty: 'There are no flights on this page.', firstPage: 'Back to the first page', importFlights: 'Import flights', retry: 'Try again', backgroundError: 'Could not refresh the list. Showing the last loaded flights.', pending: 'Recent changes are still being prepared.', previous: 'Previous', next: 'Next', page: 'Page', of: 'of', select: 'Select', selectAll: 'Select all matching flights', clear: 'Clear selection', delete: 'Delete selected flights', cancel: 'Cancel', offline: 'Offline. Connect to change flights.', deleteFailed: 'Delete failed. Your flights are restored.', deleteCancelled: 'Delete cancelled — you left the Journal. Nothing was removed.', retryDelete: 'Retry deletion', addAircraft: 'Add aircraft', historical: 'Logged', distance: 'Distance', date: 'Date', airline: 'Airline', aircraft: 'Aircraft', duration: 'Duration', selectionActions: 'Selection actions' },
+  ru: { origin: 'Откуда', destination: 'Куда', sort: 'Сортировка', asc: 'по возрастанию', desc: 'по убыванию', upcoming: 'Предстоящие', awaiting: 'Ждут подтверждения', reset: 'Сбросить фильтры', empty: 'Журнал пока пуст.', filtered: 'По этим фильтрам ничего не найдено.', pageEmpty: 'На этой странице нет перелётов.', firstPage: 'Вернуться на первую страницу', importFlights: 'Импортировать перелёты', retry: 'Повторить', backgroundError: 'Не удалось обновить список. Показаны последние загруженные перелёты.', pending: 'Последние изменения ещё обрабатываются.', previous: 'Назад', next: 'Далее', page: 'Страница', of: 'из', select: 'Выбрать', selectAll: 'Выбрать все найденные перелёты', clear: 'Снять выделение', delete: 'Удалить выбранные перелёты', cancel: 'Отмена', offline: 'Нет сети. Подключитесь, чтобы изменить перелёты.', deleteFailed: 'Не удалось удалить. Перелёты восстановлены.', deleteCancelled: 'Удаление отменено — вы ушли из журнала. Ничего не удалено.', retryDelete: 'Повторить удаление', addAircraft: 'Добавить самолёт', historical: 'В журнале', distance: 'Расстояние', date: 'Дата', airline: 'Авиакомпания', aircraft: 'Самолёт', duration: 'Длительность', selectionActions: 'Действия с выбранными' },
 } as const
 
 type Flight = JournalData['flights'][number]
@@ -65,8 +67,17 @@ function JournalInner({ ownerId, locale, initial, query, page, filtered }: Props
   const undoButton = useRef<HTMLButtonElement>(null)
   const offlineId = useId()
   const refresh = () => { void queryClient.invalidateQueries({ queryKey: ['journal', ownerId] }); router.refresh() }
+  // Sign-out and owner switches reset identity before the Journal unmounts; their dropped delete is not announced.
+  const identityReset = useRef(false)
+  useEffect(() => {
+    const reset = () => { identityReset.current = true }
+    window.addEventListener('kuuki:identity-reset', reset)
+    return () => window.removeEventListener('kuuki:identity-reset', reset)
+  }, [])
   // Focus moves when the user acts (schedule, Undo, close), never when the network answers.
-  const deletion = useDeferredDelete((ack, deletedIds) => { feedback.acknowledge(ack); select([]); setRemoved(ids => [...ids, ...deletedIds]); refresh(); window.dispatchEvent(new Event(LIFECYCLE_CHANGED_EVENT)) })
+  // Leaving the Journal inside the window cancels the delete (nothing is sent) and the member shell says so.
+  const deletion = useDeferredDelete((ack, deletedIds) => { feedback.acknowledge(ack); select([]); setRemoved(ids => [...ids, ...deletedIds]); refresh(); window.dispatchEvent(new Event(LIFECYCLE_CHANGED_EVENT)) },
+    () => { if (!identityReset.current) announceShellNotice(ownerId, { message: t.deleteCancelled }) })
   const restore = useRef<{ origin: 'queue' | 'list'; id: number } | null>(null)
   const confirmed = useRef(false)
   const lastFlight = useRef<number | null>(null)
@@ -259,7 +270,7 @@ function JournalInner({ ownerId, locale, initial, query, page, filtered }: Props
         onCloseAutoFocus={event => { if (confirmed.current) { confirmed.current = false; event.preventDefault(); undoButton.current?.focus() } }}
         onConfirm={() => { if (online) { confirmed.current = true; scheduleDelete(selected); setDeleteOpen(false) } }} />
     </section>
-    <DeleteUndo ref={undoButton} locale={locale} pending={deletion.pending} submitting={deletion.submitting} onUndo={undo} />
+    <ToastSlot><DeleteUndo ref={undoButton} locale={locale} pending={deletion.pending} submitting={deletion.submitting} onUndo={undo} /></ToastSlot>
     {sheetFlight !== null && <FlightDetailSheet ownerId={ownerId} locale={locale} flightId={sheetFlight} initialEditing={editing} focusField={focusField} onDelete={id => scheduleDelete([id])} onCloseAutoFocus={closeFocus} onOpenChange={isOpen => { if (!isOpen) { navigate('flight', '', 'replace'); refresh() } }} />}
   </section>
 }

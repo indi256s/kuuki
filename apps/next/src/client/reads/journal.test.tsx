@@ -10,6 +10,7 @@ import { PrimaryNav } from '../nav'
 import { QueueSummarySlot } from '../queue-summary'
 import { announceJournalLink } from '../journal-links'
 import { Sheet } from '../ui/sheet'
+import { ShellNotices } from '../shell-notices'
 import { normalizeJournalQuery } from '../../lib/url-state'
 import type { JournalData } from '../../server/journal'
 import { api } from '../../../../web/src/lib/apiClient'
@@ -38,13 +39,13 @@ const flight = (row: Row) => ({ origin: 'TBS', destination: 'IST', aircraft_icao
 const logged = [1, 2, 3].map(id => flight({ id, date: `2025-04-0${id}`, lifecycle_state: 'logged' }))
 const initialFor = (flights: Flight[], total = flights.length): JournalData => ({ flights, total, revision: 0, publishedRevision: 0, derivedState: 'ready', updatedAt: Date.now() })
 
-function Harness({ start = '', flights = logged, total, locale = 'en' }: { start?: string; flights?: Flight[]; total?: number; locale?: 'en' | 'ru' }) {
+function Harness({ start = '', flights = logged, total, locale = 'en', ownerId = 'journal-owner' }: { start?: string; flights?: Flight[]; total?: number; locale?: 'en' | 'ru'; ownerId?: string }) {
   const [route, setQuery] = useState<string | Promise<string>>(start)
   const query = typeof route === 'string' ? route : use(route)
   useEffect(() => { nav.set.mockImplementation(setQuery) }, [])
   const state = normalizeJournalQuery(new URLSearchParams(query))
   const filtered = ['q', 'year', 'status', 'airline', 'aircraft', 'airport', 'origin', 'destination'].some(key => key in state.state)
-  return <JournalView ownerId="journal-owner" locale={locale} query={query} page={Number(state.state.page ?? 1)} filtered={filtered} initial={initialFor(flights, total)} />
+  return <JournalView ownerId={ownerId} locale={locale} query={query} page={Number(state.state.page ?? 1)} filtered={filtered} initial={initialFor(flights, total)} />
 }
 const hrefQuery = (href: string) => new URL(href, 'http://kuuki.test').search.slice(1)
 
@@ -628,6 +629,74 @@ describe('pending delete', () => {
     expect(screen.getByRole('button', { name: 'Undo' })).toHaveFocus()
     await act(async () => { await vi.advanceTimersByTimeAsync(6500) })
     expect(screen.getByRole('heading', { level: 2, name: 'Flights' })).toHaveFocus()
+  })
+})
+
+describe('pending delete in the member shell host', () => {
+  const cancelled = { en: 'Delete cancelled — you left the Journal. Nothing was removed.', ru: 'Удаление отменено — вы ушли из журнала. Ничего не удалено.' } as const
+  const names = { en: { delete: 'Delete selected flights', undo: 'Undo' }, ru: { delete: 'Удалить выбранные перелёты', undo: 'Отменить' } } as const
+  function Shell({ route, ownerId, locale = 'en' }: { route: 'journal' | 'overview'; ownerId: string; locale?: 'en' | 'ru' }) {
+    return <ShellNotices ownerId={ownerId} locale={locale}>{route === 'journal' ? <Harness ownerId={ownerId} locale={locale} /> : <h1>Overview</h1>}</ShellNotices>
+  }
+  const startDelete = async (user: ReturnType<typeof userEvent.setup>, locale: 'en' | 'ru' = 'en') => {
+    await user.click(screen.getAllByRole('checkbox')[0])
+    await user.click(screen.getByRole('button', { name: names[locale].delete }))
+    await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: names[locale].delete }))
+  }
+
+  it('shows the Undo notice in the shell toast region; Undo still restores the row and its focus', async () => {
+    const user = userEvent.setup()
+    render(<Shell route="journal" ownerId="host-undo" />)
+    await startDelete(user)
+    const undo = screen.getByRole('button', { name: 'Undo' })
+    expect(undo.closest('.ui-toast-region')).not.toBeNull()
+    expect(screen.getByTestId('journal-data')).not.toContainElement(undo)
+    expect(undo).toHaveFocus()
+    expect(screen.getByText('1 flight is being deleted.')).toHaveAttribute('aria-live', 'polite')
+    await user.click(undo)
+    expect(screen.queryByRole('button', { name: 'Undo' })).not.toBeInTheDocument()
+    expect(document.querySelector('[data-flight-row="1"]')).toHaveFocus()
+    expect(api.delete).not.toHaveBeenCalled()
+  })
+
+  it.each(['en', 'ru'] as const)('cancels the delete when the Journal is left inside the window and says so politely in the shell (%s)', async locale => {
+    vi.useFakeTimers({ shouldAdvanceTime: true })
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime })
+    const view = render(<Shell route="journal" ownerId={`host-leave-${locale}`} locale={locale} />)
+    await startDelete(user, locale)
+    await act(async () => { await vi.advanceTimersByTimeAsync(2000) })
+    view.rerender(<Shell route="overview" ownerId={`host-leave-${locale}`} locale={locale} />)
+    await act(async () => { await vi.advanceTimersByTimeAsync(0) })
+    const message = screen.getByText(cancelled[locale])
+    expect(message.closest('[role="status"]')).toHaveAttribute('aria-live', 'polite')
+    expect(screen.queryByRole('button', { name: names[locale].undo })).not.toBeInTheDocument()
+    await act(async () => { await vi.advanceTimersByTimeAsync(7000) })
+    expect(api.delete).not.toHaveBeenCalled()
+    expect(api.post).not.toHaveBeenCalled()
+  })
+
+  it('still commits after the window, and leaving afterwards says nothing', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true })
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime })
+    const view = render(<Shell route="journal" ownerId="host-commit" />)
+    await startDelete(user)
+    await act(async () => { await vi.advanceTimersByTimeAsync(6500) })
+    expect(api.delete).toHaveBeenCalledTimes(1)
+    expect(api.delete).toHaveBeenCalledWith('/api/flights/1', expect.anything())
+    view.rerender(<Shell route="overview" ownerId="host-commit" />)
+    await act(async () => { await vi.advanceTimersByTimeAsync(0) })
+    expect(screen.queryByText(cancelled.en)).not.toBeInTheDocument()
+  })
+
+  it('says nothing when the Journal goes away because the identity was reset (sign-out or owner switch)', async () => {
+    const user = userEvent.setup()
+    const view = render(<Shell route="journal" ownerId="host-reset" />)
+    await startDelete(user)
+    act(() => { window.dispatchEvent(new Event('kuuki:identity-reset')) })
+    view.rerender(<Shell route="overview" ownerId="host-reset" />)
+    await act(async () => { await Promise.resolve() })
+    expect(screen.queryByText(cancelled.en)).not.toBeInTheDocument()
+    expect(api.delete).not.toHaveBeenCalled()
   })
 })
 

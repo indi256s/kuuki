@@ -2,6 +2,7 @@
 
 import { CircleAlert, CircleCheck, Info, X } from 'lucide-react'
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { createPortal } from 'react-dom'
 import './ui.css'
 
 export type ToastKind = 'info' | 'success' | 'error'
@@ -18,6 +19,8 @@ type Item = ToastInput & { id: number; kind: ToastKind; leaving: boolean }
 type ToastApi = { show: (toast: ToastInput) => number; dismiss: (id: number) => void }
 
 const ToastContext = createContext<ToastApi | null>(null)
+/** The provider's notice slot; `undefined` when no provider is mounted. */
+const SlotContext = createContext<HTMLElement | null | undefined>(undefined)
 const EXIT_MS = 200
 
 export function useToast(): ToastApi {
@@ -26,12 +29,23 @@ export function useToast(): ToastApi {
   return api
 }
 
+/**
+ * Places a notice its caller owns (its own live region, controls and lifetime) in the toast region, so it sits with the
+ * shell's toasts instead of inside the page. Without a provider it renders in place.
+ */
+export function ToastSlot({ children }: { children: ReactNode }) {
+  const slot = useContext(SlotContext)
+  if (slot === undefined) return children
+  return slot ? createPortal(children, slot) : null
+}
+
 type KindLabels = Record<ToastKind, string>
 const DEFAULT_KIND_LABELS: KindLabels = { info: 'Notice', success: 'Success', error: 'Error' }
 const ICONS = { info: Info, success: CircleCheck, error: CircleAlert } as const
 
 export function ToastProvider({ children, dismissLabel = 'Dismiss', kindLabels = DEFAULT_KIND_LABELS }: { children: ReactNode; dismissLabel?: string; kindLabels?: KindLabels }) {
   const [items, setItems] = useState<Item[]>([])
+  const [slot, setSlot] = useState<HTMLElement | null>(null)
   const nextId = useRef(1)
   const exits = useRef(new Set<number>())
   useEffect(() => { const pending = exits.current; return () => { pending.forEach(id => window.clearTimeout(id)); pending.clear() } }, [])
@@ -52,14 +66,15 @@ export function ToastProvider({ children, dismissLabel = 'Dismiss', kindLabels =
   const polite = items.filter(item => item.kind !== 'error')
   const assertive = items.filter(item => item.kind === 'error')
   return (
-    <ToastContext.Provider value={api}>
+    <ToastContext.Provider value={api}><SlotContext.Provider value={slot}>
       {children}
       <div className="ui-toast-region">
         {/* Both live regions stay mounted so screen readers register them before the first message. */}
         <div className="ui-toast-live" role="status" aria-live="polite">{polite.map(item => <ToastView key={item.id} item={item} dismissLabel={dismissLabel} kindLabels={kindLabels} onDismiss={dismiss} />)}</div>
         <div className="ui-toast-live" role="alert" aria-live="assertive">{assertive.map(item => <ToastView key={item.id} item={item} dismissLabel={dismissLabel} kindLabels={kindLabels} onDismiss={dismiss} />)}</div>
+        <div className="ui-toast-slot" ref={setSlot} />
       </div>
-    </ToastContext.Provider>
+    </SlotContext.Provider></ToastContext.Provider>
   )
 }
 
