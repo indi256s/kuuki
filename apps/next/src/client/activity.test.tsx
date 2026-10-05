@@ -15,7 +15,7 @@ describe('ActivityBridge owner sync', () => {
   beforeEach(async () => {
     vi.resetModules()
     refresh.mockReset(); api.get.mockReset(); api.post.mockReset()
-    window.sessionStorage.clear()
+    window.localStorage.clear()
   })
   afterEach(cleanup)
 
@@ -37,11 +37,16 @@ describe('ActivityBridge owner sync', () => {
     api.get.mockResolvedValue({ user: { id: 'u1' } })
     api.post.mockResolvedValue({ synced: 2, awaited: 2, autoConfirmed: 0, more: false, derived_state: 'ready', revision: 4 })
     const first = await mount()
+    const changed = vi.fn()
+    window.addEventListener('kuuki:lifecycle-changed', changed)
     await waitFor(() => expect(refresh).toHaveBeenCalledTimes(1))
     expect(sync()).toHaveLength(1)
     expect(sync()[0][1]).toBeUndefined()
+    expect(changed).toHaveBeenCalledTimes(1)
+    expect(window.localStorage.getItem('kuuki:lifecycle-sync:u1')).not.toBeNull()
+    window.removeEventListener('kuuki:lifecycle-changed', changed)
     first.unmount()
-    await mount() // a remount in the same session (a document navigation keeps sessionStorage)
+    await mount() // a remount or another tab: the shared localStorage timestamp holds the throttle
     await waitFor(() => expect(api.get).toHaveBeenCalledTimes(2))
     await new Promise(resolve => setTimeout(resolve, 20))
     expect(sync()).toHaveLength(1)
@@ -50,10 +55,14 @@ describe('ActivityBridge owner sync', () => {
   it('does not refresh the page when nothing was due', async () => {
     api.get.mockResolvedValue({ user: { id: 'u1' } })
     api.post.mockResolvedValue({ synced: 0, awaited: 0, autoConfirmed: 0, more: false })
+    const changed = vi.fn()
+    window.addEventListener('kuuki:lifecycle-changed', changed)
     await mount()
     await waitFor(() => expect(sync()).toHaveLength(1))
     await new Promise(resolve => setTimeout(resolve, 20))
     expect(refresh).not.toHaveBeenCalled()
+    expect(changed).not.toHaveBeenCalled()
+    window.removeEventListener('kuuki:lifecycle-changed', changed)
   })
 
   it('never lets a sync failure look like a sign-out', async () => {

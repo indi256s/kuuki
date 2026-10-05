@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { OWNER_SYNC_INTERVAL_MS, OWNER_SYNC_MAX_PASSES, OWNER_SYNC_RETRY_MS, resetOwnerSyncMemory, syncOwner, type OwnerSyncDeps, type SyncReply } from './lifecycle-sync'
+import { OWNER_SYNC_INTERVAL_MS, clearOwnerSyncMarkers, OWNER_SYNC_MAX_PASSES, OWNER_SYNC_RETRY_MS, resetOwnerSyncMemory, syncOwner, type OwnerSyncDeps, type SyncReply } from './lifecycle-sync'
 
 const quiet: SyncReply = { synced: 0, awaited: 0, autoConfirmed: 0, more: false }
 
@@ -47,7 +47,28 @@ describe('owner sync trigger', () => {
     expect(h.post).toHaveBeenCalledTimes(3)
   })
 
-  it('keeps the rate limit when sessionStorage is blocked', async () => {
+  it('shares the throttle across tabs through the localStorage key, and an identity reset clears it', async () => {
+    const h = harness([])
+    await syncOwner('u1', h.deps)
+    expect([...h.values.keys()]).toEqual(['kuuki:lifecycle-sync:u1'])
+    resetOwnerSyncMemory() // another tab has its own memory but reads the same storage
+    h.advance(1000)
+    expect(await syncOwner('u1', h.deps)).toBeNull()
+    expect(h.post).toHaveBeenCalledTimes(1)
+
+    h.values.set('unrelated', '1')
+    const storage = {
+      get length() { return h.values.size },
+      key: (index: number) => [...h.values.keys()][index] ?? null,
+      removeItem: (key: string) => { h.values.delete(key) },
+    }
+    clearOwnerSyncMarkers(storage)
+    expect([...h.values.keys()]).toEqual(['unrelated'])
+    expect(await syncOwner('u1', h.deps)).not.toBeNull()
+    expect(h.post).toHaveBeenCalledTimes(2)
+  })
+
+  it('keeps the rate limit when localStorage is blocked', async () => {
     const h = harness([])
     const blocked: OwnerSyncDeps = { ...h.deps, storage: { getItem: () => { throw new Error('blocked') }, setItem: () => { throw new Error('blocked') } } }
     await syncOwner('u1', blocked)
@@ -62,37 +83,38 @@ describe('owner sync trigger', () => {
       { synced: 7, awaited: 0, autoConfirmed: 7, more: false, derived_state: 'ready', revision: 5 },
       { synced: 1, more: true }, // never requested
     ])
-    expect(await syncOwner('u1', h.deps)).toEqual({ changed: true, derivedState: 'ready', revision: 5 })
+    expect(await syncOwner('u1', h.deps)).toEqual({ changed: true, synced: 207, derivedState: 'ready', revision: 5 })
     expect(h.post).toHaveBeenCalledTimes(3)
   })
 
-  it('bounds the follow-ups and stops when a pass made no progress', async () => {
+  it('bounds the follow-ups to two after the first pass and stops when a pass made no progress', async () => {
     const endless = harness(Array.from({ length: 20 }, () => ({ synced: 5, more: true, derived_state: 'ready' as const, revision: 1 })))
     await syncOwner('u1', endless.deps)
-    expect(endless.post).toHaveBeenCalledTimes(OWNER_SYNC_MAX_PASSES)
+    expect(OWNER_SYNC_MAX_PASSES).toBe(3)
+    expect(endless.post).toHaveBeenCalledTimes(3)
 
     resetOwnerSyncMemory()
     const stuck = harness([{ synced: 3, more: true, derived_state: 'ready', revision: 1 }, { synced: 0, more: true, derived_state: 'pending', revision: 2 }, { synced: 9, more: true }])
     const outcome = await syncOwner('u1', stuck.deps)
     expect(stuck.post).toHaveBeenCalledTimes(2) // the second pass lost its race: do not spin
-    expect(outcome).toEqual({ changed: true, derivedState: 'pending', revision: 2 })
+    expect(outcome).toEqual({ changed: true, synced: 3, derivedState: 'pending', revision: 2 })
   })
 
   it('reports a change for a stamp-only repair but not for a quiet pass', async () => {
     const repaired = harness([{ synced: 0, awaited: 0, autoConfirmed: 0, more: false, derived_state: 'ready', revision: 9 }])
-    expect(await syncOwner('u1', repaired.deps)).toEqual({ changed: true, derivedState: 'ready', revision: 9 })
+    expect(await syncOwner('u1', repaired.deps)).toEqual({ changed: true, synced: 0, derivedState: 'ready', revision: 9 })
     resetOwnerSyncMemory()
-    expect(await syncOwner('u1', harness([quiet]).deps)).toEqual({ changed: false, derivedState: null, revision: null })
+    expect(await syncOwner('u1', harness([quiet]).deps)).toEqual({ changed: false, synced: 0, derivedState: null, revision: null })
   })
 
   it('passes a pending publication through so the caller can poll', async () => {
     const h = harness([{ synced: 2, more: false, derived_state: 'pending', revision: 12 }])
-    expect(await syncOwner('u1', h.deps)).toEqual({ changed: true, derivedState: 'pending', revision: 12 })
+    expect(await syncOwner('u1', h.deps)).toEqual({ changed: true, synced: 2, derivedState: 'pending', revision: 12 })
   })
 
   it('treats a failure as non-fatal and retries soon, not at the next interval or in a loop', async () => {
     const h = harness([new Error('offline'), { synced: 1, derived_state: 'ready', revision: 2 }])
-    expect(await syncOwner('u1', h.deps)).toEqual({ changed: false, derivedState: null, revision: null })
+    expect(await syncOwner('u1', h.deps)).toEqual({ changed: false, synced: 0, derivedState: null, revision: null })
     expect(h.post).toHaveBeenCalledTimes(1)
     h.advance(OWNER_SYNC_RETRY_MS - 1)
     expect(await syncOwner('u1', h.deps)).toBeNull()

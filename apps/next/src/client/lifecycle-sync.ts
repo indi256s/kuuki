@@ -1,14 +1,18 @@
 // Owner sync trigger (ADR 0001 §2, R1). While the cron is held the Next shell is the only thing that moves a member's
 // flights upcoming -> awaiting -> logged, so a confirmed owner session asks `POST /api/flights/sync-upcoming` itself:
-// at most once per ~10 minutes per browser session and owner, never for a guest, with bounded follow-up passes
-// while the server says `more`. The caller refreshes the page afterwards (derived-publication poll when pending).
+// at most once per 10 minutes per owner across every tab (a shared localStorage timestamp, written before the request),
+// never for a guest, with at most two follow-up passes while the server says `more`. The caller refreshes the page
+// afterwards (derived-publication poll when pending) and announces `kuuki:lifecycle-changed` when flights moved.
 
 export const OWNER_SYNC_INTERVAL_MS = 10 * 60_000
 /** After a failed attempt the next try waits this long, not the whole interval. */
 export const OWNER_SYNC_RETRY_MS = 60_000
-export const OWNER_SYNC_MAX_PASSES = 5
+/** One pass plus at most two follow-ups (ADR 0001 section 2). */
+export const OWNER_SYNC_MAX_PASSES = 3
+/** Dispatched on `window` after flights moved, for Query-owned reads (queue, badges). */
+export const LIFECYCLE_CHANGED_EVENT = 'kuuki:lifecycle-changed'
 const PASS_DELAY_MS = 400
-const KEY_PREFIX = 'kuuki:owner-sync:'
+const KEY_PREFIX = 'kuuki:lifecycle-sync:'
 
 export interface SyncReply {
   synced?: number
@@ -22,6 +26,8 @@ export interface SyncReply {
 export interface OwnerSyncOutcome {
   /** Some flight moved or derived state was repaired: what the member sees may be out of date. */
   changed: boolean
+  /** Flights that changed state across the passes (sum of the replies' `synced`). */
+  synced: number
   derivedState: 'ready' | 'pending' | 'error' | null
   revision: number | null
 }
@@ -29,7 +35,7 @@ export interface OwnerSyncOutcome {
 export interface OwnerSyncDeps {
   post: () => Promise<SyncReply>
   now: () => number
-  /** sessionStorage; null when the browser blocks it (then the in-memory guard below still limits the rate). */
+  /** localStorage, shared by every tab; null when the browser blocks it (then the in-memory guard below still limits the rate). */
   storage: Pick<Storage, 'getItem' | 'setItem'> | null
   sleep: (ms: number) => Promise<void>
   /** False once the account changed or the page was torn down. */
@@ -38,6 +44,20 @@ export interface OwnerSyncDeps {
 
 const memory = new Map<string, number>()
 let inFlight: Promise<OwnerSyncOutcome | null> | null = null
+
+/** An identity reset removes every owner's throttle, so the next owner on this browser syncs on first sight. */
+export function clearOwnerSyncMarkers(storage: Pick<Storage, 'length' | 'key' | 'removeItem'> | null): void {
+  memory.clear()
+  try {
+    if (!storage) return
+    const keys: string[] = []
+    for (let index = 0; index < storage.length; index++) {
+      const key = storage.key(index)
+      if (key?.startsWith(KEY_PREFIX)) keys.push(key)
+    }
+    for (const key of keys) storage.removeItem(key)
+  } catch { /* blocked storage: nothing to clear */ }
+}
 
 /** Test seam: the in-memory guard outlives a test otherwise. */
 export function resetOwnerSyncMemory(): void {
@@ -71,7 +91,7 @@ export function syncOwner(ownerId: string | null | undefined, deps: OwnerSyncDep
   remember(key, started, deps)
 
   inFlight = (async () => {
-    const outcome: OwnerSyncOutcome = { changed: false, derivedState: null, revision: null }
+    const outcome: OwnerSyncOutcome = { changed: false, synced: 0, derivedState: null, revision: null }
     for (let pass = 0; pass < OWNER_SYNC_MAX_PASSES; pass++) {
       if (!deps.current()) break
       let reply: SyncReply
@@ -83,6 +103,7 @@ export function syncOwner(ownerId: string | null | undefined, deps: OwnerSyncDep
         break
       }
       const synced = reply.synced ?? 0
+      outcome.synced += synced
       if (synced > 0 || reply.derived_state !== undefined) outcome.changed = true
       if (reply.derived_state !== undefined) {
         outcome.derivedState = reply.derived_state

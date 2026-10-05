@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { api, beginIdentityOperation, getAuthGeneration } from '../../../web/src/lib/apiClient'
 import { clearFlightCreateOperations } from '../../../web/src/lib/flightCreateOperations'
 import { clearDrafts } from './capture/drafts'
-import { syncOwner, type SyncReply } from './lifecycle-sync'
+import { LIFECYCLE_CHANGED_EVENT, clearOwnerSyncMarkers, syncOwner, type SyncReply } from './lifecycle-sync'
 import { awaitPublication } from './publication'
 
 type IdentityReply = { user: { id: string } | null }
@@ -37,6 +37,7 @@ function resetPrivateState(targetPath?: string) {
   tracked.clear()
   clearFlightCreateOperations()
   clearDrafts()
+  clearOwnerSyncMarkers(sharedStore())
   window.dispatchEvent(new Event('kuuki:identity-reset'))
   // A document navigation discards Next segment cache as well as client stores.
   window.location.assign(target)
@@ -55,8 +56,8 @@ async function checkIdentity(): Promise<string | null> {
   return id
 }
 
-function sessionStore(): Pick<Storage, 'getItem' | 'setItem'> | null {
-  try { return window.sessionStorage } catch { return null }
+function sharedStore(): Storage | null {
+  try { return window.localStorage } catch { return null }
 }
 
 /**
@@ -69,14 +70,19 @@ async function syncOwnerFlights(ownerId: string, refresh: () => void, signal: Ab
   const outcome = await syncOwner(ownerId, {
     post: () => api.post<SyncReply>('/api/flights/sync-upcoming', undefined, { signal }),
     now: Date.now,
-    storage: sessionStore(),
+    storage: sharedStore(),
     sleep: ms => new Promise(resolve => setTimeout(resolve, ms)),
     current,
   })
   if (!outcome?.changed || !current()) return
-  if (outcome.derivedState === 'ready') refresh()
+  // Server-owned routes re-render; Query-owned reads (queue, badges) listen for the event.
+  const announce = () => {
+    refresh()
+    if (outcome.synced > 0) window.dispatchEvent(new Event(LIFECYCLE_CHANGED_EVENT))
+  }
+  if (outcome.derivedState === 'ready') announce()
   else if (outcome.derivedState === 'pending' && outcome.revision !== null) {
-    if (await awaitPublication(outcome.revision, signal, current) === 'ready') refresh()
+    if (await awaitPublication(outcome.revision, signal, current) === 'ready') announce()
   }
 }
 
