@@ -43,6 +43,10 @@ const instant = (value: string | null): number | null => {
   return Number.isNaN(parsed) ? null : parsed
 }
 
+// `flights.date` has no DB CHECK. A label that is not YYYY-MM-DD cannot be shifted, so that leg is treated as
+// undated: it never forms or extends a chain (its endpoints still count as ordinary evidence).
+const DATE_LABEL = /^\d{4}-\d{2}-\d{2}$/
+
 const utcDay = (ms: number) => new Date(ms).toISOString().slice(0, 10)
 
 interface Node {
@@ -64,7 +68,8 @@ const byTraversal = (a: Node, b: Node) => {
  * and A is B's single candidate in the winning tier (precise outranks estimated); anything else with a
  * candidate is ambiguous. A cycle (an untimed same-date pair that cannot be ordered) is ambiguous too.
  */
-export function connectionChains(legs: ConnectionLeg[]): Map<number, ConnectionDecision> {
+export function connectionChains(allLegs: ConnectionLeg[]): Map<number, ConnectionDecision> {
+  const legs = allLegs.filter(leg => DATE_LABEL.test(leg.date))
   const nodes = legs.map<Node>(leg => ({ leg, dep: instant(leg.departure_utc), arr: instant(leg.arrival_utc) })).sort(byTraversal)
 
   // Origin airport -> date label -> legs departing there, so candidate search touches a few days only.
@@ -154,6 +159,7 @@ export function connectionChains(legs: ConnectionLeg[]): Map<number, ConnectionD
   }
 
   const decisions = new Map<number, ConnectionDecision>()
+  for (const leg of allLegs) if (!DATE_LABEL.test(leg.date)) decisions.set(leg.id, { kind: 'none' })
   for (const { leg } of nodes) {
     const link = links.get(leg.id)
     if (link) {
@@ -161,7 +167,8 @@ export function connectionChains(legs: ConnectionLeg[]): Map<number, ConnectionD
       const hub = leg.destination_country
       decisions.set(leg.id, {
         kind: 'link', toId: link.to, label: link.label, hubCountry: hub, startCountry: chain.start, finalCountry: chain.final,
-        thirdCountry: hub !== null && hub !== chain.start && hub !== chain.final, chainIds: chain.ids,
+        // An unknown country (unmapped airport) never supports suppression, wherever it sits in the chain.
+        thirdCountry: hub !== null && chain.start !== null && chain.final !== null && hub !== chain.start && hub !== chain.final, chainIds: chain.ids,
       })
     } else if (ambiguous.has(leg.id)) {
       decisions.set(leg.id, { kind: 'ambiguous', candidateIds: ambiguous.get(leg.id)! })

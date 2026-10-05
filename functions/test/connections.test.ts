@@ -126,6 +126,39 @@ const CASES: Array<{ name: string; legs: ConnectionLeg[]; expected: Record<numbe
   },
 ]
 
+describe('connectionChains with unusable input', () => {
+  it('treats a malformed date label as undated: no throw, no link, the others still connect', () => {
+    for (const date of ['', 'garbage', '2026-3-1', '2026-03-01T10:00:00Z', '20260301']) {
+      const legs = [
+        leg(1, '2026-03-01', 'TBS', 'IST', at(T0, -4), T0), leg(2, '2026-03-02', 'IST', 'JFK', at(T0, 3), at(T0, 12)),
+        leg(3, date, 'IST', 'LHR', at(T0, 2), at(T0, 6)), leg(4, date, 'KUT', 'TBS'),
+      ]
+      const decisions = connectionChains(legs)
+      expect(decisions.get(1), date).toMatchObject({ kind: 'link', toId: 2, label: 'precise', thirdCountry: true })
+      expect(decisions.get(3), date).toEqual({ kind: 'none' })
+      expect(decisions.get(4), date).toEqual({ kind: 'none' })
+      expect([...decisions.keys()].sort()).toEqual([1, 2, 3, 4])
+    }
+  })
+
+  it('a malformed leg is not a competing candidate either', () => {
+    const decisions = connectionChains([
+      leg(1, '2026-03-01', 'TBS', 'IST', at(T0, -4), T0), leg(2, '2026-03-02', 'IST', 'JFK', at(T0, 3), at(T0, 12)),
+      leg(3, 'nonsense', 'IST', 'LHR', at(T0, 5), at(T0, 9)),
+    ])
+    expect(decisions.get(1)).toMatchObject({ kind: 'link', toId: 2 })
+  })
+
+  it('never calls a hub a third country when the chain start or final country is unknown', () => {
+    const unknownFinal = connectionChains([leg(1, '2026-03-01', 'TBS', 'IST', at(T0, -4), T0), leg(2, '2026-03-02', 'IST', 'ZZZ', at(T0, 3), at(T0, 8))])
+    expect(unknownFinal.get(1)).toMatchObject({ kind: 'link', toId: 2, finalCountry: null, thirdCountry: false })
+    const unknownStart = connectionChains([leg(1, '2026-03-01', 'ZZZ', 'IST', at(T0, -4), T0), leg(2, '2026-03-02', 'IST', 'JFK', at(T0, 3), at(T0, 12))])
+    expect(unknownStart.get(1)).toMatchObject({ kind: 'link', toId: 2, startCountry: null, thirdCountry: false })
+    const unknownHub = connectionChains([leg(1, '2026-03-01', 'TBS', 'ZZZ', at(T0, -4), T0), leg(2, '2026-03-02', 'ZZZ', 'JFK', at(T0, 3), at(T0, 12))])
+    expect(unknownHub.get(1)).toMatchObject({ kind: 'link', toId: 2, hubCountry: null, thirdCountry: false })
+  })
+})
+
 describe('connectionChains', () => {
   for (const { name, legs, expected } of CASES) {
     it(name, () => {

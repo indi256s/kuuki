@@ -10,6 +10,30 @@ const TRANSIT_ROWS = [
   { flight_id: 2, endpoint: 'origin', country_code: 'TR' },
 ]
 
+describe('unusable input never breaks or over-suppresses the repair', () => {
+  it('publishes ready with correct countries when one flight has a malformed date', async () => {
+    const { db, dispose } = await accountWith([F1, F2, { id: 9, date: 'not-a-date', origin: 'KUT', destination: 'IST', state: 'logged' }])
+    try {
+      const state = await db.prepare('SELECT revision, published_revision, evidence_revision FROM user_derived_state WHERE user_id = ?').bind(USER.id).first<{ revision: number; published_revision: number; evidence_revision: number }>()
+      expect(state!.published_revision).toBe(state!.revision)
+      expect(state!.evidence_revision).toBe(state!.revision)
+      // The malformed flight arrives at the hub airport, so it is the leg that used to make the repair throw. It keeps
+      // both endpoints as ordinary evidence (TR is pressed by it); the valid pair is still a transit link.
+      expect(await evidenceCountries(db)).toEqual(['GE', 'TR', 'US'])
+      expect(await suppressions(db)).toEqual(TRANSIT_ROWS)
+      expect(await userStats(db)).toMatchObject({ countries_count: 3 })
+    } finally { await dispose() }
+  })
+
+  it('does not suppress a hub when the onward country is unknown', async () => {
+    const { db, dispose } = await accountWith([F1, { ...F2, destination: 'ZZZ' }])
+    try {
+      expect(await suppressions(db)).toEqual([])
+      expect(await evidenceCountries(db)).toEqual(['GE', 'TR'])
+    } finally { await dispose() }
+  })
+})
+
 describe('prospective default for an awaiting flight (rule 2)', () => {
   it('defaults an unambiguous third-country connection to transit: no pending hub, airports still counted', async () => {
     const { db, dispose } = await accountWith([F1, F2])
@@ -26,11 +50,13 @@ describe('prospective default for an awaiting flight (rule 2)', () => {
     const { db, dispose } = await accountWith([F1, F2])
     try {
       const before = { evidence: await evidence(db), suppressions: await suppressions(db), stats: await userStats(db) }
+      expect((before.evidence as Array<{ country_code: string; status: string }>).map(row => [row.country_code, row.status]))
+        .toEqual([['GE', 'pending'], ['US', 'pressed']])
       // What confirmation (T09) stores: logged/user with the effective default as an explicit decision.
       await db.prepare("UPDATE flights SET lifecycle_state='logged', confirmation_source='user', confirmed_at='2026-03-05T00:00:00.000Z', arrival_transit=1, arrival_transit_leg_id=2, awaiting_after=NULL, auto_confirm_after=NULL, lifecycle_timezone=lifecycle_timezone WHERE id=1").run()
       await publish(db)
       const after = { evidence: await evidence(db), suppressions: await suppressions(db), stats: await userStats(db) }
-      // The only difference is that F1's own endpoint evidence moved from awaiting to logged.
+      // The only difference is that F1's own endpoint evidence moved from awaiting to logged (GE: pending to pressed).
       expect(after.suppressions).toEqual(before.suppressions)
       expect(after.stats).toEqual(before.stats)
       expect((after.evidence as Array<{ country_code: string; status: string }>).map(row => [row.country_code, row.status]))
