@@ -47,6 +47,16 @@ export function MenuRadioItem({ children, ...props }: ComponentProps<typeof Drop
   )
 }
 
+/** Toggle row with the same visible check gutter as radios, so on/off never relies on color alone. */
+export function MenuCheckboxItem({ children, ...props }: ComponentProps<typeof DropdownMenu.CheckboxItem>) {
+  return (
+    <DropdownMenu.CheckboxItem {...props} className="ui-menu-item ui-menu-radio">
+      <DropdownMenu.ItemIndicator className="ui-menu-check"><Check size={16} strokeWidth={2} aria-hidden="true" /></DropdownMenu.ItemIndicator>
+      {children}
+    </DropdownMenu.CheckboxItem>
+  )
+}
+
 export function MenuSeparator() {
   return <DropdownMenu.Separator className="ui-menu-separator" />
 }

@@ -10,7 +10,9 @@ test('the opened map uses local assets, selectable routes and survives a theme c
   await expect(page.getByRole('button', { name: 'Fit routes' })).toBeVisible({ timeout: 20_000 })
   await routes.getByRole('button').first().click()
   await expect(routes.getByRole('button').first()).toHaveAttribute('aria-pressed', 'true')
-  await page.getByRole('combobox', { name: 'Theme', exact: true }).selectOption('dark')
+  await page.setViewportSize({ width: 1280, height: 800 }) // theme lives in the desktop avatar menu
+  await page.getByRole('button', { name: 'Account menu' }).click()
+  await page.getByRole('menuitemradio', { name: 'Dark' }).click()
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark')
   await expect(routes.getByRole('button').first()).toHaveAttribute('aria-pressed', 'true')
   await page.getByRole('button', { name: 'Fit routes' }).click()

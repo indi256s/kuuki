@@ -219,11 +219,13 @@ test('local production read and map measurements', async ({ browser, baseURL }) 
     const ownerId = body.user?.id
     expect(ownerId).toBeTruthy()
     const page = await context.newPage()
+    await page.setViewportSize({ width: 1280, height: 800 })
+    const setMenuTheme = async (target: typeof page, name: string) => { await target.getByRole('button', { name: 'Account menu' }).click(); await target.getByRole('menuitemradio', { name }).click() }
     for (const count of [50, 500, 5000]) {
       await page.route('**/api/flights/route-projection?*', route => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(projection(count, ownerId!)) }))
       await page.goto('/passport')
       await expect(page.getByTestId('passport-data')).toBeVisible()
-      await page.getByRole('combobox', { name: 'Theme' }).selectOption('light')
+      await setMenuTheme(page, 'Light')
       await mapAction(page, count, 'open-to-controls', async () => {
         await page.getByRole('button', { name: 'Map', exact: true }).click()
         await page.waitForURL(url => url.searchParams.get('view') === 'map')
@@ -234,7 +236,7 @@ test('local production read and map measurements', async ({ browser, baseURL }) 
         await button.click(); await expect(button).toHaveAttribute('aria-pressed', 'true')
       })
       await mapAction(page, count, 'theme', async () => {
-        await page.getByRole('combobox', { name: 'Theme' }).selectOption('dark')
+        await setMenuTheme(page, 'Dark')
         await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark')
       })
       await mapAction(page, count, 'fit', async () => { await page.getByRole('button', { name: 'Fit routes' }).click() })

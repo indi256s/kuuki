@@ -1,7 +1,11 @@
 import Link from 'next/link'
 import type { ReactNode } from 'react'
+import { AvatarMenu } from './avatar-menu'
+import { PrimaryNav, TabBar } from './nav'
 import { Preferences } from './preferences'
-import { PrimaryNav } from './nav'
+import { QueueSummarySlot } from './queue-summary'
+import { SplitAdd } from './split-add'
+import { getGateProfile } from '../server/gates'
 import type { Locale } from '../server/locale'
 
 function Wordmark({ label = 'Kuuki home' }: { label?: string }) {
@@ -9,15 +13,27 @@ function Wordmark({ label = 'Kuuki home' }: { label?: string }) {
 }
 function Main({ children }: { children: ReactNode }) { return <main id="main" className="page-shell">{children}</main> }
 
-/** Current member header, moved verbatim out of the root layout. T06 rebuilds it. */
-export function MemberShell({ locale, children }: { locale: Locale; children: ReactNode }) {
+/**
+ * Member shell: 56px desktop header (wordmark, nav, queue slot, split Add, avatar menu) or 48px mobile header
+ * plus the bottom tab bar. The header and tab bar sit outside the single `<main>`.
+ */
+export async function MemberShell({ locale, children }: { locale: Locale; children: ReactNode }) {
+  const own = await getGateProfile()
+  const username = own?.profile.username ?? null
   return <>
     <header className="site-header"><div className="site-header-inner">
       <Wordmark />
-      <PrimaryNav />
-      <Preferences initialLocale={locale} /><Link className="header-me" href="/me"><span className="locale-en">Me</span><span className="locale-ru" lang="ru">Я</span></Link><Link className="header-settings" href="/settings"><span className="locale-en">Settings</span><span className="locale-ru" lang="ru">Настройки</span></Link><a className="header-action" href="/add"><span className="locale-en">Add flight</span><span className="locale-ru" lang="ru">Добавить перелёт</span> <span aria-hidden>↗</span></a>
+      <PrimaryNav locale={locale} />
+      <div className="header-end">
+        <QueueSummarySlot locale={locale} />
+        <div className="header-desktop-only">
+          <SplitAdd locale={locale} />
+          {username && own ? <AvatarMenu username={username} displayName={own.profile.display_name} isPublic={own.profile.is_public} locale={locale} /> : null}
+        </div>
+      </div>
     </div></header>
     <Main>{children}</Main>
+    <TabBar locale={locale} username={username} />
   </>
 }
 

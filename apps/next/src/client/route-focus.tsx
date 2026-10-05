@@ -22,6 +22,7 @@ export function RouteFocus() {
     const focusHeading = () => {
       const heading = document.querySelector<HTMLElement>('main h1')
       if (heading) { heading.tabIndex = -1; heading.focus({ preventScroll: true }) }
+      else { const main = document.getElementById('main'); if (main) { main.tabIndex = -1; main.focus({ preventScroll: true }) } } // loading state without a heading
       return heading
     }
     let heading = focusHeading()
@@ -30,7 +31,7 @@ export function RouteFocus() {
     if (!main) return
     const observer = new MutationObserver(() => {
       if (heading?.isConnected) return
-      if (document.activeElement && document.activeElement !== document.body) { observer.disconnect(); return }
+      if (document.activeElement && document.activeElement !== document.body && document.activeElement !== main) { observer.disconnect(); return }
       heading = focusHeading()
     })
     observer.observe(main, { childList: true, subtree: true })

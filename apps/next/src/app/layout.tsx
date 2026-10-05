@@ -9,6 +9,7 @@ import { THEME_COLOR } from '../lib/theme-colors'
 import { getRequestLocale } from '../server/locale'
 import './styles.css'
 import './public.css'
+import './shell.css'
 
 export const metadata: Metadata = { title: 'Kuuki — flight journal', description: 'Keep your journeys close.' }
 export const viewport: Viewport = { themeColor: THEME_COLOR.light }

@@ -106,7 +106,8 @@ test('RU read controls fit narrow and desktop viewports in both themes', async (
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
     }
   }
-  await page.locator('header').getByRole('combobox', { name: 'Тема' }).selectOption('dark')
+  await page.getByRole('button', { name: 'Меню аккаунта' }).click()
+  await page.getByRole('menuitemradio', { name: 'Тёмная' }).click()
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark')
   await page.goto('/journal')
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
