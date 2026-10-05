@@ -63,7 +63,7 @@ test('Settings guards Forward without truncating the forward history entry', asy
 
 test('deletion uses Enter, preserves distinct errors, blocks close during the request, and clears the account to a success screen', async ({ page, baseURL }) => {
   const password = 'temporary-password-2026'
-  const signup = await page.request.post('/api/auth/sign-up/email', { headers: { Origin: baseURL! }, data: { email: `delete-settings-${crypto.randomUUID()}@example.test`, password } })
+  const signup = await page.request.post('/api/auth/sign-up/email', { headers: { Origin: baseURL!, 'CF-Connecting-IP': '203.0.113.78' }, data: { email: `delete-settings-${crypto.randomUUID()}@example.test`, password } })
   expect(signup.status()).toBe(201)
   const { claimUsername } = await import('./helpers'); await claimUsername(page, baseURL!)
   await page.goto('/settings'); await page.getByRole('button', { name: 'Delete account', exact: true }).click()
