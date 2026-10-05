@@ -3,6 +3,7 @@
 // from sending what it will refuse and explains why a row cannot be saved yet.
 import { findAircraft } from '@kuuki/data/aircraft-lookup'
 import { findAirport } from '@kuuki/data/airport-lookup'
+import type { RowOutcome } from './confirm-runner'
 import type { DraftChange } from './draft-saver'
 import type { Draft, DraftFields } from './import-types'
 
@@ -78,6 +79,18 @@ export function withUnsent(draft: Draft, change: DraftChange | null | undefined)
   return { ...draft, fields: fields as unknown as DraftFields,
     selected: change.selected ?? draft.selected, yearConfirmed: change.yearConfirmed ?? draft.yearConfirmed,
     duplicateAcknowledged: change.duplicateAcknowledged ?? draft.duplicateAcknowledged, edited: draft.edited || Boolean(change.fields) }
+}
+
+/**
+ * The snapshot with the server's confirmed saves laid over it. A confirm answer is authoritative even when the read that
+ * should follow it fails, so a row the answer saved is shown as saved until a newer snapshot says the same thing.
+ */
+export function withSaved(drafts: Draft[], outcomes: ReadonlyMap<string, RowOutcome>): Draft[] {
+  if (outcomes.size === 0) return drafts
+  return drafts.map(draft => {
+    const outcome = outcomes.get(draft.id)
+    return outcome?.status === 'saved' && draft.status === 'review' ? { ...draft, status: 'converted', convertedFlightId: outcome.flightId } : draft
+  })
 }
 
 export type Readiness = 'date' | 'year' | 'issue'

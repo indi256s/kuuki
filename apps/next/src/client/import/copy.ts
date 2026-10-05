@@ -111,7 +111,15 @@ export const S = {
   importCount: p('Import', 'Импортировать'),
   importing: p('Saving flights…', 'Сохраняем перелёты…'),
   nothingChosen: p('Select at least one flight to import.', 'Выберите хотя бы один перелёт.'),
-  unsavedBlock: p('Some edits are not saved yet. Save or discard them first.', 'Некоторые правки ещё не сохранены. Сохраните или отмените их.'),
+  unsavedBlock: p('Some edits are not saved yet. Use “Save changes” on the flight you edited, or discard them first.', 'Некоторые правки ещё не сохранены. Нажмите «Сохранить изменения» у изменённого рейса или отмените их.'),
+  unsavedRow: p('Changes not saved yet. Use “Save changes” to keep them; leaving this page loses only these changes.', 'Изменения ещё не сохранены. Нажмите «Сохранить изменения», чтобы оставить их; если уйти со страницы, потеряются только они.'),
+  retention: p('Kept until {date}. Flights you have not saved by then are removed.', 'Хранится до {date}. Несохранённые к этому дню перелёты будут удалены.'),
+  sourceAgain: p('Your document is not kept, so choose the file or paste the text again to try again.', 'Документ не сохраняется, поэтому выберите файл или вставьте текст ещё раз.'),
+  cancelledNote: p('You cancelled recognition. These flights were found before it stopped; check them and add anything missing by hand.', 'Вы отменили распознавание. Эти перелёты найдены до остановки; проверьте их и добавьте недостающее вручную.'),
+  cancelReadFailed: p('Recognition was cancelled, but the flights found so far could not be loaded. Reload the page to see them.', 'Распознавание отменено, но найденные перелёты не удалось загрузить. Обновите страницу, чтобы увидеть их.'),
+  reviewRemaining: p('Review the remaining flights', 'Проверить оставшиеся перелёты'),
+  retryOriginal: p('Retry original save', 'Повторить исходное сохранение'),
+  checkedJournal: p('I checked the journal — start a new save', 'Журнал проверен — начать новое сохранение'),
   manualInvalid: p('Fix the highlighted fields on the manual flights first.', 'Сначала исправьте выделенные поля у рейсов, добавленных вручную.'),
   cancelImport: p('Discard import', 'Отменить импорт'),
   discardTitle: p('Discard this import?', 'Отменить этот импорт?'),
@@ -182,6 +190,7 @@ export const COUNTS = {
   aircraftSaveN: { en: { one: 'Save {count} aircraft', other: 'Save {count} aircraft' }, ru: { one: 'Сохранить {count} самолёт', few: 'Сохранить {count} самолёта', many: 'Сохранить {count} самолётов', other: 'Сохранить {count} самолёта' } },
   aircraftOffered: { en: { one: '{count} suggestion', other: '{count} suggestions' }, ru: { one: '{count} предложение', few: '{count} предложения', many: '{count} предложений', other: '{count} предложения' } },
   skipped: { en: { one: '{count} skipped', other: '{count} skipped' }, ru: { one: '{count} пропущен', few: '{count} пропущено', many: '{count} пропущено', other: '{count} пропущено' } },
+  remaining: { en: { one: '{count} flight is still waiting in review.', other: '{count} flights are still waiting in review.' }, ru: { one: 'В проверке остался {count} перелёт.', few: 'В проверке осталось {count} перелёта.', many: 'В проверке осталось {count} перелётов.', other: 'В проверке осталось {count} перелёта.' } },
   alreadySavedN: { en: { one: '{count} flight saved already', other: '{count} flights saved already' }, ru: { one: '{count} перелёт уже сохранён', few: '{count} перелёта уже сохранены', many: '{count} перелётов уже сохранены', other: '{count} перелёта уже сохранены' } },
 } satisfies Record<string, CountForms>
 
@@ -249,7 +258,16 @@ export const ROW_FAILURE: Record<RowFailureKind, Pair> = {
   missing: p('This flight is no longer part of the import.', 'Этого перелёта больше нет в импорте.'),
   transient: p('The service had a problem. Trying again is safe.', 'У сервиса возникла проблема. Повторить безопасно.'),
 }
-export const MANUAL_FAILED = p('This manual flight was not saved.', 'Этот рейс, добавленный вручную, не сохранён.')
+export type ManualFailureKind = 'refused' | 'busy' | 'uncertain' | 'unconfirmed' | 'expired'
+/** What happened to a flight added by hand, in the words the member needs to choose the next step. */
+export const MANUAL_FAILURE: Record<ManualFailureKind, Pair> = {
+  refused: p('The service refused these details, so nothing was saved. Fix the fields and save again.', 'Сервис отклонил эти данные, поэтому ничего не сохранено. Исправьте поля и сохраните ещё раз.'),
+  busy: p('Too many requests right now. Nothing was saved; try again in a moment.', 'Сейчас слишком много запросов. Ничего не сохранено; повторите через минуту.'),
+  uncertain: p('We did not get a clear answer, so this flight may or may not be saved. Retry the original save, or check your journal first.', 'Мы не получили чёткого ответа, поэтому рейс мог сохраниться или нет. Повторите исходное сохранение или сначала проверьте журнал.'),
+  unconfirmed: p('An earlier save of this flight is unconfirmed, so the changed details were not sent. Retry the original save, or check your journal and start a new save.', 'Предыдущее сохранение этого рейса не подтверждено, поэтому изменённые данные не отправлены. Повторите исходное сохранение или проверьте журнал и начните новое.'),
+  expired: p('A safe retry is no longer possible for this flight. Check your journal, then start a new save.', 'Безопасный повтор для этого рейса уже невозможен. Проверьте журнал и начните новое сохранение.'),
+}
+export const MANUAL_ROW_RETRYABLE: Record<ManualFailureKind, boolean> = { refused: false, busy: true, uncertain: true, unconfirmed: false, expired: false }
 
 export function relativeInstant(locale: Locale, iso: string): string {
   const date = new Date(iso)

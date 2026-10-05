@@ -4,24 +4,34 @@ import { Trash2 } from 'lucide-react'
 import { useId } from 'react'
 import type { Locale } from '../../lib/format'
 import { Button } from '../ui/button'
-import { MANUAL_FAILED, S } from './copy'
+import { MANUAL_FAILURE, S } from './copy'
+import type { ManualRowState } from './manual-save'
 import { RowForm } from './row-form'
 import { validateValues, type FieldValues } from './review-model'
 
-export interface ManualRowState { key: string; values: FieldValues; failed?: boolean }
-
 /** An inline row for a flight the document did not contain. It uses the same form and validation as a draft edit. */
-export function ManualRow({ locale, row, showErrors, onChange, onRemove, disabled }: {
-  locale: Locale; row: ManualRowState; showErrors: boolean; onChange: (values: FieldValues) => void; onRemove: () => void; disabled?: boolean
+export function ManualRow({ locale, row, showErrors, onChange, onRemove, onRetryOriginal, onNewOperation, disabled }: {
+  locale: Locale; row: ManualRowState; showErrors: boolean; onChange: (values: FieldValues) => void; onRemove: () => void
+  /** Resend the stored original payload (uncertain or unconfirmed saves). */
+  onRetryOriginal: () => void
+  /** The member checked the journal: forget the old attempt and treat the row as a new save. */
+  onNewOperation: () => void
+  disabled?: boolean
 }) {
   const id = useId()
   const errors = showErrors ? validateValues(row.values) : {}
-  return <li className="import-row import-manual" data-failed={row.failed ? 'true' : undefined}>
+  return <li className="import-row import-manual" data-failed={row.failure ? 'true' : undefined}>
     <div className="import-manual-head">
       <h3>{S.manualTitle[locale]}</h3>
       <Button dense variant="ghost" disabled={disabled} onClick={onRemove} aria-label={S.manualRemove[locale]}><Trash2 size={16} strokeWidth={2} aria-hidden="true" /></Button>
     </div>
-    {row.failed ? <p className="import-note" role="alert">{MANUAL_FAILED[locale]}</p> : null}
+    {row.failure ? <div className="import-note" role="alert">
+      <p>{MANUAL_FAILURE[row.failure.kind][locale]}</p>
+      {row.failure.kind === 'uncertain' || row.failure.kind === 'unconfirmed' || row.failure.kind === 'expired' ? <div className="import-actions">
+        {row.failure.kind !== 'expired' ? <Button dense disabled={disabled} onClick={onRetryOriginal}>{S.retryOriginal[locale]}</Button> : null}
+        <Button dense variant="ghost" disabled={disabled} onClick={onNewOperation}>{S.checkedJournal[locale]}</Button>
+      </div> : null}
+    </div> : null}
     <RowForm locale={locale} idPrefix={id} values={row.values} onChange={onChange} errors={errors} disabled={disabled} />
   </li>
 }

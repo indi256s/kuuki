@@ -2,7 +2,7 @@
 
 import clsx from 'clsx'
 import { TriangleAlert } from 'lucide-react'
-import { useId, useRef, useState } from 'react'
+import { useEffect, useId, useRef, useState } from 'react'
 import { formatDateOnly, type Locale } from '../../lib/format'
 import { Button } from '../ui/button'
 import { Disclosure } from '../ui/disclosure'
@@ -13,21 +13,26 @@ import { BLOCK, FIELD_LABEL, S, tx } from './copy'
 import type { DraftChange, SaveState } from './draft-saver'
 import type { Draft } from './import-types'
 import { RowForm } from './row-form'
-import { changedFields, isChosen, isDuplicate, lowFields, percent, readiness, rowConfidence, toValues, validateValues, type FieldError, type FieldName } from './review-model'
+import { changedFields, FIELDS, isChosen, isDuplicate, lowFields, percent, readiness, rowConfidence, toValues, validateValues, type FieldError, type FieldName, type FieldValues } from './review-model'
 
 export interface ReviewRowProps {
   locale: Locale
+  /** The row as shown: the stored draft with the member's unsent change laid over it. */
   draft: Draft
+  /** The stored draft, without the unsent overlay. Discarding an edit goes back to this. */
+  stored: Draft
   state?: SaveState
   mobile: boolean
   onChange: (change: DraftChange) => void
+  /** Reports whether the form holds a correction the member has typed but not saved. */
+  onDirty: (id: string, dirty: boolean) => void
   onRetry: () => void
   onDiscard: () => void
 }
 
 const timeRange = (draft: Draft) => [draft.fields.departure_time, draft.fields.arrival_time].filter(Boolean).join('–')
 
-export function ReviewRow({ locale, draft, state, mobile, onChange, onRetry, onDiscard }: ReviewRowProps) {
+export function ReviewRow({ locale, draft, stored, state, mobile, onChange, onDirty, onRetry, onDiscard }: ReviewRowProps) {
   const id = useId()
   const duplicate = isDuplicate(draft)
   const blocked = readiness(draft)
@@ -36,12 +41,20 @@ export function ReviewRow({ locale, draft, state, mobile, onChange, onRetry, onD
   const low = lowFields(draft)
   const [values, setValues] = useState(() => toValues(draft.fields))
   const [seen, setSeen] = useState(draft.version)
+  // What the form started from: a typed value that differs from it is the member's own and survives a newer version.
+  const [base, setBase] = useState<{ values: FieldValues; year: boolean }>(() => ({ values: toValues(draft.fields), year: draft.yearConfirmed }))
   const [yearChecked, setYearChecked] = useState(draft.yearConfirmed)
   const [errors, setErrors] = useState<Partial<Record<FieldName, FieldError>>>({})
   const [open, setOpen] = useState(false)
   const [sheet, setSheet] = useState(false)
   const editRef = useRef<HTMLButtonElement>(null)
-  if (draft.version !== seen && !state) { setSeen(draft.version); setValues(toValues(draft.fields)); setYearChecked(draft.yearConfirmed) }
+  if (draft.version !== seen && !state) {
+    const next = toValues(draft.fields)
+    setSeen(draft.version)
+    setValues(current => Object.fromEntries(FIELDS.map(name => [name, current[name] !== base.values[name] ? current[name] : next[name]])) as FieldValues)
+    setYearChecked(current => current !== base.year ? current : draft.yearConfirmed)
+    setBase({ values: next, year: draft.yearConfirmed })
+  }
 
   const city = cityOf
   const airline = draft.fields.airline_iata ? (airlineName(draft.fields.airline_iata) ?? draft.fields.airline_iata) : undefined
@@ -49,6 +62,10 @@ export function ReviewRow({ locale, draft, state, mobile, onChange, onRetry, onD
   const dateText = draft.fields.date ? formatDateOnly(locale, draft.fields.date, 'medium') : S.noDate[locale]
   const flightNumber = draft.fields.flight_number ? `${draft.fields.airline_iata}${draft.fields.flight_number}`.trim() : undefined
   const needsYear = !draft.yearExplicit
+  // Typed but not yet sent: the parent blocks the import and the unload warning is armed until it is saved or discarded.
+  const dirty = Object.keys(changedFields(draft.fields, values)).length > 0 || (needsYear && yearChecked !== draft.yearConfirmed)
+  useEffect(() => { onDirty(draft.id, dirty) }, [draft.id, dirty, onDirty])
+  useEffect(() => () => onDirty(draft.id, false), [draft.id, onDirty])
 
   const save = () => {
     const found = validateValues(values)
@@ -87,10 +104,10 @@ export function ReviewRow({ locale, draft, state, mobile, onChange, onRetry, onD
   const notes = <>
     {blockText ? <p className="import-note" id={`${id}-block`}>{blockText}</p> : null}
     {issueText ? <p className="import-note">{issueText}</p> : null}
-    <p className="import-note" role="status" data-state={state?.status}>{stateText}</p>
+    <p className="import-note" role="status" data-state={state?.status ?? (dirty ? 'unsaved' : undefined)}>{stateText || (dirty ? S.unsavedRow[locale] : '')}</p>
     {failedState ? <div className="import-actions">
       <Button dense onClick={onRetry}>{S.retrySave[locale]}</Button>
-      <Button dense variant="ghost" onClick={() => { onDiscard(); setValues(toValues(draft.fields)); setErrors({}) }}>{S.discardEdit[locale]}</Button>
+      <Button dense variant="ghost" onClick={() => { onDiscard(); setValues(toValues(stored.fields)); setYearChecked(stored.yearConfirmed); setErrors({}) }}>{S.discardEdit[locale]}</Button>
     </div> : null}
   </>
 

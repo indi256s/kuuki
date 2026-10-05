@@ -4,24 +4,23 @@ import clsx from 'clsx'
 import { useRouter } from 'next/navigation'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { Locale } from '../../lib/format'
-import { createFlights } from '../capture/flight-writes'
 import { useMobile } from '../ui/use-mobile'
 import { useWriteFeedback } from '../write-feedback'
 import type { AircraftApi } from './aircraft-panel'
 import type { AircraftRun, AircraftTarget } from './aircraft-review'
 import { runConfirm, type ConfirmOutcome, type RowOutcome } from './confirm-runner'
-import { ROW_FAILURE, S } from './copy'
+import { MANUAL_FAILURE, MANUAL_ROW_RETRYABLE, ROW_FAILURE, S } from './copy'
 import { DoneStep, rowLabel, type FailedRow, type NewStamp } from './done-step'
 import { DraftSaver, type DraftChange, type SaveState } from './draft-saver'
 import { FailurePanel } from './failure-panel'
 import { fetchPressedCountries, cancelBatch, confirmItems, discardBatch, listUnfinished, patchDraft, type ImportSource } from './import-api'
 import type { FailureAction } from './import-errors'
 import type { Draft, UnfinishedImport } from './import-types'
-import type { ManualRowState } from './manual-row'
+import { newManualRow, saveManualRows, startNewOperation, type ManualRowState } from './manual-save'
 import { ProgressStep } from './progress-step'
-import { emptyValues, hasValues, isChosen, partition, validateValues } from './review-model'
+import { emptyValues, hasValues, isChosen, partition, validateValues, withSaved } from './review-model'
 import { ReviewStep } from './review-step'
-import { newlyPressed, routeCountries, routeKm, toFlightInput } from './flight-input'
+import { newlyPressed, routeCountries, routeKm } from './flight-input'
 import { SourceStep } from './source-step'
 import { useImportBatch, type BatchApi } from './use-import-batch'
 
@@ -52,7 +51,15 @@ export function ImportClient({ ownerId, locale, initialBatchId = null, initialSo
   const { setDraft } = batch
 
   const [saveStates, setSaveStates] = useState<Record<string, SaveState>>({})
-  const [saver] = useState(() => new DraftSaver({
+  // Typed but unsaved corrections reported by the rows' forms. Together with the saver's states they gate the import.
+  const [dirty, setDirty] = useState<ReadonlySet<string>>(new Set())
+  const onDirty = useCallback((id: string, flag: boolean) => setDirty(previous => {
+    if (previous.has(id) === flag) return previous
+    const next = new Set(previous)
+    if (flag) next.add(id); else next.delete(id)
+    return next
+  }), [])
+  const createSaver = () => new DraftSaver({
     patch: patchDraft,
     onDraft: draft => setDraft(draft),
     onState: (id, state) => setSaveStates(previous => {
@@ -60,14 +67,17 @@ export function ImportClient({ ownerId, locale, initialBatchId = null, initialSo
       const rest = { ...previous }; delete rest[id]
       return rest
     }),
-  }))
+  })
+  const [saver, setSaver] = useState(createSaver)
+  /** Edits belong to one batch: a reset fences the old saver (in-flight answers are dropped) and starts clean. */
+  const resetEdits = () => { saver.dispose(); setSaver(createSaver()); setSaveStates({}); setDirty(new Set()) }
   const [manualRows, setManualRows] = useState<ManualRowState[]>([])
   const [manualOnly, setManualOnly] = useState(false)
   const [confirming, setConfirming] = useState(false)
   const [showDone, setShowDone] = useState(false)
   const [rows, setRows] = useState<Map<string, RowOutcome>>(new Map())
   const [manualSaved, setManualSaved] = useState<ManualRowState[]>([])
-  const [requested, setRequested] = useState(0)
+  const [requestedKeys, setRequestedKeys] = useState<ReadonlySet<string>>(new Set())
   const [checking, setChecking] = useState(false)
   const [checkFailed, setCheckFailed] = useState(false)
   const [newCodes, setNewCodes] = useState<string[] | null>(null)
@@ -80,11 +90,12 @@ export function ImportClient({ ownerId, locale, initialBatchId = null, initialSo
   const [sourceKey, setSourceKey] = useState(0)
   const [aircraftSaved, setAircraftSaved] = useState<Set<number>>(new Set())
   const lastSource = useRef<{ source: ImportSource; operationId: string } | null>(null)
+  const settledOperations = useRef(new Set<string>())
   const baseline = useRef<Set<string> | null | undefined>(undefined)
   const stampsFor = useRef(-1)
 
   // Unsent edits live only in memory; warn before the page goes away with some still unsent.
-  const unsent = Object.keys(saveStates).length > 0
+  const unsent = Object.keys(saveStates).length > 0 || dirty.size > 0
   useEffect(() => {
     if (!unsent) return
     const warn = (event: BeforeUnloadEvent) => { event.preventDefault() }
@@ -92,7 +103,9 @@ export function ImportClient({ ownerId, locale, initialBatchId = null, initialSo
     return () => window.removeEventListener('beforeunload', warn)
   }, [unsent])
 
-  const groups = useMemo(() => partition(batch.drafts), [batch.drafts])
+  // A confirm answer is authoritative even if the read after it failed, so its saves are laid over the snapshot.
+  const drafts = useMemo(() => withSaved(batch.drafts, rows), [batch.drafts, rows])
+  const groups = useMemo(() => partition(drafts), [drafts])
   const savedDrafts = useMemo(() => rows.size === 0 ? groups.saved : groups.saved.filter(draft => rows.has(draft.id)), [groups.saved, rows])
 
   const finishedBatch = batch.phase === 'ready' && batch.batch?.status === 'completed' && rows.size === 0 && !manualOnly
@@ -101,7 +114,16 @@ export function ImportClient({ ownerId, locale, initialBatchId = null, initialSo
     : batch.phase === 'processing' || batch.phase === 'starting' ? 'processing' : 'source'
   const failure = step === 'source' && (batch.phase === 'failed' || (batch.phase === 'ready' && batch.partial && batch.drafts.length === 0)) ? batch.failure : null
 
-  const start = useCallback((source: ImportSource, operationId: string) => {
+  // Once a submission produced a stored batch with a known outcome, replaying its operation id only replays that outcome
+  // (ADR 0001 section 6), so the next attempt with the same source gets a new id. While the outcome is unknown (the
+  // request was lost, or the batch is still running) the id is reused, so no second recognition is started.
+  const batchStatus = batch.batch?.status
+  useEffect(() => {
+    if (batchStatus && batchStatus !== 'processing' && lastSource.current) settledOperations.current.add(lastSource.current.operationId)
+  }, [batchStatus])
+
+  const start = useCallback((source: ImportSource, requestedId: string) => {
+    const operationId = settledOperations.current.has(requestedId) ? crypto.randomUUID() : requestedId
     lastSource.current = { source, operationId }
     setSourceName(source.sourceLabel ?? null)
     setNotice(null)
@@ -109,19 +131,23 @@ export function ImportClient({ ownerId, locale, initialBatchId = null, initialSo
   }, [batch])
 
   const reset = useCallback(() => {
-    batch.reset(); writeUrl(null)
-    setRows(new Map()); setManualRows([]); setManualSaved([]); setManualOnly(false); setShowDone(false); setRequested(0)
+    batch.reset(); writeUrl(null); resetEdits()
+    setRows(new Map()); setManualRows([]); setManualSaved([]); setManualOnly(false); setShowDone(false); setRequestedKeys(new Set())
     setNewCodes(null); setUnfinished(null); setNotice(null); setCheckFailed(false); setAircraftSaved(new Set())
-    baseline.current = undefined; stampsFor.current = -1; lastSource.current = null
+    baseline.current = undefined; stampsFor.current = -1; lastSource.current = null; settledOperations.current.clear()
     setSourceKey(key => key + 1)
-  }, [batch])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [batch, saver])
 
   const onFailureAction = async (action: FailureAction) => {
     if (action === 'retry') {
-      if (lastSource.current) { void batch.start(lastSource.current.source, lastSource.current.operationId); return }
-      try { await batch.reload() } catch { reset() }
+      const last = lastSource.current
+      if (last) { start(last.source, last.operationId); return }
+      // After a reload the document is gone (it is never stored): ask for it again instead of replaying the stored failure.
+      const type = batch.batch?.sourceType
+      reset(); setSourceMode(type === 'text' ? 'text' : 'file'); setNotice(S.sourceAgain[locale])
     } else if (action === 'manual') {
-      batch.reset(); writeUrl(null); setManualOnly(true); setManualRows([{ key: crypto.randomUUID(), values: emptyValues() }])
+      batch.reset(); writeUrl(null); resetEdits(); setManualOnly(true); setManualRows([newManualRow(emptyValues())])
     } else if (action === 'otherFile' || action === 'pasteText') {
       reset(); setSourceMode(action === 'otherFile' ? 'file' : 'text')
     } else if (action === 'newImport') reset()
@@ -140,7 +166,11 @@ export function ImportClient({ ownerId, locale, initialBatchId = null, initialSo
     const id = batch.batch?.id
     if (!id) { reset(); return }
     setCancelling(true); setCancelError(null)
-    try { await cancelBatch(id); reset() } catch { setCancelError(S.cancelFailed[locale]) } finally { setCancelling(false) }
+    try {
+      await cancelBatch(id)
+      // Cancelling keeps the rows already extracted: read them back and show them, and leave only when none remain.
+      try { const snapshot = await batch.reload(); if (!snapshot || snapshot.drafts.length === 0) reset() } catch { setCancelError(S.cancelReadFailed[locale]) }
+    } catch { setCancelError(S.cancelFailed[locale]) } finally { setCancelling(false) }
   }
   const onDiscardImport = async () => {
     const id = batch.batch?.id
@@ -156,11 +186,11 @@ export function ImportClient({ ownerId, locale, initialBatchId = null, initialSo
   }
 
   /** Save the given drafts and manual rows. Runs the server confirm sequentially, then re-reads the stored snapshot. */
-  const save = async (draftIds: string[], manualKeys: string[]) => {
+  const save = async (draftIds: string[], manualKeys: string[], originalKeys: ReadonlySet<string> = new Set()) => {
     if (confirming) return
     setConfirming(true); setCheckFailed(false)
     if (baseline.current === undefined) baseline.current = await fetchPressedCountries()
-    const byId = new Map(batch.drafts.map(draft => [draft.id, draft]))
+    const byId = new Map(drafts.map(draft => [draft.id, draft]))
     const items = draftIds.flatMap(id => { const draft = byId.get(id); return draft && draft.status === 'review' ? [{ draftId: id, version: draft.version }] : [] })
     const acks: Array<{ derived_state?: 'ready' | 'pending'; revision?: number }> = []
     let wrote = false
@@ -173,13 +203,14 @@ export function ImportClient({ ownerId, locale, initialBatchId = null, initialSo
     }
     const manual = manualRows.filter(row => manualKeys.includes(row.key))
     if (manual.length > 0) {
-      const results = await createFlights(ownerId, manual.map(row => ({ operationId: row.key, flight: toFlightInput(row.values) })), ack => acks.push(ack))
-      const saved = manual.filter((_, index) => results[index] === null)
-      wrote ||= saved.length > 0
-      setManualSaved(previous => [...previous, ...saved])
-      setManualRows(previous => previous.flatMap(row => saved.some(item => item.key === row.key) ? [] : [{ ...row, failed: manualKeys.includes(row.key) ? true : row.failed }]))
+      const result = await saveManualRows(ownerId, manual, originalKeys)
+      acks.push(...result.acks)
+      wrote ||= result.saved.length > 0
+      setManualSaved(previous => [...previous, ...result.saved])
+      setManualRows(previous => previous.flatMap(row => result.saved.some(item => item.key === row.key) ? [] : [result.rows.get(row.key) ?? row]))
     }
-    setRequested(previous => previous + items.length + manual.length)
+    // The denominator counts each row once, however often it is retried.
+    setRequestedKeys(previous => new Set([...previous, ...items.map(item => item.draftId), ...manual.map(row => row.key)]))
     if (wrote) acknowledgeWrites(acks)
     // The stored snapshot is the truth: it settles rows whose answer was lost.
     setChecking(true)
@@ -205,10 +236,13 @@ export function ImportClient({ ownerId, locale, initialBatchId = null, initialSo
       if (row.status === 'failed') list.push({ key: id, label, message: ROW_FAILURE[row.failure][locale], retryable: row.retryable })
       else list.push({ key: id, label, message: row.status === 'uncertain' ? S.uncertainRow[locale] : S.unsentRow[locale], retryable: true })
     }
-    for (const row of manualRows) if (row.failed) list.push({ key: row.key, label: rowLabel(locale, row.values), message: ROW_FAILURE.transient[locale], retryable: true })
+    for (const row of manualRows) if (row.failure) list.push({ key: row.key, label: rowLabel(locale, row.values), message: MANUAL_FAILURE[row.failure.kind][locale], retryable: MANUAL_ROW_RETRYABLE[row.failure.kind] })
     return list
   }, [rows, batch.drafts, manualRows, locale])
   const retryable = failures.filter(item => item.retryable)
+
+  const onManualRetryOriginal = (key: string) => { void save([], [key], new Set([key])) }
+  const onManualNewOperation = (key: string) => setManualRows(previous => previous.map(row => row.key === key ? startNewOperation(ownerId, row) : row))
 
   const onRetry = () => {
     const draftIds = retryable.filter(item => rows.has(item.key)).map(item => item.key)
@@ -248,14 +282,15 @@ export function ImportClient({ ownerId, locale, initialBatchId = null, initialSo
       <SourceStep key={sourceKey} locale={locale} busy={false} initialMode={sourceMode} onSubmit={start} notice={notice} />
     </> : null}
     {step === 'processing' ? <ProgressStep locale={locale} batch={batch.batch} drafts={batch.drafts} sourceName={sourceName} onCancel={() => void onCancelRun()} cancelling={cancelling} error={cancelError} /> : null}
-    {step === 'review' ? <ReviewStep locale={locale} mobile={mobile === true} drafts={batch.drafts} saveStates={saveStates} partial={batch.partial} failure={batch.failure}
-      manualRows={manualRows} onManualRows={setManualRows} confirming={confirming} notice={notice}
+    {step === 'review' ? <ReviewStep locale={locale} mobile={mobile === true} drafts={drafts} saveStates={saveStates} partial={batch.partial} cancelled={batch.cancelled} failure={batch.failure}
+      expiresAt={batch.batch?.expiresAt ?? null} dirty={dirty} onDirty={onDirty}
+      manualRows={manualRows} onManualRows={setManualRows} onManualRetryOriginal={onManualRetryOriginal} onManualNewOperation={onManualNewOperation} confirming={confirming} notice={notice}
       onChange={onChange} onSelectAll={(drafts, selected) => void onSelectAll(drafts, selected)} onRetry={id => void saver.retry(id)} onDiscardEdit={id => saver.discard(id)}
       onConfirm={onConfirm} onDiscardImport={onDiscardImport} /> : null}
-    {step === 'done' ? <DoneStep locale={locale} savedCount={savedCount} requested={requested} totalKm={totalKm}
+    {step === 'done' ? <DoneStep locale={locale} savedCount={savedCount} requested={requestedKeys.size} totalKm={totalKm}
       newCountries={newCodes === null ? null : newCodes.length} stamps={stamps} publication={feedback.status}
       failures={failures} retryCount={retryable.length} retrying={confirming} checking={checking} checkFailed={checkFailed}
-      canReview={groups.active.length + groups.duplicates.length > 0 || manualRows.length > 0} aircraftTargets={aircraftTargets} aircraftApi={aircraftApi} theme={themeNow()}
+      remaining={groups.active.length + groups.duplicates.length + manualRows.length} aircraftTargets={aircraftTargets} aircraftApi={aircraftApi} theme={themeNow()}
       onRetry={onRetry} onReview={() => setShowDone(false)} onImportMore={reset} onAircraftSaved={onAircraftSaved} /> : null}
   </div>
 }
