@@ -1,9 +1,12 @@
 import { test, expect, type Page } from '@playwright/test'
 import { claimUsername } from './helpers'
 
-// Each journey owns a fresh account, so claims and visits it writes never leak into the shared fixture.
+let client = 0
+
+// Each journey owns a fresh account, so claims and visits it writes never leak into the shared fixture. Its
+// sign-up uses its own client IP so these accounts never spend the shared per-IP auth budget of later files.
 async function account(page: Page, origin: string) {
-  const signup = await page.request.post('/api/auth/sign-up/email', { headers: { Origin: origin }, data: { email: `passport-${crypto.randomUUID()}@example.test`, password: 'passport-password-2026' } })
+  const signup = await page.request.post('/api/auth/sign-up/email', { headers: { Origin: origin, 'CF-Connecting-IP': `198.51.100.${++client}` }, data: { email: `passport-${crypto.randomUUID()}@example.test`, password: 'passport-password-2026' } })
   expect(signup.status()).toBe(201)
   await claimUsername(page, origin)
   const csrf = decodeURIComponent((await page.context().cookies()).find(cookie => cookie.name === 'kuuki_csrf')!.value)
