@@ -7,20 +7,25 @@ test('settings saves owned profile and privacy on a fresh account', async ({ pag
   const signup = await page.request.post('/api/auth/sign-up/email', { headers: { Origin: baseURL! }, data: { email, password: 'temporary-password-2026', displayName: 'Settings test' } })
   expect(signup.status()).toBe(201)
   await claimUsername(page, baseURL!)
+  const cookies = await page.context().cookies()
+  const csrf = decodeURIComponent(cookies.find(cookie => cookie.name === 'kuuki_csrf')?.value ?? '')
+  for (let index = 0; index < 5; index++) {
+    const created = await page.request.post('/api/flights', { headers: { Origin: baseURL!, 'X-CSRF-Token': csrf, 'Idempotency-Key': crypto.randomUUID() }, data: { date: '2025-01-01', origin: 'JFK', destination: 'BOS' } })
+    expect(created.status()).toBe(201)
+  }
   await page.goto('/settings')
   await expect(page.getByRole('heading', { name: 'Settings' })).toBeVisible()
   await page.getByLabel('Display name').fill('Account test name')
   await page.getByLabel('Bio').fill('A private test bio')
-  await page.getByLabel('Public profile').check()
-  await page.getByLabel('Show on leaderboards when eligible').check()
+  await page.getByRole('switch', { name: 'Public profile' }).click()
+  await page.getByRole('switch', { name: 'Show on leaderboards when eligible' }).click()
   await page.getByRole('button', { name: 'Save changes' }).click()
   await expect(page.getByRole('status')).toContainText('Saved.')
   const profile = await page.request.get('/api/auth/me')
   expect(profile.status()).toBe(200)
   const profileData = await profile.json() as { profile: { display_name: string; bio: string; is_public: boolean; show_on_leaderboards: boolean } }
   expect(profileData.profile).toMatchObject({ display_name: 'Account test name', bio: 'A private test bio', is_public: true, show_on_leaderboards: true })
-  await page.getByRole('button', { name: 'Download flights' }).click()
-  await expect(page.getByRole('status')).toContainText('No flights to export yet.')
+  await expect(page.getByText('Records: 5')).toBeVisible()
 })
 
 test('settings exports the existing fixture flights without mutating them', async ({ page, baseURL }) => {
@@ -44,6 +49,7 @@ test('ground visit export preserves year, entry and note while neutralizing spre
     data: { countryCode: 'US', visitYear: 2024, entryMethod: 'land', note },
   })
   expect(created.status()).toBe(201)
+  await page.reload()
   const download = page.waitForEvent('download')
   await page.getByRole('button', { name: 'Download ground visits' }).click()
   const file = await download
