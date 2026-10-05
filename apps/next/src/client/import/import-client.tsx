@@ -107,6 +107,8 @@ export function ImportClient({ ownerId, locale, initialBatchId = null, initialSo
     setManualRows(previous => previous.some(stale) ? previous.map(row => stale(row) ? { ...row, failure: undefined } : row) : previous)
   }, [ownerId])
   useEffect(() => { refreshReceipts() }, [refreshReceipts])
+  // An explicit "Back to review" wins over showing a completed batch's summary.
+  const [reviewing, setReviewing] = useState(false)
   const lastSource = useRef<{ source: ImportSource; operationId: string } | null>(null)
   const settledOperations = useRef(new Set<string>())
   const baseline = useRef<Set<string> | null | undefined>(undefined)
@@ -134,7 +136,7 @@ export function ImportClient({ ownerId, locale, initialBatchId = null, initialSo
   const groups = useMemo(() => partition(drafts), [drafts])
   const savedDrafts = useMemo(() => rows.size === 0 ? groups.saved : groups.saved.filter(draft => rows.has(draft.id)), [groups.saved, rows])
 
-  const finishedBatch = batch.phase === 'ready' && batch.batch?.status === 'completed' && rows.size === 0 && !manualOnly
+  const finishedBatch = batch.phase === 'ready' && batch.batch?.status === 'completed' && rows.size === 0 && !manualOnly && !reviewing
   const step: Step = showDone || finishedBatch ? 'done'
     : manualOnly || (batch.phase === 'ready' && !(batch.partial && batch.drafts.length === 0)) ? 'review'
     : batch.phase === 'processing' || batch.phase === 'starting' ? 'processing' : 'source'
@@ -158,7 +160,7 @@ export function ImportClient({ ownerId, locale, initialBatchId = null, initialSo
 
   const reset = useCallback(() => {
     batch.reset(); writeUrl(null); resetEdits()
-    setRows(new Map()); setManualRows([]); setManualSaved([]); setManualOnly(false); setShowDone(false); setHoldDone(false); setRequestedKeys(new Set())
+    setRows(new Map()); setManualRows([]); setManualSaved([]); setManualOnly(false); setShowDone(false); setReviewing(false); setHoldDone(false); setRequestedKeys(new Set())
     setNewCodes(null); setUnfinished(null); setNotice(null); setCheckFailed(false); setAircraftSaved(new Set())
     baseline.current = undefined; stampsFor.current = -1; lastSource.current = null; settledOperations.current.clear()
     setSourceKey(key => key + 1)
@@ -356,6 +358,6 @@ export function ImportClient({ ownerId, locale, initialBatchId = null, initialSo
       newCountries={newCodes === null ? null : newCodes.length} stamps={stamps} publication={feedback.status}
       failures={failures} retryCount={retryable.length} retryBlocked={unsent ? S.unsavedDone[locale] : undefined} retrying={confirming || recoveryRetrying !== null} checking={checking} checkFailed={checkFailed}
       remaining={groups.active.length + groups.duplicates.length + manualRows.length} aircraftTargets={aircraftTargets} aircraftApi={aircraftApi} theme={themeNow()}
-      onRetry={onRetry} onReview={() => setShowDone(false)} onImportMore={reset} onAircraftSaved={onAircraftSaved} /> : null}
+      onRetry={onRetry} onReview={() => { setShowDone(false); setReviewing(true) }} onImportMore={reset} onAircraftSaved={onAircraftSaved} /> : null}
   </div>
 }

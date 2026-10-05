@@ -207,6 +207,20 @@ describe('R3-I2 a completed batch keeps restored saves settleable', () => {
     expect(screen.getByRole('heading', { name: /import finished/i })).toBeInTheDocument()
   })
 
+  it('Back to review wins over a batch that completed while manual work remained', async () => {
+    const user = userEvent.setup()
+    const batchApi = api()
+    const completed = snapshot([draft({ id: 'a', status: 'dismissed' })], { status: 'completed' })
+    render(<ImportClient ownerId="u1" locale="en" initialBatchId="b1" batchApi={batchApi} />)
+    await addManual(user)
+    vi.mocked(batchApi.readBatch).mockResolvedValue(completed) // the stored batch completed meanwhile
+    commitThenLose()
+    await user.click(screen.getByRole('button', { name: /import 1/i }))
+    await screen.findByRole('heading', { name: /some flights were not saved/i })
+    await user.click(screen.getByRole('button', { name: /^back to review$/i }))
+    expect(await screen.findByRole('heading', { name: /review flights/i })).toBeInTheDocument()
+    expect(within(manualRows()[0]).getByRole('button', { name: /i checked the journal/i })).toBeInTheDocument()
+  })
 })
 
 describe('R3-I3 an intact receipt past the safe-retry window', () => {
