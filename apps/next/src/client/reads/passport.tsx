@@ -74,7 +74,8 @@ function Inner({ ownerId, locale, initial, period }: { ownerId: string; locale: 
     for (const [key, value] of Object.entries(patch)) { if (value) params.set(key, value); else params.delete(key) }
     const href = withQuery('/passport', normalizePassportQuery(params).query)
     if (mode === 'push') router.push(href, { scroll: false })
-    else window.history.replaceState(window.history.state, '', href)
+    // Passing Next's own history state would mark the call as router-internal and skip the useSearchParams sync.
+    else window.history.replaceState(null, '', href)
   }, [router, search])
   const opener = useRef<HTMLElement | null>(null)
   const openCountry = useCallback((code: string) => {
@@ -96,10 +97,13 @@ function Inner({ ownerId, locale, initial, period }: { ownerId: string; locale: 
   // Focus returns to the stamp (or map list item) that opened the sheet; when it is gone (a removed country, a
   // deep link), to the page heading.
   const restoreFocus = (event: Event) => {
-    const target = opener.current?.isConnected ? opener.current : document.querySelector<HTMLElement>('main h1')
+    const opened = opener.current?.isConnected ? opener.current : null
+    const target = opened ?? document.querySelector<HTMLElement>('main h1')
     if (!target) return
     event.preventDefault()
-    target.focus()
+    // The heading is not focusable by itself; RouteFocus prepares it the same way.
+    if (!opened) target.tabIndex = -1
+    target.focus({ preventScroll: !opened })
   }
 
   return <section data-testid="passport-data" className="read-stack passport-data">

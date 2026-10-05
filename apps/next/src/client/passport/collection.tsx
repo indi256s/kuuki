@@ -64,7 +64,7 @@ export function PassportCover({ locale, figures, regions, name, onAdd, now }: {
         <span className="eyebrow">{ru ? `Новые в ${now.getUTCFullYear()}` : `New in ${now.getUTCFullYear()}`}</span>
         <strong>{formatNumber(locale, figures.newThisYear)}</strong>
       </div>
-      <div className="passport-figure">
+      <div className="passport-figure passport-figure-latest">
         <span className="eyebrow">{ru ? 'Последний штамп' : 'Latest stamp'}</span>
         {figures.latest ? <div className="passport-latest">
           <Stamp {...stampProps(figures.latest, locale, name)} static />
