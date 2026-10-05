@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useId, useRef, useState } from 'react'
+import { useEffect, useId, useRef, useState, useTransition } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { ArrowDown, ArrowUp } from 'lucide-react'
@@ -130,7 +130,9 @@ function JournalInner({ ownerId, locale, initial, query, page, filtered }: Props
   // The URL prop lags a navigation by a server round trip. Changes made in that window build on the last requested URL, not the stale prop.
   const requested = useRef(query)
   useEffect(() => { requested.current = query }, [query])
-  const apply = (changes: Record<string, string>, mode: 'push' | 'replace' | 'refine' = 'push') => {
+  const [navigating, startNavigation] = useTransition()
+  /** Returns whether a navigation was started. It runs in a transition, so `navigating` stays true until the new page has committed. */
+  const apply = (changes: Record<string, string>, mode: 'push' | 'replace' | 'refine' = 'push'): boolean => {
     const base = new URLSearchParams(requested.current)
     const next = new URLSearchParams(base)
     let refine = true
@@ -141,10 +143,11 @@ function JournalInner({ ownerId, locale, initial, query, page, filtered }: Props
     const listChanged = Object.keys(changes).some(key => key !== 'flight' && key !== 'page')
     if (listChanged) next.delete('page')
     const target = normalizeJournalQuery(next).query
-    if (target === normalizeJournalQuery(base).query) return
+    if (target === normalizeJournalQuery(base).query) return false
     if (listChanged) select([])
     requested.current = target
-    router[mode === 'replace' || (mode === 'refine' && refine) ? 'replace' : 'push'](withQuery('/journal', target), { scroll: false })
+    startNavigation(() => router[mode === 'replace' || (mode === 'refine' && refine) ? 'replace' : 'push'](withQuery('/journal', target), { scroll: false }))
+    return true
   }
   const navigate = (key: string, value: string, mode: 'push' | 'replace' = 'push') => apply({ [key]: value }, mode)
   const open = (id: number, edit = false, field?: 'aircraft') => { setEditing(edit); setFocusField(field); navigate('flight', String(id)) }
@@ -216,7 +219,7 @@ function JournalInner({ ownerId, locale, initial, query, page, filtered }: Props
     <JournalQueue ownerId={ownerId} locale={locale} filtered={filtered} hiddenIds={hidden} onEdit={id => open(id, true)} onDelete={ids => scheduleDelete(ids, 'queue')} />
     <section className="read-section">
       <h2 ref={listHeading} tabIndex={-1}>{locale === 'ru' ? 'Перелёты' : 'Flights'}</h2>
-      <JournalFilters locale={locale} query={query} filtered={filtered} apply={changes => apply(changes, 'refine')} />
+      <JournalFilters locale={locale} query={query} filtered={filtered} navigating={navigating} apply={changes => apply(changes, 'refine')} />
       {!online && <p id={offlineId} className="status-note">{t.offline}</p>}
       {data && isPublicationPending(data.revision, data.publishedRevision, data.derivedState) && <p role="status" className="status-note">{t.pending}</p>}
       {list.isError && <p role="alert" className="status-note">{t.backgroundError} <Button dense onClick={() => void list.refetch()}>{t.retry}</Button></p>}

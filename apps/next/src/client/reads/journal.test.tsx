@@ -43,8 +43,8 @@ function Harness({ start = '', flights = logged, total, locale = 'en' }: { start
 const hrefQuery = (href: string) => new URL(href, 'http://kuuki.test').search.slice(1)
 
 beforeEach(() => {
-  nav.push.mockReset().mockImplementation((href: string) => act(() => nav.set(hrefQuery(href))))
-  nav.replace.mockReset().mockImplementation((href: string) => act(() => nav.set(hrefQuery(href))))
+  nav.push.mockReset().mockImplementation((href: string) => { act(() => nav.set(hrefQuery(href))) })
+  nav.replace.mockReset().mockImplementation((href: string) => { act(() => nav.set(hrefQuery(href))) })
   nav.refresh.mockReset()
   nav.set.mockReset()
   // `/api/flights` returns the full Journal contract in one response; every other endpoint this view may call is stubbed explicitly.
@@ -79,6 +79,20 @@ it('groups upcoming flights first, then awaiting and logged history by year', ()
   expect(within(screen.getByTestId('journal-data')).getAllByRole('heading', { level: 3 }).map(heading => heading.textContent)).toEqual(['Upcoming', '2025 · Logged', '2026 · Awaiting'])
   expect(screen.getAllByRole('checkbox')).toHaveLength(3)
 })
+
+// A router whose navigations stay pending (as in Next, where the transition lasts until the page commits) until `deliver(..., true)` settles them.
+function slowRouter() {
+  const waiting: Array<() => void> = []
+  const impl = () => new Promise<void>(resolve => { waiting.push(resolve) })
+  nav.push.mockReset().mockImplementation(impl)
+  nav.replace.mockReset().mockImplementation(impl)
+  return {
+    /** The URL changes; with `settle` every pending navigation also completes. */
+    deliver: async (query: string, settle: boolean) => { await act(async () => { nav.set(query); if (settle) waiting.splice(0).forEach(resolve => resolve()) }) },
+    /** A URL change nobody here requested (Back, a link, Reset). */
+    external: async (query: string) => { await act(async () => { nav.set(query) }) },
+  }
+}
 
 describe('filters', () => {
   it('keeps the Status select (same element, still focused) after a keyboard change', async () => {
@@ -195,8 +209,7 @@ describe('filters', () => {
 
   it('keeps a field cleared after a commit that has not been answered yet, and sends the clearing next', async () => {
     const user = userEvent.setup()
-    nav.push.mockReset().mockImplementation(() => {})
-    nav.replace.mockReset().mockImplementation(() => {})
+    const router = slowRouter()
     render(<Harness />)
     const airline = screen.getByRole('textbox', { name: 'Airline' })
     await user.type(airline, 'tk')
@@ -207,26 +220,63 @@ describe('filters', () => {
     // The clearing is compared with what was just sent, not with the URL that has not caught up.
     expect(nav.push.mock.calls.length + nav.replace.mock.calls.length).toBe(2)
     expect(hrefQuery([...nav.push.mock.calls, ...nav.replace.mock.calls].at(-1)![0])).toBe('')
-    act(() => nav.set('airline=TK')) // the intermediate response
+    await router.deliver('airline=TK', false) // the intermediate response; navigation still pending
     expect(airline).toHaveValue('')
-    act(() => nav.set(''))
+    await router.deliver('', true)
     expect(airline).toHaveValue('')
   })
 
   it('keeps the aircraft draft when the response to the earlier airline commit arrives first', async () => {
     const user = userEvent.setup()
-    nav.push.mockReset().mockImplementation(() => {})
+    const router = slowRouter()
     render(<Harness />)
     await user.type(screen.getByRole('textbox', { name: 'Airline' }), 'tk')
     await user.tab()
     await user.keyboard('b738')
     await user.tab()
     expect(nav.push).toHaveBeenCalledTimes(2)
-    act(() => nav.set('airline=TK')) // answers the first commit only
+    await router.deliver('airline=TK', false) // answers the first commit only
     expect(screen.getByRole('textbox', { name: 'Aircraft' })).toHaveValue('B738')
     expect(screen.getByRole('textbox', { name: 'Airline' })).toHaveValue('TK')
-    act(() => nav.set('airline=TK&aircraft=B738'))
+    await router.deliver('airline=TK&aircraft=B738', true)
     expect(screen.getByRole('textbox', { name: 'Aircraft' })).toHaveValue('B738')
+  })
+
+  it('adopts Back to a value this component had sent and cleared, once its navigations have settled', async () => {
+    const user = userEvent.setup()
+    const router = slowRouter()
+    render(<Harness />)
+    const airline = screen.getByRole('textbox', { name: 'Airline' })
+    await user.type(airline, 'tk')
+    await user.tab()
+    await user.clear(airline)
+    await user.tab()
+    await router.deliver('', true) // only the final, empty URL arrives: the query never changed
+    expect(airline).toHaveValue('')
+    await router.external('airline=TK') // Back or a link
+    expect(airline).toHaveValue('TK')
+  })
+
+  it('adopts Reset after repeated commits of the same value, and Search then sends the reset state', async () => {
+    const user = userEvent.setup()
+    const router = slowRouter()
+    render(<Harness />)
+    const airline = screen.getByRole('textbox', { name: 'Airline' })
+    await user.type(airline, 'tk')
+    await user.tab()
+    await user.clear(airline)
+    await user.tab()
+    await user.type(airline, 'tk')
+    await user.tab()
+    expect(nav.push).toHaveBeenCalledTimes(3)
+    await router.deliver('airline=TK', true) // only the final URL arrives
+    expect(airline).toHaveValue('TK')
+    await router.external('') // Reset
+    expect(airline).toHaveValue('')
+    nav.push.mockClear()
+    await user.type(screen.getByRole('searchbox'), 'x{Enter}')
+    expect(hrefQuery(nav.push.mock.calls.at(-1)![0])).toBe('q=x')
+    await router.deliver('q=x', true)
   })
 
   it('adopts an external URL change (Reset, Back) but not its own navigation', () => {

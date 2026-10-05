@@ -58,10 +58,12 @@ type Props = {
   query: string
   filtered: boolean
   /** One navigation for the whole change set; the page owns history and selection rules. */
-  apply: (changes: Change) => void
+  apply: (changes: Change) => boolean
+  /** True while a navigation started by `apply` has not settled. */
+  navigating: boolean
 }
 
-export function JournalFilters({ locale, query, filtered, apply }: Props) {
+export function JournalFilters({ locale, query, filtered, apply, navigating }: Props) {
   const t = text[locale]
   const base = useId()
   const params = new URLSearchParams(query)
@@ -69,29 +71,29 @@ export function JournalFilters({ locale, query, filtered, apply }: Props) {
   for (const key of TEXT_KEYS) urlValues[key] = params.get(key) ?? ''
   const [drafts, setDrafts] = useState<Values>(urlValues)
   const [touched, setTouched] = useState<Record<string, boolean>>({})
-  // Values this component sent that the URL has not confirmed yet, oldest first. A URL value found in the list is our own navigation arriving
-  // (possibly an intermediate one), so the draft is left alone; a value that is not in the list is an external change (Reset, Back, a link) and replaces it.
-  const [sent, setSent] = useState<Record<string, string[]>>({})
+  // Who changed the URL is told by the page, not guessed from values. While a navigation this component requested is pending (`navigating`, a router
+  // transition), URL changes are its own responses or their intermediate steps, so the drafts stay. Once it settles, `sent` is dropped and any later
+  // URL change (Back, Forward, Reset, a link) is external and replaces the drafts of the fields it touched.
+  const [sent, setSent] = useState<Record<string, string>>({})
   const [lastUrl, setLastUrl] = useState(urlValues)
   const [seen, setSeen] = useState(query)
-  if (seen !== query) {
-    setSeen(query)
-    setLastUrl(urlValues)
-    const adopt: Values = {}
-    const remaining = { ...sent }
-    for (const key of ['q', ...TEXT_KEYS]) {
-      if (urlValues[key] === lastUrl[key]) continue
-      const list = sent[key] ?? []
-      const at = list.indexOf(urlValues[key])
-      if (at < 0) { adopt[key] = urlValues[key]; delete remaining[key]; continue }
-      const rest = list.slice(at + 1)
-      if (rest.length) remaining[key] = rest; else delete remaining[key]
+  const [wasNavigating, setWasNavigating] = useState(navigating)
+  if (seen !== query || wasNavigating !== navigating) {
+    const awaiting = Object.keys(sent).length > 0
+    if (seen !== query) {
+      setSeen(query)
+      setLastUrl(urlValues)
+      if (!awaiting) {
+        const adopt: Values = {}
+        for (const key of ['q', ...TEXT_KEYS]) if (urlValues[key] !== lastUrl[key]) adopt[key] = urlValues[key]
+        if (Object.keys(adopt).length) setDrafts(old => ({ ...old, ...adopt }))
+      }
     }
-    setSent(remaining)
-    if (Object.keys(adopt).length) setDrafts(old => ({ ...old, ...adopt }))
+    if (wasNavigating && !navigating && awaiting) setSent({})
+    setWasNavigating(navigating)
   }
-  /** What the field holds as far as this component knows: the last value it sent, otherwise the URL's. */
-  const effective = (key: string) => sent[key]?.at(-1) ?? urlValues[key]
+  /** What the field holds as far as this component knows: the last value it sent while that navigation is pending, otherwise the URL's. */
+  const effective = (key: string) => sent[key] ?? urlValues[key]
   const [open, setOpen] = useState(false)
   const [staged, setStaged] = useState<Values>({})
   const [stagedTouched, setStagedTouched] = useState<Record<string, boolean>>({})
@@ -119,8 +121,10 @@ export function JournalFilters({ locale, query, filtered, apply }: Props) {
   }
   const send = (changes: Change) => {
     if (!Object.keys(changes).length) return
-    setSent(old => { const next = { ...old }; for (const key of Object.keys(changes)) if (key === 'q' || (TEXT_KEYS as readonly string[]).includes(key)) next[key] = [...(next[key] ?? []), changes[key]]; return next })
-    apply(changes)
+    const keys = Object.keys(changes).filter(key => key === 'q' || (TEXT_KEYS as readonly string[]).includes(key))
+    // Recorded before the navigation starts, so a synchronous response is already known to be ours.
+    setSent(old => ({ ...old, ...Object.fromEntries(keys.map(key => [key, changes[key]])) }))
+    if (!apply(changes)) setSent(old => { const next = { ...old }; for (const key of keys) delete next[key]; return next })
   }
 
   const commitField = (key: string) => {
