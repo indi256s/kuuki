@@ -28,5 +28,14 @@ export async function readOwnLeaderboardEligibility(db: D1Database, ownerId: str
   const stats = rows[1].results[0] as { total_flights: number } | undefined
   const state = rows[2].results[0] as { revision: number; published_revision: number } | undefined
   return { isPublic: !!profile?.is_public, optedIn: !!profile?.show_on_leaderboards,
-    totalFlights: stats?.total_flights ?? 0, pending: !!state && state.revision !== state.published_revision }
+    totalFlights: stats?.total_flights ?? null, pending: !!state && state.revision !== state.published_revision }
+}
+
+/** Authenticated owner's current published place, even outside the public first page. */
+export async function readOwnLeaderboardRank(db: D1Database, ownerId: string, category: LeaderboardCategory) {
+  const row = await db.prepare(`SELECT lc.* FROM leaderboard_cache lc
+    JOIN profiles p ON p.id = lc.user_id JOIN user_stats us ON us.user_id = lc.user_id ${derivedStateJoin('lc')}
+    WHERE lc.user_id = ? AND lc.category = ? AND p.is_public = 1 AND p.show_on_leaderboards = 1
+    AND us.total_flights >= 5 AND ${PUBLISHED_DERIVED_STATE}`).bind(ownerId, category).first<LeaderboardCacheRow>()
+  return row ? { entry: toLeaderboardEntry(row), period: row.updated_at } : null
 }
