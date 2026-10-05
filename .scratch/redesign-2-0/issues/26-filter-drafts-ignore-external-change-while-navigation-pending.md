@@ -28,10 +28,16 @@ Coverage:
 - **New links.** A new next/link to `/journal` that renders while the Journal is mounted must use `announceJournalLink`. The guard covers the components listed above, not links added elsewhere later.
 - **Plain anchors.** Plain `<a href="/journal…">` anchors (flight form outside the Journal, import done step, Overview edit links) cause a full document load, so no filter state survives them.
 - **Programmatic pushes.** `router.push('/journal')` in `capture/flight-panels.tsx` and `capture/flight-form.tsx` runs only on pages without the Journal; inside the Journal those components receive callbacks instead.
-- **Separate caveat.** The handled-navigation-failure retry caveat from the round-3 review (`requested` keeps a failed target when the query does not change) is separate and not part of this issue.
+- **Separate caveat.** The handled-navigation-failure retry caveat from the round-3 review (`requested` keeps a failed target when the query does not change) was separate from this issue; resolved 2026-10-06 (see Resolution below).
 
 ## Continuation disposition — 2026-10-05
 
 Authorized continuation ec7e614 closes both round-five navigation/filter defects, with independent acceptance. The distinct identical-Search retry after a handled navigation failure remains a carried Minor caveat; it is not claimed fixed by this issue.
 
 Current integration and evidence: [redesign handoff](../../../docs/plans/2026-10-04-redesign-2.0-implementation-handoff.md). Visual/atlas and external release proof remain deferred under the explicit session constraints.
+
+## Resolution — 2026-10-06
+The carried Minor (R5-M1: identical Search retry suppressed after a handled navigation failure) is resolved. `journal.tsx` now records that `requested` holds a target started by `apply` (`ownRequest`). When the navigation transition settles and that flag is still set, `requested` is reset to the rendered query, so an identical retry navigates again. Explicit navigations (`navigateExternally`: Reset, Back/Forward, shell links) clear the flag and keep owning `requested`; successful navigations are unchanged because the rendered query already equals the target.
+- Regression: `journal.test.tsx` "navigates again when the same Search is pressed after a handled navigation failure left the rendered query unchanged" (void router resolving to the unchanged empty query). It failed before the change (one `airline=TK` navigation) and passes now; desktop and mobile drafts stay TK.
+- The earlier test "builds on the last requested URL while the previous navigation has not arrived yet" used a router whose push returned at once, which is indistinguishable from a handled failure. It now uses the pending slow router, as in Next.
+- Checks: Next units (94 files, 984 tests), lint, typecheck, `pnpm next:build`, Playwright `read-journeys` and `navigation` (29 passed, port 8807).

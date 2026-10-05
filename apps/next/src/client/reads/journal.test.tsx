@@ -106,14 +106,19 @@ function slowRouter() {
 // Only the newest destination is delivered; superseded responses can remain unresolved until cleanup.
 function voidRouter() {
   let deliverLatest: () => void
+  let resolveLatest: (query: string) => void
   const impl = (href: string) => {
     const query = hrefQuery(href)
-    const response = new Promise<string>(resolve => { deliverLatest = () => resolve(query); waiting.push(deliverLatest) })
+    const response = new Promise<string>(resolve => { resolveLatest = resolve; deliverLatest = () => resolve(query); waiting.push(deliverLatest) })
     startTransition(() => nav.set(response))
   }
   nav.push.mockReset().mockImplementation(impl)
   nav.replace.mockReset().mockImplementation(impl)
-  return { deliver: async () => { await act(async () => deliverLatest()) } }
+  return {
+    deliver: async () => { await act(async () => deliverLatest()) },
+    /** A handled navigation failure: Next returns the router state it already had, so the transition ends on `query`, the URL still rendered. */
+    fail: async (query: string) => { await act(async () => resolveLatest(query)) },
+  }
 }
 
 describe('filters', () => {
@@ -218,7 +223,7 @@ describe('filters', () => {
 
   it('builds on the last requested URL while the previous navigation has not arrived yet', async () => {
     const user = userEvent.setup()
-    nav.push.mockReset().mockImplementation(() => {}) // the server round trip has not answered yet
+    const router = slowRouter() // the server round trip has not answered yet, so the navigation transition stays pending
     render(<Harness />)
     await user.type(screen.getByRole('textbox', { name: 'Airline' }), 'tk')
     await user.tab()
@@ -227,6 +232,7 @@ describe('filters', () => {
     expect(nav.push).toHaveBeenCalledTimes(2)
     expect(hrefQuery(nav.push.mock.calls[0][0])).toBe('airline=TK')
     expect(hrefQuery(nav.push.mock.calls[1][0])).toBe('airline=TK&aircraft=B738')
+    await router.deliver('airline=TK&aircraft=B738', true)
   })
 
   it('keeps a field cleared after a commit that has not been answered yet, and sends the clearing next', async () => {
@@ -408,6 +414,25 @@ describe('filters', () => {
     await user.click(emptyReset)
     await router.deliver('', true)
     expect(airline).toHaveValue('')
+  })
+
+  it('navigates again when the same Search is pressed after a handled navigation failure left the rendered query unchanged', async () => {
+    const user = userEvent.setup()
+    const router = voidRouter()
+    render(<Suspense fallback={null}><Harness /></Suspense>)
+    const airline = screen.getByRole('textbox', { name: 'Airline' })
+    await user.type(airline, 'tk')
+    await act(async () => { await user.tab() })
+    const sent = () => [...nav.push.mock.calls, ...nav.replace.mock.calls].map(call => hrefQuery(call[0]))
+    expect(sent()).toEqual(['airline=TK'])
+    await router.fail('') // Next catches the failure and keeps the router state: the query is still empty
+    expect(airline).toHaveValue('TK')
+    await user.click(screen.getByRole('button', { name: 'Search' }))
+    expect(sent()).toEqual(['airline=TK', 'airline=TK'])
+    await router.deliver()
+    expect(airline).toHaveValue('TK')
+    await user.click(screen.getByRole('button', { name: 'Filters' }))
+    expect(within(screen.getByRole('dialog')).getByRole('textbox', { name: 'Airline' })).toHaveValue('TK')
   })
 
   it('adopts Back taken while its own filter navigation is pending, even to the URL that is still rendered', async () => {
