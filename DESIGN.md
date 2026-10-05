@@ -144,11 +144,11 @@ Rules: ease-in is banned; exits use ease-out and run about 20% faster than enter
 
 ### Route transitions
 
-Only three route changes animate, through `@ssgoi/react` 7.4.0 in `apps/next/src/client/route-transitions.tsx`. Every other navigation keeps its page boundary and swaps instantly: tabs, header nav, `?view=`, filters and sheets (flight detail, `/add`). The springs are critically damped, so nothing bounces. Focus still moves to the incoming H1, and the outgoing page is inert and `aria-hidden` until it settles.
+Only three route changes animate, through `@ssgoi/react` 7.4.0 in `apps/next/src/client/route-transitions.tsx`. Every other navigation keeps its page boundary and swaps instantly: tabs, header nav, `?view=`, filters and sheets (flight detail, `/add`). The springs are critically damped, so nothing bounces, and the times below count until ssgoi ends the spring. Focus still moves to the incoming H1, and the outgoing page is inert and `aria-hidden` until it settles.
 
-- **Import done → Passport, `hero`, about 0.34s.** The done-step stamps (`data-hero-exit-key`) travel to their Passport stamps (`data-hero-enter-key`) without replaying the press. It runs forward only and for at most 8 stamps; with more, Passport opens without it. A Passport stamp that will not be fully on screen has no partner and appears in place.
-- **Leaderboard → `/fly/[username]`, `drill`, about 0.29s.** The default parallax, reversed by Back, with no hero.
-- **Sign in ↔ sign up ↔ forgot password, `axis` x, about 0.28s.** Only the form panel swaps, as a fade-through: the incoming form starts once the outgoing one is 80% gone. The card and the brand panel stay put.
+- **Import done → Passport, `hero`, about 0.38s.** The done-step stamps (`data-hero-exit-key`) travel to their Passport stamps (`data-hero-enter-key`) without replaying the press. It runs forward only and for at most 8 stamps; with more, Passport opens without it. A Passport stamp that will not be fully on screen has no partner and appears in place. If Passport has not finished loading when the member opens it, it shows its loading screen and opens without the hero.
+- **Leaderboard → `/fly/[username]`, `drill`, about 0.28s.** The default parallax, reversed by Back, with no hero. A link from a profile to the leaderboard is not Back and stays instant.
+- **Sign in ↔ sign up ↔ forgot password, `axis` x, about 0.28s.** Only the form panel swaps, as a fade-through: the incoming form starts once the outgoing one is 75% gone. The card and the brand panel stay put.
 
 Planned motion, none of it built yet:
 - **Planned (W5/T25):** icon swap by scale, opacity and blur 200ms with `--ease-icon`; tooltip 150ms with instant adjacent tooltips (no tooltip component exists); skeleton to content 150ms. Today loading is the static [loading screen](#loading-screen).
