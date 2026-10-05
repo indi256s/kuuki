@@ -1,8 +1,6 @@
 import { runHandler, readJson, json, HttpError } from '../_lib/http'
 import { requireCsrf, requireUser, type RequestData } from '../_lib/auth'
-import { assertRows } from '../_lib/d1'
-
-interface Candidate { date: string; origin: string; destination: string; excludeId?: number }
+import { findDuplicateMatches, type DuplicateCandidate as Candidate } from '../_services/duplicates'
 
 // Bounded candidate keys query the entire owned history, independently of list paging.
 export const onRequestPost: PagesFunction<Env, string, RequestData> = context =>
@@ -23,16 +21,5 @@ export const onRequestPost: PagesFunction<Env, string, RequestData> = context =>
       }
       return { date: value.date, origin: value.origin, destination: value.destination, ...(value.excludeId === undefined ? {} : { excludeId: value.excludeId }) }
     })
-    if (!candidates.length) return json({ matches: [] }, { headers: { 'Cache-Control': 'no-store' } })
-    const result = await context.env.DB.prepare(
-      `SELECT CAST(c.key AS INTEGER) AS candidateIndex, MIN(f.id) AS flightId
-       FROM json_each(?) c JOIN flights f
-         ON f.user_id = ? AND f.date = json_extract(c.value, '$.date')
-         AND f.origin = json_extract(c.value, '$.origin')
-         AND f.destination = json_extract(c.value, '$.destination')
-         AND (json_extract(c.value, '$.excludeId') IS NULL OR f.id != json_extract(c.value, '$.excludeId'))
-       GROUP BY c.key ORDER BY CAST(c.key AS INTEGER)`,
-    ).bind(JSON.stringify(candidates), user.id).all<{ candidateIndex: number; flightId: number }>()
-    assertRows(result, 'Duplicate candidate read failed')
-    return json({ matches: result.results }, { headers: { 'Cache-Control': 'no-store' } })
+    return json({ matches: await findDuplicateMatches(context.env.DB, user.id, candidates) }, { headers: { 'Cache-Control': 'no-store' } })
   })
