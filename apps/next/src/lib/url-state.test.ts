@@ -105,6 +105,15 @@ describe('journalHref (Overview "All" links)', () => {
     expect(journalHref({ aircraft: 'a320' })).toBe('/journal?aircraft=A320')
     expect(journalHref({})).toBe('/journal')
   })
+  it('keeps an exact route and a sort for the Overview route and missing-aircraft links', () => {
+    const route = journalHref({ origin: 'tbs', destination: 'ist', year: 2025 })
+    expect(new URLSearchParams(route.split('?')[1]).get('origin')).toBe('TBS')
+    expect(new URLSearchParams(route.split('?')[1]).get('destination')).toBe('IST')
+    // Ascending aircraft puts flights with no aircraft first in the Journal.
+    const missing = journalHref({ year: 2025, sort: 'aircraft_icao', order: 'asc' })
+    expect(Object.fromEntries(new URLSearchParams(missing.split('?')[1]))).toEqual({ year: '2025', sort: 'aircraft_icao', order: 'asc' })
+    expect(normalizeJournalQuery(new URLSearchParams(missing.split('?')[1])).canonical).toBe(true)
+  })
   it('drops invalid values and returns a canonical fixed point', () => {
     expect(journalHref({ airport: 'bad-code', year: '1800', airline: '' })).toBe('/journal')
     const href = journalHref({ airport: 'IST', airline: 'TK', year: '2024' })

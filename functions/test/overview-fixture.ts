@@ -1,0 +1,40 @@
+// Reusable Overview fixtures (T17, accepted by T18): an account built from `FixtureFlight` rows plus the columns
+// the figures read (airline, aircraft, distance, duration), and a reader that calls the route like a client would.
+import { apiContext } from './harness'
+import { accountWith, USER, type FixtureFlight } from './country-fixture'
+import { onRequestGet as getOverview } from '../api/me/overview'
+import type { OverviewSummary } from '../../packages/shared/src/overview'
+
+export { USER, at, T0, publish } from './country-fixture'
+export type { FixtureFlight } from './country-fixture'
+
+/** Columns outside the lifecycle fixture; every one may stay unset (NULL) to model unknown data. */
+export interface FlightExtras { airline?: string; aircraft?: string; km?: number; minutes?: number }
+export type OverviewFlight = FixtureFlight & FlightExtras
+
+/** Aircraft the fixtures name; manufacturers come from the reference table, as in production. */
+const AIRCRAFT: Array<[string, string, string]> = [['A320', 'Airbus A320', 'Airbus'], ['A359', 'Airbus A350-900', 'Airbus'], ['B738', 'Boeing 737-800', 'Boeing']]
+
+export function overviewAccount(flights: OverviewFlight[], extra: (db: D1Database) => D1PreparedStatement[] = () => []) {
+  return accountWith(flights, db => [
+    ...AIRCRAFT.map(([icao, name, maker]) => db.prepare(
+      'INSERT INTO aircraft_reference (icao, name, manufacturer, model, type, engine_type, engine_count) VALUES (?,?,?,?,?,?,?)').bind(icao, name, maker, icao, 'jet', 'jet', 2)),
+    ...flights.filter(flight => flight.airline || flight.aircraft || flight.km !== undefined || flight.minutes !== undefined).map(flight =>
+      db.prepare('UPDATE flights SET airline_iata = ?, aircraft_icao = ?, distance_km = ?, duration_minutes = ? WHERE id = ?')
+        .bind(flight.airline ?? null, flight.aircraft ?? null, flight.km ?? null, flight.minutes ?? null, flight.id)),
+    ...extra(db),
+  ])
+}
+
+export async function readOverviewSummary(db: D1Database, query = 'period=all', user: { id: string; email: string } = USER): Promise<OverviewSummary> {
+  const response = await getOverview({ ...apiContext(db, new Request(`https://kuuki.test/api/me/overview?${query}`)), data: { user } } as never)
+  if (response.status !== 200) throw new Error(`Overview read failed: ${response.status}`)
+  return response.json() as Promise<OverviewSummary>
+}
+
+/** `count` completed flights one day apart from 2020-01-01, for volume tests (one statement, no per-row writes). */
+export function bulkFlights(db: D1Database, count: number, origin = 'TBS', destination = 'JFK') {
+  return db.prepare(`WITH RECURSIVE n(x) AS (SELECT 1 UNION ALL SELECT x + 1 FROM n WHERE x < ?)
+    INSERT INTO flights (user_id,date,origin,destination,distance_km)
+    SELECT ?, date('2020-01-01', '+' || x || ' days'), ?, ?, 100 FROM n`).bind(count, USER.id, origin, destination)
+}
