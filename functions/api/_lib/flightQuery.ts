@@ -13,8 +13,6 @@ export interface FlightFilters {
   year?: number
   airlineIata?: string
   aircraftIcao?: string
-  /** Only flights with no aircraft recorded (`?missing=aircraft`): the set the Overview's missing-aircraft line counts. */
-  missingAircraft?: boolean
   isUpcoming?: boolean
   origin?: string
   destination?: string
@@ -57,7 +55,6 @@ export function parseFlightFilters(params: URLSearchParams): FlightFilters {
   if (airlineIata) filters.airlineIata = airlineIata
   const aircraftIcao = params.get('aircraft') ?? params.get('aircraftIcao')
   if (aircraftIcao) filters.aircraftIcao = aircraftIcao
-  if (params.get('missing') === 'aircraft') filters.missingAircraft = true
   const isUpcoming = params.get('isUpcoming')
   if (isUpcoming === 'true') filters.isUpcoming = true
   else if (isUpcoming === 'false') filters.isUpcoming = false
@@ -117,7 +114,6 @@ export function buildFlightWhere(userId: string, filters: FlightFilters): { wher
     clauses.push('aircraft_icao = ?')
     binds.push(filters.aircraftIcao)
   }
-  if (filters.missingAircraft) clauses.push('aircraft_icao IS NULL')
   if (!filters.status && filters.isUpcoming !== undefined) {
     // `isUpcoming=false` keeps its meaning: completed, i.e. awaiting or logged (ADR 0001 §1).
     clauses.push(filters.isUpcoming ? "lifecycle_state = 'upcoming'" : "lifecycle_state IN ('awaiting', 'logged')")

@@ -2,11 +2,11 @@
 // render: n=0/1/10/500, a zero previous-year baseline, repeated country visits, pending, transit, claim-only,
 // legacy-only, missing aircraft and unknown durations. Fixtures live in `overview-fixture.ts` for T18.
 import { describe, expect, it } from 'vitest'
-import { bulkFlights, legacyOnlyAccount, overviewAccount, readOverviewSummary, USER, at, T0, type OverviewFlight } from './overview-fixture'
+import { bulkFlights, legacyOnlyAccount, missingAircraftStatus, overviewAccount, readMissingAircraftPage, readOverviewSummary, USER, at, T0, type OverviewFlight } from './overview-fixture'
 import { createApiDatabase } from './harness'
 import { accountWith } from './country-fixture'
 import { readJournal } from '../api/_services/journal'
-import { parseFlightFilters } from '../api/_lib/flightQuery'
+import { parseFlightFilters, parseSort } from '../api/_lib/flightQuery'
 import { overviewMode } from '../../apps/next/src/client/overview/model'
 import { journalHref } from '../../apps/next/src/lib/url-state'
 
@@ -327,6 +327,45 @@ describe('a legacy-only account keeps its real geography', () => {
   })
 })
 
+describe('archived-evidence provenance of the all-time country figure', () => {
+  const legacyRow = (id: string, contributes: number, airport: string | null = 'DXB') => (d: D1Database) =>
+    d.prepare(`INSERT INTO legacy_visit_evidence (source_id,user_id,airport_iata,country_code,first_visit,last_visit,visit_count,source_digest,provenance,contributes,source_json)
+      VALUES (?,?,?,'AE','2019-01-01','2019-01-01',2,'d','archive',?,'{}')`).bind(id, USER.id, airport, contributes)
+
+  it('is true for an account with contributing archived evidence, in all time only', async () => {
+    const { db, dispose } = await overviewAccount([logged(1, '2025-01-10', 'TBS', 'JFK')], d => [legacyRow('l', 1)(d)])
+    try {
+      expect((await readOverviewSummary(db)).archivedEvidence).toBe(true)
+      expect((await readOverviewSummary(db, 'period=2025')).archivedEvidence).toBe(false) // a year never reads archived evidence
+      expect((await readOverviewSummary(db, 'period=all&airline=TK')).archivedEvidence).toBe(false) // nor does a filtered read
+    } finally { await dispose() }
+  })
+
+  it('is true for a legacy-only account, and false for a canonical-only account', async () => {
+    const legacy = await legacyOnlyAccount()
+    const canonical = await overviewAccount([logged(1, '2025-01-10', 'TBS', 'IST')])
+    try {
+      expect((await readOverviewSummary(legacy.db)).archivedEvidence).toBe(true)
+      const summary = await readOverviewSummary(canonical.db)
+      expect(summary.totals.countries).toBe(2)
+      expect(summary.archivedEvidence).toBe(false)
+    } finally { await legacy.dispose(); await canonical.dispose() }
+  })
+
+  it('ignores archived rows that do not contribute or belong to another owner', async () => {
+    const { db, dispose } = await overviewAccount([logged(1, '2025-01-10', 'TBS', 'IST')], d => [
+      legacyRow('quiet', 0)(d),
+      d.prepare('INSERT INTO users (id,email,password_hash) VALUES (?,?,?)').bind('other', 'other@example.test', 'hash'),
+      d.prepare(`INSERT INTO legacy_visit_evidence (source_id,user_id,airport_iata,country_code,first_visit,last_visit,visit_count,source_digest,provenance,contributes,source_json)
+        VALUES ('theirs','other','DXB','AE','2019-01-01','2019-01-01',2,'d','archive',1,'{}')`),
+    ])
+    try {
+      expect((await readOverviewSummary(db)).archivedEvidence).toBe(false)
+      expect((await readOverviewSummary(db, 'period=all', { id: 'other', email: 'other@example.test' })).archivedEvidence).toBe(true)
+    } finally { await dispose() }
+  })
+})
+
 describe('pressed or pending is the account-wide status, membership is period-specific', () => {
   it('a country whose only flight this year is awaiting stays pressed when another year has it logged', async () => {
     const flights: OverviewFlight[] = [
@@ -345,10 +384,18 @@ describe('pressed or pending is the account-wide status, membership is period-sp
 })
 
 describe('missing-aircraft review targets', () => {
-  const targets = async (db: D1Database, query: string, limit = 200) => {
-    const params = new URL(`https://kuuki.test/api/flights?${query}`).searchParams
-    return readJournal(db, USER.id, parseFlightFilters(params), { field: 'date', order: 'desc' }, limit, 0)
+  /** The review's real page size, not a helper default: every page of the traversal is read at it. */
+  const traverse = async (db: D1Database, period: string) => {
+    const pages = []
+    let after: string | null = null
+    do {
+      const page = await readMissingAircraftPage(db, `period=${period}${after ? `&after=${encodeURIComponent(after)}` : ''}`)
+      pages.push(page)
+      after = page.nextCursor
+    } while (after && pages.length < 20)
+    return pages
   }
+  const ids = (pages: Array<{ flights: Array<{ id: number }> }>) => pages.flatMap(page => page.flights.map(flight => flight.id))
 
   it('is exactly the set the summary counts: completed, in the period, owned, with no aircraft', async () => {
     const flights: OverviewFlight[] = [
@@ -363,24 +410,96 @@ describe('missing-aircraft review targets', () => {
       d.prepare("INSERT INTO flights (user_id,date,origin,destination) VALUES ('other','2026-01-01','LHR','DXB')"),
     ])
     try {
-      for (const [period, ids] of [['all', [1, 2, 5]], ['2026', [1, 2]], ['2025', [5]]] as const) {
+      for (const [period, expected] of [['all', [2, 1, 5]], ['2026', [2, 1]], ['2025', [5]]] as const) {
         const summary = await readOverviewSummary(db, `period=${period}`)
-        const found = await targets(db, `status=completed&missing=aircraft${period === 'all' ? '' : `&year=${period}`}`)
-        expect(summary.dataAvailability.missingAircraft).toBe(ids.length)
-        expect(found.total).toBe(summary.dataAvailability.missingAircraft)
-        expect(found.flights.map(flight => flight.id).sort()).toEqual([...ids])
+        const page = await readMissingAircraftPage(db, `period=${period}`)
+        expect(summary.dataAvailability.missingAircraft).toBe(expected.length)
+        expect(page.total).toBe(summary.dataAvailability.missingAircraft)
+        expect(page.flights.map(flight => flight.id)).toEqual([...expected]) // newest first
+        expect(page.nextCursor).toBeNull()
+        expect(page.flights[0]).toEqual({ id: expected[0], flight_number: null, airline_iata: null, date: expect.any(String), origin: expect.any(String), destination: expect.any(String) })
       }
     } finally { await dispose() }
   })
 
-  it('n=500 is bounded to the requested page while the total stays exact', async () => {
-    const { db, dispose } = await overviewAccount([], d => [bulkFlights(d, 500, 'TBS', 'IST')])
+  it('traverses more than 100 targets in pages of 100, ending on a null cursor, and equals the counted set', async () => {
+    const { db, dispose } = await overviewAccount([], d => [
+      bulkFlights(d, 250, 'TBS', 'IST'),
+      // Same-day flights: the id tiebreak keeps the order total across a page boundary.
+      d.prepare("INSERT INTO flights (user_id,date,origin,destination) SELECT user_id, date, destination, origin FROM flights WHERE date IN ('2020-09-06','2020-09-07')"),
+      d.prepare('INSERT INTO users (id,email,password_hash) VALUES (?,?,?)').bind('other', 'other@example.test', 'hash'),
+      d.prepare("WITH RECURSIVE n(x) AS (SELECT 1 UNION ALL SELECT x + 1 FROM n WHERE x < 130) INSERT INTO flights (user_id,date,origin,destination) SELECT 'other', date('2021-01-01', '+' || x || ' days'), 'LHR', 'DXB' FROM n"),
+    ])
     try {
       const summary = await readOverviewSummary(db)
-      const page = await targets(db, 'status=completed&missing=aircraft', 100)
-      expect(summary.dataAvailability.missingAircraft).toBe(500)
-      expect(page.total).toBe(500)
-      expect(page.flights).toHaveLength(100)
+      const expected = (await db.prepare(`SELECT id FROM flights WHERE user_id = ? AND lifecycle_state IN ('awaiting', 'logged') AND aircraft_icao IS NULL
+        ORDER BY date DESC, id DESC`).bind(USER.id).all<{ id: number }>()).results.map(row => row.id)
+      expect(summary.dataAvailability.missingAircraft).toBe(252)
+      const pages = await traverse(db, 'all')
+      expect(pages.map(page => page.flights.length)).toEqual([100, 100, 52])
+      expect(pages.map(page => page.nextCursor === null)).toEqual([false, false, true])
+      expect(pages.every(page => page.limit === 100 && page.total === 252)).toBe(true)
+      expect(pages.map(page => page.offset)).toEqual([0, 100, 200])
+      expect(ids(pages)).toEqual(expected) // no gap, no repeat, deterministic newest-first order
+      expect(new Set(ids(pages)).size).toBe(summary.dataAvailability.missingAircraft)
+    } finally { await dispose() }
+  })
+
+  it('keeps reaching later flights when the first page stays unidentified, and when earlier rows are saved meanwhile', async () => {
+    const { db, dispose } = await overviewAccount([], d => [bulkFlights(d, 230, 'TBS', 'IST')])
+    try {
+      const first = await readMissingAircraftPage(db) // nothing on it can be identified or saved
+      expect(first.flights).toHaveLength(100)
+      // Reading again without writes returns the same page, so the continuation, not a retry, is what moves on.
+      expect(ids([await readMissingAircraftPage(db)])).toEqual(ids([first]))
+      const second = await readMissingAircraftPage(db, `period=all&after=${encodeURIComponent(first.nextCursor!)}`)
+      expect(second.flights[0].id).toBeLessThan(first.flights[99].id)
+      // Saving a row of the first page between reads neither skips nor repeats a later row.
+      await db.prepare("UPDATE flights SET aircraft_icao = 'A320' WHERE id = ?").bind(first.flights[0].id).run()
+      const third = await readMissingAircraftPage(db, `period=all&after=${encodeURIComponent(second.nextCursor!)}`)
+      expect(third.total).toBe(229)
+      expect(third.offset).toBe(199) // the saved row left the set, so one fewer flight precedes the third page
+      expect(ids([second, third])).toEqual((await db.prepare(`SELECT id FROM flights WHERE user_id = ? AND aircraft_icao IS NULL AND id < ?
+        ORDER BY date DESC, id DESC`).bind(USER.id, first.flights[99].id).all<{ id: number }>()).results.map(row => row.id))
+    } finally { await dispose() }
+  })
+
+  it('is owner-scoped across pages and rejects a malformed period or cursor', async () => {
+    const { db, dispose } = await overviewAccount([], d => [
+      d.prepare('INSERT INTO users (id,email,password_hash) VALUES (?,?,?)').bind('other', 'other@example.test', 'hash'),
+      d.prepare("INSERT INTO flights (user_id,date,origin,destination) VALUES ('other','2026-01-01','LHR','DXB'),('other','2026-01-02','LHR','DXB')"),
+      d.prepare("INSERT INTO flights (user_id,date,origin,destination) VALUES (?,'2026-01-03','TBS','IST')").bind(USER.id),
+    ])
+    try {
+      const own = await readMissingAircraftPage(db)
+      expect(own.total).toBe(1)
+      expect(own.flights).toHaveLength(1)
+      const theirs = await readMissingAircraftPage(db, 'period=all', { id: 'other', email: 'other@example.test' })
+      expect(theirs.total).toBe(2)
+      expect(ids([own]).some(id => ids([theirs]).includes(id))).toBe(false)
+      expect(await missingAircraftStatus(db, 'period=20x6')).toBe(400)
+      expect(await missingAircraftStatus(db, 'period=all&after=nonsense')).toBe(400)
+      expect(await missingAircraftStatus(db, "period=all&after=2026-01-01:1'%20OR%201=1")).toBe(400)
+    } finally { await dispose() }
+  })
+
+  it('leaves the Journal alone: `?missing=aircraft` is not a Journal filter, so the total stays unfiltered', async () => {
+    const { db, dispose } = await overviewAccount([
+      logged(1, '2026-01-10', 'TBS', 'IST'),
+      logged(2, '2026-03-10', 'TBS', 'IST', { aircraft: 'A320' }),
+    ])
+    try {
+      const run = async (query: string) => {
+        const params = new URLSearchParams(query)
+        const filters = parseFlightFilters(params)
+        return { filters, total: (await readJournal(db, USER.id, filters, parseSort(params), 20, 0)).total }
+      }
+      for (const query of ['status=completed&missing=aircraft', 'missing=aircraft', 'missing=bogus', 'missing=aircraft&missing=bogus']) {
+        const result = await run(query)
+        expect(result.total).toBe(2)
+        expect(result.filters).not.toHaveProperty('missingAircraft')
+      }
+      expect((await run('status=completed&missing=aircraft')).filters).toEqual({ status: 'completed' })
     } finally { await dispose() }
   })
 })

@@ -3,6 +3,8 @@ import {
   normalizeJournalQuery, journalHref, resetJournalFilters, normalizeImportQuery, normalizeOnboardingQuery, normalizeOverviewQuery, normalizePassportQuery, resolveOnboardingStep, withQuery,
 } from './url-state'
 
+import { parseFlightFilters } from '../../../../functions/api/_lib/flightQuery'
+
 const now = new Date('2026-10-05T00:00:00Z')
 const qs = (value: string) => new URLSearchParams(value)
 
@@ -118,5 +120,19 @@ describe('journalHref (Overview "All" links)', () => {
     expect(journalHref({ airport: 'bad-code', year: '1800', airline: '' })).toBe('/journal')
     const href = journalHref({ airport: 'IST', airline: 'TK', year: '2024' })
     expect(normalizeJournalQuery(new URLSearchParams(href.split('?')[1])).canonical).toBe(true)
+  })
+})
+
+describe('the missing-aircraft review is not a Journal filter', () => {
+  it('`missing=aircraft` neither owns Journal state nor narrows the list, and Reset leaves the unfiltered list', () => {
+    for (const query of ['missing=aircraft', 'status=completed&missing=aircraft', 'missing=bogus', 'missing=aircraft&missing=bogus']) {
+      expect(normalizeJournalQuery(qs(query)).state).not.toHaveProperty('missing')
+      expect(parseFlightFilters(qs(normalizeJournalQuery(qs(query)).query))).toEqual(query.includes('status') ? { status: 'completed' } : {})
+    }
+    // Reset clears every owned filter; what remains cannot filter, so the Journal is unfiltered again.
+    expect(parseFlightFilters(qs(resetJournalFilters('year=2025&status=completed&missing=aircraft')))).toEqual({})
+  })
+  it('keeps no `missing` key in the canonical links', () => {
+    expect(journalHref({ year: 2025, status: 'completed' })).not.toContain('missing')
   })
 })

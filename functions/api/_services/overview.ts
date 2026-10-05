@@ -80,6 +80,13 @@ export async function readOverview(db: D1Database, userId: string, period: Overv
   add('next', db.prepare(`SELECT id, date, origin, destination, airline_iata, flight_number FROM flights
       WHERE user_id = ? AND lifecycle_state = 'upcoming' ORDER BY date ASC, id ASC LIMIT 1`).bind(userId))
   add('upcoming', db.prepare("SELECT COUNT(*) AS count FROM flights WHERE user_id = ? AND lifecycle_state = 'upcoming'").bind(userId))
+  // Provenance of the unfiltered all-time country figure: only that read includes archived evidence (the projection), so
+  // no other scope pays for the check. The user-prefix index serves it; the predicate is the contribution policy of
+  // `legacyEvidenceStatement` (contributing rows with an airport).
+  if (projection) {
+    add('archived', db.prepare(`SELECT EXISTS (SELECT 1 FROM legacy_visit_evidence WHERE user_id = ? AND contributes = 1
+      AND airport_iata IS NOT NULL AND visit_count > 0) AS archived`).bind(userId))
+  }
   if (period !== 'all') {
     // Earliest non-transit evidence across all time, from the published projection: the year only selects first visits.
     add('firstVisits', db.prepare(`SELECT country_code AS id, first_visit, status FROM country_visit_evidence WHERE user_id = ?
@@ -147,6 +154,7 @@ export async function readOverview(db: D1Database, userId: string, period: Overv
     publishedRevision,
     derivedState: ready ? 'ready' : state?.last_error ? 'error' : 'pending',
     countryState: ready ? 'ready' : 'updating',
+    archivedEvidence: keys.includes('archived') && firstAt<{ archived: number }>('archived')?.archived === 1,
     regionPolicyVersion: REGION_POLICY.version,
     generatedAt,
     totals: {

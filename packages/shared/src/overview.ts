@@ -52,6 +52,13 @@ export interface OverviewSummary {
    * stamp is stale (ADR 0001 §4, §10).
    */
   countryState: 'ready' | 'updating'
+  /**
+   * True when the unfiltered all-time country figure includes at least one contributing archived (legacy) visit record
+   * (ADR 0001 section 4, open item 8). Always false for year periods and filtered reads, which never read archived
+   * evidence, and for an account whose country evidence comes from flights alone. It is account provenance, so it is
+   * reported even while `countryState` is `updating`; clients only state it for a ready, all-time figure.
+   */
+  archivedEvidence: boolean
   /** Version of the six-region catalog policy behind `totals.continents`. */
   regionPolicyVersion: number
   generatedAt: string
@@ -137,4 +144,32 @@ export interface OverviewSummary {
   months: Array<{ month: string; flights: number }>
   /** Distinct airport-reference country codes reached by completed period flights. */
   countryIds: string[]
+}
+
+/** Flights the missing-aircraft review loads per page (`GET /api/me/overview/missing-aircraft`). */
+export const MISSING_AIRCRAFT_PAGE = 100
+
+/** One flight in the missing-aircraft review: completed, owned, in the period, with no aircraft recorded. */
+export interface MissingAircraftFlight {
+  id: number
+  flight_number: string | null
+  airline_iata: string | null
+  date: string
+  origin: string
+  destination: string
+}
+
+/**
+ * One keyset page of the set `dataAvailability.missingAircraft` counts (same owner and completed-period predicate),
+ * newest first (date, then id, descending). `total` is the exact size of the whole set, not of the page. Pass
+ * `nextCursor` as `after` for the following page; it is null on the last page. A page never exceeds `limit` (at most 100).
+ */
+export interface MissingAircraftPage {
+  period: OverviewPeriod
+  total: number
+  limit: number
+  /** Flights of the set ordered before this page (0 on the first page), so a client can say "n-m of total" exactly. */
+  offset: number
+  flights: MissingAircraftFlight[]
+  nextCursor: string | null
 }

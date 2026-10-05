@@ -5,6 +5,8 @@ import { accountWith, USER, type FixtureFlight } from './country-fixture'
 import { onRequestGet as getOverview } from '../api/me/overview'
 import { onRequestGet as getProjection } from '../api/flights/route-projection'
 import type { OverviewSummary } from '../../packages/shared/src/overview'
+import { onRequestGet as getMissingAircraft } from '../api/me/overview/missing-aircraft'
+import type { MissingAircraftPage } from '../../packages/shared/src/overview'
 import type { RouteProjection } from '../../packages/shared/src/routeProjection'
 
 export { USER, at, T0, publish } from './country-fixture'
@@ -54,4 +56,16 @@ export async function readRouteProjection(db: D1Database, period = 'all', user: 
   const response = await getProjection({ ...apiContext(db, new Request(`https://kuuki.test/api/flights/route-projection?period=${period}`)), data: { user } } as never)
   if (response.status !== 200) throw new Error(`Route projection read failed: ${response.status}`)
   return response.json() as Promise<RouteProjection>
+}
+
+/** One page of the missing-aircraft review set, called like a client would (`period=all|YYYY[&after=cursor]`). */
+export async function readMissingAircraftPage(db: D1Database, query = 'period=all', user: { id: string; email: string } = USER): Promise<MissingAircraftPage> {
+  const response = await getMissingAircraft({ ...apiContext(db, new Request(`https://kuuki.test/api/me/overview/missing-aircraft?${query}`)), data: { user } } as never)
+  if (response.status !== 200) throw new Error(`Missing-aircraft read failed: ${response.status}`)
+  return response.json() as Promise<MissingAircraftPage>
+}
+
+export async function missingAircraftStatus(db: D1Database, query: string, user: { id: string; email: string } = USER): Promise<number> {
+  const response = await getMissingAircraft({ ...apiContext(db, new Request(`https://kuuki.test/api/me/overview/missing-aircraft?${query}`)), data: { user } } as never)
+  return response.status
 }
