@@ -1,5 +1,7 @@
 import 'server-only'
 import { getRequestEnv, getRequestIdentity } from './identity'
+import { toUserStats, type UserStatsRow } from '../../../../functions/api/_lib/stats'
+import { readOwnBadges } from '../../../../functions/api/_services/ownBadges'
 import { getProfileRow, toOwnProfile } from '../../../../functions/api/_lib/profiles'
 
 export async function getOwnProfile() {
@@ -14,6 +16,17 @@ export async function getOwnProfileStats(userId: string) {
   const identity = await getRequestIdentity()
   if (!identity || identity.id !== userId) return null
   const env = await getRequestEnv()
-  return env.DB.prepare('SELECT total_flights, countries_count, total_distance_km FROM user_stats WHERE user_id = ?')
-    .bind(userId).first<{ total_flights: number; countries_count: number; total_distance_km: number }>()
+  const row = await env.DB.prepare('SELECT * FROM user_stats WHERE user_id = ?').bind(userId).first<UserStatsRow>()
+  return row ? toUserStats(row) : null
+}
+
+export async function getOwnBadges(userId: string) {
+  const identity = await getRequestIdentity()
+  if (!identity || identity.id !== userId) return []
+  return readOwnBadges((await getRequestEnv()).DB, userId)
+}
+
+export async function getProfileShareUrl(username: string) {
+  const { PAGES_ORIGIN } = await getRequestEnv()
+  return new URL(`/fly/${encodeURIComponent(username)}`, PAGES_ORIGIN).href
 }
