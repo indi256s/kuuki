@@ -1,12 +1,13 @@
 // @vitest-environment jsdom
 import { act, render, screen, waitFor } from '@testing-library/react'
-import { beforeEach, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import { CategoryTabs, CategoryContent, LeaderboardRows, recordRank } from './leaderboard'
 vi.mock('../profile/badge-notifications', () => ({ BadgeNotifications: () => null }))
 vi.mock('../activity', () => ({ IdentitySnapshot: ({ children }: { children: React.ReactNode }) => children }))
 vi.mock('../profile/avatar', () => ({ ProfileAvatar: () => <span aria-hidden="true" /> }))
 const entry = { id: 1, user_id: 'me', category: 'cities', value: 6, rank: 1, percentile: null, username: 'traveler', display_name: 'Traveler', avatar_url: null }
 const own = { ownerId: 'me', status: { isPublic: true, optedIn: true, totalFlights: 5, pending: false }, rank: { entry, period: '2026-10-04' } }
+afterEach(() => vi.restoreAllMocks())
 let observe: IntersectionObserverCallback
 beforeEach(() => { vi.stubGlobal('IntersectionObserver', class { constructor(callback: IntersectionObserverCallback) { observe = callback } observe() {} disconnect() {} }); window.localStorage.clear() })
 it.each(['en', 'ru'] as const)('names every category and keeps the cities alias labelled Airports (%s)', async locale => {
@@ -72,4 +73,41 @@ it('pins the authenticated published place outside the first page without invent
   render(<LeaderboardRows entries={[]} category="cities" locale="en" own={{ ...own, rank: { ...own.rank, entry: { ...entry, rank: 60 } } }} />)
   expect(screen.getByRole('complementary', { name: 'Your leaderboard place' })).toHaveTextContent('#60')
   expect(screen.getByRole('list').children).toHaveLength(0)
+})
+
+it('does not repeat the rank celebration on remount while persisted storage stays readable but stale', async () => {
+  const ownerId = 'quota-rank-owner'
+  const p1 = '2026-10-01T00:00:00Z', p2 = '2026-10-02T00:00:00Z'
+  localStorage.setItem(`kuuki:rank:${ownerId}:flights`, JSON.stringify({ rank: 10, period: p1, delta: 0, seen: [p1] }))
+  vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => { throw new Error('QuotaExceededError') })
+  const snapshot = { ...own, ownerId, rank: { entry: { ...entry, user_id: ownerId, rank: 7 }, period: p2 } }
+  const view = render(<LeaderboardRows entries={[]} category="flights" locale="en" own={snapshot} />)
+  await waitFor(() => expect(screen.getByRole('status')).toHaveAttribute('data-celebrate', 'true'))
+  expect(screen.getByRole('status')).toHaveTextContent('Up by 3')
+  view.unmount()
+  render(<LeaderboardRows entries={[]} category="flights" locale="en" own={snapshot} />)
+  await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('Up by 3'))
+  expect(screen.getByRole('status')).not.toHaveAttribute('data-celebrate')
+})
+it('ignores an older publication before comparing the next newer rank', () => {
+  const ownerId = 'replayed-rank-owner'
+  const p1 = '2026-10-01T00:00:00Z', p2 = '2026-10-02T00:00:00Z', p3 = '2026-10-03T00:00:00Z'
+  expect(recordRank(ownerId, 'flights', 10, p1, localStorage).delta).toBe(0)
+  expect(recordRank(ownerId, 'flights', 7, p2, localStorage).delta).toBe(3)
+  expect(recordRank(ownerId, 'flights', 10, p1, localStorage)).toEqual({ delta: 0, celebrate: false })
+  expect(recordRank(ownerId, 'flights', 5, p3, localStorage)).toEqual({ delta: 2, celebrate: true })
+})
+it('merges a newer publication from another tab without replaying it or losing its comparison baseline', () => {
+  const ownerId = 'cross-tab-rank-owner'
+  const p1 = '2026-10-01T00:00:00Z', p2 = '2026-10-02T00:00:00Z', p3 = '2026-10-03T00:00:00Z'
+  recordRank(ownerId, 'flights', 10, p1, localStorage)
+  localStorage.setItem(`kuuki:rank:${ownerId}:flights`, JSON.stringify({ rank: 7, period: p2, delta: 3, seen: [p1, p2] }))
+  expect(recordRank(ownerId, 'flights', 7, p2, localStorage)).toEqual({ delta: 3, celebrate: false })
+  expect(recordRank(ownerId, 'flights', 5, p3, localStorage)).toEqual({ delta: 2, celebrate: true })
+})
+it('ignores an unseen older timestamp instead of treating it as a new rank publication', () => {
+  const ownerId = 'unseen-old-rank-owner'
+  recordRank(ownerId, 'flights', 7, '2026-10-02T00:00:00Z', localStorage)
+  expect(recordRank(ownerId, 'flights', 10, '2026-10-01T00:00:00Z', localStorage)).toEqual({ delta: 0, celebrate: false })
+  expect(recordRank(ownerId, 'flights', 5, '2026-10-03T00:00:00Z', localStorage)).toEqual({ delta: 2, celebrate: true })
 })

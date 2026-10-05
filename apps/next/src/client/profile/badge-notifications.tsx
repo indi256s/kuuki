@@ -14,7 +14,7 @@ const memory = new Map<string, string[]>()
 export function unseenBadges(ownerId: string, badges: EarnedBadge[], storage: Pick<Storage, 'getItem' | 'setItem'>) {
   const key = `kuuki:badge-events:${ownerId}`
   let previous = memory.get(key)
-  try { const raw = storage.getItem(key); if (raw) { const value: unknown = JSON.parse(raw); if (Array.isArray(value) && value.every(id => typeof id === 'string')) previous = value } } catch { /* blocked storage keeps the tab baseline */ }
+  try { const raw = storage.getItem(key); if (raw) { const value: unknown = JSON.parse(raw); if (Array.isArray(value) && value.every(id => typeof id === 'string')) previous = previous ? [...new Set([...previous, ...value])] : value } } catch { /* blocked storage keeps the tab baseline */ }
   const ids = badges.map(badgeEventId)
   const fresh = previous ? badges.filter(item => !previous.includes(badgeEventId(item))) : []
   const seen = [...new Set([...(previous ?? []), ...ids])]

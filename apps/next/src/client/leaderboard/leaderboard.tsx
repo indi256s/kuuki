@@ -4,7 +4,6 @@ import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { Plane, Route, Globe, TowerControl, Building2, Medal } from 'lucide-react'
 import type { readPublicLeaderboard, readOwnLeaderboardEligibility, readOwnLeaderboardRank, LeaderboardCategory } from '../../../../../functions/api/_services/publicLeaderboard'
 import { notificationStorage } from '../profile/storage'
-import { BadgeNotifications } from '../profile/badge-notifications'
 import { ProfileAvatar } from '../profile/avatar'
 import { IdentitySnapshot } from '../activity'
 import { categoryName, categoryUnit } from './categories'
@@ -28,7 +27,22 @@ const rankMemory = new Map<string, { rank: number; period: string; seen: string[
 export function recordRank(ownerId: string, category: LeaderboardCategory, rank: number, period: string, storage: Pick<Storage, 'getItem' | 'setItem'>) {
   const key = `kuuki:rank:${ownerId}:${category}`
   let previous = rankMemory.get(key)
-  try { const raw = storage.getItem(key); if (raw) { const parsed = JSON.parse(raw) as typeof previous; if (parsed && Number.isFinite(parsed.rank) && Number.isFinite(parsed.delta) && typeof parsed.period === 'string' && Array.isArray(parsed.seen) && parsed.seen.every(item => typeof item === 'string')) previous = parsed } } catch { /* blocked/corrupt storage keeps the local baseline */ }
+  try {
+    const raw = storage.getItem(key)
+    if (raw) {
+      const parsed = JSON.parse(raw) as typeof previous
+      if (parsed && Number.isFinite(parsed.rank) && Number.isFinite(parsed.delta) && typeof parsed.period === 'string' && Array.isArray(parsed.seen) && parsed.seen.every(item => typeof item === 'string')) {
+        // A failed write can leave readable storage behind this tab; another tab can publish a newer baseline.
+        const newest = !previous || Date.parse(parsed.period) > Date.parse(previous.period) ? parsed : previous
+        previous = { ...newest, seen: [...new Set([...(previous?.seen ?? []), ...parsed.seen])] }
+      }
+    }
+  } catch { /* blocked/corrupt storage keeps the local baseline */ }
+  if (previous) {
+    rankMemory.set(key, previous)
+    // History and older tabs may replay a snapshot; it must not rewind the next comparison.
+    if (period !== previous.period && (previous.seen.includes(period) || Date.parse(period) < Date.parse(previous.period))) return { delta: 0, celebrate: false }
+  }
   const identity = period
   const delta = previous ? previous.period !== period ? previous.rank - rank : previous.delta + previous.rank - rank : 0
   const celebrate = previous?.period !== period && delta > 0 && !previous?.seen.includes(identity)
@@ -71,7 +85,7 @@ export function LeaderboardRows({ entries, category, locale, own }: { entries: E
   }, [entries, ownEntry, observationKey])
   const listed = entries.some(entry => entry.user_id === own?.ownerId)
   const pinned = !!ownEntry && ((observation?.key === observationKey && observation.outside) || !listed)
-  return <>{own && <><BadgeNotifications key={own.ownerId} ownerId={own.ownerId} locale={locale} /><YourPlace own={own} category={category} locale={locale} /></>}
+  return <>{own && <YourPlace own={own} category={category} locale={locale} />}
     <ol className="leaderboard-rows">{entries.map(entry => <li key={entry.user_id} ref={entry.user_id === own?.ownerId ? original : undefined} className={entry.user_id === own?.ownerId ? 'leaderboard-own' : ''} aria-hidden={entry.user_id === own?.ownerId && pinned ? true : undefined} inert={entry.user_id === own?.ownerId && pinned ? true : undefined}><RankRow entry={entry} category={category} locale={locale} own={entry.user_id === own?.ownerId} /></li>)}</ol>
     {pinned && own && ownEntry && <IdentitySnapshot ownerId={own.ownerId}><aside className="leaderboard-pin" aria-label={locale === 'ru' ? 'Ваше место в рейтинге' : 'Your leaderboard place'}><RankRow entry={ownEntry} category={category} locale={locale} own /></aside></IdentitySnapshot>}
   </>

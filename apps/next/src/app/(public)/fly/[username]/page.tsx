@@ -7,7 +7,6 @@ import { getRequestLocale } from '../../../../server/locale'
 import { pageMetadata } from '../../../../server/metadata'
 import { IdentitySnapshot } from '../../../../client/activity'
 import { Achievements, ShareProfile } from '../../../../client/profile/profile'
-import { BadgeNotifications } from '../../../../client/profile/badge-notifications'
 import { ProfileAvatar } from '../../../../client/profile/avatar'
 import { formatDistanceKm, formatMonthYear, formatNumber } from '../../../../lib/format'
 import { categoryName } from '../../../../client/leaderboard/categories'
@@ -55,7 +54,7 @@ export async function ProfileData({ username }: { username: string }) {
     </>}
     {!viewer && data.profile.is_public && <footer className="profile-join"><p>{ru ? 'Соберите свой паспорт путешествий.' : 'Build your own travel passport.'}</p><Link href="/signup">{ru ? 'Начните свой журнал перелётов' : 'Start your own flight journal'}</Link></footer>}
   </article>
-  return owner ? <IdentitySnapshot ownerId={data.profile.id}><BadgeNotifications key={data.profile.id} ownerId={data.profile.id} locale={locale} />{content}</IdentitySnapshot> : content
+  return owner ? <IdentitySnapshot ownerId={data.profile.id}>{content}</IdentitySnapshot> : content
 }
 export default async function ProfilePage({ params }: { params: Promise<{ username: string }> }) {
   const [{ username }, locale] = await Promise.all([params, getRequestLocale()])
