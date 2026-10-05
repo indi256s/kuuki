@@ -10,6 +10,7 @@ import {
   type DerivedVisit,
 } from './stats'
 import { computedAdvancedStatsStatement } from './advancedStats'
+import { countryEvidenceRead, countryEvidenceStatements } from './countryEvidence'
 
 export interface DerivedRepairResult {
   derived_state: 'ready' | 'pending'
@@ -19,8 +20,16 @@ export interface DerivedRepairResult {
 export interface DerivedStateRow {
   revision: number
   published_revision: number
+  evidence_revision: number
   last_error: string | null
 }
+
+/** Readiness needs the evidence stamp too: an older build can publish a revision without the projection (ADR 0001 §4). */
+export const isDerivedReady = (state: Pick<DerivedStateRow, 'revision' | 'published_revision' | 'evidence_revision'>) =>
+  state.revision === state.published_revision && state.evidence_revision === state.published_revision
+
+/** SQL form of "not ready", for maintenance selection and its remaining-work check. */
+export const STALE_DERIVED_PREDICATE = '(revision != published_revision OR evidence_revision != published_revision)'
 
 interface VisitSource {
   airport_iata: string
@@ -71,7 +80,15 @@ function proposedVisits(db: D1Database, userId: string): BatchedRead<DerivedVisi
      WHERE f.user_id = ? AND (f.is_upcoming IS NULL OR f.is_upcoming = 0)`,
   ).bind(userId, userId)
 
-  const evidence = db.prepare(
+  return {
+    statements: [flightSources, legacyEvidenceStatement(db, userId)],
+    derive: ([flightResult, evidenceResult]) =>
+      mergeVisits(rowsOf<VisitSource>(flightResult), rowsOf<LegacyVisitSource>(evidenceResult)),
+  }
+}
+
+function legacyEvidenceStatement(db: D1Database, userId: string): D1PreparedStatement {
+  return db.prepare(
     `SELECT e.airport_iata, e.country_code, e.city, e.first_visit, e.last_visit,
             e.visit_count, ar.country_code AS reference_country_code,
             ar.city AS reference_city
@@ -79,12 +96,6 @@ function proposedVisits(db: D1Database, userId: string): BatchedRead<DerivedVisi
      LEFT JOIN airports_reference ar ON ar.iata = e.airport_iata
      WHERE e.user_id = ? AND e.contributes = 1`,
   ).bind(userId)
-
-  return {
-    statements: [flightSources, evidence],
-    derive: ([flightResult, evidenceResult]) =>
-      mergeVisits(rowsOf<VisitSource>(flightResult), rowsOf<LegacyVisitSource>(evidenceResult)),
-  }
 }
 
 function mergeVisits(flightSources: VisitSource[], evidence: LegacyVisitSource[]): DerivedVisit[] {
@@ -133,7 +144,7 @@ function mergeVisits(flightSources: VisitSource[], evidence: LegacyVisitSource[]
 
 function stateStatement(db: D1Database, userId: string): D1PreparedStatement {
   return db.prepare(
-    'SELECT revision, published_revision, last_error FROM user_derived_state WHERE user_id = ?',
+    'SELECT revision, published_revision, evidence_revision, last_error FROM user_derived_state WHERE user_id = ?',
   ).bind(userId)
 }
 
@@ -186,7 +197,7 @@ export async function repairUserDerivedState(db: D1Database, userId: string): Pr
     return { derived_state: 'pending', revision: 0 }
   }
   if (!state) return { derived_state: 'pending', revision: 0 }
-  if (state.revision === state.published_revision) {
+  if (isDerivedReady(state)) {
     return { derived_state: 'ready', revision: state.revision }
   }
   const revision = state.revision
@@ -197,8 +208,9 @@ export async function repairUserDerivedState(db: D1Database, userId: string): Pr
       computeStatsForVisits(db, userId),
       computedAdvancedStatsStatement(db, userId),
       computedBadgeStatements(db, userId),
+      countryEvidenceRead(db, userId, legacyEvidenceStatement(db, userId), mergeVisits),
     )
-    const [visits, statsFor, advancedFor, badgesFor] = read.derive(await db.batch(read.statements))
+    const [visits, statsFor, advancedFor, badgesFor, evidence] = read.derive(await db.batch(read.statements))
     const stats = statsFor(visits)
     const now = nowIso()
     const statements: D1PreparedStatement[] = [
@@ -206,9 +218,10 @@ export async function repairUserDerivedState(db: D1Database, userId: string): Pr
       db.prepare(
         `UPDATE user_derived_state
          SET published_revision = CASE WHEN revision = ? THEN ? ELSE -1 END,
+             evidence_revision = ?,
              last_error = NULL, published_at = ?
          WHERE user_id = ?`,
-      ).bind(revision, revision, now, userId),
+      ).bind(revision, revision, revision, now, userId),
       // UPDATE matching zero rows must not let the remaining derived writes through.
       db.prepare(
         `INSERT INTO user_derived_state (user_id, revision, published_revision)
@@ -219,6 +232,7 @@ export async function repairUserDerivedState(db: D1Database, userId: string): Pr
       computedStatsStatement(db, userId, stats),
       advancedFor(stats, visits),
       ...badgesFor(stats),
+      ...countryEvidenceStatements(db, userId, evidence),
     ]
     await db.batch(statements)
     return { derived_state: 'ready', revision }
