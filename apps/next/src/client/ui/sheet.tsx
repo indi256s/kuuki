@@ -2,7 +2,7 @@
 
 import * as RadixDialog from '@radix-ui/react-dialog'
 import { X } from 'lucide-react'
-import { useEffect, useRef, type PointerEvent as ReactPointerEvent, type ReactNode } from 'react'
+import { useEffect, useRef, type PointerEvent as ReactPointerEvent, type ReactNode, type RefObject } from 'react'
 import './ui.css'
 
 /** Release past this share of the sheet's size dismisses it. */
@@ -22,6 +22,8 @@ export function rubberBand(overshoot: number, limit = 80): number {
 }
 
 export type SheetProps = {
+  initialFocusRef?: RefObject<HTMLElement | null>
+  className?: string
   open: boolean
   onOpenChange: (open: boolean) => void
   title: ReactNode
@@ -37,7 +39,7 @@ export type SheetProps = {
 
 type Sample = { t: number; p: number }
 
-export function Sheet({ open, onOpenChange, title, description, side = 'bottom', trigger, children, footer, closeLabel = 'Close' }: SheetProps) {
+export function Sheet({ open, onOpenChange, title, description, side = 'bottom', trigger, children, footer, closeLabel = 'Close', className = '', initialFocusRef }: SheetProps) {
   const contentRef = useRef<HTMLDivElement>(null)
   const titleRef = useRef<HTMLHeadingElement>(null)
   const drag = useRef<{ id: number; start: number; samples: Sample[] } | null>(null)
@@ -81,22 +83,23 @@ export function Sheet({ open, onOpenChange, title, description, side = 'bottom',
     else setOffset(0) // transition settles it back with --ease-drawer
   }
 
-  // Keep the footer above the on-screen keyboard: offset the sheet by the visual-viewport inset.
+  const updateKeyboard = () => {
+    const viewport = window.visualViewport
+    const node = contentRef.current
+    if (!node || !viewport || viewport.scale !== 1) return
+    const inset = Math.max(0, Math.round(window.innerHeight - viewport.height - viewport.offsetTop))
+    node.style.setProperty('--sheet-kb', `${inset}px`)
+    node.dataset.keyboard = String(inset > 80)
+  }
+  // Portal content may mount after this effect; its ref also applies the current inset.
   useEffect(() => {
     if (!open || side !== 'bottom') return
     const viewport = window.visualViewport
     if (!viewport) return
-    const update = () => {
-      const node = contentRef.current
-      if (!node || viewport.scale !== 1) return // pinch-zoom also shrinks the visual viewport; not a keyboard
-      const inset = Math.max(0, Math.round(window.innerHeight - viewport.height - viewport.offsetTop))
-      node.style.setProperty('--sheet-kb', `${inset}px`)
-      node.dataset.keyboard = String(inset > 80)
-    }
-    update()
-    viewport.addEventListener('resize', update)
-    viewport.addEventListener('scroll', update)
-    return () => { viewport.removeEventListener('resize', update); viewport.removeEventListener('scroll', update) }
+    updateKeyboard()
+    viewport.addEventListener('resize', updateKeyboard)
+    viewport.addEventListener('scroll', updateKeyboard)
+    return () => { viewport.removeEventListener('resize', updateKeyboard); viewport.removeEventListener('scroll', updateKeyboard) }
   }, [open, side])
 
   return (
@@ -105,11 +108,11 @@ export function Sheet({ open, onOpenChange, title, description, side = 'bottom',
       <RadixDialog.Portal>
         <RadixDialog.Overlay className="ui-overlay" />
         <RadixDialog.Content
-          ref={contentRef}
-          className="ui-sheet"
+          ref={node => { contentRef.current = node; if (node && side === 'bottom') updateKeyboard() }}
+          className={`ui-sheet ${className}`}
           data-side={side}
           {...(description ? {} : { 'aria-describedby': undefined })}
-          onOpenAutoFocus={event => { event.preventDefault(); titleRef.current?.focus() }}
+          onOpenAutoFocus={event => { event.preventDefault(); (initialFocusRef?.current ?? titleRef.current)?.focus() }}
         >
           <div
             className="ui-sheet-handle"

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { api, beginIdentityOperation, getAuthGeneration } from '../../../web/src/lib/apiClient'
 import { clearFlightCreateOperations } from '../../../web/src/lib/flightCreateOperations'
 import { clearDrafts } from './capture/drafts'
+import { clearCapturePreferences } from './capture/capture-preferences'
 import { LIFECYCLE_CHANGED_EVENT, clearOwnerSyncMarkers, syncOwner, type SyncReply } from './lifecycle-sync'
 import { awaitPublication } from './publication'
 
@@ -37,6 +38,7 @@ function resetPrivateState(targetPath?: string) {
   tracked.clear()
   clearFlightCreateOperations()
   clearDrafts()
+  clearCapturePreferences()
   clearOwnerSyncMarkers(sharedStore())
   window.dispatchEvent(new Event('kuuki:identity-reset'))
   // A document navigation discards Next segment cache as well as client stores.

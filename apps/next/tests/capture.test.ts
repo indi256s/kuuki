@@ -12,8 +12,12 @@ async function freshAccount(page: Page, origin: string) {
 
 async function fillFlight(page: Page) {
   await page.getByLabel('Date').fill('2025-06-01')
-  await page.getByRole('combobox', { name: 'From' }).fill('JFK')
-  await page.getByRole('combobox', { name: 'To' }).fill('BOS')
+  for (const [label, code] of [['From', 'JFK'], ['To', 'BOS']]) {
+    await page.getByRole('combobox', { name: label }).click()
+    const search = page.getByRole('dialog', { name: label, exact: true })
+    await search.getByRole('combobox', { name: label }).fill(code)
+    await search.getByRole('option', { name: new RegExp(`^${code} `) }).click()
+  }
 }
 
 test('manual capture retries the original uncertain save, then edits and deletes the flight', async ({ page, baseURL }) => {
@@ -47,18 +51,18 @@ test('manual capture retries the original uncertain save, then edits and deletes
   const flights = await listing.json() as { id: number }[]
   expect(flights).toHaveLength(1)
   await page.goto(`/journal/${flights[0].id}/edit`)
-  await page.getByText('Optional details', { exact: true }).click()
-  await page.getByLabel('Flight number').fill('AA123')
+  await page.getByRole('button', { name: '＋ Optional details', exact: true }).click()
+  await page.getByLabel('Flight number (optional)').fill('AA123')
   await page.getByRole('button', { name: 'Save flight' }).click()
   await expect(page.getByRole('heading', { name: 'Flight saved' })).toBeVisible()
   const edited = await page.request.get(`/api/flights/${flights[0].id}`)
   expect((await edited.json() as { flight_number: string }).flight_number).toBe('AA123')
   await page.goto(`/journal/${flights[0].id}/edit`)
-  await page.getByRole('button', { name: 'Delete', exact: true }).first().click()
+  await page.getByRole('button', { name: 'Delete flight', exact: true }).click()
   await page.keyboard.press('Escape')
-  await expect(page.getByRole('button', { name: 'Delete', exact: true })).toBeFocused()
-  await page.getByRole('button', { name: 'Delete', exact: true }).click()
-  await page.getByRole('dialog').getByRole('button', { name: 'Delete' }).click()
+  await expect(page.getByRole('button', { name: 'Delete flight', exact: true })).toBeFocused()
+  await page.getByRole('button', { name: 'Delete flight', exact: true }).click()
+  await page.getByRole('dialog', { name: 'Delete flight?' }).getByRole('button', { name: 'Delete flight', exact: true }).click()
   await page.waitForURL('**/journal')
   expect((await (await page.request.get('/api/flights/all')).json() as unknown[])).toHaveLength(0)
 })

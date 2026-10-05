@@ -16,6 +16,7 @@ describe('ActivityBridge owner sync', () => {
     vi.resetModules()
     refresh.mockReset(); api.get.mockReset(); api.post.mockReset()
     window.localStorage.clear()
+    window.sessionStorage.clear()
   })
   afterEach(cleanup)
 
@@ -73,4 +74,20 @@ describe('ActivityBridge owner sync', () => {
     await new Promise(resolve => setTimeout(resolve, 20))
     expect(refresh).not.toHaveBeenCalled()
   })
+})
+
+it('clears capture recents and disclosure preferences when signing out', async () => {
+  const { beginIdentityOperation } = await import('../../../web/src/lib/apiClient')
+  vi.mocked(beginIdentityOperation).mockReturnValue({ ready: Promise.resolve(), token: Symbol(), release: vi.fn() } as never)
+  const { writeCapturePreference, readCapturePreference } = await import('./capture/capture-preferences')
+  const { withIdentityMutation } = await import('./activity')
+  writeCapturePreference('a', 'airports', ['TBS'])
+  writeCapturePreference('a', 'details', true)
+  sessionStorage.setItem('unrelated', 'keep')
+  // jsdom reports document navigation as unimplemented; the cleanup precedes it.
+  const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
+  try { await withIdentityMutation(async () => undefined, '/signin') } finally { consoleError.mockRestore() }
+  expect(readCapturePreference('a', 'airports', [])).toEqual([])
+  expect(readCapturePreference('a', 'details', false)).toBe(false)
+  expect(sessionStorage.getItem('unrelated')).toBe('keep')
 })

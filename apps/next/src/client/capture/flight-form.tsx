@@ -1,14 +1,19 @@
 'use client'
 
-import { useEffect, useId, useRef, useState } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { useRouter } from 'next/navigation'
 import * as Dialog from '@radix-ui/react-dialog'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import airports from '@kuuki/data/airports'
-import airlines from '@kuuki/data/airlines'
-import aircraft from '@kuuki/data/aircraft'
+import { validateFlightInput } from '@kuuki/shared'
+import { Combobox } from '../ui/combobox'
+import { Calendar } from '../ui/calendar'
+import { Disclosure } from '../ui/disclosure'
+import { Ticket } from '../signature/ticket'
+import { formatDateOnly, formatDuration } from '../../lib/format'
+import { airportChoices, airlineChoices, aircraftChoices } from './reference-choices'
+import { readCapturePreference, writeCapturePreference } from './capture-preferences'
 import { findAirport } from '@kuuki/data/airport-lookup'
 import { findAircraft } from '@kuuki/data/aircraft-lookup'
 import { calculateFlightDistance, calculateFlightDuration, estimateFlightDuration } from '../../../../web/src/lib/geo'
@@ -21,62 +26,75 @@ import { useWriteFeedback } from '../write-feedback'
 import type { Locale } from '../../server/locale'
 import './capture.css'
 
-const schema = z.object({
-  date: z.iso.date(), origin: z.string().regex(/^[A-Z]{3}$/), destination: z.string().regex(/^[A-Z]{3}$/),
-  airline: z.string().regex(/^$|^[A-Z0-9]{2}$/), aircraft: z.string().regex(/^$|^[A-Z0-9]{2,4}$/),
-  number: z.string().max(20), departure: z.string().regex(/^$|^([01]\d|2[0-3]):[0-5]\d$/), arrival: z.string().regex(/^$|^([01]\d|2[0-3]):[0-5]\d$/),
-}).refine(value => value.origin !== value.destination, { path: ['destination'], message: 'Route must have different airports' })
-type Values = z.infer<typeof schema>
-const empty: Values = { date: '', origin: '', destination: '', airline: '', aircraft: '', number: '', departure: '', arrival: '' }
-type Choice = { code: string; label: string }
-
-function Combo({ label, value, onChange, choices, required = false }: { label: string; value: string; onChange: (value: string) => void; choices: Choice[]; required?: boolean }) {
-  const id = useId()
-  const [open, setOpen] = useState(false)
-  const [active, setActive] = useState(0)
-  const query = value
-  const matches = query.trim() ? choices.filter(item => `${item.code} ${item.label}`.toLocaleLowerCase().includes(query.toLocaleLowerCase())).slice(0, 8) : []
-  return <div className="capture-combo"><label htmlFor={id}>{label}{required && ' *'}</label><input id={id} role="combobox" aria-expanded={open && matches.length > 0} aria-controls={`${id}-list`} aria-activedescendant={open && matches[active] ? `${id}-option-${active}` : undefined} aria-autocomplete="list" autoComplete="off" value={query} onChange={event => { const next = event.target.value.toUpperCase(); onChange(next); setActive(0); setOpen(true) }} onFocus={() => setOpen(true)} onBlur={() => setTimeout(() => setOpen(false), 120)} onKeyDown={event => { if (event.key === 'Escape') setOpen(false); if (event.key === 'ArrowDown' && matches.length) { event.preventDefault(); setOpen(true); setActive(index => (index + 1) % matches.length) } if (event.key === 'ArrowUp' && matches.length) { event.preventDefault(); setOpen(true); setActive(index => (index + matches.length - 1) % matches.length) } if (event.key === 'Enter' && open && matches[active]) { event.preventDefault(); onChange(matches[active].code); setOpen(false) } }} />{open && matches.length > 0 && <ul id={`${id}-list`} role="listbox">{matches.map((item, index) => <li id={`${id}-option-${index}`} key={item.code} role="option" aria-selected={index === active}><button type="button" onMouseDown={event => event.preventDefault()} onClick={() => { onChange(item.code); setOpen(false) }}>{item.code} · {item.label}</button></li>)}</ul>}</div>
+const empty = { date: '', origin: '', destination: '', airline: '', aircraft: '', number: '', departure: '', arrival: '' }
+type Values = typeof empty
+const fieldNames: Record<string, keyof Values> = { date: 'date', origin: 'origin', destination: 'destination', airline_iata: 'airline', aircraft_icao: 'aircraft', flight_number: 'number', departure_time: 'departure', arrival_time: 'arrival' }
+function input(values: Values) {
+  return { date: values.date, origin: values.origin, destination: values.destination, airline_iata: values.airline || null, aircraft_icao: values.aircraft || null, flight_number: values.number || null, departure_time: values.departure || null, arrival_time: values.arrival || null }
 }
+export type FlightSurface = (content: ReactNode, footer?: ReactNode) => ReactNode
 
-const airportChoices: Choice[] = airports.filter(item => item.iata).map(item => ({ code: item.iata, label: `${item.city} · ${item.name}` }))
-const airlineChoices: Choice[] = airlines.filter(item => item.iata).map(item => ({ code: item.iata, label: item.name }))
-const aircraftChoices: Choice[] = aircraft.filter(item => item.icao).map(item => ({ code: item.icao, label: item.name }))
-
-export function FlightForm({ ownerId, locale, editId }: { ownerId: string; locale: Locale; editId?: number }) {
+export function FlightForm({ ownerId, locale, editId, initialEditing = true, surface, onCancel }: { ownerId: string; locale: Locale; editId?: number; initialEditing?: boolean; surface?: FlightSurface; onCancel?: () => void }) {
   const router = useRouter()
   const feedback = useWriteFeedback(ownerId)
   const ru = locale === 'ru'
+  const choices = airportChoices(locale)
+  const formId = `flight-form-${editId ?? 'new'}`
+  const [editing, setEditing] = useState(initialEditing)
+  const [recents, setRecents] = useState<Record<'airports' | 'airline' | 'aircraft', string[]>>(() => ({ airports: readCapturePreference(ownerId, 'airports', []), airline: readCapturePreference(ownerId, 'airline', []), aircraft: readCapturePreference(ownerId, 'aircraft', []) }))
+  const remember = (kind: keyof typeof recents, code: string) => { const next = [code, ...recents[kind].filter(item => item !== code)].slice(0, 8); setRecents(previous => ({ ...previous, [kind]: next })); writeCapturePreference(ownerId, kind, next) }
+  const wrap = (content: ReactNode, footer?: ReactNode) => surface ? surface(content, footer) : <>{content}{footer}</>
   const [operationId, setOperationId] = useState(() => currentFlightOperationId(`next-manual:${ownerId}`))
   const [flight, setFlight] = useState<Flight | null>(null)
   const [loading, setLoading] = useState(!!editId)
+  const saving = useRef(false)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
   const [duplicate, setDuplicate] = useState<Flight | null>(null)
   const deleteTrigger = useRef<HTMLButtonElement>(null)
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [saved, setSaved] = useState(false)
-  const [showDetails, setShowDetails] = useState(false)
-  const form = useForm<Values>({ resolver: zodResolver(schema), defaultValues: empty })
-  const { control, register, handleSubmit, watch, setValue, reset, formState } = form
+  const [showDetails, setShowDetails] = useState(() => readCapturePreference(ownerId, 'details', false))
+  const invalidMessage = ru ? 'Проверьте значение поля.' : 'Check this field.'
+  const schema = z.object({ date: z.string(), origin: z.string(), destination: z.string(), airline: z.string(), aircraft: z.string(), number: z.string(), departure: z.string(), arrival: z.string() }).superRefine((raw, ctx) => {
+    const values = raw as Values
+    try { validateFlightInput(input(values), 'create') } catch (cause) {
+      const message = cause instanceof Error ? cause.message : ''
+      const field = Object.entries(fieldNames).find(([name]) => message.startsWith(name))?.[1] ?? (!values.date ? 'date' : !values.origin ? 'origin' : 'destination')
+      ctx.addIssue({ code: 'custom', path: [field], message: invalidMessage })
+    }
+    if (values.origin && values.origin === values.destination) ctx.addIssue({ code: 'custom', path: ['destination'], message: ru ? 'Выберите другой аэропорт.' : 'Choose a different airport.' })
+  })
+  const form = useForm<Values>({ resolver: zodResolver(schema), defaultValues: empty, mode: 'onBlur' })
+  const { control, register, handleSubmit, watch, setValue, reset, formState, setFocus } = form
   const [date, origin, destination] = watch(['date', 'origin', 'destination'])
   const receipt = !editId && !busy && pendingFlightCreateOperation(ownerId, operationId)
   const current = (generation: number, controller: AbortController) => !controller.signal.aborted && generation === getAuthGeneration()
   useEffect(() => {
     if (!editId) return
     const controller = new AbortController(); const release = trackPrivateOperation(controller); const generation = getAuthGeneration()
-    void getFlight(editId, { signal: controller.signal }).then(row => { if (!current(generation, controller)) return; setFlight(row); if (row) { reset({ date: row.date, origin: row.origin, destination: row.destination, airline: row.airline_iata ?? '', aircraft: row.aircraft_icao ?? '', number: row.flight_number ?? '', departure: row.departure_time?.slice(0,5) ?? '', arrival: row.arrival_time?.slice(0,5) ?? '' }); setShowDetails(!!(row.aircraft_icao || row.flight_number || row.departure_time || row.arrival_time)) } }).catch(cause => { if (current(generation, controller)) setError(String(cause)) }).finally(() => { if (current(generation, controller)) setLoading(false) })
+    void getFlight(editId, { signal: controller.signal }).then(row => { if (!current(generation, controller)) return; setFlight(row); if (row) { reset({ date: row.date, origin: row.origin, destination: row.destination, airline: row.airline_iata ?? '', aircraft: row.aircraft_icao ?? '', number: row.flight_number ?? '', departure: row.departure_time?.slice(0,5) ?? '', arrival: row.arrival_time?.slice(0,5) ?? '' }); setShowDetails(readCapturePreference(ownerId, 'details', false) || !!(row.airline_iata || row.aircraft_icao || row.flight_number || row.departure_time || row.arrival_time)) } }).catch(cause => { if (current(generation, controller)) setError(String(cause)) }).finally(() => { if (current(generation, controller)) setLoading(false) })
     return () => { controller.abort(); release() }
-  }, [editId, reset])
+  }, [editId, reset, ownerId])
   useEffect(() => {
-    if (!date || origin?.length !== 3 || destination?.length !== 3) { setDuplicate(null); return }
+    setDuplicate(null)
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || origin?.length !== 3 || destination?.length !== 3) return
     const controller = new AbortController(); const release = trackPrivateOperation(controller); const generation = getAuthGeneration()
     const timer = setTimeout(() => void checkDuplicateFlight(ownerId, date, origin, destination, editId, { signal: controller.signal }).then(row => { if (current(generation, controller)) setDuplicate(row) }).catch(() => { if (current(generation, controller)) setDuplicate(null) }), 300)
     return () => { clearTimeout(timer); controller.abort(); release() }
   }, [ownerId, date, origin, destination, editId])
-  async function save(values: Values, original?: object) {
+  async function save(values: Values, original?: object, bypassDuplicate = false) {
+    if (saving.current || receipt && !original) return
+    saving.current = true
     const controller = new AbortController(); const release = trackPrivateOperation(controller); const generation = getAuthGeneration(); setBusy(true); setError('')
     try {
+      validateFlightInput(original ?? input(values), 'create')
+      if (!original && !bypassDuplicate) {
+        const existing = await checkDuplicateFlight(ownerId, values.date, values.origin, values.destination, editId, { signal: controller.signal })
+        if (!current(generation, controller)) return
+        setDuplicate(existing)
+        if (existing) return
+      }
       const from = findAirport(values.origin), to = findAirport(values.destination), plane = values.aircraft ? findAircraft(values.aircraft) : undefined
       const distance = from && to ? calculateFlightDistance(from.latitude, from.longitude, to.latitude, to.longitude) : null
       const duration = values.departure && values.arrival ? calculateFlightDuration(values.departure, values.arrival, values.date, from?.timezone, to?.timezone) : distance == null ? null : estimateFlightDuration(distance, plane?.type)
@@ -84,33 +102,54 @@ export function FlightForm({ ownerId, locale, editId }: { ownerId: string; local
       const ack = flight ? await updateFlight(flight.id, body) : await createFlight({ ...body, source: 'manual', user_id: ownerId } as Parameters<typeof createFlight>[0], operationId)
       if (!current(generation, controller)) return
       if (!flight) setOperationId(rotateFlightOperationId(`next-manual:${ownerId}`))
+      const nextRecents = [...new Set([values.origin, values.destination, ...recents.airports])].filter(Boolean).slice(0, 8)
+      setRecents(previous => ({ ...previous, airports: nextRecents })); writeCapturePreference(ownerId, 'airports', nextRecents)
       feedback.acknowledge(ack); setSaved(true); router.refresh()
     } catch (cause) { if (current(generation, controller)) setError(cause instanceof Error ? cause.message : String(cause)) }
-    finally { if (current(generation, controller)) setBusy(false); release() }
+    finally { saving.current = false; if (current(generation, controller)) setBusy(false); release() }
   }
   async function remove() {
-    if (!flight) return
+    if (!flight || saving.current) return
+    saving.current = true
     const controller = new AbortController(); const release = trackPrivateOperation(controller); const generation = getAuthGeneration(); setBusy(true); setError('')
     try { const ack = await deleteFlight(flight.id); if (current(generation, controller)) { feedback.acknowledge(ack); router.push('/journal'); router.refresh() } }
     catch (cause) { if (current(generation, controller)) setError(cause instanceof Error ? cause.message : String(cause)) }
-    finally { if (current(generation, controller)) setBusy(false); release() }
+    finally { saving.current = false; if (current(generation, controller)) setBusy(false); release() }
   }
-  if (loading) return <p role="status">{ru ? 'Загружаем перелёт…' : 'Loading flight…'}</p>
-  if (editId && !flight) return <p role="alert">{error || (ru ? 'Перелёт не найден.' : 'Flight not found.')}</p>
-  if (saved) return <section className="capture-card" role="status"><h2>{ru ? 'Перелёт сохранён' : 'Flight saved'}</h2><p>{feedback.status === 'ready' ? (ru ? 'Итоги обновлены.' : 'Totals updated.') : feedback.status === 'pending' ? (ru ? 'Итоги обновляются. Перелёт уже в журнале.' : 'Totals are updating. Your flight is in the journal.') : (ru ? 'Итоги ещё не подтвердили обновление. Перелёт уже в журнале.' : 'Totals have not confirmed publication yet. Your flight is in the journal.')}</p><a className="button primary" href="/journal">{ru ? 'Открыть журнал' : 'Open journal'}</a></section>
-  return <form className="capture-card" onSubmit={handleSubmit(values => void save(values))}>
-    <div className="capture-grid"><label>{ru ? 'Дата' : 'Date'} *<input type="date" {...register('date')} /></label><span />
-      <Controller name="origin" control={control} render={({ field }) => <Combo label={ru ? 'Откуда' : 'From'} value={field.value} onChange={field.onChange} choices={airportChoices} required />} />
-      <Controller name="destination" control={control} render={({ field }) => <Combo label={ru ? 'Куда' : 'To'} value={field.value} onChange={field.onChange} choices={airportChoices} required />} />
-      <button type="button" className="button secondary capture-swap" onClick={() => { setValue('origin', destination); setValue('destination', origin) }}>{ru ? 'Поменять местами' : 'Swap route'}</button>
-      <Controller name="airline" control={control} render={({ field }) => <Combo label={ru ? 'Авиакомпания' : 'Airline'} value={field.value} onChange={field.onChange} choices={airlineChoices} />} />
-    </div>
-    <details open={showDetails} onToggle={event => setShowDetails(event.currentTarget.open)}><summary>{ru ? 'Дополнительные данные' : 'Optional details'}</summary><div className="capture-grid"><Controller name="aircraft" control={control} render={({ field }) => <Combo label={ru ? 'Самолёт' : 'Aircraft'} value={field.value} onChange={field.onChange} choices={aircraftChoices} />} /><label>{ru ? 'Номер рейса' : 'Flight number'}<input {...register('number')} /></label><label>{ru ? 'Вылет' : 'Departure'}<input type="time" {...register('departure')} /></label><label>{ru ? 'Прилёт' : 'Arrival'}<input type="time" {...register('arrival')} /></label></div></details>
-    {Object.entries(formState.errors).map(([key, issue]) => <p role="alert" key={key}>{key}: {issue?.message}</p>)}
-    {duplicate && <p role="status" className="status-note">{ru ? 'Похожий перелёт уже есть. Сохранить всё равно можно.' : 'A flight with this date and route already exists. You can still save.'} #{duplicate.id}</p>}
-    {receipt && <div className="status-note" role="alert"><p>{receipt.expired ? (ru ? 'Срок безопасного повтора истёк. Проверьте журнал.' : 'Safe retry expired. Check the journal before a new save.') : (ru ? 'Предыдущее сохранение не подтверждено. Повторите исходные данные.' : 'The last save is unconfirmed. Retry the original flight.')}</p>{!receipt.expired && <button type="button" disabled={busy} onClick={() => void save(empty, receipt.body)}>{ru ? 'Повторить исходное сохранение' : 'Retry original save'}</button>}<button type="button" disabled={busy} onClick={() => { abandonFlightCreateOperation(ownerId, operationId); setOperationId(rotateFlightOperationId(`next-manual:${ownerId}`)); setError('') }}>{ru ? 'Я проверил(а) журнал — новый перелёт' : 'I checked the journal — start a new save'}</button></div>}
-    {error && <p role="alert">{error}</p>}
-    <footer className="capture-footer"><a className="button secondary" href="/journal">{ru ? 'Назад' : 'Back'}</a>{flight && <button type="button" ref={deleteTrigger} className="button secondary" onClick={() => setConfirmDelete(true)}>{ru ? 'Удалить' : 'Delete'}</button>}<button className="button primary" disabled={busy || !!receipt} type="submit">{busy ? (ru ? 'Сохраняем…' : 'Saving…') : (ru ? 'Сохранить перелёт' : 'Save flight')}</button></footer>
-    <Dialog.Root open={confirmDelete} onOpenChange={setConfirmDelete}><Dialog.Portal><Dialog.Overlay className="read-sheet-overlay" /><Dialog.Content className="capture-confirm" onCloseAutoFocus={event => { event.preventDefault(); deleteTrigger.current?.focus() }}><Dialog.Title>{ru ? 'Удалить перелёт?' : 'Delete flight?'}</Dialog.Title><Dialog.Description>{ru ? 'Этот перелёт будет удалён из журнала.' : 'This flight will be removed from your journal.'}</Dialog.Description><Dialog.Close type="button">{ru ? 'Отмена' : 'Cancel'}</Dialog.Close><button type="button" disabled={busy} onClick={() => void remove()}>{ru ? 'Удалить' : 'Delete'}</button></Dialog.Content></Dialog.Portal></Dialog.Root>
-  </form>
+  const fieldError = (name: keyof Values) => formState.errors[name]?.message
+  const invalid = (issues: typeof formState.errors) => {
+    const field = Object.keys(issues)[0] as keyof Values
+    if (['airline', 'aircraft', 'number', 'departure', 'arrival'].includes(field)) setShowDetails(true)
+    requestAnimationFrame(() => setFocus(field))
+  }
+  const submit = (bypass = false) => handleSubmit(values => void save(values, undefined, bypass), invalid)
+  const keyboardSave = useRef<() => void>(() => {})
+  keyboardSave.current = () => { if (!loading && !saved && editing && !confirmDelete) void submit()() }
+  useEffect(() => {
+    const listener = (event: KeyboardEvent) => { if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') { event.preventDefault(); keyboardSave.current() } }
+    const resetPreferences = () => { setRecents({ airports: [], airline: [], aircraft: [] }); setShowDetails(false) }
+    window.addEventListener('keydown', listener)
+    window.addEventListener('kuuki:identity-reset', resetPreferences)
+    return () => { window.removeEventListener('keydown', listener); window.removeEventListener('kuuki:identity-reset', resetPreferences) }
+  }, [])
+  if (loading) return wrap(<p role="status">{ru ? 'Загружаем перелёт…' : 'Loading flight…'}</p>)
+  if (editId && !flight) return wrap(<p role="alert">{error || (ru ? 'Перелёт не найден.' : 'Flight not found.')}</p>)
+  if (saved) return wrap(<section role="status"><h2>{ru ? 'Перелёт сохранён' : 'Flight saved'}</h2><p>{feedback.status === 'ready' ? (ru ? 'Итоги обновлены.' : 'Totals updated.') : feedback.status === 'pending' ? (ru ? 'Итоги обновляются. Перелёт уже в журнале.' : 'Totals are updating. Your flight is in the journal.') : (ru ? 'Итоги ещё не подтвердили обновление. Перелёт уже в журнале.' : 'Totals have not confirmed publication yet. Your flight is in the journal.')}</p><a className="button primary" href="/journal">{ru ? 'Открыть журнал' : 'Open journal'}</a></section>)
+  const deletion = <Dialog.Root open={confirmDelete} onOpenChange={setConfirmDelete}><Dialog.Portal><Dialog.Overlay className="ui-overlay" /><Dialog.Content className="capture-confirm" onCloseAutoFocus={event => { event.preventDefault(); deleteTrigger.current?.focus() }}><Dialog.Title>{ru ? 'Удалить перелёт?' : 'Delete flight?'}</Dialog.Title><Dialog.Description>{ru ? 'Этот перелёт будет удалён из журнала.' : 'This flight will be removed from your journal.'}</Dialog.Description><Dialog.Close type="button">{ru ? 'Отмена' : 'Cancel'}</Dialog.Close><button type="button" disabled={busy} onClick={() => void remove()}>{ru ? 'Удалить перелёт' : 'Delete flight'}</button></Dialog.Content></Dialog.Portal></Dialog.Root>
+  const deleteButton = flight && <div className="flight-danger"><button type="button" ref={deleteTrigger} className="button secondary" disabled={busy} onClick={() => setConfirmDelete(true)}>{ru ? 'Удалить перелёт' : 'Delete flight'}</button></div>
+  if (flight && !editing) {
+    const state = (flight as Flight & { lifecycle_state?: 'upcoming' | 'awaiting' | 'logged' }).lifecycle_state ?? (flight.is_upcoming ? 'upcoming' : 'logged')
+    return wrap(<section className="flight-detail"><Ticket locale={locale} state={state} origin={{ iata: flight.origin, city: choices.find(row => row.code === flight.origin)?.detail ?? flight.origin }} destination={{ iata: flight.destination, city: choices.find(row => row.code === flight.destination)?.detail ?? flight.destination }} date={flight.date} airline={flight.airline_iata ?? undefined} flightNumber={flight.flight_number ?? undefined} distanceKm={flight.distance_km ?? undefined} actions={<button type="button" className="button secondary" onClick={() => setEditing(true)}>{ru ? 'Изменить перелёт' : 'Edit flight'}</button>} /><dl>{[['Авиакомпания', 'Airline', flight.airline_iata], ['Самолёт', 'Aircraft', flight.aircraft_icao], ['Номер рейса', 'Flight number', flight.flight_number], ['Вылет', 'Departure', flight.departure_time], ['Прилёт', 'Arrival', flight.arrival_time], ['Длительность', 'Duration', flight.duration_minutes == null ? null : formatDuration(locale, flight.duration_minutes)]].map(([russian, english, value]) => <div key={english}><dt>{ru ? russian : english}</dt><dd>{value || (ru ? 'Не указано' : 'Not specified')}</dd></div>)}</dl>{deleteButton}{error && <p role="alert">{error}</p>}{deletion}</section>)
+  }
+  const combo = (name: 'origin' | 'destination' | 'airline' | 'aircraft', label: string) => <Controller name={name} control={control} render={({ field }) => <Combobox label={label} value={field.value} onChange={field.onChange} onBlur={field.onBlur} inputRef={field.ref} choices={name === 'airline' ? airlineChoices : name === 'aircraft' ? aircraftChoices : choices} locale={locale} error={fieldError(name)} disabled={busy} recents={recents[name === 'origin' || name === 'destination' ? 'airports' : name]} onSelect={code => remember(name === 'origin' || name === 'destination' ? 'airports' : name, code)} />} />
+  const optional = (name: 'number' | 'departure' | 'arrival', label: string, type = 'text') => <label>{label}<input type={type} {...register(name)} aria-invalid={!!fieldError(name)} aria-describedby={fieldError(name) ? `${formId}-${name}-error` : undefined} />{fieldError(name) && <p id={`${formId}-${name}-error`} role="alert">{fieldError(name)}</p>}</label>
+  const footer = <>{onCancel ? <button type="button" className="button secondary" onClick={onCancel}>{ru ? 'Отмена' : 'Cancel'}</button> : <a className="button secondary" href="/journal">{ru ? 'Отмена' : 'Cancel'}</a>}<button className="button primary" form={formId} disabled={busy || !!receipt} type="submit">{busy ? (ru ? 'Сохраняем…' : 'Saving…') : (ru ? 'Сохранить перелёт' : 'Save flight')}</button><small className="flight-keyboard-hint">⌘/Ctrl + Enter</small></>
+  return wrap(<form id={formId} className="capture-card flight-editor" noValidate onSubmit={submit()}>
+    <fieldset disabled={busy}><legend className="eyebrow">{ru ? 'Маршрут' : 'Route'}</legend><div className="capture-grid">{combo('origin', ru ? 'Откуда' : 'From')}{combo('destination', ru ? 'Куда' : 'To')}<button type="button" className="button secondary capture-swap" onClick={() => { setValue('origin', destination, { shouldDirty: true }); setValue('destination', origin, { shouldDirty: true }) }}>{ru ? 'Поменять местами' : 'Swap route'}</button></div>
+    {duplicate && <div role="status" className="flight-duplicate"><p>{ru ? 'Перелёт с этой датой и маршрутом уже есть.' : 'A flight with this date and route already exists.'}</p><p>{duplicate.origin} → {duplicate.destination} · {formatDateOnly(locale, duplicate.date)}</p><a className="button secondary" href={`/journal/${duplicate.id}/edit`}>{ru ? 'Открыть существующий' : 'Open existing'}</a><button type="button" className="button secondary" disabled={busy || !!receipt} onClick={() => void submit(true)()}>{ru ? 'Всё равно сохранить' : 'Save anyway'}</button></div>}
+    <Controller name="date" control={control} render={({ field }) => <Calendar label={ru ? 'Дата' : 'Date'} value={field.value} onChange={field.onChange} onBlur={field.onBlur} inputRef={field.ref} locale={locale} error={fieldError('date')} disabled={busy} />} />
+    <Disclosure summary={ru ? '＋ Подробности' : '＋ Optional details'} open={showDetails} onOpenChange={open => { setShowDetails(open); writeCapturePreference(ownerId, 'details', open) }}><div className="capture-grid">{combo('airline', ru ? 'Авиакомпания (необязательно)' : 'Airline (optional)')}{optional('number', ru ? 'Номер рейса (необязательно)' : 'Flight number (optional)')}{combo('aircraft', ru ? 'Самолёт (необязательно)' : 'Aircraft (optional)')}{optional('departure', ru ? 'Вылет (необязательно)' : 'Departure (optional)', 'time')}{optional('arrival', ru ? 'Прилёт (необязательно)' : 'Arrival (optional)', 'time')}</div></Disclosure></fieldset>
+    {receipt && <div className="status-note" role="alert"><p>{receipt.expired ? (ru ? 'Срок безопасного повтора истёк. Проверьте журнал.' : 'Safe retry expired. Check the journal before a new save.') : (ru ? 'Предыдущее сохранение не подтверждено. Повторите исходные данные.' : 'The last save is unconfirmed. Retry the original flight.')}</p>{!receipt.expired && <button type="button" disabled={busy} onClick={() => void save(empty, receipt.body)}>{ru ? 'Повторить исходное сохранение' : 'Retry original save'}</button>}<button type="button" disabled={busy} onClick={() => { abandonFlightCreateOperation(ownerId, operationId); setOperationId(rotateFlightOperationId(`next-manual:${ownerId}`)); setError('') }}>{ru ? 'Вы проверили журнал — новый перелёт' : 'I checked the journal — start a new save'}</button></div>}
+    {error && <p role="alert">{error}</p>}{deleteButton}{deletion}
+  </form>, surface ? footer : <footer className="capture-footer">{footer}</footer>)
 }

@@ -6,6 +6,7 @@ import { useRef, type ReactNode, type RefObject } from 'react'
 import './ui.css'
 
 export type DialogProps = {
+  className?: string
   open: boolean
   onOpenChange: (open: boolean) => void
   title: ReactNode
@@ -22,7 +23,7 @@ export type DialogProps = {
   initialFocusRef?: RefObject<HTMLElement | null>
 }
 
-export function Dialog({ open, onOpenChange, title, description, trigger, children, footer, closeLabel = 'Close', dismissible = true, initialFocusRef }: DialogProps) {
+export function Dialog({ open, onOpenChange, title, description, trigger, children, footer, closeLabel = 'Close', dismissible = true, initialFocusRef, className = '' }: DialogProps) {
   const titleRef = useRef<HTMLHeadingElement>(null)
   return (
     <RadixDialog.Root open={open} onOpenChange={next => { if (dismissible || next) onOpenChange(next) }}>
@@ -30,7 +31,7 @@ export function Dialog({ open, onOpenChange, title, description, trigger, childr
       <RadixDialog.Portal>
         <RadixDialog.Overlay className="ui-overlay" />
         <RadixDialog.Content
-          className="ui-dialog"
+          className={`ui-dialog ${className}`}
           {...(description ? {} : { 'aria-describedby': undefined })}
           onOpenAutoFocus={event => { event.preventDefault(); (initialFocusRef?.current ?? titleRef.current)?.focus() }}
           onEscapeKeyDown={event => { if (!dismissible) event.preventDefault() }}
