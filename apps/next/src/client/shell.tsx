@@ -35,5 +35,3 @@ export function BrandShell({ locale, actions, children }: { locale: Locale; acti
     <Main>{children}</Main>
   </>
 }
-
-export { Main }

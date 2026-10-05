@@ -10,7 +10,7 @@ import { JournalView } from '../../../client/reads/journal'
 import '../../reads.css'
 
 async function JournalData({ filters }: { filters: Record<string, string | string[] | undefined> }) {
-  const [owned, locale] = await Promise.all([getOwnJournal(filters), getRequestLocale(), requireOnboardedMember()])
+  const [owned, locale] = await Promise.all([getOwnJournal(filters), getRequestLocale()])
   if (!owned) redirect('/signin')
   const { ownerId, data, normalized } = owned
   const query = normalized.params.toString()
@@ -19,6 +19,7 @@ async function JournalData({ filters }: { filters: Record<string, string | strin
 }
 export const generateMetadata = () => pageMetadata('Journal', 'Журнал')
 export default async function Journal({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
+  await requireOnboardedMember()
   const locale = await getRequestLocale()
   return <><div className="page-heading"><p className="eyebrow">{locale === 'ru' ? 'Все ваши путешествия' : 'Every journey'}</p><h1>{locale === 'ru' ? 'Журнал' : 'Journal'}</h1><p className="lead">{locale === 'ru' ? 'Найдите, проверьте или исправьте перелёт.' : 'Find, review and update a flight.'}</p><a className="button primary" href="/add">{locale === 'ru' ? 'Добавить перелёт' : 'Add a flight'}</a></div><Suspense fallback={<p className="loading" data-testid="journal-loading" role="status">{locale === 'ru' ? 'Загружаем журнал…' : 'Loading journal…'}</p>}><JournalData filters={await searchParams} /></Suspense></>
 }

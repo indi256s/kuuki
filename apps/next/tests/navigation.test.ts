@@ -220,3 +220,11 @@ test.describe('titles, focus and not-found', () => {
     await expect(page.locator('main#main header')).toHaveCount(0)
   })
 })
+
+test('a guest hitting a member page gets a 307 to sign-in, not a streamed 200', async ({ request }) => {
+  for (const path of ['/overview', '/journal', '/passport']) {
+    const response = await request.get(path, { maxRedirects: 0 })
+    expect(response.status(), path).toBe(307)
+    expect(new URL(response.headers().location, 'http://x').pathname).toBe('/signin')
+  }
+})
