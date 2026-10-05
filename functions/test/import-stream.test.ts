@@ -167,3 +167,29 @@ it('the unbound events endpoint sends a final snapshot and end with the same cac
   expect(text).toContain('"status":"cancelled"')
   expect(text).not.toMatch(/^id:/m)
 })
+
+it('logs one validation summary per job and per-row logs only for rejected rows', async () => {
+  const fixture = await importAccount(); dispose = fixture.dispose
+  const batchId = crypto.randomUUID()
+  await createProcessingBatch(fixture.db, { id: batchId, userId: 'u1', sourceType: 'text', sourceLabel: null, operationId: 'log-summary-op-0001' }, new Date())
+  provider.stream.mockResolvedValueOnce((async function* () {
+    yield { text: providerText([providerFlight(), providerFlight({ flight_number: '8' }), { origin: 'X', destination: 'LHR', airline_iata: 'BA' }]) }
+  })())
+  const log = vi.spyOn(console, 'log').mockImplementation(() => undefined)
+  try {
+    const pending: Promise<unknown>[] = []
+    const state = {
+      storage: { get: async () => undefined, put: async () => undefined, setAlarm: async () => undefined, deleteAlarm: async () => undefined, deleteAll: async () => undefined },
+      blockConcurrencyWhile: (fn: () => Promise<unknown>) => fn(), waitUntil: (work: Promise<unknown>) => pending.push(work),
+    } as unknown as DurableObjectState
+    const job = new ImportJob(state, { DB: fixture.db, GEMINI_API_KEY: 'fake' })
+    expect((await job.fetch(new Request('https://import.internal/start', { method: 'POST', body: JSON.stringify({
+      fence: { userId: 'u1', batchId, generation: 1 }, source: { type: 'text', content: 'private fixture' },
+    }) }))).status).toBe(202)
+    await Promise.all(pending)
+    const events = log.mock.calls.map(([line]) => JSON.parse(String(line)) as { event: string })
+    expect(events.filter(entry => entry.event === 'validation_complete')).toEqual([{ event: 'validation_complete', valid: 2, total: 3, rejected: 1 }])
+    expect(events.filter(entry => entry.event === 'flight_rejected')).toEqual([{ event: 'flight_rejected', index: 2 }])
+  } finally { log.mockRestore() }
+  expect(await fixture.db.prepare('SELECT status,error_code FROM import_batches WHERE id = ?').bind(batchId).first()).toEqual({ status: 'partial', error_code: 'ROWS_REJECTED' })
+})

@@ -237,6 +237,15 @@ it('concurrent duplicate submissions and direct starts still make exactly one pr
   send('{"flights":[]}'); feed.close()
   await expect.poll(async () => (await batch(id))?.status).toBe('failed')
 })
+it('a duplicate whose handshake meets an already finished job replays the batch instead of reporting an outage', async () => {
+  const { db, batch, calls } = await runtime()
+  const response = await dispatch('/__test/racing-duplicate', 'POST', { type: 'text', content: 'private input', submissionOperationId: 'runtime-op-0001' })
+  expect(response.status).toBe(202)
+  const { batchId } = await response.json() as { batchId: string }
+  expect(await batch(batchId)).toMatchObject({ status: 'review', error_code: null })
+  expect((await db.prepare('SELECT COUNT(*) AS n FROM import_batches').first())?.n).toBe(1)
+  expect(calls()).toBe(0) // the refused handshake never reached the provider
+})
 it('enforces the shared application rate budget before dispatch and separates it from provider quota', async () => {
   const { db, calls } = await runtime()
   await db.prepare('INSERT INTO auth_rate_limits(key,count,expires_at) VALUES(?,?,?)')

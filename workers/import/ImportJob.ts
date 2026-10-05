@@ -1,5 +1,5 @@
 import { GoogleGenAI } from '@google/genai'
-import { extractionContents, FLIGHT_RESPONSE_SCHEMA, normalizeFlights, validateImportSource, MAX_IMPORT_BODY_BYTES } from '../../functions/api/import/_extract'
+import { extractionContents, FLIGHT_RESPONSE_SCHEMA, normalizeFlights, logValidation, validateImportSource, MAX_IMPORT_BODY_BYTES } from '../../functions/api/import/_extract'
 import { DEFAULT_MODEL, PROVIDER_TIMEOUT_MS, providerFailure } from '../../functions/api/import/_provider'
 import type { ExtractedFlight, ParseRequest } from '../../functions/api/import/_shared'
 import { HttpError, readJson, runHandler } from '../../functions/api/_lib/http'
@@ -88,14 +88,15 @@ export class ImportJob {
     const onAbort = () => rejectAbort(new DOMException('Aborted', 'AbortError'))
     controller.signal.addEventListener('abort', onAbort, { once: true })
     const scanner = new FlightScanner()
-    let valid = 0; let rejected = 0; let truncated = false; let finalized = false
+    let valid = 0; let truncated = false; let finalized = false
     const emitted = new Map<number, string>()
+    const rejectedOrdinals = new Set<number>() // the final pass revisits rows already refused while streaming
     let iterator: AsyncIterator<string> | undefined
     const persist = async (value: unknown, ordinal: number) => {
       if (controller.signal.aborted) throw new DOMException('Aborted', 'AbortError')
-      if (emitted.has(ordinal)) return true
+      if (emitted.has(ordinal) || rejectedOrdinals.has(ordinal)) return true
       let flight: ExtractedFlight
-      try { flight = normalizeFlights({ flights: [structuredClone(value) as ExtractedFlight] }, ordinal).flights[0] } catch { rejected++; return true }
+      try { flight = normalizeFlights({ flights: [structuredClone(value) as ExtractedFlight] }, ordinal).flights[0] } catch { rejectedOrdinals.add(ordinal); return true }
       if (valid >= MAX_DRAFTS_PER_BATCH) { truncated = true; return true }
       const event = await persistDraftRows(this.env.DB, fence, [rowOf(flight)], null, new Date(), { ordinalStart: ordinal })
       if (!event) { finalized = true; return false }
@@ -124,7 +125,8 @@ export class ImportJob {
         if (JSON.stringify(final[ordinal]) !== value) throw new HttpError(502, 'Extraction changed at completion', 'PROVIDER_INVALID_RESPONSE')
       }
       for (let ordinal = 0; ordinal < final.length; ordinal++) if (!await persist(final[ordinal], ordinal)) return
-      const errorCode = !valid ? 'NO_FLIGHTS_FOUND' : truncated ? 'ROWS_TRUNCATED' : rejected ? 'ROWS_REJECTED' : null
+      logValidation(valid, final.length, rejectedOrdinals.size)
+      const errorCode = !valid ? 'NO_FLIGHTS_FOUND' : truncated ? 'ROWS_TRUNCATED' : rejectedOrdinals.size ? 'ROWS_REJECTED' : null
       const event = await persistDraftRows(this.env.DB, fence, [], { status: !valid ? 'failed' : errorCode ? 'partial' : 'review', errorCode })
       finalized = true
       if (event) this.notify(event, true)
