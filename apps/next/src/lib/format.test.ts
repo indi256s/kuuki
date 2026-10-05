@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { formatCount, formatDateOnly, formatDistanceKm, formatDuration, formatMonthYear, formatNumber, pluralCategory, type CountForms } from './format'
+import { formatCount, formatDateOnly, formatDistanceKm, formatDuration, formatInstantDate, formatMonthYear, formatNumber, pluralCategory, type CountForms } from './format'
 
 const flights: CountForms = {
   en: { one: '{count} flight', other: '{count} flights' },
@@ -79,5 +79,16 @@ describe('date-only formatting', () => {
     expect(formatMonthYear('en', '2026-12-31')).toBe('December 2026')
     expect(formatMonthYear('ru', '2026-10-15')).toBe('октябрь 2026 г.')
     expect(formatMonthYear('en', new Date(Date.UTC(2026, 11, 31, 23, 59)))).toBe('December 2026')
+  })
+})
+
+describe('formatInstantDate', () => {
+  it('names the viewer-zone day of an instant', () => {
+    expect(formatInstantDate('en', '2026-11-04T00:30:00.000Z', 'medium', 'UTC')).toBe('Nov 4, 2026')
+    expect(formatInstantDate('en', '2026-11-04T00:30:00.000Z', 'medium', 'America/New_York')).toBe('Nov 3, 2026')
+    expect(formatInstantDate('ru', '2026-11-04T12:00:00.000Z', 'long', 'UTC')).toBe('4 ноября 2026 г.')
+  })
+  it('returns an invalid instant unchanged', () => {
+    expect(formatInstantDate('en', 'later')).toBe('later')
   })
 })
