@@ -69,7 +69,8 @@ async function seed(context: BrowserContext, origin: string, count: number): Pro
 async function ready(page: Page, family: string, route: string, count: number) {
   const formatted = count.toLocaleString('en-US')
   if (family === 'next' && route === 'overview') {
-    await expect(page.getByTestId('overview-data').locator('.hero-stat strong')).toHaveText(formatted)
+    if (count === 0) await expect(page.getByTestId('overview-empty')).toBeVisible()
+    else await expect(page.getByTestId('overview-flights')).toHaveText(formatted)
   } else if (family === 'next' && route === 'journal') {
     await expect(page.getByTestId('journal-data').locator('p.muted').first()).toContainText(`${formatted} flights`)
   } else if (family === 'next') {

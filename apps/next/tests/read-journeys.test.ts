@@ -47,7 +47,7 @@ test('the period stays with the map while ordinary read navigation stays lightwe
     if (path.startsWith('/maps/') && !path.endsWith('.svg') || path.includes('route-projection')) heavy.push(path)
   })
   await page.goto('/overview?period=2026')
-  await expect(page.getByTestId('overview-data').locator('.hero-stat strong')).toHaveText('1')
+  await expect(page.getByTestId('overview-flights')).toHaveText('1')
   expect(heavy).toHaveLength(0)
   const mapLink = page.getByRole('link', { name: /Open Passport map/ })
   await expect(mapLink).toHaveAttribute('href', /year=2026/)
@@ -59,7 +59,7 @@ test('the period stays with the map while ordinary read navigation stays lightwe
   await expect(page.getByRole('dialog')).toContainText('JFK')
   await page.keyboard.press('Escape')
   await page.goto('/overview?period=2024')
-  await expect(page.getByTestId('overview-data').locator('.hero-stat strong')).toHaveText('0')
+  await expect(page.getByTestId('overview-empty-year')).toBeVisible()
 })
 
 test('auth validation and real sign-in reach the owned overview', async ({ page }) => {
@@ -71,7 +71,7 @@ test('auth validation and real sign-in reach the owned overview', async ({ page 
   await page.getByLabel('Password', { exact: true }).fill('rehearsal-password-2026')
   await page.getByRole('button', { name: 'Sign in', exact: true }).click()
   await page.waitForURL(url => url.pathname === '/overview')
-  await expect(page.getByTestId('overview-data').locator('.hero-stat strong')).toHaveText('1')
+  await expect(page.getByTestId('overview-flights')).toHaveText('1')
   await page.goto('/?mode=signin')
   await page.waitForURL(url => url.pathname === '/overview')
 })
