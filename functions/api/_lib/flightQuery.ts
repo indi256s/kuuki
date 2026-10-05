@@ -150,7 +150,8 @@ export function parseSort(params: URLSearchParams): SortConfig {
 /**
  * ORDER BY built from an already-validated SortConfig, with a stable id tiebreak. The default sort
  * (date, descending) leads with lifecycle_state = 'upcoming' rows, nearest first, so the Journal's
- * Upcoming group is globally nearest-first across pages; every explicit sort is a plain column order.
+ * Upcoming group is globally nearest-first across pages; every non-default sort is a plain column order.
+ * An explicit date-desc is indistinguishable from the default, so it gets the same upcoming-first order.
  */
 export function orderByClause(sort: SortConfig): string {
   const dir = sort.order === 'asc' ? 'ASC' : 'DESC'

@@ -743,8 +743,8 @@ describe('list', () => {
   })
 
   it('renders the upcoming group in the order the server returned it, without re-sorting', () => {
-    render(<Harness flights={[flight({ id: 2, date: '2027-01-01', lifecycle_state: 'upcoming' }), flight({ id: 1, date: '2027-03-01', lifecycle_state: 'upcoming' }), flight({ id: 3, date: '2026-01-01', lifecycle_state: 'logged' })]} />)
-    expect([...document.querySelectorAll('[data-flight-row]')].map(row => row.getAttribute('data-flight-row'))).toEqual(['2', '1', '3'])
+    render(<Harness flights={[flight({ id: 1, date: '2027-03-01', lifecycle_state: 'upcoming' }), flight({ id: 2, date: '2027-01-01', lifecycle_state: 'upcoming' }), flight({ id: 3, date: '2026-01-01', lifecycle_state: 'logged' })]} />)
+    expect([...document.querySelectorAll('[data-flight-row]')].map(row => row.getAttribute('data-flight-row'))).toEqual(['1', '2', '3'])
   })
 
   it('exposes the sort direction and uses a labelled group', async () => {
