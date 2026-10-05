@@ -1,6 +1,8 @@
 // @vitest-environment jsdom
 import { act, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
 import { useEffect, useState } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { JournalView } from './journal'
@@ -411,9 +413,32 @@ describe('list', () => {
     render(<Harness flights={[flight({ id: 1, date: '2025-04-03', lifecycle_state: 'logged', flight_number: 'TK123', duration_minutes: 25, distance_km: 1234 })]} />)
     const row = document.querySelector<HTMLElement>('[data-flight-row="1"]')!
     expect(row.getAttribute('aria-label')!.replaceAll('\u00a0', ' ')).toBe('TBS to IST, April 3, 2025, TK123, B738, 25 min, 1,234 km')
-    expect(row.textContent!.replaceAll('\u00a0', ' ')).toContain('25 min')
-    expect(row).not.toHaveTextContent('0 h')
+    const cells = row.closest('.flight-row')!
+    expect(cells.textContent!.replaceAll('\u00a0', ' ')).toContain('25 min')
+    expect(cells).not.toHaveTextContent('0 h')
     expect(screen.getByRole('checkbox', { name: 'Select: TBS to IST, April 3, 2025' })).toBeInTheDocument()
+  })
+
+  it('puts "Add aircraft" in the row\'s aircraft cell, not after the row and not inside the row button', () => {
+    render(<Harness flights={[flight({ id: 7, date: '2025-04-03', lifecycle_state: 'logged', aircraft_icao: null }), flight({ id: 8, date: '2025-04-02', lifecycle_state: 'logged' })]} />)
+    const missing = document.querySelector('[data-flight-row="7"]')!.closest('.flight-row')!
+    const cell = missing.querySelector('.journal-aircraft-cell')!
+    expect(cell).toContainElement(screen.getByRole('button', { name: 'Add aircraft' }))
+    expect(missing).toContainElement(cell as HTMLElement)
+    expect(missing.querySelector('.flight-row-route')).toBeTruthy() // same row element as the other cells
+    expect(document.querySelector('[data-flight-row="7"]')!.querySelector('button, a, input, select')).toBeNull()
+    expect(missing.nextElementSibling).toBeNull() // nothing follows the row as a separate grid row
+    const present = document.querySelector('[data-flight-row="8"]')!.closest('.flight-row')!
+    expect(present.querySelector('.journal-aircraft-cell')).toHaveTextContent('B738')
+    expect(present.querySelector('.journal-aircraft-cell button')).toBeNull()
+  })
+
+  it('declares the mobile card order route, date, distance, flight number and a control-border checkbox outline', () => {
+    const css = readFileSync(join(process.cwd(), 'src/app/reads.css'), 'utf8')
+    const mobile = css.slice(css.indexOf('@media(max-width:700px){.journal-entry'))
+    const place = (cell: string) => mobile.match(new RegExp(`\\.journal-entry \\.flight-row>\\.${cell}\\{grid-column:(\\d);grid-row:(\\d)`))!.slice(1).join('/')
+    expect(['flight-row-route', 'flight-row-date', 'flight-row-distance', 'flight-row-number'].map(place)).toEqual(['1/1', '2/1', '1/2', '2/2'])
+    expect(css).toMatch(/\.journal-data input\[type=checkbox\]\{[^}]*outline:1px solid var\(--control-border\)/)
   })
 
   it('lists upcoming flights nearest first', () => {
@@ -429,6 +454,21 @@ describe('list', () => {
     expect(within(group).getByRole('button', { name: 'Origin' })).toHaveAttribute('aria-pressed', 'false')
     await user.click(within(group).getByRole('button', { name: 'Date, ascending' }))
     expect(nav.push).toHaveBeenCalledWith('/journal', { scroll: false })
+  })
+
+  it('has one desktop sort control (the list headers, covering every sort) and keeps Sort and Order in the mobile filter sheet', async () => {
+    const user = userEvent.setup()
+    render(<Harness />)
+    expect(screen.queryByRole('combobox', { name: 'Sort' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('combobox', { name: 'Order' })).not.toBeInTheDocument()
+    const group = screen.getByRole('group', { name: 'Sort' })
+    expect(within(group).getAllByRole('button').map(button => button.textContent)).toEqual(['Date', 'Origin', 'Destination', 'Airline', 'Aircraft', 'Duration', 'Distance'])
+    await user.click(within(group).getByRole('button', { name: 'Duration' }))
+    expect(nav.push).toHaveBeenCalledWith('/journal?sort=duration_minutes', { scroll: false })
+    await user.click(screen.getByRole('button', { name: 'Filters' }))
+    const dialog = screen.getByRole('dialog')
+    expect(within(dialog).getByRole('combobox', { name: 'Sort' })).toBeInTheDocument()
+    expect(within(dialog).getByRole('combobox', { name: 'Order' })).toBeInTheDocument()
   })
 
   it('offers a way back from an out-of-range page, and the Import and Add pair for an empty journal', () => {

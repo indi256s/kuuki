@@ -168,10 +168,10 @@ export function JournalFilters({ locale, query, filtered, apply }: Props) {
     setOpen(false)
   }
 
-  const desktop = <Fields idBase={`${base}-d`} t={t} values={{ ...drafts, ...selectValues }} problems={problems(drafts, touched)}
+  const desktop = <Fields idBase={`${base}-d`} t={t} sortControls={false} values={{ ...drafts, ...selectValues }} problems={problems(drafts, touched)}
     onChange={(key, value) => { if ((SELECT_KEYS as readonly string[]).includes(key)) send({ [key]: value }); else setDrafts(old => ({ ...old, [key]: value })) }}
     onBlur={commitField} />
-  const mobile = <div ref={sheetRef} className="journal-filter-sheet"><Fields idBase={`${base}-m`} t={t} values={staged} problems={problems(staged, stagedTouched)}
+  const mobile = <div ref={sheetRef} className="journal-filter-sheet"><Fields idBase={`${base}-m`} t={t} sortControls values={staged} problems={problems(staged, stagedTouched)}
     onChange={(key, value) => setStaged(old => ({ ...old, [key]: value }))}
     onBlur={key => setStagedTouched(old => ({ ...old, [key]: true }))} /></div>
 
@@ -187,8 +187,9 @@ export function JournalFilters({ locale, query, filtered, apply }: Props) {
   </div>
 }
 
-function Fields({ idBase, t, values, problems, onChange, onBlur }: {
-  idBase: string; t: (typeof text)[Locale]; values: Values; problems: Record<string, string | undefined>
+/** `sortControls`: the Sort and Order selects. The desktop toolbar leaves them to the list's sort headers; the mobile sheet has no headers. */
+function Fields({ idBase, t, sortControls, values, problems, onChange, onBlur }: {
+  idBase: string; t: (typeof text)[Locale]; sortControls: boolean; values: Values; problems: Record<string, string | undefined>
   onChange: (key: string, value: string) => void; onBlur: (key: string) => void
 }) {
   const input = (key: TextKey, label: string, extra: { placeholder: string; maxLength: number; inputMode?: 'numeric' }): ReactNode => {
@@ -218,7 +219,7 @@ function Fields({ idBase, t, values, problems, onChange, onBlur }: {
     {input('airport', t.airport, { placeholder: 'IATA', maxLength: 3 })}
     {input('origin', t.origin, { placeholder: 'IATA', maxLength: 3 })}
     {input('destination', t.destination, { placeholder: 'IATA', maxLength: 3 })}
-    {select('sort', t.sort, JOURNAL_SORTS.map(sort => [sort, sortNames[sort]] as const))}
-    {select('order', t.order, [['desc', t.desc], ['asc', t.asc]])}
+    {sortControls && select('sort', t.sort, JOURNAL_SORTS.map(sort => [sort, sortNames[sort]] as const))}
+    {sortControls && select('order', t.order, [['desc', t.desc], ['asc', t.asc]])}
   </>
 }
