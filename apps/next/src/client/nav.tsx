@@ -43,6 +43,9 @@ export function PrimaryNav({ locale = 'en' }: { locale?: Locale }) {
 /**
  * Keyboard choice: while the keyboard is open the bar is translated off-screen (`html[data-keyboard=true]`)
  * but stays in the DOM and focus order, so keyboard users are never trapped and nothing sits above the keyboard.
+ * Limit: with `interactive-widget=resizes-content` (or Android Chrome's default resize in some PWAs) the layout viewport
+ * shrinks together with the visual viewport, so innerHeight - viewport.height stays ~0 and the bar is not flagged.
+ * The fixed bar then simply rides directly above the keyboard, still reachable and never covering the focused field.
  */
 function useKeyboardFlag() {
   useEffect(() => {
@@ -65,8 +68,11 @@ export function TabBar({ locale = 'en', username }: { locale?: Locale; username?
   const [addOpen, setAddOpen] = useState(false)
   const ru = locale === 'ru'
   useKeyboardFlag()
+  // The sheet must not outlive a route change (back/forward, link taps).
+  const [sheetPath, setSheetPath] = useState(pathname)
+  if (sheetPath !== pathname) { setSheetPath(pathname); setAddOpen(false) }
   const icon = (Icon: typeof Plus) => <Icon size={22} strokeWidth={2} aria-hidden="true" />
-  return <nav aria-label={ru ? 'Основная навигация' : 'Primary'} className="tab-bar"><ul>
+  return <nav aria-label={ru ? 'Вкладки' : 'Tabs'} className="tab-bar"><ul>
     <Tab href="/overview" active={isActive(pathname, '/overview')} icon={icon(LayoutGrid)} en="Overview" ru="Обзор" />
     <Tab href="/journal" active={isActive(pathname, '/journal')} icon={icon(BookOpen)} en="Journal" ru="Журнал" />
     <li>

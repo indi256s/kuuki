@@ -64,6 +64,19 @@ test.describe('mobile shell at 390px', () => {
     expect(inside).toBe(true)
   })
 
+  test('the Add sheet closes on back navigation', async ({ page }) => {
+    await asMember(page)
+    await page.goto('/overview')
+    await page.locator('nav.tab-bar a[href="/journal"]').click()
+    await page.waitForURL(url => url.pathname === '/journal')
+    await page.locator('nav.tab-bar button.tab-add').click()
+    await expect(page.getByRole('dialog')).toBeVisible()
+    await page.goBack()
+    await page.waitForURL(url => url.pathname === '/overview')
+    await expect(page.getByRole('dialog')).toHaveCount(0)
+    await expect(page.getByRole('navigation', { name: 'Tabs' })).toBeVisible()
+  })
+
   test('the header is 48px and content clears the tab bar', async ({ page }) => {
     await asMember(page)
     await page.goto('/overview')
