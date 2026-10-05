@@ -71,6 +71,14 @@ export async function getPasswordHashById(
  */
 export async function deleteUserCascade(db: D1Database, userId: string): Promise<void> {
   const childTables = [
+    // ADR 0001 §6: drafts, receipts and evidence first, then the flights they point at.
+    'import_conversion_receipts',
+    'import_drafts',
+    'import_batches',
+    'lifecycle_operation_receipts',
+    'transit_cleanup_markers',
+    'country_evidence_suppressions',
+    'country_visit_evidence',
     'flights',
     'visits',
     'country_claims',
