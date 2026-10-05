@@ -18,7 +18,7 @@ history. It does not describe the current navigation.
 | `/journal` | Paged flight log; search/filter/sort/page state belongs to this URL. |
 | `/journal/[id]/edit`, `/add`, `/import` | Own-flight editing, manual Capture and resumable import Source/Progress/Review/Done. |
 | `/passport` | Collection, region/detail sheets, claims/ground visits, awaiting arrivals and period-aware map. |
-| `/passport/manage` | Retained places/aircraft helper; consolidation is a carried dependency. |
+| `/passport/manage` | Aircraft in journal: bulk aircraft assignment. `?countryCode=CC` redirects to `/passport?country=CC`. |
 | `/fly/[username]` | Public profile for visitors or private owner profile; live visibility gates protect private records. |
 | `/leaderboard` | Public eligible rankings; authenticated own rank/notifications follow the same eligibility policy. |
 | `/settings` | Dirty-state-protected profile, privacy, appearance, export and reauthenticated deletion. |

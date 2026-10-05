@@ -72,14 +72,14 @@ test('stamps open by keyboard and deep link, sort in the URL, and a pending slot
   await page.waitForURL(url => url.search === '?sort=name')
   await expect(page.getByRole('dialog')).toHaveCount(0)
 
-  // The cover's Add country returns focus to itself when dismissed; places and aircraft stay one link away.
+  // The cover's Add country returns focus to itself when dismissed; the aircraft helper stays one link away.
   const add = data.getByRole('button', { name: '＋ Add country' })
   await add.click()
   await expect(page.getByRole('dialog', { name: 'Add country' })).toBeVisible()
   await page.keyboard.press('Escape')
   await expect(page.getByRole('dialog')).toHaveCount(0)
   await expect(add).toBeFocused()
-  await expect(data.getByRole('link', { name: 'Manage places and aircraft' })).toHaveAttribute('href', '/passport/manage')
+  await expect(data.getByRole('link', { name: 'Aircraft in journal' })).toHaveAttribute('href', '/passport/manage')
 
   await data.getByRole('link', { name: 'United States: waiting for confirmation. Open the arrival card' }).click()
   await page.waitForURL(url => url.pathname === '/journal' && url.hash === `#arrival-${pending}`)
@@ -114,8 +114,10 @@ test('a country is added from search, claimed, visited by sea, and removed with 
 
   await sheet.getByRole('radio', { name: 'By sea' }).click()
   await sheet.getByRole('textbox', { name: /^Year/ }).fill('2019')
+  await sheet.getByRole('textbox', { name: /^Note/ }).fill('Ferry from Reykjavik')
   await sheet.getByRole('button', { name: 'Add visit', exact: true }).click()
   await expect(sheet.getByText('2019 · by sea')).toBeVisible()
+  await expect(sheet.getByText('Ferry from Reykjavik')).toBeVisible()
 
   await sheet.getByRole('button', { name: 'Actions for visit 2019 · by sea' }).click()
   await page.getByRole('menuitem', { name: 'Delete visit' }).click()

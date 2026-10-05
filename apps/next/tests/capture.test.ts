@@ -67,26 +67,21 @@ test('manual capture retries the original uncertain save, then edits and deletes
   expect((await (await page.request.get('/api/flights/all')).json() as unknown[])).toHaveLength(0)
 })
 
-test('passport management saves and removes claims and ground notes, then assigns aircraft', async ({ page, baseURL }) => {
+test('a legacy countryCode link lands on that country in Passport, and anything else stays on the aircraft page', async ({ page, baseURL }) => {
   await freshAccount(page, baseURL!)
+  // Country claims, visits and removal are covered in passport.test.ts through the Passport sheets.
   await page.goto('/passport/manage?countryCode=US')
-  await expect(page.getByLabel('Country')).toHaveValue('US')
-  await page.getByRole('button', { name: 'Claim country' }).click()
-  await expect(page.getByText('Claimed in passport')).toBeVisible()
-  await page.getByLabel('Year (optional)').fill('1800')
-  await page.getByLabel('Entry method').selectOption('land')
-  await page.getByLabel('Note').fill('Train to Boston')
-  await page.getByRole('button', { name: 'Add visit' }).click()
-  await expect(page.getByText(/1800 · land · Train to Boston/)).toBeVisible()
-  const visits = await page.request.get('/api/passport/ground-visits')
-  expect((await visits.json() as { note: string }[])[0].note).toBe('Train to Boston')
-  await page.getByRole('button', { name: 'Delete', exact: true }).click()
-  await page.getByRole('dialog').getByRole('button', { name: 'Delete' }).click()
-  await expect(page.getByText('Train to Boston')).toHaveCount(0)
-  await page.getByRole('button', { name: 'Remove claim and ground visits' }).click()
-  await page.getByRole('dialog').getByRole('button', { name: 'Delete' }).click()
-  await expect(page.getByText('Not claimed')).toBeVisible()
+  await page.waitForURL(url => url.pathname === '/passport' && url.search === '?country=US')
+  await expect(page.getByRole('dialog', { name: 'United States' })).toBeVisible()
+  for (const bad of ['?countryCode=ZZ', '?countryCode=us', '']) {
+    await page.goto(`/passport/manage${bad}`)
+    await expect(page.getByRole('heading', { name: 'Aircraft in journal', level: 1 })).toBeVisible()
+    expect(new URL(page.url()).pathname).toBe('/passport/manage')
+  }
+})
 
+test('bulk aircraft assignment still works from the Aircraft in journal page', async ({ page, baseURL }) => {
+  await freshAccount(page, baseURL!)
   await page.goto('/add')
   await fillFlight(page)
   await page.getByRole('button', { name: 'Save flight' }).click()
