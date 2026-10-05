@@ -1,6 +1,6 @@
 # Ticket perforation notch uses --background, wrong on non-background surfaces
 
-Status: ready-for-agent
+Status: resolved
 Owner task: T18
 Source: progress.md:81 (T03 deferred minor); verified at af92d26
 
@@ -12,3 +12,9 @@ The notch colour follows the surface behind the ticket (for example a `--ticket-
 
 ## Acceptance check
 A test that fails while the rule hard-codes `var(--background)`: read `signature.css` (or render `Ticket` with a stub inside a container that sets the backdrop property) and assert the notch background resolves through the backdrop property. Do not add a screenshot check (visual checks are out of scope for this run).
+
+## Continuation disposition — 2026-10-05
+
+39b4dc8 makes Ticket cutouts inherit the containing surface through --ticket-backdrop; floating flight panels and read panels supply their surface. Source contracts were checked; visual proof remains explicitly deferred.
+
+Current integration and evidence: [redesign handoff](../../../docs/plans/2026-10-04-redesign-2.0-implementation-handoff.md). Visual/atlas and external release proof remain deferred under the explicit session constraints.

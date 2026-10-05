@@ -29,3 +29,9 @@ Coverage:
 - **Plain anchors.** Plain `<a href="/journal…">` anchors (flight form outside the Journal, import done step, Overview edit links) cause a full document load, so no filter state survives them.
 - **Programmatic pushes.** `router.push('/journal')` in `capture/flight-panels.tsx` and `capture/flight-form.tsx` runs only on pages without the Journal; inside the Journal those components receive callbacks instead.
 - **Separate caveat.** The handled-navigation-failure retry caveat from the round-3 review (`requested` keeps a failed target when the query does not change) is separate and not part of this issue.
+
+## Continuation disposition — 2026-10-05
+
+Authorized continuation ec7e614 closes both round-five navigation/filter defects, with independent acceptance. The distinct identical-Search retry after a handled navigation failure remains a carried Minor caveat; it is not claimed fixed by this issue.
+
+Current integration and evidence: [redesign handoff](../../../docs/plans/2026-10-04-redesign-2.0-implementation-handoff.md). Visual/atlas and external release proof remain deferred under the explicit session constraints.

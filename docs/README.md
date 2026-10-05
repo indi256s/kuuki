@@ -8,7 +8,7 @@
 |----------|---------|--------------|
 | **[PRD.md](./PRD.md)** | **Product requirements, features, philosophy** | Scoping features and non-goals |
 | [APP_FLOW.md](./APP_FLOW.md) | User navigation paths, screen inventory | Building UI or flows |
-| [Screenshot atlas](./user-journeys/README.md) | Captured UI states, user journeys, searchable gallery and agent-readable manifest | Navigating the current UI, planning features or redesign |
+| [Screenshot atlas](./user-journeys/README.md) | Historical 2026-10-03 UI states, journeys and searchable manifest; Redesign 2.0 recapture is deferred | Studying prior UI evidence; use the redesign handoff for current acceptance |
 | [App manifest](../apps/next/package.json) and [lockfile](../pnpm-lock.yaml) | Current dependency ranges and resolved versions | Installing packages |
 | [Next release candidate](./runbooks/2026-10-04-next-release-candidate.md) | Current runtime, verification, rollback and hosted release gates | Runtime or release work |
 | [TECH_STACK.md](./TECH_STACK.md) | Legacy Vite stack and runtime context | Maintaining rollback |

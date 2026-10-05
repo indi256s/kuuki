@@ -1,6 +1,6 @@
 # Kincha and Sakura accent foreground: brief says dark text, code uses white in light
 
-Status: needs-triage
+Status: resolved
 Owner task: T18
 Source: design-md-code-vs-brief.md item 12; brief docs/plans/2026-10-04-redesign-2.0-ux-ui.md:94; DESIGN.md:18-22; verified at af92d26
 
@@ -12,3 +12,9 @@ Brief or code wins. The brief's rule probably described the original lighter fil
 
 ## Acceptance check
 `apps/next/src/app/tokens.test.ts:106` already asserts 4.5:1 for `--accent-foreground` on `--accent` per theme and accent. If the code wins, close with a one-line brief edit (no test change). If the brief wins, that test goes red on the dark-text change and forces new, lighter fills.
+
+## Continuation disposition — 2026-10-05
+
+T24 aligns the brief with canonical DESIGN.md and styles.css: Kincha/Sakura use white foreground in light and dark foreground in dark. Token contrast evidence remains the authority rather than the superseded brief table.
+
+Current integration and evidence: [redesign handoff](../../../docs/plans/2026-10-04-redesign-2.0-implementation-handoff.md). Visual/atlas and external release proof remain deferred under the explicit session constraints.

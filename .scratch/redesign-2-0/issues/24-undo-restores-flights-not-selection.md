@@ -1,6 +1,6 @@
 # Undo after a bulk delete restores the flights but not the selection
 
-Status: needs-triage
+Status: wontfix
 Owner task: T13
 Source: T13 fix round 1 concern; `apps/next/src/client/reads/journal.tsx` (`scheduleDelete`)
 
@@ -12,3 +12,9 @@ Whether Undo should restore the previous selection (keep the ids in the pending 
 
 ## Acceptance check
 A Journal unit test: select two rows, delete, Undo, and the same two rows are checked; a changed query between delete and Undo restores nothing.
+
+## Continuation disposition — 2026-10-05
+
+Accepted Journal Undo restores the rows and deliberately clears the previous selection before a write/query transition. Restoring stale selected IDs is not the current interaction contract.
+
+Current integration and evidence: [redesign handoff](../../../docs/plans/2026-10-04-redesign-2.0-implementation-handoff.md). Visual/atlas and external release proof remain deferred under the explicit session constraints.

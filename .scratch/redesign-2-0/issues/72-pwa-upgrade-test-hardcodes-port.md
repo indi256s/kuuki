@@ -1,6 +1,6 @@
 # pwa-upgrade browser test hard-codes port 8811 and needs a prior legacy build
 
-Status: ready-for-agent
+Status: resolved
 Owner task: test infrastructure (found during W4 parallel worktrees)
 Source: T14 fix round 1 and T17 reports (2026-10-05). Verified at feature/redesign-2.0 8b6cbdf.
 
@@ -12,3 +12,9 @@ The legacy server listens on an ephemeral port (`listen(0)`, read back the bound
 
 ## Acceptance check
 Two worktrees run `pnpm test:next:navigation` concurrently with different `KUUKI_NEXT_PORT` values and both pass `pwa-upgrade.test.ts`. Removing `apps/web/dist` produces the explicit message rather than a navigation timeout.
+
+## Continuation disposition — 2026-10-05
+
+8d95a75 binds the upgrade fixture to an ephemeral actual origin instead of hard-coded port 8800 and adds missing-build guidance. Runtime fixtures still run serially by contract; source repair is not concurrent-browser proof.
+
+Current integration and evidence: [redesign handoff](../../../docs/plans/2026-10-04-redesign-2.0-implementation-handoff.md). Visual/atlas and external release proof remain deferred under the explicit session constraints.

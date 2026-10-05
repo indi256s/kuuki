@@ -1,6 +1,6 @@
 # Opened map client still ignores the route-projection publication contract
 
-Status: needs-integration
+Status: resolved
 Owner task: controller (after T16 and T17 merge)
 Source: T17 review I3; C6 in docs/plans/2026-10-04-redesign-2.0-implementation.md; `GET /api/flights/route-projection`
 
@@ -23,3 +23,9 @@ The legacy `GET /api/flights/routes` (rollback consumer, `apps/web`) is unchange
 
 ## Acceptance check
 Playwright or component test where the summary revision differs from the projection revision shows the updating state; a transit hub (see `functions/test/route-projection-contract.test.ts`) does not appear on the country layer; the arc count equals `routeCount` when `truncated` is false.
+
+## Continuation disposition — 2026-10-05
+
+8bca555 and 434e3fa consume the shared period/revision/country-count projection contract, server country visits and one canonical undirected pair. Stale/retry/abort/truncation/ground/claim cases have independent source and functional acceptance. Final current-build gates are tracked in the handoff; map timing/memory and visual proof remain deferred.
+
+Current integration and evidence: [redesign handoff](../../../docs/plans/2026-10-04-redesign-2.0-implementation-handoff.md). Visual/atlas and external release proof remain deferred under the explicit session constraints.

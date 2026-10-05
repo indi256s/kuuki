@@ -1,6 +1,6 @@
 # CI does not typecheck or build the import worker
 
-Status: ready-for-agent
+Status: ready-for-human
 Owner task: architecture (CI owner; T11 implementers do not edit `.github/workflows/ci.yml`)
 Source: rereview-T11-r1-sol.md finding M6; ADR 0001 §9 delegates the CI additions. Verified on wip/redesign-T11-fix2 @d55498a
 
@@ -14,3 +14,9 @@ CI runs both root scripts that already exist in `package.json`:
 
 ## Acceptance check
 A pull request that introduces a type error in `workers/import/ImportJob.ts` fails the `typecheck:import` step, and one that breaks `workers/import/wrangler.local.toml` fails `build:import`. Both steps are green on the current branch.
+
+## Continuation disposition — 2026-10-05
+
+Import Worker CI ownership remains with the architecture/configuration lane. Local import typecheck/dry-build evidence does not establish the missing CI gate. No workflow or remote deployment was changed.
+
+Current integration and evidence: [redesign handoff](../../../docs/plans/2026-10-04-redesign-2.0-implementation-handoff.md). Visual/atlas and external release proof remain deferred under the explicit session constraints.

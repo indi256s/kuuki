@@ -14,3 +14,9 @@ Whether the Overview map should draw route arcs (extend `GET /api/flights/routes
 
 ## Acceptance check
 `map.routeCount` equals the number of arcs drawn for the same period; a pending country renders a ring distinct from a pressed one; the Overview legend keeps matching `BUCKET_LABELS`.
+
+## Continuation disposition — 2026-10-05
+
+3685fbb adds a pending ring to the period-correct Overview preview without counting it as pressed; claim evidence still overrides pending. The preview intentionally stays lightweight and delegates route geometry to Open Passport map, which consumes issue 42. Inline Overview arcs remain unimplemented; no arc-count equality, map timing/memory or visual proof is claimed.
+
+Current integration and evidence: [redesign handoff](../../../docs/plans/2026-10-04-redesign-2.0-implementation-handoff.md). Visual/atlas and external release proof remain deferred under the explicit session constraints.

@@ -18,3 +18,9 @@ Should the places half be retired, with `/passport/manage?countryCode=CC` redire
 
 ## Acceptance check
 Countries are managed in one place. Bulk aircraft assignment for journal flights stays reachable from the UI. Any retired route redirects to its replacement and keeps the country.
+
+## Continuation disposition — 2026-10-05
+
+The reachability regression is closed by T16: Manage places and aircraft remains linked and tested. Places consolidation and long-term bulk-aircraft placement remain a product/architecture dependency; the live helper is preserved.
+
+Current integration and evidence: [redesign handoff](../../../docs/plans/2026-10-04-redesign-2.0-implementation-handoff.md). Visual/atlas and external release proof remain deferred under the explicit session constraints.

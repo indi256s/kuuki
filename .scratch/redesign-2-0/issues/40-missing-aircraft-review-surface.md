@@ -1,6 +1,6 @@
 # Missing-aircraft line on Overview opens the retained enrichment review
 
-Status: closed (T17 fix round 2, review I2, N1)
+Status: resolved
 Owner task: T17
 Source: T17 Overview rankings; ADR 0001 open item 8 (missing-aircraft line)
 
@@ -14,3 +14,9 @@ The first T17 pass linked the line to the Journal sorted by aircraft ascending, 
 
 ## Still open (not part of this issue)
 Bulk entry for flights the service cannot identify stays with issue 11 (bulk aircraft outcome contract).
+
+## Continuation disposition — 2026-10-05
+
+Accepted T17 82d60e1 supplies missing-aircraft recovery, including zero-summary mounted recovery and honest partial-save retention across rereads/paging. Independent round-four acceptance and focused API/UI regressions pass.
+
+Current integration and evidence: [redesign handoff](../../../docs/plans/2026-10-04-redesign-2.0-implementation-handoff.md). Visual/atlas and external release proof remain deferred under the explicit session constraints.

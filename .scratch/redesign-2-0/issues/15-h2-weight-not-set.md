@@ -1,6 +1,6 @@
 # h2 has no font-weight, so it renders at 400 instead of the brief's 600
 
-Status: ready-for-agent
+Status: resolved
 Owner task: T18
 Source: design-md-code-vs-brief.md item 7; brief docs/plans/2026-10-04-redesign-2.0-ux-ui.md:117; verified at af92d26 by reading CSS, not in a browser
 
@@ -12,3 +12,9 @@ Source: design-md-code-vs-brief.md item 7; brief docs/plans/2026-10-04-redesign-
 
 ## Acceptance check
 A CSS source test (or jsdom `getComputedStyle` with the stylesheet loaded) that asserts the global `h2` rule contains `font-weight:600`. Red now.
+
+## Continuation disposition — 2026-10-05
+
+39b4dc8 sets canonical H2 weight to 600. Source token verification passed; typography screenshots are deferred.
+
+Current integration and evidence: [redesign handoff](../../../docs/plans/2026-10-04-redesign-2.0-implementation-handoff.md). Visual/atlas and external release proof remain deferred under the explicit session constraints.

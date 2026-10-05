@@ -12,3 +12,9 @@ Mount `ToastProvider` in the member shell and move the notice there so it surviv
 
 ## Acceptance check
 A navigation test that starts a delete, leaves the Journal, and asserts the chosen outcome plus a visible, announced message.
+
+## Continuation disposition — 2026-10-05
+
+The current six-second delete is cancelled on Journal unmount, preserving data; its polite notice is route-local. A global cancellation message/host remains a separate interaction decision, not implemented or claimed accepted.
+
+Current integration and evidence: [redesign handoff](../../../docs/plans/2026-10-04-redesign-2.0-implementation-handoff.md). Visual/atlas and external release proof remain deferred under the explicit session constraints.

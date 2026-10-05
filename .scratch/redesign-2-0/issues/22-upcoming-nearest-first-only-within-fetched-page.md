@@ -12,3 +12,9 @@ Server ordering for upcoming rows: for the default sort, order by lifecycle grou
 
 ## Acceptance check
 An API test with 25 upcoming flights asserts that page 1 holds the 20 nearest, in ascending date order, with other sorts unchanged; the client-side re-sort is then removed.
+
+## Continuation disposition — 2026-10-05
+
+The accepted Journal orders upcoming rows within its fetched page. Globally nearest-first pagination still needs a shared API/list/ids ordering decision and the 25-upcoming acceptance fixture described above. No claim of global nearest-first acceptance is made.
+
+Current integration and evidence: [redesign handoff](../../../docs/plans/2026-10-04-redesign-2.0-implementation-handoff.md). Visual/atlas and external release proof remain deferred under the explicit session constraints.
