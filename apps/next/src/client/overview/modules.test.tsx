@@ -87,11 +87,13 @@ describe('map band', () => {
     expect(within(list).getByText(/Country JP · 3 visits/)).toBeInTheDocument()
     expect(within(list).getByText(/Country AU · 1 visit · waiting for a stamp/)).toBeInTheDocument()
   })
-  it('draws only pressed countries on the map, with the period visit buckets', () => {
+  it('keeps waiting countries unpressed beside the period visit buckets', () => {
     render(<OverviewMap summary={busySummary(10)} locale="en" labels={fakeLabels} />)
     const dots = [...document.querySelectorAll('svg circle title')].map(node => node.textContent)
     expect(dots).toContain('JP')
-    expect(dots).not.toContain('AU') // pending: counted as waiting, not drawn as a visit
+    expect(dots).toContain('AU')
+    expect(document.querySelector('circle[data-country="AU"]')).toHaveAttribute('data-pending', 'true')
+    expect(document.querySelector('circle[data-country="AU"]')).toHaveAttribute('fill', 'none')
   })
   it('n=0 has a sentence instead of a list and an all-time link without a year', () => {
     render(<OverviewMap summary={emptySummary('all')} locale="ru" labels={fakeLabels} />)

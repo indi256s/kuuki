@@ -60,7 +60,7 @@ function perRouteCounts(list: ProjectedRoute[]) {
 }
 
 describe('batched route rendering', () => {
-  it.each([0, 1, 10, 500, 5000])('draws %i routes and their airports with two sources and four layers', count => {
+  it.each([0, 1, 10, 50, 500, 5000])('draws %i routes and their airports with two sources and four layers', count => {
     const { map, sources } = fakeMap()
     const list = routes(count)
     render(<><FlightRoutes routes={list} selected={null} onSelect={() => {}} layer="routes" /><AirportLayer routes={list} layer="routes" /></>, map)

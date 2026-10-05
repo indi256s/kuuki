@@ -19,7 +19,7 @@ export function OverviewMap({ summary, locale, labels }: { summary: OverviewSumm
   const href = `/passport?view=map${period === 'all' ? '' : `&year=${period}`}`
   return <section className="read-section ov-map" aria-labelledby="ov-map-title">
     <div className="section-heading"><h2 id="ov-map-title">{t(S.map, locale)}</h2><a href={href}>{t(S.mapLink, locale)} →</a></div>
-    <CountryPreview countryIds={pressed.map(country => country.id)} visits={pressed.map(country => ({ countryCode: country.id, count: country.visits }))} locale={locale} period={period} />
+    <CountryPreview countryIds={pressed.map(country => country.id)} visits={map.countries.map(country => ({ countryCode: country.id, count: country.visits, pending: country.pending }))} locale={locale} period={period} />
     <div className="ov-legend-row">
       <p className="ov-legend-line">{line.join(' · ')}</p>
       <ul className="ov-legend" aria-label={t(S.legend, locale)}>{BUCKET_LABELS[locale].map((label, index) =>
