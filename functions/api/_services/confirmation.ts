@@ -16,7 +16,8 @@
 // the receipt keeps no outcome; the next replay of the same operation repairs, freezes the outcome once and returns
 // it, without applying anything a second time.
 import { HttpError } from '../_lib/http'
-import { countryContributions, evidenceFlightsStatement, type EvidenceFlight } from './countryEvidence'
+import { evidenceFlightsStatement, type EvidenceFlight } from './countryEvidence'
+import { pressedCountriesStatement, readPublishedStamps } from './newlyStamped'
 import { dirtyUserStatement, ensureDerivedStateRow, isDerivedReady, repairUserDerivedState, stateOf, type DerivedStateRow } from './derivedState'
 import { QUEUE_PAGE_LIMIT, candidateTokenOf, describeAwaiting } from './queue'
 import {
@@ -51,7 +52,7 @@ export interface ConfirmOutcome {
   results: ConfirmedFlight[]
   derivedState: 'ready' | 'pending'
   revision: number
-  /** Countries this operation's flights pressed. Null when it cannot be told (see `newlyStamped`). */
+  /** Countries this operation's flights pressed. Null when it cannot be told (see `newlyStamped.ts`). */
   newlyStampedCountries: string[] | null
   /** Pending countries after publication; null while publication is pending. */
   pendingCountryCount: number | null
@@ -96,27 +97,16 @@ export async function resolveReceipt(db: D1Database, userId: string, operationId
   const pending = (revision: number): ConfirmOutcome =>
     ({ results: stored.results, derivedState: 'pending', revision, newlyStampedCountries: null, pendingCountryCount: null })
   if (!await readyState(db, userId)) return pending((await stateOf(db, userId))?.revision ?? 0)
-  const [stateNow, flightsRead, evidenceRead] = await db.batch([
-    db.prepare(STATE_SELECT).bind(userId),
-    evidenceFlightsStatement(db, userId),
-    db.prepare('SELECT country_code, status FROM country_visit_evidence WHERE user_id = ?').bind(userId),
-  ])
-  const current = firstOf<DerivedStateRow>(stateNow)
-  if (!current || !isDerivedReady(current)) return pending(current?.revision ?? 0)
-  const evidence = rowsOf<{ country_code: string; status: 'pressed' | 'pending' }>(evidenceRead)
-  const pressedNow = new Set(evidence.filter(row => row.status === 'pressed').map(row => row.country_code))
-  const confirmed = new Set(stored.results.map(result => result.flightId))
-  // Only countries these flights contribute can be "newly stamped": a claim or another writer's flight that
-  // pressed a country in the same window is never credited to this operation.
-  const contributed = new Set(countryContributions(rowsOf<EvidenceFlight>(flightsRead)).contributions
-    .filter(entry => confirmed.has(entry.flight_id) && entry.state === 'logged').map(entry => entry.country_code))
-  const before = receipt.pressed_before_json ? new Set(JSON.parse(receipt.pressed_before_json) as string[]) : null
+  const before = receipt.pressed_before_json ? JSON.parse(receipt.pressed_before_json) as string[] : null
+  const published = await readPublishedStamps(db, userId, before)
+  if (!published.ready) return pending(published.revision)
   return freezeResult(db, userId, operationId, {
     results: stored.results,
     derivedState: 'ready',
-    revision: current.revision,
-    newlyStampedCountries: before ? [...contributed].filter(code => pressedNow.has(code) && !before.has(code)).sort() : null,
-    pendingCountryCount: evidence.filter(row => row.status === 'pending').length,
+    revision: published.revision,
+    // Only countries these flights contribute: a concurrent claim or another writer's flight is never credited.
+    newlyStampedCountries: published.newlyStamped(stored.results.map(result => result.flightId)),
+    pendingCountryCount: published.pendingCountryCount,
   } satisfies FrozenResult)
 }
 
@@ -207,7 +197,7 @@ async function readSnapshot(db: D1Database, userId: string): Promise<Snapshot> {
   const [state, flights, pressed] = await db.batch([
     db.prepare(STATE_SELECT).bind(userId),
     evidenceFlightsStatement(db, userId),
-    db.prepare("SELECT country_code FROM country_visit_evidence WHERE user_id = ? AND status = 'pressed' ORDER BY country_code").bind(userId),
+    pressedCountriesStatement(db, userId),
   ])
   const row = firstOf<DerivedStateRow>(state)
   return {

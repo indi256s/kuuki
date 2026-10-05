@@ -15,6 +15,7 @@ import { readJournal } from '../_services/journal'
 import { createFlightStatements, digestInput, isIdempotencyKey } from '../_services/flightCreate'
 import { dirtyUserStatement, repairUserDerivedState } from '../_services/derivedState'
 import { takeRequestTimezone } from '../_services/lifecycle'
+import { readPressedBefore, stampsForCreated } from '../_services/newlyStamped'
 
 export { FLIGHT_COLUMNS, createFlightStatements, digestInput, isIdempotencyKey }
 
@@ -48,6 +49,7 @@ export function createFlightRequest(request: Request, env: Env, data: RequestDat
     const { body, timezone } = takeRequestTimezone(await readJson<unknown>(request))
     const input = await parseFlightBody(env.DB, body, 'create')
     const { digest, statements } = await createFlightStatements(env.DB, user.id, key, input, timezone)
+    const pressedBefore = await readPressedBefore(env.DB, user.id)
     const canonicalStarted = Date.now()
     const batch = await env.DB.batch([...statements, dirtyUserStatement(env.DB, user.id, true)])
     const canonicalMs = Date.now() - canonicalStarted
@@ -63,6 +65,7 @@ export function createFlightRequest(request: Request, env: Env, data: RequestDat
     const derived = await repairUserDerivedState(env.DB, user.id)
     console.log(JSON.stringify({ event: 'flight_save', outcome: created ? 'created' : 'replayed', canonicalMs,
       repairMs: Date.now() - repairStarted, durationMs: Date.now() - started, derivedState: derived.derived_state }))
-    return json({ ...toOwnFlight(row), ...derived }, { status: created ? 201 : 200 })
+    const stamps = created ? await stampsForCreated(env.DB, user.id, pressedBefore, derived, [row]) : () => null
+    return json({ ...toOwnFlight(row), ...derived, newly_stamped_countries: stamps(row.id) }, { status: created ? 201 : 200 })
   })
 }

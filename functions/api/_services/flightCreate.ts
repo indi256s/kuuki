@@ -14,6 +14,7 @@ import { fillDistanceAndDuration } from './stats'
 import { dirtyUserStatement, repairUserDerivedState, type DerivedRepairResult } from './derivedState'
 import { LIFECYCLE_COLUMN_NAMES, lifecycleForCreate, lifecycleValues } from './lifecycle'
 import { nowIso } from '../_lib/time'
+import { readPressedBefore, stampsForCreated } from './newlyStamped'
 import type { FlightInput } from '../../../packages/shared/src/flightValidation'
 
 export function isIdempotencyKey(key: unknown): key is string {
@@ -146,7 +147,11 @@ function conversionStatements(db: D1Database, userId: string, key: string, targe
 }
 
 export type BulkItemResult =
-  | { key: string | null; status: 'created' | 'replayed'; flight: ReturnType<typeof toOwnFlight> }
+  | {
+    key: string | null; status: 'created' | 'replayed'; flight: ReturnType<typeof toOwnFlight>
+    /** ADR 0001 §5: countries this item newly pressed; null on `replayed`, pending publication or an unknown before-set. */
+    newly_stamped_countries: string[] | null
+  }
   | { key: string | null; status: 'error'; http_status: number; code: string; error: string }
 
 export function itemFailure(key: string | null, status: number, code: string, error: string): BulkItemResult {
@@ -195,6 +200,7 @@ export async function bulkCreate(
   }
   if (accepted.length === 0) return { results, derived: null }
 
+  const pressedBefore = await readPressedBefore(db, userId)
   // Unconditional dirty mark: changes() only sees the last item, and a pure replay just repairs again.
   const batch = await db.batch([...statements, ...trailing, dirtyUserStatement(db, userId)])
   const ledgers = await db.prepare(
@@ -206,13 +212,23 @@ export async function bulkCreate(
     .bind(userId, JSON.stringify(ids)).all<FlightRow>()
   const rowById = new Map(rows.results.map(row => [row.id, row]))
 
+  const fresh: FlightRow[] = []
   for (const { index, key, digest, first } of accepted) {
     const ledger = ledgerByKey.get(key)
     const row = ledger?.flight_id == null ? undefined : rowById.get(ledger.flight_id)
     if (!ledger) continue
     if (ledger.payload_digest !== digest) results[index] = itemFailure(key, 409, 'IDEMPOTENCY_CONFLICT', 'Idempotency key already used for another flight')
     else if (!row) results[index] = itemFailure(key, 410, 'IDEMPOTENCY_GONE', 'Original flight was deleted')
-    else results[index] = { key, status: (batch[first].meta.changes ?? 0) > 0 ? 'created' : 'replayed', flight: toOwnFlight(row) }
+    else {
+      const created = (batch[first].meta.changes ?? 0) > 0
+      if (created) fresh.push(row)
+      results[index] = { key, status: created ? 'created' : 'replayed', flight: toOwnFlight(row), newly_stamped_countries: null }
+    }
   }
-  return { results, derived: await repairUserDerivedState(db, userId) }
+  const derived = await repairUserDerivedState(db, userId)
+  const stamps = await stampsForCreated(db, userId, pressedBefore, derived, fresh)
+  for (const result of results) {
+    if (result.status === 'created') result.newly_stamped_countries = stamps(result.flight.id)
+  }
+  return { results, derived }
 }

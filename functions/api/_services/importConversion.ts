@@ -23,7 +23,11 @@ export interface ConfirmItem { draftId: string; version: number; key: string }
 export interface ConfirmRequest { timezone: string | null; items: ConfirmItem[] }
 
 export type ConfirmResult =
-  | { draftId: string; key: string; status: 'created' | 'replayed'; flight: ReturnType<typeof toOwnFlight> }
+  | {
+    draftId: string; key: string; status: 'created' | 'replayed'; flight: ReturnType<typeof toOwnFlight>
+    /** ADR 0001 §5, as on bulk create: null on `replayed`, pending publication or an unknown before-set. */
+    newly_stamped_countries: string[] | null
+  }
   | { draftId: string; key: string; status: 'error'; http_status: number; code: string; error: string; flightId?: number }
 
 export interface ConfirmResponse {
@@ -130,7 +134,7 @@ export async function confirmBatch(
   for (const [index, flightId] of replayed) {
     const row = replayFlights.get(flightId)
     results[index] = row
-      ? { draftId: items[index].draftId, key: items[index].key, status: 'replayed', flight: toOwnFlight(row) }
+      ? { draftId: items[index].draftId, key: items[index].key, status: 'replayed', flight: toOwnFlight(row), newly_stamped_countries: null }
       : failure(items[index], 410, 'CONVERTED_FLIGHT_DELETED', 'The converted flight was deleted', flightId)
   }
 
@@ -192,14 +196,14 @@ export async function confirmBatch(
         },
       )
       derived = outcome?.derived ?? null
-      const created = new Set<number>()
+      const created = new Map<number, string[] | null>() // item index -> its newly stamped countries
       ready.forEach((index, position) => {
         const result: BulkItemResult = outcome!.results[position]
         // A validation refusal never reached the chain: the draft stays in review, correctable.
         if (result.status === 'error' && result.http_status === 400) {
           results[index] = failure(items[index], 400, result.code, result.error)
           attempted.delete(index)
-        } else if (result.status === 'created') created.add(index)
+        } else if (result.status === 'created') created.set(index, result.newly_stamped_countries)
       })
 
       // 5. Classify every attempted item from what the database holds now.
@@ -217,7 +221,9 @@ export async function confirmBatch(
           else {
             const row = flights.get(receipt.flight_id)
             results[index] = row
-              ? { draftId: item.draftId, key: item.key, status: created.has(index) ? 'created' : 'replayed', flight: toOwnFlight(row) }
+              ? created.has(index)
+                ? { draftId: item.draftId, key: item.key, status: 'created', flight: toOwnFlight(row), newly_stamped_countries: created.get(index) ?? null }
+                : { draftId: item.draftId, key: item.key, status: 'replayed', flight: toOwnFlight(row), newly_stamped_countries: null }
               : failure(item, 410, 'CONVERTED_FLIGHT_DELETED', 'The converted flight was deleted', receipt.flight_id)
           }
         } else if (afterDraft.has(item.draftId)) results[index] = alreadyConverted(item, afterDraft.get(item.draftId)!.flight_id)

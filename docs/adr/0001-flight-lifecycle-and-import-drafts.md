@@ -346,6 +346,7 @@ It is scoped per item, so cron or sync ticks on other flights cause no spurious 
 **Newly stamped (confirm, create, bulk, conversion).** `newlyStampedCountries = (pressed after publication − pressed_before) ∩ countries contributed by the operation's own flights` (their non-suppressed endpoints). It is null when `pressed_before` is NULL or publication is pending.
 
 - Creates take the same snapshot only when the account is already published. They return `newly_stamped_countries` (snake_case, as on the legacy DTO) on fresh `created` results; it is null on `replayed` items or pending publication.
+- *T15 note.* Bulk and conversion report it per item (each `created` result against its own flight, so two items of one request may both list a country); a create with no logged flight answers `[]` without a read. An account without a derived-state row gets one first, as confirmation does, so a first save is known. Code: `_services/newlyStamped.ts`, shared with confirmation.
 - The intersection prevents a concurrent claim or edit from being attributed to the operation. The remaining residual (a concurrent mutation that presses the same country) is accepted.
 
 **Retention.** Receipts are kept 14 days; the supported client replay interval is 6 days, as for creates.
