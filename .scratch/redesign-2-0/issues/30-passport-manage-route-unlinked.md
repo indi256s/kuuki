@@ -34,3 +34,5 @@ Countries are now managed only in Passport.
 - Country journeys (claim, visit with year/method/note, delete visit, remove country) are covered by `apps/next/tests/passport.test.ts` through the Passport sheets; a note assertion was added there. `capture.test.ts` now covers the redirect and the aircraft page.
 - Long-term placement of bulk aircraft assignment (Journal batch actions vs Overview panel) remains a product question; the page is the reachable home for now.
 - Tests: Next units 983 passed; lint and typecheck clean; `pnpm next:build`; capture.test.ts and passport.test.ts 6 passed (port 8806).
+
+Implementing commit: `e7636a0` (`feat(passport): manage countries only in Passport and retitle the aircraft page`, C6). The aircraft page was later moved onto the shared outcome runner by C3 (`3a04def`, `ad62bda`, `4d6d1d1`); see issue 11.
