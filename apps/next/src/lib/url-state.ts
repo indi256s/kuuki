@@ -174,3 +174,11 @@ export function resetJournalFilters(query: string): string {
   for (const key of [...JOURNAL_FILTER_KEYS, 'page']) params.delete(key)
   return params.toString()
 }
+
+export type JournalLink = { airport?: string; airline?: string; aircraft?: string; year?: string | number }
+/** Canonical `/journal` href for the Overview "All" links: exact airport, airline or aircraft, optionally for one year. Invalid values are dropped. */
+export function journalHref(link: JournalLink, now = new Date()): string {
+  const params = new URLSearchParams()
+  for (const [key, value] of Object.entries(link)) if (value !== undefined && value !== '') params.set(key, String(value))
+  return withQuery('/journal', normalizeJournalQuery(params, now).query)
+}
