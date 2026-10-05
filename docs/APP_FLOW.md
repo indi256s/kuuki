@@ -46,9 +46,12 @@ reports Saved without replaying historical stamps.
 
 Import retains review rows and uncertain-save recovery. Published evidence
 controls country stamps; pending publication is shown honestly. Journal Undo is
-route-local: leaving before its timer cancels the scheduled deletion. Bulk Undo
-restores rows without restoring the prior selection. These are current contracts,
-not global-toast support.
+presented in the member shell's toast region, but the Journal owns the pending
+deletion: leaving before its timer cancels it, nothing is sent, and the shell
+shows a cancellation notice ("Delete cancelled"). The notice is suppressed when
+the departure is an identity reset (sign-out or owner switch), and it is shown
+only by a shell of the same owner. Bulk Undo restores rows without restoring
+the prior selection.
 
 Settings protects unsaved changes on links, history and unload. Deletion requires
 password reauthentication and succeeds only after the server cascade. Activation

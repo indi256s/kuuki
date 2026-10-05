@@ -6,10 +6,10 @@ import { getAuthGeneration } from '../../../../web/src/lib/apiClient'
 import { getAllFlights, type Flight } from '../../../../web/src/lib/flights'
 import { trackPrivateOperation } from '../activity'
 import { useWriteFeedback } from '../write-feedback'
-import { acceptAircraft, AIRCRAFT_BATCH, retryableAircraft, type AircraftOutcome } from '../import/aircraft-review'
+import { acceptAircraft, AIRCRAFT_BATCH, countAircraftRun, retryableAircraft, summarizeAircraftRun, type AircraftOutcome, type AircraftRunCounts } from '../import/aircraft-review'
 import { S } from '../import/copy'
 import { acceptAircraftBatch } from '../import/import-api'
-import { formatDateOnly, formatNumber } from '../../lib/format'
+import { formatDateOnly } from '../../lib/format'
 import type { Locale } from '../../server/locale'
 import './capture.css'
 
@@ -23,7 +23,7 @@ export function PassportManage({ ownerId, locale }: { ownerId: string; locale: L
   const [message, setMessage] = useState('')
   const [outcomes, setOutcomes] = useState<Map<number, AircraftOutcome>>(new Map())
   // Counts for the submission that just finished only; cleared when the next one starts so every completion is announced.
-  const [last, setLast] = useState<{ saved: number; failed: number; uncertain: number } | null>(null)
+  const [last, setLast] = useState<AircraftRunCounts | null>(null)
   // Flights seen so far and the type sent for each, so a saved row keeps its label after the reload and a retry resends the same type.
   const seen = useRef(new Map<number, Flight>())
   const sent = useRef(new Map<number, string>())
@@ -52,8 +52,7 @@ export function PassportManage({ ownerId, locale }: { ownerId: string; locale: L
       const run = await acceptAircraft(items, acceptAircraftBatch)
       if (!current(controller, generation)) return
       setOutcomes(old => { const next = new Map(old); for (const [id, outcome] of run.rows) next.set(id, outcome); return next })
-      const count = (status: AircraftOutcome['status']) => [...run.rows.values()].filter(outcome => outcome.status === status).length
-      setLast({ saved: count('saved'), failed: count('failed'), uncertain: count('uncertain') })
+      setLast(countAircraftRun(run.rows.values()))
       // Anything not saved stays selected, so one press retries exactly those.
       setSelected(items.map(item => item.id).filter(id => run.rows.get(id)?.status !== 'saved'))
       const ack = run.acks.filter(item => item.derived_state).at(-1)
@@ -75,13 +74,9 @@ export function PassportManage({ ownerId, locale }: { ownerId: string; locale: L
     return null
   }
   const reported = [...outcomes].filter(([, outcome]) => outcome.status !== 'unsent')
-  const [savedN, failedN, uncertainN] = [last?.saved ?? 0, last?.failed ?? 0, last?.uncertain ?? 0]
+  const savedN = last?.saved ?? 0
   // The announcement covers the submission that just finished. Nothing saved is a problem, so it is assertive; anything saved is polite.
-  const summary = !last ? '' : [
-    savedN > 0 && `${S.aircraftSavedTag[locale]}: ${formatNumber(locale, savedN)}`,
-    failedN > 0 && `${S.aircraftFailedTag[locale]}: ${formatNumber(locale, failedN)}`,
-    uncertainN > 0 && `${S.aircraftUncertainTag[locale]}: ${formatNumber(locale, uncertainN)}`,
-  ].filter(Boolean).join(' · ') + (uncertainN > 0 ? `. ${S.aircraftUncertainNote[locale]}` : '')
+  const summary = summarizeAircraftRun(locale, last)
   return <div className="capture-manage">
     <section className="capture-card"><p>{ru ? 'Выберите до 20 своих перелётов без самолёта и назначьте тип.' : 'Select up to 20 of your flights without aircraft and assign a type.'}</p>
       {flightStatus === 'unloaded' && <button className="button secondary" onClick={() => loadFlights()}>{ru ? 'Загрузить перелёты' : 'Load flights'}</button>}

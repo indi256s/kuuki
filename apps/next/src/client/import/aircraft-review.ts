@@ -2,6 +2,8 @@
 // `/api/flights/aircraft-batch`. The legacy rules are kept: only suggestions at or above 0.7 are offered, all of them
 // start selected, and select-all doubles as deselect-all. Every flight keeps its own outcome, and the requests run
 // one after another (no parallel fan-out).
+import { formatNumber, type Locale } from '../../lib/format'
+import { S } from './copy'
 import { classifyRequestFailure } from './import-errors'
 
 export const AIRCRAFT_BATCH = 20
@@ -80,3 +82,18 @@ export async function acceptAircraft(
   }
   return run
 }
+
+export interface AircraftRunCounts { saved: number; failed: number; uncertain: number }
+
+export const countAircraftRun = (rows: Iterable<AircraftOutcome>): AircraftRunCounts => {
+  const counts = { saved: 0, failed: 0, uncertain: 0 }
+  for (const row of rows) if (row.status === 'saved' || row.status === 'failed' || row.status === 'uncertain') counts[row.status] += 1
+  return counts
+}
+
+/** One sentence for a finished submission. Nothing saved is a problem, so callers send it to an assertive region; anything saved goes to a polite one. */
+export const summarizeAircraftRun = (locale: Locale, counts: AircraftRunCounts | null): string => !counts ? '' : [
+  counts.saved > 0 && `${S.aircraftSavedTag[locale]}: ${formatNumber(locale, counts.saved)}`,
+  counts.failed > 0 && `${S.aircraftFailedTag[locale]}: ${formatNumber(locale, counts.failed)}`,
+  counts.uncertain > 0 && `${S.aircraftUncertainTag[locale]}: ${formatNumber(locale, counts.uncertain)}`,
+].filter(Boolean).join(' · ') + (counts.uncertain > 0 ? `. ${S.aircraftUncertainNote[locale]}` : '')
