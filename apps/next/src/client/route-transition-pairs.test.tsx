@@ -66,4 +66,26 @@ describe('approved route transitions', () => {
     expect(walk('page', ['/leaderboard', '/fly/ana', '</leaderboard', '>/fly/ana'])).toEqual([1, 2, 3])
     expect(walk('auth', ['/signin', '/signup', '/forgot-password', '/signin'])).toEqual([1, 2, 3])
   })
+
+  it('drills neither way on a Back or Forward when the browser has no Navigation API', async () => {
+    const api = Object.getOwnPropertyDescriptor(window, 'navigation')!
+    Reflect.deleteProperty(window, 'navigation')
+    vi.resetModules()
+    const { useTransitionKey: keyWithoutApi } = await import('./route-transition-pairs')
+    Object.defineProperty(window, 'navigation', api)
+    /** A path starting with `~` is reached with Back or Forward, which only fires popstate here. */
+    const walkWithoutApi = (paths: string[]) => {
+      history.replaceState(null, '', paths[0]!)
+      const view = renderHook(({ path }) => keyWithoutApi('page', path), { initialProps: { path: paths[0]! } })
+      return paths.slice(1).map(step => {
+        const path = step.replace(/^~/, '')
+        if (step.startsWith('~')) { history.replaceState(null, '', path); window.dispatchEvent(new PopStateEvent('popstate')) }
+        else history.pushState(null, '', path)
+        view.rerender({ path })
+        return view.result.current
+      })
+    }
+    expect(walkWithoutApi(['/fly/ana', '/leaderboard', '~/fly/ana', '~/leaderboard'])).toEqual([0, 0, 0])
+    expect(walkWithoutApi(['/leaderboard', '/fly/ana', '~/leaderboard', '/fly/ben'])).toEqual([1, 1, 2])
+  })
 })
