@@ -10,12 +10,10 @@ import {
   parseFlightFilters,
   parsePagination,
   parseSort,
-  buildFlightWhere,
-  orderByClause,
 } from '../_lib/flightQuery'
+import { readJournal } from '../_services/journal'
 import { createFlightStatements, digestInput, isIdempotencyKey } from '../_services/flightCreate'
 import { dirtyUserStatement, repairUserDerivedState } from '../_services/derivedState'
-import { assertRows } from '../_lib/d1'
 import { takeRequestTimezone } from '../_services/lifecycle'
 
 export { FLIGHT_COLUMNS, createFlightStatements, digestInput, isIdempotencyKey }
@@ -31,20 +29,7 @@ export function listFlights(request: Request, env: Env, data: RequestData): Prom
     const filters = parseFlightFilters(params)
     const { limit, offset } = parsePagination(params, 20)
     const sort = parseSort(params)
-    const { where, binds } = buildFlightWhere(user.id, filters)
-
-    const list = await env.DB.prepare(
-      `SELECT ${FLIGHT_COLUMNS} FROM flights WHERE ${where} ${orderByClause(sort)} LIMIT ? OFFSET ?`,
-    )
-      .bind(...binds, limit, offset)
-      .all<FlightRow>()
-    assertRows(list, 'Flight list unavailable')
-
-    const count = await env.DB.prepare(`SELECT COUNT(*) AS total FROM flights WHERE ${where}`)
-      .bind(...binds)
-      .first<{ total: number }>()
-
-    return json({ flights: list.results.map(toOwnFlight), total: count?.total ?? 0 })
+    return json(await readJournal(env.DB, user.id, filters, sort, limit, offset))
   })
 }
 

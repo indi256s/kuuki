@@ -23,13 +23,18 @@ export interface PassportCountry extends Omit<CountryEvidenceRow, 'policy_versio
   region: RegionId | null
 }
 
+export type Visit = { country_code: string; first_visit: string; last_visit: string; visit_count: number; airport_iata: string | null; city: string | null }
+export type Claim = { country_code: string; claimed_at: string }
+export type GroundVisit = { country_code: string; visit_year: number | null; entry_method: string | null }
+
 /**
  * The passport collection. `pressedCountryCount` counts pressed countries including claims and ground visits;
  * `pendingCountryCount` counts awaiting-only countries, which stay unpressed; `flightCountryCount` is the
  * `user_stats.countries_count` meaning (flights and legacy evidence, no claims or ground visits), which is
- * what the leaderboard `countries` category ranks.
+ * what the leaderboard `countries` category ranks. One owner-scoped batch supplies every collection and the
+ * revision metadata, shared by `GET /api/passport/countries` and the Next server read.
  */
-export async function readPassportCollection(db: D1Database, userId: string) {
+export async function readPassport(db: D1Database, userId: string) {
   const statements = [
     db.prepare('SELECT country_code, first_visit, last_visit, visit_count, airport_iata, city FROM visits WHERE user_id = ?').bind(userId),
     db.prepare('SELECT country_code, claimed_at FROM country_claims WHERE user_id = ?').bind(userId),
@@ -46,18 +51,21 @@ export async function readPassportCollection(db: D1Database, userId: string) {
   const pressed = countries.filter(row => row.status === 'pressed').map(row => row.country_code)
   const pending = countries.filter(row => row.status === 'pending').map(row => row.country_code)
   return {
-    visits: results[0].results as Array<{ country_code: string; first_visit: string; last_visit: string; visit_count: number; airport_iata: string | null; city: string | null }>,
-    claims: results[1].results as Array<{ country_code: string; claimed_at: string }>,
-    groundVisits: results[2].results as Array<{ country_code: string; visit_year: number | null; entry_method: string | null }>,
+    visits: results[0].results as Visit[],
+    claims: results[1].results as Claim[],
+    groundVisits: results[2].results as GroundVisit[],
     countries,
     pressedCountryCount: pressed.length,
     pendingCountryCount: pending.length,
     flightCountryCount: flightCountriesOf(rows as CountryEvidenceRow[]).length,
     regionPolicyVersion: REGION_POLICY.version,
     regions: regionProgress(pressed, pending),
+    updatedAt: Date.now(),
     ...derivedStateOf(results[4].results[0] as StateRow | undefined),
   }
 }
+
+export type PassportData = Awaited<ReturnType<typeof readPassport>>
 
 type LegacyRow = {
   airport_iata: string | null; country_code: string | null; city: string | null; first_visit: string; last_visit: string

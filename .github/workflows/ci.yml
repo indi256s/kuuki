@@ -44,8 +44,6 @@ jobs:
       - name: Check api-routes.generated.ts is current (run node scripts/build-next.mjs --inventory-only and commit the file)
         run: node scripts/build-next.mjs --inventory-only && git diff --exit-code apps/next/api-routes.generated.ts
       - run: pnpm next:build
-        env:
-          KUUKI_TESTING_API: '0'
       - run: pnpm --filter @kuuki/next typecheck:worker
       - run: pnpm --filter @kuuki/next exec playwright install --with-deps chromium
       - run: pnpm next:smoke

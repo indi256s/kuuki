@@ -46,8 +46,7 @@ function Inner({ ownerId, locale, initial, period }: { ownerId: string; locale: 
       const controller = new AbortController(); const untrack = trackPrivateOperation(controller)
       signal.addEventListener('abort', () => controller.abort(), { once: true })
       try {
-        const rows = await api.get<Omit<PassportData, 'updatedAt'>>('/api/passport/countries', undefined, { signal: controller.signal })
-        return { ...rows, updatedAt: Date.now() }
+        return await api.get<PassportData>('/api/passport/countries', undefined, { signal: controller.signal })
       } finally { untrack() }
     },
     initialData: initial, initialDataUpdatedAt: initial.updatedAt, staleTime: 60_000, refetchOnWindowFocus: true,
@@ -83,7 +82,7 @@ function Inner({ ownerId, locale, initial, period }: { ownerId: string; locale: 
   const countryVisits = entries.map(entry => ({ countryCode: entry.code, count: entry.count, claimed: entry.claimed }))
   const changeView = (next: 'stamps'|'map') => { const p = new URLSearchParams(search.toString()); if (next === 'map') p.set('view','map'); else p.delete('view'); router.push(`/passport${p.size ? `?${p}` : ''}`) }
   return <section data-testid="passport-data" className="read-stack passport-data">
-    {initial.derivedState !== 'ready' && <p role="status" className="status-note">{t.pending}</p>}
+    {(collection.data ?? initial).derivedState !== 'ready' && <p role="status" className="status-note">{t.pending}</p>}
     {collection.isError && <p role="alert" className="status-note">{t.error} <button onClick={() => void collection.refetch()}>{t.retry}</button></p>}
     <div className="figure-strip passport-figures"><div><span className="eyebrow">{t.countries}</span><strong>{formatNumber(locale, entries.length)}</strong></div><div><span className="eyebrow">{t.flights}</span><strong>{formatNumber(locale, entries.filter(e => e.air).length)}</strong></div><div><span className="eyebrow">{t.claims}</span><strong>{formatNumber(locale, entries.filter(e => e.claimed).length)}</strong></div><div><span className="eyebrow">{t.ground}</span><strong>{formatNumber(locale, entries.filter(e => e.ground > 0).length)}</strong></div></div>
     <div className="section-heading"><div className="period-switch" role="group" aria-label={t.countries}><button aria-pressed={view === 'stamps'} onClick={() => changeView('stamps')}>{t.stamps}</button><button aria-pressed={view === 'map'} onClick={() => changeView('map')}>{t.map}</button></div><a className="button primary" href="/passport/manage">{t.add}</a></div>
