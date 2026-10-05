@@ -4,10 +4,8 @@
 
 import { runHandler, readJson, json, HttpError } from '../_lib/http'
 import { requireUser, requireCsrf, type RequestData } from '../_lib/auth'
-import { sha256Hex } from '../_lib/crypto'
 import { FLIGHT_COLUMNS, toOwnFlight, type FlightRow } from '../_lib/flights'
 import { parseFlightBody } from '../_lib/flightValidation'
-import type { FlightInput } from '../../../packages/shared/src/flightValidation'
 import {
   parseFlightFilters,
   parsePagination,
@@ -15,22 +13,12 @@ import {
   buildFlightWhere,
   orderByClause,
 } from '../_lib/flightQuery'
-import { computeFlightDuration } from '../_services/flightDuration'
-import { fillDistanceAndDuration } from '../_services/stats'
+import { createFlightStatements, digestInput, isIdempotencyKey } from '../_services/flightCreate'
 import { dirtyUserStatement, repairUserDerivedState } from '../_services/derivedState'
 import { assertRows } from '../_lib/d1'
-import { LIFECYCLE_COLUMN_NAMES, lifecycleForCreate, lifecycleValues, takeRequestTimezone } from '../_services/lifecycle'
+import { takeRequestTimezone } from '../_services/lifecycle'
 
-export { FLIGHT_COLUMNS }
-
-export function isIdempotencyKey(key: unknown): key is string {
-  return typeof key === 'string' && /^[A-Za-z0-9._:-]{8,128}$/.test(key)
-}
-
-export function digestInput(input: object): Promise<string> {
-  const sorted = Object.fromEntries(Object.entries(input).sort(([a], [b]) => a.localeCompare(b)))
-  return sha256Hex(JSON.stringify(sorted))
-}
+export { FLIGHT_COLUMNS, createFlightStatements, digestInput, isIdempotencyKey }
 
 export const onRequestGet: PagesFunction<Env, string, RequestData> = context =>
   listFlights(context.request, context.env, context.data)
@@ -58,77 +46,6 @@ export function listFlights(request: Request, env: Env, data: RequestData): Prom
 
     return json({ flights: list.results.map(toOwnFlight), total: count?.total ?? 0 })
   })
-}
-
-/**
- * Ledger insert, conditional flight insert and ledger link for one create; batch them with a dirty mark.
- * `timezone` is request context (ADR 0001 §1): it picks the lifecycle state and deadlines but is outside
- * `FlightInput`, so it never enters the idempotency digest.
- */
-export async function createFlightStatements(
-  db: D1Database, userId: string, key: string, input: FlightInput, timezone: string | null = null,
-): Promise<{ digest: string; statements: D1PreparedStatement[] }> {
-  const date = input.date!
-  const origin = input.origin!
-  const destination = input.destination!
-  const digest = await digestInput(input)
-
-  const source = input.source ?? 'manual'
-  const lifecycle = lifecycleForCreate(date, timezone)
-  const enrichmentStatus = input.enrichment_status ?? (input.aircraft_icao ? 'skipped' : 'pending')
-
-  const { departureUtc, arrivalUtc, durationMinutes: tzDur } = computeFlightDuration({
-    date,
-    departureTime: input.departure_time ?? null,
-    arrivalTime: input.arrival_time ?? null,
-    originTz: input.origin_tz ?? null,
-    destTz: input.dest_tz ?? null,
-    existingDurationMinutes: input.duration_minutes ?? null,
-  })
-
-  const { distanceKm, durationMinutes } = await fillDistanceAndDuration(
-    db,
-    origin,
-    destination,
-    input.distance_km ?? null,
-    tzDur,
-  )
-
-  const statements = [
-    db.prepare(
-      'INSERT INTO flight_idempotency (user_id, key, payload_digest, flight_id, created_at) VALUES (?, ?, ?, NULL, ?) ON CONFLICT (user_id, key) DO NOTHING',
-    ).bind(userId, key, digest, new Date().toISOString()),
-    db.prepare(
-      `INSERT INTO flights (
-       date, origin, destination, airline_iata, aircraft_icao, flight_number,
-       departure_time, arrival_time, departure_utc, arrival_utc, origin_tz, dest_tz,
-       distance_km, duration_minutes, source, enrichment_status, user_id, ${LIFECYCLE_COLUMN_NAMES.join(', ')}
-     ) SELECT ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ${LIFECYCLE_COLUMN_NAMES.map(() => '?').join(', ')} WHERE changes() = 1`,
-    ).bind(
-      date,
-      origin,
-      destination,
-      input.airline_iata ?? null,
-      input.aircraft_icao ?? null,
-      input.flight_number ?? null,
-      input.departure_time ?? null,
-      input.arrival_time ?? null,
-      departureUtc,
-      arrivalUtc,
-      input.origin_tz ?? null,
-      input.dest_tz ?? null,
-      distanceKm,
-      durationMinutes,
-      source,
-      enrichmentStatus,
-      userId,
-      ...lifecycleValues(lifecycle),
-    ),
-    db.prepare(
-      'UPDATE flight_idempotency SET flight_id = last_insert_rowid() WHERE user_id = ? AND key = ? AND flight_id IS NULL AND changes() = 1',
-    ).bind(userId, key),
-  ]
-  return { digest, statements }
 }
 
 export const onRequestPost: PagesFunction<Env, string, RequestData> = context =>
