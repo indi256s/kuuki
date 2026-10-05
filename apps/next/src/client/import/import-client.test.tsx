@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { render, screen, waitFor, within } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { ApiError } from '../../../../web/src/lib/apiClient'
@@ -381,6 +381,58 @@ describe('N2 manual recovery goes through the same unsaved-correction gate', () 
     await waitFor(() => expect(createFlights).toHaveBeenCalledTimes(2))
     const [first, second] = createFlights.mock.calls.map(call => (call[1] as Array<{ operationId: string }>)[0].operationId)
     expect(second).toBe(first)
+  })
+})
+
+describe('N2 the review is frozen while a save is in flight', () => {
+  async function holdManualReplay(user: ReturnType<typeof userEvent.setup>) {
+    const server = serverWith([draft({ id: 'a', selected: false })])
+    patchDraft.mockImplementation(async (id: string, body: { version: number; fields?: Record<string, string> }) => {
+      const stored = server.state.drafts.find(row => row.id === id)!
+      server.state.drafts = server.state.drafts.map(row => row.id === id ? { ...row, version: body.version + 1, fields: { ...row.fields, ...body.fields } } : row)
+      return { ...stored, version: body.version + 1, fields: { ...stored.fields, ...body.fields } }
+    })
+    createFlights.mockResolvedValueOnce([new TypeError('Failed to fetch')])
+    render(<ImportClient ownerId="u1" locale="en" initialBatchId="b1" batchApi={server.api} />)
+    await user.click(await screen.findByRole('button', { name: /add a flight manually/i }))
+    await fillManual(user, ['JFK', 'BOS'])
+    await user.click(screen.getByRole('button', { name: /import 1/i }))
+    await screen.findByRole('heading', { name: /some flights were not saved/i })
+    await user.click(screen.getByRole('button', { name: /back to review/i }))
+    let release: (value: Array<Error | null>) => void = () => {}
+    createFlights.mockReturnValueOnce(new Promise<Array<Error | null>>(resolve => { release = resolve }))
+    await user.click(within(manualRow()).getByRole('button', { name: /retry original save/i }))
+    await screen.findAllByText(/editing is paused until it finishes/i)
+    return { release }
+  }
+
+  it('pauses draft corrections and selection with a visible reason, and nothing is lost when Done opens', async () => {
+    const user = userEvent.setup()
+    const { release } = await holdManualReplay(user)
+    await user.click(screen.getAllByText('Edit')[0])
+    expect(screen.getAllByLabelText(/^To \(airport code\)/)[0]).toBeDisabled()
+    expect(screen.getAllByRole('button', { name: /save changes/i })[0]).toHaveAttribute('aria-disabled', 'true')
+    expect(screen.getByRole('checkbox', { name: /include in import/i })).toBeDisabled()
+    expect(screen.getByRole('checkbox', { name: /select all/i })).toBeDisabled()
+    release([null])
+    expect(await screen.findByRole('heading', { name: /import finished/i })).toBeInTheDocument()
+    expect(patchDraft).not.toHaveBeenCalled()
+  })
+
+  it('keeps a correction that slipped in during the save: Done waits until it is saved', async () => {
+    const user = userEvent.setup()
+    const { release } = await holdManualReplay(user)
+    await user.click(screen.getAllByText('Edit')[0])
+    // A change event reaches the form despite the pause (for example from autofill): the review must not close over it.
+    fireEvent.change(screen.getAllByLabelText(/^To \(airport code\)/)[0], { target: { value: 'LAX' } })
+    release([null])
+    expect(await screen.findByText(/some corrections are not saved yet/i)).toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: /import finished/i })).not.toBeInTheDocument()
+    expect(screen.getAllByLabelText(/^To \(airport code\)/)[0]).toHaveValue('LAX')
+    await user.click(screen.getAllByRole('button', { name: /save changes/i })[0])
+    await waitFor(() => expect(patchDraft).toHaveBeenCalledTimes(1))
+    expect(patchDraft.mock.calls[0][1]).toMatchObject({ fields: { destination: 'LAX' } })
+    expect(await screen.findByRole('heading', { name: /import finished/i })).toBeInTheDocument()
   })
 })
 

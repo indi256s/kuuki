@@ -69,7 +69,7 @@ export function ReviewStep(props: ReviewStepProps) {
   const addManual = () => onManualRows([...manualRows, makeManualRow ? makeManualRow() : newManualRow(emptyValues())])
   const originalOf = (id: string) => drafts.find(draft => draft.id === id)!
 
-  const row = (draft: Draft) => <ReviewRow key={draft.id} locale={locale} draft={draft} stored={originalOf(draft.id)} state={saveStates[draft.id]} mobile={mobile} onDirty={onDirty}
+  const row = (draft: Draft) => <ReviewRow key={draft.id} locale={locale} draft={draft} stored={originalOf(draft.id)} state={saveStates[draft.id]} mobile={mobile} frozen={confirming} onDirty={onDirty}
     onChange={change => onChange(originalOf(draft.id), change)} onRetry={() => onRetry(draft.id)} onDiscard={() => onDiscardEdit(draft.id)} />
 
   return <section className="import-review" aria-labelledby="import-review-title">
@@ -77,13 +77,14 @@ export function ReviewStep(props: ReviewStepProps) {
     {partial ? <p className="import-note" role="status">{cancelled ? S.cancelledNote[locale] : <>{S.partialNote[locale]}{failure ? ` ${FAILURE[failure.kind][locale].title}.` : ''}</>}</p> : null}
     {expiresAt && !Number.isNaN(Date.parse(expiresAt)) ? <p className="import-hint" data-testid="import-retention">{S.retention[locale].replace('{date}', formatInstantDate(locale, expiresAt, 'medium'))}</p> : null}
     {notice ? <p className="import-note" role="status">{notice}</p> : null}
+    {confirming ? <p className="import-hint" role="status">{S.pausedWhileSaving[locale]}</p> : null}
     {groups.saved.length > 0 || groups.skipped.length > 0 ? <p className="import-hint">
       {[groups.saved.length ? count(locale, 'alreadySavedN', groups.saved.length) : null, groups.skipped.length ? count(locale, 'skipped', groups.skipped.length) : null].filter(Boolean).join(' · ')}
     </p> : null}
 
     {groups.active.length > 0 ? <div className="import-select-head">
       <label className="import-check">
-        <input ref={all} type="checkbox" checked={everySelected} disabled={selectable.length === 0} onChange={event => onSelectAll(selectable, event.target.checked)} />
+        <input ref={all} type="checkbox" checked={everySelected} disabled={selectable.length === 0 || confirming} onChange={event => onSelectAll(selectable, event.target.checked)} />
         <span>{S.selectAll[locale]}</span>
       </label>
       <span className="import-count" aria-live="polite">{count(locale, 'selected', chosenActive.length)} {count(locale, 'ofTotal', groups.active.length)}</span>

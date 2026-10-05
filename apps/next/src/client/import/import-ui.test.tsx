@@ -194,6 +194,19 @@ describe('DoneStep', () => {
     expect(onRetry).toHaveBeenCalledTimes(1)
     expect(screen.getByRole('button', { name: /back to review/i })).toBeInTheDocument()
   })
+  it('explains a held retry, visibly and to assistive tech, and sends the member back to review', async () => {
+    const onRetry = vi.fn()
+    const onReview = vi.fn()
+    render(<DoneStep {...base} savedCount={1} requested={2} failures={[{ key: 'x', label: 'JFK → BOS', message: 'The service had a problem.', retryable: true }]} retryCount={1} remaining={1}
+      retryBlocked="Some edits on the review page are not saved yet. Go back to review to save or discard them, then try again." onRetry={onRetry} onReview={onReview} />)
+    const retry = screen.getByRole('button', { name: 'Try again for 1' })
+    expect(retry).toHaveAttribute('aria-disabled', 'true')
+    expect(retry).toHaveAccessibleDescription(/go back to review to save or discard/i)
+    await userEvent.click(retry)
+    expect(onRetry).not.toHaveBeenCalled()
+    await userEvent.click(screen.getByRole('button', { name: /back to review/i }))
+    expect(onReview).toHaveBeenCalledTimes(1)
+  })
   it('offers a way back to the remaining rows after a fully successful save', async () => {
     const onReview = vi.fn()
     render(<DoneStep {...base} savedCount={1} requested={1} remaining={2} onReview={onReview} />)

@@ -23,6 +23,8 @@ export interface ReviewRowProps {
   stored: Draft
   state?: SaveState
   mobile: boolean
+  /** The import is being saved: corrections and selection are paused so nothing typed now is lost when the review closes. */
+  frozen?: boolean
   onChange: (change: DraftChange) => void
   /** Reports whether the form holds a correction the member has typed but not saved. */
   onDirty: (id: string, dirty: boolean) => void
@@ -32,7 +34,7 @@ export interface ReviewRowProps {
 
 const timeRange = (draft: Draft) => [draft.fields.departure_time, draft.fields.arrival_time].filter(Boolean).join('–')
 
-export function ReviewRow({ locale, draft, stored, state, mobile, onChange, onDirty, onRetry, onDiscard }: ReviewRowProps) {
+export function ReviewRow({ locale, draft, stored, state, mobile, frozen = false, onChange, onDirty, onRetry, onDiscard }: ReviewRowProps) {
   const id = useId()
   const duplicate = isDuplicate(draft)
   const blocked = readiness(draft)
@@ -89,7 +91,7 @@ export function ReviewRow({ locale, draft, stored, state, mobile, onChange, onDi
 
   const checkLabel = duplicate ? S.saveAnyway[locale] : S.selectRow[locale]
   const checkbox = <label className="import-check">
-    <input type="checkbox" checked={duplicate ? draft.selected && draft.duplicateAcknowledged : chosen} disabled={blocked.length > 0}
+    <input type="checkbox" checked={duplicate ? draft.selected && draft.duplicateAcknowledged : chosen} disabled={blocked.length > 0 || frozen}
       aria-describedby={blockText ? `${id}-block` : undefined} onChange={event => toggle(event.target.checked)} />
     <span><span className={duplicate ? undefined : 'sr-only'}>{checkLabel}</span><span className="sr-only">{`: ${routeLabel}, ${dateText}`}</span></span>
   </label>
@@ -106,13 +108,13 @@ export function ReviewRow({ locale, draft, stored, state, mobile, onChange, onDi
     {issueText ? <p className="import-note">{issueText}</p> : null}
     <p className="import-note" role="status" data-state={state?.status ?? (dirty ? 'unsaved' : undefined)}>{stateText || (dirty ? S.unsavedRow[locale] : '')}</p>
     {failedState ? <div className="import-actions">
-      <Button dense onClick={onRetry}>{S.retrySave[locale]}</Button>
-      <Button dense variant="ghost" onClick={() => { onDiscard(); setValues(toValues(stored.fields)); setYearChecked(stored.yearConfirmed); setErrors({}) }}>{S.discardEdit[locale]}</Button>
+      <Button dense disabled={frozen} onClick={onRetry}>{S.retrySave[locale]}</Button>
+      <Button dense variant="ghost" disabled={frozen} onClick={() => { onDiscard(); setValues(toValues(stored.fields)); setYearChecked(stored.yearConfirmed); setErrors({}) }}>{S.discardEdit[locale]}</Button>
     </div> : null}
   </>
 
   const form = (prefix: string) => <>
-    <RowForm locale={locale} idPrefix={prefix} values={values} onChange={setValues} errors={errors} low={low} disabled={state?.status === 'saving'}
+    <RowForm locale={locale} idPrefix={prefix} values={values} onChange={setValues} errors={errors} low={low} disabled={state?.status === 'saving' || frozen}
       year={needsYear ? { missing: !draft.fields.date && !values.date, checked: yearChecked, onChange: setYearChecked } : undefined} />
     {typeof draft.snippet === 'string' && draft.snippet ? <blockquote className="import-snippet"><strong>{S.snippetTitle[locale]}</strong><span>{draft.snippet}</span></blockquote> : null}
   </>
@@ -122,10 +124,10 @@ export function ReviewRow({ locale, draft, stored, state, mobile, onChange, onDi
       <Ticket state="upcoming" locale={locale} statusLabel={confidence === 'check' ? S.check[locale] : (draft.confidence !== null ? `${S.confidence[locale]} ${percent(draft.confidence)}%` : S.confidenceUnknown[locale])}
         origin={{ iata: draft.fields.origin || '—', city: draft.fields.origin ? city(draft.fields.origin) : '' }} destination={{ iata: draft.fields.destination || '—', city: draft.fields.destination ? city(draft.fields.destination) : '' }}
         date={draft.fields.date || ''} flightNumber={flightNumber} airline={airline}
-        actions={<div className="import-ticket-actions">{checkbox}<Button ref={editRef} dense onClick={() => setSheet(true)}>{S.edit[locale]}</Button></div>} />
+        actions={<div className="import-ticket-actions">{checkbox}<Button ref={editRef} dense disabled={frozen} onClick={() => setSheet(true)}>{S.edit[locale]}</Button></div>} />
       {flags}{notes}
       <Sheet open={sheet} onOpenChange={next => { setSheet(next); if (!next) setErrors({}) }} title={S.editTitle[locale]} description={`${routeLabel} · ${dateText}`} closeLabel={S.close[locale]}
-        footer={<><Button onClick={() => setSheet(false)}>{S.close[locale]}</Button><Button variant="primary" loading={state?.status === 'saving'} loadingLabel={S.saving[locale]} onClick={() => { if (save()) setSheet(false) }}>{S.saveRow[locale]}</Button></>}>
+        footer={<><Button onClick={() => setSheet(false)}>{S.close[locale]}</Button><Button variant="primary" loading={state?.status === 'saving'} loadingLabel={S.saving[locale]} disabledReason={frozen ? S.pausedWhileSaving[locale] : undefined} onClick={() => { if (save()) setSheet(false) }}>{S.saveRow[locale]}</Button></>}>
         {form(`${id}-sheet`)}
       </Sheet>
     </li>
@@ -148,7 +150,7 @@ export function ReviewRow({ locale, draft, stored, state, mobile, onChange, onDi
     {notes}
     <Disclosure open={open} onOpenChange={setOpen} summary={<span className={clsx('import-edit-summary')}>{S.edit[locale]}</span>}>
       {form(`${id}-inline`)}
-      <div className="import-actions"><Button variant="primary" dense loading={state?.status === 'saving'} loadingLabel={S.saving[locale]} onClick={() => void save()}>{S.saveRow[locale]}</Button></div>
+      <div className="import-actions"><Button variant="primary" dense loading={state?.status === 'saving'} loadingLabel={S.saving[locale]} disabledReason={frozen ? S.pausedWhileSaving[locale] : undefined} onClick={() => void save()}>{S.saveRow[locale]}</Button></div>
     </Disclosure>
   </li>
 }

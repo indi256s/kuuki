@@ -108,6 +108,14 @@ export function ImportClient({ ownerId, locale, initialBatchId = null, initialSo
 
   // Unsent edits live only in memory; warn before the page goes away with some still unsent.
   const unsent = Object.keys(saveStates).length > 0 || dirty.size > 0
+  // The save below awaits several answers; what is unsent when it ends decides whether the review may close.
+  const unsentNow = useRef(unsent)
+  unsentNow.current = unsent
+  const [holdDone, setHoldDone] = useState(false)
+  useEffect(() => {
+    if (!holdDone || unsent || confirming) return
+    setHoldDone(false); setNotice(null); setShowDone(true)
+  }, [holdDone, unsent, confirming])
   useEffect(() => {
     if (!unsent) return
     const warn = (event: BeforeUnloadEvent) => { event.preventDefault() }
@@ -144,7 +152,7 @@ export function ImportClient({ ownerId, locale, initialBatchId = null, initialSo
 
   const reset = useCallback(() => {
     batch.reset(); writeUrl(null); resetEdits()
-    setRows(new Map()); setManualRows([]); setManualSaved([]); setManualOnly(false); setShowDone(false); setRequestedKeys(new Set())
+    setRows(new Map()); setManualRows([]); setManualSaved([]); setManualOnly(false); setShowDone(false); setHoldDone(false); setRequestedKeys(new Set())
     setNewCodes(null); setUnfinished(null); setNotice(null); setCheckFailed(false); setAircraftSaved(new Set())
     baseline.current = undefined; stampsFor.current = -1; lastSource.current = null; settledOperations.current.clear()
     setSourceKey(key => key + 1)
@@ -231,7 +239,8 @@ export function ImportClient({ ownerId, locale, initialBatchId = null, initialSo
     if (batch.batch) { try { await batch.reload() } catch { setCheckFailed(true) } }
     setChecking(false)
     setConfirming(false)
-    setShowDone(true)
+    // A correction that appeared while saving would be lost with the form: stay on review until it is saved or discarded.
+    if (unsentNow.current) { setHoldDone(true); setNotice(S.heldDone[locale]) } else setShowDone(true)
   }
 
   const onConfirm = () => {
@@ -303,7 +312,7 @@ export function ImportClient({ ownerId, locale, initialBatchId = null, initialSo
       onConfirm={onConfirm} onDiscardImport={onDiscardImport} /> : null}
     {step === 'done' ? <DoneStep locale={locale} savedCount={savedCount} requested={requestedKeys.size} totalKm={totalKm}
       newCountries={newCodes === null ? null : newCodes.length} stamps={stamps} publication={feedback.status}
-      failures={failures} retryCount={retryable.length} retrying={confirming} checking={checking} checkFailed={checkFailed}
+      failures={failures} retryCount={retryable.length} retryBlocked={unsent ? S.unsavedDone[locale] : undefined} retrying={confirming} checking={checking} checkFailed={checkFailed}
       remaining={groups.active.length + groups.duplicates.length + manualRows.length} aircraftTargets={aircraftTargets} aircraftApi={aircraftApi} theme={themeNow()}
       onRetry={onRetry} onReview={() => setShowDone(false)} onImportMore={reset} onAircraftSaved={onAircraftSaved} /> : null}
   </div>
