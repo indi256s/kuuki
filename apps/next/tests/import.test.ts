@@ -277,6 +277,21 @@ test.describe('Import done → Passport hero', () => {
     })
   }
 
+  test('opens Passport without the hero when it has not finished loading', async ({ page, baseURL }) => {
+    // No prefetch, so Passport shows its loading screen first: there is no stamp to carry, and nothing may linger.
+    await page.route(/\/passport(\?|$)/, route => {
+      const headers = route.request().headers()
+      return headers['next-router-prefetch'] || headers['next-router-segment-prefetch'] ? route.abort() : route.continue()
+    })
+    await importOne(page, baseURL)
+    await page.getByRole('link', { name: 'Open Passport' }).click()
+    await expect(page.getByRole('heading', { level: 1, name: 'Passport' })).toBeFocused()
+    await expect(page.locator('[data-hero-enter-key="US"]')).toBeVisible()
+    await expect.poll(() => page.evaluate(() => document.documentElement.dataset.routeTransition ?? null)).toBeNull()
+    expect(await routeTransitions(page)).toMatchObject({ boundaries: 1, heroCopies: 0 })
+    await expect(page.locator('[inert]')).toHaveCount(0)
+  })
+
   test('opens Passport instantly under reduced motion', async ({ page, baseURL }) => {
     await page.emulateMedia({ reducedMotion: 'reduce' })
     await importOne(page, baseURL)
