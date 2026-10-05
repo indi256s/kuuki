@@ -173,3 +173,31 @@ it('emits one validation summary per extraction and per-row logs only for reject
     expect(events.filter(entry => entry.event === 'flight_rejected')).toHaveLength(1)
   } finally { log.mockRestore() }
 })
+
+it('logs exactly one compact summary when every extracted row is rejected, without source content', async () => {
+  provider.generateContent.mockResolvedValue({ text: JSON.stringify({ flights: [
+    { origin: 'PRIVATE-canary', destination: 'LHR', airline_iata: 'BA' }, null,
+  ], raw_text: 'PRIVATE-canary' }) })
+  const log = vi.spyOn(console, 'log').mockImplementation(() => undefined)
+  try {
+    const response = await parseImport(context('/api/import/parse', JSON.stringify({ type: 'text', content: 'PRIVATE-canary' })))
+    expect(response.status).toBe(502)
+    expect(await response.json()).toMatchObject({ code: 'PROVIDER_INVALID_RESPONSE' })
+    const events = log.mock.calls.map(([line]) => JSON.parse(String(line)) as { event: string })
+    expect(events.filter(entry => entry.event === 'validation_complete')).toEqual([{ event: 'validation_complete', valid: 0, total: 2, rejected: 2 }])
+    expect(JSON.stringify(log.mock.calls)).not.toContain('PRIVATE-canary')
+  } finally { log.mockRestore() }
+})
+
+it.each([
+  { status: 'INVALID_ARGUMENT' },
+  { status: 'INVALID_ARGUMENT', details: [{ reason: 'API_KEY_INVALID', domain: 'googleapis.com' }] },
+  { status: 'PERMISSION_DENIED', details: [{ reason: 'LOCATION_POLICY_VIOLATED', domain: 'googleapis.com' }] },
+  { status: 'INVALID_ARGUMENT', details: [{ reason: 'UNKNOWN_REASON' }] },
+])('keeps ambiguous or configuration SDK error envelopes generic without disclosing payloads: %j', async error => {
+  provider.generateContent.mockRejectedValue(new ApiError({ status: 400, message: JSON.stringify({ error: { ...error, message: 'PRIVATE-provider-canary' } }) }))
+  const response = await parseImport(context('/api/import/parse', JSON.stringify({ type: 'pdf', content: 'JVBERi0x' })))
+  const body = await response.json()
+  expect(body).toMatchObject({ code: 'PROVIDER_ERROR', flights: [] })
+  expect(JSON.stringify(body)).not.toContain('PRIVATE-provider-canary')
+})

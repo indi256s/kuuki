@@ -488,10 +488,14 @@ export async function discardBatch(db: D1Database, userId: string, batchId: stri
 
 /** Cancel is a durable fence even when the live worker cannot be reached. */
 export async function cancelBatch(db: D1Database, userId: string, batchId: string, now = new Date()) {
-  if (!await ownedBatch(db, userId, batchId)) throw batchNotFound()
-  await db.prepare(`UPDATE import_batches SET status = 'cancelled', stage = NULL, generation = generation + 1,
+  const changed = await db.prepare(`UPDATE import_batches SET status = 'cancelled', stage = NULL, generation = generation + 1,
     sequence = sequence + 1, processing_deadline = NULL, updated_at = ?
-    WHERE id = ? AND user_id = ? AND status = 'processing'`).bind(now.toISOString(), batchId, userId).run()
+    WHERE id = ? AND user_id = ? AND status = 'processing' RETURNING status`)
+    .bind(now.toISOString(), batchId, userId).first<{ status: BatchRow['status'] }>()
+  if (changed) return { cancelled: true, status: changed.status }
+  const batch = await ownedBatch(db, userId, batchId)
+  if (!batch) throw batchNotFound()
+  return { cancelled: false, status: batch.status }
 }
 
 /** Restart/deadline recovery retains review work and never attempts to recover the source. */

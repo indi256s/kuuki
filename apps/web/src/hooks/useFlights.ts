@@ -317,7 +317,7 @@ export function useSyncUpcomingFlights() {
     if (!userId) return
 
     syncUpcomingFlights(userId).then((ack) => {
-      if (ack.synced > 0) reconcileDerivedState(ack, queryClient, userId)
+      reconcileDerivedState(ack, queryClient, userId)
     }).catch(error => console.error('Upcoming flight sync failed:', error))
   }, [userId, queryClient])
 }
