@@ -7,6 +7,7 @@ import { FailurePanel } from './failure-panel'
 import { classifyBatchFailure } from './import-errors'
 import { draft } from './fixtures'
 import { ReviewStep, type ReviewStepProps } from './review-step'
+import { S } from './copy'
 import { SourceStep } from './source-step'
 
 vi.mock('../signature/stamp', () => ({ Stamp: ({ countryCode }: { countryCode: string }) => <div data-testid="stamp">{countryCode}</div> }))
@@ -38,6 +39,19 @@ describe('SourceStep', () => {
     expect(onSubmit.mock.calls[1][1]).toBe(onSubmit.mock.calls[0][1])
     expect(setItem).not.toHaveBeenCalled()
     setItem.mockRestore()
+  })
+
+  it('shows the assistant help and copies the prompt in the member language', async () => {
+    const user = userEvent.setup()
+    const writeText = vi.spyOn(navigator.clipboard, 'writeText').mockResolvedValue()
+    render(<SourceStep locale="ru" busy={false} initialMode={null} onSubmit={vi.fn()} />)
+    await user.click(screen.getByRole('button', { name: /выгрузить перелёты из почты/i }))
+    expect(screen.getByText(/ChatGPT, Claude или Gemini/)).toBeInTheDocument()
+    expect(screen.getByRole('textbox', { name: /текст запроса/i })).toHaveValue(S.prompt.ru)
+    await user.click(screen.getByRole('button', { name: /скопировать запрос/i }))
+    expect(writeText).toHaveBeenCalledWith(S.prompt.ru)
+    expect(screen.getByRole('status')).toHaveTextContent(S.copied.ru)
+    writeText.mockRestore()
   })
 
   it('says why nothing was sent when the source is empty', async () => {

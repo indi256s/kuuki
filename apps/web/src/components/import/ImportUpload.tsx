@@ -8,23 +8,30 @@ import { Note, NoteContent } from '@/components/ui/note'
 import { Copy, Check, Upload, X, FileType, ChevronDown } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
-const GEMINI_PROMPT = `@Gmail @Google Calendar Search for all flight bookings, boarding passes, itineraries, and travel confirmations.
+// Same text as the current app (apps/next/src/client/import/copy.ts): provider-neutral, in the format the import reads best.
+const ASSISTANT_PROMPT = `Search my email and calendar for all my flights, past and upcoming, across all years: booking confirmations, e-tickets, itineraries, check-in and boarding pass emails, and flight events in my calendar.
 
-For each flight, try to find (include only what you can find):
-- Date (any format is fine)
-- Origin and destination airports (city names or airport codes)
-- Airline name or code
-- Flight number (if available)
-- Departure/arrival times (if available)
+If you cannot access my email or calendar, say so in one sentence and stop. Do not guess or make up flights.
 
-Format: one flight per line, include whatever info you found.
+Write one line per flight in this format:
+YYYY-MM-DD | origin → destination | airline and flight number | departure-arrival
 
-Example outputs:
-2024-03-15 | JFK → LAX | American Airlines 123 | 08:30-11:45
-2024-03-20 | Los Angeles to New York | Delta
-March 25 | SVO-LED | Aeroflot
+Examples:
+2024-03-15 | JFK → LAX | American Airlines AA 123 | 08:30-11:45
+2024-03-22 | LAX → JFK | Delta DL 409 | 22:10-06:35+1
 
-List ALL flights. Partial info is OK - just include what's available.`
+Rules:
+- Always write the full date with a four-digit year.
+- Use 3-letter IATA airport codes. If you do not know the code, write the city name.
+- Times are local at each airport, 24-hour, as shown in the booking. Add +1 when the arrival is on the next day.
+- Write ? for anything you cannot find.
+- Each leg of a connection and each direction of a return trip goes on a separate line.
+- List each flight once, even if it appears in several emails or in the calendar. If a flight was changed, use the latest details.
+- Leave out cancelled or refunded flights.
+- Sort from oldest to newest.
+- Do not include passenger names, booking references, ticket numbers, email addresses, frequent flyer numbers, prices or payment details.
+
+Reply with only the list in one plain-text code block, with no other text.`
 
 interface ImportUploadProps {
   onSubmit: (data: { type: 'pdf' | 'image' | 'text'; content: string }) => void
@@ -59,12 +66,12 @@ export function ImportUpload({ onSubmit, disabled, variant = 'full', onSkip }: I
   const copyPrompt = useCallback(async (e: React.MouseEvent) => {
     e.stopPropagation() // Prevent collapsing the tip
     try {
-      await navigator.clipboard.writeText(GEMINI_PROMPT)
+      await navigator.clipboard.writeText(ASSISTANT_PROMPT)
       setShowCopiedToast(true)
       setTimeout(() => setShowCopiedToast(false), 2000)
     } catch {
       const textarea = document.createElement('textarea')
-      textarea.value = GEMINI_PROMPT
+      textarea.value = ASSISTANT_PROMPT
       document.body.appendChild(textarea)
       textarea.select()
       document.execCommand('copy')
@@ -171,10 +178,10 @@ export function ImportUpload({ onSubmit, disabled, variant = 'full', onSkip }: I
   // Check if text looks like our prompt (Easter egg detection)
   const looksLikeOurPrompt = useCallback((text: string) => {
     const promptSignatures = [
-      '@Gmail @Google Calendar',
-      'flight bookings, boarding passes',
-      'Origin and destination airports',
-      'one flight per line',
+      'Search my email and calendar',
+      'one line per flight',
+      'four-digit year',
+      'frequent flyer numbers',
     ]
     const matchCount = promptSignatures.filter(sig => text.includes(sig)).length
     return matchCount >= 2 // At least 2 matches = probably our prompt
@@ -189,7 +196,7 @@ export function ImportUpload({ onSubmit, disabled, variant = 'full', onSkip }: I
     // Easter egg: detect if user pasted our prompt
     if (looksLikeOurPrompt(value)) {
       setShowPromptEasterEgg(true)
-      setTextError(t('import.tip.easterEgg', "This is the prompt FOR your AI assistant. Copy it to Gemini or Claude, get the results, then paste THOSE here. I believe in you."))
+      setTextError(t('import.tip.easterEgg', 'This is the prompt for your assistant. Send it to ChatGPT, Claude or Gemini, then paste its reply here.'))
     } else {
       setShowPromptEasterEgg(false)
     }
@@ -239,17 +246,17 @@ export function ImportUpload({ onSubmit, disabled, variant = 'full', onSkip }: I
       <Note accent="primary" size="sm" className="select-none">
         {/* Row 1: Title */}
         <span className="text-sm font-medium">
-          {t('import.tip.teaser', 'Let AI find all your flights from Gmail & Calendar')}
+          {t('import.tip.teaser', 'Let an assistant find your flights in your email and calendar')}
         </span>
 
         {/* Row 2: Description (always visible) */}
         <p className="text-sm text-muted-foreground mt-2">
-          {t('import.tip.description', 'Copy this prompt → feed it to Gemini → paste the results below')}
+          {t('import.tip.description', 'Copy this prompt → send it to ChatGPT, Claude or Gemini → paste the reply below')}
         </p>
 
         {/* Row 3: Recommendation (always visible) */}
         <p className="text-xs text-muted-foreground/70 mt-1.5 italic">
-          {t('import.tip.recommendation', "Gemini works best (it reads your Calendar). Claude is acceptable. ChatGPT... let's not.")}
+          {t('import.tip.recommendation', 'Connect your email and calendar to the assistant first.')}
         </p>
 
         {/* Row 4: Show/Copy prompt button */}
@@ -300,7 +307,7 @@ export function ImportUpload({ onSubmit, disabled, variant = 'full', onSkip }: I
           <div className="overflow-hidden">
             <NoteContent>
               <pre className="text-xs bg-muted/50 p-3 rounded-lg font-mono overflow-x-auto whitespace-pre-wrap text-foreground/80 border border-border/50">
-                {GEMINI_PROMPT}
+                {ASSISTANT_PROMPT}
               </pre>
             </NoteContent>
           </div>
