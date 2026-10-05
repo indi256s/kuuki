@@ -22,7 +22,7 @@ export const MAX_TEXT_LENGTH = 100_000 // chars — cap the (previously uncapped
 export const MAX_IMPORT_BODY_BYTES = 14 * 1024 * 1024
 
 // JSON schema for structured output (full extraction with aircraft/times)
-const FLIGHT_RESPONSE_SCHEMA = {
+export const FLIGHT_RESPONSE_SCHEMA = {
   type: Type.OBJECT,
   properties: {
     flights: {
@@ -141,6 +141,11 @@ async function extractFlightsWithGemini(
   console.log(JSON.stringify({ event: 'gemini_parsed', flight_count: parsedResponse.flights?.length ?? 0 }))
   console.log(JSON.stringify({ event: 'import_provider_usage', model, usage_bucket: usageBucket(response.usageMetadata?.totalTokenCount) }))
 
+  return normalizeFlights(parsedResponse)
+}
+
+/** Shared normalization for complete streamed rows and the legacy envelope. */
+export function normalizeFlights(parsedResponse: { flights: ExtractedFlight[]; raw_text?: string }): ParseResponse {
   // Validate and normalize flights, collecting rejected ones for diagnostics
   const rejectedFlights: RejectedFlight[] = []
   const geminiCount = parsedResponse.flights?.length || 0
@@ -265,19 +270,7 @@ export function validateImportSource(body: Partial<ParseRequest> | null): ParseR
 /** One structured provider call with the shared deadline. Throws the stable `providerFailure` HttpErrors. */
 export async function extractFlights(env: Env, { type, content }: ParseRequest): Promise<ParseResponse> {
   const ai = new GoogleGenAI({ apiKey: env.GEMINI_API_KEY })
-  type ContentPart = string | { inlineData: { data: string; mimeType: string } }
-  const contents: ContentPart[] = [EXTRACTION_PROMPT]
-  if (type === 'text') {
-    contents.push(`\n\nDocument content:\n${content}`)
-  } else {
-    const mimeType = type === 'pdf' ? 'application/pdf' : detectImageMimeType(content)
-    contents.push({
-      inlineData: {
-        data: content,
-        mimeType,
-      },
-    })
-  }
+  const contents = extractionContents({ type, content })
 
   const model = env.GEMINI_IMPORT_MODEL?.trim() || DEFAULT_MODEL
   let result: ParseResponse
@@ -298,4 +291,22 @@ export async function extractFlights(env: Env, { type, content }: ParseRequest):
     clearTimeout(deadline)
   }
   return result
+}
+
+export function extractionContents({ type, content }: ParseRequest) {
+  type ContentPart = string | { inlineData: { data: string; mimeType: string } }
+  const contents: ContentPart[] = [EXTRACTION_PROMPT]
+  if (type === 'text') {
+    contents.push(`\n\nDocument content:\n${content}`)
+  } else {
+    const mimeType = type === 'pdf' ? 'application/pdf' : detectImageMimeType(content)
+    contents.push({
+      inlineData: {
+        data: content,
+        mimeType,
+      },
+    })
+  }
+
+  return contents
 }

@@ -31,13 +31,18 @@ export async function importJobRequest(request: Request, env: Env, data: Request
     await rateLimit(env.DB, `import-parse:${user.id}`, 20, 3600)
 
     const body = await readJson<JobRequest>(request, { maxBytes: MAX_IMPORT_BODY_BYTES })
-    const source = validateImportSource(body)
+    let source: ParseRequest
+    try { source = validateImportSource(body) } catch (error) {
+      if (env.IMPORT_JOBS && (body?.type === 'pdf' || body?.type === 'image') && error instanceof HttpError) throw new HttpError(error.status, error.message, 'INVALID_FILE')
+      throw error
+    }
     const operationId = body?.submissionOperationId
     if (!isIdempotencyKey(operationId)) throw new HttpError(400, 'submissionOperationId must be 8-128 characters', 'INVALID_OPERATION_ID')
 
     const { created, snapshot } = await submitImport(env, source, {
       userId: user.id, operationId, sourceLabel: sanitizeSourceLabel(source.type, body?.sourceLabel),
     }, new Date())
+    if (env.IMPORT_JOBS) return json({ batchId: snapshot.batch.id }, { status: 202, headers: cors })
     const status = created ? 201 : snapshot.batch.status === 'processing' ? 202 : 200
     return json(snapshot, { status, headers: cors })
   }, { headers: cors })

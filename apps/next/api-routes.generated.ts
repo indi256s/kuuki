@@ -233,9 +233,21 @@ export const apiRoutes = [
     ]
   },
   {
+    "route": "/api/import/batches/:id/cancel",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
     "route": "/api/import/batches/:id/confirm",
     "methods": [
       "POST"
+    ]
+  },
+  {
+    "route": "/api/import/batches/:id/events",
+    "methods": [
+      "GET"
     ]
   },
   {

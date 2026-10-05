@@ -464,7 +464,7 @@ Both are additive (no DROP or rename), and the numbers are rechecked against the
 
 **Target design** (requires a binding):
 
-- `workers/import/{index.ts, ImportJob.ts, tsconfig.json}`: one Durable Object per batch, `idFromName(`${userId}:${batchId}`)`. It is reached only through the same-origin API adapter via a service/DO binding, with no public endpoint.
+- `workers/import/{index.ts, ImportJob.ts, tsconfig.json}`: one Durable Object per batch, ``idFromName(`${userId}:${batchId}`)``. It is reached only through the same-origin API adapter via a service/DO binding, with no public endpoint.
 - **Submission.** `POST /api/import/jobs` inserts the batch (`processing`, `accepted`), hands the in-memory input to the DO, then responds `{batchId}`. A duplicate submission returns the same batch and never starts a second provider call.
 - **Extraction.** The DO runs `generateContentStream` with the unchanged prompt, schema and normalization (`extractFlights`). A bounded incremental scanner emits only complete `flights[]` objects. Each row is persisted (fenced insert through `persistDraftRows`, `sequence + 1`) **before** the notify. The final envelope reconciles ordinals, and an invalid tail keeps the valid rows as `partial`.
 - **Events.** `GET /api/import/batches/:id/events?after=N` is SSE carrying `{sequence, rowIds}`. D1 is authoritative. A sequence gap returns a snapshot instruction, and a disconnect only unsubscribes.
@@ -486,6 +486,58 @@ Both are additive (no DROP or rename), and the numbers are rechecked against the
 - Risks: the DO needs its own Worker script and binding outside the OpenNext bundle, and the keep-alive and compatibility claims in C5 (Cloudflare changelog 2026-10-01) are unverified until the Miniflare proof.
 
 T11 builds the local DO and the Miniflare proof in `workers/import`. Production binding and wiring go to the architecture owner. Without the binding, the runtime is (c) with no rework. T07–T10 do not depend on the binding.
+
+#### T11 wiring handoff
+
+T11 supplies `workers/import/index.ts` (export `ImportJob`), the internal `StartImportJob`/`ImportEvent` contracts in
+`functions/api/_services/importRuntime.ts`, `typecheck:import`, and the local-only `build:import` config
+`workers/import/wrangler.local.toml`. The architecture owner must add:
+
+- A separate import Worker deployment with the **same environment's D1** as the API and its own `GEMINI_API_KEY` secret;
+  `GEMINI_IMPORT_MODEL` remains optional and defaults to `gemini-3.5-flash-lite`.
+- A SQLite DO migration tag (local example `import-job-v1`, `new_sqlite_classes = ["ImportJob"]`) and an `IMPORT_JOBS`
+  namespace binding to that class/script in the API adapter. Forward that binding through the Next/Pages integration.
+  Name objects with ``idFromName(`${userId}:${batchId}`)``. Keep public import Worker routes disabled; its default fetch is 404.
+- Compatibility date **at least `2026-10-01`** for the import Worker (or a separately verified equivalent pending-I/O flag).
+  Enable `enable_request_signal` and `request_signal_passthrough` on **both** the API worker and import Worker;
+  the API forwards `request.signal` through the binding. Extend the architecture's local HTTP-worker fixture to use the same binding and runtime. Do not enable production from
+  this local config: it contains a dummy D1 ID and creates no remote resources.
+
+With the binding, jobs return `202 {batchId}` for new and replayed submissions. Without it, T10's snapshot response and
+synchronous parse behaviour remain. File-input refusals on the bound path carry `INVALID_FILE`; other existing gates and
+rate limits remain. The provider key is needed in the import Worker, not in the API dispatcher.
+
+Output is capped at **1 MiB**, JSON nesting at **64**, drafts at the ADR's **100**, replay at **128** notifications,
+subscribers at **8**, and each event queue at **16**. Oversized output becomes `OUTPUT_LIMIT` (`partial` if rows exist).
+SSE carries `rows` events with `{sequence,rowIds}` and uses `snapshot` with `{sequence,rowIds:[],snapshot:true}` for a gap,
+a future cursor, lost replay, or backpressure. Five-second SSE comment frames flush client disconnects; the timer ends with the last subscription. On interruption that instruction also carries `reupload:true`; snapshots
+retain `JOB_INTERRUPTED`. A closed SSE connection never aborts recognition. Final reconciliation preserves source ordinals,
+immutable row IDs and member edits, and does not overwrite an already persisted ordinal.
+
+#### T11 note
+
+The root dependency is Miniflare **4.20260730.0** / workerd **1.20260730.1**. It rejects compatibility date `2026-10-01`
+(newest supported date reported: `2026-08-06`). Wrangler **4.147.0** already bundles Miniflare **5.20261001.0-alpha** /
+workerd **1.20261001.1**, which accepts the required date. T11's fixture resolves that installed runtime through Wrangler,
+using its exported `convertV4MiniflareOptions`; no dependency or lockfile update is needed.
+
+The local HTTP/DO proof closes the accepting request, disconnects SSE, leaves pending provider I/O without subscribers
+for **36.1 seconds** (allowing the initial five-second disconnect flush, then over 30 seconds without subscribers), then persists the next row and replays it to a new client. The provider is deterministic and local;
+there are no network provider calls. The HTTP client uses Miniflare's configured direct socket: its general
+`dispatchFetch` proxy does not propagate post-response aborts to the application, even with the two signal flags on the
+application worker. The direct socket **does** propagate them with both flags and a comment flush; the eight-subscriber
+limit test proves slots are released on actual HTTP abort. Production adapters must preserve this forwarding, and hosted
+verification remains a release gate. `unsafeEvictDurableObject` refuses eviction of that active object after 30 seconds
+("it still has active references"). Restart is instead proven by stopping workerd and starting a new Miniflare instance
+with the same D1/DO persistence directory: only `{userId,batchId,generation}` is in DO storage, extracted rows survive,
+`generation` increments, the batch becomes `partial`/`failed` with `JOB_INTERRUPTED`, and SSE requests reupload. A 120-second
+DO alarm backs the existing processing deadline; maintenance remains an additional reconciliation path.
+
+The configured-provider exercise from C5 is a **deployer release gate**, per T11's no-network constraint:
+`GEMINI_API_KEY=<real credential> [GEMINI_IMPORT_MODEL=<configured model>] pnpm verify:import:provider` explicitly exercises
+synthetic text, PDF and blank PNG with the installed SDK. It prints capability metadata only. The blank PNG verifies image
+transport/JSON streaming, not image recognition quality. This script was not run in T11; hosted model capability and
+production keep-alive remain release evidence, separate from the deterministic local proof.
 
 ### 10. Rollback floor
 

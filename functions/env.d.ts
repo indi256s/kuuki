@@ -17,5 +17,6 @@ interface Env {
   ACTIVATION_ORIGIN?: string // dedicated HTTPS Pages alias for the token-only page
 
   // D1 Database (migration target)
+  IMPORT_JOBS?: DurableObjectNamespace
   DB: D1Database
 }

@@ -1,6 +1,7 @@
 // GET /api/import/batches/:id — the owner's batch snapshot: status, stage, revision, expiry and every draft with its
 // duplicate match and validation issue. D1 is authoritative, so this is also the refresh/remount read.
 // DELETE /api/import/batches/:id — explicit discard. Closing the page is not a discard.
+import { abortImportJob } from '../../_services/importRuntime'
 import { runHandler, json } from '../../_lib/http'
 import { requireCsrf, requireUser, type RequestData } from '../../_lib/auth'
 import { batchNotFound, discardBatch, readBatchSnapshot } from '../../_services/importDrafts'
@@ -18,5 +19,6 @@ export const onRequestDelete: PagesFunction<Env, string, RequestData> = context 
     requireCsrf(context.request)
     const user = requireUser(context.data)
     if (!await discardBatch(context.env.DB, user.id, String(context.params.id))) throw batchNotFound()
+    await abortImportJob(context.env, user.id, String(context.params.id))
     return json({ deleted: true })
   })

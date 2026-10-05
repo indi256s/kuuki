@@ -200,28 +200,40 @@ export interface FinalState {
  * the maintenance sweep or account deletion a late write matches nothing, and a half-written batch cannot exist.
  */
 export async function persistDraftRows(
-  db: D1Database, fence: BatchFence, rows: DraftRowInput[], final: FinalState, now: Date = new Date(),
-): Promise<void> {
+  db: D1Database, fence: BatchFence, rows: DraftRowInput[], final: FinalState | null, now: Date = new Date(),
+  options: { ordinalStart?: number; stage?: 'recognizing' | 'validating' } = {},
+): Promise<{ sequence: number; rowIds: string[] } | null> {
   const instant = now.toISOString()
   const live = `EXISTS (SELECT 1 FROM import_batches WHERE id = ? AND user_id = ? AND status = 'processing' AND generation = ?)`
   const fenceBinds = [fence.batchId, fence.userId, fence.generation]
-  const statements = rows.slice(0, MAX_DRAFTS_PER_BATCH).map((row, ordinal) => db.prepare(
-    `INSERT INTO import_drafts
-       (id, user_id, batch_id, ordinal, fields_json, confidence, field_confidence_json, year_explicit, year_confirmed,
-        selected, edited, duplicate_acknowledged, status, version, created_at, updated_at)
-     SELECT ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, 0, 0, 'review', 1, ?, ?
-     WHERE ${live}`,
-  ).bind(
-    crypto.randomUUID(), fence.userId, fence.batchId, ordinal, JSON.stringify(row.fields), row.confidence,
-    row.fieldConfidence ? JSON.stringify(row.fieldConfidence) : null, row.yearExplicit ? 1 : 0, row.selected ? 1 : 0, instant, instant,
-    ...fenceBinds,
-  ))
+  const ids: string[] = []
+  const statements = rows.slice(0, MAX_DRAFTS_PER_BATCH).map((row, ordinal) => {
+    const id = crypto.randomUUID()
+    ids.push(id)
+    return db.prepare(
+      `INSERT INTO import_drafts
+         (id, user_id, batch_id, ordinal, fields_json, confidence, field_confidence_json, year_explicit, year_confirmed,
+          selected, edited, duplicate_acknowledged, status, version, created_at, updated_at)
+       SELECT ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, 0, 0, 'review', 1, ?, ?
+       WHERE ${live} ON CONFLICT (batch_id, ordinal) DO NOTHING`,
+    ).bind(
+      id, fence.userId, fence.batchId, ordinal + (options.ordinalStart ?? 0), JSON.stringify(row.fields), row.confidence,
+      row.fieldConfidence ? JSON.stringify(row.fieldConfidence) : null, row.yearExplicit ? 1 : 0, row.selected ? 1 : 0, instant, instant,
+      ...fenceBinds,
+    )
+  })
   statements.push(db.prepare(
     `UPDATE import_batches
-     SET status = ?, stage = ?, error_code = ?, sequence = sequence + 1, processing_deadline = NULL, updated_at = ?
-     WHERE id = ? AND user_id = ? AND status = 'processing' AND generation = ?`,
-  ).bind(final.status, final.status === 'failed' ? null : 'review_ready', final.errorCode, instant, ...fenceBinds))
-  await db.batch(statements)
+     SET status = ?, stage = ?, error_code = ?, sequence = sequence + 1,
+         processing_deadline = CASE WHEN ? THEN NULL ELSE processing_deadline END, updated_at = ?
+     WHERE id = ? AND user_id = ? AND status = 'processing' AND generation = ?
+     RETURNING sequence`,
+  ).bind(final?.status ?? 'processing', final ? final.status === 'failed' ? null : 'review_ready' : options.stage ?? 'recognizing',
+    final?.errorCode ?? null, final ? 1 : 0, instant, ...fenceBinds))
+  const results = await db.batch(statements)
+  const sequence = (results.at(-1)?.results as Array<{ sequence: number }>)[0]?.sequence
+  if (sequence === undefined) return null
+  return { sequence, rowIds: ids.filter((_, index) => (results[index].meta.changes ?? 0) > 0) }
 }
 
 // ---------------------------------------------------------------------------
@@ -472,4 +484,23 @@ export async function discardBatch(db: D1Database, userId: string, batchId: stri
     db.prepare('DELETE FROM import_batches WHERE id = ? AND user_id = ?').bind(batchId, userId),
   ])
   return true
+}
+
+/** Cancel is a durable fence even when the live worker cannot be reached. */
+export async function cancelBatch(db: D1Database, userId: string, batchId: string, now = new Date()) {
+  if (!await ownedBatch(db, userId, batchId)) throw batchNotFound()
+  await db.prepare(`UPDATE import_batches SET status = 'cancelled', stage = NULL, generation = generation + 1,
+    sequence = sequence + 1, processing_deadline = NULL, updated_at = ?
+    WHERE id = ? AND user_id = ? AND status = 'processing'`).bind(now.toISOString(), batchId, userId).run()
+}
+
+/** Restart/deadline recovery retains review work and never attempts to recover the source. */
+export async function interruptBatch(db: D1Database, fence: BatchFence) {
+  const result = await db.prepare(`UPDATE import_batches SET
+    status = CASE WHEN EXISTS (SELECT 1 FROM import_drafts WHERE batch_id = ? AND user_id = ?) THEN 'partial' ELSE 'failed' END,
+    stage = NULL, error_code = 'JOB_INTERRUPTED', generation = generation + 1, sequence = sequence + 1,
+    processing_deadline = NULL, updated_at = ? WHERE id = ? AND user_id = ? AND status = 'processing' AND generation = ?
+    RETURNING sequence`).bind(fence.batchId, fence.userId, new Date().toISOString(), fence.batchId, fence.userId, fence.generation)
+    .first<{ sequence: number }>()
+  return result ? { sequence: result.sequence, rowIds: [] } : null
 }

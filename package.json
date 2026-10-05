@@ -25,7 +25,10 @@
     "next:preview": "tsx scripts/smoke-next-runtime.ts",
     "next:smoke": "tsx scripts/smoke-next-runtime.ts --check",
     "next:smoke:boundary": "tsx scripts/smoke-next-runtime.ts --check-boundary",
-    "test:next:navigation": "pnpm --filter @kuuki/next exec playwright test --config tests/playwright.config.ts"
+    "test:next:navigation": "pnpm --filter @kuuki/next exec playwright test --config tests/playwright.config.ts",
+    "typecheck:import": "tsc --noEmit -p workers/import/tsconfig.json",
+    "build:import": "wrangler deploy --dry-run --config workers/import/wrangler.local.toml --outdir .wrangler/import-build",
+    "verify:import:provider": "tsx scripts/verify-import-provider.ts --real-provider"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^5.20261003.1",
