@@ -76,12 +76,12 @@ function toDashboardStats(summary: OverviewSummary): DashboardStats {
     totalFlights: totals.flights,
     totalDistance: totals.distanceKm,
     totalDuration: totals.durationMinutes,
-    uniqueCountries: totals.countries,
+    uniqueCountries: totals.countries ?? 0, // null while the country evidence is updating
     uniqueCities: totals.cities,
     uniqueAirlines: totals.airlines,
     uniqueAircraft: totals.aircraft,
     uniqueAirports: totals.airports,
-    continentsCount: totals.continents,
+    continentsCount: totals.continents ?? 0,
     visitedCountries: summary.countryIds,
     upcomingFlightCount: totals.upcomingFlights,
     upcomingFlights: nextFlight ? [{
