@@ -1,5 +1,6 @@
 // The prompt members send to their own assistant, and the help around it. Its output is what the server ingest reads best.
 import { describe, expect, it } from 'vitest'
+import { enTranslations, ruTranslations } from '@kuuki/shared'
 import { S } from './copy'
 
 const locales = ['en', 'ru'] as const
@@ -32,7 +33,7 @@ describe('assistant prompt', () => {
 
   it('says to admit missing access instead of inventing flights', () => {
     expect(S.prompt.en).toMatch(/cannot access my email or calendar, say so [^]*Do not guess or make up flights/)
-    expect(S.prompt.ru).toMatch(/нет доступа к моей почте или календарю, скажи об этом [^]*Не угадывай и не придумывай перелёты/)
+    expect(S.prompt.ru).toMatch(/нет доступа к моей почте или календарю, скажите об этом [^]*Не угадывайте и не придумывайте перелёты/)
   })
 
   it('keeps private details out of the reply', () => {
@@ -40,6 +41,14 @@ describe('assistant prompt', () => {
       expect(S.prompt.en).toContain(term)
     for (const term of ['имена пассажиров', 'номера бронирований', 'номера билетов', 'адреса почты', 'номера бонусных карт', 'платёжные данные'])
       expect(S.prompt.ru).toContain(term)
+  })
+
+  it('addresses the assistant with formal «вы» forms in Russian', () => {
+    const ru = S.prompt.ru
+    expect(ru).toMatch(/^Найдите в моей почте/)
+    expect(ru).toContain('Если у вас нет доступа')
+    for (const informal of ['тебя', 'Найди ', 'Пиши ', 'пиши ', 'ставь ', 'скажи ', 'остановись', 'Используй ', 'Указывай ', 'Сортируй ', 'Ответь ', 'Не включай ', 'Не указывай ', 'добавь ', 'напиши ', 'бери '])
+      expect(ru).not.toContain(informal)
   })
 
   it('asks for the same format in Russian', () => {
@@ -51,7 +60,7 @@ describe('assistant prompt', () => {
     expect(ru).toMatch(/трёхбуквенные коды аэропортов IATA/)
     expect(ru).toMatch(/название города/)
     expect(ru).toMatch(/\+1/)
-    expect(ru).toMatch(/ставь \?/)
+    expect(ru).toMatch(/ставьте \?/)
     expect(ru).toMatch(/отдельная строка/)
     expect(ru).toMatch(/один раз/)
     expect(ru).toMatch(/отменённые/)
@@ -60,7 +69,22 @@ describe('assistant prompt', () => {
   })
 })
 
+describe('legacy surface parity', () => {
+  it('shows the same prompt and import limit in the legacy app', () => {
+    expect(enTranslations.import.tip.prompt).toBe(S.prompt.en)
+    expect(ruTranslations.import.tip.prompt).toBe(S.prompt.ru)
+    expect(enTranslations.import.tip.limit).toBe(S.importLimit.en)
+    expect(ruTranslations.import.tip.limit).toBe(S.importLimit.ru)
+  })
+})
+
 describe('assistant help', () => {
+  it.each(locales)('%s explains the 100-flight import limit and how to split a long history', locale => {
+    expect(S.importLimit[locale]).toMatch(/100/)
+    expect(S.importLimit[locale]).toMatch(locale === 'en' ? /a few years at a time/ : /по одному или нескольким годам/)
+  })
+
+
   it.each(locales)('%s names the three assistants evenly and says to connect email and calendar first', locale => {
     const body = S.emailHelpBody[locale]
     expect(body).toMatch(/ChatGPT, Claude (or|или) Gemini/)

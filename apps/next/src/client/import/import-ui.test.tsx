@@ -47,6 +47,7 @@ describe('SourceStep', () => {
     render(<SourceStep locale="ru" busy={false} initialMode={null} onSubmit={vi.fn()} />)
     await user.click(screen.getByRole('button', { name: /выгрузить перелёты из почты/i }))
     expect(screen.getByText(/ChatGPT, Claude или Gemini/)).toBeInTheDocument()
+    expect(screen.getByText(S.importLimit.ru)).toBeInTheDocument()
     expect(screen.getByRole('textbox', { name: /текст запроса/i })).toHaveValue(S.prompt.ru)
     await user.click(screen.getByRole('button', { name: /скопировать запрос/i }))
     expect(writeText).toHaveBeenCalledWith(S.prompt.ru)

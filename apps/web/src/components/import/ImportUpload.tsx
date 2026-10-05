@@ -8,30 +8,6 @@ import { Note, NoteContent } from '@/components/ui/note'
 import { Copy, Check, Upload, X, FileType, ChevronDown } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
-// Same text as the current app (apps/next/src/client/import/copy.ts): provider-neutral, in the format the import reads best.
-const ASSISTANT_PROMPT = `Search my email and calendar for all my flights, past and upcoming, across all years: booking confirmations, e-tickets, itineraries, check-in and boarding pass emails, and flight events in my calendar.
-
-If you cannot access my email or calendar, say so in one sentence and stop. Do not guess or make up flights.
-
-Write one line per flight in this format:
-YYYY-MM-DD | origin → destination | airline and flight number | departure-arrival
-
-Examples:
-2024-03-15 | JFK → LAX | American Airlines AA 123 | 08:30-11:45
-2024-03-22 | LAX → JFK | Delta DL 409 | 22:10-06:35+1
-
-Rules:
-- Always write the full date with a four-digit year.
-- Use 3-letter IATA airport codes. If you do not know the code, write the city name.
-- Times are local at each airport, 24-hour, as shown in the booking. Add +1 when the arrival is on the next day.
-- Write ? for anything you cannot find.
-- Each leg of a connection and each direction of a return trip goes on a separate line.
-- List each flight once, even if it appears in several emails or in the calendar. If a flight was changed, use the latest details.
-- Leave out cancelled or refunded flights.
-- Sort from oldest to newest.
-- Do not include passenger names, booking references, ticket numbers, email addresses, frequent flyer numbers, prices or payment details.
-
-Reply with only the list in one plain-text code block, with no other text.`
 
 interface ImportUploadProps {
   onSubmit: (data: { type: 'pdf' | 'image' | 'text'; content: string }) => void
@@ -46,6 +22,8 @@ const ACCEPTED_TYPES = ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg
 
 export function ImportUpload({ onSubmit, disabled, variant = 'full', onSkip }: ImportUploadProps) {
   const { t } = useTranslation()
+  // Same text as the current app (apps/next/src/client/import/copy.ts), kept in the shared locale bundles.
+  const assistantPrompt = t('import.tip.prompt')
   const [isDragging, setIsDragging] = useState(false)
   const [filePreview, setFilePreview] = useState<{
     type: 'pdf' | 'image'
@@ -66,12 +44,12 @@ export function ImportUpload({ onSubmit, disabled, variant = 'full', onSkip }: I
   const copyPrompt = useCallback(async (e: React.MouseEvent) => {
     e.stopPropagation() // Prevent collapsing the tip
     try {
-      await navigator.clipboard.writeText(ASSISTANT_PROMPT)
+      await navigator.clipboard.writeText(assistantPrompt)
       setShowCopiedToast(true)
       setTimeout(() => setShowCopiedToast(false), 2000)
     } catch {
       const textarea = document.createElement('textarea')
-      textarea.value = ASSISTANT_PROMPT
+      textarea.value = assistantPrompt
       document.body.appendChild(textarea)
       textarea.select()
       document.execCommand('copy')
@@ -79,7 +57,7 @@ export function ImportUpload({ onSubmit, disabled, variant = 'full', onSkip }: I
       setShowCopiedToast(true)
       setTimeout(() => setShowCopiedToast(false), 2000)
     }
-  }, [])
+  },[assistantPrompt])
 
   // Process uploaded file
   const processFile = useCallback(async (file: File) => {
@@ -178,10 +156,20 @@ export function ImportUpload({ onSubmit, disabled, variant = 'full', onSkip }: I
   // Check if text looks like our prompt (Easter egg detection)
   const looksLikeOurPrompt = useCallback((text: string) => {
     const promptSignatures = [
+      // Current prompt (EN and RU)
       'Search my email and calendar',
       'one line per flight',
       'four-digit year',
       'frequent flyer numbers',
+      'Найдите в моей почте и календаре',
+      'по одному перелёту на строку',
+      'годом из четырёх цифр',
+      'номера бонусных карт',
+      // Previous prompt, still in members' clipboards and notes
+      '@Gmail @Google Calendar',
+      'flight bookings, boarding passes',
+      'Origin and destination airports',
+      'one flight per line',
     ]
     const matchCount = promptSignatures.filter(sig => text.includes(sig)).length
     return matchCount >= 2 // At least 2 matches = probably our prompt
@@ -258,6 +246,9 @@ export function ImportUpload({ onSubmit, disabled, variant = 'full', onSkip }: I
         <p className="text-xs text-muted-foreground/70 mt-1.5 italic">
           {t('import.tip.recommendation', 'Connect your email and calendar to the assistant first.')}
         </p>
+        <p className="text-xs text-muted-foreground/70 mt-1">
+          {t('import.tip.limit')}
+        </p>
 
         {/* Row 4: Show/Copy prompt button */}
         <div className="flex items-center gap-2 mt-3">
@@ -307,7 +298,7 @@ export function ImportUpload({ onSubmit, disabled, variant = 'full', onSkip }: I
           <div className="overflow-hidden">
             <NoteContent>
               <pre className="text-xs bg-muted/50 p-3 rounded-lg font-mono overflow-x-auto whitespace-pre-wrap text-foreground/80 border border-border/50">
-                {ASSISTANT_PROMPT}
+                {assistantPrompt}
               </pre>
             </NoteContent>
           </div>
