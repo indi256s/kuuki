@@ -303,7 +303,7 @@ describe('R4 recovery continuation', () => {
     serverCommits()
     await user.click(within(manualRows()[0]).getByRole('button', { name: /retry original save/i }))
     await screen.findByRole('heading', { name: /import finished/i })
-    await user.click(screen.getByRole('button', { name: /^back to review$/i }))
+    expect(screen.queryByRole('button', { name: /^back to review$/i })).toBeNull()
     expect(screen.queryByText('Flight added by hand')).toBeNull()
     expect(new Set(sentKeys()).size).toBe(1)
     expect(committed.size).toBe(1)
