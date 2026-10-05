@@ -1,8 +1,7 @@
 'use client'
 
-import Link from 'next/link'
+import { NavigationLink as Link } from './navigation-link'
 import { useAwaiting } from './awaiting'
-import { announceJournalLink } from './journal-links'
 import { formatNumber } from '../lib/format'
 import { ClipboardCheck, ClipboardPaste, PenLine, Upload } from 'lucide-react'
 import type { ReactNode } from 'react'
@@ -24,7 +23,7 @@ function Label({ action }: { action: Action }) {
 /** `menu` renders Radix menu items (inside a Menu); `sheet` renders a plain list of links for the action sheet. */
 export function AddActions({ variant, onNavigate }: { variant: 'menu' | 'sheet'; onNavigate?: () => void }) {
   const { data } = useAwaiting()
-  const queueLink = data && data.actionableCount > 0 ? <Link href="/journal?queue=awaiting" onNavigate={announceJournalLink('/journal?queue=awaiting')} className={variant === 'sheet' ? 'add-action' : undefined} data-add-action="queue" onClick={onNavigate}><ClipboardCheck size={20} strokeWidth={2} aria-hidden="true" /><span className="locale-en">Awaiting action: {formatNumber('en', data.actionableCount)}</span><span className="locale-ru">Ждут действия: {formatNumber('ru', data.actionableCount)}</span></Link> : null
+  const queueLink = data && data.actionableCount > 0 ? <Link href="/journal?queue=awaiting" className={variant === 'sheet' ? 'add-action' : undefined} data-add-action="queue" onClick={onNavigate}><ClipboardCheck size={20} strokeWidth={2} aria-hidden="true" /><span className="locale-en">Awaiting action: {formatNumber('en', data.actionableCount)}</span><span className="locale-ru">Ждут действия: {formatNumber('ru', data.actionableCount)}</span></Link> : null
   if (variant === 'menu') {
     return <>{ADD_ACTIONS.map(action => (
       <MenuItem key={action.id} asChild>

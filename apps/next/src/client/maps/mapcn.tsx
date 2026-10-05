@@ -4,15 +4,17 @@
 // Source: mapcn/src/registry/map.tsx @ d160bd767bc6388618720c6038a4dd9948c97362 (MIT).
 import * as MapLibreGL from 'maplibre-gl'
 import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from 'react'
+import { mapOptions } from './options'
 
 const blankStyle: MapLibreGL.StyleSpecification = { version: 8, sources: {}, layers: [
   { id: 'background', type: 'background', paint: { 'background-color': 'transparent' } },
 ] }
 type MapContextValue = { map: MapLibreGL.Map | null; ready: boolean; themeRevision: number }
-const MapContext = createContext<MapContextValue>({ map: null, ready: false, themeRevision: 0 })
+/** Exported so layer components can be exercised against a stand-in map in unit tests. */
+export const MapContext = createContext<MapContextValue>({ map: null, ready: false, themeRevision: 0 })
 export const useMap = () => useContext(MapContext)
 
-export function Map({ children, onError }: { children: ReactNode; onError: () => void }) {
+export function Map({ children, onError, locale = 'en', className = 'route-map-canvas' }: { children: ReactNode; onError: () => void; locale?: 'en' | 'ru'; className?: string }) {
   const host = useRef<HTMLDivElement>(null)
   const [map, setMap] = useState<MapLibreGL.Map | null>(null)
   const [ready, setReady] = useState(false)
@@ -25,10 +27,11 @@ export function Map({ children, onError }: { children: ReactNode; onError: () =>
     MapLibreGL.setWorkerUrl('/maps/maplibre-6.12.0/maplibre-gl-worker.mjs')
     let instance: MapLibreGL.Map
     try {
-      instance = new MapLibreGL.Map({ container: host.current, style: blankStyle,
-        center: [0, 10], zoom: 1, renderWorldCopies: true,
-        scrollZoom: false, cooperativeGestures: true, attributionControl: false })
+      instance = new MapLibreGL.Map({ container: host.current, style: blankStyle, ...mapOptions(locale) })
     } catch { onErrorRef.current(); return }
+    // Keyboard users get the country and route lists; the canvas must not be an unnamed tab stop.
+    instance.getCanvas().tabIndex = -1
+    instance.touchZoomRotate.disableRotation()
     const timeout = window.setTimeout(() => { if (!instance.loaded()) onErrorRef.current() }, 12000)
     const handleError = () => onErrorRef.current()
     const handleLoad = () => { window.clearTimeout(timeout); setReady(true) }
@@ -39,9 +42,11 @@ export function Map({ children, onError }: { children: ReactNode; onError: () =>
     observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme', 'data-accent'] })
     return () => { observer.disconnect(); window.clearTimeout(timeout); instance.off('error', handleError);
       instance.off('load', handleLoad); instance.remove(); setMap(null); setReady(false) }
+  // The map is created once per mount; a locale change reloads the page.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
   return <MapContext.Provider value={{ map, ready, themeRevision }}>
-    <div ref={host} className="route-map-canvas" aria-hidden="true" style={{ height: 360 }} />
+    <div ref={host} className={className} aria-hidden="true" />
     {children}
   </MapContext.Provider>
 }

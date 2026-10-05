@@ -1,0 +1,92 @@
+/* Passport collection screen. Values are tokens from app/styles.css; layout follows DESIGN.md (no boxed figures). */
+
+.passport-data{display:grid;gap:var(--space-8);min-width:0}
+
+/* ---------- Cover: an unboxed figure strip ---------- */
+.passport-cover{display:grid;gap:var(--space-6);padding-block:var(--space-6);border-block:1px solid var(--hairline)}
+.passport-figures{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,2fr) minmax(0,1fr) minmax(0,1.2fr);gap:var(--space-6);align-items:start}
+.passport-figure{display:grid;gap:var(--space-2);min-width:0}
+.passport-figure strong{font-size:40px;line-height:44px;font-weight:600;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.passport-figure-of{font-size:15px;line-height:24px;color:var(--text-muted);font-weight:500}
+.passport-progress{height:4px;border-radius:var(--radius-full);background:var(--surface-inset);overflow:hidden}
+.passport-progress span{display:block;height:100%;min-width:2px;border-radius:inherit;background:var(--accent)}
+.passport-caption{margin:0;font-size:13px;line-height:20px;color:var(--text-muted);overflow-wrap:break-word}
+.passport-caption a{color:var(--accent-text);font-weight:600}
+.passport-regions{display:flex;flex-wrap:wrap;gap:var(--space-2);margin:0;padding:0;list-style:none}
+.passport-regions li{display:inline-flex;align-items:center;gap:var(--space-1);min-height:28px;padding:2px 10px;border-radius:var(--radius-xs);border:1px solid var(--control-border);font-size:13px;line-height:20px;color:var(--text-muted);font-variant-numeric:tabular-nums}
+.passport-regions li[data-filled=true]{border-color:var(--accent);background:var(--surface-inset);color:var(--text);font-weight:600}
+.passport-latest{display:grid;grid-template-columns:56px minmax(0,1fr);gap:var(--space-3);align-items:center}
+.passport-latest .stamp{width:56px}
+.passport-latest .stamp-name,.passport-latest .stamp-year,.passport-latest .stamp-tag{display:none}
+.passport-latest .stamp-native{font-size:10px;line-height:12px}
+.passport-cover-actions{display:flex;flex-wrap:wrap;gap:var(--space-3);align-items:center;justify-content:space-between}
+
+/* ---------- Toolbar: view switch, key and sort ---------- */
+.passport-toolbar{display:flex;flex-wrap:wrap;gap:var(--space-3) var(--space-6);align-items:center;justify-content:space-between}
+.passport-key{display:flex;flex-wrap:wrap;gap:var(--space-1) var(--space-4);margin:0;padding:0;list-style:none;font-size:13px;line-height:20px;color:var(--text-muted)}
+.passport-key li{display:inline-flex;align-items:center;gap:var(--space-2)}
+.passport-key-shape{display:inline-block;width:14px;height:14px;border:1.5px solid currentColor}
+.passport-key-shape[data-shape=round]{border-radius:var(--radius-full)}
+.passport-key-shape[data-shape=rect]{width:18px;border-radius:3px}
+.passport-key-shape[data-shape=dashed]{border-style:dashed;border-radius:var(--radius-full)}
+
+/* ---------- Stamp grid ----------
+   Columns follow the space the grid actually has, so the page gutter never overflows:
+   below 336px two columns, from 336px three (cells stay at least 104px with the 12px gap),
+   from 720px six. Each cell holds either stamp shape: round faces are square, land and sea faces 4:3. */
+.passport-groups{display:grid;gap:var(--space-8);container-type:inline-size;min-width:0}
+.passport-group{display:grid;gap:var(--space-4);min-width:0}
+.passport-group h2{margin:0;font-size:17px;line-height:24px;font-weight:600}
+.passport-group h2 span{color:var(--text-muted);font-weight:500;font-variant-numeric:tabular-nums}
+.passport-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--space-5) 12px;margin:0;padding:0;list-style:none;min-width:0}
+@container (min-width: 336px){.passport-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@container (min-width: 720px){.passport-grid{grid-template-columns:repeat(6,minmax(0,1fr));column-gap:var(--space-4)}}
+.passport-cell{position:relative;display:grid;min-width:0;border-radius:var(--radius-md)}
+.passport-cell .stamp{min-width:0}
+.passport-cell .stamp-native{font-size:clamp(12px,12cqi,15px);line-height:1.2}
+.passport-cell-action{position:absolute;inset:-4px;z-index:1;border:0;border-radius:var(--radius-md);background:transparent;color:inherit;cursor:pointer}
+.passport-cell-action:focus-visible{outline:2px solid var(--focus);outline-offset:0}
+@media(hover:hover) and (pointer:fine){.passport-cell-action:hover{background:color-mix(in srgb,var(--surface-inset) 55%,transparent);transition:background-color var(--dur-fast) var(--ease-out)}}
+
+/* ---------- Empty passport page ---------- */
+.passport-empty{display:grid;gap:var(--space-6);justify-items:start;container-type:inline-size}
+.passport-ghosts{display:grid;grid-template-columns:repeat(3,minmax(0,104px));gap:var(--space-4);margin:0;padding:0;list-style:none}
+@container (min-width: 720px){.passport-ghosts{grid-template-columns:repeat(6,minmax(0,120px))}}
+.passport-ghost{border:2px dashed var(--control-border)}
+.passport-ghost[data-shape=round]{aspect-ratio:1;border-radius:var(--radius-full)}
+.passport-ghost[data-shape=rect]{aspect-ratio:4/3;border-radius:var(--radius-sm);align-self:center}
+.passport-empty h2{margin:0;font-size:22px;line-height:28px}
+.passport-empty p{margin:0;color:var(--text-muted)}
+
+/* ---------- Country and add-country sheets ---------- */
+.passport-sheet{display:grid;gap:var(--space-6)}
+.passport-sheet-stamp{width:min(168px,60%);justify-self:center}
+.passport-sheet section{display:grid;gap:var(--space-3)}
+.passport-sheet h3{margin:0;font-size:15px;line-height:24px;font-weight:600}
+.passport-sheet dl{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--space-3);margin:0}
+.passport-sheet dt{font-size:13px;line-height:20px;color:var(--text-muted)}
+.passport-sheet dd{margin:0;font-variant-numeric:tabular-nums}
+.passport-list{display:grid;margin:0;padding:0;list-style:none;border-top:1px solid var(--hairline)}
+.passport-list li{display:flex;align-items:center;justify-content:space-between;gap:var(--space-3);min-height:44px;padding-block:var(--space-2);border-bottom:1px solid var(--hairline);min-width:0}
+.passport-list li > :first-child{min-width:0;overflow-wrap:anywhere}
+.passport-list a{color:var(--accent-text);font-weight:600}
+.passport-note{margin:0;font-size:13px;line-height:20px;color:var(--text-muted)}
+.passport-form{display:grid;gap:var(--space-3)}
+.passport-form-row{display:flex;flex-wrap:wrap;gap:var(--space-3);align-items:end}
+.passport-danger{padding-top:var(--space-5);border-top:1px solid var(--hairline)}
+.passport-danger h3{color:var(--danger-text)}
+.passport-search{position:sticky;top:0;z-index:1;padding-bottom:var(--space-2);background:var(--surface-floating)}
+.passport-choices{display:flex;flex-wrap:wrap;gap:var(--space-2);margin:0;padding:0;list-style:none}
+.passport-choice{min-height:44px;padding:8px 14px;border:1px solid var(--control-border);border-radius:var(--radius-sm);background:var(--surface);color:var(--text);transition:background-color var(--dur-fast) var(--ease-out)}
+.passport-choice[aria-current=true]{border-color:var(--accent);font-weight:600}
+@media(hover:hover) and (pointer:fine){.passport-choice:hover{background:var(--surface-inset)}}
+.passport-country-list{max-height:min(48vh,420px);overflow:auto}
+.passport-country-list button{display:flex;justify-content:space-between;gap:var(--space-3);width:100%;min-height:44px;padding:8px 4px;border:0;background:transparent;color:var(--text);text-align:left}
+.passport-country-list li{padding:0}
+.passport-country-list [data-collected=true] span:last-child{color:var(--text-muted);font-size:13px}
+
+@media(max-width:700px){
+  .passport-figures{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .passport-figure:first-child,.passport-figure-regions,.passport-figure-latest{grid-column:1 / -1}
+  .passport-figure strong{font-size:32px;line-height:36px}
+}

@@ -1,17 +1,21 @@
 'use client'
 
-import dynamic from 'next/dynamic'
-import { useEffect, useMemo, useState } from 'react'
+import { lazy, Suspense, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { api } from '../../../../web/src/lib/apiClient'
 import { trackPrivateOperation } from '../activity'
+import { Button } from '../ui/button'
+import { SegmentedControl } from '../ui/segmented-control'
 import { CountryPreview, type CountryVisit, type MapLocale } from './preview'
+import type { MapLayer } from './renderer'
 import { hasDrawableEndpoints, type RouteProjection } from './types'
 import './map.css'
 
 export { CountryPreview } from './preview'
+export type { MapLayer } from './renderer'
 
-const FullRouteMap = dynamic(() => import('./renderer').then(mod => mod.FullRouteMap), { ssr: false,
-  loading: () => <div role="status" className="route-map-placeholder">Loading map…</div> })
+// The interactive island (MapLibre, ~0.5 MB) is fetched only when the map is opened; until it is ready, and
+// whenever WebGL, the worker or the geometry fails, the light SVG preview and the lists stay in its place.
+const FullRouteMap = lazy(() => import('./renderer').then(mod => ({ default: mod.FullRouteMap })))
 
 type Props = {
   ownerId: string
@@ -21,16 +25,27 @@ type Props = {
   onSelectCountry?: (code: string) => void
   initiallyOpen?: boolean
   revision?: number
+  /** Controlled layer; with `onLayerChange` the panel shows the labelled layer switch. */
+  layer?: MapLayer
+  onLayerChange?: (layer: MapLayer) => void
+  /** Extra text for a country list item (e.g. "waiting for confirmation"). */
+  describeCountry?: (visit: CountryVisit) => ReactNode
 }
 
-export function RouteMapPanel({ ownerId, locale, period = 'all', countryVisits = [], onSelectCountry, initiallyOpen = false, revision }: Props) {
+const LAYER_LABELS: Record<MapLayer, Record<MapLocale, string>> = {
+  countries: { en: 'Countries', ru: 'Страны' },
+  routes: { en: 'Routes', ru: 'Маршруты' },
+  frequency: { en: 'Frequency', ru: 'Частота' },
+}
+
+export function RouteMapPanel({ ownerId, locale, period = 'all', countryVisits = [], onSelectCountry, initiallyOpen = false, revision, layer = 'countries', onLayerChange, describeCountry }: Props) {
   const [open, setOpen] = useState(initiallyOpen)
   const [projection, setProjection] = useState<RouteProjection | null>(null)
   const [errorKey, setErrorKey] = useState<string | null>(null)
   const [selected, setSelected] = useState<string | null>(null)
+  const ru = locale === 'ru'
   const visits = useMemo<CountryVisit[]>(() => Array.isArray(countryVisits) ? countryVisits :
     Object.entries(countryVisits).map(([countryCode, count]) => ({ countryCode, count })), [countryVisits])
-  const countryIds = visits.map(visit => visit.countryCode)
   const countryNames = useMemo(() => new Intl.DisplayNames([locale], { type: 'region' }), [locale])
   const key = `${ownerId}:${period}`
   const displayedProjection = projection?.ownerId === ownerId ? projection : null
@@ -49,52 +64,59 @@ export function RouteMapPanel({ ownerId, locale, period = 'all', countryVisits =
     return () => { controller.abort(); untrack() }
   }, [open, ownerId, period, revision, key])
 
-  const label = locale === 'ru' ? 'Карта маршрутов' : 'Route map'
   const routes = displayedProjection?.routes ?? []
-  const mapVisits = useMemo(() => {
+  // A year colors only the countries its completed flights reached; claims and ground visits have no year.
+  const mapVisits = useMemo<CountryVisit[]>(() => {
     if (displayedProjection?.period === 'all' || !displayedProjection) return visits
     const counts = new Map<string, number>()
     for (const route of displayedProjection.routes) for (const country of [route.originCountry, route.destinationCountry]) {
       if (country) counts.set(country, (counts.get(country) ?? 0) + route.count)
     }
     const claims = new Set(visits.filter(visit => visit.claimed).map(visit => visit.countryCode))
-    return [...counts].map(([countryCode, count]) => ({ countryCode, count, claimed: claims.has(countryCode) }))
+    // Same C3 rule as all time: an awaiting-only country is listed but never filled as a visit.
+    const pending = new Set(visits.filter(visit => visit.pending).map(visit => visit.countryCode))
+    return [...counts].map(([countryCode, count]) => ({ countryCode, count, claimed: claims.has(countryCode), pending: pending.has(countryCode) }))
   }, [displayedProjection, visits])
-  const previewIds = period === 'all' || !currentProjection ? countryIds : mapVisits.map(visit => visit.countryCode)
-  return <section aria-label={label} className="route-map-panel">
-    {!open ? <>
-      <CountryPreview countryIds={previewIds} locale={locale} period={currentProjection ? period : 'all'} visits={period === 'all' || !currentProjection ? visits : mapVisits} />
-      {period !== 'all' && !currentProjection ? <p>{locale === 'ru' ? 'На превью показаны страны за всё время.' : 'Preview shows all-time countries.'}</p> : null}
-      <button type="button" onClick={() => { setErrorKey(null); setOpen(true) }}>{locale === 'ru' ? 'Открыть карту' : 'Open map'}</button>
-    </> : <>
-      <div className="route-map-toolbar">
-        <h2>{label}</h2>
-        <button type="button" onClick={() => { setOpen(false); setSelected(null) }}>{locale === 'ru' ? 'Закрыть карту' : 'Close map'}</button>
-      </div>
-      {errorKey === key ? <p role="status">{locale === 'ru' ? 'Маршруты недоступны. Список стран остаётся ниже.' : 'Routes are unavailable. Your country list remains below.'}</p> : null}
-      {displayedProjection && !currentProjection ? <p role="status">{locale === 'ru'
+  const yearView = period !== 'all' && !!currentProjection
+  const preview = <CountryPreview countryIds={(yearView ? mapVisits : visits).filter(visit => !visit.pending).map(visit => visit.countryCode)} locale={locale}
+    period={yearView ? period : 'all'} visits={yearView ? mapVisits : visits} />
+  const showRoutes = layer !== 'countries'
+
+  return <section aria-label={ru ? 'Карта' : 'Map'} className="route-map-panel">
+    <div className="route-map-toolbar">
+      {onLayerChange ? <SegmentedControl label={ru ? 'Слой карты' : 'Map layer'} value={layer} onChange={onLayerChange}
+        options={(['countries', 'routes', 'frequency'] as const).map(value => ({ value, label: LAYER_LABELS[value][locale] }))} /> : <h2>{ru ? 'Карта маршрутов' : 'Route map'}</h2>}
+      {open
+        ? <Button variant="secondary" onClick={() => { setOpen(false); setSelected(null) }}>{ru ? 'Закрыть карту' : 'Close map'}</Button>
+        : <Button variant="secondary" onClick={() => { setErrorKey(null); setOpen(true) }}>{ru ? 'Открыть карту' : 'Open map'}</Button>}
+    </div>
+    {period !== 'all' ? <p className="route-map-note">{currentProjection
+      ? (ru ? `Карта за ${period}: страны и маршруты завершённых перелётов этого года. Списки ниже — за всё время.` : `Map for ${period}: countries and routes of that year's completed flights. The country list below covers all time.`)
+      : (ru ? 'Пока карта загружается, на превью показаны страны за всё время.' : 'While the map loads, the preview shows all-time countries.')}</p> : null}
+    {!open ? preview : <>
+      {errorKey === key ? <p role="status">{ru ? 'Маршруты недоступны. Список стран остаётся ниже.' : 'Routes are unavailable. Your country list remains below.'}</p> : null}
+      {displayedProjection && !currentProjection ? <p role="status">{ru
         ? `Показаны маршруты за ${displayedProjection.period}; загружаем выбранный период.`
         : `Showing ${displayedProjection.period} routes while the selected period loads.`}</p> : null}
-      {displayedProjection ? <FullRouteMap routes={routes} visits={mapVisits} locale={locale} viewportKey={`${ownerId}:${displayedProjection.period}`}
-        selected={routes.some(route => `${route.origin}-${route.destination}` === selected) ? selected : null}
-        onSelect={setSelected} onSelectCountry={onSelectCountry} />
-        : errorKey === key ? <CountryPreview countryIds={previewIds} locale={locale} />
-          : <div role="status" className="route-map-placeholder">{locale === 'ru' ? 'Загрузка маршрутов…' : 'Loading routes…'}</div>}
-      {currentProjection && !routes.length ? <p>{locale === 'ru' ? 'Маршрутов за этот период нет.' : 'No routes in this period.'}</p> : null}
-      <ol className="route-map-list" aria-label={locale === 'ru' ? 'Список маршрутов' : 'Route list'}>
+      {displayedProjection ? <Suspense fallback={preview}>
+        <FullRouteMap routes={routes} visits={mapVisits} locale={locale} viewportKey={`${ownerId}:${displayedProjection.period}`} layer={layer} placeholder={preview}
+          selected={routes.some(route => `${route.origin}-${route.destination}` === selected) ? selected : null}
+          onSelect={setSelected} onSelectCountry={onSelectCountry} />
+      </Suspense> : <>{preview}{errorKey === key ? null : <p role="status" className="route-map-note">{ru ? 'Загрузка маршрутов…' : 'Loading routes…'}</p>}</>}
+      {showRoutes && currentProjection && !routes.length ? <p>{ru ? 'Маршрутов за этот период нет.' : 'No routes in this period.'}</p> : null}
+      {showRoutes ? <ol className="route-map-list" aria-label={ru ? 'Список маршрутов' : 'Route list'}>
         {routes.map(route => {
           const id = `${route.origin}-${route.destination}`
           return <li key={id}><button type="button" aria-pressed={selected === id} onClick={() => setSelected(id)}>
             {route.origin} → {route.destination} · {route.count}
-            {hasDrawableEndpoints(route) ? '' : locale === 'ru' ? ' · линия недоступна' : ' · line unavailable'}
+            {hasDrawableEndpoints(route) ? '' : ru ? ' · линия недоступна' : ' · line unavailable'}
           </button></li>
         })}
-      </ol>
+      </ol> : null}
     </>}
-    <ol className="route-map-country-list" aria-label={locale === 'ru' ? 'Посещённые страны' : 'Visited countries'}>
-      {period !== 'all' ? <li>{locale === 'ru' ? 'За период на карте показаны только страны из полётов. Список ниже — за всё время.' : 'The period map colors flight countries only. The list below covers all time.'}</li> : null}
+    <ol className="route-map-country-list" aria-label={ru ? 'Посещённые страны' : 'Visited countries'}>
       {visits.map(visit => <li key={visit.countryCode}><button type="button" onClick={() => onSelectCountry?.(visit.countryCode)} disabled={!onSelectCountry}>
-        {countryNames.of(visit.countryCode.toUpperCase()) ?? visit.countryCode.toUpperCase()} · {visit.count}{visit.claimed ? locale === 'ru' ? ' · отмечено вами' : ' · claimed' : ''}
+        {countryNames.of(visit.countryCode.toUpperCase()) ?? visit.countryCode.toUpperCase()}{visit.count > 0 ? ` · ${visit.count}` : ''}{visit.claimed ? ru ? ' · без перелётов' : ' · no flights' : ''}{describeCountry?.(visit)}
       </button></li>)}
     </ol>
   </section>

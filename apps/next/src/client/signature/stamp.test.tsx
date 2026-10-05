@@ -55,4 +55,13 @@ describe('Stamp', () => {
   it('maps visits to rings: 1, 2-9, 10+', () => {
     expect([1, 2, 3, 9, 10, 12].map(ringCount)).toEqual([1, 2, 2, 2, 3, 3])
   })
+
+  it('sets both theme inks when no theme is given, so server markup does not depend on the theme', () => {
+    const { container } = render(<Stamp {...base} theme={undefined} kind="air" />)
+    const style = (container.querySelector('.stamp') as HTMLElement).style
+    expect(style.getPropertyValue('--stamp-ink')).toBe('')
+    expect(style.getPropertyValue('--stamp-ink-light')).toMatch(/^#[0-9a-f]{6}$/)
+    expect(style.getPropertyValue('--stamp-ink-dark')).toMatch(/^#[0-9a-f]{6}$/)
+    expect(style.getPropertyValue('--stamp-ink-light')).not.toBe(style.getPropertyValue('--stamp-ink-dark'))
+  })
 })

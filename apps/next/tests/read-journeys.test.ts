@@ -117,7 +117,7 @@ test('RU read controls fit narrow and desktop viewports in both themes', async (
     for (const route of ['/overview', '/journal', '/passport', '/settings', '/leaderboard']) {
       await page.goto(route)
       await expect(page.locator('main h1')).toBeVisible()
-      expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
+      expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), `${route} at ${width}px`).toBe(true)
     }
   }
   await page.getByRole('button', { name: 'Меню аккаунта' }).click()
