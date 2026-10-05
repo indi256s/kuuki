@@ -1,6 +1,7 @@
 import nextWorker from './.open-next/worker.js'
 import pagesWorker from '../../.wrangler/functions-build/index.js'
 import { gateRequest } from '../../functions/api/_lib/workerBoundary'
+import { activationAsset } from './activation-asset'
 import { jsonError } from '../../functions/api/_lib/http'
 import { apiRoutes } from './api-routes.generated'
 import { captureHandler } from './api-capture'
@@ -44,22 +45,6 @@ async function api(request: Request, env: RuntimeEnv, ctx: ExecutionContext): Pr
     ASSETS: { fetch: async () => jsonError(404, 'Not found', 'NOT_FOUND') },
   }
   return pagesWorker.fetch(request, apiEnv, ctx)
-}
-
-async function activationAsset(request: Request, env: RuntimeEnv): Promise<Response> {
-  const url = new URL(request.url)
-  const script = url.pathname === '/activate.js'
-  const assetUrl = new URL(script ? '/activate.js' : '/activate', url)
-  const response = await env.ASSETS.fetch(new Request(assetUrl, request))
-  if (response.status !== 304 && !response.ok) return new Response('Activation page unavailable', { status: 503, headers: { 'Cache-Control': 'no-store' } })
-  const headers = new Headers(response.headers)
-  headers.set('Content-Type', script ? 'text/javascript; charset=utf-8' : 'text/html; charset=utf-8')
-  headers.set('Referrer-Policy', 'no-referrer')
-  headers.set('Cache-Control', 'no-store')
-  headers.set('X-Frame-Options', 'DENY')
-  headers.set('X-Content-Type-Options', 'nosniff')
-  if (!script) headers.set('Content-Security-Policy', "default-src 'none'; script-src 'self'; style-src 'unsafe-inline'; connect-src 'self'; form-action 'self'; base-uri 'none'; frame-ancestors 'none'")
-  return new Response(response.body, { status: response.status, headers })
 }
 
 async function legacy(request: Request, env: RuntimeEnv): Promise<Response> {
