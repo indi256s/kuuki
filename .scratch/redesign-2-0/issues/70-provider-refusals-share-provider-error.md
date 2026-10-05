@@ -27,3 +27,5 @@ No code change to the classifier. Current provider documentation does not define
 - https://google.aip.dev/193 only defines the `ErrorInfo.reason` format (`[A-Z][A-Z0-9_]+[A-Z0-9]`) and gives no catalogue; `google/rpc/error_details.proto` likewise lists none.
 - Installed `@google/genai` 1.39.0 (`pnpm-lock.yaml`): `ApiError` carries only `status` and `message`; refusal enums cover safety and content policy.
 Matching message text is excluded by the issue, so a bare 400 `INVALID_ARGUMENT` stays `PROVIDER_ERROR`. Existing tests already cover `API_KEY_INVALID`, `LOCATION_POLICY_VIOLATED`, bare `INVALID_ARGUMENT` and an unknown reason; added a guard test for a non-JSON 400 message in `functions/test/import-provider.test.ts`. Revisit if Google documents a file-specific reason.
+
+Commit: 9e02904 (guard test, this record). Checks run on that tree: `pnpm typecheck:api` pass; `functions/test/import-provider.test.ts` 26/26 pass; `pnpm test:api` 44 files / 500 tests pass.
