@@ -191,7 +191,7 @@ content and query policy separately from the application's sanitized events.
 | D1 / `overview_read` | statements, rows (returned), d1Ms, durationMs | App owner: Overview stays 13 bounded statements; platform scanned rows/time are distinct from returned rows |
 | `flight_save` | outcome, canonicalMs, repairMs, durationMs, derivedState | App owner: separate created/replayed and canonical/pending; report p50/p95 from >=100 samples |
 | Publication / `overview_read` and derived status | revisionLag; status dirty count and oldest age | App owner: revision never moves backwards; investigate oldest dirty age >15 min; pending polling expiry alone is not repair failure |
-| `maintenance_success` / `maintenance_failure` | duration_ms, rolled_over, overdue_remaining, dirty_count, dirty_oldest_age_seconds, failure code | Operator: success older than 15 min or any failure alerts; maintenance holds are labelled intentionally paused |
+| `maintenance_success` / `maintenance_failure` | duration_ms, rolled_over, auto_confirmed, overdue_remaining, dirty_count, dirty_oldest_age_seconds, failure code | Operator: success older than 15 min or any failure alerts; maintenance holds are labelled intentionally paused |
 | `import_provider_result` and usage buckets | model, outcome, duration_ms; admitted quota consumption | App owner: separate timeout/provider errors from validation/quota denial; fake-provider success is not accuracy/availability proof |
 | Aggregate Web Vitals | LCP, INP, CLS by frontend/build and viewport only | Operator: no collector is installed by this candidate; authorized hosted aggregate measurement is a release gate |
 
