@@ -72,7 +72,7 @@ export function PassportCover({ locale, figures, regions, name, onAdd, now }: {
     </div>
     <div className="passport-cover-actions">
       <Button variant="primary" onClick={onAdd}>{ru ? '＋ Добавить страну' : '＋ Add country'}</Button>
-      <a className="ui-button" data-variant="secondary" href="/passport/manage"><span>{ru ? 'Места и самолёты' : 'Manage places and aircraft'}</span></a>
+      <a className="ui-button" data-variant="secondary" href="/passport/manage"><span>{ru ? 'Самолёты в журнале' : 'Aircraft in journal'}</span></a>
     </div>
   </section>
 }

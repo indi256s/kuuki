@@ -43,8 +43,8 @@ describe('PassportCover', () => {
     // Greece's 2023 sea visit is a newer first visit than Japan's 2019 flight.
     expect(within(container.querySelector('.passport-latest') as HTMLElement).getByText('Греция', { selector: 'span:not(.stamp-name)' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: '＋ Добавить страну' })).toBeInTheDocument()
-    // The retained places-and-aircraft page stays reachable as a secondary action.
-    expect(screen.getByRole('link', { name: 'Места и самолёты' })).toHaveAttribute('href', '/passport/manage')
+    // The aircraft-in-journal page stays reachable as a secondary action.
+    expect(screen.getByRole('link', { name: 'Самолёты в журнале' })).toHaveAttribute('href', '/passport/manage')
   })
 })
 

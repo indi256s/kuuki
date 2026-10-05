@@ -1,6 +1,6 @@
 # Consolidate /passport/manage now that Passport manages countries in its sheets
 
-Status: needs-triage
+Status: resolved
 Owner task: product / a later Remember or Journal task
 Source: T16 self-review and Sol review ruling (2026-10-05), branch wip/redesign-T16.
 
@@ -24,3 +24,13 @@ Countries are managed in one place. Bulk aircraft assignment for journal flights
 The reachability regression is closed by T16: Manage places and aircraft remains linked and tested. Places consolidation and long-term bulk-aircraft placement remain a product/architecture dependency; the live helper is preserved.
 
 Current integration and evidence: [redesign handoff](../../../docs/plans/2026-10-04-redesign-2.0-implementation-handoff.md). Visual/atlas and external release proof remain deferred under the explicit session constraints.
+
+## Resolution — 2026-10-06
+
+Countries are now managed only in Passport.
+- `/passport/manage` lost its Countries section (claim/unclaim, ground visits, confirm dialog, country loading) and the unused `.capture-confirm` styles. It is now the "Aircraft in journal" page («Самолёты в журнале»): same `/api/flights/aircraft-batch` assignment, same 20-item limit and result handling.
+- `/passport/manage?countryCode=CC` with a catalogue code issues a server `redirect()` to `/passport?country=CC`. An invalid or absent code renders the aircraft page.
+- The Passport cover link is relabelled "Aircraft in journal" and still points to `/passport/manage`. `docs/SITEMAP.md` and `docs/APP_FLOW.md` are updated.
+- Country journeys (claim, visit with year/method/note, delete visit, remove country) are covered by `apps/next/tests/passport.test.ts` through the Passport sheets; a note assertion was added there. `capture.test.ts` now covers the redirect and the aircraft page.
+- Long-term placement of bulk aircraft assignment (Journal batch actions vs Overview panel) remains a product question; the page is the reachable home for now.
+- Tests: Next units 983 passed; lint and typecheck clean; `pnpm next:build`; capture.test.ts and passport.test.ts 6 passed (port 8806).
