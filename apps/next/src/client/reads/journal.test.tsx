@@ -495,6 +495,12 @@ describe('list', () => {
     expect(present.querySelector('.journal-aircraft-cell button')).toBeNull()
   })
 
+  it('aligns the six desktop cells, including the aircraft action cell, on one baseline without making the overlay a grid item', () => {
+    const css = readFileSync(join(process.cwd(), 'src/app/reads.css'), 'utf8')
+    expect(css).toMatch(/\.journal-entry \.flight-row\{align-items:baseline\}/)
+    expect(css).toMatch(/\.flight-row>\.flight-row-open\{position:absolute;inset:0/) // out of the grid flow, so it takes no cell and no baseline
+  })
+
   it('declares the mobile card order route, date, distance, flight number and a control-border checkbox outline', () => {
     const css = readFileSync(join(process.cwd(), 'src/app/reads.css'), 'utf8')
     const mobile = css.slice(css.indexOf('@media(max-width:700px){.journal-entry'))
