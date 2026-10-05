@@ -310,6 +310,28 @@ async function fillManual(user: ReturnType<typeof userEvent.setup>, route: [stri
 }
 
 describe('I7 manual flights keep their cause and receipt', () => {
+  it('preserves an independently failed same-route flight after its sibling saves', async () => {
+    const user = userEvent.setup()
+    const server = serverWith([draft({ id: 'a', selected: false })])
+    createFlights.mockResolvedValueOnce([null, new ApiError(503, 'down', 'DOWN')])
+    render(<ImportClient ownerId="u1" locale="en" initialBatchId="b1" batchApi={server.api} />)
+    for (let index = 0; index < 2; index++) {
+      await user.click(await screen.findByRole('button', { name: /add a flight manually/i }))
+      const row = within(screen.getAllByText('Flight added by hand')[index].closest('li')!)
+      await user.type(row.getByLabelText(/^Date/), '2026-03-01')
+      await user.type(row.getByLabelText(/^From \(airport code\)/), 'JFK')
+      await user.type(row.getByLabelText(/^To \(airport code\)/), 'BOS')
+    }
+    await user.click(screen.getByRole('button', { name: /import 2/i }))
+    expect(await screen.findByRole('heading', { name: /some flights were not saved/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Try again for 1' })).toBeInTheDocument()
+    createFlights.mockResolvedValueOnce([null])
+    await user.click(screen.getByRole('button', { name: 'Try again for 1' }))
+    await screen.findByRole('heading', { name: /import finished/i })
+    expect(createFlights.mock.calls[1][1]).toHaveLength(1)
+    expect(createFlights.mock.calls[1][1][0].operationId).toBe(createFlights.mock.calls[0][1][1].operationId)
+  })
+
   it('a refusal says what to fix, and the corrected row saves under a new operation', async () => {
     const user = userEvent.setup()
     const server = serverWith([draft({ id: 'a', selected: false })])

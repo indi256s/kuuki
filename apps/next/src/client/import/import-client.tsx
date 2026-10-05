@@ -233,7 +233,7 @@ export function ImportClient({ ownerId, locale, initialBatchId = null, initialSo
       acks.push(...result.acks)
       wrote ||= result.saved.length > 0
       setManualSaved(previous => [...previous, ...result.saved])
-      setManualRows(previous => previous.flatMap(row => result.saved.some(item => item.key === row.key || flightIdentity(row.values) === flightIdentity(item.values)) ? [] : [result.rows.get(row.key) ?? row]))
+      setManualRows(previous => previous.flatMap(row => result.saved.some(item => item.key === row.key || row.failure?.heldBy === item.operationId && flightIdentity(row.values) === flightIdentity(item.values)) ? [] : [result.rows.get(row.key) ?? row]))
     }
     // The denominator counts each row once, however often it is retried.
     setRequestedKeys(previous => new Set([...previous, ...items.map(item => item.draftId), ...manual.map(row => row.key)]))
@@ -292,7 +292,7 @@ export function ImportClient({ ownerId, locale, initialBatchId = null, initialSo
       if (result.saved) {
         const pinned = receipts.find(save => save.operationId === operationId)?.values
         const identity = pinned && flightIdentity(pinned)
-        const matches = (row: ManualRowState) => row.operationId === operationId || identity !== null && identity !== undefined && flightIdentity(row.values) === identity
+        const matches = (row: ManualRowState) => row.operationId === operationId || identity !== null && identity !== undefined && flightIdentity(row.values) === identity && (row.failure?.heldBy === operationId || !row.failure && row.retryKey === undefined)
         const reconciled = manualRows.find(matches)
         if (reconciled) setManualSaved(previous => [...previous, { ...reconciled, values: pinned ?? reconciled.values }])
         setManualRows(previous => previous.filter(row => !matches(row)))
