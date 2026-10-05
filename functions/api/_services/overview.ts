@@ -2,7 +2,8 @@ import type { OverviewMapCountry, OverviewPeriod, OverviewSummary } from '../../
 import { REGION_POLICY, regionCount, regionProgress } from '../_lib/regions'
 import { favoriteAirline, newCountriesIn, overviewComparison, type FirstVisitRow, type PeriodTotals } from './overviewShape'
 import { isDerivedReady } from './derivedState'
-import { buildFlightWhere, type FlightFilters } from '../_lib/flightQuery'
+import type { FlightFilters } from '../_lib/flightQuery'
+import { MAX_COUNTRY_CODES, UNSUPPRESSED, completedScope, countryEndpoints, countryVisitsStatement } from './periodScope'
 import { assertRows } from '../_lib/d1'
 
 type CountRow = { id: string; count: number }
@@ -18,18 +19,11 @@ type NextRow = { id: number; date: string; origin: string; destination: string; 
 type LongestRow = { origin: string; destination: string; distance_km: number }
 type RouteRow = { origin: string; destination: string; count: number }
 
-// Reference country codes are finite, but fail rather than truncate if the imported
-// reference set ever grows beyond a reasonable country/territory universe.
-const MAX_COUNTRY_CODES = 512
-
 /** One batch provides a consistent canonical/revision snapshot for a single owner and period. */
 export async function readOverview(db: D1Database, userId: string, period: OverviewPeriod = 'all', filters: FlightFilters = {}): Promise<OverviewSummary> {
   const started = Date.now()
   const generatedAt = new Date(started).toISOString()
-  const completed = (year?: number) => {
-    const { where, binds } = buildFlightWhere(userId, { ...filters, ...(year === undefined ? {} : { year }) })
-    return { where: `${where} AND f.lifecycle_state IN ('awaiting', 'logged')`, binds }
-  }
+  const completed = (year?: number) => completedScope(userId, filters, year)
   const current = completed(period === 'all' ? undefined : Number(period))
   const completedWhere = current.where
   const bindPeriod = (sql: string, ...extra: Array<string | number>) => db.prepare(sql).bind(...current.binds, ...extra)
@@ -37,14 +31,6 @@ export async function readOverview(db: D1Database, userId: string, period: Overv
   // variable limit instead of doubling their placeholders for both endpoints.
   const endpoints = `WITH selected AS (SELECT origin, destination FROM flights f WHERE ${completedWhere}),
     endpoints AS (SELECT origin AS iata FROM selected UNION ALL SELECT destination AS iata FROM selected)`
-  // Country figures never mix live endpoints with the published suppressions' absence: endpoints keep their flight
-  // id so the published suppressions (ADR 0001 §4) can be anti-joined. The snapshot and the readiness gate share this batch.
-  const countryEndpoints = (where: string) => `WITH selected AS (SELECT id, origin, destination FROM flights f WHERE ${where}),
-    country_endpoints AS (SELECT id, 'origin' AS endpoint, origin AS iata FROM selected
-      UNION ALL SELECT id, 'destination' AS endpoint, destination AS iata FROM selected)`
-  const unsuppressedWhere = `WHERE length(a.country_code) = 2 AND NOT EXISTS (SELECT 1 FROM country_evidence_suppressions x
-      WHERE x.user_id = ? AND x.flight_id = e.id AND x.endpoint = e.endpoint)`
-  const unsuppressed = `JOIN airports_reference a ON a.iata = e.iata ${unsuppressedWhere}`
   // Unfiltered all-time reads the published projection (flight and legacy countries, no claims or ground visits).
   const projection = period === 'all' && Object.keys(filters).length === 0
   const monthStart = period === 'all'
@@ -68,15 +54,7 @@ export async function readOverview(db: D1Database, userId: string, period: Overv
       COUNT(DISTINCT CASE WHEN a.city IS NOT NULL THEN a.country_code || ':' || a.city END) AS cities
       FROM endpoints e LEFT JOIN airports_reference a ON a.iata = e.iata`))
   // Visit counts per country feed the mini map buckets; `pending` is the country's published status (awaiting-only).
-  add('countries', projection
-    ? db.prepare(`SELECT country_code AS id, logged_visit_count + awaiting_visit_count AS visits,
-        CASE WHEN status = 'pending' THEN 1 ELSE 0 END AS pending FROM country_visit_evidence WHERE user_id = ?
-        AND logged_visit_count + awaiting_visit_count > 0 ORDER BY id LIMIT ${MAX_COUNTRY_CODES + 1}`).bind(userId)
-    : bindPeriod(`${countryEndpoints(completedWhere)} SELECT a.country_code AS id, COUNT(*) AS visits,
-        MAX(CASE WHEN ev.status = 'pending' THEN 1 ELSE 0 END) AS pending FROM country_endpoints e
-        JOIN airports_reference a ON a.iata = e.iata
-        LEFT JOIN country_visit_evidence ev ON ev.user_id = ? AND ev.country_code = a.country_code
-        ${unsuppressedWhere} GROUP BY a.country_code ORDER BY id LIMIT ${MAX_COUNTRY_CODES + 1}`, userId, userId))
+  add('countries', countryVisitsStatement(db, userId, current, projection))
   add('longest', bindPeriod(`SELECT f.origin, f.destination, f.distance_km FROM flights f WHERE ${completedWhere}
       AND f.distance_km IS NOT NULL ORDER BY f.distance_km DESC, f.id ASC LIMIT 1`))
   add('frequent', bindPeriod(`SELECT f.origin, f.destination, COUNT(*) AS count FROM flights f WHERE ${completedWhere}
@@ -90,7 +68,7 @@ export async function readOverview(db: D1Database, userId: string, period: Overv
   add('manufacturers', bindPeriod(`WITH selected AS (SELECT aircraft_icao FROM flights f WHERE ${completedWhere} AND f.aircraft_icao IS NOT NULL)
       SELECT ar.manufacturer AS id, COUNT(*) AS count FROM selected s JOIN aircraft_reference ar ON ar.icao = s.aircraft_icao
       WHERE ar.manufacturer <> '' GROUP BY ar.manufacturer ORDER BY count DESC, id LIMIT 5`))
-  add('topCountries', bindPeriod(`${countryEndpoints(completedWhere)} SELECT a.country_code AS id, COUNT(*) AS count FROM country_endpoints e ${unsuppressed}
+  add('topCountries', bindPeriod(`${countryEndpoints(completedWhere)} SELECT a.country_code AS id, COUNT(*) AS count FROM country_endpoints e ${UNSUPPRESSED}
       GROUP BY a.country_code ORDER BY count DESC, id LIMIT 5`, userId))
   add('months', bindPeriod(`SELECT substr(f.date, 1, 7) AS month, COUNT(*) AS flights FROM flights f WHERE ${completedWhere}
       AND substr(f.date, 1, 7) >= ? AND substr(f.date, 1, 7) < ?
@@ -111,7 +89,7 @@ export async function readOverview(db: D1Database, userId: string, period: Overv
     add('previousTotals', db.prepare(`SELECT COUNT(*) AS flights, COALESCE(ROUND(SUM(f.distance_km)), 0) AS distance_km,
       COALESCE(SUM(f.duration_minutes), 0) AS duration_minutes FROM flights f WHERE ${previous.where}`).bind(...previous.binds))
     add('previousCountries', db.prepare(`${countryEndpoints(previous.where)} SELECT COUNT(DISTINCT a.country_code) AS countries
-      FROM country_endpoints e ${unsuppressed}`).bind(...previous.binds, userId))
+      FROM country_endpoints e ${UNSUPPRESSED}`).bind(...previous.binds, userId))
     add('earlier', db.prepare(`SELECT EXISTS (SELECT 1 FROM flights WHERE user_id = ? AND lifecycle_state IN ('awaiting', 'logged')
       AND date < ?) AS earlier`).bind(userId, `${period}-01-01`))
   }

@@ -3,7 +3,9 @@
 import { apiContext } from './harness'
 import { accountWith, USER, type FixtureFlight } from './country-fixture'
 import { onRequestGet as getOverview } from '../api/me/overview'
+import { onRequestGet as getProjection } from '../api/flights/route-projection'
 import type { OverviewSummary } from '../../packages/shared/src/overview'
+import type { RouteProjection } from '../../packages/shared/src/routeProjection'
 
 export { USER, at, T0, publish } from './country-fixture'
 export type { FixtureFlight } from './country-fixture'
@@ -45,4 +47,11 @@ export function legacyOnlyAccount(country = 'AE', airport = 'DXB', visits = 2) {
     d.prepare(`INSERT INTO legacy_visit_evidence (source_id,user_id,airport_iata,country_code,first_visit,last_visit,visit_count,source_digest,provenance,contributes,source_json)
       VALUES ('legacy-1',?,?,?,'2019-01-01','2019-01-01',?,'d','archive',1,'{}')`).bind(USER.id, airport, country, visits),
   ])
+}
+
+/** The opened map's read for the same account, called like a client would (`period=all|YYYY`). */
+export async function readRouteProjection(db: D1Database, period = 'all', user: { id: string; email: string } = USER): Promise<RouteProjection> {
+  const response = await getProjection({ ...apiContext(db, new Request(`https://kuuki.test/api/flights/route-projection?period=${period}`)), data: { user } } as never)
+  if (response.status !== 200) throw new Error(`Route projection read failed: ${response.status}`)
+  return response.json() as Promise<RouteProjection>
 }
