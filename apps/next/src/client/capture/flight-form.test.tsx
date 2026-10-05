@@ -42,7 +42,8 @@ describe.each(['en', 'ru'] as const)('manual flight (%s)', locale => {
     await waitFor(() => expect(mocks.create).toHaveBeenCalledTimes(1))
     expect(mocks.create.mock.calls[0][0]).toMatchObject({ date: '2026-10-05', origin: 'TBS', destination: 'IST', airline_iata: null, aircraft_icao: null, user_id: 'a' })
     expect(mocks.acknowledge).toHaveBeenCalledWith({ id: 8, derived_state: 'ready' })
-    expect(onSaved).toHaveBeenCalledWith({ id: 8, derived_state: 'ready' }, 'ready')
+    // onSaved runs from an effect after the saved render commits.
+    await waitFor(() => expect(onSaved).toHaveBeenCalledWith({ id: 8, derived_state: 'ready' }, 'ready'))
     expect(screen.getByRole('status')).toHaveTextContent(locale === 'ru' ? 'Итоги обновлены.' : 'Totals updated.')
   })
   it('swaps the route and preserves selected optional values', async () => {
