@@ -1,6 +1,6 @@
 import { afterEach, expect, it, vi } from 'vitest'
 import { ImportJob } from '../../workers/import/ImportJob'
-import { createProcessingBatch } from '../api/_services/importDrafts'
+import { cancelBatch, createProcessingBatch } from '../api/_services/importDrafts'
 import { importAccount, postJob, providerFlight, providerText } from './import-fixture'
 
 const provider = vi.hoisted(() => ({ stream: vi.fn((_input: { config: { abortSignal: AbortSignal } }): Promise<AsyncIterable<{ text: string }>> => new Promise(() => undefined)) }))
@@ -49,7 +49,7 @@ it('enforces 90 seconds and aborts even a provider that ignores the signal', asy
   await createProcessingBatch(fixture.db, { id: batchId, userId: 'u1', sourceType: 'text', sourceLabel: null, operationId: 'deadline-op-0001' }, new Date())
   const pending: Promise<unknown>[] = []
   const state = {
-    storage: { get: async () => undefined, put: async () => undefined, setAlarm: async () => undefined, deleteAlarm: async () => undefined },
+    storage: { get: async () => undefined, put: async () => undefined, setAlarm: async () => undefined, deleteAlarm: async () => undefined, deleteAll: async () => undefined },
     blockConcurrencyWhile: (fn: () => Promise<unknown>) => fn(), waitUntil: (work: Promise<unknown>) => pending.push(work),
   } as unknown as DurableObjectState
   vi.useFakeTimers({ toFake: ['Date', 'setTimeout', 'clearTimeout'] })
@@ -79,7 +79,7 @@ it('keeps the interruption alarm when a database outage prevents finalization', 
   provider.stream.mockResolvedValueOnce((async function* () { yield { text: providerText([providerFlight()]) } })())
   const pending: Promise<unknown>[] = []; const deleteAlarm = vi.fn(async () => undefined)
   const state = {
-    storage: { get: async () => undefined, put: async () => undefined, setAlarm: async () => undefined, deleteAlarm },
+    storage: { get: async () => undefined, put: async () => undefined, setAlarm: async () => undefined, deleteAlarm, deleteAll: async () => undefined },
     blockConcurrencyWhile: (fn: () => Promise<unknown>) => fn(), waitUntil: (work: Promise<unknown>) => pending.push(work),
   } as unknown as DurableObjectState
   const job = new ImportJob(state, { DB: db, GEMINI_API_KEY: 'fake' })
@@ -109,4 +109,61 @@ it('a duplicate still in accepted stage waits for durable ownership before ackno
     expect(settled).toBe(false)
   } finally { acknowledge() }
   expect(await submission).toMatchObject({ status: 202, body: { batchId } })
+})
+
+it('rechecks D1 after registration when cancellation races the initial events read', async () => {
+  const fixture = await importAccount(); dispose = fixture.dispose
+  const batchId = crypto.randomUUID()
+  await createProcessingBatch(fixture.db, { id: batchId, userId: 'u1', sourceType: 'text', sourceLabel: null, operationId: 'subscribe-race-0001' }, new Date())
+  let raced = false
+  const db = { prepare: (sql: string) => {
+    const statement = fixture.db.prepare(sql)
+    return { bind: (...values: unknown[]) => {
+      const bound = statement.bind(...values)
+      return { first: async () => {
+        const row = await bound.first()
+        if (!raced) { raced = true; await cancelBatch(fixture.db, 'u1', batchId, new Date()) }
+        return row
+      } }
+    } }
+  } } as unknown as D1Database
+  const state = { storage: { get: async () => undefined, deleteAlarm: async () => undefined, deleteAll: async () => undefined },
+    blockConcurrencyWhile: (fn: () => Promise<unknown>) => fn() } as unknown as DurableObjectState
+  const job = new ImportJob(state, { DB: db, GEMINI_API_KEY: 'fake' })
+  const response = await job.fetch(new Request(`https://import.internal/events?userId=u1&batchId=${batchId}`))
+  const reader = response.body!.getReader(); let text = ''; let closed = false
+  const reading = (async () => { for (;;) {
+    const next = await reader.read(); if (next.done) { closed = true; return }
+    text += new TextDecoder().decode(next.value)
+  } })()
+  try {
+    await expect.poll(() => closed).toBe(true)
+    expect(text).toContain('event: snapshot')
+    expect(text).toContain('event: end')
+    expect(text).toContain('"status":"cancelled"')
+  } finally { await reader.cancel(); await reading }
+})
+
+it('distinguishes oversized files from invalid files before dispatch', async () => {
+  const fixture = await importAccount(); dispose = fixture.dispose
+  const fetch = vi.fn(); const namespace = { idFromName: (name: string) => name, get: () => ({ fetch }) }
+  const result = await postJob(fixture.db, { type: 'pdf', content: Buffer.alloc(10 * 1024 * 1024 + 1).toString('base64') }, undefined, {}, { IMPORT_JOBS: namespace })
+  expect(result.status).toBe(413); expect(result.body.code).toBe('PAYLOAD_TOO_LARGE')
+  expect(fetch).not.toHaveBeenCalled()
+})
+
+it('the unbound events endpoint sends a final snapshot and end with the same cache contract', async () => {
+  const fixture = await importAccount(); dispose = fixture.dispose
+  const batchId = crypto.randomUUID()
+  await createProcessingBatch(fixture.db, { id: batchId, userId: 'u1', sourceType: 'text', sourceLabel: null, operationId: 'unbound-events-0001' }, new Date())
+  await cancelBatch(fixture.db, 'u1', batchId, new Date())
+  const { onRequestGet } = await import('../api/import/batches/[id]/events')
+  const response = await onRequestGet({ request: new Request(`https://kuuki.test/api/import/batches/${batchId}/events`),
+    env: { DB: fixture.db }, data: { user: { id: 'u1' } }, params: { id: batchId } } as never)
+  expect(response.headers.get('Cache-Control')).toBe('no-cache, no-transform')
+  const text = await response.text()
+  expect(text).toContain('event: snapshot')
+  expect(text).toContain('event: end')
+  expect(text).toContain('"status":"cancelled"')
+  expect(text).not.toMatch(/^id:/m)
 })

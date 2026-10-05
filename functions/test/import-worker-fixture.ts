@@ -13,6 +13,7 @@ import { configureProvider } from './import-fake-provider'
 export class TestImportJob extends ImportJob {
   constructor(ctx: DurableObjectState, env: ImportEnv & { FAKE: Fetcher }) { super(ctx, env); configureProvider(env.FAKE) }
   override async fetch(request: Request) {
+    if (new URL(request.url).pathname === '/__test/alarm') { await this.alarm(); return new Response(null, { status: 204 }) }
     if (new URL(request.url).pathname === '/__test/storage') return Response.json(Object.fromEntries(await this.ctx.storage.list()))
     return super.fetch(request)
   }
@@ -33,6 +34,10 @@ export default {
     if (!match) return new Response(null, { status: 404 })
     const context = { request, env, data, params: { id: match[1] } } as never
     if (match[2] === 'events') return events(context)
+    if (match[2] === 'cancel' && (env as Env & { FAIL_ABORT?: boolean }).FAIL_ABORT) {
+      const unavailable = { idFromName: (name: string) => name, get: () => ({ fetch: async () => { throw new Error('Abort transport unavailable') } }) }
+      return cancel({ request, env: { ...env, IMPORT_JOBS: unavailable }, data, params: { id: match[1] } } as never)
+    }
     if (match[2] === 'cancel') return cancel(context)
     return request.method === 'DELETE' ? discard(context) : snapshot(context)
   },

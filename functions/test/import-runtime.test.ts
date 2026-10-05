@@ -28,7 +28,7 @@ async function dispatch(path: string, method = 'GET', body?: unknown, user = 'u1
   const request = csrfRequest(path, method, body, { 'X-Test-User': user })
   return mf!.dispatchFetch(request.url, { method, signal, headers: Object.fromEntries(request.headers), ...(body === undefined ? {} : { body: await request.text() }) })
 }
-async function runtime() {
+async function runtime(failAbort = false) {
   let calls = 0; let providerInput: Record<string, any> | undefined
   mkdirSync('.wrangler', { recursive: true })
   persistence = mkdtempSync('.wrangler/t11-runtime-')
@@ -36,7 +36,7 @@ async function runtime() {
     d1Databases: { DB: 'import-runtime-test' },
     durableObjects: { IMPORT_JOBS: { className: 'TestImportJob', useSQLite: true } },
     unsafeDirectSockets: [{ host: '127.0.0.1', port: 0 }],
-    bindings: { GEMINI_API_KEY: 'fake', GEMINI_IMPORT_MODEL: 'fixture-model' },
+    bindings: { GEMINI_API_KEY: 'fake', GEMINI_IMPORT_MODEL: 'fixture-model', FAIL_ABORT: failAbort },
     serviceBindings: { FAKE: async (request: { json(): Promise<unknown> }) => {
       calls++; providerInput = await request.json() as Record<string, any>
       return new Response(new ReadableStream<Uint8Array>({ start(controller) { feed = controller } }))
@@ -189,7 +189,9 @@ it('bounds drafts and event replay, instructs snapshots on gaps and scopes forei
   await expect.poll(async () => (await batch(id))?.status, { timeout: 10_000 }).toBe('partial')
   expect((await batch(id))?.error_code).toBe('ROWS_TRUNCATED'); expect((await rows(id)).results).toHaveLength(100)
   const response = await dispatch(`/api/import/batches/${id}/events?after=0`)
-  expect(await response.text()).toContain('event: snapshot')
+  const replay = await response.text()
+  expect(replay.match(/event: rows/g)).toHaveLength(103)
+  expect(replay).toContain('event: end')
   // A revision owned by another mutation cannot be replayed from the DO's notifications.
   await db.prepare('UPDATE import_batches SET sequence = sequence + 2 WHERE id = ?').bind(id).run()
   const gap = await dispatch(`/api/import/batches/${id}/events?after=${(await batch(id))!.sequence - 1}`)
@@ -274,7 +276,6 @@ it('bounds simultaneous event subscribers and releases the slot on disconnect', 
   await expect.poll(async () => (await batch(id))?.status).toBe('failed')
 }, 10_000)
 
-
 it('finishes an airline-less row as review with the placeholder defaults', async () => {
   const { db, send, start, batch, rows } = await runtime(); const id = await start()
   send('{"flights":[' + JSON.stringify(providerFlight({ airline_iata: '' })) + ']}'); feed.close()
@@ -285,3 +286,78 @@ it('finishes an airline-less row as review with the placeholder defaults', async
   expect(await db.prepare('SELECT selected,field_confidence_json FROM import_drafts WHERE id = ?').bind(row.id).first())
     .toMatchObject({ selected: 0, field_confidence_json: expect.stringContaining('"airline_iata":0') })
 })
+
+async function closedEvents(response: Awaited<ReturnType<typeof dispatch>>, timeout = 2_000) {
+  const reader = response.body!.getReader(); let text = ''; let closed = false
+  const reading = (async () => {
+    for (;;) {
+      const chunk = await reader.read()
+      if (chunk.done) { closed = true; return text }
+      text += new TextDecoder().decode(chunk.value)
+    }
+  })()
+  try { await expect.poll(() => closed, { timeout }).toBe(true); return await reading }
+  finally { await reader.cancel().catch(() => undefined); await reading }
+}
+
+it.each(['cancel with failed abort', 'account deletion', 'discard'])('%s sends a final snapshot and end to an open subscriber', async action => {
+  const { send, start, batch, rows } = await runtime(action === 'cancel with failed abort'); const id = await start()
+  send('{"flights":[' + JSON.stringify(providerFlight()))
+  await expect.poll(async () => (await rows(id)).results.length).toBe(1)
+  const response = await dispatch(`/api/import/batches/${id}/events?after=${(await batch(id))!.sequence}`)
+  if (action === 'cancel with failed abort') expect((await dispatch(`/api/import/batches/${id}/cancel`, 'POST')).status).toBe(200)
+  else if (action === 'discard') expect((await dispatch(`/api/import/batches/${id}`, 'DELETE')).status).toBe(200)
+  else expect((await dispatch('/__test/delete-account', 'POST')).status).toBe(204)
+  // Force the active writer to observe the D1 fence even if the abort transport failed.
+  try { send(',' + JSON.stringify(providerFlight({ origin: 'TBS' }))); } catch {}
+  const text = await closedEvents(response)
+  expect(text).toContain('event: snapshot')
+  expect(text).toContain('event: end')
+  expect(text).toContain('"status":"' + (action === 'cancel with failed abort' ? 'cancelled' : 'deleted') + '"')
+  expect(text.indexOf('event: snapshot')).toBeLessThan(text.indexOf('event: end'))
+  const namespace = await mf!.getDurableObjectNamespace('IMPORT_JOBS')
+  await expect.poll(async () => (await namespace.get(namespace.idFromName(`u1:${id}`)).fetch('https://import.internal/__test/storage')).json()).toEqual({})
+  expect((await rows(id)).results).toHaveLength(action === 'cancel with failed abort' ? 1 : 0)
+})
+
+it('terminal completion sends end, clears storage and refuses a new provider start', async () => {
+  const { send, start, batch, calls } = await runtime(); const id = await start()
+  const response = await dispatch(`/api/import/batches/${id}/events`)
+  send('{"flights":[' + JSON.stringify(providerFlight()) + ']}'); feed.close()
+  const text = await closedEvents(response)
+  expect(text).toContain('event: end')
+  expect(text).toContain('"status":"review"')
+  expect(text).not.toMatch(/^id:/m)
+  expect(response.headers.get('Cache-Control')).toBe('no-cache, no-transform')
+  const namespace = await mf!.getDurableObjectNamespace('IMPORT_JOBS')
+  const stub = namespace.get(namespace.idFromName(`u1:${id}`))
+  await expect.poll(async () => (await batch(id))?.status).toBe('review')
+  await expect.poll(async () => (await stub.fetch('https://import.internal/__test/storage')).json()).toEqual({})
+  expect((await stub.fetch('https://import.internal/start', { method: 'POST', body: JSON.stringify({
+    fence: { userId: 'u1', batchId: id, generation: 1 }, source: { type: 'text', content: 'fixture' },
+  }) })).status).toBe(409)
+  expect(calls()).toBe(1)
+})
+
+it('an interruption alarm sends reupload only on the final snapshot', async () => {
+  const { send, start, rows } = await runtime(); const id = await start()
+  send('{"flights":[' + JSON.stringify(providerFlight()))
+  await expect.poll(async () => (await rows(id)).results.length).toBe(1)
+  const response = await dispatch(`/api/import/batches/${id}/events`)
+  const namespace = await mf!.getDurableObjectNamespace('IMPORT_JOBS')
+  await namespace.get(namespace.idFromName(`u1:${id}`)).fetch('https://import.internal/__test/alarm', { method: 'POST' })
+  const text = await closedEvents(response)
+  expect(text).toContain('event: end')
+  for (const frame of text.split('\n\n').filter(frame => frame.includes('"reupload":true'))) expect(frame).toContain('event: snapshot')
+  expect(text).toContain('"reupload":true')
+})
+
+it('detects outside cancellation on the heartbeat while the provider is idle', async () => {
+  const { start } = await runtime(true); const id = await start()
+  const response = await dispatch(`/api/import/batches/${id}/events`)
+  expect((await dispatch(`/api/import/batches/${id}/cancel`, 'POST')).status).toBe(200)
+  const text = await closedEvents(response, 7_000)
+  expect(text).toContain('event: snapshot')
+  expect(text).toContain('event: end')
+  expect(text).toContain('"status":"cancelled"')
+}, 10_000)

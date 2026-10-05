@@ -499,20 +499,46 @@ T11 supplies `workers/import/index.ts` (export `ImportJob`), the internal `Start
   namespace binding to that class/script in the API adapter. Forward that binding through the Next/Pages integration.
   Name objects with ``idFromName(`${userId}:${batchId}`)``. Keep public import Worker routes disabled; its default fetch is 404.
 - Compatibility date **at least `2026-10-01`** for the import Worker (or a separately verified equivalent pending-I/O flag).
-  Enable `enable_request_signal` and `request_signal_passthrough` on **both** the API worker and import Worker;
+  Enable `enable_request_signal` and `request_signal_passthrough` on the import Worker, the **Next API-serving Worker**
+  (`apps/next/worker.ts`), and the **Pages Functions fallback Worker** when it serves these routes;
   the API forwards `request.signal` through the binding. Extend the architecture's local HTTP-worker fixture to use the same binding and runtime. Do not enable production from
   this local config: it contains a dummy D1 ID and creates no remote resources.
 
+- Add `pnpm typecheck:import` and `WRANGLER_SEND_METRICS=false pnpm build:import` to CI; these scripts exist locally
+  but CI integration remains the architecture owner's responsibility.
+
 With the binding, jobs return `202 {batchId}` for new and replayed submissions. Without it, T10's snapshot response and
-synchronous parse behaviour remain. File-input refusals on the bound path carry `INVALID_FILE`; other existing gates and
-rate limits remain. The provider key is needed in the import Worker, not in the API dispatcher.
+synchronous parse behaviour remain. Malformed file-input refusals on the bound path carry `INVALID_FILE`; size refusals carry `PAYLOAD_TOO_LARGE` (413).
+Other existing gates and rate limits remain. The import Worker needs the provider key. Keep `GEMINI_API_KEY` on the
+API-serving workers too: the legacy `parse.ts` endpoint and the unbound synchronous fallback still use it; only the bound
+job dispatcher does not require it.
 
 Output is capped at **1 MiB**, JSON nesting at **64**, drafts at the ADR's **100**, replay at **128** notifications,
 subscribers at **8**, and each event queue at **16**. Oversized output becomes `OUTPUT_LIMIT` (`partial` if rows exist).
-SSE carries `rows` events with `{sequence,rowIds}` and uses `snapshot` with `{sequence,rowIds:[],snapshot:true}` for a gap,
-a future cursor, lost replay, or backpressure. Five-second SSE comment frames flush client disconnects; the timer ends with the last subscription. On interruption that instruction also carries `reupload:true`; snapshots
-retain `JOB_INTERRUPTED`. A closed SSE connection never aborts recognition. Final reconciliation preserves source ordinals,
-immutable row IDs and member edits, and does not overwrite an already persisted ordinal.
+Final reconciliation preserves source ordinals, immutable row IDs and member edits, and does not overwrite an already
+persisted ordinal. Normalization receives a clone so placeholder-airline defaults cannot change the raw reconciliation.
+A terminal or fenced write re-reads D1, closes subscriptions and clears the heartbeat, alarm and DO storage. `/start`
+always re-checks D1 before accepting work. The maintenance timeout increments both generation and sequence.
+
+#### T11 SSE contract
+
+D1 is authoritative; event payloads contain no source or extracted field content. Responses send
+`Content-Type: text/event-stream`, `Cache-Control: no-cache, no-transform`, and (for the bound worker) `X-Accel-Buffering: no`.
+
+| Event | Payload | Delivery and closure |
+|---|---|---|
+| `rows` | `{sequence, rowIds}` | Persisted row/stage revisions; empty row IDs mean a stage revision. Replay retains at most 128 notifications and is sent as one bounded stream chunk, independent of the 16-chunk live high-water mark. |
+| `snapshot` | `{sequence, rowIds:[], snapshot:true, reupload?:true}` | Fetch the owner-scoped batch snapshot on a gap, future cursor, lost replay, backpressure, or finalization. `reupload:true` occurs only here, when D1 reports `JOB_INTERRUPTED`. |
+| `end` | `{sequence, status}` | Sent after the final snapshot and immediately before server close. Status is the D1 batch status; `deleted` means the batch/account no longer exists. A backpressure close while recognition continues uses `processing`. |
+| SSE comment | `: connected` / `: keepalive` | Connection acknowledgement and five-second heartbeat; no revision. The heartbeat checks external termination even while the provider is idle and stops with the last subscriber. |
+
+Reconnect explicitly with `?after=N`, using the last applied sequence; absent `after` means 0. **No `id:` lines are emitted**
+and `Last-Event-ID` is not used. Contiguous retained revisions replay; otherwise fetch a snapshot. There are at most eight
+subscribers and a 16-chunk live high-water mark, reserving room for the final snapshot and `end`. Registration re-checks D1 to
+close a concurrent finalization race. The client must close its `EventSource` on `end`; if status is `processing`, fetch
+the snapshot and reconnect with its sequence. For other statuses (including `deleted`), stop reconnecting. The unbound
+fallback sends a snapshot and `end` then closes, so a still-processing fallback batch is polled by snapshot instead.
+Client disconnect only unsubscribes and never aborts recognition.
 
 #### T11 note
 
@@ -534,9 +560,9 @@ with the same D1/DO persistence directory: only `{userId,batchId,generation}` is
 DO alarm backs the existing processing deadline; maintenance remains an additional reconciliation path.
 
 The configured-provider exercise from C5 is a **deployer release gate**, per T11's no-network constraint:
-`GEMINI_API_KEY=<real credential> [GEMINI_IMPORT_MODEL=<configured model>] pnpm verify:import:provider` explicitly exercises
+`GEMINI_API_KEY=<real credential> [GEMINI_IMPORT_MODEL=<configured model>] pnpm verify:import:provider --real-provider` explicitly exercises
 synthetic text, PDF and blank PNG with the installed SDK. It prints capability metadata only. The blank PNG verifies image
-transport/JSON streaming, not image recognition quality. This script was not run in T11; hosted model capability and
+transport/JSON streaming, not image recognition quality. The real-provider exercise was not run in T11; hosted model capability and
 production keep-alive remain release evidence, separate from the deterministic local proof.
 
 ### 10. Rollback floor

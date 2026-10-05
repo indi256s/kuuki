@@ -14,7 +14,7 @@ export const onRequestGet: PagesFunction<Env, string, RequestData> = context => 
     const query = new URLSearchParams({ userId: user.id, batchId, after: raw })
     return jobStub(context.env.IMPORT_JOBS, { userId: user.id, batchId }).fetch(`https://import.internal/events?${query}`, { signal: context.request.signal })
   }
-  return new Response(`event: snapshot\ndata: ${JSON.stringify({ sequence: batch.sequence, rowIds: [], snapshot: true, ...(batch.error_code === 'JOB_INTERRUPTED' ? { reupload: true } : {}) })}\n\n`, {
-    headers: { 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-store' },
+  return new Response(`event: snapshot\ndata: ${JSON.stringify({ sequence: batch.sequence, rowIds: [], snapshot: true, ...(batch.error_code === 'JOB_INTERRUPTED' ? { reupload: true } : {}) })}\n\nevent: end\ndata: ${JSON.stringify({ sequence: batch.sequence, status: batch.status })}\n\n`, {
+    headers: { 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-cache, no-transform' },
   })
 })

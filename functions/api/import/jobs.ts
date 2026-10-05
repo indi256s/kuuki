@@ -33,7 +33,7 @@ export async function importJobRequest(request: Request, env: Env, data: Request
     const body = await readJson<JobRequest>(request, { maxBytes: MAX_IMPORT_BODY_BYTES })
     let source: ParseRequest
     try { source = validateImportSource(body) } catch (error) {
-      if (env.IMPORT_JOBS && (body?.type === 'pdf' || body?.type === 'image') && error instanceof HttpError) throw new HttpError(error.status, error.message, 'INVALID_FILE')
+      if (env.IMPORT_JOBS && (body?.type === 'pdf' || body?.type === 'image') && error instanceof HttpError) throw new HttpError(error.status, error.message, error.status === 413 ? 'PAYLOAD_TOO_LARGE' : 'INVALID_FILE')
       throw error
     }
     const operationId = body?.submissionOperationId

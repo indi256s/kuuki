@@ -28,7 +28,7 @@ it('bounds output bytes and nesting', () => {
   expect(() => [...new FlightScanner().push('x'.repeat(1024 * 1024 + 1))]).toThrow()
   expect(() => [...new FlightScanner().push('{"flights":[{"x":' + '['.repeat(65))]).toThrow()
 })
-it('duplicate transport chunks cannot produce a second copy of an ordinal', () => {
+it('rejects a repeated opening chunk that breaks the JSON grammar', () => {
   const scanner = new FlightScanner(); const chunk = '{"flights":[' + JSON.stringify(providerFlight())
   expect([...scanner.push(chunk)]).toHaveLength(1)
   expect(() => { [...scanner.push(chunk)]; scanner.finish() }).toThrow()

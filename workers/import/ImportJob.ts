@@ -3,17 +3,17 @@ import { extractionContents, FLIGHT_RESPONSE_SCHEMA, normalizeFlights, validateI
 import { DEFAULT_MODEL, PROVIDER_TIMEOUT_MS, providerFailure } from '../../functions/api/import/_provider'
 import type { ExtractedFlight, ParseRequest } from '../../functions/api/import/_shared'
 import { HttpError, readJson, runHandler } from '../../functions/api/_lib/http'
-import { interruptBatch, MAX_DRAFTS_PER_BATCH, ownedBatch, persistDraftRows, type BatchFence } from '../../functions/api/_services/importDrafts'
+import { interruptBatch, MAX_DRAFTS_PER_BATCH, ownedBatch, persistDraftRows, type BatchFence, type BatchRow } from '../../functions/api/_services/importDrafts'
 import { rowOf } from '../../functions/api/_services/importJob'
 import { MAX_EVENT_QUEUE, MAX_REPLAY_EVENTS, MAX_SUBSCRIBERS, type ImportEvent, type StartImportJob } from '../../functions/api/_services/importRuntime'
 import { FlightScanner } from './scanner'
 
 export interface ImportEnv { DB: D1Database; GEMINI_API_KEY: string; GEMINI_IMPORT_MODEL?: string }
-type Subscriber = { controller: ReadableStreamDefaultController<Uint8Array>; sequence: number; unsubscribe: () => void }
+type Subscriber = { fence: BatchFence; controller: ReadableStreamDefaultController<Uint8Array>; sequence: number; unsubscribe: () => void }
 const encoder = new TextEncoder()
-const packet = (event: ImportEvent, snapshot = false, reupload = false) => encoder.encode(
-  `id: ${event.sequence}\nevent: ${snapshot ? 'snapshot' : 'rows'}\ndata: ${JSON.stringify({ ...event, ...(snapshot ? { snapshot: true } : {}), ...(reupload ? { reupload: true } : {}) })}\n\n`,
-)
+const frame = (event: ImportEvent, snapshot = false, reupload = false) =>
+  `event: ${snapshot ? 'snapshot' : 'rows'}\ndata: ${JSON.stringify({ ...event, ...(snapshot ? { snapshot: true, ...(reupload ? { reupload: true } : {}) } : {}) })}\n\n`
+const packet = (event: ImportEvent, snapshot = false, reupload = false) => encoder.encode(frame(event, snapshot, reupload))
 
 /** One server-owned request per batch. Durable storage contains only the fence, never source or provider output. */
 export class ImportJob {
@@ -26,7 +26,7 @@ export class ImportJob {
   constructor(protected ctx: DurableObjectState, protected env: ImportEnv) {
     ctx.blockConcurrencyWhile(async () => {
       this.fence = await ctx.storage.get<BatchFence>('fence')
-      if (this.fence) await interruptBatch(env.DB, this.fence)
+      if (this.fence) { await interruptBatch(env.DB, this.fence); await this.finish(this.fence) }
     })
   }
 
@@ -40,12 +40,12 @@ export class ImportJob {
         const source = validateImportSource(input.source)
         const fence: BatchFence = { userId: input.fence.userId, batchId: input.fence.batchId, generation: input.fence.generation }
         const refusal = await this.ctx.blockConcurrencyWhile(async () => {
+          const batch = await ownedBatch(this.env.DB, fence.userId, fence.batchId)
+          if (!batch || batch.status !== 'processing' || batch.generation !== fence.generation) return new HttpError(409, 'Job no longer active')
           if (this.fence) {
             if (this.fence.userId !== fence.userId || this.fence.batchId !== fence.batchId || this.fence.generation !== fence.generation) return new HttpError(409, 'Job fence differs')
             return // A duplicate start never makes a second provider call, including after a restart.
           }
-          const batch = await ownedBatch(this.env.DB, fence.userId, fence.batchId)
-          if (!batch || batch.status !== 'processing' || batch.generation !== fence.generation) return new HttpError(409, 'Job no longer active')
           this.fence = fence
           await this.ctx.storage.put('fence', fence)
           await this.ctx.storage.setAlarm(Date.now() + 120_000)
@@ -60,11 +60,7 @@ export class ImportJob {
       }
       if (url.pathname === '/abort' && request.method === 'POST') {
         this.controller?.abort()
-        if (this.fence) {
-          const batch = await ownedBatch(this.env.DB, this.fence.userId, this.fence.batchId)
-          if (batch) this.notify({ sequence: batch.sequence, rowIds: [] }, true)
-          else this.closeSubscribers()
-        }
+        if (this.fence) await this.finish(this.fence)
         return new Response(null, { status: 204 })
       }
       if (url.pathname === '/events' && request.method === 'GET') return this.events(request)
@@ -99,7 +95,7 @@ export class ImportJob {
       if (controller.signal.aborted) throw new DOMException('Aborted', 'AbortError')
       if (emitted.has(ordinal)) return true
       let flight: ExtractedFlight
-      try { flight = normalizeFlights({ flights: [structuredClone(value) as ExtractedFlight] }).flights[0] } catch { rejected++; return true }
+      try { flight = normalizeFlights({ flights: [structuredClone(value) as ExtractedFlight] }, ordinal).flights[0] } catch { rejected++; return true }
       if (valid >= MAX_DRAFTS_PER_BATCH) { truncated = true; return true }
       const event = await persistDraftRows(this.env.DB, fence, [rowOf(flight)], null, new Date(), { ordinalStart: ordinal })
       if (!event) { finalized = true; return false }
@@ -143,7 +139,7 @@ export class ImportJob {
       controller.signal.removeEventListener('abort', onAbort)
       controller.abort()
       void iterator?.return?.().catch(() => undefined)
-      if (finalized) await this.ctx.storage.deleteAlarm()
+      if (finalized) await this.finish(fence)
     }
   }
 
@@ -167,55 +163,101 @@ export class ImportJob {
     const disconnected = () => { unsubscribe(); try { subscriber.controller.close() } catch {} }
     const stream = new ReadableStream<Uint8Array>({
       start: controller => {
-        subscriber = { controller, sequence: batch.sequence, unsubscribe }
+        subscriber = { fence: { userId, batchId, generation: batch.generation }, controller, sequence: batch.sequence, unsubscribe }
         controller.enqueue(encoder.encode(': connected\n\n'))
-        if (!contiguous || newer.length >= MAX_EVENT_QUEUE) controller.enqueue(packet({ sequence: batch.sequence, rowIds: [] }, true, batch.error_code === 'JOB_INTERRUPTED'))
-        else for (const event of newer) controller.enqueue(packet(event))
+        if (!contiguous) controller.enqueue(packet({ sequence: batch.sequence, rowIds: [] }, true, batch.error_code === 'JOB_INTERRUPTED'))
+        // One bounded replay chunk keeps the 128-event history independent of the 16-chunk live queue.
+        else if (newer.length) controller.enqueue(encoder.encode(newer.map(event => frame(event)).join('')))
         if (batch.status === 'processing' && !request.signal.aborted) {
           this.subscribers.add(subscriber)
           request.signal.addEventListener('abort', disconnected, { once: true })
           this.startHeartbeat()
-        }
-        else controller.close()
+        } else if (request.signal.aborted) controller.close()
+        else this.closeSubscriber(subscriber, batch.sequence, batch.status, batch.error_code === 'JOB_INTERRUPTED')
       },
       cancel: unsubscribe,
     }, { highWaterMark: MAX_EVENT_QUEUE })
-    return new Response(stream, { headers: { 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-store', 'X-Accel-Buffering': 'no' } })
+    // A final write may have run while the initial D1 read was pending, before registration.
+    if (this.subscribers.has(subscriber!)) {
+      const latest = await ownedBatch(this.env.DB, userId, batchId)
+      if (!latest || latest.status !== 'processing' || latest.generation !== batch.generation) {
+        await this.finish({ userId, batchId, generation: batch.generation })
+      } else if (this.subscribers.has(subscriber!) && latest.sequence > subscriber!.sequence) {
+        subscriber!.controller.enqueue(packet({ sequence: latest.sequence, rowIds: [] }, true))
+        subscriber!.sequence = latest.sequence
+      }
+    }
+    return new Response(stream, { headers: { 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-cache, no-transform', 'X-Accel-Buffering': 'no' } })
   }
 
-  private notify(event: ImportEvent, terminal = false, reupload = false) {
+  private notify(event: ImportEvent, terminal = false) {
     this.replay.push(event)
     if (this.replay.length > MAX_REPLAY_EVENTS) this.replay.shift()
+    if (terminal) return // The final snapshot and status are read from D1 by finish().
     for (const subscriber of this.subscribers) {
       try {
-        const slow = (subscriber.controller.desiredSize ?? 0) <= 1
-        subscriber.controller.enqueue(packet(slow ? { sequence: event.sequence, rowIds: [] } : event, slow || event.sequence !== subscriber.sequence + 1, reupload))
-        subscriber.sequence = event.sequence
-        if (slow || terminal) { subscriber.controller.close(); subscriber.unsubscribe() }
+        if ((subscriber.controller.desiredSize ?? 0) <= 2) {
+          this.closeSubscriber(subscriber, event.sequence, 'processing')
+        } else {
+          subscriber.controller.enqueue(packet(event, event.sequence !== subscriber.sequence + 1))
+          subscriber.sequence = event.sequence
+        }
       } catch { subscriber.unsubscribe() }
     }
   }
-  private closeSubscribers() {
-    for (const subscriber of this.subscribers) { try { subscriber.controller.close() } catch {} subscriber.unsubscribe() }
+
+  private closeSubscriber(subscriber: Subscriber, sequence: number, status: BatchRow['status'] | 'deleted', reupload = false) {
+    try {
+      subscriber.controller.enqueue(packet({ sequence, rowIds: [] }, true, reupload))
+      subscriber.controller.enqueue(encoder.encode(`event: end\ndata: ${JSON.stringify({ sequence, status })}\n\n`))
+      subscriber.controller.close()
+    } finally { subscriber.unsubscribe() }
   }
+
+  private async finish(fence: BatchFence) {
+    const batch = await ownedBatch(this.env.DB, fence.userId, fence.batchId)
+    for (const subscriber of this.subscribers) {
+      try { this.closeSubscriber(subscriber, batch?.sequence ?? subscriber.sequence, batch?.status ?? 'deleted', batch?.error_code === 'JOB_INTERRUPTED') }
+      catch { subscriber.unsubscribe() }
+    }
+    clearInterval(this.heartbeat); this.heartbeat = undefined
+    this.controller?.abort()
+    await this.ctx.storage.deleteAlarm()
+    await this.ctx.storage.deleteAll()
+  }
+
   private startHeartbeat() {
     if (this.heartbeat !== undefined) return
-    // Comment frames flush the transport so a closed client releases its subscriber even while recognition is idle.
+    // Reconcile outside termination even while the provider is idle; comment frames flush disconnects.
     this.heartbeat = setInterval(() => {
-      for (const subscriber of this.subscribers) {
-        try {
-          if ((subscriber.controller.desiredSize ?? 0) <= 1) {
-            subscriber.controller.enqueue(packet({ sequence: subscriber.sequence, rowIds: [] }, true))
-            subscriber.controller.close(); subscriber.unsubscribe()
-          } else subscriber.controller.enqueue(encoder.encode(': keepalive\n\n'))
-        } catch { subscriber.unsubscribe() }
-      }
+      this.ctx.waitUntil(this.checkSubscribers().catch(() => {
+        console.error(JSON.stringify({ event: 'import_job_error', code: 'INTERNAL' }))
+      }))
     }, 5_000)
   }
+
+  private async checkSubscribers() {
+    const fence = this.fence ?? this.subscribers.values().next().value?.fence
+    if (fence) {
+      const batch = await ownedBatch(this.env.DB, fence.userId, fence.batchId)
+      if (!batch || batch.status !== 'processing' || batch.generation !== fence.generation) {
+        await this.finish(fence)
+        return
+      }
+    }
+    for (const subscriber of this.subscribers) {
+      try {
+        if ((subscriber.controller.desiredSize ?? 0) <= 2) this.closeSubscriber(subscriber, subscriber.sequence, 'processing')
+        else subscriber.controller.enqueue(encoder.encode(': keepalive\n\n'))
+      } catch { subscriber.unsubscribe() }
+    }
+  }
+
   async alarm() {
     if (this.fence) {
       const event = await interruptBatch(this.env.DB, this.fence)
-      if (event) this.notify(event, true, true)
+      if (event) this.notify(event, true)
+      await this.finish(this.fence)
     }
     this.controller?.abort()
   }

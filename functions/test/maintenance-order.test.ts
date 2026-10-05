@@ -172,11 +172,11 @@ describe('cleanup contracts', () => {
       // Drafts of expired batches go at expires_at; the batch row itself at expires_at + 7 days.
       expect(await ids('SELECT id FROM import_drafts')).toEqual(['d-alive', 'd-stuck'])
       expect(await ids('SELECT id FROM import_batches')).toEqual(['alive', 'expired-recent', 'still-running', 'stuck-empty', 'stuck-with-rows'])
-      const stuck = await db.prepare("SELECT id, status, error_code, generation FROM import_batches WHERE id LIKE 'stuck%' OR id = 'still-running' ORDER BY id").all()
+      const stuck = await db.prepare("SELECT id, status, error_code, generation, sequence FROM import_batches WHERE id LIKE 'stuck%' OR id = 'still-running' ORDER BY id").all()
       expect(stuck.results).toEqual([
-        { id: 'still-running', status: 'processing', error_code: null, generation: 1 },
-        { id: 'stuck-empty', status: 'failed', error_code: 'JOB_INTERRUPTED', generation: 2 },
-        { id: 'stuck-with-rows', status: 'partial', error_code: 'JOB_INTERRUPTED', generation: 2 },
+        { id: 'still-running', status: 'processing', error_code: null, generation: 1, sequence: 0 },
+        { id: 'stuck-empty', status: 'failed', error_code: 'JOB_INTERRUPTED', generation: 2, sequence: 1 },
+        { id: 'stuck-with-rows', status: 'partial', error_code: 'JOB_INTERRUPTED', generation: 2, sequence: 1 },
       ])
       void addUser
     } finally { await dispose() }

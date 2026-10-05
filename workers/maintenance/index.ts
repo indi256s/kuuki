@@ -83,7 +83,7 @@ export default {
         db.prepare(
           `UPDATE import_batches SET
              status = CASE WHEN EXISTS (SELECT 1 FROM import_drafts d WHERE d.batch_id = import_batches.id) THEN 'partial' ELSE 'failed' END,
-             stage = NULL, error_code = 'JOB_INTERRUPTED', generation = generation + 1, updated_at = ?
+             stage = NULL, error_code = 'JOB_INTERRUPTED', generation = generation + 1, sequence = sequence + 1, updated_at = ?
            WHERE status = 'processing' AND processing_deadline IS NOT NULL AND processing_deadline <= ?`,
         ).bind(instant, instant),
       ])

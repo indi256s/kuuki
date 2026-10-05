@@ -145,7 +145,7 @@ async function extractFlightsWithGemini(
 }
 
 /** Shared normalization for complete streamed rows and the legacy envelope. */
-export function normalizeFlights(parsedResponse: { flights: ExtractedFlight[]; raw_text?: string }): ParseResponse {
+export function normalizeFlights(parsedResponse: { flights: ExtractedFlight[]; raw_text?: string }, ordinalStart = 0): ParseResponse {
   // Validate and normalize flights, collecting rejected ones for diagnostics
   const rejectedFlights: RejectedFlight[] = []
   const geminiCount = parsedResponse.flights?.length || 0
@@ -183,7 +183,7 @@ export function normalizeFlights(parsedResponse: { flights: ExtractedFlight[]; r
 
       if (reasons.length > 0) {
         rejectedFlights.push({ index, reason: reasons.join(', ') })
-        console.log(JSON.stringify({ event: 'flight_rejected', index }))
+        console.log(JSON.stringify({ event: 'flight_rejected', index: ordinalStart + index }))
         return false
       }
 
