@@ -161,6 +161,8 @@ export interface BulkCreateOptions {
   timezone: string | null
   /** Positional with `items`: a target turns that item into a draft conversion. */
   conversion?: Array<ConversionTarget | null | undefined>
+  /** Statements that commit in the same D1 batch, after every item chain (conversion's batch completion). */
+  trailing?: D1PreparedStatement[]
 }
 
 /**
@@ -172,7 +174,7 @@ export interface BulkCreateOptions {
  * be classified by the caller from the conversion receipts (a `replayed` result only says the key had a ledger row).
  */
 export async function bulkCreate(
-  db: D1Database, userId: string, items: unknown[], { timezone, conversion }: BulkCreateOptions,
+  db: D1Database, userId: string, items: unknown[], { timezone, conversion, trailing = [] }: BulkCreateOptions,
 ): Promise<{ results: BulkItemResult[]; derived: DerivedRepairResult | null }> {
   const parsed = await parseFlightBodies(db, items.map(item => isRecord(item) ? item.flight : undefined))
   const results: BulkItemResult[] = []
@@ -194,7 +196,7 @@ export async function bulkCreate(
   if (accepted.length === 0) return { results, derived: null }
 
   // Unconditional dirty mark: changes() only sees the last item, and a pure replay just repairs again.
-  const batch = await db.batch([...statements, dirtyUserStatement(db, userId)])
+  const batch = await db.batch([...statements, ...trailing, dirtyUserStatement(db, userId)])
   const ledgers = await db.prepare(
     'SELECT key, payload_digest, flight_id FROM flight_idempotency WHERE user_id = ? AND key IN (SELECT value FROM json_each(?))',
   ).bind(userId, JSON.stringify(accepted.map(item => item.key))).all<{ key: string; payload_digest: string; flight_id: number | null }>()
