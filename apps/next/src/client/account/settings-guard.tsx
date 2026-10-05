@@ -58,11 +58,13 @@ export function useSettingsGuard(dirty: boolean, busy: boolean, locale: Locale) 
       if (!state.current.busy) setPending({ run: () => { permitTraversal.current = true; history.go(delta) } })
     }
     window.addEventListener('hashchange', hash)
+    window.addEventListener('kuuki:history-index', hash)
     window.addEventListener('beforeunload', unload)
     document.addEventListener('click', click, true)
     window.addEventListener('popstate', pop, true)
     return () => {
       window.removeEventListener('hashchange', hash)
+      window.removeEventListener('kuuki:history-index', hash)
       window.removeEventListener('beforeunload', unload)
       document.removeEventListener('click', click, true)
       window.removeEventListener('popstate', pop, true)

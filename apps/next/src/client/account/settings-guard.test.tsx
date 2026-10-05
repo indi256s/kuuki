@@ -30,6 +30,13 @@ describe.each([true, false])('Settings traversal with Navigation API %s', native
     pop(-1)
     expect(history.go).toHaveBeenLastCalledWith(1)
   })
+  it('tracks a retained App Router push before later Back', () => {
+    render(<Harness />)
+    index = 2; history.replaceState({ __kuukiHistoryIndex: 2 }, '', '/settings')
+    act(() => window.dispatchEvent(new Event('kuuki:history-index')))
+    pop(1)
+    expect(history.go).toHaveBeenLastCalledWith(1)
+  })
   it('tracks clean same-component history before later unsaved changes', () => {
     const view = render(<Harness dirty={false} />)
     pop(2)

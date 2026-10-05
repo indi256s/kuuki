@@ -14,8 +14,9 @@
   const push = history.pushState.bind(history)
   if (!indexed(history.state)) replace({ ...history.state, [indexKey]: 0 }, '')
   let lastIndex = history.state[indexKey]
-  history.pushState = (state, title, url) => push({ ...state, [indexKey]: (history.state?.[indexKey] ?? 0) + 1 }, title, url)
-  history.replaceState = (state, title, url) => replace({ ...state, [indexKey]: history.state?.[indexKey] ?? 0 }, title, url)
+  const changed = () => { lastIndex = history.state[indexKey]; window.dispatchEvent(new Event('kuuki:history-index')) }
+  history.pushState = (state, title, url) => { push({ ...state, [indexKey]: (history.state?.[indexKey] ?? 0) + 1 }, title, url); changed() }
+  history.replaceState = (state, title, url) => { replace({ ...state, [indexKey]: history.state?.[indexKey] ?? 0 }, title, url); changed() }
   window.addEventListener('popstate', () => { if (indexed(history.state)) lastIndex = history.state[indexKey] })
   window.addEventListener('hashchange', () => {
     if (!indexed(history.state)) replace({ ...history.state, [indexKey]: lastIndex + 1 }, '')
