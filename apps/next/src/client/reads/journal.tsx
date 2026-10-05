@@ -194,8 +194,6 @@ function JournalInner({ ownerId, locale, initial, query, page, filtered }: Props
     groups.set(key, [...(groups.get(key) ?? []), flight])
   }
   const orderedGroups = [...groups].sort(([a], [b]) => a === t.upcoming ? -1 : b === t.upcoming ? 1 : 0)
-  // The nearest trip leads the upcoming group; an explicit sort other than date is left alone.
-  if (!params.get('sort') || params.get('sort') === 'date') { const upcoming = groups.get(t.upcoming); if (upcoming) upcoming.sort((a, b) => a.date.localeCompare(b.date)) }
   // ponytail: presentation chains use the current 20-row page; C4 owns full connection policy.
   const decisions = connectionChains((data?.flights ?? []).map(flight => ({ ...flight, origin_country: null, destination_country: null })))
   const chains = new Map<number, number[]>()

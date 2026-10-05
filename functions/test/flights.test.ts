@@ -95,6 +95,40 @@ it('shares airport, lifecycle, city/route search and exact filters across list, 
   } finally { await dispose() }
 })
 
+it('lists upcoming flights nearest first across pages by default, leaving explicit sorts unchanged', async () => {
+  const { db, dispose } = await createApiDatabase()
+  try {
+    await seed(db)
+    const day = (n: number) => `2099-03-${String(n).padStart(2, '0')}`
+    const upcomingDays = Array.from({ length: 25 }, (_, i) => (i * 7) % 25 + 1) // scrambled insertion order
+    const past = ['2024-01-10', '2025-06-02', '2023-05-05']
+    await db.batch([
+      ...upcomingDays.map(n => db.prepare("INSERT INTO flights (user_id,date,origin,destination,source,is_upcoming) VALUES (?,?,'TBS','IST','manual',1)").bind(user.id, day(n))),
+      ...past.map(date => db.prepare("INSERT INTO flights (user_id,date,origin,destination,source,is_upcoming) VALUES (?,?,'IST','JFK','manual',0)").bind(user.id, date)),
+    ])
+    type Page = { flights: Array<{ id: number; date: string; lifecycle_state: string }>; total: number }
+    const page = async (query: string) => await (await listFlights(context(db, `/api/flights?${query}`, 'GET'))).json() as Page
+    const first = await page('limit=20&offset=0')
+    const second = await page('limit=20&offset=20')
+    expect(first.total).toBe(28)
+    expect(second.total).toBe(28)
+    const nearest = Array.from({ length: 25 }, (_, i) => day(i + 1))
+    expect(first.flights.map(row => row.date)).toEqual(nearest.slice(0, 20))
+    expect(first.flights.every(row => row.lifecycle_state === 'upcoming')).toBe(true)
+    expect(second.flights.map(row => row.date)).toEqual([...nearest.slice(20), '2025-06-02', '2024-01-10', '2023-05-05'])
+    expect(second.flights.map(row => row.lifecycle_state)).toEqual(['upcoming', 'upcoming', 'upcoming', 'upcoming', 'upcoming', 'logged', 'logged', 'logged'])
+    const ids = await (await flightIds(context(db, '/api/flights/ids', 'GET'))).json() as { ids: number[] }
+    expect([...ids.ids].sort((a, b) => a - b)).toEqual([...first.flights, ...second.flights].map(row => row.id).sort((a, b) => a - b))
+
+    const byOriginDesc = await page('sort=origin&order=desc&limit=3')
+    expect(byOriginDesc.flights.map(row => row.date)).toEqual(upcomingDays.slice(-3).reverse().map(day)) // origin ties fall back to id descending
+    const asc = await page('sort=date&order=asc&limit=4')
+    expect(asc.flights.map(row => row.date)).toEqual(['2023-05-05', '2024-01-10', '2025-06-02', '2099-03-01'])
+    const byOrigin = await page('sort=origin&order=asc&limit=3')
+    expect(byOrigin.flights.map(row => row.date)).toEqual(past) // origin ties fall back to id ascending (insertion order)
+  } finally { await dispose() }
+})
+
 it('matches Russian and native airport aliases with Unicode case folding, across list, count and all IDs', async () => {
   const { db, dispose } = await createApiDatabase()
   try {
