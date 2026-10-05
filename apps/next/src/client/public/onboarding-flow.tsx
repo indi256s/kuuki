@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState, type CSSProperties } from 'react'
 import { useRouter } from 'next/navigation'
 import type { Flight } from '../../../../web/src/lib/flights'
 import { getFlight } from '../../../../web/src/lib/flights'
@@ -21,13 +21,17 @@ import { formatCount, type Locale } from '../../lib/format'
 import type { OnboardingStep } from '../../lib/url-state'
 import './onboarding.css'
 
+type CanonicalReads = { key: string; rows: Flight[]; pending: number[]; failed: number[] }
 type Publication = 'idle' | 'ready' | 'pending' | 'delayed'
 export function OnboardingFlow({ ownerId, locale, step, batchId, source }: { ownerId: string; locale: Locale; step: Exclude<OnboardingStep, 'name'>; batchId: string | null; source: 'file' | 'text' | null }) {
   const ru = locale === 'ru'; const router = useRouter()
   const [choice, setChoice] = useState<'file' | 'text' | 'manual' | null>(() => batchId ? source ?? 'file' : source)
   const [manual, setManual] = useState<{ flight: Flight & DerivedAck; publication: Publication } | null>(null)
-  const [imported, setImported] = useState<ImportResult | null>(null)
-  const [importFlights, setImportFlights] = useState<Flight[]>([])
+  const generation = getAuthGeneration()
+  const [receipt, setReceipt] = useState<{ ownerId: string; generation: number; result: ImportResult } | null>(null)
+  const imported = receipt?.ownerId === ownerId && receipt.generation === generation ? receipt.result : null
+  const [reads, setReads] = useState<CanonicalReads | null>(null)
+  const [retry, setRetry] = useState<{ key: string; ids: number[] } | null>(null)
   const [codes, setCodes] = useState<string[] | null>(null)
   const [baselineLoaded, setBaselineLoaded] = useState(false)
   const baseline = useRef<Set<string> | null>(null)
@@ -38,27 +42,43 @@ export function OnboardingFlow({ ownerId, locale, step, batchId, source }: { own
     return () => { controller.abort(); release() }
   }, [choice])
   const onSaved = useCallback((flight: Flight & DerivedAck, publication: Publication) => setManual({ flight, publication }), [])
-  const onResult = useCallback((result: ImportResult) => setImported(result), [])
+  const onResult = useCallback((result: ImportResult) => { if (generation === getAuthGeneration()) setReceipt({ ownerId, generation, result }) }, [ownerId, generation])
   const onBatchId = useCallback((id: string | null) => {
-    setImported(null); setImportFlights([])
+    setReceipt(null)
     const url = new URL(window.location.href); url.pathname = '/onboarding'; url.searchParams.set('step', 'capture')
     if (id) url.searchParams.set('batch', id); else url.searchParams.delete('batch')
     window.history.replaceState(window.history.state, '', `${url.pathname}${url.search}`)
   }, [])
-  const importedIds = imported?.flightIds.join(',') ?? ''
+  // Bulk manual imports already return canonical DTOs; read only missing IDs.
+  const suppliedIds = new Set((imported?.flights ?? []).map(flight => flight.id))
+  const importedIds = [...new Set(imported?.flightIds ?? [])].filter(id => !suppliedIds.has(id)).join(',')
+  const readKey = `${ownerId}:${generation}:${imported?.eventId ?? ''}:${importedIds}`
+  const currentReads = reads?.key === readKey ? reads : null
   useEffect(() => {
     if (!importedIds) return
-    const controller = new AbortController(); const release = trackPrivateOperation(controller); const generation = getAuthGeneration()
+    const controller = new AbortController(); const release = trackPrivateOperation(controller)
+    const ids = retry?.key === readKey ? retry.ids : importedIds.split(',').map(Number)
+    const active = () => !controller.signal.aborted && generation === getAuthGeneration()
+    const update = (change: (previous: CanonicalReads) => CanonicalReads) => {
+      if (active()) setReads(previous => change(previous?.key === readKey ? previous : { key: readKey, rows: [], pending: [], failed: [] }))
+    }
     void (async () => {
-      const ids = [...new Set(importedIds.split(',').map(Number))]
-      const rows: Array<Flight | null> = []
-      for (let offset = 0; offset < ids.length && !controller.signal.aborted; offset += 8) rows.push(...await Promise.all(ids.slice(offset, offset + 8).map(id => getFlight(id, { signal: controller.signal }))))
-      return rows
-    })().then(rows => {
-      if (!controller.signal.aborted && generation === getAuthGeneration()) setImportFlights(rows.filter((row): row is Flight => !!row).map(row => ({ ...row, user_id: ownerId })))
-    }).catch(() => {}).finally(release)
+      await Promise.resolve()
+      update(previous => ({ ...previous, pending: ids, failed: previous.failed.filter(id => !ids.includes(id)) }))
+      for (let offset = 0; offset < ids.length && active(); offset += 8) {
+        await Promise.allSettled(ids.slice(offset, offset + 8).map(async id => {
+          let row: Flight | null = null
+          try { row = await getFlight(id, { signal: controller.signal }) } catch { /* The saved write remains successful; details can be retried. */ }
+          update(previous => ({ ...previous,
+            rows: row ? [...previous.rows.filter(flight => flight.id !== id), { ...row, user_id: ownerId }] : previous.rows,
+            pending: previous.pending.filter(pendingId => pendingId !== id),
+            failed: row ? previous.failed : [...previous.failed, id],
+          }))
+        }))
+      }
+    })().finally(release)
     return () => { controller.abort(); release() }
-  }, [importedIds, ownerId])
+  }, [importedIds, readKey, ownerId, generation, retry])
   useEffect(() => {
     if (!manual || manual.publication !== 'ready') return
     const flight = manual.flight
@@ -68,7 +88,9 @@ export function OnboardingFlow({ ownerId, locale, step, batchId, source }: { own
     void fetchPressedCountries(controller.signal).then(after => { if (!controller.signal.aborted && generation === getAuthGeneration() && after) setCodes(newlyPressed(baseline.current!, after, routeCountries(flight.origin, flight.destination))) }).finally(release)
     return () => { controller.abort(); release() }
   }, [manual])
-  const flights = manual ? [manual.flight] : [...new Map([...(imported?.flights ?? []), ...importFlights].map(flight => [flight.id, flight])).values()]
+  const flights = manual ? [manual.flight] : [...new Map([...(imported?.flights ?? []), ...(currentReads?.rows ?? [])].map(flight => [flight.id, flight])).values()]
+  const detailsLoading = !!importedIds && (!currentReads || currentReads.pending.length > 0)
+  const detailsIncomplete = !!imported && flights.length < imported.savedCount
   const publication = manual?.publication ?? imported?.publication
   const futureOnly = flights.length > 0 && flights.length === (manual ? 1 : imported?.savedCount) && flights.every(flight => flight.is_upcoming)
   const newCodes = futureOnly ? [] : manual ? codes : imported?.newCodes ?? null
@@ -90,14 +112,17 @@ export function OnboardingFlow({ ownerId, locale, step, batchId, source }: { own
       <p><Link href="/overview" className="onboarding-skip">{ru ? 'Сделаю позже' : 'Do this later'}</Link></p>
     </div>
     {step === 'reveal' && <section className="onboarding-reveal">
-      <h1>{flights.length > 0 && flights.every(flight => flight.is_upcoming) ? ru ? 'Ваш перелёт запланирован' : 'Your flight is booked' : ru ? 'Ваш журнал открыт' : 'Your journal is open'}</h1>
+      <h1>{futureOnly ? ru ? 'Ваш перелёт запланирован' : 'Your flight is booked' : ru ? 'Ваш журнал открыт' : 'Your journal is open'}</h1>
       <p>{savedCount ? ru ? `Сохранено перелётов: ${savedCount}.` : `Flights saved: ${savedCount}.` : ru ? 'Сохранённые перелёты уже в вашем журнале.' : 'Your saved flights are in your journal.'}</p>
+      {detailsLoading && <p role="status">{ru ? 'Загружаем сведения о сохранённых перелётах…' : 'Loading saved flight details…'}</p>}
+      {!detailsLoading && detailsIncomplete && <p role="alert">{ru ? 'Не удалось загрузить часть сведений о перелётах. Перелёты сохранены.' : 'Some flight details could not be loaded. Your flights are saved.'}</p>}
+      {!detailsLoading && !!currentReads?.failed.length && <Button variant="secondary" onClick={() => setRetry({ key: readKey, ids: currentReads.failed })}>{ru ? 'Повторить загрузку сведений' : 'Retry flight details'}</Button>}
       {publication && publication !== 'ready' && <p role="status">{ru ? 'Перелёт сохранён. Итоги ещё обновляются; отметки появятся после публикации.' : 'Your flight is saved. Totals are still updating; stamps appear after publication.'}</p>}
       {flights.slice(0, 8).map(flight => <Ticket key={flight.id} locale={locale} state={flight.is_upcoming ? 'upcoming' : 'lifecycle_state' in flight && flight.lifecycle_state === 'awaiting' ? 'awaiting' : 'logged'} origin={{ iata: flight.origin, city: findAirport(flight.origin)?.city ?? flight.origin }} destination={{ iata: flight.destination, city: findAirport(flight.destination)?.city ?? flight.destination }} date={flight.date} flightNumber={flight.flight_number ?? undefined} airline={flight.airline_iata ?? undefined} distanceKm={flight.distance_km ?? undefined} />)}
       {publication === 'ready' && newCodes !== null && newCodes.length === 0 && <p>{ru ? 'Новых отметок стран пока нет. Перелёт сохранён.' : 'No new country stamps this time. Your flight is saved.'}</p>}
       {publication === 'ready' && newCodes === null && <p>{ru ? 'Итоги обновлены. Откройте Паспорт, чтобы увидеть свои места.' : 'Totals updated. Open Passport to see your places.'}</p>}
       {publication === 'ready' && newCodes !== null && newCodes.length > 0 && <p>{formatCount(locale, newCodes.length, { en: { one: '{count} new country or territory', other: '{count} new countries and territories' }, ru: { one: '{count} новая страна или территория', few: '{count} новые страны и территории', many: '{count} новых стран и территорий', other: '{count} новой страны или территории' } })} · <Link href="/passport">{ru ? 'Открыть Паспорт' : 'Open Passport'}</Link></p>}
-      {publication === 'ready' && eventId && <div className="onboarding-stamps">{(newCodes ?? []).slice(0, 8).map(code => { const country = catalogCountry(code); return <Stamp key={code} countryCode={code} nativeName={country?.nativeName ?? code} name={new Intl.DisplayNames([locale], { type: 'region' }).of(code) ?? code} kind="air" locale={locale} pressEventId={`${eventId}:${code}`} /> })}</div>}
+      {publication === 'ready' && eventId && <div className="onboarding-stamps">{(newCodes ?? []).slice(0, 8).map((code, index) => { const country = catalogCountry(code); return <div key={code} style={{ '--onboarding-stamp-delay': `${index * 80}ms` } as CSSProperties}><Stamp countryCode={code} nativeName={country?.nativeName ?? code} name={new Intl.DisplayNames([locale], { type: 'region' }).of(code) ?? code} kind="air" locale={locale} pressEventId={`${eventId}:${code}`} /></div> })}</div>}
       <Link href="/overview" className="button primary">{ru ? 'Перейти к обзору' : 'Go to Overview'}</Link>
     </section>}
   </>

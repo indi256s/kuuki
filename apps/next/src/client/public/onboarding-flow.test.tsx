@@ -1,7 +1,10 @@
 // @vitest-environment jsdom
+import { readFileSync } from 'node:fs'
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { beforeEach, expect, it, vi } from 'vitest'
 import { OnboardingFlow } from './onboarding-flow'
+import { getFlight } from '../../../../web/src/lib/flights'
+import { getAuthGeneration } from '../../../../web/src/lib/apiClient'
 import { fetchPressedCountries } from '../import/import-api'
 import type { ImportResult } from '../import/import-client'
 const push = vi.fn()
@@ -9,13 +12,13 @@ let resultCallback: ((result: ImportResult) => void) | undefined
 const flight = { id: 44, user_id: 'a', origin: 'TBS', destination: 'IST', date: '2026-12-01', is_upcoming: true, derived_state: 'ready' }
 vi.mock('next/navigation', () => ({ useRouter: () => ({ push }) }))
 vi.mock('../activity', () => ({ trackPrivateOperation: () => () => {} }))
-vi.mock('../../../../web/src/lib/apiClient', () => ({ getAuthGeneration: () => 0 }))
+vi.mock('../../../../web/src/lib/apiClient', () => ({ getAuthGeneration: vi.fn(() => 0) }))
 vi.mock('../../../../web/src/lib/flights', () => ({ getFlight: vi.fn(async () => flight) }))
 vi.mock('../import/import-api', () => ({ fetchPressedCountries: vi.fn(async () => new Set()) }))
 vi.mock('../capture/flight-form', () => ({ FlightForm: ({ onSaved }: { onSaved: (flight: object, status: string) => void }) => <button onClick={() => onSaved(flight, 'ready')}>Save real form</button> }))
 vi.mock('../import/import-client', () => ({ ImportClient: ({ initialBatchId, initialSource, onBatchId, onResult }: { initialBatchId?: string; initialSource: string; onBatchId: (id: string) => void; onResult: typeof resultCallback }) => { resultCallback = onResult; return <><p>Resume {initialBatchId} {initialSource}</p><button onClick={() => onBatchId('11111111-1111-1111-1111-111111111111')}>Accept durable batch</button></> } }))
 const props = { ownerId: 'a', locale: 'en' as const, step: 'capture' as const, batchId: null, source: null }
-beforeEach(() => { push.mockReset(); vi.mocked(fetchPressedCountries).mockReset().mockResolvedValue(new Set()); window.history.replaceState(null, '', '/onboarding?step=capture&extra=keep') })
+beforeEach(() => { push.mockReset(); vi.mocked(getAuthGeneration).mockReturnValue(0); vi.mocked(getFlight).mockReset().mockResolvedValue(flight as unknown as Awaited<ReturnType<typeof getFlight>>); vi.mocked(fetchPressedCountries).mockReset().mockResolvedValue(new Set()); window.history.replaceState(null, '', '/onboarding?step=capture&extra=keep') })
 it('offers upload, paste and manual equally, with an ordinary Overview skip', () => {
   render(<OnboardingFlow {...props} />)
   for (const name of ['Upload boarding passes or PDFs', 'Paste text from an email', 'Enter manually']) expect(screen.getByRole('button', { name })).toBeVisible()
@@ -48,6 +51,7 @@ it('presses only a fresh published import delta, capped at eight, and never repl
   expect(document.querySelectorAll('.stamp')).toHaveLength(0)
   await act(async () => resultCallback?.({ eventId: 'onboarding:a:import:fresh', flightIds: [], savedCount: 9, publication: 'ready', newCodes: codes }))
   await waitFor(() => expect(document.querySelectorAll('.stamp[data-press=play]')).toHaveLength(8))
+  expect([...document.querySelectorAll<HTMLElement>('.onboarding-stamps > div')].map(node => node.style.getPropertyValue('--onboarding-stamp-delay'))).toEqual(Array.from({ length: 8 }, (_, index) => `${index * 80}ms`))
   view.unmount()
   render(<OnboardingFlow {...props} source="file" step="reveal" />)
   expect(screen.getByText('Your saved flights are in your journal.')).toBeVisible()
@@ -70,4 +74,71 @@ it('uses authenticated canonical import fields even when the shared own-flight a
   expect(await screen.findByRole('heading', { name: 'Your flight is booked' })).toBeVisible()
   expect(screen.getByRole('article', { name: 'TBS to IST' })).toHaveTextContent('Upcoming')
   expect(document.querySelectorAll('.stamp')).toHaveLength(0)
+})
+
+it('retains fulfilled canonical Tickets, retries only failed IDs, and waits for complete evidence before a booked heading', async () => {
+  vi.mocked(getFlight).mockResolvedValueOnce(flight as unknown as Awaited<ReturnType<typeof getFlight>>).mockRejectedValueOnce(new Error('503'))
+  render(<OnboardingFlow {...props} source="file" step="reveal" />)
+  await act(async () => resultCallback?.({ eventId: 'partial', flightIds: [44, 45], savedCount: 2, publication: 'ready', newCodes: [] }))
+  expect(await screen.findByRole('article', { name: 'TBS to IST' })).toBeVisible()
+  expect(screen.getByText('Some flight details could not be loaded. Your flights are saved.')).toBeVisible()
+  expect(screen.getByRole('heading', { name: 'Your journal is open' })).toBeVisible()
+  vi.mocked(getFlight).mockResolvedValueOnce({ ...flight, id: 45, destination: 'NRT' } as unknown as Awaited<ReturnType<typeof getFlight>>)
+  fireEvent.click(screen.getByRole('button', { name: 'Retry flight details' }))
+  expect(await screen.findByRole('article', { name: 'TBS to NRT' })).toBeVisible()
+  expect(screen.getByRole('heading', { name: 'Your flight is booked' })).toBeVisible()
+  expect(vi.mocked(getFlight).mock.calls.map(([id]) => id)).toEqual([44, 45, 45])
+})
+it('distinguishes pending canonical reads from an honest receipt-free refresh, and treats null as retryable', async () => {
+  let finish!: (value: Awaited<ReturnType<typeof getFlight>>) => void
+  vi.mocked(getFlight).mockImplementationOnce(() => new Promise(resolve => { finish = resolve })).mockResolvedValueOnce(null)
+  const view = render(<OnboardingFlow {...props} source="file" step="reveal" />)
+  expect(screen.queryByText('Loading saved flight details…')).not.toBeInTheDocument()
+  await act(async () => resultCallback?.({ eventId: 'pending', flightIds: [44, 45], savedCount: 2, publication: 'ready', newCodes: [] }))
+  expect(screen.getByText('Loading saved flight details…')).toBeVisible()
+  await act(async () => finish(flight as unknown as Awaited<ReturnType<typeof getFlight>>))
+  expect(screen.getByRole('heading', { name: 'Your journal is open' })).toBeVisible()
+  expect(screen.getByRole('button', { name: 'Retry flight details' })).toBeVisible()
+  view.unmount()
+})
+it('discards a late retry after authentication changes', async () => {
+  vi.mocked(getFlight).mockRejectedValueOnce(new Error('503'))
+  const view = render(<OnboardingFlow {...props} source="file" step="reveal" />)
+  await act(async () => resultCallback?.({ eventId: 'old-account', flightIds: [44], savedCount: 1, publication: 'ready', newCodes: [] }))
+  let finish!: (value: Awaited<ReturnType<typeof getFlight>>) => void
+  vi.mocked(getFlight).mockImplementationOnce(() => new Promise(resolve => { finish = resolve }))
+  fireEvent.click(await screen.findByRole('button', { name: 'Retry flight details' }))
+  await waitFor(() => expect(getFlight).toHaveBeenCalledTimes(2))
+  vi.mocked(getAuthGeneration).mockReturnValue(1)
+  await act(async () => finish(flight as unknown as Awaited<ReturnType<typeof getFlight>>))
+  expect(screen.queryByRole('article')).not.toBeInTheDocument()
+  view.unmount()
+})
+
+it('uses complete mixed canonical DTOs directly without inventing an all-upcoming receipt', async () => {
+  render(<OnboardingFlow {...props} source="text" step="reveal" />)
+  const flights = [flight, { ...flight, id: 45, destination: 'NRT', is_upcoming: false }] as unknown as NonNullable<ImportResult['flights']>
+  await act(async () => resultCallback?.({ eventId: 'canonical-mixed', flightIds: [44, 45], flights, savedCount: 2, publication: 'ready', newCodes: [] }))
+  expect(screen.getByRole('heading', { name: 'Your journal is open' })).toBeVisible()
+  expect(screen.getAllByRole('article')).toHaveLength(2)
+  expect(getFlight).not.toHaveBeenCalled()
+})
+it('applies consumer stagger to the animated face and removes delays for reduced motion', () => {
+  const css = readFileSync('src/client/public/onboarding.css', 'utf8')
+  expect(css).toMatch(/\.onboarding-stamps \.stamp\[data-press=play\] \.stamp-face\s*\{\s*animation-delay: var\(--onboarding-stamp-delay, 0ms\)/)
+  expect(css).toMatch(/@media \(prefers-reduced-motion: reduce\)\s*\{\s*\.onboarding-stamps \.stamp\[data-press=play\] \.stamp-face\s*\{\s*animation-delay: 0ms/)
+})
+
+it('keeps late previous-batch reads out of the new account receipt', async () => {
+  let finish!: (value: Awaited<ReturnType<typeof getFlight>>) => void
+  vi.mocked(getFlight).mockImplementationOnce(() => new Promise(resolve => { finish = resolve }))
+  const view = render(<OnboardingFlow {...props} source="file" step="reveal" />)
+  await act(async () => resultCallback?.({ eventId: 'old-batch', flightIds: [44], savedCount: 1, publication: 'ready', newCodes: [] }))
+  view.rerender(<OnboardingFlow {...props} ownerId="b" source="file" step="reveal" />)
+  expect(screen.getByText('Your saved flights are in your journal.')).toBeVisible()
+  const flights = [{ ...flight, id: 45, user_id: 'b', destination: 'NRT', is_upcoming: false }] as unknown as NonNullable<ImportResult['flights']>
+  await act(async () => resultCallback?.({ eventId: 'new-batch', flightIds: [45], flights, savedCount: 1, publication: 'ready', newCodes: [] }))
+  await act(async () => finish(flight as unknown as Awaited<ReturnType<typeof getFlight>>))
+  expect(screen.queryByRole('article', { name: 'TBS to IST' })).not.toBeInTheDocument()
+  expect(screen.getByRole('article', { name: 'TBS to NRT' })).toBeVisible()
 })

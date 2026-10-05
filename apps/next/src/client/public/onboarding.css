@@ -15,3 +15,6 @@
 .onboarding-reveal .ticket { margin-block: var(--space-4); }
 .onboarding-flow [hidden] { display: none; }
 @media (max-width: 700px) { .landing-vignettes { grid-template-columns: 1fr; margin-block: var(--space-8); } .onboarding-progress { gap: var(--space-3); } }
+
+.onboarding-stamps .stamp[data-press=play] .stamp-face { animation-delay: var(--onboarding-stamp-delay, 0ms); }
+@media (prefers-reduced-motion: reduce) { .onboarding-stamps .stamp[data-press=play] .stamp-face { animation-delay: 0ms; } }
