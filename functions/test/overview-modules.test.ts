@@ -369,6 +369,25 @@ describe('archived-evidence provenance of the all-time country figure', () => {
     } finally { await dispose() }
   })
 
+  it.each([
+    ['INVALID', 'JP', 2, false],
+    ['JP', 'INVALID', 2, true],
+    ['INVALID', 'JP', 0, false],
+  ])('duplicate archive airport keeps first country %s before %s', async (first, second, firstCount, expected) => {
+    const { db, dispose } = await overviewAccount([logged(1, '2025-01-10', 'TBS', 'IST')], d => [
+      // Source ids sort opposite to insertion: country ownership follows read order, not source id.
+      ...[['z-first', first, firstCount], ['a-second', second, 3]].map(([id, country, count]) =>
+        d.prepare(`INSERT INTO legacy_visit_evidence (source_id,user_id,airport_iata,country_code,first_visit,last_visit,visit_count,source_digest,provenance,contributes,source_json)
+          VALUES (?,?,'ZZZ',?,'2019-01-01','2019-01-01',?,'d','archive',1,'{}')`).bind(id, USER.id, country, count)),
+    ])
+    try {
+      const summary = await readOverviewSummary(db)
+      expect(summary.countryState).toBe('ready')
+      expect(summary.archivedEvidence).toBe(expected)
+      expect(summary.map.countries.map(row => row.id).includes('JP')).toBe(expected)
+    } finally { await dispose() }
+  })
+
   it('ignores archived rows that do not contribute or belong to another owner', async () => {
     const { db, dispose } = await overviewAccount([logged(1, '2025-01-10', 'TBS', 'IST')], d => [
       legacyRow('quiet', 0)(d),

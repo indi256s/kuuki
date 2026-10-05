@@ -4,13 +4,16 @@ import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { MissingAircraftPage } from '../../../../../packages/shared/src/overview'
 import type { AircraftApi } from '../import/aircraft-panel'
+import { OverviewRankings } from './rankings'
+import { busySummary, fakeLabels } from './fixtures'
 import { MissingAircraftReview, readMissingAircraft } from './missing-aircraft'
 
 const refresh = vi.hoisted(() => vi.fn())
 vi.mock('next/navigation', () => ({ useRouter: () => ({ push: vi.fn(), refresh }) }))
 const apiGet = vi.hoisted(() => vi.fn())
-vi.mock('../../../../web/src/lib/apiClient', () => ({ api: { get: apiGet, post: vi.fn() }, getAuthGeneration: () => 0 }))
-afterEach(() => { cleanup(); refresh.mockClear(); apiGet.mockClear() })
+const apiPost = vi.hoisted(() => vi.fn())
+vi.mock('../../../../web/src/lib/apiClient', () => ({ api: { get: apiGet, post: apiPost }, getAuthGeneration: () => 0 }))
+afterEach(() => { cleanup(); refresh.mockClear(); apiGet.mockReset(); apiPost.mockReset() })
 
 const flight = (id: number) => ({ id, flight_number: String(100 + id), airline_iata: 'AA', date: '2026-03-01', origin: 'JFK', destination: 'BOS' })
 /** A page of the server's set: `ids` on this page, `total` in the whole set, `offset` flights before it, `next` the cursor or null. */
@@ -148,6 +151,22 @@ describe('MissingAircraftReview', () => {
     expect(await screen.findByRole('button', { name: /identify aircraft/i })).toBeInTheDocument()
   })
 
+  it('counts the cursor suffix from the refreshed missing set, excluding already saved review rows', async () => {
+    const accept = vi.fn(async () => ({ results: [{ id: 1, status: 'accepted' as const, flight: { id: 1, aircraft_icao: 'B738' } }] }))
+    const read = answer(page([1, 2, 3], 5, 0, 'cursor'), page([2, 3, 4], 4, 0, 'new-cursor'), page([4, 5], 4, 2))
+    render(<MissingAircraftReview locale="en" period="all" count={5} read={read} aircraftApi={aircraftApi(accept, 3)} />)
+    await open()
+    await userEvent.click(await screen.findByRole('button', { name: /identify aircraft/i }))
+    await userEvent.click(screen.getByRole('checkbox', { name: /102/ }))
+    await userEvent.click(screen.getByRole('checkbox', { name: /103/ }))
+    await userEvent.click(screen.getByRole('button', { name: /save 1 aircraft/i }))
+    await waitFor(() => expect(read).toHaveBeenCalledTimes(2))
+    await userEvent.click(screen.getByRole('button', { name: 'Show the next 2 flights' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Discard and continue' }))
+    expect(await screen.findByText('Flights 3–4 of 4 without an aircraft.')).toBeInTheDocument()
+    expect(read).toHaveBeenLastCalledWith('all', 'cursor', expect.any(AbortSignal))
+  })
+
   it('blocks paging and close during a save, then requires explicit discard of unresolved review work', async () => {
     let finish!: (value: Awaited<ReturnType<AircraftApi['accept']>>) => void
     const accept = vi.fn(() => new Promise<Awaited<ReturnType<AircraftApi['accept']>>>(resolve => { finish = resolve }))
@@ -214,5 +233,32 @@ describe('readMissingAircraft', () => {
     await readMissingAircraft('all', '2026-03-01:9', signal)
     expect(apiGet).toHaveBeenNthCalledWith(1, '/api/me/overview/missing-aircraft', { period: '2026' }, { signal })
     expect(apiGet).toHaveBeenNthCalledWith(2, '/api/me/overview/missing-aircraft', { period: 'all', after: '2026-03-01:9' }, { signal })
+  })
+})
+
+describe('Rankings owns an active review across summary refreshes', () => {
+  it('keeps uncertain recovery at zero missing until explicit discard and close, without a zero-count CTA', async () => {
+    const before = busySummary(10, 'all')
+    const after = { ...before, dataAvailability: { ...before.dataAvailability, missingAircraft: 0 } }
+    const { rerender } = render(<OverviewRankings summary={{ ...before, dataAvailability: { ...before.dataAvailability, missingAircraft: 2 } }} locale="en" labels={fakeLabels} />)
+    apiGet.mockResolvedValueOnce(page([1, 2])).mockResolvedValueOnce(page([], 0))
+    apiPost.mockResolvedValueOnce({ results: [1, 2].map(id => ({ flight_id: String(id), aircraft_icao: 'B738', aircraft_name: null, confidence: 0.9 })) })
+    // Both saves committed, but the answer for flight 2 is absent: the real accept reconciler marks it uncertain.
+    apiPost.mockResolvedValueOnce({ results: [{ id: 1, status: 'accepted', flight: { id: 1, aircraft_icao: 'B738' } }] })
+    refresh.mockImplementationOnce(() => rerender(<OverviewRankings summary={after} locale="en" labels={fakeLabels} />))
+    await open()
+    await userEvent.click(await screen.findByRole('button', { name: /identify aircraft/i }))
+    await userEvent.click(screen.getByRole('button', { name: /save 2 aircraft/i }))
+    await waitFor(() => expect(refresh).toHaveBeenCalledTimes(1))
+    expect(await screen.findByText('May not be saved')).toBeInTheDocument()
+    expect(screen.getByRole('dialog')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Try again for the rest' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Review aircraft' })).toBeNull()
+    expect(screen.queryByText('0 flights have no aircraft listed')).toBeNull()
+    await userEvent.click(screen.getByRole('button', { name: 'Close' }))
+    expect(screen.getByRole('dialog')).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: 'Discard and continue' }))
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+    expect(screen.queryByRole('button', { name: 'Review aircraft' })).toBeNull()
   })
 })

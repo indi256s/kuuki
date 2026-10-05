@@ -81,13 +81,18 @@ export async function readOverview(db: D1Database, userId: string, period: Overv
       WHERE user_id = ? AND lifecycle_state = 'upcoming' ORDER BY date ASC, id ASC LIMIT 1`).bind(userId))
   add('upcoming', db.prepare("SELECT COUNT(*) AS count FROM flights WHERE user_id = ? AND lifecycle_state = 'upcoming'").bind(userId))
   // Only all-time includes archives. Match mergeVisits: an unsuppressed logged airport supplies its
-  // reference country; otherwise use the legacy country with reference fallback, then country validity.
+  // reference country; otherwise use the first contributing legacy country (rowid order), with reference fallback.
+  // Counts max-merge across all contributing rows before country validity is checked.
   if (projection) {
     add('archived', db.prepare(`${countryEndpoints("f.user_id = ? AND f.lifecycle_state = 'logged'")},
       logged_airports AS (SELECT e.iata FROM country_endpoints e ${UNSUPPRESSED.replace('length(a.country_code) = 2', 'a.country_code IS NOT NULL')})
       SELECT EXISTS (SELECT 1 FROM legacy_visit_evidence l
         LEFT JOIN airports_reference ar ON ar.iata = l.airport_iata
-        WHERE l.user_id = ? AND l.contributes = 1 AND l.airport_iata IS NOT NULL AND l.visit_count > 0
+        WHERE l.user_id = ? AND l.contributes = 1 AND l.airport_iata IS NOT NULL
+        AND NOT EXISTS (SELECT 1 FROM legacy_visit_evidence prior WHERE prior.user_id = l.user_id
+          AND prior.airport_iata = l.airport_iata AND prior.contributes = 1 AND prior.rowid < l.rowid)
+        AND EXISTS (SELECT 1 FROM legacy_visit_evidence positive WHERE positive.user_id = l.user_id
+          AND positive.airport_iata = l.airport_iata AND positive.contributes = 1 AND positive.visit_count > 0)
         AND length(CASE WHEN EXISTS (SELECT 1 FROM logged_airports c WHERE c.iata = l.airport_iata)
           THEN ar.country_code ELSE COALESCE(l.country_code, ar.country_code) END) = 2) AS archived`).bind(userId, userId, userId))
   }

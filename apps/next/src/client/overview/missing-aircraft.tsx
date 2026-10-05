@@ -19,7 +19,7 @@ type Read = (period: string, after: string | null, signal: AbortSignal) => Promi
 export const readMissingAircraft: Read = (period, after, signal) =>
   api.get<MissingAircraftPage>('/api/me/overview/missing-aircraft', { period, ...(after ? { after } : {}) }, { signal })
 
-type Load = { phase: 'idle' } | { phase: 'loading' } | { phase: 'failed' } | { phase: 'ready'; page: MissingAircraftPage; after: string | null }
+type Load = { phase: 'idle' } | { phase: 'loading' } | { phase: 'failed' } | { phase: 'ready'; page: MissingAircraftPage; after: string | null; remaining: number }
 type Notice = 'more' | 'refresh' | null
 
 /**
@@ -60,8 +60,14 @@ export function MissingAircraftReview({ locale, period, count, read = readMissin
       if (controller.signal.aborted) return
       current.current = after
       // Keep the reviewed boundary: the refreshed page may contain older targets not reviewed yet.
-      setLoad(previous => ({ phase: 'ready', after, page: preserveReview && previous.phase === 'ready'
-        ? { ...page, flights: previous.page.flights, nextCursor: previous.page.nextCursor } : page }))
+      setLoad(previous => {
+        const retained = preserveReview && previous.phase === 'ready' ? previous.page : null
+        const reviewedIds = new Set(retained?.flights.map(flight => flight.id))
+        // Saved rows no longer consume the server cursor's missing-only prefix.
+        const consumed = retained ? page.flights.filter(flight => reviewedIds.has(flight.id)).length : page.flights.length
+        return { phase: 'ready', after, remaining: Math.max(page.total - page.offset - consumed, 0),
+          page: retained ? { ...page, flights: retained.flights, nextCursor: retained.nextCursor } : page }
+      })
       if (!preserveReview) {
         setGeneration(value => value + 1)
         setWork({ busy: false, dirty: false })
@@ -92,16 +98,18 @@ export function MissingAircraftReview({ locale, period, count, read = readMissin
   const targets = page?.flights.map(flight => ({ id: flight.id, flight_number: flight.flight_number ?? null,
     airline_iata: flight.airline_iata ?? null, date: flight.date, origin: flight.origin, destination: flight.destination })) ?? []
   const shown = page?.flights.length ?? 0
-  const remaining = page ? Math.max(page.total - page.offset - shown, 1) : 0
+  const remaining = load.phase === 'ready' ? load.remaining : 0
   const num = (n: number) => formatNumber(locale, n)
 
-  return <div className="ov-missing"><span>{formatCount(locale, count, forms.noAircraft)}</span>{' '}
-    <Button dense variant="ghost" onClick={() => onOpenChange(true)}>{t(S.reviewAircraft, locale)}</Button>
+  if (count <= 0 && !open) return null
+
+  return <div className="ov-missing">{count > 0 ? <><span>{formatCount(locale, count, forms.noAircraft)}</span>{' '}
+    <Button dense variant="ghost" onClick={() => onOpenChange(true)}>{t(S.reviewAircraft, locale)}</Button></> : null}
     <Sheet open={open} onOpenChange={onOpenChange} title={t(S.reviewTitle, locale)} description={t(S.reviewDescription, locale)} closeLabel={t(S.close, locale)} side="bottom" className="ov-review-sheet">
       <div className="import-page ov-review" data-testid="overview-aircraft-review">
         {load.phase === 'loading' ? <p role="status" className="muted">{t(S.reviewLoading, locale)}</p> : null}
         {load.phase === 'failed' ? <div role="alert"><p>{t(S.reviewFailed, locale)}</p><Button dense onClick={() => fetchPage(current.current, 'open')}>{t(S.retry, locale)}</Button></div> : null}
-        {page && page.total === 0 ? <p className="muted">{t(S.reviewNone, locale)}</p> : null}
+        {page && page.total === 0 && !work.dirty ? <p className="muted">{t(S.reviewNone, locale)}</p> : null}
         {page && (page.total > 0 || work.dirty) ? <>
           {saved > 0 ? <p role="status" className="muted">{formatCount(locale, saved, forms.aircraftSaved)}</p> : null}
           {(!work.dirty || saved === 0) && (page.offset > 0 || page.nextCursor) ? <p className="muted">{fill(t(S.reviewRange, locale), { from: num(page.offset + (shown > 0 ? 1 : 0)), to: num(page.offset + shown), total: num(page.total) })}</p> : null}
@@ -117,7 +125,7 @@ export function MissingAircraftReview({ locale, period, count, read = readMissin
             <Button dense disabled={busy || work.busy} onClick={() => leaveReview(() => fetchPage(current.current, 'refresh'))}>{t(S.reviewReload, locale)}</Button></> : null}
           {notice === 'more' ? <div role="alert"><p>{t(S.reviewMoreFailed, locale)}</p></div> : null}
           <div className="import-actions">
-            {page.nextCursor ? <Button dense loading={busy} disabled={work.busy} loadingLabel={t(S.reviewLoading, locale)} onClick={() => leaveReview(() => fetchPage(page.nextCursor, 'next'))}>{formatCount(locale, Math.min(page.limit, remaining), forms.showNext)}</Button> : null}
+            {page.nextCursor && remaining > 0 ? <Button dense loading={busy} disabled={work.busy} loadingLabel={t(S.reviewLoading, locale)} onClick={() => leaveReview(() => fetchPage(page.nextCursor, 'next'))}>{formatCount(locale, Math.min(page.limit, remaining), forms.showNext)}</Button> : null}
             {page.offset > 0 ? <Button dense variant="ghost" disabled={busy || work.busy} onClick={() => leaveReview(() => fetchPage(null, 'open'))}>{t(S.reviewStartOver, locale)}</Button> : null}
           </div>
         </> : null}

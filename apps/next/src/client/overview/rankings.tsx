@@ -37,6 +37,6 @@ export function OverviewRankings({ summary, locale, labels }: { summary: Overvie
         {topLists.manufacturers.length ? <p className="ov-manufacturers"><span className="eyebrow">{t(S.manufacturers, locale)}</span>{' '}{topLists.manufacturers.map(row => `${row.id} (${formatNumber(locale, row.count)})`).join(', ')}</p> : null}
       </div>
     </div>
-    {dataAvailability.missingAircraft > 0 ? <MissingAircraftReview locale={locale} period={period} count={dataAvailability.missingAircraft} /> : null}
+    <MissingAircraftReview locale={locale} period={period} count={dataAvailability.missingAircraft} />
   </section>
 }
