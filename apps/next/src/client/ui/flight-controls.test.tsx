@@ -7,7 +7,7 @@ import { join } from 'node:path'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { Calendar } from './calendar'
 import { Combobox } from './combobox'
-import { airportChoices } from '../capture/reference-choices'
+import { airportChoices, airlineChoices, aircraftChoices } from '../capture/reference-choices'
 import type { Locale } from '../../lib/format'
 
 beforeEach(() => {
@@ -277,4 +277,29 @@ describe('calendar popover placement on a phone (declared CSS)', () => {
     expect(week).toMatch(/gap:0/)
     expect((popover - 2 * paddingInline) / 7).toBeGreaterThanOrEqual(44)
   })
+})
+
+it.each([
+  ['Airline', 'TK', airlineChoices],
+  ['Aircraft', 'B738', aircraftChoices],
+] as const)('labels English-only %s names in Russian options and selected hints', async (label, code, choices) => {
+  function ReferenceHarness() {
+    const [value, setValue] = useState('')
+    return <Combobox label={label} locale="ru" choices={[...choices]} value={value} onChange={setValue} />
+  }
+  render(<ReferenceHarness />)
+  const input = screen.getByRole('combobox', { name: label })
+  await userEvent.click(input)
+  fireEvent.change(input, { target: { value: code } })
+  expect(screen.getByRole('option', { name: new RegExp(`^${code} `) })).toHaveTextContent('Название на английском')
+  fireEvent.keyDown(input, { key: 'Enter' })
+  expect(input).toHaveValue(code)
+  expect(screen.getByText(/ · название на английском$/)).toBeVisible()
+})
+
+it('does not label an English-only name as a translation fallback in English', async () => {
+  render(<Combobox label="Airline" locale="en" choices={airlineChoices} value="TK" onChange={() => {}} />)
+  expect(screen.queryByText(/English reference name/)).toBeNull()
+  await userEvent.click(screen.getByRole('combobox', { name: 'Airline' }))
+  expect(screen.queryByText(/English reference name/)).toBeNull()
 })

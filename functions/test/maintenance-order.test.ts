@@ -100,6 +100,32 @@ describe('fairness', () => {
 })
 
 describe('retryable incomplete cycles and recovery', () => {
+  it.each(['before commit', 'after commit'] as const)('continues other users after one transition fails %s, records failure and recovers', async boundary => {
+    const { db: raw, dispose } = await accountWith([upcoming(1, { awaitingAfter: '2026-10-01T00:00:00.000Z' })])
+    try {
+      clock()
+      await addUser(raw, 'u2')
+      await flightStatement(raw, upcoming(2, { user: 'u2', awaitingAfter: '2026-10-02T00:00:00.000Z' })).run()
+      await raw.prepare('UPDATE maintenance_status SET last_success_at = ? WHERE id = 1').bind(ago(1)).run()
+      const { db, hooks } = instrumentDb(raw)
+      // The oldest deadline explicitly selects u1 first; the one-shot hook affects only its transition batch.
+      const transition = hasSql("SET lifecycle_state = 'awaiting'")
+      if (boundary === 'before commit') hooks.failBatch(transition)
+      else hooks.afterBatch(transition, async () => { throw Error('committed response lost') })
+      await expect(cycle(db)).rejects.toThrow('MAINTENANCE_CYCLE_FAILED')
+      expect(await lifecycleStates(raw)).toEqual([
+        { user_id: 'u1', id: 1, s: boundary === 'before commit' ? 'upcoming' : 'awaiting' },
+        { user_id: 'u2', id: 2, s: 'awaiting' },
+      ])
+      expect(await status(raw)).toMatchObject({ last_success_at: ago(1), last_failure_at: NOW.toISOString(), last_error: 'MAINTENANCE_CYCLE_FAILED' })
+      vi.setSystemTime(new Date(NOW.getTime() + 60_000))
+      await cycle(raw)
+      expect(await lifecycleStates(raw)).toEqual([{ user_id: 'u1', id: 1, s: 'awaiting' }, { user_id: 'u2', id: 2, s: 'awaiting' }])
+      expect(await status(raw)).toMatchObject({ last_success_at: new Date(NOW.getTime() + 60_000).toISOString(), last_error: null })
+      expect(await raw.prepare('SELECT COUNT(*) AS n FROM user_derived_state WHERE revision != published_revision OR evidence_revision != published_revision').first()).toEqual({ n: 0 })
+    } finally { await dispose() }
+  })
+
   it('a publication that fails after the transitions committed is a failed cycle, never a false success; the next cycle recovers', async () => {
     const { db: raw, dispose } = await accountWith([upcoming(1, { date: '2026-09-20', awaitingAfter: '2026-09-21T00:00:00.000Z', autoAfter: '2026-09-28T00:00:00.000Z' })])
     try {
