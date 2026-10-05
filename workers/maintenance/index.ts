@@ -1,5 +1,5 @@
 import { refreshLeaderboards } from '../../functions/api/_services/leaderboard'
-import { repairUserDerivedState } from '../../functions/api/_services/derivedState'
+import { STALE_DERIVED_PREDICATE, repairUserDerivedState } from '../../functions/api/_services/derivedState'
 import { applyDueTransitions } from '../../functions/api/_services/lifecycle'
 
 interface MaintenanceEnv {
@@ -34,7 +34,7 @@ export default {
       }
       const dirty = await db.prepare(
         `SELECT user_id FROM user_derived_state
-         WHERE revision != published_revision ORDER BY updated_at ASC LIMIT 100`,
+         WHERE ${STALE_DERIVED_PREDICATE} ORDER BY updated_at ASC LIMIT 100`,
       ).all<{ user_id: string }>()
       for (const row of dirty.results) {
         await repairUserDerivedState(db, row.user_id)
@@ -51,7 +51,7 @@ export default {
       ])
       const remaining = await db.prepare(
         `SELECT COUNT(*) AS n, MIN(updated_at) AS oldest
-         FROM user_derived_state WHERE revision != published_revision`,
+         FROM user_derived_state WHERE ${STALE_DERIVED_PREDICATE}`,
       ).first<{ n: number; oldest: string | null }>()
       const overdueRemaining = await db.prepare(
         "SELECT COUNT(*) AS n FROM flights WHERE lifecycle_state = 'upcoming' AND awaiting_after <= ?",
