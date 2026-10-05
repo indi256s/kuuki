@@ -73,9 +73,11 @@ it.each(['apply', 'dismiss'] as const)('historical review %s preserves unselecte
   fireEvent.click(await screen.findByRole('button', { name: 'Review historical connections' }))
   expect(screen.getAllByText(/Estimated from dates/)).toHaveLength(2)
   expect(screen.getAllByText(/stamp will be removed/)).toHaveLength(2)
+  expect(screen.queryByText(/\bTR:/)).not.toBeInTheDocument()
   if (action === 'apply') fireEvent.click(screen.getAllByRole('checkbox')[0])
   fireEvent.click(screen.getByRole('button', { name: action === 'apply' ? 'Mark selected as transit' : 'Keep as recorded' }))
-  await screen.findByText(action === 'apply' ? 'Removed stamps: TR' : 'Review saved.')
+  if (action === 'apply') expect(screen.queryByText(/\bTR\b/)).not.toBeInTheDocument()
+  await screen.findByText(action === 'apply' ? `Removed stamps: ${new Intl.DisplayNames(['en'], { type: 'region' }).of('TR')}` : 'Review saved.')
   const request = vi.mocked(api.post).mock.calls[0][1]
   expect(request).toEqual({ operationId: expect.any(String), action, items: action === 'apply' ? [{ flightId: 1, candidateToken: 'review-1' }] : [] })
   await waitFor(() => expect(screen.queryByRole('button', { name: 'Review historical connections' })).not.toBeInTheDocument())
@@ -87,4 +89,37 @@ it('shows a processing draft with no extracted rows without claiming that everyt
   mount()
   expect(screen.getByText(/Processing/)).toBeInTheDocument()
   expect(screen.queryByText('Everything is reviewed.')).not.toBeInTheDocument()
+})
+
+it('names the section plainly and says filters do not affect it only when filters are active', () => {
+  const { rerender } = mount()
+  expect(screen.getByRole('region', { name: 'Awaiting action' })).toBeInTheDocument()
+  expect(screen.getByRole('heading', { level: 2 })).toHaveTextContent(/^Awaiting action$/)
+  expect(screen.queryByText('Not affected by your filters.')).not.toBeInTheDocument()
+  rerender(<JournalQueue ownerId="queue-owner" locale="en" filtered hiddenIds={[]} onEdit={vi.fn()} onDelete={vi.fn()} />)
+  expect(screen.getByText('Not affected by your filters.')).toBeInTheDocument()
+})
+
+it('uses neutral Russian action copy and shows one offline notice that every blocked action points to', () => {
+  state.online = false
+  render(<JournalQueue ownerId="queue-owner" locale="ru" filtered hiddenIds={[]} onEdit={vi.fn()} onDelete={vi.fn()} />)
+  expect(screen.getByRole('heading', { level: 2 })).toHaveTextContent(/^Ждут действия$/)
+  expect(screen.getByText('Фильтры списка на них не действуют.')).toBeInTheDocument()
+  expect(screen.getAllByRole('button', { name: 'Не летали' })).toHaveLength(3)
+  expect(screen.queryByText('Не летел')).not.toBeInTheDocument()
+  expect(screen.getAllByRole('button', { name: 'Подтвердить прилёт' })).toHaveLength(3)
+  const notes = screen.getAllByText('Нет сети. Подключитесь, чтобы изменить перелёты.')
+  expect(notes).toHaveLength(1)
+  for (const button of screen.getAllByRole('button', { name: /Подтвердить|Изменить|Не летали/ })) expect(button).toHaveAttribute('aria-describedby', notes[0].id)
+})
+
+it('labels an unknown draft source instead of rendering an empty heading', () => {
+  state.data = { ...state.data!, drafts: [{ batchId: 'b2', sourceType: 'email', sourceLabel: null, status: 'ready', reviewRowCount: 2 }] } as AwaitingQueue
+  mount()
+  expect(screen.getByRole('heading', { level: 3, name: 'Other source' })).toBeInTheDocument()
+})
+
+it('puts a data attribute on each Confirm button so Undo can restore focus to the card', () => {
+  mount()
+  expect(screen.getAllByRole('button', { name: 'Confirm arrival' }).map(button => button.getAttribute('data-confirm-flight'))).toEqual(['1', '2', '3'])
 })
