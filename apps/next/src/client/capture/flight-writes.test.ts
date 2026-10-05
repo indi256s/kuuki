@@ -1,5 +1,6 @@
 // @vitest-environment jsdom
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { ApiError } from '../../../../web/src/lib/apiClient'
 import { clearFlightCreateOperations } from '../../../../web/src/lib/flightCreateOperations'
 import { browserTimezone, createFlight, createFlights, updateFlight } from './flight-writes'
 
@@ -70,5 +71,50 @@ describe('flight writes carry the browser IANA timezone (ADR 0001 §1)', () => {
       await updateFlight(3, { flight_number: 'KU1' } as never)
       expect(patch).toHaveBeenCalledWith('/api/flights/3', { flight_number: 'KU1' })
     } finally { vi.restoreAllMocks(); expect(Intl.DateTimeFormat).toBe(original) }
+  })
+
+  describe('an INVALID_TIMEZONE answer', () => {
+    const rejected = () => new ApiError(400, 'timezone must be a valid IANA time zone', 'INVALID_TIMEZONE')
+
+    it('retries a create once without the zone, with the same key and a zone-free stored payload', async () => {
+      post.mockRejectedValueOnce(rejected())
+      post.mockResolvedValueOnce({ id: 9, date: input.date, origin: 'TBS', destination: 'IST' })
+      const saved = await createFlight({ ...input, user_id: 'u1' } as never, 'op-tz')
+      expect(saved).toMatchObject({ id: 9 })
+      expect(post).toHaveBeenCalledTimes(2)
+      expect(post.mock.calls[0][1]).toHaveProperty('timezone', zone())
+      expect(post.mock.calls[1][1]).not.toHaveProperty('timezone')
+      expect(post.mock.calls[1][2].headers['Idempotency-Key']).toBe(post.mock.calls[0][2].headers['Idempotency-Key'])
+      expect(localStorage.length).toBe(0) // completed, nothing left that would replay the zone
+    })
+
+    it('does not retry again when the retry fails, and keeps a zone-free stored operation', async () => {
+      post.mockRejectedValueOnce(rejected())
+      post.mockRejectedValueOnce(new Error('network'))
+      await expect(createFlight({ ...input, user_id: 'u1' } as never, 'op-tz2')).rejects.toThrow('network')
+      expect(post).toHaveBeenCalledTimes(2)
+      const stored = JSON.parse(localStorage.getItem(localStorage.key(0)!)!) as { payload: string }
+      expect(JSON.parse(stored.payload)).not.toHaveProperty('timezone')
+    })
+
+    it('retries a bulk request and an edit once without the zone', async () => {
+      post.mockRejectedValueOnce(rejected())
+      post.mockResolvedValueOnce({ derived_state: 'ready', results: [{ status: 'created' }] })
+      expect(await createFlights('u1', [{ operationId: 'z', flight: { ...input } as never }])).toEqual([null])
+      expect(post).toHaveBeenCalledTimes(2)
+      expect(post.mock.calls[1][1]).not.toHaveProperty('timezone')
+
+      patch.mockRejectedValueOnce(rejected())
+      patch.mockResolvedValueOnce({ id: 3 })
+      await updateFlight(3, { flight_number: 'KU1' } as never)
+      expect(patch).toHaveBeenCalledTimes(2)
+      expect(patch.mock.calls[1]).toEqual(['/api/flights/3', { flight_number: 'KU1' }])
+    })
+
+    it('does not retry other 400s', async () => {
+      post.mockRejectedValue(new ApiError(400, 'bad', 'UNKNOWN_AIRPORT'))
+      await expect(createFlight({ ...input, user_id: 'u1' } as never, 'op-tz3')).rejects.toMatchObject({ code: 'UNKNOWN_AIRPORT' })
+      expect(post).toHaveBeenCalledTimes(1)
+    })
   })
 })
