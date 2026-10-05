@@ -123,3 +123,16 @@ it('puts a data attribute on each Confirm button so Undo can restore focus to th
   mount()
   expect(screen.getAllByRole('button', { name: 'Confirm arrival' }).map(button => button.getAttribute('data-confirm-flight'))).toEqual(['1', '2', '3'])
 })
+
+it('focuses the arrival card a passport pending stamp links to, once the queue has loaded', async () => {
+  window.history.replaceState(null, '', '/journal?queue=awaiting#arrival-2')
+  const data = state.data
+  state.data = null
+  const view = mount()
+  expect(document.activeElement).toBe(document.body)
+  state.data = data
+  view.rerender(<JournalQueue ownerId="queue-owner" locale="en" hiddenIds={[]} onEdit={vi.fn()} onDelete={vi.fn()} />)
+  await waitFor(() => expect(document.activeElement).toBe(view.container.querySelector('[data-confirm-flight="2"]')))
+  expect(view.container.querySelector('#arrival-2')).not.toBeNull()
+  window.history.replaceState(null, '', '/')
+})

@@ -110,4 +110,8 @@ describe('journalHref (Overview "All" links)', () => {
     const href = journalHref({ airport: 'IST', airline: 'TK', year: '2024' })
     expect(normalizeJournalQuery(new URLSearchParams(href.split('?')[1])).canonical).toBe(true)
   })
+  it('links one source flight for passport country detail', () => {
+    expect(journalHref({ flight: 42 })).toBe('/journal?flight=42')
+    expect(journalHref({ flight: '0' })).toBe('/journal')
+  })
 })

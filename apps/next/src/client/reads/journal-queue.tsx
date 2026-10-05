@@ -42,6 +42,18 @@ export function JournalQueue({ ownerId, locale, filtered = false, hiddenIds, onE
   const operation = useRef<AbortController | null>(null)
   const lock = useRef(false)
   useEffect(() => () => operation.current?.abort(), [])
+  // A pending passport stamp links to `#arrival-<id>`: once the queue has loaded, move focus to that card's confirm action.
+  const arrivalHandled = useRef<string | null>(null)
+  useEffect(() => {
+    const hash = window.location.hash
+    const match = /^#arrival-(\d+)$/.exec(hash)
+    if (!data || !match || arrivalHandled.current === hash) return
+    const action = document.querySelector<HTMLElement>(`#awaiting-queue [data-confirm-flight="${match[1]}"]`)
+    if (!action) return
+    arrivalHandled.current = hash
+    action.focus({ preventScroll: true })
+    action.scrollIntoView?.({ block: 'center' })
+  }, [data])
   const offlineNote = ru ? 'Нет сети. Подключитесь, чтобы изменить перелёты.' : 'Offline. Connect to change flights.'
   const offline = { 'aria-describedby': !online ? offlineId : undefined }
   const countryName = (code: string) => new Intl.DisplayNames([locale], { type: 'region' }).of(code) ?? code
@@ -102,7 +114,7 @@ export function JournalQueue({ ownerId, locale, filtered = false, hiddenIds, onE
     while (next && !grouped.has(next.flight.id)) { grouped.add(next.flight.id); chain.push(next); const legId: number | null = next.candidate.legId; next = entries.find(row => row.flight.id === legId) }
     chains.push(chain)
   }
-  const card = (entry: Entry) => <div key={entry.flight.id} className="awaiting-card">
+  const card = (entry: Entry) => <div key={entry.flight.id} id={`arrival-${entry.flight.id}`} className="awaiting-card">
     <Ticket locale={locale} state="awaiting" origin={{ iata: entry.flight.origin, city: findAirport(entry.flight.origin)?.city ?? entry.flight.origin }} destination={{ iata: entry.flight.destination, city: findAirport(entry.flight.destination)?.city ?? entry.flight.destination }} date={entry.flight.date} flightNumber={entry.flight.flight_number ?? undefined} prompt={ru ? 'Вы долетели?' : 'Did you arrive?'} actions={<>
       <Button variant="primary" data-confirm-flight={entry.flight.id} disabled={busy || !!receipt || !online} {...offline} onClick={() => void confirm([entry])}>{ru ? 'Подтвердить прилёт' : 'Confirm arrival'}</Button>
       <Button disabled={busy || !!receipt || !online} {...offline} onClick={() => onEdit(entry.flight.id)}>{ru ? 'Изменить' : 'Change'}</Button>

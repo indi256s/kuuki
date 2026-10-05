@@ -175,8 +175,11 @@ export function resetJournalFilters(query: string): string {
   return params.toString()
 }
 
-export type JournalLink = { airport?: string; airline?: string; aircraft?: string; year?: string | number }
-/** Canonical `/journal` href for the Overview "All" links: exact airport, airline or aircraft, optionally for one year. Invalid values are dropped. */
+export type JournalLink = { airport?: string; airline?: string; aircraft?: string; year?: string | number; flight?: string | number }
+/**
+ * Canonical `/journal` href for the Overview "All" links (exact airport, airline or aircraft, optionally for one year)
+ * and for one flight's detail (`flight`, used by passport source links). Invalid values are dropped.
+ */
 export function journalHref(link: JournalLink, now = new Date()): string {
   const params = new URLSearchParams()
   for (const [key, value] of Object.entries(link)) if (value !== undefined && value !== '') params.set(key, String(value))
