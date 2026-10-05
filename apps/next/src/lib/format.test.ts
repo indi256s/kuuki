@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { formatCount, formatDateOnly, formatDistanceKm, formatDuration, formatMonthYear, formatNumber, formatRelativeDate, pluralCategory, type CountForms } from './format'
+import { formatCount, formatDateOnly, formatDistanceKm, formatDuration, formatInstantDate, formatMonthYear, formatNumber, formatRelativeDate, pluralCategory, type CountForms } from './format'
 
 const flights: CountForms = {
   en: { one: '{count} flight', other: '{count} flights' },
@@ -101,5 +101,16 @@ describe('formatRelativeDate', () => {
   it('never reports a future date and returns invalid input unchanged', () => {
     expect(formatRelativeDate('en', '2026-12-01', now)).toBe('today')
     expect(formatRelativeDate('en', 'soon', now)).toBe('soon')
+  })
+})
+
+describe('formatInstantDate', () => {
+  it('names the viewer-zone day of an instant', () => {
+    expect(formatInstantDate('en', '2026-11-04T00:30:00.000Z', 'medium', 'UTC')).toBe('Nov 4, 2026')
+    expect(formatInstantDate('en', '2026-11-04T00:30:00.000Z', 'medium', 'America/New_York')).toBe('Nov 3, 2026')
+    expect(formatInstantDate('ru', '2026-11-04T12:00:00.000Z', 'long', 'UTC')).toBe('4 ноября 2026 г.')
+  })
+  it('returns an invalid instant unchanged', () => {
+    expect(formatInstantDate('en', 'later')).toBe('later')
   })
 })

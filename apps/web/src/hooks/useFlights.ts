@@ -81,9 +81,9 @@ export function useCreateFlight() {
   const userId = useAuthStore((state) => state.user?.id)
 
   return useMutation({
-    mutationFn: async ({ flight, operationId }: { flight: Omit<FlightInsert, 'id' | 'created_at' | 'user_id'>; operationId: string }) => {
+    mutationFn: async ({ flight, operationId, retryKey }: { flight: Omit<FlightInsert, 'id' | 'created_at' | 'user_id'>; operationId: string; retryKey?: string }) => {
       if (!userId) throw new Error('Not authenticated')
-      return createFlight({ ...flight, user_id: userId }, operationId)
+      return createFlight({ ...flight, user_id: userId }, operationId, retryKey)
     },
     onSuccess: (created) => {
       if (userId) reconcileDerivedState(created, queryClient, userId)

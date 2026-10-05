@@ -31,7 +31,7 @@ import { allowedLegacyReturn, returnAfterLegacyWrite } from '@/lib/legacyBridge'
 type ImportStep = 'upload' | 'parsing' | 'review' | 'saving' | 'success'
 type InputType = 'text' | 'pdf' | 'image'
 type CreateInput = Omit<FlightInsert, 'id' | 'created_at' | 'user_id'>
-type FailedFlight = { flight: ExtractedFlight; operationId: string; error: string; originalInput?: CreateInput; expired?: boolean }
+type FailedFlight = { flight: ExtractedFlight; operationId: string; error: string; retryKey?: string; originalInput?: CreateInput; expired?: boolean }
 
 const flightLabel = (flight: ExtractedFlight) => `${flight.origin} → ${flight.destination} (${flight.date})`
 
@@ -114,11 +114,12 @@ export function ImportPage() {
   useEffect(() => {
     if (!userId || recoveryCheckedFor.current === userId) return
     recoveryCheckedFor.current = userId
-    const recovered: FailedFlight[] = pendingImportFlightOperations(userId).map(({ operationId, body, expired }) => {
+    const recovered: FailedFlight[] = pendingImportFlightOperations(userId).map(({ operationId, body, expired, key }) => {
       const input = body as CreateInput
       return {
         operationId,
         originalInput: input,
+        retryKey: key,
         expired,
         error: expired
           ? t('import.success.expired', 'This save is too old to retry safely. Check your flights before starting a new import.')
@@ -199,7 +200,7 @@ export function ImportPage() {
     const failedForRetry: FailedFlight[] = []
     const operationIds = flights.map((_, i) => retryEntries?.[i]?.operationId ?? `${importRunId.current}:${i}`)
     const errors: Array<Error | null> = flights.map(() => null)
-    const entries: Array<{ index: number; operationId: string; flight: CreateInput }> = []
+    const entries: Array<{ index: number; operationId: string; flight: CreateInput; retryKey?: string }> = []
 
     flights.forEach((flight, i) => {
       const originalInput = retryEntries?.[i]?.originalInput
@@ -207,7 +208,7 @@ export function ImportPage() {
         errors[i] = new Error('Confirm the inferred year before saving')
         return
       }
-      entries.push({ index: i, operationId: operationIds[i], flight: originalInput ?? buildCreateInput(flight) })
+      entries.push({ index: i, operationId: operationIds[i], flight: originalInput ?? buildCreateInput(flight), retryKey: retryEntries ? retryEntries[i]?.retryKey ?? '' : undefined })
     })
 
     if (entries.length > 0) {
@@ -229,7 +230,7 @@ export function ImportPage() {
       const pending = userId ? pendingFlightCreateOperation(userId, operationId) : null
       failedForRetry.push({
         flight, operationId, error: error.message,
-        originalInput: pending?.body as CreateInput | undefined, expired: pending?.expired,
+        originalInput: pending?.body as CreateInput | undefined, retryKey: retryEntries?.[i]?.retryKey ?? pending?.key, expired: pending?.expired,
       })
     })
 

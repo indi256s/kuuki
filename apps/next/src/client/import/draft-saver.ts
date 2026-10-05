@@ -30,6 +30,7 @@ const merge = (a: DraftChange | null, b: DraftChange | null): DraftChange | null
 export class DraftSaver {
   private entries = new Map<string, Entry>()
   private versions = new Map<string, number>()
+  private disposed = false
   constructor(private deps: Deps) {}
 
   private entry(id: string): Entry {
@@ -39,6 +40,7 @@ export class DraftSaver {
   }
 
   private publish(id: string, entry: Entry) {
+    if (this.disposed) return
     const change = merge(entry.flight, entry.unsent)
     if (entry.status === 'idle' || !change) { this.deps.onState(id, null); return }
     this.deps.onState(id, { status: entry.status, unsent: change, failure: entry.failure, rejected: entry.rejected })
@@ -46,6 +48,7 @@ export class DraftSaver {
 
   /** Queue a change. Resolves when this draft has nothing in flight (saved, or parked in an error/conflict state). */
   save(current: Draft, change: DraftChange): Promise<void> {
+    if (this.disposed) return Promise.resolve()
     const entry = this.entry(current.id)
     this.versions.set(current.id, Math.max(this.versions.get(current.id) ?? 0, current.version))
     entry.unsent = merge(entry.unsent, change)
@@ -54,6 +57,7 @@ export class DraftSaver {
   }
 
   retry(id: string): Promise<void> {
+    if (this.disposed) return Promise.resolve()
     const entry = this.entries.get(id)
     if (!entry) return Promise.resolve()
     if (entry.running) return entry.running
@@ -68,22 +72,34 @@ export class DraftSaver {
     this.publish(id, entry)
   }
 
+  /**
+   * The batch this saver belonged to is gone (discarded, cancelled, replaced). Parked and queued edits are dropped and
+   * a request still in flight can no longer report a draft or a state, so nothing leaks into the next import.
+   */
+  dispose() {
+    this.disposed = true
+    this.entries.clear()
+    this.versions.clear()
+  }
+
   hasUnsaved() { return this.unsentIds().length > 0 }
   unsentIds() { return [...this.entries].filter(([, e]) => e.status !== 'idle' || e.unsent || e.flight).map(([id]) => id) }
 
   private run(id: string, entry: Entry): Promise<void> {
     entry.running = (async () => {
-      while (entry.unsent && entry.status === 'idle') {
+      while (entry.unsent && entry.status === 'idle' && !this.disposed) {
         entry.flight = entry.unsent; entry.unsent = null
         entry.status = 'saving'
         this.publish(id, entry)
         const body: DraftPatchBody = { version: this.versions.get(id) ?? 1, ...entry.flight }
         try {
           const saved = await this.deps.patch(id, body)
+          if (this.disposed) return
           this.versions.set(id, saved.version)
           entry.flight = null; entry.status = 'idle'
           this.deps.onDraft(saved)
         } catch (error) {
+          if (this.disposed) return
           const shaped = error as { status?: number; code?: string; body?: { draft?: Draft } }
           entry.unsent = merge(entry.flight, entry.unsent); entry.flight = null
           if (shaped.status === 409 && shaped.code === 'DRAFT_VERSION_CONFLICT' && shaped.body?.draft) {

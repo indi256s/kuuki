@@ -32,18 +32,21 @@ export interface BatchState {
   failure: Failure | null
   /** Rows were kept although recognition stopped early: shown under an explicit "partial" heading. */
   partial: boolean
+  /** Recognition was cancelled by the member and the rows found before that are kept (a stopped, partial review). */
+  cancelled: boolean
 }
 
-const IDLE: BatchState = { phase: 'idle', batch: null, drafts: [], failure: null, partial: false }
+const IDLE: BatchState = { phase: 'idle', batch: null, drafts: [], failure: null, partial: false, cancelled: false }
 
 function fromSnapshot({ batch, drafts }: Snapshot): BatchState {
-  if (batch.expired) return { phase: 'failed', batch, drafts: [], failure: classifyBatchFailure('IMPORT_BATCH_EXPIRED', null), partial: false }
+  if (batch.expired) return { ...IDLE, phase: 'failed', batch, failure: classifyBatchFailure('IMPORT_BATCH_EXPIRED', null) }
   switch (batch.status) {
-    case 'processing': return { phase: 'processing', batch, drafts, failure: null, partial: false }
-    case 'failed': return { phase: 'failed', batch, drafts, failure: classifyBatchFailure(batch.errorCode ?? 'INTERNAL', batch.retryAfter), partial: false }
-    case 'cancelled': return { phase: 'cancelled', batch, drafts: [], failure: null, partial: false }
-    case 'partial': return { phase: 'ready', batch, drafts, failure: classifyBatchFailure(batch.errorCode ?? 'JOB_INTERRUPTED', batch.retryAfter), partial: true }
-    default: return { phase: 'ready', batch, drafts, failure: null, partial: false }
+    case 'processing': return { ...IDLE, phase: 'processing', batch, drafts }
+    case 'failed': return { ...IDLE, phase: 'failed', batch, drafts, failure: classifyBatchFailure(batch.errorCode ?? 'INTERNAL', batch.retryAfter) }
+    // Cancelling stops extraction but keeps the rows already found (ADR 0001 section 9): they stay reachable as a stopped review.
+    case 'cancelled': return drafts.length > 0 ? { ...IDLE, phase: 'ready', batch, drafts, partial: true, cancelled: true } : { ...IDLE, phase: 'cancelled', batch }
+    case 'partial': return { ...IDLE, phase: 'ready', batch, drafts, failure: classifyBatchFailure(batch.errorCode ?? 'JOB_INTERRUPTED', batch.retryAfter), partial: true }
+    default: return { ...IDLE, phase: 'ready', batch, drafts }
   }
 }
 
@@ -69,7 +72,7 @@ export function useImportBatch({ api = defaultBatchApi, initialBatchId, onBatchI
         if (!current()) return
         if (info.reupload && snapshot.batch.status === 'processing') {
           own.abort()
-          setState({ phase: 'failed', batch: snapshot.batch, drafts: snapshot.drafts, failure: classifyBatchFailure('JOB_INTERRUPTED', null), partial: false })
+          setState({ ...IDLE, phase: 'failed', batch: snapshot.batch, drafts: snapshot.drafts, failure: classifyBatchFailure('JOB_INTERRUPTED', null) })
           return
         }
         setState(fromSnapshot(snapshot))

@@ -57,6 +57,16 @@ export function formatDateOnly(locale: Locale, value: string, style: DateStyle =
 }
 
 /**
+ * The calendar day of an instant (an ISO timestamp such as a retention deadline) in the viewer's own time zone, so
+ * "kept until" names the day the member will actually see. `timeZone` is only for tests and server rendering.
+ * Returns the input unchanged if it is not a valid instant.
+ */
+export function formatInstantDate(locale: Locale, value: string, style: DateStyle = 'medium', timeZone?: string): string {
+  const date = new Date(value)
+  return Number.isNaN(date.getTime()) ? value : new Intl.DateTimeFormat(locale, { ...dateOptions[style], ...(timeZone ? { timeZone } : {}) }).format(date)
+}
+
+/**
  * Month and year, e.g. "October 2026" / «октябрь 2026 г.» (Intl's standalone nominative form for Russian).
  * Accepts a Date (read in UTC) or a 'YYYY-MM[-DD]' string (never shifted).
  */
