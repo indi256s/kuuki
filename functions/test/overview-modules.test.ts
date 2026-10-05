@@ -5,6 +5,9 @@ import { describe, expect, it } from 'vitest'
 import { bulkFlights, overviewAccount, readOverviewSummary, USER, at, T0, type OverviewFlight } from './overview-fixture'
 import { createApiDatabase } from './harness'
 import { accountWith } from './country-fixture'
+import { readJournal } from '../api/_services/journal'
+import { parseFlightFilters } from '../api/_lib/flightQuery'
+import { journalHref } from '../../apps/next/src/lib/url-state'
 
 const logged = (id: number, date: string, origin: string, destination: string, extra: Partial<OverviewFlight> = {}): OverviewFlight =>
   ({ id, date, origin, destination, state: 'logged', ...extra })
@@ -271,6 +274,30 @@ describe('data volumes', () => {
       expect(filtered.totals.flights).toBe(1)
       expect(filtered.map.routeCount).toBe(1)
       expect(filtered.comparison?.flights).toEqual({ previous: 0, delta: 1, percent: null })
+    } finally { await dispose() }
+  })
+})
+
+describe('Journal destinations of the statistic links (completed scope)', () => {
+  it('an upcoming flight in the same year and category never enters the linked Journal total', async () => {
+    const flights: OverviewFlight[] = [
+      logged(1, '2026-02-01', 'TBS', 'IST', { airline: 'TK', aircraft: 'A320' }),
+      logged(2, '2026-03-01', 'TBS', 'IST', { airline: 'TK', aircraft: 'A320' }),
+      { id: 3, date: '2026-12-01', origin: 'TBS', destination: 'IST', state: 'upcoming', airline: 'TK', aircraft: 'A320' },
+    ]
+    const { db, dispose } = await overviewAccount(flights)
+    try {
+      const summary = await readOverviewSummary(db, 'period=2026')
+      const total = async (href: string) => (await readJournal(db, USER.id, parseFlightFilters(new URL(href, 'https://kuuki.test').searchParams), { field: 'date', order: 'desc' }, 50, 0)).total
+      expect(summary.topLists.airlines).toEqual([{ id: 'TK', count: 2 }])
+      expect(summary.insights.mostFrequentRoute).toMatchObject({ origin: 'TBS', destination: 'IST', count: 2 })
+      expect(await total(journalHref({ airline: 'TK', year: '2026', status: 'completed' }))).toBe(2)
+      expect(await total(journalHref({ airport: 'IST', year: '2026', status: 'completed' }))).toBe(2)
+      expect(await total(journalHref({ aircraft: 'A320', year: '2026', status: 'completed' }))).toBe(2)
+      expect(await total(journalHref({ origin: 'TBS', destination: 'IST', year: '2026', status: 'completed' }))).toBe(2)
+      expect(await total(journalHref({ year: '2026', status: 'completed' }))).toBe(summary.totals.flights)
+      // Without the status the same link would have counted the upcoming flight (the defect the status prevents).
+      expect(await total(journalHref({ airline: 'TK', year: '2026' }))).toBe(3)
     } finally { await dispose() }
   })
 })

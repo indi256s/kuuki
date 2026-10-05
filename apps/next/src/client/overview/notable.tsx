@@ -14,11 +14,11 @@ export function OverviewNotable({ summary, locale, labels }: { summary: Overview
   const rows: Array<{ key: string; term: string; body: ReactNode }> = []
   if (insights.longestFlight) {
     const { origin, destination, distanceKm } = insights.longestFlight
-    rows.push({ key: 'longest', term: t(S.longest, locale), body: <a href={journalHref({ origin, destination, year })}>{route(origin, destination)} · {formatDistanceKm(locale, distanceKm)}</a> })
+    rows.push({ key: 'longest', term: t(S.longest, locale), body: <a href={journalHref({ origin, destination, year, status: 'completed' })}>{route(origin, destination)} · {formatDistanceKm(locale, distanceKm)}</a> })
   }
   if (insights.mostFrequentRoute) {
     const { origin, destination, count } = insights.mostFrequentRoute
-    rows.push({ key: 'frequent', term: t(S.frequent, locale), body: <a href={journalHref({ origin, destination, year })}>{route(origin, destination)} · {formatCount(locale, count, forms.flights)}</a> })
+    rows.push({ key: 'frequent', term: t(S.frequent, locale), body: <a href={journalHref({ origin, destination, year, status: 'completed' })}>{route(origin, destination)} · {formatCount(locale, count, forms.flights)}</a> })
   }
   if (insights.newCountries && insights.newCountries.count > 0) {
     const { items, count } = insights.newCountries
@@ -27,7 +27,7 @@ export function OverviewNotable({ summary, locale, labels }: { summary: Overview
   }
   if (insights.favoriteAirline) {
     const { id, count } = insights.favoriteAirline
-    rows.push({ key: 'airline', term: t(S.favoriteAirline, locale), body: <a href={journalHref({ airline: id, year })}>{labels.airline(id)} · {formatCount(locale, count, forms.flights)}</a> })
+    rows.push({ key: 'airline', term: t(S.favoriteAirline, locale), body: <a href={journalHref({ airline: id, year, status: 'completed' })}>{labels.airline(id)} · {formatCount(locale, count, forms.flights)}</a> })
   }
   return <section className="read-section" aria-labelledby="ov-notable-title">
     <h2 id="ov-notable-title">{t(S.notable, locale)}</h2>

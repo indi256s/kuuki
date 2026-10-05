@@ -25,14 +25,14 @@ export function OverviewRankings({ summary, locale, labels }: { summary: Overvie
   const { topLists, totals, dataAvailability, period } = summary
   const year = period === 'all' ? undefined : period
   const rows = (list: Array<{ id: string; count: number }>, label: (id: string) => string, link: (id: string) => JournalLink): RankingRow[] =>
-    list.map(row => ({ id: row.id, label: label(row.id), count: row.count, href: journalHref({ ...link(row.id), year }) }))
+    list.map(row => ({ id: row.id, label: label(row.id), count: row.count, href: journalHref({ ...link(row.id), year, status: 'completed' }) }))
   return <section className="read-section" aria-labelledby="ov-rank-title">
     <h2 id="ov-rank-title">{t(S.rankings, locale)}</h2>
     <div className="rank-grid">
-      <Ranking kind="airlines" title={t(S.airlines, locale)} rows={rows(topLists.airlines, labels.airline, id => ({ airline: id }))} flights={totals.flights} locale={locale} allHref={journalHref({ year, sort: 'airline_iata' })} />
-      <Ranking kind="airports" title={t(S.airports, locale)} rows={rows(topLists.airports, labels.airport, id => ({ airport: id }))} flights={totals.flights} locale={locale} allHref={journalHref({ year })} />
+      <Ranking kind="airlines" title={t(S.airlines, locale)} rows={rows(topLists.airlines, labels.airline, id => ({ airline: id }))} flights={totals.flights} locale={locale} allHref={journalHref({ year, status: 'completed', sort: 'airline_iata' })} />
+      <Ranking kind="airports" title={t(S.airports, locale)} rows={rows(topLists.airports, labels.airport, id => ({ airport: id }))} flights={totals.flights} locale={locale} allHref={journalHref({ year, status: 'completed' })} />
       <div className="ov-aircraft">
-        <Ranking kind="aircraft" title={t(S.aircraft, locale)} rows={rows(topLists.aircraft, labels.aircraft, id => ({ aircraft: id }))} flights={totals.flights} locale={locale} allHref={journalHref({ year, sort: 'aircraft_icao' })} />
+        <Ranking kind="aircraft" title={t(S.aircraft, locale)} rows={rows(topLists.aircraft, labels.aircraft, id => ({ aircraft: id }))} flights={totals.flights} locale={locale} allHref={journalHref({ year, status: 'completed', sort: 'aircraft_icao' })} />
         {topLists.manufacturers.length ? <p className="ov-manufacturers"><span className="eyebrow">{t(S.manufacturers, locale)}</span>{' '}{topLists.manufacturers.map(row => `${row.id} (${formatNumber(locale, row.count)})`).join(', ')}</p> : null}
       </div>
     </div>

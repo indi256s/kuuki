@@ -86,7 +86,7 @@ describe('notable', () => {
   it('links routes and the favorite airline to the Journal with the selected year', () => {
     render(<OverviewNotable summary={busySummary(10)} locale="en" labels={fakeLabels} />)
     expect(hrefs(document.body)).toEqual([
-      '/journal?year=2026&origin=JFK&destination=SYD', '/journal?year=2026&origin=TBS&destination=IST', '/journal?year=2026&airline=TK',
+      '/journal?year=2026&status=completed&origin=JFK&destination=SYD', '/journal?year=2026&status=completed&origin=TBS&destination=IST', '/journal?year=2026&status=completed&airline=TK',
     ])
     expect(screen.getByText('New countries in 2026')).toBeInTheDocument()
     expect(screen.getByText(/Country AU \(waiting for a stamp\)/)).toBeInTheDocument()
@@ -100,7 +100,7 @@ describe('notable', () => {
   it('does not list new countries in all time', () => {
     render(<OverviewNotable summary={busySummary(10, 'all')} locale="en" labels={fakeLabels} />)
     expect(screen.queryByText(/New countries/)).toBeNull()
-    expect(hrefs(document.body)[0]).toBe('/journal?origin=JFK&destination=SYD')
+    expect(hrefs(document.body)[0]).toBe('/journal?status=completed&origin=JFK&destination=SYD')
   })
 })
 
@@ -109,9 +109,9 @@ describe('rankings', () => {
     render(<OverviewRankings summary={busySummary(10)} locale="en" labels={fakeLabels} />)
     const airlines = screen.getByRole('region', { name: 'Airlines' })
     expect(within(airlines).getAllByRole('listitem')).toHaveLength(5)
-    expect(hrefs(airlines)).toEqual(['/journal?year=2026&sort=airline_iata', ...['TK', 'PC', 'BA', 'LH', 'AF'].map(code => `/journal?year=2026&airline=${code}`)])
-    expect(hrefs(screen.getByRole('region', { name: 'Airports' }))[1]).toBe('/journal?year=2026&airport=IST')
-    expect(hrefs(screen.getByRole('region', { name: 'Aircraft' }))).toContain('/journal?year=2026&aircraft=A320')
+    expect(hrefs(airlines)).toEqual(['/journal?year=2026&status=completed&sort=airline_iata', ...['TK', 'PC', 'BA', 'LH', 'AF'].map(code => `/journal?year=2026&status=completed&airline=${code}`)])
+    expect(hrefs(screen.getByRole('region', { name: 'Airports' }))[1]).toBe('/journal?year=2026&status=completed&airport=IST')
+    expect(hrefs(screen.getByRole('region', { name: 'Aircraft' }))).toContain('/journal?year=2026&status=completed&aircraft=A320')
     expect(document.querySelector(".ov-manufacturers")).toHaveTextContent("Airbus (6), Boeing (2)")
   })
   it('all time links carry no year', () => {
