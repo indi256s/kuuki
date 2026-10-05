@@ -28,7 +28,6 @@
 .ov-ranking .text-link{color:var(--accent-text);min-height:44px;display:inline-flex;align-items:center}
 .rank-list li{grid-template-columns:minmax(0,1.4fr) minmax(40px,1fr) auto}
 .ov-rank-label{overflow-wrap:anywhere;text-decoration:none;min-height:24px}
-.ov-rank-label:hover{text-decoration:underline}
 .ov-rank-count{font-variant-numeric:tabular-nums;color:var(--text-muted)}
 .ov-sentence a{font-weight:600}
 .ov-manufacturers{margin:var(--space-3) 0 0;color:var(--text-muted);font-size:13px}
@@ -36,7 +35,7 @@
 
 .ov-months{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:var(--space-2);margin:0;padding:0;list-style:none;height:150px;align-items:end}
 .ov-months li{height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:var(--space-2);min-width:0}
-.ov-bar{display:block;width:60%;min-width:8px;max-height:110px;background:var(--accent);border-radius:4px 4px 0 0}
+.ov-bar{display:block;width:60%;min-width:8px;max-height:110px;background:var(--accent);border-radius:var(--radius-xs) var(--radius-xs) 0 0}
 .ov-months li[data-empty=true] .ov-bar{height:2px!important;background:var(--hairline)}
 .ov-month-label{font-size:12px;color:var(--text-muted)}
 .ov-regions-title{margin:var(--space-4) 0 0}
@@ -57,3 +56,6 @@
 @media(max-width:420px){.rank-list li{grid-template-columns:minmax(0,1fr) auto}.rank-list .rank-track{display:none}}
 
 .ov-review.import-page{max-width:none;padding:0}
+
+@media (hover:hover) and (pointer:fine){
+.ov-rank-label:hover{text-decoration:underline}}

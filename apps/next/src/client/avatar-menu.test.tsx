@@ -13,6 +13,14 @@ vi.mock('./activity', () => ({ trackPrivateOperation: () => () => undefined, wit
 describe('AvatarMenu', () => {
   beforeEach(() => { patch.mockReset(); refresh.mockReset(); patch.mockResolvedValue({}) })
 
+  it('uses the reactive profile fallback without changing the accessible account trigger', () => {
+    render(<AvatarMenu id="owner-1" username="ana" displayName="Ana" isPublic />)
+    const trigger = screen.getByRole('button', { name: 'Account menu' })
+    expect(trigger.querySelector('.profile-avatar [data-facehash]')).not.toBeNull()
+    expect(trigger.querySelector('[data-interactive]')).not.toBeNull()
+    expect(trigger).not.toHaveTextContent('A')
+  })
+
   it('opens with Enter, moves with arrows and Escape returns focus to the trigger', async () => {
     const user = userEvent.setup()
     render(<AvatarMenu username="ana" isPublic />)
