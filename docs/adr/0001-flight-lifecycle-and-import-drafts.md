@@ -444,7 +444,9 @@ Both are additive (no DROP or rename), and the numbers are rechecked against the
 
 **Fairness and catch-up.** Work is ordered by due instant and capped per user; the stored deadline is the cursor. Missed days and outages catch up without moving eligibility, and the cron runs every 5 minutes (`wrangler.toml:6`).
 
-**Production state.** Both checked-in configs keep `MAINTENANCE_MODE = "true"`, and no task flips production. While the cron is held, the Next member shell's owner sync (§2, R1) is the only path for both due transitions. It runs when a member uses the app, and a member who never visits keeps upcoming flights until the cron is enabled. T09 ships preview-enablement steps only.
+**Repair cap (T09).** Step 4 repairs up to 200 stale users per cycle, up from the previous 100. Steps 2 and 3 can dirty up to 100 users (50 per direction), and the repair selects oldest `updated_at` first, so with a cap of 100 any earlier leftovers would push exactly those freshly dirtied users out of the pass and make the cycle fail on remaining dirty users. 200 leaves room for both.
+
+**Production state.** `workers/maintenance/wrangler.toml` keeps `MAINTENANCE_MODE = "true"` (the cron is held; default and `preview`). The Pages and Next configs (`wrangler.toml`, `apps/next/wrangler.toml`) carry `"false"`, which for them means normal serving (`"true"` would be an application-wide hold applied at deploy time). No task changes any of the three. While the cron is held, the Next member shell's owner sync (§2, R1) is the only path for both due transitions. It runs when a member uses the app, and a member who never visits keeps upcoming flights until the cron is enabled. T09 ships preview-enablement steps only.
 
 ### 9. Recognition job runtime (C5, A6): option (a) decided
 
