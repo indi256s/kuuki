@@ -1,6 +1,6 @@
 /** Airport label collision gate: labels appear only from `LABEL_MIN_ZOOM`, and never overlap each other or leave the canvas. */
 export const LABEL_MIN_ZOOM = 2.5
-/** IATA codes in 12px mono: three glyphs plus padding. */
+/** The rendered label box (renderer.tsx applies it inline): three IATA glyphs at .7rem with room to spare. */
 export const LABEL_SIZE = { width: 34, height: 18 }
 const GAP = 2
 

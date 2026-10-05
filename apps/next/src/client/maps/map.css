@@ -11,7 +11,8 @@
 .route-map-canvas { width: 100%; aspect-ratio: 16 / 10; min-height: 240px; max-height: 70vh; border-radius: .75rem; overflow: hidden; background: color-mix(in srgb, currentColor 5%, transparent); }
 .route-map-stage[data-ready="false"] .route-map-canvas { visibility: hidden; }
 .route-map-labels { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
-.route-map-labels span { position: absolute; top: 0; left: 0; margin: -22px 0 0 -17px; width: 34px; text-align: center; font-size: .7rem; font-weight: 600; font-variant-numeric: tabular-nums; color: var(--text); text-shadow: 0 0 2px var(--surface), 0 0 2px var(--surface); }
+/* Each label's box (position and size) comes inline from the collision gate in labels.ts; nothing here may offset or resize it. */
+.route-map-labels span { position: absolute; top: 0; left: 0; box-sizing: border-box; overflow: hidden; white-space: nowrap; text-align: center; font-size: .7rem; font-weight: 600; font-variant-numeric: tabular-nums; color: var(--text); text-shadow: 0 0 2px var(--surface), 0 0 2px var(--surface); }
 .route-map-line { display: inline-block; width: 18px; min-height: 1px; border-radius: 99px; background: var(--map-route); vertical-align: middle; }
 .route-map-note { margin: 0; color: var(--text-muted); font-size: .9rem; }
 .route-map-controls { position: absolute; top: .75rem; right: .75rem; }

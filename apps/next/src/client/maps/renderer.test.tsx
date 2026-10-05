@@ -95,3 +95,31 @@ describe('batched route rendering', () => {
     expect(map.setFilter).toHaveBeenLastCalledWith('routes-selected', ['==', ['get', 'id'], 'A1-B1'])
   })
 })
+
+describe('airport labels', () => {
+  it('renders an admitted label at exactly the box the collision gate measured, even at the viewport edge', async () => {
+    const { LABEL_SIZE } = await import('./labels')
+    const { map } = fakeMap()
+    const container = document.createElement('div')
+    Object.defineProperties(container, { clientWidth: { value: 400 }, clientHeight: { value: 300 } })
+    Object.assign(map, { getZoom: () => 3, getContainer: () => container })
+    vi.stubGlobal('requestAnimationFrame', (callback: FrameRequestCallback) => { callback(0); return 1 })
+    vi.stubGlobal('cancelAnimationFrame', () => {})
+    // The point sits where its label box starts at the top-left corner: (17, 24) → box (0, 0)–(34, 18).
+    const edge: ProjectedRoute = { origin: 'EDG', destination: 'FAR', originCountry: 'US', destinationCountry: 'JP', count: 2, lastDate: '2026-01-01', from: [17, 24], to: [200, 150] }
+    const host = document.createElement('div')
+    root = createRoot(host)
+    act(() => root!.render(<MapContext.Provider value={{ map: map as never, ready: true, themeRevision: 0 }}><AirportLayer routes={[edge]} layer="routes" /></MapContext.Provider>))
+    const label = [...host.querySelectorAll<HTMLElement>('.route-map-labels span')].find(node => node.textContent === 'EDG')!
+    expect(label.style.transform).toBe('translate(0px, 0px)')
+    expect([label.style.width, label.style.height, label.style.lineHeight]).toEqual([`${LABEL_SIZE.width}px`, `${LABEL_SIZE.height}px`, `${LABEL_SIZE.height}px`])
+    vi.unstubAllGlobals()
+  })
+
+  it('adds no second offset or box in the stylesheet', async () => {
+    const [{ readFileSync }, { URL: NodeURL, fileURLToPath }] = await Promise.all([import('node:fs'), import('node:url')])
+    const css = readFileSync(fileURLToPath(new NodeURL('./map.css', import.meta.url)), 'utf8')
+    const rule = /\.route-map-labels span\s*\{([^}]*)\}/.exec(css)![1]
+    expect(rule).not.toMatch(/margin|padding|(?:^|[;\s])(?:border|width|height|line-height)\s*:/)
+  })
+})

@@ -4,7 +4,7 @@ import type * as GL from 'maplibre-gl'
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { Map as MapCanvas, MapGeoJSON, useMap } from './mapcn'
 import { WORLD_BOUNDS, routeGeometry, wrappedBounds } from './geometry'
-import { placeLabels, type PlacedLabel } from './labels'
+import { LABEL_SIZE, placeLabels, type PlacedLabel } from './labels'
 import type { CountryVisit, MapLocale } from './preview'
 import type { ProjectedRoute } from './types'
 import { resolveColor } from './resolve-color'
@@ -163,7 +163,7 @@ export function AirportLayer({ routes, layer }: { routes: ProjectedRoute[]; laye
     return () => { cancelAnimationFrame(frame); map.off('move', update) }
   }, [map, ready, airports, layer])
   return labels.length ? <div className="route-map-labels" aria-hidden="true">
-    {labels.map(label => <span key={label.id} style={{ transform: `translate(${label.x}px, ${label.y}px)` }}>{label.id}</span>)}
+    {labels.map(label => <span key={label.id} style={{ transform: `translate(${label.x}px, ${label.y}px)`, width: LABEL_SIZE.width, height: LABEL_SIZE.height, lineHeight: `${LABEL_SIZE.height}px` }}>{label.id}</span>)}
   </div> : null
 }
 
