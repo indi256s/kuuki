@@ -29,6 +29,10 @@ function Inner({ ownerId, locale, initial, period }: { ownerId: string; locale: 
   const mobile = useMobile()
   const [adding, setAdding] = useState(false)
   const [notice, setNotice] = useState('')
+  // A pending slot resolving its arrival card: shown while the evidence loads, dropped when the member leaves or acts.
+  const [opening, setOpening] = useState<string | null>(null)
+  const arrivalIntent = useRef<{ code: string } | null>(null)
+  useEffect(() => () => { arrivalIntent.current = null }, [])
   // Countries added in this session press onto the grid once (Stamp keeps the per-ID memory).
   const [pressed, setPressed] = useState<ReadonlyMap<string, string>>(new Map())
   const [now] = useState(() => new Date())
@@ -68,6 +72,7 @@ function Inner({ ownerId, locale, initial, period }: { ownerId: string; locale: 
   // C1: view is a mode (a history entry and H1 focus, via the router); sort, layer and the detail sheet replace the
   // entry in place. Native replaceState keeps useSearchParams in sync without a server round trip.
   const navigate = useCallback((patch: Patch, mode: 'push' | 'replace' = 'replace') => {
+    arrivalIntent.current = null; setOpening(null)
     const params = new URLSearchParams(search.toString())
     for (const [key, value] of Object.entries(patch)) { if (value) params.set(key, value); else params.delete(key) }
     const href = withQuery('/passport', normalizePassportQuery(params, isCatalogCountry).query)
@@ -82,10 +87,20 @@ function Inner({ ownerId, locale, initial, period }: { ownerId: string; locale: 
   }, [navigate])
 
   // A pending slot's arrival card comes from the country's published evidence, not from the queue page's flags.
+  // Repeated activation of the same slot is ignored; a newer activation, any other navigation or leaving the page
+  // supersedes it, so a late read never pulls the member away.
   async function openArrival(code: string) {
+    if (arrivalIntent.current?.code === code) return
+    const intent = { code }
+    arrivalIntent.current = intent
+    setOpening(code)
     const flight = await queryClient.fetchQuery(countryDetailQuery(ownerId, code)).then(arrivalFlightId, () => null)
+    if (arrivalIntent.current !== intent) return
+    arrivalIntent.current = null
+    setOpening(null)
     router.push(arrivalHref(flight))
   }
+  const startAdding = () => { arrivalIntent.current = null; setOpening(null); setAdding(true) }
 
   async function changed(code: string, added: boolean) {
     if (added) setPressed(current => new Map(current).set(code, `added:${code}:${Date.now()}`))
@@ -116,8 +131,10 @@ function Inner({ ownerId, locale, initial, period }: { ownerId: string; locale: 
       : 'Recent changes are still being prepared. Stamps may lag behind saved flights.'}</p>}
     {collection.isError && <p role="alert" className="status-note">{ru ? 'Не удалось обновить паспорт. Показаны последние загруженные места.' : 'Could not refresh your passport. Showing the last loaded places.'}{' '}
       <button type="button" onClick={() => void collection.refetch()}>{ru ? 'Повторить' : 'Try again'}</button></p>}
-    <PassportCover locale={locale} figures={figures} regions={data.regions} name={name} onAdd={() => setAdding(true)} now={now} />
-    <p role="status" className="passport-caption">{notice}</p>
+    <PassportCover locale={locale} figures={figures} regions={data.regions} name={name} onAdd={startAdding} now={now} />
+    <p role="status" className="passport-caption">{opening
+      ? (ru ? `Открываем карточку прилёта: ${name(opening)}…` : `Opening the arrival card for ${name(opening)}…`)
+      : notice}</p>
     <div className="passport-toolbar">
       <SegmentedControl label={ru ? 'Вид паспорта' : 'Passport view'} value={state.view} onChange={view => navigate({ view: view === 'stamps' ? null : view }, 'push')}
         options={[{ value: 'stamps', label: ru ? 'Штампы' : 'Stamps' }, { value: 'map', label: ru ? 'Карта' : 'Map' }]} />
@@ -131,10 +148,10 @@ function Inner({ ownerId, locale, initial, period }: { ownerId: string; locale: 
         onLayerChange={(layer: MapLayer) => navigate({ layer: layer === 'countries' ? null : layer })}
         describeCountry={visit => visit.pending ? (ru ? ' · ждёт отметки' : ' · waiting for confirmation') : null} />
       : entries.length === 0
-        ? <EmptyPassport locale={locale} onAdd={() => setAdding(true)} />
+        ? <EmptyPassport locale={locale} onAdd={startAdding} />
         : <>
           <StampKey locale={locale} />
-          <StampGroups groups={groups} locale={locale} name={name} onOpen={openCountry} onOpenArrival={openArrival} pressed={pressed} now={now} />
+          <StampGroups groups={groups} locale={locale} name={name} onOpen={openCountry} onOpenArrival={code => void openArrival(code)} opening={opening} pressed={pressed} now={now} />
         </>}
     {mobile === null ? null : <>
       <CountrySheet ownerId={ownerId} locale={locale} code={state.country} entry={entries.find(entry => entry.code === state.country)} publishedRevision={data.publishedRevision} mobile={mobile}

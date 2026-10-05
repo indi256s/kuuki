@@ -78,11 +78,13 @@ export function PassportCover({ locale, figures, regions, name, onAdd, now }: {
 }
 
 /** Region groups (H2 with a count), each a grid whose columns follow its own width (passport.css). */
-export function StampGroups({ groups, locale, name, onOpen, onOpenArrival, pressed, now }: {
+export function StampGroups({ groups, locale, name, onOpen, onOpenArrival, opening = null, pressed, now }: {
   groups: RegionGroup[]; locale: Locale; name: (code: string) => string
   onOpen: (code: string) => void
   /** A pending slot resolves its arrival card from the country's evidence; the href is the queue fallback. */
   onOpenArrival: (code: string) => void
+  /** The pending slot whose arrival card is being resolved: busy, and not activated again. */
+  opening?: string | null
   pressed: ReadonlyMap<string, string>; now: Date
 }) {
   const ru = locale === 'ru'
@@ -97,8 +99,12 @@ export function StampGroups({ groups, locale, name, onOpen, onOpenArrival, press
           return <li key={entry.code} className="passport-cell" data-status={entry.status}>
             <Stamp {...stampProps(entry, locale, name)} caption={caption} static={!press} pressEventId={press} />
             {entry.status === 'pending'
-              ? <a className="passport-cell-action" href={AWAITING_QUEUE_HREF}
-                onClick={event => { if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return; event.preventDefault(); onOpenArrival(entry.code) }}
+              ? <a className="passport-cell-action" href={AWAITING_QUEUE_HREF} aria-busy={opening === entry.code || undefined}
+                onClick={event => {
+                  if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
+                  event.preventDefault()
+                  if (opening !== entry.code) onOpenArrival(entry.code)
+                }}
                 aria-label={ru ? `${name(entry.code)}: ждёт отметки. Открыть карточку прилёта` : `${name(entry.code)}: waiting for confirmation. Open the arrival card`} />
               : <button type="button" className="passport-cell-action" aria-label={label} onClick={() => onOpen(entry.code)} />}
           </li>
