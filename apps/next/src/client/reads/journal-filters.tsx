@@ -61,24 +61,44 @@ type Props = {
   apply: (changes: Change) => boolean
   /** True while a navigation started by `apply` has not settled. */
   navigating: boolean
+  /** The latest explicit navigation by the member (Reset, Back, Forward): its destination query, and a serial that changes with every one. */
+  external: { query: string; serial: number }
+  /** Called when the member follows this component's Reset link, with its destination query. */
+  onExternal: (query: string) => void
 }
 
-export function JournalFilters({ locale, query, filtered, apply, navigating }: Props) {
+const textValues = (query: string): Values => {
+  const params = new URLSearchParams(query)
+  const values: Values = { q: params.get('q') ?? '' }
+  for (const key of TEXT_KEYS) values[key] = params.get(key) ?? ''
+  return values
+}
+
+export function JournalFilters({ locale, query, filtered, apply, navigating, external, onExternal }: Props) {
   const t = text[locale]
   const base = useId()
   const params = new URLSearchParams(query)
-  const urlValues: Values = { q: params.get('q') ?? '' }
-  for (const key of TEXT_KEYS) urlValues[key] = params.get(key) ?? ''
+  const urlValues = textValues(query)
   const [drafts, setDrafts] = useState<Values>(urlValues)
   const [touched, setTouched] = useState<Record<string, boolean>>({})
   // Who changed the URL is told by the page, not guessed from values. While a navigation this component requested is pending (`navigating`, a router
   // transition), URL changes are its own responses or their intermediate steps, so the drafts stay. Once it settles, `sent` is dropped and any later
-  // URL change (Back, Forward, Reset, a link) is external and replaces the drafts of the fields it touched.
+  // URL change (a link elsewhere) is external and replaces the drafts of the fields it touched.
+  // Reset, Back and Forward are announced by the page as they start (`external`): their destination replaces every draft at once and drops `sent`, so a
+  // navigation of ours that they supersede no longer counts, and the URL they bring is already known when it arrives.
   const [sent, setSent] = useState<Record<string, string>>({})
   const [lastUrl, setLastUrl] = useState(urlValues)
   const [seen, setSeen] = useState(query)
   const [wasNavigating, setWasNavigating] = useState(navigating)
-  if (seen !== query || wasNavigating !== navigating) {
+  const [adopted, setAdopted] = useState(external.serial)
+  if (adopted !== external.serial) {
+    const target = textValues(external.query)
+    setAdopted(external.serial)
+    setDrafts(old => ({ ...old, ...target }))
+    setTouched({})
+    setSent({})
+    setLastUrl(target)
+  } else if (seen !== query || wasNavigating !== navigating) {
     const awaiting = Object.keys(sent).length > 0
     if (seen !== query) {
       setSeen(query)
@@ -187,7 +207,7 @@ export function JournalFilters({ locale, query, filtered, apply, navigating }: P
       <div className="journal-filter-fields journal-filters-desktop">{desktop}</div>
     </form>
     <Sheet open={open} onOpenChange={openSheet} title={t.filters} closeLabel={t.close} trigger={<Button className="journal-filters-trigger">{t.filters}</Button>} footer={<Button variant="primary" onClick={applyStaged}>{t.apply}</Button>}>{mobile}</Sheet>
-    {filtered && <Link className="text-link" href={withQuery('/journal', resetJournalFilters(query))}>{t.reset}</Link>}
+    {filtered && <Link className="text-link" href={withQuery('/journal', resetJournalFilters(query))} onNavigate={() => onExternal(resetJournalFilters(query))}>{t.reset}</Link>}
   </div>
 }
 

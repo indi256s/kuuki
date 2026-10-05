@@ -13,6 +13,17 @@ import { api } from '../../../../web/src/lib/apiClient'
 
 const nav = vi.hoisted(() => ({ push: vi.fn(), replace: vi.fn(), refresh: vi.fn(), set: vi.fn<(query: string) => void>() }))
 vi.mock('next/navigation', () => ({ useRouter: () => nav }))
+// The real Link needs a mounted App Router. This one keeps its click contract: a plain click calls `onNavigate`, then navigates like `router.push`.
+vi.mock('next/link', () => ({
+  default: ({ href, onNavigate, children, ...rest }: { href: string; onNavigate?: (event: { preventDefault: () => void }) => void; children: React.ReactNode; className?: string }) =>
+    <a href={href} {...rest} onClick={event => {
+      if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
+      event.preventDefault()
+      let prevented = false
+      onNavigate?.({ preventDefault: () => { prevented = true } })
+      if (!prevented) nav.push(href)
+    }}>{children}</a>,
+}))
 vi.mock('../activity', () => ({ trackPrivateOperation: () => () => {} }))
 vi.mock('../ui/use-mobile', () => ({ useMobile: () => false }))
 vi.mock('./journal-queue', () => ({
@@ -56,7 +67,7 @@ beforeEach(() => {
   vi.mocked(api.delete).mockReset().mockResolvedValue({ derived_state: 'ready' })
   vi.mocked(api.post).mockReset().mockResolvedValue({ derived_state: 'ready' })
 })
-afterEach(() => { vi.useRealTimers(); vi.restoreAllMocks() })
+afterEach(() => { vi.useRealTimers(); vi.restoreAllMocks(); window.history.replaceState(null, '', '/') })
 
 it('refetches derived readiness with one /api/flights request, even with equal revisions', async () => {
   // `/api/flights` carries the shared Journal contract, including the current derived state, so no separate derived-state read is made.
@@ -277,6 +288,71 @@ describe('filters', () => {
     await user.type(screen.getByRole('searchbox'), 'x{Enter}')
     expect(hrefQuery(nav.push.mock.calls.at(-1)![0])).toBe('q=x')
     await router.deliver('q=x', true)
+  })
+
+  it('adopts Reset clicked while its own filter navigation is pending, and Search then keeps the reset state', async () => {
+    const user = userEvent.setup()
+    const router = slowRouter()
+    render(<Harness start="airline=TK" />)
+    const airline = screen.getByRole('textbox', { name: 'Airline' })
+    await user.clear(airline)
+    await user.type(airline, 'aa')
+    await user.tab()
+    expect(hrefQuery([...nav.push.mock.calls, ...nav.replace.mock.calls].at(-1)![0])).toBe('airline=AA') // not answered yet
+    await user.click(screen.getByRole('link', { name: 'Reset filters' }))
+    await router.deliver('', true) // Reset supersedes the pending navigation; only its URL arrives
+    expect(airline).toHaveValue('')
+    nav.push.mockClear(); nav.replace.mockClear()
+    await user.type(screen.getByRole('searchbox'), 'x{Enter}')
+    expect([...nav.push.mock.calls, ...nav.replace.mock.calls].map(call => hrefQuery(call[0]))).toEqual(['q=x'])
+    await router.deliver('q=x', true)
+  })
+
+  it('adopts the empty-result Reset clicked while its own filter navigation is pending', async () => {
+    const user = userEvent.setup()
+    const router = slowRouter()
+    render(<Harness start="airline=ZZ" flights={[]} total={0} />)
+    const airline = screen.getByRole('textbox', { name: 'Airline' })
+    await user.clear(airline)
+    await user.type(airline, 'aa')
+    await user.tab()
+    const [, emptyReset] = screen.getAllByRole('link', { name: 'Reset filters' })
+    expect(emptyReset).toHaveClass('button')
+    await user.click(emptyReset)
+    await router.deliver('', true)
+    expect(airline).toHaveValue('')
+  })
+
+  it('adopts Back taken while its own filter navigation is pending, even to the URL that is still rendered', async () => {
+    const user = userEvent.setup()
+    const router = slowRouter()
+    window.history.replaceState(null, '', '/journal')
+    render(<Harness />)
+    const airline = screen.getByRole('textbox', { name: 'Airline' })
+    await user.type(airline, 'aa')
+    await user.tab()
+    expect(hrefQuery(nav.push.mock.calls.at(-1)![0])).toBe('airline=AA') // not answered yet
+    await act(async () => { window.dispatchEvent(new PopStateEvent('popstate')) }) // Back: the browser is already on /journal
+    await router.deliver('', true) // the rendered URL does not change
+    expect(airline).toHaveValue('')
+    nav.push.mockClear(); nav.replace.mockClear()
+    await user.type(screen.getByRole('searchbox'), 'x{Enter}')
+    expect([...nav.push.mock.calls, ...nav.replace.mock.calls].map(call => hrefQuery(call[0]))).toEqual(['q=x'])
+    await router.deliver('q=x', true)
+  })
+
+  it('adopts Forward to another filter taken while its own filter navigation is pending', async () => {
+    const user = userEvent.setup()
+    const router = slowRouter()
+    render(<Harness start="airline=TK" />)
+    const airline = screen.getByRole('textbox', { name: 'Airline' })
+    await user.clear(airline)
+    await user.type(airline, 'aa')
+    await user.tab()
+    window.history.replaceState(null, '', '/journal?airline=LH')
+    await act(async () => { window.dispatchEvent(new PopStateEvent('popstate')) })
+    await router.deliver('airline=LH', true)
+    expect(airline).toHaveValue('LH')
   })
 
   it('adopts an external URL change (Reset, Back) but not its own navigation', () => {

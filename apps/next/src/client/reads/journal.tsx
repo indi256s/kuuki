@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useId, useRef, useState, useTransition } from 'react'
+import { useCallback, useEffect, useId, useRef, useState, useTransition } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { ArrowDown, ArrowUp } from 'lucide-react'
@@ -149,6 +149,20 @@ function JournalInner({ ownerId, locale, initial, query, page, filtered }: Props
     startNavigation(() => router[mode === 'replace' || (mode === 'refine' && refine) ? 'replace' : 'push'](withQuery('/journal', target), { scroll: false }))
     return true
   }
+  // Reset links and Back/Forward are the member's own explicit navigations. Their destination replaces the filter drafts and the base for the next
+  // change at once, even while a navigation started by `apply` is pending (it is superseded) and even when the destination is the URL still rendered.
+  const [external, setExternal] = useState({ query, serial: 0 })
+  const navigateExternally = useCallback((target: string) => {
+    const normalized = normalizeJournalQuery(new URLSearchParams(target)).query
+    requested.current = normalized
+    setExternal(old => ({ query: normalized, serial: old.serial + 1 }))
+  }, [])
+  useEffect(() => {
+    // The browser is already on the entry when popstate fires; Next restores it from there.
+    const traverse = () => { if (window.location.pathname === '/journal') navigateExternally(window.location.search) }
+    window.addEventListener('popstate', traverse)
+    return () => window.removeEventListener('popstate', traverse)
+  }, [navigateExternally])
   const navigate = (key: string, value: string, mode: 'push' | 'replace' = 'push') => apply({ [key]: value }, mode)
   const open = (id: number, edit = false, field?: 'aircraft') => { setEditing(edit); setFocusField(field); navigate('flight', String(id)) }
   const sheetFlight = params.has('flight') ? Number(params.get('flight')) : null
@@ -219,12 +233,12 @@ function JournalInner({ ownerId, locale, initial, query, page, filtered }: Props
     <JournalQueue ownerId={ownerId} locale={locale} filtered={filtered} hiddenIds={hidden} onEdit={id => open(id, true)} onDelete={ids => scheduleDelete(ids, 'queue')} />
     <section className="read-section">
       <h2 ref={listHeading} tabIndex={-1}>{locale === 'ru' ? 'Перелёты' : 'Flights'}</h2>
-      <JournalFilters locale={locale} query={query} filtered={filtered} navigating={navigating} apply={changes => apply(changes, 'refine')} />
+      <JournalFilters locale={locale} query={query} filtered={filtered} navigating={navigating} apply={changes => apply(changes, 'refine')} external={external} onExternal={navigateExternally} />
       {!online && <p id={offlineId} className="status-note">{t.offline}</p>}
       {data && isPublicationPending(data.revision, data.publishedRevision, data.derivedState) && <p role="status" className="status-note">{t.pending}</p>}
       {list.isError && <p role="alert" className="status-note">{t.backgroundError} <Button dense onClick={() => void list.refetch()}>{t.retry}</Button></p>}
       {data && <><p className="muted">{formatCount(locale, data.total, countForms)}{list.isFetching && <span aria-hidden="true"> · …</span>}</p>
-        {data.flights.length === 0 ? <div className="read-panel empty-panel"><h3>{data.total > 0 && !filtered ? t.pageEmpty : filtered ? t.filtered : t.empty}</h3>{data.total > 0 && !filtered ? <Link className="button secondary" href={withQuery('/journal', withoutPage)}>{t.firstPage}</Link> : filtered ? <Link className="button secondary" href={withQuery('/journal', resetJournalFilters(query))}>{t.reset}</Link> : <div className="read-actions"><Link className="button primary" href="/import">{t.importFlights}</Link><Link className="button secondary" href="/add">{locale === 'ru' ? 'Добавить перелёт' : 'Add a flight'}</Link></div>}</div> : <>
+        {data.flights.length === 0 ? <div className="read-panel empty-panel"><h3>{data.total > 0 && !filtered ? t.pageEmpty : filtered ? t.filtered : t.empty}</h3>{data.total > 0 && !filtered ? <Link className="button secondary" href={withQuery('/journal', withoutPage)}>{t.firstPage}</Link> : filtered ? <Link className="button secondary" href={withQuery('/journal', resetJournalFilters(query))} onNavigate={() => navigateExternally(resetJournalFilters(query))}>{t.reset}</Link> : <div className="read-actions"><Link className="button primary" href="/import">{t.importFlights}</Link><Link className="button secondary" href="/add">{locale === 'ru' ? 'Добавить перелёт' : 'Add a flight'}</Link></div>}</div> : <>
           <div className="read-actions"><Button loading={selecting} loadingLabel={t.selectAll} disabled={!online} aria-describedby={!online ? offlineId : undefined} onClick={() => void selectAll()}>{t.selectAll}</Button>{selected.length > 0 && <Button onClick={() => select([])}>{t.clear}</Button>}</div>
           {selectionError && <p role="alert">{locale === 'ru' ? 'Не удалось выбрать все перелёты. Повторите.' : 'Could not select all flights. Try again.'}</p>}
           <div className="journal-sort-headers" role="group" aria-label={t.sort}>{[['date', t.date], ['origin', t.origin], ['destination', t.destination], ['airline_iata', t.airline], ['aircraft_icao', t.aircraft], ['duration_minutes', t.duration], ['distance_km', t.distance]].map(([key, label]) => sortButton(key, label))}</div>
