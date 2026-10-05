@@ -57,7 +57,7 @@ describe('AircraftPanel', () => {
     render(<AircraftPanel locale="en" targets={targets} onSaved={onSaved} api={api(vi.fn(async () => { throw new TypeError('Failed to fetch') }))} />)
     await user.click(screen.getByRole('button', { name: /identify aircraft/i }))
     await user.click(await screen.findByRole('button', { name: /save 2 aircraft/i }))
-    await waitFor(() => expect(screen.getAllByText(/may not be saved/i).length).toBe(2))
+    await waitFor(() => expect(within(screen.getAllByRole('list')[0]).getAllByText(/may not be saved/i).length).toBe(2))
     expect(onSaved).not.toHaveBeenCalled()
     expect(screen.queryByText('Saved')).not.toBeInTheDocument()
   })
@@ -69,5 +69,85 @@ describe('AircraftPanel', () => {
     await user.click(screen.getByRole('button', { name: /identify aircraft/i }))
     expect(await screen.findByRole('alert')).toHaveTextContent(/too many requests/i)
     expect(screen.getByRole('button', { name: /search again/i })).toBeInTheDocument()
+  })
+
+  describe('result announcements', () => {
+    const open = async (accept: AircraftApi['accept'], locale: 'en' | 'ru' = 'en') => {
+      const user = userEvent.setup()
+      render(<AircraftPanel locale={locale} targets={targets} onSaved={vi.fn()} api={api(accept)} />)
+      await user.click(screen.getByRole('button', { name: locale === 'ru' ? /определить самолёты/i : /identify aircraft/i }))
+      await screen.findByRole('checkbox', { name: locale === 'ru' ? /снять выбор/i : /deselect all/i })
+      return user
+    }
+    const failedAll = async (): Promise<AircraftAccept> => ({ results: [
+      { id: 1, status: 'error', http_status: 400, code: 'UNKNOWN_AIRCRAFT', error: 'no' },
+      { id: 2, status: 'error', http_status: 404, code: 'NOT_FOUND', error: 'gone' },
+    ] })
+
+    it('announces an all-failed submission assertively with its count and keeps the row details', async () => {
+      const user = await open(vi.fn(failedAll))
+      expect(screen.getByRole('alert')).toBeEmptyDOMElement()
+      await user.click(screen.getByRole('button', { name: /save 2 aircraft/i }))
+      await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent('Not saved: 2'))
+      expect(screen.getByRole('status')).toBeEmptyDOMElement()
+      expect(within(screen.getAllByRole('listitem')[0]).getByText(/not saved · UNKNOWN_AIRCRAFT/i)).toBeInTheDocument()
+    })
+
+    it('announces an all-uncertain submission assertively with the retry guidance', async () => {
+      const user = await open(vi.fn(async () => { throw new TypeError('Failed to fetch') }))
+      await user.click(screen.getByRole('button', { name: /save 2 aircraft/i }))
+      await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent('May not be saved: 2. We did not get an answer'))
+      expect(screen.getByRole('status')).toBeEmptyDOMElement()
+    })
+
+    it('announces a mixed submission politely with every count and nothing assertive', async () => {
+      const user = await open(vi.fn(async (): Promise<AircraftAccept> => ({ results: [
+        { id: 1, status: 'accepted', flight: { id: 1, aircraft_icao: 'B738' } },
+        { id: 2, status: 'error', http_status: 400, code: 'UNKNOWN_AIRCRAFT', error: 'no' },
+      ] })))
+      await user.click(screen.getByRole('button', { name: /save 2 aircraft/i }))
+      await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('Saved: 1 · Not saved: 1'))
+      expect(screen.getByRole('alert')).toBeEmptyDOMElement()
+    })
+
+    it('announces in Russian', async () => {
+      const user = await open(vi.fn(failedAll), 'ru')
+      await user.click(screen.getByRole('button', { name: /сохранить 2 самолёта/i }))
+      await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent('Не сохранено: 2'))
+    })
+
+    it('describes only the current submission: an unsuccessful retry after a mixed result moves to the alert', async () => {
+      const accept = vi.fn()
+        .mockResolvedValueOnce({ results: [
+          { id: 1, status: 'accepted', flight: { id: 1, aircraft_icao: 'B738' } },
+          { id: 2, status: 'error', http_status: 503, code: 'UNAVAILABLE', error: 'later' },
+        ] })
+        .mockResolvedValueOnce({ results: [{ id: 2, status: 'error', http_status: 503, code: 'UNAVAILABLE', error: 'later' }] })
+      const user = await open(accept)
+      await user.click(screen.getByRole('button', { name: /save 2 aircraft/i }))
+      await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('Saved: 1 · Not saved: 1'))
+      await user.click(screen.getByRole('button', { name: /try again for the rest/i }))
+      await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent('Not saved: 1'))
+      expect(screen.getByRole('alert')).not.toHaveTextContent('Saved: 1')
+      expect(screen.getByRole('status')).toBeEmptyDOMElement()
+    })
+
+    it('clears the announcement while a retry runs so an identical result is announced again', async () => {
+      let release!: () => void
+      const gate = new Promise<void>(resolve => { release = resolve })
+      const accept = vi.fn()
+        .mockImplementationOnce(async () => { throw new TypeError('Failed to fetch') })
+        .mockImplementationOnce(async () => { await gate; throw new TypeError('Failed to fetch') })
+      const user = await open(accept)
+      await user.click(screen.getByRole('button', { name: /save 2 aircraft/i }))
+      await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent('May not be saved: 2'))
+      const first = screen.getByRole('alert').textContent
+      await user.click(screen.getByRole('button', { name: /try again for the rest/i }))
+      await waitFor(() => expect(screen.getByRole('alert')).toBeEmptyDOMElement())
+      expect(screen.getByRole('status')).toBeEmptyDOMElement()
+      release()
+      await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent('May not be saved: 2'))
+      expect(screen.getByRole('alert').textContent).toBe(first)
+    })
   })
 })

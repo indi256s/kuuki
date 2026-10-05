@@ -183,7 +183,6 @@ export const S = {
   aircraftClose: p('Close', 'Закрыть'),
   aircraftEvidence: p('Evidence', 'Основание'),
   aircraftUnsure: p('Unconfirmed', 'Не подтверждено'),
-  aircraftDone: p('Saved aircraft', 'Самолёты сохранены'),
 
   failureTitle: p('This import did not finish', 'Импорт не завершён'),
   retryAt: p('You can try again after', 'Попробовать снова можно после'),

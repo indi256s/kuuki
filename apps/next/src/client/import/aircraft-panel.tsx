@@ -4,7 +4,7 @@ import { findAircraft } from '@kuuki/data/aircraft-lookup'
 import { useEffect, useMemo, useState } from 'react'
 import { formatDateOnly, type Locale } from '../../lib/format'
 import { Button } from '../ui/button'
-import { acceptAircraft, AIRCRAFT_BATCH, diagnose, retryableAircraft, toggleAll, type AircraftAccept, type AircraftRun, type AircraftTarget, type EnrichResult, type Suggested, type Unidentified } from './aircraft-review'
+import { acceptAircraft, AIRCRAFT_BATCH, countAircraftRun, diagnose, retryableAircraft, summarizeAircraftRun, toggleAll, type AircraftAccept, type AircraftRunCounts, type AircraftRun, type AircraftTarget, type EnrichResult, type Suggested, type Unidentified } from './aircraft-review'
 import { FAILURE, S, count } from './copy'
 import { classifyRequestFailure, type Failure } from './import-errors'
 import { acceptAircraftBatch, enrichAircraft, type EnrichFlight } from './import-api'
@@ -37,6 +37,8 @@ export function AircraftPanel({ locale, targets, onSaved, onWorkChange, api = de
   const [outcomes, setOutcomes] = useState<AircraftRun['rows']>(new Map())
   const [applying, setApplying] = useState(false)
   const [asked, setAsked] = useState<number[]>([])
+  // Counts for the submission that just finished only; cleared when the next one starts so an identical result is announced again.
+  const [last, setLast] = useState<AircraftRunCounts | null>(null)
 
   const view = useMemo(() => diagnose(asked, results), [asked, results])
   const byId = useMemo(() => new Map(targets.map(target => [target.id, target])), [targets])
@@ -46,7 +48,7 @@ export function AircraftPanel({ locale, targets, onSaved, onWorkChange, api = de
   const allSelected = open.length > 0 && open.every(item => selected.has(item.flightId))
 
   const search = async () => {
-    setPhase('searching'); setFailure(null); setOutcomes(new Map())
+    setPhase('searching'); setFailure(null); setOutcomes(new Map()); setLast(null)
     const ids = targets.map(target => target.id)
     const gathered: EnrichResult[] = []
     try {
@@ -69,9 +71,10 @@ export function AircraftPanel({ locale, targets, onSaved, onWorkChange, api = de
   const accept = async (ids: number[]) => {
     const items = ids.flatMap(id => { const item = suggestedById.get(id); return item ? [{ id, aircraft_icao: item.icao }] : [] })
     if (items.length === 0) return
-    setApplying(true)
+    setApplying(true); setLast(null)
     const run = await acceptAircraft(items, api.accept)
     setApplying(false)
+    setLast(countAircraftRun(run.rows.values()))
     setOutcomes(previous => { const next = new Map(previous); for (const [id, outcome] of run.rows) next.set(id, outcome); return next })
     // Anything that is not saved stays selected so one press retries exactly those.
     setSelected(new Set([...run.rows].filter(([, outcome]) => outcome.status !== 'saved').map(([id]) => id)))
@@ -79,7 +82,8 @@ export function AircraftPanel({ locale, targets, onSaved, onWorkChange, api = de
   }
 
   const retryIds = retryableAircraft({ rows: outcomes, acks: [], uncertain: false })
-  const savedCount = [...outcomes.values()].filter(outcome => outcome.status === 'saved').length
+  // Nothing saved is a problem, so it is assertive; anything saved is polite. Both regions stay mounted so a change is announced.
+  const summary = summarizeAircraftRun(locale, last)
 
   const flightLine = (id: number) => {
     const target = byId.get(id)
@@ -141,8 +145,9 @@ export function AircraftPanel({ locale, targets, onSaved, onWorkChange, api = de
         </Button>
         {retryIds.length > 0 ? <Button disabled={applying} onClick={() => void accept(retryIds)}>{S.aircraftRetry[locale]}</Button> : null}
       </div>
-      {savedCount > 0 ? <p className="import-hint" role="status">{S.aircraftDone[locale]}: {savedCount}</p> : null}
     </> : <p className="import-empty">{S.aircraftNone[locale]}</p>}
+    <p className="import-hint" role="status">{last && last.saved > 0 ? summary : ''}</p>
+    <p className="import-problem" role="alert">{last && last.saved === 0 ? summary : ''}</p>
     {view.unidentified.length > 0 ? <>
       <h4>{S.aircraftUnidentified[locale]}</h4>
       <ul className="import-rows">{view.unidentified.map(item => <li key={item.flightId} className="import-row">
