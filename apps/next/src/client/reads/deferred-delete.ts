@@ -5,15 +5,16 @@ import { api } from '../../../../web/src/lib/apiClient'
 import { trackPrivateOperation } from '../activity'
 import type { DerivedAck } from '../../../../web/src/lib/derivedState'
 
-/** The six seconds are visible time. Nothing is sent if the host unmounts during Undo. */
-export function useDeferredDelete(onCommitted: (ack: DerivedAck, ids: number[]) => void) {
+/** The six seconds are visible time. Nothing is sent if the host unmounts during Undo; `onAbandoned` then receives the dropped IDs. */
+export function useDeferredDelete(onCommitted: (ack: DerivedAck, ids: number[]) => void, onAbandoned?: (ids: number[]) => void) {
   const [pending, setPending] = useState<{ ids: number[]; seconds: number } | null>(null)
   const [failed, setFailed] = useState<number[] | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const operation = useRef<{ ids: number[]; remaining: number; last: number; controller: AbortController } | null>(null)
   const committed = useRef(onCommitted)
   const inFlight = useRef<AbortController | null>(null)
-  useEffect(() => { committed.current = onCommitted }, [onCommitted])
+  const abandoned = useRef(onAbandoned)
+  useEffect(() => { committed.current = onCommitted; abandoned.current = onAbandoned }, [onCommitted, onAbandoned])
   useEffect(() => {
     const tick = () => {
       const op = operation.current
@@ -34,7 +35,12 @@ export function useDeferredDelete(onCommitted: (ack: DerivedAck, ids: number[]) 
     const visibility = () => { if (operation.current) operation.current.last = Date.now() }
     const timer = setInterval(tick, 100)
     document.addEventListener('visibilitychange', visibility)
-    return () => { clearInterval(timer); document.removeEventListener('visibilitychange', visibility); operation.current?.controller.abort(); operation.current = null; inFlight.current?.abort() }
+    return () => {
+      clearInterval(timer); document.removeEventListener('visibilitychange', visibility)
+      const dropped = operation.current
+      dropped?.controller.abort(); operation.current = null; inFlight.current?.abort()
+      if (dropped) abandoned.current?.(dropped.ids)
+    }
   }, [])
   const schedule = (ids: number[]) => {
     if (!ids.length || operation.current || inFlight.current) return

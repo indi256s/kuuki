@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { useState } from 'react'
 import { Sheet } from './sheet'
-import { ToastProvider, useToast } from './toast'
+import { ToastProvider, ToastSlot, useToast } from './toast'
 
 function Trigger({ kind }: { kind?: 'error' }) {
   const { show } = useToast()
@@ -55,4 +55,26 @@ it('keeps announcements exposed while a Radix modal sheet is open', async () => 
   const announcement = screen.getByRole('status')
   expect(announcement).toHaveTextContent('Link copied')
   expect(announcement.closest('[aria-hidden="true"]')).toBeNull()
+})
+
+describe('ToastSlot', () => {
+  it('renders a caller-owned notice inline when no provider is mounted', () => {
+    const { container } = render(<section><ToastSlot><p aria-live="polite" role="status">Pending</p></ToastSlot></section>)
+    expect(container.querySelector('section')).toContainElement(screen.getByText('Pending'))
+  })
+
+  it('renders it in the provider region, outside both live regions, and keeps it exposed under a Radix modal', async () => {
+    function Notice() {
+      const [open, setOpen] = useState(false)
+      return <section data-testid="owner"><Sheet title="Review" open={open} onOpenChange={setOpen} trigger={<button>Open review</button>}><p>Body</p></Sheet><ToastSlot><p aria-live="polite" role="status">Pending</p></ToastSlot></section>
+    }
+    render(<ToastProvider><Notice /></ToastProvider>)
+    const pending = screen.getByText('Pending')
+    expect(screen.getByTestId('owner')).not.toContainElement(pending)
+    expect(pending.closest('.ui-toast-region')).not.toBeNull()
+    expect(pending.closest('.ui-toast-live')).toBeNull()
+    await userEvent.click(screen.getByRole('button', { name: 'Open review' }))
+    expect(screen.getAllByRole('status').map(region => region.textContent)).toContain('Pending')
+    expect(pending.closest('[aria-hidden="true"]')).toBeNull()
+  })
 })
