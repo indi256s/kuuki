@@ -9,7 +9,7 @@ import { useMobile } from '../ui/use-mobile'
 import { useWriteFeedback } from '../write-feedback'
 import type { AircraftApi } from './aircraft-panel'
 import type { AircraftRun, AircraftTarget } from './aircraft-review'
-import { runConfirm, retryableIds, type ConfirmOutcome, type RowOutcome } from './confirm-runner'
+import { runConfirm, type ConfirmOutcome, type RowOutcome } from './confirm-runner'
 import { ROW_FAILURE, S } from './copy'
 import { DoneStep, rowLabel, type FailedRow, type NewStamp } from './done-step'
 import { DraftSaver, type DraftChange, type SaveState } from './draft-saver'
@@ -57,7 +57,7 @@ export function ImportClient({ ownerId, locale, initialBatchId = null, initialSo
     onDraft: draft => setDraft(draft),
     onState: (id, state) => setSaveStates(previous => {
       if (state) return { ...previous, [id]: state }
-      const { [id]: _removed, ...rest } = previous
+      const rest = { ...previous }; delete rest[id]
       return rest
     }),
   }))

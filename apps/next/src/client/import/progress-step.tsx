@@ -35,7 +35,7 @@ export function ProgressStep({ locale, batch, drafts, sourceName, onCancel, canc
   const stage = batch?.stage ?? 'accepted'
   const index = ORDER.indexOf(stage)
   const announcement = useAnnouncement(batch ? stage : null, drafts.length, locale)
-  const initial = useRef(new Set(drafts.map(draft => draft.id)))
+  const [initial] = useState(() => new Set(drafts.map(draft => draft.id)))
   return <section className="import-progress" aria-labelledby="import-progress-title">
     <h2 id="import-progress-title">{S.recognizing[locale]}</h2>
     <p className="import-source-chip"><span>{S.sourceChip[locale]}:</span> <strong>{sourceName ?? batch?.sourceLabel ?? S.textSource[locale]}</strong></p>
@@ -53,7 +53,7 @@ export function ProgressStep({ locale, batch, drafts, sourceName, onCancel, canc
     <div className="sr-only" role="status" aria-live="polite" data-testid="import-announcement">{announcement}</div>
     <h3 className="import-found-title">{S.foundRows[locale]}: <span className="import-count">{count(locale, 'found', drafts.length)}</span></h3>
     {drafts.length > 0 ? <ul className="import-found">
-      {drafts.map((draft, position) => <li key={draft.id} data-new={initial.current.has(draft.id) ? undefined : 'true'} style={{ ['--stagger' as string]: `${(position % 8) * 40}ms` }}>
+      {drafts.map((draft, position) => <li key={draft.id} data-new={initial.has(draft.id) ? undefined : 'true'} style={{ ['--stagger' as string]: `${(position % 8) * 40}ms` }}>
         <span className="import-code">{draft.fields.origin || '—'} → {draft.fields.destination || '—'}</span>
         <span>{draft.fields.date ? formatDateOnly(locale, draft.fields.date, 'medium') : S.noDate[locale]}</span>
       </li>)}
