@@ -146,7 +146,7 @@ test('map layers live in the URL and the country list opens the same sheet', asy
   await expect(page.getByRole('list', { name: 'Route list', exact: true })).toHaveCount(0)
   await layers.getByRole('radio', { name: 'Routes' }).click()
   await page.waitForURL(url => url.searchParams.get('layer') === 'routes')
-  await expect(page.getByRole('list', { name: 'Route list', exact: true }).getByRole('button', { name: /JFK → BOS/ })).toBeVisible()
+  await expect(page.getByRole('list', { name: 'Route list', exact: true }).getByRole('button', { name: /BOS ↔ JFK/ })).toBeVisible()
   await layers.getByRole('radio', { name: 'Frequency' }).click()
   await page.waitForURL(url => url.searchParams.get('layer') === 'frequency')
   await page.getByRole('list', { name: 'Visited countries', exact: true }).getByRole('button', { name: /United States/ }).click()

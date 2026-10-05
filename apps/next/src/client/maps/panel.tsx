@@ -130,7 +130,7 @@ export function RouteMapPanel({ ownerId, locale, period = 'all', countryVisits =
     </>}
     <ol className="route-map-country-list" aria-label={ru ? 'Посещённые страны' : 'Visited countries'}>
       {mapVisits.map(visit => <li key={visit.countryCode}><button type="button" onClick={() => onSelectCountry?.(visit.countryCode)} disabled={!onSelectCountry}>
-        {countryNames.of(visit.countryCode.toUpperCase()) ?? visit.countryCode.toUpperCase()}{visit.count > 0 ? ` · ${visit.count}` : ''}{visit.claimed ? ru ? ' · без перелётов' : ' · no flights' : ''}{describeCountry?.(visit)}
+        {countryNames.of(visit.countryCode.toUpperCase()) ?? visit.countryCode.toUpperCase()}{visit.count > 0 ? ` · ${visit.count}` : ''}{visit.claimed ? ru ? ' · в коллекции' : ' · in your collection' : ''}{describeCountry?.(visit)}
       </button></li>)}
     </ol>
   </section>
