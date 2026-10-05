@@ -69,16 +69,29 @@ export function JournalFilters({ locale, query, filtered, apply }: Props) {
   for (const key of TEXT_KEYS) urlValues[key] = params.get(key) ?? ''
   const [drafts, setDrafts] = useState<Values>(urlValues)
   const [touched, setTouched] = useState<Record<string, boolean>>({})
-  // What this component last sent or adopted per field. A different URL value is an external change (Reset, Back, a link) and replaces the draft;
-  // our own navigation arriving leaves whatever the user has typed since untouched.
-  const [known, setKnown] = useState<Values>(urlValues)
+  // Values this component sent that the URL has not confirmed yet, oldest first. A URL value found in the list is our own navigation arriving
+  // (possibly an intermediate one), so the draft is left alone; a value that is not in the list is an external change (Reset, Back, a link) and replaces it.
+  const [sent, setSent] = useState<Record<string, string[]>>({})
+  const [lastUrl, setLastUrl] = useState(urlValues)
   const [seen, setSeen] = useState(query)
   if (seen !== query) {
     setSeen(query)
+    setLastUrl(urlValues)
     const adopt: Values = {}
-    for (const key of ['q', ...TEXT_KEYS]) if (urlValues[key] !== known[key]) adopt[key] = urlValues[key]
-    if (Object.keys(adopt).length) { setDrafts(old => ({ ...old, ...adopt })); setKnown(old => ({ ...old, ...adopt })) }
+    const remaining = { ...sent }
+    for (const key of ['q', ...TEXT_KEYS]) {
+      if (urlValues[key] === lastUrl[key]) continue
+      const list = sent[key] ?? []
+      const at = list.indexOf(urlValues[key])
+      if (at < 0) { adopt[key] = urlValues[key]; delete remaining[key]; continue }
+      const rest = list.slice(at + 1)
+      if (rest.length) remaining[key] = rest; else delete remaining[key]
+    }
+    setSent(remaining)
+    if (Object.keys(adopt).length) setDrafts(old => ({ ...old, ...adopt }))
   }
+  /** What the field holds as far as this component knows: the last value it sent, otherwise the URL's. */
+  const effective = (key: string) => sent[key]?.at(-1) ?? urlValues[key]
   const [open, setOpen] = useState(false)
   const [staged, setStaged] = useState<Values>({})
   const [stagedTouched, setStagedTouched] = useState<Record<string, boolean>>({})
@@ -100,13 +113,13 @@ export function JournalFilters({ locale, query, filtered, apply }: Props) {
     for (const key of keys) {
       const next = key === 'q' ? values.q.trim().slice(0, 100) : normalizeField(key, values[key] ?? '')
       if (next === null) continue
-      if (next !== urlValues[key]) changes[key] = next
+      if (next !== effective(key)) changes[key] = next
     }
     return changes
   }
   const send = (changes: Change) => {
     if (!Object.keys(changes).length) return
-    setKnown(old => { const next = { ...old }; for (const key of Object.keys(changes)) if (key in next) next[key] = changes[key]; return next })
+    setSent(old => { const next = { ...old }; for (const key of Object.keys(changes)) if (key === 'q' || (TEXT_KEYS as readonly string[]).includes(key)) next[key] = [...(next[key] ?? []), changes[key]]; return next })
     apply(changes)
   }
 
@@ -135,7 +148,7 @@ export function JournalFilters({ locale, query, filtered, apply }: Props) {
   }
 
   const openSheet = (next: boolean) => {
-    if (next) { setStaged({ ...urlValues, ...selectValues }); setStagedTouched({}) }
+    if (next) { setStaged({ ...Object.fromEntries(TEXT_KEYS.map(key => [key, effective(key)])), ...selectValues }); setStagedTouched({}) }
     setOpen(next)
   }
   const applyStaged = () => {
@@ -146,8 +159,11 @@ export function JournalFilters({ locale, query, filtered, apply }: Props) {
       return
     }
     const changes: Change = {}
-    for (const key of TEXT_KEYS) { const next = normalizeField(key, staged[key] ?? '')!; if (next !== urlValues[key]) changes[key] = next }
+    const accepted: Values = {}
+    for (const key of TEXT_KEYS) { const next = normalizeField(key, staged[key] ?? '')!; accepted[key] = next; if (next !== effective(key)) changes[key] = next }
     for (const key of SELECT_KEYS) if (staged[key] !== selectValues[key]) changes[key] = staged[key]
+    // Search submits the desktop drafts, so the accepted mobile values become the drafts.
+    setDrafts(old => ({ ...old, ...accepted }))
     send(changes)
     setOpen(false)
   }

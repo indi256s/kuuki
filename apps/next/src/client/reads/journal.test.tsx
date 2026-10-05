@@ -179,6 +179,42 @@ describe('filters', () => {
     expect(hrefQuery(nav.push.mock.calls[1][0])).toBe('airline=TK&aircraft=B738')
   })
 
+  it('keeps a field cleared after a commit that has not been answered yet, and sends the clearing next', async () => {
+    const user = userEvent.setup()
+    nav.push.mockReset().mockImplementation(() => {})
+    nav.replace.mockReset().mockImplementation(() => {})
+    render(<Harness />)
+    const airline = screen.getByRole('textbox', { name: 'Airline' })
+    await user.type(airline, 'tk')
+    await user.tab()
+    expect(hrefQuery(nav.push.mock.calls[0][0])).toBe('airline=TK')
+    await user.clear(airline)
+    await user.tab()
+    // The clearing is compared with what was just sent, not with the URL that has not caught up.
+    expect(nav.push.mock.calls.length + nav.replace.mock.calls.length).toBe(2)
+    expect(hrefQuery([...nav.push.mock.calls, ...nav.replace.mock.calls].at(-1)![0])).toBe('')
+    act(() => nav.set('airline=TK')) // the intermediate response
+    expect(airline).toHaveValue('')
+    act(() => nav.set(''))
+    expect(airline).toHaveValue('')
+  })
+
+  it('keeps the aircraft draft when the response to the earlier airline commit arrives first', async () => {
+    const user = userEvent.setup()
+    nav.push.mockReset().mockImplementation(() => {})
+    render(<Harness />)
+    await user.type(screen.getByRole('textbox', { name: 'Airline' }), 'tk')
+    await user.tab()
+    await user.keyboard('b738')
+    await user.tab()
+    expect(nav.push).toHaveBeenCalledTimes(2)
+    act(() => nav.set('airline=TK')) // answers the first commit only
+    expect(screen.getByRole('textbox', { name: 'Aircraft' })).toHaveValue('B738')
+    expect(screen.getByRole('textbox', { name: 'Airline' })).toHaveValue('TK')
+    act(() => nav.set('airline=TK&aircraft=B738'))
+    expect(screen.getByRole('textbox', { name: 'Aircraft' })).toHaveValue('B738')
+  })
+
   it('adopts an external URL change (Reset, Back) but not its own navigation', () => {
     render(<Harness start="airline=TK" />)
     expect(screen.getByRole('textbox', { name: 'Airline' })).toHaveValue('TK')
@@ -197,6 +233,21 @@ describe('filters', () => {
     await user.click(within(dialog).getByRole('button', { name: 'Apply filters' }))
     expect(nav.push).toHaveBeenCalledTimes(1)
     expect(hrefQuery(nav.push.mock.calls[0][0])).toBe('status=logged&airline=TK')
+  })
+})
+
+describe('mobile filters and Search', () => {
+  it('keeps a filter applied on mobile when Search is submitted afterwards', async () => {
+    const user = userEvent.setup()
+    render(<Harness />)
+    await user.click(screen.getByRole('button', { name: 'Filters' }))
+    const dialog = screen.getByRole('dialog')
+    await user.type(within(dialog).getByRole('textbox', { name: 'Airline' }), 'tk')
+    await user.click(within(dialog).getByRole('button', { name: 'Apply filters' }))
+    expect(hrefQuery(nav.push.mock.calls[0][0])).toBe('airline=TK')
+    await user.type(screen.getByRole('searchbox'), 'Istanbul{Enter}')
+    expect(hrefQuery(nav.push.mock.calls.at(-1)![0])).toBe('q=Istanbul&airline=TK')
+    expect(screen.getAllByRole('textbox', { name: 'Airline' })[0]).toHaveValue('TK')
   })
 })
 
