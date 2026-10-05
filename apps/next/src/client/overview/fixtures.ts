@@ -29,6 +29,14 @@ export function emptySummary(period: OverviewSummary['period'] = 'all', over: Pa
   }
 }
 
+/** No flights, one published archived (legacy) visit: mirrors `legacyOnlyAccount()` in functions/test/overview-fixture.ts. */
+export function legacyOnlySummary(): OverviewSummary {
+  return emptySummary('all', {
+    totals: { flights: 0, distanceKm: 0, durationMinutes: 0, countries: 1, cities: 0, airports: 0, airlines: 0, aircraft: 0, continents: 0, pendingCountries: 0, upcomingFlights: 0 },
+    map: { countries: [{ id: 'AE', visits: 2, pending: false }], routeCount: 0 }, countryIds: ['AE'], regions: regions({ asia: [1, 0] }),
+  })
+}
+
 /** n=1: one flight with nothing optional recorded. */
 export function singleFlightSummary(period: OverviewSummary['period'] = '2026'): OverviewSummary {
   return emptySummary(period, {

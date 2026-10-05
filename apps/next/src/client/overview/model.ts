@@ -115,9 +115,16 @@ export function localToday(now = new Date()): string {
   return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
 }
 
-/** The shape of a whole summary for the page: first run, a year without flights, or data. */
+/**
+ * The shape of a whole summary for the page: first run, a year without flights, or data. An all-time summary with no
+ * flights but real published country evidence (archived legacy visits) is data: its geography is the member's own, so
+ * the sample is reserved for a genuinely empty account. Unknown country figures (updating) never read as empty.
+ */
 export type OverviewMode = 'first-run' | 'empty-year' | 'data'
-export function overviewMode(summary: Pick<OverviewSummary, 'period' | 'totals'>): OverviewMode {
-  if (summary.totals.flights > 0) return 'data'
-  return summary.period === 'all' ? 'first-run' : 'empty-year'
+export function overviewMode(summary: Pick<OverviewSummary, 'period' | 'totals' | 'map'>): OverviewMode {
+  const { totals, map } = summary
+  if (totals.flights > 0) return 'data'
+  if (summary.period !== 'all') return 'empty-year'
+  const countryEvidence = totals.countries === null || totals.countries > 0 || (totals.pendingCountries ?? 0) > 0 || map.countries.length > 0
+  return countryEvidence ? 'data' : 'first-run'
 }

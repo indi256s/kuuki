@@ -41,6 +41,16 @@ describe('figures', () => {
     expect(figure('countries')).toHaveTextContent('1 ждёт отметки')
     expect(figure('time')).toHaveTextContent('Время известно для 498 из 500 перелётов')
   })
+  it('names countries and territories, and says all time includes archived flight evidence (not in a year)', () => {
+    const { rerender } = render(<OverviewFigures summary={busySummary(10, 'all')} locale="en" />)
+    expect(figure('countries')).toHaveTextContent('Countries and territories')
+    expect(figure('countries')).toHaveTextContent('Includes archived flight evidence')
+    rerender(<OverviewFigures summary={busySummary(10, 'all')} locale="ru" />)
+    expect(figure('countries')).toHaveTextContent('Страны и территории')
+    expect(figure('countries')).toHaveTextContent('Включая архивные данные о перелётах')
+    rerender(<OverviewFigures summary={busySummary(10)} locale="en" />)
+    expect(figure('countries')).not.toHaveTextContent('archived')
+  })
   it('all time shows no year-over-year percentage', () => {
     render(<OverviewFigures summary={busySummary(500, 'all')} locale="en" />)
     expect(document.body.textContent).not.toMatch(/vs 20\d\d/)
@@ -58,7 +68,7 @@ describe('map band', () => {
   it('lists every country as text with visits, the legend line, and the Passport map link with the year', () => {
     render(<OverviewMap summary={busySummary(10)} locale="en" labels={fakeLabels} />)
     expect(screen.getByRole('link', { name: /Open Passport map/ })).toHaveAttribute('href', '/passport?view=map&year=2026')
-    expect(document.querySelector('.ov-legend-line')).toHaveTextContent('7 routes · 12 airports · 6 countries · 1 waiting for a stamp')
+    expect(document.querySelector('.ov-legend-line')).toHaveTextContent('7 routes · 12 airports · 6 countries and territories · 1 waiting for a stamp')
     expect(document.querySelectorAll('.ov-legend li')).toHaveLength(4)
     const list = document.querySelector('.ov-country-list ul') as HTMLElement
     expect(within(list).getByText(/Country JP · 4 visits/)).toBeInTheDocument()

@@ -38,3 +38,11 @@ export function bulkFlights(db: D1Database, count: number, origin = 'TBS', desti
     INSERT INTO flights (user_id,date,origin,destination,distance_km)
     SELECT ?, date('2020-01-01', '+' || x || ' days'), ?, ?, 100 FROM n`).bind(count, USER.id, origin, destination)
 }
+
+/** An account with no canonical flights and one published archived (legacy) visit: real geography, no flights. */
+export function legacyOnlyAccount(country = 'AE', airport = 'DXB', visits = 2) {
+  return overviewAccount([], d => [
+    d.prepare(`INSERT INTO legacy_visit_evidence (source_id,user_id,airport_iata,country_code,first_visit,last_visit,visit_count,source_digest,provenance,contributes,source_json)
+      VALUES ('legacy-1',?,?,?,'2019-01-01','2019-01-01',?,'d','archive',1,'{}')`).bind(USER.id, airport, country, visits),
+  ])
+}

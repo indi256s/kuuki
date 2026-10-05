@@ -10,7 +10,7 @@ const flights: CountForms = { en: { one: '{count} flight', other: '{count} fligh
 const flightsOf: CountForms = { en: { one: '{count} flight', other: '{count} flights' }, ru: { one: '{count} перелёта', few: '{count} перелётов', many: '{count} перелётов', other: '{count} перелётов' } }
 const routes: CountForms = { en: { one: '{count} route', other: '{count} routes' }, ru: { one: '{count} маршрут', few: '{count} маршрута', many: '{count} маршрутов', other: '{count} маршрута' } }
 const airports: CountForms = { en: { one: '{count} airport', other: '{count} airports' }, ru: { one: '{count} аэропорт', few: '{count} аэропорта', many: '{count} аэропортов', other: '{count} аэропорта' } }
-const countries: CountForms = { en: { one: '{count} country', other: '{count} countries' }, ru: { one: '{count} страна', few: '{count} страны', many: '{count} стран', other: '{count} страны' } }
+const countries: CountForms = { en: { one: '{count} country or territory', other: '{count} countries and territories' }, ru: { one: '{count} страна или территория', few: '{count} страны и территории', many: '{count} стран и территорий', other: '{count} страны и территории' } }
 const visits: CountForms = { en: { one: '{count} visit', other: '{count} visits' }, ru: { one: '{count} посещение', few: '{count} посещения', many: '{count} посещений', other: '{count} посещения' } }
 const waiting: CountForms = { en: { one: '{count} waiting for a stamp', other: '{count} waiting for a stamp' }, ru: { one: '{count} ждёт отметки', few: '{count} ждут отметки', many: '{count} ждут отметки', other: '{count} ждут отметки' } }
 const inDays: CountForms = { en: { one: 'In {count} day', other: 'In {count} days' }, ru: { one: 'Через {count} день', few: 'Через {count} дня', many: 'Через {count} дней', other: 'Через {count} дня' } }
@@ -49,7 +49,8 @@ export const S = {
   figures: p('Totals for the period', 'Итоги за период'),
   flights: p('Flights', 'Перелёты'),
   distance: p('Distance', 'Расстояние'),
-  countries: p('Countries', 'Страны'),
+  countries: p('Countries and territories', 'Страны и территории'),
+  archivedIncluded: p('Includes archived flight evidence', 'Включая архивные данные о перелётах'),
   time: p('Time in the air', 'Время в воздухе'),
   hours: p('h', 'ч'),
   updating: p('Updating', 'Обновляется'),

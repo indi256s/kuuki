@@ -11,6 +11,7 @@ export function OverviewFigures({ summary, locale, sample = false }: { summary: 
   const distanceUnknown = dataAvailability.flights > 0 && dataAvailability.distanceKnown === 0
   const countryCaptions = [
     totals.countries === null ? t(S.updating, locale) : null,
+    summary.period === 'all' && totals.countries !== null ? t(S.archivedIncluded, locale) : null,
     totals.pendingCountries ? formatCount(locale, totals.pendingCountries, forms.waiting) : null,
     comparison && comparisonCaption(locale, comparison.countries, comparison),
   ].filter(Boolean)

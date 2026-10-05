@@ -2,11 +2,12 @@
 // render: n=0/1/10/500, a zero previous-year baseline, repeated country visits, pending, transit, claim-only,
 // legacy-only, missing aircraft and unknown durations. Fixtures live in `overview-fixture.ts` for T18.
 import { describe, expect, it } from 'vitest'
-import { bulkFlights, overviewAccount, readOverviewSummary, USER, at, T0, type OverviewFlight } from './overview-fixture'
+import { bulkFlights, legacyOnlyAccount, overviewAccount, readOverviewSummary, USER, at, T0, type OverviewFlight } from './overview-fixture'
 import { createApiDatabase } from './harness'
 import { accountWith } from './country-fixture'
 import { readJournal } from '../api/_services/journal'
 import { parseFlightFilters } from '../api/_lib/flightQuery'
+import { overviewMode } from '../../apps/next/src/client/overview/model'
 import { journalHref } from '../../apps/next/src/lib/url-state'
 
 const logged = (id: number, date: string, origin: string, destination: string, extra: Partial<OverviewFlight> = {}): OverviewFlight =>
@@ -298,6 +299,30 @@ describe('Journal destinations of the statistic links (completed scope)', () => 
       expect(await total(journalHref({ year: '2026', status: 'completed' }))).toBe(summary.totals.flights)
       // Without the status the same link would have counted the upcoming flight (the defect the status prevents).
       expect(await total(journalHref({ airline: 'TK', year: '2026' }))).toBe(3)
+    } finally { await dispose() }
+  })
+})
+
+describe('a legacy-only account keeps its real geography', () => {
+  it('has no flights but published archived countries, and the page classifies it as data, not first run', async () => {
+    const { db, dispose } = await legacyOnlyAccount()
+    try {
+      const all = await readOverviewSummary(db)
+      expect(all.totals).toMatchObject({ flights: 0, countries: 1, pendingCountries: 0 })
+      expect(all.map.countries).toEqual([{ id: 'AE', visits: 2, pending: false }])
+      expect(all.regions?.find(region => region.pressed > 0)).toMatchObject({ pressed: 1 })
+      expect(overviewMode(all)).toBe('data')
+      // A year has no per-year attribution for archived evidence, so it is an empty year, not data.
+      const year = await readOverviewSummary(db, 'period=2019')
+      expect(year.totals.countries).toBe(0)
+      expect(overviewMode(year)).toBe('empty-year')
+    } finally { await dispose() }
+  })
+  it('a genuinely empty account is still first run', async () => {
+    const { db, dispose } = await createApiDatabase()
+    try {
+      await db.batch([db.prepare('INSERT INTO users (id,email,password_hash) VALUES (?,?,?)').bind(USER.id, USER.email, 'hash')])
+      expect(overviewMode(await readOverviewSummary(db))).toBe('first-run')
     } finally { await dispose() }
   })
 })

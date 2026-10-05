@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { busySummary, emptySummary, singleFlightSummary } from './fixtures'
+import { busySummary, emptySummary, legacyOnlySummary, singleFlightSummary } from './fixtures'
 import { comparisonCaption, countdownLabel, daysUntil, earthCaption, monthStrip, overviewMode, rankingShape, sentenceLead, timeFigure, type RankingRow } from './model'
 
 const comparison = (previousPeriod = '2025', firstYear = false) => ({ previousPeriod, firstYear } as Parameters<typeof comparisonCaption>[2])
@@ -89,6 +89,9 @@ describe('countdown and mode', () => {
   it('chooses first run, empty year or data', () => {
     expect(overviewMode(emptySummary('all'))).toBe('first-run')
     expect(overviewMode(emptySummary('2024'))).toBe('empty-year')
+    expect(overviewMode(legacyOnlySummary())).toBe('data')
+    expect(overviewMode(emptySummary('all', { totals: { ...emptySummary().totals, countries: null, pendingCountries: null } }))).toBe('data')
+    expect(overviewMode({ ...legacyOnlySummary(), period: '2019' })).toBe('empty-year')
     expect(overviewMode(singleFlightSummary())).toBe('data')
     expect(overviewMode(busySummary(500, 'all'))).toBe('data')
   })

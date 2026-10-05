@@ -4,7 +4,7 @@ import { cleanup, render, screen } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { OverviewEmptyYear, OverviewFirstRun } from './empty'
 import { OverviewFailure, OverviewView } from './view'
-import { busySummary, emptySummary, fakeLabels, singleFlightSummary } from './fixtures'
+import { busySummary, emptySummary, fakeLabels, legacyOnlySummary, singleFlightSummary } from './fixtures'
 import { SAMPLE_SUMMARY } from './sample-data'
 
 vi.mock('next/navigation', () => ({ useRouter: () => ({ push: vi.fn() }) }))
@@ -48,6 +48,15 @@ describe('OverviewView', () => {
     expect(screen.getByTestId('overview-empty')).toBeInTheDocument()
     expect(screen.queryByTestId('overview-flights')).toBeNull()
   })
+  it('a legacy-only account keeps its real geography and caption, and never sees the sample', () => {
+    render(<OverviewView summary={legacyOnlySummary()} locale="en" labels={fakeLabels} />)
+    expect(screen.getByTestId('overview-data')).toHaveAttribute('data-mode', 'data')
+    expect(screen.queryByTestId('overview-sample')).toBeNull()
+    expect(screen.queryByTestId('overview-empty')).toBeNull()
+    expect(document.querySelector('[data-figure=countries]')).toHaveTextContent('1')
+    expect(document.querySelector('[data-figure=countries]')).toHaveTextContent('Includes archived flight evidence')
+    expect(screen.getByText(/Country AE · 2 visits/)).toBeInTheDocument()
+  })
   it('a year without flights in a non-empty account', () => {
     render(<OverviewView summary={{ ...emptySummary('2019'), years: [2026, 2019] }} locale="en" labels={fakeLabels} />)
     expect(screen.getByTestId('overview-data')).toHaveAttribute('data-mode', 'empty-year')
@@ -62,9 +71,9 @@ describe('OverviewView', () => {
   })
   it('says the figures are updating or stale instead of presenting them as final', () => {
     const { rerender } = render(<OverviewView summary={{ ...singleFlightSummary('all'), derivedState: 'pending' }} locale="en" labels={fakeLabels} />)
-    expect(screen.getByRole('status')).toBeInTheDocument()
+    expect(document.querySelector('.status-note[role=status]')).not.toBeNull()
     rerender(<OverviewView summary={{ ...singleFlightSummary('all'), derivedState: 'error' }} locale="en" labels={fakeLabels} />)
-    expect(screen.getByRole('status')).toBeInTheDocument()
+    expect(document.querySelector('.status-note[role=status]')).not.toBeNull()
   })
 })
 
