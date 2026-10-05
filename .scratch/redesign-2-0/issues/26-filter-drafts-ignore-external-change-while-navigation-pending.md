@@ -2,7 +2,7 @@
 
 Status: resolved
 Owner task: T13
-Source: fix rounds 3–5 (R2-N1, R4-N1); `apps/next/src/client/reads/journal-filters.tsx` (`sent`, `known`, `external`), `apps/next/src/client/reads/journal.tsx` (`navigateExternally`), `apps/next/src/client/journal-links.ts`
+Source: fix rounds 3–5 and authorized continuation (R2-N1, R4-N1, R5-I1, R5-I2); `apps/next/src/client/reads/journal-filters.tsx` (`sent`, `known`, `external`), `apps/next/src/client/reads/journal.tsx` (`navigateExternally`), `apps/next/src/client/journal-links.ts`
 
 ## What differed
 The filter drafts settle on the page's navigation transition: while a navigation started by `apply` is pending, URL changes count as its own responses. Suppose the member navigated elsewhere while one was pending (Reset, Back/Forward, or a shell link to `/journal`). That navigation superseded the pending one, but its URL was taken as the pending one's response. The drafts kept the superseded value after the transition settled, and the next Search sent it again. If the destination equalled the rendered query, the page's `requested` base kept the superseded target too.
@@ -11,17 +11,17 @@ The filter drafts settle on the page's navigation transition: while a navigation
 Explicit navigations are announced as they start. The page's `navigateExternally` then does three things:
 - it sets `requested` to the destination;
 - it replaces the text drafts with the destination's values and drops `sent`;
-- it makes the destination the filters' `known` URL, so later field and select changes are compared with it until the rendered URL catches up (R4-N1).
+- it makes the destination the filters' `known` URL, so later field and select changes are compared with it until the rendered URL catches up (R4-N1). When an owned navigation settles, `known` reconciles with the accepted rendered query even if it equals the previously rendered query; text drafts remain intact (R5-I1).
 
 The announcements come from these sources:
-- **Reset.** Both Reset links (toolbar and empty result) use next/link `onNavigate`.
+- **Journal-owned links.** Both Reset links (toolbar and empty result) and the empty-page first-page link use next/link `onNavigate` with `navigateExternally`.
 - **Back/Forward.** A `popstate` listener on `/journal`.
 - **Shell links.** Shell links to `/journal` use `onNavigate={announceJournalLink(href)}`, which dispatches `kuuki:journal-link` on `window`. These are the desktop and mobile Journal tabs (`nav.tsx`), both queue-summary links (`queue-summary.tsx`), and the Awaiting action link in the add menu and sheet (`add-actions.tsx`).
 
 next/link calls `onNavigate` only for a plain, local click that no `onClick` cancelled. A modified click (new tab) therefore leaves the page alone.
 
 Coverage:
-- **Journal regressions.** `apps/next/src/client/reads/journal.test.tsx` holds the filter navigation pending for Reset (both links), Back to the rendered URL, Forward to another filter, a commit after a pending Reset, the Journal tab, the queue link and an announced `airline=LH`. Each asserts the drafts and the next Search URL.
+- **Journal regressions.** `apps/next/src/client/reads/journal.test.tsx` holds the filter navigation pending for Reset (both links), Back to the rendered URL, Forward to another filter, a commit after a pending Reset followed by untouched mobile Apply, same-query Status restoration, first-page then Search, the Journal tab, the queue link and an announced `airline=LH`. The continuation regressions use void router methods and suspended router state, settling only the newest destination while superseded responses remain unresolved. They assert desktop/mobile values, unchanged Apply behavior, and the next Search URL as applicable.
 - **Link guard.** `apps/next/src/client/journal-links.test.tsx` fails if any of those shell links stops announcing.
 
 ## Limits (not open gaps)

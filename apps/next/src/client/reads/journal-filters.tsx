@@ -111,7 +111,11 @@ export function JournalFilters({ locale, query, filtered, apply, navigating, ext
         if (Object.keys(adopt).length) setDrafts(old => ({ ...old, ...adopt }))
       }
     }
-    if (wasNavigating && !navigating && awaiting) setSent({})
+    if (wasNavigating && !navigating) {
+      // A superseding navigation can settle on the query already rendered (including select-only changes).
+      setKnown(query)
+      if (awaiting) setSent({})
+    }
     setWasNavigating(navigating)
   }
   /** What the field holds as far as this component knows: the last value it sent while that navigation is pending, otherwise the known URL's. */

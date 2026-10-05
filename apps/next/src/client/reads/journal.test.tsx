@@ -3,7 +3,7 @@ import { act, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { useEffect, useState } from 'react'
+import { startTransition, Suspense, use, useEffect, useState } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { JournalView } from './journal'
 import { PrimaryNav } from '../nav'
@@ -14,7 +14,7 @@ import { normalizeJournalQuery } from '../../lib/url-state'
 import type { JournalData } from '../../server/journal'
 import { api } from '../../../../web/src/lib/apiClient'
 
-const nav = vi.hoisted(() => ({ push: vi.fn(), replace: vi.fn(), refresh: vi.fn(), set: vi.fn<(query: string) => void>() }))
+const nav = vi.hoisted(() => ({ push: vi.fn(), replace: vi.fn(), refresh: vi.fn(), set: vi.fn<(query: string | Promise<string>) => void>() }))
 vi.mock('next/navigation', () => ({ useRouter: () => nav, usePathname: () => '/journal' }))
 // The real Link needs a mounted App Router; the stand-in follows its click contract and navigates through the mocked router.
 vi.mock('next/link', async () => ({ default: (await import('../../test/next-link')).linkStandIn((href, { replace }) => nav[replace ? 'replace' : 'push'](href)) }))
@@ -39,7 +39,8 @@ const logged = [1, 2, 3].map(id => flight({ id, date: `2025-04-0${id}`, lifecycl
 const initialFor = (flights: Flight[], total = flights.length): JournalData => ({ flights, total, revision: 0, publishedRevision: 0, derivedState: 'ready', updatedAt: Date.now() })
 
 function Harness({ start = '', flights = logged, total, locale = 'en' }: { start?: string; flights?: Flight[]; total?: number; locale?: 'en' | 'ru' }) {
-  const [query, setQuery] = useState(start)
+  const [route, setQuery] = useState<string | Promise<string>>(start)
+  const query = typeof route === 'string' ? route : use(route)
   useEffect(() => { nav.set.mockImplementation(setQuery) }, [])
   const state = normalizeJournalQuery(new URLSearchParams(query))
   const filtered = ['q', 'year', 'status', 'airline', 'aircraft', 'airport', 'origin', 'destination'].some(key => key in state.state)
@@ -98,6 +99,20 @@ function slowRouter() {
     /** A URL change nobody here requested (Back, a link, Reset). */
     external: async (query: string) => { await act(async () => { nav.set(query) }) },
   }
+}
+
+// Installed Next push/replace return void and suspend router state inside a nested transition.
+// Only the newest destination is delivered; superseded responses can remain unresolved until cleanup.
+function voidRouter() {
+  let deliverLatest: () => void
+  const impl = (href: string) => {
+    const query = hrefQuery(href)
+    const response = new Promise<string>(resolve => { deliverLatest = () => resolve(query); waiting.push(deliverLatest) })
+    startTransition(() => nav.set(response))
+  }
+  nav.push.mockReset().mockImplementation(impl)
+  nav.replace.mockReset().mockImplementation(impl)
+  return { deliver: async () => { await act(async () => deliverLatest()) } }
 }
 
 describe('filters', () => {
@@ -303,22 +318,30 @@ describe('filters', () => {
     await router.deliver('q=x', true)
   })
 
-  it('sends a filter committed after a pending Reset even when it equals the URL still rendered', async () => {
+  it('keeps desktop and untouched mobile filters after a pending Reset is superseded by the rendered query', async () => {
     const user = userEvent.setup()
-    const router = slowRouter()
-    render(<Harness start="airline=TK" />)
+    const router = voidRouter()
+    render(<Suspense fallback={null}><Harness start="airline=TK" /></Suspense>)
     const airline = screen.getByRole('textbox', { name: 'Airline' })
     await user.clear(airline)
     await user.type(airline, 'aa')
-    await user.tab()
-    await user.click(screen.getByRole('link', { name: 'Reset filters' })) // pending too
+    await act(async () => { await user.tab() })
+    await act(async () => { await user.click(screen.getByRole('link', { name: 'Reset filters' })) }) // pending too
     expect(airline).toHaveValue('')
     await user.type(airline, 'tk')
-    await user.tab() // before Reset returns
+    await act(async () => { await user.tab() }) // before Reset returns
     const sent = [...nav.push.mock.calls.map((call, index) => [nav.push.mock.invocationCallOrder[index], call[0]] as const), ...nav.replace.mock.calls.map((call, index) => [nav.replace.mock.invocationCallOrder[index], call[0]] as const)]
     expect(sent.sort(([a], [b]) => a - b).map(([, href]) => hrefQuery(href))).toEqual(['airline=AA', '', 'airline=TK'])
-    await router.deliver('airline=TK', true) // the TK commit supersedes Reset
+    await router.deliver() // only the TK commit arrives; superseded AA and Reset stay unresolved
     expect(airline).toHaveValue('TK')
+    nav.push.mockClear(); nav.replace.mockClear()
+    await user.click(screen.getByRole('button', { name: 'Filters' }))
+    const dialog = screen.getByRole('dialog')
+    expect(within(dialog).getByRole('textbox', { name: 'Airline' })).toHaveValue('TK')
+    await user.click(within(dialog).getByRole('button', { name: 'Apply filters' }))
+    expect(airline).toHaveValue('TK')
+    expect(nav.push).not.toHaveBeenCalled()
+    expect(nav.replace).not.toHaveBeenCalled()
   })
 
   it('shows the selects of a pending Reset destination, so a status equal to the superseded URL can be chosen again', async () => {
@@ -333,6 +356,42 @@ describe('filters', () => {
     expect([...nav.push.mock.calls, ...nav.replace.mock.calls].map(call => hrefQuery(call[0]))).toEqual(['status=logged'])
     await router.deliver('status=logged', true)
     expect(status).toHaveValue('logged')
+  })
+
+  it('restores the same-query Status after it supersedes a pending Reset', async () => {
+    const user = userEvent.setup()
+    const router = voidRouter()
+    render(<Suspense fallback={null}><Harness start="status=logged" /></Suspense>)
+    await act(async () => { await user.click(screen.getByRole('link', { name: 'Reset filters' })) })
+    const status = screen.getByRole('combobox', { name: 'Status' })
+    expect(status).toHaveValue('')
+    await act(async () => { await user.selectOptions(status, 'logged') })
+    expect(nav.push.mock.calls.map(call => hrefQuery(call[0]))).toEqual(['', 'status=logged'])
+    await router.deliver()
+    expect(status).toHaveValue('logged')
+    await user.click(screen.getByRole('button', { name: 'Filters' }))
+    const dialog = screen.getByRole('dialog')
+    expect(within(dialog).getByRole('combobox', { name: 'Status' })).toHaveValue('logged')
+    await user.click(within(dialog).getByRole('button', { name: 'Apply filters' }))
+    expect(status).toHaveValue('logged')
+    expect(nav.push).toHaveBeenCalledTimes(2)
+  })
+
+  it('adopts the first-page link that supersedes a pending filter, and Search keeps its destination', async () => {
+    const user = userEvent.setup()
+    const router = voidRouter()
+    render(<Suspense fallback={null}><Harness start="page=2" flights={[]} total={3} /></Suspense>)
+    const airline = screen.getByRole('textbox', { name: 'Airline' })
+    await user.type(airline, 'aa')
+    await act(async () => { await user.tab() })
+    expect(hrefQuery(nav.push.mock.calls.at(-1)![0])).toBe('airline=AA')
+    await act(async () => { await user.click(screen.getByRole('link', { name: 'Back to the first page' })) })
+    await router.deliver()
+    expect(airline).toHaveValue('')
+    nav.push.mockClear(); nav.replace.mockClear()
+    await act(async () => { await user.type(screen.getByRole('searchbox'), 'x{Enter}') })
+    expect([...nav.push.mock.calls, ...nav.replace.mock.calls].map(call => hrefQuery(call[0]))).toEqual(['q=x'])
+    await router.deliver()
   })
 
   it('adopts the empty-result Reset clicked while its own filter navigation is pending', async () => {
