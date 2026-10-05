@@ -46,7 +46,7 @@ function Data({ summary, locale }: {summary:OverviewSummary; locale: Locale}) {
 async function OverviewData({ period }: { period: OverviewPeriod }) {
   const [owned, locale] = await Promise.all([getOwnOverview(period), getRequestLocale()])
   if (!owned) redirect('/signin')
-  return <IdentitySnapshot ownerId={owned.ownerId}><ReadFreshness ownerId={owned.ownerId} revision={owned.summary.revision} publishedRevision={owned.summary.publishedRevision} locale={locale} /><Data summary={owned.summary} locale={locale} /></IdentitySnapshot>
+  return <IdentitySnapshot ownerId={owned.ownerId}><ReadFreshness ownerId={owned.ownerId} revision={owned.summary.revision} publishedRevision={owned.summary.publishedRevision} derivedState={owned.summary.derivedState} locale={locale} /><Data summary={owned.summary} locale={locale} /></IdentitySnapshot>
 }
 export const generateMetadata = () => pageMetadata('Overview', 'Обзор')
 export default async function Overview({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {

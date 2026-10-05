@@ -10,11 +10,20 @@ type Props = {
   ownerId: string
   revision: number
   publishedRevision: number
+  /**
+   * What the read says about publication. Anything but `ready` is pending even when the revisions are equal: an older
+   * build can publish a revision without the evidence projection, and only the owner sync's repair clears that.
+   */
+  derivedState?: 'ready' | 'pending' | 'error'
   locale: 'en' | 'ru'
 }
 
+export const isPublicationPending = (revision: number, publishedRevision: number, derivedState?: Props['derivedState']) =>
+  revision > publishedRevision || (derivedState !== undefined && derivedState !== 'ready')
+
 /** RSC owns summaries; this status-only bridge never fetches a second summary. */
-export function ReadFreshness({ ownerId, revision, publishedRevision, locale }: Props) {
+export function ReadFreshness({ ownerId, revision, publishedRevision, derivedState, locale }: Props) {
+  const pending = isPublicationPending(revision, publishedRevision, derivedState)
   const router = useRouter()
   const [delayed, setDelayed] = useState(false)
   useEffect(() => {
@@ -30,7 +39,7 @@ export function ReadFreshness({ ownerId, revision, publishedRevision, locale }: 
     }
     window.addEventListener('focus', refresh)
     document.addEventListener('visibilitychange', refresh)
-    if (revision > publishedRevision) void awaitPublication(revision, controller.signal, current).then(result => {
+    if (pending) void awaitPublication(revision, controller.signal, current).then(result => {
       if (result === 'ready') router.refresh()
       else if (result === 'delayed') setDelayed(true)
     })
@@ -40,8 +49,8 @@ export function ReadFreshness({ ownerId, revision, publishedRevision, locale }: 
       window.removeEventListener('focus', refresh)
       document.removeEventListener('visibilitychange', refresh)
     }
-  }, [ownerId, revision, publishedRevision, router])
-  if (revision <= publishedRevision || !delayed) return null
+  }, [ownerId, revision, publishedRevision, pending, router])
+  if (!pending || !delayed) return null
   return <p role="status" className="status-note">{locale === 'ru'
     ? 'Обновление итогов занимает больше времени. Перелёты сохранены. Проверьте итоги позже.'
     : 'Totals are taking longer to update. Your flights are saved. Check again later.'}</p>

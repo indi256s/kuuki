@@ -40,7 +40,7 @@ function JournalInner({ ownerId, locale, initial, query, page, filtered }: Props
       signal.addEventListener('abort', () => controller.abort(), { once: true })
       try {
         const value = await api.get<{ flights: Flight[]; total: number }>('/api/flights', { ...Object.fromEntries(params), page: undefined, limit: 20, offset: (page - 1) * 20 }, { signal: controller.signal })
-        return { ...value, updatedAt: Date.now(), revision: initial.revision, publishedRevision: initial.publishedRevision }
+        return { ...value, updatedAt: Date.now(), revision: initial.revision, publishedRevision: initial.publishedRevision, derivedState: initial.derivedState }
       } finally { untrack() }
     },
     initialData: initial,

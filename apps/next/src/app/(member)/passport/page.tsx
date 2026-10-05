@@ -14,7 +14,7 @@ import '../../reads.css'
 async function PassportData({ period }: {period?: OverviewPeriod}) {
   const [owned, locale] = await Promise.all([getOwnPassport(), getRequestLocale()])
   if (!owned) redirect('/signin')
-  return <IdentitySnapshot ownerId={owned.ownerId}><ReadFreshness ownerId={owned.ownerId} revision={owned.data.revision} publishedRevision={owned.data.publishedRevision} locale={locale} /><PassportView ownerId={owned.ownerId} locale={locale} initial={owned.data} period={period} /></IdentitySnapshot>
+  return <IdentitySnapshot ownerId={owned.ownerId}><ReadFreshness ownerId={owned.ownerId} revision={owned.data.revision} publishedRevision={owned.data.publishedRevision} derivedState={owned.data.derivedState} locale={locale} /><PassportView ownerId={owned.ownerId} locale={locale} initial={owned.data} period={period} /></IdentitySnapshot>
 }
 export const generateMetadata = () => pageMetadata('Passport', 'Паспорт')
 export default async function Passport({ searchParams }: {searchParams: Promise<Record<string, string | string[] | undefined>>}) {
