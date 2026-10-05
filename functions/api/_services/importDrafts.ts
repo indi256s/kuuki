@@ -11,7 +11,8 @@ import type { EnrichmentStatus, ExtractedFlight } from '../import/_shared'
 import { findDuplicateMatches, type DuplicateCandidate } from './duplicates'
 
 export const MAX_DRAFTS_PER_BATCH = 100
-export const MAX_UNEXPIRED_BATCHES = 10
+/** Open batches (processing, review, partial) an owner may hold; finished ones no longer count. */
+export const MAX_OPEN_BATCHES = 10
 export const BATCH_TTL_DAYS = 30
 /** Provider deadline (90 s) plus validation and the write; past it the maintenance sweep treats the job as dead. */
 export const PROCESSING_WINDOW_MS = 120_000
@@ -152,7 +153,7 @@ export async function createProcessingBatch(
        (id, user_id, source_type, source_label, status, stage, sequence, generation, submission_operation_id,
         processing_deadline, created_at, updated_at, expires_at)
      SELECT ?, ?, ?, ?, 'processing', 'accepted', 0, 1, ?, ?, ?, ?, ?
-     WHERE (SELECT COUNT(*) FROM import_batches WHERE user_id = ? AND expires_at > ?) < ${MAX_UNEXPIRED_BATCHES}
+     WHERE (SELECT COUNT(*) FROM import_batches WHERE user_id = ? AND expires_at > ? AND status IN ('processing', 'review', 'partial')) < ${MAX_OPEN_BATCHES}
        AND NOT EXISTS (SELECT 1 FROM import_batches WHERE user_id = ? AND status = 'processing' AND processing_deadline > ?)
      ON CONFLICT (user_id, submission_operation_id) DO NOTHING`,
   ).bind(
@@ -170,7 +171,7 @@ export async function refusalFor(db: D1Database, userId: string, now: Date): Pro
     "SELECT 1 AS found FROM import_batches WHERE user_id = ? AND status = 'processing' AND processing_deadline > ? LIMIT 1",
   ).bind(userId, instant).first()
   if (live) return new HttpError(409, 'Another import is still being processed. Wait for it to finish.', 'IMPORT_IN_PROGRESS')
-  return new HttpError(409, `At most ${MAX_UNEXPIRED_BATCHES} imports can be open at once. Discard one to start another.`, 'IMPORT_BATCH_LIMIT')
+  return new HttpError(409, `At most ${MAX_OPEN_BATCHES} imports can be open at once. Discard one to start another.`, 'IMPORT_BATCH_LIMIT')
 }
 
 export interface DraftRowInput {
@@ -440,8 +441,18 @@ export async function patchDraft(db: D1Database, userId: string, draftId: string
       (patch.duplicateAcknowledged ?? row.duplicate_acknowledged === 1) ? 1 : 0, edited ? 1 : 0, status, instant,
       draftId, userId, patch.version, userId, instant,
     ),
-    db.prepare('UPDATE import_batches SET sequence = sequence + 1, updated_at = ? WHERE id = ? AND user_id = ? AND changes() = 1')
-      .bind(instant, row.batch_id, userId),
+    // Same batch as the draft update: a batch with no review row left is completed, and one that gets a review row
+    // back (an un-dismiss) is open again. processing, failed and cancelled batches keep their status.
+    db.prepare(
+      `UPDATE import_batches SET sequence = sequence + 1, updated_at = ?,
+         status = CASE
+           WHEN status IN ('review', 'partial') AND NOT EXISTS
+             (SELECT 1 FROM import_drafts WHERE batch_id = import_batches.id AND user_id = import_batches.user_id AND status = 'review') THEN 'completed'
+           WHEN status = 'completed' AND EXISTS
+             (SELECT 1 FROM import_drafts WHERE batch_id = import_batches.id AND user_id = import_batches.user_id AND status = 'review') THEN 'review'
+           ELSE status END
+       WHERE id = ? AND user_id = ? AND expires_at > ? AND changes() = 1`,
+    ).bind(instant, row.batch_id, userId, instant),
   ])
   if ((results[0].meta.changes ?? 0) === 0) throw await conflict()
   const updated = await read()

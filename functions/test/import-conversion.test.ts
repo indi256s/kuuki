@@ -340,6 +340,21 @@ describe('conversion', () => {
 })
 
 describe('the awaiting queue (T09 carry-over)', () => {
+  it('lists a completed batch again, consistently, when a dismissed row is restored', async () => {
+    clock()
+    const created = await seed([providerFlight(), providerFlight({ date: '2026-03-11' })])
+    const [a, b] = created.drafts
+    await patchDraft(db, b.id, { version: 1, dismissed: true })
+    const done = await confirm(db, created.batch.id, { items: [item(a)] })
+    expect(done.body.batch.status).toBe('completed')
+    expect((await getAwaiting(db, USER)).body).toMatchObject({ draftRowCount: 0, drafts: [] })
+    await patchDraft(db, b.id, { version: 2, dismissed: false })
+    expect((await getBatch(db, created.batch.id)).body.batch.status).toBe('review')
+    const queue = (await getAwaiting(db, USER)).body
+    expect(queue).toMatchObject({ draftRowCount: 1, actionableCount: 1 })
+    expect(queue.drafts).toMatchObject([{ batchId: created.batch.id, status: 'review', reviewRowCount: 1 }])
+  })
+
   it('summarises open batches by their review rows and follows real conversions', async () => {
     clock()
     const created = await seed([providerFlight(), providerFlight({ date: '2026-03-11' })])

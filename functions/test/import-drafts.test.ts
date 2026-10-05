@@ -133,19 +133,39 @@ describe('POST /api/import/jobs', () => {
     expect((await batchRow(body.batch.id))!.processing_deadline).toBeNull()
   })
 
-  it('refuses an eleventh unexpired batch but lets expired ones go, and a replay still answers at the cap', async () => {
+  it('refuses an eleventh open batch, lets finished or expired ones go, and a replay still answers at the cap', async () => {
     clock()
     answer([providerFlight()])
-    const first = await postJob(db, {})
+    const replayId = opId()
+    const first = await postJob(db, { submissionOperationId: replayId })
     for (let i = 1; i < 10; i++) expect((await postJob(db, {})).status).toBe(201)
     const eleventh = await postJob(db, {})
     expect(eleventh.status).toBe(409)
     expect(eleventh.body.code).toBe('IMPORT_BATCH_LIMIT')
     expect(await count(db, 'import_batches')).toBe(10)
-    await db.prepare("UPDATE import_batches SET expires_at = ? WHERE id = ?").bind(new Date(NOW.getTime() - 1).toISOString(), first.body.batch.id).run()
+    const replay = await postJob(db, { submissionOperationId: replayId })
+    expect(replay.status).toBe(200)
+    expect(replay.body.batch.id).toBe(first.body.batch.id)
+    expect(provider.generateContent).toHaveBeenCalledTimes(10)
+    // A completed batch, then an expired one, frees a slot.
+    await db.prepare("UPDATE import_batches SET status = 'completed' WHERE id = ?").bind(first.body.batch.id).run()
+    expect((await postJob(db, {})).status).toBe(201)
+    expect((await postJob(db, {})).status).toBe(409)
+    const open = await db.prepare("SELECT id FROM import_batches WHERE user_id = ? AND status = 'review' LIMIT 1").bind(USER.id).first<{ id: string }>()
+    await db.prepare("UPDATE import_batches SET expires_at = ? WHERE id = ?").bind(new Date(NOW.getTime() - 1).toISOString(), open!.id).run()
     expect((await postJob(db, {})).status).toBe(201)
     // Another owner has their own cap.
     expect((await postJob(db, {}, OTHER)).status).toBe(201)
+  })
+
+  it('does not count failed or cancelled batches toward the cap', async () => {
+    clock()
+    provider.generateContent.mockRejectedValue(new Error('request timed out'))
+    for (let i = 0; i < 11; i++) expect((await postJob(db, {})).body.batch.status).toBe('failed')
+    await db.prepare("UPDATE import_batches SET status = 'cancelled' WHERE id IN (SELECT id FROM import_batches LIMIT 3)").run()
+    answer([providerFlight()])
+    expect((await postJob(db, {})).status).toBe(201)
+    expect(await count(db, 'import_batches')).toBe(12)
   })
 
   it('allows one processing batch per owner and ignores one whose deadline passed', async () => {
@@ -298,6 +318,25 @@ describe('PATCH /api/import/drafts/:id', () => {
     expect(unknown.status).toBe(200)
     expect(unknown.body.draft.issue).toMatchObject({ code: 'UNKNOWN_AIRPORT' })
     expect((await draftRows(created.batch.id))[0].version).toBe(2)
+  })
+
+  it('completes a batch when its last review row is dismissed, and reopens it when a row comes back', async () => {
+    clock()
+    const created = await seed([providerFlight(), providerFlight({ date: '2026-03-11' })])
+    const [a, b] = created.drafts
+    await patchDraft(db, a.id, { version: 1, dismissed: true })
+    expect((await batchRow(created.batch.id))!.status).toBe('review')
+    await patchDraft(db, b.id, { version: 1, dismissed: true })
+    expect((await batchRow(created.batch.id))!.status).toBe('completed')
+    await patchDraft(db, b.id, { version: 2, dismissed: false })
+    expect(await batchRow(created.batch.id)).toMatchObject({ status: 'review' })
+    // processing, failed and cancelled batches are never touched by an edit.
+    for (const status of ['failed', 'cancelled', 'processing']) {
+      await db.prepare('UPDATE import_batches SET status = ? WHERE id = ?').bind(status, created.batch.id).run()
+      const version = (await draftRows(created.batch.id)).find(row => row.id === a.id)!.version
+      await patchDraft(db, a.id, { version, dismissed: version % 2 === 0 })
+      expect((await batchRow(created.batch.id))!.status, status).toBe(status)
+    }
   })
 
   it('dismisses and restores a row, but never edits a converted or expired one', async () => {
