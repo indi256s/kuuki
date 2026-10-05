@@ -5,5 +5,7 @@ export default defineConfig({
     environment: 'node',
     include: ['functions/**/*.test.ts', 'scripts/migration.test.ts'],
     fileParallelism: false,
+    // Each test boots Miniflare D1 and replays migrations; 5 s is too tight on a loaded machine or CI runner.
+    testTimeout: 30_000,
   },
 })
