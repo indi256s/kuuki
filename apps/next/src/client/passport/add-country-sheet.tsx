@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useRef, useState } from 'react'
+import { useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { Sheet } from '../ui/sheet'
 import { Field } from '../ui/field'
 import { formatCount, type Locale } from '../../lib/format'
@@ -17,10 +17,11 @@ const RESULT_FORMS = {
  * countries) and the full catalog list with collected markers. Picking a country opens its detail sheet, where the
  * visit form and the claim live.
  */
-export function AddCountrySheet({ open, onOpenChange, locale, mobile, entries, name, onPick, onCloseAutoFocus }: {
+export function AddCountrySheet({ open, onOpenChange, locale, mobile, entries, name, onPick }: {
   open: boolean; onOpenChange: (open: boolean) => void; locale: Locale; mobile: boolean
-  entries: PassportEntry[]; name: (code: string) => string; onPick: (code: string) => void
-  onCloseAutoFocus?: (event: Event) => void
+  entries: PassportEntry[]; name: (code: string) => string
+  /** The sheet closes into the country sheet; `opener` is where that sheet should return focus. */
+  onPick: (code: string, opener: HTMLElement | null) => void
 }) {
   const ru = locale === 'ru'
   const [query, setQuery] = useState('')
@@ -28,7 +29,25 @@ export function AddCountrySheet({ open, onOpenChange, locale, mobile, entries, n
   const collected = useMemo(() => new Map(entries.map(entry => [entry.code, entry])), [entries])
   const suggestions = useMemo(() => suggestCountries(entries), [entries])
   const results = useMemo(() => searchCountries(query, name), [query, name])
-  const pick = (code: string) => { setQuery(''); onPick(code) }
+  // The sheet has no Radix trigger (the cover and the empty state both open it), so it remembers the focused opener
+  // before its own initial focus moves in, and returns there unless a pick handed focus to the country sheet.
+  const opener = useRef<HTMLElement | null>(null)
+  const handedOff = useRef(false)
+  useLayoutEffect(() => {
+    if (!open) return
+    const active = document.activeElement
+    opener.current = active instanceof HTMLElement && active !== document.body ? active : null
+    handedOff.current = false
+  }, [open])
+  const restoreFocus = (event: Event) => {
+    event.preventDefault()
+    if (handedOff.current) return
+    if (opener.current?.isConnected) { opener.current.focus(); return }
+    const heading = document.querySelector<HTMLElement>('main h1')
+    heading?.setAttribute('tabindex', '-1')
+    heading?.focus({ preventScroll: true })
+  }
+  const pick = (code: string) => { setQuery(''); handedOff.current = true; onPick(code, opener.current) }
   const status = (code: string) => {
     const entry = collected.get(code)
     return !entry ? '' : entry.status === 'pending' ? (ru ? 'ждёт отметки' : 'waiting') : (ru ? 'в паспорте' : 'in passport')
@@ -36,7 +55,7 @@ export function AddCountrySheet({ open, onOpenChange, locale, mobile, entries, n
   const choice = (code: string) => <li key={code}><button type="button" className="passport-choice" onClick={() => pick(code)}>{name(code)}</button></li>
 
   return <Sheet open={open} onOpenChange={next => { if (!next) setQuery(''); onOpenChange(next) }} side={mobile ? 'bottom' : 'right'}
-    title={ru ? 'Добавить страну' : 'Add country'} closeLabel={ru ? 'Закрыть' : 'Close'} initialFocusRef={search} onCloseAutoFocus={onCloseAutoFocus}>
+    title={ru ? 'Добавить страну' : 'Add country'} closeLabel={ru ? 'Закрыть' : 'Close'} initialFocusRef={search} onCloseAutoFocus={restoreFocus}>
     <div className="passport-sheet">
       <div className="passport-search">
         <Field ref={search} type="search" label={ru ? 'Найти страну' : 'Find a country'} value={query} autoComplete="off"

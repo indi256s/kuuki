@@ -137,8 +137,7 @@ function Inner({ ownerId, locale, initial, period }: { ownerId: string; locale: 
         awaiting={queue?.awaitingFlights} name={name} onClose={() => navigate({ country: null })} onChanged={changed} onRemoved={removed}
         onCloseAutoFocus={restoreFocus} />
       <AddCountrySheet open={adding} onOpenChange={setAdding} locale={locale} mobile={mobile} entries={entries} name={name}
-        onPick={code => { setAdding(false); opener.current = null; navigate({ country: code }) }}
-        onCloseAutoFocus={event => { if (state.country) event.preventDefault() }} />
+        onPick={(code, addOpener) => { setAdding(false); opener.current = addOpener; navigate({ country: code }) }} />
     </>}
   </section>
 }

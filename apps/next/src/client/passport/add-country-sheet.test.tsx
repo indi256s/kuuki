@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
-import { render, screen, within } from '@testing-library/react'
+import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { AddCountrySheet } from './add-country-sheet'
 import { countryNamer, passportEntries } from './model'
@@ -33,6 +34,45 @@ describe('AddCountrySheet', () => {
     await user.type(within(dialog).getByRole('searchbox', { name: 'Найти страну' }), 'Ελλάδα')
     expect(within(dialog).getByRole('status')).toHaveTextContent('1 страна или территория')
     await user.click(within(dialog).getByRole('button', { name: /Греция/ }))
-    expect(onPick).toHaveBeenCalledWith('GR')
+    expect(onPick).toHaveBeenCalledWith('GR', null)
+  })
+
+  function Harness({ onPick = () => {} }: { onPick?: (code: string, opener: HTMLElement | null) => void }) {
+    const [open, setOpen] = useState(false)
+    return <>
+      <button type="button" onClick={() => setOpen(true)}>Add country</button>
+      <AddCountrySheet open={open} onOpenChange={setOpen} locale="en" mobile entries={[]} name={countryNamer('en')}
+        onPick={(code, opener) => { setOpen(false); onPick(code, opener) }} />
+    </>
+  }
+
+  it('returns focus to the button that opened it on Escape and on the close button', async () => {
+    const user = userEvent.setup()
+    render(<Harness />)
+    const opener = screen.getByRole('button', { name: 'Add country' })
+    await user.click(opener)
+    await screen.findByRole('dialog', { name: 'Add country' })
+    await user.keyboard('{Escape}')
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+    expect(opener).toHaveFocus()
+
+    await user.click(opener)
+    await user.click(within(await screen.findByRole('dialog', { name: 'Add country' })).getByRole('button', { name: 'Close' }))
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+    expect(opener).toHaveFocus()
+  })
+
+  it('hands the opener to the country sheet instead of refocusing it when a country is picked', async () => {
+    const user = userEvent.setup()
+    const onPick = vi.fn()
+    render(<Harness onPick={onPick} />)
+    const opener = screen.getByRole('button', { name: 'Add country' })
+    await user.click(opener)
+    const dialog = await screen.findByRole('dialog', { name: 'Add country' })
+    await user.type(within(dialog).getByRole('searchbox', { name: 'Find a country' }), 'Iceland')
+    await user.click(within(dialog).getByRole('button', { name: /^Iceland/ }))
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+    expect(onPick).toHaveBeenCalledWith('IS', opener)
+    expect(opener).not.toHaveFocus()
   })
 })
