@@ -51,7 +51,7 @@ test('manual capture retries the original uncertain save, then edits and deletes
   const flights = await listing.json() as { id: number }[]
   expect(flights).toHaveLength(1)
   await page.goto(`/journal/${flights[0].id}/edit`)
-  await page.getByRole('button', { name: '＋ Optional details', exact: true }).click()
+  await page.getByRole('button', { name: 'Optional details', exact: true }).click()
   await page.getByLabel('Flight number (optional)').fill('AA123')
   await page.getByRole('button', { name: 'Save flight' }).click()
   await expect(page.getByRole('heading', { name: 'Flight saved' })).toBeVisible()
@@ -62,7 +62,7 @@ test('manual capture retries the original uncertain save, then edits and deletes
   await page.keyboard.press('Escape')
   await expect(page.getByRole('button', { name: 'Delete flight', exact: true })).toBeFocused()
   await page.getByRole('button', { name: 'Delete flight', exact: true }).click()
-  await page.getByRole('dialog', { name: 'Delete flight?' }).getByRole('button', { name: 'Delete flight', exact: true }).click()
+  await page.getByRole('dialog', { name: /^Delete .+ → .+\?$/ }).getByRole('button', { name: 'Delete flight', exact: true }).click()
   await page.waitForURL('**/journal')
   expect((await (await page.request.get('/api/flights/all')).json() as unknown[])).toHaveLength(0)
 })

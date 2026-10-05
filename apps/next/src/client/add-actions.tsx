@@ -1,7 +1,9 @@
 'use client'
 
 import Link from 'next/link'
-import { ClipboardPaste, PenLine, Upload } from 'lucide-react'
+import { useAwaiting } from './awaiting'
+import { formatNumber } from '../lib/format'
+import { ClipboardCheck, ClipboardPaste, PenLine, Upload } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { MenuItem } from './ui/menu'
 
@@ -20,16 +22,18 @@ function Label({ action }: { action: Action }) {
 
 /** `menu` renders Radix menu items (inside a Menu); `sheet` renders a plain list of links for the action sheet. */
 export function AddActions({ variant, onNavigate }: { variant: 'menu' | 'sheet'; onNavigate?: () => void }) {
+  const { data } = useAwaiting()
+  const queueLink = data && data.actionableCount > 0 ? <Link href="/journal?queue=awaiting" className={variant === 'sheet' ? 'add-action' : undefined} data-add-action="queue" onClick={onNavigate}><ClipboardCheck size={20} strokeWidth={2} aria-hidden="true" /><span className="locale-en">Awaiting action: {formatNumber('en', data.actionableCount)}</span><span className="locale-ru">Ждут действия: {formatNumber('ru', data.actionableCount)}</span></Link> : null
   if (variant === 'menu') {
     return <>{ADD_ACTIONS.map(action => (
       <MenuItem key={action.id} asChild>
         <Link href={action.href} data-add-action={action.id}>{action.icon}<Label action={action} /></Link>
       </MenuItem>
-    ))}</>
+    ))}{queueLink ? <MenuItem asChild>{queueLink}</MenuItem> : null}</>
   }
   return <ul className="add-actions">{ADD_ACTIONS.map(action => (
     <li key={action.id}>
       <Link href={action.href} className="add-action" data-add-action={action.id} onClick={onNavigate}>{action.icon}<Label action={action} /></Link>
     </li>
-  ))}</ul>
+  ))}{queueLink ? <li>{queueLink}</li> : null}</ul>
 }

@@ -20,8 +20,8 @@ type StateRow = { revision: number; published_revision: number; evidence_revisio
 export async function readJournal(db: D1Database, userId: string, filters: FlightFilters, sort: SortConfig, limit: number, offset: number): Promise<JournalData> {
   const { where, binds } = buildFlightWhere(userId, filters)
   const statements = [
-    db.prepare(`SELECT ${FLIGHT_COLUMNS} FROM flights f WHERE ${where} ${orderByClause(sort)} LIMIT ? OFFSET ?`).bind(...binds, limit, offset),
-    db.prepare(`SELECT COUNT(*) AS total FROM flights f WHERE ${where}`).bind(...binds),
+    db.prepare(`SELECT ${FLIGHT_COLUMNS} FROM flights WHERE ${where} ${orderByClause(sort)} LIMIT ? OFFSET ?`).bind(...binds, limit, offset),
+    db.prepare(`SELECT COUNT(*) AS total FROM flights WHERE ${where}`).bind(...binds),
     db.prepare('SELECT revision, published_revision, evidence_revision, last_error FROM user_derived_state WHERE user_id = ?').bind(userId),
   ]
   const results = await db.batch(statements)

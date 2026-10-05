@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import type { ReactNode } from 'react'
+import { AwaitingProvider } from './awaiting'
 import { AvatarMenu } from './avatar-menu'
 import { PrimaryNav, TabBar } from './nav'
 import { Preferences } from './preferences'
@@ -19,8 +20,9 @@ function Main({ children }: { children: ReactNode }) { return <main id="main" cl
  */
 export async function MemberShell({ locale, children }: { locale: Locale; children: ReactNode }) {
   const own = await getGateProfile()
-  const username = own?.profile.username ?? null
-  return <>
+  if (!own) return <Main>{children}</Main>
+  const username = own.profile.username ?? null
+  return <AwaitingProvider key={own.profile.id} ownerId={own.profile.id}>
     <header className="site-header"><div className="site-header-inner">
       <Wordmark />
       <PrimaryNav locale={locale} />
@@ -34,7 +36,7 @@ export async function MemberShell({ locale, children }: { locale: Locale; childr
     </div></header>
     <Main>{children}</Main>
     <TabBar locale={locale} username={username} />
-  </>
+  </AwaitingProvider>
 }
 
 /** Wordmark and preferences only; no member navigation. `actions` adds guest links. */

@@ -21,9 +21,11 @@ export type DialogProps = {
   dismissible?: boolean
   /** Element to focus on open instead of the title (e.g. Cancel in a destructive confirm). */
   initialFocusRef?: RefObject<HTMLElement | null>
+  /** Runs when focus is about to return to the trigger; `preventDefault()` lets the caller place focus instead. */
+  onCloseAutoFocus?: (event: Event) => void
 }
 
-export function Dialog({ open, onOpenChange, title, description, trigger, children, footer, closeLabel = 'Close', dismissible = true, initialFocusRef, className = '' }: DialogProps) {
+export function Dialog({ open, onOpenChange, title, description, trigger, children, footer, closeLabel = 'Close', dismissible = true, initialFocusRef, onCloseAutoFocus, className = '' }: DialogProps) {
   const titleRef = useRef<HTMLHeadingElement>(null)
   return (
     <RadixDialog.Root open={open} onOpenChange={next => { if (dismissible || next) onOpenChange(next) }}>
@@ -33,6 +35,7 @@ export function Dialog({ open, onOpenChange, title, description, trigger, childr
         <RadixDialog.Content
           className={`ui-dialog ${className}`}
           {...(description ? {} : { 'aria-describedby': undefined })}
+          onCloseAutoFocus={onCloseAutoFocus}
           onOpenAutoFocus={event => { event.preventDefault(); (initialFocusRef?.current ?? titleRef.current)?.focus() }}
           onEscapeKeyDown={event => { if (!dismissible) event.preventDefault() }}
           onPointerDownOutside={event => { if (!dismissible) event.preventDefault() }}

@@ -1,10 +1,15 @@
 // @vitest-environment jsdom
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
+import { renderToString } from 'react-dom/server'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { ApiError } from '../../../../web/src/lib/apiClient'
 import { FlightForm } from './flight-form'
 import { FlightCaptureDialog, FlightDetailSheet } from './flight-panels'
 import { clearCapturePreferences } from './capture-preferences'
+import { useMobile } from '../ui/use-mobile'
 import type { Locale } from '../../lib/format'
 
 const mocks = vi.hoisted(() => ({ create: vi.fn(), update: vi.fn(), duplicate: vi.fn(), get: vi.fn(), remove: vi.fn(), acknowledge: vi.fn(), refresh: vi.fn(), push: vi.fn() }))
@@ -14,7 +19,7 @@ vi.mock('../../../../web/src/lib/flights', () => ({ getFlight: mocks.get, checkD
 vi.mock('../activity', () => ({ trackPrivateOperation: () => () => {} }))
 vi.mock('../write-feedback', () => ({ useWriteFeedback: () => ({ acknowledge: mocks.acknowledge, status: 'ready' }) }))
 const flight = { id: 7, date: '2026-10-05', origin: 'TBS', destination: 'IST', airline_iata: 'TK', aircraft_icao: 'B738', flight_number: 'TK123', departure_time: '12:00', arrival_time: '14:00', lifecycle_state: 'awaiting' }
-const words = { en: { from: 'From', to: 'To', date: 'Date', save: 'Save flight', details: '＋ Optional details', swap: 'Swap route', anyway: 'Save anyway', airline: 'Airline (optional)', aircraft: 'Aircraft (optional)' }, ru: { from: 'Откуда', to: 'Куда', date: 'Дата', save: 'Сохранить перелёт', details: '＋ Подробности', swap: 'Поменять местами', anyway: 'Всё равно сохранить', airline: 'Авиакомпания (необязательно)', aircraft: 'Самолёт (необязательно)' } }
+const words = { en: { from: 'From', to: 'To', date: 'Date', save: 'Save flight', details: 'Optional details', swap: 'Swap route', anyway: 'Save anyway', airline: 'Airline (optional)', aircraft: 'Aircraft (optional)' }, ru: { from: 'Откуда', to: 'Куда', date: 'Дата', save: 'Сохранить перелёт', details: 'Подробности', swap: 'Поменять местами', anyway: 'Всё равно сохранить', airline: 'Авиакомпания (необязательно)', aircraft: 'Самолёт (необязательно)' } }
 async function fill(locale: Locale) {
   const w = words[locale]
   fireEvent.change(screen.getByRole('combobox', { name: w.from }), { target: { value: 'TBS' } })
@@ -63,7 +68,7 @@ describe.each(['en', 'ru'] as const)('manual flight (%s)', locale => {
     // An invalid optional value must never escape through the duplicate action.
     await userEvent.click(screen.getByRole('button', { name: words[locale].details }))
     fireEvent.change(screen.getByRole('combobox', { name: words[locale].airline }), { target: { value: 'X' } })
-    await userEvent.click(override)
+    fireEvent.click(override)
     await screen.findByRole('alert')
     expect(mocks.create).not.toHaveBeenCalled()
     expect(screen.getByRole('combobox', { name: words[locale].airline })).toHaveFocus()
@@ -74,7 +79,7 @@ describe.each(['en', 'ru'] as const)('manual flight (%s)', locale => {
   it('focuses the first inline error and rejects impossible dates', async () => {
     render(<FlightForm ownerId="a" locale={locale} />)
     await userEvent.click(screen.getByRole('button', { name: words[locale].save }))
-    await waitFor(() => expect(screen.getByLabelText(words[locale].date)).toHaveFocus())
+    await waitFor(() => expect(screen.getByRole('combobox', { name: words[locale].from })).toHaveFocus())
     await fill(locale)
     fireEvent.change(screen.getByLabelText(words[locale].date), { target: { value: '2026-02-30' } })
     await userEvent.click(screen.getByRole('button', { name: words[locale].save }))
@@ -122,7 +127,8 @@ it('offers named edit/delete actions in reusable Ticket detail and confirms dele
   await screen.findByRole('article', { name: 'TBS — IST' })
   expect(screen.getByRole('button', { name: 'Изменить перелёт' })).toBeInTheDocument()
   await userEvent.click(screen.getByRole('button', { name: 'Удалить перелёт' }))
-  const confirmation = await screen.findByRole('dialog', { name: 'Удалить перелёт?' })
+  const confirmation = await screen.findByRole('dialog', { name: /^Удалить перелёт TBS → IST, 5 окт\. 2026 г\.\?$/ })
+  expect(within(confirmation).getByRole('button', { name: 'Отмена' })).toHaveFocus()
   await userEvent.click(within(confirmation).getByRole('button', { name: 'Удалить перелёт' }))
   await waitFor(() => expect(mocks.remove).toHaveBeenCalledWith(7))
   expect(mocks.push).toHaveBeenCalledWith('/journal')
@@ -156,7 +162,8 @@ it('keeps a failed duplicate lookup from silently admitting a save', async () =>
   await fill('en')
   await userEvent.click(screen.getByRole('button', { name: 'Save flight' }))
   const error = await screen.findByRole('alert')
-  expect(error).toHaveTextContent('Lookup unavailable')
+  expect(error).toHaveTextContent('Could not save. Check your connection and try again.')
+  expect(error).not.toHaveTextContent('Lookup unavailable')
   await waitFor(() => expect(document.activeElement).toBe(error))
   expect(mocks.create).not.toHaveBeenCalled()
 })
@@ -176,15 +183,156 @@ it.each(['delete', 'open journal'] as const)('returns embedded detail %s to its 
   if (action === 'delete') {
     await screen.findByRole('button', { name: 'Edit flight' })
     await userEvent.click(screen.getByRole('button', { name: 'Delete flight' }))
-    const confirmation = await screen.findByRole('dialog', { name: 'Delete flight?' })
+    const confirmation = await screen.findByRole('dialog', { name: 'Delete TBS → IST, Oct 5, 2026?' })
     await userEvent.click(within(confirmation).getByRole('button', { name: 'Delete flight' }))
     await waitFor(() => expect(mocks.remove).toHaveBeenCalledWith(7))
   } else {
     await screen.findByRole('button', { name: 'Save flight' })
     await userEvent.click(screen.getByRole('button', { name: 'Save flight' }))
     await screen.findByRole('heading', { name: 'Flight saved' })
-    await userEvent.click(screen.getByRole('link', { name: 'Open journal' }))
+    await userEvent.click(screen.getByRole('link', { name: 'Done' }))
   }
   await waitFor(() => expect(close).toHaveBeenCalledWith(false))
   expect(mocks.push).not.toHaveBeenCalled()
+})
+
+describe('mobile first paint', () => {
+  const mobile = (matches: boolean) => Object.defineProperty(window, 'matchMedia', { configurable: true, value: () => ({ matches, addEventListener: vi.fn(), removeEventListener: vi.fn() }) })
+  function Probe({ seen }: { seen: Array<boolean | null> }) { const value = useMobile(); seen.push(value); return <output>{String(value)}</output> }
+  it('has no answer on the server, so no surface is chosen before the media query is known', () => {
+    mobile(true)
+    expect(renderToString(<Probe seen={[]} />)).toContain('null')
+    expect(renderToString(<FlightCaptureDialog ownerId="a" locale="en" />)).toBe('')
+  })
+  it('never reports desktop on the first client render of a phone', () => {
+    mobile(true)
+    const seen: Array<boolean | null> = []
+    render(<Probe seen={seen} />)
+    expect(seen).not.toContain(false)
+    expect(seen.at(-1)).toBe(true)
+  })
+  it('opens the full-height sheet on a phone and never the dialog', async () => {
+    mobile(true)
+    render(<FlightCaptureDialog ownerId="a" locale="en" />)
+    await screen.findByRole('dialog', { name: 'Add a flight' })
+    expect(document.querySelector('.ui-dialog')).toBeNull()
+    expect(document.querySelector('.ui-sheet')).not.toBeNull()
+  })
+  it('uses the dialog on desktop and keeps its width independent of CSS order', async () => {
+    mobile(false)
+    render(<FlightCaptureDialog ownerId="a" locale="en" />)
+    await screen.findByRole('dialog', { name: 'Add a flight' })
+    expect(document.querySelector('.ui-dialog.flight-add-dialog')).not.toBeNull()
+    const css = readFileSync(join(process.cwd(), 'src/client/ui/flight-controls.css'), 'utf8')
+    expect(css).toMatch(/\.ui-dialog\.flight-add-dialog\s*\{[^}]*width:/)
+  })
+})
+
+describe.each(['en', 'ru'] as const)('offline, errors and focus (%s)', locale => {
+  const say = (en: string, ru: string) => locale === 'ru' ? ru : en
+  const setOnline = (value: boolean) => Object.defineProperty(navigator, 'onLine', { configurable: true, get: () => value })
+  afterEach(() => setOnline(true))
+
+  it('keeps every field editable offline and blocks only save, with a visible reason', async () => {
+    setOnline(false)
+    render(<FlightForm ownerId="a" locale={locale} />)
+    for (const name of [words[locale].from, words[locale].to]) expect(screen.getByRole('combobox', { name })).toBeEnabled()
+    expect(screen.getByLabelText(words[locale].date)).toBeEnabled()
+    await userEvent.click(screen.getByRole('button', { name: words[locale].details }))
+    expect(screen.getByRole('combobox', { name: words[locale].airline })).toBeEnabled()
+    await fill(locale)
+    const save = screen.getByRole('button', { name: words[locale].save })
+    expect(save).toHaveAttribute('aria-disabled', 'true')
+    expect(screen.getByText(say('Offline. Connect to save.', 'Нет сети. Подключитесь, чтобы сохранить.'))).toBeVisible()
+    await userEvent.click(save)
+    fireEvent.keyDown(window, { key: 'Enter', ctrlKey: true })
+    expect(mocks.create).not.toHaveBeenCalled()
+    act(() => { setOnline(true); window.dispatchEvent(new Event('online')) })
+    await waitFor(() => expect(screen.getByRole('button', { name: words[locale].save })).not.toHaveAttribute('aria-disabled'))
+    await userEvent.click(screen.getByRole('button', { name: words[locale].save }))
+    await waitFor(() => expect(mocks.create).toHaveBeenCalledTimes(1))
+  })
+  it('does not move focus out of a field when the connection drops while typing', async () => {
+    render(<FlightForm ownerId="a" locale={locale} />)
+    const from = screen.getByRole('combobox', { name: words[locale].from })
+    await userEvent.click(from)
+    expect(from).toHaveFocus()
+    act(() => { setOnline(false); window.dispatchEvent(new Event('offline')) })
+    expect(from).toHaveFocus()
+    expect(from).toBeEnabled()
+  })
+  it('blocks delete offline with its own reason', async () => {
+    setOnline(false)
+    render(<FlightDetailSheet ownerId="a" locale={locale} flightId={7} />)
+    const trigger = await screen.findByRole('button', { name: say('Delete flight', 'Удалить перелёт') })
+    expect(trigger).toHaveAttribute('aria-disabled', 'true')
+    expect(screen.getByText(say('Offline. Connect to delete.', 'Нет сети. Подключитесь, чтобы удалить.'))).toBeVisible()
+  })
+  it('says what is wrong in each field instead of a generic message', async () => {
+    render(<FlightForm ownerId="a" locale={locale} />)
+    fireEvent.change(screen.getByRole('combobox', { name: words[locale].from }), { target: { value: 'ZZZ' } })
+    fireEvent.change(screen.getByRole('combobox', { name: words[locale].to }), { target: { value: 'ZZZ' } })
+    fireEvent.change(screen.getByLabelText(words[locale].date), { target: { value: locale === 'ru' ? '31.02.2026' : '02/30/2026' } })
+    await userEvent.click(screen.getByRole('button', { name: words[locale].save }))
+    expect(await screen.findByText(say('This date does not exist. Check the day and month.', 'Такой даты нет. Проверьте день и месяц.'))).toBeInTheDocument()
+    expect(screen.getAllByText(say('Choose an airport from the list.', 'Выберите аэропорт из списка.'))).toHaveLength(2)
+    expect(screen.queryByText(/Check this field|Проверьте значение поля/)).not.toBeInTheDocument()
+    expect(mocks.create).not.toHaveBeenCalled()
+  })
+  it('accepts a leap day and rejects the same day in a common year', async () => {
+    render(<FlightForm ownerId="a" locale={locale} />)
+    await fill(locale)
+    fireEvent.change(screen.getByLabelText(words[locale].date), { target: { value: locale === 'ru' ? '29.02.2025' : '02/29/2025' } })
+    await userEvent.click(screen.getByRole('button', { name: words[locale].save }))
+    expect(await screen.findByText(say('This date does not exist. Check the day and month.', 'Такой даты нет. Проверьте день и месяц.'))).toBeInTheDocument()
+    expect(mocks.create).not.toHaveBeenCalled()
+    fireEvent.change(screen.getByLabelText(words[locale].date), { target: { value: locale === 'ru' ? '29.02.2024' : '02/29/2024' } })
+    await userEvent.click(screen.getByRole('button', { name: words[locale].save }))
+    await waitFor(() => expect(mocks.create).toHaveBeenCalledTimes(1))
+    expect(mocks.create.mock.calls[0][0]).toMatchObject({ date: '2024-02-29' })
+  })
+  it('shows localized copy for a structured server failure and for a failed load', async () => {
+    mocks.create.mockRejectedValueOnce(new ApiError(400, 'origin airport does not exist', 'UNKNOWN_AIRPORT'))
+    render(<FlightForm ownerId="a" locale={locale} />)
+    await fill(locale)
+    await userEvent.click(screen.getByRole('button', { name: words[locale].save }))
+    const alert = await screen.findByText(say('Choose an airport from the list.', 'Выберите аэропорт из списка.'))
+    expect(alert).toHaveAttribute('role', 'alert')
+    expect(screen.queryByText(/origin airport does not exist/)).not.toBeInTheDocument()
+  })
+  it('never prints the raw cause when a flight fails to load', async () => {
+    mocks.get.mockRejectedValueOnce(new TypeError('Failed to fetch'))
+    render(<FlightDetailSheet ownerId="a" locale={locale} flightId={7} />)
+    const alert = await screen.findByRole('alert')
+    expect(alert).toHaveTextContent(say('Could not load the flight. Check your connection and try again.', 'Не удалось загрузить перелёт. Проверьте соединение и повторите.'))
+    expect(alert).not.toHaveTextContent(/TypeError|Failed to fetch/)
+  })
+  it('keeps field errors out of the field label so they are not announced twice', async () => {
+    render(<FlightForm ownerId="a" locale={locale} />)
+    await userEvent.click(screen.getByRole('button', { name: words[locale].details }))
+    fireEvent.change(screen.getByLabelText(say('Departure (optional)', 'Вылет (необязательно)')), { target: { value: '25:00' } })
+    await userEvent.click(screen.getByRole('button', { name: words[locale].save }))
+    const departure = screen.getByLabelText(say('Departure (optional)', 'Вылет (необязательно)'))
+    expect(departure.closest('label')).toBeNull()
+    expect(document.querySelector(`label[for="${departure.id}"]`)).not.toHaveTextContent(/HH:MM|ЧЧ:ММ/)
+  })
+  it('opens Optional details and focuses the aircraft field for a flight without aircraft', async () => {
+    mocks.get.mockResolvedValue({ ...flight, aircraft_icao: null, airline_iata: null, flight_number: null, departure_time: null, arrival_time: null })
+    localStorage.clear()
+    render(<FlightDetailSheet ownerId="a" locale={locale} flightId={7} initialEditing focusField="aircraft" />)
+    const aircraft = await screen.findByRole('combobox', { name: words[locale].aircraft })
+    await waitFor(() => expect(aircraft).toHaveFocus())
+    expect(screen.getByRole('button', { name: words[locale].details })).toHaveAttribute('aria-expanded', 'true')
+  })
+  it('shows HH:MM in the detail view and focuses the saved heading after a save', async () => {
+    mocks.get.mockResolvedValue({ ...flight, departure_time: '12:05:00', arrival_time: '14:30:00' })
+    render(<FlightDetailSheet ownerId="a" locale={locale} flightId={7} />)
+    await screen.findByRole('article')
+    expect(screen.getByText('12:05')).toBeInTheDocument()
+    expect(screen.getByText('14:30')).toBeInTheDocument()
+    expect(screen.queryByText(/12:05:00|14:30:00/)).not.toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: say('Edit flight', 'Изменить перелёт') }))
+    await userEvent.click(await screen.findByRole('button', { name: words[locale].save }))
+    await waitFor(() => expect(screen.getByRole('heading', { name: say('Flight saved', 'Перелёт сохранён') })).toHaveFocus())
+  })
 })

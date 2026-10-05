@@ -4,6 +4,7 @@ import { getOwnJournal } from '../../../server/journal'
 import { getRequestLocale } from '../../../server/locale'
 import { pageMetadata } from '../../../server/metadata'
 import { requireOnboardedMember } from '../../../server/gates'
+import { normalizeJournalQuery, withQuery } from '../../../lib/url-state'
 import { IdentitySnapshot } from '../../../client/activity'
 import { ReadFreshness } from '../../../client/freshness'
 import { JournalView } from '../../../client/reads/journal'
@@ -14,12 +15,17 @@ async function JournalData({ filters }: { filters: Record<string, string | strin
   if (!owned) redirect('/signin')
   const { ownerId, data, normalized } = owned
   const query = normalized.params.toString()
-  const filtered = !!(normalized.search || normalized.filters.year || normalized.filters.airlineIata || normalized.filters.airlineIataCodes?.length || normalized.filters.aircraftIcao || normalized.filters.isUpcoming !== undefined || normalized.filters.origin || normalized.filters.originCodes?.length || normalized.filters.destination || normalized.filters.destinationCodes?.length)
-  return <IdentitySnapshot ownerId={ownerId}><ReadFreshness ownerId={ownerId} revision={data.revision} publishedRevision={data.publishedRevision} derivedState={data.derivedState} locale={locale} /><JournalView key={`${ownerId}:${query}`} ownerId={ownerId} locale={locale} initial={data} query={query} page={normalized.page} filtered={filtered} /></IdentitySnapshot>
+  if (!normalized.canonical) redirect(`/journal${query ? `?${query}` : ''}`)
+  const filtered = !!(normalized.search || normalized.filters.year || normalized.filters.airlineIata || normalized.filters.aircraftIcao || normalized.filters.status || normalized.filters.airport || normalized.filters.origin || normalized.filters.destination)
+  return <IdentitySnapshot ownerId={ownerId}><ReadFreshness ownerId={ownerId} revision={data.revision} publishedRevision={data.publishedRevision} derivedState={data.derivedState} locale={locale} /><JournalView key={ownerId} ownerId={ownerId} locale={locale} initial={data} query={query} page={normalized.page} filtered={filtered} /></IdentitySnapshot>
 }
 export const generateMetadata = () => pageMetadata('Journal', 'Журнал')
 export default async function Journal({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   await requireOnboardedMember()
+  const filters = await searchParams
+  // Redirect before the page streams: a real 307 with no wasted queries, rather than a client-side hop from inside Suspense.
+  const canonical = normalizeJournalQuery(filters)
+  if (!canonical.canonical) redirect(withQuery('/journal', canonical.query))
   const locale = await getRequestLocale()
-  return <><div className="page-heading"><p className="eyebrow">{locale === 'ru' ? 'Все ваши путешествия' : 'Every journey'}</p><h1>{locale === 'ru' ? 'Журнал' : 'Journal'}</h1><p className="lead">{locale === 'ru' ? 'Найдите, проверьте или исправьте перелёт.' : 'Find, review and update a flight.'}</p><a className="button primary" href="/add">{locale === 'ru' ? 'Добавить перелёт' : 'Add a flight'}</a></div><Suspense fallback={<p className="loading" data-testid="journal-loading" role="status">{locale === 'ru' ? 'Загружаем журнал…' : 'Loading journal…'}</p>}><JournalData filters={await searchParams} /></Suspense></>
+  return <><div className="page-heading"><p className="eyebrow">{locale === 'ru' ? 'Все ваши путешествия' : 'Every journey'}</p><h1>{locale === 'ru' ? 'Журнал' : 'Journal'}</h1><p className="lead">{locale === 'ru' ? 'Найдите, проверьте или исправьте перелёт.' : 'Find, review and update a flight.'}</p><a className="button primary" href="/add">{locale === 'ru' ? 'Добавить перелёт' : 'Add a flight'}</a></div><Suspense fallback={<p className="loading" data-testid="journal-loading" role="status">{locale === 'ru' ? 'Загружаем журнал…' : 'Loading journal…'}</p>}><JournalData filters={filters} /></Suspense></>
 }

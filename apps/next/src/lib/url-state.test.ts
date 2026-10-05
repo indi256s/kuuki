@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
-  normalizeImportQuery, normalizeOnboardingQuery, normalizeOverviewQuery, normalizePassportQuery, resolveOnboardingStep, withQuery,
+  normalizeJournalQuery, journalHref, resetJournalFilters, normalizeImportQuery, normalizeOnboardingQuery, normalizeOverviewQuery, normalizePassportQuery, resolveOnboardingStep, withQuery,
 } from './url-state'
 
 const now = new Date('2026-10-05T00:00:00Z')
@@ -82,5 +82,32 @@ describe('fixed point', () => {
   it('withQuery omits an empty query', () => {
     expect(withQuery('/passport', '')).toBe('/passport')
     expect(withQuery('/passport', 'view=map')).toBe('/passport?view=map')
+  })
+})
+
+
+describe('journal C1', () => {
+  it('validates and normalizes filters, sorting and navigation state to a fixed point', () => {
+    const result = normalizeJournalQuery(qs('q=%20TBS%20&airport=tbs&airlineIata=tk&aircraftIcao=a320&isUpcoming=false&sortField=distance_km&sortOrder=asc&year=2025&flight=4&queue=awaiting'), now)
+    expect(Object.fromEntries(qs(result.query))).toEqual({ q: 'TBS', airport: 'TBS', airline: 'TK', aircraft: 'A320', status: 'completed', sort: 'distance_km', order: 'asc', year: '2025', flight: '4', queue: 'awaiting' })
+    expect(normalizeJournalQuery(qs(result.query), now).canonical).toBe(true)
+    expect(normalizeJournalQuery(qs('airport=bad-code&status=draft&year=1800&sort=sql&flight=-1&batch=bad'), now).query).toBe('')
+  })
+  it('reset removes filters and pagination, preserving detail, queue, batch and sorting', () => {
+    expect(resetJournalFilters('q=abc&year=2025&status=logged&airport=IST&page=3&flight=12&queue=awaiting&batch=x&order=asc')).toBe('flight=12&queue=awaiting&batch=x&order=asc')
+  })
+})
+
+describe('journalHref (Overview "All" links)', () => {
+  it('builds canonical C1 hrefs for airport, airline, aircraft and year', () => {
+    expect(journalHref({ airport: 'tbs', year: '2025' })).toBe('/journal?year=2025&airport=TBS')
+    expect(journalHref({ airline: 'tk', year: 2025 })).toBe('/journal?year=2025&airline=TK')
+    expect(journalHref({ aircraft: 'a320' })).toBe('/journal?aircraft=A320')
+    expect(journalHref({})).toBe('/journal')
+  })
+  it('drops invalid values and returns a canonical fixed point', () => {
+    expect(journalHref({ airport: 'bad-code', year: '1800', airline: '' })).toBe('/journal')
+    const href = journalHref({ airport: 'IST', airline: 'TK', year: '2024' })
+    expect(normalizeJournalQuery(new URLSearchParams(href.split('?')[1])).canonical).toBe(true)
   })
 })

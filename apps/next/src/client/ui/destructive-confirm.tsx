@@ -24,10 +24,12 @@ export type DestructiveConfirmProps = {
   /** Optional typed confirmation for irreversible actions (the user must type this exactly). */
   typedConfirmation?: { phrase: string; label: string; mismatchReason: string }
   trigger?: ReactNode
+  /** Runs when focus is about to return to where it was; `preventDefault()` lets the caller place focus instead. */
+  onCloseAutoFocus?: (event: Event) => void
 }
 
 /** Dialog composition: Cancel has initial focus, the danger button never doubles as an icon, and closing is blocked while pending. */
-export function DestructiveConfirm({ open, onOpenChange, title, consequence, confirmLabel, cancelLabel, pendingLabel, closeLabel, onConfirm, errorMessage, typedConfirmation, trigger }: DestructiveConfirmProps) {
+export function DestructiveConfirm({ open, onOpenChange, title, consequence, confirmLabel, cancelLabel, pendingLabel, closeLabel, onConfirm, errorMessage, typedConfirmation, trigger, onCloseAutoFocus }: DestructiveConfirmProps) {
   const cancelRef = useRef<HTMLButtonElement>(null)
   const [pending, setPending] = useState(false)
   const [failed, setFailed] = useState(false)
@@ -52,6 +54,7 @@ export function DestructiveConfirm({ open, onOpenChange, title, consequence, con
       closeLabel={closeLabel}
       dismissible={!pending}
       initialFocusRef={cancelRef}
+      onCloseAutoFocus={onCloseAutoFocus}
       footer={<>
         <Button ref={cancelRef} variant="secondary" disabled={pending} onClick={() => onOpenChange(false)}>{cancelLabel}</Button>
         <Button variant="danger" loading={pending} loadingLabel={pendingLabel ?? confirmLabel} disabledReason={needsPhrase ? typedConfirmation?.mismatchReason : undefined} onClick={() => void confirm()}>{confirmLabel}</Button>

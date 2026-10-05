@@ -248,7 +248,7 @@ export function ImportClient({ ownerId, locale, initialBatchId = null, initialSo
       <SourceStep key={sourceKey} locale={locale} busy={false} initialMode={sourceMode} onSubmit={start} notice={notice} />
     </> : null}
     {step === 'processing' ? <ProgressStep locale={locale} batch={batch.batch} drafts={batch.drafts} sourceName={sourceName} onCancel={() => void onCancelRun()} cancelling={cancelling} error={cancelError} /> : null}
-    {step === 'review' ? <ReviewStep locale={locale} mobile={mobile} drafts={batch.drafts} saveStates={saveStates} partial={batch.partial} failure={batch.failure}
+    {step === 'review' ? <ReviewStep locale={locale} mobile={mobile === true} drafts={batch.drafts} saveStates={saveStates} partial={batch.partial} failure={batch.failure}
       manualRows={manualRows} onManualRows={setManualRows} confirming={confirming} notice={notice}
       onChange={onChange} onSelectAll={(drafts, selected) => void onSelectAll(drafts, selected)} onRetry={id => void saver.retry(id)} onDiscardEdit={id => saver.discard(id)}
       onConfirm={onConfirm} onDiscardImport={onDiscardImport} /> : null}
