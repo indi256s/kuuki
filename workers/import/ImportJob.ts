@@ -99,7 +99,7 @@ export class ImportJob {
       if (controller.signal.aborted) throw new DOMException('Aborted', 'AbortError')
       if (emitted.has(ordinal)) return true
       let flight: ExtractedFlight
-      try { flight = normalizeFlights({ flights: [value as ExtractedFlight] }).flights[0] } catch { rejected++; return true }
+      try { flight = normalizeFlights({ flights: [structuredClone(value) as ExtractedFlight] }).flights[0] } catch { rejected++; return true }
       if (valid >= MAX_DRAFTS_PER_BATCH) { truncated = true; return true }
       const event = await persistDraftRows(this.env.DB, fence, [rowOf(flight)], null, new Date(), { ordinalStart: ordinal })
       if (!event) { finalized = true; return false }

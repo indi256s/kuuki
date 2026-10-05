@@ -273,3 +273,15 @@ it('bounds simultaneous event subscribers and releases the slot on disconnect', 
   send('{"flights":[]}'); feed.close()
   await expect.poll(async () => (await batch(id))?.status).toBe('failed')
 }, 10_000)
+
+
+it('finishes an airline-less row as review with the placeholder defaults', async () => {
+  const { db, send, start, batch, rows } = await runtime(); const id = await start()
+  send('{"flights":[' + JSON.stringify(providerFlight({ airline_iata: '' })) + ']}'); feed.close()
+  await expect.poll(async () => (await batch(id))?.status).toBe('review')
+  expect((await batch(id))?.error_code).toBeNull()
+  const row = (await rows(id)).results[0]
+  expect(JSON.parse(row.fields_json).airline_iata).toBe('ZZ')
+  expect(await db.prepare('SELECT selected,field_confidence_json FROM import_drafts WHERE id = ?').bind(row.id).first())
+    .toMatchObject({ selected: 0, field_confidence_json: expect.stringContaining('"airline_iata":0') })
+})
