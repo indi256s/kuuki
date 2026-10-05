@@ -367,4 +367,3 @@ describe('list', () => {
     for (const button of screen.getAllByRole('button', { name: 'Add aircraft' })) { expect(button).toHaveAttribute('aria-disabled', 'true'); expect(button).toHaveAttribute('aria-describedby', notes[0].id) }
   })
 })
-
