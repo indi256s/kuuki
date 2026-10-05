@@ -84,4 +84,31 @@ describe('DraftSaver', () => {
     await Promise.all([saver.save(draft({ id: 'a' }), { selected: false }), saver.save(draft({ id: 'b' }), { selected: false })])
     expect(saver.unsentIds()).toEqual(['a'])
   })
+
+  it('dispose fences an in-flight save and drops parked edits, so nothing reaches the next import', async () => {
+    const pending = deferred<Draft>()
+    const patch = vi.fn(() => pending.promise)
+    const { saver, states, drafts } = setup(patch)
+    const first = saver.save(draft({ id: 'd1' }), { fields: { destination: 'LAX' } })
+    void saver.save(draft({ id: 'd1' }), { fields: { flight_number: '12' } })
+    expect(states).toHaveLength(1)
+    saver.dispose()
+    pending.resolve(draft({ id: 'd1', version: 2 }))
+    await first
+    expect(drafts).toEqual([])
+    expect(states).toHaveLength(1) // no state published after dispose
+    expect(patch).toHaveBeenCalledTimes(1) // the queued second edit is never sent
+    expect(saver.hasUnsaved()).toBe(false)
+    await saver.save(draft({ id: 'd2' }), { selected: false })
+    expect(patch).toHaveBeenCalledTimes(1)
+  })
+
+  it('dispose after a failed save forgets the failed edit', async () => {
+    const patch = vi.fn(async () => { throw new ApiError(503, 'down', 'INTERNAL') })
+    const { saver } = setup(patch)
+    await saver.save(draft({ id: 'd1' }), { fields: { destination: 'LAX' } })
+    expect(saver.hasUnsaved()).toBe(true)
+    saver.dispose()
+    expect(saver.hasUnsaved()).toBe(false)
+  })
 })
