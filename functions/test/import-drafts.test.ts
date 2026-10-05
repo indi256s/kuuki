@@ -377,6 +377,16 @@ describe('deletion fence (A10, T10 half)', () => {
     expect(await batchRow('fenced-batch')).toMatchObject({ status: 'cancelled', generation: 2, sequence: 0 })
   })
 
+  it('matches nothing when only the generation moved, even though the batch is still processing (a superseded job)', async () => {
+    const fence = await processing()
+    await db.prepare("UPDATE import_batches SET generation = generation + 1 WHERE id = 'fenced-batch'").run()
+    await persistDraftRows(db, fence, rows, { status: 'review', errorCode: null }, NOW)
+    expect(await draftRows('fenced-batch')).toEqual([])
+    expect(await batchRow('fenced-batch')).toMatchObject({ status: 'processing', generation: 2, sequence: 0 })
+    await persistDraftRows(db, { ...fence, generation: 2 }, rows, { status: 'review', errorCode: null }, NOW)
+    expect(await draftRows('fenced-batch')).toHaveLength(1)
+  })
+
   it('matches nothing after the maintenance sweep bumped the generation of a dead job', async () => {
     const fence = await processing()
     const maintenance = (await import('../../workers/maintenance/index')).default
