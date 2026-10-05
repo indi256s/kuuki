@@ -112,6 +112,51 @@ describe('PassportManage aircraft outcomes', () => {
     expect(within(screen.getByRole('list', { name: 'Результат' })).getAllByRole('listitem')[0]).toHaveTextContent(label(1, 'ru'))
   })
 
+  it('announces only the current submission: a retry that saves nothing goes to the alert even after a mixed result', async () => {
+    const user = userEvent.setup()
+    mocks.accept.mockResolvedValueOnce({ results: [
+      { id: 1, status: 'accepted', flight: { id: 1, aircraft_icao: 'A320' } },
+      { id: 2, status: 'error', http_status: 503, code: 'UNAVAILABLE', error: 'later' },
+    ], derived_state: 'ready', revision: 1 })
+    await load(user)
+    await user.click(screen.getAllByRole('checkbox')[0])
+    await user.click(screen.getAllByRole('checkbox')[1])
+    await user.selectOptions(screen.getByLabelText('Aircraft type'), 'A320')
+    mocks.list.mockResolvedValue([flight(1, 'A320'), flight(2), flight(3)])
+    await user.click(screen.getByRole('button', { name: 'Apply to selected' }))
+    await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('Saved: 1 · Not saved: 1'))
+    expect(screen.getByRole('alert')).toBeEmptyDOMElement()
+
+    mocks.accept.mockResolvedValueOnce({ results: [{ id: 2, status: 'error', http_status: 503, code: 'UNAVAILABLE', error: 'later' }] })
+    await user.click(screen.getByRole('button', { name: 'Try again for the rest' }))
+    await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent('Not saved: 1'))
+    expect(screen.getByRole('alert')).not.toHaveTextContent('Saved: 1')
+    expect(screen.getByRole('status')).toBeEmptyDOMElement()
+    expect(mocks.accept).toHaveBeenLastCalledWith([{ id: 2, aircraft_icao: 'A320' }])
+    // The row list still shows the accumulated states.
+    expect(within(screen.getByRole('list', { name: 'Result' })).getAllByRole('listitem').map(row => row.getAttribute('data-state'))).toEqual(['saved', 'failed'])
+  })
+
+  it('clears the announcement while a retry runs, so an identical result is announced again', async () => {
+    const user = userEvent.setup()
+    mocks.accept.mockRejectedValueOnce(new TypeError('Failed to fetch'))
+    await load(user)
+    await user.click(screen.getAllByRole('checkbox')[0])
+    await user.selectOptions(screen.getByLabelText('Aircraft type'), 'A320')
+    await user.click(screen.getByRole('button', { name: 'Apply to selected' }))
+    await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent('May not be saved: 1'))
+    const first = screen.getByRole('alert').textContent
+
+    let fail!: (error: unknown) => void
+    mocks.accept.mockReturnValueOnce(new Promise((_, reject) => { fail = reject }))
+    await user.click(screen.getByRole('button', { name: 'Try again for the rest' }))
+    await waitFor(() => expect(screen.getByRole('alert')).toBeEmptyDOMElement())
+    expect(screen.getByRole('status')).toBeEmptyDOMElement()
+    fail(new TypeError('Failed to fetch'))
+    await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent('May not be saved: 1'))
+    expect(screen.getByRole('alert').textContent).toBe(first)
+  })
+
   it('keeps the 20-item limit', async () => {
     const user = userEvent.setup()
     mocks.list.mockResolvedValue(Array.from({ length: 22 }, (_, index) => flight(index + 1)))

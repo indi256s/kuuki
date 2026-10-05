@@ -22,6 +22,8 @@ export function PassportManage({ ownerId, locale }: { ownerId: string; locale: L
   const [busy, setBusy] = useState(false)
   const [message, setMessage] = useState('')
   const [outcomes, setOutcomes] = useState<Map<number, AircraftOutcome>>(new Map())
+  // Counts for the submission that just finished only; cleared when the next one starts so every completion is announced.
+  const [last, setLast] = useState<{ saved: number; failed: number; uncertain: number } | null>(null)
   // Flights seen so far and the type sent for each, so a saved row keeps its label after the reload and a retry resends the same type.
   const seen = useRef(new Map<number, Flight>())
   const sent = useRef(new Map<number, string>())
@@ -44,12 +46,14 @@ export function PassportManage({ ownerId, locale }: { ownerId: string; locale: L
   async function accept(items: Array<{ id: number; aircraft_icao: string }>) {
     if (items.length === 0) return
     const controller = new AbortController(), release = trackPrivateOperation(controller), generation = getAuthGeneration()
-    setBusy(true); setMessage('')
+    setBusy(true); setMessage(''); setLast(null)
     for (const item of items) sent.current.set(item.id, item.aircraft_icao)
     try {
       const run = await acceptAircraft(items, acceptAircraftBatch)
       if (!current(controller, generation)) return
       setOutcomes(old => { const next = new Map(old); for (const [id, outcome] of run.rows) next.set(id, outcome); return next })
+      const count = (status: AircraftOutcome['status']) => [...run.rows.values()].filter(outcome => outcome.status === status).length
+      setLast({ saved: count('saved'), failed: count('failed'), uncertain: count('uncertain') })
       // Anything not saved stays selected, so one press retries exactly those.
       setSelected(items.map(item => item.id).filter(id => run.rows.get(id)?.status !== 'saved'))
       const ack = run.acks.filter(item => item.derived_state).at(-1)
@@ -71,10 +75,9 @@ export function PassportManage({ ownerId, locale }: { ownerId: string; locale: L
     return null
   }
   const reported = [...outcomes].filter(([, outcome]) => outcome.status !== 'unsent')
-  const tally = (status: AircraftOutcome['status']) => reported.filter(([, outcome]) => outcome.status === status).length
-  const [savedN, failedN, uncertainN] = [tally('saved'), tally('failed'), tally('uncertain')]
-  // Finished submissions are announced with counts. Nothing saved is a problem, so it is assertive; anything saved is polite.
-  const summary = reported.length === 0 ? '' : [
+  const [savedN, failedN, uncertainN] = [last?.saved ?? 0, last?.failed ?? 0, last?.uncertain ?? 0]
+  // The announcement covers the submission that just finished. Nothing saved is a problem, so it is assertive; anything saved is polite.
+  const summary = !last ? '' : [
     savedN > 0 && `${S.aircraftSavedTag[locale]}: ${formatNumber(locale, savedN)}`,
     failedN > 0 && `${S.aircraftFailedTag[locale]}: ${formatNumber(locale, failedN)}`,
     uncertainN > 0 && `${S.aircraftUncertainTag[locale]}: ${formatNumber(locale, uncertainN)}`,
