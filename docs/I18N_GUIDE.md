@@ -1,5 +1,7 @@
 # i18n Guide - Kuuki Translation System
 
+> Legacy: describes the Vite app (apps/web). For current work on apps/next, read [DESIGN.md](../DESIGN.md) for UI and [GLOSSARY.md](../GLOSSARY.md) for domain terms.
+
 This guide covers how to work with translations and pluralization in the Kuuki app.
 
 ## Overview

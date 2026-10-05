@@ -1,0 +1,2 @@
+apps/next/public/maps/**/*.geojson
+apps/next/public/maps/maplibre-*/

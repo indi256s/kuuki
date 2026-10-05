@@ -1,0 +1,13 @@
+#!/bin/sh
+set -e
+# Lint and typecheck only the packages affected by current changes.
+pnpm turbo run lint typecheck --affected --output-logs=errors-only
+# When Pages Functions are staged, typecheck them and verify the generated route table is current.
+if git diff --cached --name-only | grep -q '^functions/'; then
+  pnpm typecheck:api
+  node scripts/build-next.mjs --inventory-only
+  git diff --quiet apps/next/api-routes.generated.ts || {
+    echo "api-routes.generated.ts was regenerated; stage it and commit again" >&2
+    exit 1
+  }
+fi

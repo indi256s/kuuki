@@ -1,16 +1,17 @@
 # Kuuki Documentation
 
-**For AI agents: Start with [PRD.md](./PRD.md) before exploring the codebase.**
+**For AI agents: Start with [DESIGN.md](../DESIGN.md) (UI), [GLOSSARY.md](../GLOSSARY.md) (domain terms) and [plans/](./plans/) before exploring the codebase.**
 
 ## Canonical Documentation
 
 | Document | Purpose | When to Read |
 |----------|---------|--------------|
-| **[PRD.md](./PRD.md)** | **Product requirements, features, philosophy** | **Always read first** |
+| **[PRD.md](./PRD.md)** | **Product requirements, features, philosophy** | Scoping features and non-goals |
 | [APP_FLOW.md](./APP_FLOW.md) | User navigation paths, screen inventory | Building UI or flows |
 | [Screenshot atlas](./user-journeys/README.md) | Captured UI states, user journeys, searchable gallery and agent-readable manifest | Navigating the current UI, planning features or redesign |
 | [TECH_STACK.md](./TECH_STACK.md) | Dependencies with exact versions | Installing packages |
-| [FRONTEND_GUIDELINES.md](./FRONTEND_GUIDELINES.md) | Design system, components, patterns | Writing UI code |
+| [DESIGN.md](../DESIGN.md) | Design System 2.0 for `apps/next` | Writing UI code |
+| [FRONTEND_GUIDELINES.md](./FRONTEND_GUIDELINES.md) | Legacy Vite design guide | Changing `apps/web` only |
 | [BACKEND_STRUCTURE.md](./BACKEND_STRUCTURE.md) | Database schema, RLS, API contracts | Working with data |
 | [PLAN.md](./PLAN.md) | Implementation roadmap and status | Understanding progress |
 
@@ -21,7 +22,7 @@
 | Understand what we're building | [PRD.md](./PRD.md) |
 | See user navigation flows | [APP_FLOW.md](./APP_FLOW.md) |
 | Know exact package versions | [TECH_STACK.md](./TECH_STACK.md) |
-| Build UI components | [FRONTEND_GUIDELINES.md](./FRONTEND_GUIDELINES.md) |
+| Build UI components | [DESIGN.md](../DESIGN.md) |
 | Work with database | [BACKEND_STRUCTURE.md](./BACKEND_STRUCTURE.md) |
 | Check project status | [PLAN.md](./PLAN.md) |
 
@@ -36,7 +37,7 @@
 
 ## Current Status
 
-**MVP COMPLETE** — All 6 phases done, CI/CD deployed, ready for users.
+**Current surface:** the Next app in `apps/next`. `apps/web` is the legacy Vite app, kept as the rollback. The MVP phases below describe the original Vite build.
 
 | Phase | Status |
 |-------|--------|
@@ -106,7 +107,6 @@ kuuki/
 
 ## Do Not
 
-- Skip reading `PRD.md` before feature work
 - Scan the entire repo when docs answer the question
 - Add features that violate the PRD non-goals
-- Ignore the design system in `FRONTEND_GUIDELINES.md`
+- Ignore the design system in `DESIGN.md`
