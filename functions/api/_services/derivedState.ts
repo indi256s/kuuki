@@ -38,7 +38,7 @@ interface VisitSource {
   date: string
 }
 
-interface LegacyVisitSource {
+export interface LegacyVisitSource {
   airport_iata: string | null
   country_code: string | null
   city: string | null
@@ -94,7 +94,7 @@ function proposedVisits(db: D1Database, userId: string): BatchedRead<DerivedVisi
   }
 }
 
-function legacyEvidenceStatement(db: D1Database, userId: string): D1PreparedStatement {
+export function legacyEvidenceStatement(db: D1Database, userId: string): D1PreparedStatement {
   return db.prepare(
     `SELECT e.airport_iata, e.country_code, e.city, e.first_visit, e.last_visit,
             e.visit_count, ar.country_code AS reference_country_code,
@@ -105,7 +105,7 @@ function legacyEvidenceStatement(db: D1Database, userId: string): D1PreparedStat
   ).bind(userId)
 }
 
-function mergeVisits(flightSources: VisitSource[], evidence: LegacyVisitSource[]): DerivedVisit[] {
+export function mergeVisits(flightSources: VisitSource[], evidence: LegacyVisitSource[]): DerivedVisit[] {
   const merged = new Map<string, DerivedVisit>()
   for (const source of flightSources) {
     const prior = merged.get(source.airport_iata)

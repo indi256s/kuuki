@@ -3,6 +3,7 @@ import { apiContext, csrfRequest } from './harness'
 import { accountWith, at, T0, USER, type FixtureFlight } from './country-fixture'
 import { onRequestGet as awaitingRoute } from '../api/me/awaiting'
 import { onRequestPost as confirmRoute } from '../api/flights/confirm'
+import { onRequestGet as transitGet, onRequestPost as transitPost } from '../api/me/transit-review'
 
 export { USER }
 
@@ -41,6 +42,16 @@ export async function postConfirm(db: D1Database, body: unknown, user: Who = USE
   return { status: response.status, body: await response.json() as Record<string, any> }
 }
 
+export async function getTransitReview(db: D1Database, user: Who = USER) {
+  const response = await transitGet(ctx(db, new Request('https://kuuki.test/api/me/transit-review'), user))
+  return { status: response.status, body: await response.json() as Record<string, any> }
+}
+
+export async function postTransitReview(db: D1Database, body: unknown, user: Who = USER, headers: Record<string, string> = {}) {
+  const response = await transitPost(ctx(db, csrfRequest('/api/me/transit-review', 'POST', body, headers), user))
+  return { status: response.status, body: await response.json() as Record<string, any> }
+}
+
 /** Fresh per-flight tokens from the queue, keyed by flight id. */
 export async function tokens(db: D1Database, user: Who = USER): Promise<Record<number, string>> {
   const { body } = await getAwaiting(db, user)
@@ -49,3 +60,9 @@ export async function tokens(db: D1Database, user: Who = USER): Promise<Record<n
 
 let sequence = 0
 export const operationId = (label = 'op') => `${label}-${Date.now().toString(36)}-${++sequence}`
+
+/** Fresh transit-review tokens, keyed by flight id. */
+export async function reviewTokens(db: D1Database, user: Who = USER): Promise<Record<number, string>> {
+  const { body } = await getTransitReview(db, user)
+  return Object.fromEntries(body.candidates.map((entry: any) => [entry.flight.id, entry.candidateToken]))
+}

@@ -16,7 +16,7 @@ export const DRAFT_SUMMARY_LIMIT = 20
 
 export interface CandidateView {
   kind: ConnectionDecision['kind']
-  label: 'precise' | 'estimated' | null
+  label: 'precise' | 'estimated' | 'ambiguous' | null
   legId: number | null
   hubCountry: string | null
   thirdCountry: boolean
@@ -45,7 +45,7 @@ export function describeAwaiting(flights: EvidenceFlight[]): Map<number, Awaitin
       decision,
       candidate: {
         kind: decision?.kind ?? 'none',
-        label: decision?.kind === 'link' ? decision.label : null,
+        label: decision?.kind === 'link' ? decision.label : decision?.kind === 'ambiguous' ? 'ambiguous' : null,
         legId: decision?.kind === 'link' ? decision.toId : null,
         hubCountry: decision?.kind === 'link' ? decision.hubCountry : null,
         thirdCountry: decision?.kind === 'link' ? decision.thirdCountry : false,
@@ -65,9 +65,9 @@ export function describeAwaiting(flights: EvidenceFlight[]): Map<number, Awaitin
 export function candidateTokenOf(flight: EvidenceFlight, view: AwaitingView): Promise<string> {
   const { decision, candidate, effectiveDefault } = view
   return sha256Hex(JSON.stringify([
-    'candidate-v1', flight.id, flight.date, flight.origin, flight.destination,
+    'candidate-v1', flight.id, flight.lifecycle_state, flight.date, flight.origin, flight.destination,
     candidate.kind, candidate.label, candidate.legId, candidate.hubCountry, candidate.thirdCountry, candidate.candidateIds,
-    candidate.leg ? [candidate.leg.origin, candidate.leg.destination, candidate.leg.date] : null,
+    candidate.leg ? [candidate.leg.id, candidate.leg.date, candidate.leg.origin, candidate.leg.destination, candidate.leg.departure_utc] : null,
     decision?.kind === 'link' ? [decision.startCountry, decision.finalCountry] : null,
     effectiveDefault.transit, effectiveDefault.legId, effectiveDefault.source,
   ]))

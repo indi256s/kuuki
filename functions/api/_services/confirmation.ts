@@ -16,17 +16,17 @@
 // the receipt keeps no outcome; the next replay of the same operation repairs, freezes the outcome once and returns
 // it, without applying anything a second time.
 import { HttpError } from '../_lib/http'
-import { sha256Hex } from '../_lib/crypto'
 import { countryContributions, type EvidenceFlight } from './countryEvidence'
 import { dirtyUserStatement, ensureDerivedStateRow, isDerivedReady, repairUserDerivedState, stateOf, type DerivedStateRow } from './derivedState'
 import { QUEUE_PAGE_LIMIT, candidateTokenOf, describeAwaiting } from './queue'
 import { evidenceFlightsStatement } from './countryEvidence'
+import {
+  MAX_ATTEMPTS, STATE_SELECT, assertReplayable, concurrentUpdate, digestOf, freezeResult, isConstraintError, readyState,
+  receiptStatement, type Receipt,
+} from './receipts'
 import { firstOf, rowsOf } from './stats'
 
 export const MAX_CONFIRM_ITEMS = QUEUE_PAGE_LIMIT
-/** Attempts before a persistently moving account gets a retryable conflict. */
-const MAX_ATTEMPTS = 4
-
 export interface ConfirmItem {
   flightId: number
   candidateToken: string
@@ -80,23 +80,8 @@ export function parseConfirmRequest(body: unknown): ConfirmRequest {
 }
 
 /** The request identity: the flights and the decisions made, never the tokens (a replay must not need fresh ones). */
-const digestOf = (items: ConfirmItem[]) =>
-  sha256Hex(JSON.stringify([...items].sort((a, b) => a.flightId - b.flightId).map(item => [item.flightId, item.arrivalTransit ?? null])))
-
-interface Receipt {
-  kind: string
-  request_digest: string
-  complete: number
-  pressed_before_json: string | null
-  result_json: string | null
-}
-
-const receiptStatement = (db: D1Database, userId: string, operationId: string) => db.prepare(
-  `SELECT kind, request_digest, complete, pressed_before_json, result_json
-   FROM lifecycle_operation_receipts WHERE user_id = ? AND operation_id = ?`,
-).bind(userId, operationId)
-
-const isConstraintError = (error: unknown) => /constraint/i.test(error instanceof Error ? error.message : String(error))
+const requestDigest = (items: ConfirmItem[]) =>
+  digestOf({ kind: 'confirm', items: [...items].sort((a, b) => a.flightId - b.flightId).map(item => [item.flightId, item.arrivalTransit ?? null]) })
 
 interface StoredResult { results: ConfirmedFlight[] }
 type FrozenResult = StoredResult & Pick<ConfirmOutcome, 'derivedState' | 'revision' | 'newlyStampedCountries' | 'pendingCountryCount'>
@@ -109,23 +94,16 @@ export async function resolveReceipt(db: D1Database, userId: string, operationId
   const stored = JSON.parse(receipt.result_json ?? '{}') as StoredResult & Partial<FrozenResult>
   if (stored.derivedState) return stored as FrozenResult
 
-  let state: DerivedStateRow | null = await stateOf(db, userId)
-  if (!state || !isDerivedReady(state)) {
-    await repairUserDerivedState(db, userId)
-    state = await stateOf(db, userId)
-  }
-  if (!state || !isDerivedReady(state)) {
-    return { results: stored.results, derivedState: 'pending', revision: state?.revision ?? 0, newlyStampedCountries: null, pendingCountryCount: null }
-  }
+  const pending = (revision: number): ConfirmOutcome =>
+    ({ results: stored.results, derivedState: 'pending', revision, newlyStampedCountries: null, pendingCountryCount: null })
+  if (!await readyState(db, userId)) return pending((await stateOf(db, userId))?.revision ?? 0)
   const [stateNow, flightsRead, evidenceRead] = await db.batch([
-    db.prepare('SELECT revision, published_revision, evidence_revision, last_error FROM user_derived_state WHERE user_id = ?').bind(userId),
+    db.prepare(STATE_SELECT).bind(userId),
     evidenceFlightsStatement(db, userId),
     db.prepare('SELECT country_code, status FROM country_visit_evidence WHERE user_id = ?').bind(userId),
   ])
   const current = firstOf<DerivedStateRow>(stateNow)
-  if (!current || !isDerivedReady(current)) {
-    return { results: stored.results, derivedState: 'pending', revision: current?.revision ?? 0, newlyStampedCountries: null, pendingCountryCount: null }
-  }
+  if (!current || !isDerivedReady(current)) return pending(current?.revision ?? 0)
   const evidence = rowsOf<{ country_code: string; status: 'pressed' | 'pending' }>(evidenceRead)
   const pressedNow = new Set(evidence.filter(row => row.status === 'pressed').map(row => row.country_code))
   const confirmed = new Set(stored.results.map(result => result.flightId))
@@ -134,26 +112,17 @@ export async function resolveReceipt(db: D1Database, userId: string, operationId
   const contributed = new Set(countryContributions(rowsOf<EvidenceFlight>(flightsRead)).contributions
     .filter(entry => confirmed.has(entry.flight_id) && entry.state === 'logged').map(entry => entry.country_code))
   const before = receipt.pressed_before_json ? new Set(JSON.parse(receipt.pressed_before_json) as string[]) : null
-  const frozen: FrozenResult = {
+  return freezeResult(db, userId, operationId, {
     results: stored.results,
     derivedState: 'ready',
     revision: current.revision,
     newlyStampedCountries: before ? [...contributed].filter(code => pressedNow.has(code) && !before.has(code)).sort() : null,
     pendingCountryCount: evidence.filter(row => row.status === 'pending').length,
-  }
-  // First writer wins; every caller returns what was recorded.
-  await db.prepare(
-    `UPDATE lifecycle_operation_receipts SET result_json = ?
-     WHERE user_id = ? AND operation_id = ? AND json_extract(result_json, '$.derivedState') IS NULL`,
-  ).bind(JSON.stringify(frozen), userId, operationId).run()
-  const row = await receiptStatement(db, userId, operationId).first<Receipt>()
-  return JSON.parse(row?.result_json ?? JSON.stringify(frozen)) as FrozenResult
+  } satisfies FrozenResult)
 }
 
 async function replay(db: D1Database, userId: string, operationId: string, digest: string, receipt: Receipt): Promise<ConfirmOutcome> {
-  if (receipt.kind !== 'confirm' || receipt.request_digest !== digest) {
-    throw new HttpError(409, 'Operation id already used for a different request', 'IDEMPOTENCY_CONFLICT', { cause: 'operation_reused' })
-  }
+  assertReplayable(receipt, 'confirm', digest)
   return resolveReceipt(db, userId, operationId, receipt)
 }
 
@@ -164,7 +133,7 @@ export async function confirmFlights(
   now: Date = new Date(),
 ): Promise<ConfirmOutcome> {
   const { operationId, items } = request
-  const digest = await digestOf(items)
+  const digest = await requestDigest(items)
   const instant = now.toISOString()
   let repairTried = false
 
@@ -225,7 +194,7 @@ export async function confirmFlights(
     const receipt = await receiptStatement(db, userId, operationId).first<Receipt>()
     return resolveReceipt(db, userId, operationId, receipt!)
   }
-  throw new HttpError(409, 'Your flights are changing right now. Try again.', 'STATE_CONFLICT', { cause: 'concurrent_update' })
+  throw concurrentUpdate()
 }
 
 interface Snapshot {
@@ -237,7 +206,7 @@ interface Snapshot {
 
 async function readSnapshot(db: D1Database, userId: string): Promise<Snapshot> {
   const [state, flights, pressed] = await db.batch([
-    db.prepare('SELECT revision, published_revision, evidence_revision, last_error FROM user_derived_state WHERE user_id = ?').bind(userId),
+    db.prepare(STATE_SELECT).bind(userId),
     evidenceFlightsStatement(db, userId),
     db.prepare("SELECT country_code FROM country_visit_evidence WHERE user_id = ? AND status = 'pressed' ORDER BY country_code").bind(userId),
   ])
