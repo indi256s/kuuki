@@ -137,7 +137,7 @@ function Inner({ ownerId, locale, initial, period }: { ownerId: string; locale: 
           <StampGroups groups={groups} locale={locale} name={name} onOpen={openCountry} onOpenArrival={openArrival} pressed={pressed} now={now} />
         </>}
     {mobile === null ? null : <>
-      <CountrySheet ownerId={ownerId} locale={locale} code={state.country} entry={entries.find(entry => entry.code === state.country)} mobile={mobile}
+      <CountrySheet ownerId={ownerId} locale={locale} code={state.country} entry={entries.find(entry => entry.code === state.country)} publishedRevision={data.publishedRevision} mobile={mobile}
         name={name} onClose={() => navigate({ country: null })} onChanged={changed} onRemoved={removed}
         onCloseAutoFocus={restoreFocus} />
       <AddCountrySheet open={adding} onOpenChange={setAdding} locale={locale} mobile={mobile} entries={entries} name={name}

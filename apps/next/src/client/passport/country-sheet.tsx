@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { MoreHorizontal } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { api, getAuthGeneration } from '../../../../web/src/lib/apiClient'
@@ -47,8 +47,11 @@ export function countryDetailQuery(ownerId: string, code: string) {
   }
 }
 
-export function CountrySheet({ ownerId, locale, code: selected, entry, mobile, name, onClose, onChanged, onRemoved, onCloseAutoFocus }: {
-  ownerId: string; locale: Locale; code: string | null; entry: PassportEntry | undefined; mobile: boolean
+export function CountrySheet({ ownerId, locale, code: selected, entry, publishedRevision, mobile, name, onClose, onChanged, onRemoved, onCloseAutoFocus }: {
+  ownerId: string; locale: Locale; code: string | null; entry: PassportEntry | undefined
+  /** The collection's published revision: when it moves past the detail's, the detail is out of date. */
+  publishedRevision: number
+  mobile: boolean
   name: (code: string) => string; onClose: () => void
   /** A write landed: refresh the collection; `added` is true when the country was not in the passport before. */
   onChanged: (code: string, added: boolean) => Promise<void> | void
@@ -73,6 +76,12 @@ export function CountrySheet({ ownerId, locale, code: selected, entry, mobile, n
   if (code && code !== shownCode) { setShownCode(code); setNotice(''); setError(''); setYear(''); setNote(''); setMethod('land') }
 
   const data = detail.data?.countryCode === code ? detail.data : undefined
+  // A write can read the detail before its publication lands; the later page refresh only updates the collection.
+  // Once the collection is newer, it states the country's status and the detail reloads (once per revision).
+  const behind = !!data && publishedRevision > data.publishedRevision
+  const { refetch } = detail
+  useEffect(() => { if (behind) void refetch() }, [behind, publishedRevision, data?.publishedRevision, refetch])
+  const preparing = !!data && !behind && (data.derivedState !== 'ready' || data.publishedRevision < data.revision)
   const title = code ? name(code) : ''
   const yearValue = year.trim() ? Number(year) : null
   const yearInvalid = yearValue !== null && (!Number.isInteger(yearValue) || yearValue < 1800 || yearValue > 2200)
@@ -97,7 +106,7 @@ export function CountrySheet({ ownerId, locale, code: selected, entry, mobile, n
   }
 
   const ignore = () => {}
-  const status = data?.status ?? entry?.status ?? 'none'
+  const status = data && !behind ? data.status : entry?.status ?? 'none'
   const inPassport = status !== 'none'
   const flights = data?.entries.filter(item => item.kind === 'flight') ?? []
   const legacy = data?.entries.filter(item => item.kind === 'legacy') ?? []
@@ -114,7 +123,12 @@ export function CountrySheet({ ownerId, locale, code: selected, entry, mobile, n
       {entry ? <div className="passport-sheet-stamp"><Stamp {...stampProps(entry, locale, name)} static /></div> : null}
       {status === 'pending' ? <p className="passport-note">{ru ? 'Перелёт в эту страну ещё не подтверждён, поэтому штамп не поставлен.' : 'A flight to this country is not confirmed yet, so the stamp is not pressed.'}{' '}
         <a href={arrivalHref(data ? arrivalFlightId(data) : null)}>{ru ? 'Открыть карточку прилёта' : 'Open the arrival card'}</a></p> : null}
-      {detail.isError && !data ? <p role="alert">{ru ? 'Не удалось загрузить страну.' : 'Could not load this country.'} <Button dense onClick={() => void detail.refetch()}>{ru ? 'Повторить' : 'Try again'}</Button></p> : null}
+      {detail.isError ? <p role="alert">{data
+        ? (ru ? 'Не удалось обновить страну. Показаны последние загруженные данные.' : 'Could not refresh this country. Showing the last loaded details.')
+        : (ru ? 'Не удалось загрузить страну.' : 'Could not load this country.')} <Button dense onClick={() => void detail.refetch()}>{ru ? 'Повторить' : 'Try again'}</Button></p> : null}
+      {preparing || (behind && detail.isFetching) ? <p role="status" className="passport-note">{ru
+        ? 'Последние изменения ещё обрабатываются. Данные страны могут отставать.'
+        : 'Recent changes are still being prepared. This country may lag behind them.'}</p> : null}
       {!data && !detail.isError ? <p role="status" className="passport-note">{ru ? 'Загружаем…' : 'Loading…'}</p> : null}
       {data ? <>
         {inPassport ? <dl>

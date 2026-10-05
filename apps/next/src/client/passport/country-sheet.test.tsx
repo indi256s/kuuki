@@ -12,7 +12,7 @@ vi.mock('../activity', () => ({ trackPrivateOperation: () => () => {} }))
 vi.mock('../write-feedback', () => ({ useWriteFeedback: () => ({ acknowledge: mocks.acknowledge, status: 'ready' }) }))
 
 const { CountrySheet, removalCopy } = await import('./country-sheet')
-const { countryNamer, removalOutcome } = await import('./model')
+const { countryNamer, passportEntries, removalOutcome } = await import('./model')
 
 const detail = (patch: Partial<CountryDetail>): CountryDetail => ({
   countryCode: 'GR', countryName: '', status: 'pressed', region: 'europe', firstVisit: '2024-05-01', lastVisit: '2025-07-02', totalVisits: 3,
@@ -35,7 +35,7 @@ function mount(value: CountryDetail, props: { onRemoved?: (code: string) => void
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
   const locale = props.locale ?? 'en'
   return render(<QueryClientProvider client={client}>
-    <CountrySheet ownerId="owner" locale={locale} code={value.countryCode} entry={undefined} mobile={false} name={countryNamer(locale)}
+    <CountrySheet ownerId="owner" locale={locale} code={value.countryCode} entry={undefined} publishedRevision={3} mobile={false} name={countryNamer(locale)}
       onClose={() => {}} onChanged={props.onChanged ?? (() => {})} onRemoved={props.onRemoved ?? (() => {})} />
   </QueryClientProvider>)
 }
@@ -126,6 +126,79 @@ describe('CountrySheet', () => {
     mount(detail({ suppressed: [{ flightId: 9, endpoint: 'destination', airport: 'ATH' }] }))
     const list = await screen.findByRole('list', { name: 'Connections not counted as a visit' })
     expect(within(list).getByRole('link', { name: 'ATH' })).toHaveAttribute('href', '/journal?flight=9')
+  })
+})
+
+describe('CountrySheet freshness and failures', () => {
+  const none = detail({ status: 'none' as CountryDetail['status'], isClaimed: false, entries: [], groundVisits: [], airports: [], flightIds: [], firstVisit: null as unknown as string, lastVisit: null as unknown as string, totalVisits: 0 })
+  const entry = (status: 'pressed' | 'pending') => passportEntries({ countries: [{ country_code: 'GR', status, logged_visit_count: 0, awaiting_visit_count: 0, claimed: 1, ground_visit_count: 0, first_visit: null, last_visit: null, region: 'europe' }], groundVisits: [] })[0]
+
+  function Harness({ client, publishedRevision, pressed }: { client: QueryClient; publishedRevision: number; pressed: boolean }) {
+    return <QueryClientProvider client={client}>
+      <CountrySheet ownerId="owner" locale="en" code="GR" entry={pressed ? entry('pressed') : undefined} publishedRevision={publishedRevision} mobile={false} name={countryNamer('en')}
+        onClose={() => {}} onChanged={() => {}} onRemoved={() => {}} />
+    </QueryClientProvider>
+  }
+
+  it('refreshes an open sheet when publication catches up after a pending write', async () => {
+    const user = userEvent.setup()
+    const client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
+    mocks.get.mockResolvedValueOnce(none)
+    mocks.claim.mockResolvedValue({ ok: true, derived_state: 'pending', revision: 4 })
+    // The read right after the write still sees the previous publication: the claim is saved, the stamp is not.
+    mocks.get.mockResolvedValueOnce({ ...none, isClaimed: true, entries: [{ kind: 'claim', claimedAt: '2026-10-05' }], revision: 4, derivedState: 'pending' })
+    const { rerender } = render(<Harness client={client} publishedRevision={3} pressed={false} />)
+    const dialog = await screen.findByRole('dialog', { name: 'Greece' })
+    await user.click(await within(dialog).findByRole('button', { name: 'Claim without a visit' }))
+    await waitFor(() => expect(mocks.get).toHaveBeenCalledTimes(2))
+    expect(await within(dialog).findByText('Recent changes are still being prepared. This country may lag behind them.')).toBeInTheDocument()
+
+    // Publication completes and the page refresh delivers a pressed collection entry while the sheet stays open.
+    mocks.get.mockResolvedValueOnce(detail({ entries: [{ kind: 'claim', claimedAt: '2026-10-05' }], groundVisits: [], airports: [], flightIds: [], revision: 4, publishedRevision: 4 }))
+    rerender(<Harness client={client} publishedRevision={4} pressed />)
+    await waitFor(() => expect(mocks.get).toHaveBeenCalledTimes(3))
+    expect(await within(dialog).findByRole('button', { name: 'Remove country' })).toBeInTheDocument()
+    expect(within(dialog).queryByText('Not in your passport yet')).toBeNull()
+  })
+
+  it('says when a refresh failed instead of presenting the cached country as current', async () => {
+    const user = userEvent.setup()
+    const client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
+    mocks.get.mockResolvedValueOnce(none)
+    mocks.claim.mockResolvedValue({ ok: true, derived_state: 'ready', revision: 4 })
+    mocks.get.mockRejectedValueOnce(new Error('offline'))
+    render(<Harness client={client} publishedRevision={3} pressed={false} />)
+    const dialog = await screen.findByRole('dialog', { name: 'Greece' })
+    await user.click(await within(dialog).findByRole('button', { name: 'Claim without a visit' }))
+    const alert = await within(dialog).findByRole('alert')
+    expect(alert).toHaveTextContent('Could not refresh this country. Showing the last loaded details.')
+    mocks.get.mockResolvedValueOnce(detail({ entries: [{ kind: 'claim', claimedAt: '2026-10-05' }], groundVisits: [], airports: [], flightIds: [], revision: 4, publishedRevision: 4 }))
+    await user.click(within(alert).getByRole('button', { name: 'Try again' }))
+    expect(await within(dialog).findByRole('button', { name: 'Remove country' })).toBeInTheDocument()
+    expect(within(dialog).queryByRole('alert')).toBeNull()
+  })
+
+  it('keeps the form and reports a rejected claim, visit or deletion without refreshing', async () => {
+    const user = userEvent.setup()
+    const onChanged = vi.fn()
+    mocks.claim.mockRejectedValue(new Error('offline'))
+    mocks.addVisit.mockRejectedValue(new Error('offline'))
+    mocks.deleteVisit.mockRejectedValue(new Error('offline'))
+    mount({ ...detail({}), isClaimed: false, entries: detail({}).entries.filter(item => item.kind !== 'claim') }, { onChanged })
+    const dialog = await screen.findByRole('dialog', { name: 'Greece' })
+    await user.click(await within(dialog).findByRole('button', { name: 'Claim without a visit' }))
+    expect(await within(dialog).findByRole('alert')).toHaveTextContent('Could not save. Check your connection and try again.')
+    await user.type(within(dialog).getByRole('textbox', { name: /^Year/ }), '2020')
+    await user.click(within(dialog).getByRole('button', { name: 'Add visit' }))
+    await waitFor(() => expect(mocks.addVisit).toHaveBeenCalled())
+    expect(within(dialog).getByRole('textbox', { name: /^Year/ })).toHaveValue('2020')
+    await user.click(within(dialog).getByRole('button', { name: 'Actions for visit 2018 · by sea' }))
+    await user.click(await screen.findByRole('menuitem', { name: 'Delete visit' }))
+    const confirm = await screen.findByRole('dialog', { name: 'Delete the 2018 visit?' })
+    await user.click(within(confirm).getByRole('button', { name: 'Delete visit' }))
+    expect(await within(confirm).findByRole('alert')).toHaveTextContent('Could not delete the visit. Try again.')
+    expect(onChanged).not.toHaveBeenCalled()
+    expect(mocks.acknowledge).not.toHaveBeenCalled()
   })
 })
 
