@@ -7,6 +7,7 @@ import { requireUser, requireCsrf, type RequestData } from '../_lib/auth'
 import { toOwnFlight, type FlightRow } from '../_lib/flights'
 import { parseFlightBodies } from '../_lib/flightValidation'
 import { FLIGHT_BULK_CREATE_MAX } from '../../../packages/shared/src/flightValidation'
+import { takeRequestTimezone } from '../_services/lifecycle'
 import { dirtyUserStatement, repairUserDerivedState } from '../_services/derivedState'
 import { FLIGHT_COLUMNS, createFlightStatements, isIdempotencyKey } from './index'
 
@@ -32,8 +33,8 @@ export function bulkCreateRequest(request: Request, env: Env, data: RequestData)
     const user = requireUser(data)
 
     // A full legitimate item is under 1 KB, so 64 KB covers FLIGHT_BULK_CREATE_MAX with room to spare.
-    const body = await readJson<{ items?: unknown }>(request, { maxBytes: 64 * 1024 })
-    const items = body?.items
+    const { body, timezone } = takeRequestTimezone(await readJson<{ items?: unknown }>(request, { maxBytes: 64 * 1024 }))
+    const items = (body as { items?: unknown } | null)?.items
     if (!Array.isArray(items) || items.length === 0) throw new HttpError(400, 'items must be a non-empty array', 'INVALID_ITEMS')
     if (items.length > FLIGHT_BULK_CREATE_MAX) throw new HttpError(413, `At most ${FLIGHT_BULK_CREATE_MAX} flights per request`, 'TOO_MANY_FLIGHTS')
 
@@ -47,7 +48,7 @@ export function bulkCreateRequest(request: Request, env: Env, data: RequestData)
       if (!key) results.push(failure(null, 400, 'IDEMPOTENCY_KEY_REQUIRED', 'Valid idempotency key required'))
       else if (input instanceof HttpError) results.push(failure(key, input.status, input.code ?? 'INVALID_FLIGHT', input.message))
       else {
-        const created = await createFlightStatements(env.DB, user.id, key, input)
+        const created = await createFlightStatements(env.DB, user.id, key, input, timezone)
         accepted.push({ index, key, digest: created.digest, first: statements.length })
         statements.push(...created.statements)
         results.push(failure(key, 500, 'RECEIPT_MISSING', 'Flight receipt missing')) // replaced once the ledger is read

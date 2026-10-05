@@ -1,6 +1,6 @@
 import { afterEach, expect, it, vi } from 'vitest'
 import { createApiDatabase, apiContext, csrfRequest, count } from './harness'
-import { onRequestPost, onRequestGet as listFlights, isUpcomingFlight } from '../api/flights/index'
+import { onRequestPost, onRequestGet as listFlights } from '../api/flights/index'
 import { onRequestGet, onRequestPatch, onRequestDelete } from '../api/flights/[id]'
 import { onRequestPost as bulkDelete } from '../api/flights/bulk-delete'
 import { onRequestPost as bulkCreate } from '../api/flights/bulk'
@@ -13,16 +13,6 @@ const user = { id: 'u1', email: 'u1@example.test' }
 const flight = { date: '2025-04-03', origin: 'TBS', destination: 'IST' }
 
 afterEach(() => { vi.restoreAllMocks(); vi.useRealTimers() })
-
-it('uses the same UTC calendar day as sync-upcoming', () => {
-  vi.useFakeTimers()
-  vi.setSystemTime(new Date('2026-10-03T23:30:00-04:00'))
-  expect(isUpcomingFlight('2026-10-04')).toBe(false)
-  expect(isUpcomingFlight('2026-10-05')).toBe(true)
-  vi.setSystemTime(new Date('2026-10-04T01:30:00+04:00'))
-  expect(isUpcomingFlight('2026-10-03')).toBe(false)
-  expect(isUpcomingFlight('2026-10-04')).toBe(true)
-})
 
 async function seed(db: D1Database) {
   await db.batch([

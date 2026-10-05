@@ -9,7 +9,8 @@ import { parseFlightBody } from '../_lib/flightValidation'
 import { computeFlightDuration } from '../_services/flightDuration'
 import { fillDistanceAndDuration } from '../_services/stats'
 import { dirtyUserStatement, repairUserDerivedState } from '../_services/derivedState'
-import { FLIGHT_COLUMNS, isUpcomingFlight } from './index'
+import { LIFECYCLE_COLUMN_NAMES, lifecycleForEdit, lifecycleValues, takeRequestTimezone } from '../_services/lifecycle'
+import { FLIGHT_COLUMNS } from './index'
 
 function parseId(raw: string | undefined): number {
   const id = Number(raw)
@@ -50,7 +51,8 @@ export function updateFlightRequest(request: Request, env: Env, data: RequestDat
     const id = parseId(rawId)
 
     const existing = await loadFlight(env.DB, id, user.id)
-    const patch = await parseFlightBody(env.DB, await readJson<unknown>(request), 'patch', existing)
+    const { body, timezone } = takeRequestTimezone(await readJson<unknown>(request))
+    const patch = await parseFlightBody(env.DB, body, 'patch', existing)
 
     // Merge patch over the existing row: a provided key (even null) overrides; undefined keeps existing.
     const merge = <T>(key: keyof typeof patch, current: T): T => (patch[key] === undefined ? current : (patch[key] as T))
@@ -72,8 +74,8 @@ export function updateFlightRequest(request: Request, env: Env, data: RequestDat
     const source = patch.source ?? existing.source
     const enrichmentStatus = patch.enrichment_status ?? existing.enrichment_status
 
-    // is_upcoming recomputed from the (possibly new) date.
-    const isUpcoming = patch.date ? isUpcomingFlight(date) : !!existing.is_upcoming
+    // ADR 0001 §2: date and route edits move lifecycle (and the is_upcoming projection) with the same UPDATE.
+    const lifecycle = lifecycleForEdit(existing, { date, origin, destination }, timezone)
 
     const { departureUtc, arrivalUtc, durationMinutes: tzDur } = computeFlightDuration({
       date,
@@ -90,8 +92,9 @@ export function updateFlightRequest(request: Request, env: Env, data: RequestDat
       `UPDATE flights SET
          date = ?, origin = ?, destination = ?, airline_iata = ?, aircraft_icao = ?, flight_number = ?,
          departure_time = ?, arrival_time = ?, departure_utc = ?, arrival_utc = ?, origin_tz = ?, dest_tz = ?,
-         distance_km = ?, duration_minutes = ?, source = ?, is_upcoming = ?, enrichment_status = ?
-       WHERE id = ? AND user_id = ?`,
+         distance_km = ?, duration_minutes = ?, source = ?, enrichment_status = ?,
+         ${LIFECYCLE_COLUMN_NAMES.map(name => `${name} = ?`).join(', ')}
+       WHERE id = ? AND user_id = ? AND lifecycle_state = ?`,
     )
       .bind(
         date,
@@ -109,12 +112,17 @@ export function updateFlightRequest(request: Request, env: Env, data: RequestDat
         distanceKm,
         durationMinutes,
         source,
-        isUpcoming ? 1 : 0,
         enrichmentStatus,
+        ...lifecycleValues(lifecycle),
         id,
         user.id,
+        existing.lifecycle_state,
       ), dirtyUserStatement(env.DB, user.id, true)])
-    if (!update.meta.changes) throw new HttpError(404, 'Flight not found', 'NOT_FOUND')
+    if (!update.meta.changes) {
+      // The state guard keeps a concurrent sync or confirmation from being overwritten by this edit's snapshot.
+      await loadFlight(env.DB, id, user.id)
+      throw new HttpError(409, 'Flight changed while it was being edited; reload and retry', 'STATE_CONFLICT')
+    }
     const updated = await loadFlight(env.DB, id, user.id)
     const derived = await repairUserDerivedState(env.DB, user.id)
     return json({ ...toOwnFlight(updated), ...derived })

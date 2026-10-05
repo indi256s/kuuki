@@ -19,17 +19,15 @@ import { computeFlightDuration } from '../_services/flightDuration'
 import { fillDistanceAndDuration } from '../_services/stats'
 import { dirtyUserStatement, repairUserDerivedState } from '../_services/derivedState'
 import { assertRows } from '../_lib/d1'
+import { LIFECYCLE_COLUMN_NAMES, lifecycleForCreate, lifecycleValues, takeRequestTimezone } from '../_services/lifecycle'
 
 // Explicit FlightRow column allowlist (never SELECT *) — drives both SELECT and INSERT/UPDATE RETURNING.
 export const FLIGHT_COLUMNS =
   'id, user_id, date, origin, destination, airline_iata, aircraft_icao, flight_number, ' +
   'departure_time, arrival_time, departure_utc, arrival_utc, origin_tz, dest_tz, distance_km, ' +
-  'duration_minutes, source, is_upcoming, enrichment_status, aircraft_lookup_attempts, created_at'
-
-/** Use the UTC calendar day, consistently with sync-upcoming in the Workers runtime. */
-export function isUpcomingFlight(date: string): boolean {
-  return date > new Date().toISOString().slice(0, 10)
-}
+  'duration_minutes, source, is_upcoming, enrichment_status, aircraft_lookup_attempts, created_at, ' +
+  'lifecycle_state, confirmation_source, confirmed_at, lifecycle_timezone, awaiting_after, auto_confirm_after, ' +
+  'arrival_transit, arrival_transit_leg_id'
 
 export function isIdempotencyKey(key: unknown): key is string {
   return typeof key === 'string' && /^[A-Za-z0-9._:-]{8,128}$/.test(key)
@@ -68,15 +66,21 @@ export function listFlights(request: Request, env: Env, data: RequestData): Prom
   })
 }
 
-/** Ledger insert, conditional flight insert and ledger link for one create; batch them with a dirty mark. */
-export async function createFlightStatements(db: D1Database, userId: string, key: string, input: FlightInput): Promise<{ digest: string; statements: D1PreparedStatement[] }> {
+/**
+ * Ledger insert, conditional flight insert and ledger link for one create; batch them with a dirty mark.
+ * `timezone` is request context (ADR 0001 §1): it picks the lifecycle state and deadlines but is outside
+ * `FlightInput`, so it never enters the idempotency digest.
+ */
+export async function createFlightStatements(
+  db: D1Database, userId: string, key: string, input: FlightInput, timezone: string | null = null,
+): Promise<{ digest: string; statements: D1PreparedStatement[] }> {
   const date = input.date!
   const origin = input.origin!
   const destination = input.destination!
   const digest = await digestInput(input)
 
   const source = input.source ?? 'manual'
-  const isUpcoming = isUpcomingFlight(date)
+  const lifecycle = lifecycleForCreate(date, timezone)
   const enrichmentStatus = input.enrichment_status ?? (input.aircraft_icao ? 'skipped' : 'pending')
 
   const { departureUtc, arrivalUtc, durationMinutes: tzDur } = computeFlightDuration({
@@ -104,8 +108,8 @@ export async function createFlightStatements(db: D1Database, userId: string, key
       `INSERT INTO flights (
        date, origin, destination, airline_iata, aircraft_icao, flight_number,
        departure_time, arrival_time, departure_utc, arrival_utc, origin_tz, dest_tz,
-       distance_km, duration_minutes, source, is_upcoming, enrichment_status, user_id
-     ) SELECT ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? WHERE changes() = 1`,
+       distance_km, duration_minutes, source, enrichment_status, user_id, ${LIFECYCLE_COLUMN_NAMES.join(', ')}
+     ) SELECT ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ${LIFECYCLE_COLUMN_NAMES.map(() => '?').join(', ')} WHERE changes() = 1`,
     ).bind(
       date,
       origin,
@@ -122,9 +126,9 @@ export async function createFlightStatements(db: D1Database, userId: string, key
       distanceKm,
       durationMinutes,
       source,
-      isUpcoming ? 1 : 0,
       enrichmentStatus,
       userId,
+      ...lifecycleValues(lifecycle),
     ),
     db.prepare(
       'UPDATE flight_idempotency SET flight_id = last_insert_rowid() WHERE user_id = ? AND key = ? AND flight_id IS NULL AND changes() = 1',
@@ -145,9 +149,9 @@ export function createFlightRequest(request: Request, env: Env, data: RequestDat
 
     const key = request.headers.get('Idempotency-Key')
     if (!isIdempotencyKey(key)) throw new HttpError(400, 'Valid Idempotency-Key required', 'IDEMPOTENCY_KEY_REQUIRED')
-    const body = await readJson<unknown>(request)
+    const { body, timezone } = takeRequestTimezone(await readJson<unknown>(request))
     const input = await parseFlightBody(env.DB, body, 'create')
-    const { digest, statements } = await createFlightStatements(env.DB, user.id, key, input)
+    const { digest, statements } = await createFlightStatements(env.DB, user.id, key, input, timezone)
     const canonicalStarted = Date.now()
     const batch = await env.DB.batch([...statements, dirtyUserStatement(env.DB, user.id, true)])
     const canonicalMs = Date.now() - canonicalStarted

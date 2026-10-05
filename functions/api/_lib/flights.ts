@@ -3,6 +3,9 @@
 // it drops `user_id` (always the requester) and `aircraft_lookup_attempts` (a D1-only internal
 // enrichment counter never present in the Supabase types the frontend was generated from) → 19 cols.
 
+import type { LifecycleState } from '../_services/countryEvidence'
+import type { ConfirmationSource } from '../_services/lifecycle'
+
 export interface FlightRow {
   id: number
   user_id: string
@@ -25,9 +28,20 @@ export interface FlightRow {
   enrichment_status: string
   aircraft_lookup_attempts: number
   created_at: string
+  lifecycle_state: LifecycleState
+  confirmation_source: ConfirmationSource | null
+  confirmed_at: string | null
+  lifecycle_timezone: string | null
+  awaiting_after: string | null
+  auto_confirm_after: string | null
+  arrival_transit: number | null
+  arrival_transit_leg_id: number | null
 }
 
-/** Full own-flight DTO: 19 columns (no user_id / aircraft_lookup_attempts); is_upcoming → boolean. */
+/**
+ * Full own-flight DTO: the 19 original columns (no user_id / aircraft_lookup_attempts; is_upcoming →
+ * boolean compatibility projection) plus the lifecycle fields of ADR 0001 §1. New readers use `lifecycle_state`.
+ */
 export function toOwnFlight(row: FlightRow) {
   return {
     id: row.id,
@@ -49,6 +63,14 @@ export function toOwnFlight(row: FlightRow) {
     is_upcoming: !!row.is_upcoming,
     enrichment_status: row.enrichment_status,
     created_at: row.created_at,
+    lifecycle_state: row.lifecycle_state,
+    confirmation_source: row.confirmation_source,
+    confirmed_at: row.confirmed_at,
+    lifecycle_timezone: row.lifecycle_timezone,
+    awaiting_after: row.awaiting_after,
+    auto_confirm_after: row.auto_confirm_after,
+    arrival_transit: row.arrival_transit === null ? null : row.arrival_transit === 1,
+    arrival_transit_leg_id: row.arrival_transit_leg_id,
   }
 }
 
@@ -60,6 +82,7 @@ export interface FlightRouteRow {
   airline_iata: string | null
   date: string
   is_upcoming: number | null
+  lifecycle_state: LifecycleState
 }
 
 export function toFlightRoute(row: FlightRouteRow) {
@@ -70,5 +93,6 @@ export function toFlightRoute(row: FlightRouteRow) {
     airline_iata: row.airline_iata,
     date: row.date,
     is_upcoming: !!row.is_upcoming,
+    lifecycle_state: row.lifecycle_state,
   }
 }
