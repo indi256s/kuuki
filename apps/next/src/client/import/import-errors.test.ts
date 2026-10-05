@@ -14,6 +14,8 @@ describe('request failures (ApiError.code / status -> cause and action)', () => 
     ['invalid file', new ApiError(400, 'x', 'INVALID_FILE'), 'file', ['otherFile', 'pasteText']],
     ['too large', new ApiError(413, 'x', 'PAYLOAD_TOO_LARGE'), 'file', ['otherFile', 'pasteText']],
     ['bad body', new ApiError(400, 'x', 'INVALID_BODY'), 'file', ['otherFile', 'pasteText']],
+    ['unknown source type', new ApiError(400, 'x', 'INVALID_SOURCE_TYPE'), 'file', ['otherFile', 'pasteText']],
+    ['text too long', new ApiError(400, 'x', 'TEXT_TOO_LONG'), 'file', ['otherFile', 'pasteText']],
     ['nothing found', new ApiError(200, 'x', 'NO_FLIGHTS_FOUND'), 'nothing', ['manual', 'otherFile']],
     ['another import running', new ApiError(409, 'x', 'IMPORT_IN_PROGRESS'), 'inProgress', ['openRunning']],
     ['too many open batches', new ApiError(409, 'x', 'IMPORT_BATCH_LIMIT'), 'batchLimit', ['unfinished']],
