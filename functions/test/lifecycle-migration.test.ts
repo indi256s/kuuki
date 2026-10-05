@@ -242,8 +242,8 @@ describe('D1 trigger semantics (A1)', () => {
       const receipt = await db.prepare("SELECT flight_id FROM flight_idempotency WHERE key = 'old-create-1'").first<{ flight_id: number }>()
       expect(receipt?.flight_id).toBe(insert.meta.last_row_id)
       expect((await lifecycleOf(db, receipt!.flight_id))?.lifecycle_state).toBe('upcoming')
-      // Finding (contradicts ADR A1): D1 meta.changes is a rows-written count that includes the
-      // adapter's nested write, not sqlite3_changes(). Old readers only test `> 0`.
+      // D1 meta.changes is a total_changes() delta (ADR §1): it includes the adapter's nested write.
+      // Old readers only test `> 0`, log it, or read the trigger-free ledger statement.
       expect(insert.meta.changes).toBe(2)
 
       await oldCreate(db, U2, 'old-create-2', { date: '2031-02-04', origin: 'TBS', destination: 'IST' }, 1)
@@ -260,10 +260,21 @@ describe('D1 trigger semantics (A1)', () => {
       expect(cron.meta.changes).toBe(6)
 
       // A lifecycle-aware write fires only the check triggers, which never write: meta.changes is exact.
-      const aware = await db.prepare("UPDATE flights SET lifecycle_state = 'upcoming', is_upcoming = 1 WHERE id = 13 AND lifecycle_state = 'upcoming'").run()
-      expect(aware.meta.changes).toBe(0)
-      const flagged = await db.prepare("UPDATE flights SET flight_number = 'X1' WHERE user_id = ?").bind(U1).run()
-      expect(flagged.meta.changes).toBe(6)
+      // The target must match the WHERE set, so assert the precondition first (the cron moved 13 and 14 out of it).
+      const [, upcomingInsert] = await oldCreate(db, U1, 'old-create-4', { date: '2031-12-30', origin: 'TBS', destination: 'IST' }, 1)
+      const upcomingId = upcomingInsert.meta.last_row_id as number
+      expect((await lifecycleOf(db, 13))?.lifecycle_state).toBe('awaiting')
+      expect((await lifecycleOf(db, upcomingId))?.lifecycle_state).toBe('upcoming')
+      const aware = await db.prepare("UPDATE flights SET lifecycle_state = 'upcoming', is_upcoming = 1, flight_number = 'AW1' WHERE id = ? AND lifecycle_state = 'upcoming'").bind(upcomingId).run()
+      expect(aware.meta.changes).toBe(1) // the one direct row; no adapter write is added
+      const missed = await db.prepare("UPDATE flights SET flight_number = 'AW2' WHERE id = 13 AND lifecycle_state = 'upcoming'").run()
+      expect(missed.meta.changes).toBe(0) // a row outside the set matches nothing
+      const [flagged, flaggedDirect] = await db.batch([
+        db.prepare("UPDATE flights SET flight_number = 'X1' WHERE user_id = ?").bind(U1), db.prepare('SELECT changes() AS n'),
+      ])
+      const flaggedRows = (flaggedDirect.results[0] as { n: number }).n
+      expect(flaggedRows).toBe((await db.prepare('SELECT COUNT(*) AS n FROM flights WHERE user_id = ?').bind(U1).first<{ n: number }>())!.n)
+      expect(flagged.meta.changes).toBe(flaggedRows) // an edit of a column no adapter watches adds no adapter writes
     } finally { await dispose() }
   })
 })
@@ -368,7 +379,10 @@ describe('pre-lifecycle writers after 0006 (A2, §1 adapters)', () => {
         await seedPreLifecycle(db)
         if (order === 'reversed order') await reverseTriggerOrder(db)
         await db.prepare('UPDATE flights SET arrival_transit = 1, arrival_transit_leg_id = 12 WHERE id = 11').run()
-        await oldEdit(db, 11, { date: '2027-01-15', destination: 'CDG' }, today)
+        const edit = await oldEdit(db, 11, { date: '2027-01-15', destination: 'CDG' }, today)
+        // Old route+date edit: 1 direct row plus adapter writes (observed 3 in Miniflare; the order only changes who fires first).
+        expect(edit.meta.changes).toBeGreaterThan(1)
+        expect(edit.meta.changes).toBeLessThanOrEqual(3)
         expect(await lifecycleOf(db, 11)).toMatchObject({ destination: 'CDG', date: '2027-01-15', lifecycle_state: 'upcoming',
           is_upcoming: 1, confirmation_source: null, confirmed_at: null, arrival_transit: null, arrival_transit_leg_id: null,
           lifecycle_timezone: 'UTC', awaiting_after: '2027-01-16T00:00:00.000Z', auto_confirm_after: '2027-01-23T00:00:00.000Z' })
