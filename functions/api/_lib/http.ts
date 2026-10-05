@@ -14,7 +14,7 @@ export function json(data: unknown, init: ResponseInit = {}): Response {
 }
 
 export function jsonError(status: number, message: string, code?: string, shape: ErrorShape = {}): Response {
-  return json({ error: message, ...(code ? { code } : {}), ...shape.fields }, { status, headers: shape.headers })
+  return json({ ...shape.fields, error: message, ...(code ? { code } : {}) }, { status, headers: shape.headers })
 }
 
 // Covers the largest ordinary body: a 10,000-id bulk delete is ~110 KB. Bigger callers pass maxBytes.
@@ -73,7 +73,7 @@ export async function runHandler(fn: () => Promise<Response>, shape: ErrorShape 
   try {
     return await fn()
   } catch (err) {
-    if (err instanceof HttpError) return jsonError(err.status, err.message, err.code, err.details ? { ...shape, fields: { ...shape.fields, ...err.details } } : shape)
+    if (err instanceof HttpError) return jsonError(err.status, err.message, err.code, err.details ? { ...shape, fields: { ...err.details, ...shape.fields } } : shape)
     // Database/provider error messages can contain user input or payload fragments.
     console.error(JSON.stringify({ event: 'handler_error', code: 'INTERNAL' }))
     return jsonError(500, 'Internal server error', 'INTERNAL', shape)
