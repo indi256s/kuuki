@@ -300,8 +300,10 @@ describe('owner sync', () => {
         awaiting_after: '2026-10-07T00:00:00.000Z', auto_confirm_after: '2026-10-14T00:00:00.000Z' })
       expect((await db.prepare('SELECT total_flights FROM user_stats WHERE user_id = ?').bind(user.id).first<{ total_flights: number }>())?.total_flights).toBe(1)
       setNow('2026-10-20T00:00:00.000Z')
-      expect((await sync()).synced).toBe(0) // late syncs never restart or move the deadlines
-      expect((await lifecycleOf(db, json.id))?.auto_confirm_after).toBe('2026-10-14T00:00:00.000Z')
+      // A late sync never restarts or moves the deadlines; the stored 7-day boundary has passed, so it auto-confirms (T09).
+      expect(await sync()).toMatchObject({ synced: 1, awaited: 0, autoConfirmed: 1 })
+      expect(await lifecycleOf(db, json.id)).toMatchObject({ lifecycle_state: 'logged', confirmation_source: 'automatic',
+        awaiting_after: '2026-10-07T00:00:00.000Z', auto_confirm_after: '2026-10-14T00:00:00.000Z' })
     } finally { await dispose() }
   })
 })

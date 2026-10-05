@@ -3,8 +3,10 @@
 // columns and the `is_upcoming` projection together, so the §1 adapter triggers never fire for them.
 import { addDays, canonicalTimeZone, localToday, startOfLocalDay } from '../../../packages/shared/src/calendar'
 import { HttpError } from '../_lib/http'
-import { dirtyUserStatement } from './derivedState'
-import type { LifecycleState } from './countryEvidence'
+import { connectionChains } from './connections'
+import { dirtyUserStatement, ensureDerivedStateRow } from './derivedState'
+import { effectiveArrivalPolicies, evidenceFlightsStatement, type EvidenceFlight, type LifecycleState } from './countryEvidence'
+import { firstOf, rowsOf } from './stats'
 
 export type ConfirmationSource = 'save' | 'user' | 'automatic' | 'legacy'
 
@@ -92,35 +94,103 @@ export function lifecycleForEdit(
   return { ...result, lifecycle_state: state, is_upcoming: state === 'upcoming' ? 1 : 0, lifecycle_timezone: zone, ...deadlines }
 }
 
+export interface DueTransitionResult {
+  /** Flights moved upcoming → awaiting by this pass. */
+  awaited: number
+  /** Flights moved awaiting → logged (`automatic`) by this pass, including ones that were awaited in the same pass. */
+  autoConfirmed: number
+  /** Distinct flights whose state changed; a flight making both moves counts once. */
+  synced: number
+  /** Due work remains: a direction hit its cap, or an auto-confirm lost the revision guard and needs another pass. */
+  more: boolean
+}
+
 /**
- * Upcoming → awaiting for one user (ADR §2): flights whose stored `awaiting_after` has passed. Deadlines
- * are never recomputed here, so a late sync does not restart the clock. The dirty mark is unconditional
- * when due rows were read, because `changes()` would only see the last UPDATE.
+ * The two due transitions for one user (ADR 0001 §2), used by the owner sync and the cron:
+ *  - upcoming → awaiting once the stored `awaiting_after` has passed;
+ *  - awaiting → logged (`automatic`) once the stored `auto_confirm_after` has passed. A flight past both deadlines
+ *    makes both moves in one pass, so a missed cron or a late first session never restarts the clock.
+ * Deadlines are never recomputed here. Each direction is capped at `limit` flights, oldest stored deadline first, so
+ * the stored deadline is the cursor and a backlog drains over successive passes without moving anyone's eligibility.
+ *
+ * Auto-confirm writes the effective arrival policy computed from one snapshot (`effectiveArrivalPolicies`), and is
+ * guarded by the derived-state revision that snapshot was read under: a concurrent mutation makes it a no-op and the
+ * next pass retries. The dirty mark is unconditional whenever due rows were read, because `changes()` would only see
+ * the last UPDATE; a lost race costs one extra repair.
  */
 export async function applyDueTransitions(
   db: D1Database,
   { userId, now = new Date(), limit = DUE_TRANSITION_LIMIT }: { userId: string; now?: Date; limit?: number },
-): Promise<{ awaited: number; more: boolean }> {
+): Promise<DueTransitionResult> {
   const instant = now.toISOString()
-  // Upsert-then-guard: an account with no derived-state row must still reach the guarded repair.
-  await db.prepare(
-    'INSERT INTO user_derived_state (user_id, revision, published_revision) VALUES (?, 0, 0) ON CONFLICT (user_id) DO NOTHING',
-  ).bind(userId).run()
-  const due = await db.prepare(
-    `SELECT id FROM flights WHERE user_id = ? AND lifecycle_state = 'upcoming' AND awaiting_after <= ?
-     ORDER BY awaiting_after, id LIMIT ?`,
-  ).bind(userId, instant, limit + 1).all<{ id: number }>()
-  const ids = due.results.slice(0, limit).map(row => row.id)
-  if (ids.length === 0) return { awaited: 0, more: false }
-  const [moved] = await db.batch([
+  await ensureDerivedStateRow(db, userId).run()
+  // The revision is read before the flights: any mutation committed after this point bumps it and fails the guard.
+  const [dueUp, dueAw, stateRow] = await db.batch([
     db.prepare(
+      `SELECT id, auto_confirm_after FROM flights WHERE user_id = ? AND lifecycle_state = 'upcoming' AND awaiting_after <= ?
+       ORDER BY awaiting_after, id LIMIT ?`,
+    ).bind(userId, instant, limit + 1),
+    db.prepare(
+      `SELECT id, auto_confirm_after FROM flights WHERE user_id = ? AND lifecycle_state = 'awaiting' AND auto_confirm_after <= ?
+       ORDER BY auto_confirm_after, id LIMIT ?`,
+    ).bind(userId, instant, limit + 1),
+    db.prepare('SELECT revision FROM user_derived_state WHERE user_id = ?').bind(userId),
+  ])
+  const upRows = rowsOf<{ id: number; auto_confirm_after: string }>(dueUp)
+  const awRows = rowsOf<{ id: number; auto_confirm_after: string }>(dueAw)
+  const revision = firstOf<{ revision: number }>(stateRow)?.revision ?? 0
+  const upIds = upRows.slice(0, limit).map(row => row.id)
+  // Auto-confirm candidates: already awaiting and due, plus flights this pass moves that are also past their 7-day deadline.
+  const pastBoth = upRows.slice(0, limit).filter(row => row.auto_confirm_after <= instant)
+  const confirmable = [...awRows.slice(0, limit), ...pastBoth]
+    .sort((a, b) => a.auto_confirm_after < b.auto_confirm_after ? -1 : a.auto_confirm_after > b.auto_confirm_after ? 1 : a.id - b.id)
+  const confirmIds = confirmable.slice(0, limit).map(row => row.id)
+  const capped = upRows.length > limit || awRows.length > limit || confirmable.length > limit
+  if (upIds.length === 0 && confirmIds.length === 0) return { awaited: 0, autoConfirmed: 0, synced: 0, more: false }
+
+  let decisions: Array<{ id: number; transit: number; leg: number | null }> = []
+  if (confirmIds.length > 0) {
+    const flights = rowsOf<EvidenceFlight>((await evidenceFlightsStatement(db, userId).all()))
+    const moved = new Set(upIds)
+    const snapshot = flights.map(flight => moved.has(flight.id) ? { ...flight, lifecycle_state: 'awaiting' as const } : flight)
+    const policies = effectiveArrivalPolicies(snapshot, connectionChains(snapshot))
+    const wanted = new Set(confirmIds)
+    decisions = snapshot.filter(flight => wanted.has(flight.id)).map(flight => {
+      const policy = policies.get(flight.id)
+      return { id: flight.id, transit: policy?.transit ? 1 : 0, leg: policy?.transit ? policy.legId : null }
+    })
+  }
+
+  const statements: D1PreparedStatement[] = []
+  if (upIds.length > 0) {
+    statements.push(db.prepare(
       `UPDATE flights SET lifecycle_state = 'awaiting', is_upcoming = 0
        WHERE user_id = ? AND lifecycle_state = 'upcoming' AND awaiting_after <= ?
          AND id IN (SELECT value FROM json_each(?)) RETURNING id`,
-    ).bind(userId, instant, JSON.stringify(ids)),
-    dirtyUserStatement(db, userId),
-  ])
-  // Counted from RETURNING: D1 meta.changes also counts trigger writes (A1 note). A concurrent
-  // sync that won the race leaves nothing to return and costs one extra repair.
-  return { awaited: moved.results.length, more: due.results.length > limit }
+    ).bind(userId, instant, JSON.stringify(upIds)))
+  }
+  if (decisions.length > 0) {
+    const payload = JSON.stringify(decisions)
+    statements.push(db.prepare(
+      `UPDATE flights SET lifecycle_state = 'logged', is_upcoming = 0, confirmation_source = 'automatic', confirmed_at = ?,
+         arrival_transit = (SELECT json_extract(j.value, '$.transit') FROM json_each(?) j WHERE json_extract(j.value, '$.id') = flights.id),
+         arrival_transit_leg_id = (SELECT json_extract(j.value, '$.leg') FROM json_each(?) j WHERE json_extract(j.value, '$.id') = flights.id)
+       WHERE user_id = ? AND lifecycle_state = 'awaiting' AND auto_confirm_after <= ?
+         AND id IN (SELECT json_extract(value, '$.id') FROM json_each(?))
+         AND EXISTS (SELECT 1 FROM user_derived_state WHERE user_id = ? AND revision = ?)
+       RETURNING id`,
+    ).bind(instant, payload, payload, userId, instant, payload, userId, revision))
+  }
+  statements.push(dirtyUserStatement(db, userId))
+  const results = await db.batch(statements)
+  // Counted from RETURNING: D1 meta.changes also counts trigger writes (A1 note).
+  let cursor = 0
+  const awaitedIds = upIds.length > 0 ? rowsOf<{ id: number }>(results[cursor++]).map(row => row.id) : []
+  const confirmedIds = decisions.length > 0 ? rowsOf<{ id: number }>(results[cursor++]).map(row => row.id) : []
+  return {
+    awaited: awaitedIds.length,
+    autoConfirmed: confirmedIds.length,
+    synced: new Set([...awaitedIds, ...confirmedIds]).size,
+    more: capped || confirmedIds.length < decisions.length,
+  }
 }

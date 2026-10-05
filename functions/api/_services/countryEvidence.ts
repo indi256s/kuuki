@@ -86,6 +86,10 @@ export type MergeVisits<L> = (sources: EndpointSource[], legacy: L[]) => Derived
 
 const isCountry = (code: string | null | undefined): code is string => typeof code === 'string' && code.length === 2
 
+/** Rule 2 of the effective arrival policy: an unambiguous connection whose hub is a third country suggests transit. */
+export const prospectiveTransit = (decision: ConnectionDecision | undefined): decision is Extract<ConnectionDecision, { kind: 'link' }> =>
+  decision?.kind === 'link' && decision.thirdCountry
+
 /**
  * The effective arrival policy of every completed (awaiting or logged) flight.
  *  1. An explicit decision wins. Transit consumes the destination and the *stored* leg's origin, and only
@@ -110,7 +114,7 @@ export function effectiveArrivalPolicies(
       continue
     }
     const decision = flight.lifecycle_state === 'awaiting' ? decisions.get(flight.id) : undefined
-    if (decision?.kind === 'link' && decision.thirdCountry) {
+    if (prospectiveTransit(decision)) {
       policies.set(flight.id, { transit: true, source: 'default', legId: decision.toId, label: decision.label })
     } else {
       policies.set(flight.id, { transit: false, source: 'existing', legId: null, label: null })

@@ -6,6 +6,14 @@
 import type { LifecycleState } from '../_services/countryEvidence'
 import type { ConfirmationSource } from '../_services/lifecycle'
 
+// Explicit FlightRow column allowlist (never SELECT *) — drives both SELECT and INSERT/UPDATE RETURNING.
+export const FLIGHT_COLUMNS =
+  'id, user_id, date, origin, destination, airline_iata, aircraft_icao, flight_number, ' +
+  'departure_time, arrival_time, departure_utc, arrival_utc, origin_tz, dest_tz, distance_km, ' +
+  'duration_minutes, source, is_upcoming, enrichment_status, aircraft_lookup_attempts, created_at, ' +
+  'lifecycle_state, confirmation_source, confirmed_at, lifecycle_timezone, awaiting_after, auto_confirm_after, ' +
+  'arrival_transit, arrival_transit_leg_id'
+
 export interface FlightRow {
   id: number
   user_id: string

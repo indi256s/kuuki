@@ -69,6 +69,13 @@ export function dirtyUserStatement(
   ).bind(userId, nowIso())
 }
 
+/** Upsert-then-guard: an account with no derived-state row must still reach every revision-guarded write. */
+export function ensureDerivedStateRow(db: D1Database, userId: string): D1PreparedStatement {
+  return db.prepare(
+    'INSERT INTO user_derived_state (user_id, revision, published_revision) VALUES (?, 0, 0) ON CONFLICT (user_id) DO NOTHING',
+  ).bind(userId)
+}
+
 function proposedVisits(db: D1Database, userId: string): BatchedRead<DerivedVisit[]> {
   const flightSources = db.prepare(
     `SELECT ar.iata AS airport_iata, ar.country_code, ar.city, f.date

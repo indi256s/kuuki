@@ -58,10 +58,13 @@ export async function readJson<T>(request: Request, { maxBytes = DEFAULT_MAX_JSO
 export class HttpError extends Error {
   status: number
   code?: string
-  constructor(status: number, message: string, code?: string) {
+  /** Extra response fields (for example the `cause` of a state conflict); never overrides `error` or `code`. */
+  details?: Record<string, unknown>
+  constructor(status: number, message: string, code?: string, details?: Record<string, unknown>) {
     super(message)
     this.status = status
     this.code = code
+    this.details = details
   }
 }
 
@@ -70,7 +73,7 @@ export async function runHandler(fn: () => Promise<Response>, shape: ErrorShape 
   try {
     return await fn()
   } catch (err) {
-    if (err instanceof HttpError) return jsonError(err.status, err.message, err.code, shape)
+    if (err instanceof HttpError) return jsonError(err.status, err.message, err.code, err.details ? { ...shape, fields: { ...shape.fields, ...err.details } } : shape)
     // Database/provider error messages can contain user input or payload fragments.
     console.error(JSON.stringify({ event: 'handler_error', code: 'INTERNAL' }))
     return jsonError(500, 'Internal server error', 'INTERNAL', shape)

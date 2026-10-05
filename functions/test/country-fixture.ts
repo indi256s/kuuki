@@ -19,6 +19,11 @@ export interface FixtureFlight {
   arr?: string | null
   transit?: 0 | 1 | null
   leg?: number | null
+  /** Stored deadlines and zone of an upcoming or awaiting flight (defaults: long past). */
+  awaitingAfter?: string
+  autoAfter?: string
+  tz?: string
+  user?: string
 }
 
 export function flightStatement(db: D1Database, flight: FixtureFlight) {
@@ -29,11 +34,11 @@ export function flightStatement(db: D1Database, flight: FixtureFlight) {
        lifecycle_state, confirmation_source, confirmed_at, lifecycle_timezone, awaiting_after, auto_confirm_after,
        arrival_transit, arrival_transit_leg_id)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'skipped', ?, ?, ?, ?, ?, ?, ?, ?)`,
-  ).bind(flight.id, USER.id, flight.date, flight.origin, flight.destination, flight.dep ?? null, flight.arr ?? null,
+  ).bind(flight.id, flight.user ?? USER.id, flight.date, flight.origin, flight.destination, flight.dep ?? null, flight.arr ?? null,
     flight.state === 'upcoming' ? 1 : 0, flight.state, source,
     flight.state === 'logged' && source !== 'legacy' ? '2026-01-01T00:00:00.000Z' : null,
-    upcomingOrAwaiting ? 'UTC' : null, upcomingOrAwaiting ? '2026-01-01T00:00:00.000Z' : null,
-    upcomingOrAwaiting ? '2026-02-01T00:00:00.000Z' : null, flight.transit ?? null, flight.leg ?? null)
+    upcomingOrAwaiting ? (flight.tz ?? 'UTC') : null, upcomingOrAwaiting ? (flight.awaitingAfter ?? '2026-01-01T00:00:00.000Z') : null,
+    upcomingOrAwaiting ? (flight.autoAfter ?? '2026-02-01T00:00:00.000Z') : null, flight.transit ?? null, flight.leg ?? null)
 }
 
 export async function accountWith(flights: FixtureFlight[], extra: (db: D1Database) => D1PreparedStatement[] = () => []) {

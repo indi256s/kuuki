@@ -245,7 +245,8 @@ it('rolls over overdue flights on cron without a page visit and resumes after th
     const inserts = Array.from({ length: 101 }, () =>
       db.prepare("INSERT INTO flights (user_id,date,origin,destination,is_upcoming) VALUES ('u1','2025-04-03','TBS','IST',1)"))
     await db.batch(inserts)
-    await maintenance.scheduled({} as ScheduledEvent, { DB: db })
+    // The per-user cap leaves one due flight: an incomplete cycle is a retryable failure, never a false success (ADR 0001 §8).
+    await expect(maintenance.scheduled({} as ScheduledEvent, { DB: db })).rejects.toThrow('MAINTENANCE_CYCLE_FAILED')
     expect((await db.prepare("SELECT COUNT(*) AS n FROM flights WHERE is_upcoming=1").first<{ n: number }>())?.n).toBe(1)
     expect((await db.prepare("SELECT total_flights FROM user_stats WHERE user_id='u1'").first<{ total_flights: number }>())?.total_flights).toBe(100)
     await maintenance.scheduled({} as ScheduledEvent, { DB: db })

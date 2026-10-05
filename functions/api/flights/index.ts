@@ -5,7 +5,7 @@
 import { runHandler, readJson, json, HttpError } from '../_lib/http'
 import { requireUser, requireCsrf, type RequestData } from '../_lib/auth'
 import { sha256Hex } from '../_lib/crypto'
-import { toOwnFlight, type FlightRow } from '../_lib/flights'
+import { FLIGHT_COLUMNS, toOwnFlight, type FlightRow } from '../_lib/flights'
 import { parseFlightBody } from '../_lib/flightValidation'
 import type { FlightInput } from '../../../packages/shared/src/flightValidation'
 import {
@@ -21,13 +21,7 @@ import { dirtyUserStatement, repairUserDerivedState } from '../_services/derived
 import { assertRows } from '../_lib/d1'
 import { LIFECYCLE_COLUMN_NAMES, lifecycleForCreate, lifecycleValues, takeRequestTimezone } from '../_services/lifecycle'
 
-// Explicit FlightRow column allowlist (never SELECT *) — drives both SELECT and INSERT/UPDATE RETURNING.
-export const FLIGHT_COLUMNS =
-  'id, user_id, date, origin, destination, airline_iata, aircraft_icao, flight_number, ' +
-  'departure_time, arrival_time, departure_utc, arrival_utc, origin_tz, dest_tz, distance_km, ' +
-  'duration_minutes, source, is_upcoming, enrichment_status, aircraft_lookup_attempts, created_at, ' +
-  'lifecycle_state, confirmation_source, confirmed_at, lifecycle_timezone, awaiting_after, auto_confirm_after, ' +
-  'arrival_transit, arrival_transit_leg_id'
+export { FLIGHT_COLUMNS }
 
 export function isIdempotencyKey(key: unknown): key is string {
   return typeof key === 'string' && /^[A-Za-z0-9._:-]{8,128}$/.test(key)
