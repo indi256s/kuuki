@@ -284,6 +284,31 @@ describe('owner isolation', () => {
 })
 
 describe('R4 recovery continuation', () => {
+  it('an inline original retry reconciles a held alias after its route is edited and restored', async () => {
+    const user = userEvent.setup()
+    render(<ImportClient ownerId="u1" locale="en" initialBatchId="b1" batchApi={api()} />)
+    await addManual(user)
+    commitThenLose()
+    await user.click(screen.getByRole('button', { name: /import 1/i }))
+    await screen.findByRole('heading', { name: /some flights were not saved/i })
+    await user.click(screen.getByRole('button', { name: /^back to review$/i }))
+    await addManual(user)
+    commitThenLose()
+    await user.click(screen.getByRole('button', { name: /import 2/i }))
+    await screen.findByText(/same flight is still unconfirmed/i)
+    await user.click(screen.getByRole('button', { name: /^back to review$/i }))
+    const destination = within(manualRows()[1]).getByLabelText(/^To \(airport code\)/)
+    await user.clear(destination); await user.type(destination, 'LAX')
+    await user.clear(destination); await user.type(destination, 'BOS')
+    serverCommits()
+    await user.click(within(manualRows()[0]).getByRole('button', { name: /retry original save/i }))
+    await screen.findByRole('heading', { name: /import finished/i })
+    await user.click(screen.getByRole('button', { name: /^back to review$/i }))
+    expect(screen.queryByText('Flight added by hand')).toBeNull()
+    expect(new Set(sentKeys()).size).toBe(1)
+    expect(committed.size).toBe(1)
+  })
+
   it('an actual add-form lost save holds the identical Import row despite absent enrichment defaults', async () => {
     const user = userEvent.setup()
     const form = render(<FlightForm ownerId="u1" locale="en" />)

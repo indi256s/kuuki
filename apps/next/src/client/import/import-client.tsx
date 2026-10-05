@@ -233,7 +233,7 @@ export function ImportClient({ ownerId, locale, initialBatchId = null, initialSo
       acks.push(...result.acks)
       wrote ||= result.saved.length > 0
       setManualSaved(previous => [...previous, ...result.saved])
-      setManualRows(previous => previous.flatMap(row => result.saved.some(item => item.key === row.key || row.failure?.heldBy === item.operationId && flightIdentity(row.values) === flightIdentity(item.values)) ? [] : [result.rows.get(row.key) ?? row]))
+      setManualRows(previous => previous.flatMap(row => result.saved.some(item => item.key === row.key || (row.failure?.heldBy === item.operationId || originalKeys.has(item.key) && !row.failure && row.retryKey === undefined) && flightIdentity(row.values) === flightIdentity(item.values)) ? [] : [result.rows.get(row.key) ?? row]))
     }
     // The denominator counts each row once, however often it is retried.
     setRequestedKeys(previous => new Set([...previous, ...items.map(item => item.draftId), ...manual.map(row => row.key)]))
