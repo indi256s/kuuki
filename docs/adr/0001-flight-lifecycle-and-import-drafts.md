@@ -96,7 +96,7 @@ Columns are added with `ALTER TABLE flights ADD COLUMN`; there is no table rebui
   - If adapter 2 runs first instead, adapter 4 still fires (outer `NEW.arrival_transit = 1`) and writes NULLs over a valid row.
   - Either way the final row satisfies `INV`, and an invalid row never survives the statement, because every nested `UPDATE` that leaves an unexempted violation aborts. A2 covers this case.
 - **Batch rollback.** `RAISE(ABORT)` fails the D1 batch, which rolls back the whole batch (A1).
-- **`changes()`.** It counts only the outer statement's direct changes, never trigger changes, so the chains in §5 and §6 and the old writers' `meta.changes` reads (`sync-upcoming.ts:21`, `workers/maintenance/index.ts:43-44`, `flights/index.ts:161`) are unaffected. A1 proves this, including that D1 `meta.changes` equals `sqlite3_changes()` and not a `total_changes` delta.
+- **`changes()`.** SQL `changes()` and `last_insert_rowid()` exclude trigger writes, so the §5/§6 chains, the old create link and `dirtyUserStatement(…, true)` are unaffected. D1 `meta.changes` is a `total_changes()` delta and includes adapter writes (Miniflare: 2 per flight for old sync and cron, up to 3 for an old route+date edit), and remote D1 is assumed to behave the same until proven. Old readers only test it for `> 0`, log it, or read the trigger-free ledger statement, so the impact is cosmetic. Lifecycle-aware code takes counts from `RETURNING` or a re-read, never from `meta.changes` on `flights`.
 - **T07 code never fires adapters 1–3.** A T07 test asserts that every lifecycle-aware writer (create, bulk, conversion, edit, sync, cron, confirm, transit review) leaves those triggers unfired; it uses a test-only counting trigger. An app bug writing NULL `lifecycle_state` or forgetting to recompute deadlines would otherwise be silently adapted.
 
 **Why not reject the old writer.** R2 requires migrate-then-deploy with no create outage. With the adapters, the pre-lifecycle build keeps working against `0006` until T07 code replaces it, and its writes never corrupt the lifecycle. Its known degradations are bounded and listed in §10:
@@ -402,7 +402,7 @@ The next free numbers come from `db/migrations` (latest `0005_profiles_created_a
 
 Both are additive (no DROP or rename), and the numbers are rechecked against the architecture ledger (H5).
 
-**Deploy order:** apply `0006`, then deploy T07+ code; apply `0007`, then deploy T10 code. T07 code writes the new columns and cannot run on a pre-`0006` schema. The pre-lifecycle build keeps creating flights through the §1 adapters between the two steps, so there is no outage.
+**Deploy order:** apply `0006` and `0007` together, then deploy T07+ code. T07 code writes the new lifecycle columns and `deleteUserCascade` deletes from the `0007` tables, so it cannot run on a schema missing either migration. `0007` is additive and inert until the T10 code uses it, so applying it early costs nothing. The pre-lifecycle build keeps creating flights through the §1 adapters between the migration and the deploy, so there is no outage.
 
 ### 8. Maintenance ordering (T09)
 
@@ -487,7 +487,9 @@ So the plan's "old silent sync must not resume" holds in effect. Such builds sti
 - let the roll-forward reconcile above repair every user written below the floor (no manual step);
 - rely on the `generation`/status fences.
 
-No down-migration exists and no rollback deletes user data. T07 extends `scripts/rehearse-next-rollback.ts` to a post-`0006` database with a pre-lifecycle Pages bundle.
+No down-migration exists and no rollback deletes user data.
+
+**Rollback rehearsal waiver.** T07 does not extend `scripts/rehearse-next-rollback.ts` to run a real pre-lifecycle Pages bundle against a post-`0006` database. The old-writer SQL in `functions/test/lifecycle-fixture.ts` (old sync, old cron rollover, old create, old edit) was checked against the pre-lifecycle code at `abe1d80` and stands in for the bundle in A2. Running the real pre-lifecycle bundle against a post-`0006` database is a release gate before `0006` reaches production, owned by whoever deploys.
 
 ### 11. Conflicts between C2–C5 and the code, and their resolutions
 
@@ -532,16 +534,18 @@ No down-migration exists and no rollback deletes user data. T07 extends `scripts
 
 | # | Proof | Task |
 |---|---|---|
-| A1 | `CREATE TRIGGER … BEGIN … END;` applies through `wrangler d1 migrations apply` (statement splitting) on Miniflare, and later on remote isolated D1. A `RAISE(ABORT)` inside `db.batch` rolls back the whole batch. D1 `meta.changes` equals `sqlite3_changes()` (excludes adapter writes), not a `total_changes` delta, for the old sync `synced`, cron `rolledOver` and create `created` reads. | T07 |
-| A2 | Upgrade `0001`→`0005`→fixture→`0006`: identical IDs, `visits`, `countries_count` and badges; the seed equals the first repair, including the `''`-country case. Old sync, old past and future insert, and old edit-to-future behave per §1. Old re-date without a flag change (upcoming future→future, awaiting past→past) shifts the deadlines with the date, and the flight is not awaiting or auto-confirmed before its new date. An old route edit on a flight with `arrival_transit = 1` clears the decision. No lifecycle-aware writer fires adapters 1–3. F1 sequence: upcoming(D0) → logged → lifecycle-aware re-date to D1 → old re-date to future D2 gives `awaiting_after` = start of D2+1 (UTC), not D0+1+(D2−D1). F3 case: an old route+date-to-future edit on a logged flight with `arrival_transit = 1` succeeds, ends `upcoming` with transit NULL, and the outcome is the same if the trigger order is reversed. F2: an old edit followed by an old repair leaves the stamp stale; Overview returns `updating`, and the first new sync repairs and drops the stale suppression. I1: with a stale stamp and `revision = published_revision`, both the maintenance repair and the owner sync's inline repair run the full publish (no early `ready`), rewrite `country_evidence_suppressions` and `country_visit_evidence`, set `evidence_revision = R` with `published_revision` still R, and a second maintenance pass selects no user and reports success. | T07 |
+| A1 | `CREATE TRIGGER … BEGIN … END;` applies through `wrangler d1 migrations apply` (statement splitting) on Miniflare, and later on remote isolated D1. A `RAISE(ABORT)` inside `db.batch` rolls back the whole batch. SQL `changes()` excludes trigger writes; `meta.changes` behaviour on remote isolated D1 is recorded, and old `synced`/`rolledOver`/`created` readers are shown to be zero-tested, logged or trigger-free. | T07 |
+| A2 | Upgrade `0001`→`0005`→fixture→`0006`: identical IDs, `visits`, `countries_count` and badges; the seed equals the first repair, including the `''`-country case. Old sync, old past and future insert, and old edit-to-future behave per §1. Old re-date without a flag change (upcoming future→future, awaiting past→past) shifts the deadlines with the date, and the flight is not awaiting or auto-confirmed before its new date. An old route edit on a flight with `arrival_transit = 1` clears the decision. No lifecycle-aware writer fires adapters 1–3. F1 sequence: upcoming(D0) → logged → lifecycle-aware re-date to D1 → old re-date to future D2 gives `awaiting_after` = start of D2+1 (UTC), not D0+1+(D2−D1). F3 case: an old route+date-to-future edit on a logged flight with `arrival_transit = 1` succeeds, ends `upcoming` with transit NULL, and the outcome is the same if the trigger order is reversed. F2: an old edit followed by an old repair leaves the stamp stale, `/api/me/derived-state` reports it not ready, and the first new sync repairs and drops the stale suppression. I1: with a stale stamp and `revision = published_revision`, both the maintenance repair and the owner sync's inline repair run the full publish (no early `ready`), rewrite `country_evidence_suppressions` and `country_visit_evidence`, set `evidence_revision = R` with `published_revision` still R, and a second maintenance pass selects no user and reports success. | T07 |
 | A3 | Concurrent same-operation and different-operation confirms. Exact replay after commit and after the rolled-back path. Committed-but-pending, then a replay. | T09 |
 | A4 | Two-tab conversion with different keys yields exactly one flight. Replay after 8 and after 36 days. `410` tombstone after the flight is deleted. | T10 |
 | A5 | Explicit transit, then each of: adding an ambiguous leg, deleting the matched leg, adding an unrelated leg D. The hub stamp neither reappears from A nor from the stored leg, and never moves (see open item 7 for D). | T08 |
 | A6 | DST-midnight zones (America/Santiago, America/Havana), ±14h, UTC; multi-week missed-cron catch-up; the 7-day boundary ±1 ms. | T07/T09 |
-| A7 | Overview, Passport and the queue agree before and after confirm and during a pending repair. | T08/T09 |
+| A7 | Overview, Passport and the queue agree before and after confirm and during a pending repair. After an old edit and old repair leave the evidence stamp stale (A2 F2), Overview returns `updating` until the repair publishes. | T08/T09 |
 | A8 | `newlyStampedCountries` with a concurrent claim and a stale published projection. | T09 |
 | A9 | A Next-only session (no `apps/web`) moves flights to `awaiting` and auto-confirms with the cron held, through the R1 trigger. | T09 |
 | A10 | A job write after cancel, discard or account deletion matches nothing. Under option (a), DO keep-alive after client disconnect. | T10/T11 |
+
+**Release gate:** remote-D1 A1 (trigger creation through `wrangler d1 migrations apply`, `RAISE(ABORT)` batch rollback, and `meta.changes` with adapter writes) must be run against an isolated remote D1 before `0006` reaches production. Miniflare proves it locally only.
 
 ## Open items
 

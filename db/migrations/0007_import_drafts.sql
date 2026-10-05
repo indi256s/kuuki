@@ -1,6 +1,7 @@
 -- Server-owned import drafts: batches, draft rows and conversion receipts (ADR 0001 §6, §7).
--- Additive only and deliberately separate from 0006, so the deploy order stays reviewable:
--- apply 0006, deploy the lifecycle-aware build; apply 0007, deploy the import-draft build.
+-- Additive and inert until the import-draft API (T10) uses it. Kept separate from 0006 for review, but
+-- applied together with it: apply 0006 and 0007, then deploy the lifecycle-aware build, whose account
+-- deletion already deletes from these tables.
 -- Uploaded bytes, pasted text, provider responses and raw_text are never stored in these tables.
 
 CREATE TABLE import_batches (
