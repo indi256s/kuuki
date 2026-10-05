@@ -21,7 +21,7 @@ export function useDeferredDelete(onCommitted: (ack: DerivedAck, ids: number[]) 
       const now = Date.now()
       if (!document.hidden) op.remaining -= now - op.last
       op.last = now
-      if (op.remaining > 0) { setPending({ ids: op.ids, seconds: Math.ceil(op.remaining / 1000) }); return }
+      if (op.remaining > 0) { const seconds = Math.ceil(op.remaining / 1000); setPending(current => current && current.seconds === seconds && current.ids === op.ids ? current : { ids: op.ids, seconds }); return }
       operation.current = null
       setSubmitting(true)
       const release = trackPrivateOperation(op.controller)

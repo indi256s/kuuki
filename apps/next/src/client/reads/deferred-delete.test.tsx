@@ -1,5 +1,6 @@
 // @vitest-environment jsdom
 import { act, fireEvent, renderHook } from '@testing-library/react'
+import { useEffect } from 'react'
 import { afterEach, expect, it, vi } from 'vitest'
 import { api } from '../../../../web/src/lib/apiClient'
 import { useDeferredDelete } from './deferred-delete'
@@ -57,4 +58,19 @@ it('ignores a second pending schedule and reports the IDs actually submitted', a
   await act(() => vi.advanceTimersByTimeAsync(6000))
   expect(api.delete).toHaveBeenLastCalledWith('/api/flights/4', expect.anything())
   expect(committed).toHaveBeenCalledWith({ derived_state: 'ready' }, [4])
+})
+
+it('re-renders only when the whole second changes, not on every 100ms tick', () => {
+  vi.useFakeTimers()
+  let renders = 0
+  const { result } = renderHook(() => { const value = useDeferredDelete(() => {}); useEffect(() => { renders += 1 }); return value })
+  act(() => result.current.schedule([8]))
+  const afterSchedule = renders
+  const first = result.current.pending
+  act(() => vi.advanceTimersByTime(900))
+  expect(renders).toBe(afterSchedule)
+  expect(result.current.pending).toBe(first)
+  act(() => vi.advanceTimersByTime(200))
+  expect(result.current.pending?.seconds).toBe(5)
+  expect(renders).toBe(afterSchedule + 1)
 })
