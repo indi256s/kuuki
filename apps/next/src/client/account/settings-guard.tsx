@@ -44,13 +44,13 @@ export function useSettingsGuard(dirty: boolean, busy: boolean, locale: Locale) 
       event.preventDefault(); event.stopImmediatePropagation()
       if (!state.current.busy) setPending({ run: () => router.push(url.pathname + url.search + url.hash) })
     }
-    const pop = (event: PopStateEvent) => {
+    const pop = (event: Event) => {
       if (permitTraversal.current) { permitTraversal.current = false; hash(); return }
-      if (restoring) { restoring = false; hash(); event.stopImmediatePropagation(); return }
+      if (restoring) { restoring = false; hash(); event.preventDefault(); event.stopImmediatePropagation(); return }
       const origin = new URL(originHref), destination = new URL(window.location.href)
       if (origin.pathname === destination.pathname && origin.search === destination.search && origin.hash !== destination.hash) { hash(); return }
       if (!state.current.dirty && !state.current.busy) { hash(); return }
-      event.stopImmediatePropagation()
+      event.preventDefault(); event.stopImmediatePropagation()
       const destinationIndex = entryIndex()
       // Native indexes or bootstrap-tagged App Router entries preserve traversal direction.
       // A pre-bootstrap document entry is handled by beforeunload.
@@ -64,13 +64,14 @@ export function useSettingsGuard(dirty: boolean, busy: boolean, locale: Locale) 
     window.addEventListener('kuuki:history-index', hash)
     window.addEventListener('beforeunload', unload)
     document.addEventListener('click', click, true)
-    window.addEventListener('popstate', pop, true)
+    const popEvent = (window as Window & { __kuukiHistoryGate?: boolean }).__kuukiHistoryGate ? 'kuuki:before-popstate' : 'popstate'
+    window.addEventListener(popEvent, pop, true)
     return () => {
       window.removeEventListener('hashchange', hash)
       window.removeEventListener('kuuki:history-index', hash)
       window.removeEventListener('beforeunload', unload)
       document.removeEventListener('click', click, true)
-      window.removeEventListener('popstate', pop, true)
+      window.removeEventListener(popEvent, pop, true)
     }
   }, [router])
   const ru = locale === 'ru'

@@ -17,7 +17,14 @@
   const changed = () => { lastIndex = history.state[indexKey]; window.dispatchEvent(new Event('kuuki:history-index')) }
   history.pushState = (state, title, url) => { push({ ...state, [indexKey]: (history.state?.[indexKey] ?? 0) + 1 }, title, url); changed() }
   history.replaceState = (state, title, url) => { replace({ ...state, [indexKey]: history.state?.[indexKey] ?? 0 }, title, url); changed() }
-  window.addEventListener('popstate', () => { if (indexed(history.state)) lastIndex = history.state[indexKey] })
+  window.addEventListener('popstate', event => {
+    if (indexed(history.state)) lastIndex = history.state[indexKey]
+    // Give the mounted owner a synchronous gate before Next can restore and unmount it.
+    const gate = new Event('kuuki:before-popstate', { cancelable: true })
+    window.dispatchEvent(gate)
+    if (gate.defaultPrevented) event.stopImmediatePropagation()
+  })
+  window.__kuukiHistoryGate = true
   window.addEventListener('hashchange', () => {
     if (!indexed(history.state)) replace({ ...history.state, [indexKey]: lastIndex + 1 }, '')
     lastIndex = history.state[indexKey]
