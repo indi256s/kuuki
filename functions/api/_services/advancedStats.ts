@@ -34,7 +34,7 @@ import {
   type FleetInsights,
   type ManufacturerInsights,
 } from './advancedStatsInsights'
-import { combineReads, type BatchedRead, type ComputedUserStats, type DerivedVisit } from './stats'
+import { combineReads, type BatchedRead, type ComputedUserStats } from './stats'
 
 /** JSON.stringify for a TEXT/JSON column, mapping null/undefined to a SQL NULL bind. */
 function j(value: unknown): string | null {
@@ -45,7 +45,7 @@ function j(value: unknown): string | null {
 export function computedAdvancedStatsStatement(
   db: D1Database,
   userId: string,
-): BatchedRead<(stats: ComputedUserStats, visits: DerivedVisit[]) => D1PreparedStatement> {
+): BatchedRead<(stats: ComputedUserStats, countries: string[]) => D1PreparedStatement> {
   const read = combineReads(
     computeAircraftBreakdown(db, userId),
     computeAircraftTypeBreakdown(db, userId),
@@ -58,8 +58,8 @@ export function computedAdvancedStatsStatement(
   )
   return {
     statements: read.statements,
-    derive: (results) => (stats, visits) =>
-      advancedStatsStatement(db, userId, stats, visits, read.derive(results)),
+    derive: (results) => (stats, countries) =>
+      advancedStatsStatement(db, userId, stats, countries, read.derive(results)),
   }
 }
 
@@ -67,13 +67,12 @@ function advancedStatsStatement(
   db: D1Database,
   userId: string,
   stats: ComputedUserStats,
-  visits: DerivedVisit[],
+  countries: string[],
   [aircraft, aircraftType, duration, departure, coverage, fleet, manufacturer, yearComparison]: [
     AircraftBreakdown, AircraftTypeBreakdown, DurationStats, DeparturePatterns | null, number,
     FleetInsights | null, ManufacturerInsights | null, DurationYearComparison,
   ],
 ): D1PreparedStatement {
-  const countries = visits.map(v => v.country_code)
   const continent = continentBreakdownForCountries(countries)
   const region = regionBreakdownForCountries(countries)
   const card = cardInsightsFromBreakdowns({

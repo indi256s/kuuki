@@ -118,11 +118,16 @@ export interface ComputedUserStats {
   has_night_departure: number
 }
 
-/** Read canonical flights; stats are calculated against the proposed visits, never old visits. */
+/**
+ * Read canonical flights; stats are calculated against the proposed visits (airports) and the proposed
+ * country-evidence countries (ADR 0001 §4), never old visits. Airports keep both endpoints of a transit
+ * stop; `countries_count` and `continents_count` come from the one country calculation. The continent
+ * rule is `continentOf7`, versioned as `badge-continents-v1`: badge eligibility is award-only and unchanged.
+ */
 export function computeStatsForVisits(
   db: D1Database,
   userId: string,
-): BatchedRead<(visits: DerivedVisit[]) => ComputedUserStats> {
+): BatchedRead<(visits: DerivedVisit[], countries: string[]) => ComputedUserStats> {
   return {
     statements: [db.prepare(
       `SELECT COUNT(*) AS total_flights, COALESCE(SUM(distance_km), 0) AS total_distance_km,
@@ -134,7 +139,7 @@ export function computeStatsForVisits(
                 AND CAST(substr(departure_time, 1, 2) AS INTEGER) < 5 THEN 1 ELSE 0 END), 0) AS has_night_departure
        FROM flights WHERE user_id = ? AND lifecycle_state IN ('awaiting', 'logged')`,
     ).bind(userId)],
-    derive: ([result]) => (visits) => {
+    derive: ([result]) => (visits, countries) => {
       const flights = firstOf<Pick<ComputedUserStats,
         'total_flights' | 'total_distance_km' | 'total_duration_minutes' |
         'longest_flight_minutes' | 'airlines_count' | 'aircraft_count' | 'has_night_departure'>>(result)
@@ -148,8 +153,8 @@ export function computeStatsForVisits(
         has_night_departure: flights?.has_night_departure ?? 0,
         airports_count: visits.length,
         cities_count: new Set(visits.map(v => v.city).filter(Boolean)).size,
-        countries_count: new Set(visits.map(v => v.country_code)).size,
-        continents_count: new Set(visits.map(v => v.country_code).map(continentOf7)).size,
+        countries_count: new Set(countries).size,
+        continents_count: new Set(countries.map(continentOf7)).size,
       }
     },
   }

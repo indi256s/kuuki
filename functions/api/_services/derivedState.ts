@@ -10,7 +10,7 @@ import {
   type DerivedVisit,
 } from './stats'
 import { computedAdvancedStatsStatement } from './advancedStats'
-import { countryEvidenceRead, countryEvidenceStatements } from './countryEvidence'
+import { countryEvidenceRead, countryEvidenceStatements, flightCountriesOf } from './countryEvidence'
 
 export interface DerivedRepairResult {
   derived_state: 'ready' | 'pending'
@@ -211,7 +211,9 @@ export async function repairUserDerivedState(db: D1Database, userId: string): Pr
       countryEvidenceRead(db, userId, legacyEvidenceStatement(db, userId), mergeVisits),
     )
     const [visits, statsFor, advancedFor, badgesFor, evidence] = read.derive(await db.batch(read.statements))
-    const stats = statsFor(visits)
+    // One country calculation: stats, advanced breakdowns and the published projection all read it.
+    const countries = flightCountriesOf(evidence.rows)
+    const stats = statsFor(visits, countries)
     const now = nowIso()
     const statements: D1PreparedStatement[] = [
       // The -1 branch violates CHECK; no later result can publish after a newer revision.
@@ -230,7 +232,7 @@ export async function repairUserDerivedState(db: D1Database, userId: string): Pr
       ).bind(userId, userId),
       ...visitStatements(db, userId, visits),
       computedStatsStatement(db, userId, stats),
-      advancedFor(stats, visits),
+      advancedFor(stats, countries),
       ...badgesFor(stats),
       ...countryEvidenceStatements(db, userId, evidence),
     ]

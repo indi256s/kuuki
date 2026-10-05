@@ -1,9 +1,11 @@
 // Country evidence projection (ADR 0001 §4): `country_visit_evidence` and the published
 // `country_evidence_suppressions`, computed from canonical rows inside the guarded repair batch.
 //
-// T07 scope: the effective arrival policy applies only explicit decisions (rule 1). Prospective
-// defaults from connection chains (rule 2) are T08 and plug into `arrivalSuppressions`.
+// This is the one country-evidence calculation: Passport, Overview, `user_stats`, advanced stats and the
+// queue DTOs read what it publishes (or call `effectiveArrivalPolicies`), and nothing recomputes a country
+// set from airport aggregates or live endpoints.
 import { rowsOf, type BatchedRead, type DerivedVisit } from './stats'
+import { connectionChains, type ConnectionDecision, type ConnectionLabel } from './connections'
 
 export const COUNTRY_POLICY_VERSION = 1
 
@@ -43,9 +45,32 @@ export interface CountryEvidenceRow {
   policy_version: number
 }
 
+/** A non-suppressed flight endpoint that supports a country; used by Passport detail. */
+export interface CountryContribution {
+  country_code: string
+  flight_id: number
+  endpoint: 'origin' | 'destination'
+  airport: string
+  city: string | null
+  date: string
+  state: 'awaiting' | 'logged'
+}
+
 export interface CountryEvidence {
   rows: CountryEvidenceRow[]
   suppressions: CountrySuppression[]
+  contributions: CountryContribution[]
+}
+
+/** Effective arrival policy for one completed flight (ADR §4). */
+export interface ArrivalPolicy {
+  transit: boolean
+  /** `explicit`: stored decision. `default`: prospective, recomputed from the live chain. `existing`: no decision, include. */
+  source: 'explicit' | 'default' | 'existing'
+  /** The outgoing leg whose origin is consumed with the destination; set only for transit. */
+  legId: number | null
+  /** Estimate label of a prospective default; null otherwise. */
+  label: ConnectionLabel | null
 }
 
 /** Flight endpoint the visit aggregate understands (see derivedState `VisitSource`). */
@@ -62,25 +87,89 @@ export type MergeVisits<L> = (sources: EndpointSource[], legacy: L[]) => Derived
 const isCountry = (code: string | null | undefined): code is string => typeof code === 'string' && code.length === 2
 
 /**
- * Endpoints whose country is suppressed by the effective arrival policy. Rule 1 (explicit decision):
- * a completed flight F with `arrival_transit = 1` suppresses its destination, plus the stored
- * outgoing leg's origin while that leg still departs from F's destination airport. Airport
- * evidence is never suppressed.
+ * The effective arrival policy of every completed (awaiting or logged) flight.
+ *  1. An explicit decision wins. Transit consumes the destination and the *stored* leg's origin, and only
+ *     while that leg still departs from the same airport; the live chain never moves a stored decision.
+ *  2. Otherwise an awaiting flight with an unambiguous third-country connection defaults to transit.
+ *  3. Otherwise (logged legacy/save, route changed, no connection) the endpoint is included.
  */
-export function arrivalSuppressions(flights: EvidenceFlight[]): CountrySuppression[] {
+export function effectiveArrivalPolicies(
+  flights: EvidenceFlight[],
+  decisions: Map<number, ConnectionDecision> = connectionChains(flights),
+): Map<number, ArrivalPolicy> {
   const byId = new Map(flights.map(flight => [flight.id, flight]))
-  const out: CountrySuppression[] = []
+  const policies = new Map<number, ArrivalPolicy>()
   for (const flight of flights) {
-    if (flight.lifecycle_state === 'upcoming' || flight.arrival_transit !== 1) continue
-    if (isCountry(flight.destination_country)) {
-      out.push({ flight_id: flight.id, endpoint: 'destination', country_code: flight.destination_country })
+    if (flight.lifecycle_state === 'upcoming') continue
+    if (flight.arrival_transit !== null) {
+      const leg = flight.arrival_transit === 1 && flight.arrival_transit_leg_id !== null ? byId.get(flight.arrival_transit_leg_id) : undefined
+      policies.set(flight.id, {
+        transit: flight.arrival_transit === 1, source: 'explicit', label: null,
+        legId: leg && leg.origin === flight.destination ? leg.id : null,
+      })
+      continue
     }
-    const leg = flight.arrival_transit_leg_id == null ? undefined : byId.get(flight.arrival_transit_leg_id)
-    if (leg && leg.origin === flight.destination && isCountry(leg.origin_country)) {
-      out.push({ flight_id: leg.id, endpoint: 'origin', country_code: leg.origin_country })
+    const decision = flight.lifecycle_state === 'awaiting' ? decisions.get(flight.id) : undefined
+    if (decision?.kind === 'link' && decision.thirdCountry) {
+      policies.set(flight.id, { transit: true, source: 'default', legId: decision.toId, label: decision.label })
+    } else {
+      policies.set(flight.id, { transit: false, source: 'existing', legId: null, label: null })
     }
   }
-  return out.sort((a, b) => a.flight_id - b.flight_id || a.endpoint.localeCompare(b.endpoint))
+  return policies
+}
+
+/**
+ * Endpoints whose country is suppressed by the effective arrival policy. Airport evidence is never
+ * suppressed, only the country: the destination of a transit arrival and the matched leg's origin.
+ */
+export function arrivalSuppressions(flights: EvidenceFlight[], policies = effectiveArrivalPolicies(flights)): CountrySuppression[] {
+  const byId = new Map(flights.map(flight => [flight.id, flight]))
+  const out = new Map<string, CountrySuppression>()
+  for (const flight of flights) {
+    const policy = policies.get(flight.id)
+    if (!policy?.transit) continue
+    if (isCountry(flight.destination_country)) {
+      out.set(`${flight.id}:destination`, { flight_id: flight.id, endpoint: 'destination', country_code: flight.destination_country })
+    }
+    const leg = policy.legId === null ? undefined : byId.get(policy.legId)
+    if (leg && isCountry(leg.origin_country)) {
+      out.set(`${leg.id}:origin`, { flight_id: leg.id, endpoint: 'origin', country_code: leg.origin_country })
+    }
+  }
+  return [...out.values()].sort((a, b) => a.flight_id - b.flight_id || a.endpoint.localeCompare(b.endpoint))
+}
+
+/** Countries supported by completed flights or legacy evidence: the `countries_count` meaning (no claims, no ground visits). */
+export const flightCountriesOf = (rows: Array<Pick<CountryEvidenceRow, 'country_code' | 'logged_visit_count' | 'awaiting_visit_count'>>): string[] =>
+  rows.filter(row => row.logged_visit_count + row.awaiting_visit_count > 0).map(row => row.country_code)
+
+/**
+ * Which flight endpoints support a country after the effective arrival policy. Passport detail uses this
+ * directly; `deriveCountryEvidence` builds its rows on it, so there is one policy and no second calculation.
+ */
+export function countryContributions(flights: EvidenceFlight[]): { suppressions: CountrySuppression[]; logged: EndpointSource[]; awaiting: EndpointSource[]; contributions: CountryContribution[] } {
+  const suppressions = arrivalSuppressions(flights)
+  const suppressed = new Set(suppressions.map(row => `${row.flight_id}:${row.endpoint}`))
+  const logged: EndpointSource[] = []
+  const awaiting: EndpointSource[] = []
+  const contributions: CountryContribution[] = []
+  for (const flight of flights) {
+    if (flight.lifecycle_state === 'upcoming') continue
+    const target = flight.lifecycle_state === 'logged' ? logged : awaiting
+    for (const endpoint of ['origin', 'destination'] as const) {
+      const country = endpoint === 'origin' ? flight.origin_country : flight.destination_country
+      // Unknown airports have no reference row and contribute nothing, as in `visits`.
+      if (country === null || suppressed.has(`${flight.id}:${endpoint}`)) continue
+      const city = endpoint === 'origin' ? flight.origin_city : flight.destination_city
+      target.push({ airport_iata: flight[endpoint], country_code: country, city, date: flight.date })
+      if (isCountry(country)) {
+        contributions.push({ country_code: country, flight_id: flight.id, endpoint, airport: flight[endpoint], city, date: flight.date,
+          state: flight.lifecycle_state === 'logged' ? 'logged' : 'awaiting' })
+      }
+    }
+  }
+  return { suppressions, logged, awaiting, contributions }
 }
 
 /** Pure projection from canonical rows; the migration seed equals it while nothing is awaiting or suppressed. */
@@ -88,22 +177,7 @@ export function deriveCountryEvidence<L>(
   input: { flights: EvidenceFlight[]; legacy: L[]; claims: string[]; ground: Array<{ country_code: string; n: number }> },
   merge: MergeVisits<L>,
 ): CountryEvidence {
-  const suppressions = arrivalSuppressions(input.flights)
-  const suppressed = new Set(suppressions.map(row => `${row.flight_id}:${row.endpoint}`))
-  const logged: EndpointSource[] = []
-  const awaiting: EndpointSource[] = []
-  for (const flight of input.flights) {
-    if (flight.lifecycle_state === 'upcoming') continue
-    const target = flight.lifecycle_state === 'logged' ? logged : awaiting
-    for (const endpoint of ['origin', 'destination'] as const) {
-      const country = endpoint === 'origin' ? flight.origin_country : flight.destination_country
-      // Unknown airports have no reference row and contribute nothing, as in `visits`.
-      if (country === null || suppressed.has(`${flight.id}:${endpoint}`)) continue
-      target.push({ airport_iata: flight[endpoint], country_code: country,
-        city: endpoint === 'origin' ? flight.origin_city : flight.destination_city, date: flight.date })
-    }
-  }
-
+  const { suppressions, logged, awaiting, contributions } = countryContributions(input.flights)
   const byCountry = new Map<string, CountryEvidenceRow>()
   const row = (code: string) => {
     let current = byCountry.get(code)
@@ -133,22 +207,27 @@ export function deriveCountryEvidence<L>(
     .map(current => ({ ...current,
       status: (current.logged_visit_count > 0 || current.claimed === 1 || current.ground_visit_count > 0 ? 'pressed' : 'pending') as CountryEvidenceRow['status'] }))
     .sort((a, b) => a.country_code.localeCompare(b.country_code))
-  return { rows, suppressions }
+  return { rows, suppressions, contributions }
 }
 
-/** One read for the repair's combined batch: flights (all states, as potential legs), claims, ground visits and legacy evidence. */
+/** Every flight in every state (upcoming ones are potential outgoing legs) with its airports' countries. */
+export function evidenceFlightsStatement(db: D1Database, userId: string): D1PreparedStatement {
+  return db.prepare(
+    `SELECT f.id, f.date, f.origin, f.destination, f.lifecycle_state, f.arrival_transit, f.arrival_transit_leg_id,
+            f.departure_utc, f.arrival_utc, o.country_code AS origin_country, o.city AS origin_city,
+            d.country_code AS destination_country, d.city AS destination_city
+     FROM flights f
+     LEFT JOIN airports_reference o ON o.iata = f.origin
+     LEFT JOIN airports_reference d ON d.iata = f.destination
+     WHERE f.user_id = ?`,
+  ).bind(userId)
+}
+
+/** One read for the repair's combined batch: flights, claims, ground visits and legacy evidence. */
 export function countryEvidenceRead<L>(db: D1Database, userId: string, legacy: D1PreparedStatement, merge: MergeVisits<L>): BatchedRead<CountryEvidence> {
   return {
     statements: [
-      db.prepare(
-        `SELECT f.id, f.date, f.origin, f.destination, f.lifecycle_state, f.arrival_transit, f.arrival_transit_leg_id,
-                f.departure_utc, f.arrival_utc, o.country_code AS origin_country, o.city AS origin_city,
-                d.country_code AS destination_country, d.city AS destination_city
-         FROM flights f
-         LEFT JOIN airports_reference o ON o.iata = f.origin
-         LEFT JOIN airports_reference d ON d.iata = f.destination
-         WHERE f.user_id = ?`,
-      ).bind(userId),
+      evidenceFlightsStatement(db, userId),
       db.prepare('SELECT DISTINCT country_code FROM country_claims WHERE user_id = ?').bind(userId),
       db.prepare('SELECT country_code, COUNT(*) AS n FROM ground_visits WHERE user_id = ? GROUP BY country_code').bind(userId),
       legacy,
