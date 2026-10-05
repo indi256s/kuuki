@@ -341,6 +341,15 @@ It is scoped per item, so cron or sync ticks on other flights cause no spurious 
 
 The banner shows only when candidates exist and no marker does. The GET stays reachable from Passport.
 
+**T09 implementation notes.** Code: `_services/{queue,confirmation,transitReview,receipts}.ts`, routes `me/awaiting.ts`, `flights/confirm.ts`, `me/transit-review.ts`.
+
+- The receipt is a plain `INSERT` (a duplicate operation id aborts the whole batch) rather than `ON CONFLICT DO NOTHING` plus a per-item nonce guard. One JSON-driven `UPDATE flights` replaces the per-item updates, followed by `UPDATE receipt SET applied_count = changes(), complete = 1`, whose CHECK rolls everything back when any flight was lost. The flights `UPDATE` also carries the `user_derived_state.revision` guard the decisions were computed under; a lost guard is a rollback and a retry (at most four attempts, then `409 STATE_CONFLICT` with `cause: concurrent_update`). Same transaction semantics as the ADR text, fewer statements.
+- The receipt's `result_json` holds the applied results from the commit on; the outcome is complete (frozen) once it carries `derivedState`. A replay that finds no `derivedState` repairs and freezes it first-writer-wins.
+- `candidate.label` is `precise`, `estimated`, `ambiguous` or null. `candidateToken` also covers the leg's destination and the chain's start and final countries and the ambiguous candidate ids, so it is stricter than the list above.
+- Conflict `cause` values: `not_awaiting` (per item `logged` or `upcoming`), `candidates_changed`, `not_reviewable` (per item `awaiting`, `upcoming`, `confirmed_by_member`, `already_decided`), `operation_reused`, `concurrent_update`, and `flight_changed` on a flight edit that lost to a sync, confirmation or transit review (the edit guard now also covers `arrival_transit` and `arrival_transit_leg_id`).
+- `removedCountries` and `newlyStampedCountries` are intersected with the countries the operation's own flights contribute or suppress, so a concurrent claim is never credited to it.
+- Transit review GET returns `marker: {status, matchesCandidates}`; `matchesCandidates` compares the stored candidate-set digest with the current one. A dismissal hides the banner and leaves the option available.
+
 ### 6. Import drafts (migration `0007_import_drafts.sql`)
 
 | Table | Columns / constraints |
