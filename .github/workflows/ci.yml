@@ -47,6 +47,10 @@ jobs:
   api:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3]
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup
@@ -54,7 +58,8 @@ jobs:
           pnpm-version: ${{ env.PNPM_VERSION }}
           node-version: ${{ env.NODE_VERSION }}
       - run: pnpm turbo run build --filter='./packages/*'
-      - run: pnpm test:api
+      # Vitest defaults to CPUs - 1 workers, which is one on a 2-vCPU runner; each test spends most of its time in workerd.
+      - run: pnpm test:api --shard=${{ matrix.shard }}/3 --maxWorkers=2
 
   e2e:
     runs-on: ubuntu-latest
@@ -68,41 +73,22 @@ jobs:
       - run: pnpm turbo run build --filter='./packages/*'
       - run: pnpm next:build
       - run: pnpm --filter @kuuki/next typecheck:worker
-      # The PWA upgrade journey serves the standalone Vite build; the artifact manifest records it and the maintenance bundle.
+      # The PWA upgrade journey serves the standalone Vite build.
       - run: pnpm --filter @kuuki/web build
-      - run: pnpm build:maintenance
-      - run: pnpm --filter @kuuki/next exec playwright install --with-deps chromium
+      - id: playwright
+        run: echo "version=$(node -p "require('./apps/next/node_modules/@playwright/test/package.json').version")" >> "$GITHUB_OUTPUT"
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ steps.playwright.outputs.version }}-chromium-shell
+      # Headless runs use only chromium-headless-shell; the runner image already has its system libraries.
+      - run: pnpm --filter @kuuki/next exec playwright install --only-shell chromium
       - run: pnpm next:smoke
       - run: pnpm next:smoke:boundary
       - run: pnpm test:next:navigation
-      - run: node scripts/next-artifact-manifest.mjs
-      - uses: actions/upload-artifact@v4
+      - if: failure()
+        uses: actions/upload-artifact@v4
         with:
-          name: next-candidate-${{ github.sha }}
-          path: |
-            .wrangler/next-build/
-            .wrangler/functions-build/
-            workers/maintenance/.wrangler/maintenance-build/
-            .wrangler/next-artifact-manifest.json
-            apps/next/.open-next/worker.js
-            apps/next/.open-next/assets/
-            apps/next/.next/required-server-files.json
-            apps/next/.next/BUILD_ID
-            apps/next/api-routes.generated.ts
-            apps/next/wrangler.toml
-            apps/next/next.config.ts
-            apps/next/open-next.config.ts
-            apps/next/worker.ts
-            apps/next/package.json
-            apps/web/dist-legacy/
-            apps/web/dist/
-            wrangler.toml
-            workers/maintenance/wrangler.toml
-            package.json
-            pnpm-lock.yaml
-            scripts/build-next.mjs
-            scripts/next-artifact-manifest.mjs
-            scripts/rehearse-next-rollback.ts
-          include-hidden-files: true
-          if-no-files-found: error
-          retention-days: 1
+          name: playwright-traces-${{ github.sha }}
+          path: apps/next/test-results/
+          retention-days: 7
