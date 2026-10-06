@@ -13,8 +13,10 @@ legacy activation flow, then said “let's do it.” Carry authorization for sta
 preparation and the controlled production baseline/additive migration/import
 release forward. Required preservation gates still apply. Production application data,
 credentials, routing and deployments have not been changed. A diagnostic sign-in
-created a test session and successful sign-out revoked it. No real mail or
-provider calls were made; retain their separate recipient/provider gates.
+created a test session and successful sign-out revoked it. One staging activation
+request was made on 6 October at 09:46 UTC to the explicitly approved recipient. Inbox
+receipt and activation completion were confirmed; no legacy-cohort mail or real
+parsing-provider calls are authorized.
 
 Production pepper rotation is now explicitly authorized:
 
@@ -37,7 +39,7 @@ Production pepper rotation is now explicitly authorized:
    make an explicitly reviewed reset of only the two retained accounts: set their
    `users.password_hash` to `RESET_REQUIRED`, remove their old credential-provider
    `auth_accounts` rows, and revoke both legacy and Better Auth sessions plus stale
-   activation tokens. Preserve their IDs, profiles, 69 flights and other owned
+   activation tokens and stale password-reset verifications. Preserve their IDs, profiles, 69 flights and other owned
    records. The existing activation flow then installs their new password in both
    users and auth_accounts. Rehearse this targeted reset and preservation check
    before production; do not run the blanket `reset-passwords.ts` script.
@@ -95,19 +97,74 @@ violation rejected and rolled back its preceding write; the old flag adapter
 produced valid lifecycle/deadline fields. The adapter UPDATE reported
 `meta.changes = 2`. The token-protected, fixed-operation probe used synthetic
 rows, cleaned them up, and its temporary Worker was deleted. No probe users remain.
-Pre-lifecycle bundle CRUD/bulk/edit/sync/cron compatibility is still pending.
+Pre-lifecycle bundle CRUD/bulk/edit/sync/cron compatibility subsequently passed on the
+isolated synthetic database below. The old cron handler was explicitly invoked; actual
+current-candidate timer evidence is recorded below.
 
-Next preview is deployed at
-`https://kuuki-next-preview.indi256s.workers.dev`, bound to the preview D1 above,
-with `PAGES_ORIGIN` set to that URL by CLI override and `MAINTENANCE_MODE=true`.
-Initial deployment version: `cdd9fd21-791e-4a18-b336-27967eaeb7c6`; adding the
-new preview-only `BETTER_AUTH_SECRET` subsequently created another version.
-Read back the current version before release. The existing Pages secrets were
-not retrievable and were not copied. Public entry/sign-in return 200; private
-Overview and APIs return held 503 with no-store and Retry-After. BUILD_ID is
-served. Authenticated journeys, legacy-cookie compatibility, activation delivery,
-full hosted smoke and cron proof remain pending. No Next production Worker was
-deployed and no custom domain was moved.
+Next preview `https://kuuki-next-preview.indi256s.workers.dev` serves the frozen
+candidate against the original preview D1. Hosted auth/CRUD/edit/bulk/sync,
+ownership A/B, CSRF, authenticated shell routes, synthetic legacy cookies,
+activation with a fake sender, one-use completion, reset revocation, activation
+host isolation, provider-key failure and route/static boundaries passed. The
+preview is temporarily unheld for staging verification with its own new
+`AUTH_SECRET`; no existing preview password hashes were rotated. Original Pages
+pepper compatibility remains unproven. Main preview version after restoration
+of the frozen Next candidate: `62cf3b5a-eba3-4ba6-b839-eae1d8295be9`.
+Temporary auth probe and synthetic users were removed.
+
+The hosted browser service-worker upgrade passed on that same origin: actual
+patched Vite Workbox registration/cache, then frozen retirement script while
+Vite still served, then Next. Workbox registration/cache disappeared; unrelated
+storage and a separate cache sentinel survived. Production must repeat the
+retirement stage before routing switches to Next.
+
+Synthetic compatibility D1: `8e89bffa-a09d-47b7-82c5-9646c0bec341`.
+Byte-identical archived pre-lifecycle Pages/cron modules passed hosted create,
+bulk, repeated edit, sync and explicitly invoked old cron. Lifecycle adapters
+remained valid; current repair corrected the expected old counter inflation.
+Temporary probe was deleted. Current frozen maintenance candidate passed two actual
+five-minute timer invocations at 09:50:39 and 09:55:39 UTC. Both reported zero
+overdue/dirty rows and no failure; the fixture Worker/schedule was deleted. No
+production cron is enabled.
+
+The targeted local rehearsal restored a read-only production export, applied
+additive migrations, reset only two retained accounts, removed the one zero-flight
+conflict through `deleteUserCascade`, remapped 64 incoming flight IDs, imported,
+derived, validated and reran safely. Final union: 28 users/profiles and 412 flights.
+All original retained owned data matched after derivation and after both accounts
+activated with a fake sender; stale recovery tokens were revoked and an unrelated
+verification survived. Mapping digest:
+`ab708d946247d0a6e02b81029fe0b22af4530547a1236a451614b82c957f8787`.
+This is rehearsal evidence, not production transfer or held backup proof.
+
+All 540 enumerated historical Pages deployment URLs were tested for both auth
+read and flight mutation: 1,080 requests denied by the reversible wildcard Access
+hold (app `9cf9a36a-fbc3-47fd-86f5-cdf432748d6c`). Git production deployments remain
+disabled and preview automatic deployments disabled. Canonical/custom production
+origins are still live, so full production hold has not yet been established.
+No account Worker binds production D1. Supabase has 15 app-owned public tables
+with effective anonymous/authenticated/service-role write privileges. Independently
+reviewed private SQL will install 17 statement-level `ENABLE ALWAYS` write-fence
+triggers across those tables plus auth users/identities. It is not yet applied;
+keep this source fence after D1 reopens until legacy writes are retired/reconciled.
+
+Single real-email staging gate: a temporary Service Auth-only Pages alias
+`mail-gate.kuuki.pages.dev` reuses the existing separate preview mail secret and
+binds only the synthetic D1. Its deployment is
+`04ab5680-9276-42c1-b5f5-c014c86b1c21`; public requests reject with 403. Fresh
+Next main/activation Workers (`kuuki-mail-main-gate`, `kuuki-mail-activation-gate`)
+share the synthetic D1 and staging secret. The approved address already has an
+active account in original preview, which was untouched; only a separate synthetic
+fixture receives this mail. One request returned 200 and its token remained after sender
+acknowledgement. The user confirmed inbox receipt and successful activation; D1 readback
+found matching installed user/auth-account credentials and zero remaining activation
+tokens. Pages preview configuration is global: deployment
+`5dd3ce65-9275-4c41-9d38-7f39dd9a333e` restored its original preview D1/origins. Project and deployment readback
+confirmed secret bindings remained present; values were not retrievable or
+written by this operation. The temporary mail alias deployment,
+restricted Access app/service token, two Next Workers and synthetic fixture were
+removed. No production
+Next Worker or domain move has occurred.
 
 Read-only baseline review compared production with 0001: same 17 application
 tables and 35 named objects; column definitions/defaults/PK/FK/index metadata and
@@ -132,9 +189,9 @@ the fresh-source verification. Temporary working copies are
 in `/tmp/kuuki-release-20261006`; the read-only conflict helper is ignored at
 `.scratch/legacy-cleanup/source-target-conflicts.ts`. Do not publish these files.
 
-Next: rehearse the approved targeted password reset and preservation; finish staging auth and
-compatibility gates. Then enumerate and hold every production writer (including
-immutable Pages deployment URLs), re-read source/target conflicts, export and
+Next: finish hosted performance and monitoring gates. Then establish full production
+hold (including Supabase and canonical/custom Pages origins), re-read source/target
+conflicts, export and
 prove hosted restoration, baseline the ledger without running 0001, apply admitted
 additive migrations, transfer/derive/validate reviewed data, deploy the same
 candidate and only then release hold. Do not set release variables or enable
@@ -142,3 +199,62 @@ cron before their gates pass. Follow the
 [audit release runbook](../runbooks/audit-remediation-release.md),
 [lifecycle runbook](../runbooks/lifecycle-release.md) and
 [Next candidate contract](../runbooks/2026-10-04-next-release-candidate.md).
+
+Private new evidence includes `targeted-rehearsal-proof-reviewed.json`,
+`hosted-auth-smoke-proof.json`, `hosted-serviceworker-upgrade-proof.json`,
+`pages-writer-inventory-complete.json`, `pages-all-url-hold-proof.json`,
+`supabase-effective-writers.json`, reviewed hold/rollback SQL, and
+`real-mail-gate-proof.json` and `targeted-rehearsal-proof-full-publication.json`. Full publication rehearsal also repaired the two retained dirty markers: all 28 users ready, canonical profiles/flights unchanged, 29 derived visits and 9 badges computed for the two current accounts (previously zero), with independently reviewed normal derived refresh. Duration totals and the 69-flight count remained unchanged; the shortest-flight ID changed within an equal-duration tie because the query has no tie ordering. Old-bundle and current timer details are in the
+private `/tmp/kuuki-release-20261006` working directory. A 09:32 UTC fresh source
+recheck found all 13 datasets semantically unchanged, but is not the final held
+cutover capture. Do not overwrite the 08:32 admitted source.
+
+## Opus 5.5 thread transition
+
+The user requested continuing in a fresh Opus 5.5 thread. Stop new work in this
+thread after this checkpoint. Production D1, application secrets, deployment and
+canonical routing remain unchanged; only the historical Pages Access hold is
+installed. No Supabase source fence is applied and no production Next Worker exists.
+
+Hosted performance is **not passed**. The first isolated 2-flight run stopped at
+210 owned-data navigation samples (53 Overview/53 Dashboard/52 Journal/52 Flights),
+with one Vite 5xx subresponse and a later Journal navigation timeout. Provisional
+p95 values improve against Vite, but failures block acceptance. LCP/CLS collected;
+INP missing. A maplibre request observed on Overview needs exact-path/lazy-loading
+triage. Large-history and 100 saves per frontend/stratum remain unfinished. The
+fixture uses only synthetic D1 `8e89bffa-a09d-47b7-82c5-9646c0bec341`; no real mail
+or parsing credentials are bound. Workers Paid was confirmed and frozen candidate
+startup was 111 ms. Preserve failure evidence and complete the hosted monitoring
+gates; the proposed 20% p95 budget and observation window are not owner-accepted.
+
+Custom-domain canary routing gate is untested. Its task stopped before creating
+any Worker/DNS/route. The proposed isolated test host is
+`next-routing-stage.kuuki.marchstudio.uk`: first check that it is absent, then prove
+a proxied Pages-origin CNAME plus exact Workers route to the frozen held candidate,
+or use the supported custom-domain alternative. Preserve unrelated zone/mail DNS.
+
+Prepared, unapplied private production hold assets/config are in
+`/tmp/kuuki-release-20261006/production-held-vite-assets` and `production-hold/`.
+They reuse the frozen Pages Worker/Vite assets with the frozen Next retirement
+`sw.js` and explicit no-store, serving Vite during retirement. Generated
+`production-worker-secrets.json` is private and **not uploaded**. Source hold
+runner is ignored `.scratch/next-release/source-query.py`; it asserts exactly one
+read_only payload substitution, uses project-bound OAuth, and fails on non-2xx or
+DO errors. Reviewed DO-only `source-hold-negative.sql` has no unconditional success
+SELECT; require exact 17 ALWAYS-trigger readback and successful 37 rejection probes.
+
+Production sequence still requires full writer hold, a new source capture and
+conflict read, hosted restoration of the held production export and Time Travel
+bookmark, semantic baseline registration without 0001 replay, migrations 0002–0007,
+targeted reset/replacement, reviewed remapped import, all-28 publication and
+validation, held same-candidate routing/deployment, smoke and controlled reopening.
+Keep the Supabase fence after D1 reopens while legacy clients can still write.
+No additional approval is needed for the accepted pepper/reset/mapping decisions.
+
+Performance checkpoint cleanup is complete: generated account deleted and temporary
+`kuuki-perf-gate-20261006` Worker deleted (URL 404); the 343-flight account was never
+created. No benchmark writer remains active. Read the private
+`/tmp/kuuki-release-20261006/perf-gate/HANDOFF.md` and ignored
+`.scratch/next-release/perf-gate.mjs`/`.toml` before resuming. CPU/memory usage,
+INP, installed alerts and acceptance thresholds remain unproved. Both old-thread
+subagents are finished; the new thread owns all subsequent work.
