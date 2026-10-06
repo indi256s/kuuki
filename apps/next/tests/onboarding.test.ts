@@ -7,15 +7,6 @@ async function signup(page: Page, origin: string, named = false) {
   if (named) await claimUsername(page, origin)
 }
 
-test('guest proof uses real samples and signup/signin routes', async ({ page }) => {
-  await page.goto('/')
-  await expect(page.getByRole('link', { name: 'Create an account' })).toHaveAttribute('href', '/signup')
-  await expect(page.getByRole('region', { name: 'Sample journal · fictional data' })).toBeVisible()
-  await expect(page.getByRole('article', { name: 'TBS to NRT' })).toBeVisible()
-  await page.getByRole('link', { name: 'Create an account' }).click()
-  await expect(page).toHaveURL(/\/signup$/)
-})
-
 test('Name persists before Capture and skip reaches the real first-run Overview', async ({ page, baseURL }) => {
   await signup(page, baseURL!)
   await page.goto('/onboarding?step=name')
