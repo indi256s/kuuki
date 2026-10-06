@@ -1,7 +1,8 @@
 # Flight lifecycle: preview enablement and production release (T09)
 
-Status: instructions only. Nothing here has been run against a hosted environment, and no task changes any checked-in
-config. Design and invariants: [ADR 0001](../adr/0001-flight-lifecycle-and-import-drafts.md) sections 2, 5, 7, 8 and 10.
+Status: preview migrations 0006/0007 and the hosted A1 database checks passed on 6 October 2026;
+remaining preview and production gates are recorded in the [release handoff](../plans/2026-10-06-next-release-handoff.md).
+Checked-in runtime configuration is unchanged. Design and invariants: [ADR 0001](../adr/0001-flight-lifecycle-and-import-drafts.md) sections 2, 5, 7, 8 and 10.
 This runbook adds to [the audit-remediation cutover order](audit-remediation-release.md); it does not replace its holds,
 backup and isolation gates.
 
