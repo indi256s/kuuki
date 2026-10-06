@@ -74,6 +74,7 @@ export function CountrySheet({ ownerId, locale, code: selected, entry, published
   const menuTrigger = useRef<HTMLButtonElement | null>(null)
   const [shownCode, setShownCode] = useState(code)
   const shownRef = useRef(code)
+  // A closed sheet keeps its last country, so a save that completes while it is closed still clears the saved draft.
   useEffect(() => { shownRef.current = code ?? shownRef.current }, [code])
   if (code && code !== shownCode) { setShownCode(code); setNotice(''); setError(''); setYear(''); setNote(''); setMethod('land') }
 

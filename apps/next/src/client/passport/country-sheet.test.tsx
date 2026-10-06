@@ -222,7 +222,7 @@ describe('CountrySheet freshness and failures', () => {
 describe('CountrySheet add-visit form during a save', () => {
   const ack = { ok: true, derived_state: 'ready', revision: 4 }
   const france = detail({ countryCode: 'FR' })
-  function Switchable({ client, code }: { client: QueryClient; code: string }) {
+  function Switchable({ client, code }: { client: QueryClient; code: string | null }) {
     return <QueryClientProvider client={client}>
       <CountrySheet ownerId="owner" locale="en" code={code} entry={undefined} publishedRevision={3} mobile={false} name={countryNamer('en')}
         onClose={() => {}} onChanged={() => {}} onRemoved={() => {}} />
@@ -260,6 +260,27 @@ describe('CountrySheet add-visit form during a save', () => {
     release()
     await waitFor(() => expect(within(dialog).getByRole('textbox', { name: /^Year/ })).toHaveValue(''))
     expect(within(dialog).getByRole('textbox', { name: /^Note/ })).toHaveValue('Crete')
+  })
+
+  it('still clears the saved draft when the save completes while the sheet is closed', async () => {
+    const user = userEvent.setup()
+    mocks.get.mockResolvedValue(detail({}))
+    const release = held()
+    const client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
+    const { rerender } = render(<Switchable client={client} code="GR" />)
+    const dialog = await screen.findByRole('dialog', { name: 'Greece' })
+    await user.type(await within(dialog).findByRole('textbox', { name: /^Year/ }), '2020')
+    await user.type(within(dialog).getByRole('textbox', { name: /^Note/ }), 'Corfu')
+    await user.click(within(dialog).getByRole('button', { name: 'Add visit' }))
+    await waitFor(() => expect(mocks.addVisit).toHaveBeenCalledTimes(1))
+    rerender(<Switchable client={client} code={null} />)
+    await waitFor(() => expect(screen.queryByRole('dialog', { name: 'Greece' })).toBeNull())
+    release()
+    await waitFor(() => expect(mocks.acknowledge).toHaveBeenCalled())
+    rerender(<Switchable client={client} code="GR" />)
+    const reopened = await screen.findByRole('dialog', { name: 'Greece' })
+    await waitFor(() => expect(within(reopened).getByRole('textbox', { name: /^Year/ })).toHaveValue(''))
+    expect(within(reopened).getByRole('textbox', { name: /^Note/ })).toHaveValue('')
   })
 
   it('keeps the draft of another country opened while the save is in flight', async () => {

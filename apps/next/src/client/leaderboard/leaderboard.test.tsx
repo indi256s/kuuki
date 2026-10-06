@@ -53,7 +53,7 @@ it('baselines rank on a device and celebrates only a new improvement per account
   expect(recordRank('rank-user', 'flights', 12, 'p3', device)).toEqual({ delta: -5, celebrate: false })
 })
 
-it('changing category never animates: tabs update the announcement and current page without Element.animate', async () => {
+it('category tabs switch without animation and announce the new category', async () => {
   const animate = vi.fn(() => ({ cancel: vi.fn() }))
   Object.defineProperty(Element.prototype, 'animate', { configurable: true, value: animate })
   const view = render(<CategoryTabs category="flights" locale="en" />)
