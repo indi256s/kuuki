@@ -1,6 +1,10 @@
 import { expect, it, vi, afterEach } from 'vitest'
 import { createApiDatabase } from './harness'
 import { createUserWithProfile } from '../api/_lib/users'
+import { createSession } from '../api/_lib/session'
+import { completeActivation } from '../api/_lib/activation'
+import { completePasswordRecovery } from '../api/_lib/passwordRecovery'
+import { onRequest as middleware } from '../_middleware'
 import { onRequestPost as linkRequest } from '../api/auth/link/request'
 
 const ORIGIN = 'https://kuuki.test'
@@ -24,9 +28,13 @@ async function post(db: D1Database, body: unknown, options: { extra?: Record<str
   return linkRequest({ request, env: env(db, options.extra), waitUntil: (task: Promise<unknown>) => { background.push(task) } } as never)
 }
 
-function mockMail(...recipients: string[]) {
-  return vi.spyOn(globalThis, 'fetch').mockImplementation(async () =>
-    new Response(JSON.stringify({ success: true, errors: [], result: { delivered: [], queued: recipients, permanent_bounces: [] } })))
+// Acknowledge only the recipient each send asked for, as the real provider does;
+// the sender rejects any receipt that names someone else and then deletes the token.
+function mockMail() {
+  return vi.spyOn(globalThis, 'fetch').mockImplementation(async (_url, init) => {
+    const { to } = JSON.parse(String(init?.body)) as { to: string[] }
+    return new Response(JSON.stringify({ success: true, errors: [], result: { delivered: [], queued: to, permanent_bounces: [] } }))
+  })
 }
 
 function sent(send: ReturnType<typeof mockMail>) {
@@ -45,7 +53,7 @@ it('returns the same generic result for every account state and mails only the m
   const { db, dispose } = await createApiDatabase()
   try {
     await seed(db)
-    const send = mockMail('pending@example.test', 'active@example.test')
+    const send = mockMail()
     const background: Promise<unknown>[] = []
     for (const email of ['missing@example.test', 'pending@example.test', 'active@example.test']) {
       const response = await post(db, { email }, { background })
@@ -63,6 +71,13 @@ it('returns the same generic result for every account state and mails only the m
     const reset = mails.find(mail => mail.to[0] === 'active@example.test')!
     expect(reset.subject).toBe('Reset your Kuuki password')
     expect(reset.text).toContain(`${ORIGIN}/reset-password#token=`)
+    // Delivery was acknowledged, so both tokens must survive and the emailed links must work.
+    expect((await db.prepare('SELECT COUNT(*) AS n FROM account_activation_tokens').first<{ n: number }>())?.n).toBe(1)
+    expect((await db.prepare('SELECT COUNT(*) AS n FROM auth_verifications').first<{ n: number }>())?.n).toBe(1)
+    const activationToken = new URL(/https:\/\/\S+/.exec(activation.text)![0]).hash.slice('#token='.length)
+    const resetToken = new URL(/https:\/\/\S+/.exec(reset.text)![0]).hash.slice('#token='.length)
+    expect(await completeActivation(db, activationToken, 'brand-new-password', SECRET)).toBe(true)
+    expect(await completePasswordRecovery(db, resetToken, 'another-new-password', SECRET)).toBe(true)
   } finally { await dispose() }
 })
 
@@ -70,7 +85,7 @@ it('rejects malformed emails and foreign origins without sending', async () => {
   const { db, dispose } = await createApiDatabase()
   try {
     await seed(db)
-    const send = mockMail('active@example.test')
+    const send = mockMail()
     for (const body of [{}, { email: 42 }, { email: 'not-an-email' }, { email: `${'a'.repeat(320)}@example.test` }]) {
       const response = await post(db, body)
       expect(response.status).toBe(400)
@@ -126,7 +141,7 @@ for (const [name, extra] of Object.entries(unconfigured)) {
     const { db, dispose } = await createApiDatabase()
     try {
       await seed(db)
-      const send = mockMail('pending@example.test', 'active@example.test')
+      const send = mockMail()
       const results: Array<{ status: number; body: unknown }> = []
       for (const email of ['missing@example.test', 'pending@example.test', 'active@example.test']) {
         const response = await post(db, { email }, { extra })
@@ -141,3 +156,29 @@ for (const [name, extra] of Object.entries(unconfigured)) {
     } finally { await dispose() }
   })
 }
+
+it('bypasses session handling in the middleware so an existing session cookie is never touched', async () => {
+  const { db, dispose } = await createApiDatabase()
+  try {
+    const member = await createUserWithProfile(db, { email: 'member@example.test', password: 'old-password' }, SECRET)
+    const legacyToken = await createSession(db, member.id)
+    mockMail()
+    for (const cookie of [`kuuki_session=${legacyToken}; kuuki_csrf=csrf-token`, 'kuuki_auth_session=stale-token']) {
+      const request = new Request(`${ORIGIN}/api/auth/link/request`, {
+        method: 'POST',
+        headers: { Origin: ORIGIN, Cookie: cookie, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: 'missing@example.test' }),
+      })
+      const context = {
+        request, env: { ...env(db), BETTER_AUTH_SECRET: 'synthetic-better-auth-test-secret-32-characters' },
+        data: { user: null }, waitUntil() {}, passThroughOnException() {}, params: {},
+        next: () => linkRequest({ request, env: env(db), waitUntil() {} } as never),
+      }
+      const response = await middleware(context as never)
+      expect(response.status).toBe(200)
+      expect(await response.json()).toEqual({ ok: true })
+      expect(response.headers.getSetCookie()).toEqual([])
+    }
+    expect((await db.prepare('SELECT COUNT(*) AS n FROM sessions').first<{ n: number }>())?.n).toBe(1)
+  } finally { await dispose() }
+})
