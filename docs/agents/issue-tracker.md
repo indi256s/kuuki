@@ -29,3 +29,10 @@ Used by `/wayfinder`. The **map** is a file with one **child** file per ticket.
 - **Frontier**: scan `.scratch/<effort>/issues/` for files that are open, unblocked, and unclaimed; first by number wins.
 - **Claim**: set `Status: claimed` and save before any work.
 - **Resolve**: append the answer under an `## Answer` heading, set `Status: resolved`, then append a context pointer (gist + link) to the map's Decisions-so-far in `map.md`.
+
+## Plans and handoffs
+
+Plans live in `docs/plans/`; specs live in `.scratch/<feature>/`.
+
+- Resuming a plan: read its adjacent `*-handoff.md` first and locate the owning checkout with `git worktree list` before creating progress files.
+- At a session handoff, update `docs/plans/<plan>-handoff.md` with the owning branch/checkout, scope, accepted progress, latest checks and next action or blocker; include it in the handoff commit. Detailed `.superpowers/sdd/<plan>/progress.md` ledgers stay local. Reconcile the note with current Git and review evidence before acting.
