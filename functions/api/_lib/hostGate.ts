@@ -16,9 +16,11 @@ export function gateActivationHost(request: Request, env: Env): Response | 'acti
       (url.pathname === '/activate' || url.pathname === '/activate.html' || url.pathname === '/activate.js')) return 'activation'
   if (request.method === 'POST' && url.pathname === '/api/auth/activation/complete') return 'activation'
   if (request.method === 'GET' || request.method === 'HEAD') {
+    // The sign-in return (`/?mode=signin`) resolves to the card's password-saved notice; `mode=signin` stays so a legacy
+    // rollback still opens sign-in. The empty fragment keeps the browser from carrying a token fragment across.
     const signIn = url.pathname === '/' && url.searchParams.get('mode') === 'signin'
     return new Response(null, { status: 302, headers: {
-      Location: new URL(signIn ? '/?mode=signin#' : '/#', env.PAGES_ORIGIN).toString(),
+      Location: new URL(signIn ? '/?mode=signin&notice=password-saved#' : '/#', env.PAGES_ORIGIN).toString(),
       'Cache-Control': 'no-store', 'Referrer-Policy': 'no-referrer',
     } })
   }

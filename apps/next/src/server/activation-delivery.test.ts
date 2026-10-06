@@ -22,7 +22,7 @@ afterEach(() => vi.unstubAllGlobals())
 
 it('serves activation aliases with configured main-origin links and unchanged isolation headers', async () => {
   vi.stubGlobal('HTMLRewriter', Rewriter)
-  const html = compileActivationAsset(readFileSync(resolve(process.cwd(), '../web/public/activate.html'), 'utf8'), readFileSync(resolve(process.cwd(), 'src/app/styles.css'), 'utf8')).replace('</body>', '<a id="unknown" data-primary-path="//untrusted.example" href="#">Untrusted path</a></body>')
+  const html = compileActivationAsset(readFileSync(resolve(process.cwd(), 'activation/activate.html'), 'utf8'), readFileSync(resolve(process.cwd(), 'src/app/styles.css'), 'utf8')).replace('</body>', '<a id="unknown" data-primary-path="//untrusted.example" href="#">Untrusted path</a></body>')
   const assets = vi.fn(async () => new Response(html))
   const env = { PAGES_ORIGIN: 'https://primary.example.test', ACTIVATION_ORIGIN: 'https://activation.example.test', ASSETS: { fetch: assets } } as unknown as Env & { ASSETS: Fetcher }
   for (const path of ['/activate', '/activate.html']) {
@@ -34,6 +34,7 @@ it('serves activation aliases with configured main-origin links and unchanged is
     const document = new DOMParser().parseFromString(await response.text(), 'text/html')
     expect(document.getElementById('signin')!.getAttribute('href')).toBe('https://primary.example.test/signin')
     expect(document.getElementById('resend')!.getAttribute('href')).toBe('https://primary.example.test/activation-request')
+    expect(document.getElementById('saved')!.getAttribute('href')).toBe('https://primary.example.test/?mode=signin&notice=password-saved')
     expect(document.getElementById('unknown')!.getAttribute('href')).toBe('#')
   }
   const denied = await gateRequest(new Request('https://activation.example.test/activation-request?_rsc=x', { headers: { RSC: '1' } }), env)!

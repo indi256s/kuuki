@@ -18,11 +18,11 @@ export async function activationAsset(request: Request, env: Env & { ASSETS: Fet
   let primaryOrigin: string
   try { primaryOrigin = configuredRecoveryOrigin(env) }
   catch { return new Response('Activation page unavailable', { status: 503, headers }) }
-  // The restricted activation host cannot serve sign-in or resend. Only these explicit static links leave it.
+  // The restricted activation host cannot serve sign-in, resend or the card. Only these explicit static links leave it.
   return new HTMLRewriter().on('a[data-primary-path]', {
     element(element) {
       const path = element.getAttribute('data-primary-path')
-      if (path === '/' || path === '/signin' || path === '/activation-request') {
+      if (path === '/' || path === '/signin' || path === '/activation-request' || path === '/?mode=signin&notice=password-saved') {
         element.setAttribute('href', new URL(path, primaryOrigin).href)
       }
     },

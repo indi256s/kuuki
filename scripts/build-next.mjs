@@ -49,11 +49,12 @@ for (const name of readdirSync(source)) {
   cpSync(join(source, name), join(target, name), { recursive: true })
 }
 cpSync(join(source, 'index.html'), join(target, 'index.html'))
+// Next owns its isolated activation page; the legacy app's own copy stays in apps/web/public for rollback.
 writeFileSync(join(assets, 'activate.html'), compileActivationAsset(
-  readFileSync(join(root, 'apps/web/public/activate.html'), 'utf8'),
+  readFileSync(join(root, 'apps/next/activation/activate.html'), 'utf8'),
   readFileSync(join(root, 'apps/next/src/app/styles.css'), 'utf8'),
 ))
-cpSync(join(root, 'apps/web/public/activate.js'), join(assets, 'activate.js'))
+cpSync(join(root, 'apps/next/activation/activate.js'), join(assets, 'activate.js'))
 cpSync(join(root, 'apps/web/transition/sw.js'), join(assets, 'sw.js'))
 cpSync(join(root, 'apps/web/transition/registerSW.js'), join(assets, 'registerSW.js'))
 

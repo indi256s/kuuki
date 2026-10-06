@@ -223,7 +223,13 @@ test('recovery keeps rate/network retries distinct and returns a successful rese
   await expectCard(page)
 })
 
-test('activation alias keeps isolation, erases the fragment and provides main-origin resend and success links', async ({ page, baseURL }) => {
+test('activation page keeps isolation, erases the fragment and sends a saved password to the main-origin notice', async ({ page, baseURL }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' })
+  // An expired or reused link: the page opens on Link expired with main-origin ways back.
+  await page.goto('/activate')
+  await expect(page.getByRole('heading', { level: 1, name: 'This link has expired' })).toBeVisible()
+  await expect(page.getByRole('link', { name: 'Send a new link' })).toHaveAttribute('href', `${baseURL}/activation-request`)
+  await expect(page.getByRole('link', { name: 'Back to sign in' })).toHaveAttribute('href', `${baseURL}/signin`)
   let attempt = 0
   await page.route('**/api/auth/activation/complete', route => {
     attempt++
@@ -232,18 +238,37 @@ test('activation alias keeps isolation, erases the fragment and provides main-or
   const response = await page.goto(`/activate.html#token=${'A'.repeat(43)}`)
   expect(response!.headers()['cache-control']).toBe('no-store')
   expect(response!.headers()['referrer-policy']).toBe('no-referrer')
+  expect(response!.headers()['content-security-policy']).toContain("default-src 'none'")
   await expect(page).toHaveURL(/\/activate$/)
-  await expect(page.getByRole('link', { name: 'Request a new activation link' })).toHaveAttribute('href', `${baseURL}/activation-request`)
-  await page.getByLabel('Password', { exact: true }).fill('personal-password')
-  await page.getByLabel('Confirm password', { exact: true }).fill('personal-password')
-  await page.getByRole('button', { name: 'Activate account' }).click()
+  // No app scripts: the page's own script is the only one.
+  await expect(page.locator('script')).toHaveCount(1)
+  await expect(page.getByRole('img', { name: 'Kuuki' })).toBeVisible()
+  await expect(page.getByRole('heading', { level: 1, name: 'Welcome back to Kuuki' })).toBeVisible()
+  await expect(page.locator('input[autocomplete="username"]')).toBeHidden()
+  const help = page.getByRole('button', { name: 'Help', exact: true })
+  await help.focus()
+  await help.press('Enter')
+  const dialog = page.getByRole('dialog', { name: 'About Kuuki' })
+  await expect(dialog).toBeVisible()
+  await expect(dialog.getByRole('heading', { name: 'About Kuuki' })).toBeFocused()
+  await expect(dialog).toContainText('Kuuki is a private flight journal.')
+  await page.keyboard.press('Tab')
+  await expect(dialog.getByRole('button', { name: 'Close', exact: true })).toBeFocused()
+  await page.keyboard.press('Escape')
+  await expect(dialog).toBeHidden()
+  await expect(help).toBeFocused()
+  const planes = page.locator('.planes:visible .plane')
+  expect(await planes.count()).toBe(page.viewportSize()!.width <= 700 ? 14 : 30)
+  expect(await planes.evaluateAll(elements => elements.every(element => {
+    const style = getComputedStyle(element)
+    return style.animationName === 'none' && style.transform === 'none'
+  }))).toBe(true)
+  await page.getByLabel('New password', { exact: true }).fill('personal-password')
+  await page.getByRole('button', { name: 'Save password' }).click()
   await expect(page.locator('main').getByRole('alert')).toContainText('Too many attempts.')
-  await page.getByRole('button', { name: 'Activate account' }).click()
-  await expect(page.getByRole('status')).toContainText('Your account is active.')
-  await page.getByLabel('Email for sign-in', { exact: false }).fill('person+test@example.test')
-  await expect(page.getByRole('link', { name: 'Back to sign in' })).toHaveAttribute('href', `${baseURL}/signin?email=person%2Btest%40example.test`)
-  await page.getByRole('link', { name: 'Back to sign in' }).click()
-  await expect(card(page).email).toHaveValue('person+test@example.test')
+  await page.getByRole('button', { name: 'Save password' }).click()
+  // No email, token or password travels in the URL.
+  await expect(page).toHaveURL(`${baseURL}/?mode=signin&notice=password-saved`)
 })
 
 /** Continue spends `signin:<ip>` and every `create` answer also spends `signup:<ip>`, so each journey gets its own IP. */
