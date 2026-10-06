@@ -209,6 +209,77 @@ private `/tmp/kuuki-release-20261006` working directory. A 09:32 UTC fresh sourc
 recheck found all 13 datasets semantically unchanged, but is not the final held
 cutover capture. Do not overwrite the 08:32 admitted source.
 
+## Production cutover — 6 October 2026 (current state)
+
+Next serves production on `https://kuuki.marchstudio.uk` from 13:03:45 UTC. The
+sections below this one are historical gate evidence.
+
+1. **Writer hold.** The Supabase source fence is applied with 17 statement-level
+   triggers, and the negative proof passed: 37 rejections, SQLSTATE `55000`.
+   - The 15 `public` triggers are `ENABLE ALWAYS`.
+   - The `auth.users` and `auth.identities` triggers are default-enabled (`O`).
+     `ENABLE ALWAYS` needs table ownership, which belongs to `supabase_auth_admin`.
+     Create and drop were proven reversible inside rolled-back transactions.
+   - **Keep the fence.**
+   - Pages production serves the held Vite build `4a779796`, with maintenance on all
+     API paths and the retirement `sw.js`. It still serves `kuuki.pages.dev` and
+     `kuuki.indi256.com`.
+   - Rollback target: Pages deployment `22e26a40`.
+2. **Held source capture.** `20261006T121819Z-cutover-held` is byte-identical to the
+   admitted source on all 20 tables; only the hold triggers differ. Conflicts re-read
+   under hold were unchanged.
+3. **Backup.** Time Travel bookmark
+   `00000032-00000000-000050fc-1bcf3d87ec1b7f3cdd614065e28eefb7`, plus the private
+   SQL export (sha256 `99b76a69…`). The hosted restore into `c4f88d19` matched exactly
+   on 37 schema objects, 18 tables and sequence rows, with 0 FK violations.
+4. **Dress rehearsal.** The full sequence below ran first on that restored copy and
+   passed.
+5. **Production data.**
+   - Ledger baselined with the `0001_init.sql` row (0001 was not rerun), then
+     0002–0007 applied.
+   - Semantic schema admission: only the `user_advanced_stats` column order differs,
+     plus comment/whitespace text.
+   - Targeted reset and replacement through a temporary fixed-operation Worker, which
+     has since been deleted.
+   - 64 flight IDs remapped (digest `ab708d94…`); the 1,623-statement import is
+     byte-identical to the dress rehearsal.
+   - All 28 users repaired to ready. Validator PASS; rerun found 0 missing or
+     divergent rows.
+   - The retained accounts' users, profiles and 69 flights match the pre-release
+     export exactly. Totals: 28 users and profiles, 412 flights.
+6. **Release identity.** Production runs the recovered frozen `teeDcJw9kXHTh4B5__Rpz`
+   build. The local build had been regenerated, so the Worker bundle was recovered
+   from `kuuki-next-preview` and the assets were reassembled. All 163 assets and the
+   bundle (sha256 `52284abe…`) match `.wrangler/next-artifact-manifest.json`, and the
+   `--no-bundle` dry run is byte-identical.
+   - Workers: `kuuki-next` (route `kuuki.marchstudio.uk/*`, no `workers.dev`) and
+     `kuuki-activation` (`kuuki-activation.indi256s.workers.dev`). Both use the new
+     `AUTH_SECRET` with observability on.
+   - No `GEMINI_API_KEY` and no import DO binding: the provider gate has not run.
+7. **Smoke.** After the release, the hosted smoke passed with two synthetic accounts,
+   which then deleted themselves. Totals were unchanged afterwards. The 60-minute
+   monitoring window ran from 13:03Z.
+
+**Rollback.** Delete the Workers route. The held Pages build serves maintenance
+immediately and writes stop. Restore D1 only under hold, with reconciliation of
+writes made after the release.
+
+**Not done, by decision.**
+- `PRODUCTION_RELEASE_SHA` and `MAINTENANCE_DEPLOY_READY` stay unset; CI would
+  redeploy Vite with the old pepper.
+- The production maintenance cron is not enabled.
+- The `kuuki-next-preview` Worker stays up, since it is the source of the teeDc
+  bundle.
+
+**Open follow-ups.**
+- Point `kuuki.indi256.com` (and optionally `kuuki.pages.dev`) at the canonical origin.
+- The two retained accounts reset their passwords through activation; no bulk mail
+  was sent.
+- Click-navigation latency.
+- D1 transient retry.
+- The import provider gate.
+- Delete the dress/restore DB `c4f88d19` after acceptance.
+
 ## Opus 5.5 thread: gates passed
 
 Hosted performance **passed and was owner-accepted** with a 60-minute post-cutover
