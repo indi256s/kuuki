@@ -151,12 +151,16 @@ it('returns 429 once the per-IP sign-in bucket is spent', async () => {
   } finally { await dispose() }
 }, 60_000)
 
+async function exhaustSignupBucket(db: D1Database) {
+  for (let i = 0; i < 10; i++) expect(await (await cont(db, { email: `new${i}@example.test`, password: 'password-123' })).json()).toEqual({ next: 'create' })
+}
+
 it('returns 429 after 10 create answers, while known-account calls do not spend the signup bucket', async () => {
   const { db, dispose } = await createApiDatabase()
   try {
     await seed(db)
     for (let i = 0; i < 5; i++) expect((await cont(db, { email: 'known@example.test', password: 'wrong-password' })).status).toBe(401)
-    for (let i = 0; i < 10; i++) expect(await (await cont(db, { email: `new${i}@example.test`, password: 'password-123' })).json()).toEqual({ next: 'create' })
+    await exhaustSignupBucket(db)
     const limited = await cont(db, { email: 'new10@example.test', password: 'password-123' })
     expect(limited.status).toBe(429)
     expect(await limited.json()).toMatchObject({ code: 'RATE_LIMITED' })
@@ -164,6 +168,69 @@ it('returns 429 after 10 create answers, while known-account calls do not spend 
     expect((await post(db, '/api/auth/signup', { email: 'new11@example.test', password: 'password-123' })).status).toBe(429)
   } finally { await dispose() }
 }, 60_000)
+
+it('answers an identical 429 for unknown and known emails once the signup bucket is spent', async () => {
+  const { db, dispose } = await createApiDatabase()
+  try {
+    await seed(db)
+    await db.batch([
+      db.prepare("INSERT INTO users(id,email,password_hash) VALUES('pending-user','pending@example.test','RESET_REQUIRED')"),
+      db.prepare("INSERT INTO profiles(id) VALUES('pending-user')"),
+    ])
+    await exhaustSignupBucket(db)
+    const seen = async (email: string) => { const r = await cont(db, { email, password: 'wrong-password' }); return [r.status, await r.json()] }
+    const unknown = await seen('nobody@example.test')
+    expect(unknown).toEqual([429, expect.objectContaining({ code: 'RATE_LIMITED' })])
+    expect(await seen('known@example.test')).toEqual(unknown)
+    expect(await seen('pending@example.test')).toEqual(unknown)
+    // The refusals are peeks: they do not spend the signup bucket further.
+    expect((await db.prepare("SELECT count FROM auth_rate_limits WHERE key = 'signup:203.0.113.1'").first<{ count: number }>())?.count).toBe(10)
+  } finally { await dispose() }
+}, 60_000)
+
+it('still signs a known account in with the right password once the signup bucket is spent', async () => {
+  const { db, dispose } = await createApiDatabase()
+  try {
+    await seed(db)
+    await exhaustSignupBucket(db)
+    const response = await cont(db, { email: 'known@example.test', password: 'password-123' })
+    expect(response.status).toBe(200)
+    expect(response.headers.getSetCookie().join('\n')).toContain('__Secure-kuuki_auth_session=')
+  } finally { await dispose() }
+}, 60_000)
+
+it('still verifies a password for unknown and known emails once the signup bucket is spent', async () => {
+  const { db, dispose } = await createApiDatabase()
+  try {
+    await seed(db)
+    await exhaustSignupBucket(db)
+    const derive = vi.spyOn(crypto.subtle, 'deriveBits')
+    expect((await cont(db, { email: 'known@example.test', password: 'wrong-password' })).status).toBe(429)
+    const knownCalls = derive.mock.calls.length
+    expect(knownCalls).toBeGreaterThan(0)
+    derive.mockClear()
+    expect((await cont(db, { email: 'nobody@example.test', password: 'wrong-password' })).status).toBe(429)
+    expect(derive.mock.calls.length).toBe(knownCalls)
+  } finally { await dispose() }
+}, 60_000)
+
+it('neither renews nor rewrites an existing session on a failed or create-answer Continue', async () => {
+  const { db, dispose } = await createApiDatabase()
+  try {
+    await seed(db)
+    const first = await cont(db, { email: 'known@example.test', password: 'password-123' })
+    const cookie = first.headers.getSetCookie().map(value => value.split(';')[0]).join('; ')
+    // Make the session renewal-eligible: last touched two days ago, expiring in 20 days.
+    const stale = new Date(Date.now() - 2 * 86_400_000).toISOString()
+    const expiry = new Date(Date.now() + 20 * 86_400_000).toISOString()
+    await db.prepare('UPDATE auth_sessions SET updatedAt = ?, expiresAt = ?').bind(stale, expiry).run()
+    for (const body of [{ email: 'known@example.test', password: 'wrong-password' }, { email: 'nobody@example.test', password: 'password-123' }]) {
+      const response = await cont(db, body, { cookie })
+      expect(response.headers.getSetCookie()).toEqual([])
+    }
+    expect(await db.prepare('SELECT expiresAt, updatedAt FROM auth_sessions').first()).toEqual({ expiresAt: expiry, updatedAt: stale })
+  } finally { await dispose() }
+}, 30_000)
 
 it('signs up without a confirm field and answers 409 for a taken email', async () => {
   const { db, dispose } = await createApiDatabase()

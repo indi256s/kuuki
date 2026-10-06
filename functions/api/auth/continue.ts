@@ -9,7 +9,7 @@ import { getUserByEmail, parsePassword } from '../_lib/users'
 import { dummyVerify } from '../_lib/crypto'
 import { signInWithBetterAuth } from '../_lib/betterAuth'
 import { getProfileRow, toOwnProfile } from '../_lib/profiles'
-import { rateLimit, clientIp } from '../_lib/ratelimit'
+import { rateLimit, rateLimitExhausted, clientIp } from '../_lib/ratelimit'
 
 interface ContinueBody {
   email?: string
@@ -28,23 +28,32 @@ export const onRequestPost: PagesFunction<Env> = (context) =>
     if (!z.email().safeParse(email).success) throw new HttpError(400, 'A valid email is required', 'INVALID_EMAIL')
     const password = parsePassword(body?.password, 'current')
 
+    // Every call verifies a password: Better Auth for a known account, dummyVerify for an unknown one.
     const user = await getUserByEmail(env.DB, email)
-    if (!user) {
-      // Account-existence leak, accepted (security finding #8, LOW): answering `create` here versus
-      // 401 for a known account tells a caller whether an email is registered. Sign-up already
+    const authResponse = user
+      ? await signInWithBetterAuth(env, request, user.email, password)
+      : await dummyVerify(password, env.AUTH_SECRET).then(() => null)
+
+    if (!user || !authResponse?.ok) {
+      // Account-existence leak, accepted (security finding #8, LOW): `create` for an unknown email
+      // versus 401 for a known one tells a caller whether an email is registered. Sign-up already
       // reveals the same thing through 409 EMAIL_TAKEN, and requiring email verification first was
       // rejected because it forces an app switch, so no new exposure is added. The leak is bounded
-      // by the per-IP buckets: every call spends `signin:` (above) and every `create` answer also
-      // spends `signup:` (below), which caps how fast unused emails can be probed.
-      await rateLimit(env.DB, `signup:${clientIp(request)}`, 10, 3600)
-      // Equalize timing so a missing account isn't distinguishable from a wrong password.
-      await dummyVerify(password, env.AUTH_SECRET)
-      return json({ next: 'create' })
+      // per IP: every call spends `signin:` (above), and every `create` answer also spends
+      // `signup:` (10 per hour). Once `signup:` is spent, every unverified outcome (unknown email,
+      // wrong password, RESET_REQUIRED) gets the same 429, so probing stops at the cap instead of
+      // continuing through the 401 path. A verified password still signs in. The peek consumes
+      // nothing, so only `create` answers spend the bucket.
+      if (await rateLimitExhausted(env.DB, `signup:${clientIp(request)}`, 10)) {
+        throw new HttpError(429, 'Too many requests — please try again later', 'RATE_LIMITED')
+      }
+      if (!user) {
+        await rateLimit(env.DB, `signup:${clientIp(request)}`, 10, 3600)
+        return json({ next: 'create' })
+      }
+      // Better Auth's own 401 body differs from ours (and RESET_REQUIRED accounts have no credential row).
+      throw new HttpError(401, 'Invalid email or password', 'INVALID_CREDENTIALS')
     }
-
-    const authResponse = await signInWithBetterAuth(env, request, user.email, password)
-    // Better Auth's own 401 body differs from ours (and RESET_REQUIRED accounts have no credential row).
-    if (!authResponse.ok) throw new HttpError(401, 'Invalid email or password', 'INVALID_CREDENTIALS')
 
     const authResult = await authResponse.json() as Record<string, unknown>
     delete authResult.token

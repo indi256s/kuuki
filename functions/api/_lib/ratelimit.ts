@@ -27,6 +27,17 @@ export async function rateLimit(
   }
 }
 
+/**
+ * Read-only check: true when the window for `key` is live and already holds `limit` hits, so the
+ * next `rateLimit` call would be refused. Consumes nothing.
+ */
+export async function rateLimitExhausted(db: D1Database, key: string, limit: number): Promise<boolean> {
+  const now = Math.floor(Date.now() / 1000)
+  const row = await db.prepare('SELECT count FROM auth_rate_limits WHERE key = ? AND expires_at > ?')
+    .bind(key, now).first<{ count: number }>()
+  return (row?.count ?? 0) >= limit
+}
+
 /** Derive a client key from the request (Cloudflare-provided client IP). */
 export function clientIp(request: Request): string {
   return request.headers.get('CF-Connecting-IP') ?? request.headers.get('X-Forwarded-For') ?? 'unknown'
