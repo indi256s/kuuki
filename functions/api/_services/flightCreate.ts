@@ -45,8 +45,8 @@ export const conversionDigest = (draftId: string, version: number) =>
  * `timezone` is request context (ADR 0001 §1): it picks the lifecycle state and deadlines but is outside
  * `FlightInput`, so it never enters the idempotency digest.
  *
- * With `guard`, the ledger insert is `INSERT … SELECT … WHERE EXISTS (the draft at that version, still in review)`,
- * so a stale or already converted draft writes nothing at all (ADR 0001 §6 step 4).
+ * With `guard`, the ledger insert requires the reviewed draft version and duplicate acknowledgement when needed,
+ * so stale, converted or unacknowledged repeated drafts write nothing at all (ADR 0001 §6 step 4).
  */
 export async function createFlightStatements(
   db: D1Database, userId: string, key: string, input: FlightInput, timezone: string | null = null,
@@ -82,9 +82,11 @@ export async function createFlightStatements(
     ? db.prepare(
       `INSERT INTO flight_idempotency (user_id, key, payload_digest, flight_id, created_at)
        SELECT ?, ?, ?, NULL, ?
-       WHERE EXISTS (SELECT 1 FROM import_drafts WHERE id = ? AND user_id = ? AND version = ? AND status = 'review')
+       WHERE EXISTS (SELECT 1 FROM import_drafts d WHERE id = ? AND user_id = ? AND version = ? AND status = 'review'
+         AND (d.duplicate_acknowledged = 1 OR NOT EXISTS
+           (SELECT 1 FROM flights f WHERE f.user_id = d.user_id AND f.date = ? AND f.origin = ? AND f.destination = ?)))
        ON CONFLICT (user_id, key) DO NOTHING`,
-    ).bind(userId, key, digest, nowIso(), guard.draftId, userId, guard.version)
+    ).bind(userId, key, digest, nowIso(), guard.draftId, userId, guard.version, date, origin, destination)
     : db.prepare(
       'INSERT INTO flight_idempotency (user_id, key, payload_digest, flight_id, created_at) VALUES (?, ?, ?, NULL, ?) ON CONFLICT (user_id, key) DO NOTHING',
     ).bind(userId, key, digest, new Date().toISOString())

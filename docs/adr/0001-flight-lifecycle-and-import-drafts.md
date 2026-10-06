@@ -389,6 +389,8 @@ The banner shows only when candidates exist and no marker does. The GET stays re
 
 **Shared services.**
 
+- **Extraction routing (7 October recognition audit).** Fully recognized ISO-date/`Undated`, pipe-delimited lists use the shared local parser, including passenger-section context and explicit booking exclusions. Unsupported prose falls back intact to Gemini; images and PDFs use Gemini. Ambiguous cities remain empty, missing catalog codes remain correctable, and uncertain status/time evidence waits for review. Partial routes are retained when an endpoint or a dated record survives; a bare date without any route is reported as rejected. These paths share normalization and draft projection in both the synchronous API and the DO.
+- **Review defaults.** A row is initially selected only with a real calendar date and explicit source year, both endpoints, a non-placeholder airline, overall confidence at least 0.7, no required-field confidence below 0.7, and no review-required flag. Provider output requires the explicit-year flag and required-field confidence object. Missing years are never inferred. Boarding time is never substituted for departure. Self-reported model confidence is a review aid, not independent proof of accuracy.
 - **`bulkCreate`.** `createFlightStatements` and result reconciliation move from `flights/bulk.ts:40-77` into `functions/api/_services/flightCreate.ts` as `bulkCreate(db, userId, items, {timezone, conversion?})`. `/flights/bulk` and draft confirmation both call it, with no internal HTTP round trip and no second validation path (`parseFlightBodies`, `_lib/flightValidation.ts:26-51`).
 - **Synchronous batch writer (controller ruling R3, T10 scope).** `POST /api/import/jobs` exists in T10 regardless of H5. It authenticates, CSRF-checks and rate-limits (`parse.ts:267`), and is idempotent on `submission_operation_id`.
   - **No job binding:** it runs the parse normalization extracted from `parse.ts` (`extractFlights`, the same prompt, schema, model and limits) synchronously in the request. It then writes the batch plus all drafts in one D1 batch through the shared `persistDraftRows` (status `review`, `partial` or `failed` with a structured `error_code`) and returns the batch snapshot.
@@ -406,7 +408,7 @@ The banner shows only when candidates exist and no marker does. The GET stays re
   2. **Ledger pre-check.** Read `flight_idempotency` by `(user_id, key)`. A ledger row with no conversion receipt for that key means the key was already used by a plain create, or by another client. The item returns `409 IDEMPOTENCY_CONFLICT` and nothing is written for it.
   3. Otherwise the batch must exist and be unexpired.
   4. **Per item, in one D1 batch, in this order.** Every statement after the first is gated on this batch's own previous write:
-     - the ledger insert `INSERT INTO flight_idempotency (user_id, key, payload_digest, flight_id, created_at) SELECT ?, ?, ?, NULL, ? WHERE EXISTS (SELECT 1 FROM import_drafts WHERE id = ? AND user_id = ? AND version = ? AND status = 'review') ON CONFLICT (user_id, key) DO NOTHING`;
+     - the ledger insert is guarded by the owned draft's reviewed version/status and by duplicate acknowledgement: unless acknowledged, no owned flight with the same date and route may exist inside this transaction. `ON CONFLICT (user_id, key) DO NOTHING` preserves key idempotency;
      - the flight insert `… WHERE changes() = 1`;
      - the ledger link `UPDATE flight_idempotency SET flight_id = last_insert_rowid() WHERE user_id = ? AND key = ? AND flight_id IS NULL AND changes() = 1`;
      - `UPDATE import_drafts SET status = 'converted', version = version + 1, converted_flight_id = last_insert_rowid() WHERE id = ? AND user_id = ? AND version = ? AND status = 'review' AND changes() = 1`. A ledger `UPDATE` does not change `last_insert_rowid()`, so it is still the new flight;
@@ -424,6 +426,7 @@ The banner shows only when candidates exist and no marker does. The GET stays re
      - **No receipt exists for the key**, classified on the re-read:
      - a receipt exists for the draft under another key → `409 DRAFT_ALREADY_CONVERTED` with that flight id;
      - a ledger row exists for the key → `409 IDEMPOTENCY_CONFLICT`;
+     - the draft is still at the reviewed version/status but a matching flight was saved by an earlier item or another request → `409 DUPLICATE_NOT_ACKNOWLEDGED`, unless acknowledged;
      - otherwise (stale `version` or draft dismissed) → `409 DRAFT_VERSION_CONFLICT`.
 
   Lifecycle per row follows the create rows of §2. Conversion receipts are kept **37 days from their own creation**: the 30-day draft life, plus the 6-day client retry, plus a 1-day margin. That outlives the 7-day `flight_idempotency` purge.
@@ -534,7 +537,7 @@ With the binding, jobs return `202 {batchId}` for new and replayed submissions. 
 synchronous parse behaviour remain. Malformed file-input refusals on the bound path carry `INVALID_FILE`; size refusals carry `PAYLOAD_TOO_LARGE` (413).
 Other existing gates and rate limits remain. The import Worker needs the provider key. Keep `GEMINI_API_KEY` on the
 API-serving workers too: the legacy `parse.ts` endpoint and the unbound synchronous fallback still use it; only the bound
-job dispatcher does not require it.
+job dispatcher does not require it. Fully supported structured text can now be parsed without the key; provider-backed text, image and PDF recognition still require it.
 
 Output is capped at **1 MiB**, JSON nesting at **64**, drafts at the ADR's **100**, replay at **128** notifications,
 subscribers at **8**, and each event queue at **16**. Oversized output becomes `OUTPUT_LIMIT` (`partial` if rows exist).

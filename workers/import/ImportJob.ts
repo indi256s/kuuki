@@ -7,6 +7,7 @@ import { interruptBatch, MAX_DRAFTS_PER_BATCH, ownedBatch, persistDraftRows, typ
 import { rowOf } from '../../functions/api/_services/importJob'
 import { MAX_EVENT_QUEUE, MAX_REPLAY_EVENTS, MAX_SUBSCRIBERS, type ImportEvent, type StartImportJob } from '../../functions/api/_services/importRuntime'
 import { FlightScanner } from './scanner'
+import { parseStructuredText } from '../../functions/api/import/_text'
 
 export interface ImportEnv { DB: D1Database; GEMINI_API_KEY: string; GEMINI_IMPORT_MODEL?: string }
 type Subscriber = { fence: BatchFence; controller: ReadableStreamDefaultController<Uint8Array>; sequence: number; unsubscribe: () => void }
@@ -109,7 +110,10 @@ export class ImportJob {
       const started = await persistDraftRows(this.env.DB, fence, [], null)
       if (!started) { finalized = true; return }
       this.notify(started)
-      const stream = await Promise.race([this.providerStream(source, controller.signal), aborted])
+      const local = source.type === 'text' ? parseStructuredText(source.content) : null
+      const stream = local
+        ? (async function* () { yield JSON.stringify({ flights: local.flights }) })()
+        : await Promise.race([this.providerStream(source, controller.signal), aborted])
       iterator = stream[Symbol.asyncIterator]()
       for (;;) {
         const chunk = await Promise.race([iterator.next(), aborted])
@@ -125,8 +129,9 @@ export class ImportJob {
         if (JSON.stringify(final[ordinal]) !== value) throw new HttpError(502, 'Extraction changed at completion', 'PROVIDER_INVALID_RESPONSE')
       }
       for (let ordinal = 0; ordinal < final.length; ordinal++) if (!await persist(final[ordinal], ordinal)) return
-      logValidation(valid, final.length, rejectedOrdinals.size)
-      const errorCode = !valid ? 'NO_FLIGHTS_FOUND' : truncated ? 'ROWS_TRUNCATED' : rejectedOrdinals.size ? 'ROWS_REJECTED' : null
+      const rejected = rejectedOrdinals.size + (local?.rejected?.length ?? 0)
+      logValidation(valid, final.length + (local?.rejected?.length ?? 0), rejected)
+      const errorCode = !valid ? 'NO_FLIGHTS_FOUND' : truncated ? 'ROWS_TRUNCATED' : rejected ? 'ROWS_REJECTED' : null
       const event = await persistDraftRows(this.env.DB, fence, [], { status: !valid ? 'failed' : errorCode ? 'partial' : 'review', errorCode })
       finalized = true
       if (event) this.notify(event, true)

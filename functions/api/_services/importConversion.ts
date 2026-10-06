@@ -213,6 +213,13 @@ export async function confirmBatch(
       const afterDraft = new Map(after.map(receipt => [receipt.draft_id, receipt]))
       const ledger = settled.length === 0 ? new Set<string>() : await ledgerKeys(db, userId, settled.map(index => items[index]))
       const flights = await flightsById(db, userId, after.map(receipt => receipt.flight_id))
+      // The transaction also checks duplicates: an earlier item or another confirmation may have just saved one.
+      const blocked = settled.filter(index => !afterKey.has(items[index].key) && !afterDraft.has(items[index].draftId) && !ledger.has(items[index].key))
+      const current = blocked.length === 0 ? [] : (await db.prepare(
+        'SELECT id, version, status, fields_json, duplicate_acknowledged FROM import_drafts WHERE user_id = ? AND id IN (SELECT value FROM json_each(?))',
+      ).bind(userId, JSON.stringify(blocked.map(index => items[index].draftId))).all<DraftRow>()).results
+      const currentById = new Map(current.map(draft => [draft.id, draft]))
+      const concurrentDuplicates = await duplicatesFor(db, userId, current)
       for (const index of settled) {
         const item = items[index]
         const receipt = afterKey.get(item.key)
@@ -228,6 +235,10 @@ export async function confirmBatch(
           }
         } else if (afterDraft.has(item.draftId)) results[index] = alreadyConverted(item, afterDraft.get(item.draftId)!.flight_id)
         else if (ledger.has(item.key)) results[index] = conflict(item)
+        else if (currentById.get(item.draftId)?.version === item.version && currentById.get(item.draftId)?.status === 'review'
+          && currentById.get(item.draftId)?.duplicate_acknowledged !== 1 && concurrentDuplicates.has(item.draftId)) {
+          results[index] = failure(item, 409, 'DUPLICATE_NOT_ACKNOWLEDGED', 'You already have a flight with this date and route', concurrentDuplicates.get(item.draftId))
+        }
         else results[index] = versionConflict(item)
       }
     }

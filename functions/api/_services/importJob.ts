@@ -6,7 +6,9 @@
 import { jobStub } from './importRuntime'
 import { HttpError } from '../_lib/http'
 import { extractFlights } from '../import/_extract'
+import { parseStructuredText } from '../import/_text'
 import type { ExtractedFlight, ParseRequest } from '../import/_shared'
+import { isCalendarDate } from '../../../packages/shared/src/flightValidation'
 import {
   MAX_DRAFTS_PER_BATCH, batchByOperation, createProcessingBatch, ownedBatch, draftFieldsOf, persistDraftRows, readBatchSnapshot, refusalFor,
   type BatchFence, type BatchSnapshot, type DraftRowInput, type FinalState,
@@ -32,8 +34,10 @@ export function rowOf(flight: ExtractedFlight): DraftRowInput {
     confidence: typeof flight.confidence === 'number' && Number.isFinite(flight.confidence) ? Math.min(1, Math.max(0, flight.confidence)) : null,
     fieldConfidence: Object.keys(scores).length ? scores : null,
     yearExplicit,
-    // Same default as the browser draft: an unknown year or a placeholder airline waits for the member's decision.
-    selected: yearExplicit && flight.airline_was_placeholder !== true,
+    // Uncertain required facts wait for the member's decision.
+    selected: yearExplicit && isCalendarDate(flight.date) && Boolean(flight.origin && flight.destination)
+      && flight.airline_was_placeholder !== true && flight.review_required !== true && flight.confidence >= 0.7
+      && !['date', 'origin', 'destination', 'airline_iata'].some(key => scores[key] !== undefined && scores[key] < 0.7),
   }
 }
 
@@ -78,7 +82,7 @@ export async function submitImport(
   }
   const replayed = await replay()
   if (replayed) return replayed
-  if (!env.IMPORT_JOBS && !env.GEMINI_API_KEY) throw new HttpError(500, 'Gemini API key not configured')
+  if (!env.IMPORT_JOBS && !env.GEMINI_API_KEY && !(source.type === 'text' && parseStructuredText(source.content))) throw new HttpError(500, 'Gemini API key not configured')
 
   const batchId = crypto.randomUUID()
   if (!await createProcessingBatch(db, { id: batchId, userId, sourceType: source.type, sourceLabel, operationId }, now)) {

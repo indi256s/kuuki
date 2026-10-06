@@ -16,6 +16,8 @@ import {
 import { decodedBase64Size } from './_body'
 import { DEFAULT_MODEL, PROVIDER_TIMEOUT_MS, ProviderResponseError, providerFailure, usageBucket } from './_provider'
 import { HttpError } from '../_lib/http'
+import { isCalendarDate } from '../../../packages/shared/src/flightValidation'
+import { parseStructuredText } from './_text'
 
 export const MAX_FILE_SIZE = IMPORT_MAX_FILE_BYTES
 export const MAX_TEXT_LENGTH = 100_000 // chars — cap the (previously uncapped) text branch; controls Gemini cost
@@ -68,6 +70,7 @@ export const FLIGHT_RESPONSE_SCHEMA = {
             type: Type.NUMBER,
             description: 'Overall confidence score 0-1',
           },
+          review_required: { type: Type.BOOLEAN, description: 'True for conflicting evidence or unresolved required facts; keep for manual review' },
           field_confidence: {
             type: Type.OBJECT,
             description: 'Per-field confidence scores',
@@ -85,9 +88,10 @@ export const FLIGHT_RESPONSE_SCHEMA = {
               departure_time: { type: Type.NUMBER, description: 'Confidence for departure time 0-1' },
               arrival_time: { type: Type.NUMBER, description: 'Confidence for arrival time 0-1' },
             },
+            required: ['date', 'date_year_explicit', 'origin', 'destination', 'airline_iata'],
           },
         },
-        required: ['date', 'origin', 'destination', 'airline_iata', 'departure_time', 'arrival_time', 'confidence'],
+        required: ['date', 'origin', 'destination', 'airline_iata', 'departure_time', 'arrival_time', 'confidence', 'field_confidence', 'review_required'],
       },
     },
     raw_text: {
@@ -177,23 +181,24 @@ export function normalizeFlights(parsedResponse: { flights: ExtractedFlight[]; r
       }
       if (typeof flight.origin !== 'string') {
         reasons.push('missing origin')
-      } else if (flight.origin.length !== 3) {
+      } else if (flight.origin && !/^[a-z]{3}$/i.test(flight.origin)) {
         reasons.push('origin is not 3 letters')
       }
       if (typeof flight.destination !== 'string') {
         reasons.push('missing destination')
-      } else if (flight.destination.length !== 3) {
+      } else if (flight.destination && !/^[a-z]{3}$/i.test(flight.destination)) {
         reasons.push('destination is not 3 letters')
       }
       // Apply ZZ placeholder for missing airline instead of rejecting
-      if (typeof flight.airline_iata !== 'string' || !flight.airline_iata) {
+      if (!flight.origin && !flight.destination && !(typeof flight.date === 'string' && isCalendarDate(flight.date))) reasons.push('missing route and date')
+      if (typeof flight.airline_iata !== 'string' || !flight.airline_iata || flight.airline_iata.toUpperCase() === 'ZZ') {
         flight.airline_iata = 'ZZ'
         flight.airline_was_placeholder = true
         flight.field_confidence = {
           ...flight.field_confidence,
           airline_iata: 0,  // Zero confidence for placeholder
         }
-      } else if (flight.airline_iata.length !== 2) {
+      } else if (!/^[a-z0-9]{2}$/i.test(flight.airline_iata)) {
         // Still reject invalid lengths
         reasons.push('airline is not 2 letters')
       }
@@ -215,7 +220,7 @@ export function normalizeFlights(parsedResponse: { flights: ExtractedFlight[]; r
         ? Math.min(1, Math.max(0, value)) : 0
       const fields = flight.field_confidence
       const normalizedFlight: ExtractedFlight = {
-        date: explicitYear && /^\d{4}-\d{2}-\d{2}$/.test(flight.date) ? flight.date : '',
+        date: explicitYear && typeof flight.date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(flight.date) ? flight.date : '',
         origin: flight.origin.toUpperCase(),
         destination: flight.destination.toUpperCase(),
         airline_iata: flight.airline_iata.toUpperCase(),
@@ -223,7 +228,8 @@ export function normalizeFlights(parsedResponse: { flights: ExtractedFlight[]; r
         aircraft_icao: typeof flight.aircraft_icao === 'string' ? flight.aircraft_icao.toUpperCase() : undefined,
         departure_time: typeof flight.departure_time === 'string' ? flight.departure_time || undefined : undefined,
         arrival_time: typeof flight.arrival_time === 'string' ? flight.arrival_time || undefined : undefined,
-        confidence: score(flight.confidence),
+        confidence: flight.review_required === true ? Math.min(0.5, score(flight.confidence)) : score(flight.confidence),
+        review_required: flight.review_required === true,
         airline_was_placeholder: flight.airline_was_placeholder === true,
         field_confidence: {
           date: score(fields?.date),
@@ -283,8 +289,14 @@ export function validateImportSource(body: Partial<ParseRequest> | null): ParseR
   return { type, content }
 }
 
-/** One structured provider call with the shared deadline. Throws the stable `providerFailure` HttpErrors. */
+/** Supported lists parse locally; other sources make one provider call with the shared deadline. */
 export async function extractFlights(env: Env, { type, content }: ParseRequest): Promise<ParseResponse> {
+  const local = type === 'text' ? parseStructuredText(content) : null
+  if (local) {
+    const result = normalizeFlights(local)
+    return { ...result, ...(local.rejected ? { rejected: [...(result.rejected ?? []), ...local.rejected] } : {}) }
+  }
+  if (!env.GEMINI_API_KEY) throw new HttpError(500, 'Gemini API key not configured')
   const ai = new GoogleGenAI({ apiKey: env.GEMINI_API_KEY })
   const contents = extractionContents({ type, content })
 

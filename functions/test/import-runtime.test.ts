@@ -80,6 +80,26 @@ async function readRow(reader: ReadableStreamDefaultReader<Uint8Array>) {
   }
 }
 
+it('streams structured text through the real job without a provider call and keeps partial drafts correctable', async () => {
+  const { batch, rows, calls } = await runtime()
+  const response = await dispatch('/api/import/jobs', 'POST', { type: 'text', submissionOperationId: 'local-list-0001', content: [
+    '2026-03-10 | JFK → LHR | BA178 | 19:00 → 07:00',
+    'Undated | TBS → IST | TK379 [partial booking evidence]',
+    '2025-12-03 (calendar entry) [calendar only]',
+  ].join('\n') })
+  expect(response.status).toBe(202)
+  const { batchId } = await response.json() as { batchId: string }
+  await expect.poll(async () => (await batch(batchId))?.status).toBe('partial')
+  expect(await batch(batchId)).toMatchObject({ error_code: 'ROWS_REJECTED', stage: 'review_ready' })
+  expect(calls()).toBe(0)
+  expect((await rows(batchId)).results.map(row => JSON.parse(row.fields_json))).toMatchObject([
+    { date: '2026-03-10', origin: 'JFK', destination: 'LHR', flight_number: '178' },
+    { date: '', origin: 'TBS', destination: 'IST', flight_number: '379' },
+  ])
+  const snapshot = await dispatch(`/api/import/batches/${batchId}`)
+  expect((await snapshot.json() as { drafts: Array<{ selected: boolean }> }).drafts.map(d => d.selected)).toEqual([true, false])
+})
+
 it('persists before notify, keeps provider I/O alive beyond 30 s without subscribers, then resumes', async () => {
   const { db, send, start, batch, rows, calls } = await runtime()
   const id = await start() // The accepting HTTP request has finished.

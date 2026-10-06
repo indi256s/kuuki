@@ -40,6 +40,36 @@ const item = (draft: { id: string; version: number }, key = itemKey()) => ({ dra
 const codes = (results: Array<Record<string, any>>) => results.map(result => result.status === 'error' ? result.code : result.status)
 
 describe('conversion', () => {
+  it('does not let an invalid repeated route block a valid flight in the same confirmation', async () => {
+    clock()
+    const created = await seed([providerFlight({ aircraft_icao: 'NOPE' }), providerFlight()])
+    const answer = await confirm(db, created.batch.id, { items: created.drafts.map(draft => item(draft)) })
+    expect(codes(answer.body.results)).toEqual(['UNKNOWN_AIRCRAFT', 'created'])
+    expect(await count(db, 'flights')).toBe(1)
+    expect((await draftRow(created.drafts[0].id))?.status).toBe('review')
+  })
+
+  it('requires acknowledgement when concurrent confirmations use different drafts for the same flight', async () => {
+    clock()
+    const created = await seed([providerFlight(), providerFlight()])
+    const answers = await Promise.all(created.drafts.map(draft => confirm(db, created.batch.id, { items: [item(draft)] })))
+    expect(answers.flatMap(answer => codes(answer.body.results)).sort()).toEqual(['DUPLICATE_NOT_ACKNOWLEDGED', 'created'])
+    expect(await count(db, 'flights')).toBe(1)
+    expect(await count(db, 'flight_idempotency')).toBe(1)
+  })
+
+  it('requires acknowledgement before converting repeated date-and-route rows together', async () => {
+    clock()
+    const created = await seed([providerFlight(), providerFlight()])
+    const answer = await confirm(db, created.batch.id, { items: created.drafts.map(draft => item(draft)) })
+    expect(codes(answer.body.results)).toEqual(['created', 'DUPLICATE_NOT_ACKNOWLEDGED'])
+    expect(await count(db, 'flights')).toBe(1)
+    expect((await draftRow(created.drafts[1].id))?.status).toBe('review')
+    const edited = await patchDraft(db, created.drafts[1].id, { version: 1, duplicateAcknowledged: true })
+    expect(codes((await confirm(db, created.batch.id, { items: [item(edited.body.draft)] })).body.results)).toEqual(['created'])
+    expect(await count(db, 'flights')).toBe(2)
+  })
+
   it('creates ai_import flights through the shared create path, flips the drafts and writes a receipt each', async () => {
     clock()
     const created = await seed([providerFlight(), providerFlight({ date: '2026-03-11', origin: 'LHR', destination: 'JFK' }), providerFlight({ date: '2026-12-01', origin: 'TBS', destination: 'IST' })])

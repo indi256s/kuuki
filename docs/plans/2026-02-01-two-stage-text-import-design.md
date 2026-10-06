@@ -1,5 +1,7 @@
 # Two-Stage Text Import Design
 
+Historical proposal. The current contract is [ADR 0001 §6](../adr/0001-flight-lifecycle-and-import-drafts.md#6-import-drafts-migration-0007_import_draftssql): supported structured text parses locally, other text uses one provider extraction, and absent years are never inferred. See the [recognition evaluation](../research/2026-10-07-import-recognition.md).
+
 ## Problem
 
 Text imports (copy-paste from various sources) often fail because the data is messy:

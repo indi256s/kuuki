@@ -33,6 +33,7 @@
     "./smoke-next-runtime.ts",
     "./generate-country-regions.ts",
     "./verify-import-provider.ts",
+    "./evaluate-import.ts",
     "../functions/env.d.ts"
   ]
 }

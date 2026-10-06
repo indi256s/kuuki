@@ -2,7 +2,7 @@ import { type ParseRequest, type ParseResponse } from './_shared'
 import { MAX_IMPORT_BODY_BYTES, extractFlights, validateImportSource } from './_extract'
 import { corsHeaders, corsPreflight } from '../_lib/cors'
 import { requireCsrf, requireUser, type RequestData } from '../_lib/auth'
-import { HttpError, readJson, runHandler } from '../_lib/http'
+import { readJson, runHandler } from '../_lib/http'
 import { rateLimit } from '../_lib/ratelimit'
 
 export const onRequestPost: PagesFunction<Env, string, RequestData> = context =>
@@ -22,10 +22,8 @@ export async function parseImportRequest(request: Request, env: Env, data: Reque
     requireCsrf(request)
     // Auth gate — burns paid Gemini quota, so reject anonymous callers
     const user = requireUser(data)
-    // Per-user rate limit — each parse makes paid Gemini calls (security finding: AI quota/cost abuse).
+    // Keep the shared per-user import limit, including requests that require paid recognition.
     await rateLimit(env.DB, `import-parse:${user.id}`, 20, 3600)
-
-    if (!env.GEMINI_API_KEY) throw new HttpError(500, 'Gemini API key not configured')
 
     const body = await readJson<Partial<ParseRequest>>(request, { maxBytes: MAX_IMPORT_BODY_BYTES })
     const result: ParseResponse = await extractFlights(env, validateImportSource(body))

@@ -61,6 +61,10 @@ describe('provider request', () => {
     expect(FLIGHT_RESPONSE_SCHEMA.propertyOrdering).toEqual(['flights', 'raw_text'])
     expect(FLIGHT_RESPONSE_SCHEMA.required).toEqual(['flights'])
     expect(FLIGHT_RESPONSE_SCHEMA.properties.raw_text.description).toMatch(/never a copy/i)
+    const flight = FLIGHT_RESPONSE_SCHEMA.properties.flights.items
+    expect(flight.required).toContain('field_confidence')
+    expect(flight.required).toContain('review_required')
+    expect(flight.properties.field_confidence.required).toContain('date_year_explicit')
   })
 
   it('keeps the default model and JSON mode with the response schema', async () => {
@@ -106,7 +110,7 @@ const cases: Array<{ name: string; line: string; row: Partial<ExtractedFlight>; 
     row: { date: '2024-03-20', origin: 'LAX', destination: 'JFK', airline_iata: 'DL', departure_time: '', arrival_time: '',
       confidence: 0.7, field_confidence: { ...scores(0.9), destination: 0.5, departure_time: 0, arrival_time: 0, date_year_explicit: true } },
     expected: { date: '2024-03-20', origin: 'LAX', destination: 'JFK', airline_iata: 'DL' },
-    selected: true,
+    selected: false,
   },
   {
     name: 'the legacy year-less example',
@@ -122,21 +126,21 @@ const cases: Array<{ name: string; line: string; row: Partial<ExtractedFlight>; 
 describe('pasted assistant lists through the real normalisation', () => {
   it.each(cases)('keeps $name', async ({ line, row, expected, selected }) => {
     provider.generateContent.mockResolvedValue({ text: JSON.stringify({ flights: [row], raw_text: 'One flight' }) })
-    const result = await extractFlights(env(), { type: 'text', content: line })
+    const result = await extractFlights(env(), { type: 'text', content: `Booking document:\n${line}` })
     expect(provider.generateContent.mock.lastCall?.[0].contents[1]).toContain(line)
     expect(result.flights).toHaveLength(1)
     const draft = rowOf(result.flights[0])
     expect(draft.fields).toEqual({ ...expected, enrichment_status: 'pending' })
     expect(draft.selected).toBe(selected)
-    expect(draft.yearExplicit).toBe(selected)
+    expect(draft.yearExplicit).toBe(row.field_confidence?.date_year_explicit === true)
     // A row with a confirmed year becomes valid flight input as-is; a year-less row waits for the member's date.
-    if (selected) expect(() => validateFlightInput(draftToFlightInput(draft.fields), 'create')).not.toThrow()
+    if (draft.fields.date) expect(() => validateFlightInput(draftToFlightInput(draft.fields), 'create')).not.toThrow()
     else expect(() => validateFlightInput(draftToFlightInput(draft.fields), 'create')).toThrow(/date/)
   })
 
   it('keeps every row of a mixed pasted list in source order', async () => {
     provider.generateContent.mockResolvedValue({ text: JSON.stringify({ flights: cases.map(entry => entry.row) }) })
-    const result = await extractFlights(env(), { type: 'text', content: cases.map(entry => entry.line).join('\n') })
+    const result = await extractFlights(env(), { type: 'text', content: `Booking document:\n${cases.map(entry => entry.line).join('\n')}` })
     expect(result.flights.map(flight => `${flight.date}|${flight.origin}|${flight.destination}`)).toEqual(
       cases.map(entry => `${entry.expected.date}|${entry.expected.origin}|${entry.expected.destination}`))
     expect(result.rejected).toBeUndefined()
