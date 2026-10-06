@@ -325,9 +325,13 @@ test.describe('Import done → Passport hero', () => {
     await importOne(page, baseURL)
     await page.getByRole('link', { name: 'Open Passport' }).click()
     await expect(page.getByRole('heading', { level: 1, name: 'Passport' })).toBeFocused()
-    await expect(page.getByRole('button', { name: /^United States,/ })).toBeAttached()
+    const stamp = page.getByRole('button', { name: /^United States,/ })
+    await expect(stamp).toBeAttached()
     await expect.poll(() => page.evaluate(() => document.documentElement.dataset.routeTransition ?? null)).toBeNull()
-    expect((await routeTransitions(page)).heroCopies).toBe(0)
+    // The hero ran on the loaded Passport (not the loading-screen fallback) and took the key off the stamp below the fold.
+    expect(await routeTransitions(page)).toMatchObject({ markers: ['hero'], heroCopies: 0 })
+    await expect(page.locator('.passport-cell[data-hero-enter-key="US"]')).toHaveCount(0)
+    expect(await stamp.evaluate(element => element.getBoundingClientRect().top)).toBeGreaterThan(844)
     await expect(page.locator('[inert]')).toHaveCount(0)
   })
 
