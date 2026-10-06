@@ -41,6 +41,32 @@
 .auth-field-error{display:flex;align-items:center;gap:6px;margin:0;padding-top:2px;font-size:13px;line-height:20px;color:var(--danger-text)}
 .auth-field-error svg{flex-shrink:0}
 .ui-button.auth-primary{width:100%;padding-block:9px;line-height:24px}
+/* Checking… and Creating… keep the accent fill at full opacity (board 1.3); `aria-busy` already blocks the press. */
+.ui-button.auth-primary[aria-busy=true]{background:var(--accent);border-color:var(--accent);color:var(--accent-foreground)}
+.ui-button.auth-secondary{width:100%;padding-block:9px;line-height:24px;background:transparent}
+.auth-button-row{display:inline-flex;align-items:center;justify-content:center;gap:8px}
+.auth-button-row svg{flex-shrink:0}
+.auth-spinner{animation:auth-spin .8s linear infinite}
+@keyframes auth-spin{to{rotate:360deg}}
+/* While checking, the fields keep their values and focus but read as paused (board 1.3). */
+.auth-form[aria-busy=true] .auth-input{border-color:var(--hairline);color:var(--text-muted)}
+.auth-field-hint{font-size:13px;line-height:20px;color:var(--text-muted)}
+.auth-form-message{display:flex;align-items:flex-start;gap:6px;margin:0;font-size:13px;line-height:20px;color:var(--text)}
+.auth-form-message[data-tone=error]{color:var(--danger-text)}
+.auth-form-message svg{flex-shrink:0;margin-block:2px}
+
+/* ---------- Steps ---------- */
+.auth-step{display:flex;flex-direction:column;gap:inherit}
+/* The create step swaps in place with a short slide; reduced motion swaps it without one (below). */
+.auth-step[data-step=create]{animation:auth-step-in var(--dur-base) var(--ease-out)}
+@keyframes auth-step-in{from{opacity:0;transform:translateX(16px)}}
+/* Create-step status line (board 1.2): the checked email and Change. It grows if a long email wraps. */
+.auth-status-line{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:44px;padding:2px 2px 2px 14px;border-radius:var(--radius-sm);background:var(--surface-inset)}
+.auth-status-line p{margin:0;min-width:0;font-size:13px;line-height:20px;color:var(--text-muted);overflow-wrap:anywhere}
+.auth-status-line strong{font-weight:500;color:var(--text)}
+/* 40px tall inside the 44px bar; the hit area reaches the bar's edges. */
+.auth-status-change{position:relative;flex-shrink:0;height:40px;padding:0 12px;border:0;border-radius:8px;background:transparent;color:var(--accent-text);font:500 13px/20px var(--font-sans);text-underline-offset:3px;cursor:pointer}
+.auth-status-change::after{content:'';position:absolute;inset:-2px 0}
 .auth-tagline{margin:0;padding-top:12px;font-size:13px;line-height:20px;letter-spacing:.01em;text-align:center;color:var(--text-muted)}
 
 /* Text links: 13/20 accent text with a 44px hit area from padding and an equal negative margin.
@@ -52,9 +78,9 @@
 
 @media(hover:hover) and (pointer:fine){
   .auth-corner-control:hover,.auth-card-reveal:hover{background:var(--surface-inset)}
-  .auth-text-link:hover{text-decoration:underline}
+  .auth-text-link:hover,.auth-status-change:hover{text-decoration:underline}
 }
-@media(prefers-reduced-motion:reduce){.auth-corner-control,.auth-card-reveal{transition:none}}
+@media(prefers-reduced-motion:reduce){.auth-corner-control,.auth-card-reveal{transition:none}.auth-step[data-step=create]{animation:none}}
 
 /* ---------- Mobile: brand band above a bottom sheet (boards 3.2 and 3.3) ---------- */
 @media(max-width:700px){
@@ -71,6 +97,6 @@
   .auth-input{height:48px;font-size:16px}
   .auth-field-control[data-reveal=true] .auth-input{padding-inline-end:47px}
   .auth-card-reveal{right:3px;width:44px;height:44px}
-  .ui-button.auth-primary{min-height:48px;padding-block:11px;font-size:16px}
+  .ui-button.auth-primary,.ui-button.auth-secondary{min-height:48px;padding-block:11px;font-size:16px}
   .auth-tagline{padding-top:0}
 }
