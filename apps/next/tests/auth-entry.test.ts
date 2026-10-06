@@ -1,4 +1,5 @@
 import { expect, test, type Locator, type Page } from '@playwright/test'
+import { fixtureHeaders } from './helpers'
 
 const TAGLINES = ['Snap a boarding pass. We’ll figure it out.', 'Halfway to the Moon, apparently.']
 
@@ -245,13 +246,229 @@ test('activation alias keeps isolation, erases the fragment and provides main-or
   await expect(card(page).email).toHaveValue('person+test@example.test')
 })
 
-test('Continue with known credentials lands in the journal, even when session bootstrap is unavailable', async ({ page }) => {
-  await page.setExtraHTTPHeaders({ 'CF-Connecting-IP': '203.0.113.77' })
+/** Continue spends `signin:<ip>` and every `create` answer also spends `signup:<ip>`, so each journey gets its own IP. */
+async function ownIp(page: Page, baseURL: string) {
+  await page.setExtraHTTPHeaders({ 'CF-Connecting-IP': fixtureHeaders(baseURL)['CF-Connecting-IP'] })
+}
+
+const newEmail = () => `new-${crypto.randomUUID()}@example.test`
+
+/** The create step (board 1.2), located by role and accessible name. */
+function createStep(page: Page) {
+  return {
+    heading: page.getByRole('heading', { level: 1, name: 'Start your journal', exact: true }),
+    subtitle: page.getByText('Your flights stay private until you share them.', { exact: true }),
+    status: page.getByRole('status'),
+    change: page.getByRole('button', { name: 'Change', exact: true }),
+    password: page.getByLabel('Create a password', { exact: true }),
+    hint: page.getByText('At least 8 characters', { exact: true }),
+    create: page.getByRole('button', { name: 'Create account', exact: true }),
+  }
+}
+
+async function continueAs(page: Page, email: string, password: string) {
+  const c = card(page)
+  await c.email.fill(email)
+  await c.password.fill(password)
+  await c.continue.click()
+}
+
+async function reachCreateStep(page: Page, email: string, password = 'personal-password-2026') {
+  await continueAs(page, email, password)
+  const s = createStep(page)
+  await expect(s.create).toBeFocused()
+  return s
+}
+
+test('Continue with known credentials lands in the journal, even when session bootstrap is unavailable', async ({ page, baseURL }) => {
+  await ownIp(page, baseURL!)
   await page.route('**/api/auth/me', route => route.fulfill({ status: 503, json: { error: 'Unavailable', code: 'UNAVAILABLE' } }))
   await page.goto('/')
   const c = card(page)
   await c.email.fill('a@example.test')
   await c.password.fill('rehearsal-password-2026')
+  const request = page.waitForRequest(request => request.url().endsWith('/api/auth/continue') && request.method() === 'POST')
   await c.password.press('Enter')
+  expect((await request).postDataJSON()).toEqual({ email: 'a@example.test', password: 'rehearsal-password-2026' })
   await expect(page).toHaveURL(/\/overview$/)
+})
+
+test('Checking… shows a spinner at full opacity and ignores a second press', async ({ page }) => {
+  let calls = 0, release!: () => void
+  const held = new Promise<void>(resolve => { release = resolve })
+  await page.route('**/api/auth/continue', async route => { calls++; await held; await route.fulfill({ status: 401, json: { error: 'Invalid email or password', code: 'INVALID_CREDENTIALS' } }) })
+  await page.goto('/')
+  const c = card(page)
+  const idle = await c.continue.evaluate(element => getComputedStyle(element).backgroundColor)
+  await continueAs(page, 'a@example.test', 'held-password')
+  const checking = page.getByRole('button', { name: 'Checking…', exact: true })
+  await expect(checking).toBeVisible()
+  await expect(checking).toHaveAttribute('aria-busy', 'true')
+  await expect(checking.locator('svg')).toBeVisible()
+  expect(await checking.evaluate(element => [getComputedStyle(element).opacity, getComputedStyle(element).backgroundColor])).toEqual(['1', idle])
+  await checking.click({ force: true })
+  await c.password.press('Enter')
+  release()
+  await expect(page.getByText('Email or password is incorrect.', { exact: true })).toBeVisible()
+  expect(calls).toBe(1)
+})
+
+test('a wrong password keeps the email, shows the error with an icon and offers a link to get back in', async ({ page, baseURL }) => {
+  await ownIp(page, baseURL!)
+  await page.goto('/')
+  const c = card(page)
+  // A migrated account with no usable password (RESET_REQUIRED) gets the same state as a wrong password.
+  for (const email of ['a@example.test', 'ranked@example.test']) {
+    await continueAs(page, email, 'wrong-password')
+    const error = page.getByRole('alert').filter({ hasText: 'Email or password is incorrect.' })
+    await expect(error).toBeVisible()
+    await expect(error.locator('svg')).toBeVisible()
+    await expect(c.email).toHaveValue(email)
+    await expect(c.password).toHaveAttribute('aria-invalid', 'true')
+    await expect(c.password).toBeFocused()
+    await expect(c.heading).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Email me a link to get back in', exact: true })).toBeVisible()
+  }
+  // Until the request state exists in the card, the action opens the recovery page.
+  await page.getByRole('button', { name: 'Email me a link to get back in', exact: true }).click()
+  await expect(page).toHaveURL(/\/forgot-password$/)
+})
+
+test('too many attempts and a lost connection each show their own message with an icon', async ({ page }) => {
+  let attempt = 0
+  await page.route('**/api/auth/continue', route => ++attempt === 1
+    ? route.fulfill({ status: 429, json: { error: 'Too many requests', code: 'RATE_LIMITED' } })
+    : route.abort('failed'))
+  await page.goto('/')
+  const c = card(page)
+  await continueAs(page, 'a@example.test', 'any-password')
+  const limited = page.getByRole('alert').filter({ hasText: 'Too many attempts. Please wait and try again.' })
+  await expect(limited).toBeVisible()
+  await expect(limited.locator('svg')).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Email me a link to get back in' })).toHaveCount(0)
+  await c.continue.click()
+  const failed = page.getByRole('alert').filter({ hasText: 'We could not complete this request. Please try again.' })
+  await expect(failed).toBeVisible()
+  await expect(failed.locator('svg')).toBeVisible()
+  await expect(c.email).toHaveValue('a@example.test')
+})
+
+test('an unknown email turns the card into the create step in place, and Create account reaches onboarding', async ({ page, baseURL }) => {
+  await ownIp(page, baseURL!)
+  await page.goto('/')
+  const email = newEmail()
+  const s = await reachCreateStep(page, email)
+  await expect(page).toHaveURL(/\/$/)
+  await expect(s.heading).toBeVisible()
+  await expect(s.subtitle).toBeVisible()
+  await expect(s.status).toHaveText(`No Kuuki journal uses ${email} yet.`)
+  await expect(s.change).toBeVisible()
+  await expect(s.password).toHaveValue('personal-password-2026')
+  await expect(s.password).toHaveAttribute('autocomplete', 'new-password')
+  await expect(s.hint).toBeVisible()
+  await expect(card(page).email).toHaveValue(email)
+  await expect(card(page).email).toHaveAttribute('autocomplete', 'username')
+  await expect(card(page).cantSignIn).toHaveCount(0)
+  await expect(card(page).tagline).toBeVisible()
+  await expect(page.getByLabel('Confirm password')).toHaveCount(0)
+  // Enter on the focused Create account creates the journal.
+  await page.keyboard.press('Enter')
+  await page.waitForURL(url => url.pathname === '/onboarding')
+})
+
+test('the create step slides in, but swaps in place without a slide under reduced motion', async ({ page }) => {
+  await page.route('**/api/auth/continue', route => route.fulfill({ json: { next: 'create' } }))
+  await page.goto('/')
+  // Walks up from the heading: is any part of the swapped content animating its entrance?
+  const animated = () => createStep(page).heading.evaluate(element => {
+    for (let node: Element | null = element; node && node.tagName !== 'MAIN'; node = node.parentElement) if (getComputedStyle(node).animationName !== 'none') return true
+    return false
+  })
+  await reachCreateStep(page, 'motion@example.test')
+  expect(await animated()).toBe(true)
+  await page.emulateMedia({ reducedMotion: 'reduce' })
+  await page.goto('/')
+  await reachCreateStep(page, 'still@example.test')
+  expect(await animated()).toBe(false)
+  expect(await page.locator('main').evaluate(element => element.getAnimations({ subtree: true }).length)).toBe(0)
+})
+
+test('Change returns to the form with the email selected, and editing the email leaves the create step', async ({ page, baseURL }) => {
+  await ownIp(page, baseURL!)
+  await page.goto('/')
+  const c = card(page)
+  const email = newEmail()
+  let s = await reachCreateStep(page, email)
+  await s.change.click()
+  await expect(c.heading).toBeVisible()
+  await expect(c.continue).toBeVisible()
+  await expect(c.email).toBeFocused()
+  expect(await c.email.evaluate((input: HTMLInputElement) => [input.selectionStart, input.selectionEnd])).toEqual([0, email.length])
+  await expect(c.password).toHaveValue('personal-password-2026')
+  await expect(c.password).toHaveAttribute('autocomplete', 'current-password')
+  await expect(page.getByRole('status')).toHaveCount(0)
+  // The create step is only valid for the email it checked: typing in the email field returns to the form.
+  s = await reachCreateStep(page, email)
+  await card(page).email.click()
+  await page.keyboard.press('End')
+  await page.keyboard.type('x')
+  await expect(c.heading).toBeVisible()
+  await expect(s.create).toHaveCount(0)
+  await expect(c.email).toBeFocused()
+  await expect(c.email).toHaveValue(`${email}x`)
+})
+
+test('a short password on the create step shows an inline error and creates nothing', async ({ page, baseURL }) => {
+  await ownIp(page, baseURL!)
+  let signups = 0
+  await page.route('**/api/auth/signup', route => { signups++; return route.continue() })
+  await page.goto('/')
+  const s = await reachCreateStep(page, newEmail(), 'short')
+  await s.create.click()
+  const error = page.getByRole('alert').filter({ hasText: 'Use at least 8 characters.' })
+  await expect(error).toBeVisible()
+  await expect(error.locator('svg')).toBeVisible()
+  await expect(s.password).toHaveAttribute('aria-invalid', 'true')
+  await expect(s.password).toBeFocused()
+  await expect(s.heading).toBeVisible()
+  expect(signups).toBe(0)
+})
+
+test('an email taken a moment ago returns to the form, and an account created without a session asks to sign in', async ({ page }) => {
+  await page.route('**/api/auth/continue', route => route.fulfill({ json: { next: 'create' } }))
+  let attempt = 0
+  await page.route('**/api/auth/signup', route => ++attempt === 1
+    ? route.fulfill({ status: 409, json: { error: 'An account with this email already exists', code: 'EMAIL_TAKEN' } })
+    : route.fulfill({ status: 503, json: { error: 'Your account was created. Please sign in to continue.', code: 'SIGN_IN_REQUIRED' } }))
+  await page.goto('/')
+  const c = card(page)
+  let s = await reachCreateStep(page, 'race@example.test')
+  await s.create.click()
+  await expect(page.getByRole('alert').filter({ hasText: 'This email just got a journal. Continue to sign in.' })).toBeVisible()
+  await expect(c.heading).toBeFocused()
+  await expect(c.email).toHaveValue('race@example.test')
+  await expect(c.continue).toBeVisible()
+  await c.continue.click()
+  s = createStep(page)
+  await expect(s.create).toBeFocused()
+  await s.create.click()
+  await expect(page.getByRole('status').filter({ hasText: 'Your account was created. Continue to sign in.' })).toBeVisible()
+  await expect(c.heading).toBeFocused()
+  await expect(c.continue).toBeVisible()
+  await expect(c.password).toHaveValue('personal-password-2026')
+})
+
+test('the create step follows the Russian locale', async ({ page, context, baseURL }) => {
+  await context.addCookies([{ name: 'kuuki_locale', value: 'ru', url: baseURL! }])
+  await page.route('**/api/auth/continue', route => route.fulfill({ json: { next: 'create' } }))
+  await page.goto('/')
+  await page.getByRole('textbox', { name: 'Почта', exact: true }).fill('ru@example.test')
+  await page.getByLabel('Пароль', { exact: true }).fill('personal-password-2026')
+  await page.getByRole('button', { name: 'Продолжить', exact: true }).click()
+  await expect(page.getByRole('button', { name: 'Создать аккаунт', exact: true })).toBeFocused()
+  await expect(page.getByRole('heading', { level: 1, name: 'Начните свой журнал' })).toBeVisible()
+  await expect(page.getByRole('status')).toHaveText('Журнала Kuuki для ru@example.test пока нет.')
+  await expect(page.getByLabel('Придумайте пароль', { exact: true })).toHaveValue('personal-password-2026')
+  await expect(page.getByText('Не менее 8 символов', { exact: true })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Изменить', exact: true })).toBeVisible()
 })
