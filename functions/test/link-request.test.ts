@@ -161,7 +161,11 @@ it('bypasses session handling in the middleware so an existing session cookie is
   const { db, dispose } = await createApiDatabase()
   try {
     const member = await createUserWithProfile(db, { email: 'member@example.test', password: 'old-password' }, SECRET)
-    const legacyToken = await createSession(db, member.id)
+    const { token: legacyToken } = await createSession(db, member.id)
+    // Older than the 24h slide window, so the middleware would renew it if it ran.
+    await db.prepare('UPDATE sessions SET last_seen_at = ? WHERE user_id = ?').bind(new Date(Date.now() - 48 * 3600_000).toISOString(), member.id).run()
+    const sessionRow = () => db.prepare('SELECT last_seen_at, expires_at FROM sessions WHERE user_id = ?').bind(member.id).first<{ last_seen_at: string; expires_at: string }>()
+    const before = await sessionRow()
     mockMail()
     for (const cookie of [`kuuki_session=${legacyToken}; kuuki_csrf=csrf-token`, 'kuuki_auth_session=stale-token']) {
       const request = new Request(`${ORIGIN}/api/auth/link/request`, {
@@ -179,6 +183,6 @@ it('bypasses session handling in the middleware so an existing session cookie is
       expect(await response.json()).toEqual({ ok: true })
       expect(response.headers.getSetCookie()).toEqual([])
     }
-    expect((await db.prepare('SELECT COUNT(*) AS n FROM sessions').first<{ n: number }>())?.n).toBe(1)
+    expect(await sessionRow()).toEqual(before)
   } finally { await dispose() }
 })
