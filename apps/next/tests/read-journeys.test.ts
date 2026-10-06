@@ -39,6 +39,50 @@ test('Journal filters survive refresh and back without a duplicate mount list re
   await expect(page.getByRole('button', { name: 'Save flight' })).toBeVisible()
 })
 
+test('Journal rows keep their desktop alignment and mobile card order', async ({ page, baseURL }) => {
+  await signIn(page, baseURL!)
+  await page.setViewportSize({ width: 1440, height: 900 })
+  await page.goto('/journal')
+  const entry = page.locator('.journal-entry').first()
+  await expect(entry).toBeVisible()
+  const desktop = await entry.evaluate(node => {
+    const row = node.querySelector<HTMLElement>('.flight-row')!
+    const overlay = row.querySelector<HTMLElement>('.flight-row-open')!
+    const cells = [...row.children].filter(child => child !== overlay && getComputedStyle(child).display !== 'none')
+    const rowBox = row.getBoundingClientRect()
+    const overlayBox = overlay.getBoundingClientRect()
+    return {
+      align: getComputedStyle(row).alignItems,
+      overlayPosition: getComputedStyle(overlay).position,
+      overlayCoversRow: Math.abs(rowBox.x - overlayBox.x) <= 1 && Math.abs(rowBox.y - overlayBox.y) <= 1 && Math.abs(rowBox.width - overlayBox.width) <= 1 && Math.abs(rowBox.height - overlayBox.height) <= 1,
+      cellCount: cells.length,
+      columnsAreOrdered: cells.every((cell, index) => index === 0 || cell.getBoundingClientRect().left > cells[index - 1].getBoundingClientRect().left),
+    }
+  })
+  expect(desktop).toEqual({ align: 'baseline', overlayPosition: 'absolute', overlayCoversRow: true, cellCount: 6, columnsAreOrdered: true })
+
+  await page.setViewportSize({ width: 390, height: 844 })
+  const mobile = await entry.evaluate(node => {
+    const row = node.querySelector<HTMLElement>('.flight-row')!
+    const box = (name: string) => row.querySelector<HTMLElement>(`.${name}`)!.getBoundingClientRect()
+    const route = box('flight-row-route')
+    const date = box('flight-row-date')
+    const distance = box('flight-row-distance')
+    const number = box('flight-row-number')
+    const checkbox = node.querySelector<HTMLInputElement>('input[type=checkbox]')!
+    const outline = getComputedStyle(checkbox)
+    const search = document.querySelector<HTMLInputElement>('.journal-search > input')!
+    return {
+      firstLine: route.left < date.left && Math.abs(route.top - date.top) < 8,
+      secondLine: distance.left < number.left && distance.top > route.top && Math.abs(distance.top - number.top) < 8,
+      outlineWidth: outline.outlineWidth,
+      outlineStyle: outline.outlineStyle,
+      outlineMatchesControl: outline.outlineColor === getComputedStyle(search).borderTopColor,
+    }
+  })
+  expect(mobile).toEqual({ firstLine: true, secondLine: true, outlineWidth: '1px', outlineStyle: 'solid', outlineMatchesControl: true })
+})
+
 test('the period stays with the map while ordinary read navigation stays lightweight', async ({ page, baseURL }) => {
   await signIn(page, baseURL!)
   const heavy: string[] = []

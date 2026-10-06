@@ -20,6 +20,32 @@ async function fillFlight(page: Page) {
   }
 }
 
+test('calendar stays anchored to the date field with tappable days at 320px', async ({ page, baseURL }) => {
+  await freshAccount(page, baseURL!)
+  await page.setViewportSize({ width: 320, height: 700 })
+  await page.goto('/add')
+  await page.getByRole('button', { name: 'Calendar' }).click()
+  const geometry = await page.locator('.flight-calendar').evaluate(calendar => {
+    const popover = calendar.querySelector<HTMLElement>('.flight-calendar-popover')!
+    const days = [...popover.querySelectorAll<HTMLButtonElement>('.flight-calendar-grid button')]
+    const box = popover.getBoundingClientRect()
+    const calendarBox = calendar.getBoundingClientRect()
+    return {
+      top: box.top,
+      calendarBottom: calendarBox.bottom,
+      left: box.left,
+      right: box.right,
+      minDayWidth: Math.min(...days.map(day => day.getBoundingClientRect().width)),
+      minDayHeight: Math.min(...days.map(day => day.getBoundingClientRect().height)),
+    }
+  })
+  expect(Math.abs(geometry.top - geometry.calendarBottom)).toBeLessThanOrEqual(1)
+  expect(geometry.left).toBeGreaterThanOrEqual(0)
+  expect(geometry.right).toBeLessThanOrEqual(320)
+  expect(geometry.minDayWidth).toBeGreaterThanOrEqual(44)
+  expect(geometry.minDayHeight).toBeGreaterThanOrEqual(44)
+})
+
 test('manual capture retries the original uncertain save, then edits and deletes the flight', async ({ page, baseURL }) => {
   await freshAccount(page, baseURL!)
   await page.goto('/add')
@@ -59,6 +85,7 @@ test('manual capture retries the original uncertain save, then edits and deletes
   expect((await edited.json() as { flight_number: string }).flight_number).toBe('AA123')
   await page.goto(`/journal/${flights[0].id}/edit`)
   await page.getByRole('button', { name: 'Delete flight', exact: true }).click()
+  await expect(page.getByRole('dialog', { name: /^Delete .+ → .+\?$/ }).getByRole('button', { name: 'Cancel', exact: true })).toBeFocused()
   await page.keyboard.press('Escape')
   await expect(page.getByRole('button', { name: 'Delete flight', exact: true })).toBeFocused()
   await page.getByRole('button', { name: 'Delete flight', exact: true }).click()

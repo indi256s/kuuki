@@ -1,10 +1,10 @@
 # Kuuki tech stack
 
-> Legacy: describes the Vite app (apps/web). For current work on apps/next, read [DESIGN.md](../DESIGN.md) for UI and [GLOSSARY.md](../GLOSSARY.md) for domain terms.
+> Historical: describes the removed Vite app. For current work on apps/next, read [DESIGN.md](../DESIGN.md) for UI, [GLOSSARY.md](../GLOSSARY.md) for domain terms and [README.md](../README.md) for commands.
 
 Manifests specify compatible ranges; `pnpm-lock.yaml` records the installed versions. Use the lockfile rather than treating older documentation as a version pin.
 
-| Layer | Current implementation |
+| Layer | Former Vite implementation |
 | --- | --- |
 | Web | React 19, TypeScript, Vite, React Router |
 | UI | Tailwind CSS 4, shadcn/ui and Radix |
@@ -43,6 +43,6 @@ D1 and import KV bindings belong to each environment. Preview and production mus
 
 ## Commands
 
-Use the [README](../README.md) for setup and check commands. `pnpm build:maintenance` is a local dry run, and `pnpm dev:fixture` is an isolated synthetic app. Source migration and validation require explicit targets; do not use legacy reset or global replacement scripts on a populated database.
+Use the [README](../README.md) for current setup and check commands. Source migration and validation require explicit targets; do not use historical reset or global replacement scripts on a populated database.
 
 GitHub Actions verifies the same SHA used for deployment. External preview isolation, required branch checks, Pages Git deployment shutdown, schema/evidence readiness and maintenance activation are operational gates, not facts proved by the presence of workflow YAML.

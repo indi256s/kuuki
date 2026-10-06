@@ -3,8 +3,6 @@ import { buildFlightWhere, orderByClause, type FlightFilters, type SortConfig } 
 import { FLIGHT_COLUMNS, toOwnFlight, type FlightRow } from '../_lib/flights'
 import { isDerivedReady } from './derivedState'
 
-export { FLIGHT_COLUMNS }
-
 export type JournalData = {
   flights: ReturnType<typeof toOwnFlight>[]
   total: number

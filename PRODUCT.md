@@ -36,7 +36,7 @@ Usage is after the trip, on desktop or phone. Imported and detected flights wait
 - Flights move through a lifecycle and become passport stamps only once confirmed. The one documented exception is that an awaiting flight auto-confirms seven days after it becomes date-eligible (DESIGN.md D11). Terms are in [GLOSSARY.md](GLOSSARY.md) and [ADR 0001](docs/adr/0001-flight-lifecycle-and-import-drafts.md).
 - Public profiles are opt-in. Turning the profile off also removes the user from leaderboards.
 - EN and RU are both supported throughout, with real Russian plural forms. Russian copy addresses the user as «вы».
-- Runs on Cloudflare. The current app is `apps/next`; the Vite app in `apps/web` is kept only as a rollback surface (see [AGENTS.md](AGENTS.md)).
+- Runs on Cloudflare. The app is `apps/next` (see [AGENTS.md](AGENTS.md)).
 
 ## Brand Personality
 

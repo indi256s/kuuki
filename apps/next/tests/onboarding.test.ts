@@ -42,6 +42,27 @@ test('manual future save reveals a booked Ticket, then reload stays honest witho
   await expect(page.locator('.onboarding-reveal .stamp')).toHaveCount(0)
 })
 
+test('new country stamps stagger on reveal and start together with reduced motion', async ({ page, baseURL }) => {
+  await signup(page, baseURL!, true)
+  await page.goto('/onboarding?step=capture')
+  await page.getByRole('button', { name: 'Enter manually' }).click()
+  const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10)
+  await page.getByLabel('Date', { exact: true }).fill(yesterday)
+  for (const [label, code] of [['From', 'TBS'], ['To', 'IST']]) {
+    await page.getByRole('combobox', { name: label, exact: true }).click()
+    const picker = page.getByRole('dialog', { name: label, exact: true })
+    await picker.getByRole('combobox', { name: label, exact: true }).fill(code)
+    await picker.getByRole('option', { name: new RegExp(`^${code} `) }).click()
+  }
+  await page.getByRole('button', { name: 'Save flight', exact: true }).click()
+  await page.getByRole('button', { name: 'See your result', exact: true }).click()
+  const faces = page.locator('.onboarding-stamps .stamp[data-press=play] .stamp-face')
+  await expect(faces).toHaveCount(2)
+  expect(await faces.evaluateAll(nodes => nodes.map(node => getComputedStyle(node).animationDelay))).toEqual(['0s', '0.08s'])
+  await page.emulateMedia({ reducedMotion: 'reduce' })
+  expect(await faces.evaluateAll(nodes => nodes.map(node => getComputedStyle(node).animationDelay))).toEqual(['0s', '0s'])
+})
+
 test('durable import resumes inside onboarding after refresh without another submission', async ({ page, baseURL }) => {
   await signup(page, baseURL!, true)
   const id = '11111111-1111-4111-8111-111111111111'

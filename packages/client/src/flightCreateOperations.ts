@@ -89,14 +89,6 @@ export function pendingFlightCreateOperation(userId: string, operationId: string
   }
 }
 
-/** Recover only this user's import receipts after reload or navigation. */
-export function pendingImportFlightOperations(userId: string): Array<{ operationId: string; key: string; body: object; expired: boolean }> {
-  // Import operation IDs are a run UUID followed by a row number.
-  return pendingFlightCreateOperations(userId)
-    .filter(receipt => /^[0-9a-f-]{36}:\d+$/.test(receipt.operationId))
-    .sort((a, b) => a.operationId.localeCompare(b.operationId))
-}
-
 /**
  * Every stored create receipt of this user, whatever wrote it and whatever its operation id looks like (a plain UUID,
  * a run and row number, or any prefixed id), so an unresolved save can be found again after a reload. A damaged receipt

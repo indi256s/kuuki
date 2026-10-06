@@ -1,7 +1,6 @@
 // Shared flight list filtering / sorting / pagination, used by GET /api/flights (list) and
 // GET /api/flights/ids so the two stay in lockstep. SECURITY: sort field + direction are
-// allowlisted because the column name is interpolated into SQL; every value is bound. Mirrors the
-// frontend FlightFilters in apps/web/src/lib/flights.ts (Phase 6 maps those onto these query params).
+// allowlisted because the column name is interpolated into SQL; every value is bound.
 
 import { resolveAirportCodes } from '../../../packages/shared/src/airportSearch'
 import airportCatalog from '../../../packages/data/src/airports.json'

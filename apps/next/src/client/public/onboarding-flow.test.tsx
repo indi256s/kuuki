@@ -1,5 +1,4 @@
 // @vitest-environment jsdom
-import { readFileSync } from 'node:fs'
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { beforeEach, expect, it, vi } from 'vitest'
 import { OnboardingFlow } from './onboarding-flow'
@@ -123,12 +122,6 @@ it('uses complete mixed canonical DTOs directly without inventing an all-upcomin
   expect(screen.getAllByRole('article')).toHaveLength(2)
   expect(getFlight).not.toHaveBeenCalled()
 })
-it('applies consumer stagger to the animated face and removes delays for reduced motion', () => {
-  const css = readFileSync('src/client/public/onboarding.css', 'utf8')
-  expect(css).toMatch(/\.onboarding-stamps \.stamp\[data-press=play\] \.stamp-face\s*\{\s*animation-delay: var\(--onboarding-stamp-delay, 0ms\)/)
-  expect(css).toMatch(/@media \(prefers-reduced-motion: reduce\)\s*\{\s*\.onboarding-stamps \.stamp\[data-press=play\] \.stamp-face\s*\{\s*animation-delay: 0ms/)
-})
-
 it('keeps late previous-batch reads out of the new account receipt', async () => {
   let finish!: (value: Awaited<ReturnType<typeof getFlight>>) => void
   vi.mocked(getFlight).mockImplementationOnce(() => new Promise(resolve => { finish = resolve }))

@@ -15,6 +15,8 @@ Production is two Workers built from one Next build, both configured in `apps/ne
 
 CI only verifies; every deploy is this procedure, run by hand. Run commands from the workspace root; `wrangler` below means `pnpm --filter @kuuki/next exec wrangler`, which runs inside `apps/next` and picks up that config.
 
+The source tree no longer builds a Vite frontend. The 6 October release handoff records a separate, held Pages deployment at the canonical host behind the Workers route; source cleanup did not remove or refresh that hosted deployment. Check its live maintenance response and route before treating it as an emergency fallback.
+
 ## Steps
 
 1. **Candidate.** `main` checked out at `origin/main`, `git status --short` empty, and the CI/CD run for that SHA succeeded: `gh-axi run list --workflow ci.yml --commit "$(git rev-parse HEAD)"`. CI skips commits that only touch `*.md`, `docs/` or `.scratch/`; for those, use the run of the last commit that touched code and confirm `git diff --name-only <that-sha> HEAD` lists only such paths.
@@ -33,7 +35,7 @@ CI only verifies; every deploy is this procedure, run by hand. Run commands from
 ## Rollback
 
 - **Code.** `wrangler rollback <previous-version-id> --name kuuki-next`, and the same for `kuuki-activation`. A rollback restores the Worker version only; D1 data and schema stay as they are.
-- **Emergency.** Delete the `kuuki.marchstudio.uk/*` route in Cloudflare. The held Pages build behind that host then serves maintenance and writes stop. The next top-level `wrangler deploy` re-attaches the route, so hold production deploys until Next should serve again.
+- **Emergency.** If the separately hosted Pages fallback has been verified to serve maintenance at the canonical host, deleting the `kuuki.marchstudio.uk/*` Workers route exposes that hold and stops writes. Record the route first; the next top-level `wrangler deploy` re-attaches it. If the Pages fallback has changed or been removed, use the last healthy Worker version and the writer-hold procedure in [audit remediation release](../../runbooks/audit-remediation-release.md) instead of assuming route deletion is safe.
 
 ## Gotchas
 
@@ -43,5 +45,5 @@ CI only verifies; every deploy is this procedure, run by hand. Run commands from
 - `wrangler d1 migrations list --remote` writes: it runs `CREATE TABLE IF NOT EXISTS d1_migrations` first. Use the `SELECT` in step 2 for a read-only check.
 - Secrets live on each Worker, outside the config; `[secrets] required` names them, and a deploy fails when one is missing. Rotating one is `wrangler secret put <NAME> --name <worker>` per Worker, and wrangler asks for confirmation before rolling back across a secret change.
 - Rollback covers the 100 most recent versions and never touches D1 ([Cloudflare](https://developers.cloudflare.com/workers/versions-and-deployments/rollbacks/)). For a risky release, `wrangler versions upload` then `wrangler versions deploy <new>@0% <current>@100%` lets you test the new version on the real host with the `Cloudflare-Workers-Version-Overrides: kuuki-next="<id>"` header before shifting traffic ([gradual deployments](https://developers.cloudflare.com/workers/versions-and-deployments/gradual-deployments/)).
-- The Pages project `kuuki` holds the frozen rollback build. Next deploys go to Workers only.
+- The Pages project `kuuki` held the frozen fallback at the 6 October cutover. This source tree does not deploy or rebuild that Pages frontend. Next deploys go to Workers only.
 - Out of scope until separately decided: the maintenance cron Worker and the import provider (`GEMINI_API_KEY`, import Durable Object).

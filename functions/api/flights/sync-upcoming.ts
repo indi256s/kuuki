@@ -3,7 +3,7 @@
 // are auto-confirmed, then derived state is published. Awaiting flights count as completed.
 //
 // Returns { synced, awaited, autoConfirmed, more, derived_state?, revision? }. `synced` counts distinct flights whose
-// state changed (a flight making both moves counts once), so `apps/web`, which reads only `synced`, stays compatible.
+// state changed (a flight making both moves counts once).
 // `more` asks the caller for another bounded pass. This is the Next member shell's only path for both transitions
 // while the cron is held (the ActivityBridge trigger).
 

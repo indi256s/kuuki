@@ -3,7 +3,7 @@
 // Remote transfer is separately reviewed through remote-migration-proposal.ts.
 //
 // Column lists are driven from db/_snapshot/_schema.json (the LIVE information_schema),
-// NOT apps/web/src/lib/database.types.ts (stale). The live `flights` table has 20 columns
+// rather than historical frontend types. The live `flights` table has 20 columns
 // and NO `aircraft_lookup_attempts`; that column exists ONLY in the D1 target schema
 // (db/migrations/0001_init.sql, INTEGER NOT NULL DEFAULT 0). The flights INSERT OMITS it
 // and relies on the D1 DEFAULT 0.

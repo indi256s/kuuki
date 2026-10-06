@@ -3,15 +3,16 @@
 ## Current Next routes
 
 The current app is [apps/next](../apps/next/src/app/), with server gates in
-[gates.ts](../apps/next/src/server/gates.ts). The Vite inventory below is rollback
-history. It does not describe the current navigation.
+[gates.ts](../apps/next/src/server/gates.ts). The Vite inventory below is
+historical and does not describe the current navigation.
 
 | Routes | Current behavior |
 | --- | --- |
-| `/` | Guest landing; authenticated members continue to Overview or unfinished onboarding. |
-| `/signin`, `/signup` | Separate authentication forms; members use the same landing gate. |
-| `/activation-request`, `/activate`, `/activate.html` | Generic activation request and restricted static token completion. The Worker owns static completion, including its recovery-host boundary. |
-| `/forgot-password`, `/reset-password`, `/password-updated` | Generic recovery request, token-only password replacement and sign-in confirmation. |
+| `/`, `/signin`, `/signup` | One AuthCard: Continue signs in or opens the create step in place. Authenticated members continue to Overview or unfinished onboarding. |
+| `/forgot-password`, `/activation-request` | The same in-place get-back-in request and inbox states, using `/api/auth/link/request`. |
+| `/reset-password` | Single-new-password card with early token scrubbing; completion returns to `/?notice=password-saved` and requires explicit sign-in. |
+| `/password-updated` | Redirects to `/?notice=password-saved`. |
+| `/activate`, `/activate.html` | Next-owned isolated one-use activation completion. Returns to the main-origin saved-password notice and requires explicit sign-in. |
 | `/account-deleted` | Signed-out deletion confirmation. |
 | `/onboarding?step=name`, `capture`, `reveal` | Name/profile setup, shared manual/upload/paste Capture, then truthful saved-flight feedback. A durable import `batch` can resume Capture. |
 | `/overview` | Period totals, insights, upcoming/awaiting journeys and missing-aircraft recovery. |
@@ -32,12 +33,12 @@ Leaderboard, plus Add and account controls. Mobile tabs are Overview / Journal /
 Add / Passport / Me. Header titles follow the current route.
 
 The [Worker](../apps/next/worker.ts), [API handlers](../functions/api/) and
-[release runbook](runbooks/2026-10-04-next-release-candidate.md) own runtime,
+[deploy procedure](skills/deploy-kuuki/SKILL.md) own runtime,
 authentication and host contracts. No hosted acceptance is implied by this map.
 
-## Legacy rollback inventory
+## Former Vite inventory
 
-The following inventory is retained for `apps/web` only.
+The following inventory records the former `apps/web` app only.
 
 ## Public Routes
 

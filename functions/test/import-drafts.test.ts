@@ -203,7 +203,7 @@ describe('POST /api/import/jobs', () => {
 })
 
 describe('POST /api/import/parse stays', () => {
-  it('still answers old clients without persisting anything', async () => {
+  it('still answers old clients without creating an import batch', async () => {
     const { onRequestPost: parse } = await import('../api/import/parse')
     answer([providerFlight()])
     const { csrfRequest, testOrigin } = await import('./harness')

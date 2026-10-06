@@ -1,7 +1,7 @@
-// Next flight writes. They keep the apps/web idempotent-create contract (one stored key and payload per
-// operation) and add the member's browser IANA timezone as the top-level `timezone` request field that
+// Flight writes keep one stored key and payload per
+// operation and add the member's browser IANA timezone as the top-level `timezone` request field that
 // the lifecycle API reads (ADR 0001 §1). The zone is request context only: it is kept out of the stored
-// retry payload, so a replay from another zone is still the same operation. apps/web stays untouched.
+// retry payload, so a replay from another zone is still the same operation.
 import { FLIGHT_BULK_CREATE_MAX, validateFlightInput } from '@kuuki/shared'
 import { api, ApiError } from '@kuuki/client/apiClient'
 import { completeFlightCreateOperation, getFlightCreateOperation } from '@kuuki/client/flightCreateOperations'
@@ -50,7 +50,7 @@ export async function createFlight(flight: Omit<FlightInsert, 'id' | 'created_at
 
 interface BulkCreateResult { status: 'created' | 'replayed' | 'error'; http_status?: number; code?: string; error?: string }
 
-/** Same chunking, keys and per-entry outcomes as apps/web `createFlights`, with one timezone per request. */
+/** Chunk creates with per-entry keys and outcomes, using one timezone per request. */
 export async function createFlights(
   userId: string,
   entries: Array<{ operationId: string; retryKey?: string; flight: Omit<FlightInsert, 'id' | 'created_at' | 'user_id'> }>,
