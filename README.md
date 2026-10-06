@@ -69,7 +69,7 @@ pnpm test:next:navigation
 
 The full navigation suite is required for UI changes. After changing API paths or exported HTTP methods, regenerate and include `apps/next/api-routes.generated.ts` with `node scripts/build-next.mjs --inventory-only`; edit the handlers or generator rather than generated output.
 
-See [AGENTS.md](AGENTS.md) for checks by change type and [CI](.github/workflows/ci.yml) for the verification pipeline. `pnpm smoke:runtime` and `scripts/rehearse-next-rollback.ts` remain runnable locally for legacy rollback checks. `pnpm next:build` builds the API, legacy compatibility assets and OpenNext output; it does not deploy. The preview/smoke scripts and `pnpm build:maintenance` use Wrangler dry-run builds.
+See [CODING_STANDARDS.md](CODING_STANDARDS.md) for checks by change type and [CI](.github/workflows/ci.yml) for the verification pipeline. `pnpm smoke:runtime` and `scripts/rehearse-next-rollback.ts` remain runnable locally for legacy rollback checks. `pnpm next:build` builds the API, legacy compatibility assets and OpenNext output; it does not deploy. The preview/smoke scripts and `pnpm build:maintenance` use Wrangler dry-run builds.
 
 ## Structure
 
