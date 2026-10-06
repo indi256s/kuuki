@@ -88,9 +88,10 @@ node scripts/next-artifact-manifest.mjs
 ```
 
 CI packages `web-dist` and `next-candidate` separately. Next does not enter any
-deployment job. (Since 6 October 2026, CI only verifies and uploads `next-candidate`;
-it no longer runs `smoke:runtime` or the rollback rehearsal, and Next deploys follow
-[deploy-kuuki](../skills/deploy-kuuki/SKILL.md).) The candidate includes the actual standalone dry-run Worker,
+deployment job. (Since 6 October 2026, CI only verifies. It no longer uploads `next-candidate` or runs
+`smoke:runtime`, the rollback rehearsal or the artifact manifest, and
+Next deploys follow [deploy-kuuki](../skills/deploy-kuuki/SKILL.md). Run
+`node scripts/next-artifact-manifest.mjs` locally when a release needs the manifest.) The candidate includes the actual standalone dry-run Worker,
 compiled API, versioned Next and legacy assets, root Vite rollback files,
 configuration, lockfile, build IDs and sorted file SHA-256 manifest. Preserve the
 whole archive. Implementation commit `ab02241` contains the verified application,
