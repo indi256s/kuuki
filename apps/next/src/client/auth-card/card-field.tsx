@@ -36,7 +36,7 @@ export const CardField = forwardRef<HTMLInputElement, CardFieldProps>(function C
       <input {...input} ref={ref} id={inputId} type={password && shown ? 'text' : type} className="auth-input"
         aria-invalid={hasError ? true : undefined}
         aria-describedby={[describedBy, hasError ? errorId : null].filter(Boolean).join(' ') || undefined} />
-      {password ? <button type="button" className="auth-reveal" aria-label={locale === 'ru' ? 'Показать пароль' : 'Show password'} aria-pressed={shown}
+      {password ? <button type="button" className="auth-card-reveal" aria-label={locale === 'ru' ? 'Показать пароль' : 'Show password'} aria-pressed={shown}
         onClick={() => setShown(value => !value)}>
         {shown ? <EyeOff size={16} strokeWidth={1.75} aria-hidden="true" /> : <Eye size={16} strokeWidth={1.75} aria-hidden="true" />}
       </button> : null}

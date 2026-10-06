@@ -37,7 +37,7 @@
 .auth-input{width:100%;height:44px;padding-inline:14px;border:1px solid var(--control-border);border-radius:var(--radius-sm);background:var(--auth-input-surface);color:var(--text);font-size:15px;line-height:24px}
 .auth-input[aria-invalid=true]{border-color:var(--danger-text)}
 .auth-field-control[data-reveal=true] .auth-input{padding-inline-end:41px}
-.auth-reveal{position:absolute;top:50%;right:1px;display:grid;place-items:center;width:40px;height:40px;padding:0;border:0;border-radius:8px;background:transparent;color:var(--text-muted);translate:0 -50%;transition:background-color var(--dur-fast) var(--ease-out)}
+.auth-card-reveal{position:absolute;top:50%;right:1px;display:grid;place-items:center;width:40px;height:40px;padding:0;border:0;border-radius:8px;background:transparent;color:var(--text-muted);translate:0 -50%;transition:background-color var(--dur-fast) var(--ease-out)}
 .auth-field-error{display:flex;align-items:center;gap:6px;margin:0;padding-top:2px;font-size:13px;line-height:20px;color:var(--danger-text)}
 .auth-field-error svg{flex-shrink:0}
 .ui-button.auth-primary{width:100%;padding-block:9px;line-height:24px}
@@ -47,12 +47,14 @@
    `-up` grows up and sideways only, so a link above an input never reaches into it. */
 .auth-text-link{display:inline-block;padding:12px 8px;margin:-12px -8px;font-size:13px;line-height:20px;font-weight:500;color:var(--accent-text);text-decoration:none;text-underline-offset:3px;border-radius:var(--radius-xs)}
 .auth-text-link-up{padding:24px 8px 0;margin:-24px -8px 0}
+/* The 24px it grows up must clear the field above, so a field whose label row holds one sits 8px lower (24px, not 16). */
+.auth-field:has(.auth-text-link-up){margin-top:8px}
 
 @media(hover:hover) and (pointer:fine){
-  .auth-corner-control:hover,.auth-reveal:hover{background:var(--surface-inset)}
+  .auth-corner-control:hover,.auth-card-reveal:hover{background:var(--surface-inset)}
   .auth-text-link:hover{text-decoration:underline}
 }
-@media(prefers-reduced-motion:reduce){.auth-corner-control,.auth-reveal{transition:none}}
+@media(prefers-reduced-motion:reduce){.auth-corner-control,.auth-card-reveal{transition:none}}
 
 /* ---------- Mobile: brand band above a bottom sheet (boards 3.2 and 3.3) ---------- */
 @media(max-width:700px){
@@ -68,7 +70,7 @@
   .auth-heading h1{font-size:28px;line-height:34px}
   .auth-input{height:48px;font-size:16px}
   .auth-field-control[data-reveal=true] .auth-input{padding-inline-end:47px}
-  .auth-reveal{right:3px;width:44px;height:44px}
+  .auth-card-reveal{right:3px;width:44px;height:44px}
   .ui-button.auth-primary{min-height:48px;padding-block:11px;font-size:16px}
   .auth-tagline{padding-top:0}
 }
