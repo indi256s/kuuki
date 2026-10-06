@@ -18,6 +18,7 @@ Use `gh-axi` for GitHub and `chrome-devtools-axi` for browser automation.
 - **Plans and specs:** they are in `docs/plans/` and `.scratch/<feature>/`. Conventions are in `docs/agents/issue-tracker.md`.
 - **Resuming a plan:** read its adjacent `*-handoff.md` first and locate the owning checkout with `git worktree list` before creating progress files.
 - **Reviewing a diff:** apply `CODING_STANDARDS.md`.
+- **Deploying:** follow `docs/skills/deploy-kuuki/SKILL.md`. CI only verifies.
 - **Runtime or release work:** read `docs/runbooks/2026-10-04-next-release-candidate.md`; for D1 migration/cutover gates, read `docs/runbooks/audit-remediation-release.md`.
 - **Documentation drift:** use `docs/skills/update-docs-after-feature/SKILL.md` when changes invalidate instructions, architecture, commands or operational contracts.
 

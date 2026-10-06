@@ -2,6 +2,10 @@ name = "kuuki-next"
 main = "worker.ts"
 compatibility_date = "2026-08-06"
 compatibility_flags = ["nodejs_compat"]
+# Production serves only through the kuuki.marchstudio.uk/* zone route, which is managed in Cloudflare.
+# No `routes` key here: wrangler deploy then leaves that route alone, and deleting it stays the emergency rollback.
+workers_dev = false
+preview_urls = false
 
 [assets]
 directory = ".open-next/assets"
@@ -9,15 +13,44 @@ binding = "ASSETS"
 run_worker_first = true
 not_found_handling = "none"
 
+[observability]
+enabled = true
+
 [vars]
 PAGES_ORIGIN = "https://kuuki.marchstudio.uk"
 MAINTENANCE_MODE = "false"
+ACTIVATION_ORIGIN = "https://kuuki-activation.indi256s.workers.dev"
+ACTIVATION_MAIL_ACCOUNT_ID = "5cadcff0282e54f3ff1d7062d4dbb97a"
+ACTIVATION_MAIL_FROM = "accounts@marchstudio.uk"
 
 [[d1_databases]]
 binding = "DB"
 database_name = "kuuki-db"
 database_id = "2a8e3895-6a98-4473-8d7b-a43ca0c0026f"
 migrations_dir = "../../db/migrations"
+
+# Same build as production, served on its own workers.dev origin for account activation.
+[env.activation]
+name = "kuuki-activation"
+workers_dev = true
+
+[env.activation.vars]
+PAGES_ORIGIN = "https://kuuki.marchstudio.uk"
+MAINTENANCE_MODE = "false"
+ACTIVATION_ORIGIN = "https://kuuki-activation.indi256s.workers.dev"
+ACTIVATION_MAIL_ACCOUNT_ID = "5cadcff0282e54f3ff1d7062d4dbb97a"
+ACTIVATION_MAIL_FROM = "accounts@marchstudio.uk"
+
+[[env.activation.d1_databases]]
+binding = "DB"
+database_name = "kuuki-db"
+database_id = "2a8e3895-6a98-4473-8d7b-a43ca0c0026f"
+migrations_dir = "../../db/migrations"
+
+# kuuki-next-preview, against the preview D1. Origins match the live preview Workers.
+[env.preview]
+workers_dev = true
+preview_urls = true
 
 [[env.preview.d1_databases]]
 binding = "DB"
@@ -26,8 +59,8 @@ database_id = "80e0c789-c1ab-4aa5-a6fe-e65c6e6cb74c"
 migrations_dir = "../../db/migrations"
 
 [env.preview.vars]
-PAGES_ORIGIN = "https://staging.kuuki.pages.dev"
+PAGES_ORIGIN = "https://kuuki-next-preview.indi256s.workers.dev"
 MAINTENANCE_MODE = "false"
-ACTIVATION_ORIGIN = "https://activate-staging.kuuki.marchstudio.uk"
+ACTIVATION_ORIGIN = "https://kuuki-release-activation-preview.indi256s.workers.dev"
 ACTIVATION_MAIL_ACCOUNT_ID = "5cadcff0282e54f3ff1d7062d4dbb97a"
 ACTIVATION_MAIL_FROM = "accounts@marchstudio.uk"

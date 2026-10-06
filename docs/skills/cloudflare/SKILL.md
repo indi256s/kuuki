@@ -1,6 +1,6 @@
 ---
 name: cloudflare
-description: Instructions and best practices for deploying web applications to Cloudflare Pages using Wrangler.
+description: Generic Cloudflare Pages reference for Wrangler. Kuuki itself deploys to Workers with deploy-kuuki; its Pages project holds the frozen rollback build.
 ---
 
 # Cloudflare Deployment Skill
@@ -43,7 +43,7 @@ npx wrangler pages deploy dist --project-name=kuuki
 
 ## Workflow Example (GitHub Actions)
 
-See `.github/workflows/ci.yml` for the live configuration.
+Kuuki's CI no longer deploys. Deploy Kuuki with `docs/skills/deploy-kuuki/SKILL.md`.
 
 ```yaml
 - uses: cloudflare/wrangler-action@v3

@@ -25,8 +25,7 @@ export async function applyMigrations(db: D1Database, range: { after?: string; t
     const number = file.slice(0, 4)
     if (range.after !== undefined && number <= range.after) continue
     if (range.through !== undefined && number > range.through) continue
-    for (const statement of migrationStatements(file)) {
-      await db.prepare(statement).run()
-    }
+    // One batch per file: a single round trip, applied atomically.
+    await db.batch(migrationStatements(file).map(statement => db.prepare(statement)))
   }
 }

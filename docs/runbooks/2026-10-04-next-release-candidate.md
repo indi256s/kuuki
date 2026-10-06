@@ -88,7 +88,9 @@ node scripts/next-artifact-manifest.mjs
 ```
 
 CI packages `web-dist` and `next-candidate` separately. Next does not enter any
-deployment job. The candidate includes the actual standalone dry-run Worker,
+deployment job. (Since 6 October 2026, CI only verifies and uploads `next-candidate`;
+it no longer runs `smoke:runtime` or the rollback rehearsal, and Next deploys follow
+[deploy-kuuki](../skills/deploy-kuuki/SKILL.md).) The candidate includes the actual standalone dry-run Worker,
 compiled API, versioned Next and legacy assets, root Vite rollback files,
 configuration, lockfile, build IDs and sorted file SHA-256 manifest. Preserve the
 whole archive. Implementation commit `ab02241` contains the verified application,
@@ -228,7 +230,8 @@ conditional on a measured deficit and an approved cost/retention envelope.
 5. Keep `PREVIEW_ISOLATION_VERIFIED`, `GIT_DEPLOY_DISABLED`, exact
    `PRODUCTION_RELEASE_SHA` and `MAINTENANCE_DEPLOY_READY` semantics. This task sets
    none of them. Next routing/cutover requires a separate explicit deployment
-   decision; CI's existing guarded Vite deployment path is unchanged.
+   decision; CI's existing guarded Vite deployment path is unchanged. (Superseded
+   6 October 2026: CI has no deployment jobs, so these variables have no effect.)
 6. Instant Navigation and new lifecycle/transit/auto-confirm/undo remain named
    deferred requirements. Full Redesign 2.0 and production release are incomplete.
 
