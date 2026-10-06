@@ -23,12 +23,12 @@ async function handleRequest(request: Request, env: Env, data: RequestData, next
     return next()
   }
   // Recovery is a pre-auth token operation; it must never refresh an old session.
-  if (url.pathname === '/api/auth/password-reset/request' || url.pathname === '/api/auth/password-reset/complete') return next()
+  if (url.pathname === '/api/auth/password-reset/request' || url.pathname === '/api/auth/password-reset/complete' || url.pathname === '/api/auth/link/request') return next()
 
   if (hasBetterAuthCookie(request)) {
     return runHandler(async () => {
       // Session replacement routes own cookie writes and must not renew an old identity.
-      if (['/api/auth/signin', '/api/auth/signup', '/api/auth/signout', '/api/auth/sign-in/email', '/api/auth/sign-up/email', '/api/auth/sign-out', '/api/auth/get-session'].includes(url.pathname)) return next()
+      if (['/api/auth/signin', '/api/auth/continue', '/api/auth/signup', '/api/auth/signout', '/api/auth/sign-in/email', '/api/auth/sign-up/email', '/api/auth/sign-out', '/api/auth/get-session'].includes(url.pathname)) return next()
       const authResponse = await createAuth(env).api.getSession({ headers: request.headers, asResponse: true })
       if (!authResponse.ok) return authResponse
       const session = await authResponse.json() as { user: { id: string; email: string } } | null
