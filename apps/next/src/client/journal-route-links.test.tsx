@@ -3,7 +3,7 @@ import { fireEvent, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import type { ReactNode } from 'react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { announceJournalLink, JOURNAL_LINK_EVENT } from './journal-links'
+import { ROUTE_LINK_EVENT } from './navigation-link'
 import { PrimaryNav, TabBar } from './nav'
 import { QueueSummarySlot } from './queue-summary'
 import { AddActions } from './add-actions'
@@ -16,13 +16,14 @@ vi.mock('./awaiting', () => ({ useAwaiting: () => awaiting.value }))
 
 const heard: string[] = []
 const listen = (event: Event) => { heard.push((event as CustomEvent<string>).detail) }
-window.addEventListener(JOURNAL_LINK_EVENT, listen)
+window.addEventListener(ROUTE_LINK_EVENT, listen)
 afterEach(() => { heard.length = 0; awaiting.value = { data: null, error: false, reload: () => {} } })
 
+const isJournal = (href: string) => new URL(href, window.location.href).pathname === '/journal'
 const journalLinks = () => [...document.querySelectorAll<HTMLAnchorElement>('a[href]')].filter(link => new URL(link.getAttribute('href')!, window.location.href).pathname === '/journal')
 
 /** Every link to /journal the shell can show while the Journal is mounted must announce its destination; otherwise a pending filter navigation it supersedes leaves stale drafts. */
-describe('shell links to /journal announce their destination', () => {
+describe('shell links to /journal announce their destination on the route link event', () => {
   const cases: Array<[string, () => ReactNode, number]> = [
     ['desktop navigation', () => <PrimaryNav />, 1],
     ['mobile tab bar', () => <TabBar />, 1],
@@ -35,7 +36,7 @@ describe('shell links to /journal announce their destination', () => {
     const links = journalLinks()
     expect(links).toHaveLength(expected)
     for (const link of links) fireEvent.click(link)
-    expect(heard).toEqual(links.map(link => link.getAttribute('href')))
+    expect(heard.filter(isJournal)).toEqual(links.map(link => link.getAttribute('href')))
   })
 
   it('Awaiting action in the desktop add menu', async () => {
@@ -46,15 +47,14 @@ describe('shell links to /journal announce their destination', () => {
     const links = journalLinks()
     expect(links).toHaveLength(1)
     fireEvent.click(links[0])
-    expect(heard).toEqual(['/journal?queue=awaiting'])
+    expect(heard.filter(isJournal)).toEqual(['/journal?queue=awaiting'])
   })
 
-  it('stays silent for a modified click and for links elsewhere', () => {
+  it('stays silent for a modified click and does not announce a Journal destination for links elsewhere', () => {
     render(<PrimaryNav />)
     fireEvent.click(journalLinks()[0], { ctrlKey: true })
     for (const link of document.querySelectorAll('a')) if (!journalLinks().includes(link)) fireEvent.click(link)
-    expect(heard).toEqual([])
-    expect(announceJournalLink('/overview')).toBeUndefined()
-    expect(announceJournalLink('/journal/7/edit')).toBeUndefined()
+    expect(heard.filter(isJournal)).toEqual([])
+    expect(heard).not.toEqual([])
   })
 })

@@ -8,7 +8,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { JournalView } from './journal'
 import { PrimaryNav } from '../nav'
 import { QueueSummarySlot } from '../queue-summary'
-import { announceJournalLink } from '../journal-links'
+import { ROUTE_LINK_EVENT } from '../navigation-link'
 import { Sheet } from '../ui/sheet'
 import { ShellNotices } from '../shell-notices'
 import { normalizeJournalQuery } from '../../lib/url-state'
@@ -511,12 +511,21 @@ describe('filters', () => {
       const router = slowRouter()
       render(<Harness start="airline=TK" />)
       const airline = await commitAirline(user, 'aa')
-      act(() => announceJournalLink('/journal?airline=LH')!())
+      act(() => { window.dispatchEvent(new CustomEvent<string>(ROUTE_LINK_EVENT, { detail: '/journal?airline=LH' })) })
       expect(airline).toHaveValue('LH')
       await router.deliver('airline=LH', true)
       expect(airline).toHaveValue('LH')
       expect(await searchAfter(user)).toEqual(['q=x&airline=LH'])
       await router.deliver('q=x&airline=LH', true)
+    })
+
+    it('leaves the drafts alone for a route link to another page or a Journal subpath', async () => {
+      const user = userEvent.setup()
+      slowRouter()
+      render(<Harness start="airline=TK" />)
+      const airline = await commitAirline(user, 'aa')
+      act(() => { for (const detail of ['/overview', '/journal/7/edit']) window.dispatchEvent(new CustomEvent<string>(ROUTE_LINK_EVENT, { detail })) })
+      expect(airline).toHaveValue('AA')
     })
 
     it('leaves the drafts alone for a modified click on the Journal tab, which opens another tab', async () => {

@@ -10,7 +10,7 @@ import { trackPrivateOperation } from '../activity'
 import { isPublicationPending } from '../freshness'
 import { useWriteFeedback } from '../write-feedback'
 import { LIFECYCLE_CHANGED_EVENT } from '../lifecycle-sync'
-import { JOURNAL_LINK_EVENT } from '../journal-links'
+import { ROUTE_LINK_EVENT } from '../navigation-link'
 import { useOnline } from '../awaiting'
 import { FlightDetailSheet } from '../capture/flight-panels'
 import { connectionChains } from '../../../../../functions/api/_services/connections'
@@ -170,7 +170,7 @@ function JournalInner({ ownerId, locale, initial, query, page, filtered }: Props
     startNavigation(() => router[mode === 'replace' || (mode === 'refine' && refine) ? 'replace' : 'push'](withQuery('/journal', target), { scroll: false }))
     return true
   }
-  // Reset links, Back/Forward and shell links to /journal (`announceJournalLink`) are the member's explicit navigations. Their destination replaces the
+  // Reset links, Back/Forward and shell links to /journal (`ROUTE_LINK_EVENT`) are the member's explicit navigations. Their destination replaces the
   // filter drafts and the base for the next change at once, even while a navigation started by `apply` is pending (it is superseded) and even when the
   // destination is the URL still rendered.
   const [external, setExternal] = useState({ query, serial: 0 })
@@ -188,8 +188,8 @@ function JournalInner({ ownerId, locale, initial, query, page, filtered }: Props
       if (url.pathname === '/journal') navigateExternally(url.search)
     }
     window.addEventListener('popstate', traverse)
-    window.addEventListener(JOURNAL_LINK_EVENT, follow)
-    return () => { window.removeEventListener('popstate', traverse); window.removeEventListener(JOURNAL_LINK_EVENT, follow) }
+    window.addEventListener(ROUTE_LINK_EVENT, follow)
+    return () => { window.removeEventListener('popstate', traverse); window.removeEventListener(ROUTE_LINK_EVENT, follow) }
   }, [navigateExternally])
   const navigate = (key: string, value: string, mode: 'push' | 'replace' = 'push') => apply({ [key]: value }, mode)
   const open = (id: number, edit = false, field?: 'aircraft') => { setEditing(edit); setFocusField(field); navigate('flight', String(id)) }
