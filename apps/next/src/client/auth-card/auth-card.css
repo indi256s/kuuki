@@ -1,0 +1,74 @@
+/* Auth card (boards 1.1 and 3.1 to 3.3, build notes 4.1). Colours are tokens only; the auth tokens live in styles.css. */
+
+/* ---------- Wordmark ---------- */
+.kuuki-wordmark{display:inline-flex;align-items:baseline;font:700 var(--wordmark-size,36px)/1 var(--font-sans);letter-spacing:-.04em;white-space:nowrap}
+.kuuki-wordmark-ku{color:var(--accent-text)}
+.kuuki-wordmark-uki{color:var(--text)}
+
+/* ---------- Page and card (desktop) ---------- */
+.auth-page{min-height:100dvh;display:grid;place-items:center;padding:var(--space-8) var(--page-gutter);background:var(--background)}
+.auth-card{position:relative;display:flex;width:min(1040px,100%);min-height:620px;border:1px solid var(--hairline);border-radius:var(--radius-lg);background:var(--surface);overflow:clip}
+:root[data-theme=dark] .auth-card{border-color:transparent;box-shadow:inset 0 1px 0 var(--surface-highlight)}
+.auth-brand{position:relative;flex:0 0 min(420px,40%);display:flex;flex-direction:column;padding:40px;overflow:clip;background:var(--auth-brand-surface)}
+.auth-brand-field{position:absolute;inset:0;pointer-events:none}
+.auth-brand-wordmark{position:relative;--wordmark-size:36px}
+/* The top padding clears the corner controls; the extra 48px over the bottom centres the column 24px low, as on the boards. */
+.auth-form-panel{position:relative;flex:1 1 0;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:96px clamp(var(--space-6),6vw,64px) 48px}
+.auth-column{display:flex;flex-direction:column;gap:28px;width:min(360px,100%)}
+
+/* ---------- Corner controls ---------- */
+.auth-corner{position:absolute;top:36px;right:28px;z-index:1;display:flex;align-items:center}
+.auth-corner-control{position:relative;display:inline-flex;align-items:center;justify-content:center;gap:6px;min-width:44px;height:44px;padding:0;border:0;border-radius:var(--radius-sm);background:transparent;color:var(--text-muted);font:500 13px/20px var(--font-sans);transition:background-color var(--dur-fast) var(--ease-out)}
+.auth-corner-control[data-kind=language]{padding-inline:12px}
+/* The native select covers the whole control, so the hit area and the picker are the platform's own. 16px avoids iOS zoom. */
+.auth-corner-control select{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;font-size:16px;appearance:none}
+.auth-corner-control:has(select:focus-visible){outline:2px solid var(--focus);outline-offset:2px}
+
+/* ---------- Heading, fields and actions ---------- */
+.auth-heading{display:flex;flex-direction:column;gap:6px}
+.auth-heading h1{margin:0;font:600 30px/36px var(--font-sans);letter-spacing:-.02em;text-wrap:balance;outline:none}
+.auth-heading p{margin:0;color:var(--text-muted)}
+.auth-form{display:flex;flex-direction:column;gap:28px}
+.auth-fields{display:flex;flex-direction:column;gap:16px}
+.auth-field{display:flex;flex-direction:column;gap:6px;min-width:0}
+.auth-field-label-row{display:flex;align-items:center;justify-content:space-between;gap:var(--space-3)}
+.auth-field-label{font-size:13px;line-height:20px;font-weight:500}
+.auth-field-control{position:relative}
+.auth-input{width:100%;height:44px;padding-inline:14px;border:1px solid var(--control-border);border-radius:var(--radius-sm);background:var(--auth-input-surface);color:var(--text);font-size:15px;line-height:24px}
+.auth-input[aria-invalid=true]{border-color:var(--danger-text)}
+.auth-field-control[data-reveal=true] .auth-input{padding-inline-end:41px}
+.auth-reveal{position:absolute;top:50%;right:1px;display:grid;place-items:center;width:40px;height:40px;padding:0;border:0;border-radius:8px;background:transparent;color:var(--text-muted);translate:0 -50%;transition:background-color var(--dur-fast) var(--ease-out)}
+.auth-field-error{display:flex;align-items:center;gap:6px;margin:0;padding-top:2px;font-size:13px;line-height:20px;color:var(--danger-text)}
+.auth-field-error svg{flex-shrink:0}
+.ui-button.auth-primary{width:100%;padding-block:9px;line-height:24px}
+.auth-tagline{margin:0;padding-top:12px;font-size:13px;line-height:20px;letter-spacing:.01em;text-align:center;color:var(--text-muted)}
+
+/* Text links: 13/20 accent text with a 44px hit area from padding and an equal negative margin.
+   `-up` grows up and sideways only, so a link above an input never reaches into it. */
+.auth-text-link{display:inline-block;padding:12px 8px;margin:-12px -8px;font-size:13px;line-height:20px;font-weight:500;color:var(--accent-text);text-decoration:none;text-underline-offset:3px;border-radius:var(--radius-xs)}
+.auth-text-link-up{padding:24px 8px 0;margin:-24px -8px 0}
+
+@media(hover:hover) and (pointer:fine){
+  .auth-corner-control:hover,.auth-reveal:hover{background:var(--surface-inset)}
+  .auth-text-link:hover{text-decoration:underline}
+}
+@media(prefers-reduced-motion:reduce){.auth-corner-control,.auth-reveal{transition:none}}
+
+/* ---------- Mobile: brand band above a bottom sheet (boards 3.2 and 3.3) ---------- */
+@media(max-width:700px){
+  .auth-page{display:block;padding:0;background:var(--auth-band-surface)}
+  .auth-card,:root[data-theme=dark] .auth-card{flex-direction:column;width:100%;min-height:100dvh;border:0;border-radius:0;box-shadow:none;background:transparent;overflow:visible}
+  /* The band is 302px under a 52px header row (board 3.2 minus the device status bar) and gives up height first. */
+  .auth-brand{flex:0 0 auto;height:clamp(160px,100dvh - 480px,302px);padding:12px 6px 0 19px;background:var(--auth-band-surface)}
+  .auth-brand-wordmark{--wordmark-size:28px}
+  .auth-corner{top:4px;right:6px}
+  .auth-form-panel{flex:1 0 auto;padding:28px 20px 46px;border-radius:var(--radius-lg) var(--radius-lg) 0 0;background:var(--surface);box-shadow:var(--auth-sheet-edge)}
+  .auth-column{width:100%;gap:24px}
+  .auth-form{gap:24px}
+  .auth-heading h1{font-size:28px;line-height:34px}
+  .auth-input{height:48px;font-size:16px}
+  .auth-field-control[data-reveal=true] .auth-input{padding-inline-end:47px}
+  .auth-reveal{right:3px;width:44px;height:44px}
+  .ui-button.auth-primary{min-height:48px;padding-block:11px;font-size:16px}
+  .auth-tagline{padding-top:0}
+}
