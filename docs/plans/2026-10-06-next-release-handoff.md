@@ -209,6 +209,34 @@ private `/tmp/kuuki-release-20261006` working directory. A 09:32 UTC fresh sourc
 recheck found all 13 datasets semantically unchanged, but is not the final held
 cutover capture. Do not overwrite the 08:32 admitted source.
 
+## Opus 5.5 thread: gates passed
+
+Hosted performance **passed and was owner-accepted** with a 60-minute post-cutover
+monitoring window. Region TBS, mobile viewport, frozen `teeDcJw9kXHTh4B5__Rpz`: at
+2 and 343 flights, 100 samples per document/click group and 100–200 saves per
+frontend, with zero harness failures in the final runs. Next document readiness p95
+is ~1.05 s against Vite's ~2.45 s; LCP p75 ~0.95 s against ~2.05 s; CLS 0; INP p75
+16 ms on both; save p95 ~1.9–2.0 s on both; no MapLibre or corpus requests. Accepted
+follow-up: Next click navigation readiness p95 is ~1.2 s against Vite's ~50 ms. A
+diagnostic D1 wrapper classified the earlier handled 500s as transient
+`Network connection lost` errors in the shared API (no retry; same for both
+frontends), at about 1 per 1,000 sampled invocations. That is also an accepted
+follow-up. Kysely `sqlite_master` introspection is denied by D1 (SQLITE_AUTH) and
+caught; it is benign noise. Workers analytics: 0 errors, no exceeded statuses, success
+CPU p99 ~33 ms. Memory is observable only through limit statuses. Temporary
+perf/diagnostic Workers are deleted. Private `perf-gate-proof.json` and
+`perf-acceptance.json` hold the evidence.
+
+The custom-domain routing gate **passed** on the first-level host
+`kuuki-routing-stage.marchstudio.uk`. Universal SSL does not cover the second-level name
+proposed earlier. A proxied CNAME plus an exact Workers route to the held frozen
+Worker served Next documents, maintenance 503s, assets, retirement `sw.js` and
+browser RSC; deleting the route restored the prior behaviour immediately. The test
+Worker, DNS records and route are removed. The local teeDc build verifies against the
+CI artifact manifest. The operator Worker for the targeted reset passed a local
+rehearsal against the read-only production export: reset OK, idempotent rerun, repair
+ready, 69 flights preserved.
+
 ## Opus 5.5 thread transition
 
 The user requested continuing in a fresh Opus 5.5 thread. Stop new work in this
