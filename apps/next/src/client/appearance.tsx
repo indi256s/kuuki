@@ -33,6 +33,13 @@ export function setAccent(accent: Accent) {
   window.dispatchEvent(new Event('kuuki:appearance'))
 }
 
+/** Reads the stored accent; the removed kincha and sumi are rewritten to terracotta the first time they are seen. */
+function normalizeAccent(): Accent | undefined {
+  const saved = document.cookie.match(/(?:^|; )kuuki_accent=([^;]+)/)?.[1]
+  if (saved === 'kincha' || saved === 'sumi') { setAccent('terracotta'); return 'terracotta' }
+  return isAccent(saved) ? saved : undefined
+}
+
 function currentTheme(): Theme {
   let legacy: string | null = null
   try { legacy = localStorage.getItem('kuuki-theme-mode') } catch { /* storage unavailable */ }
@@ -52,6 +59,7 @@ export function AppearanceProvider() {
   useEffect(() => {
     const selected = currentTheme()
     applyTheme(selected)
+    normalizeAccent()
     if (!document.cookie.includes('kuuki_theme=')) cookie('kuuki_theme', selected)
     const media = window.matchMedia('(prefers-color-scheme: dark)')
     const changed = () => { if (currentTheme() === 'system') applyTheme('system') }
