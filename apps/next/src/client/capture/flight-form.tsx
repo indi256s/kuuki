@@ -79,7 +79,7 @@ export function FlightForm({ ownerId, locale, editId, initialEditing = true, foc
   const schema = z.object({ date: z.string(), origin: z.string(), destination: z.string(), airline: z.string(), aircraft: z.string(), number: z.string(), departure: z.string(), arrival: z.string() }).superRefine((raw, ctx) => {
     for (const [field, message] of Object.entries(validateFlightValues(raw as Values, locale))) ctx.addIssue({ code: 'custom', path: [field], message })
   })
-  const form = useForm<Values>({ resolver: zodResolver(schema), defaultValues: empty, mode: 'onBlur' })
+  const form = useForm<Values>({ resolver: zodResolver(schema), defaultValues: empty, mode: 'onTouched' })
   const { control, register, handleSubmit, watch, setValue, reset, formState, setFocus } = form
   const [date, origin, destination] = watch(['date', 'origin', 'destination'])
   const receipt = !editId && !busy && pendingFlightCreateOperation(ownerId, operationId)
