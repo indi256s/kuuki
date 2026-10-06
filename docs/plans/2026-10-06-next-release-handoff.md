@@ -15,21 +15,45 @@ release forward. Required preservation gates still apply. Production data,
 credentials, routing and deployments have not been changed. No real mail or
 provider calls were made; retain their separate recipient/provider gates.
 
-Three input requests remain pending:
+Two input requests remain pending:
 
-1. A fresh legacy export or authenticated Supabase access. This workspace has no
-   Supabase CLI, service credential, database connection or completed CLI login.
-   `db/_snapshot` is rehearsal evidence, not an admitted final source.
-2. The retained Pages secret values or their storage location. Cloudflare exposes
+1. The retained Pages secret values or their storage location. Cloudflare exposes
    their names but redacts values. Preserve `AUTH_SECRET`; do not rotate it or
-   infer that the local `.dev.vars` pepper matches production. Next also needs
-   Gemini and activation-mail credentials. No existing pepper was changed.
-3. Identity mapping: the rehearsal source and live production share one email
+   infer that the local `.dev.vars` pepper matches production. A read-only check
+   against the stored hosted atlas test credential found that local AUTH_SECRET
+   does not verify its production password hash. `cf pages projects get` confirms
+   deployed values are redacted. Local env files have no Gemini or activation-mail
+   credential. A private editable `production.env` is prepared in the evidence
+   directory with empty AUTH_SECRET, GEMINI_API_KEY and ACTIVATION_MAIL_AUTH_TOKEN
+   entries. Generate Better Auth secrets separately; no existing pepper was changed.
+2. Identity mapping: the verified fresh source and live production share one email
    and username across different IDs, and 64 differing flight rows share IDs.
-   Proposed decision: retain the current D1 account/profile/password, attach its
-   historical records to that ID, and allocate fresh IDs for conflicting source
-   flights. Do not apply before the user resolves this decision. Source freshness
-   must pass and conflicts must be re-read under the production writer hold.
+   The user said the current production account need not be kept. Further read-only
+   inspection found that the conflicting account owns zero flights; the other two
+   production accounts own all 69 flights and both have personal password hashes.
+   A scope question remains pending: replace only the conflicting account, or
+   discard all three current production accounts and their data after backup and
+   restore proof. Do not infer authorization to discard the other two accounts
+   from the singular reply. If retaining them, preserve the original production
+   pepper and remap the 64 incoming flight-ID collisions. If all current accounts
+   are explicitly disposable, a new pepper can be used for activated legacy users.
+   Conflicts must be re-read under the production writer hold before applying.
+
+Fresh source accepted on 6 October at 08:42 UTC: the user supplied the private
+backup directory
+`~/.local/share/kuuki/backups/supabase/20261006T083019Z`, captured at
+`2026-10-06T08:32:07.4487+00:00` from Supabase project `cwmotwkvpdkfrtjxmoce`.
+Offline capture/table/projection verification, archive SHA-256 and safe archive
+member checks passed. Rebuilding the import manifest matched the supplied
+manifest. All 13 datasets match `db/_snapshot` semantically; differing JSON
+serialization gives the fresh importer source hash
+`ce2b992d659d4f651d0b31197ae2bb3721bc111159f7fc256d353a4f2db89542`.
+Counts remain 26 users and 343 flights. The supplied `query.py` can repeat a
+read-only capture using the project-bound Codex Supabase OAuth credential in
+Keychain; inspect it and write a new capture directory instead of overwriting
+admitted evidence. Source freshness is accepted for this capture, not indefinitely.
+Recheck it at cutover. Production conflict reads against this fresh source returned
+the same pending identity/flight-ID conflicts. No production writes occurred.
 
 ## Accepted hosted progress
 
@@ -74,11 +98,11 @@ checks match. Differences are SQL whitespace and advanced-stats column order.
 This is not final schema admission or permission to rerun 0001. Ledger baseline,
 production backup/hosted restore and all-writer hold remain pending.
 
-The preliminary snapshot conflict report found 26 source users/343 source flights,
+The fresh-source conflict report found 26 source users/343 source flights,
 3 target users/69 target flights, one email and username conflict, no user-ID
 conflicts, and 64 differing flight-ID conflicts. After the proposed identity map,
-there were zero matching date/origin/destination candidates. This is not a fresh
-source or final under-hold deduplication decision.
+there were zero matching date/origin/destination candidates. This is not the
+final under-hold deduplication decision.
 
 ## Private evidence and next action
 
@@ -86,11 +110,12 @@ Private evidence is retained in
 `~/Library/Application Support/Kuuki/next-release-20261006` (0700 directory,
 0600 files). It includes preview exports, full restoration and preservation
 comparisons, schema inventories, A1 code/output, deployment logs, new preview
-Better Auth secret and the private conflict report. Temporary working copies are
+Better Auth secret, the private conflict report and `source-review.json` recording
+the fresh-source verification. Temporary working copies are
 in `/tmp/kuuki-release-20261006`; the read-only conflict helper is ignored at
 `.scratch/legacy-cleanup/source-target-conflicts.ts`. Do not publish these files.
 
-Next: resolve the pending source/secret/mapping inputs; finish staging auth and
+Next: resolve the pending secret/replacement-scope inputs; finish staging auth and
 compatibility gates. Then enumerate and hold every production writer (including
 immutable Pages deployment URLs), re-read source/target conflicts, export and
 prove hosted restoration, baseline the ledger without running 0001, apply admitted
