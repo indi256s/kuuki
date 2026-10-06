@@ -174,8 +174,9 @@
   .ui-dialog[data-state=open],.ui-menu[data-state=open]{animation:ui-fade-in var(--dur-fast) linear}
   .ui-dialog[data-state=closed],.ui-menu[data-state=closed]{animation:ui-fade-out var(--dur-fast) linear forwards}
   .ui-sheet{transition:none}
-  .ui-sheet[data-state=open]{animation:ui-fade-in var(--dur-fast) linear}
-  .ui-sheet[data-state=closed]{animation:ui-fade-out var(--dur-fast) linear forwards}
+  /* [data-side] matches the slide rules' specificity, so the fade wins. */
+  .ui-sheet[data-side][data-state=open]{animation:ui-fade-in var(--dur-fast) linear}
+  .ui-sheet[data-side][data-state=closed]{animation:ui-fade-out var(--dur-fast) linear forwards}
   .ui-toast[data-state=open]{animation:ui-fade-in var(--dur-fast) linear}
   .ui-toast[data-state=closed]{animation:ui-fade-out var(--dur-fast) linear forwards}
   .ui-segmented[data-ready=true] .ui-segmented-thumb{transition:none}

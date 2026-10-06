@@ -1,6 +1,7 @@
 import { expect, it, vi, afterEach } from 'vitest'
 import { createApiDatabase } from './harness'
 import { createUserWithProfile } from '../api/_lib/users'
+import * as users from '../api/_lib/users'
 import { verifyPassword, sha256Hex } from '../api/_lib/crypto'
 import { createSession } from '../api/_lib/session'
 import { requestPasswordRecovery, completePasswordRecovery } from '../api/_lib/passwordRecovery'
@@ -90,6 +91,33 @@ it('returns identical public request responses and ignores caller supplied redir
     const invalid = await completePasswordReset(req('/api/auth/password-reset/complete', { password: 'new-password' }), env(db))
     expect(invalid.status).toBe(400)
   } finally { await dispose() }
+})
+
+it('answers known and unknown emails before the account-dependent lookup and send finish', async () => {
+  const { db, dispose } = await createApiDatabase()
+  let release!: () => void
+  const backgrounds: Promise<unknown>[] = []
+  try {
+    await createUserWithProfile(db, { email: 'active@example.test', password: 'old-password' }, SECRET)
+    const held = new Promise<void>(resolve => { release = resolve })
+    const getUser = users.getUserByEmail
+    vi.spyOn(users, 'getUserByEmail').mockImplementation(async (...args) => {
+      await held
+      return getUser(...args)
+    })
+    const send = vi.spyOn(globalThis, 'fetch').mockImplementation(async () => new Response(JSON.stringify({ success: true, errors: [], result: { delivered: [], queued: ['active@example.test'], permanent_bounces: [] } })))
+    for (const email of ['missing@example.test', 'active@example.test']) {
+      let response: Response | undefined
+      const pending = requestPasswordReset(req('/api/auth/password-reset/request', { email }), env(db), task => backgrounds.push(task)).then(value => { response = value; return value })
+      await vi.waitFor(() => expect(response?.status).toBe(200))
+      expect(await (await pending).json()).toEqual({ ok: true })
+    }
+    expect(send).not.toHaveBeenCalled()
+  } finally {
+    release?.()
+    await Promise.all(backgrounds)
+    await dispose()
+  }
 })
 
 it('cleans failed delivery and clears both cookie families after successful completion', async () => {
