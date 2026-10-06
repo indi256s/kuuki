@@ -1,5 +1,5 @@
 import { test, expect, type Page, type Route } from '@playwright/test'
-import { signIn } from './helpers'
+import { recordRouteTransitions, resetRouteTransitions, routeTransitions, signIn } from './helpers'
 
 // The fixture has no import binding, so these journeys run against a small stateful stand-in for the import
 // endpoints (batch, drafts, events, confirm). It is the server contract the client consumes, not the server.
@@ -239,4 +239,65 @@ test('duplicates sit at the end, collapsed and unselected, until the member save
   await expect.poll(() => server.patches.length).toBe(1)
   expect(server.patches[0].body).toMatchObject({ selected: true, duplicateAcknowledged: true })
   await expect(page.getByRole('button', { name: 'Import 3' })).toBeEnabled()
+})
+
+test.describe('Import done → Passport hero', () => {
+  /** The member's passport already has US; hide it from the pre-save baseline so the import presses it. */
+  const pressUs = async (page: Page, server: FakeImport) => {
+    await page.route('**/api/passport/countries', async route => {
+      if (server.confirms.length > 0) return route.continue()
+      const response = await route.fetch()
+      const body = await response.json() as { countries: Array<{ country_code: string }> }
+      await route.fulfill({ response, json: { ...body, countries: body.countries.filter(country => country.country_code !== 'US') } })
+    })
+  }
+  const importOne = async (page: Page, baseURL: string | undefined) => {
+    const server = await setup(page, baseURL)
+    await recordRouteTransitions(page)
+    await pressUs(page, server)
+    server.ready([row('d1')])
+    await page.goto(`/import?batch=${BATCH}`)
+    await page.getByRole('button', { name: 'Import 1' }).click()
+    await expect(page.locator('.import-stamp-grid [data-hero-exit-key="US"]')).toBeVisible()
+    await resetRouteTransitions(page)
+  }
+
+  for (const viewport of [{ width: 390, height: 844 }, { width: 1440, height: 900 }]) {
+    test(`carries the new stamp to its Passport stamp and focuses the Passport heading at ${viewport.width}px`, async ({ page, baseURL }) => {
+      await page.setViewportSize(viewport)
+      await importOne(page, baseURL)
+      await page.getByRole('link', { name: 'Open Passport' }).click()
+      await expect(page).toHaveURL(/\/passport$/)
+      await expect(page.getByRole('heading', { level: 1, name: 'Passport' })).toBeFocused()
+      await expect(page.locator('[data-hero-enter-key="US"]')).toBeVisible()
+      await expect.poll(() => page.evaluate(() => document.documentElement.dataset.routeTransition ?? null)).toBeNull()
+      expect(await routeTransitions(page)).toMatchObject({ markers: ['hero'], boundaries: 2 })
+      expect((await routeTransitions(page)).heroCopies).toBeGreaterThan(0)
+      await expect(page.locator('[data-ssgoi-transition]')).toHaveCount(1)
+    })
+  }
+
+  test('opens Passport without the hero when it has not finished loading', async ({ page, baseURL }) => {
+    // No prefetch, so Passport shows its loading screen first: there is no stamp to carry, and nothing may linger.
+    await page.route(/\/passport(\?|$)/, route => {
+      const headers = route.request().headers()
+      return headers['next-router-prefetch'] || headers['next-router-segment-prefetch'] ? route.abort() : route.continue()
+    })
+    await importOne(page, baseURL)
+    await page.getByRole('link', { name: 'Open Passport' }).click()
+    await expect(page.getByRole('heading', { level: 1, name: 'Passport' })).toBeFocused()
+    await expect(page.locator('[data-hero-enter-key="US"]')).toBeVisible()
+    await expect.poll(() => page.evaluate(() => document.documentElement.dataset.routeTransition ?? null)).toBeNull()
+    expect(await routeTransitions(page)).toMatchObject({ boundaries: 1, heroCopies: 0 })
+    await expect(page.locator('[inert]')).toHaveCount(0)
+  })
+
+  test('opens Passport instantly under reduced motion', async ({ page, baseURL }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' })
+    await importOne(page, baseURL)
+    await page.getByRole('link', { name: 'Open Passport' }).click()
+    await expect(page.getByRole('heading', { level: 1, name: 'Passport' })).toBeFocused()
+    await expect(page.locator('[data-ssgoi-transition]')).toHaveCount(1)
+    expect(await routeTransitions(page)).toMatchObject({ markers: [], heroCopies: 0 })
+  })
 })

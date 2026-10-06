@@ -52,3 +52,8 @@ a.ui-menu-item{color:inherit;text-decoration:none}
 }
 @media(max-width:360px){.tab{font-size:11px}}
 @media(prefers-reduced-motion:reduce){.tab-bar{transition:none}.split-add-main:active,.split-add-more:active{transform:none}}
+/* Route transitions (DESIGN.md "Motion"). The stage anchors the outgoing page. It layers and clips only while a transition runs, so focus rings and inline overlays are untouched otherwise. */
+.route-stage{position:relative}
+:root[data-route-transition] .route-stage{z-index:0;overflow-x:clip}
+/* The drill slides one page over the other, so the pages need the page background to hide what lies beneath. */
+:root[data-route-transition=drill] .route-stage>*{background:var(--background)}

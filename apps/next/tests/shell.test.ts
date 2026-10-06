@@ -49,7 +49,8 @@ test.describe('mobile shell at 390px', () => {
       await expect(sheet.locator('a[data-add-action]')).toHaveCount(3)
       await sheet.locator(`a[data-add-action="${id}"]`).click()
       await page.waitForURL(url => url.pathname === path && url.search === search)
-      await expect(page.getByRole('dialog')).toHaveCount(0)
+      // The Add sheet closes; /add opens its own capture dialog.
+      await expect(page.locator('a[data-add-action]')).toHaveCount(0)
     })
   }
 
