@@ -73,6 +73,8 @@ export function CountrySheet({ ownerId, locale, code: selected, entry, published
   const [removing, setRemoving] = useState(false)
   const menuTrigger = useRef<HTMLButtonElement | null>(null)
   const [shownCode, setShownCode] = useState(code)
+  const shownRef = useRef(code)
+  useEffect(() => { shownRef.current = code ?? shownRef.current }, [code])
   if (code && code !== shownCode) { setShownCode(code); setNotice(''); setError(''); setYear(''); setNote(''); setMethod('land') }
 
   const data = detail.data?.countryCode === code ? detail.data : undefined
@@ -186,9 +188,13 @@ export function CountrySheet({ ownerId, locale, code: selected, entry, published
           <form className="passport-form" onSubmit={event => {
             event.preventDefault()
             if (yearInvalid || busy) return
-            const added = !inPassport
+            const added = !inPassport; const submitted = { code: code!, year, note }
             void write(() => addGroundVisit(ownerId, code!, { visitYear: yearValue, entryMethod: method, note: note.trim() || null }), ru ? 'Визит добавлен.' : 'Visit added.', added)
-              .then(() => { setYear(''); setNote('') }, ignore)
+              .then(() => {
+                // Both fields stay editable during the save: clear only what is still the submitted text, on the submitted country.
+                if (shownRef.current !== submitted.code) return
+                setYear(current => current === submitted.year ? '' : current); setNote(current => current === submitted.note ? '' : current)
+              }, ignore)
           }}>
             <SegmentedControl label={ru ? 'Как вы въехали' : 'How you entered'} value={method} onChange={setMethod}
               options={[{ value: 'land', label: ru ? 'По суше' : 'By land' }, { value: 'sea', label: ru ? 'По морю' : 'By sea' }]} />

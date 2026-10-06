@@ -219,6 +219,71 @@ describe('CountrySheet freshness and failures', () => {
   })
 })
 
+describe('CountrySheet add-visit form during a save', () => {
+  const ack = { ok: true, derived_state: 'ready', revision: 4 }
+  const france = detail({ countryCode: 'FR' })
+  function Switchable({ client, code }: { client: QueryClient; code: string }) {
+    return <QueryClientProvider client={client}>
+      <CountrySheet ownerId="owner" locale="en" code={code} entry={undefined} publishedRevision={3} mobile={false} name={countryNamer('en')}
+        onClose={() => {}} onChanged={() => {}} onRemoved={() => {}} />
+    </QueryClientProvider>
+  }
+  function held() {
+    let release = () => {}
+    mocks.addVisit.mockReturnValue(new Promise(resolve => { release = () => resolve(ack) }))
+    return () => release()
+  }
+
+  it('clears Year and Note after a normal save', async () => {
+    const user = userEvent.setup()
+    mocks.addVisit.mockResolvedValue(ack)
+    mount(detail({}))
+    const dialog = await screen.findByRole('dialog', { name: 'Greece' })
+    await user.type(await within(dialog).findByRole('textbox', { name: /^Year/ }), '2020')
+    await user.type(within(dialog).getByRole('textbox', { name: /^Note/ }), 'Corfu')
+    await user.click(within(dialog).getByRole('button', { name: 'Add visit' }))
+    await waitFor(() => expect(within(dialog).getByRole('textbox', { name: /^Year/ })).toHaveValue(''))
+    expect(within(dialog).getByRole('textbox', { name: /^Note/ })).toHaveValue('')
+  })
+
+  it('keeps a Note typed while the save is in flight and clears the submitted Year', async () => {
+    const user = userEvent.setup()
+    const release = held()
+    mount(detail({}))
+    const dialog = await screen.findByRole('dialog', { name: 'Greece' })
+    await user.type(await within(dialog).findByRole('textbox', { name: /^Year/ }), '2020')
+    await user.type(within(dialog).getByRole('textbox', { name: /^Note/ }), 'Corfu')
+    await user.click(within(dialog).getByRole('button', { name: 'Add visit' }))
+    await waitFor(() => expect(mocks.addVisit).toHaveBeenCalledTimes(1))
+    await user.clear(within(dialog).getByRole('textbox', { name: /^Note/ }))
+    await user.type(within(dialog).getByRole('textbox', { name: /^Note/ }), 'Crete')
+    release()
+    await waitFor(() => expect(within(dialog).getByRole('textbox', { name: /^Year/ })).toHaveValue(''))
+    expect(within(dialog).getByRole('textbox', { name: /^Note/ })).toHaveValue('Crete')
+  })
+
+  it('keeps the draft of another country opened while the save is in flight', async () => {
+    const user = userEvent.setup()
+    mocks.get.mockImplementation(async (url: string) => url.includes('/FR/') ? france : detail({}))
+    const release = held()
+    const client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
+    const { rerender } = render(<Switchable client={client} code="GR" />)
+    const dialog = await screen.findByRole('dialog', { name: 'Greece' })
+    await user.type(await within(dialog).findByRole('textbox', { name: /^Year/ }), '2020')
+    await user.type(within(dialog).getByRole('textbox', { name: /^Note/ }), 'Corfu')
+    await user.click(within(dialog).getByRole('button', { name: 'Add visit' }))
+    await waitFor(() => expect(mocks.addVisit).toHaveBeenCalledTimes(1))
+    rerender(<Switchable client={client} code="FR" />)
+    const next = await screen.findByRole('dialog', { name: 'France' })
+    await user.type(await within(next).findByRole('textbox', { name: /^Year/ }), '2021')
+    await user.type(within(next).getByRole('textbox', { name: /^Note/ }), 'Paris')
+    release()
+    await waitFor(() => expect(mocks.acknowledge).toHaveBeenCalled())
+    expect(within(next).getByRole('textbox', { name: /^Year/ })).toHaveValue('2021')
+    expect(within(next).getByRole('textbox', { name: /^Note/ })).toHaveValue('Paris')
+  })
+})
+
 describe('CountrySheet in Russian', () => {
   it('names the close button of both destructive confirmations in Russian', async () => {
     const user = userEvent.setup()
