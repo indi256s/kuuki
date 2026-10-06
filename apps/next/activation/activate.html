@@ -17,7 +17,7 @@
     button,input,select{font:inherit;color:inherit}
     a,button,input,select{outline:none}
     a:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
-    h1:focus{outline:none}
+    h1:focus,h2:focus{outline:none}
     .defs{position:absolute}
 
     /* Wordmark: "Ku" in the accent text, "uki" in the text color. */
@@ -29,18 +29,26 @@
     .card{position:relative;display:flex;width:min(1040px,100%);min-height:620px;border:1px solid var(--hairline);border-radius:var(--radius-lg);background:var(--surface);overflow:clip}
     :root[data-theme=dark] .card{border-color:transparent;box-shadow:inset 0 1px 0 var(--surface-highlight)}
     .brand{position:relative;flex:0 0 min(420px,40%);display:flex;flex-direction:column;padding:40px;overflow:clip;background:var(--auth-brand-surface,var(--surface-inset))}
-    .brand-field{position:absolute;inset:0;pointer-events:none}
+    .brand-field{position:absolute;inset:0;pointer-events:none;--plane-cycle:60s}
     .kana{position:absolute;left:128px;top:86px;display:flex;flex-direction:column;align-items:center;margin:0;color:var(--accent);opacity:.1;font:700 164px/164px var(--font-kana)}
     :root[data-theme=dark] .kana{opacity:.13}
     .planes{position:absolute;left:0;top:0;fill:none;stroke:var(--accent);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-    .planes-mobile{display:none}
+    .planes-desktop{mask-image:radial-gradient(ellipse 100px 46px at 84px 58px,transparent 70%,var(--text))}
+    .planes-mobile{display:none;mask-image:radial-gradient(ellipse 90px 44px at 53px 41px,transparent 70%,var(--text))}
+    /* Same lap and speed as the card: start at the drawn position; wrap outside the field. */
+    @keyframes plane-drift{
+      from{transform:translate(calc(var(--plane-start)*400px),calc(var(--plane-start)*-800px))}
+      to{transform:translate(calc((var(--plane-start) + var(--plane-span))*400px),calc((var(--plane-start) + var(--plane-span))*-800px))}
+    }
+    .plane{animation:plane-drift calc(var(--plane-span)*var(--plane-cycle)) linear infinite;animation-delay:calc(var(--plane-start)*var(--plane-cycle));animation-play-state:running}
+    .brand-field:not([data-running=true]) .plane,.planes-mobile .plane{animation-play-state:paused}
     .plane-s{stroke-opacity:.22}.plane-m{stroke-opacity:.302}.plane-l{stroke-opacity:.4}
     :root[data-theme=dark] .plane-s{stroke-opacity:.278}:root[data-theme=dark] .plane-m{stroke-opacity:.38}:root[data-theme=dark] .plane-l{stroke-opacity:.502}
     .panel{position:relative;flex:1 1 0;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:96px clamp(24px,6vw,64px) 48px}
     .column{display:flex;flex-direction:column;width:min(360px,100%)}
     .state{display:flex;flex-direction:column;gap:28px}
 
-    /* Corner controls: language and the Horizon theme toggle, each at least 44x44. */
+    /* Corner controls: language, the Horizon theme toggle and help, each at least 44x44. */
     .corner{position:absolute;top:36px;right:28px;z-index:1;display:flex;align-items:center}
     .corner-control{position:relative;display:inline-flex;align-items:center;justify-content:center;gap:6px;min-width:44px;height:44px;padding:0;border:0;border-radius:var(--radius-sm);background:transparent;color:var(--text-muted);font-size:13px;line-height:20px;font-weight:500;cursor:pointer;transition:background-color var(--dur-fast) var(--ease-out)}
     .corner-language{padding-inline:12px}
@@ -52,6 +60,12 @@
     .horizon-sun{transition:transform 500ms cubic-bezier(0,0,.15,1)}
     :root[data-theme=dark] .horizon{translate:0 -4.5px}
     :root[data-theme=dark] .horizon-sun{transform:translateY(16px)}
+
+    .help-dialog{width:min(520px,calc(100vw - 32px));max-height:min(calc(100dvh - 48px),680px);padding:24px;border:0;border-radius:var(--radius-lg);background:var(--surface-floating);color:var(--text);box-shadow:var(--shadow-modal),var(--ring-floating)}
+    .help-dialog::backdrop{background:var(--scrim)}
+    .help-header{display:flex;align-items:center;justify-content:space-between;gap:16px}
+    .help-header h2{margin:0;font-size:22px;line-height:28px}
+    .help-dialog p{margin:16px 0 0}
 
     /* Heading, field and actions (boards 2.3 and 2.4). */
     .heading{display:flex;flex-direction:column;gap:6px}
@@ -83,6 +97,7 @@
     @media(prefers-reduced-motion:reduce){
       .corner-control,.reveal,.primary,.horizon,.horizon-sun{transition:none}
       .primary:active:not([aria-disabled=true]){transform:none}
+      .plane{animation:none}
     }
 
     /* Mobile: brand band above a bottom sheet (boards 3.2 and 3.3). */
@@ -94,6 +109,8 @@
       .wordmark{font-size:28px}
       .kana{left:0;right:0;top:125px;flex-direction:row;justify-content:center;font-size:104px;line-height:104px;letter-spacing:.04em}
       .planes-desktop{display:none}
+      .planes-desktop .plane{animation-play-state:paused}
+      .brand-field[data-running=true] .planes-mobile .plane{animation-play-state:running}
       .planes-mobile{display:block;left:50%;top:-15px;margin-left:-195px}
       .corner{top:4px;right:6px}
       .panel{flex:1 0 auto;padding:28px 20px 46px;border-radius:var(--radius-lg) var(--radius-lg) 0 0;background:var(--surface);box-shadow:var(--auth-sheet-edge,0 -1px 0 var(--hairline))}
@@ -117,7 +134,7 @@
     <div class="brand">
       <div class="brand-field" aria-hidden="true">
         <p class="kana"><span>く</span><span>う</span><span>き</span></p>
-        <!-- Frozen plane field (the boards' reduced-motion frame): 30 planes on desktop, 14 in the mobile band. -->
+        <!-- Plane field: 30 planes on desktop, 14 in the mobile band; reduced motion keeps this drawn frame. -->
         <svg class="planes planes-desktop" width="420" height="620" viewBox="0 0 420 620"><use href="#plane" class="plane-s" transform="translate(29 245) rotate(-18.4) scale(.5) translate(-12 -12)"/><use href="#plane" class="plane-m" transform="translate(45 325) rotate(-18.4) scale(.67) translate(-12 -12)"/><use href="#plane" class="plane-m" transform="translate(43 377) rotate(-18.4) scale(.67) translate(-12 -12)"/><use href="#plane" class="plane-l" transform="translate(73 208) rotate(-18.4) scale(.92) translate(-12 -12)"/><use href="#plane" class="plane-s" transform="translate(85 440) rotate(-18.4) scale(.5) translate(-12 -12)"/><use href="#plane" class="plane-m" transform="translate(96 575) rotate(-18.4) scale(.67) translate(-12 -12)"/><use href="#plane" class="plane-m" transform="translate(99 118) rotate(-18.4) scale(.67) translate(-12 -12)"/><use href="#plane" class="plane-s" transform="translate(122 575) rotate(-18.4) scale(.5) translate(-12 -12)"/><use href="#plane" class="plane-m" transform="translate(133 605) rotate(-18.4) scale(.67) translate(-12 -12)"/><use href="#plane" class="plane-m" transform="translate(148 272) rotate(-18.4) scale(.67) translate(-12 -12)"/><use href="#plane" class="plane-l" transform="translate(150 380) rotate(-18.4) scale(.92) translate(-12 -12)"/><use href="#plane" class="plane-m" transform="translate(158 577) rotate(-18.4) scale(.67) translate(-12 -12)"/><use href="#plane" class="plane-l" transform="translate(187 226) rotate(-18.4) scale(.92) translate(-12 -12)"/><use href="#plane" class="plane-m" transform="translate(201 21) rotate(-18.4) scale(.67) translate(-12 -12)"/><use href="#plane" class="plane-l" transform="translate(210 576) rotate(-18.4) scale(.92) translate(-12 -12)"/><use href="#plane" class="plane-s" transform="translate(221 417) rotate(-18.4) scale(.5) translate(-12 -12)"/><use href="#plane" class="plane-s" transform="translate(233 519) rotate(-18.4) scale(.5) translate(-12 -12)"/><use href="#plane" class="plane-s" transform="translate(244 563) rotate(-18.4) scale(.5) translate(-12 -12)"/><use href="#plane" class="plane-m" transform="translate(268 269) rotate(-18.4) scale(.67) translate(-12 -12)"/><use href="#plane" class="plane-s" transform="translate(278 317) rotate(-18.4) scale(.5) translate(-12 -12)"/><use href="#plane" class="plane-s" transform="translate(279 48) rotate(-18.4) scale(.5) translate(-12 -12)"/><use href="#plane" class="plane-l" transform="translate(289 504) rotate(-18.4) scale(.92) translate(-12 -12)"/><use href="#plane" class="plane-l" transform="translate(303 225) rotate(-18.4) scale(.92) translate(-12 -12)"/><use href="#plane" class="plane-l" transform="translate(325 240) rotate(-18.4) scale(.92) translate(-12 -12)"/><use href="#plane" class="plane-s" transform="translate(336 82) rotate(-18.4) scale(.5) translate(-12 -12)"/><use href="#plane" class="plane-l" transform="translate(347 122) rotate(-18.4) scale(.92) translate(-12 -12)"/><use href="#plane" class="plane-s" transform="translate(364 342) rotate(-18.4) scale(.5) translate(-12 -12)"/><use href="#plane" class="plane-s" transform="translate(384 78) rotate(-18.4) scale(.5) translate(-12 -12)"/><use href="#plane" class="plane-m" transform="translate(398 602) rotate(-18.4) scale(.67) translate(-12 -12)"/><use href="#plane" class="plane-s" transform="translate(17 351) rotate(-18.4) scale(.5) translate(-12 -12)"/></svg>
         <svg class="planes planes-mobile" width="390" height="264" viewBox="0 0 390 264"><use href="#plane" class="plane-s" transform="translate(199 194) rotate(-18.4) scale(.5) translate(-12 -12)"/><use href="#plane" class="plane-m" transform="translate(323 195) rotate(-18.4) scale(.67) translate(-12 -12)"/><use href="#plane" class="plane-l" transform="translate(41 194) rotate(-18.4) scale(.92) translate(-12 -12)"/><use href="#plane" class="plane-s" transform="translate(188 233) rotate(-18.4) scale(.5) translate(-12 -12)"/><use href="#plane" class="plane-m" transform="translate(261 148) rotate(-18.4) scale(.67) translate(-12 -12)"/><use href="#plane" class="plane-l" transform="translate(77 162) rotate(-18.4) scale(.92) translate(-12 -12)"/><use href="#plane" class="plane-s" transform="translate(157 175) rotate(-18.4) scale(.5) translate(-12 -12)"/><use href="#plane" class="plane-m" transform="translate(128 205) rotate(-18.4) scale(.67) translate(-12 -12)"/><use href="#plane" class="plane-l" transform="translate(104 135) rotate(-18.4) scale(.92) translate(-12 -12)"/><use href="#plane" class="plane-s" transform="translate(283 249) rotate(-18.4) scale(.5) translate(-12 -12)"/><use href="#plane" class="plane-m" transform="translate(321 146) rotate(-18.4) scale(.67) translate(-12 -12)"/><use href="#plane" class="plane-l" transform="translate(153 131) rotate(-18.4) scale(.92) translate(-12 -12)"/><use href="#plane" class="plane-s" transform="translate(40 232) rotate(-18.4) scale(.5) translate(-12 -12)"/><use href="#plane" class="plane-m" transform="translate(372 181) rotate(-18.4) scale(.67) translate(-12 -12)"/></svg>
       </div>
@@ -135,6 +152,9 @@
           <path d="M30.7 29.9H1.3c-.7 0-1.3.5-1.3 1.1 0 .6.6 1 1.3 1h29.3c.7 0 1.3-.5 1.3-1.1.1-.5-.5-1-1.2-1z"/>
           <g clip-path="url(#horizon-clip)"><path class="horizon-sun" d="M16 8.8c-3.4 0-6.1 2.8-6.1 6.1s2.7 6.3 6.1 6.3 6.1-2.8 6.1-6.1-2.7-6.3-6.1-6.3zm13.3 11L26 15l3.3-4.8c.3-.5.1-1.1-.5-1.2l-5.7-1-1-5.7c-.1-.6-.8-.8-1.2-.5L16 5.1l-4.8-3.3c-.5-.4-1.2-.1-1.3.4L8.9 8 3.2 9c-.6.1-.8.8-.5 1.2L6 15l-3.3 4.8c-.3.5-.1 1.1.5 1.2l5.7 1 1 5.7c.1.6.8.8 1.2.5L16 25l4.8 3.3c.5.3 1.1.1 1.2-.5l1-5.7 5.7-1c.7-.1.9-.8.6-1.3zM16 22.5A7.6 7.6 0 0 1 8.3 15c0-4.2 3.5-7.5 7.7-7.5s7.7 3.4 7.7 7.5c0 4.2-3.4 7.5-7.7 7.5z"/></g>
         </svg>
+      </button>
+      <button id="help" class="corner-control" type="button" aria-label="Help" data-i18n-label="help">
+        <svg class="icon" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>
       </button>
     </div>
     <main class="panel"><div class="column">
@@ -173,5 +193,11 @@
       <noscript><p>Enable JavaScript to set your password. / Включите JavaScript, чтобы задать пароль.</p></noscript>
     </div></main>
   </div></div>
+  <dialog id="help-dialog" class="help-dialog" aria-labelledby="help-title">
+    <div class="help-header"><h2 id="help-title" tabindex="-1" data-i18n="about">About Kuuki</h2><button id="help-close" class="corner-control" type="button" aria-label="Close" data-i18n-label="close"><svg class="icon" width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path d="m18 6-12 12M6 6l12 12"/></svg></button></div>
+    <p data-i18n="helpIntro">Kuuki is a private flight journal.</p>
+    <p data-i18n="helpBody">Sign in with your email and password, or use a new email to start your journal. Your flights stay private until you share them.</p>
+    <p data-i18n="helpRecovery">Can’t sign in? Use the link next to Password.</p>
+  </dialog>
 </body>
 </html>

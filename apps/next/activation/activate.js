@@ -11,6 +11,9 @@ const words = {
     short: 'Use at least 8 characters.', limited: 'Too many attempts. Please wait and try again.', network: 'Could not save your password. Please try again.',
     expiredTitle: 'This link has expired', expiredHeading: 'This link has expired', expiredDescription: 'Links work once, for 30 minutes.',
     resend: 'Send a new link', signin: 'Back to sign in', language: 'Language', darkTheme: 'Dark theme',
+    help: 'Help', close: 'Close', about: 'About Kuuki', helpIntro: 'Kuuki is a private flight journal.',
+    helpBody: 'Sign in with your email and password, or use a new email to start your journal. Your flights stay private until you share them.',
+    helpRecovery: 'Can’t sign in? Use the link next to Password.',
   },
   ru: {
     title: 'С возвращением в Kuuki', heading: 'С возвращением в Kuuki', description: 'Kuuki переехал. Задайте пароль, чтобы открыть журнал. Все ваши перелёты на месте.',
@@ -18,6 +21,9 @@ const words = {
     short: 'Используйте не меньше 8 символов.', limited: 'Слишком много попыток. Подождите и повторите.', network: 'Не удалось сохранить пароль. Повторите попытку.',
     expiredTitle: 'Срок действия ссылки истёк', expiredHeading: 'Срок действия ссылки истёк', expiredDescription: 'Ссылка работает один раз в течение 30 минут.',
     resend: 'Отправить новую ссылку', signin: 'Назад ко входу', language: 'Язык', darkTheme: 'Тёмная тема',
+    help: 'Помощь', close: 'Закрыть', about: 'О Kuuki', helpIntro: 'Kuuki — личный журнал перелётов.',
+    helpBody: 'Войдите с почтой и паролем или укажите новую почту, чтобы начать журнал. Перелёты видны только вам, пока вы ими не поделитесь.',
+    helpRecovery: 'Не получается войти? Нажмите ссылку рядом с полем «Пароль».',
   },
 }
 const accents = ['terracotta', 'ai', 'matcha', 'asagi', 'sakura']
@@ -80,6 +86,34 @@ function setup() {
     render()
     $('expired-heading').focus()
   }
+
+  const help = $('help-dialog')
+  $('help').addEventListener('click', () => { help.showModal(); $('help-title').focus() })
+  $('help-close').addEventListener('click', () => help.close())
+  help.addEventListener('close', () => $('help').focus())
+
+  // Reuse the card's lap calculation; SVG placement stays unchanged under reduced motion.
+  document.querySelectorAll('.planes').forEach(svg => {
+    const width = Number(svg.getAttribute('width'))
+    const height = Number(svg.getAttribute('height'))
+    svg.querySelectorAll('use').forEach(plane => {
+      const [, x, y] = plane.getAttribute('transform').match(/^translate\((\d+) (\d+)\)/).map(Number)
+      const enter = Math.max((-16 - x) / 400, (y - height - 16) / 800)
+      const leave = Math.min((width + 16 - x) / 400, (y + 16) / 800)
+      const lap = document.createElementNS('http://www.w3.org/2000/svg', 'g')
+      lap.classList.add('plane')
+      lap.style.setProperty('--plane-start', String(Math.round((enter - .01) * 1e4) / 1e4))
+      lap.style.setProperty('--plane-span', String(Math.round((leave - enter + .02) * 1e4) / 1e4))
+      plane.replaceWith(lap)
+      lap.append(plane)
+    })
+  })
+  const field = document.querySelector('.brand-field')
+  let onScreen = false
+  const syncPlanes = () => { field.dataset.running = String(onScreen && !document.hidden) }
+  const observer = new IntersectionObserver(entries => { onScreen = entries[entries.length - 1].isIntersecting; syncPlanes() })
+  observer.observe(field)
+  document.addEventListener('visibilitychange', syncPlanes)
 
   $('locale').addEventListener('change', event => { locale = event.target.value === 'ru' ? 'ru' : 'en'; writeCookie('kuuki_locale', locale); render() })
   $('theme-toggle').addEventListener('click', () => { theme = root.dataset.theme === 'dark' ? 'light' : 'dark'; writeCookie('kuuki_theme', theme); applyTheme() })

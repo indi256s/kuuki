@@ -223,6 +223,7 @@ test('recovery keeps rate/network retries distinct and returns a successful rese
 })
 
 test('activation page keeps isolation, erases the fragment and sends a saved password to the main-origin notice', async ({ page, baseURL }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' })
   // An expired or reused link: the page opens on Link expired with main-origin ways back.
   await page.goto('/activate')
   await expect(page.getByRole('heading', { level: 1, name: 'This link has expired' })).toBeVisible()
@@ -243,6 +244,24 @@ test('activation page keeps isolation, erases the fragment and sends a saved pas
   await expect(page.getByRole('img', { name: 'Kuuki' })).toBeVisible()
   await expect(page.getByRole('heading', { level: 1, name: 'Welcome back to Kuuki' })).toBeVisible()
   await expect(page.locator('input[autocomplete="username"]')).toBeHidden()
+  const help = page.getByRole('button', { name: 'Help', exact: true })
+  await help.focus()
+  await help.press('Enter')
+  const dialog = page.getByRole('dialog', { name: 'About Kuuki' })
+  await expect(dialog).toBeVisible()
+  await expect(dialog.getByRole('heading', { name: 'About Kuuki' })).toBeFocused()
+  await expect(dialog).toContainText('Kuuki is a private flight journal.')
+  await page.keyboard.press('Tab')
+  await expect(dialog.getByRole('button', { name: 'Close', exact: true })).toBeFocused()
+  await page.keyboard.press('Escape')
+  await expect(dialog).toBeHidden()
+  await expect(help).toBeFocused()
+  const planes = page.locator('.planes:visible .plane')
+  expect(await planes.count()).toBe(page.viewportSize()!.width <= 700 ? 14 : 30)
+  expect(await planes.evaluateAll(elements => elements.every(element => {
+    const style = getComputedStyle(element)
+    return style.animationName === 'none' && style.transform === 'none'
+  }))).toBe(true)
   await page.getByLabel('New password', { exact: true }).fill('personal-password')
   await page.getByRole('button', { name: 'Save password' }).click()
   await expect(page.locator('main').getByRole('alert')).toContainText('Too many attempts.')

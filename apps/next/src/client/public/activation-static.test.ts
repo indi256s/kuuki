@@ -9,6 +9,7 @@ const asset = resolve(process.cwd(), 'activation')
 const html = readFileSync(resolve(asset, 'activate.html'), 'utf8')
 const script = readFileSync(resolve(asset, 'activate.js'), 'utf8')
 const request = vi.fn()
+let intersect: IntersectionObserverCallback
 function boot(token = true, dark = false) {
   const parsed = new DOMParser().parseFromString(html, 'text/html')
   document.head.innerHTML = parsed.head.innerHTML
@@ -16,6 +17,16 @@ function boot(token = true, dark = false) {
   history.replaceState(null, '', `/activate${token ? `#token=${'A'.repeat(43)}` : ''}`)
   vi.stubGlobal('fetch', request)
   vi.stubGlobal('matchMedia', vi.fn(() => ({ matches: dark, addEventListener: vi.fn() })))
+  vi.stubGlobal('IntersectionObserver', class {
+    constructor(callback: IntersectionObserverCallback) { intersect = callback }
+    observe() {}
+  })
+  // jsdom has no native modal implementation; only adapt its open/close lifecycle. Focus comes from the page script.
+  const dialog = document.querySelector('dialog')
+  if (dialog) {
+    dialog.showModal = () => { dialog.open = true }
+    dialog.close = () => { dialog.open = false; dialog.dispatchEvent(new Event('close')) }
+  }
   window.eval(script)
   document.dispatchEvent(new Event('DOMContentLoaded'))
 }
@@ -26,7 +37,7 @@ async function submit(value = 'personal-password') {
   await waitFor(() => expect(request).toHaveBeenCalled())
 }
 afterEach(() => {
-  request.mockReset(); vi.unstubAllGlobals(); document.head.innerHTML = ''; document.body.innerHTML = ''
+  request.mockReset(); vi.restoreAllMocks(); vi.unstubAllGlobals(); document.head.innerHTML = ''; document.body.innerHTML = ''
   for (const name of ['kuuki_locale', 'kuuki_theme', 'kuuki_accent']) document.cookie = `${name}=; Max-Age=0; Path=/`
 })
 
@@ -130,4 +141,57 @@ it('follows the device theme until the Horizon toggle sets the opposite theme, a
   expect(root.dataset.theme).toBe('light')
   expect(toggle).toHaveAttribute('aria-pressed', 'false')
   expect(document.cookie).toContain('kuuki_theme=light')
+})
+
+it('opens localised help, focuses its heading and returns focus to its trigger without changing recovery state', () => {
+  boot()
+  const help = screen.getByRole('button', { name: 'Help' })
+  fireEvent.click(help)
+  const dialog = screen.getByRole('dialog', { name: 'About Kuuki' })
+  expect(screen.getByRole('heading', { name: 'About Kuuki' })).toHaveFocus()
+  expect(dialog).toHaveTextContent('Kuuki is a private flight journal.')
+  expect(dialog).toHaveTextContent('Can’t sign in? Use the link next to Password.')
+  fireEvent.click(screen.getByRole('button', { name: 'Close' }))
+  expect(screen.queryByRole('dialog')).toBeNull()
+  expect(help).toHaveFocus()
+  fireEvent.change(screen.getByRole('combobox', { name: 'Language' }), { target: { value: 'ru' } })
+  fireEvent.click(screen.getByRole('button', { name: 'Помощь' }))
+  expect(screen.getByRole('dialog', { name: 'О Kuuki' })).toHaveTextContent('Kuuki — личный журнал перелётов.')
+  expect(screen.getByRole('heading', { name: 'О Kuuki' })).toHaveFocus()
+  fireEvent.click(screen.getByRole('button', { name: 'Закрыть' }))
+  expect(screen.getByRole('button', { name: 'Помощь' })).toHaveFocus()
+  expect(screen.getByRole('heading', { name: 'С возвращением в Kuuki' })).toBeInTheDocument()
+  expect(request).not.toHaveBeenCalled()
+})
+
+it('runs the plane field only while it is on screen and the page is visible', () => {
+  boot()
+  const plane = document.querySelector('.planes-desktop .plane')!
+  // Every lap begins and ends out of sight, and passes through its unchanged drawn position.
+  for (const svg of document.querySelectorAll('.planes')) {
+    const width = Number(svg.getAttribute('width')), height = Number(svg.getAttribute('height'))
+    for (const lap of svg.querySelectorAll<SVGGElement>('.plane')) {
+      const [, x, y] = lap.querySelector('use')!.getAttribute('transform')!.match(/^translate\((\d+) (\d+)\)/)!.map(Number)
+      const start = Number(lap.style.getPropertyValue('--plane-start'))
+      const end = start + Number(lap.style.getPropertyValue('--plane-span'))
+      const outside = (position: number) => x + position * 400 < -16 || x + position * 400 > width + 16 || y - position * 800 < -16 || y - position * 800 > height + 16
+      expect(start).toBeLessThan(0)
+      expect(end).toBeGreaterThan(0)
+      expect(outside(start)).toBe(true)
+      expect(outside(end)).toBe(true)
+    }
+  }
+  const visibility = vi.spyOn(document, 'hidden', 'get').mockReturnValue(false)
+  const onScreen = (isIntersecting: boolean) => intersect([{ isIntersecting } as IntersectionObserverEntry], {} as IntersectionObserver)
+  expect(getComputedStyle(plane).animationPlayState).toBe('paused')
+  onScreen(true)
+  expect(getComputedStyle(plane).animationPlayState).toBe('running')
+  visibility.mockReturnValue(true)
+  document.dispatchEvent(new Event('visibilitychange'))
+  expect(getComputedStyle(plane).animationPlayState).toBe('paused')
+  visibility.mockReturnValue(false)
+  document.dispatchEvent(new Event('visibilitychange'))
+  expect(getComputedStyle(plane).animationPlayState).toBe('running')
+  onScreen(false)
+  expect(getComputedStyle(plane).animationPlayState).toBe('paused')
 })
