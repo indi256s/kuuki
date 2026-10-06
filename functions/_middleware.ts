@@ -28,7 +28,7 @@ async function handleRequest(request: Request, env: Env, data: RequestData, next
   if (hasBetterAuthCookie(request)) {
     return runHandler(async () => {
       // Session replacement routes own cookie writes and must not renew an old identity.
-      if (['/api/auth/signin', '/api/auth/signup', '/api/auth/signout', '/api/auth/sign-in/email', '/api/auth/sign-up/email', '/api/auth/sign-out', '/api/auth/get-session'].includes(url.pathname)) return next()
+      if (['/api/auth/signin', '/api/auth/continue', '/api/auth/signup', '/api/auth/signout', '/api/auth/sign-in/email', '/api/auth/sign-up/email', '/api/auth/sign-out', '/api/auth/get-session'].includes(url.pathname)) return next()
       const authResponse = await createAuth(env).api.getSession({ headers: request.headers, asResponse: true })
       if (!authResponse.ok) return authResponse
       const session = await authResponse.json() as { user: { id: string; email: string } } | null
