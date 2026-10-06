@@ -6,7 +6,6 @@ node_modules/
 dist/
 .next/
 .open-next/
-dist-legacy/
 .turbo/
 *.tsbuildinfo
 

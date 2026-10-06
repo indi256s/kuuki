@@ -54,7 +54,7 @@ test('fresh documents, RSC and API reads isolate account data without response c
   await expect(page.getByTestId('overview-flights')).toHaveCount(0) // the sample preview never carries the real figure
 })
 
-test('API misses and legacy asset misses never return app HTML', async ({ request }) => {
+test('API misses return JSON and unsupported methods return 405', async ({ request }) => {
   for (const path of ['/api', '/api/no-such-route']) {
     const response = await request.get(path)
     expect(response.status()).toBe(404)
@@ -63,9 +63,7 @@ test('API misses and legacy asset misses never return app HTML', async ({ reques
   const method = await request.get('/api/flights/aircraft-batch')
   expect(method.status()).toBe(405)
   expect(method.headers()['allow']).toBe('POST')
-  const asset = await request.get('/legacy/assets/missing.js')
-  expect(asset.status()).toBe(404)
-  expect(asset.headers()['content-type']).not.toContain('text/html')
+
 })
 
 test('guest read routes settle at sign-in', async ({ page }) => {
@@ -189,8 +187,10 @@ test.describe('entry behavior', () => {
 
 test.describe('titles, focus and not-found', () => {
   test('unknown routes show a localized not-found page', async ({ page, context, baseURL }) => {
-    const response = await page.goto('/no-such-page')
-    expect(response?.status()).toBe(404)
+    for (const path of ['/no-such-page', '/legacy/flights']) {
+      const response = await page.goto(path)
+      expect(response?.status(), path).toBe(404)
+    }
     await expect(page.locator('main h1')).toHaveText('Page not found')
     await expect(page).toHaveTitle('Page not found · Kuuki')
     await context.addCookies([{ name: 'kuuki_locale', value: 'ru', url: baseURL! }])

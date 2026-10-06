@@ -38,8 +38,7 @@ jobs:
       - name: Check api-routes.generated.ts is current (run node scripts/build-next.mjs --inventory-only and commit the file)
         run: node scripts/build-next.mjs --inventory-only && git diff --exit-code apps/next/api-routes.generated.ts
       - run: pnpm --filter @kuuki/next test
-      - run: pnpm --filter @kuuki/web test:run
-      - run: node --test scripts/check-preview-config.test.mjs
+      - run: node --test scripts/check-preview-config.test.mjs scripts/dependency-patches.test.mjs
       - run: pnpm exec tsx scripts/map-geometry.test.ts
       - run: node scripts/check-preview-config.mjs --config apps/next/wrangler.toml --maintenance-config workers/maintenance/wrangler.toml
       - run: WRANGLER_SEND_METRICS=false pnpm build:import
@@ -73,8 +72,6 @@ jobs:
       - run: pnpm turbo run build --filter='./packages/*'
       - run: pnpm next:build
       - run: pnpm --filter @kuuki/next typecheck:worker
-      # The PWA upgrade journey serves the standalone Vite build.
-      - run: pnpm --filter @kuuki/web build
       - id: playwright
         run: echo "version=$(node -p "require('./apps/next/node_modules/@playwright/test/package.json').version")" >> "$GITHUB_OUTPUT"
       - uses: actions/cache@v4

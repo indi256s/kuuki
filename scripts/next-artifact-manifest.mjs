@@ -14,7 +14,6 @@ const freeAssetCountLimit = 20_000
 const paidAssetCountLimit = 100_000
 const required = [
   'apps/next/.open-next/worker.js',
-  'apps/next/.open-next/assets/legacy/index.html',
   'apps/next/.open-next/assets/BUILD_ID',
   'apps/next/.next/required-server-files.json',
   'apps/next/.next/BUILD_ID',
@@ -22,11 +21,10 @@ const required = [
   'apps/next/wrangler.toml', 'apps/next/next.config.ts', 'apps/next/open-next.config.ts', 'apps/next/worker.ts',
   'wrangler.toml', 'workers/maintenance/wrangler.toml',
   'package.json', 'apps/next/package.json', 'pnpm-lock.yaml', 'scripts/build-next.mjs',
-  'scripts/next-artifact-manifest.mjs', 'scripts/rehearse-next-rollback.ts',
+  'scripts/next-artifact-manifest.mjs',
 ]
 const directories = [
   '.wrangler/next-build', '.wrangler/functions-build', 'apps/next/.open-next/assets',
-  'apps/web/dist-legacy', 'apps/web/dist',
   'workers/maintenance/.wrangler/maintenance-build',
 ]
 for (const path of [...required, ...directories]) if (!existsSync(join(root, path))) throw new Error(`Missing candidate input: ${path}`)
@@ -88,7 +86,7 @@ if (version.next !== appPackage.dependencies.next || version.openNext !== appPac
 }
 const sourceSha = process.env.GITHUB_SHA || execFileSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8' }).trim()
 const sha256 = data => createHash('sha256').update(data).digest('hex')
-const trackedPatch = execFileSync('git', ['diff', '--binary', 'HEAD'], { cwd: root })
+const trackedPatch = execFileSync('git', ['diff', '--binary', 'HEAD'], { cwd: root, maxBuffer: 16 * 1024 * 1024 })
 const untracked = execFileSync('git', ['ls-files', '--others', '--exclude-standard', '-z'], { cwd: root, encoding: 'utf8' })
   .split('\0').filter(Boolean).sort().map(path => ({ path, sha256: sha256(readFileSync(join(root, path))) }))
 const sourceIdentity = {
@@ -121,8 +119,6 @@ const manifest = {
     largestStaticAssetBytes: assets.reduce((largest, asset) => Math.max(largest, asset.bytes), 0),
     compiledPagesApiBytes: bytesUnder('.wrangler/functions-build/'),
     compiledMaintenanceBytes: bytesUnder('workers/maintenance/.wrangler/maintenance-build/'),
-    legacyFallbackBytes: bytesUnder('apps/web/dist-legacy/'),
-    rootViteRollbackBytes: bytesUnder('apps/web/dist/'),
     exceedsFreeAssetCount: assets.length > freeAssetCountLimit,
   },
   files: entries,

@@ -1,5 +1,10 @@
 # Next release candidate — 4 October 2026
 
+> Historical candidate record. The Next app now serves production, and the Vite
+> source has been retired. Use [deploy-kuuki](../skills/deploy-kuuki/SKILL.md)
+> for current releases and rollback. The commands and Vite comparisons below
+> document the 4 October candidate; they are not the current build procedure.
+
 This runbook covers the locally implemented architecture slice. The user selected
 Cloudflare with standard React streaming and deferred Instant Navigation. Both
 `cacheComponents` and `partialPrefetching` are false. Private reads are request-local
@@ -53,7 +58,7 @@ database/provider swap and Supabase retirement remain separate conditional work.
 Default Worker placement and authoritative D1 reads are retained. No D1 Sessions
 or bookmark-based replica freshness claim is made.
 
-## Local verification and identity
+## Historical local verification and identity
 
 Raw logs and the chronological execution ledger are in
 `/tmp/plan-execution/kuuki-20261004/`. W1–W4 checks include 92 API tests, 58 client
@@ -131,7 +136,7 @@ asset admission negatives were checked in disposable local fixtures. Source and
 artifact identities are preserved in that directory after the final document
 freeze, without committing or pushing the checkout.
 
-## Local rollback rehearsal
+## Historical local rollback rehearsal
 
 The compiled Pages workerd smoke exercises the retained API transport separately.
 The rollback harness also runs compiled Next, Pages and maintenance Workers
@@ -212,7 +217,7 @@ The operator and application owner must record the accepted thresholds and
 observation window before rollout. Detailed map/provider experiments are
 conditional on a measured deficit and an approved cost/retention envelope.
 
-## External gates still held
+## Historical external gates
 
 1. Re-read live source/target/configuration and deployment identities. Static D1
    ID comparison does not establish deployed isolation. Preserve all safeguards
@@ -236,18 +241,13 @@ conditional on a measured deficit and an approved cost/retention envelope.
 6. Instant Navigation and new lifecycle/transit/auto-confirm/undo remain named
    deferred requirements. Full Redesign 2.0 and production release are incomplete.
 
-## Legacy retirement boundary
+## Subsequent retirement
 
-The Vite rollback app is retained. Cleanup of unreachable files does not accept
-hosted cutover or authorize API, schema, session or worktree deletion. Retirement
-requires a separately approved release decision with hosted Next acceptance,
-backup/restore evidence and a replacement rollback path under the existing
-[remediation release gates](audit-remediation-release.md). Confirm external API
-usage and the actual legacy-session cutover plus TTL before removing transports
-or cookie compatibility. There is no calendar deadline established here.
-
-Shared browser transports live in private `@kuuki/client`; neither frontend
-imports the other's source. Supabase-generated profile/auth types remain in Vite
-until that retained surface has an accepted replacement. Historical migrations,
-seed files and local redesign ledgers are preservation evidence, not cleanup
-instructions; do not execute destructive seed preambles or discard those ledgers.
+The Vite source and its local rollback rehearsal were retired after this
+candidate. That source change did not remove the separately hosted, held Pages
+deployment recorded in the [6 October release handoff](../plans/2026-10-06-next-release-handoff.md).
+Current Worker rollback uses a previous healthy Worker version; an emergency
+route removal depends on verifying the hosted Pages maintenance hold first, as
+the [deploy procedure](../skills/deploy-kuuki/SKILL.md) explains. External API,
+legacy-session and database compatibility are separate decisions. Historical
+migrations, seed files and release evidence remain preservation records.

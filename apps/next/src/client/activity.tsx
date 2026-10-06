@@ -141,8 +141,7 @@ export function ActivityBridge() {
   const router = useRouter()
   useEffect(() => {
     // Ask an installed root-scope legacy worker to pick up its retirement script.
-    // The old worker may have served this first document; rollout must stage that
-    // retirement while Vite is still live before routing users here.
+    // Keep updating old installations until their root registration is retired.
     void navigator.serviceWorker?.getRegistration('/')?.then(registration => registration?.update()).catch(() => {})
     let active = true
     let checking = false

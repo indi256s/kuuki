@@ -266,7 +266,7 @@ describe('data volumes', () => {
     } finally { await dispose() }
   })
 
-  it('applies obsolete filters only for the legacy Vite caller and keeps the new fields coherent with them', async () => {
+  it('keeps compatibility filters distinct from the period-only Overview contract', async () => {
     const { db, dispose } = await overviewAccount([
       logged(1, '2025-01-01', 'TBS', 'IST', { airline: 'TK' }), logged(2, '2025-02-01', 'IST', 'JFK', { airline: 'PC' }),
     ])

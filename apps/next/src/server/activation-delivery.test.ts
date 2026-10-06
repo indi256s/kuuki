@@ -22,7 +22,7 @@ afterEach(() => vi.unstubAllGlobals())
 
 it('serves activation aliases with configured main-origin links and unchanged isolation headers', async () => {
   vi.stubGlobal('HTMLRewriter', Rewriter)
-  const html = compileActivationAsset(readFileSync(resolve(process.cwd(), '../web/public/activate.html'), 'utf8'), readFileSync(resolve(process.cwd(), 'src/app/styles.css'), 'utf8')).replace('</body>', '<a id="unknown" data-primary-path="//untrusted.example" href="#">Untrusted path</a></body>')
+  const html = compileActivationAsset(readFileSync(resolve(process.cwd(), 'activation/activate.html'), 'utf8'), readFileSync(resolve(process.cwd(), 'src/app/styles.css'), 'utf8')).replace('</body>', '<a id="unknown" data-primary-path="//untrusted.example" href="#">Untrusted path</a></body>')
   const assets = vi.fn(async () => new Response(html))
   const env = { PAGES_ORIGIN: 'https://primary.example.test', ACTIVATION_ORIGIN: 'https://activation.example.test', ASSETS: { fetch: assets } } as unknown as Env & { ASSETS: Fetcher }
   for (const path of ['/activate', '/activate.html']) {

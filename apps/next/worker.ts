@@ -9,18 +9,6 @@ import { captureHandler } from './api-capture'
 type RuntimeEnv = Env & { ASSETS: Fetcher }
 
 const authRoute = '/api/auth/activation/complete'
-const legacyDocuments = new Set([
-  '/legacy/', '/legacy/flights', '/legacy/import', '/legacy/passport',
-  '/legacy/settings', '/legacy/journey', '/legacy/dashboard',
-  '/legacy/onboarding', '/legacy/leaderboard', '/legacy/landing',
-])
-const legacyMime: Record<string, string> = {
-  '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8',
-  '.svg': 'image/svg+xml', '.json': 'application/json', '.png': 'image/png',
-  '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.webp': 'image/webp',
-  '.woff': 'font/woff', '.woff2': 'font/woff2', '.ico': 'image/x-icon',
-}
-
 const exactRoutes = new Map(apiRoutes.map(({ route, methods }): [string, readonly string[]] => [route, methods]))
 const dynamicRoutes = apiRoutes.filter(({ route }) => route.includes(':')).map(({ route, methods }) => ({
   pattern: new RegExp('^' + route.split('/').map(segment => segment.startsWith(':') ? '[^/]+' : segment).join('/') + '$'),
@@ -47,30 +35,6 @@ async function api(request: Request, env: RuntimeEnv, ctx: ExecutionContext): Pr
   return pagesWorker.fetch(request, apiEnv, ctx)
 }
 
-async function legacy(request: Request, env: RuntimeEnv): Promise<Response> {
-  const url = new URL(request.url)
-  const pathname = url.pathname
-  if (pathname === '/legacy') return Response.redirect(new URL('/legacy/', url), 308)
-  if (legacyDocuments.has(pathname) || /^\/legacy\/fly\/[a-zA-Z0-9_-]+$/.test(pathname)) {
-    if (request.method !== 'GET' && request.method !== 'HEAD') return new Response(null, { status: 405, headers: { Allow: 'GET, HEAD' } })
-    const entry = new URL('/legacy/', url)
-    const response = await env.ASSETS.fetch(new Request(entry, request))
-    if (response.status !== 304 && !response.ok) return new Response('Legacy entry unavailable', { status: 503 })
-    const headers = new Headers(response.headers)
-    headers.set('Content-Type', 'text/html; charset=utf-8')
-    headers.set('Cache-Control', 'no-store')
-    return new Response(response.body, { status: response.status, headers })
-  }
-  const ext = /\.[^/.]+$/.exec(pathname)?.[0]
-  const mime = ext && legacyMime[ext]
-  if (!mime || (request.method !== 'GET' && request.method !== 'HEAD')) return new Response('Not found', { status: 404 })
-  const response = await env.ASSETS.fetch(request)
-  if ((response.status !== 304 && !response.ok) || response.headers.get('Content-Type')?.startsWith('text/html')) return new Response('Not found', { status: 404 })
-  const headers = new Headers(response.headers)
-  headers.set('Content-Type', mime)
-  return new Response(response.body, { status: response.status, headers })
-}
-
 export default {
   async fetch(request: Request, env: RuntimeEnv, ctx: ExecutionContext): Promise<Response> {
     const gate = gateRequest(request, env)
@@ -83,7 +47,6 @@ export default {
     if ((request.method === 'GET' || request.method === 'HEAD') &&
       (url.pathname === '/activate' || url.pathname === '/activate.html' || url.pathname === '/activate.js')) return activationAsset(request, env)
     if (url.pathname === '/api' || url.pathname.startsWith('/api/')) return api(request, env, ctx)
-    if (url.pathname === '/legacy' || url.pathname.startsWith('/legacy/')) return legacy(request, env)
     if (url.pathname === '/sw.js' || url.pathname === '/registerSW.js') {
       const response = await env.ASSETS.fetch(request)
       if (response.status !== 304 && !response.ok) return new Response('Not found', { status: 404 })

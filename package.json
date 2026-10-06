@@ -2,25 +2,23 @@
   "name": "kuuki",
   "version": "0.0.1",
   "private": true,
-  "description": "Kuuki (\u7a7a\u6c17) - Travel geek platform for flight tracking and leaderboards",
+  "description": "Kuuki (空気) - Travel geek platform for flight tracking and leaderboards",
   "scripts": {
     "dev": "turbo dev",
-    "dev:pages": "wrangler pages dev --ip 0.0.0.0 --proxy 5173 -- pnpm --filter @kuuki/web dev",
     "build": "turbo build",
     "lint": "turbo lint",
     "typecheck": "turbo typecheck",
     "typecheck:api": "tsc --noEmit -p functions/tsconfig.json",
     "typecheck:scripts": "tsc --noEmit -p scripts/tsconfig.sbd1.json",
     "typecheck:maintenance": "tsc --noEmit -p workers/maintenance/tsconfig.json",
-    "test": "pnpm test:api && pnpm --filter @kuuki/next test && pnpm --filter @kuuki/web test:run",
+    "test": "pnpm test:api && pnpm --filter @kuuki/next test",
     "test:api": "vitest run --config functions/vitest.config.ts",
     "build:api": "wrangler pages functions build --outdir .wrangler/functions-build --metafile .wrangler/functions-build/bundle-meta.json",
     "build:maintenance": "wrangler deploy --dry-run --config workers/maintenance/wrangler.toml --outdir .wrangler/maintenance-build",
     "preflight": "tsx scripts/migration-preflight.ts",
     "generate:regions": "tsx scripts/generate-country-regions.ts",
     "prepare": "git config core.hooksPath .githooks",
-    "smoke:runtime": "tsx scripts/smoke-local-runtime.ts --check",
-    "dev:fixture": "tsx scripts/smoke-local-runtime.ts",
+    "smoke:runtime": "tsx scripts/smoke-local-runtime.ts",
     "next:build": "node scripts/build-next.mjs",
     "next:preview": "tsx scripts/smoke-next-runtime.ts",
     "next:smoke": "tsx scripts/smoke-next-runtime.ts --check",
@@ -43,7 +41,7 @@
   "packageManager": "pnpm@9.15.0",
   "dependencies": {
     "@better-auth/kysely-adapter": "^1.7.7",
-    "@google/genai": "^1.39.0",
+    "@google/genai": "^1.52.0",
     "better-auth": "^1.7.7",
     "kysely": "^0.29.6",
     "kysely-d1": "^0.4.0",
@@ -53,10 +51,14 @@
     "overrides": {
       "protobufjs@>=7.5.4 <7.6.5": "7.6.5",
       "ws@>=8.18.0 <8.21.0": "8.21.0",
-      "rollup@>=4.34.0 <4.59.0": "4.59.0"
+      "rollup@>=4.34.0 <4.59.0": "4.59.0",
+      "undici@>=7.0.0 <7.29.1": "7.29.1",
+      "sharp@>=0.35.0 <0.35.5": "0.35.5",
+      "eslint-config-next@16.3.8>eslint-plugin-react-hooks": "7.0.1"
     },
     "patchedDependencies": {
-      "@ssgoi/core@7.4.0": "patches/@ssgoi__core@7.4.0.patch"
+      "@ssgoi/core@7.4.0": "patches/@ssgoi__core@7.4.0.patch",
+      "braces@3.0.3": "patches/braces@3.0.3.patch"
     }
   }
 }

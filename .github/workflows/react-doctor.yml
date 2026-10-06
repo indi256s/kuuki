@@ -15,4 +15,4 @@ jobs:
       - name: Run React Doctor
         env:
           BASE_REF: ${{ github.event.pull_request.base.sha || github.event.before }}
-        run: npx -y react-doctor@latest . --scope changed --base "$BASE_REF" --no-score
+        run: npx -y react-doctor@0.9.17 . --scope changed --base "$BASE_REF" --no-score

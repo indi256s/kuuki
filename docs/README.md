@@ -10,10 +10,11 @@
 | [APP_FLOW.md](./APP_FLOW.md) | User navigation paths, screen inventory | Building UI or flows |
 | [Screenshot atlas](./user-journeys/README.md) | Historical 2026-10-03 UI states, journeys and searchable manifest; Redesign 2.0 recapture is deferred | Studying prior UI evidence; use the redesign handoff for current acceptance |
 | [App manifest](../apps/next/package.json) and [lockfile](../pnpm-lock.yaml) | Current dependency ranges and resolved versions | Installing packages |
-| [Next release candidate](./runbooks/2026-10-04-next-release-candidate.md) | Current runtime, verification, rollback and hosted release gates | Runtime or release work |
-| [TECH_STACK.md](./TECH_STACK.md) | Legacy Vite stack and runtime context | Maintaining rollback |
+| [Deploy Kuuki](./skills/deploy-kuuki/SKILL.md) | Current Worker release and rollback procedure | Runtime or release work |
+| [Next release candidate](./runbooks/2026-10-04-next-release-candidate.md) | Historical candidate verification and acceptance evidence | Reviewing the 4 October migration |
+| [TECH_STACK.md](./TECH_STACK.md) | Former Vite stack and runtime context | Historical research |
 | [DESIGN.md](../DESIGN.md) | Design System 2.0 for `apps/next` | Writing UI code |
-| [FRONTEND_GUIDELINES.md](./FRONTEND_GUIDELINES.md) | Legacy Vite design guide | Changing `apps/web` only |
+| [FRONTEND_GUIDELINES.md](./FRONTEND_GUIDELINES.md) | Former Vite design guide | Historical research |
 | [D1 migrations](../db/migrations/) and [API handlers](../functions/api/) | Current schema and API implementation | Working with data |
 | [BACKEND_STRUCTURE.md](./BACKEND_STRUCTURE.md) | Historical Supabase schema, RLS and API context | Source migration research |
 | [PLAN.md](./PLAN.md) | Original MVP roadmap and status | Historical context |
@@ -27,7 +28,7 @@
 | Know exact package versions | [pnpm-lock.yaml](../pnpm-lock.yaml) |
 | Build UI components | [DESIGN.md](../DESIGN.md) |
 | Work with database | [D1 migrations](../db/migrations/) and [migration release gates](./runbooks/audit-remediation-release.md) |
-| Check Next implementation/release status | [Next release candidate](./runbooks/2026-10-04-next-release-candidate.md) |
+| Check current release procedure | [Deploy Kuuki](./skills/deploy-kuuki/SKILL.md) |
 | Check the merged redesign and deferred release evidence | [Redesign handoff](./plans/2026-10-04-redesign-2.0-implementation-handoff.md) |
 
 ## Additional Documentation
@@ -41,7 +42,7 @@
 
 ## Current Status
 
-**Current surface:** the Next app in `apps/next`. `apps/web` is the legacy Vite app, kept as the rollback. The MVP phases below describe the original Vite build.
+**Current surface:** the Next app in `apps/next`. The MVP phases below describe the former Vite build.
 
 | Phase | Status |
 |-------|--------|
@@ -58,7 +59,7 @@
 
 ## Project Structure
 
-Current code is in `apps/next` (Next app and composed Worker), `functions/api` (shared API handlers), `db/migrations` (D1) and `workers/maintenance` (scheduled recovery). See the [root README](../README.md#structure) for the current structure. The tree below records the original Vite layout.
+Current code is in `apps/next` (Next app and composed Worker), `functions/api` (shared API handlers), `db/migrations` (D1) and `workers/maintenance` (scheduled recovery). See the [root README](../README.md#structure) for the current structure. The tree below records the former Vite layout and is archival.
 
 ```
 kuuki/

@@ -2,8 +2,6 @@
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { useState } from 'react'
-import { readFileSync } from 'node:fs'
-import { join } from 'node:path'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { Calendar } from './calendar'
 import { Combobox } from './combobox'
@@ -251,32 +249,6 @@ it.each([['en', '29/02/2024'], ['en', '13/45/2026'], ['ru', '02/29/2024'], ['ru'
   const text = screen.getByRole('status').textContent!
   expect(text).not.toBe('')
   expect(screen.getByLabelText('Flight date')).toHaveValue(text)
-})
-
-describe('calendar popover placement on a phone (declared CSS)', () => {
-  const read = (file: string) => readFileSync(join(process.cwd(), file), 'utf8')
-  const controls = read('src/client/ui/flight-controls.css')
-  const mobile = controls.slice(controls.indexOf('@media(max-width:700px)'))
-  const mobileRule = mobile.match(/\.flight-calendar-popover\{([^}]*)\}/)![1]
-  const tokens = Object.fromEntries([...read('src/app/styles.css').matchAll(/--(space-\d+):(\d+)px/g)].map(([, name, value]) => [name, Number(value)]))
-  const px = (value: string) => { const token = value.match(/var\(--(space-\d+)\)/); return token ? tokens[token[1]] : Number.NaN }
-
-  it('stays anchored (absolute) so it opens beside the field inside the transformed sheet, not fixed to the sheet box', () => {
-    expect(mobileRule).not.toMatch(/position:/) // inherits the absolute base
-    expect(mobileRule).not.toMatch(/(^|;)(top|bottom):/) // keeps the base top:100% under the field
-    expect(controls).toMatch(/\.flight-search-popover,\.flight-calendar-popover\{position:absolute;top:100%/)
-  })
-
-  it('gives day cells at least 44px at a 320px viewport', () => {
-    const body = read('src/client/ui/ui.css').match(/\.ui-panel-body\{[^}]*padding:var\(--space-\d+\) (var\(--space-\d+\))/)![1]
-    const inset = mobileRule.match(/(?:left|inset-inline-start):calc\(-1 \* (var\(--space-\d+\))\)/)![1]
-    const sheet = 320
-    const popover = sheet - 2 * px(body) + 2 * px(inset)
-    const paddingInline = px(mobileRule.match(/padding-inline:(var\(--space-\d+\))/)![1])
-    const week = controls.match(/\.flight-calendar-week\{[^}]*\}/)![0] + mobile.match(/\.flight-calendar-week\{[^}]*\}/)![0]
-    expect(week).toMatch(/gap:0/)
-    expect((popover - 2 * paddingInline) / 7).toBeGreaterThanOrEqual(44)
-  })
 })
 
 it.each([

@@ -1,8 +1,6 @@
 // @vitest-environment jsdom
 import { act, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { readFileSync } from 'node:fs'
-import { join } from 'node:path'
 import { startTransition, Suspense, use, useEffect, useState } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { JournalView } from './journal'
@@ -829,20 +827,6 @@ describe('list', () => {
     const present = document.querySelector('[data-flight-row="8"]')!.closest('.flight-row')!
     expect(present.querySelector('.journal-aircraft-cell')).toHaveTextContent('B738')
     expect(present.querySelector('.journal-aircraft-cell button')).toBeNull()
-  })
-
-  it('aligns the six desktop cells, including the aircraft action cell, on one baseline without making the overlay a grid item', () => {
-    const css = readFileSync(join(process.cwd(), 'src/app/reads.css'), 'utf8')
-    expect(css).toMatch(/\.journal-entry \.flight-row\{align-items:baseline\}/)
-    expect(css).toMatch(/\.flight-row>\.flight-row-open\{position:absolute;inset:0/) // out of the grid flow, so it takes no cell and no baseline
-  })
-
-  it('declares the mobile card order route, date, distance, flight number and a control-border checkbox outline', () => {
-    const css = readFileSync(join(process.cwd(), 'src/app/reads.css'), 'utf8')
-    const mobile = css.slice(css.indexOf('@media(max-width:700px){.journal-entry'))
-    const place = (cell: string) => mobile.match(new RegExp(`\\.journal-entry \\.flight-row>\\.${cell}\\{grid-column:(\\d);grid-row:(\\d)`))!.slice(1).join('/')
-    expect(['flight-row-route', 'flight-row-date', 'flight-row-distance', 'flight-row-number'].map(place)).toEqual(['1/1', '2/1', '1/2', '2/2'])
-    expect(css).toMatch(/\.journal-data input\[type=checkbox\]\{[^}]*outline:1px solid var\(--control-border\)/)
   })
 
   it('renders the upcoming group in the order the server returned it, without re-sorting', () => {

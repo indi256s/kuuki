@@ -3,8 +3,8 @@
 ## Current Next routes
 
 The current app is [apps/next](../apps/next/src/app/), with server gates in
-[gates.ts](../apps/next/src/server/gates.ts). The Vite inventory below is rollback
-history. It does not describe the current navigation.
+[gates.ts](../apps/next/src/server/gates.ts). The Vite inventory below is
+historical and does not describe the current navigation.
 
 | Routes | Current behavior |
 | --- | --- |
@@ -32,12 +32,12 @@ Leaderboard, plus Add and account controls. Mobile tabs are Overview / Journal /
 Add / Passport / Me. Header titles follow the current route.
 
 The [Worker](../apps/next/worker.ts), [API handlers](../functions/api/) and
-[release runbook](runbooks/2026-10-04-next-release-candidate.md) own runtime,
+[deploy procedure](skills/deploy-kuuki/SKILL.md) own runtime,
 authentication and host contracts. No hosted acceptance is implied by this map.
 
-## Legacy rollback inventory
+## Former Vite inventory
 
-The following inventory is retained for `apps/web` only.
+The following inventory records the former `apps/web` app only.
 
 ## Public Routes
 

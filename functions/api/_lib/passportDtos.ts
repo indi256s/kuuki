@@ -1,6 +1,4 @@
-// Passport DTO mappers. The FE merges these raw rows with its own countries.json
-// (functions cannot import @kuuki/data), so we only strip user_id and shape ground
-// visits into the camelCase GroundVisit the FE consumes.
+// Owner-safe Passport DTOs strip user_id and shape ground visits for browser consumers.
 
 export interface GroundVisitRow {
   id: string
@@ -12,7 +10,7 @@ export interface GroundVisitRow {
   created_at: string
 }
 
-/** camelCase GroundVisit DTO (no userId) consumed by apps/web/src/lib/passport.ts. */
+/** camelCase GroundVisit DTO (no userId) consumed by packages/client/src/passport.ts. */
 export function toGroundVisit(row: GroundVisitRow) {
   return {
     id: row.id,

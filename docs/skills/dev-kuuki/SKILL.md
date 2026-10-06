@@ -1,6 +1,6 @@
 ---
 name: dev-kuuki
-description: Launch, check and stop a local Kuuki dev server for browser or HTTP checks of a change. Covers the compiled Next preview, Next hot reload and the legacy fixture.
+description: Launch, check and stop a local Kuuki dev server for browser or HTTP checks of a change. Covers the compiled Next preview and Next hot reload.
 ---
 
 # Local dev server
@@ -13,15 +13,14 @@ Run commands from the workspace root. Each server is a long-lived process: start
 | --- | --- | --- |
 | Anything touching auth, API, D1, cookies or the Worker; the default | `pnpm next:preview` | `Next synthetic fixture ready: http://127.0.0.1:8800` |
 | Pure layout or styling on pages that render without the API | `pnpm --filter @kuuki/next dev` | Next's `Local:` URL |
-| Legacy Vite rollback surface only | `pnpm dev:fixture` after `pnpm --filter @kuuki/web build` and `pnpm build:api` | `Synthetic fixture ready: http://localhost:8799` |
 
 ## Steps
 
 1. **Port free.** `lsof -nP -iTCP:<port> -sTCP:LISTEN` returns nothing. A listener on 8800 is usually a forgotten preview or a running Playwright suite: stop your own stale preview; if the owner is unknown, report it rather than killing it, or move with `KUUKI_NEXT_PORT`.
 2. **Build current.** For the compiled preview, `pnpm next:build` has run after the last source change and before any runtime fixture is running, since builds and fixtures share `.wrangler/next-build`. A fresh worktree always needs it.
 3. **Ready.** Launch in the background and wait until the ready line appears in its output. Exit before the ready line is a failure: report the output and fix the cause before relaunching.
-4. **Check.** Drive the URL with `chrome-devtools-axi` or `curl`. Sign in with the fixture accounts the console prints. Data is synthetic: one JFK–BOS flight for `a@example.test` and one ranked leaderboard member.
-5. **Stopped.** Send SIGINT to the launcher (for the previews, `pkill -INT -f smoke-next-runtime.ts` or `smoke-local-runtime.ts`), which discards the fixture, and confirm step 1's `lsof` is empty again before running builds, `pnpm next:smoke*` or `pnpm test:next:navigation`. Playwright starts its own preview on the same port with `reuseExistingServer: false`, so a leftover server fails the suite.
+4. **Check.** Drive the URL with `curl` or the browser tool available for the task. Sign in with the fixture accounts the console prints. Data is synthetic: one JFK–BOS flight for `a@example.test` and one ranked leaderboard member.
+5. **Stopped.** Send SIGINT to the preview launcher (`smoke-next-runtime.ts`), which discards the fixture, and confirm step 1's `lsof` is empty again before running builds, `pnpm next:smoke*` or `pnpm test:next:navigation`. Playwright starts its own preview on the same port with `reuseExistingServer: false`, so a leftover server fails the suite.
 
 ## Gotchas
 

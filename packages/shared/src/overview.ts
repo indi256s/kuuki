@@ -1,6 +1,5 @@
 /** Compact, owner-only Overview read contract (C6). Top lists have 5 items, months 12,
- * and countryIds and map.countries at most 512 reference codes. Fields were only added to the first
- * version, so the legacy Vite dashboard keeps reading it unchanged. Flight totals and countryIds use
+ * and countryIds and map.countries at most 512 reference codes. Flight totals and countryIds use
  * completed flights in the selected period, including when period is "all".
  * Undated claims and ground visits, and legacy visit evidence without a flight,
  * remain Passport evidence; they are not assigned to a flight period. The one exception

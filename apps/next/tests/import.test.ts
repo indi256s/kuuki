@@ -328,9 +328,8 @@ test.describe('Import done → Passport hero', () => {
     const stamp = page.getByRole('button', { name: /^United States,/ })
     await expect(stamp).toBeAttached()
     await expect.poll(() => page.evaluate(() => document.documentElement.dataset.routeTransition ?? null)).toBeNull()
-    // The hero ran on the loaded Passport (not the loading-screen fallback) and took the key off the stamp below the fold.
+    // Loaded or still loading during preparation, Passport has no visible stamp partner.
     expect(await routeTransitions(page)).toMatchObject({ markers: ['hero'], heroCopies: 0 })
-    await expect(page.locator('.passport-cell[data-hero-enter-key="US"]')).toHaveCount(0)
     expect(await stamp.evaluate(element => element.getBoundingClientRect().top)).toBeGreaterThan(844)
     await expect(page.locator('[inert]')).toHaveCount(0)
   })

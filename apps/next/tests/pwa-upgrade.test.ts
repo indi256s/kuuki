@@ -1,17 +1,22 @@
 import { test, expect } from '@playwright/test'
 import { createServer } from 'node:http'
-import { access, readFile } from 'node:fs/promises'
-import { fileURLToPath } from 'node:url'
-import { extname, resolve } from 'node:path'
+// Reproduce the old root navigation fallback and its cache ownership without building a retired app.
+const oldHTML = `<!doctype html><html><body>Old shell<script src="/assets/old.js"></script>
+<script src="/registerSW.js"></script></body></html>`
+const oldWorker = `
+self.addEventListener('install', event => event.waitUntil((async () => {
+  await (await caches.open('workbox-precache-v2-' + self.registration.scope)).add('/')
+  for (const name of ['workbox-runtime-' + self.registration.scope, 'assets-cache', 'google-fonts-cache', 'gstatic-fonts-cache']) await caches.open(name)
+  await self.skipWaiting()
+})()))
+self.addEventListener('activate', event => event.waitUntil(self.clients.claim()))
+self.addEventListener('fetch', event => {
+  if (event.request.mode === 'navigate') event.respondWith(caches.match('/'))
+})
+`
 
-const root = fileURLToPath(new URL('../../../', import.meta.url))
-const mime: Record<string, string> = { '.js': 'text/javascript', '.css': 'text/css', '.html': 'text/html', '.svg': 'image/svg+xml', '.png': 'image/png', '.json': 'application/json', '.webmanifest': 'application/manifest+json' }
-
-test('installed root PWA retires before Next routing, preserving unrelated storage', async ({ page, baseURL }) => {
-  await access(resolve(root, 'apps/web/dist/index.html')).catch(() => {
-    throw new Error('Legacy PWA fixture missing: run pnpm build before the navigation suite.')
-  })
-  let stage: 'old' | 'retire' | 'next' = 'old'
+test('installed root PWA reaches Next and retires its worker, preserving unrelated storage', async ({ page, baseURL }) => {
+  let stage: 'old' | 'next' = 'old'
   const server = createServer(async (req, res) => {
     try {
       const path = new URL(req.url!, 'http://127.0.0.1').pathname
@@ -27,14 +32,14 @@ test('installed root PWA retires before Next routing, preserving unrelated stora
       }
       if (stage === 'old' && path === '/overview') { res.writeHead(404); res.end('No Next route yet'); return }
       if (path.startsWith('/api/')) { res.writeHead(200, { 'Content-Type': 'application/json' }); res.end('{"user":null}'); return }
-      const transition = stage === 'retire' && (path === '/sw.js' || path === '/registerSW.js')
-      const directory = transition ? 'apps/web/transition' : 'apps/web/dist'
-      const relative = path === '/' || !extname(path) ? '/index.html' : path
-      const file = resolve(root, directory, `.${relative}`)
-      if (!file.startsWith(resolve(root, directory) + '/')) throw new Error('Invalid asset')
-      const body = await readFile(file)
-      res.writeHead(200, { 'Content-Type': mime[extname(file)] ?? 'application/octet-stream', 'Cache-Control': 'no-store' })
-      res.end(body)
+      if (path === '/sw.js' || path === '/registerSW.js') {
+        const body = path === '/sw.js' ? oldWorker : "navigator.serviceWorker.register('/sw.js')"
+        res.writeHead(200, { 'Content-Type': 'text/javascript', 'Cache-Control': 'no-store' })
+        res.end(body)
+        return
+      }
+      res.writeHead(200, { 'Content-Type': path === '/assets/old.js' ? 'text/javascript' : 'text/html', 'Cache-Control': 'no-store' })
+      res.end(path === '/assets/old.js' ? '' : oldHTML)
     } catch { if (!res.headersSent) res.writeHead(404); res.end() }
   })
   await new Promise<void>(resolve => server.listen(0, '127.0.0.1', resolve))
@@ -52,15 +57,16 @@ test('installed root PWA retires before Next routing, preserving unrelated stora
     const oldFallback = await page.goto(`${origin}/overview`, { waitUntil: 'domcontentloaded' })
     expect(oldFallback!.fromServiceWorker()).toBe(true)
     expect(await oldFallback!.text()).toContain('/assets/')
-    stage = 'retire'
-    await page.evaluate(async () => { await (await navigator.serviceWorker.getRegistration('/'))!.update() })
-    await expect.poll(() => page.evaluate(async () => (await navigator.serviceWorker.getRegistrations()).length)).toBe(0)
-    expect(await page.evaluate(async () => (await caches.keys()).filter(key => key.startsWith('workbox-precache') || key.startsWith('workbox-runtime')))).toEqual([])
-    expect(await page.evaluate(async () => (await caches.keys()).includes('unrelated-user-cache'))).toBe(true)
-    expect(await page.evaluate(() => localStorage.getItem('unrelated-user-preference'))).toBe('preserve')
     stage = 'next'
-    await page.goto(`${origin}/`)
+    // The cached old shell now fetches the deployed registration script, which updates and reloads it.
+    await page.goto(`${origin}/`, { waitUntil: 'domcontentloaded' })
     await expect(page.locator('h1')).toBeVisible()
+    await expect.poll(() => page.evaluate(async () => (await navigator.serviceWorker.getRegistrations()).length)).toBe(0)
+    // Unregistering leaves the current document controlled until its next navigation.
+    await page.reload({ waitUntil: 'domcontentloaded' })
+    await expect(page.locator('h1')).toBeVisible()
+    expect(await page.evaluate(async () => caches.keys())).toEqual(['unrelated-user-cache'])
+    expect(await page.evaluate(() => localStorage.getItem('unrelated-user-preference'))).toBe('preserve')
     expect(await page.evaluate(() => navigator.serviceWorker.controller)).toBeNull()
     const document = await page.request.get(`${origin}/overview`)
     expect(await document.text()).not.toContain('src="/assets/')

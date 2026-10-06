@@ -1,8 +1,8 @@
-# Kuuki - Cloudflare Pages Functions Configuration
+# Kuuki API compiler and D1 configuration (frontend deployment uses apps/next/wrangler.toml)
 # https://developers.cloudflare.com/pages/functions/wrangler-configuration/
 
 name = "kuuki"
-pages_build_output_dir = "./apps/web/dist"
+pages_build_output_dir = "./apps/next/.open-next/assets"
 compatibility_date = "2025-09-23"
 
 # Enable Node.js compatibility for AI SDK

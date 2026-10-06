@@ -124,6 +124,8 @@ async function main() {
     await db.batch([
       db.prepare("INSERT INTO airports_reference(iata,name,city,country,country_code,latitude,longitude) VALUES('JFK','John F Kennedy','New York','United States','US',40.6413,-73.7781)"),
       db.prepare("INSERT INTO airports_reference(iata,name,city,country,country_code,latitude,longitude) VALUES('BOS','Logan','Boston','United States','US',42.3656,-71.0096)"),
+      db.prepare("INSERT INTO airports_reference(iata,name,city,country,country_code,latitude,longitude) VALUES('TBS','Tbilisi International Airport','Tbilisi','Georgia','GE',41.6692008972,44.95470047)"),
+      db.prepare("INSERT INTO airports_reference(iata,name,city,country,country_code,latitude,longitude) VALUES('IST','Istanbul Airport','Istanbul','Turkey','TR',41.2753,28.7519)"),
       db.prepare("INSERT INTO aircraft_reference(icao,name,manufacturer,model,type,engine_type,engine_count) VALUES('A320','Airbus A320','Airbus','A320','narrowbody','jet',2)"),
       db.prepare("INSERT INTO _code_adjectives(word) VALUES('calm'),('bright'),('swift')"),
       db.prepare("INSERT INTO _code_nouns(word) VALUES('cloud'),('wing'),('sky')"),
@@ -218,21 +220,8 @@ async function main() {
       !activation.headers.get('Content-Security-Policy')?.includes("default-src 'none'")) throw new Error('Activation isolation headers missing')
     const alias = await mf.dispatchFetch('https://activate.fixture.test/_next/static/chunk.js', { redirect: 'manual' })
     if (alias.status !== 302 || !alias.headers.get('Location')?.endsWith('/#')) throw new Error('Activation alias leaked Next assets or token fragment')
-    for (const path of ['/legacy/flights', '/legacy/dashboard', '/legacy/fly/fixture-a']) {
-      const document = await assertResponse(path, 200)
-      if (!document.headers.get('Content-Type')?.includes('text/html')) throw new Error(`${path} returned non-HTML`)
-    }
-    const missingLegacy = await assertResponse('/legacy/assets/missing.js', 404)
-    if (missingLegacy.headers.get('Content-Type')?.includes('text/html')) throw new Error('Missing legacy asset returned HTML')
-    const legacyEntry = await assertResponse('/legacy/flights', 200)
-    const scriptPath = /src="(\/legacy\/assets\/[^" ]+\.js)"/.exec(await legacyEntry.text())?.[1]
-    if (!scriptPath) throw new Error('Legacy entry has no versioned script')
-    const legacyScript = await assertResponse(scriptPath, 200)
-    const etag = legacyScript.headers.get('ETag')
-    if (!etag) throw new Error('Legacy static script has no ETag')
-    const unchanged = await assertResponse(scriptPath, 304, { headers: { 'If-None-Match': etag } })
-    if (!unchanged.headers.get('Content-Type')?.includes('javascript')) throw new Error('Conditional legacy script lost its MIME type')
-    for (const path of ['/legacy/flights', '/activate', '/activate.js', '/sw.js', '/registerSW.js']) {
+    await assertResponse('/legacy/flights', 404)
+    for (const path of ['/activate', '/activate.js', '/sw.js', '/registerSW.js']) {
       const initial = await assertResponse(path, 200)
       const tag = initial.headers.get('ETag')
       if (!tag) throw new Error(`Static boundary has no ETag: ${path}`)

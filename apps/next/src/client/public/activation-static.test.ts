@@ -5,7 +5,7 @@ import { fireEvent, screen, waitFor } from '@testing-library/react'
 import { afterEach, expect, it, vi } from 'vitest'
 import { compileActivationAsset } from '../../../../../scripts/activation-asset.mjs'
 
-const asset = resolve(process.cwd(), '../web/public')
+const asset = resolve(process.cwd(), 'activation')
 const html = readFileSync(resolve(asset, 'activate.html'), 'utf8')
 const script = readFileSync(resolve(asset, 'activate.js'), 'utf8')
 const request = vi.fn()

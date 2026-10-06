@@ -13,12 +13,12 @@ import {
   parseSort,
 } from '../_lib/flightQuery'
 import { readJournal } from '../_services/journal'
-import { createFlightStatements, digestInput, isIdempotencyKey } from '../_services/flightCreate'
+import { createFlightStatements, isIdempotencyKey } from '../_services/flightCreate'
 import { dirtyUserStatement, repairUserDerivedState } from '../_services/derivedState'
 import { takeRequestTimezone } from '../_services/lifecycle'
 import { readPressedBefore, stampsForCreated } from '../_services/newlyStamped'
 
-export { FLIGHT_COLUMNS, createFlightStatements, digestInput, isIdempotencyKey }
+export { FLIGHT_COLUMNS }
 
 export const onRequestGet: PagesFunction<Env, string, RequestData> = context =>
   listFlights(context.request, context.env, context.data)

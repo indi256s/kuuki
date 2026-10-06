@@ -31,7 +31,6 @@
     "./migration-remote-validate.ts",
     "./smoke-local-runtime.ts",
     "./smoke-next-runtime.ts",
-    "./rehearse-next-rollback.ts",
     "./generate-country-regions.ts",
     "./verify-import-provider.ts",
     "../functions/env.d.ts"

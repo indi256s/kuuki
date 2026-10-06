@@ -4,13 +4,13 @@ Read this before changing code and apply it when reviewing a diff. ESLint, the p
 
 ## Where code changes go
 
-- `apps/web` is the legacy rollback surface. Change it only to keep rollback working.
+- `apps/next` is the application; `packages/client` owns shared browser transports and helpers.
 - Design tokens live only in `apps/next/src/app/styles.css`.
 - `apps/next/api-routes.generated.ts` is generated: after changing API paths or exported HTTP methods, run `node scripts/build-next.mjs --inventory-only` and commit the output. Auth endpoints are enumerated in the generator (`scripts/build-next.mjs`).
 
 ## Verify a change
 
-`pnpm test` runs API integration tests and Next/legacy unit tests; it excludes the separate composed-Worker smoke and browser suites.
+`pnpm test` runs API integration and Next unit tests; it excludes the separate composed-Worker smoke and browser suites.
 
 Before reporting a change done, run the checks for its behavior in addition to affected lint/typechecks and regression tests:
 
@@ -19,7 +19,7 @@ Before reporting a change done, run the checks for its behavior in addition to a
 | API handlers | `pnpm typecheck:api`, `pnpm test:api` |
 | Next UI | `pnpm next:build`, then the full `pnpm test:next:navigation` suite; shared controls break journeys in other test files |
 | Worker dispatch, auth boundary or static assets | `pnpm next:build`, `pnpm --filter @kuuki/next typecheck:worker`, `pnpm next:smoke`, `pnpm next:smoke:boundary` |
-| Migration or release tooling | Relevant isolated rehearsal, preservation and admission checks from the release runbooks (`docs/runbooks/2026-10-04-next-release-candidate.md`, `docs/runbooks/audit-remediation-release.md`) |
+| Migration or release tooling | Relevant isolated preservation and admission checks from `docs/runbooks/audit-remediation-release.md` and the current deploy procedure in `docs/skills/deploy-kuuki/SKILL.md` |
 | Prose only | Verify changed claims, links and commands against their sources; application tests are unnecessary |
 
 Run builds and browser/runtime fixtures serially: they share `.wrangler/next-build` and port 8800. Use current build output after source changes.

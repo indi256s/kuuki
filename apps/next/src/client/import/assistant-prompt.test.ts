@@ -1,6 +1,5 @@
 // The prompt members send to their own assistant, and the help around it. Its output is what the server ingest reads best.
 import { describe, expect, it } from 'vitest'
-import { enTranslations, ruTranslations } from '@kuuki/shared'
 import { S } from './copy'
 
 const locales = ['en', 'ru'] as const
@@ -66,15 +65,6 @@ describe('assistant prompt', () => {
     expect(ru).toMatch(/отменённые/)
     expect(ru).toMatch(/от самых ранних к самым поздним/)
     expect(ru).toMatch(/только списком в одном блоке кода/)
-  })
-})
-
-describe('legacy surface parity', () => {
-  it('shows the same prompt and import limit in the legacy app', () => {
-    expect(enTranslations.import.tip.prompt).toBe(S.prompt.en)
-    expect(ruTranslations.import.tip.prompt).toBe(S.prompt.ru)
-    expect(enTranslations.import.tip.limit).toBe(S.importLimit.en)
-    expect(ruTranslations.import.tip.limit).toBe(S.importLimit.ru)
   })
 })
 

@@ -3,8 +3,9 @@ import { gzipSync } from 'node:zlib'
 import { readFile, mkdir, writeFile } from 'node:fs/promises'
 import { fileURLToPath } from 'node:url'
 import path from 'node:path'
+import type { RouteProjection } from '@kuuki/shared'
 
-type Sample = { family: string; route: string; history: number; phase: 'cold' | 'warm'; iteration: number;
+type Sample = { route: string; history: number; phase: 'cold' | 'warm'; iteration: number;
   responseMs: number | null; readyMs: number; requests: number; responseBytes: number; jsGzipBytes: number;
   scriptSeconds: number | null; taskSeconds: number | null; heapBytes: number | null }
 type MapSample = { routes: number; action: string; ms: number; heapBytes: number | null }
@@ -66,20 +67,15 @@ async function seed(context: BrowserContext, origin: string, count: number): Pro
   expect(list.status()).toBe(200)
   expect((await list.json() as { total: number }).total).toBe(count)
 }
-async function ready(page: Page, family: string, route: string, count: number) {
+async function ready(page: Page, route: string, count: number) {
   const formatted = count.toLocaleString('en-US')
-  if (family === 'next' && route === 'overview') {
+  if (route === 'overview') {
     if (count === 0) await expect(page.getByTestId('overview-empty')).toBeVisible()
     else await expect(page.getByTestId('overview-flights')).toHaveText(formatted)
-  } else if (family === 'next' && route === 'journal') {
-    await expect(page.getByTestId('journal-data').locator('p.muted').first()).toContainText(`${formatted} flights`)
-  } else if (family === 'next') {
-    await expect(page.getByTestId('passport-data').locator('.passport-figures strong').first()).toHaveText(count ? '1' : '0')
-  } else if (route === 'dashboard') {
-    if (count === 0) await expect(page.getByText('Start tracking your flights')).toBeVisible()
-    else await expect(page.locator('main').getByText(`${formatted} flights`, { exact: true }).first()).toBeVisible()
+  } else if (route === 'journal') {
+    await expect(page.getByTestId('journal-data').getByText(`${formatted} ${count === 1 ? 'flight' : 'flights'}`, { exact: true })).toBeVisible()
   } else {
-    await expect(page.locator('main').getByText(`${formatted} flights`, { exact: true }).first()).toBeVisible()
+    await expect(page.getByTestId('passport-data').locator('.passport-figures strong').first()).toHaveText(count ? '1' : '0')
   }
 }
 async function shellNavigation(page: Page, from: string, to: string, count: number, iteration: number) {
@@ -94,10 +90,10 @@ async function shellNavigation(page: Page, from: string, to: string, count: numb
   }
   page.on('request', onRequest); page.on('response', onResponse)
   try {
-    await page.locator(`header nav a[href="/${to}"]:visible`).first().click()
+    await page.locator(`nav a[href="/${to}"]:visible`).first().click()
     await page.waitForURL(url => url.pathname === `/${to}`)
     const urlMs = performance.now() - start
-    await ready(page, 'next', to, count)
+    await ready(page, to, count)
     const readyMs = performance.now() - start
     expect(documentRequests, 'Next Link transition fell back to a document request').toBe(0)
     navigations.push({ history: count, from, to, iteration, urlMs, readyMs, rscResponseMs, documentRequests })
@@ -125,8 +121,8 @@ async function singleFlightSaves(context: BrowserContext, origin: string) {
   const list = await context.request.get('/api/flights?limit=1')
   expect((await list.json() as { total: number }).total).toBe(20)
 }
-async function navigate(page: Page, family: string, route: string, count: number, phase: 'cold' | 'warm', iteration: number) {
-  const url = family === 'next' ? `/${route}` : `/legacy/${route}`
+async function navigate(page: Page, route: string, count: number, phase: 'cold' | 'warm', iteration: number) {
+  const url = `/${route}`
   const cdp = await page.context().newCDPSession(page)
   await cdp.send('Performance.enable')
   await cdp.send('Network.enable')
@@ -148,28 +144,30 @@ async function navigate(page: Page, family: string, route: string, count: number
   page.on('request', onRequest); page.on('response', onResponse)
   try {
     await page.goto(url, { waitUntil: 'domcontentloaded' })
-    await ready(page, family, route, count)
+    await ready(page, route, count)
     const readyMs = performance.now() - started
     // Include scripts requested before readiness; this is the loaded JS closure,
     // not every chunk present in the build output.
     const after = (await cdp.send('Performance.getMetrics')).metrics
-    samples.push({ family, route, history: count, phase, iteration, responseMs, readyMs, requests,
+    samples.push({ route, history: count, phase, iteration, responseMs, readyMs, requests,
       responseBytes, jsGzipBytes: await uniqueJsGzip(scripts),
       scriptSeconds: metric(after, 'ScriptDuration') === null || metric(before, 'ScriptDuration') === null ? null : metric(after, 'ScriptDuration')! - metric(before, 'ScriptDuration')!,
       taskSeconds: metric(after, 'TaskDuration') === null || metric(before, 'TaskDuration') === null ? null : metric(after, 'TaskDuration')! - metric(before, 'TaskDuration')!,
       heapBytes: metric(after, 'JSHeapUsedSize') })
   } finally { page.off('request', onRequest); page.off('response', onResponse); await cdp.detach() }
 }
-function projection(count: number, ownerId: string) {
+function projection(count: number, baseline: RouteProjection): RouteProjection {
   // Many unique valid three-letter route keys, using coordinates around the
   // globe. This is renderer load only: it does not imply such airport rows exist.
   const code = (n: number) => Array.from({ length: 3 }, (_, i) => String.fromCharCode(65 + Math.floor(n / 26 ** i) % 26)).join('')
-  return { ownerId, period: 'all', routes: Array.from({ length: count }, (_, i) => ({
-    origin: code(i), destination: code(i + 6000), count: 1, lastDate: '2025-06-01',
-    originCountry: 'US', destinationCountry: 'GB',
-    from: [-160 + (i * 17) % 320, -60 + (i * 7) % 120],
-    to: [-160 + (i * 19 + 40) % 320, -60 + (i * 11 + 20) % 120],
-  })) }
+  return { ...baseline, routeCount: count, limit: count, truncated: false, routes: [],
+    pairs: Array.from({ length: count }, (_, i): RouteProjection['pairs'][number] => {
+      const [a, b] = [code(i), code(i + 6000)].sort()
+      return { a, b, count: 1, forward: 1, reverse: 0, lastDate: '2025-06-01',
+        aCountry: 'US', bCountry: 'GB',
+        from: [-160 + (i * 17) % 320, -60 + (i * 7) % 120],
+        to: [-160 + (i * 19 + 40) % 320, -60 + (i * 11 + 20) % 120] }
+    }) }
 }
 async function twoFrames(page: Page) {
   await page.evaluate(() => new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))))
@@ -191,16 +189,16 @@ test('local production read and map measurements', async ({ browser, baseURL }) 
     try {
       await seed(context, origin, count)
       const page = await context.newPage()
-      const pairs = [['next', 'overview'], ['legacy', 'dashboard'], ['next', 'journal'], ['legacy', 'flights']]
+      const routes = ['overview', 'journal', 'passport']
       for (let i = 0; i < 8; i++) {
         const phase = i < 3 ? 'cold' : 'warm'
-        const order = i % 2 ? [...pairs].reverse() : pairs
-        for (const [family, route] of order) {
-          await navigate(page, family, route, count, phase, i)
+        const order = i % 2 ? [...routes].reverse() : routes
+        for (const route of order) {
+          await navigate(page, route, count, phase, i)
         }
       }
       await page.goto('/overview')
-      await ready(page, 'next', 'overview', count)
+      await ready(page, 'overview', count)
       let from = 'overview'
       for (const [iteration, to] of ['journal', 'passport', 'overview', 'journal', 'passport'].entries()) {
         await shellNavigation(page, from, to, count, iteration)
@@ -219,17 +217,22 @@ test('local production read and map measurements', async ({ browser, baseURL }) 
     const body = await identity.json() as { user?: { id?: string } }
     const ownerId = body.user?.id
     expect(ownerId).toBeTruthy()
+    const baselineResponse = await context.request.get('/api/flights/route-projection?period=all')
+    expect(baselineResponse.status()).toBe(200)
+    const baseline = await baselineResponse.json() as RouteProjection
+    expect(baseline.ownerId).toBe(ownerId)
     const page = await context.newPage()
     await page.setViewportSize({ width: 1280, height: 800 })
     const setMenuTheme = async (target: typeof page, name: string) => { await target.getByRole('button', { name: 'Account menu' }).click(); await target.getByRole('menuitemradio', { name }).click() }
     for (const count of [50, 500, 5000]) {
-      await page.route('**/api/flights/route-projection?*', route => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(projection(count, ownerId!)) }))
+      await page.route('**/api/flights/route-projection?*', route => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(projection(count, baseline)) }))
       await page.goto('/passport')
       await expect(page.getByTestId('passport-data')).toBeVisible()
       await setMenuTheme(page, 'Light')
       await mapAction(page, count, 'open-to-controls', async () => {
-        await page.getByRole('button', { name: 'Map', exact: true }).click()
+        await page.getByRole('radio', { name: 'Map', exact: true }).click()
         await page.waitForURL(url => url.searchParams.get('view') === 'map')
+        await page.getByRole('radiogroup', { name: 'Map layer' }).getByRole('radio', { name: 'Routes', exact: true }).click()
         await expect(page.getByRole('button', { name: 'Fit routes' })).toBeVisible({ timeout: 60_000 })
       })
       await mapAction(page, count, 'select', async () => {

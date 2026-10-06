@@ -1,8 +1,8 @@
 # Kuuki - Frontend Guidelines
 
-For the Next Redesign 2.0 surface, [DESIGN.md](../DESIGN.md) is authoritative when guidance below conflicts. In particular, both themes use terracotta, Onest replaces DM Sans for Cyrillic and English, mono is reserved for ticket data, and dialogs/sheets use solid surfaces without backdrop blur. This file describes the existing Vite compatibility UI until those views migrate.
+This is a historical guide for the former Vite app. For the current Next UI, [DESIGN.md](../DESIGN.md) is authoritative.
 
-> **For AI Agents:** Legacy reference for the Vite app (`apps/web`). For `apps/next`, use [DESIGN.md](../DESIGN.md).
+> **For AI Agents:** Use [DESIGN.md](../DESIGN.md) for `apps/next`; this file records former Vite decisions only.
 
 ---
 

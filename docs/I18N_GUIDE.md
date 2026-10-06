@@ -1,6 +1,6 @@
 # i18n Guide - Kuuki Translation System
 
-> Legacy: describes the Vite app (apps/web). For current work on apps/next, read [DESIGN.md](../DESIGN.md) for UI and [GLOSSARY.md](../GLOSSARY.md) for domain terms.
+> Historical: describes the removed Vite app's i18next setup. Next still uses the shared JSON files for badge names; other Next copy lives with its components. For current work, read [DESIGN.md](../DESIGN.md) for UI and [GLOSSARY.md](../GLOSSARY.md) for domain terms.
 
 This guide covers how to work with translations and pluralization in the Kuuki app.
 
