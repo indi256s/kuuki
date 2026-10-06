@@ -12,7 +12,7 @@ Read this before changing code and apply it when reviewing a diff. ESLint, the p
 
 `pnpm test` runs API integration tests and Next/legacy unit tests; it excludes the separate composed-Worker smoke and browser suites.
 
-Choose checks by the changed behavior, in addition to affected lint/typechecks and regression tests:
+Before reporting a change done, run the checks for its behavior in addition to affected lint/typechecks and regression tests:
 
 | Change | Additional checks |
 | --- | --- |
