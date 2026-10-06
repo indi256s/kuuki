@@ -248,7 +248,7 @@ test('activation page keeps isolation, erases the fragment and sends a saved pas
   await expect(page.locator('main').getByRole('alert')).toContainText('Too many attempts.')
   await page.getByRole('button', { name: 'Save password' }).click()
   // No email, token or password travels in the URL.
-  await expect(page).toHaveURL(`${baseURL}/?notice=password-saved`)
+  await expect(page).toHaveURL(`${baseURL}/?mode=signin&notice=password-saved`)
 })
 
 test('Continue with known credentials lands in the journal, even when session bootstrap is unavailable', async ({ page }) => {

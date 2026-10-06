@@ -34,7 +34,7 @@ it('serves activation aliases with configured main-origin links and unchanged is
     const document = new DOMParser().parseFromString(await response.text(), 'text/html')
     expect(document.getElementById('signin')!.getAttribute('href')).toBe('https://primary.example.test/signin')
     expect(document.getElementById('resend')!.getAttribute('href')).toBe('https://primary.example.test/activation-request')
-    expect(document.getElementById('saved')!.getAttribute('href')).toBe('https://primary.example.test/?notice=password-saved')
+    expect(document.getElementById('saved')!.getAttribute('href')).toBe('https://primary.example.test/?mode=signin&notice=password-saved')
     expect(document.getElementById('unknown')!.getAttribute('href')).toBe('#')
   }
   const denied = await gateRequest(new Request('https://activation.example.test/activation-request?_rsc=x', { headers: { RSC: '1' } }), env)!

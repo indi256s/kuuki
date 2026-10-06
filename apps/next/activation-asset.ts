@@ -22,7 +22,7 @@ export async function activationAsset(request: Request, env: Env & { ASSETS: Fet
   return new HTMLRewriter().on('a[data-primary-path]', {
     element(element) {
       const path = element.getAttribute('data-primary-path')
-      if (path === '/' || path === '/signin' || path === '/activation-request' || path === '/?notice=password-saved') {
+      if (path === '/' || path === '/signin' || path === '/activation-request' || path === '/?mode=signin&notice=password-saved') {
         element.setAttribute('href', new URL(path, primaryOrigin).href)
       }
     },
