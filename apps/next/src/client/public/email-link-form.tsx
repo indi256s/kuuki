@@ -3,7 +3,7 @@
 import { useState, type FormEvent } from 'react'
 import Link from 'next/link'
 import { api, ApiError } from '../../../../web/src/lib/apiClient'
-import { AuthShell } from './auth-shell'
+import { AuthPanel } from './auth-shell'
 import { Field } from '../ui/field'
 import { Button } from '../ui/button'
 import type { Locale } from '../../lib/format'
@@ -36,7 +36,7 @@ export function EmailLinkForm({ locale, purpose, initialEmail = '' }: { locale: 
         : (ru ? 'Не удалось отправить запрос. Повторите попытку.' : 'Could not submit the request. Please try again.'))
     } finally { setBusy(false) }
   }
-  return <AuthShell locale={locale} title={title} description={activation
+  return <AuthPanel title={title} description={activation
     ? (ru ? 'Укажите почту старого профиля Kuuki, чтобы задать личный пароль.' : 'Use the email of your existing Kuuki profile to set a personal password.')
     : (ru ? 'Мы отправим ссылку, чтобы вы могли задать новый пароль.' : 'We will send a link so you can choose a new password.')}>
     {sent ? <p role="status" className="auth-success">{activation
@@ -51,5 +51,5 @@ export function EmailLinkForm({ locale, purpose, initialEmail = '' }: { locale: 
     <div className="auth-links"><Link href={`/signin${email.trim() ? `?email=${encodeURIComponent(email.trim())}` : ''}`}>{ru ? 'Назад ко входу' : 'Back to sign in'}</Link>
       {activation ? <Link href="/forgot-password">{ru ? 'Уже задали пароль? Восстановить его' : 'Already set a password? Reset it'}</Link> : null}
     </div>
-  </AuthShell>
+  </AuthPanel>
 }

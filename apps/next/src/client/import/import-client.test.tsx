@@ -98,6 +98,34 @@ describe('ImportClient journeys', () => {
     expect(refresh).toHaveBeenCalled()
   })
 
+  it('refreshes the route on a pending answer, so a Passport prefetched before the write is dropped', async () => {
+    const user = userEvent.setup()
+    const server = serverWith([draft({ id: 'a' })])
+    confirmItems.mockImplementationOnce(async (_b: string, items: Array<{ draftId: string; version: number }>) => {
+      server.state.drafts = [{ ...server.state.drafts[0], status: 'converted' }]
+      return { ...response(items.map(created), false), derived_state: 'pending' as const, revision: 10 }
+    })
+    render(<ImportClient ownerId="u1" locale="en" initialBatchId="b1" batchApi={server.api} />)
+    await user.click(await screen.findByRole('button', { name: /import 1/i }))
+    await screen.findByRole('heading', { name: /import finished/i })
+    expect(acknowledge).toHaveBeenCalledWith(expect.objectContaining({ derived_state: 'pending', revision: 10 }))
+    expect(refresh).toHaveBeenCalled()
+  })
+
+  it('leaves a ready answer to the write feedback, which refreshes once publication is known', async () => {
+    const user = userEvent.setup()
+    const server = serverWith([draft({ id: 'a' })])
+    confirmItems.mockImplementationOnce(async (_b: string, items: Array<{ draftId: string; version: number }>) => {
+      server.state.drafts = [{ ...server.state.drafts[0], status: 'converted' }]
+      return response(items.map(created))
+    })
+    render(<ImportClient ownerId="u1" locale="en" initialBatchId="b1" batchApi={server.api} />)
+    await user.click(await screen.findByRole('button', { name: /import 1/i }))
+    await screen.findByRole('heading', { name: /import finished/i })
+    expect(acknowledge).toHaveBeenCalledWith(expect.objectContaining({ derived_state: 'ready' }))
+    expect(refresh).not.toHaveBeenCalled()
+  })
+
   it('treats a lost answer as uncertain until the stored snapshot says otherwise', async () => {
     const user = userEvent.setup()
     const server = serverWith([draft({ id: 'a' }), draft({ id: 'b', ordinal: 1 })])

@@ -73,6 +73,20 @@ describe('RouteFocus', () => {
     expect(document.activeElement?.textContent).toBe('Capture')
   })
 
+  it('skips the inert outgoing page of a route transition', async () => {
+    document.body.innerHTML = '<main id="main"><div data-ssgoi-transition="/passport"></div><div data-ssgoi-transition="/import" inert aria-hidden="true"><h1>Import</h1></div></main>'
+    const ghost = document.querySelector('h1')!
+    const focused: Element[] = []
+    ghost.addEventListener('focus', () => focused.push(ghost))
+    const view = render(<RouteFocus />)
+    pathname = '/passport'
+    view.rerender(<RouteFocus />)
+    expect(focused).toEqual([])
+    expect(document.activeElement).toBe(document.getElementById('main'))
+    await act(async () => { document.querySelector('[data-ssgoi-transition="/passport"]')!.innerHTML = '<h1>Passport</h1>'; await Promise.resolve() })
+    expect(document.activeElement?.textContent).toBe('Passport')
+  })
+
   it('follows a loading heading that is replaced while focus is lost', async () => {
     const first = page()
     const view = render(<RouteFocus />)

@@ -96,7 +96,7 @@ export function StampGroups({ groups, locale, name, onOpen, onOpenArrival, openi
           const caption = stampCaption(locale, entry, now)
           const label = `${name(entry.code)}, ${KIND_LABELS[entry.kind][locale]}${caption ? `, ${caption}` : ''}`
           const press = pressed.get(entry.code)
-          return <li key={entry.code} className="passport-cell" data-status={entry.status}>
+          return <li key={entry.code} className="passport-cell" data-status={entry.status} data-hero-enter-key={entry.code}>
             <Stamp {...stampProps(entry, locale, name)} caption={caption} static={!press} pressEventId={press} />
             {entry.status === 'pending'
               ? <a className="passport-cell-action" href={AWAITING_QUEUE_HREF} aria-busy={opening === entry.code || undefined}

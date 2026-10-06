@@ -55,6 +55,9 @@
       "protobufjs@>=7.5.4 <7.6.5": "7.6.5",
       "ws@>=8.18.0 <8.21.0": "8.21.0",
       "rollup@>=4.34.0 <4.59.0": "4.59.0"
+    },
+    "patchedDependencies": {
+      "@ssgoi/core@7.4.0": "patches/@ssgoi__core@7.4.0.patch"
     }
   }
 }

@@ -140,7 +140,15 @@ Rules: ease-in is banned; exits use ease-out and run about 20% faster than enter
 
 | Never animates | Built animation |
 |---|---|
-| Route and tab changes (focus moves to H1), keyboard actions, filter/sort/period changes, ambient loops, WindLoader, glow pulses | Press scale 0.96 120ms (`data-static` excluded); hover color 150ms on fine pointers; segmented thumb 200ms `--ease-in-out`; menu 150ms in (scale .97) and 120ms out; dialog 200ms in (scale .96) and 150ms out, scrim 200/150; sheet 300ms `--ease-drawer` with handle drag; disclosure 300ms rows plus 150ms opacity; toast 300ms in, 200ms out; switch 200ms; tab bar slide off for the keyboard 200ms; stamp press 450ms |
+| Route and tab changes (focus moves to H1), except the three [route transitions](#route-transitions) below; keyboard actions, filter/sort/period changes, ambient loops, WindLoader, glow pulses | Press scale 0.96 120ms (`data-static` excluded); hover color 150ms on fine pointers; segmented thumb 200ms `--ease-in-out`; menu 150ms in (scale .97) and 120ms out; dialog 200ms in (scale .96) and 150ms out, scrim 200/150; sheet 300ms `--ease-drawer` with handle drag; disclosure 300ms rows plus 150ms opacity; toast 300ms in, 200ms out; switch 200ms; tab bar slide off for the keyboard 200ms; stamp press 450ms; the three route transitions |
+
+### Route transitions
+
+Only three route changes animate, through `@ssgoi/react` 7.4.0 in `apps/next/src/client/route-transitions.tsx`. Every other navigation keeps its page boundary and swaps instantly: tabs, header nav, `?view=`, filters and sheets (flight detail, `/add`). The springs are critically damped, so nothing bounces, and the times below count until ssgoi ends the spring. Focus still moves to the incoming H1, and the outgoing page is inert and `aria-hidden` until it settles.
+
+- **Import done → Passport, `hero`, about 0.38s.** The done-step stamps (`data-hero-exit-key`) travel to their Passport stamps (`data-hero-enter-key`) without replaying the press. It runs forward only and for at most 8 stamps; with more, Passport opens without it. A Passport stamp that will not be fully on screen has no partner and appears in place. On a phone the Passport cover keeps the stamps below the fold, so there they all appear in place. If Passport has not finished loading when the member opens it, it shows its loading screen and opens without the hero.
+- **Leaderboard → `/fly/[username]`, `drill`, about 0.28s.** The default parallax, reversed by Back, with no hero. Forward redoes it. A link from a profile to the leaderboard, Back onto a profile and Forward over that link stay instant. Back is read from the Navigation API; in a browser without it, Back and Forward never drill.
+- **Sign in ↔ sign up ↔ forgot password, `axis` x, about 0.28s.** Only the form panel swaps, as a fade-through: the incoming form starts once the outgoing one is 75% gone. The card and the brand panel stay put.
 
 Additional motion contracts:
 - **Planned (W5/T25):** icon swap by scale, opacity and blur 200ms with `--ease-icon`; tooltip 150ms with instant adjacent tooltips (no tooltip component exists); skeleton to content 150ms. Today loading is the static [loading screen](#loading-screen).
@@ -153,7 +161,7 @@ Additional motion contracts:
 
 Delight moments use `--dur-moment`. The built `Stamp` press starts from scale 1.06, opacity 0, blur 2px, with a one-frame brightness darkening, and plays once per immutable ID (module `Set` plus `sessionStorage`) so remounts and refetches never replay it. Onboarding applies the 80ms stagger and cap of eight to newly published country acknowledgments. Reveal shows at most eight stamps and links to Passport for the complete collection; refetches and historical evidence do not replay the first-save moment.
 
-Reduced motion means gentler, not none. Built in `ui.css`: no scale or translate, color and opacity at 150ms linear; dialog and menu fade; sheet and toast fade (drag still works); thumb, disclosure and chevron static; stamp press becomes a 200ms fade; the tab bar does not slide.
+Reduced motion means gentler, not none. Built in `ui.css`: no scale or translate, color and opacity at 150ms linear; dialog and menu fade; sheet and toast fade (drag still works); thumb, disclosure and chevron static; stamp press becomes a 200ms fade; the tab bar does not slide; the three route transitions swap instantly, like every other route change.
 
 ## Iconography
 

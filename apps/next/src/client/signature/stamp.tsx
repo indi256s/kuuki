@@ -35,6 +35,8 @@ export type StampProps = {
   /** No animation at all (grids, print). */
   static?: boolean
   className?: string
+  /** Pairs this stamp with the Passport stamp of the same country for the import → Passport hero. */
+  heroExitKey?: string
 }
 
 /**
@@ -72,7 +74,7 @@ const COPY = {
   kind: { air: { en: 'by air', ru: 'самолётом' }, land: { en: 'by land', ru: 'по суше' }, sea: { en: 'by sea', ru: 'по морю' }, claim: { en: 'claimed', ru: 'отмечена вручную' } },
 } as const
 
-export function Stamp({ countryCode, nativeName, name, kind, visits = 1, firstYear, status = 'pressed', color, theme, locale, caption, pressEventId, static: isStatic, className }: StampProps) {
+export function Stamp({ countryCode, nativeName, name, kind, visits = 1, firstYear, status = 'pressed', color, theme, locale, caption, pressEventId, static: isStatic, className, heroExitKey }: StampProps) {
   const round = kind === 'air'
   const pending = status === 'pending'
   const rings = ringCount(visits)
@@ -92,7 +94,7 @@ export function Stamp({ countryCode, nativeName, name, kind, visits = 1, firstYe
   const waiting = pending ? COPY.pending[locale] : null
 
   return (
-    <figure className={clsx('stamp', className)} data-kind={kind} data-status={status} data-shape={round ? 'round' : 'rect'} data-press={play ? 'play' : 'idle'} style={style}>
+    <figure className={clsx('stamp', className)} data-kind={kind} data-status={status} data-shape={round ? 'round' : 'rect'} data-press={play ? 'play' : 'idle'} data-hero-exit-key={heroExitKey} style={style}>
       <div className="stamp-face">
         <svg className="stamp-rings" viewBox={round ? '0 0 120 120' : '0 0 160 120'} aria-hidden="true" focusable="false">
           {round

@@ -1,6 +1,6 @@
-import { EmailLinkForm } from '../../../client/public/email-link-form'
-import { getRequestLocale } from '../../../server/locale'
-import { pageMetadata } from '../../../server/metadata'
+import { EmailLinkForm } from '../../../../client/public/email-link-form'
+import { getRequestLocale } from '../../../../server/locale'
+import { pageMetadata } from '../../../../server/metadata'
 
 export const generateMetadata = () => pageMetadata('Activate your account', 'Активировать аккаунт', { referrer: 'no-referrer' })
 export default async function ActivationRequest({ searchParams }: { searchParams: Promise<{ email?: string }> }) {

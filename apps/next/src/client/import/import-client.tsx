@@ -214,8 +214,9 @@ export function ImportClient({ ownerId, locale, initialBatchId = null, initialSo
     const flights = acks.flatMap(ack => ((ack as typeof ack & { results?: BulkItemResult[] }).results ?? []).flatMap(item => (item.status === 'created' || item.status === 'replayed') && item.flight && Number.isSafeInteger(item.flight.id) && typeof item.flight.is_upcoming === 'boolean' ? [{ ...item.flight, user_id: ownerId } as Flight] : []))
     if (flights.length) setCanonicalSaved(previous => [...new Map([...previous, ...flights].map(flight => [flight.id, flight])).values()])
     feedback.acknowledge(last)
-    // An answer without derived state cannot start the publication check; still refresh what the server rendered.
-    if (!last.derived_state) router.refresh()
+    // A ready answer refreshes through the feedback. Any other answer refreshes now: that drops a prefetched Passport
+    // from before this write, so Open Passport shows the new revision and waits for its publication itself.
+    if (last.derived_state !== 'ready') router.refresh()
   }
 
   /** Save the given drafts and manual rows. Runs the server confirm sequentially, then re-reads the stored snapshot. */
@@ -333,10 +334,10 @@ export function ImportClient({ ownerId, locale, initialBatchId = null, initialSo
   const touched = useMemo(() => [...savedDrafts.map(draft => draft.fields), ...manualSaved.map(row => row.values)].flatMap(fields => routeCountries(fields.origin, fields.destination)), [savedDrafts, manualSaved])
   useEffect(() => {
     if (feedback.status !== 'ready' || savedCount === 0 || stampsFor.current === savedCount || !baseline.current) return
-    stampsFor.current = savedCount
     const before = baseline.current
     let live = true
-    void fetchPressedCountries().then(after => { if (live && after) setNewCodes(newlyPressed(before, after, touched)) })
+    // A re-render can cancel this read before it lands; only a landed read counts, so the next run reads again.
+    void fetchPressedCountries().then(after => { if (live && after) { stampsFor.current = savedCount; setNewCodes(newlyPressed(before, after, touched)) } })
     return () => { live = false }
   }, [feedback.status, savedCount, touched])
 

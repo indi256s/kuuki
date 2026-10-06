@@ -10,7 +10,7 @@ import { ReviewStep, type ReviewStepProps } from './review-step'
 import { S } from './copy'
 import { SourceStep } from './source-step'
 
-vi.mock('../signature/stamp', () => ({ Stamp: ({ countryCode }: { countryCode: string }) => <div data-testid="stamp">{countryCode}</div> }))
+vi.mock('../signature/stamp', () => ({ Stamp: ({ countryCode, heroExitKey }: { countryCode: string; heroExitKey?: string }) => <div data-testid="stamp" data-hero-exit-key={heroExitKey}>{countryCode}</div> }))
 
 describe('SourceStep', () => {
   it('leads with a labelled dropzone button, keeps paste secondary and the email helper collapsed', async () => {
@@ -197,6 +197,16 @@ describe('DoneStep', () => {
     const stamps = Array.from({ length: 11 }, (_, index) => ({ code: `C${index}`, name: `Country ${index}`, eventId: `e${index}` }))
     render(<DoneStep {...base} stamps={stamps} newCountries={11} />)
     expect(screen.getAllByTestId('stamp')).toHaveLength(8)
+  })
+  it('sends every pressed stamp to Passport in the hero, up to eight', () => {
+    const stamps = Array.from({ length: 8 }, (_, index) => ({ code: `C${index}`, name: `Country ${index}`, eventId: `e${index}` }))
+    render(<DoneStep {...base} stamps={stamps} newCountries={8} />)
+    expect(screen.getAllByTestId('stamp').map(stamp => stamp.dataset.heroExitKey)).toEqual(stamps.map(stamp => stamp.code))
+  })
+  it('leaves the hero out when more than eight countries are new', () => {
+    const stamps = Array.from({ length: 9 }, (_, index) => ({ code: `C${index}`, name: `Country ${index}`, eventId: `e${index}` }))
+    render(<DoneStep {...base} stamps={stamps} newCountries={9} />)
+    expect(screen.getAllByTestId('stamp').filter(stamp => stamp.dataset.heroExitKey)).toHaveLength(0)
   })
   it('lists the failed rows and retries only for them', async () => {
     const onRetry = vi.fn()

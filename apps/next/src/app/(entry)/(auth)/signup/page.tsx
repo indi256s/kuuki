@@ -1,8 +1,8 @@
 import { redirect } from 'next/navigation'
-import { getMemberLanding } from '../../../server/gates'
-import { pageMetadata } from '../../../server/metadata'
-import { AuthForm } from '../../../client/public/auth-form'
-import { getRequestLocale } from '../../../server/locale'
+import { getMemberLanding } from '../../../../server/gates'
+import { pageMetadata } from '../../../../server/metadata'
+import { AuthForm } from '../../../../client/public/auth-form'
+import { getRequestLocale } from '../../../../server/locale'
 
 export const generateMetadata = () => pageMetadata('Create an account', 'Создать аккаунт')
 export default async function SignUp() {

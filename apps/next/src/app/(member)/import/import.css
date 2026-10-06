@@ -95,6 +95,8 @@
 .import-summary{display:flex;flex-wrap:wrap;font-size:22px;line-height:28px;font-variant-numeric:tabular-nums}
 .import-summary-chunk{animation:import-enter var(--dur-moment) var(--ease-out) both;animation-delay:var(--stagger,0ms)}
 .import-stamp-grid{display:flex;flex-wrap:wrap;gap:var(--space-4)}
+/* Passport-sized, so the actions stay near the fold: Open Passport prefetches only once it nears the viewport, and the hero needs that prefetch. */
+.import-stamp-grid>.stamp{width:160px}
 .import-final-actions .ui-button{text-decoration:none}
 .import-aircraft{padding-top:var(--space-4);border-top:1px solid var(--hairline)}
 .import-aircraft-row[data-state=saved]{opacity:1}

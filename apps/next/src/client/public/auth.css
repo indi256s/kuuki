@@ -2,6 +2,8 @@
 .auth-shell-brand{display:flex;flex-direction:column;justify-content:space-between;gap:var(--space-8);padding:var(--space-8);background:var(--surface-inset)}
 .auth-kana{font:600 64px/1.1 var(--font-kana);writing-mode:vertical-rl;color:var(--accent-text)}
 .auth-shell-brand p{margin:0;font-size:17px;line-height:28px;max-width:18ch}
+/* In the (auth) layout the panel sits in a route stage, which must not widen the grid column. */
+.auth-shell>.route-stage{display:grid;min-width:0}
 .auth-shell-panel{min-width:0;padding:var(--space-8)}
 .auth-shell-panel h1{margin-bottom:var(--space-6)}
 .auth-description{color:var(--text-muted)}

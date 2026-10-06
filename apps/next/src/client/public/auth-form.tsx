@@ -7,7 +7,7 @@ import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { api, ApiError } from '../../../../web/src/lib/apiClient'
 import { withIdentityMutation } from '../activity'
-import { AuthShell } from './auth-shell'
+import { AuthPanel } from './auth-shell'
 import { PasswordField, passwordRule, passwordMismatch } from './password-field'
 import { Field } from '../ui/field'
 import { Button } from '../ui/button'
@@ -57,7 +57,7 @@ export function AuthForm({ mode, locale, initialEmail = '' }: { mode: Mode; loca
       }
     }
   })
-  return <AuthShell locale={locale} title={t.heading}>
+  return <AuthPanel title={t.heading}>
     {created ? <><p role="status" className="auth-success">{m.created}</p><div className="auth-links"><Link href={`/signin?email=${encodeURIComponent(getValues('email'))}`}>{words[locale].signin.action}</Link></div></> : <form onSubmit={submit} noValidate aria-busy={isSubmitting}>
       {mode === 'signup' ? <Field label={m.name} autoComplete="name" maxLength={80} error={errors.name ? (locale === 'ru' ? 'Не более 80 символов.' : 'Use at most 80 characters.') : undefined} optionalLabel={locale === 'ru' ? 'необязательно' : 'optional'} {...register('name')} /> : null}
       <Field label={m.email} type="email" autoComplete="email" maxLength={320} error={errors.email ? m.invalidEmail : undefined} {...register('email')} />
@@ -73,5 +73,5 @@ export function AuthForm({ mode, locale, initialEmail = '' }: { mode: Mode; loca
       <Link href={t.otherPath}>{t.other}</Link>
       <Link href="/activation-request">{m.activation}</Link>
     </div>
-  </AuthShell>
+  </AuthPanel>
 }

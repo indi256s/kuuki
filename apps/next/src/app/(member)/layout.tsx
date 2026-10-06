@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import { BadgeNotifications } from '../../client/profile/badge-notifications'
+import { RouteStage } from '../../client/route-transitions'
 import { MemberShell } from '../../client/shell'
 import { requireOnboardedMember } from '../../server/gates'
 import { getRequestLocale } from '../../server/locale'
@@ -8,5 +9,5 @@ import { getRequestLocale } from '../../server/locale'
 export default async function MemberLayout({ children }: { children: ReactNode }) {
   const own = await requireOnboardedMember()
   const locale = await getRequestLocale()
-  return <MemberShell locale={locale}><BadgeNotifications key={own.ownerId} ownerId={own.ownerId} locale={locale} />{children}</MemberShell>
+  return <MemberShell locale={locale}><BadgeNotifications key={own.ownerId} ownerId={own.ownerId} locale={locale} /><RouteStage stage="page">{children}</RouteStage></MemberShell>
 }

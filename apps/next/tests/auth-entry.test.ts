@@ -16,10 +16,13 @@ test('entry forms expose rules, reveal, password matching and activation/recover
   await expect(page.getByText('Passwords do not match.')).toBeVisible()
   await page.getByRole('link', { name: 'Already have an account? Sign in' }).click()
   await expect(page).toHaveURL(/\/signin$/)
-  await expect(page.getByLabel('Password', { exact: true })).toHaveAttribute('autocomplete', 'current-password')
+  // The outgoing sign-up form stays in the page, hidden, until the fade-through settles; a role query skips it.
+  await expect(page.getByRole('textbox', { name: 'Password', exact: true })).toHaveAttribute('autocomplete', 'current-password')
   await expect(page.getByRole('link', { name: 'Forgot password?' })).toHaveAttribute('href', '/forgot-password')
   await page.getByRole('link', { name: /Continue to activation/ }).click()
   await expect(page).toHaveURL(/\/activation-request$/)
+  // A sign-in ↔ sign-up fade still settling keeps its hidden form for a moment; nothing may linger after it.
+  await expect(page.locator('input[type="email"]')).toHaveCount(1)
   // UI boundary only: no mail service or real inbox is contacted.
   await page.route('**/api/auth/activation/request', route => route.fulfill({ json: { ok: true } }))
   await page.getByLabel('Email', { exact: true }).fill('unknown@example.test')

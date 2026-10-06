@@ -20,7 +20,8 @@ export function RouteFocus() {
     if (previous.current === key) return
     previous.current = key
     const focusHeading = () => {
-      const heading = [...document.querySelectorAll<HTMLElement>('main h1')].find(node => !node.closest('[hidden], [inert]'))
+      // An approved route transition keeps the outgoing page in the DOM, inert, until it settles.
+      const heading = [...document.querySelectorAll<HTMLElement>('main h1')].find(node => !node.closest('[hidden], [inert], [aria-hidden="true"]'))
       if (heading) { heading.tabIndex = -1; heading.focus({ preventScroll: true }) }
       else { const main = document.getElementById('main'); if (main) { main.tabIndex = -1; main.focus({ preventScroll: true }) } } // loading state without a heading
       return heading
