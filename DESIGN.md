@@ -24,7 +24,7 @@ The board gives one value per accent for fill and text. As now, `--accent-text` 
 
 ## Type and layout
 
-Self-hosted Onest ([`apps/next/public/fonts`](apps/next/public/fonts), variable 100–900) is the Cyrillic-capable UI and display face; JetBrains Mono is for ticket codes, flight numbers, times, table dates, and handles. OFL licenses ship beside the font files. Changing and aligned numbers use tabular figures. Headings wrap with `balance`, paragraphs with `pretty`. Use locale-aware EN/RU dates, numbers, and real plural forms (one/few/many/other in Russian). Russian copy addresses the user as «вы».
+Self-hosted Commissioner WOFF2 ([`apps/next/public/fonts`](apps/next/public/fonts), weights 400/500/600/700) is the Cyrillic-capable UI and display face; JetBrains Mono is for ticket codes, flight numbers, times, table dates, and handles. OFL licenses ship beside the font files. Changing and aligned numbers use tabular figures. Headings wrap with `balance`, paragraphs with `pretty`. Use locale-aware EN/RU dates, numbers, and real plural forms (one/few/many/other in Russian). Russian copy addresses the user as «вы».
 
 | Style | Built value | Where |
 |---|---|---|
@@ -58,7 +58,7 @@ Frozen by the Redesign 2.0 plan (D1–D12). Lifecycle and import details live in
 | D2 | Five named accents: Terracotta (default), Ai, Matcha, Asagi and Sakura. Store the name, never an arbitrary color; kincha and sumi map to terracotta. |
 | D3 | System theme by default; an explicit saved preference is preserved. |
 | D4 | Light neutrals are barely warm; dark uses charcoal. |
-| D5 | Typeface chosen by RU/EN specimen; Onest confirmed (see Typeface decision). |
+| D5 | Commissioner selected by user request, superseding the earlier RU/EN specimen (see Typeface decision). |
 | D6 | Russian copy uses «вы» everywhere. |
 | D7 | Journey UI and navigation are removed; a bookmarked `/journey` redirects to `/overview` (built). |
 | D8 | Overview has a period control only; Journal owns all detailed filters. |
@@ -107,7 +107,7 @@ Shell and control tokens (all in `:root`):
 | `--action-row-h` | 52px | Add-action rows in the mobile sheet. |
 | `--badge-size` | 24px | Queue count pill. |
 | `--z-tabbar` | 30 | Tab bar; the only tokenized z-index. |
-| `--font-sans` / `--font-mono` | Onest, system-ui / JetBrains Mono, ui-monospace | Text; ticket data only. |
+| `--font-sans` / `--font-mono` | Commissioner, system-ui / JetBrains Mono, ui-monospace | Text; ticket data only. |
 | `--font-kana` | Hiragino Sans, Hiragino Kaku Gothic ProN, Noto Sans JP, Yu Gothic, then `--font-sans` | The 空 tile and the くうき watermarks; system stack, no webfont. |
 
 Runtime variables set by the shell and primitives, not for authoring: `--tabbar-offset`, `--toast-bottom-offset`, `--action-bar-bottom` (mobile, derived from the tab bar and safe area; zeroed while the keyboard is open), `--sheet-drag`, `--sheet-kb`, `--n` (segmented option count).
@@ -118,7 +118,7 @@ Motion tokens: see Motion.
 
 ## Typeface decision
 
-Onest is confirmed (frozen earlier by the architecture session; the specimen is confirming evidence, not a re-opened choice). The specimen in [`docs/design/font-specimen.html`](docs/design/font-specimen.html) compares Onest, Golos Text and Manrope on real RU/EN navigation, field, airport-route, numeral and plural strings (screenshot: `docs/design/font-specimen.png`). In the specimen, Onest renders the Cyrillic strings, tabular numerals (0123456789, 141 255 км) and IATA codes beside city names cleanly, without fallback glyphs or clipping of «Авиакомпании». Golos Text and Manrope load from Google Fonts for the specimen only and are never shipped.
+Commissioner replaces Onest at the user's request. The UI and display face is self-hosted as WOFF2 with real upright 400/500/600/700 faces and Latin/Cyrillic coverage. The official static faces include the `tnum` feature that the variable release lacks. Tabular figures are enabled on the body and inherited by data values and form controls; JetBrains Mono remains the ticket-data face. The OFL license ships beside the font. The earlier [`font specimen`](docs/design/font-specimen.html) and screenshot record the previous Onest selection.
 
 ## Surfaces and elevation
 
@@ -174,7 +174,7 @@ Active state never relies on color alone: accent text, label weight 600, and a 2
 
 **Logo mark.** One stable mark: the kanji 空 (from 空気, *kuuki*) on a filled `--accent` tile with an `--accent-foreground` glyph, set in `--font-kana` (no webfont). The tile is 32px with radius `--radius-sm` and a 600 18px glyph. The loading screen scales it to 48px with a 24px glyph. It replaces the brief's suggested く, which reads as a back chevron in every Japanese face, so the mark is never a back button. The wordmark is the tile plus a lowercase "kuuki" (19px, 600) and links home. The vertical くうき word stays on the auth brand panel; the editorial profile includes its watermark. The brief's glyph crossfade for the boot screen is not built.
 
-**Built (auth redesign): text wordmark.** On auth surfaces, a wordmark with no tile replaces the 空 tile: "Ku" in `--accent-text` and "uki" in `--text`, so it follows the accent and the theme. It uses Onest 700 at −0.04em, with font size equal to line height: 36px on the desktop auth brand panel and 28px in the mobile auth header. It is one element with `aria-label="Kuuki"`; the two spans are visual only. The spec replaces the tile on auth surfaces. The accent-picker boards also draw it in the app header at 22px (Proposed). Member headers and loading screens retain the 空 tile. Board "1.1" sets the brand-panel wordmark at −0.05em; the build notes and the spec say −0.04em, and the spec wins.
+**Built (auth redesign): text wordmark.** On auth surfaces, a wordmark with no tile replaces the 空 tile: "Ku" in `--accent-text` and "uki" in `--text`, so it follows the accent and the theme. It uses Commissioner 700 at −0.04em, with font size equal to line height: 36px on the desktop auth brand panel and 28px in the mobile auth header. It is one element with `aria-label="Kuuki"`; the two spans are visual only. The spec replaces the tile on auth surfaces. The accent-picker boards also draw it in the app header at 22px (Proposed). Member headers and loading screens retain the 空 tile. Board "1.1" sets the brand-panel wordmark at −0.05em; the build notes and the spec say −0.04em, and the spec wins.
 
 ## Shell and navigation
 

@@ -13,6 +13,33 @@ test.beforeAll(async ({ browser, baseURL }) => {
 })
 async function asMember(page: Page) { await page.context().addCookies(memberCookies) }
 
+test('Commissioner loads with equal-width tabular digits at every UI weight', async ({ page }) => {
+  await page.goto('/')
+  const report = await page.evaluate(async () => {
+    const probe = document.createElement('span')
+    probe.style.cssText = 'position:absolute;visibility:hidden;white-space:nowrap'
+    document.querySelector('body')!.appendChild(probe)
+    const rows = []
+    for (const weight of [400, 500, 600, 700]) {
+      const faces = await document.fonts.load(`${weight} 15px Commissioner`, 'Авиакомпании 0123456789')
+      probe.style.fontWeight = String(weight)
+      const widths = [...'0123456789'].map(digit => {
+        probe.textContent = digit.repeat(8)
+        return probe.getBoundingClientRect().width
+      })
+      rows.push({ loaded: faces.length > 0, family: getComputedStyle(probe).fontFamily, numeric: getComputedStyle(probe).fontVariantNumeric, spread: Math.max(...widths) - Math.min(...widths) })
+    }
+    probe.remove()
+    return rows
+  })
+  for (const row of report) {
+    expect(row.loaded).toBe(true)
+    expect(row.family).toContain('Commissioner')
+    expect(row.numeric).toBe('tabular-nums')
+    expect(row.spread).toBeLessThan(0.1)
+  }
+})
+
 const ACTIONS = [['upload', '/import', '?source=file'], ['paste', '/import', '?source=text'], ['manual', '/add', '']] as const
 
 test.describe('mobile shell at 390px', () => {
