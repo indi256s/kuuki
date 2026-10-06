@@ -49,7 +49,7 @@ test.describe('mobile shell at 390px', () => {
       await expect(sheet.locator('a[data-add-action]')).toHaveCount(3)
       await sheet.locator(`a[data-add-action="${id}"]`).click()
       await page.waitForURL(url => url.pathname === path && url.search === search)
-      // The Add sheet closes; /add opens its own capture dialog.
+      // The Add sheet closes on the route change; /add then shows its own capture dialog, also titled "Add a flight".
       await expect(page.locator('a[data-add-action]')).toHaveCount(0)
     })
   }

@@ -147,9 +147,19 @@ export function parseSort(params: URLSearchParams): SortConfig {
   return { field: SORT_FIELDS.has(field) ? field : 'date', order }
 }
 
-/** ORDER BY built from an already-validated SortConfig, with a stable id tiebreak. */
+/**
+ * ORDER BY built from an already-validated SortConfig, with a stable id tiebreak. The default sort
+ * (date, descending) leads with lifecycle_state = 'upcoming' rows, nearest first, so the Journal's
+ * Upcoming group is globally nearest-first across pages; every non-default sort is a plain column order.
+ * An explicit date-desc is indistinguishable from the default, so it gets the same upcoming-first order.
+ */
 export function orderByClause(sort: SortConfig): string {
   const dir = sort.order === 'asc' ? 'ASC' : 'DESC'
+  if (sort.field === 'date' && sort.order === 'desc') {
+    return `ORDER BY CASE WHEN lifecycle_state = 'upcoming' THEN 0 ELSE 1 END,
+      CASE WHEN lifecycle_state = 'upcoming' THEN date END ASC, CASE WHEN lifecycle_state = 'upcoming' THEN id END ASC,
+      date DESC, id DESC`
+  }
   return `ORDER BY ${sort.field} ${dir}, id ${dir}`
 }
 

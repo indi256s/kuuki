@@ -13,6 +13,8 @@ export interface WatchOptions {
 }
 
 const MAX_DELAY_MS = 15_000
+/** Independent attempts to read the final snapshot after a terminal `end`, without opening another connection. */
+const FINAL_READ_ATTEMPTS = 5
 const FATAL = new Set([401, 403, 404, 410])
 const fatal = (error: unknown) => FATAL.has((error as { status?: number } | null)?.status ?? 0)
 
@@ -23,6 +25,21 @@ export async function watchBatch({ load, connect, sleep, onSnapshot, signal }: W
   onSnapshot(snapshot, { reupload: false })
   let attempt = 0
 
+  async function readFinal() {
+    for (let tries = 0; !signal.aborted && snapshot.batch.status === 'processing'; tries++) {
+      try {
+        const next = await load()
+        if (signal.aborted) return
+        snapshot = next
+        onSnapshot(next, { reupload: false })
+        if (next.batch.status !== 'processing') return
+      } catch (error) {
+        if (fatal(error) || tries + 1 >= FINAL_READ_ATTEMPTS) throw error
+      }
+      await sleep(Math.min(1000 * 2 ** tries, MAX_DELAY_MS))
+    }
+  }
+
   while (!signal.aborted && snapshot.batch.status === 'processing') {
     let known = snapshot.batch.sequence
     let dirty = false
@@ -30,6 +47,8 @@ export async function watchBatch({ load, connect, sleep, onSnapshot, signal }: W
     let progressed = false
     let pumping: Promise<void> | null = null
     let fatalError: unknown = null
+    /** Status carried by the `end` event: only `processing` (backpressure close) asks for a reconnect. */
+    let endStatus: string | null = null
 
     const pump = () => {
       if (pumping) return
@@ -51,6 +70,7 @@ export async function watchBatch({ load, connect, sleep, onSnapshot, signal }: W
     const onEvent = (event: ImportEvent) => {
       const decision = decideEvent(known, event)
       if (decision === 'ignore') return
+      if (decision === 'end') endStatus = event.status ?? 'processing'
       known = Math.max(known, event.sequence)
       dirty = true
       if (event.reupload) reupload = true
@@ -62,6 +82,10 @@ export async function watchBatch({ load, connect, sleep, onSnapshot, signal }: W
     // Let any reload started by the last notification finish before deciding what to do next.
     for (;;) { const active: Promise<void> | null = pumping; if (!active) break; await active }
     if (fatalError) throw fatalError
+    if (signal.aborted) return
+    // A terminal end status stops reconnecting for good. If the snapshot read it triggered failed, only that read is
+    // retried (with a bounded backoff); the stream is never reopened for a status other than `processing`.
+    if (endStatus !== null && endStatus !== 'processing') await readFinal()
     if (signal.aborted || snapshot.batch.status !== 'processing') return
 
     attempt = progressed ? 0 : attempt + 1

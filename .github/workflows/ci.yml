@@ -31,6 +31,7 @@ jobs:
       - run: pnpm typecheck:api
       - run: pnpm typecheck:scripts
       - run: pnpm typecheck:maintenance
+      - run: pnpm typecheck:import
       - run: pnpm --filter @kuuki/web test:run
       - run: pnpm test:api
       - run: pnpm --filter @kuuki/next test
@@ -40,6 +41,7 @@ jobs:
       - run: pnpm --filter @kuuki/web build
       - run: pnpm build:api
       - run: pnpm build:maintenance
+      - run: WRANGLER_SEND_METRICS=false pnpm build:import
       - run: pnpm smoke:runtime
       - name: Check api-routes.generated.ts is current (run node scripts/build-next.mjs --inventory-only and commit the file)
         run: node scripts/build-next.mjs --inventory-only && git diff --exit-code apps/next/api-routes.generated.ts

@@ -1,9 +1,10 @@
 import { test, expect, type Page } from '@playwright/test'
+import { fixtureHeaders } from './helpers'
 
 async function freshAccount(page: Page, origin: string) {
   const email = `rollback-${crypto.randomUUID()}@example.test`
   const response = await page.request.post('/api/auth/sign-up/email', {
-    headers: { Origin: origin },
+    headers: fixtureHeaders(origin),
     data: { email, password: 'rollback-password-2026' },
   })
   expect(response.status()).toBe(201)

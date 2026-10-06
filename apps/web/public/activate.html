@@ -4,36 +4,42 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="referrer" content="no-referrer">
+  <script src="/activate.js"></script>
   <title>Activate your Kuuki account</title>
+  <!-- Next's asset build fills this with the canonical theme/accent tokens. Raw rollback uses system colors. -->
+  <style id="activation-tokens"></style>
   <style>
-    :root { color-scheme: light dark; font-family: system-ui, sans-serif; }
-    body { margin: 0; min-height: 100vh; display: grid; place-items: center; background: #f4f7f9; color: #17242b; }
-    main { box-sizing: border-box; width: min(100% - 2rem, 28rem); padding: 2rem; background: white; border: 1px solid #dbe5eb; border-radius: 1rem; }
-    h1 { margin-top: 0; font-size: 1.5rem; }
-    label { display: block; margin: 1rem 0 .35rem; }
-    input, button { box-sizing: border-box; width: 100%; padding: .75rem; font: inherit; border-radius: .5rem; }
-    input { border: 1px solid #8c9da8; }
-    button { margin-top: 1.25rem; border: 0; background: #176782; color: white; cursor: pointer; }
-    button:disabled { opacity: .65; cursor: wait; }
-    a { color: #176782; }
-    #status { min-height: 1.5em; }
-    @media (prefers-color-scheme: dark) { body { background: #101b22; color: #eef6f8; } main { background: #1b2a32; border-color: #3d5059; } input { background: #101b22; color: inherit; } a { color: #8ed6eb; } }
+    *{box-sizing:border-box}body{margin:0;background:var(--background,Canvas);color:var(--text,CanvasText);font:400 15px/24px var(--font-sans,system-ui)}
+    [hidden]{display:none!important}a{color:var(--accent-text,LinkText)}button,input,select{font:inherit}a,button,input,select{outline:none}a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--focus,Highlight);outline-offset:2px}
+    header{border-bottom:1px solid var(--hairline,ButtonBorder)}.header-inner{max-width:1200px;margin:auto;padding:0 24px;min-height:56px;display:flex;align-items:center;gap:16px}.wordmark{display:flex;gap:10px;align-items:center;color:inherit;text-decoration:none;font-size:19px;font-weight:600}.mark{display:grid;place-items:center;width:32px;height:32px;border-radius:var(--radius-sm,10px);background:var(--accent,Highlight);color:var(--accent-foreground,HighlightText);font:600 18px/1 var(--font-kana,system-ui)}
+    .preferences{display:flex;flex-wrap:wrap;gap:8px;margin-left:auto}select{min-height:44px;border:1px solid var(--control-border,ButtonBorder);border-radius:var(--radius-sm,10px);background:var(--background,Canvas);color:inherit;padding:8px}
+    main{padding:48px 24px}.auth-shell{display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1fr);width:min(840px,100%);margin:32px auto;border:1px solid var(--hairline,ButtonBorder);border-radius:var(--radius-lg,20px);overflow:hidden;background:var(--surface,Canvas)}
+    .auth-brand{display:flex;flex-direction:column;justify-content:space-between;gap:32px;padding:32px;background:var(--surface-inset,ButtonFace)}.auth-brand span{writing-mode:vertical-rl;font:600 64px/1.1 var(--font-kana,system-ui);color:var(--accent-text,LinkText)}.auth-brand p{max-width:18ch;font-size:17px;line-height:28px;margin:0}.auth-panel{min-width:0;padding:32px}h1{font-size:30px;line-height:36px;font-weight:600;letter-spacing:-.02em;margin:0 0 24px;text-wrap:balance}p{text-wrap:pretty}.description{color:var(--text-muted,CanvasText)}
+    form{display:grid;gap:8px}.field label{display:block;font-weight:600;margin-bottom:8px}.field input{width:100%;min-height:44px;padding:8px 12px;border:1px solid var(--control-border,ButtonBorder);border-radius:var(--radius-sm,10px);background:var(--surface,Canvas);color:inherit}.field input[aria-invalid=true]{border-color:var(--danger-text,CanvasText)}.hint,.field-error{font-size:13px;line-height:20px;margin:0 0 8px}.hint{color:var(--text-muted,CanvasText)}.field-error{min-height:20px;margin-bottom:0;color:var(--danger-text,CanvasText)}
+    .password-control{position:relative}.password-control input{padding-right:88px}.reveal{position:absolute;right:4px;top:0;min-height:44px;padding:8px;border:0;background:var(--surface,Canvas);color:inherit;font-weight:600;cursor:pointer}
+    .primary{min-height:44px;padding:10px 18px;border:0;border-radius:var(--radius-sm,10px);background:var(--accent,Highlight);color:var(--accent-foreground,HighlightText);font-weight:600;cursor:pointer}.primary:disabled{cursor:wait}.links{display:grid;gap:8px;margin-top:24px}.links a{display:flex;align-items:center;min-height:44px;text-underline-offset:3px}#status{min-height:40px;font-size:13px;line-height:20px;margin:16px 0 0;overflow-wrap:anywhere}#status[data-error=true]{color:var(--danger-text,CanvasText)}.optional{font-weight:400;font-size:13px;color:var(--text-muted,CanvasText)}
+    .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}
+    :root[data-theme=dark] .auth-shell{border-color:transparent;box-shadow:inset 0 1px 0 var(--surface-highlight)}
+    @media(max-width:700px){.header-inner{min-height:48px;padding:0 16px;gap:8px}select{font-size:13px;padding:8px 4px}main{padding:32px 16px}.auth-shell{grid-template-columns:1fr;margin:0 auto}.auth-brand{min-height:120px;flex-direction:row;align-items:center;padding:24px;gap:16px}.auth-brand span{writing-mode:horizontal-tb;font-size:40px}.auth-brand p{font-size:15px;line-height:24px}.auth-panel{padding:24px}}
   </style>
 </head>
 <body>
-  <main>
-    <h1>Activate your account</h1>
-    <p>Choose a personal password to access your existing Kuuki profile.</p>
-    <form id="activation-form" hidden>
-      <label for="password">Password</label>
-      <input id="password" type="password" autocomplete="new-password" minlength="8" required>
-      <label for="confirmation">Confirm password</label>
-      <input id="confirmation" type="password" autocomplete="new-password" minlength="8" required>
-      <button id="submit" type="submit">Activate account</button>
-    </form>
-    <p id="status" role="status" aria-live="polite"></p>
-    <a href="/?mode=signin">Back to sign in</a>
-  </main>
-  <script src="/activate.js"></script>
+  <header><div class="header-inner"><a class="wordmark" href="/?mode=signin" data-primary-path="/" aria-label="Kuuki home"><span class="mark" aria-hidden="true">空</span><span>kuuki</span></a>
+    <div class="preferences"><label><span class="sr-only" data-i18n="language">Language</span><select id="locale"><option value="en">EN</option><option value="ru">RU</option></select></label>
+      <label><span class="sr-only" data-i18n="theme">Theme</span><select id="theme"><option value="system" data-i18n="system">System</option><option value="light" data-i18n="light">Light</option><option value="dark" data-i18n="dark">Dark</option></select></label></div>
+  </div></header>
+  <main id="main"><div class="auth-shell"><div class="auth-brand"><span aria-hidden="true">くうき</span><p data-i18n="brand">Your personal flight journal.</p></div>
+    <section class="auth-panel"><h1 data-i18n="heading">Activate your account</h1><p class="description" data-i18n="description">Choose a personal password to access your existing Kuuki profile.</p>
+      <form id="activation-form" hidden novalidate>
+        <div class="field"><label for="password" data-i18n="password">Password</label><p id="password-hint" class="hint" data-i18n="rule">Use 8 to 1024 characters.</p>
+          <div class="password-control"><input id="password" type="password" autocomplete="new-password" maxlength="1024" aria-describedby="password-hint password-error"><button class="reveal" type="button" data-reveal="password" aria-pressed="false" data-i18n="show">Show</button></div><p id="password-error" class="field-error"></p></div>
+        <div class="field"><label for="confirmation" data-i18n="confirm">Confirm password</label><div class="password-control"><input id="confirmation" type="password" autocomplete="new-password" maxlength="1024" aria-describedby="confirmation-error"><button class="reveal" type="button" data-reveal="confirmation" aria-pressed="false" data-i18n="show">Show</button></div><p id="confirmation-error" class="field-error"></p></div>
+        <button class="primary" id="submit" type="submit" data-i18n="activate">Activate account</button>
+      </form>
+      <p id="status" role="status" aria-live="polite"></p>
+      <div id="signin-email" class="field" hidden><label for="email"><span data-i18n="email">Email for sign-in</span> <span class="optional" data-i18n="optional">(optional)</span></label><input id="email" type="email" autocomplete="email" maxlength="320"></div>
+      <div class="links"><a id="signin" href="/?mode=signin" data-primary-path="/signin" data-i18n="signin">Back to sign in</a><a id="resend" href="/?mode=signin" data-primary-path="/activation-request" data-i18n="resend">Request a new activation link</a></div>
+      <noscript><p>Enable JavaScript to activate your account. / Включите JavaScript, чтобы активировать аккаунт.</p></noscript>
+    </section></div></main>
 </body>
 </html>

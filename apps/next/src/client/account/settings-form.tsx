@@ -1,89 +1,115 @@
 'use client'
 
-import { useEffect, useState, type FormEvent } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState, type FormEvent } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { api, getAuthGeneration } from '../../../../web/src/lib/apiClient'
-import { getAllFlights } from '../../../../web/src/lib/flights'
+import { api, ApiError, getAuthGeneration } from '../../../../web/src/lib/apiClient'
 import { trackPrivateOperation, withIdentityMutation } from '../activity'
-import { Preferences } from '../preferences'
+import { useAppearance } from '../preferences'
+import { setLocale, setTheme } from '../appearance'
+import { Button } from '../ui/button'
+import { Field } from '../ui/field'
+import { SwitchRow } from '../ui/switch-row'
+import { SegmentedControl } from '../ui/segmented-control'
+import { SwatchPicker } from '../ui/swatch-picker'
+import { formatCount, type Locale } from '../../lib/format'
 import type { toOwnProfile } from '../../../../../functions/api/_lib/profiles'
-import './account.css'
+import { downloadSettingsData, useSettingsExportLimit, type ExportKind, type SettingsCounts } from './settings-data'
+import { useSettingsGuard } from './settings-guard'
+import { SettingsDelete } from './settings-delete'
+import './settings.css'
 
 type Profile = ReturnType<typeof toOwnProfile>
+const values = (profile: Profile) => ({ display_name: profile.display_name ?? '', bio: profile.bio ?? '', home_airport: profile.home_airport ?? '', avatar_url: profile.avatar_url ?? '', gemini_api_key: profile.gemini_api_key ?? '', is_public: profile.is_public, show_on_leaderboards: profile.show_on_leaderboards })
+const flightsLeft = { en: { one: '{count} more flight needed.', other: '{count} more flights needed.' }, ru: { one: 'Нужен ещё {count} перелёт.', few: 'Нужно ещё {count} перелёта.', many: 'Нужно ещё {count} перелётов.', other: 'Нужно ещё {count} перелёта.' } }
 
-export function SettingsForm({ ownerId, profile, locale }: { ownerId: string; profile: Profile; locale: 'en' | 'ru' }) {
+export function SettingsForm({ ownerId, profile, locale, counts = null }: { ownerId: string; profile: Profile; locale: Locale; counts?: SettingsCounts | null }) {
   const ru = locale === 'ru', router = useRouter()
-  const [name, setName] = useState(profile.display_name ?? '')
-  const [bio, setBio] = useState(profile.bio ?? '')
-  const [homeAirport, setHomeAirport] = useState(profile.home_airport ?? '')
-  const [avatarUrl, setAvatarUrl] = useState(profile.avatar_url ?? '')
-  const [apiKey, setApiKey] = useState(profile.gemini_api_key ?? '')
-  const [isPublic, setPublic] = useState(profile.is_public)
-  const [leaderboard, setLeaderboard] = useState(profile.show_on_leaderboards)
-  const [busy, setBusy] = useState(false), [message, setMessage] = useState(''), [error, setError] = useState('')
-  const [deleteOpen, setDeleteOpen] = useState(false), [deletePassword, setDeletePassword] = useState(''), [deleteConfirm, setDeleteConfirm] = useState(false)
-  useEffect(() => { setName(profile.display_name ?? ''); setBio(profile.bio ?? ''); setHomeAirport(profile.home_airport ?? ''); setAvatarUrl(profile.avatar_url ?? ''); setApiKey(profile.gemini_api_key ?? ''); setPublic(profile.is_public); setLeaderboard(profile.show_on_leaderboards) }, [profile])
-
+  const [draft, setDraft] = useState(() => values(profile)), [baseline, setBaseline] = useState(() => values(profile))
+  const [saving, setSaving] = useState(false), [exporting, setExporting] = useState(false), [identityBusy, setIdentityBusy] = useState(false)
+  const [message, setMessage] = useState(''), [error, setError] = useState(''), [deleteOpen, setDeleteOpen] = useState(false)
+  const busy = saving || exporting || identityBusy
+  const running = useRef(false)
+  const dirty = JSON.stringify(draft) !== JSON.stringify(baseline)
+  const dirtyRef = useRef(dirty)
+  useLayoutEffect(() => { dirtyRef.current = dirty }, [dirty])
+  const guard = useSettingsGuard(dirty, busy, locale)
+  const appearance = useAppearance(locale), limit = useSettingsExportLimit(ownerId)
+  useEffect(() => { if (!dirtyRef.current) { setDraft(values(profile)); setBaseline(values(profile)) } }, [profile])
+  const edit = <K extends keyof typeof draft>(field: K, value: typeof draft[K]) => { setDraft(previous => ({ ...previous, [field]: value })); setMessage(''); setError('') }
   async function save(event: FormEvent) {
-    event.preventDefault(); setBusy(true); setError(''); setMessage('')
+    event.preventDefault()
+    if (running.current || !dirty) return
+    running.current = true; setSaving(true); setError(''); setMessage('')
     const controller = new AbortController(), release = trackPrivateOperation(controller), generation = getAuthGeneration()
     try {
-      await api.patch('/api/profiles/me', { display_name: name.trim() || null, bio: bio.trim() || null, home_airport: homeAirport.trim() || null, avatar_url: avatarUrl.trim() || null, gemini_api_key: apiKey.trim() || null, is_public: isPublic, show_on_leaderboards: isPublic && leaderboard }, { signal: controller.signal })
-      if (!controller.signal.aborted && generation === getAuthGeneration()) { setMessage(ru ? 'Сохранено.' : 'Saved.'); router.refresh() }
-    } catch { if (!controller.signal.aborted && generation === getAuthGeneration()) setError(ru ? 'Не удалось сохранить изменения.' : 'Could not save changes.') }
-    finally { setBusy(false); release() }
-  }
-  async function download(kind: 'flights' | 'claims' | 'ground') {
-    setBusy(true); setError(''); setMessage('')
-    const controller = new AbortController(), release = trackPrivateOperation(controller), generation = getAuthGeneration()
-    try {
-      if (kind === 'flights') {
-        const rows = await getAllFlights(ownerId, { signal: controller.signal })
-        if (controller.signal.aborted || generation !== getAuthGeneration()) return
-        if (!rows.length) { setMessage(ru ? 'Пока нет перелётов для экспорта.' : 'No flights to export yet.'); return }
-        const { exportFlights } = await import('../../../../web/src/lib/export')
-        if (controller.signal.aborted || generation !== getAuthGeneration()) return
-        exportFlights(rows)
-      } else if (kind === 'claims') {
-        const { getUserClaims } = await import('../../../../web/src/lib/passport')
-        const rows = await getUserClaims(ownerId)
-        if (controller.signal.aborted || generation !== getAuthGeneration()) return
-        if (!rows.length) { setMessage(ru ? 'Пока нет отметок стран для экспорта.' : 'No country claims to export yet.'); return }
-        const { exportClaims } = await import('../../../../web/src/lib/export')
-        if (controller.signal.aborted || generation !== getAuthGeneration()) return
-        exportClaims(rows)
-      } else {
-        const rows = await api.get<{ countryCode: string; visitYear: number | null; entryMethod: string | null; note: string | null; createdAt: string }[]>('/api/passport/ground-visits', undefined, { signal: controller.signal })
-        if (controller.signal.aborted || generation !== getAuthGeneration()) return
-        if (!rows.length) { setMessage(ru ? 'Пока нет наземных посещений для экспорта.' : 'No ground visits to export yet.'); return }
-        const { exportGroundVisits } = await import('./ground-export')
-        if (controller.signal.aborted || generation !== getAuthGeneration()) return
-        await exportGroundVisits(rows)
+      const payload = { ...draft, display_name: draft.display_name.trim() || null, bio: draft.bio.trim() || null, home_airport: draft.home_airport.trim() || null, avatar_url: draft.avatar_url.trim() || null, gemini_api_key: draft.gemini_api_key.trim() || null, show_on_leaderboards: draft.is_public && draft.show_on_leaderboards }
+      const saved = await api.patch<Profile>('/api/profiles/me', payload, { signal: controller.signal })
+      if (!controller.signal.aborted && generation === getAuthGeneration()) {
+        const next = saved ? values(saved) : { ...draft, show_on_leaderboards: payload.show_on_leaderboards }
+        setDraft(next); setBaseline(next); setMessage(ru ? 'Сохранено.' : 'Saved.'); router.refresh()
       }
-      setMessage(ru ? 'CSV-файл загружен.' : 'CSV downloaded.')
-    } catch { if (!controller.signal.aborted && generation === getAuthGeneration()) setError(ru ? 'Не удалось экспортировать данные.' : 'Could not export data.') }
-    finally { setBusy(false); release() }
+    } catch (cause) {
+      if (!controller.signal.aborted && generation === getAuthGeneration()) setError(cause instanceof ApiError && cause.status === 400 ? (ru ? 'Проверьте данные профиля. Изменения не сохранены.' : 'Check your profile details. Changes were not saved.') : (ru ? 'Не удалось сохранить изменения. Повторите попытку.' : 'Could not save changes. Try again.'))
+    } finally { running.current = false; setSaving(false); release() }
+  }
+  async function download(kinds: ExportKind[]) {
+    if (running.current || limit.remaining === null) return
+    running.current = true; setExporting(true); setError(''); setMessage('')
+    const controller = new AbortController(), release = trackPrivateOperation(controller), generation = getAuthGeneration()
+    let downloaded = 0, limited = false
+    try {
+      for (const kind of kinds) {
+        if (controller.signal.aborted || generation !== getAuthGeneration()) return
+        if (!limit.available()) { limited = true; setError(ru ? 'Достигнут лимит: 5 CSV-файлов в день. Повторите после указанного времени.' : 'Daily limit reached: 5 CSV files. Try again after the reset time.'); break }
+        const total = await downloadSettingsData(ownerId, kind, controller.signal)
+        if (controller.signal.aborted || generation !== getAuthGeneration()) return
+        if (total) { downloaded++; limit.record() }
+      }
+      if (!controller.signal.aborted && generation === getAuthGeneration()) setMessage(downloaded ? (ru ? 'CSV-файлы загружены.' : 'CSV files downloaded.') : limited ? '' : (ru ? 'Нет записей для экспорта.' : 'No records to export.'))
+    } catch { if (!controller.signal.aborted && generation === getAuthGeneration()) setError(downloaded ? (ru ? 'Часть CSV-файлов загружена. Остальные не удалось скачать. Повторите экспорт нужного раздела.' : 'Some CSV files downloaded. Others failed. Retry the remaining data section.') : (ru ? 'Не удалось экспортировать данные. Повторите попытку.' : 'Could not export data. Try again.')) }
+    finally { running.current = false; setExporting(false); release(); limit.refresh() }
   }
   async function signout() {
-    setBusy(true); setError('')
-    try { await withIdentityMutation(token => api.post('/api/auth/signout', {}, { identityToken: token }), '/signin') }
-    catch { setError(ru ? 'Не удалось выйти.' : 'Could not sign out.'); setBusy(false) }
+    if (running.current) return
+    running.current = true; setIdentityBusy(true); setError('')
+    try { await withIdentityMutation(async token => { const result = await api.post('/api/auth/signout', {}, { identityToken: token }); guard.allowDocumentExit(); return result }, '/signin') }
+    catch { running.current = false; setError(ru ? 'Не удалось выйти. Повторите попытку.' : 'Could not sign out. Try again.'); setIdentityBusy(false) }
   }
-  async function deleteAccount(event: FormEvent) {
-    event.preventDefault()
-    if (!deleteConfirm || !deletePassword) return
-    setBusy(true); setError('')
-    try { await withIdentityMutation(token => api.delete('/api/auth/account', { password: deletePassword }, { identityToken: token }), '/signin') }
-    catch { setError(ru ? 'Неверный пароль или не удалось удалить аккаунт.' : 'Incorrect password or account deletion failed.'); setBusy(false) }
-  }
-  return <div className="settings-page account-settings"><p className="eyebrow">{ru ? 'Ваш аккаунт' : 'Your account'}</p><h1>{ru ? 'Настройки' : 'Settings'}</h1><p className="lead">{ru ? 'Профиль, приватность и данные.' : 'Profile, privacy, and data.'}</p>
-    <form onSubmit={save}><section><h2>{ru ? 'Профиль' : 'Profile'}</h2><label htmlFor="settings-name">{ru ? 'Имя' : 'Display name'}</label><input disabled={busy} id="settings-name" maxLength={80} value={name} onChange={event => setName(event.target.value)} /><label htmlFor="settings-bio">{ru ? 'О себе' : 'Bio'}</label><textarea disabled={busy} id="settings-bio" maxLength={140} rows={3} value={bio} onChange={event => setBio(event.target.value)} /><p className="field-help">{bio.length}/140</p><p>{profile.username ? `@${profile.username}` : (ru ? 'Имя пользователя не указано' : 'No username yet')} · <Link href="/onboarding">{ru ? 'Изменить имя пользователя' : 'Change username'}</Link></p><label htmlFor="settings-home">{ru ? 'Домашний аэропорт' : 'Home airport'}</label><input disabled={busy} id="settings-home" maxLength={10} value={homeAirport} onChange={event => setHomeAirport(event.target.value.toUpperCase())} /><label htmlFor="settings-avatar">{ru ? 'Ссылка на аватар' : 'Avatar URL'}</label><input disabled={busy} id="settings-avatar" type="url" value={avatarUrl} onChange={event => setAvatarUrl(event.target.value)} /><label htmlFor="settings-key">{ru ? 'Личный ключ Gemini API' : 'Personal Gemini API key'}</label><input disabled={busy} id="settings-key" type="password" autoComplete="off" value={apiKey} onChange={event => setApiKey(event.target.value)} /><p className="field-help">{ru ? 'Ключ сохраняется только в настройках вашего аккаунта.' : 'This key is saved with your account settings.'}</p></section>
-      <section><h2>{ru ? 'Приватность' : 'Privacy'}</h2><label className="account-check"><input type="checkbox" disabled={busy} checked={isPublic} onChange={event => { setPublic(event.target.checked); if (!event.target.checked) setLeaderboard(false) }} />{ru ? 'Публичный профиль' : 'Public profile'}</label><label className="account-check"><input type="checkbox" checked={leaderboard} disabled={busy || !isPublic} onChange={event => setLeaderboard(event.target.checked)} />{ru ? 'Показывать в рейтинге, когда доступно' : 'Show on leaderboards when eligible'}</label><p className="field-help">{ru ? 'Рейтинг доступен публичным профилям после пяти перелётов.' : 'Leaderboard eligibility starts at five flights on a public profile.'}</p><button className="button primary" disabled={busy}>{busy ? (ru ? 'Сохраняем…' : 'Saving…') : (ru ? 'Сохранить' : 'Save changes')}</button></section></form>
-    <section><h2>{ru ? 'Язык и тема' : 'Language and appearance'}</h2><Preferences initialLocale={locale} /></section>
-    <section><h2>{ru ? 'Ваши данные' : 'Your data'}</h2><p>{ru ? 'Перед удалением аккаунта загрузите CSV-файлы перелётов, отмеченных стран и наземных посещений с заметками.' : 'Before deleting your account, download CSV files of your flights, country claims, and ground visits with notes.'}</p><div className="account-actions"><button type="button" disabled={busy} onClick={() => void download('flights')}>{ru ? 'Скачать перелёты' : 'Download flights'}</button><button type="button" disabled={busy} onClick={() => void download('claims')}>{ru ? 'Скачать страны' : 'Download country claims'}</button><button type="button" disabled={busy} onClick={() => void download('ground')}>{ru ? 'Скачать наземные посещения' : 'Download ground visits'}</button></div></section>
-    <section><h2>{ru ? 'Аккаунт' : 'Account'}</h2><div className="account-actions"><button type="button" disabled={busy} onClick={() => void signout()}>{ru ? 'Выйти' : 'Sign out'}</button><button type="button" disabled={busy} onClick={() => setDeleteOpen(true)}>{ru ? 'Удалить аккаунт' : 'Delete account'}</button></div>
-      {deleteOpen && <form className="account-delete" onSubmit={deleteAccount}><h3>{ru ? 'Удалить аккаунт навсегда?' : 'Permanently delete your account?'}</h3><p>{ru ? 'Перелёты, отметки стран и профиль будут удалены. Это действие нельзя отменить. Сначала загрузите свои данные, если хотите их сохранить.' : 'Your flights, country claims, and profile will be deleted. This cannot be undone. Download your data first if you want to keep it.'}</p><label htmlFor="delete-password">{ru ? 'Текущий пароль' : 'Current password'}</label><input id="delete-password" type="password" autoComplete="current-password" required value={deletePassword} onChange={event => setDeletePassword(event.target.value)} /><label className="account-check"><input type="checkbox" checked={deleteConfirm} onChange={event => setDeleteConfirm(event.target.checked)} />{ru ? 'Я понимаю, что удаление необратимо' : 'I understand this deletion is permanent'}</label><div className="account-actions"><button type="button" onClick={() => { setDeleteOpen(false); setDeletePassword(''); setDeleteConfirm(false) }}>{ru ? 'Отмена' : 'Cancel'}</button><button type="submit" disabled={!deleteConfirm || !deletePassword || busy}>{ru ? 'Удалить навсегда' : 'Delete permanently'}</button></div></form>}</section>
-    <p role="status">{message}</p><p role="alert" className="form-message">{error}</p><p><Link href={profile.username ? `/fly/${encodeURIComponent(profile.username)}` : '/onboarding'}>{ru ? 'Мой профиль' : 'View my profile'}</Link></p>
+  const text = (en: string, russian: string) => ru ? russian : en
+  const labels = { flights: text('Flights', 'Перелёты'), claims: text('Country claims', 'Отметки стран'), ground: text('Ground visits', 'Наземные посещения') }
+  const resetTime = new Intl.DateTimeFormat(locale, { dateStyle: 'medium', timeStyle: 'short', timeZone: 'UTC' }).format(limit.retryAt)
+  const leaderboardReason = !draft.is_public ? text('Make your profile public first.', 'Сначала сделайте профиль публичным.') : counts === null ? text('Flight count unavailable. Refresh to check eligibility.', 'Количество перелётов недоступно. Обновите страницу для проверки.') : counts.completed < 5 ? formatCount(locale, 5 - counts.completed, flightsLeft) : undefined
+  return <div className="settings-page settings-editor">
+    <p className="eyebrow">{text('Your account', 'Ваш аккаунт')}</p><h1>{text('Settings', 'Настройки')}</h1>
+    <form id="settings-profile-form" onSubmit={save}>
+      <section aria-labelledby="settings-profile-heading"><h2 id="settings-profile-heading">{text('Profile', 'Профиль')}</h2>
+        <div className="settings-avatar" role="img" aria-label={text('Avatar preview', 'Предпросмотр аватара')} style={(draft.avatar_url.startsWith('https://') || draft.avatar_url.startsWith('data:image/')) ? { backgroundImage: `url(${JSON.stringify(draft.avatar_url)})` } : undefined}>{(draft.avatar_url.startsWith('https://') || draft.avatar_url.startsWith('data:image/')) ? null : (draft.display_name || profile.username || '?').slice(0, 1).toUpperCase()}</div>
+        <Field label={text('Display name', 'Имя')} maxLength={80} value={draft.display_name} disabled={busy} onChange={event => edit('display_name', event.target.value)} />
+        <label className="ui-field-label" htmlFor="settings-bio">{text('Bio', 'О себе')}</label><textarea className="ui-field-input" id="settings-bio" maxLength={140} rows={3} value={draft.bio} disabled={busy} aria-describedby="settings-bio-count" onChange={event => edit('bio', event.target.value)} /><p className="field-help" id="settings-bio-count">{draft.bio.length}/140</p>
+        <p>{profile.username ? `@${profile.username}` : text('No username yet', 'Имя пользователя не указано')} · <Link prefetch={false} href="/onboarding">{text('Change username', 'Изменить имя пользователя')}</Link></p>
+        <Field label={text('Home airport', 'Домашний аэропорт')} maxLength={10} value={draft.home_airport} disabled={busy} onChange={event => edit('home_airport', event.target.value.toUpperCase())} />
+        <Field label={text('Avatar URL', 'Ссылка на аватар')} type="url" value={draft.avatar_url} disabled={busy} onChange={event => edit('avatar_url', event.target.value)} hint={text('Use an HTTPS image URL.', 'Укажите HTTPS-ссылку на изображение.')} />
+        <Field label={text('Personal Gemini API key', 'Личный ключ Gemini API')} type="password" autoComplete="off" value={draft.gemini_api_key} disabled={busy} onChange={event => edit('gemini_api_key', event.target.value)} hint={text('Saved only with your account settings.', 'Сохраняется только в настройках вашего аккаунта.')} />
+      </section>
+      <section aria-labelledby="settings-privacy-heading"><h2 id="settings-privacy-heading">{text('Privacy', 'Приватность')}</h2>
+        <SwitchRow label={text('Public profile', 'Публичный профиль')} checked={draft.is_public} disabled={busy} onCheckedChange={value => setDraft(previous => ({ ...previous, is_public: value, show_on_leaderboards: value && previous.show_on_leaderboards }))} consequence={text('Anyone can view a public profile. Turning it off also removes you from leaderboards when saved.', 'Публичный профиль виден всем. При сохранении закрытого профиля участие в рейтинге тоже отключится.')} />
+        <SwitchRow label={text('Show on leaderboards when eligible', 'Участвовать в рейтинге')} checked={draft.show_on_leaderboards} disabled={busy} disabledReason={leaderboardReason} onCheckedChange={value => edit('show_on_leaderboards', value)} consequence={text('A public profile and five completed flights are required. Rankings refresh periodically.', 'Нужны публичный профиль и пять завершённых перелётов. Рейтинг обновляется периодически.')} />
+      </section>
+
+    </form>
+    <section aria-labelledby="settings-appearance-heading"><h2 id="settings-appearance-heading">{text('Appearance', 'Внешний вид')}</h2><p>{text('Appearance changes apply immediately on this device.', 'Внешний вид меняется сразу на этом устройстве.')}</p>
+      <SegmentedControl label={text('Theme', 'Тема')} value={appearance.theme} onChange={theme => { if (!busy) setTheme(theme) }} options={[{ value: 'light', label: text('Light', 'Светлая') }, { value: 'dark', label: text('Dark', 'Тёмная') }, { value: 'system', label: text('System', 'Система') }]} />
+      <SegmentedControl label={text('Language', 'Язык')} value={appearance.locale} onChange={next => guard.request(() => { guard.allowDocumentExit(); setLocale(next) })} options={[{ value: 'en', label: 'English' }, { value: 'ru', label: 'Русский' }]} />
+      <SwatchPicker locale={locale} />
+    </section>
+    <section aria-labelledby="settings-data-heading"><h2 id="settings-data-heading">{text('Data', 'Данные')}</h2><p>{text('Portable CSV files of your records, including upcoming flights and ground-visit notes.', 'CSV-файлы ваших записей, включая будущие перелёты и заметки о наземных посещениях.')}</p>
+      {(['flights', 'claims', 'ground'] as const).map(kind => <div className="settings-export-row" key={kind}><div><h3>{labels[kind]}</h3><p>{counts === null ? text('Count unavailable', 'Количество недоступно') : `${text('Records', 'Записи')}: ${counts[kind]}`}</p></div><Button disabled={busy} loading={exporting} loadingLabel={text('Downloading…', 'Загружаем…')} disabledReason={limit.remaining === null ? text('Checking daily allowance…', 'Проверяем дневной лимит…') : limit.remaining === 0 ? text('Daily limit reached.', 'Дневной лимит достигнут.') : counts?.[kind] === 0 ? text('No records to export.', 'Нет записей для экспорта.') : undefined} onClick={() => void download([kind])}>{kind === 'flights' ? text('Download flights', 'Скачать перелёты') : kind === 'claims' ? text('Download country claims', 'Скачать страны') : text('Download ground visits', 'Скачать наземные посещения')}</Button></div>)}
+      <p>{text('Limit: 5 CSV files per day on this device.', 'Лимит: 5 CSV-файлов в день на этом устройстве.')} {limit.remaining === null ? text('Checking allowance…', 'Проверяем лимит…') : `${text('Remaining', 'Осталось')}: ${limit.remaining}.`} {text('Resets', 'Обновится')}: {resetTime} UTC.</p>
+    </section>
+    <section aria-labelledby="settings-account-heading"><h2 id="settings-account-heading">{text('Account', 'Аккаунт')}</h2><div className="settings-actions"><Button disabled={busy} onClick={() => guard.request(() => void signout())}>{text('Sign out', 'Выйти')}</Button><Button variant="danger" disabled={busy} onClick={() => guard.request(() => setDeleteOpen(true))}>{text('Delete account', 'Удалить аккаунт')}</Button></div></section>
+    <p role="status">{message}</p><p role={error ? 'alert' : undefined} className="ui-field-error">{error}</p><p><Link prefetch={false} href={profile.username ? `/fly/${encodeURIComponent(profile.username)}` : '/onboarding'}>{text('View my profile', 'Мой профиль')}</Link></p>
+      {dirty ? <div className="settings-savebar"><span>{text('Unsaved changes', 'Есть несохранённые изменения')}</span><Button disabled={busy} onClick={() => { setDraft(baseline); setError(''); setMessage('') }}>{text('Discard', 'Отменить')}</Button><Button variant="primary" type="submit" form="settings-profile-form" disabled={exporting || identityBusy} loading={saving} loadingLabel={text('Saving…', 'Сохраняем…')}>{text('Save changes', 'Сохранить')}</Button></div> : null}
+    {guard.dialog}<SettingsDelete open={deleteOpen} onClose={() => setDeleteOpen(false)} counts={counts} locale={locale} download={() => download(['flights', 'claims', 'ground'])} exporting={exporting} exportOutcome={{ message, error }} exportInfo={`${text('Limit: 5 CSV files per day. Remaining', 'Лимит: 5 CSV-файлов в день. Осталось')}: ${limit.remaining ?? '…'}. ${text('Resets', 'Обновится')}: ${resetTime} UTC.`} onBusy={setIdentityBusy} allowDocumentExit={guard.allowDocumentExit} />
   </div>
 }

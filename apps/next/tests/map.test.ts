@@ -4,9 +4,9 @@ test('the opened map uses local assets, selectable routes and survives a theme c
   expect((await page.request.post('/api/auth/sign-in/email', { headers: { Origin: baseURL! }, data: { email: 'a@example.test', password: 'rehearsal-password-2026' } })).status()).toBe(200)
   const assets: string[] = []
   page.on('request', request => { if (new URL(request.url()).pathname.startsWith('/maps/')) assets.push(request.url()) })
-  await page.goto('/passport?view=map&period=2026')
+  await page.goto('/passport?view=map&layer=routes&year=2026')
   const routes = page.getByRole('list', { name: 'Route list', exact: true })
-  await expect(routes.getByRole('button', { name: /JFK → BOS/ })).toBeVisible()
+  await expect(routes.getByRole('button', { name: /BOS ↔ JFK/ })).toBeVisible()
   await expect(page.getByRole('button', { name: 'Fit routes' })).toBeVisible({ timeout: 20_000 })
   await routes.getByRole('button').first().click()
   await expect(routes.getByRole('button').first()).toHaveAttribute('aria-pressed', 'true')
@@ -35,7 +35,7 @@ test('WebGL failure keeps a keyboard usable route and country list', async ({ pa
     } as typeof original
   })
   expect((await page.request.post('/api/auth/sign-in/email', { headers: { Origin: baseURL! }, data: { email: 'a@example.test', password: 'rehearsal-password-2026' } })).status()).toBe(200)
-  await page.goto('/passport?view=map')
+  await page.goto('/passport?view=map&layer=routes')
   await expect(page.getByRole('status').filter({ hasText: 'Map unavailable.' })).toBeVisible()
   const route = page.getByRole('list', { name: 'Route list', exact: true }).getByRole('button').first()
   await route.focus()

@@ -1,5 +1,5 @@
 import { test, expect, type BrowserContext, type Page } from '@playwright/test'
-import { signIn } from './helpers'
+import { signIn, fixtureHeaders } from './helpers'
 
 // The @next/playwright instant() shell-timing gate is deferred until the
 // Cloudflare adapter can serve the required Cache Components configuration.
@@ -10,7 +10,7 @@ test('direct Overview navigation renders authorized summary', async ({ page, bas
   await page.goto('/overview')
   await expect(page.locator('h1')).toHaveText('Overview')
   await expect(page.getByTestId('overview-data')).toBeVisible()
-  await expect(page.getByTestId('overview-data').locator('.hero-stat strong')).toHaveText('1')
+  await expect(page.getByTestId('overview-flights')).toHaveText('1')
 })
 
 test('read-route navigation settles on authorized content', async ({ page, baseURL }) => {
@@ -34,7 +34,7 @@ test('fresh documents, RSC and API reads isolate account data without response c
   expect(aData.totals.flights).toBe(1)
   await page.goto('/overview')
   await expect(page.getByTestId('overview-data')).toBeVisible()
-  await expect(page.getByTestId('overview-data').locator('.hero-stat strong')).toHaveText('1')
+  await expect(page.getByTestId('overview-flights')).toHaveText('1')
   const document = await page.request.get('/overview')
   expect(document.status()).toBe(200)
   expect(document.headers()['cache-control']).toContain('no-store')
@@ -50,7 +50,8 @@ test('fresh documents, RSC and API reads isolate account data without response c
   expect((await b.json()).totals.flights).toBe(0)
   await page.goto('/overview')
   await expect(page.getByTestId('overview-data')).toBeVisible()
-  await expect(page.getByTestId('overview-data').locator('.hero-stat strong')).toHaveText('0')
+  await expect(page.getByTestId('overview-empty')).toBeVisible()
+  await expect(page.getByTestId('overview-flights')).toHaveCount(0) // the sample preview never carries the real figure
 })
 
 test('API misses and legacy asset misses never return app HTML', async ({ request }) => {
@@ -130,7 +131,7 @@ test.describe('legacy and normalized URLs', () => {
     await asMember(page)
     await page.goto('/onboarding?step=bogus')
     await page.waitForURL(url => url.pathname === '/onboarding' && url.search !== '' && !url.search.includes('bogus'))
-    await expect(page.locator('main h1')).toBeVisible()
+    await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
   })
 })
 
@@ -170,7 +171,7 @@ test.describe('entry behavior', () => {
   test('a member without a username is sent to onboarding first', async ({ page, baseURL }) => {
     const email = `nousername-${Date.now()}@example.test`
     const created = await page.request.post('/api/auth/sign-up/email', {
-      headers: { Origin: baseURL! }, data: { name: 'New member', email, password: 'rehearsal-password-2026' },
+      headers: fixtureHeaders(baseURL!), data: { name: 'New member', email, password: 'rehearsal-password-2026' },
     })
     expect(created.status()).toBe(201)
     await signIn(page, baseURL!, email)

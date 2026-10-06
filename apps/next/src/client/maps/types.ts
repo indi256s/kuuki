@@ -1,15 +1,5 @@
-export type ProjectedRoute = {
-  origin: string
-  destination: string
-  originCountry: string | null
-  destinationCountry: string | null
-  count: number
-  lastDate: string
-  from: [number, number] | null
-  to: [number, number] | null
-}
-
-export type RouteProjection = { ownerId: string; period: string; routes: ProjectedRoute[] }
+import type { ProjectedRoute } from '@kuuki/shared'
+export type { ProjectedRoute, RouteProjection } from '@kuuki/shared'
 
 /** Cheap list cue; geometry generator still validates the actual sampled line. */
 export function hasDrawableEndpoints(route: ProjectedRoute): boolean {

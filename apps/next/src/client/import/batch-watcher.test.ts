@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { decideEvent, parseFrames, toImportEvent } from './import-events'
+import { connectEvents, decideEvent, parseFrames, toImportEvent } from './import-events'
 import { watchBatch } from './batch-watcher'
 import type { ImportEvent, Snapshot } from './import-types'
 
@@ -113,5 +113,68 @@ describe('watchBatch', () => {
     const connect = vi.fn(async (_a: number, onEvent: (e: ImportEvent) => void) => onEvent(ev({ sequence: 2, snapshot: true, reupload: true })))
     await watchBatch({ load: h.reload, connect, sleep: h.sleep, onSnapshot: (_s, info) => flags.push(info.reupload), signal: new AbortController().signal })
     expect(flags).toEqual([false, true])
+  })
+})
+
+describe('terminal end and the final snapshot (ADR 0001 section 9)', () => {
+  it.each(['review', 'partial', 'failed', 'cancelled', 'completed'])('end with status %s followed by a failed final read opens exactly one connection', async status => {
+    let loads = 0
+    const load = vi.fn(async () => { loads++; if (loads === 1) return snap(1); if (loads === 2) throw Object.assign(new Error('offline'), { status: 502 }); return snap(4, status as Snapshot['batch']['status']) })
+    const connect = vi.fn(async (_after: number, onEvent: (event: ImportEvent) => void) => { onEvent(ev({ name: 'end', sequence: 4, status })) })
+    const seen: string[] = []
+    await watchBatch({ load, connect, sleep: async () => {}, onSnapshot: next => seen.push(next.batch.status), signal: new AbortController().signal })
+    expect(connect).toHaveBeenCalledTimes(1)
+    expect(loads).toBe(3) // initial, the failed final read, then the independent retry
+    expect(seen.at(-1)).toBe(status)
+  })
+
+  it('gives up with the read error when the final snapshot never arrives, still without a second connection', async () => {
+    let loads = 0
+    const load = vi.fn(async () => { loads++; if (loads === 1) return snap(1); throw Object.assign(new Error('offline'), { status: 502 }) })
+    const connect = vi.fn(async (_after: number, onEvent: (event: ImportEvent) => void) => { onEvent(ev({ name: 'end', sequence: 4, status: 'review' })) })
+    await expect(watchBatch({ load, connect, sleep: async () => {}, onSnapshot: () => {}, signal: new AbortController().signal })).rejects.toMatchObject({ status: 502 })
+    expect(connect).toHaveBeenCalledTimes(1)
+  })
+
+  it('end with status processing reads the snapshot and reconnects from its sequence', async () => {
+    const h = harness([snap(1), snap(7), snap(7), snap(9, 'review')])
+    const afters: number[] = []
+    let calls = 0
+    const connect = vi.fn(async (after: number, onEvent: (event: ImportEvent) => void) => {
+      afters.push(after)
+      calls++
+      if (calls === 1) onEvent(ev({ name: 'end', sequence: 7, status: 'processing' }))
+      else onEvent(ev({ name: 'end', sequence: 9, status: 'review' }))
+    })
+    await watchBatch({ load: h.reload, connect, sleep: h.sleep, onSnapshot: () => {}, signal: new AbortController().signal })
+    expect(afters).toEqual([1, 7])
+  })
+
+  it('a deleted batch ends the watch with the fatal read error and never reconnects', async () => {
+    let loads = 0
+    const load = vi.fn(async () => { loads++; if (loads === 1) return snap(1); throw Object.assign(new Error('gone'), { status: 404 }) })
+    const connect = vi.fn(async (_after: number, onEvent: (event: ImportEvent) => void) => { onEvent(ev({ name: 'end', sequence: 2, status: 'deleted' })) })
+    await expect(watchBatch({ load, connect, sleep: async () => {}, onSnapshot: () => {}, signal: new AbortController().signal })).rejects.toMatchObject({ status: 404 })
+    expect(connect).toHaveBeenCalledTimes(1)
+  })
+})
+
+describe('connectEvents', () => {
+  const stream = (chunks: string[], closes: boolean) => {
+    const encoder = new TextEncoder()
+    let cancelled = false
+    const body = new ReadableStream<Uint8Array>({
+      start(controller) { for (const chunk of chunks) controller.enqueue(encoder.encode(chunk)); if (closes) controller.close() },
+      cancel() { cancelled = true },
+    })
+    return { body, wasCancelled: () => cancelled }
+  }
+  it('treats end as the end of the connection even when the server keeps the stream open', async () => {
+    const open = stream([': connected\n\nevent: end\ndata: {"sequence":3,"status":"review"}\n\n'], false)
+    const events: ImportEvent[] = []
+    const fetchImpl = (async () => new Response(open.body, { status: 200 })) as typeof fetch
+    await connectEvents('b1', 0, event => events.push(event), new AbortController().signal, fetchImpl)
+    expect(events.map(event => event.name)).toEqual(['end'])
+    expect(open.wasCancelled()).toBe(true)
   })
 })

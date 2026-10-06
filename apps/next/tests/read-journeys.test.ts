@@ -1,5 +1,5 @@
 import { test, expect, type Page, type BrowserContext } from '@playwright/test'
-import { signIn as authenticate, claimUsername } from './helpers'
+import { signIn as authenticate, claimUsername, fixtureHeaders } from './helpers'
 
 // Share real sessions within this file so the suite stays inside production auth limits.
 let fixtureCookies: Awaited<ReturnType<BrowserContext['cookies']>> | undefined
@@ -27,7 +27,7 @@ test('Journal filters survive refresh and back without a duplicate mount list re
   await expect(page.getByRole('searchbox')).toHaveValue('NO-SUCH-FLIGHT')
   await page.goBack()
   await expect(page.locator('.flight-row')).toHaveCount(1)
-  await page.locator('.flight-row').click()
+  await page.locator('[data-flight-row]').click()
   await expect(page.getByRole('dialog')).toBeVisible()
   await page.waitForURL(url => url.searchParams.has('flight'))
   const id = new URL(page.url()).searchParams.get('flight')!
@@ -42,24 +42,31 @@ test('Journal filters survive refresh and back without a duplicate mount list re
 test('the period stays with the map while ordinary read navigation stays lightweight', async ({ page, baseURL }) => {
   await signIn(page, baseURL!)
   const heavy: string[] = []
+  const projections: string[] = []
   page.on('request', request => {
-    const path = new URL(request.url()).pathname
-    if (path.startsWith('/maps/') && !path.endsWith('.svg') || path.includes('route-projection')) heavy.push(path)
+    const url = new URL(request.url())
+    if (url.pathname.startsWith('/maps/') && !url.pathname.endsWith('.svg')) heavy.push(url.pathname)
+    if (url.pathname.includes('route-projection')) projections.push(url.search)
   })
   await page.goto('/overview?period=2026')
-  await expect(page.getByTestId('overview-data').locator('.hero-stat strong')).toHaveText('1')
+  await expect(page.getByTestId('overview-flights')).toHaveText('1')
+  // The preview draws the period's arcs from the shared projection without loading the interactive map.
+  await expect(page.locator('.ov-map path[data-route]')).toHaveCount(1)
+  await expect(page.locator('.ov-legend-line')).toContainText('1 route')
+  expect(projections).toEqual(['?period=2026'])
   expect(heavy).toHaveLength(0)
   const mapLink = page.getByRole('link', { name: /Open Passport map/ })
   await expect(mapLink).toHaveAttribute('href', /year=2026/)
   await page.goto('/passport')
   await expect(page.getByTestId('passport-data')).toBeVisible()
+  expect(projections).toEqual(['?period=2026'])
   expect(heavy).toHaveLength(0)
   await page.getByRole('button', { name: /United States/ }).first().click()
   await expect(page.getByRole('dialog')).toBeVisible()
   await expect(page.getByRole('dialog')).toContainText('JFK')
   await page.keyboard.press('Escape')
   await page.goto('/overview?period=2024')
-  await expect(page.getByTestId('overview-data').locator('.hero-stat strong')).toHaveText('0')
+  await expect(page.getByTestId('overview-empty-year')).toBeVisible()
 })
 
 test('auth validation and real sign-in reach the owned overview', async ({ page }) => {
@@ -71,7 +78,7 @@ test('auth validation and real sign-in reach the owned overview', async ({ page 
   await page.getByLabel('Password', { exact: true }).fill('rehearsal-password-2026')
   await page.getByRole('button', { name: 'Sign in', exact: true }).click()
   await page.waitForURL(url => url.pathname === '/overview')
-  await expect(page.getByTestId('overview-data').locator('.hero-stat strong')).toHaveText('1')
+  await expect(page.getByTestId('overview-flights')).toHaveText('1')
   await page.goto('/?mode=signin')
   await page.waitForURL(url => url.pathname === '/overview')
 })
@@ -102,7 +109,7 @@ test('withdrawing public visibility blocks new document, RSC and API statistics'
     expect(await rsc.text()).not.toContain('a@example.test')
     await visitorPage.goto('/fly/fixture-a')
     await expect(visitorPage.locator('main')).toContainText('This profile is private.')
-    await expect(visitorPage.locator('.profile-stats')).toHaveCount(0)
+    await expect(visitorPage.locator('.profile-hero, .profile-metrics')).toHaveCount(0)
   } finally {
     await update(true)
     await visitor.close()
@@ -117,7 +124,7 @@ test('RU read controls fit narrow and desktop viewports in both themes', async (
     for (const route of ['/overview', '/journal', '/passport', '/settings', '/leaderboard']) {
       await page.goto(route)
       await expect(page.locator('main h1')).toBeVisible()
-      expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
+      expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), `${route} at ${width}px`).toBe(true)
     }
   }
   await page.getByRole('button', { name: 'Меню аккаунта' }).click()
@@ -131,7 +138,7 @@ test('RU read controls fit narrow and desktop viewports in both themes', async (
 async function journalAccount(page: Page, origin: string) {
   if (journalCookies) await page.context().addCookies(journalCookies)
   else {
-    const response = await page.request.post('/api/auth/sign-up/email', { headers: { Origin: origin }, data: { email: `journal-${crypto.randomUUID()}@example.test`, password: 'journal-password-2026' } })
+    const response = await page.request.post('/api/auth/sign-up/email', { headers: fixtureHeaders(origin), data: { email: `journal-${crypto.randomUUID()}@example.test`, password: 'journal-password-2026' } })
     expect(response.status()).toBe(201)
     await claimUsername(page, origin)
     journalCookies = await page.context().cookies()
@@ -178,7 +185,7 @@ test('Journal stages mobile filters, preserves detail/reset state and maps legac
   await page.waitForURL(url => url.searchParams.get('status') === 'upcoming')
   await page.goBack()
   await expect(page.locator('.flight-row')).toHaveCount(1)
-  await page.locator('.flight-row').click()
+  await page.locator('[data-flight-row]').click()
   await page.waitForURL(url => url.searchParams.has('flight'))
   expect(new URL(page.url()).searchParams.get('airport')).toBe('JFK')
   await page.getByRole('button', { name: 'Close flight' }).click()
@@ -186,21 +193,21 @@ test('Journal stages mobile filters, preserves detail/reset state and maps legac
   await page.getByRole('link', { name: 'Reset filters', exact: true }).click()
   await page.waitForURL(url => !url.searchParams.has('airport'))
   expect(Object.fromEntries(new URL(page.url()).searchParams)).toEqual({ queue: 'awaiting', order: 'asc' })
-  await page.getByRole('button', { name: 'Add aircraft', exact: true }).click()
+  await page.getByRole('button', { name: /^Add aircraft/ }).click()
   // The editor opens on Optional details with the aircraft field focused; on a phone, focusing the field opens its picker.
   await expect(page.getByRole('combobox', { name: 'Aircraft (optional)' })).toBeFocused()
   await page.keyboard.press('Escape')
   await expect(page.getByRole('button', { name: 'Save flight' })).toBeVisible()
   await page.keyboard.press('Escape')
   await page.waitForURL(url => !url.searchParams.has('flight'))
-  await page.locator('.flight-row').click()
+  await page.locator('[data-flight-row]').click()
   await page.getByRole('button', { name: 'Delete flight', exact: true }).click()
   await page.getByRole('dialog', { name: /^Delete .+ → .+\?$/ }).getByRole('button', { name: 'Delete flight', exact: true }).click()
   await page.waitForURL(url => !url.searchParams.has('flight'))
   await expect(page.getByRole('button', { name: 'Undo', exact: true })).toBeFocused()
   await page.getByRole('button', { name: 'Undo', exact: true }).click()
   await expect(page.locator('.flight-row')).toHaveCount(1)
-  await expect(page.locator('.flight-row')).toBeFocused()
+  await expect(page.locator('[data-flight-row]')).toBeFocused()
   expect(Object.fromEntries(new URL(page.url()).searchParams)).toEqual({ queue: 'awaiting', order: 'asc' })
   await page.setViewportSize({ width: 1200, height: 800 })
   await page.getByRole('button', { name: 'Distance', exact: true }).focus()
@@ -308,4 +315,31 @@ test('did-not-fly Undo, deletion failure and retry keep the actual flight and di
   await page.getByRole('button', { name: 'Retry deletion' }).click()
   await expect(page.locator('.queue-summary')).toHaveCount(0, { timeout: 15000 })
   expect((await page.request.get(`/api/flights/${id}`)).status()).toBe(404)
+})
+
+test('leaving the Journal during Undo cancels the delete, and the shell says so', async ({ page, baseURL }) => {
+  test.setTimeout(60000)
+  const { create, headers } = await journalAccount(page, baseURL!)
+  const id = await create('2023-03-03', 'LEAVE1')
+  const deletes: string[] = []
+  page.on('request', request => { if (request.url().includes('/api/flights') && (request.method() === 'DELETE' || request.url().includes('bulk-delete'))) deletes.push(request.url()) })
+  await page.goto('/journal?year=2023')
+  await expect(page.locator('.flight-row')).toHaveCount(1)
+  await page.getByRole('checkbox', { name: /^Select: JFK to BOS/ }).check()
+  await page.getByRole('region', { name: 'Selection actions' }).getByRole('button', { name: 'Delete selected flights' }).click()
+  await page.getByRole('dialog', { name: 'Delete selected flights' }).getByRole('button', { name: 'Delete selected flights' }).click()
+  // The Undo notice lives in the member shell's toast region, not in the Journal.
+  const host = page.locator('.ui-toast-region')
+  await expect(host.getByRole('button', { name: 'Undo', exact: true })).toBeFocused()
+  await page.getByRole('navigation', { name: 'Tabs' }).getByRole('link', { name: 'Overview' }).click()
+  await page.waitForURL(url => url.pathname === '/overview')
+  const message = host.getByRole('status').filter({ hasText: 'Delete cancelled — you left the Journal. Nothing was removed.' })
+  await expect(message).toBeVisible()
+  await expect(message).toHaveAttribute('aria-live', 'polite')
+  await expect(host.getByRole('button', { name: 'Undo', exact: true })).toHaveCount(0)
+  // Past the six-second window nothing was sent and the flight still exists.
+  await page.waitForTimeout(7000)
+  expect(deletes).toEqual([])
+  expect((await page.request.get(`/api/flights/${id}`)).status()).toBe(200)
+  expect((await page.request.delete(`/api/flights/${id}`, { headers })).status()).toBe(200)
 })

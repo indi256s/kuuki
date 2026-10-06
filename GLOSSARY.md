@@ -13,9 +13,11 @@ lets the account owner choose a personal password, preserving the original ID.
 
 ### Password reset (flow)
 A self-serve "forgot password → prove identity → set a new password" flow.
-Remains outside the current remediation scope for already activated accounts.
-Cloudflare Email Sending supports migrated-account activation; that flow does
-not provide general password recovery.
+Available to activated accounts through `/forgot-password` and `/reset-password`.
+Requests return a generic response; a one-use, expiring email token authorizes
+the password change and revokes existing sessions. Activation remains a separate
+migrated-account flow. See the [Next release gates](docs/runbooks/2026-10-04-next-release-candidate.md)
+for hosted email/recovery evidence; local implementation does not establish delivery.
 
 ### Migrated account
 One of the 26 `users` rows ported from the old Supabase backend. Owns

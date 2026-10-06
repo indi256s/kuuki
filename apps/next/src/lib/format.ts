@@ -57,6 +57,16 @@ export function formatDateOnly(locale: Locale, value: string, style: DateStyle =
 }
 
 /**
+ * The calendar day of an instant (an ISO timestamp such as a retention deadline) in the viewer's own time zone, so
+ * "kept until" names the day the member will actually see. `timeZone` is only for tests and server rendering.
+ * Returns the input unchanged if it is not a valid instant.
+ */
+export function formatInstantDate(locale: Locale, value: string, style: DateStyle = 'medium', timeZone?: string): string {
+  const date = new Date(value)
+  return Number.isNaN(date.getTime()) ? value : new Intl.DateTimeFormat(locale, { ...dateOptions[style], ...(timeZone ? { timeZone } : {}) }).format(date)
+}
+
+/**
  * Month and year, e.g. "October 2026" / «октябрь 2026 г.» (Intl's standalone nominative form for Russian).
  * Accepts a Date (read in UTC) or a 'YYYY-MM[-DD]' string (never shifted).
  */
@@ -76,4 +86,21 @@ export function formatDuration(locale: Locale, minutes: number): string {
   if (h) parts.push(`${formatNumber(locale, h)}${NBSP}${hUnit}`)
   if (m || !h) parts.push(`${formatNumber(locale, m)}${NBSP}${mUnit}`)
   return parts.join(' ')
+}
+
+/**
+ * How long ago a 'YYYY-MM-DD' calendar date was, short and localized: "today", "3 days ago", "2 wk. ago",
+ * "2 mo. ago", "3 yr. ago" / «сегодня», «3 дн. назад», «2 мес. назад», «3 г. назад». Calendar arithmetic in UTC,
+ * so no runtime offset moves the day. A future date reads "today"; an invalid one is returned unchanged.
+ */
+export function formatRelativeDate(locale: Locale, value: string, now = new Date()): string {
+  const date = utcFromDateOnly(value)
+  if (!date) return value
+  const today = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 12)
+  const days = Math.max(0, Math.round((today - date.getTime()) / 86_400_000))
+  if (days < 7) return new Intl.RelativeTimeFormat(locale, { numeric: 'auto', style: 'short' }).format(-days, 'day')
+  const format = new Intl.RelativeTimeFormat(locale, { numeric: 'always', style: 'short' })
+  if (days < 30) return format.format(-Math.floor(days / 7), 'week')
+  const months = (now.getUTCFullYear() - date.getUTCFullYear()) * 12 + now.getUTCMonth() - date.getUTCMonth() - (now.getUTCDate() < date.getUTCDate() ? 1 : 0)
+  return months < 12 ? format.format(-Math.max(1, months), 'month') : format.format(-Math.floor(months / 12), 'year')
 }

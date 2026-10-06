@@ -22,6 +22,13 @@ export class UnconfirmedFlightOperationError extends Error {
   }
 }
 
+export class SettledFlightOperationError extends Error {
+  constructor() {
+    super('The original save was settled or replaced elsewhere. Check your journal before starting a new save.')
+    this.name = 'SettledFlightOperationError'
+  }
+}
+
 const fallback = new Map<string, PendingOperation>()
 
 function read(id: string): PendingOperation | undefined {
@@ -56,11 +63,12 @@ function scope(userId: string, operationId: string): string {
   return `${userId}:${operationId}`
 }
 
-/** Keep the exact payload and key together so an uncertain response can be retried safely. */
-export function getFlightCreateOperation(userId: string, operationId: string, payload: object): { key: string; body: object } {
+/** Keep the exact payload and key together. An explicit retry must supply its captured key, never mint a new one. */
+export function getFlightCreateOperation(userId: string, operationId: string, payload: object, retryKey?: string): { key: string; body: object } {
   const serialized = JSON.stringify(payload)
   const id = scope(userId, operationId)
   const existing = read(id)
+  if (retryKey !== undefined && (!existing || existing.key !== retryKey)) throw new SettledFlightOperationError()
   if (existing && expired(existing)) throw new ExpiredFlightOperationError()
   if (existing?.payload === serialized) return { key: existing.key, body: JSON.parse(existing.payload) as object }
   if (existing) throw new UnconfirmedFlightOperationError()
@@ -72,7 +80,10 @@ export function getFlightCreateOperation(userId: string, operationId: string, pa
 export function pendingFlightCreateOperation(userId: string, operationId: string): { key: string; body: object; expired: boolean } | null {
   try {
     const pending = read(scope(userId, operationId))
-    return pending ? { key: pending.key, body: JSON.parse(pending.payload) as object, expired: expired(pending) } : null
+    if (!pending) return null
+    const body: unknown = JSON.parse(pending.payload)
+    if (!body || typeof body !== 'object' || Array.isArray(body)) throw new Error('Invalid receipt payload')
+    return { key: pending.key, body, expired: expired(pending) }
   } catch {
     return { key: '', body: {}, expired: true }
   }
@@ -80,25 +91,33 @@ export function pendingFlightCreateOperation(userId: string, operationId: string
 
 /** Recover only this user's import receipts after reload or navigation. */
 export function pendingImportFlightOperations(userId: string): Array<{ operationId: string; key: string; body: object; expired: boolean }> {
-  const prefix = `${STORAGE_PREFIX}${userId}:`
-  const keys = new Set<string>()
-  for (const id of fallback.keys()) if (id.startsWith(`${userId}:`)) keys.add(id.slice(userId.length + 1))
+  // Import operation IDs are a run UUID followed by a row number.
+  return pendingFlightCreateOperations(userId)
+    .filter(receipt => /^[0-9a-f-]{36}:\d+$/.test(receipt.operationId))
+    .sort((a, b) => a.operationId.localeCompare(b.operationId))
+}
+
+/**
+ * Every stored create receipt of this user, whatever wrote it and whatever its operation id looks like (a plain UUID,
+ * a run and row number, or any prefixed id), so an unresolved save can be found again after a reload. A damaged receipt
+ * is listed as expired with an empty body and no key.
+ */
+export function pendingFlightCreateOperations(userId: string): Array<{ operationId: string; key: string; body: object; expired: boolean }> {
+  const owner = `${userId}:`
+  const ids = new Set<string>()
+  for (const id of fallback.keys()) if (id.startsWith(owner)) ids.add(id.slice(owner.length))
   try {
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i)
-      if (key?.startsWith(prefix)) keys.add(key.slice(prefix.length))
+      if (key?.startsWith(STORAGE_PREFIX + owner)) ids.add(key.slice(STORAGE_PREFIX.length + owner.length))
     }
   } catch { /* Storage may be unavailable. */ }
   const receipts: Array<{ operationId: string; key: string; body: object; expired: boolean }> = []
-  for (const operationId of keys) {
-    // Import operation IDs are a run UUID followed by a row number.
-    if (!/^[0-9a-f-]{36}:\d+$/.test(operationId)) continue
-    try {
-      const pending = pendingFlightCreateOperation(userId, operationId)
-      if (pending) receipts.push({ operationId, ...pending })
-    } catch { /* Ignore malformed local storage entries. */ }
+  for (const operationId of [...ids].sort()) {
+    const pending = pendingFlightCreateOperation(userId, operationId)
+    if (pending) receipts.push({ operationId, ...pending })
   }
-  return receipts.sort((a, b) => a.operationId.localeCompare(b.operationId))
+  return receipts
 }
 
 export function abandonFlightCreateOperation(userId: string, operationId: string): void {

@@ -144,6 +144,7 @@
 /* ---------- Toast ---------- */
 .ui-toast-region{position:fixed;z-index:70;left:var(--space-4);right:var(--space-4);bottom:calc(var(--space-4) + var(--toast-bottom-offset,0px) + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:var(--space-2);align-items:center;pointer-events:none}
 .ui-toast-live{display:flex;flex-direction:column;gap:var(--space-2);align-items:center;width:100%}
+.ui-toast-slot{display:contents}.ui-toast-slot>*{pointer-events:auto}
 .ui-toast{pointer-events:auto;display:flex;align-items:center;gap:var(--space-3);width:min(420px,100%);padding:12px 12px 12px 16px;border-radius:var(--radius-md);background:var(--surface-floating);color:var(--text);box-shadow:var(--shadow-floating),var(--ring-floating)}
 .ui-toast[data-kind=error]{border-left:4px solid var(--danger-fill)}
 .ui-toast[data-kind=success]{border-left:4px solid var(--success-fill)}
@@ -183,3 +184,5 @@
   .ui-disclosure-chevron{transition:none}
   .ui-disclosure-inner{transition:opacity var(--dur-fast) linear}
 }
+
+.ui-dialog,.ui-sheet{--ticket-backdrop:var(--surface-floating)}

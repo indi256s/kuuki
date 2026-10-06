@@ -27,6 +27,7 @@ import { trackPrivateOperation } from '../activity'
 import { useWriteFeedback } from '../write-feedback'
 import { flightErrorMessage, validateFlightValues } from './flight-messages'
 import type { Locale } from '../../server/locale'
+import type { DerivedAck } from '../../../../web/src/lib/derivedState'
 import './capture.css'
 
 const empty = { date: '', origin: '', destination: '', airline: '', aircraft: '', number: '', departure: '', arrival: '' }
@@ -36,7 +37,7 @@ function input(values: Values) {
 }
 export type FlightSurface = (content: ReactNode, footer?: ReactNode) => ReactNode
 
-export function FlightForm({ ownerId, locale, editId, initialEditing = true, focusField, surface, onCancel, onOpenJournal, onDelete }: { ownerId: string; locale: Locale; editId?: number; initialEditing?: boolean; /** Opens Optional details and focuses this field once the flight has loaded. */ focusField?: 'aircraft'; surface?: FlightSurface; onCancel?: () => void; onOpenJournal?: () => void; onDelete?: (id: number) => void }) {
+export function FlightForm({ ownerId, locale, editId, initialEditing = true, focusField, surface, onCancel, onOpenJournal, onDelete, onSaved }: { ownerId: string; locale: Locale; editId?: number; initialEditing?: boolean; /** Opens Optional details and focuses this field once the flight has loaded. */ focusField?: 'aircraft'; surface?: FlightSurface; onCancel?: () => void; onOpenJournal?: () => void; onDelete?: (id: number) => void; onSaved?: (flight: Flight & DerivedAck, publication: 'idle' | 'ready' | 'pending' | 'delayed') => void }) {
   const router = useRouter()
   const online = useOnline()
   const feedback = useWriteFeedback(ownerId)
@@ -70,6 +71,8 @@ export function FlightForm({ ownerId, locale, editId, initialEditing = true, foc
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [deleteError, setDeleteError] = useState('')
   const [saved, setSaved] = useState(false)
+  const [savedFlight, setSavedFlight] = useState<(Flight & DerivedAck) | null>(null)
+  useEffect(() => { if (savedFlight) onSaved?.(savedFlight, feedback.status) }, [savedFlight, feedback.status, onSaved])
   const savedHeading = useRef<HTMLHeadingElement>(null)
   useEffect(() => { if (saved) savedHeading.current?.focus() }, [saved])
   const [showDetails, setShowDetails] = useState(() => readCapturePreference(ownerId, 'details', false))
@@ -110,21 +113,21 @@ export function FlightForm({ ownerId, locale, editId, initialEditing = true, foc
       const distance = from && to ? calculateFlightDistance(from.latitude, from.longitude, to.latitude, to.longitude) : null
       const duration = values.departure && values.arrival ? calculateFlightDuration(values.departure, values.arrival, values.date, from?.timezone, to?.timezone) : distance == null ? null : estimateFlightDuration(distance, plane?.type)
       const body = original ?? { date: values.date, origin: values.origin, destination: values.destination, airline_iata: values.airline || null, aircraft_icao: values.aircraft || null, flight_number: values.number || null, departure_time: values.departure || null, arrival_time: values.arrival || null, distance_km: distance, duration_minutes: duration, origin_tz: from?.timezone || null, dest_tz: to?.timezone || null }
-      const ack = flight ? await updateFlight(flight.id, body) : await createFlight({ ...body, source: 'manual', user_id: ownerId } as Parameters<typeof createFlight>[0], operationId)
+      const ack = flight ? await updateFlight(flight.id, body) : await createFlight({ ...body, source: 'manual', user_id: ownerId } as Parameters<typeof createFlight>[0], operationId, original ? receipt ? receipt.key : '' : undefined)
       if (!current(generation, controller)) return
       if (!flight) setOperationId(rotateFlightOperationId(`next-manual:${ownerId}`))
       const nextRecents = [...new Set([values.origin, values.destination, ...recents.airports])].filter(Boolean).slice(0, 8)
       setRecents(previous => ({ ...previous, airports: nextRecents })); writeCapturePreference(ownerId, 'airports', nextRecents)
-      feedback.acknowledge(ack); setSaved(true); router.refresh()
+      feedback.acknowledge(ack); setSavedFlight(ack); setSaved(true); router.refresh()
     } catch (cause) { if (current(generation, controller)) { focusBlockedSave.current = true; setError(flightErrorMessage(cause, locale, 'save')) } }
     finally { saving.current = false; if (current(generation, controller)) setBusy(false); release() }
   }
   async function remove() {
-    if (!online || !flight || saving.current) return
-    if (onDelete) { onDelete(flight.id); onOpenJournal?.(); return }
+    if (!online || !flight || saving.current) return false
+    if (onDelete) { onDelete(flight.id); onOpenJournal?.(); return true }
     saving.current = true
     const controller = new AbortController(); const release = trackPrivateOperation(controller); const generation = getAuthGeneration(); setBusy(true); setDeleteError('')
-    try { const ack = await deleteFlight(flight.id); if (current(generation, controller)) { feedback.acknowledge(ack); if (onOpenJournal) onOpenJournal(); else router.push('/journal'); router.refresh() } }
+    try { const ack = await deleteFlight(flight.id); if (current(generation, controller)) { feedback.acknowledge(ack); if (onOpenJournal) onOpenJournal(); else router.push('/journal'); router.refresh() } return true }
     catch (cause) { if (current(generation, controller)) { setDeleteError(flightErrorMessage(cause, locale, 'delete')); throw cause } }
     finally { saving.current = false; if (current(generation, controller)) setBusy(false); release() }
   }
@@ -162,7 +165,7 @@ export function FlightForm({ ownerId, locale, editId, initialEditing = true, foc
     title={ru ? `Удалить перелёт ${flight.origin} → ${flight.destination}, ${formatDateOnly(locale, flight.date)}?` : `Delete ${flight.origin} → ${flight.destination}, ${formatDateOnly(locale, flight.date)}?`}
     consequence={ru ? 'Этот перелёт будет удалён из журнала.' : 'This flight will be removed from your journal.'}
     confirmLabel={ru ? 'Удалить перелёт' : 'Delete flight'} cancelLabel={ru ? 'Отмена' : 'Cancel'} closeLabel={ru ? 'Закрыть' : 'Close'}
-    errorMessage={deleteError} onConfirm={async () => { await remove(); setConfirmDelete(false) }} /></div>
+    errorMessage={deleteError} confirmDisabledReason={deleteReason} onConfirm={async () => { if (await remove()) setConfirmDelete(false) }} /></div>
   if (flight && !editing) {
     const state = (flight as Flight & { lifecycle_state?: 'upcoming' | 'awaiting' | 'logged' }).lifecycle_state ?? (flight.is_upcoming ? 'upcoming' : 'logged')
     const time = (value: string | null) => value ? value.slice(0, 5) : null

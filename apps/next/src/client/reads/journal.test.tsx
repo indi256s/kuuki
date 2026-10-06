@@ -1,15 +1,24 @@
 // @vitest-environment jsdom
 import { act, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { useEffect, useState } from 'react'
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
+import { startTransition, Suspense, use, useEffect, useState } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { JournalView } from './journal'
+import { PrimaryNav } from '../nav'
+import { QueueSummarySlot } from '../queue-summary'
+import { ROUTE_LINK_EVENT } from '../navigation-link'
 import { Sheet } from '../ui/sheet'
+import { ShellNotices } from '../shell-notices'
 import { normalizeJournalQuery } from '../../lib/url-state'
+import type { JournalData } from '../../server/journal'
 import { api } from '../../../../web/src/lib/apiClient'
 
-const nav = vi.hoisted(() => ({ push: vi.fn(), replace: vi.fn(), refresh: vi.fn(), set: vi.fn<(query: string) => void>() }))
-vi.mock('next/navigation', () => ({ useRouter: () => nav }))
+const nav = vi.hoisted(() => ({ push: vi.fn(), replace: vi.fn(), refresh: vi.fn(), set: vi.fn<(query: string | Promise<string>) => void>() }))
+vi.mock('next/navigation', () => ({ useRouter: () => nav, usePathname: () => '/journal' }))
+// The real Link needs a mounted App Router; the stand-in follows its click contract and navigates through the mocked router.
+vi.mock('next/link', async () => ({ default: (await import('../../test/next-link')).linkStandIn((href, { replace }) => nav[replace ? 'replace' : 'push'](href)) }))
 vi.mock('../activity', () => ({ trackPrivateOperation: () => () => {} }))
 vi.mock('../ui/use-mobile', () => ({ useMobile: () => false }))
 vi.mock('./journal-queue', () => ({
@@ -25,46 +34,92 @@ vi.mock('../capture/flight-panels', () => ({
 vi.mock('../../../../web/src/lib/apiClient', () => ({ api: { get: vi.fn(), delete: vi.fn(), post: vi.fn() } }))
 
 type Row = { id: number; date: string; lifecycle_state: string; origin?: string; destination?: string; aircraft_icao?: string | null; duration_minutes?: number | null; flight_number?: string | null; distance_km?: number | null }
-const flight = (row: Row) => ({ origin: 'TBS', destination: 'IST', aircraft_icao: 'B738', duration_minutes: null, flight_number: null, distance_km: null, departure_utc: null, arrival_utc: null, airline_iata: null, ...row })
+type Flight = JournalData['flights'][number]
+const flight = (row: Row) => ({ origin: 'TBS', destination: 'IST', aircraft_icao: 'B738', duration_minutes: null, flight_number: null, distance_km: null, departure_utc: null, arrival_utc: null, airline_iata: null, ...row }) as Flight
 const logged = [1, 2, 3].map(id => flight({ id, date: `2025-04-0${id}`, lifecycle_state: 'logged' }))
-const initialFor = (flights: unknown[], total = flights.length) => ({ flights: flights as never, total, revision: 0, publishedRevision: 0, derivedState: 'ready' as const, updatedAt: Date.now() })
+const initialFor = (flights: Flight[], total = flights.length): JournalData => ({ flights, total, revision: 0, publishedRevision: 0, derivedState: 'ready', updatedAt: Date.now() })
 
-function Harness({ start = '', flights = logged, total, locale = 'en' }: { start?: string; flights?: unknown[]; total?: number; locale?: 'en' | 'ru' }) {
-  const [query, setQuery] = useState(start)
+function Harness({ start = '', flights = logged, total, locale = 'en', ownerId = 'journal-owner' }: { start?: string; flights?: Flight[]; total?: number; locale?: 'en' | 'ru'; ownerId?: string }) {
+  const [route, setQuery] = useState<string | Promise<string>>(start)
+  const query = typeof route === 'string' ? route : use(route)
   useEffect(() => { nav.set.mockImplementation(setQuery) }, [])
   const state = normalizeJournalQuery(new URLSearchParams(query))
   const filtered = ['q', 'year', 'status', 'airline', 'aircraft', 'airport', 'origin', 'destination'].some(key => key in state.state)
-  return <JournalView ownerId="journal-owner" locale={locale} query={query} page={Number(state.state.page ?? 1)} filtered={filtered} initial={initialFor(flights, total)} />
+  return <JournalView ownerId={ownerId} locale={locale} query={query} page={Number(state.state.page ?? 1)} filtered={filtered} initial={initialFor(flights, total)} />
 }
 const hrefQuery = (href: string) => new URL(href, 'http://kuuki.test').search.slice(1)
 
 beforeEach(() => {
-  nav.push.mockReset().mockImplementation((href: string) => act(() => nav.set(hrefQuery(href))))
-  nav.replace.mockReset().mockImplementation((href: string) => act(() => nav.set(hrefQuery(href))))
+  nav.push.mockReset().mockImplementation((href: string) => { act(() => nav.set(hrefQuery(href))) })
+  nav.replace.mockReset().mockImplementation((href: string) => { act(() => nav.set(hrefQuery(href))) })
   nav.refresh.mockReset()
   nav.set.mockReset()
-  vi.mocked(api.get).mockReset().mockImplementation(async path => (path === '/api/flights' ? { flights: logged, total: 3 } : { revision: 0, published_revision: 0, derived_state: 'ready' }) as never)
-  vi.mocked(api.delete).mockReset().mockResolvedValue({ derived_state: 'ready' } as never)
-  vi.mocked(api.post).mockReset().mockResolvedValue({ derived_state: 'ready' } as never)
+  // `/api/flights` returns the full Journal contract in one response; every other endpoint this view may call is stubbed explicitly.
+  vi.mocked(api.get).mockReset().mockImplementation((async (path: string) => {
+    if (path === '/api/flights') return initialFor(logged, 3)
+    if (path === '/api/flights/ids') return { ids: logged.map(row => row.id) }
+    throw new Error(`unstubbed GET ${path}`)
+  }) as typeof api.get)
+  vi.mocked(api.delete).mockReset().mockResolvedValue({ derived_state: 'ready' })
+  vi.mocked(api.post).mockReset().mockResolvedValue({ derived_state: 'ready' })
 })
-afterEach(() => { vi.useRealTimers(); vi.restoreAllMocks() })
+afterEach(async () => { await act(async () => { waiting.splice(0).forEach(resolve => resolve()) }); vi.useRealTimers(); vi.restoreAllMocks(); window.history.replaceState(null, '', '/') })
 
-it('refetches derived readiness instead of retaining the initial ready state, even with equal revisions', async () => {
-  // `/api/flights` carries the shared Journal contract, including the current derived state.
-  vi.mocked(api.get).mockImplementation(async path => (path === '/api/flights' ? { flights: [], total: 0, revision: 4, publishedRevision: 4, derivedState: 'pending', updatedAt: Date.now() } : {}) as never)
-  render(<JournalView ownerId="journal-owner" locale="en" query="" page={1} filtered={false} initial={{ flights: [], total: 0, revision: 4, publishedRevision: 4, derivedState: 'ready', updatedAt: Date.now() }} />)
+it('refetches derived readiness with one /api/flights request, even with equal revisions', async () => {
+  // `/api/flights` carries the shared Journal contract, including the current derived state, so no separate derived-state read is made.
+  vi.mocked(api.get).mockImplementation((async (path: string) => {
+    if (path === '/api/flights') return { ...initialFor([]), revision: 4, publishedRevision: 4, derivedState: 'pending' }
+    throw new Error(`unstubbed GET ${path}`)
+  }) as typeof api.get)
+  render(<JournalView ownerId="journal-owner" locale="en" query="" page={1} filtered={false} initial={{ ...initialFor([]), revision: 4, publishedRevision: 4 }} />)
   expect(screen.queryByText('Recent changes are still being prepared.')).not.toBeInTheDocument()
+  expect(api.get).not.toHaveBeenCalled()
   act(() => window.dispatchEvent(new Event('kuuki:lifecycle-changed')))
   await screen.findByText('Recent changes are still being prepared.')
+  expect(vi.mocked(api.get).mock.calls.map(call => call[0])).toEqual(['/api/flights'])
+  expect(vi.mocked(api.get).mock.calls.some(call => String(call[0]).includes('derived-state'))).toBe(false)
 })
 
-
 it('groups upcoming flights first, then awaiting and logged history by year', () => {
-  const flights = [{ id: 1, date: '2025-01-01', lifecycle_state: 'logged' }, { id: 2, date: '2026-10-03', lifecycle_state: 'awaiting' }, { id: 3, date: '2026-12-01', lifecycle_state: 'upcoming' }].map(flight => ({ ...flight, origin: 'TBS', destination: 'IST', departure_utc: null, arrival_utc: null }))
-  render(<JournalView ownerId="group-owner" locale="en" query="" page={1} filtered={false} initial={{ flights: flights as never, total: 3, revision: 0, publishedRevision: 0, derivedState: 'ready', updatedAt: Date.now() }} />)
+  const flights = [flight({ id: 1, date: '2025-01-01', lifecycle_state: 'logged' }), flight({ id: 2, date: '2026-10-03', lifecycle_state: 'awaiting' }), flight({ id: 3, date: '2026-12-01', lifecycle_state: 'upcoming' })]
+  render(<JournalView ownerId="group-owner" locale="en" query="" page={1} filtered={false} initial={initialFor(flights)} />)
   expect(within(screen.getByTestId('journal-data')).getAllByRole('heading', { level: 3 }).map(heading => heading.textContent)).toEqual(['Upcoming', '2025 · Logged', '2026 · Awaiting'])
   expect(screen.getAllByRole('checkbox')).toHaveLength(3)
 })
+
+// A router whose navigations stay pending (as in Next, where the transition lasts until the page commits) until `deliver(..., true)` settles them.
+// Navigations a slow router still holds; settled after each test so a failed assertion cannot leave a transition that blocks the next test.
+const waiting: Array<() => void> = []
+function slowRouter() {
+  const impl = () => new Promise<void>(resolve => { waiting.push(resolve) })
+  nav.push.mockReset().mockImplementation(impl)
+  nav.replace.mockReset().mockImplementation(impl)
+  return {
+    /** The URL changes; with `settle` every pending navigation also completes. */
+    deliver: async (query: string, settle: boolean) => { await act(async () => { nav.set(query); if (settle) waiting.splice(0).forEach(resolve => resolve()) }) },
+    /** A URL change nobody here requested (Back, a link, Reset). */
+    external: async (query: string) => { await act(async () => { nav.set(query) }) },
+  }
+}
+
+// Installed Next push/replace return void and suspend router state inside a nested transition.
+// Only the newest destination is delivered; superseded responses can remain unresolved until cleanup.
+function voidRouter() {
+  let deliverLatest: () => void
+  let resolveLatest: (query: string) => void
+  const impl = (href: string) => {
+    const query = hrefQuery(href)
+    const response = new Promise<string>(resolve => { resolveLatest = resolve; deliverLatest = () => resolve(query); waiting.push(deliverLatest) })
+    startTransition(() => nav.set(response))
+  }
+  nav.push.mockReset().mockImplementation(impl)
+  nav.replace.mockReset().mockImplementation(impl)
+  return {
+    deliver: async () => { await act(async () => deliverLatest()) },
+    /** A handled navigation failure: Next returns the router state it already had, so the transition ends on `query`, the URL still rendered. */
+    fail: async (query: string) => { await act(async () => resolveLatest(query)) },
+  }
+}
 
 describe('filters', () => {
   it('keeps the Status select (same element, still focused) after a keyboard change', async () => {
@@ -168,7 +223,7 @@ describe('filters', () => {
 
   it('builds on the last requested URL while the previous navigation has not arrived yet', async () => {
     const user = userEvent.setup()
-    nav.push.mockReset().mockImplementation(() => {}) // the server round trip has not answered yet
+    const router = slowRouter() // the server round trip has not answered yet, so the navigation transition stays pending
     render(<Harness />)
     await user.type(screen.getByRole('textbox', { name: 'Airline' }), 'tk')
     await user.tab()
@@ -177,6 +232,313 @@ describe('filters', () => {
     expect(nav.push).toHaveBeenCalledTimes(2)
     expect(hrefQuery(nav.push.mock.calls[0][0])).toBe('airline=TK')
     expect(hrefQuery(nav.push.mock.calls[1][0])).toBe('airline=TK&aircraft=B738')
+    await router.deliver('airline=TK&aircraft=B738', true)
+  })
+
+  it('keeps a field cleared after a commit that has not been answered yet, and sends the clearing next', async () => {
+    const user = userEvent.setup()
+    const router = slowRouter()
+    render(<Harness />)
+    const airline = screen.getByRole('textbox', { name: 'Airline' })
+    await user.type(airline, 'tk')
+    await user.tab()
+    expect(hrefQuery(nav.push.mock.calls[0][0])).toBe('airline=TK')
+    await user.clear(airline)
+    await user.tab()
+    // The clearing is compared with what was just sent, not with the URL that has not caught up.
+    expect(nav.push.mock.calls.length + nav.replace.mock.calls.length).toBe(2)
+    expect(hrefQuery([...nav.push.mock.calls, ...nav.replace.mock.calls].at(-1)![0])).toBe('')
+    await router.deliver('airline=TK', false) // the intermediate response; navigation still pending
+    expect(airline).toHaveValue('')
+    await router.deliver('', true)
+    expect(airline).toHaveValue('')
+  })
+
+  it('keeps the aircraft draft when the response to the earlier airline commit arrives first', async () => {
+    const user = userEvent.setup()
+    const router = slowRouter()
+    render(<Harness />)
+    await user.type(screen.getByRole('textbox', { name: 'Airline' }), 'tk')
+    await user.tab()
+    await user.keyboard('b738')
+    await user.tab()
+    expect(nav.push).toHaveBeenCalledTimes(2)
+    await router.deliver('airline=TK', false) // answers the first commit only
+    expect(screen.getByRole('textbox', { name: 'Aircraft' })).toHaveValue('B738')
+    expect(screen.getByRole('textbox', { name: 'Airline' })).toHaveValue('TK')
+    await router.deliver('airline=TK&aircraft=B738', true)
+    expect(screen.getByRole('textbox', { name: 'Aircraft' })).toHaveValue('B738')
+  })
+
+  it('adopts Back to a value this component had sent and cleared, once its navigations have settled', async () => {
+    const user = userEvent.setup()
+    const router = slowRouter()
+    render(<Harness />)
+    const airline = screen.getByRole('textbox', { name: 'Airline' })
+    await user.type(airline, 'tk')
+    await user.tab()
+    await user.clear(airline)
+    await user.tab()
+    await router.deliver('', true) // only the final, empty URL arrives: the query never changed
+    expect(airline).toHaveValue('')
+    await router.external('airline=TK') // Back or a link
+    expect(airline).toHaveValue('TK')
+  })
+
+  it('adopts Reset after repeated commits of the same value, and Search then sends the reset state', async () => {
+    const user = userEvent.setup()
+    const router = slowRouter()
+    render(<Harness />)
+    const airline = screen.getByRole('textbox', { name: 'Airline' })
+    await user.type(airline, 'tk')
+    await user.tab()
+    await user.clear(airline)
+    await user.tab()
+    await user.type(airline, 'tk')
+    await user.tab()
+    expect(nav.push).toHaveBeenCalledTimes(3)
+    await router.deliver('airline=TK', true) // only the final URL arrives
+    expect(airline).toHaveValue('TK')
+    await router.external('') // Reset
+    expect(airline).toHaveValue('')
+    nav.push.mockClear()
+    await user.type(screen.getByRole('searchbox'), 'x{Enter}')
+    expect(hrefQuery(nav.push.mock.calls.at(-1)![0])).toBe('q=x')
+    await router.deliver('q=x', true)
+  })
+
+  it('adopts Reset clicked while its own filter navigation is pending, and Search then keeps the reset state', async () => {
+    const user = userEvent.setup()
+    const router = slowRouter()
+    render(<Harness start="airline=TK" />)
+    const airline = screen.getByRole('textbox', { name: 'Airline' })
+    await user.clear(airline)
+    await user.type(airline, 'aa')
+    await user.tab()
+    expect(hrefQuery([...nav.push.mock.calls, ...nav.replace.mock.calls].at(-1)![0])).toBe('airline=AA') // not answered yet
+    await user.click(screen.getByRole('link', { name: 'Reset filters' }))
+    await router.deliver('', true) // Reset supersedes the pending navigation; only its URL arrives
+    expect(airline).toHaveValue('')
+    nav.push.mockClear(); nav.replace.mockClear()
+    await user.type(screen.getByRole('searchbox'), 'x{Enter}')
+    expect([...nav.push.mock.calls, ...nav.replace.mock.calls].map(call => hrefQuery(call[0]))).toEqual(['q=x'])
+    await router.deliver('q=x', true)
+  })
+
+  it('keeps desktop and untouched mobile filters after a pending Reset is superseded by the rendered query', async () => {
+    const user = userEvent.setup()
+    const router = voidRouter()
+    render(<Suspense fallback={null}><Harness start="airline=TK" /></Suspense>)
+    const airline = screen.getByRole('textbox', { name: 'Airline' })
+    await user.clear(airline)
+    await user.type(airline, 'aa')
+    await act(async () => { await user.tab() })
+    await act(async () => { await user.click(screen.getByRole('link', { name: 'Reset filters' })) }) // pending too
+    expect(airline).toHaveValue('')
+    await user.type(airline, 'tk')
+    await act(async () => { await user.tab() }) // before Reset returns
+    const sent = [...nav.push.mock.calls.map((call, index) => [nav.push.mock.invocationCallOrder[index], call[0]] as const), ...nav.replace.mock.calls.map((call, index) => [nav.replace.mock.invocationCallOrder[index], call[0]] as const)]
+    expect(sent.sort(([a], [b]) => a - b).map(([, href]) => hrefQuery(href))).toEqual(['airline=AA', '', 'airline=TK'])
+    await router.deliver() // only the TK commit arrives; superseded AA and Reset stay unresolved
+    expect(airline).toHaveValue('TK')
+    nav.push.mockClear(); nav.replace.mockClear()
+    await user.click(screen.getByRole('button', { name: 'Filters' }))
+    const dialog = screen.getByRole('dialog')
+    expect(within(dialog).getByRole('textbox', { name: 'Airline' })).toHaveValue('TK')
+    await user.click(within(dialog).getByRole('button', { name: 'Apply filters' }))
+    expect(airline).toHaveValue('TK')
+    expect(nav.push).not.toHaveBeenCalled()
+    expect(nav.replace).not.toHaveBeenCalled()
+  })
+
+  it('shows the selects of a pending Reset destination, so a status equal to the superseded URL can be chosen again', async () => {
+    const user = userEvent.setup()
+    const router = slowRouter()
+    render(<Harness start="status=logged&airline=TK" />)
+    await user.click(screen.getByRole('link', { name: 'Reset filters' }))
+    const status = screen.getByRole('combobox', { name: 'Status' })
+    expect(status).toHaveValue('')
+    nav.push.mockClear(); nav.replace.mockClear()
+    await user.selectOptions(status, 'logged')
+    expect([...nav.push.mock.calls, ...nav.replace.mock.calls].map(call => hrefQuery(call[0]))).toEqual(['status=logged'])
+    await router.deliver('status=logged', true)
+    expect(status).toHaveValue('logged')
+  })
+
+  it('restores the same-query Status after it supersedes a pending Reset', async () => {
+    const user = userEvent.setup()
+    const router = voidRouter()
+    render(<Suspense fallback={null}><Harness start="status=logged" /></Suspense>)
+    await act(async () => { await user.click(screen.getByRole('link', { name: 'Reset filters' })) })
+    const status = screen.getByRole('combobox', { name: 'Status' })
+    expect(status).toHaveValue('')
+    await act(async () => { await user.selectOptions(status, 'logged') })
+    expect(nav.push.mock.calls.map(call => hrefQuery(call[0]))).toEqual(['', 'status=logged'])
+    await router.deliver()
+    expect(status).toHaveValue('logged')
+    await user.click(screen.getByRole('button', { name: 'Filters' }))
+    const dialog = screen.getByRole('dialog')
+    expect(within(dialog).getByRole('combobox', { name: 'Status' })).toHaveValue('logged')
+    await user.click(within(dialog).getByRole('button', { name: 'Apply filters' }))
+    expect(status).toHaveValue('logged')
+    expect(nav.push).toHaveBeenCalledTimes(2)
+  })
+
+  it('adopts the first-page link that supersedes a pending filter, and Search keeps its destination', async () => {
+    const user = userEvent.setup()
+    const router = voidRouter()
+    render(<Suspense fallback={null}><Harness start="page=2" flights={[]} total={3} /></Suspense>)
+    const airline = screen.getByRole('textbox', { name: 'Airline' })
+    await user.type(airline, 'aa')
+    await act(async () => { await user.tab() })
+    expect(hrefQuery(nav.push.mock.calls.at(-1)![0])).toBe('airline=AA')
+    await act(async () => { await user.click(screen.getByRole('link', { name: 'Back to the first page' })) })
+    await router.deliver()
+    expect(airline).toHaveValue('')
+    nav.push.mockClear(); nav.replace.mockClear()
+    await act(async () => { await user.type(screen.getByRole('searchbox'), 'x{Enter}') })
+    expect([...nav.push.mock.calls, ...nav.replace.mock.calls].map(call => hrefQuery(call[0]))).toEqual(['q=x'])
+    await router.deliver()
+  })
+
+  it('adopts the empty-result Reset clicked while its own filter navigation is pending', async () => {
+    const user = userEvent.setup()
+    const router = slowRouter()
+    render(<Harness start="airline=ZZ" flights={[]} total={0} />)
+    const airline = screen.getByRole('textbox', { name: 'Airline' })
+    await user.clear(airline)
+    await user.type(airline, 'aa')
+    await user.tab()
+    const [, emptyReset] = screen.getAllByRole('link', { name: 'Reset filters' })
+    expect(emptyReset).toHaveClass('button')
+    await user.click(emptyReset)
+    await router.deliver('', true)
+    expect(airline).toHaveValue('')
+  })
+
+  it('navigates again when the same Search is pressed after a handled navigation failure left the rendered query unchanged', async () => {
+    const user = userEvent.setup()
+    const router = voidRouter()
+    render(<Suspense fallback={null}><Harness /></Suspense>)
+    const airline = screen.getByRole('textbox', { name: 'Airline' })
+    await user.type(airline, 'tk')
+    await act(async () => { await user.tab() })
+    const sent = () => [...nav.push.mock.calls, ...nav.replace.mock.calls].map(call => hrefQuery(call[0]))
+    expect(sent()).toEqual(['airline=TK'])
+    await router.fail('') // Next catches the failure and keeps the router state: the query is still empty
+    expect(airline).toHaveValue('TK')
+    await user.click(screen.getByRole('button', { name: 'Search' }))
+    expect(sent()).toEqual(['airline=TK', 'airline=TK'])
+    await router.deliver()
+    expect(airline).toHaveValue('TK')
+    await user.click(screen.getByRole('button', { name: 'Filters' }))
+    expect(within(screen.getByRole('dialog')).getByRole('textbox', { name: 'Airline' })).toHaveValue('TK')
+  })
+
+  it('adopts Back taken while its own filter navigation is pending, even to the URL that is still rendered', async () => {
+    const user = userEvent.setup()
+    const router = slowRouter()
+    window.history.replaceState(null, '', '/journal')
+    render(<Harness />)
+    const airline = screen.getByRole('textbox', { name: 'Airline' })
+    await user.type(airline, 'aa')
+    await user.tab()
+    expect(hrefQuery(nav.push.mock.calls.at(-1)![0])).toBe('airline=AA') // not answered yet
+    await act(async () => { window.dispatchEvent(new PopStateEvent('popstate')) }) // Back: the browser is already on /journal
+    await router.deliver('', true) // the rendered URL does not change
+    expect(airline).toHaveValue('')
+    nav.push.mockClear(); nav.replace.mockClear()
+    await user.type(screen.getByRole('searchbox'), 'x{Enter}')
+    expect([...nav.push.mock.calls, ...nav.replace.mock.calls].map(call => hrefQuery(call[0]))).toEqual(['q=x'])
+    await router.deliver('q=x', true)
+  })
+
+  it('adopts Forward to another filter taken while its own filter navigation is pending', async () => {
+    const user = userEvent.setup()
+    const router = slowRouter()
+    render(<Harness start="airline=TK" />)
+    const airline = screen.getByRole('textbox', { name: 'Airline' })
+    await user.clear(airline)
+    await user.type(airline, 'aa')
+    await user.tab()
+    window.history.replaceState(null, '', '/journal?airline=LH')
+    await act(async () => { window.dispatchEvent(new PopStateEvent('popstate')) })
+    await router.deliver('airline=LH', true)
+    expect(airline).toHaveValue('LH')
+  })
+
+  describe('shell links to /journal while its own filter navigation is pending', () => {
+    const searchAfter = async (user: ReturnType<typeof userEvent.setup>) => {
+      nav.push.mockClear(); nav.replace.mockClear()
+      await user.type(screen.getByRole('searchbox'), 'x{Enter}')
+      return [...nav.push.mock.calls, ...nav.replace.mock.calls].map(call => hrefQuery(call[0]))
+    }
+    const commitAirline = async (user: ReturnType<typeof userEvent.setup>, value: string) => {
+      const airline = screen.getByRole('textbox', { name: 'Airline' })
+      await user.clear(airline)
+      await user.type(airline, value)
+      await user.tab()
+      return airline
+    }
+
+    it('adopts the Journal tab to the unchanged /journal', async () => {
+      const user = userEvent.setup()
+      const router = slowRouter()
+      render(<><PrimaryNav /><Harness /></>)
+      const airline = await commitAirline(user, 'aa')
+      expect(hrefQuery(nav.push.mock.calls.at(-1)![0])).toBe('airline=AA') // not answered yet
+      await user.click(within(screen.getByRole('navigation', { name: 'Primary' })).getByRole('link', { name: /^Journal/ }))
+      await router.deliver('', true) // the rendered URL does not change
+      expect(airline).toHaveValue('')
+      expect(await searchAfter(user)).toEqual(['q=x'])
+      await router.deliver('q=x', true)
+    })
+
+    it('adopts the queue link to a different destination', async () => {
+      const user = userEvent.setup()
+      const router = slowRouter()
+      render(<><QueueSummarySlot count={2} /><Harness start="airline=TK" /></>)
+      const airline = await commitAirline(user, 'aa')
+      await user.click(screen.getByRole('link', { name: '2 awaiting action' }))
+      await router.deliver('queue=awaiting', true)
+      expect(airline).toHaveValue('')
+      expect(await searchAfter(user)).toEqual(['q=x&queue=awaiting'])
+      await router.deliver('q=x&queue=awaiting', true)
+    })
+
+    it('adopts an announced filtered destination (airline=LH) before and after it arrives', async () => {
+      const user = userEvent.setup()
+      const router = slowRouter()
+      render(<Harness start="airline=TK" />)
+      const airline = await commitAirline(user, 'aa')
+      act(() => { window.dispatchEvent(new CustomEvent<string>(ROUTE_LINK_EVENT, { detail: '/journal?airline=LH' })) })
+      expect(airline).toHaveValue('LH')
+      await router.deliver('airline=LH', true)
+      expect(airline).toHaveValue('LH')
+      expect(await searchAfter(user)).toEqual(['q=x&airline=LH'])
+      await router.deliver('q=x&airline=LH', true)
+    })
+
+    it('leaves the drafts alone for a route link to another page or a Journal subpath', async () => {
+      const user = userEvent.setup()
+      slowRouter()
+      render(<Harness start="airline=TK" />)
+      const airline = await commitAirline(user, 'aa')
+      act(() => { for (const detail of ['/overview', '/journal/7/edit']) window.dispatchEvent(new CustomEvent<string>(ROUTE_LINK_EVENT, { detail })) })
+      expect(airline).toHaveValue('AA')
+    })
+
+    it('leaves the drafts alone for a modified click on the Journal tab, which opens another tab', async () => {
+      const user = userEvent.setup()
+      slowRouter()
+      render(<><PrimaryNav /><Harness /></>)
+      const airline = await commitAirline(user, 'aa')
+      await user.keyboard('{Control>}')
+      await user.click(within(screen.getByRole('navigation', { name: 'Primary' })).getByRole('link', { name: /^Journal/ }))
+      await user.keyboard('{/Control}')
+      expect(airline).toHaveValue('AA')
+      expect(nav.push).toHaveBeenCalledTimes(1)
+    })
   })
 
   it('adopts an external URL change (Reset, Back) but not its own navigation', () => {
@@ -197,6 +559,21 @@ describe('filters', () => {
     await user.click(within(dialog).getByRole('button', { name: 'Apply filters' }))
     expect(nav.push).toHaveBeenCalledTimes(1)
     expect(hrefQuery(nav.push.mock.calls[0][0])).toBe('status=logged&airline=TK')
+  })
+})
+
+describe('mobile filters and Search', () => {
+  it('keeps a filter applied on mobile when Search is submitted afterwards', async () => {
+    const user = userEvent.setup()
+    render(<Harness />)
+    await user.click(screen.getByRole('button', { name: 'Filters' }))
+    const dialog = screen.getByRole('dialog')
+    await user.type(within(dialog).getByRole('textbox', { name: 'Airline' }), 'tk')
+    await user.click(within(dialog).getByRole('button', { name: 'Apply filters' }))
+    expect(hrefQuery(nav.push.mock.calls[0][0])).toBe('airline=TK')
+    await user.type(screen.getByRole('searchbox'), 'Istanbul{Enter}')
+    expect(hrefQuery(nav.push.mock.calls.at(-1)![0])).toBe('q=Istanbul&airline=TK')
+    expect(screen.getAllByRole('textbox', { name: 'Airline' })[0]).toHaveValue('TK')
   })
 })
 
@@ -289,6 +666,109 @@ describe('pending delete', () => {
   })
 })
 
+describe('pending delete in the member shell host', () => {
+  const cancelled = { en: 'Delete cancelled — you left the Journal. Nothing was removed.', ru: 'Удаление отменено — вы ушли из журнала. Ничего не удалено.' } as const
+  const names = { en: { delete: 'Delete selected flights', undo: 'Undo' }, ru: { delete: 'Удалить выбранные перелёты', undo: 'Отменить' } } as const
+  function Shell({ route, ownerId, locale = 'en' }: { route: 'journal' | 'overview'; ownerId: string; locale?: 'en' | 'ru' }) {
+    return <ShellNotices ownerId={ownerId} locale={locale}>{route === 'journal' ? <Harness ownerId={ownerId} locale={locale} /> : <h1>Overview</h1>}</ShellNotices>
+  }
+  const startDelete = async (user: ReturnType<typeof userEvent.setup>, locale: 'en' | 'ru' = 'en') => {
+    await user.click(screen.getAllByRole('checkbox')[0])
+    await user.click(screen.getByRole('button', { name: names[locale].delete }))
+    await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: names[locale].delete }))
+  }
+
+  it('shows the Undo notice in the shell toast region; Undo still restores the row and its focus', async () => {
+    const user = userEvent.setup()
+    render(<Shell route="journal" ownerId="host-undo" />)
+    await startDelete(user)
+    const undo = screen.getByRole('button', { name: 'Undo' })
+    expect(undo.closest('.ui-toast-region')).not.toBeNull()
+    expect(screen.getByTestId('journal-data')).not.toContainElement(undo)
+    expect(undo).toHaveFocus()
+    expect(screen.getByText('1 flight is being deleted.')).toHaveAttribute('aria-live', 'polite')
+    await user.click(undo)
+    expect(screen.queryByRole('button', { name: 'Undo' })).not.toBeInTheDocument()
+    expect(document.querySelector('[data-flight-row="1"]')).toHaveFocus()
+    expect(api.delete).not.toHaveBeenCalled()
+  })
+
+  it.each(['en', 'ru'] as const)('cancels the delete when the Journal is left inside the window and says so politely in the shell (%s)', async locale => {
+    vi.useFakeTimers({ shouldAdvanceTime: true })
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime })
+    const view = render(<Shell route="journal" ownerId={`host-leave-${locale}`} locale={locale} />)
+    await startDelete(user, locale)
+    await act(async () => { await vi.advanceTimersByTimeAsync(2000) })
+    view.rerender(<Shell route="overview" ownerId={`host-leave-${locale}`} locale={locale} />)
+    await act(async () => { await vi.advanceTimersByTimeAsync(0) })
+    const message = screen.getByText(cancelled[locale])
+    expect(message.closest('[role="status"]')).toHaveAttribute('aria-live', 'polite')
+    expect(screen.queryByRole('button', { name: names[locale].undo })).not.toBeInTheDocument()
+    await act(async () => { await vi.advanceTimersByTimeAsync(7000) })
+    expect(api.delete).not.toHaveBeenCalled()
+    expect(api.post).not.toHaveBeenCalled()
+  })
+
+  it('still commits after the window, and leaving afterwards says nothing', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true })
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime })
+    const view = render(<Shell route="journal" ownerId="host-commit" />)
+    await startDelete(user)
+    await act(async () => { await vi.advanceTimersByTimeAsync(6500) })
+    expect(api.delete).toHaveBeenCalledTimes(1)
+    expect(api.delete).toHaveBeenCalledWith('/api/flights/1', expect.anything())
+    view.rerender(<Shell route="overview" ownerId="host-commit" />)
+    await act(async () => { await vi.advanceTimersByTimeAsync(0) })
+    expect(screen.queryByText(cancelled.en)).not.toBeInTheDocument()
+  })
+
+  it('says nothing when the Journal goes away because the identity was reset (sign-out or owner switch)', async () => {
+    const user = userEvent.setup()
+    const view = render(<Shell route="journal" ownerId="host-reset" />)
+    await startDelete(user)
+    act(() => { window.dispatchEvent(new Event('kuuki:identity-reset')) })
+    view.rerender(<Shell route="overview" ownerId="host-reset" />)
+    await act(async () => { await Promise.resolve() })
+    expect(screen.queryByText(cancelled.en)).not.toBeInTheDocument()
+    expect(api.delete).not.toHaveBeenCalled()
+  })
+})
+
+describe('pending delete while the request is in flight', () => {
+  it('moves focus to the list heading the moment Undo leaves, before the DELETE answers', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true })
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime })
+    let answer!: (ack: unknown) => void
+    vi.mocked(api.delete).mockReset().mockReturnValue(new Promise(resolve => { answer = resolve }) as never)
+    render(<Harness />)
+    await user.click(screen.getAllByRole('checkbox')[0])
+    await user.click(screen.getByRole('button', { name: 'Delete selected flights' }))
+    await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Delete selected flights' }))
+    expect(screen.getByRole('button', { name: 'Undo' })).toHaveFocus()
+    await act(async () => { await vi.advanceTimersByTimeAsync(6500) })
+    expect(api.delete).toHaveBeenCalledTimes(1) // still unresolved
+    expect(screen.queryByRole('button', { name: 'Undo' })).not.toBeInTheDocument()
+    expect(document.body).not.toHaveFocus()
+    expect(screen.getByRole('heading', { level: 2, name: 'Flights' })).toHaveFocus()
+    await act(async () => { answer({ derived_state: 'ready' }); await vi.advanceTimersByTimeAsync(50) })
+    expect(screen.getByRole('heading', { level: 2, name: 'Flights' })).toHaveFocus()
+  })
+
+  it('does not move a user who is elsewhere when the request starts', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true })
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime })
+    vi.mocked(api.delete).mockReset().mockReturnValue(new Promise(() => {}) as never)
+    render(<Harness />)
+    await user.click(screen.getAllByRole('checkbox')[0])
+    await user.click(screen.getByRole('button', { name: 'Delete selected flights' }))
+    await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Delete selected flights' }))
+    const search = screen.getByRole('searchbox')
+    search.focus()
+    await act(async () => { await vi.advanceTimersByTimeAsync(6500) })
+    expect(search).toHaveFocus()
+  })
+})
+
 describe('detail sheet', () => {
   it('returns focus to the row that opened it', async () => {
     const user = userEvent.setup()
@@ -314,7 +794,7 @@ describe('detail sheet', () => {
   it('opens "Add aircraft" in the editor with the aircraft field requested', async () => {
     const user = userEvent.setup()
     render(<Harness flights={[flight({ id: 7, date: '2025-04-03', lifecycle_state: 'logged', aircraft_icao: null })]} />)
-    await user.click(screen.getByRole('button', { name: 'Add aircraft' }))
+    await user.click(screen.getByRole('button', { name: /^Add aircraft/ }))
     expect(await screen.findByTestId('detail')).toHaveTextContent('editing:true field:aircraft')
     expect(nav.push).toHaveBeenCalledWith('/journal?flight=7', { scroll: false })
   })
@@ -325,14 +805,49 @@ describe('list', () => {
     render(<Harness flights={[flight({ id: 1, date: '2025-04-03', lifecycle_state: 'logged', flight_number: 'TK123', duration_minutes: 25, distance_km: 1234 })]} />)
     const row = document.querySelector<HTMLElement>('[data-flight-row="1"]')!
     expect(row.getAttribute('aria-label')!.replaceAll('\u00a0', ' ')).toBe('TBS to IST, April 3, 2025, TK123, B738, 25 min, 1,234 km')
-    expect(row.textContent!.replaceAll('\u00a0', ' ')).toContain('25 min')
-    expect(row).not.toHaveTextContent('0 h')
+    const cells = row.closest('.flight-row')!
+    expect(cells.textContent!.replaceAll('\u00a0', ' ')).toContain('25 min')
+    expect(cells).not.toHaveTextContent('0 h')
     expect(screen.getByRole('checkbox', { name: 'Select: TBS to IST, April 3, 2025' })).toBeInTheDocument()
   })
 
-  it('lists upcoming flights nearest first', () => {
-    render(<Harness flights={[flight({ id: 1, date: '2027-03-01', lifecycle_state: 'upcoming' }), flight({ id: 2, date: '2027-01-01', lifecycle_state: 'upcoming' })]} />)
-    expect([...document.querySelectorAll('[data-flight-row]')].map(row => row.getAttribute('data-flight-row'))).toEqual(['2', '1'])
+  it.each([['en', 'Add aircraft, TBS to IST, April 3, 2025', 'Add aircraft, TBS to IST, April 2, 2025'], ['ru', 'Добавить самолёт, из TBS в IST, 3 апреля 2025 г.', 'Добавить самолёт, из TBS в IST, 2 апреля 2025 г.']] as const)('names each Add aircraft action after its flight (%s)', (locale, first, second) => {
+    render(<Harness locale={locale} flights={[flight({ id: 7, date: '2025-04-03', lifecycle_state: 'logged', aircraft_icao: null }), flight({ id: 8, date: '2025-04-02', lifecycle_state: 'logged', aircraft_icao: null })]} />)
+    const names = screen.getAllByRole('button', { name: /^(Add aircraft|Добавить самолёт)/ }).map(button => button.getAttribute('aria-label')!.replaceAll('\u00a0', ' '))
+    expect(names).toEqual([first, second])
+  })
+
+  it('puts "Add aircraft" in the row\'s aircraft cell, not after the row and not inside the row button', () => {
+    render(<Harness flights={[flight({ id: 7, date: '2025-04-03', lifecycle_state: 'logged', aircraft_icao: null }), flight({ id: 8, date: '2025-04-02', lifecycle_state: 'logged' })]} />)
+    const missing = document.querySelector('[data-flight-row="7"]')!.closest('.flight-row')!
+    const cell = missing.querySelector('.journal-aircraft-cell')!
+    expect(cell).toContainElement(screen.getByRole('button', { name: /^Add aircraft/ }))
+    expect(missing).toContainElement(cell as HTMLElement)
+    expect(missing.querySelector('.flight-row-route')).toBeTruthy() // same row element as the other cells
+    expect(document.querySelector('[data-flight-row="7"]')!.querySelector('button, a, input, select')).toBeNull()
+    expect(missing.nextElementSibling).toBeNull() // nothing follows the row as a separate grid row
+    const present = document.querySelector('[data-flight-row="8"]')!.closest('.flight-row')!
+    expect(present.querySelector('.journal-aircraft-cell')).toHaveTextContent('B738')
+    expect(present.querySelector('.journal-aircraft-cell button')).toBeNull()
+  })
+
+  it('aligns the six desktop cells, including the aircraft action cell, on one baseline without making the overlay a grid item', () => {
+    const css = readFileSync(join(process.cwd(), 'src/app/reads.css'), 'utf8')
+    expect(css).toMatch(/\.journal-entry \.flight-row\{align-items:baseline\}/)
+    expect(css).toMatch(/\.flight-row>\.flight-row-open\{position:absolute;inset:0/) // out of the grid flow, so it takes no cell and no baseline
+  })
+
+  it('declares the mobile card order route, date, distance, flight number and a control-border checkbox outline', () => {
+    const css = readFileSync(join(process.cwd(), 'src/app/reads.css'), 'utf8')
+    const mobile = css.slice(css.indexOf('@media(max-width:700px){.journal-entry'))
+    const place = (cell: string) => mobile.match(new RegExp(`\\.journal-entry \\.flight-row>\\.${cell}\\{grid-column:(\\d);grid-row:(\\d)`))!.slice(1).join('/')
+    expect(['flight-row-route', 'flight-row-date', 'flight-row-distance', 'flight-row-number'].map(place)).toEqual(['1/1', '2/1', '1/2', '2/2'])
+    expect(css).toMatch(/\.journal-data input\[type=checkbox\]\{[^}]*outline:1px solid var\(--control-border\)/)
+  })
+
+  it('renders the upcoming group in the order the server returned it, without re-sorting', () => {
+    render(<Harness flights={[flight({ id: 1, date: '2027-03-01', lifecycle_state: 'upcoming' }), flight({ id: 2, date: '2027-01-01', lifecycle_state: 'upcoming' }), flight({ id: 3, date: '2026-01-01', lifecycle_state: 'logged' })]} />)
+    expect([...document.querySelectorAll('[data-flight-row]')].map(row => row.getAttribute('data-flight-row'))).toEqual(['1', '2', '3'])
   })
 
   it('exposes the sort direction and uses a labelled group', async () => {
@@ -343,6 +858,21 @@ describe('list', () => {
     expect(within(group).getByRole('button', { name: 'Origin' })).toHaveAttribute('aria-pressed', 'false')
     await user.click(within(group).getByRole('button', { name: 'Date, ascending' }))
     expect(nav.push).toHaveBeenCalledWith('/journal', { scroll: false })
+  })
+
+  it('has one desktop sort control (the list headers, covering every sort) and keeps Sort and Order in the mobile filter sheet', async () => {
+    const user = userEvent.setup()
+    render(<Harness />)
+    expect(screen.queryByRole('combobox', { name: 'Sort' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('combobox', { name: 'Order' })).not.toBeInTheDocument()
+    const group = screen.getByRole('group', { name: 'Sort' })
+    expect(within(group).getAllByRole('button').map(button => button.textContent)).toEqual(['Date', 'Origin', 'Destination', 'Airline', 'Aircraft', 'Duration', 'Distance'])
+    await user.click(within(group).getByRole('button', { name: 'Duration' }))
+    expect(nav.push).toHaveBeenCalledWith('/journal?sort=duration_minutes', { scroll: false })
+    await user.click(screen.getByRole('button', { name: 'Filters' }))
+    const dialog = screen.getByRole('dialog')
+    expect(within(dialog).getByRole('combobox', { name: 'Sort' })).toBeInTheDocument()
+    expect(within(dialog).getByRole('combobox', { name: 'Order' })).toBeInTheDocument()
   })
 
   it('offers a way back from an out-of-range page, and the Import and Add pair for an empty journal', () => {
@@ -365,6 +895,6 @@ describe('list', () => {
     render(<Harness flights={[flight({ id: 7, date: '2025-04-03', lifecycle_state: 'logged', aircraft_icao: null }), flight({ id: 8, date: '2025-04-02', lifecycle_state: 'logged', aircraft_icao: null })]} />)
     const notes = screen.getAllByText('Offline. Connect to change flights.')
     expect(notes).toHaveLength(1)
-    for (const button of screen.getAllByRole('button', { name: 'Add aircraft' })) { expect(button).toHaveAttribute('aria-disabled', 'true'); expect(button).toHaveAttribute('aria-describedby', notes[0].id) }
+    for (const button of screen.getAllByRole('button', { name: /^Add aircraft/ })) { expect(button).toHaveAttribute('aria-disabled', 'true'); expect(button).toHaveAttribute('aria-describedby', notes[0].id) }
   })
 })

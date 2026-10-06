@@ -14,5 +14,5 @@ export function airportChoices(locale: Locale): Choice[] {
       fallback: locale === 'ru' && !alias }
   })
 }
-export const airlineChoices: Choice[] = airlines.filter(row => row.iata).map(row => ({ code: row.iata, label: row.name }))
-export const aircraftChoices: Choice[] = aircraft.filter(row => row.icao).map(row => ({ code: row.icao, label: row.name }))
+export const airlineChoices: Choice[] = airlines.filter(row => row.iata).map(row => ({ code: row.iata, label: row.name, fallback: true }))
+export const aircraftChoices: Choice[] = aircraft.filter(row => row.icao).map(row => ({ code: row.icao, label: row.name, fallback: true }))

@@ -7,6 +7,7 @@ import { FailurePanel } from './failure-panel'
 import { classifyBatchFailure } from './import-errors'
 import { draft } from './fixtures'
 import { ReviewStep, type ReviewStepProps } from './review-step'
+import { S } from './copy'
 import { SourceStep } from './source-step'
 
 vi.mock('../signature/stamp', () => ({ Stamp: ({ countryCode, heroExitKey }: { countryCode: string; heroExitKey?: string }) => <div data-testid="stamp" data-hero-exit-key={heroExitKey}>{countryCode}</div> }))
@@ -38,6 +39,20 @@ describe('SourceStep', () => {
     expect(onSubmit.mock.calls[1][1]).toBe(onSubmit.mock.calls[0][1])
     expect(setItem).not.toHaveBeenCalled()
     setItem.mockRestore()
+  })
+
+  it('shows the assistant help and copies the prompt in the member language', async () => {
+    const user = userEvent.setup()
+    const writeText = vi.spyOn(navigator.clipboard, 'writeText').mockResolvedValue()
+    render(<SourceStep locale="ru" busy={false} initialMode={null} onSubmit={vi.fn()} />)
+    await user.click(screen.getByRole('button', { name: /выгрузить перелёты из почты/i }))
+    expect(screen.getByText(/ChatGPT, Claude или Gemini/)).toBeInTheDocument()
+    expect(screen.getByText(S.importLimit.ru)).toBeInTheDocument()
+    expect(screen.getByRole('textbox', { name: /текст запроса/i })).toHaveValue(S.prompt.ru)
+    await user.click(screen.getByRole('button', { name: /скопировать запрос/i }))
+    expect(writeText).toHaveBeenCalledWith(S.prompt.ru)
+    expect(screen.getByRole('status')).toHaveTextContent(S.copied.ru)
+    writeText.mockRestore()
   })
 
   it('says why nothing was sent when the source is empty', async () => {
@@ -79,7 +94,7 @@ describe('FailurePanel', () => {
 })
 
 const review = (over: Partial<ReviewStepProps> = {}): ReviewStepProps => ({
-  locale: 'en', mobile: false, saveStates: {}, partial: false, failure: null, manualRows: [], onManualRows: vi.fn(), confirming: false,
+  locale: 'en', mobile: false, saveStates: {}, partial: false, failure: null, dirty: new Set<string>(), onDirty: vi.fn(), manualRows: [], onManualRows: vi.fn(), onManualRetryOriginal: vi.fn(), onManualNewOperation: vi.fn(), confirming: false,
   onChange: vi.fn(), onSelectAll: vi.fn(), onRetry: vi.fn(), onDiscardEdit: vi.fn(), onConfirm: vi.fn(), onDiscardImport: vi.fn(async () => {}),
   drafts: [
     draft({ id: 'a', ordinal: 0 }),
@@ -161,7 +176,7 @@ describe('ReviewStep', () => {
     const { rerender } = render(<ReviewStep {...review({ onManualRows })} />)
     await userEvent.click(screen.getByRole('button', { name: /add a flight manually/i }))
     expect(onManualRows).toHaveBeenCalledWith([expect.objectContaining({ key: expect.any(String) })])
-    rerender(<ReviewStep {...review({ manualRows: [{ key: 'm1', values: { date: '', origin: 'JFK', destination: 'JFK', airline_iata: '', flight_number: '', aircraft_icao: '', departure_time: '', arrival_time: '' } }] })} />)
+    rerender(<ReviewStep {...review({ manualRows: [{ key: 'm1', operationId: 'op1', values: { date: '', origin: 'JFK', destination: 'JFK', airline_iata: '', flight_number: '', aircraft_icao: '', departure_time: '', arrival_time: '' } }] })} />)
     expect(screen.getByText(/choose a different airport/i)).toBeInTheDocument()
     expect(screen.getByText(/fix the highlighted fields/i)).toBeInTheDocument()
   })
@@ -169,7 +184,7 @@ describe('ReviewStep', () => {
 
 describe('DoneStep', () => {
   const base = { locale: 'en' as const, savedCount: 12, requested: 12, totalKm: 18400, newCountries: 3, stamps: [] as Array<{ code: string; name: string; eventId: string }>, publication: 'ready' as const,
-    failures: [], retryCount: 0, retrying: false, checking: false, checkFailed: false, canReview: false, aircraftTargets: [], theme: 'light' as const,
+    failures: [], retryCount: 0, retrying: false, checking: false, checkFailed: false, remaining: 0, aircraftTargets: [], theme: 'light' as const,
     onRetry: vi.fn(), onReview: vi.fn(), onImportMore: vi.fn(), onAircraftSaved: vi.fn() }
   it('shows the final numbers at once and the three destinations', () => {
     render(<DoneStep {...base} />)
@@ -196,7 +211,7 @@ describe('DoneStep', () => {
   it('lists the failed rows and retries only for them', async () => {
     const onRetry = vi.fn()
     render(<DoneStep {...base} savedCount={10} failures={[{ key: 'x', label: 'JFK → BOS · 1 Mar 2026', message: 'The service had a problem.', retryable: true }, { key: 'y', label: 'LAX → SFO', message: 'The year was not confirmed.', retryable: false }]}
-      retryCount={1} canReview onRetry={onRetry} />)
+      retryCount={1} remaining={1} onRetry={onRetry} />)
     expect(screen.getByRole('heading', { name: /some flights were not saved/i })).toBeInTheDocument()
     expect(screen.getByTestId('import-summary')).toHaveTextContent('Saved 10 of 12')
     expect(screen.getByText('JFK → BOS · 1 Mar 2026')).toBeInTheDocument()
@@ -204,9 +219,99 @@ describe('DoneStep', () => {
     expect(onRetry).toHaveBeenCalledTimes(1)
     expect(screen.getByRole('button', { name: /back to review/i })).toBeInTheDocument()
   })
+  it('explains a held retry, visibly and to assistive tech, and sends the member back to review', async () => {
+    const onRetry = vi.fn()
+    const onReview = vi.fn()
+    render(<DoneStep {...base} savedCount={1} requested={2} failures={[{ key: 'x', label: 'JFK → BOS', message: 'The service had a problem.', retryable: true }]} retryCount={1} remaining={1}
+      retryBlocked="Some edits on the review page are not saved yet. Go back to review to save or discard them, then try again." onRetry={onRetry} onReview={onReview} />)
+    const retry = screen.getByRole('button', { name: 'Try again for 1' })
+    expect(retry).toHaveAttribute('aria-disabled', 'true')
+    expect(retry).toHaveAccessibleDescription(/go back to review to save or discard/i)
+    await userEvent.click(retry)
+    expect(onRetry).not.toHaveBeenCalled()
+    await userEvent.click(screen.getByRole('button', { name: /back to review/i }))
+    expect(onReview).toHaveBeenCalledTimes(1)
+  })
+  it('offers a way back to the remaining rows after a fully successful save', async () => {
+    const onReview = vi.fn()
+    render(<DoneStep {...base} savedCount={1} requested={1} remaining={2} onReview={onReview} />)
+    expect(screen.getByText('2 flights are still waiting in review.')).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: /review the remaining flights/i }))
+    expect(onReview).toHaveBeenCalledTimes(1)
+  })
+  it('shows no review action when nothing is left to review', () => {
+    render(<DoneStep {...base} remaining={0} />)
+    expect(screen.queryByRole('button', { name: /review the remaining|back to review/i })).not.toBeInTheDocument()
+  })
   it('leaves the new-country line out while totals are unknown', () => {
     render(<DoneStep {...base} newCountries={null} publication="pending" />)
     expect(screen.getByTestId('import-summary')).not.toHaveTextContent(/new countr/i)
     expect(screen.getByText(/totals are still updating/i)).toBeInTheDocument()
+  })
+})
+
+describe('ReviewStep corrections, retention and cancelled batches', () => {
+  it('blocks the import with a visible reason while a typed correction is unsaved, even with no save state', () => {
+    render(<ReviewStep {...review({ dirty: new Set(['a']) })} />)
+    const bar = screen.getByRole('region', { name: /import actions/i })
+    expect(within(bar).getByRole('button', { name: /import 1/i })).toHaveAttribute('aria-disabled', 'true')
+    expect(within(bar).getByText(/some edits are not saved yet/i)).toBeInTheDocument()
+  })
+
+  it('reports a typed correction as unsaved, names it on the row, and clears it on save or unmount', async () => {
+    const onDirty = vi.fn()
+    const { unmount } = render(<ReviewStep {...review({ drafts: [draft({ id: 'a' })], onDirty })} />)
+    expect(onDirty).toHaveBeenLastCalledWith('a', false)
+    await userEvent.click(screen.getByText('Edit'))
+    const destination = screen.getByLabelText(/^To \(airport code\)/)
+    await userEvent.clear(destination)
+    await userEvent.type(destination, 'LAX')
+    expect(onDirty).toHaveBeenLastCalledWith('a', true)
+    expect(screen.getByText(/changes not saved yet/i)).toBeInTheDocument()
+    unmount()
+    expect(onDirty).toHaveBeenLastCalledWith('a', false)
+  })
+
+  it('keeps typed text when an unrelated change gives the draft a newer version', async () => {
+    const props = review({ drafts: [draft({ id: 'a', version: 1 })] })
+    const { rerender } = render(<ReviewStep {...props} />)
+    await userEvent.click(screen.getByText('Edit'))
+    const destination = screen.getByLabelText(/^To \(airport code\)/)
+    await userEvent.clear(destination)
+    await userEvent.type(destination, 'LAX')
+    rerender(<ReviewStep {...props} drafts={[draft({ id: 'a', version: 2, selected: false })]} />)
+    expect(screen.getByLabelText(/^To \(airport code\)/)).toHaveValue('LAX')
+  })
+
+  it('discarding a failed edit returns the form to the stored row, not to the unsent overlay', async () => {
+    const onDiscardEdit = vi.fn()
+    render(<ReviewStep {...review({ drafts: [draft({ id: 'a' })], onDiscardEdit, saveStates: { a: { status: 'error', unsent: { fields: { destination: 'LAX' } }, failure: null, rejected: false } } })} />)
+    await userEvent.click(screen.getByText('Edit'))
+    await userEvent.click(screen.getByRole('button', { name: /discard my edit/i }))
+    expect(onDiscardEdit).toHaveBeenCalledWith('a')
+    expect(screen.getByLabelText(/^To \(airport code\)/)).toHaveValue('BOS')
+  })
+
+  it('shows when the stored draft is removed, in the viewer locale', () => {
+    const { rerender } = render(<ReviewStep {...review({ expiresAt: '2026-11-04T12:00:00.000Z' })} />)
+    expect(screen.getByTestId('import-retention')).toHaveTextContent('Kept until Nov 4, 2026.')
+    rerender(<ReviewStep {...review({ locale: 'ru', expiresAt: '2026-11-04T12:00:00.000Z' })} />)
+    expect(screen.getByTestId('import-retention')).toHaveTextContent('Хранится до 4 нояб. 2026 г.')
+  })
+
+  it('says a stopped review was cancelled by the member', () => {
+    render(<ReviewStep {...review({ partial: true, cancelled: true })} />)
+    expect(screen.getByText(/you cancelled recognition/i)).toBeInTheDocument()
+  })
+
+  it('offers the explicit recovery for an unconfirmed manual save', async () => {
+    const onManualRetryOriginal = vi.fn(), onManualNewOperation = vi.fn()
+    const values = { date: '2026-03-01', origin: 'JFK', destination: 'BOS', airline_iata: '', flight_number: '', aircraft_icao: '', departure_time: '', arrival_time: '' }
+    render(<ReviewStep {...review({ onManualRetryOriginal, onManualNewOperation, manualRows: [{ key: 'm1', operationId: 'op1', values, failure: { kind: 'unconfirmed', code: null } }] })} />)
+    expect(screen.getByText(/changed details were not sent/i)).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: /retry original save/i }))
+    await userEvent.click(screen.getByRole('button', { name: /i checked the journal/i }))
+    expect(onManualRetryOriginal).toHaveBeenCalledWith('m1')
+    expect(onManualNewOperation).toHaveBeenCalledWith('m1')
   })
 })

@@ -1,6 +1,6 @@
 'use client'
 
-import Link from 'next/link'
+import { NavigationLink as Link } from './navigation-link'
 import { ChevronDown, Plus } from 'lucide-react'
 import { AddActions } from './add-actions'
 import { Menu } from './ui/menu'

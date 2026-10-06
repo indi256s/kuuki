@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useId, useRef, useState } from 'react'
+import { useCallback, useEffect, useId, useRef, useState, useTransition } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { ArrowDown, ArrowUp } from 'lucide-react'
@@ -10,6 +10,7 @@ import { trackPrivateOperation } from '../activity'
 import { isPublicationPending } from '../freshness'
 import { useWriteFeedback } from '../write-feedback'
 import { LIFECYCLE_CHANGED_EVENT } from '../lifecycle-sync'
+import { ROUTE_LINK_EVENT } from '../navigation-link'
 import { useOnline } from '../awaiting'
 import { FlightDetailSheet } from '../capture/flight-panels'
 import { connectionChains } from '../../../../../functions/api/_services/connections'
@@ -18,6 +19,8 @@ import { JournalQueue } from './journal-queue'
 import { useDeferredDelete } from './deferred-delete'
 import { Button } from '../ui/button'
 import { DeleteUndo } from './delete-undo'
+import { ToastSlot } from '../ui/toast'
+import { announceShellNotice } from '../shell-notices'
 import { JournalFilters } from './journal-filters'
 import { FloatingActionBar } from '../ui/floating-action-bar'
 import { DestructiveConfirm } from '../ui/destructive-confirm'
@@ -33,8 +36,8 @@ const consequenceForms = {
   ru: { one: 'Будет удалён {count} выбранный перелёт. Отменить удаление можно в течение шести секунд.', few: 'Будут удалены {count} выбранных перелёта. Отменить удаление можно в течение шести секунд.', many: 'Будут удалены {count} выбранных перелётов. Отменить удаление можно в течение шести секунд.', other: 'Будут удалены {count} выбранных перелёта. Отменить удаление можно в течение шести секунд.' },
 } as const
 const labels = {
-  en: { origin: 'Origin', destination: 'Destination', sort: 'Sort', asc: 'ascending', desc: 'descending', upcoming: 'Upcoming', awaiting: 'Awaiting', reset: 'Reset filters', empty: 'Your journal is empty.', filtered: 'Nothing matches these filters.', pageEmpty: 'There are no flights on this page.', firstPage: 'Back to the first page', importFlights: 'Import flights', retry: 'Try again', backgroundError: 'Could not refresh the list. Showing the last loaded flights.', pending: 'Recent changes are still being prepared.', previous: 'Previous', next: 'Next', page: 'Page', of: 'of', select: 'Select', selectAll: 'Select all matching flights', clear: 'Clear selection', delete: 'Delete selected flights', cancel: 'Cancel', offline: 'Offline. Connect to change flights.', deleteFailed: 'Delete failed. Your flights are restored.', retryDelete: 'Retry deletion', addAircraft: 'Add aircraft', historical: 'Logged', distance: 'Distance', date: 'Date', selectionActions: 'Selection actions' },
-  ru: { origin: 'Откуда', destination: 'Куда', sort: 'Сортировка', asc: 'по возрастанию', desc: 'по убыванию', upcoming: 'Предстоящие', awaiting: 'Ждут подтверждения', reset: 'Сбросить фильтры', empty: 'Журнал пока пуст.', filtered: 'По этим фильтрам ничего не найдено.', pageEmpty: 'На этой странице нет перелётов.', firstPage: 'Вернуться на первую страницу', importFlights: 'Импортировать перелёты', retry: 'Повторить', backgroundError: 'Не удалось обновить список. Показаны последние загруженные перелёты.', pending: 'Последние изменения ещё обрабатываются.', previous: 'Назад', next: 'Далее', page: 'Страница', of: 'из', select: 'Выбрать', selectAll: 'Выбрать все найденные перелёты', clear: 'Снять выделение', delete: 'Удалить выбранные перелёты', cancel: 'Отмена', offline: 'Нет сети. Подключитесь, чтобы изменить перелёты.', deleteFailed: 'Не удалось удалить. Перелёты восстановлены.', retryDelete: 'Повторить удаление', addAircraft: 'Добавить самолёт', historical: 'В журнале', distance: 'Расстояние', date: 'Дата', selectionActions: 'Действия с выбранными' },
+  en: { origin: 'Origin', destination: 'Destination', sort: 'Sort', asc: 'ascending', desc: 'descending', upcoming: 'Upcoming', awaiting: 'Awaiting', reset: 'Reset filters', empty: 'Your journal is empty.', filtered: 'Nothing matches these filters.', pageEmpty: 'There are no flights on this page.', firstPage: 'Back to the first page', importFlights: 'Import flights', retry: 'Try again', backgroundError: 'Could not refresh the list. Showing the last loaded flights.', pending: 'Recent changes are still being prepared.', previous: 'Previous', next: 'Next', page: 'Page', of: 'of', select: 'Select', selectAll: 'Select all matching flights', clear: 'Clear selection', delete: 'Delete selected flights', cancel: 'Cancel', offline: 'Offline. Connect to change flights.', deleteFailed: 'Delete failed. Your flights are restored.', deleteCancelled: 'Delete cancelled — you left the Journal. Nothing was removed.', retryDelete: 'Retry deletion', addAircraft: 'Add aircraft', historical: 'Logged', distance: 'Distance', date: 'Date', airline: 'Airline', aircraft: 'Aircraft', duration: 'Duration', selectionActions: 'Selection actions' },
+  ru: { origin: 'Откуда', destination: 'Куда', sort: 'Сортировка', asc: 'по возрастанию', desc: 'по убыванию', upcoming: 'Предстоящие', awaiting: 'Ждут подтверждения', reset: 'Сбросить фильтры', empty: 'Журнал пока пуст.', filtered: 'По этим фильтрам ничего не найдено.', pageEmpty: 'На этой странице нет перелётов.', firstPage: 'Вернуться на первую страницу', importFlights: 'Импортировать перелёты', retry: 'Повторить', backgroundError: 'Не удалось обновить список. Показаны последние загруженные перелёты.', pending: 'Последние изменения ещё обрабатываются.', previous: 'Назад', next: 'Далее', page: 'Страница', of: 'из', select: 'Выбрать', selectAll: 'Выбрать все найденные перелёты', clear: 'Снять выделение', delete: 'Удалить выбранные перелёты', cancel: 'Отмена', offline: 'Нет сети. Подключитесь, чтобы изменить перелёты.', deleteFailed: 'Не удалось удалить. Перелёты восстановлены.', deleteCancelled: 'Удаление отменено — вы ушли из журнала. Ничего не удалено.', retryDelete: 'Повторить удаление', addAircraft: 'Добавить самолёт', historical: 'В журнале', distance: 'Расстояние', date: 'Дата', airline: 'Авиакомпания', aircraft: 'Самолёт', duration: 'Длительность', selectionActions: 'Действия с выбранными' },
 } as const
 
 type Flight = JournalData['flights'][number]
@@ -64,8 +67,17 @@ function JournalInner({ ownerId, locale, initial, query, page, filtered }: Props
   const undoButton = useRef<HTMLButtonElement>(null)
   const offlineId = useId()
   const refresh = () => { void queryClient.invalidateQueries({ queryKey: ['journal', ownerId] }); router.refresh() }
+  // Sign-out and owner switches reset identity before the Journal unmounts; their dropped delete is not announced.
+  const identityReset = useRef(false)
+  useEffect(() => {
+    const reset = () => { identityReset.current = true }
+    window.addEventListener('kuuki:identity-reset', reset)
+    return () => window.removeEventListener('kuuki:identity-reset', reset)
+  }, [])
   // Focus moves when the user acts (schedule, Undo, close), never when the network answers.
-  const deletion = useDeferredDelete((ack, deletedIds) => { feedback.acknowledge(ack); select([]); setRemoved(ids => [...ids, ...deletedIds]); refresh(); window.dispatchEvent(new Event(LIFECYCLE_CHANGED_EVENT)) })
+  // Leaving the Journal inside the window cancels the delete (nothing is sent) and the member shell says so.
+  const deletion = useDeferredDelete((ack, deletedIds) => { feedback.acknowledge(ack); select([]); setRemoved(ids => [...ids, ...deletedIds]); refresh(); window.dispatchEvent(new Event(LIFECYCLE_CHANGED_EVENT)) },
+    () => { if (!identityReset.current) announceShellNotice(ownerId, { message: t.deleteCancelled }) })
   const restore = useRef<{ origin: 'queue' | 'list'; id: number } | null>(null)
   const confirmed = useRef(false)
   const lastFlight = useRef<number | null>(null)
@@ -80,6 +92,7 @@ function JournalInner({ ownerId, locale, initial, query, page, filtered }: Props
   const undo = () => { undoing.current = true; deletion.undo() }
   const focusRow = (id: number) => { const row = root.current?.querySelector<HTMLElement>(`[data-flight-row="${id}"]`); row?.focus(); return !!row }
   const isPending = deletion.pending !== null
+  const settleFocus = () => { if (document.activeElement === document.body || document.activeElement === null) listHeading.current?.focus() }
   useEffect(() => {
     const was = wasPending.current
     wasPending.current = isPending
@@ -93,9 +106,11 @@ function JournalInner({ ownerId, locale, initial, query, page, filtered }: Props
       else if (!target || !focusRow(target.id)) listHeading.current?.focus()
       return
     }
-    // Committed or failed: the Undo button has left the page. Only a user still resting there (focus fell to the body) is moved; anyone elsewhere keeps their place.
-    if (document.activeElement === document.body || document.activeElement === null) listHeading.current?.focus()
+    // Committed or failed: focus was already settled when the request started; this only catches a user who ended up on the body since.
+    settleFocus()
   }, [isPending])
+  // The Undo button leaves the page when the request starts, not when the network answers. A user resting on it (focus fell to the body) moves then; anyone elsewhere keeps their place.
+  useEffect(() => { if (deletion.submitting) settleFocus() }, [deletion.submitting])
   const hidden = [...removed, ...(deletion.pending?.ids ?? [])]
   const list = useQuery({
     queryKey: ['journal', ownerId, query],
@@ -127,7 +142,17 @@ function JournalInner({ ownerId, locale, initial, query, page, filtered }: Props
   // The URL prop lags a navigation by a server round trip. Changes made in that window build on the last requested URL, not the stale prop.
   const requested = useRef(query)
   useEffect(() => { requested.current = query }, [query])
-  const apply = (changes: Record<string, string>, mode: 'push' | 'replace' | 'refine' = 'push') => {
+  const [navigating, startNavigation] = useTransition()
+  // A navigation can end without arriving (Next catches the failure and keeps the rendered URL). When the transition `apply` started settles and the
+  // rendered query is not its target, the target is dropped so an identical retry navigates again. An explicit navigation (below) owns `requested` instead.
+  const ownRequest = useRef(false)
+  const wasNavigating = useRef(false)
+  useEffect(() => {
+    if (wasNavigating.current && !navigating && ownRequest.current) { ownRequest.current = false; requested.current = query }
+    wasNavigating.current = navigating
+  }, [navigating, query])
+  /** Returns whether a navigation was started. It runs in a transition, so `navigating` stays true until the new page has committed. */
+  const apply = (changes: Record<string, string>, mode: 'push' | 'replace' | 'refine' = 'push'): boolean => {
     const base = new URLSearchParams(requested.current)
     const next = new URLSearchParams(base)
     let refine = true
@@ -138,11 +163,34 @@ function JournalInner({ ownerId, locale, initial, query, page, filtered }: Props
     const listChanged = Object.keys(changes).some(key => key !== 'flight' && key !== 'page')
     if (listChanged) next.delete('page')
     const target = normalizeJournalQuery(next).query
-    if (target === normalizeJournalQuery(base).query) return
+    if (target === normalizeJournalQuery(base).query) return false
     if (listChanged) select([])
     requested.current = target
-    router[mode === 'replace' || (mode === 'refine' && refine) ? 'replace' : 'push'](withQuery('/journal', target), { scroll: false })
+    ownRequest.current = true
+    startNavigation(() => router[mode === 'replace' || (mode === 'refine' && refine) ? 'replace' : 'push'](withQuery('/journal', target), { scroll: false }))
+    return true
   }
+  // Reset links, Back/Forward and shell links to /journal (`ROUTE_LINK_EVENT`) are the member's explicit navigations. Their destination replaces the
+  // filter drafts and the base for the next change at once, even while a navigation started by `apply` is pending (it is superseded) and even when the
+  // destination is the URL still rendered.
+  const [external, setExternal] = useState({ query, serial: 0 })
+  const navigateExternally = useCallback((target: string) => {
+    const normalized = normalizeJournalQuery(new URLSearchParams(target)).query
+    requested.current = normalized
+    ownRequest.current = false
+    setExternal(old => ({ query: normalized, serial: old.serial + 1 }))
+  }, [])
+  useEffect(() => {
+    // The browser is already on the entry when popstate fires; Next restores it from there.
+    const traverse = () => { if (window.location.pathname === '/journal') navigateExternally(window.location.search) }
+    const follow = (event: Event) => {
+      const url = new URL((event as CustomEvent<string>).detail, window.location.href)
+      if (url.pathname === '/journal') navigateExternally(url.search)
+    }
+    window.addEventListener('popstate', traverse)
+    window.addEventListener(ROUTE_LINK_EVENT, follow)
+    return () => { window.removeEventListener('popstate', traverse); window.removeEventListener(ROUTE_LINK_EVENT, follow) }
+  }, [navigateExternally])
   const navigate = (key: string, value: string, mode: 'push' | 'replace' = 'push') => apply({ [key]: value }, mode)
   const open = (id: number, edit = false, field?: 'aircraft') => { setEditing(edit); setFocusField(field); navigate('flight', String(id)) }
   const sheetFlight = params.has('flight') ? Number(params.get('flight')) : null
@@ -167,8 +215,6 @@ function JournalInner({ ownerId, locale, initial, query, page, filtered }: Props
     groups.set(key, [...(groups.get(key) ?? []), flight])
   }
   const orderedGroups = [...groups].sort(([a], [b]) => a === t.upcoming ? -1 : b === t.upcoming ? 1 : 0)
-  // The nearest trip leads the upcoming group; an explicit sort other than date is left alone.
-  if (!params.get('sort') || params.get('sort') === 'date') { const upcoming = groups.get(t.upcoming); if (upcoming) upcoming.sort((a, b) => a.date.localeCompare(b.date)) }
   // ponytail: presentation chains use the current 20-row page; C4 owns full connection policy.
   const decisions = connectionChains((data?.flights ?? []).map(flight => ({ ...flight, origin_country: null, destination_country: null })))
   const chains = new Map<number, number[]>()
@@ -177,8 +223,17 @@ function JournalInner({ ownerId, locale, initial, query, page, filtered }: Props
   const rowName = (flight: Flight) => [route(flight), formatDateOnly(locale, flight.date, 'long'), flight.flight_number ?? flight.airline_iata, flight.aircraft_icao, flight.duration_minutes ? formatDuration(locale, flight.duration_minutes) : null, flight.distance_km ? formatDistanceKm(locale, flight.distance_km) : null].filter(Boolean).join(', ')
   const row = (flight: Flight) => <div className="journal-entry" key={flight.id}>
             <label className="journal-checkbox"><input type="checkbox" aria-label={`${t.select}: ${route(flight)}, ${formatDateOnly(locale, flight.date, 'long')}`} checked={selected.includes(flight.id)} onChange={event => select(ids => event.target.checked ? [...ids, flight.id] : ids.filter(id => id !== flight.id))} /></label>
-            <button type="button" className="flight-row" data-flight-row={flight.id} aria-label={rowName(flight)} onClick={() => open(flight.id)}><span className="mono">{formatDateOnly(locale, flight.date, 'padded')}</span><strong className="mono">{flight.origin} → {flight.destination}</strong><span>{flight.flight_number ?? flight.airline_iata ?? '—'}</span><span>{flight.aircraft_icao ?? '—'}</span><span>{flight.duration_minutes ? formatDuration(locale, flight.duration_minutes) : '—'}</span><span className="mono">{flight.distance_km ? formatDistanceKm(locale, flight.distance_km) : '—'}</span></button>
-            {!flight.aircraft_icao && <Button className="journal-aircraft-action" dense disabled={!online} aria-describedby={!online ? offlineId : undefined} onClick={() => open(flight.id, true, 'aircraft')}>{t.addAircraft}</Button>}
+            <div className="flight-row">
+              <button type="button" className="flight-row-open" data-flight-row={flight.id} aria-label={rowName(flight)} onClick={() => open(flight.id)} />
+              <span className="flight-row-date mono" aria-hidden="true">{formatDateOnly(locale, flight.date, 'padded')}</span>
+              <strong className="flight-row-route mono" aria-hidden="true">{flight.origin} → {flight.destination}</strong>
+              <span className="flight-row-number" aria-hidden="true">{flight.flight_number ?? flight.airline_iata ?? '—'}</span>
+              {flight.aircraft_icao
+                ? <span className="journal-aircraft-cell" aria-hidden="true">{flight.aircraft_icao}</span>
+                : <span className="journal-aircraft-cell" data-action="add-aircraft"><Button dense aria-label={`${t.addAircraft}, ${route(flight)}, ${formatDateOnly(locale, flight.date, 'long')}`} disabled={!online} aria-describedby={!online ? offlineId : undefined} onClick={() => open(flight.id, true, 'aircraft')}>{t.addAircraft}</Button></span>}
+              <span className="flight-row-duration" aria-hidden="true">{flight.duration_minutes ? formatDuration(locale, flight.duration_minutes) : '—'}</span>
+              <span className="flight-row-distance mono" aria-hidden="true">{flight.distance_km ? formatDistanceKm(locale, flight.distance_km) : '—'}</span>
+            </div>
           </div>
   const flightRows = (flights: Flight[]) => {
     const shown = new Set<number>()
@@ -204,15 +259,15 @@ function JournalInner({ ownerId, locale, initial, query, page, filtered }: Props
     <JournalQueue ownerId={ownerId} locale={locale} filtered={filtered} hiddenIds={hidden} onEdit={id => open(id, true)} onDelete={ids => scheduleDelete(ids, 'queue')} />
     <section className="read-section">
       <h2 ref={listHeading} tabIndex={-1}>{locale === 'ru' ? 'Перелёты' : 'Flights'}</h2>
-      <JournalFilters locale={locale} query={query} filtered={filtered} apply={changes => apply(changes, 'refine')} />
+      <JournalFilters locale={locale} query={query} filtered={filtered} navigating={navigating} apply={changes => apply(changes, 'refine')} external={external} onExternal={navigateExternally} />
       {!online && <p id={offlineId} className="status-note">{t.offline}</p>}
       {data && isPublicationPending(data.revision, data.publishedRevision, data.derivedState) && <p role="status" className="status-note">{t.pending}</p>}
       {list.isError && <p role="alert" className="status-note">{t.backgroundError} <Button dense onClick={() => void list.refetch()}>{t.retry}</Button></p>}
       {data && <><p className="muted">{formatCount(locale, data.total, countForms)}{list.isFetching && <span aria-hidden="true"> · …</span>}</p>
-        {data.flights.length === 0 ? <div className="read-panel empty-panel"><h3>{data.total > 0 && !filtered ? t.pageEmpty : filtered ? t.filtered : t.empty}</h3>{data.total > 0 && !filtered ? <Link className="button secondary" href={withQuery('/journal', withoutPage)}>{t.firstPage}</Link> : filtered ? <Link className="button secondary" href={withQuery('/journal', resetJournalFilters(query))}>{t.reset}</Link> : <div className="read-actions"><Link className="button primary" href="/import">{t.importFlights}</Link><Link className="button secondary" href="/add">{locale === 'ru' ? 'Добавить перелёт' : 'Add a flight'}</Link></div>}</div> : <>
+        {data.flights.length === 0 ? <div className="read-panel empty-panel"><h3>{data.total > 0 && !filtered ? t.pageEmpty : filtered ? t.filtered : t.empty}</h3>{data.total > 0 && !filtered ? <Link className="button secondary" href={withQuery('/journal', withoutPage)} onNavigate={() => navigateExternally(withoutPage)}>{t.firstPage}</Link> : filtered ? <Link className="button secondary" href={withQuery('/journal', resetJournalFilters(query))} onNavigate={() => navigateExternally(resetJournalFilters(query))}>{t.reset}</Link> : <div className="read-actions"><Link className="button primary" href="/import">{t.importFlights}</Link><Link className="button secondary" href="/add">{locale === 'ru' ? 'Добавить перелёт' : 'Add a flight'}</Link></div>}</div> : <>
           <div className="read-actions"><Button loading={selecting} loadingLabel={t.selectAll} disabled={!online} aria-describedby={!online ? offlineId : undefined} onClick={() => void selectAll()}>{t.selectAll}</Button>{selected.length > 0 && <Button onClick={() => select([])}>{t.clear}</Button>}</div>
           {selectionError && <p role="alert">{locale === 'ru' ? 'Не удалось выбрать все перелёты. Повторите.' : 'Could not select all flights. Try again.'}</p>}
-          <div className="journal-sort-headers" role="group" aria-label={t.sort}>{[['date', t.date], ['origin', t.origin], ['destination', t.destination], ['distance_km', t.distance]].map(([key, label]) => sortButton(key, label))}</div>
+          <div className="journal-sort-headers" role="group" aria-label={t.sort}>{[['date', t.date], ['origin', t.origin], ['destination', t.destination], ['airline_iata', t.airline], ['aircraft_icao', t.aircraft], ['duration_minutes', t.duration], ['distance_km', t.distance]].map(([key, label]) => sortButton(key, label))}</div>
           {orderedGroups.map(([group, flights]) => <section key={group}><h3>{group}</h3><div className="flight-list">{flightRows(flights)}</div></section>)}
         </>}
         {pageCount > 1 && <nav className="page-controls" aria-label={t.page}><button disabled={page <= 1} onClick={() => { select([]); navigate('page', String(page - 1)) }}>{t.previous}</button><span>{t.page} {page} {t.of} {pageCount}</span><button disabled={page >= pageCount} onClick={() => { select([]); navigate('page', String(page + 1)) }}>{t.next}</button></nav>}
@@ -223,7 +278,7 @@ function JournalInner({ ownerId, locale, initial, query, page, filtered }: Props
         onCloseAutoFocus={event => { if (confirmed.current) { confirmed.current = false; event.preventDefault(); undoButton.current?.focus() } }}
         onConfirm={() => { if (online) { confirmed.current = true; scheduleDelete(selected); setDeleteOpen(false) } }} />
     </section>
-    <DeleteUndo ref={undoButton} locale={locale} pending={deletion.pending} submitting={deletion.submitting} onUndo={undo} />
+    <ToastSlot><DeleteUndo ref={undoButton} locale={locale} pending={deletion.pending} submitting={deletion.submitting} onUndo={undo} /></ToastSlot>
     {sheetFlight !== null && <FlightDetailSheet ownerId={ownerId} locale={locale} flightId={sheetFlight} initialEditing={editing} focusField={focusField} onDelete={id => scheduleDelete([id])} onCloseAutoFocus={closeFocus} onOpenChange={isOpen => { if (!isOpen) { navigate('flight', '', 'replace'); refresh() } }} />}
   </section>
 }

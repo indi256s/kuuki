@@ -1,6 +1,6 @@
 import 'server-only'
 import { readPublicProfile } from '../../../../functions/api/_services/publicProfiles'
-import { readPublicLeaderboard, readOwnLeaderboardEligibility, type LeaderboardCategory } from '../../../../functions/api/_services/publicLeaderboard'
+import { readPublicLeaderboard, readOwnLeaderboardEligibility, readOwnLeaderboardRank, type LeaderboardCategory } from '../../../../functions/api/_services/publicLeaderboard'
 import { getRequestEnv, getRequestIdentity } from './identity'
 
 export async function getPublicProfile(username: string) {
@@ -13,9 +13,10 @@ export async function getLeaderboard(category: LeaderboardCategory) {
   return readPublicLeaderboard(env.DB, category)
 }
 
-export async function getOwnLeaderboardEligibility() {
+export async function getOwnLeaderboardEligibility(category: LeaderboardCategory) {
   const identity = await getRequestIdentity()
   if (!identity) return null
   const env = await getRequestEnv()
-  return { ownerId: identity.id, status: await readOwnLeaderboardEligibility(env.DB, identity.id) }
+  const [status, rank] = await Promise.all([readOwnLeaderboardEligibility(env.DB, identity.id), readOwnLeaderboardRank(env.DB, identity.id, category)])
+  return { ownerId: identity.id, status, rank: status.isPublic && status.optedIn && !status.pending && status.totalFlights !== null && status.totalFlights >= 5 ? rank : null }
 }

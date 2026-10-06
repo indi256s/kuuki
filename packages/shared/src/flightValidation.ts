@@ -24,7 +24,8 @@ const fields = new Set<keyof FlightInput>([
   'duration_minutes', 'source', 'enrichment_status',
 ])
 
-function validDate(value: string): boolean {
+/** A real YYYY-MM-DD calendar date (no month 13, no 30 February). */
+export function isCalendarDate(value: string): boolean {
   const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value)
   if (!match) return false
   const year = Number(match[1]); const month = Number(match[2]); const day = Number(match[3])
@@ -44,7 +45,7 @@ export function validateFlightInput(value: unknown, mode: 'create' | 'patch'): F
     if (['origin', 'destination', 'airline_iata', 'aircraft_icao'].includes(key) && typeof raw === 'string') normalized = raw.trim().toUpperCase()
     else if (typeof raw === 'string') normalized = raw.trim()
     if ((key === 'origin' || key === 'destination') && !(typeof normalized === 'string' && /^[A-Z]{3}$/.test(normalized))) throw new Error(`${key} must be a three-letter IATA code`)
-    if (key === 'date' && !(typeof normalized === 'string' && validDate(normalized))) throw new Error('date must be a real YYYY-MM-DD calendar date')
+    if (key === 'date' && !(typeof normalized === 'string' && isCalendarDate(normalized))) throw new Error('date must be a real YYYY-MM-DD calendar date')
     if (key === 'airline_iata' && normalized !== null && !(typeof normalized === 'string' && /^[A-Z0-9]{2}$/.test(normalized))) throw new Error('airline_iata is invalid')
     if (key === 'aircraft_icao' && normalized !== null && !(typeof normalized === 'string' && /^[A-Z0-9]{2,4}$/.test(normalized))) throw new Error('aircraft_icao is invalid')
     if (key === 'flight_number' && normalized !== null && !(typeof normalized === 'string' && normalized.length <= 20)) throw new Error('flight_number is invalid')

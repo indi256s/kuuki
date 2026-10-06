@@ -1,6 +1,6 @@
 # Literal border radii outside the radius scale
 
-Status: ready-for-agent
+Status: resolved
 Owner task: T18
 Source: design-md-code-vs-brief.md item 8; DESIGN.md radius scale (6/10/14/20/full); verified at af92d26
 
@@ -14,3 +14,9 @@ All radii use `--radius-xs|sm|md|lg|full`.
 
 ## Acceptance check
 A source test over `apps/next/src/**/*.css` that fails on any `border-radius` value containing a bare `px` literal other than `0`. Red now with the three rules above. Check that the pill and track still look right by reasoning from the tokens, not screenshots.
+
+## Continuation disposition — 2026-10-05
+
+39b4dc8 and 42e8284 replace remaining off-scale literal radii with existing tokens. Complete source-rule audit passed; visual proof is deferred.
+
+Current integration and evidence: [redesign handoff](../../../docs/plans/2026-10-04-redesign-2.0-implementation-handoff.md). Visual/atlas and external release proof remain deferred under the explicit session constraints.

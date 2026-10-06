@@ -35,12 +35,15 @@ beforeEach(() => {
 
 describe.each(['en', 'ru'] as const)('manual flight (%s)', locale => {
   it('creates with route/date only via keyboard and publishes the acknowledgement', async () => {
-    render(<FlightForm ownerId="a" locale={locale} />)
+    const onSaved = vi.fn()
+    render(<FlightForm ownerId="a" locale={locale} onSaved={onSaved} />)
     await fill(locale)
     fireEvent.keyDown(window, { key: 'Enter', ctrlKey: locale === 'en', metaKey: locale === 'ru' })
     await waitFor(() => expect(mocks.create).toHaveBeenCalledTimes(1))
     expect(mocks.create.mock.calls[0][0]).toMatchObject({ date: '2026-10-05', origin: 'TBS', destination: 'IST', airline_iata: null, aircraft_icao: null, user_id: 'a' })
     expect(mocks.acknowledge).toHaveBeenCalledWith({ id: 8, derived_state: 'ready' })
+    // onSaved runs from an effect after the saved render commits.
+    await waitFor(() => expect(onSaved).toHaveBeenCalledWith({ id: 8, derived_state: 'ready' }, 'ready'))
     expect(screen.getByRole('status')).toHaveTextContent(locale === 'ru' ? 'Итоги обновлены.' : 'Totals updated.')
   })
   it('swaps the route and preserves selected optional values', async () => {
@@ -267,6 +270,22 @@ describe.each(['en', 'ru'] as const)('offline, errors and focus (%s)', locale =>
     const trigger = await screen.findByRole('button', { name: say('Delete flight', 'Удалить перелёт') })
     expect(trigger).toHaveAttribute('aria-disabled', 'true')
     expect(screen.getByText(say('Offline. Connect to delete.', 'Нет сети. Подключитесь, чтобы удалить.'))).toBeVisible()
+  })
+  it('carries a connection drop into an open delete confirmation: blocked with the reason, not closed, not deleted', async () => {
+    render(<FlightDetailSheet ownerId="a" locale={locale} flightId={7} />)
+    await userEvent.click(await screen.findByRole('button', { name: say('Delete flight', 'Удалить перелёт') }))
+    const confirmation = await screen.findByRole('dialog', { name: /TBS/ })
+    const reason = say('Offline. Connect to delete.', 'Нет сети. Подключитесь, чтобы удалить.')
+    expect(within(confirmation).queryByText(reason)).not.toBeInTheDocument()
+    act(() => { setOnline(false); window.dispatchEvent(new Event('offline')) })
+    const confirm = within(confirmation).getByRole('button', { name: say('Delete flight', 'Удалить перелёт') })
+    expect(confirm).toHaveAttribute('aria-disabled', 'true')
+    expect(within(confirmation).getByText(reason)).toBeVisible()
+    await userEvent.click(confirm)
+    expect(mocks.remove).not.toHaveBeenCalled()
+    expect(screen.getByRole('dialog', { name: /TBS/ })).toBeInTheDocument()
+    act(() => { setOnline(true); window.dispatchEvent(new Event('online')) })
+    expect(within(screen.getByRole('dialog', { name: /TBS/ })).getByRole('button', { name: say('Delete flight', 'Удалить перелёт') })).not.toHaveAttribute('aria-disabled', 'true')
   })
   it('says what is wrong in each field instead of a generic message', async () => {
     render(<FlightForm ownerId="a" locale={locale} />)

@@ -19,7 +19,7 @@ Map fills use a sequential accent ramp and a titled legend with fixed buckets 1,
 | Sakura | `#8c4c65` | `#e7aac1` | `#fff` / `#292827` |
 | Sumi | `#4a4641` | `#d0cbc5` | `#fff` / `#292827` |
 
-For non-terracotta accents `--accent-text` equals `--accent` and `--focus` follows the fill. The brief suggests dark foreground on Kincha and Sakura; the built light fills are dark enough for white, so the code wins. `--swatch-<name>` mirrors each fill for the picker dots. The picker is **Planned (W5/T21)** in Settings; today it exists only in the dev gallery.
+For non-terracotta accents `--accent-text` equals `--accent` and `--focus` follows the fill. Kincha and Sakura use white foreground in light and dark foreground in dark, matching the canonical token contrast checks and the aligned brief. `--swatch-<name>` mirrors each fill for the picker dots. The picker is built in Settings and the dev gallery.
 
 ## Type and layout
 
@@ -35,7 +35,7 @@ Self-hosted Onest ([`apps/next/public/fonts`](apps/next/public/fonts), variable 
 | Small | 13/20 | hints, errors, switch descriptions, ticket meta |
 | Caption / eyebrow | 12/16; eyebrow 600, uppercase, +0.06em, `--text-muted` | `.eyebrow`, tab labels, menu labels |
 
-The brief's Display 44/48 is the landing floor, not a fixed size. Global `h2` sets size and line height only; confirm its weight against the brief's 600 before relying on it.
+The brief's Display 44/48 is the landing floor, not a fixed size. Global `h2` sets size, line height and weight 600.
 
 The shared header and page container align at `--content-width` 1200px. Gutter `--page-gutter` is 24px, 16px at 700px and below (the one shell breakpoint). Spacing uses a 4px base; read sections gap 48px desktop and 32px mobile. Cards fit content instead of matching heights. Radii: 6px small internal chips, 10px controls, 14px cards/popovers/menus, 20px dialogs, sheets and the auth card. An inner radius must account for container padding (menu 14px minus 4px padding gives 10px items).
 
@@ -130,7 +130,7 @@ One material at a time.
 | 2 Floating | `--surface-floating`, `--shadow-floating`, no border | `--surface-floating` + `--ring-floating` | Popovers, menus, toasts, action bar |
 | 3 Modal | Level 2 with `--shadow-modal`; `--scrim` | Level 2; `--scrim` | Dialogs, sheets |
 
-Levels 2 and 3 are built on every ui-kit primitive. Level 1 in dark is built only for `Ticket` (border goes transparent); `.read-panel`, `.flight-ticket`, `.capture-card` and `.auth-card` keep the hairline in both themes, and the inner top highlight does not exist yet. **Planned (W4/T18)** with the theme acceptance pass. Images and avatars use `--outline-media`. Primary is one flat accent fill.
+Levels 2 and 3 are built on every ui-kit primitive. In dark, Ticket, read panels and capture/auth cards use a transparent border and a 1px inner top highlight through `--surface-highlight`. Light keeps its hairline. These are source contracts; visual proof remains deferred. Images and avatars use `--outline-media`. Primary is one flat accent fill.
 
 ## Motion
 
@@ -146,20 +146,20 @@ Rules: ease-in is banned; exits use ease-out and run about 20% faster than enter
 
 Only three route changes animate, through `@ssgoi/react` 7.4.0 in `apps/next/src/client/route-transitions.tsx`. Every other navigation keeps its page boundary and swaps instantly: tabs, header nav, `?view=`, filters and sheets (flight detail, `/add`). The springs are critically damped, so nothing bounces, and the times below count until ssgoi ends the spring. Focus still moves to the incoming H1, and the outgoing page is inert and `aria-hidden` until it settles.
 
-- **Import done → Passport, `hero`, about 0.38s.** The done-step stamps (`data-hero-exit-key`) travel to their Passport stamps (`data-hero-enter-key`) without replaying the press. It runs forward only and for at most 8 stamps; with more, Passport opens without it. A Passport stamp that will not be fully on screen has no partner and appears in place. If Passport has not finished loading when the member opens it, it shows its loading screen and opens without the hero.
+- **Import done → Passport, `hero`, about 0.38s.** The done-step stamps (`data-hero-exit-key`) travel to their Passport stamps (`data-hero-enter-key`) without replaying the press. It runs forward only and for at most 8 stamps; with more, Passport opens without it. A Passport stamp that will not be fully on screen has no partner and appears in place. On a phone the Passport cover keeps the stamps below the fold, so there they all appear in place. If Passport has not finished loading when the member opens it, it shows its loading screen and opens without the hero.
 - **Leaderboard → `/fly/[username]`, `drill`, about 0.28s.** The default parallax, reversed by Back, with no hero. Forward redoes it. A link from a profile to the leaderboard, Back onto a profile and Forward over that link stay instant. Back is read from the Navigation API; in a browser without it, Back and Forward never drill.
 - **Sign in ↔ sign up ↔ forgot password, `axis` x, about 0.28s.** Only the form panel swaps, as a fade-through: the incoming form starts once the outgoing one is 75% gone. The card and the brand panel stay put.
 
-Planned motion, none of it built yet:
+Additional motion contracts:
 - **Planned (W5/T25):** icon swap by scale, opacity and blur 200ms with `--ease-icon`; tooltip 150ms with instant adjacent tooltips (no tooltip component exists); skeleton to content 150ms. Today loading is the static [loading screen](#loading-screen).
-- **Planned (W3/T14):** import found-row translateY 6px→0, 200ms, 40ms stagger; import-done chunk stagger about 100ms.
+- **Built (T14):** newly found import rows enter over 200ms with 40ms stagger; Done summary chunks stagger 100ms. Reduced motion uses a 150ms fade with no delay.
 - **Planned (W3/T13):** arrival confirm: stamp press onto the ticket stub, then card collapse 250ms `--ease-in-out`.
-- **Planned (W5/T21):** multi-step delete dialog, height 250ms plus 150ms content crossfade.
-- **Planned (W5/T19, T23):** first-achievement 600ms badge tilt-in; onboarding reveal stagger, at most 8 stamps.
+- **Built (T21):** three-step deletion uses a 250ms height transition where intrinsic-size interpolation is supported and a 150ms content fade; reduced motion keeps steps static.
+- **Built (T19/T23):** first-achievement notification enters once over 600ms (150ms fade under reduced motion). Onboarding Reveal caps newly published stamps at eight with 80ms stagger; reduced motion removes the delay.
 - **Planned (W5/T22):** auth brand panel, one slow path, at most 3 planes, paused when hidden, static under reduced motion. Today the brand panel is static.
 - Sheet drag-release spring bounce (0.1–0.2 at most) is optional and not built; release settles with `--ease-drawer`.
 
-Delight moments use `--dur-moment`. The built `Stamp` press starts from scale 1.06, opacity 0, blur 2px, with a one-frame brightness darkening, and plays once per immutable ID (module `Set` plus `sessionStorage`) so remounts and refetches never replay it. Stagger 80ms and the cap of 8 are the consumer's job and arrive with **Planned (W4/T16, W5/T23)**; auto-confirmed and bulk beyond 8 appear instantly.
+Delight moments use `--dur-moment`. The built `Stamp` press starts from scale 1.06, opacity 0, blur 2px, with a one-frame brightness darkening, and plays once per immutable ID (module `Set` plus `sessionStorage`) so remounts and refetches never replay it. Onboarding applies the 80ms stagger and cap of eight to newly published country acknowledgments. Reveal shows at most eight stamps and links to Passport for the complete collection; refetches and historical evidence do not replay the first-save moment.
 
 Reduced motion means gentler, not none. Built in `ui.css`: no scale or translate, color and opacity at 150ms linear; dialog and menu fade; sheet and toast fade (drag still works); thumb, disclosure and chevron static; stamp press becomes a 200ms fade; the tab bar does not slide; the three route transitions swap instantly, like every other route change.
 
@@ -169,7 +169,7 @@ Lucide only, one SVG per icon, `currentColor`. Stroke 1.5 beside regular text, 2
 
 Active state never relies on color alone: accent text, label weight 600, and a 2px accent bar (underline on desktop nav, top edge on the tab bar) plus `aria-current="page"`. **Superseded:** the brief's filled or heavier active icon; the bar replaced it.
 
-**Logo mark.** One stable mark: the kanji 空 (from 空気, *kuuki*) on a filled `--accent` tile with `--accent-foreground` glyph, set in `--font-kana` (no webfont). The tile is 32px, radius `--radius-sm`, glyph 600 18px; the loading screen scales it to 48px with a 24px glyph. It replaces the brief's suggested く, which reads as a back chevron in every Japanese face; the mark is never a back button. The wordmark is the tile plus lowercase "kuuki" (19px, 600) and links home. The vertical くうき word stays on the auth brand panel; the profile watermark is **Planned (W5/T19)**. The brief's glyph crossfade for the boot screen is not built.
+**Logo mark.** One stable mark: the kanji 空 (from 空気, *kuuki*) on a filled `--accent` tile with `--accent-foreground` glyph, set in `--font-kana` (no webfont). The tile is 32px, radius `--radius-sm`, glyph 600 18px; the loading screen scales it to 48px with a 24px glyph. It replaces the brief's suggested く, which reads as a back chevron in every Japanese face; the mark is never a back button. The wordmark is the tile plus lowercase "kuuki" (19px, 600) and links home. The vertical くうき word stays on the auth brand panel; the editorial profile includes its watermark. The brief's glyph crossfade for the boot screen is not built.
 
 ## Shell and navigation
 
@@ -177,9 +177,9 @@ One breakpoint at 700px switches between desktop and mobile. The header and tab 
 
 **Desktop (above 700px).** Header 56px, solid `--background`, hairline bottom border, content aligned to 1200px. Left: wordmark, then Overview, Journal, Passport, Leaderboard (Обзор, Журнал, Паспорт, Рейтинг). Links are 44px high, radius `--radius-sm`, hover `--surface-inset`; active is `--accent-text`, 600, with a 2px accent underline inset 12px. Right: queue slot, split Add, avatar menu.
 - **Split Add.** Accent fill, `--control-h-sm` tall, radius `--radius-sm`. The main half is a link to `/add` (manual entry); the chevron half opens a Menu with Upload a boarding pass or PDF, Paste text, Enter manually. One shared list (`ADD_ACTIONS`) feeds this menu and the mobile sheet. The brief names two items; the built menu has three.
-- **Avatar menu.** A 40px circle button showing the name's initial, ringed by `--outline-media`. Menu: My profile (with Public or Hidden status), Public profile checkbox (turning it off also leaves leaderboards), Settings, Theme radios (Light, Dark, System), Language radios (EN, RU), Sign out. Accent is not in the menu; see Planned (W5/T21). The brief's blob avatar in place of the initial is not built.
+- **Avatar menu.** A 40px circle button using the shared profile photo or reactive blob fallback, ringed by `--outline-media`. Menu: My profile (with Public or Hidden status), Public profile checkbox (turning it off also leaves leaderboards), Settings, Theme radios (Light, Dark, System), Language radios (EN, RU), Sign out. Accent selection is in Settings.
 
-**Mobile (700px and below).** Header 48px with the wordmark; the split Add and avatar menu are hidden. A fixed bottom tab bar replaces the nav (`<nav aria-label="Tabs">`):
+**Mobile (700px and below).** Header 48px with the current page title and queue slot; the split Add and avatar menu are hidden. A fixed bottom tab bar replaces the nav (`<nav aria-label="Tabs">`):
 - **Layout.** `--tabbar-h` 56px plus the safe-area inset, `--background`, hairline top border, five equal columns: Overview, Journal, Add, Passport, Me (Я). Leaderboard is reached from Me and the desktop nav; Settings leaves the tab bar.
 - **Tabs.** Icon 22px stroke 2 above a 12/16 label (11px at 360px and below), `--text-muted`; press fills `--surface-inset`. Active is `--accent-text`, 600, with a 2px accent bar on the top edge.
 - **Add** is a button, not a link: it opens a bottom Sheet titled "Add a flight" holding the three `AddActions` as 52px (`--action-row-h`) rows with 20px icons. The sheet closes on any route change.
@@ -187,7 +187,7 @@ One breakpoint at 700px switches between desktop and mobile. The header and tab 
 - **Keyboard.** When the visual viewport is more than 120px shorter than the layout (and not pinch-zoomed) `html[data-keyboard=true]` slides the bar off-screen while it stays in the DOM and focus order, and resets the offsets below. With `resizes-content` viewports the flag may not fire; the bar then rides above the keyboard.
 - **Clearance.** `--tabbar-offset` (bar plus safe area) pads the page bottom (+24px); toasts lift by `--toast-bottom-offset`; the floating action bar sits at tab bar plus 16px.
 
-**Queue badge.** `QueueSummarySlot` renders a `--badge-size` accent pill (13/16, 600, tabular numerals, hit area extended 10px) that links to `/journal`, with a pluralized accessible name («3 ждут отметки»). It renders nothing for zero or unknown counts and is never a bare dot. It lives in the header at all sizes and is **unwired** (no count is supplied). **Planned (W3/T13):** wire counts into the nav and capture sheet. The brief places the number on the Journal tab, adds a «Ждут отметки · 3» row in the Add sheet, and shows a mobile top bar with the page title; the built mobile header shows the wordmark instead.
+**Queue badge.** `QueueSummarySlot` reads the owner-scoped `AwaitingProvider` and links to `/journal?queue=awaiting`. Its localized accessible name separates flights awaiting confirmation from retained import rows needing review. A zero count is hidden; an initial transport failure says Queue unavailable rather than zero. The header and Add menu/sheet share this authority. Mobile headers display the current page title.
 
 ### Loading screen
 
@@ -208,9 +208,9 @@ Shared controls live in [`apps/next/src/client/ui/`](apps/next/src/client/ui/) w
 | SwitchRow | 44×26 switch with a 44px hit area, label, description, a consequence line in `--text`, and a disabled reason. Disabled stays visible. |
 | SwatchPicker | Radiogroup of the six accents, 44px pills with 28px dots and localized names; arrows move and select; writes the name through `setAccent`. |
 | Disclosure | Trigger 44px, chevron rotates 200ms; rows 0fr→1fr over 300ms. Collapsed content is `inert` and hidden. Used for optional flight details. |
-| Toast | Level 2, radius `--radius-md`, width `min(420px, 100%)`, bottom-centered; bottom-right at 24px from 700px up. Kinds info, success, error: Lucide icon with a screen-reader label and a 4px fill-grade left border on success and error. Errors announce assertively, others politely. Auto-dismiss 5s, errors 8s, 0 persists; pauses on hover, focus and hidden tab. Message states the outcome. Built and tested, but `ToastProvider` is not mounted in the layout yet and nothing calls `useToast`. |
-| FloatingActionBar | Level 2 sticky bar, radius `--radius-md`, region with a polite pluralized count. Sticks above the safe area and the tab bar (`--action-bar-bottom`) without pushing content. No consumer yet. **Planned (W3/T13)** for bulk confirm at three items. |
-| DestructiveConfirm | Dialog composition. Title names the object, body states the consequence, confirm is verb plus object. Cancel has initial focus; pending shows static text and blocks dismissal; a rejected action stays open with an `alert` message; an optional typed phrase disables confirm with a visible reason. No production consumer: Journal delete (`flight-form.tsx:148`) and passport confirmations use bespoke dialogs. **Planned (W3/T12–T13)** to migrate them. |
+| Toast | Level 2, radius `--radius-md`, width `min(420px, 100%)`, bottom-centered; bottom-right at 24px from 700px up. Kinds info, success, error: Lucide icon with a screen-reader label and a 4px fill-grade left border on success and error. Errors announce assertively, others politely. Auto-dismiss 5s, errors 8s, 0 persists; pauses on hover, focus and hidden tab. Message states the outcome. `ShellNotices` mounts one owner-scoped `ToastProvider` in the member shell, so notices survive client navigation; `ToastSlot` places a caller-owned notice (the Journal's pending-delete Undo) in the same region. |
+| FloatingActionBar | Level 2 sticky bar, radius `--radius-md`, region with a polite pluralized count. Sticks above the safe area and the tab bar (`--action-bar-bottom`) without pushing content. Journal uses it for selected-row deletion and clear-selection actions. |
+| DestructiveConfirm | Dialog composition. Title names the object, body states the consequence, confirm is verb plus object. Cancel has initial focus; pending shows static text and blocks dismissal; a rejected action stays open with an `alert` message; an optional typed phrase disables confirm with a visible reason. Manual flight deletion, Journal bulk deletion and Passport country evidence removal share this composition. |
 
 ### Calendar
 
@@ -219,7 +219,7 @@ A typeable date field, not a picker-only control. The input is text with `inputM
 ### Combobox
 
 Used for airports, airlines and aircraft. Matches code, label, detail and verified search aliases; an exact code match ranks first; with an empty query per-account recents come first; at most 50 rows. A polite status announces the count with real plural forms. Options are 44px with `<mark>` highlights (`--info-fill`) and mono codes. Arrows move, Enter chooses, Escape closes.
-- **Honest fallback labelling.** Rows without a localized name show the English reference name and say so, «Название на английском» / "English reference name", beside the code. Reference data does not imply translations it lacks.
+- **Honest fallback labelling.** In Russian, aircraft and airline rows without a localized name show their English reference name with «Название на английском». English does not label its normal reference names as a translation fallback. Verified airport aliases remain searchable. Owner-scoped recents use local storage across tabs, with an in-memory fallback when storage is unavailable.
 - **Desktop.** A level 2 popover under the input, max height 360px.
 - **Mobile (≤700px).** A full-height search Sheet (`.flight-full-sheet`) with the search input pinned at the top (sticky) and focused on open; results scroll beneath. Close is labelled «Закрыть поиск». On close, focus returns to the origin field without reopening the list.
 
@@ -242,3 +242,9 @@ Capture, auth, privacy, settings, errors, validation and destructive flows are c
 | く logo mark | 空 tile (see Logo mark). |
 | Filled or heavier active-tab icon | Accent text, 600 label and a 2px accent bar. |
 | `.button`, `.field`, `.dialog-*` in `styles.css`; `.period-switch`; `.read-sheet`; `.capture-confirm` | `Button`, `Field`, `Dialog`, `SegmentedControl`, `Sheet`, `DestructiveConfirm`. Still used by unmigrated routes; new work uses the ui kit. |
+
+## Integrated journeys and evidence
+
+Profile, leaderboard, Settings and entry/onboarding use their scoped modules alongside these primitives. The guest landing labels sample Ticket/Stamp/profile data; authenticated Capture reuses the normal manual/import save authorities. Reveal reads canonical saved Tickets, preserves fulfilled reads during batch continuation and only presses new published countries. Future-only saves show booked Tickets.
+
+Settings guards owned links, browser history and document exits while edits are unsaved. Activation remains a restricted static completion asset composed by the Worker; password recovery is separate. Their transport and hosting authorities are linked in the [release runbook](docs/runbooks/2026-10-04-next-release-candidate.md). The [handoff](docs/plans/2026-10-04-redesign-2.0-implementation-handoff.md) records current functional acceptance, carried dependencies and the explicitly deferred visual/atlas and release evidence. No visual or numeric audit acceptance is implied by these source contracts.

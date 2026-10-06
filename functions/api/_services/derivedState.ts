@@ -94,6 +94,7 @@ function proposedVisits(db: D1Database, userId: string): BatchedRead<DerivedVisi
   }
 }
 
+// mergeVisits keeps the first contributing legacy country for each airport; keep that order explicit.
 export function legacyEvidenceStatement(db: D1Database, userId: string): D1PreparedStatement {
   return db.prepare(
     `SELECT e.airport_iata, e.country_code, e.city, e.first_visit, e.last_visit,
@@ -101,7 +102,7 @@ export function legacyEvidenceStatement(db: D1Database, userId: string): D1Prepa
             ar.city AS reference_city
      FROM legacy_visit_evidence e
      LEFT JOIN airports_reference ar ON ar.iata = e.airport_iata
-     WHERE e.user_id = ? AND e.contributes = 1`,
+     WHERE e.user_id = ? AND e.contributes = 1 ORDER BY e.rowid`,
   ).bind(userId)
 }
 

@@ -41,3 +41,9 @@ it('returns private, grouped, period-scoped routes with D1 coordinates and hones
     expect((await onRequestGet({ ...apiContext(db, new Request('https://kuuki.test/api/flights/route-projection?period=2024xxx')), data: { user } } as never)).status).toBe(400)
   } finally { await dispose() }
 })
+
+it.each(['0000', '1899', '2200'])('rejects unsupported period %s before any map read', async period => {
+  const response = await onRequestGet({ request: new Request(`https://kuuki.test/api/flights/route-projection?period=${period}`), data: { user }, env: {} } as never)
+  expect(response.status).toBe(400)
+  expect(await response.json()).toMatchObject({ code: 'INVALID_PERIOD' })
+})

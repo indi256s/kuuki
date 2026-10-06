@@ -2,6 +2,7 @@ export * from './types'
 export * from './constants'
 export * from './flightValidation'
 export * from './overview'
+export * from './routeProjection'
 export * from './airportSearch'
 
 // i18n translations

@@ -59,6 +59,20 @@ describe('RouteFocus', () => {
     expect(document.activeElement).toBe(h1)
   })
 
+  it('focuses Reveal while Capture remains mounted and follows a heading that becomes hidden', async () => {
+    pathname = '/onboarding'; search = new URLSearchParams('step=capture')
+    document.body.innerHTML = '<main id="main"><div hidden><h1>Capture</h1></div><section><h1>Reveal</h1></section></main>'
+    const view = render(<RouteFocus />)
+    search = new URLSearchParams('step=reveal'); view.rerender(<RouteFocus />)
+    expect(document.activeElement?.textContent).toBe('Reveal')
+    await act(async () => {
+      document.querySelector('section')!.setAttribute('hidden', '')
+      document.querySelector('main > div')!.removeAttribute('hidden')
+      await Promise.resolve()
+    })
+    expect(document.activeElement?.textContent).toBe('Capture')
+  })
+
   it('skips the inert outgoing page of a route transition', async () => {
     document.body.innerHTML = '<main id="main"><div data-ssgoi-transition="/passport"></div><div data-ssgoi-transition="/import" inert aria-hidden="true"><h1>Import</h1></div></main>'
     const ghost = document.querySelector('h1')!

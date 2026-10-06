@@ -1,6 +1,6 @@
 # Capture: recents are tab-session only; ru airline and aircraft names are English with no label
 
-Status: ready-for-agent
+Status: resolved
 Owner task: T15
 Source: review-T12-findings.md Minor 5 and Minor 6; progress.md:173; verified at af92d26
 
@@ -13,3 +13,9 @@ Source: review-T12-findings.md Minor 5 and Minor 6; progress.md:173; verified at
 
 ## Acceptance check
 (1) A `capture-preferences` test writes recents for owner A, simulates a new tab session, reads them back; owner B and sign-out still get nothing. Red with `sessionStorage`. (2) A combobox test in ru for an airline and an aircraft expects the English-name label. Red now. Check first that the T13 round (Russian alias table) has not already changed this.
+
+## Continuation disposition — 2026-10-05
+
+74c5575 moves owner-scoped capture recents to local storage with blocked-storage fallback and owner-only cleanup. Russian aircraft/airline options disclose English fallback names; English reference names do not get a false fallback label.
+
+Current integration and evidence: [redesign handoff](../../../docs/plans/2026-10-04-redesign-2.0-implementation-handoff.md). Visual/atlas and external release proof remain deferred under the explicit session constraints.

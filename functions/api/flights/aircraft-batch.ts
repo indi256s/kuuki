@@ -1,4 +1,14 @@
 // POST /api/flights/aircraft-batch — accept up to 20 aircraft suggestions for owned flights.
+//
+// Outcome contract (replay-safe absolute set):
+// - Each item gets its own result: `accepted` (with the resulting flight) or `error` (http_status, code, message).
+//   Valid items are written in one atomic D1 batch together with the derived-state dirty marker.
+// - The request sets an absolute aircraft value, it never increments anything. Replaying an identical request, for
+//   example after a lost response, returns `accepted` with the same flight state and leaves the flight rows unchanged.
+//   Invalid items (NOT_FOUND, UNKNOWN_AIRCRAFT, ...) fail the same way on every replay.
+// - Derived state is marked dirty and republished on every call that writes, so a replay yields the same totals
+//   at a later revision; nothing is counted twice. There is no server receipt or idempotency key: the client
+//   treats a lost answer as `uncertain` and resends the same items.
 import { runHandler, readJson, json, HttpError } from '../_lib/http'
 import { requireUser, requireCsrf, type RequestData } from '../_lib/auth'
 import { parseFlightBody } from '../_lib/flightValidation'

@@ -1,6 +1,6 @@
 'use client'
 
-import Link from 'next/link'
+import { NavigationLink as Link } from './navigation-link'
 import { useAwaiting } from './awaiting'
 import { formatNumber } from '../lib/format'
 import { ClipboardCheck, ClipboardPaste, PenLine, Upload } from 'lucide-react'

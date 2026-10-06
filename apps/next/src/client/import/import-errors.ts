@@ -19,7 +19,7 @@ const KIND_BY_CODE: Record<string, FailureKind> = {
   MODEL_UNAVAILABLE: 'unavailable', PROVIDER_ERROR: 'unavailable', PROVIDER_INVALID_RESPONSE: 'unavailable',
   IMPORT_SERVICE_UNAVAILABLE: 'unavailable', INTERNAL: 'unavailable',
   PROVIDER_TIMEOUT: 'timeout',
-  INVALID_FILE: 'file', INVALID_BODY: 'file', PAYLOAD_TOO_LARGE: 'file',
+  INVALID_FILE: 'file', INVALID_BODY: 'file', INVALID_SOURCE_TYPE: 'file', TEXT_TOO_LONG: 'file', PAYLOAD_TOO_LARGE: 'file',
   NO_FLIGHTS_FOUND: 'nothing',
   IMPORT_IN_PROGRESS: 'inProgress', IMPORT_BATCH_LIMIT: 'batchLimit',
   IMPORT_BATCH_EXPIRED: 'expired', IMPORT_BATCH_DISCARDED: 'notFound', IMPORT_BATCH_NOT_FOUND: 'notFound',

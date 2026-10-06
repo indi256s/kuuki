@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { formatCount, formatDateOnly, formatDistanceKm, formatDuration, formatMonthYear, formatNumber, pluralCategory, type CountForms } from './format'
+import { formatCount, formatDateOnly, formatDistanceKm, formatDuration, formatInstantDate, formatMonthYear, formatNumber, formatRelativeDate, pluralCategory, type CountForms } from './format'
 
 const flights: CountForms = {
   en: { one: '{count} flight', other: '{count} flights' },
@@ -79,5 +79,38 @@ describe('date-only formatting', () => {
     expect(formatMonthYear('en', '2026-12-31')).toBe('December 2026')
     expect(formatMonthYear('ru', '2026-10-15')).toBe('октябрь 2026 г.')
     expect(formatMonthYear('en', new Date(Date.UTC(2026, 11, 31, 23, 59)))).toBe('December 2026')
+  })
+})
+
+describe('formatRelativeDate', () => {
+  const now = new Date(Date.UTC(2026, 9, 5, 23, 30)) // 5 Oct 2026, late evening UTC
+  it.each([
+    ['2026-10-05', 'today', 'сегодня'],
+    ['2026-10-04', 'yesterday', 'вчера'],
+    ['2026-10-01', '4 days ago', '4 дн. назад'],
+    ['2026-09-20', '2 wk. ago', '2 нед. назад'],
+    ['2026-09-05', '1 mo. ago', '1 мес. назад'],
+    ['2026-08-01', '2 mo. ago', '2 мес. назад'],
+    ['2025-10-06', '11 mo. ago', '11 мес. назад'],
+    ['2025-10-05', '1 yr. ago', '1 г. назад'],
+    ['2021-01-01', '5 yr. ago', '5 л. назад'],
+  ])('%s -> %s / %s', (value, en, ru) => {
+    expect(formatRelativeDate('en', value, now)).toBe(en)
+    expect(formatRelativeDate('ru', value, now)).toBe(ru)
+  })
+  it('never reports a future date and returns invalid input unchanged', () => {
+    expect(formatRelativeDate('en', '2026-12-01', now)).toBe('today')
+    expect(formatRelativeDate('en', 'soon', now)).toBe('soon')
+  })
+})
+
+describe('formatInstantDate', () => {
+  it('names the viewer-zone day of an instant', () => {
+    expect(formatInstantDate('en', '2026-11-04T00:30:00.000Z', 'medium', 'UTC')).toBe('Nov 4, 2026')
+    expect(formatInstantDate('en', '2026-11-04T00:30:00.000Z', 'medium', 'America/New_York')).toBe('Nov 3, 2026')
+    expect(formatInstantDate('ru', '2026-11-04T12:00:00.000Z', 'long', 'UTC')).toBe('4 ноября 2026 г.')
+  })
+  it('returns an invalid instant unchanged', () => {
+    expect(formatInstantDate('en', 'later')).toBe('later')
   })
 })

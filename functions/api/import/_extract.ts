@@ -10,6 +10,7 @@ import {
   type EnrichmentStatus,
   detectImageMimeType,
   EXTRACTION_PROMPT,
+  EXTRACTION_TASK,
 } from './_shared'
 import { decodedBase64Size } from './_body'
 import { DEFAULT_MODEL, PROVIDER_TIMEOUT_MS, ProviderResponseError, providerFailure, usageBucket } from './_provider'
@@ -90,9 +91,11 @@ export const FLIGHT_RESPONSE_SCHEMA = {
     },
     raw_text: {
       type: Type.STRING,
-      description: 'Extracted text from the document',
+      description: 'At most one short sentence about the source, never a copy of the document',
     },
   },
+  // Flights first, so streamed rows arrive before the note; the note stays short so long sources cannot hit the output cap.
+  propertyOrdering: ['flights', 'raw_text'],
   required: ['flights'],
 }
 
@@ -141,7 +144,20 @@ async function extractFlightsWithGemini(
   console.log(JSON.stringify({ event: 'gemini_parsed', flight_count: parsedResponse.flights?.length ?? 0 }))
   console.log(JSON.stringify({ event: 'import_provider_usage', model, usage_bucket: usageBucket(response.usageMetadata?.totalTokenCount) }))
 
-  return normalizeFlights(parsedResponse)
+  try {
+    const result = normalizeFlights(parsedResponse)
+    logValidation(result.flights.length, parsedResponse.flights.length, result.rejected?.length ?? 0)
+    return result
+  } catch (error) {
+    // Normalization refuses a non-empty envelope only when every row was rejected.
+    if (error instanceof ProviderResponseError) logValidation(0, parsedResponse.flights.length, parsedResponse.flights.length)
+    throw error
+  }
+}
+
+/** One summary per extraction. Per-row normalization logs only actual problems (`flight_rejected`). */
+export function logValidation(valid: number, total: number, rejected: number) {
+  console.log(JSON.stringify({ event: 'validation_complete', valid, total, rejected }))
 }
 
 /** Shared normalization for complete streamed rows and the legacy envelope. */
@@ -236,7 +252,6 @@ export function normalizeFlights(parsedResponse: { flights: ExtractedFlight[]; r
       }
     })
 
-  console.log(JSON.stringify({ event: 'validation_complete', valid: validFlights.length, total: geminiCount, rejected: rejectedFlights.length }))
   if (geminiCount > 0 && validFlights.length === 0) {
     throw new ProviderResponseError('No usable extracted flights')
   }
@@ -256,13 +271,13 @@ export function validateImportSource(body: Partial<ParseRequest> | null): ParseR
   const type = body?.type
   const content = body?.content
   if (!type || !['pdf', 'image', 'text'].includes(type)) {
-    throw new HttpError(400, 'Invalid type. Must be pdf, image, or text')
+    throw new HttpError(400, 'Invalid type. Must be pdf, image, or text', 'INVALID_SOURCE_TYPE')
   }
-  if (typeof content !== 'string' || !content) throw new HttpError(400, 'Content is required')
+  if (typeof content !== 'string' || !content) throw new HttpError(400, 'Content is required', 'INVALID_BODY')
   if (type !== 'text') {
-    if (decodedBase64Size(content) > MAX_FILE_SIZE) throw new HttpError(413, 'File too large. Maximum size is 10 MB')
+    if (decodedBase64Size(content) > MAX_FILE_SIZE) throw new HttpError(413, 'File too large. Maximum size is 10 MB', 'PAYLOAD_TOO_LARGE')
   } else if (content.length > MAX_TEXT_LENGTH) {
-    throw new HttpError(400, 'Text too long. Maximum is 100,000 characters')
+    throw new HttpError(400, 'Text too long. Maximum is 100,000 characters', 'TEXT_TOO_LONG')
   }
   return { type, content }
 }
@@ -297,7 +312,7 @@ export function extractionContents({ type, content }: ParseRequest) {
   type ContentPart = string | { inlineData: { data: string; mimeType: string } }
   const contents: ContentPart[] = [EXTRACTION_PROMPT]
   if (type === 'text') {
-    contents.push(`\n\nDocument content:\n${content}`)
+    contents.push(`<document>\n${content}\n</document>`)
   } else {
     const mimeType = type === 'pdf' ? 'application/pdf' : detectImageMimeType(content)
     contents.push({
@@ -307,6 +322,6 @@ export function extractionContents({ type, content }: ParseRequest) {
       },
     })
   }
-
+  contents.push(EXTRACTION_TASK)
   return contents
 }

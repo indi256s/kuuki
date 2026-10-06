@@ -3,6 +3,7 @@ import { ApiError } from '@google/genai'
 import { onRequestPost as parseImport } from '../api/import/parse'
 import { onRequestPost as enrichAircraft } from '../api/enrich/aircraft'
 import { decodedBase64Size } from '../api/import/_body'
+import { validateImportSource } from '../api/import/_extract'
 import { createApiDatabase, csrfRequest, testOrigin as origin } from './harness'
 
 const provider = vi.hoisted(() => ({ generateContent: vi.fn() }))
@@ -144,4 +145,67 @@ it.each([
   const response = await handler(context(path, JSON.stringify(body)))
   expect(response.status).toBe(502)
   expect(await response.json()).toMatchObject({ code: 'PROVIDER_INVALID_RESPONSE', [emptyKey]: [] })
+})
+
+it.each([
+  ['an unknown type', { type: 'video', content: 'x' }, 400, 'INVALID_SOURCE_TYPE'],
+  ['a missing type', { content: 'x' }, 400, 'INVALID_SOURCE_TYPE'],
+  ['empty content', { type: 'text', content: '' }, 400, 'INVALID_BODY'],
+  ['non-string content', { type: 'text', content: 7 }, 400, 'INVALID_BODY'],
+  ['a malformed file encoding', { type: 'pdf', content: 'not-base64' }, 400, 'INVALID_BODY'],
+  ['a file over 10 MB', { type: 'pdf', content: 'A'.repeat(14_000_000) }, 413, 'PAYLOAD_TOO_LARGE'],
+  ['text over 100,000 characters', { type: 'text', content: 'x'.repeat(100_001) }, 400, 'TEXT_TOO_LONG'],
+])('refuses %s with a specific code', (_name, body, status, code) => {
+  expect(() => validateImportSource(body as never)).toThrow(expect.objectContaining({ status, code }))
+})
+
+it('emits one validation summary per extraction and per-row logs only for rejected rows', async () => {
+  provider.generateContent.mockResolvedValue({ text: JSON.stringify({ flights: [
+    { origin: 'LHR', destination: 'JFK', airline_iata: 'BA', date: '2025-01-01' },
+    { origin: 'JFK', destination: 'LHR', airline_iata: 'BA', date: '2025-01-02' },
+    { origin: 'X', destination: 'LHR', airline_iata: 'BA', date: '2025-01-03' },
+  ] }) })
+  const log = vi.spyOn(console, 'log').mockImplementation(() => undefined)
+  try {
+    expect((await parseImport(context('/api/import/parse', JSON.stringify({ type: 'text', content: 'Flight details' })))).status).toBe(200)
+    const events = log.mock.calls.map(([line]) => JSON.parse(String(line)) as { event: string })
+    expect(events.filter(entry => entry.event === 'validation_complete')).toEqual([{ event: 'validation_complete', valid: 2, total: 3, rejected: 1 }])
+    expect(events.filter(entry => entry.event === 'flight_rejected')).toHaveLength(1)
+  } finally { log.mockRestore() }
+})
+
+it('logs exactly one compact summary when every extracted row is rejected, without source content', async () => {
+  provider.generateContent.mockResolvedValue({ text: JSON.stringify({ flights: [
+    { origin: 'PRIVATE-canary', destination: 'LHR', airline_iata: 'BA' }, null,
+  ], raw_text: 'PRIVATE-canary' }) })
+  const log = vi.spyOn(console, 'log').mockImplementation(() => undefined)
+  try {
+    const response = await parseImport(context('/api/import/parse', JSON.stringify({ type: 'text', content: 'PRIVATE-canary' })))
+    expect(response.status).toBe(502)
+    expect(await response.json()).toMatchObject({ code: 'PROVIDER_INVALID_RESPONSE' })
+    const events = log.mock.calls.map(([line]) => JSON.parse(String(line)) as { event: string })
+    expect(events.filter(entry => entry.event === 'validation_complete')).toEqual([{ event: 'validation_complete', valid: 0, total: 2, rejected: 2 }])
+    expect(JSON.stringify(log.mock.calls)).not.toContain('PRIVATE-canary')
+  } finally { log.mockRestore() }
+})
+
+it.each([
+  { status: 'INVALID_ARGUMENT' },
+  { status: 'INVALID_ARGUMENT', details: [{ reason: 'API_KEY_INVALID', domain: 'googleapis.com' }] },
+  { status: 'PERMISSION_DENIED', details: [{ reason: 'LOCATION_POLICY_VIOLATED', domain: 'googleapis.com' }] },
+  { status: 'INVALID_ARGUMENT', details: [{ reason: 'UNKNOWN_REASON' }] },
+])('keeps ambiguous or configuration SDK error envelopes generic without disclosing payloads: %j', async error => {
+  provider.generateContent.mockRejectedValue(new ApiError({ status: 400, message: JSON.stringify({ error: { ...error, message: 'PRIVATE-provider-canary' } }) }))
+  const response = await parseImport(context('/api/import/parse', JSON.stringify({ type: 'pdf', content: 'JVBERi0x' })))
+  const body = await response.json()
+  expect(body).toMatchObject({ code: 'PROVIDER_ERROR', flights: [] })
+  expect(JSON.stringify(body)).not.toContain('PRIVATE-provider-canary')
+})
+
+it('keeps a non-JSON SDK error message generic without disclosing it', async () => {
+  provider.generateContent.mockRejectedValue(new ApiError({ status: 400, message: 'PRIVATE-provider-canary: unable to read the document' }))
+  const response = await parseImport(context('/api/import/parse', JSON.stringify({ type: 'pdf', content: 'JVBERi0x' })))
+  const body = await response.json()
+  expect(body).toMatchObject({ code: 'PROVIDER_ERROR', flights: [] })
+  expect(JSON.stringify(body)).not.toContain('PRIVATE-provider-canary')
 })

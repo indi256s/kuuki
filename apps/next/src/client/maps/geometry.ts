@@ -10,7 +10,8 @@ function valid(point: [number, number] | null): point is [number, number] {
     Math.abs(point[0]) <= 180 && Math.abs(point[1]) <= 90
 }
 
-export function routeGeometry(route: ProjectedRoute): RouteGeometry | null {
+/** Great-circle line between the two ends of a directed route or an undirected pair; null when it is undefined. */
+export function routeGeometry(route: Pick<ProjectedRoute, 'from' | 'to'>): RouteGeometry | null {
   const { from, to } = route
   if (!valid(from) || !valid(to)) return null
   const lon1 = from[0] * Math.PI / 180, lon2 = to[0] * Math.PI / 180
@@ -60,5 +61,12 @@ export function wrappedBounds(geometries: RouteGeometry[]): [[number, number], [
     maxLat = Math.max(maxLat, points[i][1])
   }
   const offset = (minLon + maxLon) / 2 > 180 ? -360 : 0
-  return [[minLon + offset, minLat], [maxLon + offset, maxLat]]
+  // Web Mercator ends at ±85.0511°: a polar great circle beyond it cannot be fitted, so clamp.
+  const lat = (value: number) => Math.max(-MERCATOR_LAT, Math.min(MERCATOR_LAT, value))
+  return [[minLon + offset, lat(minLat)], [maxLon + offset, lat(maxLat)]]
 }
+
+const MERCATOR_LAT = 85
+
+/** Whole inhabited world for the first view: every longitude, without Antarctica's Mercator inflation. */
+export const WORLD_BOUNDS: [[number, number], [number, number]] = [[-180, -57], [180, 78]]

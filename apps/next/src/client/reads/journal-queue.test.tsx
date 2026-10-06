@@ -84,6 +84,18 @@ it.each(['apply', 'dismiss'] as const)('historical review %s preserves unselecte
 })
 
 
+it.each([['en', 'Based on flight times'], ['ru', 'Определено по времени рейсов']] as const)('words the historical review basis like the awaiting card (%s)', async (locale, phrase) => {
+  const snapshot = {
+    candidates: [{ flight: { id: 1, origin: 'TBS', destination: 'IST' }, candidate: { kind: 'link', label: 'times', leg: { destination: 'FRA' } }, candidateToken: 'review-1', affectedCountries: ['TR'] }],
+    wouldRemoveStamp: {}, marker: null, derivedState: 'ready', revision: 1,
+  }
+  vi.mocked(api.get).mockResolvedValue(snapshot)
+  render(<JournalQueue ownerId="queue-owner" locale={locale} hiddenIds={[]} onEdit={vi.fn()} onDelete={vi.fn()} />)
+  fireEvent.click(await screen.findByRole('button', { name: locale === 'en' ? 'Review historical connections' : /Проверить|историч/i }))
+  expect(await screen.findByText(new RegExp(phrase))).toBeInTheDocument()
+})
+
+
 it('shows a processing draft with no extracted rows without claiming that everything is reviewed', () => {
   state.data = { ...state.data!, awaitingFlights: [], awaitingFlightCount: 0, actionableCount: 0 }
   mount()
@@ -122,4 +134,17 @@ it('labels an unknown draft source instead of rendering an empty heading', () =>
 it('puts a data attribute on each Confirm button so Undo can restore focus to the card', () => {
   mount()
   expect(screen.getAllByRole('button', { name: 'Confirm arrival' }).map(button => button.getAttribute('data-confirm-flight'))).toEqual(['1', '2', '3'])
+})
+
+it('focuses the arrival card a passport pending stamp links to, once the queue has loaded', async () => {
+  window.history.replaceState(null, '', '/journal?queue=awaiting#arrival-2')
+  const data = state.data
+  state.data = null
+  const view = mount()
+  expect(document.activeElement).toBe(document.body)
+  state.data = data
+  view.rerender(<JournalQueue ownerId="queue-owner" locale="en" hiddenIds={[]} onEdit={vi.fn()} onDelete={vi.fn()} />)
+  await waitFor(() => expect(document.activeElement).toBe(view.container.querySelector('[data-confirm-flight="2"]')))
+  expect(view.container.querySelector('#arrival-2')).not.toBeNull()
+  window.history.replaceState(null, '', '/')
 })

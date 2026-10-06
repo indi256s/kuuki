@@ -136,14 +136,24 @@ export function connectionChains(allLegs: ConnectionLeg[]): Map<number, Connecti
   }
 
   // A cycle among unambiguous links cannot be ordered: demote every member to ambiguous.
-  for (const start of [...links.keys()]) {
-    if (!links.has(start)) continue
-    const seen = [start]
-    let cursor = links.get(start)!.to
-    while (links.has(cursor) && !seen.includes(cursor)) { seen.push(cursor); cursor = links.get(cursor)!.to }
-    if (cursor === start) {
-      for (const id of seen) { ambiguous.set(id, [links.get(id)!.to]); links.delete(id) }
+  const visited = new Set<number>()
+  for (const start of links.keys()) {
+    if (visited.has(start)) continue
+    const path = new Set<number>()
+    let cursor = start
+    while (links.has(cursor) && !visited.has(cursor) && !path.has(cursor)) {
+      path.add(cursor)
+      cursor = links.get(cursor)!.to
     }
+    if (path.has(cursor)) {
+      let cycle = cursor
+      do {
+        const next = links.get(cycle)!.to
+        ambiguous.set(cycle, [next]); links.delete(cycle)
+        cycle = next
+      } while (cycle !== cursor)
+    }
+    for (const id of path) visited.add(id)
   }
 
   const legById = new Map(nodes.map(node => [node.leg.id, node.leg]))

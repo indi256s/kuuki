@@ -22,7 +22,11 @@ export type StampProps = {
   status?: StampStatus
   /** Flag-derived color (hex); normalized per theme by stampInk, neutral when missing. */
   color?: string | null
-  theme: 'light' | 'dark'
+  /**
+   * Theme to compute ink for. Omit it in server-rendered grids: both inks are then set and the stylesheet picks
+   * the one matching `<html data-theme>`, so markup never depends on a theme the server cannot know.
+   */
+  theme?: 'light' | 'dark'
   locale: Locale
   /** Readable text below the stamp, e.g. «×12 · 2 мес. назад» (relative time is formatted by the caller). */
   caption?: string
@@ -83,8 +87,9 @@ export function Stamp({ countryCode, nativeName, name, kind, visits = 1, firstYe
     setPlay(true)
   }, [isStatic, pending, pressEventId])
 
-  const ink = pending ? undefined : stampInk(color, theme)
-  const style = ink ? ({ '--stamp-ink': ink } as CSSProperties) : undefined
+  const style = pending ? undefined : theme
+    ? ({ '--stamp-ink': stampInk(color, theme) } as CSSProperties)
+    : ({ '--stamp-ink-light': stampInk(color, 'light'), '--stamp-ink-dark': stampInk(color, 'dark') } as CSSProperties)
   const tag = !pending && kind === 'claim' ? COPY.claim[locale] : null
   const waiting = pending ? COPY.pending[locale] : null
 

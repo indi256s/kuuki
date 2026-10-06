@@ -46,7 +46,7 @@ export function toImportEvent(frame: RawFrame): ImportEvent | null {
 
 /**
  * What a notification means for a client that already holds the snapshot at `known`:
- * `end` is terminal (re-read the snapshot, do not reconnect), `reload` re-fetches the snapshot (a new sequence, a
+ * `end` closes this connection (re-read the snapshot; reconnect only when its status is `processing`), `reload` re-fetches the snapshot (a new sequence, a
  * gap, or an explicit snapshot instruction), `ignore` is a repeat or an unknown event.
  */
 export function decideEvent(known: number, event: ImportEvent): 'ignore' | 'reload' | 'end' {
@@ -56,7 +56,10 @@ export function decideEvent(known: number, event: ImportEvent): 'ignore' | 'relo
   return event.sequence > known ? 'reload' : 'ignore'
 }
 
-/** One SSE connection: resolves when the server closes the stream, rejects on a non-2xx answer or a network error. */
+/**
+ * One SSE connection: resolves when the server closes the stream or sends `end` (the client closes its side on `end`,
+ * it does not wait for the server's EOF), rejects on a non-2xx answer or a network error.
+ */
 export async function connectEvents(batchId: string, after: number, onEvent: (event: ImportEvent) => void, signal: AbortSignal, fetchImpl: typeof fetch = fetch): Promise<void> {
   const response = await fetchImpl(`/api/import/batches/${encodeURIComponent(batchId)}/events?after=${after}`, {
     credentials: 'include', signal, headers: { Accept: 'text/event-stream' },
@@ -74,7 +77,9 @@ export async function connectEvents(batchId: string, after: number, onEvent: (ev
       buffer = parsed.rest
       for (const frame of parsed.frames) {
         const event = toImportEvent(frame)
-        if (event) onEvent(event)
+        if (!event) continue
+        onEvent(event)
+        if (event.name === 'end') { await reader.cancel().catch(() => {}); return }
       }
     }
   } finally {

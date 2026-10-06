@@ -1,11 +1,12 @@
-import Link from 'next/link'
+import { NavigationLink as Link } from './navigation-link'
 import type { ReactNode } from 'react'
 import { AwaitingProvider } from './awaiting'
 import { AvatarMenu } from './avatar-menu'
-import { PrimaryNav, TabBar } from './nav'
+import { MobilePageTitle, PrimaryNav, TabBar } from './nav'
 import { Preferences } from './preferences'
 import { QueueSummarySlot } from './queue-summary'
 import { SplitAdd } from './split-add'
+import { ShellNotices } from './shell-notices'
 import { getGateProfile } from '../server/gates'
 import type { Locale } from '../server/locale'
 
@@ -16,27 +17,28 @@ function Main({ children }: { children: ReactNode }) { return <main id="main" cl
 
 /**
  * Member shell: 56px desktop header (wordmark, nav, queue slot, split Add, avatar menu) or 48px mobile header
- * plus the bottom tab bar. The header and tab bar sit outside the single `<main>`.
+ * plus the bottom tab bar. The header and tab bar sit outside the single `<main>`. One owner-scoped toast host serves every page.
  */
 export async function MemberShell({ locale, children }: { locale: Locale; children: ReactNode }) {
   const own = await getGateProfile()
   if (!own) return <Main>{children}</Main>
   const username = own.profile.username ?? null
-  return <AwaitingProvider key={own.profile.id} ownerId={own.profile.id}>
-    <header className="site-header"><div className="site-header-inner">
+  return <AwaitingProvider key={own.profile.id} ownerId={own.profile.id}><ShellNotices ownerId={own.profile.id} locale={locale}>
+    <header className="site-header member-header"><div className="site-header-inner">
       <Wordmark />
+      <MobilePageTitle />
       <PrimaryNav locale={locale} />
       <div className="header-end">
         <QueueSummarySlot locale={locale} />
         <div className="header-desktop-only">
           <SplitAdd locale={locale} />
-          {username && own ? <AvatarMenu username={username} displayName={own.profile.display_name} isPublic={own.profile.is_public} locale={locale} /> : null}
+          {username && own ? <AvatarMenu id={own.profile.id} avatarUrl={own.profile.avatar_url} username={username} displayName={own.profile.display_name} isPublic={own.profile.is_public} locale={locale} /> : null}
         </div>
       </div>
     </div></header>
     <Main>{children}</Main>
     <TabBar locale={locale} username={username} />
-  </AwaitingProvider>
+  </ShellNotices></AwaitingProvider>
 }
 
 /** Wordmark and preferences only; no member navigation. `actions` adds guest links. */

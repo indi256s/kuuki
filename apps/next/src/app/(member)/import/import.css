@@ -65,6 +65,7 @@
 .import-row[data-selected=true]{border-color:var(--control-border)}
 .import-row[data-low=true]{border-left:3px solid var(--warning-fill)}
 .import-row[data-failed=true]{border-color:var(--danger-text)}
+.import-row[tabindex]:focus{outline:2px solid var(--focus);outline-offset:2px}
 .import-row-main{display:flex;align-items:flex-start;gap:var(--space-3)}
 .import-row-body{display:grid;gap:var(--space-1);min-width:0}
 .import-row-route{font-size:17px;line-height:24px;font-weight:600}
@@ -106,10 +107,10 @@
   .import-found li[data-new=true],.import-summary-chunk{animation:import-fade 150ms var(--ease-out) both;animation-delay:0ms}
   .import-dropzone{transition:none}
 }
-@media(hover:hover){.import-dropzone:not(:disabled):hover{border-color:var(--accent)}}
 @media(max-width:700px){
   .import-page{padding-bottom:calc(var(--space-12) + var(--space-12))}
   .import-form{grid-template-columns:minmax(0,1fr)}
   .import-failure{grid-template-columns:minmax(0,1fr)}
   .import-summary{font-size:17px;line-height:24px}
 }
+@media (hover:hover) and (pointer:fine){.import-dropzone:not(:disabled):hover{border-color:var(--accent)}}

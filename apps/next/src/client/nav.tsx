@@ -1,6 +1,6 @@
 'use client'
 
-import Link from 'next/link'
+import { NavigationLink as Link } from './navigation-link'
 import { usePathname } from 'next/navigation'
 import { useEffect, useState, type ReactNode } from 'react'
 import { BookOpen, CircleUser, LayoutGrid, Plus, Stamp } from 'lucide-react'
@@ -34,6 +34,18 @@ export function isKeyboardOpen({ innerHeight, viewportHeight, scale }: { innerHe
 }
 
 function NavLabel({ en, ru }: { en: string; ru: string }) { return <><span className="locale-en">{en}</span><span className="locale-ru" lang="ru">{ru}</span></> }
+
+export function MobilePageTitle() {
+  const pathname = usePathname()
+  const item = [...NAV_ITEMS,
+    { href: '/settings', label: 'Settings', ru: 'Настройки' },
+    { href: '/add', label: 'Add a flight', ru: 'Новый перелёт' },
+    { href: '/import', label: 'Import', ru: 'Импорт' },
+    { href: '/me', label: 'Me', ru: 'Я' },
+    { href: '/fly', label: 'Profile', ru: 'Профиль' },
+  ].find(item => isActive(pathname, item.href))
+  return <p className="mobile-page-title"><NavLabel en={item?.label ?? 'Kuuki'} ru={item?.ru ?? 'Kuuki'} /></p>
+}
 
 export function PrimaryNav({ locale = 'en' }: { locale?: Locale }) {
   const pathname = usePathname()

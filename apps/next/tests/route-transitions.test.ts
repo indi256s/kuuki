@@ -14,26 +14,26 @@ test.describe('sign in ↔ sign up ↔ forgot password', () => {
     await recordRouteTransitions(page)
     await page.goto('/signin')
     await expect(heading(page, 'Sign in')).toBeVisible()
-    await tag(page, '.site-header'); await tag(page, '.auth-brand')
+    await tag(page, '.site-header'); await tag(page, '.auth-shell-brand')
     await resetRouteTransitions(page)
 
     const steps: Array<[string, RegExp, string, string]> = [
-      ['Create an account', /\/signup$/, 'Create an account', 'Your flights, places, and memories in one journal.'],
-      ['Already have an account? Sign in', /\/signin$/, 'Sign in', 'Your flights, places, and memories in one journal.'],
-      ['Forgot password?', /\/forgot-password$/, 'Reset your password', 'Return to your journeys.'],
-      ['Back to sign in', /\/signin$/, 'Sign in', 'Your flights, places, and memories in one journal.'],
+      ['Create an account', /\/signup$/, 'Create an account', 'Your personal flight journal.'],
+      ['Already have an account? Sign in', /\/signin$/, 'Sign in', 'Your personal flight journal.'],
+      ['Forgot password?', /\/forgot-password$/, 'Reset your password', 'Your personal flight journal.'],
+      ['Back to sign in', /\/signin$/, 'Sign in', 'Your personal flight journal.'],
     ]
     for (const [link, url, title, brand] of steps) {
       await page.getByRole('link', { name: link, exact: true }).click()
       await expect(page).toHaveURL(url)
       await expect(heading(page, title)).toBeFocused()
-      await expect(page.locator('.auth-brand p')).toHaveText(brand)
+      await expect(page.locator('.auth-shell-brand p')).toHaveText(brand)
       await settled(page)
     }
     expect(await routeTransitions(page)).toMatchObject({ markers: ['axis', 'axis', 'axis', 'axis'], boundaries: 2 })
     await expect(page.locator('[data-ssgoi-transition]')).toHaveCount(1)
     await expect(page.locator('.site-header[data-kept="yes"]')).toHaveCount(1)
-    await expect(page.locator('.auth-brand[data-kept="yes"]')).toHaveCount(1)
+    await expect(page.locator('.auth-shell-brand[data-kept="yes"]')).toHaveCount(1)
   })
 
   test('swaps instantly under reduced motion', async ({ page }) => {
@@ -142,7 +142,7 @@ test('member tabs, header nav, Passport views, Journal filters, the flight sheet
     await tabs.getByRole('link', { name: title }).click()
     await expect(heading(page, title)).toBeFocused()
   }
-  await page.getByRole('button', { name: 'Map', exact: true }).click()
+  await page.getByRole('radio', { name: 'Map', exact: true }).click()
   await expect(page).toHaveURL(/view=map/)
   await expect(heading(page, 'Passport')).toBeFocused()
 
@@ -151,7 +151,7 @@ test('member tabs, header nav, Passport views, Journal filters, the flight sheet
   await page.getByRole('button', { name: 'Search', exact: true }).click()
   await page.waitForURL(url => url.searchParams.get('q') === 'NO-SUCH-FLIGHT')
   await page.goBack()
-  await page.locator('.flight-row').click()
+  await page.locator('[data-flight-row]').click()
   await page.waitForURL(url => url.searchParams.has('flight'))
   await expect(page.getByRole('dialog')).toBeVisible()
   await page.keyboard.press('Escape')

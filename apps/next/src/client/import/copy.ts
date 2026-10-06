@@ -37,14 +37,18 @@ export const S = {
   needText: p('Paste some text first.', 'Сначала вставьте текст.'),
   privacy: p('The document is sent to a recognition service to find flights. Kuuki keeps only the flight details it finds, for 30 days, so you can come back to them. The file and pasted text are not kept.', 'Документ отправляется в сервис распознавания, чтобы найти перелёты. Kuuki хранит только найденные данные перелётов, 30 дней, чтобы вы могли вернуться к ним. Файл и вставленный текст не сохраняются.'),
   emailHelp: p('How to export flights from your email', 'Как выгрузить перелёты из почты'),
-  emailHelpBody: p('Ask your email assistant with the prompt below, then paste its answer as text.', 'Задайте помощнику в почте запрос ниже и вставьте его ответ как текст.'),
+  // Provider-neutral: assistants rename their mail and calendar features often, so the help names the assistants, not the features.
+  emailHelpBody: p('Works with ChatGPT, Claude or Gemini. First connect your email and calendar to the assistant, then send it the prompt below and paste its reply under Paste text.', 'Подойдёт ChatGPT, Claude или Gemini. Сначала подключите к нему почту и календарь, затем отправьте запрос ниже и вставьте ответ в режиме «Вставить текст».'),
+  importLimit: p('One import keeps up to 100 flights. With a long history, ask for one or a few years at a time.', 'За один импорт сохраняется до 100 перелётов. Если перелётов много, запрашивайте их по одному или нескольким годам.'),
   copyPrompt: p('Copy the prompt', 'Скопировать запрос'),
   copied: p('Prompt copied', 'Запрос скопирован'),
   copyFailed: p('Could not copy. Select the text and copy it by hand.', 'Не удалось скопировать. Выделите текст и скопируйте вручную.'),
   promptLabel: p('Prompt text', 'Текст запроса'),
+  // The reply format is the one the server extraction reads most reliably (functions/api/import/_shared.ts):
+  // a written year, IATA codes, one segment per line, no private booking details.
   prompt: p(
-    'Search for all flight bookings, boarding passes, itineraries and travel confirmations.\n\nFor each flight include only what you can find: date, origin and destination airports, airline, flight number, departure and arrival times.\n\nFormat: one flight per line.\nExample: 2024-03-15 | JFK → LAX | American Airlines 123 | 08:30-11:45\n\nList all flights. Partial information is fine.',
-    'Найди все бронирования перелётов, посадочные талоны, маршруты и подтверждения поездок.\n\nДля каждого перелёта укажи только то, что нашёл: дату, аэропорты вылета и прилёта, авиакомпанию, номер рейса, время вылета и прилёта.\n\nФормат: один перелёт на строку.\nПример: 2024-03-15 | JFK → LAX | American Airlines 123 | 08:30-11:45\n\nПеречисли все перелёты. Неполные данные — это нормально.'),
+    'Search my email and calendar for all my flights, past and upcoming, across all years: booking confirmations, e-tickets, itineraries, check-in and boarding pass emails, and flight events in my calendar.\n\nIf you cannot access my email or calendar, say so in one sentence and stop. Do not guess or make up flights.\n\nWrite one line per flight in this format:\nYYYY-MM-DD | origin → destination | airline and flight number | departure-arrival\n\nExamples:\n2024-03-15 | JFK → LAX | American Airlines AA 123 | 08:30-11:45\n2024-03-22 | LAX → JFK | Delta DL 409 | 22:10-06:35+1\n\nRules:\n- Always write the full date with a four-digit year.\n- Use 3-letter IATA airport codes. If you do not know the code, write the city name.\n- Times are local at each airport, 24-hour, as shown in the booking. Add +1 when the arrival is on the next day.\n- Write ? for anything you cannot find.\n- Each leg of a connection and each direction of a return trip goes on a separate line.\n- List each flight once, even if it appears in several emails or in the calendar. If a flight was changed, use the latest details.\n- Leave out cancelled or refunded flights.\n- Sort from oldest to newest.\n- Do not include passenger names, booking references, ticket numbers, email addresses, frequent flyer numbers, prices or payment details.\n\nReply with only the list in one plain-text code block, with no other text.',
+    'Найдите в моей почте и календаре все мои перелёты, прошедшие и предстоящие, за все годы: подтверждения бронирований, электронные билеты, маршрутные квитанции, письма о регистрации и посадочные талоны, а также события перелётов в календаре.\n\nЕсли у вас нет доступа к моей почте или календарю, скажите об этом одним предложением и остановитесь. Не угадывайте и не придумывайте перелёты.\n\nПишите по одному перелёту на строку в таком формате:\nГГГГ-ММ-ДД | откуда → куда | авиакомпания и номер рейса | вылет-прилёт\n\nПримеры:\n2024-03-15 | SVO → LED | Aeroflot SU 6 | 08:30-10:00\n2024-03-22 | LED → TBS | Georgian Airways A9 638 | 23:40-03:05+1\n\nПравила:\n- Всегда пишите полную дату с годом из четырёх цифр.\n- Используйте трёхбуквенные коды аэропортов IATA. Если код неизвестен, напишите название города.\n- Время местное для каждого аэропорта, в 24-часовом формате, как в брони. Если прилёт на следующий день, добавьте +1.\n- Если чего-то не удалось найти, ставьте ? на это место.\n- Каждый отрезок с пересадкой и каждое направление поездки туда и обратно — отдельная строка.\n- Указывайте каждый перелёт один раз, даже если он встречается в нескольких письмах или в календаре. Если рейс меняли, используйте последние данные.\n- Не включайте отменённые перелёты и перелёты с возвратом билета.\n- Сортируйте от самых ранних к самым поздним.\n- Не указывайте имена пассажиров, номера бронирований, номера билетов, адреса почты, номера бонусных карт, цены и платёжные данные.\n\nОтветьте только списком в одном блоке кода с обычным текстом, без других пояснений.'),
 
   recognizing: p('Finding your flights', 'Ищем ваши перелёты'),
   sourceChip: p('Source', 'Источник'),
@@ -111,7 +115,28 @@ export const S = {
   importCount: p('Import', 'Импортировать'),
   importing: p('Saving flights…', 'Сохраняем перелёты…'),
   nothingChosen: p('Select at least one flight to import.', 'Выберите хотя бы один перелёт.'),
-  unsavedBlock: p('Some edits are not saved yet. Save or discard them first.', 'Некоторые правки ещё не сохранены. Сохраните или отмените их.'),
+  unsavedBlock: p('Some edits are not saved yet. Use “Save changes” on the flight you edited, or discard them first.', 'Некоторые правки ещё не сохранены. Нажмите «Сохранить изменения» у изменённого рейса или отмените их.'),
+  pausedWhileSaving: p('Saving your flights. Editing is paused until it finishes.', 'Сохраняем перелёты. Правки приостановлены до завершения.'),
+  heldDone: p('Your flights were saved, but some corrections are not saved yet. Save or discard them to see the summary.', 'Перелёты сохранены, но некоторые правки ещё не сохранены. Сохраните или отмените их, чтобы увидеть итог.'),
+  unsavedDone: p('Some edits on the review page are not saved yet. Go back to review to save or discard them, then try again.', 'Некоторые правки на странице проверки ещё не сохранены. Вернитесь к проверке, сохраните или отмените их и повторите.'),
+  unsavedRow: p('Changes not saved yet. Use “Save changes” to keep them; leaving this page loses only these changes.', 'Изменения ещё не сохранены. Нажмите «Сохранить изменения», чтобы оставить их; если уйти со страницы, потеряются только они.'),
+  retention: p('Kept until {date}. Flights you have not saved by then are removed.', 'Хранится до {date}. Несохранённые к этому дню перелёты будут удалены.'),
+  sourceAgain: p('Your document is not kept, so choose the file or paste the text again to try again.', 'Документ не сохраняется, поэтому выберите файл или вставьте текст ещё раз.'),
+  cancelledNote: p('You cancelled recognition. These flights were found before it stopped; check them and add anything missing by hand.', 'Вы отменили распознавание. Эти перелёты найдены до остановки; проверьте их и добавьте недостающее вручную.'),
+  cancelReadFailed: p('Recognition was cancelled, but the flights found so far could not be loaded. Reload the page to see them.', 'Распознавание отменено, но найденные перелёты не удалось загрузить. Обновите страницу, чтобы увидеть их.'),
+  reviewRemaining: p('Review the remaining flights', 'Проверить оставшиеся перелёты'),
+  retryOriginal: p('Retry original save', 'Повторить исходное сохранение'),
+  checkedJournal: p('I checked the journal — start a new save', 'Журнал проверен — начать новое сохранение'),
+  unconfirmedTitle: p('Unconfirmed saves', 'Неподтверждённые сохранения'),
+  unconfirmedLead: p('These flights were sent from this browser, but no clear answer came back. Retrying the original save cannot add a flight twice. If you checked your journal instead, mark the save as checked.', 'Эти перелёты отправлены из этого браузера, но чёткого ответа не пришло. Повтор исходного сохранения не добавит перелёт дважды. Если вы уже проверили журнал, отметьте это.'),
+  unconfirmedUnreadable: p('The details of this save cannot be read. Check your journal, then mark it as checked.', 'Данные этого сохранения не читаются. Проверьте журнал и отметьте, что он проверен.'),
+  unreadableSave: p('Unreadable save', 'Нечитаемое сохранение'),
+  retryExpiredReason: p('The safe retry period has passed.', 'Срок безопасного повтора истёк.'),
+  retryUnreadableReason: p('The saved details cannot be read.', 'Сохранённые данные не читаются.'),
+  journalChecked: p('I checked the journal', 'Журнал проверен'),
+  recoverySaved: p('Saved: {flight}. It is in your journal now.', 'Сохранено: {flight}. Перелёт уже в журнале.'),
+  recoverySettled: p('Marked as checked: {flight}. If it is not in your journal, add it again.', 'Отмечено как проверенное: {flight}. Если перелёта нет в журнале, добавьте его снова.'),
+  showHeldSave: p('Show the unconfirmed save', 'Показать неподтверждённое сохранение'),
   manualInvalid: p('Fix the highlighted fields on the manual flights first.', 'Сначала исправьте выделенные поля у рейсов, добавленных вручную.'),
   cancelImport: p('Discard import', 'Отменить импорт'),
   discardTitle: p('Discard this import?', 'Отменить этот импорт?'),
@@ -158,7 +183,6 @@ export const S = {
   aircraftClose: p('Close', 'Закрыть'),
   aircraftEvidence: p('Evidence', 'Основание'),
   aircraftUnsure: p('Unconfirmed', 'Не подтверждено'),
-  aircraftDone: p('Saved aircraft', 'Самолёты сохранены'),
 
   failureTitle: p('This import did not finish', 'Импорт не завершён'),
   retryAt: p('You can try again after', 'Попробовать снова можно после'),
@@ -182,6 +206,7 @@ export const COUNTS = {
   aircraftSaveN: { en: { one: 'Save {count} aircraft', other: 'Save {count} aircraft' }, ru: { one: 'Сохранить {count} самолёт', few: 'Сохранить {count} самолёта', many: 'Сохранить {count} самолётов', other: 'Сохранить {count} самолёта' } },
   aircraftOffered: { en: { one: '{count} suggestion', other: '{count} suggestions' }, ru: { one: '{count} предложение', few: '{count} предложения', many: '{count} предложений', other: '{count} предложения' } },
   skipped: { en: { one: '{count} skipped', other: '{count} skipped' }, ru: { one: '{count} пропущен', few: '{count} пропущено', many: '{count} пропущено', other: '{count} пропущено' } },
+  remaining: { en: { one: '{count} flight is still waiting in review.', other: '{count} flights are still waiting in review.' }, ru: { one: 'В проверке остался {count} перелёт.', few: 'В проверке осталось {count} перелёта.', many: 'В проверке осталось {count} перелётов.', other: 'В проверке осталось {count} перелёта.' } },
   alreadySavedN: { en: { one: '{count} flight saved already', other: '{count} flights saved already' }, ru: { one: '{count} перелёт уже сохранён', few: '{count} перелёта уже сохранены', many: '{count} перелётов уже сохранены', other: '{count} перелёта уже сохранены' } },
 } satisfies Record<string, CountForms>
 
@@ -249,7 +274,17 @@ export const ROW_FAILURE: Record<RowFailureKind, Pair> = {
   missing: p('This flight is no longer part of the import.', 'Этого перелёта больше нет в импорте.'),
   transient: p('The service had a problem. Trying again is safe.', 'У сервиса возникла проблема. Повторить безопасно.'),
 }
-export const MANUAL_FAILED = p('This manual flight was not saved.', 'Этот рейс, добавленный вручную, не сохранён.')
+export type ManualFailureKind = 'refused' | 'duplicate' | 'uncertain' | 'unconfirmed' | 'expired' | 'settled'
+/** What happened to a flight added by hand, in the words the member needs to choose the next step. */
+export const MANUAL_FAILURE: Record<ManualFailureKind, Pair> = {
+  settled: p('The original save was settled or replaced elsewhere. Check your journal before starting a new save.', 'Исходное сохранение уже завершено или заменено в другом окне. Проверьте журнал, прежде чем начать новое сохранение.'),
+  refused: p('The service refused these details, so nothing was saved. Fix the fields and save again.', 'Сервис отклонил эти данные, поэтому ничего не сохранено. Исправьте поля и сохраните ещё раз.'),
+  duplicate: p('A save of this same flight is still unconfirmed, so this one was not sent. Open that save to retry it or mark it as checked in your journal, then try again.', 'Сохранение точно такого же рейса пока не подтверждено, поэтому этот рейс не отправлен. Откройте то сохранение, повторите его или отметьте, что журнал проверен, затем попробуйте снова.'),
+  uncertain: p('We did not get a clear answer, so this flight may or may not be saved. Retry the original save, or check your journal first.', 'Мы не получили чёткого ответа, поэтому рейс мог сохраниться или нет. Повторите исходное сохранение или сначала проверьте журнал.'),
+  unconfirmed: p('An earlier save of this flight is unconfirmed, so the changed details were not sent. Retry the original save, or check your journal and start a new save.', 'Предыдущее сохранение этого рейса не подтверждено, поэтому изменённые данные не отправлены. Повторите исходное сохранение или проверьте журнал и начните новое.'),
+  expired: p('A safe retry is no longer possible for this flight. Check your journal, then start a new save.', 'Безопасный повтор для этого рейса уже невозможен. Проверьте журнал и начните новое сохранение.'),
+}
+export const MANUAL_ROW_RETRYABLE: Record<ManualFailureKind, boolean> = { settled: false, refused: false, duplicate: false, uncertain: true, unconfirmed: false, expired: false }
 
 export function relativeInstant(locale: Locale, iso: string): string {
   const date = new Date(iso)

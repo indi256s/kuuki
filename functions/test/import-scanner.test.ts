@@ -49,3 +49,28 @@ it('classifies a root JSON string as an invalid provider response', () => {
   const scanner = new FlightScanner()
   expect(() => { [...scanner.push('"not an envelope"')]; scanner.finish() }).toThrow(expect.objectContaining({ code: 'PROVIDER_INVALID_RESPONSE' }))
 })
+
+it('yields fitting complete rows in the crossing chunk before reporting the output limit', () => {
+  const rows = [providerFlight(), providerFlight({ origin: 'TBS' }), providerFlight({ destination: 'IST' })]
+  const emitted: ScannedFlight[] = []
+  const scanner = new FlightScanner()
+  expect(() => {
+    for (const row of scanner.push(providerText(rows, { raw_text: 'x'.repeat(1024 * 1024) }))) emitted.push(row)
+  }).toThrow(expect.objectContaining({ code: 'OUTPUT_LIMIT' }))
+  expect(emitted).toEqual(rows.map((value, ordinal) => ({ ordinal, value })))
+})
+it('never emits a row whose closing brace lies beyond the remaining byte budget', () => {
+  const scanner = new FlightScanner()
+  const prefix = '{"padding":"' + 'x'.repeat(1024 * 1024 - 80) + '","flights":['
+  expect([...scanner.push(prefix)]).toEqual([])
+  const emitted: ScannedFlight[] = []
+  expect(() => { for (const row of scanner.push(JSON.stringify(providerFlight()) + ']}')) emitted.push(row) })
+    .toThrow(expect.objectContaining({ code: 'OUTPUT_LIMIT' }))
+  expect(emitted).toEqual([])
+})
+
+it('preserves OUTPUT_LIMIT precedence for an oversized malformed tail after a persisted row', () => {
+  const scanner = new FlightScanner()
+  expect([...scanner.push('{"flights":[' + JSON.stringify(providerFlight()))]).toHaveLength(1)
+  expect(() => [...scanner.push('x'.repeat(1024 * 1024))]).toThrow(expect.objectContaining({ code: 'OUTPUT_LIMIT' }))
+})

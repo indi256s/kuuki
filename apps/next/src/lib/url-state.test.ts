@@ -2,6 +2,9 @@ import { describe, expect, it } from 'vitest'
 import {
   normalizeJournalQuery, journalHref, resetJournalFilters, normalizeImportQuery, normalizeOnboardingQuery, normalizeOverviewQuery, normalizePassportQuery, resolveOnboardingStep, withQuery,
 } from './url-state'
+import { isCatalogCountry } from '../client/passport/model'
+
+import { parseFlightFilters } from '../../../../functions/api/_lib/flightQuery'
 
 const now = new Date('2026-10-05T00:00:00Z')
 const qs = (value: string) => new URLSearchParams(value)
@@ -23,11 +26,16 @@ describe('overview', () => {
 
 describe('passport', () => {
   it('omits defaults and uppercases the country', () => {
-    expect(normalizePassportQuery(qs('view=stamps&sort=recent&layer=countries&country=jp'), now).query).toBe('country=JP')
-    expect(normalizePassportQuery(qs('view=map&layer=routes&sort=visits&country=jp&year=2024'), now).query).toBe('view=map&sort=visits&country=JP&layer=routes&year=2024')
+    expect(normalizePassportQuery(qs('view=stamps&sort=recent&layer=countries&country=jp'), isCatalogCountry, now).query).toBe('country=JP')
+    expect(normalizePassportQuery(qs('view=map&layer=routes&sort=visits&country=jp&year=2024'), isCatalogCountry, now).query).toBe('view=map&sort=visits&country=JP&layer=routes&year=2024')
+  })
+  it('keeps catalog countries and territories in any case and drops well-formed codes outside the catalog', () => {
+    expect(normalizePassportQuery(qs('country=gi'), isCatalogCountry, now)).toMatchObject({ query: 'country=GI', state: { country: 'GI' } })
+    expect(normalizePassportQuery(qs('country=pR'), isCatalogCountry, now)).toMatchObject({ query: 'country=PR', state: { country: 'PR' } })
+    expect(normalizePassportQuery(qs('country=ZZ&sort=name'), isCatalogCountry, now)).toMatchObject({ query: 'sort=name', canonical: false, state: { country: null } })
   })
   it('drops invalid values without loops', () => {
-    const result = normalizePassportQuery(qs('view=bogus&sort=x&layer=y&country=JPN&year=1'), now)
+    const result = normalizePassportQuery(qs('view=bogus&sort=x&layer=y&country=JPN&year=1'), isCatalogCountry, now)
     expect(result).toMatchObject({ query: '', canonical: false, state: { view: 'stamps', sort: 'recent', layer: 'countries', country: null, year: null } })
   })
 })
@@ -68,7 +76,7 @@ describe('fixed point', () => {
     for (const input of inputs) {
       for (const run of [
         (s: string) => normalizeOverviewQuery(qs(s), now),
-        (s: string) => normalizePassportQuery(qs(s), now),
+        (s: string) => normalizePassportQuery(qs(s), isCatalogCountry, now),
         (s: string) => normalizeImportQuery(qs(s)),
         (s: string) => normalizeOnboardingQuery(qs(s), { hasUsername: true, hasFlight: false }),
       ]) {
@@ -105,9 +113,36 @@ describe('journalHref (Overview "All" links)', () => {
     expect(journalHref({ aircraft: 'a320' })).toBe('/journal?aircraft=A320')
     expect(journalHref({})).toBe('/journal')
   })
+  it('keeps an exact route and a sort for the Overview route and missing-aircraft links', () => {
+    const route = journalHref({ origin: 'tbs', destination: 'ist', year: 2025 })
+    expect(new URLSearchParams(route.split('?')[1]).get('origin')).toBe('TBS')
+    expect(new URLSearchParams(route.split('?')[1]).get('destination')).toBe('IST')
+    // Ascending aircraft puts flights with no aircraft first in the Journal.
+    const missing = journalHref({ year: 2025, sort: 'aircraft_icao', order: 'asc' })
+    expect(Object.fromEntries(new URLSearchParams(missing.split('?')[1]))).toEqual({ year: '2025', sort: 'aircraft_icao', order: 'asc' })
+    expect(normalizeJournalQuery(new URLSearchParams(missing.split('?')[1])).canonical).toBe(true)
+  })
   it('drops invalid values and returns a canonical fixed point', () => {
     expect(journalHref({ airport: 'bad-code', year: '1800', airline: '' })).toBe('/journal')
     const href = journalHref({ airport: 'IST', airline: 'TK', year: '2024' })
     expect(normalizeJournalQuery(new URLSearchParams(href.split('?')[1])).canonical).toBe(true)
+  })
+  it('links one source flight for passport country detail', () => {
+    expect(journalHref({ flight: 42 })).toBe('/journal?flight=42')
+    expect(journalHref({ flight: '0' })).toBe('/journal')
+  })
+})
+
+describe('the missing-aircraft review is not a Journal filter', () => {
+  it('`missing=aircraft` neither owns Journal state nor narrows the list, and Reset leaves the unfiltered list', () => {
+    for (const query of ['missing=aircraft', 'status=completed&missing=aircraft', 'missing=bogus', 'missing=aircraft&missing=bogus']) {
+      expect(normalizeJournalQuery(qs(query)).state).not.toHaveProperty('missing')
+      expect(parseFlightFilters(qs(normalizeJournalQuery(qs(query)).query))).toEqual(query.includes('status') ? { status: 'completed' } : {})
+    }
+    // Reset clears every owned filter; what remains cannot filter, so the Journal is unfiltered again.
+    expect(parseFlightFilters(qs(resetJournalFilters('year=2025&status=completed&missing=aircraft')))).toEqual({})
+  })
+  it('keeps no `missing` key in the canonical links', () => {
+    expect(journalHref({ year: 2025, status: 'completed' })).not.toContain('missing')
   })
 })

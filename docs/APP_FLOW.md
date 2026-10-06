@@ -1,10 +1,70 @@
-# Kuuki - Application Flow
+# Kuuki — Application Flow
 
-> **For AI Agents:** This documents every page and navigation path. Use this to understand how users move through the app.
+## Current Next routes
 
----
+The current app is [apps/next](../apps/next/src/app/), with server gates in
+[gates.ts](../apps/next/src/server/gates.ts). The Vite inventory below is rollback
+history. It does not describe the current navigation.
+
+| Routes | Current behavior |
+| --- | --- |
+| `/` | Guest landing; authenticated members continue to Overview or unfinished onboarding. |
+| `/signin`, `/signup` | Separate authentication forms; members use the same landing gate. |
+| `/activation-request`, `/activate`, `/activate.html` | Generic activation request and restricted static token completion. The Worker owns static completion, including its recovery-host boundary. |
+| `/forgot-password`, `/reset-password`, `/password-updated` | Generic recovery request, token-only password replacement and sign-in confirmation. |
+| `/account-deleted` | Signed-out deletion confirmation. |
+| `/onboarding?step=name`, `capture`, `reveal` | Name/profile setup, shared manual/upload/paste Capture, then truthful saved-flight feedback. A durable import `batch` can resume Capture. |
+| `/overview` | Period totals, insights, upcoming/awaiting journeys and missing-aircraft recovery. |
+| `/journal` | Paged flight log; search/filter/sort/page state belongs to this URL. |
+| `/journal/[id]/edit`, `/add`, `/import` | Own-flight editing, manual Capture and resumable import Source/Progress/Review/Done. |
+| `/passport` | Collection, region/detail sheets, claims/ground visits, awaiting arrivals and period-aware map. |
+| `/passport/manage` | Aircraft in journal: bulk aircraft assignment. `?countryCode=CC` redirects to `/passport?country=CC`. |
+| `/fly/[username]` | Public profile for visitors or private owner profile; live visibility gates protect private records. |
+| `/leaderboard` | Public eligible rankings; authenticated own rank/notifications follow the same eligibility policy. |
+| `/settings` | Dirty-state-protected profile, privacy, appearance, export and reauthenticated deletion. |
+| `/me` | Resolves to the own profile, unfinished Name step or sign-in. |
+| `/dashboard`, `/flights`, `/journey`, `/landing` | Compatibility redirects to Overview, Journal, Overview and `/`. |
+
+Member routes require an authenticated, named profile. Public profile and
+leaderboard pages use the member shell for authenticated viewers and the brand
+shell for guests. Desktop navigation is Overview / Journal / Passport /
+Leaderboard, plus Add and account controls. Mobile tabs are Overview / Journal /
+Add / Passport / Me. Header titles follow the current route.
+
+The [Worker](../apps/next/worker.ts), [API handlers](../functions/api/) and
+[release runbook](runbooks/2026-10-04-next-release-candidate.md) own runtime,
+authentication and host contracts. No hosted acceptance is implied by this map.
+
+## Current journeys
+
+Guests see explicitly labeled sample Ticket/Stamp/profile content before signup.
+Onboarding persists the profile before Capture; skipping continues to Overview.
+Capture reuses normal save/import authorities and resumes durable batches. Reveal
+uses canonical saved flights and newly published country acknowledgments;
+upcoming-only saves show booked Tickets. Refresh without the original receipt
+reports Saved without replaying historical stamps.
+
+Import retains review rows and uncertain-save recovery. Published evidence
+controls country stamps; pending publication is shown honestly. Journal Undo is
+presented in the member shell's toast region, but the Journal owns the pending
+deletion: leaving before its timer cancels it, nothing is sent, and the shell
+shows a cancellation notice ("Delete cancelled"). The notice is suppressed when
+the departure is an identity reset (sign-out or owner switch), and it is shown
+only by a shell of the same owner. Bulk Undo restores rows without restoring
+the prior selection.
+
+Settings protects unsaved changes on links, history and unload. Deletion requires
+password reauthentication and succeeds only after the server cascade. Activation
+and recovery scrub tokens at the start of their early bootstrap; completion remains separate from
+sign-in. Functional evidence and deferred visual/release gates are tracked in the
+[redesign handoff](plans/2026-10-04-redesign-2.0-implementation-handoff.md).
+
+## Legacy Vite flow reference
+
+Everything below describes rollback and historical screen names.
 
 ## Screen Inventory
+
 
 ### Public Routes (No Auth Required)
 

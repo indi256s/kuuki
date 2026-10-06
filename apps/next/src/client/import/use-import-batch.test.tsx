@@ -124,3 +124,23 @@ describe('useImportBatch drafts', () => {
 })
 
 void batch
+
+describe('useImportBatch cancelled batches', () => {
+  it('keeps the rows extracted before a cancel as a stopped, partial review and does not subscribe', async () => {
+    const readBatch = vi.fn(async () => snapshot([draft({ id: 'a' })], { status: 'cancelled', stage: 'recognizing' }))
+    const api = make({ readBatch })
+    const { result } = renderHook(() => useImportBatch({ api, initialBatchId: 'b1' }))
+    await waitFor(() => expect(result.current.phase).toBe('ready'))
+    expect(result.current.drafts.map(row => row.id)).toEqual(['a'])
+    expect(result.current.partial).toBe(true)
+    expect(result.current.cancelled).toBe(true)
+    expect(api.connect).not.toHaveBeenCalled()
+  })
+
+  it('returns to the source step only when a cancelled batch kept no rows', async () => {
+    const readBatch = vi.fn(async () => snapshot([], { status: 'cancelled' }))
+    const { result } = renderHook(() => useImportBatch({ api: make({ readBatch }), initialBatchId: 'b1' }))
+    await waitFor(() => expect(result.current.phase).toBe('cancelled'))
+    expect(result.current.drafts).toEqual([])
+  })
+})

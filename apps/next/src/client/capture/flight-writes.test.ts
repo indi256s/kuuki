@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { ApiError } from '../../../../web/src/lib/apiClient'
-import { clearFlightCreateOperations } from '../../../../web/src/lib/flightCreateOperations'
+import { clearFlightCreateOperations, pendingFlightCreateOperation } from '../../../../web/src/lib/flightCreateOperations'
 import { browserTimezone, createFlight, createFlights, updateFlight } from './flight-writes'
 
 const post = vi.fn()
@@ -116,5 +116,23 @@ describe('flight writes carry the browser IANA timezone (ADR 0001 §1)', () => {
       await expect(createFlight({ ...input, user_id: 'u1' } as never, 'op-tz3')).rejects.toMatchObject({ code: 'UNKNOWN_AIRPORT' })
       expect(post).toHaveBeenCalledTimes(1)
     })
+  })
+})
+
+describe('explicit original retries never become new writes', () => {
+  beforeEach(() => { post.mockReset(); clearFlightCreateOperations(); localStorage.clear() })
+  it.each(['removed', 'replaced'])('blocks a stale captured key when the receipt is %s elsewhere', async change => {
+    const id = 'fresh-tab-save'
+    const key = crypto.randomUUID()
+    const storageKey = `kuuki-flight-create-operation:u1:${id}`
+    const receipt = { key, payload: JSON.stringify(input), createdAt: Date.now() }
+    localStorage.setItem(storageKey, JSON.stringify(receipt))
+    const pinned = pendingFlightCreateOperation('u1', id)!
+    if (change === 'removed') localStorage.removeItem(storageKey)
+    else localStorage.setItem(storageKey, JSON.stringify({ ...receipt, key: crypto.randomUUID() }))
+    await expect(createFlight({ ...pinned.body, user_id: 'u1' } as never, id, pinned.key)).rejects.toThrow(/settled or replaced/)
+    expect(await createFlights('u1', [{ operationId: id, flight: pinned.body as never, retryKey: pinned.key }])).toEqual([expect.objectContaining({ name: 'SettledFlightOperationError' })])
+    expect(post).not.toHaveBeenCalled()
+    expect(localStorage.getItem(storageKey)).toEqual(change === 'removed' ? null : expect.any(String))
   })
 })

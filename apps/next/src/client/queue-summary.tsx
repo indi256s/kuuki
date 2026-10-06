@@ -1,9 +1,10 @@
 'use client'
 
 import { useAwaiting } from './awaiting'
-import Link from 'next/link'
+import { NavigationLink as Link } from './navigation-link'
 import { formatCount, formatNumber, type Locale } from '../lib/format'
 
+const QUEUE_HREF = '/journal?queue=awaiting'
 const FLIGHTS = {
   en: { one: '{count} flight awaiting confirmation', other: '{count} flights awaiting confirmation' },
   ru: { one: '{count} перелёт ждёт подтверждения', few: '{count} перелёта ждут подтверждения', many: '{count} перелётов ждут подтверждения', other: '{count} перелёта ждут подтверждения' },
@@ -25,12 +26,12 @@ export function QueueSummarySlot({ count, locale = 'en' }: { count?: number | nu
   const queue = useAwaiting()
   const waiting = queue.data
   count ??= waiting?.actionableCount
-  if (queue.error && !waiting && count == null) return <Link href="/journal?queue=awaiting" className="queue-summary">{locale === 'ru' ? 'Очередь недоступна' : 'Queue unavailable'}</Link>
+  if (queue.error && !waiting && count == null) return <Link href={QUEUE_HREF} className="queue-summary">{locale === 'ru' ? 'Очередь недоступна' : 'Queue unavailable'}</Link>
   if (typeof count !== 'number' || !Number.isFinite(count) || count < 1) return null
   const whole = Math.floor(count)
   const parts = waiting ? [[waiting.awaitingFlightCount, FLIGHTS], [waiting.draftRowCount, ROWS]] as const : []
   const detail = parts.filter(([n]) => n > 0).map(([n, forms]) => formatCount(locale, n, forms)).join(', ')
   const total = formatCount(locale, whole, TOTAL)
   const label = detail ? `${total}: ${detail}` : total
-  return <Link href="/journal?queue=awaiting" className="queue-summary" aria-label={label} title={label}>{formatNumber(locale, whole)}</Link>
+  return <Link href={QUEUE_HREF} className="queue-summary" aria-label={label} title={label}>{formatNumber(locale, whole)}</Link>
 }

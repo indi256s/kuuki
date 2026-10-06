@@ -100,7 +100,7 @@ export async function readAwaitingQueue(db: D1Database, userId: string, now = ne
       `SELECT b.id, b.source_type, b.source_label, b.status, b.expires_at,
               (SELECT COUNT(*) FROM import_drafts d WHERE d.batch_id = b.id AND d.user_id = b.user_id AND d.status = 'review') AS review_rows
        FROM import_batches b
-       WHERE b.user_id = ? AND b.expires_at > ? AND b.status IN ('processing', 'review', 'partial')
+       WHERE b.user_id = ? AND b.expires_at > ? AND b.status IN ('processing', 'review', 'partial', 'cancelled')
          AND (b.status = 'processing' OR EXISTS (SELECT 1 FROM import_drafts d WHERE d.batch_id = b.id AND d.user_id = b.user_id AND d.status = 'review'))
        ORDER BY b.created_at DESC, b.id LIMIT ?`,
     ).bind(userId, instant, DRAFT_SUMMARY_LIMIT),

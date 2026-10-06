@@ -15,7 +15,7 @@ export interface NewStamp { code: string; name: string; eventId: string }
 
 export const MAX_STAMPS = 8
 
-export function DoneStep({ locale, savedCount, requested, totalKm, newCountries, stamps, publication, failures, retryCount, retrying, checking, checkFailed, canReview, aircraftTargets, aircraftApi, theme, onRetry, onReview, onImportMore, onAircraftSaved }: {
+export function DoneStep({ locale, savedCount, requested, totalKm, newCountries, stamps, publication, failures, retryCount, retrying, checking, checkFailed, remaining, aircraftTargets, aircraftApi, theme, retryBlocked, onRetry, onReview, onImportMore, onAircraftSaved }: {
   locale: Locale
   savedCount: number
   /** Rows the member asked to save in this session (0 when the page was resumed on a finished batch). */
@@ -30,10 +30,13 @@ export function DoneStep({ locale, savedCount, requested, totalKm, newCountries,
   retrying: boolean
   checking: boolean
   checkFailed: boolean
-  canReview: boolean
+  /** Flights (rows in review and manual rows) still waiting after this save; the member can return to them. */
+  remaining: number
   aircraftTargets: AircraftTarget[]
   aircraftApi?: AircraftApi
   theme: 'light' | 'dark'
+  /** Why the retry is held back (corrections on the review page are not saved yet); shown beside the button. */
+  retryBlocked?: ReactNode
   onRetry: () => void
   onReview: () => void
   onImportMore: () => void
@@ -69,9 +72,13 @@ export function DoneStep({ locale, savedCount, requested, totalKm, newCountries,
       <h3>{S.failedList[locale]}</h3>
       <ul className="import-rows">{failures.map(failure => <li key={failure.key} className="import-row"><p className="import-row-meta"><span>{failure.label}</span></p><p className="import-note">{failure.message}</p></li>)}</ul>
       <div className="import-actions">
-        {retryCount > 0 ? <Button variant="primary" loading={retrying} loadingLabel={S.importing[locale]} onClick={onRetry}>{count(locale, 'retryFor', retryCount)}</Button> : null}
-        {canReview ? <Button onClick={onReview}>{S.backToReview[locale]}</Button> : null}
+        {retryCount > 0 ? <Button variant="primary" loading={retrying} loadingLabel={S.importing[locale]} disabledReason={retryBlocked} onClick={onRetry}>{count(locale, 'retryFor', retryCount)}</Button> : null}
       </div>
+    </div> : null}
+
+    {remaining > 0 ? <div className="import-remaining">
+      <p className="import-hint" role="status">{count(locale, 'remaining', remaining)}</p>
+      <div className="import-actions"><Button onClick={onReview}>{partial ? S.backToReview[locale] : S.reviewRemaining[locale]}</Button></div>
     </div> : null}
 
     {aircraftTargets.length > 0 ? <AircraftPanel locale={locale} targets={aircraftTargets} onSaved={onAircraftSaved} api={aircraftApi} /> : null}

@@ -42,6 +42,18 @@ export function JournalQueue({ ownerId, locale, filtered = false, hiddenIds, onE
   const operation = useRef<AbortController | null>(null)
   const lock = useRef(false)
   useEffect(() => () => operation.current?.abort(), [])
+  // A pending passport stamp links to `#arrival-<id>`: once the queue has loaded, move focus to that card's confirm action.
+  const arrivalHandled = useRef<string | null>(null)
+  useEffect(() => {
+    const hash = window.location.hash
+    const match = /^#arrival-(\d+)$/.exec(hash)
+    if (!data || !match || arrivalHandled.current === hash) return
+    const action = document.querySelector<HTMLElement>(`#awaiting-queue [data-confirm-flight="${match[1]}"]`)
+    if (!action) return
+    arrivalHandled.current = hash
+    action.focus({ preventScroll: true })
+    action.scrollIntoView?.({ block: 'center' })
+  }, [data])
   const offlineNote = ru ? 'Нет сети. Подключитесь, чтобы изменить перелёты.' : 'Offline. Connect to change flights.'
   const offline = { 'aria-describedby': !online ? offlineId : undefined }
   const countryName = (code: string) => new Intl.DisplayNames([locale], { type: 'region' }).of(code) ?? code
@@ -102,7 +114,7 @@ export function JournalQueue({ ownerId, locale, filtered = false, hiddenIds, onE
     while (next && !grouped.has(next.flight.id)) { grouped.add(next.flight.id); chain.push(next); const legId: number | null = next.candidate.legId; next = entries.find(row => row.flight.id === legId) }
     chains.push(chain)
   }
-  const card = (entry: Entry) => <div key={entry.flight.id} className="awaiting-card">
+  const card = (entry: Entry) => <div key={entry.flight.id} id={`arrival-${entry.flight.id}`} className="awaiting-card">
     <Ticket locale={locale} state="awaiting" origin={{ iata: entry.flight.origin, city: findAirport(entry.flight.origin)?.city ?? entry.flight.origin }} destination={{ iata: entry.flight.destination, city: findAirport(entry.flight.destination)?.city ?? entry.flight.destination }} date={entry.flight.date} flightNumber={entry.flight.flight_number ?? undefined} prompt={ru ? 'Вы долетели?' : 'Did you arrive?'} actions={<>
       <Button variant="primary" data-confirm-flight={entry.flight.id} disabled={busy || !!receipt || !online} {...offline} onClick={() => void confirm([entry])}>{ru ? 'Подтвердить прилёт' : 'Confirm arrival'}</Button>
       <Button disabled={busy || !!receipt || !online} {...offline} onClick={() => onEdit(entry.flight.id)}>{ru ? 'Изменить' : 'Change'}</Button>
@@ -177,7 +189,7 @@ function TransitReview({ locale }: { locale: Locale }) {
     {data && data.candidates.length > 0 && !data.marker?.matchesCandidates && <Disclosure summary={ru ? 'Проверить старые пересадки' : 'Review historical connections'}>
       {!online && <p id={offlineId} className="status-note">{ru ? 'Нет сети. Подключитесь, чтобы сохранить проверку.' : 'Offline. Connect to save this review.'}</p>}
       <p>{ru ? 'Изменения применяются только к выбранным пересадкам. Прогноз отметок показан для всех предложенных пересадок.' : 'Changes apply only to selected connections. The stamp preview assumes all suggestions are selected.'}</p>
-      {data.candidates.map(row => <label className="connection-row" key={row.flight.id}><input type="checkbox" checked={selected.includes(row.flight.id)} disabled={busy || !!request || !online} {...offline} onChange={event => setSelected(ids => event.target.checked ? [...ids, row.flight.id] : ids.filter(id => id !== row.flight.id))} />{row.flight.origin} → {row.flight.destination} → {row.candidate.leg?.destination} · {row.candidate.label === 'estimated' ? (ru ? 'Оценка по датам' : 'Estimated from dates') : (ru ? 'По времени рейсов' : 'Flight times')} · {row.affectedCountries.map(code => `${countryName(code)}: ${data.wouldRemoveStamp[code] ? (ru ? 'отметка будет удалена' : 'stamp will be removed') : (ru ? 'отметка останется' : 'stamp stays')}`).join(', ')}</label>)}
+      {data.candidates.map(row => <label className="connection-row" key={row.flight.id}><input type="checkbox" checked={selected.includes(row.flight.id)} disabled={busy || !!request || !online} {...offline} onChange={event => setSelected(ids => event.target.checked ? [...ids, row.flight.id] : ids.filter(id => id !== row.flight.id))} />{row.flight.origin} → {row.flight.destination} → {row.candidate.leg?.destination} · {row.candidate.label === 'estimated' ? (ru ? 'Оценка по датам' : 'Estimated from dates') : (ru ? 'Определено по времени рейсов' : 'Based on flight times')} · {row.affectedCountries.map(code => `${countryName(code)}: ${data.wouldRemoveStamp[code] ? (ru ? 'отметка будет удалена' : 'stamp will be removed') : (ru ? 'отметка останется' : 'stamp stays')}`).join(', ')}</label>)}
       <Button disabled={busy || !selected.length || !!request || !online} {...offline} onClick={() => void act('apply')}>{ru ? 'Отметить выбранные как транзит' : 'Mark selected as transit'}</Button>
       <Button disabled={busy || !!request || !online} {...offline} onClick={() => void act('dismiss')}>{ru ? 'Оставить как есть' : 'Keep as recorded'}</Button>
       {request && <Button disabled={busy || !online} {...offline} onClick={() => void act(request.action)}>{ru ? 'Повторить сохранение' : 'Retry review save'}</Button>}

@@ -36,7 +36,7 @@ class FakeImport {
   snapshot() {
     const now = '2026-10-05T00:00:00.000Z'
     return { batch: { id: BATCH, sourceType: 'text', sourceLabel: null, status: this.status, stage: this.stage, sequence: this.sequence, errorCode: this.errorCode,
-      retryAfter: null, createdAt: now, updatedAt: now, expiresAt: '2026-11-04T00:00:00.000Z', expired: false }, drafts: this.drafts }
+      retryAfter: null, createdAt: now, updatedAt: now, expiresAt: '2026-11-04T12:00:00.000Z', expired: false }, drafts: this.drafts }
   }
   ready(drafts: Row[]) { this.status = 'review'; this.stage = 'review_ready'; this.drafts = drafts; this.sequence++ }
 
@@ -90,7 +90,8 @@ class FakeImport {
 // Sign-in is limited per address (20 per 15 minutes) and the whole browser suite shares that budget, so this file
 // signs in once and gives every journey the same session cookies.
 let session: Awaited<ReturnType<ReturnType<Page['context']>['cookies']>> | null = null
-async function setup(page: Page, baseURL: string | undefined) {
+async function setup(page: Page, baseURL: string | undefined, locale?: 'ru') {
+  if (locale) await page.context().addCookies([{ name: 'kuuki_locale', value: locale, url: baseURL! }])
   if (session) await page.context().addCookies(session)
   else { await signIn(page, baseURL!); session = await page.context().cookies() }
   const server = new FakeImport()
@@ -132,6 +133,7 @@ test('reloading during review resumes the stored rows and the member choices', a
   await page.goto(`/import?batch=${BATCH}`)
   await expect(page.getByRole('heading', { name: 'Review flights' })).toBeVisible()
   await expect(page.getByText('2 selected of 2')).toBeVisible()
+  await expect(page.getByTestId('import-retention')).toContainText('Nov 4, 2026') // the stored deadline, on a resumed review
   await rows(page).first().getByRole('checkbox').uncheck()
   await expect(page.getByText('1 selected of 2')).toBeVisible()
   await expect.poll(() => server.patches.length).toBe(1)
@@ -241,6 +243,61 @@ test('duplicates sit at the end, collapsed and unselected, until the member save
   await expect(page.getByRole('button', { name: 'Import 3' })).toBeEnabled()
 })
 
+test('a typed correction blocks the import until it is saved', async ({ page, baseURL }) => {
+  const server = await setup(page, baseURL)
+  server.ready([row('d1'), row('d2', { fields: { date: '2026-04-02', origin: 'LAX', destination: 'SFO', airline_iata: 'AA' } })])
+  await page.goto(`/import?batch=${BATCH}`)
+  await rows(page).first().getByRole('button', { name: 'Edit' }).click()
+  const sheet = page.getByRole('dialog')
+  await sheet.getByLabel('To (airport code)').fill('BOS')
+  await sheet.getByRole('button', { name: 'Close' }).last().click() // leave the sheet without saving
+  const importButton = page.getByRole('button', { name: 'Import 2' })
+  await expect(importButton).toHaveAttribute('aria-disabled', 'true')
+  await expect(page.getByText('Some edits are not saved yet', { exact: false })).toBeVisible()
+  await expect(rows(page).first().getByText('Changes not saved yet', { exact: false })).toBeVisible()
+  expect(server.patches).toHaveLength(0)
+  await rows(page).first().getByRole('button', { name: 'Edit' }).click()
+  await page.getByRole('dialog').getByRole('button', { name: 'Save changes' }).click()
+  await expect.poll(() => server.patches.length).toBe(1)
+  expect(server.patches[0].body.fields).toMatchObject({ destination: 'BOS' })
+  await expect(importButton).not.toHaveAttribute('aria-disabled', 'true')
+  await importButton.click()
+  await expect(page.getByRole('heading', { name: 'Import finished' })).toBeVisible()
+  expect(server.confirms[0].items.map(item => item.draftId)).toEqual(['d1', 'd2'])
+})
+
+test('Russian import journey: Russian copy, plural forms for row counts, confirm and done', async ({ page, baseURL }) => {
+  const server = await setup(page, baseURL, 'ru')
+  server.status = 'processing'; server.stage = 'recognizing'
+  server.drafts = [row('d1'), row('d2', { fields: { date: '2026-04-02', origin: 'LAX', destination: 'SFO', airline_iata: 'AA' } })]
+  await page.goto('/import')
+  await expect(page.locator('html')).toHaveAttribute('lang', 'ru')
+  await page.getByRole('radio', { name: 'Вставить текст' }).click()
+  await page.getByLabel('Текст брони или маршрута').fill(PASTED)
+  await page.getByRole('button', { name: 'Найти перелёты' }).click()
+  await expect(page.getByRole('heading', { name: 'Ищем ваши перелёты' })).toBeVisible()
+  await expect(page.getByText('Найдено 2 перелёта', { exact: true })).toBeVisible() // few
+
+  const routes = [['JFK', 'LAX'], ['LAX', 'SFO'], ['SFO', 'JFK'], ['JFK', 'BOS'], ['BOS', 'JFK']]
+  server.ready([
+    ...routes.map(([origin, destination], index) => row(`d${index + 1}`, { fields: { date: `2026-0${index + 1}-02`, origin, destination, airline_iata: 'AA' } })),
+    row('d6', { selected: false, duplicateFlightId: 7, fields: { date: '2026-06-03', origin: 'LHR', destination: 'CDG', airline_iata: 'BA' } }),
+  ])
+  await expect(page.getByRole('heading', { name: 'Проверка перелётов' })).toBeVisible({ timeout: 15_000 })
+  await expect(page.getByText('Выбрано 5 из 5')).toBeVisible() // many
+  await expect(page.getByRole('button', { name: /Уже в журнале · 1 перелёт/ })).toBeVisible() // one
+  await expect(page.getByTestId('import-retention')).toContainText('Хранится до')
+  const importButton = page.getByRole('button', { name: 'Импортировать 5' })
+  await expect(importButton).toBeEnabled()
+  await importButton.click()
+  await expect(page.getByRole('heading', { name: 'Импорт завершён' })).toBeVisible()
+  await expect(page.getByTestId('import-summary')).toContainText('Добавлено 5 перелётов')
+  await expect(page.getByRole('link', { name: 'Открыть паспорт' })).toBeVisible()
+  await expect(page.getByRole('link', { name: 'В журнал' })).toBeVisible()
+  await expect(page.getByText('В проверке остался 1 перелёт.')).toBeVisible() // the unselected duplicate is still reachable
+  expect(server.confirms[0].items).toHaveLength(5)
+})
+
 test.describe('Import done → Passport hero', () => {
   /** The member's passport already has US; hide it from the pre-save baseline so the import presses it. */
   const pressUs = async (page: Page, server: FakeImport) => {
@@ -262,7 +319,23 @@ test.describe('Import done → Passport hero', () => {
     await resetRouteTransitions(page)
   }
 
-  for (const viewport of [{ width: 390, height: 844 }, { width: 1440, height: 900 }]) {
+  // At 390px the Passport cover puts the first stamp below the fold, so there it has no partner (keepVisibleStamps).
+  test('opens Passport without the hero at 390px, where the new stamp sits below the fold', async ({ page, baseURL }) => {
+    await page.setViewportSize({ width: 390, height: 844 })
+    await importOne(page, baseURL)
+    await page.getByRole('link', { name: 'Open Passport' }).click()
+    await expect(page.getByRole('heading', { level: 1, name: 'Passport' })).toBeFocused()
+    const stamp = page.getByRole('button', { name: /^United States,/ })
+    await expect(stamp).toBeAttached()
+    await expect.poll(() => page.evaluate(() => document.documentElement.dataset.routeTransition ?? null)).toBeNull()
+    // The hero ran on the loaded Passport (not the loading-screen fallback) and took the key off the stamp below the fold.
+    expect(await routeTransitions(page)).toMatchObject({ markers: ['hero'], heroCopies: 0 })
+    await expect(page.locator('.passport-cell[data-hero-enter-key="US"]')).toHaveCount(0)
+    expect(await stamp.evaluate(element => element.getBoundingClientRect().top)).toBeGreaterThan(844)
+    await expect(page.locator('[inert]')).toHaveCount(0)
+  })
+
+  for (const viewport of [{ width: 1440, height: 900 }]) {
     test(`carries the new stamp to its Passport stamp and focuses the Passport heading at ${viewport.width}px`, async ({ page, baseURL }) => {
       await page.setViewportSize(viewport)
       await importOne(page, baseURL)

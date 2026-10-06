@@ -95,7 +95,8 @@ export function FlightForm({ isOpen, onClose, onSaved, editFlight, onDelete }: F
   })
 
   // A create receipt left by an earlier attempt means that save may have landed; one written by the submit in flight does not.
-  const unconfirmed = !form.formState.isSubmitting && !isEditing && !!userId && !!pendingFlightCreateOperation(userId, operationId)
+  const receipt = !isEditing && userId ? pendingFlightCreateOperation(userId, operationId) : null
+  const unconfirmed = !form.formState.isSubmitting && !!receipt
 
   // Reset form when opened/closed or edit flight changes
   useEffect(() => {
@@ -241,9 +242,9 @@ export function FlightForm({ isOpen, onClose, onSaved, editFlight, onDelete }: F
 
   const isSubmitting = createFlight.isPending || updateFlight.isPending
 
-  const retryOriginal = async () => {
+  const retryOriginal = async (retryKey: string) => {
     if (!userId) return
-    const pending = pendingFlightCreateOperation(userId, operationId)
+    const pending = receipt
     if (!pending) return
     if (pending.expired) {
       form.setError('root', { message: t('flights.expiredSave', 'This save is too old to retry safely. Check your flights before starting a new save.') })
@@ -253,6 +254,7 @@ export function FlightForm({ isOpen, onClose, onSaved, editFlight, onDelete }: F
       await createFlight.mutateAsync({
         flight: pending.body as Omit<import('@/lib/flights').FlightInsert, 'id' | 'created_at' | 'user_id'>,
         operationId,
+        retryKey,
       })
       setOperationId(rotateFlightOperationId('manual'))
       onClose()
@@ -533,7 +535,7 @@ export function FlightForm({ isOpen, onClose, onSaved, editFlight, onDelete }: F
           <div className="mt-4 rounded-md border border-warning p-3 text-sm" role="alert">
             <p>{t('flights.unconfirmedSave', 'The last save may have succeeded. Retry the original flight safely, or start a new save with the current form.')}</p>
             <div className="mt-2 flex gap-2">
-              <Button type="button" variant="outline" disabled={isSubmitting} onClick={retryOriginal}>{t('flights.retryOriginal', 'Retry original')}</Button>
+              <Button type="button" variant="outline" disabled={isSubmitting} onClick={() => void retryOriginal(receipt?.key ?? '')}>{t('flights.retryOriginal', 'Retry original')}</Button>
               <Button type="button" variant="outline" disabled={isSubmitting} onClick={startNewOperation}>{t('flights.startNewSave', 'Start new save')}</Button>
             </div>
           </div>
