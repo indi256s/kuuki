@@ -91,25 +91,10 @@ export function pendingFlightCreateOperation(userId: string, operationId: string
 
 /** Recover only this user's import receipts after reload or navigation. */
 export function pendingImportFlightOperations(userId: string): Array<{ operationId: string; key: string; body: object; expired: boolean }> {
-  const prefix = `${STORAGE_PREFIX}${userId}:`
-  const keys = new Set<string>()
-  for (const id of fallback.keys()) if (id.startsWith(`${userId}:`)) keys.add(id.slice(userId.length + 1))
-  try {
-    for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i)
-      if (key?.startsWith(prefix)) keys.add(key.slice(prefix.length))
-    }
-  } catch { /* Storage may be unavailable. */ }
-  const receipts: Array<{ operationId: string; key: string; body: object; expired: boolean }> = []
-  for (const operationId of keys) {
-    // Import operation IDs are a run UUID followed by a row number.
-    if (!/^[0-9a-f-]{36}:\d+$/.test(operationId)) continue
-    try {
-      const pending = pendingFlightCreateOperation(userId, operationId)
-      if (pending) receipts.push({ operationId, ...pending })
-    } catch { /* Ignore malformed local storage entries. */ }
-  }
-  return receipts.sort((a, b) => a.operationId.localeCompare(b.operationId))
+  // Import operation IDs are a run UUID followed by a row number.
+  return pendingFlightCreateOperations(userId)
+    .filter(receipt => /^[0-9a-f-]{36}:\d+$/.test(receipt.operationId))
+    .sort((a, b) => a.operationId.localeCompare(b.operationId))
 }
 
 /**
