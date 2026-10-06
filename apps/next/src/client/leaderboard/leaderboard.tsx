@@ -1,6 +1,6 @@
 'use client'
 import Link from 'next/link'
-import { useEffect, useRef, useState, type ReactNode } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Plane, Route, Globe, TowerControl, Building2, Medal } from 'lucide-react'
 import type { readPublicLeaderboard, readOwnLeaderboardEligibility, readOwnLeaderboardRank, LeaderboardCategory } from '../../../../../functions/api/_services/publicLeaderboard'
 import { notificationStorage } from '../profile/storage'
@@ -89,19 +89,6 @@ export function LeaderboardRows({ entries, category, locale, own }: { entries: E
     <ol className="leaderboard-rows">{entries.map(entry => <li key={entry.user_id} ref={entry.user_id === own?.ownerId ? original : undefined} className={entry.user_id === own?.ownerId ? 'leaderboard-own' : ''} aria-hidden={entry.user_id === own?.ownerId && pinned ? true : undefined} inert={entry.user_id === own?.ownerId && pinned ? true : undefined}><RankRow entry={entry} category={category} locale={locale} own={entry.user_id === own?.ownerId} /></li>)}</ol>
     {pinned && own && ownEntry && <IdentitySnapshot ownerId={own.ownerId}><aside className="leaderboard-pin" aria-label={locale === 'ru' ? 'Ваше место в рейтинге' : 'Your leaderboard place'}><RankRow entry={ownEntry} category={category} locale={locale} own /></aside></IdentitySnapshot>}
   </>
-}
-
-/** Animate category replacement only; a first render and ordinary data refresh stay still. */
-export function CategoryContent({ category, children }: { category: LeaderboardCategory; children: ReactNode }) {
-  const node = useRef<HTMLDivElement>(null)
-  const previous = useRef(category)
-  useEffect(() => {
-    if (previous.current === category) return
-    previous.current = category
-    const animation = node.current?.animate?.([{ opacity: 0 }, { opacity: 1 }], { duration: 150, easing: 'linear' })
-    return () => animation?.cancel()
-  }, [category])
-  return <div ref={node}>{children}</div>
 }
 
 export function LeaderboardLoading({ locale }: { locale: Locale }) {

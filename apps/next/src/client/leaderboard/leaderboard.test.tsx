@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { act, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
-import { CategoryTabs, CategoryContent, LeaderboardRows, recordRank } from './leaderboard'
+import { CategoryTabs, LeaderboardRows, recordRank } from './leaderboard'
 vi.mock('../profile/badge-notifications', () => ({ BadgeNotifications: () => null }))
 vi.mock('../activity', () => ({ IdentitySnapshot: ({ children }: { children: React.ReactNode }) => children }))
 vi.mock('../profile/avatar', () => ({ ProfileAvatar: () => <span aria-hidden="true" /> }))
@@ -53,15 +53,15 @@ it('baselines rank on a device and celebrates only a new improvement per account
   expect(recordRank('rank-user', 'flights', 12, 'p3', device)).toEqual({ delta: -5, celebrate: false })
 })
 
-it('category replacement fades opacity only, without animating initial render or a refresh', () => {
+it('changing category never animates: tabs update the announcement and current page without Element.animate', async () => {
   const animate = vi.fn(() => ({ cancel: vi.fn() }))
   Object.defineProperty(Element.prototype, 'animate', { configurable: true, value: animate })
-  const view = render(<CategoryContent category="flights"><p>flights</p></CategoryContent>)
+  const view = render(<CategoryTabs category="flights" locale="en" />)
+  await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('Leaderboard category: Flights'))
+  view.rerender(<CategoryTabs category="cities" locale="en" />)
+  await waitFor(() => expect(screen.getByRole('status')).not.toHaveTextContent('Flights'))
+  expect(screen.getByRole('link', { current: 'page' })).toHaveAttribute('href', '/leaderboard?category=cities')
   expect(animate).not.toHaveBeenCalled()
-  view.rerender(<CategoryContent category="cities"><p>airports</p></CategoryContent>)
-  expect(animate).toHaveBeenCalledWith([{ opacity: 0 }, { opacity: 1 }], { duration: 150, easing: 'linear' })
-  view.rerender(<CategoryContent category="cities"><p>updated airports</p></CategoryContent>)
-  expect(animate).toHaveBeenCalledTimes(1)
 })
 
 it.each([['en', 1, '1 more flight'], ['ru', 1, '1 перелёт'], ['ru', 2, '2 перелёта'], ['ru', 5, '5 перелётов']] as const)('uses real eligibility plurals (%s %i)', async (locale, remaining, label) => {

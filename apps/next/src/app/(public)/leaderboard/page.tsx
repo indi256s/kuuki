@@ -5,7 +5,7 @@ import { getOptionalPublicViewer } from '../../../server/identity'
 import { getRequestLocale } from '../../../server/locale'
 import { pageMetadata } from '../../../server/metadata'
 import { leaderboardCategories, type LeaderboardCategory } from '../../../../../../functions/api/_services/publicLeaderboard'
-import { CategoryTabs, CategoryContent, LeaderboardRows, LeaderboardLoading } from '../../../client/leaderboard/leaderboard'
+import { CategoryTabs, LeaderboardRows, LeaderboardLoading } from '../../../client/leaderboard/leaderboard'
 import { categoryName } from '../../../client/leaderboard/categories'
 import '../../../client/leaderboard/leaderboard.css'
 
@@ -26,5 +26,5 @@ export async function Ranking({ category }: { category: LeaderboardCategory }) {
 export default async function Leaderboard({ searchParams }: { searchParams: Promise<{ category?: string }> }) {
   const [query, locale] = await Promise.all([searchParams, getRequestLocale()])
   const category = leaderboardCategories.includes(query.category as LeaderboardCategory) ? query.category as LeaderboardCategory : 'flights'
-  return <div className="editorial-leaderboard"><p className="eyebrow">{locale === 'ru' ? 'Сообщество' : 'The community'}</p><h1>{locale === 'ru' ? 'Рейтинг' : 'Leaderboard'}</h1><CategoryTabs category={category} locale={locale} /><CategoryContent category={category}><Suspense key={category} fallback={<LeaderboardLoading locale={locale} />}><Ranking category={category} /></Suspense></CategoryContent></div>
+  return <div className="editorial-leaderboard"><p className="eyebrow">{locale === 'ru' ? 'Сообщество' : 'The community'}</p><h1>{locale === 'ru' ? 'Рейтинг' : 'Leaderboard'}</h1><CategoryTabs category={category} locale={locale} /><Suspense key={category} fallback={<LeaderboardLoading locale={locale} />}><Ranking category={category} /></Suspense></div>
 }
