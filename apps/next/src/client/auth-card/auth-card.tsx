@@ -7,6 +7,7 @@ import type { Locale } from '../../lib/format'
 import { BrandPanel } from './brand-panel'
 import { CornerControls } from './corner-controls'
 import { FormStep } from './form-step'
+import { PlaneField } from './plane-field'
 import { Tagline } from './taglines'
 import './auth-card.css'
 
@@ -16,7 +17,7 @@ import './auth-card.css'
  */
 export function AuthCardFrame({ locale, brandField, theme, children }: { locale: Locale; brandField?: ReactNode; theme?: ReactNode; children: ReactNode }) {
   return <div className="auth-card">
-    <BrandPanel field={brandField} />
+    <BrandPanel field={brandField ?? <PlaneField />} />
     <CornerControls locale={locale} theme={theme} />
     <section className="auth-form-panel"><div className="auth-column">{children}</div></section>
   </div>

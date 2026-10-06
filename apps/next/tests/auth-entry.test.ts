@@ -255,3 +255,100 @@ test('Continue with known credentials lands in the journal, even when session bo
   await c.password.press('Enter')
   await expect(page).toHaveURL(/\/overview$/)
 })
+
+/** The brand panel's decorative planes, by size, counting only the ones the current layout shows. */
+async function visiblePlanes(page: Page) {
+  const planes = page.locator('[data-plane]:visible')
+  return {
+    all: await planes.count(),
+    small: await page.locator('[data-plane="s"]:visible').count(),
+    medium: await page.locator('[data-plane="m"]:visible').count(),
+    large: await page.locator('[data-plane="l"]:visible').count(),
+  }
+}
+
+/** Animations running on the plane glyphs (SVG elements), not on anything else in the page. */
+function planeAnimations(page: Page) {
+  return page.evaluate(() => {
+    const planes = document.getAnimations().filter(animation => (animation as CSSAnimation).effect instanceof KeyframeEffect
+      && (animation.effect as KeyframeEffect).target instanceof SVGElement)
+    return { total: planes.length, running: planes.filter(animation => animation.playState === 'running').length }
+  })
+}
+
+test('the desktop brand panel has 30 planes (12 small, 10 medium, 8 large) over the くうき watermark', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 })
+  await page.goto('/')
+  expect(await visiblePlanes(page)).toEqual({ all: 30, small: 12, medium: 10, large: 8 })
+  // The watermark is stacked one glyph per line, and the whole field is decoration.
+  const glyphs = await Promise.all(['く', 'う', 'き'].map(async glyph => (await page.getByText(glyph, { exact: true }).boundingBox())!))
+  expect(glyphs[0].y).toBeLessThan(glyphs[1].y)
+  expect(glyphs[1].y).toBeLessThan(glyphs[2].y)
+  expect(await page.locator('[data-plane]').first().evaluate(element => element.closest('[aria-hidden=true]') !== null)).toBe(true)
+  // The planes stay behind the wordmark and never take pointer input.
+  const wordmark = (await card(page).wordmark.boundingBox())!
+  const top = await page.evaluate(({ x, y }) => document.elementFromPoint(x, y)?.closest('[role=img]')?.getAttribute('aria-label'), { x: wordmark.x + wordmark.width / 2, y: wordmark.y + wordmark.height / 2 })
+  expect(top).toBe('Kuuki')
+})
+
+test('the mobile brand band has 14 planes (5 small, 5 medium, 4 large) over a horizontal watermark', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 })
+  await page.goto('/')
+  expect(await visiblePlanes(page)).toEqual({ all: 14, small: 5, medium: 5, large: 4 })
+  const glyphs = await Promise.all(['く', 'う', 'き'].map(async glyph => (await page.getByText(glyph, { exact: true }).boundingBox())!))
+  expect(glyphs[0].x).toBeLessThan(glyphs[1].x)
+  expect(glyphs[1].x).toBeLessThan(glyphs[2].x)
+  expect(glyphs[0].y).toBeCloseTo(glyphs[2].y, 0)
+})
+
+for (const [name, viewport] of [['desktop', { width: 1440, height: 900 }], ['mobile', { width: 390, height: 844 }]] as const) {
+  test(`${name} planes are present but still under reduced motion`, async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' })
+    await page.setViewportSize(viewport)
+    await page.goto('/')
+    expect((await visiblePlanes(page)).all).toBe(name === 'desktop' ? 30 : 14)
+    // Give an observer-driven start a chance to wrongly kick in.
+    await page.waitForTimeout(500)
+    expect(await planeAnimations(page)).toEqual({ total: 0, running: 0 })
+  })
+}
+
+test('planes drift with transform only, and stop while the page is hidden', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'no-preference' })
+  await page.setViewportSize({ width: 1440, height: 900 })
+  await page.goto('/')
+  await expect.poll(async () => (await planeAnimations(page)).running).toBe(30)
+  const properties = await page.evaluate(() => [...new Set(document.getAnimations()
+    .filter(animation => (animation as CSSAnimation).effect instanceof KeyframeEffect && (animation.effect as KeyframeEffect).target instanceof SVGElement)
+    .flatMap(animation => (animation.effect as KeyframeEffect).getKeyframes().flatMap(keyframe => Object.keys(keyframe).filter(key => !['offset', 'easing', 'composite', 'computedOffset'].includes(key)))))])
+  expect(properties).toEqual(['transform'])
+  // The vertical offset of the first plane on screen, which changes every frame while the field runs.
+  const sample = () => page.evaluate(() => {
+    const plane = [...document.querySelectorAll('[data-plane]')].find(element => element.getClientRects().length > 0)!
+    return new DOMMatrix(getComputedStyle(plane).transform).m42
+  })
+  await page.evaluate(() => {
+    Object.defineProperty(document, 'hidden', { configurable: true, get: () => true })
+    document.dispatchEvent(new Event('visibilitychange'))
+  })
+  await expect.poll(async () => (await planeAnimations(page)).running).toBe(0)
+  const frozen = await sample()
+  await page.waitForTimeout(300)
+  expect(await sample()).toBe(frozen)
+  await page.evaluate(() => {
+    Object.defineProperty(document, 'hidden', { configurable: true, get: () => false })
+    document.dispatchEvent(new Event('visibilitychange'))
+  })
+  await expect.poll(async () => (await planeAnimations(page)).running).toBe(30)
+})
+
+test('planes stop while the brand band is scrolled out of view', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'no-preference' })
+  await page.setViewportSize({ width: 390, height: 300 })
+  await page.goto('/')
+  await expect.poll(async () => (await planeAnimations(page)).running).toBe(14)
+  await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight))
+  await expect.poll(async () => (await planeAnimations(page)).running).toBe(0)
+  await page.evaluate(() => window.scrollTo(0, 0))
+  await expect.poll(async () => (await planeAnimations(page)).running).toBe(14)
+})
