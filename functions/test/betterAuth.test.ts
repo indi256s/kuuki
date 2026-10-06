@@ -6,6 +6,7 @@ import { afterEach, expect, it, vi } from 'vitest'
 import { createApiDatabase, apiContext } from './harness'
 import { onRequest as middleware } from '../_middleware'
 import { onRequest as authRoute } from '../api/auth/[[path]]'
+import { onRequestPost as continueRoute } from '../api/auth/continue'
 import { onRequestGet as meRoute } from '../api/auth/me'
 import { onRequestDelete as deleteRoute } from '../api/auth/account'
 import { hashPassword } from '../api/_lib/crypto'
@@ -24,11 +25,31 @@ async function call(db: D1Database, path: string, method = 'GET', body?: object,
     ...(body ? { body: JSON.stringify(body) } : {}),
   })
   const context = { ...apiContext(db, request), env: { DB: db, ...env } }
-  const handler = path === '/api/auth/me' ? meRoute : path === '/api/auth/account' ? deleteRoute : authRoute
+  const handler = path === '/api/auth/me' ? meRoute : path === '/api/auth/account' ? deleteRoute : path === '/api/auth/continue' ? continueRoute : authRoute
   return middleware({ ...context, next: () => handler(context as never) } as never)
 }
 
 afterEach(() => vi.restoreAllMocks())
+
+it('reports session creation failure as unavailable rather than bad credentials on both sign-in paths', async () => {
+  const { db, dispose } = await createApiDatabase()
+  try {
+    expect((await call(db, '/api/auth/sign-up/email', 'POST', { email: 'a@example.test', password: 'password-123' })).status).toBe(201)
+    await db.prepare('DELETE FROM auth_sessions').run()
+    await db.prepare('CREATE TRIGGER refuse_session BEFORE INSERT ON auth_sessions BEGIN SELECT RAISE(IGNORE); END').run()
+    for (const path of ['/api/auth/sign-in/email', '/api/auth/continue']) {
+      const response = await call(db, path, 'POST', { email: 'a@example.test', password: 'password-123' })
+      expect(response.status).toBe(503)
+      expect(await response.json()).toEqual({ error: 'Sign-in is temporarily unavailable', code: 'AUTH_UNAVAILABLE' })
+      expect(response.headers.get('Cache-Control')).toBe('no-store')
+      expect(response.headers.getSetCookie()).toEqual([])
+    }
+    expect((await db.prepare('SELECT COUNT(*) AS n FROM auth_sessions').first<{ n: number }>())?.n).toBe(0)
+    const signup = await call(db, '/api/auth/sign-up/email', 'POST', { email: 'new@example.test', password: 'password-123' })
+    expect(signup.status).toBe(503)
+    expect(await signup.json()).toMatchObject({ code: 'SIGN_IN_REQUIRED' })
+  } finally { await dispose() }
+}, 30_000)
 
 function responseCookies(response: Response): string {
   return response.headers.getSetCookie().map(cookie => cookie.split(';')[0]).join('; ')

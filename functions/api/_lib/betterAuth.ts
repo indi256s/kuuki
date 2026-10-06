@@ -6,6 +6,7 @@ import { hashPassword, verifyPassword, generateToken } from './crypto'
 import { CSRF_COOKIE, SESSION_COOKIE, SESSION_TTL_SECONDS, serializeCookie, clearCookie, parseCookies } from './cookies'
 import { revokeSession } from './session'
 import { requireCsrf, requireSameOrigin } from './auth'
+import { HttpError, jsonError } from './http'
 
 export const BETTER_AUTH_COOKIE = 'kuuki_auth_session'
 
@@ -75,7 +76,14 @@ export function clearBetterAuthCookie(headers: Headers, request: Request): void 
 export async function signInWithBetterAuth(env: Env, request: Request, email: string, password: string): Promise<Response> {
   requireSameOrigin(request)
   const response = await createAuth(env).api.signInEmail({ body: { email, password }, headers: request.headers, asResponse: true })
-  if (!response.ok) return response
+  if (!response.ok) {
+    const failure = await response.clone().json().catch(() => null) as { code?: string } | null
+    if (failure?.code === 'INVALID_EMAIL_OR_PASSWORD') return jsonError(401, 'Invalid email or password', 'INVALID_CREDENTIALS')
+    if (failure?.code === 'FAILED_TO_CREATE_SESSION' || response.status >= 500) {
+      throw new HttpError(503, 'Sign-in is temporarily unavailable', 'AUTH_UNAVAILABLE')
+    }
+    return response
+  }
   const result = new Response(response.body, response)
   await revokeSession(env.DB, parseCookies(request.headers.get('Cookie'))[SESSION_COOKIE])
   result.headers.append('Set-Cookie', clearCookie(SESSION_COOKIE, { httpOnly: true }))
