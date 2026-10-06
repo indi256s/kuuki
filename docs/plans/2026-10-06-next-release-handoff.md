@@ -16,22 +16,31 @@ credentials, routing and deployments have not been changed. A diagnostic sign-in
 created a test session and successful sign-out revoked it. No real mail or
 provider calls were made; retain their separate recipient/provider gates.
 
-Production pepper compatibility remains the pending credential gate:
+Production pepper rotation is now explicitly authorized:
 
-1. The private `production.env` now contains AUTH_SECRET, BETTER_AUTH_SECRET,
-   GEMINI_API_KEY and ACTIVATION_MAIL_AUTH_TOKEN. Better Auth was generated locally;
-   none of these production values has been deployed. Presence does not establish
-   provider/mail permission or delivery acceptance.
-2. The user states AUTH_SECRET was copied from original production storage, but it
-   does not verify the current production atlas test credential. The hash format
-   is supported and the file has one unquoted AUTH_SECRET entry without escaping
-   or inline comments. The same fixture successfully signed in against the live
-   production app (HTTP 200), then signed out (HTTP 200). This establishes that the
-   supplied value differs from the pepper currently used by production. Evidence:
-   private `local-pepper-verification.json` and `live-pepper-fixture-check.json`.
-   Obtain the retained Cloudflare Pages **kuuki production environment** AUTH_SECRET
-   from its original store; Cloudflare API/CLI redact stored secret values. Do not
-   rotate it while preserving the other two accounts' credentials.
+1. The user cannot recover the retained production AUTH_SECRET and accepted
+   generating a new one, with password resets for the two retained production
+   accounts and preservation of their flights. This supersedes the earlier
+   original-pepper preservation requirement for this release; it does not authorize
+   deleting those users or their data.
+2. A new AUTH_SECRET containing 48 cryptographically random bytes is saved in the
+   private `production.env` (0600). The existing BETTER_AUTH_SECRET, GEMINI_API_KEY
+   and ACTIVATION_MAIL_AUTH_TOKEN entries were verified unchanged. No production
+   secrets have been uploaded. Presence does not establish provider/mail permission
+   or delivery acceptance.
+3. The earlier supplied AUTH_SECRET failed local verification against the current
+   production atlas test credential, while that fixture successfully signed in to
+   the live app and signed out (both HTTP 200). Retain that historical evidence;
+   the newly generated secret is intentionally different and is not expected to
+   verify the old hashes.
+4. Under the full writer hold, after backup/restore proof and schema admission,
+   make an explicitly reviewed reset of only the two retained accounts: set their
+   `users.password_hash` to `RESET_REQUIRED`, remove their old credential-provider
+   `auth_accounts` rows, and revoke both legacy and Better Auth sessions plus stale
+   activation tokens. Preserve their IDs, profiles, 69 flights and other owned
+   records. The existing activation flow then installs their new password in both
+   users and auth_accounts. Rehearse this targeted reset and preservation check
+   before production; do not run the blanket `reset-passwords.ts` script.
 
 Identity mapping: the verified fresh source and live production share one email
    and username across different IDs, and 64 differing flight rows share IDs.
@@ -39,11 +48,12 @@ Identity mapping: the verified fresh source and live production share one email
    inspection found that the conflicting account owns zero flights; the other two
    production accounts own all 69 flights and both have personal password hashes.
    The user explicitly selected “Replace only conflicting account.” Preserve the
-   other two accounts, all 69 flights and the original production pepper. Replace
+   other two accounts and all 69 flights. Their passwords must now be reset under
+   the separately accepted pepper rotation above. Replace
    the conflicting account after backup/restore proof, retain the historical user's
    ID, and remap the 64 incoming flight-ID collisions. This authorizes no wholesale
-   production reset or pepper rotation. New auth secrets cannot replace the existing
-   production password pepper while those other credentials remain.
+   production data reset. Remove the two retained old credentials as part of the
+   approved targeted password reset before enabling the new pepper.
    Conflicts must be re-read under the production writer hold before applying.
 
 Fresh source accepted on 6 October at 08:42 UTC: the user supplied the private
@@ -122,7 +132,7 @@ the fresh-source verification. Temporary working copies are
 in `/tmp/kuuki-release-20261006`; the read-only conflict helper is ignored at
 `.scratch/legacy-cleanup/source-target-conflicts.ts`. Do not publish these files.
 
-Next: correct and verify the retained production AUTH_SECRET; finish staging auth and
+Next: rehearse the approved targeted password reset and preservation; finish staging auth and
 compatibility gates. Then enumerate and hold every production writer (including
 immutable Pages deployment URLs), re-read source/target conflicts, export and
 prove hosted restoration, baseline the ledger without running 0001, apply admitted
