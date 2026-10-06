@@ -2,7 +2,7 @@
 
 import clsx from 'clsx'
 import { useRouter } from 'next/navigation'
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import type { Flight } from '../../../../web/src/lib/flights'
 import type { BulkItemResult } from '../../../../../functions/api/_services/flightCreate'
 import type { Locale } from '../../lib/format'
@@ -119,7 +119,8 @@ export function ImportClient({ ownerId, locale, initialBatchId = null, initialSo
   const unsent = Object.keys(saveStates).length > 0 || dirty.size > 0
   // The save below awaits several answers; what is unsent when it ends decides whether the review may close.
   const unsentNow = useRef(unsent)
-  unsentNow.current = unsent
+  // Synced at commit, before any awaited save step resumes; render itself stays pure.
+  useLayoutEffect(() => { unsentNow.current = unsent }, [unsent])
   const [holdDone, setHoldDone] = useState(false)
   useEffect(() => {
     if (!holdDone || unsent || confirming) return
