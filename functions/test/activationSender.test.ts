@@ -70,6 +70,21 @@ it('aborts a stalled provider request at the deadline without exposing its error
   expect(fetchMock.mock.calls[0][1]?.signal?.aborted).toBe(true)
 })
 
+it('logs only the provider status and numeric error codes when sending fails', async () => {
+  const log = vi.spyOn(console, 'error').mockImplementation(() => {})
+  vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response(JSON.stringify({
+    success: false,
+    errors: [{ code: 9109, message: `${TOKEN} ${RECIPIENT} ${LINK}` }, { code: TOKEN }, null],
+  }), { status: 403 }))
+
+  await expect(configuredActivationSender(env).send(RECIPIENT, LINK)).rejects.toThrow(/^Activation sender failed$/)
+
+  expect(log).toHaveBeenCalledOnce()
+  expect(JSON.parse(String(log.mock.calls[0][0]))).toEqual({
+    event: 'mail_send_failed', purpose: 'activation', status: 403, errorCodes: [9109], reason: 'response',
+  })
+})
+
 it('rejects incomplete or invalid Cloudflare sender configuration before sending', () => {
   for (const override of [
     { ACTIVATION_MAIL_ACCOUNT_ID: undefined },

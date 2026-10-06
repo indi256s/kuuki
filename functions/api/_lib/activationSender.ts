@@ -88,6 +88,8 @@ function configuredMailSender(env: Env, purpose: keyof typeof MAIL): MailSender 
     async send(to, link) {
       const controller = new AbortController()
       const timer = setTimeout(() => controller.abort(), 10_000)
+      let status: number | undefined
+      let errorCodes: number[] = []
       try {
         const response = await fetch(url, {
           method: 'POST',
@@ -101,9 +103,18 @@ function configuredMailSender(env: Env, purpose: keyof typeof MAIL): MailSender 
             html: `<p>${mail.subject} using this link:</p><p><a href="${escapeHtml(link)}">${mail.action}</a></p>`,
           }),
         })
-        if (!response.ok || !acknowledged(await readBoundedResponse(response), to)) throw new Error(SENDER_FAILURE)
+        status = response.status
+        const receipt = await readBoundedResponse(response)
+        const errors = receipt && typeof receipt === 'object' ? (receipt as Record<string, unknown>).errors : undefined
+        if (Array.isArray(errors)) {
+          errorCodes = errors.flatMap(error => error && typeof error.code === 'number' && Number.isFinite(error.code) ? [error.code] : [])
+        }
+        if (!response.ok || !acknowledged(receipt, to)) throw new Error(SENDER_FAILURE)
       } catch {
         // Provider bodies and transport errors can contain addresses, links, or credentials.
+        console.error(JSON.stringify({ event: 'mail_send_failed', purpose, status, errorCodes,
+          reason: controller.signal.aborted ? 'timeout' : status === undefined ? 'transport' : 'response',
+        }))
         throw new Error(SENDER_FAILURE)
       } finally {
         clearTimeout(timer)
