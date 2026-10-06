@@ -305,11 +305,13 @@ test('Checking… shows a spinner at full opacity and ignores a second press', a
   await expect(checking).toBeVisible()
   await expect(checking).toHaveAttribute('aria-busy', 'true')
   await expect(checking.locator('svg')).toBeVisible()
+  await expect(c.heading).toBeFocused()
   expect(await checking.evaluate(element => [getComputedStyle(element).opacity, getComputedStyle(element).backgroundColor])).toEqual(['1', idle])
   await checking.click({ force: true })
   await c.password.press('Enter')
   release()
   await expect(page.getByText('Email or password is incorrect.', { exact: true })).toBeVisible()
+  await expect(c.heading).toBeFocused()
   expect(calls).toBe(1)
 })
 
@@ -325,8 +327,7 @@ test('a wrong password keeps the email, shows the error with an icon and offers 
     await expect(error.locator('svg')).toBeVisible()
     await expect(c.email).toHaveValue(email)
     await expect(c.password).toHaveAttribute('aria-invalid', 'true')
-    await expect(c.password).toBeFocused()
-    await expect(c.heading).toBeVisible()
+    await expect(c.heading).toBeFocused()
     await expect(page.getByRole('button', { name: 'Email me a link to get back in', exact: true })).toBeVisible()
   }
   // Until the request state exists in the card, the action opens the recovery page.
@@ -345,12 +346,65 @@ test('too many attempts and a lost connection each show their own message with a
   const limited = page.getByRole('alert').filter({ hasText: 'Too many attempts. Please wait and try again.' })
   await expect(limited).toBeVisible()
   await expect(limited.locator('svg')).toBeVisible()
+  await expect(c.heading).toBeFocused()
   await expect(page.getByRole('button', { name: 'Email me a link to get back in' })).toHaveCount(0)
   await c.continue.click()
   const failed = page.getByRole('alert').filter({ hasText: 'We could not complete this request. Please try again.' })
   await expect(failed).toBeVisible()
   await expect(failed.locator('svg')).toBeVisible()
+  await expect(c.heading).toBeFocused()
   await expect(c.email).toHaveValue('a@example.test')
+})
+
+for (const endpoint of ['continue', 'signup']) {
+  test(`${endpoint} rejects malformed success replies without losing credentials`, async ({ page }) => {
+    if (endpoint === 'signup') await page.route('**/api/auth/continue', route => route.fulfill({ json: { next: 'create' } }))
+    const replies = [
+      ['empty object', '{}'], ['empty body', ''], ['HTML', '<html>Unavailable</html>'], ['null', 'null'],
+      ['missing user ID', '{"user":{}}'], ['empty user ID', '{"user":{"id":""}}'],
+      ['unknown next', '{"next":"unexpected","user":{"id":"u1"}}'],
+    ]
+    let attempt = 0
+    await page.route(`**/api/auth/${endpoint}`, route => route.fulfill({
+      status: endpoint === 'signup' ? 201 : 200, contentType: 'application/json', body: replies[attempt++][1],
+    }))
+    await page.goto('/')
+    const c = card(page), email = 'keep@example.test', password = 'personal-password-2026'
+    const s = endpoint === 'signup' ? await reachCreateStep(page, email, password) : undefined
+    if (!s) { await c.email.fill(email); await c.password.fill(password) }
+    for (const [name] of replies) await test.step(name, async () => {
+      await (s?.create ?? c.continue).click()
+      await expect(page.getByRole('alert')).toHaveText('We could not complete this request. Please try again.')
+      await expect(s?.heading ?? c.heading).toBeFocused()
+      await expect(c.email).toHaveValue(email)
+      await expect(s?.password ?? c.password).toHaveValue(password)
+      await expect(page).toHaveURL(/\/$/)
+    })
+    expect(attempt).toBe(replies.length)
+  })
+}
+
+test('Creating focuses the heading, and server failures return focus there with the password kept', async ({ page }) => {
+  await page.route('**/api/auth/continue', route => route.fulfill({ json: { next: 'create' } }))
+  let release!: () => void, held: Promise<void>, attempt = 0
+  await page.route('**/api/auth/signup', async route => {
+    await held
+    if (++attempt === 1) await route.fulfill({ status: 429, json: { code: 'RATE_LIMITED' } })
+    else if (attempt === 2) await route.abort('failed')
+    else await route.fulfill({ status: 400, json: { code: 'WEAK_PASSWORD' } })
+  })
+  await page.goto('/')
+  const s = await reachCreateStep(page, 'retry@example.test')
+  for (const message of ['Too many attempts. Please wait and try again.', 'We could not complete this request. Please try again.', 'Use at least 8 characters.']) {
+    held = new Promise<void>(resolve => { release = resolve })
+    await s.create.click()
+    await expect(page.getByRole('button', { name: 'Creating…', exact: true })).toBeVisible()
+    await expect(s.heading).toBeFocused()
+    release()
+    await expect(page.getByRole('alert')).toHaveText(message)
+    await expect(s.heading).toBeFocused()
+    await expect(s.password).toHaveValue('personal-password-2026')
+  }
 })
 
 test('an unknown email turns the card into the create step in place, and Create account reaches onboarding', async ({ page, baseURL }) => {

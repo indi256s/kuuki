@@ -42,6 +42,15 @@ type FocusTarget = 'heading' | 'primary' | 'email-selected' | 'email' | 'passwor
 /** Continue answered `{ next: 'create' }`: no session was issued, so the identity mutation must not navigate. */
 class NoJournal extends Error {}
 
+/** Sign-in and signup return a user ID; a 2xx response alone does not establish a session. */
+function sessionReply(reply: unknown) {
+  const data = reply as { next?: unknown; user?: { id?: unknown } } | null | undefined
+  if (!data || typeof data !== 'object' || 'next' in data || typeof data.user?.id !== 'string' || !data.user.id.trim()) {
+    throw new Error('Invalid auth response')
+  }
+  return reply
+}
+
 const codeOf = (error: unknown) => error instanceof ApiError ? error.code : undefined
 const statusOf = (error: unknown) => error instanceof ApiError ? error.status : undefined
 
@@ -75,38 +84,36 @@ export function AuthCard({ locale, initialEmail = '', tagline }: { locale: Local
   const signInOrAsk = async (address: string) => {
     if (!EMAIL.test(address)) return go({ step: 'form', error: 'email' }, 'email')
     if (!password) return go({ step: 'form', error: 'password' }, 'password')
-    // Checking keeps the same form on screen (read-only), so focus stays where it was.
-    go({ step: 'checking' }, 'none')
+    go({ step: 'checking' })
     try {
       await withIdentityMutation(async token => {
-        const reply = await api.post<{ next?: string }>('/api/auth/continue', { email: address, password }, { identityToken: token })
-        if (reply?.next === 'create') throw new NoJournal()
-        return reply
+        const reply = await api.post<unknown>('/api/auth/continue', { email: address, password }, { identityToken: token })
+        if (reply && typeof reply === 'object' && 'next' in reply && reply.next === 'create') throw new NoJournal()
+        return sessionReply(reply)
       }, '/overview')
     } catch (error) {
       // The create step focuses Create account, the one documented exception to focusing the heading.
       if (error instanceof NoJournal) return go({ step: 'create', email: address }, 'primary')
       const code = codeOf(error)
-      // The form's heading doesn't change on an error; the wrong-password board (1.4) has focus back in the password.
-      if (code === 'INVALID_CREDENTIALS' || code === 'INVALID_EMAIL_OR_PASSWORD') return go({ step: 'form', error: 'invalid' }, 'password')
-      if (code === 'INVALID_EMAIL' || code === 'MISSING_CREDENTIALS') return go({ step: 'form', error: 'email' }, 'email')
-      if (code === 'MISSING_PASSWORD') return go({ step: 'form', error: 'password' }, 'password')
-      go({ step: 'form', error: statusOf(error) === 429 ? 'rate' : 'network' }, 'none')
+      if (code === 'INVALID_CREDENTIALS' || code === 'INVALID_EMAIL_OR_PASSWORD') return go({ step: 'form', error: 'invalid' })
+      if (code === 'INVALID_EMAIL' || code === 'MISSING_CREDENTIALS') return go({ step: 'form', error: 'email' })
+      if (code === 'MISSING_PASSWORD') return go({ step: 'form', error: 'password' })
+      go({ step: 'form', error: statusOf(error) === 429 ? 'rate' : 'network' })
     }
   }
 
   const createJournal = async (address: string) => {
     if (password.length < 8) return go({ step: 'create', email: address, error: 'short' }, 'password')
-    go({ step: 'creating', email: address }, 'none')
+    go({ step: 'creating', email: address })
     try {
-      await withIdentityMutation(token => api.post('/api/auth/signup', { email: address, password }, { identityToken: token }), '/onboarding')
+      await withIdentityMutation(async token => sessionReply(await api.post('/api/auth/signup', { email: address, password }, { identityToken: token })), '/onboarding')
     } catch (error) {
       const code = codeOf(error)
-      if (code === 'WEAK_PASSWORD') return go({ step: 'create', email: address, error: 'short' }, 'password')
+      if (code === 'WEAK_PASSWORD') return go({ step: 'create', email: address, error: 'short' })
       if (code === 'EMAIL_TAKEN') return go({ step: 'form', error: 'taken' })
       if (code === 'SIGN_IN_REQUIRED') return go({ step: 'form', notice: 'created' })
-      if (code === 'INVALID_EMAIL') return go({ step: 'form', error: 'email' }, 'email')
-      go({ step: 'create', email: address, error: statusOf(error) === 429 ? 'rate' : 'network' }, 'none')
+      if (code === 'INVALID_EMAIL') return go({ step: 'form', error: 'email' })
+      go({ step: 'create', email: address, error: statusOf(error) === 429 ? 'rate' : 'network' })
     }
   }
 
