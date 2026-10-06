@@ -271,6 +271,26 @@ writes made after the release.
 - The `kuuki-next-preview` Worker stays up, since it is the source of the teeDc
   bundle.
 
+**Next session (fresh thread).**
+1. Redirect `kuuki.indi256.com` and `kuuki.pages.dev` to `https://kuuki.marchstudio.uk`.
+   Both currently serve held Pages deployment `4a779796`.
+   - Keep the Pages hold as the rollback surface, and keep the Access hold on
+     immutable URLs.
+   - Prefer zone-level Single Redirects or a Pages `_redirects`/`_worker.js` change
+     only after checking which zone owns `indi256.com`.
+   - `kuuki.pages.dev` cannot take a zone rule; decide between a held-Pages redirect
+     and leaving it in maintenance.
+2. Two retained accounts reset their passwords through the existing activation flow
+   on `kuuki-activation.indi256s.workers.dev`.
+   - Each request goes to its own owner only. No bulk or legacy-cohort mail is
+     authorized.
+   - Confirm activation installs credentials: `users.password_hash` and the
+     credential `auth_accounts` row, with 0 remaining tokens.
+
+The 60-minute monitoring window runs in the cutover thread until about 14:04Z. Check
+its result in Workers analytics for `kuuki-next` and `kuuki-activation` from
+13:03:45Z. At 13:06Z there were 0 errors.
+
 **Open follow-ups.**
 - Point `kuuki.indi256.com` (and optionally `kuuki.pages.dev`) at the canonical origin.
 - The two retained accounts reset their passwords through activation; no bulk mail
