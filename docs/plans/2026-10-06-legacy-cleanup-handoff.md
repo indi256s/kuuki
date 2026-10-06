@@ -44,7 +44,10 @@ that setup, both frontend legs were rerun successfully. No API behavior changed
 after its accepted result. Independent full-diff and narrow setup review found
 no actionable findings. All source edits are local to this branch.
 
-Next action: cleanup is complete and ready for review. Hosted release,
-performance and visual acceptance remain outside the authorized cleanup. The
-Vite rollback boundary is documented in the release runbook; it remains until
-a separately accepted retirement decision.
+Update, 2026-10-06: cleanup commit `f3e2b1c` was merged and pushed to `main`.
+GitHub CI/CD run `37434105774` and React Doctor run `37434105847` passed;
+deployment jobs were skipped by the existing release guards. The user then
+authorized the controlled staging/production release and legacy data transfer.
+Continue from the [Next release handoff](2026-10-06-next-release-handoff.md),
+which records the owning checkout, accepted hosted progress and remaining gates.
+The Vite rollback surface remains until a separately accepted retirement decision.

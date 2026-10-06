@@ -102,6 +102,8 @@ describe('isolated D1 migration', () => {
     expect(assessSchemaAdmission(observed, expected, target).admitted).toBe(false)
     expect(assessSchemaAdmission([...observed, { type: 'table', name: 'unexpected', tbl_name: 'unexpected', sql: 'CREATE TABLE unexpected(id)' }],
       expected, target).reason).toBe('application-object-inventory-mismatch')
+    expect(assessSchemaAdmission(observed, [...expected, { type: 'table', name: '_cf_METADATA', tbl_name: '_cf_METADATA', sql: 'CREATE TABLE _cf_METADATA(key)' }],
+      target).reason).toBe('unreviewed-schema-variant')
     const dir = mkdtempSync(join(tmpdir(), 'kuuki-schema-review-'))
     dirs.push(dir)
     const path = join(dir, 'review.json')

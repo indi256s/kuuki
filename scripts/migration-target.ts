@@ -52,8 +52,9 @@ export function applicationSchemaRows(rows: Array<Record<string, unknown>>): Arr
   return rows.filter((row) => {
     const name = String(row.name ?? '')
     const owner = String(row.tbl_name ?? '')
-    return !name.startsWith('sqlite_') && !['_cf_KV', 'd1_migrations'].includes(name) &&
-      !['_cf_KV', 'd1_migrations'].includes(owner)
+    // D1 reserves the `_cf_` prefix for internal objects (hosted `_cf_KV`, local `_cf_METADATA`).
+    return !name.startsWith('sqlite_') && !name.startsWith('_cf_') && !owner.startsWith('_cf_') &&
+      name !== 'd1_migrations' && owner !== 'd1_migrations'
   })
 }
 
