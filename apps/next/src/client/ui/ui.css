@@ -6,7 +6,8 @@
 .ui-button{position:relative;display:inline-grid;place-items:center;min-height:44px;padding:10px 18px;border:1px solid var(--control-border);border-radius:var(--radius-sm);background:var(--surface);color:var(--text);font-weight:600;font-size:15px;line-height:20px;text-decoration:none;cursor:pointer;transition:transform var(--dur-press) var(--ease-out),background-color var(--dur-fast) var(--ease-out),color var(--dur-fast) var(--ease-out)}
 .ui-button>span{grid-area:1/1;min-width:0}
 .ui-button .ui-button-hidden{visibility:hidden}
-.ui-button:active:not([aria-disabled=true]):not([data-static=true]){transform:scale(.96)}
+/* :where keeps this at the specificity of .ui-button:active, so the reduced-motion override below still wins. */
+.ui-button:active:where(:not([aria-disabled=true]):not([data-static=true])){transform:scale(.96)}
 .ui-button[data-variant=primary]{background:var(--accent);border-color:var(--accent);color:var(--accent-foreground)}
 .ui-button[data-variant=ghost]{background:transparent;border-color:transparent;color:var(--text)}
 .ui-button[data-variant=danger]{background:var(--surface);border-color:var(--danger-text);color:var(--danger-text)}
