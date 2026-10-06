@@ -22,7 +22,7 @@ function publishIdentity(id: string | null) {
 
 function safeTargetPath(path?: string): string {
   if (path === undefined) return window.location.pathname + window.location.search
-  const allowed = new Set(['/', '/overview', '/journal', '/passport', '/signin', '/signup', '/settings', '/onboarding', '/account-deleted', '/password-updated'])
+  const allowed = new Set(['/', '/?notice=password-saved', '/overview', '/journal', '/passport', '/signin', '/signup', '/settings', '/onboarding', '/account-deleted', '/password-updated'])
   if (!allowed.has(path)) throw new Error('Invalid identity navigation target')
   return path
 }

@@ -95,3 +95,19 @@ it("clears the departing owner's capture recents and disclosure preferences when
   expect(readCapturePreference('b', 'airports', [])).toEqual(['IST'])
   expect(sessionStorage.getItem('unrelated')).toBe('keep')
 })
+
+it('accepts only the explicit saved-password query when navigating after an identity mutation', async () => {
+  const { beginIdentityOperation } = await import('@kuuki/client/apiClient')
+  vi.mocked(beginIdentityOperation).mockReturnValue({ ready: Promise.resolve(), token: Symbol(), release: vi.fn() } as never)
+  api.get.mockResolvedValue({ user: null })
+  const { withIdentityMutation } = await import('./activity')
+  const run = vi.fn(async () => ({ ok: true }))
+  const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
+  try {
+    await expect(withIdentityMutation(run, '/?notice=password-saved')).resolves.toEqual({ ok: true })
+    for (const target of ['/?notice=unknown', '/?notice=password-saved&token=secret', '//example.test/']) {
+      await expect(withIdentityMutation(run, target)).rejects.toThrow('Invalid identity navigation target')
+    }
+  } finally { consoleError.mockRestore() }
+  expect(run).toHaveBeenCalledOnce()
+})

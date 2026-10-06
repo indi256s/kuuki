@@ -5,7 +5,7 @@ import { readFileSync, readdirSync, statSync } from 'node:fs'
 import { resolve, join } from 'node:path'
 import { Miniflare, Log, LogLevel, Request as WorkerRequest, Response as WorkerResponse } from 'miniflare'
 import { applyMigrations } from './_migrations'
-import { hashPassword } from '../functions/api/_lib/crypto'
+import { hashPassword, sha256Hex } from '../functions/api/_lib/crypto'
 import { SESSION_TTL_SECONDS } from '../functions/api/_lib/cookies'
 import { refreshLeaderboards } from '../functions/api/_services/leaderboard'
 
@@ -128,7 +128,7 @@ async function main() {
       db.prepare("INSERT INTO _code_adjectives(word) VALUES('calm'),('bright'),('swift')"),
       db.prepare("INSERT INTO _code_nouns(word) VALUES('cloud'),('wing'),('sky')"),
     ])
-    for (const [email, username] of [['a@example.test', 'fixture-a'], ['b@example.test', 'fixture-b']]) {
+    for (const [email, username] of [['a@example.test', 'fixture-a'], ['b@example.test', 'fixture-b'], ['recovery@example.test', 'fixture-recovery']]) {
       const signup = await request('/api/auth/sign-up/email', {
         method: 'POST', headers: { Origin: origin, 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password: 'rehearsal-password-2026' }),
@@ -185,6 +185,12 @@ async function main() {
     if (created.status !== 201) throw new Error(`Synthetic flight create failed: ${created.status} ${await created.text()}`)
     await mf.ready
     if (!check) {
+      // A dedicated account and one-use token exercise browser resets without mutating other journeys' credentials.
+      const recoveryHash = await sha256Hex('R'.repeat(43))
+      const recoveryNow = new Date().toISOString()
+      await db.prepare(`INSERT INTO auth_verifications(id,identifier,value,expiresAt,createdAt,updatedAt)
+        SELECT ?, 'password-reset:' || id, ?, ?, ?, ? FROM users WHERE email = 'recovery@example.test'`)
+        .bind(`password-reset:${recoveryHash}`, recoveryHash, new Date(Date.now() + 30 * 60_000).toISOString(), recoveryNow, recoveryNow).run()
       // A public, opted-in member with 5 flights gives /leaderboard one row that opens a real /fly profile.
       await db.batch([
         db.prepare("INSERT INTO users(id,email,password_hash) VALUES('ranked-fixture','ranked@example.test','RESET_REQUIRED')"),

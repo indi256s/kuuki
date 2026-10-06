@@ -2,85 +2,96 @@
 import { StrictMode } from 'react'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { afterEach, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import { ApiError } from '@kuuki/client/apiClient'
 import { ResetPasswordForm } from './reset-password-form'
-import { EmailLinkForm } from '../public/email-link-form'
 
 const post = vi.hoisted(() => vi.fn())
 const identity = vi.hoisted(() => vi.fn(async (run: (token: symbol) => Promise<unknown>) => run(Symbol('identity'))))
 vi.mock('@kuuki/client/apiClient', async importOriginal => ({ ...await importOriginal<typeof import('@kuuki/client/apiClient')>(), api: { post } }))
 vi.mock('../activity', () => ({ withIdentityMutation: identity }))
-afterEach(() => { post.mockReset(); identity.mockClear(); delete window.__kuukiResetToken })
-
-it.each(['activation', 'recovery'] as const)('keeps %s requests generic, validates email and separates rate limits from network failures', async purpose => {
-  post.mockRejectedValueOnce(new ApiError(429, 'limited')).mockRejectedValueOnce(new TypeError('offline')).mockResolvedValueOnce({ ok: true })
-  render(<EmailLinkForm locale="en" purpose={purpose} />)
-  const action = purpose === 'activation' ? 'Send activation link' : 'Send reset link'
-  await userEvent.click(screen.getByRole('button', { name: action }))
-  expect(screen.getByLabelText('Email')).toHaveAccessibleDescription('Enter a valid email.')
-  expect(post).not.toHaveBeenCalled()
-  await userEvent.type(screen.getByLabelText('Email'), 'unknown@example.test')
-  await userEvent.click(screen.getByRole('button', { name: action }))
-  expect(await screen.findByRole('alert')).toHaveTextContent('Too many attempts.')
-  await userEvent.click(screen.getByRole('button', { name: action }))
-  expect(await screen.findByRole('alert')).toHaveTextContent('Could not submit the request.')
-  await userEvent.click(screen.getByRole('button', { name: action }))
-  expect(await screen.findByRole('status')).toHaveTextContent(purpose === 'activation' ? 'If activation is needed for this address' : 'If recovery is available for this address')
-  expect(post).toHaveBeenLastCalledWith(purpose === 'activation' ? '/api/auth/activation/request' : '/api/auth/password-reset/request', { email: 'unknown@example.test' })
+beforeEach(() => {
+  sessionStorage.clear()
+  vi.stubGlobal('IntersectionObserver', class { observe() {} disconnect() {} })
 })
+afterEach(() => { post.mockReset(); identity.mockClear(); delete window.__kuukiResetToken; vi.unstubAllGlobals() })
 
-it('validates matching reset passwords and returns successful completion to sign-in', async () => {
+it('validates one new password, associates a known email and returns confirmed completion to the card notice', async () => {
   const token = 'A'.repeat(43)
   window.__kuukiResetToken = token
+  sessionStorage.setItem('kuuki_auth_email', 'known@example.test')
   post.mockResolvedValueOnce({ ok: true })
   render(<ResetPasswordForm locale="en" />)
   const password = await screen.findByLabelText('New password', { exact: true })
   expect(window.__kuukiResetToken).toBeUndefined()
-  expect(password).toHaveAccessibleDescription('Use 8 to 1024 characters.')
-  await userEvent.type(password, 'personal-password')
-  await userEvent.type(screen.getByLabelText('Confirm password'), 'different-password')
+  expect(password).toHaveAttribute('autocomplete', 'new-password')
+  expect(password).toHaveAccessibleDescription('At least 8 characters')
+  expect(screen.queryByLabelText('Confirm password')).toBeNull()
+  expect(document.querySelector('input[type=hidden][autocomplete=username]')).toHaveValue('known@example.test')
+  await userEvent.type(password, 'short')
   await userEvent.click(screen.getByRole('button', { name: 'Save password' }))
-  expect(screen.getByLabelText('Confirm password')).toHaveAccessibleDescription('Passwords do not match.')
+  expect(password).toHaveAccessibleDescription('At least 8 characters Use 8 to 1024 characters.')
+  expect(password).toHaveFocus()
   expect(post).not.toHaveBeenCalled()
-  await userEvent.clear(screen.getByLabelText('Confirm password'))
-  await userEvent.type(screen.getByLabelText('Confirm password'), 'personal-password')
+  await userEvent.clear(password)
+  await userEvent.type(password, 'personal-password')
   await userEvent.click(screen.getByRole('button', { name: 'Save password' }))
-  expect(await screen.findByRole('status')).toHaveTextContent('Password updated.')
-  expect(identity).toHaveBeenLastCalledWith(expect.any(Function), '/password-updated')
-  expect(post).toHaveBeenLastCalledWith('/api/auth/password-reset/complete', { password: 'personal-password' }, expect.objectContaining({ headers: { Authorization: `Bearer ${token}` } }))
+  expect(await screen.findByRole('status')).toHaveTextContent('Password saved. Sign in with it now.')
+  expect(screen.queryByLabelText('New password', { exact: true })).toBeNull()
+  expect(identity).toHaveBeenLastCalledWith(expect.any(Function), '/?notice=password-saved')
+  expect(post).toHaveBeenCalledExactlyOnceWith('/api/auth/password-reset/complete', { password: 'personal-password' }, expect.objectContaining({ headers: { Authorization: `Bearer ${token}` } }))
 })
 
 it.each([
   [new ApiError(429, 'limited'), 'Too many attempts.'],
   [new TypeError('offline'), 'Could not save your password.'],
-])('does not mislabel a retryable reset failure as an expired link: %s', async (error, message) => {
+])('keeps the credential and link available for retryable reset failures: %s', async (error, message) => {
   window.__kuukiResetToken = 'A'.repeat(43)
   post.mockRejectedValueOnce(error).mockResolvedValueOnce({ ok: true })
   render(<ResetPasswordForm locale="en" />)
   await userEvent.type(await screen.findByLabelText('New password', { exact: true }), 'personal-password')
-  await userEvent.type(screen.getByLabelText('Confirm password'), 'personal-password')
   await userEvent.click(screen.getByRole('button', { name: 'Save password' }))
   expect(await screen.findByRole('alert')).toHaveTextContent(message)
   expect(screen.getByLabelText('New password', { exact: true })).toHaveValue('personal-password')
   await userEvent.click(screen.getByRole('button', { name: 'Save password' }))
-  expect(await screen.findByRole('status')).toHaveTextContent('Password updated.')
+  expect(await screen.findByRole('status')).toHaveTextContent('Password saved.')
 })
 
-it('retires an expired/consumed reset link and offers resend, then rejects a reload without the in-memory token', async () => {
+it('does not retire the credential or claim success for a malformed 2xx completion', async () => {
+  window.__kuukiResetToken = 'A'.repeat(43)
+  post.mockResolvedValueOnce({}).mockResolvedValueOnce({ ok: true })
+  render(<ResetPasswordForm locale="en" />)
+  await userEvent.type(await screen.findByLabelText('New password', { exact: true }), 'personal-password')
+  await userEvent.click(screen.getByRole('button', { name: 'Save password' }))
+  expect(await screen.findByRole('alert')).toHaveTextContent('Could not save your password.')
+  expect(screen.queryByRole('status')).toBeNull()
+  expect(screen.getByLabelText('New password', { exact: true })).toHaveValue('personal-password')
+  await userEvent.click(screen.getByRole('button', { name: 'Save password' }))
+  expect(await screen.findByRole('status')).toHaveTextContent('Password saved.')
+})
+
+it('retires an expired/consumed reset link, focuses the expired heading and offers a new link', async () => {
   window.__kuukiResetToken = 'A'.repeat(43)
   post.mockRejectedValue(new ApiError(400, 'used', 'INVALID_RECOVERY'))
   const { unmount } = render(<ResetPasswordForm locale="ru" />)
   await userEvent.type(await screen.findByLabelText('Новый пароль', { exact: true }), 'personal-password')
-  await userEvent.type(screen.getByLabelText('Повторите пароль'), 'personal-password')
   await userEvent.click(screen.getByRole('button', { name: 'Сохранить пароль' }))
-  expect(await screen.findByRole('alert')).toHaveTextContent('уже использована')
+  expect(await screen.findByRole('heading', { name: 'Срок действия ссылки истёк' })).toHaveFocus()
   expect(screen.queryByLabelText('Новый пароль', { exact: true })).toBeNull()
-  expect(screen.getByRole('link', { name: 'Запросить новую ссылку' })).toHaveAttribute('href', '/forgot-password')
+  expect(screen.getByRole('link', { name: 'Отправить новую ссылку' })).toHaveAttribute('href', '/forgot-password')
   unmount()
   render(<ResetPasswordForm locale="en" />)
-  expect(await screen.findByRole('alert')).toHaveTextContent('invalid or expired')
+  expect(await screen.findByRole('heading', { name: 'Link expired' })).toHaveFocus()
   expect(screen.queryByRole('button', { name: 'Save password' })).toBeNull()
+})
+
+it.each(['', 'invalid-address'])('does not invent a username for a token-only visit with email hint %s', async address => {
+  window.__kuukiResetToken = 'A'.repeat(43)
+  if (address) sessionStorage.setItem('kuuki_auth_email', address)
+  render(<ResetPasswordForm locale="en" />)
+  expect(await screen.findByLabelText('New password', { exact: true })).toBeInTheDocument()
+  expect(document.querySelector('input[autocomplete=username]')).toBeNull()
+  expect(post).not.toHaveBeenCalled()
 })
 
 it('consumes the one-time bootstrap handoff while surviving React effect replay', async () => {
