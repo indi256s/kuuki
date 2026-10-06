@@ -23,7 +23,7 @@ async function handleRequest(request: Request, env: Env, data: RequestData, next
     return next()
   }
   // Recovery is a pre-auth token operation; it must never refresh an old session.
-  if (url.pathname === '/api/auth/password-reset/request' || url.pathname === '/api/auth/password-reset/complete') return next()
+  if (url.pathname === '/api/auth/password-reset/request' || url.pathname === '/api/auth/password-reset/complete' || url.pathname === '/api/auth/link/request') return next()
 
   if (hasBetterAuthCookie(request)) {
     return runHandler(async () => {
