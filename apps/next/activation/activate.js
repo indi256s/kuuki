@@ -13,7 +13,7 @@ const words = {
     resend: 'Send a new link', signin: 'Back to sign in', language: 'Language', darkTheme: 'Dark theme',
     help: 'Help', close: 'Close', about: 'About Kuuki', helpIntro: 'Kuuki is a private flight journal.',
     helpBody: 'Sign in with your email and password, or use a new email to start your journal. Your flights stay private until you share them.',
-    helpRecovery: 'Can’t sign in? Use the link next to Password.',
+    helpRecovery: 'Need another link? Return to sign in and choose “Can’t sign in?”.',
   },
   ru: {
     title: 'С возвращением в Kuuki', heading: 'С возвращением в Kuuki', description: 'Kuuki переехал. Задайте пароль, чтобы открыть журнал. Все ваши перелёты на месте.',
@@ -23,7 +23,7 @@ const words = {
     resend: 'Отправить новую ссылку', signin: 'Назад ко входу', language: 'Язык', darkTheme: 'Тёмная тема',
     help: 'Помощь', close: 'Закрыть', about: 'О Kuuki', helpIntro: 'Kuuki — личный журнал перелётов.',
     helpBody: 'Войдите с почтой и паролем или укажите новую почту, чтобы начать журнал. Перелёты видны только вам, пока вы ими не поделитесь.',
-    helpRecovery: 'Не получается войти? Нажмите ссылку рядом с полем «Пароль».',
+    helpRecovery: 'Нужна новая ссылка? Вернитесь ко входу и выберите «Не получается войти?».',
   },
 }
 const accents = ['terracotta', 'ai', 'matcha', 'asagi', 'sakura']
