@@ -13,6 +13,8 @@ import { BLOCK, FIELD_LABEL, S, tx } from './copy'
 import type { DraftChange, SaveState } from './draft-saver'
 import type { Draft } from './import-types'
 import { RowForm } from './row-form'
+import { formatMonthDay } from './question-deck'
+import { monthDayOf } from './questions'
 import { changedFields, FIELDS, isChosen, isDuplicate, lowFields, percent, readiness, rowConfidence, toValues, validateValues, type FieldError, type FieldName, type FieldValues } from './review-model'
 
 export interface ReviewRowProps {
@@ -105,6 +107,7 @@ export function ReviewRow({ locale, draft, stored, state, mobile, frozen = false
 
   const notes = <>
     {blockText ? <p className="import-note" id={`${id}-block`}>{blockText}</p> : null}
+    {!draft.fields.date && monthDayOf(draft) ? <p className="import-note">{S.monthDayNote[locale].replace('{date}', formatMonthDay(locale, monthDayOf(draft)!))}</p> : null}
     {issueText ? <p className="import-note">{issueText}</p> : null}
     <p className="import-note" role="status" data-state={state?.status ?? (dirty ? 'unsaved' : undefined)}>{stateText || (dirty ? S.unsavedRow[locale] : '')}</p>
     {failedState ? <div className="import-actions">

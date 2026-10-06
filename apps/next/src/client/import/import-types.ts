@@ -15,6 +15,13 @@ export interface DraftFields {
   departure_time?: string
   arrival_time?: string
   airline_was_placeholder?: boolean
+  /** Day and month printed without a year (MM-DD); kept only while `date` is empty. */
+  date_month_day?: string
+  /** Catalog airports for a city with several, when the source did not say which one. */
+  origin_options?: string[]
+  destination_options?: string[]
+  /** The source's status or evidence is uncertain (possible refund, cancelled outbound, conflicting details). */
+  review_required?: boolean
 }
 
 export interface Draft {

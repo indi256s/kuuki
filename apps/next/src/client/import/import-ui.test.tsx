@@ -117,6 +117,19 @@ describe('ReviewStep', () => {
     expect(trigger.compareDocumentPosition(screen.getAllByRole('listitem')[0]) & Node.DOCUMENT_POSITION_PRECEDING).toBeTruthy()
   })
 
+  it('asks the shared question above the rows, sends answers as draft changes and keeps the printed day on the row', async () => {
+    const user = userEvent.setup()
+    const onChange = vi.fn()
+    const noYear = (id: string, ordinal: number, monthDay: string) => draft({ id, ordinal, selected: false, yearExplicit: false, confidence: 0.5,
+      fields: { date: '', date_month_day: monthDay, origin: 'BEG', destination: 'SVO', airline_iata: 'JU' } })
+    render(<ReviewStep {...review({ today: '2026-10-07', onChange, drafts: [noYear('y1', 0, '03-26'), noYear('y2', 1, '03-27')] })} />)
+    const question = screen.getByRole('group', { name: '2 flights show no year' })
+    expect(question.compareDocumentPosition(screen.getByRole('checkbox', { name: /select all/i })) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    expect(screen.getAllByText(/The document shows (26 March|March 26) without the year\./)).toHaveLength(1)
+    await user.click(within(question).getByRole('button', { name: '2026' }))
+    expect(onChange.mock.calls.map(([row, change]) => [row.id, change.fields?.date, change.yearConfirmed])).toEqual([['y1', '2026-03-26', true], ['y2', '2026-03-27', true]])
+  })
+
   it('blocks the import with a visible reason when nothing is chosen', () => {
     render(<ReviewStep {...review({ drafts: [draft({ id: 'a', selected: false })] })} />)
     const bar = screen.getByRole('region', { name: /import actions/i })

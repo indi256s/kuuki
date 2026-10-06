@@ -7,6 +7,7 @@
 import { HttpError } from '../_lib/http'
 import { isCalendarDate, validateFlightInput, type FlightInput } from '../../../packages/shared/src/flightValidation'
 import { parseFlightBodies } from '../_lib/flightValidation'
+import { airportCandidates } from '../import/_text'
 import type { EnrichmentStatus, ExtractedFlight } from '../import/_shared'
 import { findDuplicateMatches, type DuplicateCandidate } from './duplicates'
 
@@ -33,6 +34,11 @@ export interface DraftFields {
   arrival_time?: string
   airline_was_placeholder?: boolean
   enrichment_status?: EnrichmentStatus
+  // Question metadata for the review UI; never part of the flight input.
+  date_month_day?: string
+  origin_options?: string[]
+  destination_options?: string[]
+  review_required?: boolean
 }
 
 const OPTIONAL_TEXT = ['flight_number', 'aircraft_icao', 'departure_time', 'arrival_time'] as const
@@ -57,6 +63,12 @@ export function draftFieldsOf(flight: ExtractedFlight): DraftFields {
   if (arrival) fields.arrival_time = arrival
   if (flight.airline_was_placeholder === true) fields.airline_was_placeholder = true
   if (flight.enrichment_status) fields.enrichment_status = flight.enrichment_status
+  if (!fields.date && /^\d{2}-\d{2}$/.test(flight.date_month_day ?? '')) fields.date_month_day = flight.date_month_day
+  const originOptions = !fields.origin && flight.origin_hint ? airportCandidates(flight.origin_hint).slice(0, 6) : []
+  const destinationOptions = !fields.destination && flight.destination_hint ? airportCandidates(flight.destination_hint).slice(0, 6) : []
+  if (originOptions.length) fields.origin_options = originOptions
+  if (destinationOptions.length) fields.destination_options = destinationOptions
+  if (flight.review_required === true) fields.review_required = true
   return fields
 }
 

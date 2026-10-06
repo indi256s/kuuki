@@ -316,6 +316,24 @@ it('finishes an airline-less row as review with the placeholder defaults', async
     .toMatchObject({ selected: 0, field_confidence_json: expect.stringContaining('"airline_iata":0') })
 })
 
+it('persists the question metadata of a streamed provider row and of a local pipe list in fields_json', async () => {
+  const { send, start, batch, rows } = await runtime(); const id = await start()
+  send('{"flights":[' + JSON.stringify(providerFlight({ date: '', origin: 'ROV', destination: '', destination_hint: 'Moscow', date_month_day: '05-21',
+    review_required: true, confidence: 0.5, field_confidence: { date: 0, date_year_explicit: false, origin: 0.9, destination: 0, airline_iata: 0.9 } })) + ']}'); feed.close()
+  await expect.poll(async () => (await batch(id))?.status).toBe('review')
+  const stored = JSON.parse((await rows(id)).results[0].fields_json)
+  expect(stored).toMatchObject({ date: '', date_month_day: '05-21', origin: 'ROV', destination: '', destination_options: ['DME', 'SVO', 'VKO'], review_required: true })
+  expect(stored.origin_options).toBeUndefined()
+  expect(stored.destination_hint).toBeUndefined()
+  expect(JSON.stringify(stored).length).toBeLessThan(600)
+
+  const response = await dispatch('/api/import/jobs', 'POST', { type: 'text', submissionOperationId: 'local-list-0002', content: '2015-05-21 | ROV → Moscow | S7 Airlines S7 123' })
+  const { batchId } = await response.json() as { batchId: string }
+  await expect.poll(async () => (await batch(batchId))?.status).toBe('review')
+  expect(JSON.parse((await rows(batchId)).results[0].fields_json)).toMatchObject({ origin: 'ROV', destination: '', destination_options: ['DME', 'SVO', 'VKO'] })
+  expect(JSON.parse((await rows(batchId)).results[0].fields_json).review_required).toBeUndefined()
+})
+
 async function closedEvents(response: Awaited<ReturnType<typeof dispatch>>, timeout = 2_000) {
   const reader = response.body!.getReader(); let text = ''; let closed = false
   const reading = (async () => {

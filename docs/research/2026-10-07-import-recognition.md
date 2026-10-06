@@ -20,6 +20,15 @@ Live text samples exposed a concrete schema bug: eight written years were initia
 
 The final provider-only full-list retry completed in **45.4 seconds**, with the first complete streamed row at 1.7 seconds, 22,876 reported total tokens and a `STOP` finish reason. It retained **90/95** reconstructible records, including six with incorrect airline/flight identities; **80** had all date/route/airline/number keys correct, and **619/630** compared fields matched. Five partial destination-only/undated records were missing. No excluded booking returned. **68 rows were initially selected, including two with incorrect flight numbers**; confidence-based selection alone remains insufficient for provider-backed text. The local route initially selects 60 rows with no observed field errors. Earlier full runs timed out at the application's 90-second deadline; this single completed retry does not establish reliability across runs. The local route avoids that call entirely.
 
+### Review questions
+
+Drafts now carry review-question metadata (ADR 0001 §6), and the review step asks grouped questions before the row list. Measured on the same corpus:
+
+- **Text log.** The local parser's 96 drafts leave 60 selected and 36 held. Three questions cover 25 of the 36 held rows: uncertain status (15), no airline (11) and a Moscow airport (5 endpoints). The other 11 stay row-level: reference-catalog gaps (codes the catalog lacks, such as ZIA, TXL, GRO, 3F, H7, NQ and 4O), records without a date, and cities without catalog candidates. A rough count is about 21 interactions instead of about 79 row edits. Status questions save the least, because «Летали» replaces one checkbox.
+- **Photos.** After the schema change, all 4 legs in the three photos keep their printed day and month (checked against the images), still with no invented year or departure time, at 2.7–3.5 seconds per photo. Each photo now asks one year question with two suggested years instead of an empty date field.
+
+The catalog gaps are a data fix, not a question: offering a different airport would invite a wrong answer.
+
 ## Reproduce
 
 From the workspace root, with the private fixtures and independently labeled `expected.json` present:

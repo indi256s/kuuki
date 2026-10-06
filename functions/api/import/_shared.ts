@@ -11,6 +11,9 @@ export interface ExtractedFlight {
   aircraft_icao?: string
   departure_time?: string // HH:mm
   arrival_time?: string // HH:mm
+  date_month_day?: string // MM-DD when the day and month are printed but the year is not
+  origin_hint?: string // City or airport name as written when origin is empty
+  destination_hint?: string // City or airport name as written when destination is empty
   confidence: number // 0-1 overall confidence
   enrichment_status?: EnrichmentStatus // Aircraft enrichment state
   airline_was_placeholder?: boolean // Flag when ZZ was auto-applied
@@ -83,6 +86,8 @@ Return one entry per flight segment, in document order.
 - date: YYYY-MM-DD, only when the document states the year (four digits, like 2024) for that flight, in the date itself or in the booking it belongs to. In a pasted list, each line needs its own year. If the year is absent or uncertain, return "" and set field_confidence.date_year_explicit to false. Never infer a year from today's date, from neighbouring lines or from general knowledge. Set date_year_explicit to true only when the year is written in the document.
 - origin, destination: 3-letter IATA airport codes (e.g. JFK, TLV, TBS). Convert unambiguous airport and city names to codes. When a city has several airports and the document does not say which, return "" for that field with confidence 0 and review_required true. Never guess a main airport. Keep a partially readable leg with the missing endpoint empty.
 - airline_iata: 2-letter IATA airline code. Convert airline names to codes, e.g. "El Al" → LY, "Qatar Airways" → QR, "Turkish Airlines" → TK, "Aeroflot" → SU, "Lufthansa" → LH, "Georgian Airways" → A9, "China Eastern" → MU, "Thai Airways" → TG, "Pegasus" → PC, "Air Serbia" → JU, "Wizz Air" → W6, "Yakutia" → R3, "Smartavia" → 5N. Use "ZZ" only when the airline cannot be determined.
+- date_month_day: MM-DD, only when the document prints the day and month of that flight but not its year ("March 25" → "03-25"). Never infer it. Use "" when the full date with year is given or no day and month are shown.
+- origin_hint, destination_hint: the city or airport name exactly as written, only when the matching code is left "" (for example a city with several airports). Use "" when the code is filled.
 - flight_number: the flight number without the airline code ("LH 1234" → "1234"). Omit it when absent.
 - aircraft_icao: ICAO aircraft type code (e.g. B738, A320), only when the aircraft type is shown. Omit it otherwise.
 - departure_time, arrival_time: local time at each airport, 24-hour HH:mm ("8:30 PM" → "20:30", "06:35+1" → "06:35"). Always extract them when shown; use "" when absent.

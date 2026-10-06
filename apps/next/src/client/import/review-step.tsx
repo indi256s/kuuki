@@ -12,6 +12,7 @@ import type { DraftChange, SaveState } from './draft-saver'
 import type { Failure } from './import-errors'
 import type { Draft } from './import-types'
 import { ManualRow } from './manual-row'
+import { QuestionDeck } from './question-deck'
 import { flightIdentity, newManualRow, type ManualRowState } from './manual-save'
 import { ReviewRow } from './review-row'
 import { emptyValues, hasValues, isChosen, partition, readiness, validateValues, withUnsent } from './review-model'
@@ -27,6 +28,8 @@ export interface ReviewStepProps {
   failure: Failure | null
   /** When the stored batch is removed (creation plus 30 days); null for a review made only of manual rows. */
   expiresAt?: string | null
+  /** The member's calendar day (YYYY-MM-DD) for year suggestions; tests pin it. */
+  today?: string
   /** Draft ids whose form holds a typed correction that has not been saved yet. */
   dirty: ReadonlySet<string>
   onDirty: (id: string, dirty: boolean) => void
@@ -51,7 +54,7 @@ export interface ReviewStepProps {
 }
 
 export function ReviewStep(props: ReviewStepProps) {
-  const { locale, mobile, drafts, saveStates, partial, cancelled = false, failure, expiresAt = null, dirty, onDirty, manualRows, onManualRows, makeManualRow, onManualRetryOriginal, onManualNewOperation, canShowSave, onShowSave, confirming, notice, onChange, onSelectAll, onRetry, onDiscardEdit, onConfirm, onDiscardImport } = props
+  const { locale, mobile, drafts, saveStates, partial, cancelled = false, failure, expiresAt = null, today, dirty, onDirty, manualRows, onManualRows, makeManualRow, onManualRetryOriginal, onManualNewOperation, canShowSave, onShowSave, confirming, notice, onChange, onSelectAll, onRetry, onDiscardEdit, onConfirm, onDiscardImport } = props
   const shown = useMemo(() => drafts.map(draft => withUnsent(draft, saveStates[draft.id]?.unsent)), [drafts, saveStates])
   const groups = useMemo(() => partition(shown), [shown])
   const [discard, setDiscard] = useState(false)
@@ -85,6 +88,9 @@ export function ReviewStep(props: ReviewStepProps) {
     {groups.saved.length > 0 || groups.skipped.length > 0 ? <p className="import-hint">
       {[groups.saved.length ? count(locale, 'alreadySavedN', groups.saved.length) : null, groups.skipped.length ? count(locale, 'skipped', groups.skipped.length) : null].filter(Boolean).join(' · ')}
     </p> : null}
+
+    <QuestionDeck locale={locale} drafts={shown} saveStates={saveStates} readyCount={total} frozen={confirming} today={today}
+      onChange={(draft, change) => onChange(originalOf(draft.id), change)} onRetry={onRetry} />
 
     {groups.active.length > 0 ? <div className="import-select-head">
       <label className="import-check">

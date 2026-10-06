@@ -8,14 +8,20 @@ const code = (value: string) => value.trim().toUpperCase()
 const airlineName = (value: string) => foldSearchText(value).replace(/\b(airlines?|airways|international)\b/g, '').replace(/\s+/g, ' ').trim()
 const airportName = (value: string) => foldSearchText(value).replace(/\b(international|airport)\b/g, '').replace(/\s+/g, ' ').trim()
 
-function airport(value: string): string {
-  value = value.replace(/[.,]$/, '').trim()
-  if (/^[A-Z]{3}$/.test(value)) return value
+/** Every catalog airport a label can mean: an exact code, or a name, city or alias. Sorted, at most 6. */
+export function airportCandidates(label: string): string[] {
+  const value = label.replace(/[.,]$/, '').trim()
+  if (/^[A-Z]{3}$/.test(value)) return [value]
   // The offline catalog shortens this city's name to Rostov.
   const name = airportName(value).replace(/^rostov-on-don$/, 'rostov')
   const matches = airportCatalog.filter(row => [row.iata, row.city, row.name, ...Object.values(airportAliases[row.iata] ?? {})]
     .some(label => airportName(label) === name))
-  return matches.length === 1 ? matches[0].iata : ''
+  return [...new Set(matches.map(row => row.iata))].sort().slice(0, 6)
+}
+
+function airport(value: string): string {
+  const candidates = airportCandidates(value)
+  return candidates.length === 1 ? candidates[0] : ''
 }
 
 /** Only a fully recognised pipe-list bypasses the model. Any unknown prose falls back intact. */
@@ -46,8 +52,10 @@ export function parseStructuredText(content: string): ParseResponse | null {
       }
       return null
     }
-    const origin = route ? airport(route[1].trim()) : ''
-    const destination = airport((route?.[2] ?? toOnly![1]).trim())
+    const originLabel = route ? route[1].trim() : ''
+    const destinationLabel = (route?.[2] ?? toOnly![1]).trim()
+    const origin = originLabel ? airport(originLabel) : ''
+    const destination = airport(destinationLabel)
     const date = parts[0].slice(0, 10)
     const yearExplicit = isCalendarDate(date)
     let airline = 'ZZ'; let number: string | undefined
@@ -74,10 +82,13 @@ export function parseStructuredText(content: string): ParseResponse | null {
     const knownOrigin = airportCatalog.some(row => row.iata === origin)
     const knownDestination = airportCatalog.some(row => row.iata === destination)
     const knownAirline = airlineCatalog.some(row => row.iata === airline)
-    const review = !knownOrigin || !knownDestination || !yearExplicit || !knownAirline || contradictoryArrival
+    // Only status or evidence doubt blocks preselection; catalog and year gaps show in field_confidence and the empty fields.
+    const review = contradictoryArrival
       || /conflict|unresolved|unconfirmed|possible|partial booking|email says|cancel|refund|unpaid|supersed|passenger|\?/i.test(notes)
     flights.push({ date: yearExplicit ? date : '', origin, destination, airline_iata: airline, flight_number: number,
       departure_time: departure, arrival_time: arrival, confidence: review ? 0.5 : 1, review_required: review,
+      ...(originLabel && !origin ? { origin_hint: originLabel } : {}),
+      ...(destinationLabel && !destination ? { destination_hint: destinationLabel } : {}),
       field_confidence: { date_year_explicit: yearExplicit, date: yearExplicit ? 1 : 0,
         origin: knownOrigin ? 1 : 0, destination: knownDestination ? 1 : 0, airline_iata: knownAirline && airline !== 'ZZ' ? 1 : 0,
         flight_number: number ? 1 : 0, departure_time: departure ? 1 : 0, arrival_time: arrival ? 1 : 0 },
