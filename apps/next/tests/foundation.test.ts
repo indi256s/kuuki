@@ -13,3 +13,13 @@ test('RU dark shell has no narrow viewport overflow with reduced motion', async 
   await page.getByRole('combobox', { name: 'Тема' }).selectOption('light')
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'light')
 })
+
+for (const removed of ['kincha', 'sumi']) {
+  test(`a stored ${removed} accent renders terracotta and the cookie is rewritten`, async ({ page, context, baseURL }) => {
+    await context.addCookies([{ name: 'kuuki_accent', value: removed, url: baseURL! }])
+    await page.goto('/')
+    await expect(page.locator('html')).toHaveAttribute('data-accent', 'terracotta')
+    expect(await page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--accent').trim())).toBe('#a94e35')
+    expect((await context.cookies()).find(cookie => cookie.name === 'kuuki_accent')?.value).toBe('terracotta')
+  })
+}

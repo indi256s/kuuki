@@ -11,9 +11,8 @@ const NAMES: Record<Accent, { en: string; ru: string }> = {
   terracotta: { en: 'Terracotta', ru: 'Терракота' },
   ai: { en: 'Ai', ru: 'Ай' },
   matcha: { en: 'Matcha', ru: 'Матча' },
-  kincha: { en: 'Kincha', ru: 'Кинча' },
+  asagi: { en: 'Asagi', ru: 'Асаги' },
   sakura: { en: 'Sakura', ru: 'Сакура' },
-  sumi: { en: 'Sumi', ru: 'Суми' },
 }
 
 export type SwatchPickerProps = {
@@ -24,7 +23,7 @@ export type SwatchPickerProps = {
   onChange?: (accent: Accent) => void
 }
 
-/** Only the six named accents; selection goes through `setAccent`, which stores the name, never a color. */
+/** Only the five named accents; selection goes through `setAccent`, which stores the name, never a color. */
 export function SwatchPicker({ locale, label, value, onChange }: SwatchPickerProps) {
   const [own, setOwn] = useState<Accent>('terracotta')
   const refs = useRef<(HTMLButtonElement | null)[]>([])

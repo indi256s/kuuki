@@ -58,12 +58,14 @@
     }
   }
   let accent = read('kuuki_accent')
-  if (!['terracotta', 'ai', 'matcha', 'kincha', 'sakura', 'sumi'].includes(accent)) {
+  // kincha and sumi were removed; a stored one lands on terracotta and the cookie is rewritten below.
+  if (accent === 'kincha' || accent === 'sumi') accent = 'terracotta'
+  if (!['terracotta', 'ai', 'matcha', 'asagi', 'sakura'].includes(accent)) {
     let legacyAccent = null
     try { legacyAccent = localStorage.getItem('kuuki-accent-color') } catch { /* storage unavailable */ }
-    accent = ({ blue: 'ai', cyan: 'ai', teal: 'matcha', yellow: 'kincha', purple: 'sakura', coral: 'sakura', red: 'terracotta', orange: 'terracotta' })[legacyAccent]
+    accent = ({ blue: 'ai', cyan: 'asagi', teal: 'asagi', yellow: 'terracotta', purple: 'sakura', coral: 'sakura', red: 'terracotta', orange: 'terracotta' })[legacyAccent]
   }
-  if (!['terracotta', 'ai', 'matcha', 'kincha', 'sakura', 'sumi'].includes(accent)) accent = 'terracotta'
+  if (!['terracotta', 'ai', 'matcha', 'asagi', 'sakura'].includes(accent)) accent = 'terracotta'
   if (read('kuuki_accent') !== accent) {
     document.cookie = `kuuki_accent=${accent}; Path=/; Max-Age=31536000; SameSite=Lax`
   }

@@ -36,9 +36,23 @@ describe('bootstrap accent preference', () => {
   it('migrates the legacy color when the current cookie is missing or invalid', () => {
     for (const cookie of ['kuuki_theme=light; kuuki_locale=en', 'kuuki_theme=light; kuuki_locale=en; kuuki_accent=bogus']) {
       const result = bootstrap(cookie, 'teal')
-      expect(result.documentElement.dataset.accent).toBe('matcha')
-      expect(result.cookie).toContain('kuuki_accent=matcha')
+      expect(result.documentElement.dataset.accent).toBe('asagi')
+      expect(result.cookie).toContain('kuuki_accent=asagi')
     }
+  })
+
+  it('maps every legacy color to a current accent', () => {
+    const expected = { blue: 'ai', cyan: 'asagi', teal: 'asagi', yellow: 'terracotta', purple: 'sakura', coral: 'sakura', red: 'terracotta', orange: 'terracotta' }
+    for (const [legacy, accent] of Object.entries(expected)) {
+      expect(bootstrap('kuuki_theme=light; kuuki_locale=en', legacy).documentElement.dataset.accent, legacy).toBe(accent)
+    }
+  })
+
+  it.each(['kincha', 'sumi'])('rewrites a stored %s cookie to terracotta, ignoring the legacy color', removed => {
+    const result = bootstrap(`kuuki_theme=light; kuuki_locale=en; kuuki_accent=${removed}`, 'teal')
+    expect(result.documentElement.dataset.accent).toBe('terracotta')
+    expect(result.cookie).toContain('kuuki_accent=terracotta')
+    expect(result.cookie).not.toContain(removed)
   })
 
   it('uses the cookie safely when storage is inaccessible', () => {
