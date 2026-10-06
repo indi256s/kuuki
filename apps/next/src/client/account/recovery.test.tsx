@@ -14,6 +14,7 @@ beforeEach(() => {
   sessionStorage.clear()
   localStorage.clear()
   document.documentElement.lang = 'en'
+  document.documentElement.dataset.locale = 'en'
   vi.stubGlobal('IntersectionObserver', class { observe() {} disconnect() {} })
 })
 afterEach(() => { post.mockReset(); identity.mockClear(); delete window.__kuukiResetToken; vi.unstubAllGlobals() })
@@ -116,9 +117,11 @@ it('keeps the password and captured token through EN to RU to EN changes and loc
   expect(password).toHaveAccessibleDescription('Не менее 8 символов От 8 до 1024 символов.')
   expect(document.cookie).toContain('kuuki_locale=ru')
   expect(localStorage.getItem('kuuki-language')).toBe('ru')
+  expect(document.documentElement).toHaveAttribute('data-locale', 'ru')
   await userEvent.clear(password)
   await userEvent.type(password, 'personal-password')
   await userEvent.selectOptions(screen.getByRole('combobox', { name: 'Язык' }), 'en')
+  expect(document.documentElement).toHaveAttribute('data-locale', 'en')
   expect(screen.getByLabelText('New password', { exact: true })).toHaveValue('personal-password')
   await userEvent.click(screen.getByRole('button', { name: 'Save password' }))
   expect(await screen.findByRole('status')).toHaveTextContent('Password saved. Sign in with it now.')

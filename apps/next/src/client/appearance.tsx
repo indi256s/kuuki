@@ -15,6 +15,7 @@ export function setLocale(locale: Locale, reload = true) {
   cookie('kuuki_locale', locale)
   try { localStorage.setItem('kuuki-language', locale) } catch { /* storage unavailable */ }
   document.documentElement.lang = locale
+  document.documentElement.dataset.locale = locale
   if (reload) window.location.reload()
   else window.dispatchEvent(new Event('kuuki:appearance'))
 }
