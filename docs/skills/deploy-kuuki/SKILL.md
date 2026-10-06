@@ -24,11 +24,11 @@ The source tree no longer builds a Vite frontend. The 6 October release handoff 
    `wrangler d1 execute kuuki-db --remote --json --command "SELECT name FROM d1_migrations ORDER BY id"`
    and the same with `kuuki-preview --env preview`. Compare against `ls db/migrations/*.sql`. Done when every file is listed in both ledgers: nothing to migrate, continue. Any file missing from a ledger: stop and tell the user. Remote migrations follow `docs/runbooks/audit-remediation-release.md` (backup, writer hold, schema admission, explicit authorization), a separate task from this deploy.
 3. **Build.** `pnpm turbo run build --filter='./packages/*'`, then `pnpm next:build`. It exits 0 and prints its JSON summary line.
-4. **Preview.** `wrangler deploy --strict --env preview --tag "$(git rev-parse --short HEAD)" --message "$(git log -1 --format=%s)"`. Done when `https://kuuki-next-preview.indi256s.workers.dev/` returns 200 with HTML and `/api/auth/get-session` returns 200 with body `null` (that route reads D1, so it proves the binding).
+4. **Preview.** `wrangler deploy --no-autoconfig --strict --env preview --tag "$(git rev-parse --short HEAD)" --message "$(git log -1 --format=%s)"`. Done when `https://kuuki-next-preview.indi256s.workers.dev/` returns 200 with HTML and `/api/auth/get-session` returns 200 with body `null` (that route reads D1, so it proves the binding).
 5. **Go-ahead.** Report the SHA, the empty migration diff and the preview result, then wait for the user's explicit yes to deploy production. A yes for an earlier release does not carry over.
 6. **Production.** First record the current version of each Worker from `wrangler deployments status --name kuuki-next` and `--name kuuki-activation`: these are the rollback targets. Then deploy with the same `--strict --tag … --message …` flags, top level first, then activation:
-   `wrangler deploy --strict --tag … --message …`
-   `wrangler deploy --strict --env activation --tag … --message …`
+   `wrangler deploy --no-autoconfig --strict --tag … --message …`
+   `wrangler deploy --no-autoconfig --strict --env activation --tag … --message …`
    Record both printed Version IDs.
 7. **Verify.** `https://kuuki.marchstudio.uk/` returns 200 with HTML, `/api/auth/get-session` returns 200 with `null`, and `https://kuuki-activation.indi256s.workers.dev/activate` returns 200. Then watch `wrangler tail kuuki-next --status error` for five minutes. Any error or failed check: roll back, then report.
 
@@ -39,6 +39,7 @@ The source tree no longer builds a Vite frontend. The 6 October release handoff 
 
 ## Gotchas
 
+- `--no-autoconfig` deploys the already-built `worker.ts` from this config. Wrangler 4.147 otherwise delegates to OpenNext, whose shell wrapper splits a deployment message containing spaces. Keep `--strict`; disabling auto-detection does not disable remote configuration checks.
 - The config is the source of truth for routes and secrets names ([Cloudflare](https://developers.cloudflare.com/workers/wrangler/configuration/#source-of-truth)). `routes` is PUT as the Worker's complete set, so a route added in the dashboard disappears on the next deploy: add it to `wrangler.toml` instead.
 - `routes`, `workers_dev` and `preview_urls` inherit into environments; `vars`, `d1_databases` and `secrets` do not ([Cloudflare](https://developers.cloudflare.com/workers/wrangler/environments/)). Each `[env.*]` therefore sets all of them, and `[env.activation]` repeats the production values: change both blocks together.
 - `--strict` makes a non-interactive deploy stop when the Worker was last changed in the dashboard, instead of overwriting those changes. If it stops, copy the wanted dashboard change into `wrangler.toml` and deploy again.
