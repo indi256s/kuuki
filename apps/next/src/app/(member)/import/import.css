@@ -105,7 +105,6 @@
   .import-found li[data-new=true],.import-summary-chunk{animation:import-fade 150ms var(--ease-out) both;animation-delay:0ms}
   .import-dropzone{transition:none}
 }
-@media(hover:hover){}
 @media(max-width:700px){
   .import-page{padding-bottom:calc(var(--space-12) + var(--space-12))}
   .import-form{grid-template-columns:minmax(0,1fr)}
