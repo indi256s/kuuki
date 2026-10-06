@@ -38,11 +38,7 @@ describe('approved route transitions', () => {
     expect(isApprovedPair('page', '/fly/ana', '/leaderboard')).toBe(false)
     expect(isApprovedPair('page', '/fly/ana', '/fly/ben')).toBe(false)
     expect(isApprovedPair('page', '/leaderboard', '/fly/ana/extra')).toBe(false)
-    for (const [from, to] of [['/signin', '/signup'], ['/signup', '/forgot-password'], ['/forgot-password', '/signin']]) {
-      expect(isApprovedPair('auth', from!, to!)).toBe(true)
-      expect(isApprovedPair('page', from!, to!)).toBe(false)
-    }
-    expect(isApprovedPair('auth', '/signin', '/signin')).toBe(false)
+    for (const [from, to] of [['/signin', '/signup'], ['/signup', '/forgot-password'], ['/forgot-password', '/signin']]) expect(isApprovedPair('page', from!, to!)).toBe(false)
     for (const [from, to] of [['/overview', '/journal'], ['/journal', '/passport'], ['/overview', '/import'], ['/passport', '/passport/manage'], ['/journal', '/add'], ['/overview', '/leaderboard']]) {
       expect(isApprovedPair('page', from!, to!)).toBe(false)
     }
@@ -64,7 +60,6 @@ describe('approved route transitions', () => {
     expect(walk('page', ['/fly/ana', '/leaderboard', '</fly/ana', '>/leaderboard'])).toEqual([0, 0, 0])
     // Forward redoes a drill into a profile, so it drills again.
     expect(walk('page', ['/leaderboard', '/fly/ana', '</leaderboard', '>/fly/ana'])).toEqual([1, 2, 3])
-    expect(walk('auth', ['/signin', '/signup', '/forgot-password', '/signin'])).toEqual([1, 2, 3])
   })
 
   it('drills neither way on a Back or Forward when the browser has no Navigation API', async () => {

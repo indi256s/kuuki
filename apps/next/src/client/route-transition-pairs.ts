@@ -4,11 +4,8 @@ import { useEffect, useState } from 'react'
  * The only route changes allowed to animate (DESIGN.md "Motion"). A stage remounts its transition boundary
  * for these pairs alone; every other navigation keeps the boundary and swaps the page instantly.
  */
-export type StageKind = 'page' | 'auth'
+export type StageKind = 'page'
 
-export const AUTH_SWAP_PATHS = ['/forgot-password', '/signin', '/signup'] as const
-
-const isAuthPath = (path: string) => (AUTH_SWAP_PATHS as readonly string[]).includes(path)
 const isProfile = (path: string) => /^\/fly\/[^/]+$/.test(path)
 
 /** Import done → Passport, forward only. */
@@ -21,11 +18,8 @@ export const isStampHero = (from: string, to: string) => from === '/import' && t
 export const isProfileDrill = (from: string, to: string, back: boolean | null) =>
   back === null ? false : back ? isProfile(from) && to === '/leaderboard' : from === '/leaderboard' && isProfile(to)
 
-/** Sign in ↔ sign up ↔ forgot password. */
-export const isAuthSwap = (from: string, to: string) => from !== to && isAuthPath(from) && isAuthPath(to)
-
 export function isApprovedPair(stage: StageKind, from: string, to: string, back: boolean | null = false) {
-  return stage === 'auth' ? isAuthSwap(from, to) : isStampHero(from, to) || isProfileDrill(from, to, back)
+  return stage === 'page' && (isStampHero(from, to) || isProfileDrill(from, to, back))
 }
 
 // The last Back or Forward, until the stage renders a pathname change: where it landed and whether it went back. Only

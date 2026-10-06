@@ -2,7 +2,7 @@
 import { describe, expect, it } from 'vitest'
 import { SpringIntegrator } from '@ssgoi/react'
 import type { PrepareArgs } from '@ssgoi/react'
-import { FADE_IN_AT, ROUTE_SPRINGS, SPRING_REST, keepVisibleStamps } from './route-motion'
+import { ROUTE_SPRINGS, SPRING_REST, keepVisibleStamps } from './route-motion'
 
 const FRAME = 1000 / 60
 
@@ -37,11 +37,6 @@ describe('route transition springs (DESIGN.md "Motion")', () => {
     expect(run(ROUTE_SPRINGS.hero).end).toBeLessThanOrEqual(450)
   })
 
-  it('finish the auth fade-through within 300ms, counting the wait for the outgoing form', () => {
-    const total = run(ROUTE_SPRINGS.fade, FADE_IN_AT).reached + run(ROUTE_SPRINGS.fade).end
-    expect(total).toBeGreaterThanOrEqual(200)
-    expect(total).toBeLessThanOrEqual(300)
-  })
 })
 
 describe('Passport stamps in the hero', () => {

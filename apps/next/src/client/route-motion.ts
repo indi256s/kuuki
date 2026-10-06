@@ -2,13 +2,11 @@ import type { PrepareArgs } from '@ssgoi/react'
 
 /**
  * Critically damped (damping at least 2√stiffness), so nothing overshoots. ssgoi ends a spring once it has held inside
- * the rest thresholds for 50ms; counted that way, pages finish in about 0.28s, the stamp hero in about 0.38s, and the
- * auth fade-through in about 0.28s (the incoming form starts once the outgoing one is 75% gone, about 0.07s in).
+ * the rest thresholds for 50ms; counted that way, pages finish in about 0.28s and the stamp hero in about 0.38s.
  */
 export type Spring = { stiffness: number; damping: number }
-export const ROUTE_SPRINGS = { page: { stiffness: 800, damping: 57 }, hero: { stiffness: 380, damping: 39 }, fade: { stiffness: 1600, damping: 80 } }
+export const ROUTE_SPRINGS = { page: { stiffness: 800, damping: 57 }, hero: { stiffness: 380, damping: 39 } }
 export const SPRING_REST = { restDelta: 0.02, restSpeed: 0.5 }
-export const FADE_IN_AT = 0.75
 
 /** A Passport stamp that will not be fully on screen once the page settles has no partner; it appears in place. */
 export function keepVisibleStamps({ to, context }: PrepareArgs) {
