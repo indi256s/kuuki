@@ -67,6 +67,11 @@ const textGrade = ['--text', '--text-muted', '--accent-text', '--danger-text', '
   '--rank-gold', '--rank-silver', '--rank-bronze']
 
 describe('design tokens', () => {
+  it('offers exactly the five accents', () => {
+    expect([...ACCENTS]).toEqual(['terracotta', 'ai', 'matcha', 'asagi', 'sakura'])
+    expect(css).not.toMatch(/kincha|sumi/)
+  })
+
   it('keeps CSS accents and ACCENTS in sync', () => {
     const fromCss = [...new Set([...rules.keys()].map(key => key.match(/\[data-accent=([\w-]+)\]$/)?.[1]).filter(Boolean))]
     expect(['terracotta', ...fromCss].sort()).toEqual([...ACCENTS].sort())

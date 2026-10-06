@@ -2,7 +2,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { setAccent } from './appearance'
+import { normalizeAccent, setAccent } from './appearance'
 import type { Accent } from '../lib/theme-colors'
 
 describe('setAccent', () => {
@@ -32,5 +32,29 @@ describe('setAccent', () => {
     setAccent('blue' as Accent)
     expect(writes).toEqual([])
     expect(document.documentElement.dataset.accent).toBe('sakura')
+  })
+})
+
+describe('normalizeAccent', () => {
+  beforeEach(() => {
+    delete document.documentElement.dataset.accent
+    for (const name of ['kuuki_accent']) document.cookie = `${name}=; Path=/; Max-Age=0`
+  })
+
+  it.each(['kincha', 'sumi'])('rewrites a stored %s to terracotta in the cookie and on <html>', removed => {
+    document.cookie = `kuuki_accent=${removed}; Path=/`
+    document.documentElement.dataset.accent = removed
+    expect(normalizeAccent()).toBe('terracotta')
+    expect(document.cookie).toContain('kuuki_accent=terracotta')
+    expect(document.cookie).not.toContain(removed)
+    expect(document.documentElement.dataset.accent).toBe('terracotta')
+  })
+
+  it('leaves a current accent and a missing cookie alone', () => {
+    document.cookie = 'kuuki_accent=asagi; Path=/'
+    expect(normalizeAccent()).toBe('asagi')
+    expect(document.cookie).toContain('kuuki_accent=asagi')
+    document.cookie = 'kuuki_accent=; Path=/; Max-Age=0'
+    expect(normalizeAccent()).toBeUndefined()
   })
 })
