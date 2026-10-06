@@ -4,7 +4,7 @@
 // eslint-disable-next-line no-restricted-syntax -- meta theme-color cannot read CSS variables; values are checked against styles.css by tokens.test.ts
 export const THEME_COLOR = { light: '#fbfaf8', dark: '#292827' } as const
 
-export const ACCENTS = ['terracotta', 'ai', 'matcha', 'kincha', 'sakura', 'sumi'] as const
+export const ACCENTS = ['terracotta', 'ai', 'matcha', 'asagi', 'sakura'] as const
 export type Accent = typeof ACCENTS[number]
 export const isAccent = (value: unknown): value is Accent => ACCENTS.includes(value as Accent)
 
