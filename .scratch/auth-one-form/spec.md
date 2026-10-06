@@ -107,17 +107,22 @@ The card uses a text-only "Kuuki" wordmark: "Ku" in the accent color and "uki" i
 55. As a mobile visitor, I want the brand area on top and the form in a bottom sheet with 48px inputs and 16px text, so that it fits one hand and doesn't zoom on focus.
 56. As a visitor in light or dark mode, I want the card in my theme, so that it matches my system.
 57. As a visitor, I want language, theme and help controls in the card corner, each at least 44×44, so that I can adjust the page before signing in.
-58. As a Russian-speaking visitor, I want every new message in Russian, so that the card is fully localised.
-59. As a member who had chosen kincha or sumi, I want to land on terracotta automatically, so that I never see a broken or missing accent.
-60. As a member, I want asagi as a new accent choice, so that I have a teal option that replaces the old ones.
-61. As a touch user, I want every text link, including "Can't sign in?" and "Change", to have a 44px tall hit area that never overlaps the input below it, so that I don't mis-tap.
+58. As a visitor, I want the theme control to show a sun above a horizon in light mode and a half-set sun in dark mode, so that I can tell the current theme at a glance.
+59. As a visitor, I want one click on the theme control to switch to the other theme and keep it across visits, so that I don't need a menu to change it.
+60. As a visitor who never touched the theme control, I want the card to keep following my device's light or dark setting, so that the default respects my system.
+61. As a screen-reader user, I want the theme control announced as a "Dark theme" toggle that is pressed or not pressed, so that I know its state and what pressing it does.
+62. As a visitor who prefers reduced motion, I want the sun to change position instantly, so that the control doesn't animate.
+63. As a Russian-speaking visitor, I want every new message in Russian, so that the card is fully localised.
+64. As a member who had chosen kincha or sumi, I want to land on terracotta automatically, so that I never see a broken or missing accent.
+65. As a member, I want asagi as a new accent choice, so that I have a teal option that replaces the old ones.
+66. As a touch user, I want every text link, including "Can't sign in?" and "Change", to have a 44px tall hit area that never overlaps the input below it, so that I don't mis-tap.
 
 ### Operator
 
-62. As the operator, I want the new API path in the generated route inventory, so that CI doesn't fail on drift.
-63. As the operator, I want the activation link to keep opening on the isolated activation origin, so that the token page still loads no app scripts and no session.
-64. As the operator, I want the legacy Vite app and its activation page left untouched, so that rollback still works.
-65. As the operator, I want DESIGN.md and the GLOSSARY to describe the new card, accents and recovery flow, so that future work doesn't regress to the old rules.
+67. As the operator, I want the new API path in the generated route inventory, so that CI doesn't fail on drift.
+68. As the operator, I want the activation link to keep opening on the isolated activation origin, so that the token page still loads no app scripts and no session.
+69. As the operator, I want the legacy Vite app and its activation page left untouched, so that rollback still works.
+70. As the operator, I want DESIGN.md and the GLOSSARY to describe the new card, accents and recovery flow, so that future work doesn't regress to the old rules.
 
 ## Implementation Decisions
 
@@ -206,6 +211,18 @@ type CardState =
   - The two strings on the boards are the seed: "Snap a boarding pass. We'll figure it out." and "Halfway to the Moon, apparently."
   - One is picked per page load. It never animates under reduced motion.
 - **Mobile:** below the desktop breakpoint, use the bottom-sheet layout from boards "3.2" and "3.3". Inputs are 48px tall with 16px text.
+- **Theme toggle (Horizon):** the theme button in the card corner and in the mobile sheet header uses the "Horizon" toggle from toggles.dev (`@theme-toggles/react`, MIT). Its "Theme toggle" row on the "4.1" build-notes board has the details.
+  - **Artwork:** use Horizon's SVG paths exactly as published: a 32×32 viewBox, a horizon line, and a sun clipped above it. Both paths are filled with the muted text token. The icon renders at 16px inside the existing 44×44 button.
+  - **States:** light shows the sun fully up. Dark moves the sun down by 50% of the viewBox so it sits half below the horizon. The move takes 500ms with `cubic-bezier(0,0,0.15,1)`.
+  - **Optical alignment:** the half-set sun inks only the bottom of the icon box. Shift the whole icon up 4.5px in dark and 0.5px in light so it sits on the same center line as the globe and help icons. The shift animates with the sun, using the same duration and curve. The boards show the resting positions.
+  - **Behavior:**
+    - The toggle shows the theme currently in effect.
+    - A click sets the opposite theme explicitly through the existing appearance contract (the theme cookie, `data-theme` and the browser theme color).
+    - Until someone clicks it, the stored preference stays `system` and the toggle follows the device.
+    - This spec adds no way back to `system` from the card. Settings keeps that option.
+  - **Accessibility:** `aria-pressed` reflects dark, and the accessible name and title are a constant "Dark theme" / "Тёмная тема". Keep the existing 2px focus ring. Under reduced motion, the sun and the shift change instantly.
+  - **How to build it:** write a small Kuuki component with Horizon's paths, plus an MIT attribution comment naming the package and author. Don't render the package component. Its styling depends on Tailwind's class-based `dark:` and `motion-safe:` utilities on the button: the source applies `dark:translate-y-[50%]` to the sun path. Kuuki switches themes through `data-theme` on `<html>`, and the optical shift isn't part of the package.
+  - **Elsewhere:** the avatar menu and Settings keep their current theme controls under this spec. Their redesign belongs to the separate accent-picker design work.
 - **Accents:**
   - The accent list becomes terracotta (default), ai, matcha, asagi and sakura. Use the exact light and dark values from board "4.2".
   - Accent is stored in the `kuuki_accent` cookie and applied by the bootstrap script, not D1. A stored `kincha` or `sumi` is rewritten to `terracotta` the first time it's read, in both the bootstrap script and the appearance client.
@@ -282,6 +299,11 @@ Prior art: the existing auth-entry journey tests. They sign in repeatedly with t
 - **Reset link** through the set-password page lands on `/` with "Password saved. Sign in with it now." Get the token from the test's mail capture or a seeded token, as current recovery journeys do.
 - **Expired token** shows "Link expired".
 - **Accents:** a `kincha` cookie renders terracotta.
+- **Theme toggle:**
+  - With the device set to light, the toggle starts unpressed.
+  - A click switches the page to dark: `data-theme` changes and `aria-pressed` becomes true.
+  - The choice survives a reload.
+  - Use `emulateMedia` for the device setting.
 - **Visual coverage:** run one light, one dark and one mobile-viewport journey, each checking the key elements are visible. No pixel snapshots.
 - Run the full navigation suite, not just the auth file. Shared controls break journeys in other files.
 
@@ -296,6 +318,7 @@ Prior art: the existing auth-entry journey tests. They sign in repeatedly with t
 - Carrying over legacy Supabase bcrypt passwords, or any design built around migrated users. Migrated accounts are served only by the get-back-in link, as today.
 - Email-first, magic-link or email-verified sign-up. The user rejected these because they force an app switch.
 - Passkeys and OAuth providers.
+- Redesigning the accent picker, and the theme controls in Settings and the avatar menu. That design work runs separately in Paper.
 - A product demo, sample flights or any showcase on the card.
 - Changes to token expiry, mail transport or the activation-origin hosting setup.
 - Remote D1 writes. No schema change is needed: accents live in a cookie.
