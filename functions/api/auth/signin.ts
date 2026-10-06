@@ -31,7 +31,8 @@ export const onRequestPost: PagesFunction<Env> = (context) =>
       throw new HttpError(401, 'Invalid email or password', 'INVALID_CREDENTIALS')
     }
     const authResponse = await signInWithBetterAuth(env, request, user.email, password)
-    if (!authResponse.ok) return authResponse
+    // Better Auth's own 401 body differs from the unknown-email one above, which would reveal that the account exists.
+    if (!authResponse.ok) throw new HttpError(401, 'Invalid email or password', 'INVALID_CREDENTIALS')
 
     const authResult = await authResponse.json() as Record<string, unknown>
     delete authResult.token

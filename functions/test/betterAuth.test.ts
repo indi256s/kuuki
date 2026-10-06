@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { Miniflare } from 'miniflare'
 import { unstable_splitSqlQuery } from 'wrangler'
-import { expect, it } from 'vitest'
+import { afterEach, expect, it, vi } from 'vitest'
 import { createApiDatabase, apiContext } from './harness'
 import { onRequest as middleware } from '../_middleware'
 import { onRequest as authRoute } from '../api/auth/[[path]]'
@@ -27,6 +27,8 @@ async function call(db: D1Database, path: string, method = 'GET', body?: object,
   const handler = path === '/api/auth/me' ? meRoute : path === '/api/auth/account' ? deleteRoute : authRoute
   return middleware({ ...context, next: () => handler(context as never) } as never)
 }
+
+afterEach(() => vi.restoreAllMocks())
 
 function responseCookies(response: Response): string {
   return response.headers.getSetCookie().map(cookie => cookie.split(';')[0]).join('; ')
@@ -75,6 +77,46 @@ it('rejects bad credentials, cross-origin auth and logout without CSRF', async (
     expect((await db.prepare('SELECT COUNT(*) AS n FROM auth_sessions').first<{ n: number }>())?.n).toBe(1)
     const blocked = await call(db, '/api/auth/change-password', 'POST', { newPassword: 'new-password' }, cookie)
     expect(blocked.status).toBe(404)
+  } finally { await dispose() }
+}, 30_000)
+
+it('answers an unknown email, a wrong password and a RESET_REQUIRED account identically on sign-in', async () => {
+  const { db, dispose } = await createApiDatabase()
+  try {
+    expect((await call(db, '/api/auth/sign-up/email', 'POST', { email: 'a@example.test', password: 'password-123' })).status).toBe(201)
+    await db.batch([
+      db.prepare("INSERT INTO users(id,email,password_hash) VALUES('pending-user','pending@example.test','RESET_REQUIRED')"),
+      db.prepare("INSERT INTO profiles(id) VALUES('pending-user')"),
+    ])
+    const outcome = async (email: string) => {
+      const response = await call(db, '/api/auth/sign-in/email', 'POST', { email, password: 'wrong-password' })
+      return { status: response.status, type: response.headers.get('Content-Type'), cache: response.headers.get('Cache-Control'), cookie: response.headers.get('Set-Cookie'), body: await response.json() }
+    }
+    const unknown = await outcome('nobody@example.test')
+    expect(unknown).toEqual({ status: 401, type: 'application/json; charset=utf-8', cache: 'no-store', cookie: null, body: { error: 'Invalid email or password', code: 'INVALID_CREDENTIALS' } })
+    expect(await outcome('a@example.test')).toEqual(unknown)
+    expect(await outcome('pending@example.test')).toEqual(unknown)
+  } finally { await dispose() }
+}, 30_000)
+
+it('runs a password verification on sign-in for an unknown email, a wrong password and a RESET_REQUIRED account', async () => {
+  const { db, dispose } = await createApiDatabase()
+  try {
+    expect((await call(db, '/api/auth/sign-up/email', 'POST', { email: 'a@example.test', password: 'password-123' })).status).toBe(201)
+    await db.batch([
+      db.prepare("INSERT INTO users(id,email,password_hash) VALUES('pending-user','pending@example.test','RESET_REQUIRED')"),
+      db.prepare("INSERT INTO profiles(id) VALUES('pending-user')"),
+    ])
+    const derive = vi.spyOn(crypto.subtle, 'deriveBits')
+    const verifications = async (email: string) => {
+      derive.mockClear()
+      expect((await call(db, '/api/auth/sign-in/email', 'POST', { email, password: 'wrong-password' })).status).toBe(401)
+      return derive.mock.calls.length
+    }
+    const wrongPassword = await verifications('a@example.test')
+    expect(wrongPassword).toBeGreaterThan(0)
+    expect(await verifications('nobody@example.test')).toBe(wrongPassword)
+    expect(await verifications('pending@example.test')).toBe(wrongPassword)
   } finally { await dispose() }
 }, 30_000)
 
