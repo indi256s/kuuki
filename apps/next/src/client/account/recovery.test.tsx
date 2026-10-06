@@ -4,7 +4,6 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, expect, it, vi } from 'vitest'
 import { ApiError } from '../../../../web/src/lib/apiClient'
-import { ForgotPasswordForm } from './forgot-password-form'
 import { ResetPasswordForm } from './reset-password-form'
 import { EmailLinkForm } from '../public/email-link-form'
 
@@ -16,7 +15,7 @@ afterEach(() => { post.mockReset(); identity.mockClear(); delete window.__kuukiR
 
 it.each(['activation', 'recovery'] as const)('keeps %s requests generic, validates email and separates rate limits from network failures', async purpose => {
   post.mockRejectedValueOnce(new ApiError(429, 'limited')).mockRejectedValueOnce(new TypeError('offline')).mockResolvedValueOnce({ ok: true })
-  render(purpose === 'recovery' ? <ForgotPasswordForm locale="en" /> : <EmailLinkForm locale="en" purpose="activation" />)
+  render(<EmailLinkForm locale="en" purpose={purpose} />)
   const action = purpose === 'activation' ? 'Send activation link' : 'Send reset link'
   await userEvent.click(screen.getByRole('button', { name: action }))
   expect(screen.getByLabelText('Email')).toHaveAccessibleDescription('Enter a valid email.')
