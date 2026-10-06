@@ -271,30 +271,50 @@ writes made after the release.
 - The `kuuki-next-preview` Worker stays up, since it is the source of the teeDc
   bundle.
 
-**Next session (fresh thread).**
-1. Redirect `kuuki.indi256.com` and `kuuki.pages.dev` to `https://kuuki.marchstudio.uk`.
-   Both currently serve held Pages deployment `4a779796`.
-   - Keep the Pages hold as the rollback surface, and keep the Access hold on
-     immutable URLs.
-   - Prefer zone-level Single Redirects or a Pages `_redirects`/`_worker.js` change
-     only after checking which zone owns `indi256.com`.
-   - `kuuki.pages.dev` cannot take a zone rule; decide between a held-Pages redirect
-     and leaving it in maintenance.
-2. Two retained accounts reset their passwords through the existing activation flow
-   on `kuuki-activation.indi256s.workers.dev`.
-   - Each request goes to its own owner only. No bulk or legacy-cohort mail is
-     authorized.
-   - Confirm activation installs credentials: `users.password_hash` and the
-     credential `auth_accounts` row, with 0 remaining tokens.
+**Post-cutover follow-up (13:10–13:20Z).**
+1. **Legacy origin redirect.** `indi256.com` is an active zone in the same account;
+   `kuuki.indi256.com` is a proxied CNAME to `kuuki.pages.dev` with no Workers
+   routes. A zone Single Redirect (ruleset `de8f78fd…`, rule ref
+   `kuuki_legacy_origin_to_canonical`) sends `kuuki.indi256.com` to
+   `https://kuuki.marchstudio.uk` + path, with query preserved, **302**. It
+   excludes `/sw.js` (browsers reject a redirected service-worker update, and the
+   retirement worker must still unregister old PWAs) and `/api`, `/api/*` (stale
+   tabs keep the maintenance 503; no credentialed cross-origin requests). curl at
+   13:11Z: `/`, deep paths with query and `http://` all reach the canonical host in
+   one hop; `/sw.js` 200 retirement worker; `/api/health` and `POST
+   /api/auth/sign-in` 503 maintenance; `4a779796`/`22e26a40` immutable URLs still
+   302 to Access. Upgrade to 301 only after the rollback window closes. Remove by
+   deleting the rule; nothing else changed.
+2. **`kuuki.pages.dev` stays in maintenance, by decision.** No zone rule can match
+   it, and a redirect would need a new Pages production deployment. That replaces
+   the held `4a779796` canonical deployment that is also the rollback surface behind
+   `kuuki.marchstudio.uk`, and Pages `_redirects` cannot match on host, so a
+   path-only redirect would loop on the canonical host during rollback. It keeps
+   serving the held shell, the retirement `sw.js` and API maintenance.
+3. **Retained-account activation.** Completion is one D1 transaction that installs
+   `users.password_hash`, upserts `auth_accounts` `credential:<id>`, revokes both
+   session tables and deletes that user's tokens. Tokens live 30 minutes; the
+   maintenance cron is off, so an unused token stays until someone removes it. Each
+   owner opens `https://kuuki.marchstudio.uk/activation-request` and submits their
+   own email (rate limits: 3/email/hour, 10/IP/hour). They follow the
+   `kuuki-activation.indi256s.workers.dev/activate#token=…` link within 30 minutes
+   and choose a password. The operator sends no mail. Read-only check:
+   ignored `.scratch/next-release/retained-activation-check.sh` loads retained IDs
+   privately and prints counts only. Baseline at 13:15Z: retained found 2,
+   hashes installed 0, matching credential rows 0, tokens 0 (all 0), retained
+   flights 69; all 28 users `RESET_REQUIRED`, 412 flights. Pass after both owners
+   finish: installed 2, matching rows 2, retained tokens 0, all tokens 0, flights
+   69/412 unchanged. No independent review was requested: the redirect is a
+   reversible edge rule, and no data or deployment changed.
 
 The 60-minute monitoring window runs in the cutover thread until about 14:04Z. Check
 its result in Workers analytics for `kuuki-next` and `kuuki-activation` from
 13:03:45Z. At 13:06Z there were 0 errors.
 
 **Open follow-ups.**
-- Point `kuuki.indi256.com` (and optionally `kuuki.pages.dev`) at the canonical origin.
-- The two retained accounts reset their passwords through activation; no bulk mail
-  was sent.
+- The two retained owners complete activation, then rerun the read-only check above
+  (pending owner action).
+- After rollback acceptance, switch the `kuuki.indi256.com` redirect from 302 to 301.
 - Click-navigation latency.
 - D1 transient retry.
 - The import provider gate.
