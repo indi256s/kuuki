@@ -83,12 +83,13 @@
    `-up` grows up and sideways only, so a link above an input never reaches into it. */
 .auth-text-link{display:inline-block;padding:12px 8px;margin:-12px -8px;font-size:13px;line-height:20px;font-weight:500;color:var(--accent-text);text-decoration:none;text-underline-offset:3px;border-radius:var(--radius-xs)}
 .auth-text-link-up{padding:24px 8px 0;margin:-24px -8px 0}
+.auth-text-link[aria-disabled=true]{color:var(--text-muted);cursor:default}
 /* The 24px it grows up must clear the field above, so a field whose label row holds one sits 8px lower (24px, not 16). */
 .auth-field:has(.auth-text-link-up){margin-top:8px}
 
 @media(hover:hover) and (pointer:fine){
   .auth-corner-control:hover,.auth-card-reveal:hover{background:var(--surface-inset)}
-  .auth-text-link:hover,.auth-status-change:hover,.auth-recovery-link:not(:disabled):hover{text-decoration:underline}
+  .auth-text-link:not([aria-disabled=true]):hover,.auth-status-change:hover,.auth-recovery-link:not(:disabled):hover{text-decoration:underline}
 }
 @media(prefers-reduced-motion:reduce){.auth-corner-control,.auth-card-reveal,.auth-horizon svg,.auth-horizon-sun{transition:none}.auth-step[data-step=create]{animation:none}}
 

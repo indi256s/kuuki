@@ -31,6 +31,33 @@ test('Can’t sign in opens in place without an empty-email error, and preserves
   await expect(page.getByLabel('Password', { exact: true })).toHaveValue('keep-this-password')
 })
 
+test('a pending Continue blocks recovery entry until its result arrives', async ({ page }) => {
+  let release!: () => void
+  const held = new Promise<void>(resolve => { release = resolve })
+  await page.route('**/api/auth/continue', async route => {
+    await held
+    await route.fulfill({ status: 401, json: { code: 'INVALID_CREDENTIALS' } })
+  })
+  await page.goto('/')
+  const c = requestCard(page)
+  await c.email.fill('waiting@example.test')
+  await page.getByLabel('Password', { exact: true }).fill('wrong-password')
+  await page.getByRole('button', { name: 'Continue', exact: true }).click()
+  const recovery = page.getByRole('link', { name: 'Can’t sign in?', exact: true })
+  await expect(page.getByRole('button', { name: 'Checking…', exact: true })).toBeVisible()
+  await expect(recovery).toBeDisabled()
+  await recovery.click({ force: true })
+  await expect(c.heading).toHaveCount(0)
+  await expect(page.getByRole('button', { name: 'Checking…', exact: true })).toBeVisible()
+  release()
+  await expect(page.getByRole('alert')).toHaveText('Email or password is incorrect.')
+  await expect(recovery).toBeEnabled()
+  await recovery.click()
+  await expect(c.heading).toBeFocused()
+  await expect(c.email).toHaveValue('waiting@example.test')
+  await expect(page).toHaveURL(/\/$/)
+})
+
 test('request validation, sending focus and distinct server failures preserve the email', async ({ page }) => {
   let attempt = 0, release!: () => void
   const held = new Promise<void>(resolve => { release = resolve })
@@ -47,6 +74,7 @@ test('request validation, sending focus and distinct server failures preserve th
   await c.send.click()
   await expect(c.email).toHaveAttribute('aria-invalid', 'true')
   await expect(c.email).toHaveAccessibleDescription('Enter a valid email.')
+  await expect(c.heading).toBeFocused()
   expect(attempt).toBe(0)
   await c.email.fill('valid@example.test')
   await expect(c.email).toBeFocused()

@@ -103,7 +103,7 @@ export function FormStep({ locale, step, email, password, error, notice, heading
           maxLength={320} value={email} readOnly={busy} onChange={event => onEmailChange(event.target.value)} error={field === 'email' ? m[error!] : undefined} />
         <CardField ref={passwordRef} label={creating ? t.createPassword : t.password} name="password" type="password" autoComplete={creating ? 'new-password' : 'current-password'}
           maxLength={1024} locale={locale} value={password} readOnly={busy} onChange={event => onPasswordChange(event.target.value)} error={field === 'password' ? m[error!] : undefined}
-          aside={creating ? <span className="auth-field-hint">{t.passwordHint}</span> : <a className="auth-text-link auth-text-link-up" href="/forgot-password" onClick={event => { event.preventDefault(); onGetBackIn() }}>{t.cantSignIn}</a>} />
+          aside={creating ? <span className="auth-field-hint">{t.passwordHint}</span> : <a className="auth-text-link auth-text-link-up" href="/forgot-password" aria-disabled={busy || undefined} onClick={event => { event.preventDefault(); onGetBackIn() }}>{t.cantSignIn}</a>} />
         {error === 'invalid' ? <Button variant="secondary" className="auth-secondary" onClick={onGetBackIn}>
           <span className="auth-button-row"><Mail size={16} strokeWidth={1.75} aria-hidden="true" />{t.getBackIn}</span>
         </Button> : null}

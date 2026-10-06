@@ -124,7 +124,7 @@ export function AuthCard({ locale, initialEmail = '', initialStep = 'form', init
   }
 
   const sendLink = async (address: string) => {
-    if (address.length > 320 || !EMAIL.test(address)) return go({ step: 'request', email: address, error: 'invalid' }, 'email')
+    if (address.length > 320 || !EMAIL.test(address)) return go({ step: 'request', email: address, error: 'invalid' })
     setEmail(address)
     go({ step: 'sending', email: address })
     try {
@@ -172,7 +172,7 @@ export function AuthCard({ locale, initialEmail = '', initialStep = 'form', init
         error={'error' in state ? state.error : undefined} notice={notice} headingRef={heading} emailRef={emailInput} passwordRef={passwordInput} primaryRef={primary}
         onEmailChange={changeEmail} onPasswordChange={changePassword} onSubmit={submit}
         onChangeEmail={() => go({ step: 'form' }, 'email-selected')}
-        onGetBackIn={() => go({ step: 'request', email })} />}
+        onGetBackIn={() => { if (state.step !== 'checking' && state.step !== 'creating') go({ step: 'request', email }) }} />}
       {state.step === 'form' || state.step === 'checking' || state.step === 'create' || state.step === 'creating' ? <Tagline locale={locale} index={tagline} /> : null}
     </div>
   </AuthCardFrame>
