@@ -13,7 +13,7 @@ function card(page: Page) {
     cantSignIn: page.getByRole('link', { name: 'Can’t sign in?', exact: true }),
     continue: page.getByRole('button', { name: 'Continue', exact: true }),
     language: page.getByRole('combobox', { name: 'Language', exact: true }),
-    theme: page.getByRole('combobox', { name: 'Theme', exact: true }),
+    theme: page.getByRole('button', { name: 'Dark theme', exact: true }),
     help: page.getByRole('button', { name: 'Help', exact: true }),
     tagline: page.getByText(new RegExp(`^(${TAGLINES.map(line => line.replace(/[.?]/g, '\\$&')).join('|')})$`)),
   }

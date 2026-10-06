@@ -6,7 +6,7 @@ import { setLocale } from '../appearance'
 import { useAppearance } from '../preferences'
 import { Dialog } from '../ui/dialog'
 import type { Locale } from '../../lib/format'
-import { ThemeControl } from './theme-control'
+import { HorizonToggle } from './horizon-toggle'
 import './auth-card.css'
 
 const words = {
@@ -43,12 +43,12 @@ function HelpControl({ locale }: { locale: Locale }) {
 
 /**
  * Language, theme and help in the card corner (top right of the form panel on desktop, the band header on mobile).
- * Each control is at least 44×44. `theme` swaps the theme control; the default is the temporary `ThemeControl`.
+ * Each control is at least 44×44. `theme` swaps the theme control; the default is the `HorizonToggle`.
  */
 export function CornerControls({ locale, theme }: { locale: Locale; theme?: ReactNode }) {
   return <div className="auth-corner">
     <LanguageControl locale={locale} />
-    {theme ?? <ThemeControl locale={locale} />}
+    {theme ?? <HorizonToggle locale={locale} />}
     <HelpControl locale={locale} />
   </div>
 }
