@@ -10,7 +10,7 @@ preview_urls = false
 
 # Set per Worker with `wrangler secret put`. Deploy fails if one is missing. `secrets` does not inherit.
 [secrets]
-required = ["AUTH_SECRET", "BETTER_AUTH_SECRET", "ACTIVATION_MAIL_AUTH_TOKEN"]
+required = ["AUTH_SECRET", "BETTER_AUTH_SECRET"]
 
 [assets]
 directory = ".open-next/assets"
@@ -28,6 +28,10 @@ ACTIVATION_ORIGIN = "https://kuuki-activation.indi256s.workers.dev"
 ACTIVATION_MAIL_ACCOUNT_ID = "5cadcff0282e54f3ff1d7062d4dbb97a"
 ACTIVATION_MAIL_FROM = "accounts@marchstudio.uk"
 
+[[send_email]]
+name = "ACTIVATION_MAIL"
+allowed_sender_addresses = ["accounts@marchstudio.uk"]
+
 [[d1_databases]]
 binding = "DB"
 database_name = "kuuki-db"
@@ -42,7 +46,7 @@ workers_dev = true
 preview_urls = false
 
 [env.activation.secrets]
-required = ["AUTH_SECRET", "BETTER_AUTH_SECRET", "ACTIVATION_MAIL_AUTH_TOKEN"]
+required = ["AUTH_SECRET", "BETTER_AUTH_SECRET"]
 
 [env.activation.vars]
 PAGES_ORIGIN = "https://kuuki.marchstudio.uk"
@@ -50,6 +54,10 @@ MAINTENANCE_MODE = "false"
 ACTIVATION_ORIGIN = "https://kuuki-activation.indi256s.workers.dev"
 ACTIVATION_MAIL_ACCOUNT_ID = "5cadcff0282e54f3ff1d7062d4dbb97a"
 ACTIVATION_MAIL_FROM = "accounts@marchstudio.uk"
+
+[[env.activation.send_email]]
+name = "ACTIVATION_MAIL"
+allowed_sender_addresses = ["accounts@marchstudio.uk"]
 
 [[env.activation.d1_databases]]
 binding = "DB"
@@ -78,3 +86,7 @@ MAINTENANCE_MODE = "false"
 ACTIVATION_ORIGIN = "https://kuuki-release-activation-preview.indi256s.workers.dev"
 ACTIVATION_MAIL_ACCOUNT_ID = "5cadcff0282e54f3ff1d7062d4dbb97a"
 ACTIVATION_MAIL_FROM = "accounts@marchstudio.uk"
+
+[[env.preview.send_email]]
+name = "ACTIVATION_MAIL"
+allowed_sender_addresses = ["accounts@marchstudio.uk"]

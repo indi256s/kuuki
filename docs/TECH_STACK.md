@@ -15,7 +15,7 @@ Manifests specify compatible ranges; `pnpm-lock.yaml` records the installed vers
 | Hosting/API | Cloudflare Pages and Pages Functions |
 | Database | Cloudflare D1, additive SQL migrations |
 | Authentication | Better Auth with D1 credential accounts and sessions, existing peppered passwords, HTTP-only signed session cookie and CSRF cookie |
-| Activation delivery | Cloudflare Email Sending REST API; fake sender for local proof |
+| Activation delivery | Native Cloudflare Email Sending binding; REST fallback and fake sender for local proof |
 | Recovery | Scheduled maintenance Worker, revision-guarded derived-state publication |
 | AI | Server-side `@google/genai`; model configuration and provider errors stay behind the API |
 | Toolchain | Node.js 24, pnpm 9.15.0, Turborepo, Wrangler |
@@ -29,7 +29,7 @@ A create request carries an `Idempotency-Key`. A retry must retain its original 
 
 Migrated accounts initially use `RESET_REQUIRED`. Activation requires a short-lived, one-use email token on a separate HTTPS origin. The server stores only its digest. Active users keep their existing credentials, and activation is not a general password-reset service. Preserve the production `AUTH_SECRET` when migrating.
 
-Activation delivery uses the fixed Cloudflare Email Sending API with text and HTML content. Only an explicit delivered or queued acknowledgement for the intended recipient counts as provider acceptance. Account ID, verified sender address and a secret scoped to Email Sending are required; real delivery remains gated on domain onboarding and an authorized recipient test. See [the sender setup](runbooks/audit-remediation-release.md#activation-delivery) for operational requirements.
+Activation and password-recovery delivery use the native Cloudflare Email Sending binding with text and HTML content. A non-empty message ID counts as provider acceptance; inbox receipt is separate evidence. Each Next Worker configures the binding with the verified sender allowlist. Environments without that binding retain the REST adapter, which requires the account ID and scoped secret and accepts only an explicit delivered or queued acknowledgement for the intended recipient. Real delivery remains gated on domain onboarding and an authorized recipient test. See [the sender setup](runbooks/audit-remediation-release.md#activation-delivery) for operational requirements.
 
 Modern browsers with Web Locks coordinate requests and identity changes across tabs. Browsers without Web Locks retain a per-tab fallback; full cross-tab identity protection is a release compatibility limitation. Old tabs should reload after cutover. The activation origin serves isolated assets and does not serve the application service worker.
 
