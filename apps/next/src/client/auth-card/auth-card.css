@@ -59,6 +59,11 @@
 .auth-form-message{display:flex;align-items:flex-start;gap:6px;margin:0;font-size:13px;line-height:20px;color:var(--text)}
 .auth-form-message[data-tone=error]{color:var(--danger-text)}
 .auth-form-message svg{flex-shrink:0;margin-block:2px}
+.auth-recovery-actions{display:flex;flex-direction:column;align-items:flex-start;gap:8px}
+.auth-recovery-link{display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:0;border:0;border-radius:var(--radius-xs);background:transparent;color:var(--accent-text);font:500 13px/20px var(--font-sans);text-underline-offset:3px;cursor:pointer}
+.auth-recovery-link:disabled{color:var(--text-muted);cursor:default}
+.auth-recovery-actions .auth-secondary[aria-disabled=true]{border-color:var(--hairline);color:var(--text-muted);background:transparent}
+.auth-heading [role=status]{overflow-wrap:anywhere}
 
 /* ---------- Steps ---------- */
 .auth-step{display:flex;flex-direction:column;gap:inherit}
@@ -83,7 +88,7 @@
 
 @media(hover:hover) and (pointer:fine){
   .auth-corner-control:hover,.auth-card-reveal:hover{background:var(--surface-inset)}
-  .auth-text-link:hover,.auth-status-change:hover{text-decoration:underline}
+  .auth-text-link:hover,.auth-status-change:hover,.auth-recovery-link:not(:disabled):hover{text-decoration:underline}
 }
 @media(prefers-reduced-motion:reduce){.auth-corner-control,.auth-card-reveal,.auth-horizon svg,.auth-horizon-sun{transition:none}.auth-step[data-step=create]{animation:none}}
 

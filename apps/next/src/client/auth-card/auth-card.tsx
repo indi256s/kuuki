@@ -1,13 +1,13 @@
 'use client'
 
 import { useEffect, useRef, useState, type ReactNode } from 'react'
-import { useRouter } from 'next/navigation'
 import { api, ApiError } from '@kuuki/client/apiClient'
 import { withIdentityMutation } from '../activity'
 import type { Locale } from '../../lib/format'
 import { BrandPanel } from './brand-panel'
 import { CornerControls } from './corner-controls'
 import { FormStep } from './form-step'
+import { GetBackInStep, type RequestState } from './get-back-in-step'
 import { PlaneField } from './plane-field'
 import { Tagline } from './taglines'
 import './auth-card.css'
@@ -27,15 +27,16 @@ export function AuthCardFrame({ locale, brandField, theme, children }: { locale:
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 /**
- * The card's states (spec "Client state machine"). Ticket 08 adds `request`, `sending` and `sent`.
+ * The card's states (spec "Client state machine").
  * `form` also carries `taken` (409 from Create account) and the `created` notice (account made, session not issued),
  * and client-side `email` / `password` validation, which the spec's shorter list leaves implicit.
  */
 export type CardState =
-  | { step: 'form'; error?: 'email' | 'password' | 'invalid' | 'rate' | 'network' | 'taken'; notice?: 'created' }
+  | { step: 'form'; error?: 'email' | 'password' | 'invalid' | 'rate' | 'network' | 'taken'; notice?: 'created' | 'password-saved' }
   | { step: 'checking' }
   | { step: 'create'; email: string; error?: 'short' | 'rate' | 'network' }
   | { step: 'creating'; email: string }
+  | RequestState
 
 /** Where focus goes after a state change. The heading is the default; the create step and Change are the exceptions. */
 type FocusTarget = 'heading' | 'primary' | 'email-selected' | 'email' | 'password' | 'none'
@@ -59,12 +60,16 @@ const statusOf = (error: unknown) => error instanceof ApiError ? error.status : 
  * The one-form auth card. Continue posts to `/api/auth/continue`: a session lands in the journal, a wrong password
  * stays on the form with an error, and an unknown email turns the card into the create step in place.
  */
-export function AuthCard({ locale, initialEmail = '', tagline }: { locale: Locale; initialEmail?: string; tagline: number }) {
-  const router = useRouter()
-  const [state, setState] = useState<CardState>({ step: 'form' })
-  const [email, setEmail] = useState(initialEmail)
+export function AuthCard({ locale, initialEmail = '', initialStep = 'form', initialNotice, tagline }: {
+  locale: Locale; initialEmail?: string; initialStep?: 'form' | 'request'; initialNotice?: 'password-saved'; tagline: number
+}) {
+  const [state, setState] = useState<CardState>(initialStep === 'request' ? { step: 'request', email: initialEmail } : { step: 'form', notice: initialNotice })
+  const [email, setEmail] = useState(() => {
+    if (initialEmail || !initialNotice || typeof window === 'undefined') return initialEmail
+    try { return sessionStorage.getItem('kuuki_auth_email') ?? '' } catch { return '' }
+  })
   const [password, setPassword] = useState('')
-  const focus = useRef<FocusTarget>('none')
+  const focus = useRef<FocusTarget>(initialStep === 'request' ? 'heading' : 'none')
   const heading = useRef<HTMLHeadingElement>(null)
   const emailInput = useRef<HTMLInputElement>(null)
   const passwordInput = useRef<HTMLInputElement>(null)
@@ -118,6 +123,26 @@ export function AuthCard({ locale, initialEmail = '', tagline }: { locale: Local
     }
   }
 
+  const sendLink = async (address: string) => {
+    if (address.length > 320 || !EMAIL.test(address)) return go({ step: 'request', email: address, error: 'invalid' }, 'email')
+    setEmail(address)
+    go({ step: 'sending', email: address })
+    try {
+      const reply = await api.post<unknown>('/api/auth/link/request', { email: address })
+      if (!reply || typeof reply !== 'object' || !('ok' in reply) || reply.ok !== true) throw new Error('Invalid link response')
+      // A user-typed hint for password managers after reset, never a claim that this account exists.
+      try { sessionStorage.setItem('kuuki_auth_email', address) } catch { /* The request still succeeds when storage is blocked. */ }
+      go({ step: 'sent', email: address, resendAt: Date.now() + 60_000 })
+    } catch (error) {
+      const status = statusOf(error)
+      go({ step: 'request', email: address, error: status === 400 ? 'invalid' : status === 429 ? 'rate' : status === 503 ? 'paused' : 'network' })
+    }
+  }
+
+  const requestLink = () => {
+    if (state.step === 'request' || (state.step === 'sent' && Date.now() >= state.resendAt)) void sendLink(state.email.trim())
+  }
+
   const submit = () => {
     if (state.step === 'form') void signInOrAsk(email.trim())
     else if (state.step === 'create') void createJournal(state.email)
@@ -128,6 +153,7 @@ export function AuthCard({ locale, initialEmail = '', tagline }: { locale: Local
     // The create step is only valid for the email it was checked against; typing keeps focus in the field.
     if (state.step === 'create') go({ step: 'form' }, 'none')
     else if (state.step === 'form' && state.error === 'email') go({ step: 'form' }, 'none')
+    else if (state.step === 'request') go({ step: 'request', email: value }, 'none')
   }
   const changePassword = (value: string) => {
     setPassword(value)
@@ -135,17 +161,19 @@ export function AuthCard({ locale, initialEmail = '', tagline }: { locale: Local
     else if (state.step === 'create' && state.error === 'short') go({ step: 'create', email: state.email }, 'none')
   }
 
-  const error = 'error' in state ? state.error : undefined
   const notice = state.step === 'form' ? state.notice : undefined
   return <AuthCardFrame locale={locale}>
     <div className="auth-step" data-step={state.step === 'create' || state.step === 'creating' ? 'create' : 'form'}>
-      <FormStep locale={locale} step={state.step} email={email} password={password}
-        error={error} notice={notice} headingRef={heading} emailRef={emailInput} passwordRef={passwordInput} primaryRef={primary}
+      {state.step === 'request' || state.step === 'sending' || state.step === 'sent'
+        ? <GetBackInStep locale={locale} state={state} headingRef={heading} emailRef={emailInput}
+          onEmailChange={changeEmail} onSend={requestLink} onBack={() => go({ step: 'form' })}
+          onDifferentEmail={() => go({ step: 'request', email: state.email })} />
+        : <FormStep locale={locale} step={state.step} email={email} password={password}
+        error={'error' in state ? state.error : undefined} notice={notice} headingRef={heading} emailRef={emailInput} passwordRef={passwordInput} primaryRef={primary}
         onEmailChange={changeEmail} onPasswordChange={changePassword} onSubmit={submit}
         onChangeEmail={() => go({ step: 'form' }, 'email-selected')}
-        // Until the card has its own request state (ticket 08), the link to get back in opens the recovery page.
-        onGetBackIn={() => router.push('/forgot-password')} />
-      <Tagline locale={locale} index={tagline} />
+        onGetBackIn={() => go({ step: 'request', email })} />}
+      {state.step === 'form' || state.step === 'checking' || state.step === 'create' || state.step === 'creating' ? <Tagline locale={locale} index={tagline} /> : null}
     </div>
   </AuthCardFrame>
 }
