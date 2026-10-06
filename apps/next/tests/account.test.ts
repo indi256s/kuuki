@@ -112,7 +112,7 @@ test('an old tab preserves the new account draft and retry receipt on focus', as
   await newTab.waitForURL('**/signin')
   await newTab.getByLabel('Email', { exact: true }).fill('b@example.test')
   await newTab.getByLabel('Password', { exact: true }).fill('rehearsal-password-2026')
-  await newTab.getByRole('button', { name: 'Sign in', exact: true }).click()
+  await newTab.getByRole('button', { name: 'Continue', exact: true }).click()
   await newTab.waitForURL('**/overview')
 
   // Manual capture is the remaining writer of an owner-scoped create receipt; the import UI keeps its drafts in D1.
