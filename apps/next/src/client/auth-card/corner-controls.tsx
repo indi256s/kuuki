@@ -12,20 +12,20 @@ import './auth-card.css'
 const words = {
   en: {
     language: 'Language', help: 'Help', close: 'Close', about: 'About Kuuki',
-    body: ['Kuuki is a private flight journal.', 'Sign in with your email and password, or use a new email to start your journal. Your flights stay private until you share them.', 'Can’t sign in? Use the link next to Password.'],
+    body: ['Kuuki is a private flight journal.', 'Sign in with your email and password, or use a new email to start your journal. Your flights stay private until you share them.', 'Need another link? Return to sign in and choose “Can’t sign in?”.'],
   },
   ru: {
     language: 'Язык', help: 'Помощь', close: 'Закрыть', about: 'О Kuuki',
-    body: ['Kuuki — личный журнал перелётов.', 'Войдите с почтой и паролем или укажите новую почту, чтобы начать журнал. Перелёты видны только вам, пока вы ими не поделитесь.', 'Не получается войти? Нажмите ссылку рядом с полем «Пароль».'],
+    body: ['Kuuki — личный журнал перелётов.', 'Войдите с почтой и паролем или укажите новую почту, чтобы начать журнал. Перелёты видны только вам, пока вы ими не поделитесь.', 'Нужна новая ссылка? Вернитесь ко входу и выберите «Не получается войти?».'],
   },
 }
 
-function LanguageControl({ locale }: { locale: Locale }) {
+function LanguageControl({ locale, onLocaleChange = setLocale }: { locale: Locale; onLocaleChange?: (locale: Locale) => void }) {
   const current = useAppearance(locale).locale
   return <span className="auth-corner-control" data-kind="language">
     <Globe size={16} strokeWidth={1.75} aria-hidden="true" />
     <span aria-hidden="true">{current.toUpperCase()}</span>
-    <select aria-label={words[locale].language} value={current} onChange={event => setLocale(event.target.value as Locale)}>
+    <select aria-label={words[locale].language} value={current} onChange={event => onLocaleChange(event.target.value as Locale)}>
       <option value="en">EN</option>
       <option value="ru">RU</option>
     </select>
@@ -45,9 +45,9 @@ function HelpControl({ locale }: { locale: Locale }) {
  * Language, theme and help in the card corner (top right of the form panel on desktop, the band header on mobile).
  * Each control is at least 44×44. `theme` swaps the theme control; the default is the `HorizonToggle`.
  */
-export function CornerControls({ locale, theme }: { locale: Locale; theme?: ReactNode }) {
+export function CornerControls({ locale, theme, onLocaleChange }: { locale: Locale; theme?: ReactNode; onLocaleChange?: (locale: Locale) => void }) {
   return <div className="auth-corner">
-    <LanguageControl locale={locale} />
+    <LanguageControl locale={locale} onLocaleChange={onLocaleChange} />
     {theme ?? <HorizonToggle locale={locale} />}
     <HelpControl locale={locale} />
   </div>

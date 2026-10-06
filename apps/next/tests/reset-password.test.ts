@@ -19,7 +19,7 @@ test('a real one-use reset revokes the old session and requires explicit sign-in
     await page.goto(`/reset-password#token=${'R'.repeat(43)}`)
     await page.getByLabel('New password', { exact: true }).fill('unused-password-2026')
     await page.getByRole('button', { name: 'Save password', exact: true }).click()
-    await expect(page.getByRole('heading', { name: 'Link expired', exact: true })).toBeFocused()
+    await expect(page.getByRole('heading', { name: 'This link has expired', exact: true })).toBeFocused()
     await expect(page.getByRole('link', { name: 'Send a new link' })).toHaveAttribute('href', '/forgot-password')
     const signedIn = await page.request.post('/api/auth/sign-in/email', {
       headers: fixtureHeaders(baseURL!), data: { email: 'recovery@example.test', password: 'reset-password-2026' },
@@ -91,4 +91,28 @@ test('legacy password-updated and saved notices use the same card, including Rus
   }
   await page.goto('/?notice=unknown')
   await expect(page.getByRole('status')).toHaveCount(0)
+})
+
+test('changing reset language EN to RU to EN preserves the password and one-use token without reloading', async ({ page }) => {
+  const token = 'A'.repeat(43)
+  let completions = 0
+  await page.route('**/api/auth/password-reset/complete', async route => {
+    completions++
+    expect(route.request().headers()['authorization']).toBe(`Bearer ${token}`)
+    expect(route.request().postDataJSON()).toEqual({ password: 'new-password-2026' })
+    await route.fulfill({ json: { ok: true } })
+  })
+  await page.goto(`/reset-password#token=${token}`)
+  await page.getByLabel('New password', { exact: true }).fill('new-password-2026')
+  await page.getByRole('combobox', { name: 'Language' }).selectOption('ru')
+  await expect(page.getByRole('heading', { name: 'Выберите новый пароль' })).toBeVisible()
+  await expect(page.getByLabel('Новый пароль', { exact: true })).toHaveValue('new-password-2026')
+  await expect(page.locator('html')).toHaveAttribute('lang', 'ru')
+  await page.getByRole('combobox', { name: 'Язык' }).selectOption('en')
+  await expect(page.getByLabel('New password', { exact: true })).toHaveValue('new-password-2026')
+  await expect(page).toHaveURL(/\/reset-password$/)
+  await page.getByRole('button', { name: 'Save password' }).click()
+  await expect(page).toHaveURL(/\/\?notice=password-saved$/)
+  await expect(page.getByRole('status')).toHaveText('Password saved. Sign in with it now.')
+  expect(completions).toBe(1)
 })

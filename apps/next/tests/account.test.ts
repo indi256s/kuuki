@@ -166,7 +166,7 @@ test('reset fragment is removed before hydration and invalid tokens show a recov
   await expect(page).toHaveURL(/\/reset-password$/)
   await page.getByLabel('New password', { exact: true }).fill('new-password-2026')
   await page.getByRole('button', { name: 'Save password' }).click()
-  await expect(page.getByRole('heading', { name: 'Link expired', exact: true })).toBeFocused()
+  await expect(page.getByRole('heading', { name: 'This link has expired', exact: true })).toBeFocused()
   await expect(page.getByRole('link', { name: 'Send a new link' })).toHaveAttribute('href', '/forgot-password')
 })
 

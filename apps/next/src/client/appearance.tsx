@@ -11,11 +11,12 @@ function cookie(name: string, value: string) {
   document.cookie = `${name}=${encodeURIComponent(value)}; Path=/; Max-Age=${year}; SameSite=Lax`
 }
 
-export function setLocale(locale: Locale) {
+export function setLocale(locale: Locale, reload = true) {
   cookie('kuuki_locale', locale)
   try { localStorage.setItem('kuuki-language', locale) } catch { /* storage unavailable */ }
   document.documentElement.lang = locale
-  window.location.reload()
+  if (reload) window.location.reload()
+  else window.dispatchEvent(new Event('kuuki:appearance'))
 }
 
 export function setTheme(theme: Theme) {

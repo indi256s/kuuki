@@ -16,10 +16,10 @@ import './auth-card.css'
  * The card's static frame: brand panel (left on desktop, the band above the sheet on mobile), corner controls, and the
  * form panel holding `children`. Shared by every auth surface so the top stays put while the content changes.
  */
-export function AuthCardFrame({ locale, brandField, theme, children }: { locale: Locale; brandField?: ReactNode; theme?: ReactNode; children: ReactNode }) {
+export function AuthCardFrame({ locale, brandField, theme, onLocaleChange, children }: { locale: Locale; brandField?: ReactNode; theme?: ReactNode; onLocaleChange?: (locale: Locale) => void; children: ReactNode }) {
   return <div className="auth-card">
     <BrandPanel field={brandField ?? <PlaneField />} />
-    <CornerControls locale={locale} theme={theme} />
+    <CornerControls locale={locale} theme={theme} onLocaleChange={onLocaleChange} />
     <section className="auth-form-panel"><div className="auth-column">{children}</div></section>
   </div>
 }
