@@ -11,7 +11,9 @@ test('RU dark shell has no narrow viewport overflow with reduced motion', async 
     await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark')
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
   }
-  await page.getByRole('combobox', { name: 'Тема' }).selectOption('light')
+  const toggle = page.getByRole('button', { name: 'Тёмная тема', exact: true })
+  await expect(toggle).toHaveAttribute('aria-pressed', 'true')
+  await toggle.click()
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'light')
 })
 
