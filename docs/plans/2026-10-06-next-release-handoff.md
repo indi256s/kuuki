@@ -15,7 +15,7 @@ release forward. Required preservation gates still apply. Production data,
 credentials, routing and deployments have not been changed. No real mail or
 provider calls were made; retain their separate recipient/provider gates.
 
-Two input requests remain pending:
+Retained secret values remain the pending input:
 
 1. The retained Pages secret values or their storage location. Cloudflare exposes
    their names but redacts values. Preserve `AUTH_SECRET`; do not rotate it or
@@ -26,17 +26,17 @@ Two input requests remain pending:
    credential. A private editable `production.env` is prepared in the evidence
    directory with empty AUTH_SECRET, GEMINI_API_KEY and ACTIVATION_MAIL_AUTH_TOKEN
    entries. Generate Better Auth secrets separately; no existing pepper was changed.
-2. Identity mapping: the verified fresh source and live production share one email
+Identity mapping: the verified fresh source and live production share one email
    and username across different IDs, and 64 differing flight rows share IDs.
    The user said the current production account need not be kept. Further read-only
    inspection found that the conflicting account owns zero flights; the other two
    production accounts own all 69 flights and both have personal password hashes.
-   A scope question remains pending: replace only the conflicting account, or
-   discard all three current production accounts and their data after backup and
-   restore proof. Do not infer authorization to discard the other two accounts
-   from the singular reply. If retaining them, preserve the original production
-   pepper and remap the 64 incoming flight-ID collisions. If all current accounts
-   are explicitly disposable, a new pepper can be used for activated legacy users.
+   The user explicitly selected “Replace only conflicting account.” Preserve the
+   other two accounts, all 69 flights and the original production pepper. Replace
+   the conflicting account after backup/restore proof, retain the historical user's
+   ID, and remap the 64 incoming flight-ID collisions. This authorizes no wholesale
+   production reset or pepper rotation. New auth secrets cannot replace the existing
+   production password pepper while those other credentials remain.
    Conflicts must be re-read under the production writer hold before applying.
 
 Fresh source accepted on 6 October at 08:42 UTC: the user supplied the private
@@ -115,7 +115,7 @@ the fresh-source verification. Temporary working copies are
 in `/tmp/kuuki-release-20261006`; the read-only conflict helper is ignored at
 `.scratch/legacy-cleanup/source-target-conflicts.ts`. Do not publish these files.
 
-Next: resolve the pending secret/replacement-scope inputs; finish staging auth and
+Next: obtain the retained secrets; finish staging auth and
 compatibility gates. Then enumerate and hold every production writer (including
 immutable Pages deployment URLs), re-read source/target conflicts, export and
 prove hosted restoration, baseline the ledger without running 0001, apply admitted
