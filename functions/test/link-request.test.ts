@@ -1,6 +1,7 @@
 import { expect, it, vi, afterEach } from 'vitest'
 import { createApiDatabase } from './harness'
 import { createUserWithProfile } from '../api/_lib/users'
+import * as users from '../api/_lib/users'
 import { createSession } from '../api/_lib/session'
 import { completeActivation } from '../api/_lib/activation'
 import { completePasswordRecovery } from '../api/_lib/passwordRecovery'
@@ -83,24 +84,29 @@ it('returns the same generic result for every account state and mails only the m
 
 it('answers every account state before the account-dependent lookup and send finish', async () => {
   const { db, dispose } = await createApiDatabase()
+  let release!: () => void
+  const background: Promise<unknown>[] = []
   try {
     await seed(db)
-    let release!: () => void
     const held = new Promise<void>(resolve => { release = resolve })
-    const send = vi.spyOn(globalThis, 'fetch').mockImplementation(async (_url, init) => {
+    const getUser = users.getUserByEmail
+    vi.spyOn(users, 'getUserByEmail').mockImplementation(async (...args) => {
       await held
-      const { to } = JSON.parse(String(init?.body)) as { to: string[] }
-      return new Response(JSON.stringify({ success: true, errors: [], result: { delivered: [], queued: to, permanent_bounces: [] } }))
+      return getUser(...args)
     })
-    const background: Promise<unknown>[] = []
+    const send = mockMail()
     for (const email of ['missing@example.test', 'pending@example.test', 'active@example.test']) {
-      expect((await post(db, { email }, { background })).status).toBe(200)
+      let response: Response | undefined
+      const pending = post(db, { email }, { background }).then(value => { response = value; return value })
+      await vi.waitFor(() => expect(response?.status).toBe(200))
+      expect(await (await pending).json()).toEqual({ ok: true })
     }
-    // Both sends are still held, so neither response waited on the account lookup or the mail.
-    await vi.waitFor(() => expect(send).toHaveBeenCalledTimes(2))
-    release()
+    expect(send).not.toHaveBeenCalled()
+  } finally {
+    release?.()
     await Promise.all(background)
-  } finally { await dispose() }
+    await dispose()
+  }
 })
 
 it('rejects malformed emails and foreign origins without sending', async () => {
