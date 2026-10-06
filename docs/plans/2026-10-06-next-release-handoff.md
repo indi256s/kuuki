@@ -311,6 +311,17 @@ The 60-minute monitoring window runs in the cutover thread until about 14:04Z. C
 its result in Workers analytics for `kuuki-next` and `kuuki-activation` from
 13:03:45Z. At 13:06Z there were 0 errors.
 
+**Archived release state (6 October 2026, 14:15Z).** The `/tmp/kuuki-release-20261006`
+working copy is preserved as `tmp-working-copy/` in the private evidence directory,
+without `old-bundle/source/` (a source checkout) and `node_modules`. It holds the
+recovered `teeDc-recovered/` build (`worker.js` sha256 `52284abe…`, rechecked after
+the copy) and the production deploy configs in `prod-next/`. Deployed versions, each
+at 100% and the rollback targets until the next deploy: `kuuki-next`
+`4bb5ff0a-d6f6-4c4b-9201-b483fcf3cf56`, `kuuki-activation`
+`50ee6c9f-1e0d-4864-95e9-44b9f20b3f82`, `kuuki-next-preview`
+`62cf3b5a-eba3-4ba6-b839-eae1d8295be9`. From here on, deploys follow
+[deploy-kuuki](../skills/deploy-kuuki/SKILL.md); CI no longer deploys.
+
 **Open follow-ups.**
 - The two retained owners complete activation, then rerun the read-only check above
   (pending owner action).

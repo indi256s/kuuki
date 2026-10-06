@@ -6,7 +6,7 @@ The current app is `apps/next`: Next.js App Router and React, built with OpenNex
 
 The Next app uses TypeScript, Tailwind CSS, Radix controls, TanStack Query, React Hook Form and Zod. Route maps use MapLibre with local assets. UI tokens and conventions live in [DESIGN.md](DESIGN.md) and [styles.css](apps/next/src/app/styles.css). Dependency ranges are in [the app manifest](apps/next/package.json); resolved versions are in [pnpm-lock.yaml](pnpm-lock.yaml).
 
-`apps/web` remains the legacy rollback surface. Supabase files are retained migration history. The checked-in [CI workflow](.github/workflows/ci.yml) builds and verifies the Next candidate but still deploys the guarded Vite/Pages artifact; Next cutover is a separate release decision.
+`apps/web` remains the legacy rollback surface. Supabase files are retained migration history. The checked-in [CI workflow](.github/workflows/ci.yml) only verifies; production runs Next on Workers and is deployed by hand with the [deploy-kuuki skill](docs/skills/deploy-kuuki/SKILL.md).
 
 ## Development
 
@@ -69,7 +69,7 @@ pnpm test:next:navigation
 
 The full navigation suite is required for UI changes. After changing API paths or exported HTTP methods, regenerate and include `apps/next/api-routes.generated.ts` with `node scripts/build-next.mjs --inventory-only`; edit the handlers or generator rather than generated output.
 
-See [AGENTS.md](AGENTS.md) for checks by change type and [CI](.github/workflows/ci.yml) for the complete verification/artifact pipeline, including legacy runtime smoke, rollback rehearsal and deployment admission. `pnpm next:build` builds the API, legacy compatibility assets and OpenNext output; it does not deploy. The preview/smoke scripts and `pnpm build:maintenance` use Wrangler dry-run builds.
+See [AGENTS.md](AGENTS.md) for checks by change type and [CI](.github/workflows/ci.yml) for the complete verification/artifact pipeline. `pnpm smoke:runtime` and `scripts/rehearse-next-rollback.ts` remain runnable locally for legacy rollback checks. `pnpm next:build` builds the API, legacy compatibility assets and OpenNext output; it does not deploy. The preview/smoke scripts and `pnpm build:maintenance` use Wrangler dry-run builds.
 
 ## Structure
 
