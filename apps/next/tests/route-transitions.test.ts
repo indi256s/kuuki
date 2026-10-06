@@ -1,51 +1,10 @@
 import { test, expect, type Page } from '@playwright/test'
 import { recordRouteTransitions, resetRouteTransitions, routeTransitions, signIn } from './helpers'
 
-// DESIGN.md "Motion": three route changes animate (the import hero is covered in import.test.ts); everything else swaps instantly.
+// DESIGN.md "Motion": the import hero and the leaderboard drill animate (the import hero is covered in import.test.ts); everything else swaps instantly.
 
 const settled = (page: Page) => expect.poll(() => page.evaluate(() => document.documentElement.dataset.routeTransition ?? null)).toBeNull()
 const heading = (page: Page, name: string) => page.getByRole('heading', { level: 1, name, exact: true })
-
-/** Tags an element so a later check can tell whether React kept the same node. */
-const tag = (page: Page, selector: string) => page.locator(selector).evaluate(element => { (element as HTMLElement).dataset.kept = 'yes' })
-
-test.describe('sign in ↔ sign up ↔ forgot password', () => {
-  test('swaps only the form panel along the axis', async ({ page }) => {
-    await recordRouteTransitions(page)
-    await page.goto('/signin')
-    await expect(heading(page, 'Sign in')).toBeVisible()
-    await tag(page, '.site-header'); await tag(page, '.auth-shell-brand')
-    await resetRouteTransitions(page)
-
-    const steps: Array<[string, RegExp, string, string]> = [
-      ['Create an account', /\/signup$/, 'Create an account', 'Your personal flight journal.'],
-      ['Already have an account? Sign in', /\/signin$/, 'Sign in', 'Your personal flight journal.'],
-      ['Forgot password?', /\/forgot-password$/, 'Reset your password', 'Your personal flight journal.'],
-      ['Back to sign in', /\/signin$/, 'Sign in', 'Your personal flight journal.'],
-    ]
-    for (const [link, url, title, brand] of steps) {
-      await page.getByRole('link', { name: link, exact: true }).click()
-      await expect(page).toHaveURL(url)
-      await expect(heading(page, title)).toBeFocused()
-      await expect(page.locator('.auth-shell-brand p')).toHaveText(brand)
-      await settled(page)
-    }
-    expect(await routeTransitions(page)).toMatchObject({ markers: ['axis', 'axis', 'axis', 'axis'], boundaries: 2 })
-    await expect(page.locator('[data-ssgoi-transition]')).toHaveCount(1)
-    await expect(page.locator('.site-header[data-kept="yes"]')).toHaveCount(1)
-    await expect(page.locator('.auth-shell-brand[data-kept="yes"]')).toHaveCount(1)
-  })
-
-  test('swaps instantly under reduced motion', async ({ page }) => {
-    await page.emulateMedia({ reducedMotion: 'reduce' })
-    await recordRouteTransitions(page)
-    await page.goto('/signin')
-    await page.getByRole('link', { name: 'Create an account', exact: true }).click()
-    await expect(heading(page, 'Create an account')).toBeFocused()
-    await expect(page.locator('[data-ssgoi-transition]')).toHaveCount(1)
-    expect((await routeTransitions(page)).markers).toEqual([])
-  })
-})
 
 test.describe('leaderboard → public profile', () => {
   test('drills into the profile and Back reverses it', async ({ page }) => {

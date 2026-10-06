@@ -136,13 +136,12 @@ test.describe('legacy and normalized URLs', () => {
 })
 
 test.describe('entry behavior', () => {
-  test('guest landing has no member navigation and offers sign in and sign up', async ({ page }) => {
+  test('guest home is the auth card, with no member navigation', async ({ page }) => {
     await page.goto('/')
-    await expect(page.locator('h1')).toBeVisible()
+    await expect(page.getByRole('heading', { level: 1, name: 'Welcome to Kuuki' })).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Continue', exact: true })).toBeVisible()
     await expect(page.locator('nav[aria-label="Primary"]')).toHaveCount(0)
-    await expect(page.locator('header a[href="/add"]')).toHaveCount(0)
-    await expect(page.locator('a[href="/signin"]').first()).toBeVisible()
-    await expect(page.locator('a[href="/signup"]').first()).toBeVisible()
+    await expect(page.locator('a[href="/add"]')).toHaveCount(0)
   })
 
   test('guest leaderboard shows the guest header, not member navigation', async ({ page }) => {
@@ -153,7 +152,7 @@ test.describe('entry behavior', () => {
     await expect(page.locator('header a[href="/signup"]')).toBeVisible()
   })
 
-  test('signed-in members skip the landing and auth forms', async ({ page }) => {
+  test('signed-in members skip the auth card', async ({ page }) => {
     await asMember(page)
     for (const path of ['/', '/signin', '/signup', '/?mode=signin']) {
       await page.goto(path)
@@ -161,11 +160,14 @@ test.describe('entry behavior', () => {
     }
   })
 
-  test('legacy /landing and /?mode links keep working for guests', async ({ page }) => {
+  test('legacy /landing and /?mode links land guests on the card at /', async ({ page }) => {
     await page.goto('/landing')
     await page.waitForURL(url => url.pathname === '/')
-    await page.goto('/?mode=signup')
-    await page.waitForURL(url => url.pathname === '/signup')
+    for (const path of ['/?mode=signup', '/?mode=signin']) {
+      await page.goto(path)
+      await expect(page).toHaveURL(url => url.pathname === '/')
+      await expect(page.getByRole('heading', { level: 1, name: 'Welcome to Kuuki' })).toBeVisible()
+    }
   })
 
   test('a member without a username is sent to onboarding first', async ({ page, baseURL }) => {
