@@ -34,7 +34,7 @@ export function setAccent(accent: Accent) {
 }
 
 /** Reads the stored accent; the removed kincha and sumi are rewritten to terracotta the first time they are seen. */
-export function normalizeAccent(): Accent | undefined {
+function normalizeAccent(): Accent | undefined {
   const saved = document.cookie.match(/(?:^|; )kuuki_accent=([^;]+)/)?.[1]
   if (saved === 'kincha' || saved === 'sumi') { setAccent('terracotta'); return 'terracotta' }
   return isAccent(saved) ? saved : undefined

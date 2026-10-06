@@ -2,7 +2,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { normalizeAccent, setAccent } from './appearance'
+import { cleanup, render } from '@testing-library/react'
+import { createElement } from 'react'
+import { AppearanceProvider, setAccent } from './appearance'
 import type { Accent } from '../lib/theme-colors'
 
 describe('setAccent', () => {
@@ -35,26 +37,28 @@ describe('setAccent', () => {
   })
 })
 
-describe('normalizeAccent', () => {
+describe('AppearanceProvider accent normalisation', () => {
   beforeEach(() => {
     delete document.documentElement.dataset.accent
-    for (const name of ['kuuki_accent']) document.cookie = `${name}=; Path=/; Max-Age=0`
+    document.cookie = 'kuuki_accent=; Path=/; Max-Age=0'
+    vi.stubGlobal('matchMedia', () => ({ matches: false, addEventListener() {}, removeEventListener() {} }))
   })
+  afterEach(() => { cleanup(); vi.unstubAllGlobals() })
 
-  it.each(['kincha', 'sumi'])('rewrites a stored %s to terracotta in the cookie and on <html>', removed => {
+  it.each(['kincha', 'sumi'])('rewrites a stored %s to terracotta in the cookie and on <html> when mounted', removed => {
     document.cookie = `kuuki_accent=${removed}; Path=/`
     document.documentElement.dataset.accent = removed
-    expect(normalizeAccent()).toBe('terracotta')
+    render(createElement(AppearanceProvider))
     expect(document.cookie).toContain('kuuki_accent=terracotta')
     expect(document.cookie).not.toContain(removed)
     expect(document.documentElement.dataset.accent).toBe('terracotta')
   })
 
-  it('leaves a current accent and a missing cookie alone', () => {
+  it('leaves a current accent alone', () => {
     document.cookie = 'kuuki_accent=asagi; Path=/'
-    expect(normalizeAccent()).toBe('asagi')
+    document.documentElement.dataset.accent = 'asagi'
+    render(createElement(AppearanceProvider))
     expect(document.cookie).toContain('kuuki_accent=asagi')
-    document.cookie = 'kuuki_accent=; Path=/; Max-Age=0'
-    expect(normalizeAccent()).toBeUndefined()
+    expect(document.documentElement.dataset.accent).toBe('asagi')
   })
 })
