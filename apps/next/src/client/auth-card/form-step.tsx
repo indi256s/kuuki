@@ -1,7 +1,6 @@
 'use client'
 
 import type { FormEvent, ReactNode, Ref } from 'react'
-import Link from 'next/link'
 import { CircleAlert, CircleCheck, Mail } from 'lucide-react'
 import { Button } from '../ui/button'
 import type { Locale } from '../../lib/format'
@@ -26,12 +25,12 @@ export const formMessages = {
   en: {
     email: 'Enter a valid email.', password: 'Enter your password.', invalid: 'Email or password is incorrect.', short: 'Use at least 8 characters.',
     rate: 'Too many attempts. Please wait and try again.', network: 'We could not complete this request. Please try again.',
-    taken: 'This email just got a journal. Continue to sign in.', created: 'Your account was created. Continue to sign in.',
+    taken: 'This email just got a journal. Continue to sign in.', created: 'Your account was created. Continue to sign in.', 'password-saved': 'Password saved. Sign in with it now.',
   },
   ru: {
     email: 'Введите действительный адрес почты.', password: 'Введите пароль.', invalid: 'Неверная почта или пароль.', short: 'Используйте не менее 8 символов.',
     rate: 'Слишком много попыток. Подождите и повторите.', network: 'Не удалось завершить запрос. Повторите попытку.',
-    taken: 'Для этой почты только что создали журнал. Нажмите «Продолжить», чтобы войти.', created: 'Аккаунт создан. Нажмите «Продолжить», чтобы войти.',
+    taken: 'Для этой почты только что создали журнал. Нажмите «Продолжить», чтобы войти.', created: 'Аккаунт создан. Нажмите «Продолжить», чтобы войти.', 'password-saved': 'Пароль сохранён. Теперь войдите с ним.',
   },
 }
 
@@ -50,7 +49,7 @@ function FormMessage({ tone, children }: { tone: 'error' | 'notice'; children: R
   </p>
 }
 
-function Spinner() {
+export function Spinner() {
   return <svg className="auth-spinner" width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
     <path d="M21 12a9 9 0 1 1-6.219-8.56" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
   </svg>
@@ -63,7 +62,7 @@ export type FormStepProps = {
   email: string
   password: string
   error?: FormError
-  notice?: 'created'
+  notice?: 'created' | 'password-saved'
   /** Where the card sends focus after a state change. */
   headingRef: Ref<HTMLHeadingElement>
   emailRef: Ref<HTMLInputElement>
@@ -104,7 +103,7 @@ export function FormStep({ locale, step, email, password, error, notice, heading
           maxLength={320} value={email} readOnly={busy} onChange={event => onEmailChange(event.target.value)} error={field === 'email' ? m[error!] : undefined} />
         <CardField ref={passwordRef} label={creating ? t.createPassword : t.password} name="password" type="password" autoComplete={creating ? 'new-password' : 'current-password'}
           maxLength={1024} locale={locale} value={password} readOnly={busy} onChange={event => onPasswordChange(event.target.value)} error={field === 'password' ? m[error!] : undefined}
-          aside={creating ? <span className="auth-field-hint">{t.passwordHint}</span> : <Link className="auth-text-link auth-text-link-up" href="/forgot-password">{t.cantSignIn}</Link>} />
+          aside={creating ? <span className="auth-field-hint">{t.passwordHint}</span> : <a className="auth-text-link auth-text-link-up" href="/forgot-password" onClick={event => { event.preventDefault(); onGetBackIn() }}>{t.cantSignIn}</a>} />
         {error === 'invalid' ? <Button variant="secondary" className="auth-secondary" onClick={onGetBackIn}>
           <span className="auth-button-row"><Mail size={16} strokeWidth={1.75} aria-hidden="true" />{t.getBackIn}</span>
         </Button> : null}

@@ -154,7 +154,7 @@ test('Continue does not scale while pressed under reduced motion', async ({ page
   } finally { await page.mouse.up() }
 })
 
-test('the reveal keeps its card styling after a visit to password recovery', async ({ page }) => {
+test('the reveal keeps its card styling after returning from in-place password recovery', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 })
   await page.goto('/')
   const reveal = page.getByRole('button', { name: 'Show password', exact: true })
@@ -164,11 +164,11 @@ test('the reveal keeps its card styling after a visit to password recovery', asy
   })
   const before = await look()
   expect(before).toMatchObject({ width: 40, height: 40, margin: '0px' })
-  // Client-side navigation keeps the recovery page's stylesheet loaded.
   await card(page).cantSignIn.click()
-  await expect(page).toHaveURL(/\/forgot-password$/)
-  await page.getByRole('link', { name: 'Back to sign in', exact: true }).click()
-  await expect(page).toHaveURL(/\/signin$/)
+  await expect(page.getByRole('heading', { name: 'Get back into Kuuki', exact: true })).toBeFocused()
+  await page.getByRole('button', { name: 'Back to sign in', exact: true }).click()
+  await expect(page).toHaveURL(/\/$/)
+  await expect(card(page).heading).toBeFocused()
   await expect(reveal).toBeVisible()
   expect(await look()).toEqual(before)
 })
@@ -185,42 +185,24 @@ test('the card follows the Russian locale', async ({ page, context, baseURL }) =
   await expect(page.getByRole('button', { name: 'Помощь' })).toBeVisible()
 })
 
-test('activation request form still sends a generic link request', async ({ page }) => {
-  await page.goto('/activation-request')
-  // UI boundary only: no mail service or real inbox is contacted.
-  await page.route('**/api/auth/activation/request', route => route.fulfill({ json: { ok: true } }))
-  await page.getByLabel('Email', { exact: true }).fill('unknown@example.test')
-  await page.getByRole('button', { name: 'Send activation link' }).click()
-  await expect(page.getByRole('status')).toContainText('If activation is needed for this address')
-})
-
-test('recovery keeps rate/network retries distinct and returns a successful reset to sign-in', async ({ page }) => {
-  await page.route('**/api/auth/password-reset/request', route => route.fulfill({ json: { ok: true } }))
-  await page.goto('/forgot-password')
-  await page.getByLabel('Email', { exact: true }).fill('unknown@example.test')
-  await page.getByRole('button', { name: 'Send reset link' }).click()
-  await expect(page.getByRole('status')).toContainText('If recovery is available for this address')
-  let attempt = 0
-  await page.route('**/api/auth/password-reset/complete', async route => {
-    attempt++
-    if (attempt === 1) await route.fulfill({ status: 429, json: { error: 'Limited', code: 'RATE_LIMITED' } })
-    else if (attempt === 2) await route.abort('failed')
-    else await route.fulfill({ json: { ok: true } })
-  })
-  await page.goto(`/reset-password#token=${'A'.repeat(43)}`)
-  await expect(page).toHaveURL(/\/reset-password$/)
-  await page.getByLabel('New password', { exact: true }).fill('personal-password')
-  await page.getByLabel('Confirm password', { exact: true }).fill('personal-password')
-  await page.getByRole('button', { name: 'Save password' }).click()
-  await expect(page.locator('main').getByRole('alert')).toContainText('Too many attempts.')
-  await page.getByRole('button', { name: 'Save password' }).click()
-  await expect(page.locator('main').getByRole('alert')).toContainText('Could not save your password.')
-  await page.getByRole('button', { name: 'Save password' }).click()
-  await expect(page).toHaveURL(/\/password-updated$/)
-  await expect(page.getByRole('status')).toContainText('Sign in with your new password.')
-  await page.getByRole('link', { name: 'Sign in', exact: true }).click()
-  await expect(page).toHaveURL(/\/signin$/)
-  await expectCard(page)
+test('recovery bookmarks open the same request card and send the same generic link request', async ({ page }) => {
+  await page.route('**/api/auth/link/request', route => route.fulfill({ json: { ok: true } }))
+  for (const path of ['/forgot-password', '/activation-request']) {
+    await page.goto(path)
+    await expect(page.getByRole('heading', { name: 'Get back into Kuuki', exact: true })).toBeFocused()
+    await expect(card(page).wordmark).toBeVisible()
+    await expect(page.getByRole('banner')).toHaveCount(0)
+    await expect(card(page).tagline).toHaveCount(0)
+    await expect(page.getByRole('alert')).toHaveCount(0)
+    await page.getByLabel('Email', { exact: true }).fill('unknown@example.test')
+    const request = page.waitForRequest(request => request.url().endsWith('/api/auth/link/request'))
+    await page.getByRole('button', { name: 'Send link', exact: true }).click()
+    expect((await request).postDataJSON()).toEqual({ email: 'unknown@example.test' })
+    await expect(page.getByRole('heading', { name: 'Check your inbox', exact: true })).toBeFocused()
+    await expect(page.getByRole('status').filter({ hasText: 'If unknown@example.test has a Kuuki account' })).toContainText('It works once, for 30 minutes.')
+    expect(await page.evaluate(() => sessionStorage.getItem('kuuki_auth_email'))).toBe('unknown@example.test')
+    await expect(page).toHaveURL(new RegExp(`${path}$`))
+  }
 })
 
 test('activation alias keeps isolation, erases the fragment and provides main-origin resend and success links', async ({ page, baseURL }) => {
@@ -330,9 +312,10 @@ test('a wrong password keeps the email, shows the error with an icon and offers 
     await expect(c.heading).toBeFocused()
     await expect(page.getByRole('button', { name: 'Email me a link to get back in', exact: true })).toBeVisible()
   }
-  // Until the request state exists in the card, the action opens the recovery page.
   await page.getByRole('button', { name: 'Email me a link to get back in', exact: true }).click()
-  await expect(page).toHaveURL(/\/forgot-password$/)
+  await expect(page.getByRole('heading', { name: 'Get back into Kuuki', exact: true })).toBeFocused()
+  await expect(c.email).toHaveValue('ranked@example.test')
+  await expect(page).toHaveURL(/\/$/)
 })
 
 test('too many attempts and a lost connection each show their own message with an icon', async ({ page }) => {
