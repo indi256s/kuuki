@@ -42,7 +42,7 @@ export function CardHeading({ title, subtitle, ref }: { title: string; subtitle?
 }
 
 /** A message that belongs to the whole form, not one field: an icon plus text, never colour alone. */
-function FormMessage({ tone, children }: { tone: 'error' | 'notice'; children: ReactNode }) {
+export function FormMessage({ tone, children }: { tone: 'error' | 'notice'; children: ReactNode }) {
   const Icon = tone === 'error' ? CircleAlert : CircleCheck
   return <p className="auth-form-message" data-tone={tone} role={tone === 'error' ? 'alert' : 'status'}>
     <Icon size={16} strokeWidth={1.75} aria-hidden="true" /><span>{children}</span>
