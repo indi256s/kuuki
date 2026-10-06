@@ -25,6 +25,12 @@ export const apiRoutes = [
     ]
   },
   {
+    "route": "/api/auth/link/request",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
     "route": "/api/auth/me",
     "methods": [
       "GET"
