@@ -92,6 +92,28 @@ it('returns identical public request responses and ignores caller supplied redir
   } finally { await dispose() }
 })
 
+it('answers known and unknown emails before the account-dependent lookup and send finish', async () => {
+  const { db, dispose } = await createApiDatabase()
+  try {
+    await createUserWithProfile(db, { email: 'active@example.test', password: 'old-password' }, SECRET)
+    let release!: () => void
+    const held = new Promise<void>(resolve => { release = resolve })
+    const send = vi.spyOn(globalThis, 'fetch').mockImplementation(async () => {
+      await held
+      return new Response(JSON.stringify({ success: true, errors: [], result: { delivered: [], queued: ['active@example.test'], permanent_bounces: [] } }))
+    })
+    const backgrounds: Promise<unknown>[] = []
+    for (const email of ['missing@example.test', 'active@example.test']) {
+      const response = await requestPasswordReset(req('/api/auth/password-reset/request', { email }), env(db), task => backgrounds.push(task))
+      expect(response.status).toBe(200)
+    }
+    // The send is still held, so neither response waited on the account lookup or the mail.
+    await vi.waitFor(() => expect(send).toHaveBeenCalledOnce())
+    release()
+    await Promise.all(backgrounds)
+  } finally { await dispose() }
+})
+
 it('cleans failed delivery and clears both cookie families after successful completion', async () => {
   const { db, dispose } = await createApiDatabase()
   try {

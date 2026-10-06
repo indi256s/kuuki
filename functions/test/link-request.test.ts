@@ -81,6 +81,28 @@ it('returns the same generic result for every account state and mails only the m
   } finally { await dispose() }
 })
 
+it('answers every account state before the account-dependent lookup and send finish', async () => {
+  const { db, dispose } = await createApiDatabase()
+  try {
+    await seed(db)
+    let release!: () => void
+    const held = new Promise<void>(resolve => { release = resolve })
+    const send = vi.spyOn(globalThis, 'fetch').mockImplementation(async (_url, init) => {
+      await held
+      const { to } = JSON.parse(String(init?.body)) as { to: string[] }
+      return new Response(JSON.stringify({ success: true, errors: [], result: { delivered: [], queued: to, permanent_bounces: [] } }))
+    })
+    const background: Promise<unknown>[] = []
+    for (const email of ['missing@example.test', 'pending@example.test', 'active@example.test']) {
+      expect((await post(db, { email }, { background })).status).toBe(200)
+    }
+    // Both sends are still held, so neither response waited on the account lookup or the mail.
+    await vi.waitFor(() => expect(send).toHaveBeenCalledTimes(2))
+    release()
+    await Promise.all(background)
+  } finally { await dispose() }
+})
+
 it('rejects malformed emails and foreign origins without sending', async () => {
   const { db, dispose } = await createApiDatabase()
   try {
