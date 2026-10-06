@@ -42,7 +42,7 @@ have an explicit checked-Journal recovery path. Identity changes abort work and
 clear only owned local receipts/drafts. Recovery uses expiring hashed one-use
 tokens, atomic credential changes and revokes legacy and Better Auth sessions.
 Fragments are consumed and removed before hydration; sender acknowledgement is
-not inbox delivery.
+not inbox delivery. The auth feature uses one card at `/`, `/signin` and `/signup`, with an in-place create step. `/forgot-password` and `/activation-request` open the same get-back-in request state and call `/api/auth/link/request`; the account state chooses activation or reset privately. Next owns the isolated activation assets. Both password-save variants return to the card with a saved-password notice and require explicit sign-in. These changes do not establish hosted mail delivery or authorize deployment.
 
 No migration or new lifecycle, transit, auto-confirm or undo rule was introduced.
 Existing UTC rollover, eligibility and airport-backed city semantics remain.

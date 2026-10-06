@@ -193,7 +193,7 @@ test('recovery bookmarks open the same request card and send the same generic li
     await expect(card(page).wordmark).toBeVisible()
     await expect(page.getByRole('banner')).toHaveCount(0)
     await expect(card(page).tagline).toHaveCount(0)
-    await expect(page.getByRole('alert')).toHaveCount(0)
+    await expect(page.locator('main').getByRole('alert')).toHaveCount(0)
     await page.getByLabel('Email', { exact: true }).fill('unknown@example.test')
     const request = page.waitForRequest(request => request.url().endsWith('/api/auth/link/request'))
     await page.getByRole('button', { name: 'Send link', exact: true }).click()
@@ -329,7 +329,7 @@ test('a wrong password keeps the email, shows the error with an icon and offers 
   // A migrated account with no usable password (RESET_REQUIRED) gets the same state as a wrong password.
   for (const email of ['a@example.test', 'ranked@example.test']) {
     await continueAs(page, email, 'wrong-password')
-    const error = page.getByRole('alert').filter({ hasText: 'Email or password is incorrect.' })
+    const error = page.locator('main').getByRole('alert').filter({ hasText: 'Email or password is incorrect.' })
     await expect(error).toBeVisible()
     await expect(error.locator('svg')).toBeVisible()
     await expect(c.email).toHaveValue(email)
@@ -351,13 +351,13 @@ test('too many attempts and a lost connection each show their own message with a
   await page.goto('/')
   const c = card(page)
   await continueAs(page, 'a@example.test', 'any-password')
-  const limited = page.getByRole('alert').filter({ hasText: 'Too many attempts. Please wait and try again.' })
+  const limited = page.locator('main').getByRole('alert').filter({ hasText: 'Too many attempts. Please wait and try again.' })
   await expect(limited).toBeVisible()
   await expect(limited.locator('svg')).toBeVisible()
   await expect(c.heading).toBeFocused()
   await expect(page.getByRole('button', { name: 'Email me a link to get back in' })).toHaveCount(0)
   await c.continue.click()
-  const failed = page.getByRole('alert').filter({ hasText: 'We could not complete this request. Please try again.' })
+  const failed = page.locator('main').getByRole('alert').filter({ hasText: 'We could not complete this request. Please try again.' })
   await expect(failed).toBeVisible()
   await expect(failed.locator('svg')).toBeVisible()
   await expect(c.heading).toBeFocused()
@@ -382,7 +382,7 @@ for (const endpoint of ['continue', 'signup']) {
     if (!s) { await c.email.fill(email); await c.password.fill(password) }
     for (const [name] of replies) await test.step(name, async () => {
       await (s?.create ?? c.continue).click()
-      await expect(page.getByRole('alert')).toHaveText('We could not complete this request. Please try again.')
+      await expect(page.locator('main').getByRole('alert')).toHaveText('We could not complete this request. Please try again.')
       await expect(s?.heading ?? c.heading).toBeFocused()
       await expect(c.email).toHaveValue(email)
       await expect(s?.password ?? c.password).toHaveValue(password)
@@ -409,7 +409,7 @@ test('Creating focuses the heading, and server failures return focus there with 
     await expect(page.getByRole('button', { name: 'Creating…', exact: true })).toBeVisible()
     await expect(s.heading).toBeFocused()
     release()
-    await expect(page.getByRole('alert')).toHaveText(message)
+    await expect(page.locator('main').getByRole('alert')).toHaveText(message)
     await expect(s.heading).toBeFocused()
     await expect(s.password).toHaveValue('personal-password-2026')
   }
@@ -487,7 +487,7 @@ test('a short password on the create step shows an inline error and creates noth
   await page.goto('/')
   const s = await reachCreateStep(page, newEmail(), 'short')
   await s.create.click()
-  const error = page.getByRole('alert').filter({ hasText: 'Use at least 8 characters.' })
+  const error = page.locator('main').getByRole('alert').filter({ hasText: 'Use at least 8 characters.' })
   await expect(error).toBeVisible()
   await expect(error.locator('svg')).toBeVisible()
   await expect(s.password).toHaveAttribute('aria-invalid', 'true')
@@ -506,7 +506,7 @@ test('an email taken a moment ago returns to the form, and an account created wi
   const c = card(page)
   let s = await reachCreateStep(page, 'race@example.test')
   await s.create.click()
-  await expect(page.getByRole('alert').filter({ hasText: 'This email just got a journal. Continue to sign in.' })).toBeVisible()
+  await expect(page.locator('main').getByRole('alert').filter({ hasText: 'This email just got a journal. Continue to sign in.' })).toBeVisible()
   await expect(c.heading).toBeFocused()
   await expect(c.email).toHaveValue('race@example.test')
   await expect(c.continue).toBeVisible()
@@ -602,20 +602,21 @@ test('planes drift with transform only, and stop while the page is hidden', asyn
   expect(properties).toEqual(['transform'])
   // Sample rendered transforms at fixed animation times, without waiting for wall-clock motion.
   const drift = await page.locator('[data-plane]:visible').first().evaluate(plane => {
-    const animation = plane.getAnimations()[0], currentTime = animation.currentTime
+    const animation = plane.getAnimations()[0]
     animation.pause()
     animation.currentTime = 0
     const start = new DOMMatrix(getComputedStyle(plane).transform)
     animation.currentTime = 1000
     const end = new DOMMatrix(getComputedStyle(plane).transform)
     const glyph = new DOMMatrix(getComputedStyle(plane.firstElementChild!).transform)
-    animation.currentTime = currentTime
-    animation.play()
     return { x: end.m41 - start.m41, y: end.m42 - start.m42, rotation: Math.atan2(glyph.m12, glyph.m11) * 180 / Math.PI }
   })
   expect(drift.x).toBeGreaterThan(0)
   expect(drift.y).toBeCloseTo(-2 * drift.x, 3)
   expect(drift.rotation).toBeCloseTo(-18.4, 3)
+  // WAAPI pause/currentTime writes override CSS playback; test visibility on fresh animations.
+  await page.reload()
+  await expect.poll(async () => (await planeAnimations(page)).running).toBe(30)
   // The vertical offset of the first plane on screen, which changes every frame while the field runs.
   const sample = () => page.evaluate(() => {
     const plane = [...document.querySelectorAll('[data-plane]')].find(element => element.getClientRects().length > 0)!

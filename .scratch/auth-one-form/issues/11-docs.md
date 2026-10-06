@@ -1,6 +1,6 @@
 # DESIGN.md, GLOSSARY and runbook updates
 
-Status: ready-for-agent
+Status: resolved
 Type: task
 Blocked by: 01, 02, 03, 04, 05, 06, 07, 08, 09, 10
 Spec: [spec.md](../spec.md) — "Documentation", user story 70
@@ -10,3 +10,11 @@ Make the documentation changes listed in the spec's "Documentation" section: DES
 
 ## Acceptance
 Docs describe what the integrated branch actually does, checked against the code. Nothing else changes.
+
+## Answer
+
+DESIGN, the domain glossary and release runbook match the integrated branch. Independent documentation review approved the changes and relative links resolve.
+
+## Comments
+
+- 2026-10-06: Integrated and independently reviewed on `feat/auth-one-form-resume`. Full validation: 544 API tests, 1,060 Next unit tests and 143 browser journeys; applicable types, lint, production build and both Worker smokes pass. See the [handoff](../../../docs/plans/2026-10-06-auth-one-form-handoff.md) for commits, evidence, design decisions and the carried gap. No remote changes or deployment.

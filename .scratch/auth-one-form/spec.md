@@ -1,6 +1,8 @@
 # Spec: One-form sign-in and "Can't sign in?"
 
-Status: ready-for-agent
+Status: implemented-with-carried-gap
+
+Tickets 01–12 are resolved on the isolated integration branch. Story 44's unconditional token-only email association remains in [ticket 13](issues/13-token-only-username.md); verification and branch ownership are recorded in the [handoff](../../docs/plans/2026-10-06-auth-one-form-handoff.md).
 
 Design source of truth: the Paper file **"Kuuki — Auth redesign"** (file id `01M48F4SHK61AZS2FH5P5JPRY7`, https://app.paper.design/file/01M48F4SHK61AZS2FH5P5JPRY7). Read it through the Paper MCP. Use `get_jsx` and `get_computed_styles` for exact values, and `get_screenshot` only to orient. Never read sizes or colors off a screenshot. Board names are given below in quotes. The **"4.1 Spec — build notes"** board covers motion, focus, hit areas and reduced motion. It is part of this spec.
 

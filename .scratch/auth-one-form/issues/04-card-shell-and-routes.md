@@ -1,6 +1,6 @@
 # Auth card shell, wordmark, taglines and routes
 
-Status: ready-for-agent
+Status: resolved
 Type: task
 Blocked by: none
 Spec: [spec.md](../spec.md) — "Routes", "Visual system" (Wordmark, Taglines, Mobile, Press and hover), user stories 1–6, 50, 54–57, 63, 66
@@ -20,3 +20,11 @@ The static frame that later tickets fill in:
 ## Acceptance
 - Playwright: `/` shows the card for signed-out visitors and redirects members; `/signin` and `/signup` show the same card; one light, one dark and one mobile-viewport journey check the key elements are visible (no pixel snapshots); sign-in with known credentials still lands in the journal.
 - The full Next navigation suite, typecheck and unit tests pass.
+
+## Answer
+
+The shared card, text wordmark, localized controls, responsive layout and auth aliases are integrated; the guest landing content is removed.
+
+## Comments
+
+- 2026-10-06: Integrated and independently reviewed on `feat/auth-one-form-resume`. Full validation: 544 API tests, 1,060 Next unit tests and 143 browser journeys; applicable types, lint, production build and both Worker smokes pass. See the [handoff](../../../docs/plans/2026-10-06-auth-one-form-handoff.md) for commits, evidence, design decisions and the carried gap. No remote changes or deployment.

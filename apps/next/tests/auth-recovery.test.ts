@@ -6,6 +6,7 @@ function requestCard(page: Page) {
     email: page.getByRole('textbox', { name: 'Email', exact: true }),
     send: page.getByRole('button', { name: 'Send link', exact: true }),
     inbox: page.getByRole('heading', { name: 'Check your inbox', exact: true }),
+    error: page.getByRole('main').getByRole('alert'),
   }
 }
 
@@ -15,7 +16,7 @@ test('Can’t sign in opens in place without an empty-email error, and preserves
   await page.getByRole('link', { name: 'Can’t sign in?', exact: true }).click()
   await expect(c.heading).toBeFocused()
   await expect(c.email).toHaveValue('')
-  await expect(page.getByRole('alert')).toHaveCount(0)
+  await expect(c.error).toHaveCount(0)
   await expect(page.getByText('Snap a boarding pass. We’ll figure it out.', { exact: true })).toHaveCount(0)
   await expect(page.getByText('Halfway to the Moon, apparently.', { exact: true })).toHaveCount(0)
   await page.getByRole('button', { name: 'Back to sign in', exact: true }).click()
@@ -50,7 +51,7 @@ test('a pending Continue blocks recovery entry until its result arrives', async 
   await expect(c.heading).toHaveCount(0)
   await expect(page.getByRole('button', { name: 'Checking…', exact: true })).toBeVisible()
   release()
-  await expect(page.getByRole('alert')).toHaveText('Email or password is incorrect.')
+  await expect(c.error).toHaveText('Email or password is incorrect.')
   await expect(recovery).toBeEnabled()
   await recovery.click()
   await expect(c.heading).toBeFocused()
@@ -78,18 +79,27 @@ test('request validation, sending focus and distinct server failures preserve th
   expect(attempt).toBe(0)
   await c.email.fill('valid@example.test')
   await expect(c.email).toBeFocused()
-  const idleFill = await c.send.evaluate(element => getComputedStyle(element).backgroundColor)
+  // Resolve the accent independently of the button's hover transition.
+  const accentFill = await c.send.evaluate(element => {
+    const swatch = document.createElement('span')
+    swatch.style.backgroundColor = 'var(--accent)'
+    element.appendChild(swatch)
+    const color = getComputedStyle(swatch).backgroundColor
+    swatch.remove()
+    return color
+  })
   await c.email.press('Enter')
   const sending = page.getByRole('button', { name: 'Sending…', exact: true })
   await expect(sending).toBeDisabled()
   await expect(sending.locator('svg')).toBeVisible()
   await expect(c.heading).toBeFocused()
-  expect(await sending.evaluate(element => [getComputedStyle(element).opacity, getComputedStyle(element).backgroundColor])).toEqual(['1', idleFill])
+  await expect(sending).toHaveCSS('opacity', '1')
+  await expect(sending).toHaveCSS('background-color', accentFill)
   await sending.click({ force: true })
   await c.email.press('Enter')
   release()
   for (const message of ['Enter a valid email.', 'Too many links requested. Try again in an hour.', 'Email links are paused right now. Try again later.', 'We could not send the link. Please try again.']) {
-    const error = page.getByRole('alert')
+    const error = c.error
     await expect(error).toHaveText(message)
     await expect(error.locator('svg')).toBeVisible()
     await expect(c.heading).toBeFocused()
@@ -109,7 +119,7 @@ test('only a valid generic acknowledgement reaches the inbox and saves the typed
   await c.email.fill('keep@example.test')
   for (const reply of replies) await test.step(reply || 'empty body', async () => {
     await c.send.click()
-    await expect(page.getByRole('alert')).toHaveText('We could not send the link. Please try again.')
+    await expect(c.error).toHaveText('We could not send the link. Please try again.')
     await expect(c.heading).toBeFocused()
     await expect(c.email).toHaveValue('keep@example.test')
     await expect(c.inbox).toHaveCount(0)

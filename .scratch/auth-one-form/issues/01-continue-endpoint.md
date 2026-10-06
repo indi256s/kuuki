@@ -1,6 +1,6 @@
 # `POST /api/auth/continue`
 
-Status: ready-for-agent
+Status: resolved
 Type: task
 Blocked by: none
 Spec: [spec.md](../spec.md) — "Continue endpoint", "Seam 1 › Continue", user stories 7, 14–15, 67
@@ -16,3 +16,11 @@ Regenerate the API route inventory with its generator script. Never hand-edit it
 - Every "Seam 1 › Continue" and "Seam 1 › Sign-up" case in the spec is a passing API integration test.
 - API typecheck and the API test suite pass, and the route-inventory drift check is clean.
 - No UI changes.
+
+## Answer
+
+Continue is integrated with canonical credential failures, dummy verification for unknown emails, shared rate limits and generated routing. API coverage also verifies sign-up without password confirmation and the taken-email response.
+
+## Comments
+
+- 2026-10-06: Integrated and independently reviewed on `feat/auth-one-form-resume`. Full validation: 544 API tests, 1,060 Next unit tests and 143 browser journeys; applicable types, lint, production build and both Worker smokes pass. See the [handoff](../../../docs/plans/2026-10-06-auth-one-form-handoff.md) for commits, evidence, design decisions and the carried gap. No remote changes or deployment.

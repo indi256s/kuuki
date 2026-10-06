@@ -2,7 +2,7 @@
 
 Kuuki is a personal flight journal with a restrained editorial character. Typography, whitespace, and the details of stamps and tickets carry the design. This document is the single authoritative design reference for the Next experience and supersedes conflicting color, font, glass, grain, and motion guidance elsewhere. The [Redesign 2.0 UX brief](docs/plans/2026-10-04-redesign-2.0-ux-ui.md) explains the experience decisions. The Vite app remains a compatibility surface during migration.
 
-**Status labels.** Everything below describes what is built on `main` after PR #42 unless marked. **Planned (Wn/Tnn)** is documented intent not yet built; Wn/Tnn is the wave and task in the [implementation plan](docs/plans/2026-10-04-redesign-2.0-implementation.md). **Superseded** is older guidance that Redesign 2.0 replaced; the line says by what. **Planned (auth redesign)** is approved design from the Paper file [Kuuki — Auth redesign](https://app.paper.design/file/01M48F4SHK61AZS2FH5P5JPRY7) and its spec, [`.scratch/auth-one-form/spec.md`](.scratch/auth-one-form/spec.md). It is not built yet. **Proposed** is design work in that file that has not been approved. Where the brief and the code disagree, the code is recorded here and the brief's intent is noted.
+**Status labels.** Unmarked claims describe the current auth integration branch, including the Redesign 2.0 work from PR #42; its branch, checkout and local verification are recorded in the [auth handoff](docs/plans/2026-10-06-auth-one-form-handoff.md). **Planned (Wn/Tnn)** is documented intent not yet built; Wn/Tnn is the wave and task in the [implementation plan](docs/plans/2026-10-04-redesign-2.0-implementation.md). **Superseded** is older guidance that Redesign 2.0 replaced; the line says by what. **Built (auth redesign)** follows the Paper file [Kuuki — Auth redesign](https://app.paper.design/file/01M48F4SHK61AZS2FH5P5JPRY7) and its spec, [`.scratch/auth-one-form/spec.md`](.scratch/auth-one-form/spec.md). **Proposed** is design work in that file that has not been approved. Where the brief and the code disagree, the code is recorded here and the brief's intent is noted.
 
 ## Color and surfaces
 
@@ -10,28 +10,17 @@ Use semantic CSS variables from [`apps/next/src/app/styles.css`](apps/next/src/a
 
 Map fills use a sequential accent ramp and a titled legend with fixed buckets 1, 2–3, 4–9, 10+. Flag colors may inform stamp ink, never map fill. Claims must have a text and shape cue. Unknown legacy accent values map to terracotta and never overwrite status colors. Accents are set on `<html data-accent>` and stored by name; the picker is `SwatchPicker`.
 
-| Accent | Light fill / text | Dark fill / text | Foreground (light / dark) |
-|---|---|---|---|
-| Terracotta (default) | `#a94e35` / `#97412a` | `#e6a184` / `#efae91` | `#fffaf6` / `#292827` |
-| Ai | `#3f5c81` | `#a9c1df` | `#fff` / `#292827` |
-| Matcha | `#4d6743` | `#b2cf9a` | `#fff` / `#292827` |
-| Kincha | `#795c1e` | `#e6c57d` | `#fff` / `#292827` |
-| Sakura | `#8c4c65` | `#e7aac1` | `#fff` / `#292827` |
-| Sumi | `#4a4641` | `#d0cbc5` | `#fff` / `#292827` |
-
-For non-terracotta accents `--accent-text` equals `--accent` and `--focus` follows the fill. Kincha and Sakura use white foreground in light and dark foreground in dark, matching the canonical token contrast checks and the aligned brief. `--swatch-<name>` mirrors each fill for the picker dots. The picker is built in Settings and the dev gallery.
-
-**Planned (auth redesign): five accents.** Kincha and sumi are removed. A stored `kincha` or `sumi` in the `kuuki_accent` cookie becomes `terracotta` the first time it is read, in both `bootstrap.js` and the appearance client. The bootstrap map of legacy localStorage color names changes so that nothing resolves to a removed accent: yellow becomes terracotta, and teal and cyan become asagi. Asagi is new. The board aims for matched lightness, vividness at brand level, and hues at least 20° from the nearest status color. Values come from board "4.2 Spec — accent proposal":
+Five accents are built. Stored `kincha` and `sumi` names become `terracotta` in bootstrap and the appearance client. Legacy yellow maps to terracotta; teal and cyan map to asagi. Values follow Paper board "4.2 Spec — accent proposal":
 
 | Accent | Light fill / text | Dark fill / text | Foreground (light / dark) | Distance from status hue |
 |---|---|---|---|---|
 | Terracotta (default) | `#a94e35` / `#97412a` | `#e6a184` / `#efae91` | `#fffaf6` / `#292827` | unchanged |
 | Ai | `#4e5ea2` | `#acbbef` | `#fff` / `#292827` | 22° from info |
 | Matcha | `#59702a` | `#b7ce92` | `#fff` / `#292827` | 25° from success |
-| Asagi (new, 浅葱) | `#0c747d` | `#85cfd8` | `#fff` / `#292827` | 45° from info |
+| Asagi (浅葱) | `#0c747d` | `#85cfd8` | `#fff` / `#292827` | 45° from info |
 | Sakura | `#964969` | `#e8a9c0` | `#fff` / `#292827` | 30° from danger |
 
-The board gives one value per accent for fill and text. As now, `--accent-text` equals `--accent` for every accent except terracotta. `tokens.test.ts` must still pass the 4.5:1 and 3:1 pairs with these values; the boards do not prove contrast.
+The board gives one value per accent for fill and text. As now, `--accent-text` equals `--accent` for every accent except terracotta. `tokens.test.ts` checks the 4.5:1 and 3:1 pairs with these values; the boards do not prove contrast.
 
 ## Type and layout
 
@@ -39,7 +28,7 @@ Self-hosted Onest ([`apps/next/public/fonts`](apps/next/public/fonts), variable 
 
 | Style | Built value | Where |
 |---|---|---|
-| Display | No single token. Landing H1 `clamp(44px, 7vw, 80px)` / 1.05, −0.035em; hero stat `clamp(64px, 12vw, 120px)` / 1; figure strip `clamp(28px, 4vw, 48px)` | `styles.css`, `reads.css` |
+| Display | No single token. Overview flight count `clamp(44px, 7vw, 84px)` / 1.1, −0.04em; other figures `clamp(32px, 5vw, 56px)` / 1.1, −0.03em | `client/overview/overview.css` |
 | H1 | 30/36, 600, −0.02em | global `h1` |
 | H2 | 22/28 (panel titles 600) | global `h2`, `.ui-panel-title` |
 | H3 | 17 (line height inherits 24) | `.read-panel h3`, ticket prompt 17/24 600 |
@@ -47,7 +36,7 @@ Self-hosted Onest ([`apps/next/public/fonts`](apps/next/public/fonts), variable 
 | Small | 13/20 | hints, errors, switch descriptions, ticket meta |
 | Caption / eyebrow | 12/16; eyebrow 600, uppercase, +0.06em, `--text-muted` | `.eyebrow`, tab labels, menu labels |
 
-The brief's Display 44/48 is the landing floor, not a fixed size. Global `h2` sets size, line height and weight 600.
+The former landing Display 44/48 guidance is superseded by the auth card heading. Global `h2` sets size, line height and weight 600.
 
 The shared header and page container align at `--content-width` 1200px. Gutter `--page-gutter` is 24px, 16px at 700px and below (the one shell breakpoint). Spacing uses a 4px base; read sections gap 48px desktop and 32px mobile. Cards fit content instead of matching heights. Radii: 6px small internal chips, 10px controls, 14px cards/popovers/menus, 20px dialogs, sheets and the auth card. An inner radius must account for container padding (menu 14px minus 4px padding gives 10px items).
 
@@ -65,8 +54,8 @@ Frozen by the Redesign 2.0 plan (D1–D12). Lifecycle and import details live in
 
 | ID | Decision |
 |---|---|
-| D1 | Guests see the landing page at `/`; auth uses `/signin` and `/signup`. **Planned (auth redesign):** `/`, `/signin` and `/signup` all render the one-form [auth card](#auth-card), and members are still redirected. The landing hero, sample flight cards and FAQ are removed. |
-| D2 | Six named accents: Terracotta (default), Ai, Matcha, Kincha, Sakura, Sumi. Store the name, never an arbitrary color. **Planned (auth redesign):** five accents, Terracotta (default), Ai, Matcha, Asagi and Sakura; kincha and sumi map to terracotta. |
+| D1 | `/`, `/signin` and `/signup` render the one-form [auth card](#auth-card); members redirect to their journal. The landing hero, sample flight cards and FAQ are removed. |
+| D2 | Five named accents: Terracotta (default), Ai, Matcha, Asagi and Sakura. Store the name, never an arbitrary color; kincha and sumi map to terracotta. |
 | D3 | System theme by default; an explicit saved preference is preserved. |
 | D4 | Light neutrals are barely warm; dark uses charcoal. |
 | D5 | Typeface chosen by RU/EN specimen; Onest confirmed (see Typeface decision). |
@@ -152,15 +141,15 @@ Rules: ease-in is banned; exits use ease-out and run about 20% faster than enter
 
 | Never animates | Built animation |
 |---|---|
-| Route and tab changes (focus moves to H1), except the three [route transitions](#route-transitions) below; keyboard actions, filter/sort/period changes, ambient loops (the planned auth plane field is the one exception), WindLoader, glow pulses | Press scale 0.96 120ms (`data-static` excluded); hover color 150ms on fine pointers; segmented thumb 200ms `--ease-in-out`; menu 150ms in (scale .97) and 120ms out; dialog 200ms in (scale .96) and 150ms out, scrim 200/150; sheet 300ms `--ease-drawer` with handle drag; disclosure 300ms rows plus 150ms opacity; toast 300ms in, 200ms out; switch 200ms; tab bar slide off for the keyboard 200ms; stamp press 450ms; the three route transitions |
+| Route and tab changes (focus moves to H1), except the two [route transitions](#route-transitions) below; keyboard actions, filter/sort/period changes, ambient loops (the auth plane field is the one exception), WindLoader, glow pulses | Press scale 0.96 120ms (`data-static` excluded); hover color 150ms on fine pointers; segmented thumb 200ms `--ease-in-out`; menu 150ms in (scale .97) and 120ms out; dialog 200ms in (scale .96) and 150ms out, scrim 200/150; sheet 300ms `--ease-drawer` with handle drag; disclosure 300ms rows plus 150ms opacity; toast 300ms in, 200ms out; switch 200ms; tab bar slide off for the keyboard 200ms; stamp press 450ms; the two route transitions |
 
 ### Route transitions
 
-Only three route changes animate, through `@ssgoi/react` 7.4.0 in `apps/next/src/client/route-transitions.tsx`. Every other navigation keeps its page boundary and swaps instantly: tabs, header nav, `?view=`, filters and sheets (flight detail, `/add`). The springs are critically damped, so nothing bounces, and the times below count until ssgoi ends the spring. Focus still moves to the incoming H1, and the outgoing page is inert and `aria-hidden` until it settles.
+Only two route changes animate, through `@ssgoi/react` 7.4.0 in `apps/next/src/client/route-transitions.tsx`. Every other navigation keeps its page boundary and swaps instantly: tabs, header nav, `?view=`, filters and sheets (flight detail, `/add`). The springs are critically damped, so nothing bounces, and the times below count until ssgoi ends the spring. Focus still moves to the incoming H1, and the outgoing page is inert and `aria-hidden` until it settles.
 
 - **Import done → Passport, `hero`, about 0.38s.** The done-step stamps (`data-hero-exit-key`) travel to their Passport stamps (`data-hero-enter-key`) without replaying the press. It runs forward only and for at most 8 stamps; with more, Passport opens without it. A Passport stamp that will not be fully on screen has no partner and appears in place. On a phone the Passport cover keeps the stamps below the fold, so there they all appear in place. If Passport has not finished loading when the member opens it, it shows its loading screen and opens without the hero.
 - **Leaderboard → `/fly/[username]`, `drill`, about 0.28s.** The default parallax, reversed by Back, with no hero. Forward redoes it. A link from a profile to the leaderboard, Back onto a profile and Forward over that link stay instant. Back is read from the Navigation API; in a browser without it, Back and Forward never drill.
-- **Sign in ↔ sign up ↔ forgot password, `axis` x, about 0.28s.** Only the form panel swaps, as a fade-through: the incoming form starts once the outgoing one is 75% gone. The card and the brand panel stay put. **Planned (auth redesign):** this transition goes away along with the separate pages. The create step slides in place inside one card (see [Auth card](#auth-card)), and recovery states reuse the card with its top pinned. Under reduced motion the create step swaps without sliding.
+Auth aliases swap instantly. The create step slides in place inside one card; under reduced motion it swaps without sliding. Recovery states reuse the card, keeping its wordmark and corner controls in place across states.
 
 Additional motion contracts:
 - **Planned (W5/T25):** icon swap by scale, opacity and blur 200ms with `--ease-icon`; tooltip 150ms with instant adjacent tooltips (no tooltip component exists); skeleton to content 150ms. Today loading is the static [loading screen](#loading-screen).
@@ -168,14 +157,14 @@ Additional motion contracts:
 - **Planned (W3/T13):** arrival confirm: stamp press onto the ticket stub, then card collapse 250ms `--ease-in-out`.
 - **Built (T21):** three-step deletion uses a 250ms height transition where intrinsic-size interpolation is supported and a 150ms content fade; reduced motion keeps steps static.
 - **Built (T19/T23):** first-achievement notification enters once over 600ms (150ms fade under reduced motion). Onboarding Reveal caps newly published stamps at eight with 80ms stagger; reduced motion removes the delay.
-- **Planned (auth redesign), replacing W5/T22's "at most 3 planes":** the auth brand panel's plane field. It is the one ambient loop allowed. The field has 30 planes on desktop (12 small, 10 medium and 8 large, with sizes shuffled across x) and 14 in the mobile brand band. Each plane moves along (+400, −800) with transform only. Each is rotated −18.4° (atan2(−800, 400) + 45°), so its nose points along the path. The field pauses when it is off screen (IntersectionObserver) or the tab is hidden. Planes stay clear of the wordmark, and the くうき watermark sits behind them. Under reduced motion the planes freeze in the frame the boards draw. Today the brand panel is static.
-- **Planned (auth redesign):** the rotating tagline is picked once per page load and shown only on the form and create steps. Under reduced motion it swaps text without sliding.
-- **Planned (auth redesign):** the Horizon theme toggle moves its sun 50% of the viewBox over 500ms with `cubic-bezier(0,0,0.15,1)`; see [Auth card](#auth-card).
+- **Built (auth redesign), replacing W5/T22's "at most 3 planes":** the auth brand panel's plane field. It is the one ambient loop allowed. The field has 30 planes on desktop (12 small, 10 medium and 8 large, with sizes shuffled across x) and 14 in the mobile brand band. Each plane moves along (+400, −800) with transform only. Each is rotated −18.4° (atan2(−800, 400) + 45°), so its nose points along the path. The field pauses when it is off screen (IntersectionObserver) or the tab is hidden. Planes stay clear of the wordmark, and the くうき watermark sits behind them. Under reduced motion the planes freeze in the frame the boards draw. The isolated activation page uses the same paused-motion contract.
+- **Built (auth redesign):** the rotating tagline is picked once per page load and shown only on the form and create steps. Under reduced motion it swaps text without sliding.
+- **Built (auth redesign):** the Horizon theme toggle moves its sun 50% of the viewBox over 500ms with `cubic-bezier(0,0,0.15,1)`; see [Auth card](#auth-card).
 - Sheet drag-release spring bounce (0.1–0.2 at most) is optional and not built; release settles with `--ease-drawer`.
 
 Delight moments use `--dur-moment`. The built `Stamp` press starts from scale 1.06, opacity 0, blur 2px, with a one-frame brightness darkening, and plays once per immutable ID (module `Set` plus `sessionStorage`) so remounts and refetches never replay it. Onboarding applies the 80ms stagger and cap of eight to newly published country acknowledgments. Reveal shows at most eight stamps and links to Passport for the complete collection; refetches and historical evidence do not replay the first-save moment.
 
-Reduced motion means gentler, not none. Built in `ui.css`: no scale or translate, color and opacity at 150ms linear; dialog and menu fade; sheet and toast fade (drag still works); thumb, disclosure and chevron static; stamp press becomes a 200ms fade; the tab bar does not slide; the three route transitions swap instantly, like every other route change.
+Reduced motion means gentler, not none. Built in `ui.css`: no scale or translate, color and opacity at 150ms linear; dialog and menu fade; sheet and toast fade (drag still works); thumb, disclosure and chevron static; stamp press becomes a 200ms fade; the tab bar does not slide; the two route transitions swap instantly, like every other route change.
 
 ## Iconography
 
@@ -185,7 +174,7 @@ Active state never relies on color alone: accent text, label weight 600, and a 2
 
 **Logo mark.** One stable mark: the kanji 空 (from 空気, *kuuki*) on a filled `--accent` tile with an `--accent-foreground` glyph, set in `--font-kana` (no webfont). The tile is 32px with radius `--radius-sm` and a 600 18px glyph. The loading screen scales it to 48px with a 24px glyph. It replaces the brief's suggested く, which reads as a back chevron in every Japanese face, so the mark is never a back button. The wordmark is the tile plus a lowercase "kuuki" (19px, 600) and links home. The vertical くうき word stays on the auth brand panel; the editorial profile includes its watermark. The brief's glyph crossfade for the boot screen is not built.
 
-**Planned (auth redesign): text wordmark.** A wordmark with no tile replaces the 空 tile: "Ku" in `--accent-text` and "uki" in `--text`, so it follows the accent and the theme. It uses Onest 700 at −0.04em, with font size equal to line height: 36px on the desktop auth brand panel and 28px in the mobile auth header. It is one element with `aria-label="Kuuki"`; the two spans are visual only. The spec replaces the tile on auth surfaces. The accent-picker boards also draw it in the app header at 22px (Proposed). Nothing decides yet what replaces the 空 tile on the loading screen. Board "1.1" sets the brand-panel wordmark at −0.05em; the build notes and the spec say −0.04em, and the spec wins.
+**Built (auth redesign): text wordmark.** On auth surfaces, a wordmark with no tile replaces the 空 tile: "Ku" in `--accent-text` and "uki" in `--text`, so it follows the accent and the theme. It uses Onest 700 at −0.04em, with font size equal to line height: 36px on the desktop auth brand panel and 28px in the mobile auth header. It is one element with `aria-label="Kuuki"`; the two spans are visual only. The spec replaces the tile on auth surfaces. The accent-picker boards also draw it in the app header at 22px (Proposed). Member headers and loading screens retain the 空 tile. Board "1.1" sets the brand-panel wordmark at −0.05em; the build notes and the spec say −0.04em, and the spec wins.
 
 ## Shell and navigation
 
@@ -211,19 +200,19 @@ One breakpoint at 700px switches between desktop and mobile. The header and tab 
 
 ### Auth card
 
-**Planned (auth redesign).** One card with one form: Email, Password and Continue, with no sign-in/sign-up switch. The server decides the outcome. A matching account signs in. A wrong password shows the error state (board "1.4"). An email with no journal turns the card into the create step (board "1.2") in place and keeps both fields. Flows, endpoints, copy and focus rules are in the [spec](.scratch/auth-one-form/spec.md). This section records the visual contract. Read exact values from the boards through the Paper MCP, and map them to tokens.
+**Built (auth redesign).** One card with one form: Email, Password and Continue, with no sign-in/sign-up switch. The server decides the outcome. A matching account signs in. A wrong password shows the error state (board "1.4"). An email with no journal turns the card into the create step (board "1.2") in place and keeps both fields. Flows, endpoints, copy and focus rules are in the [spec](.scratch/auth-one-form/spec.md). This section records the visual contract. The implementation maps the exact Paper values to tokens.
 
-- **Card, desktop.** 1040×620, radius `--radius-lg`, centered on `--background`. Light: `--surface` with a 1px `--hairline`. Dark: `--surface` with the 1px inner top highlight (white 5%). The brand panel on the left is 420px wide with 40px padding. Its fill is `--surface-inset` in light and `#2f2d2b` in dark. The form panel has 48px top and 64px side padding, and its form column is 360px wide.
-- **Brand panel.** The wordmark sits top left. Behind it, the vertical くうき watermark is set at 164px, weight 700, in the accent fill at 13% opacity. It is decorative and hidden from assistive tech. On top is the [plane field](#motion).
-- **Form column.** The heading is H1 (30/36, 600, −0.02em, balanced), followed by a 15/24 `--text-muted` subtitle 6px below. Groups are 28px apart and fields 16px apart. Labels are 13/20 at weight 500, which differs from the built Field label's 600; settle this before building. Inputs are 44px tall with radius `--radius-sm`, 14px inline padding and a `--control-border` border; their dark fill is also `#2f2d2b`. The primary button is full width and 44px tall. "Can't sign in?" is a 13/20 500 `--accent-text` link at the end of the Password label row. Under the form, the tagline is 13/20, +0.01em, centered and `--text-muted`.
+- **Card, desktop.** 1040×620, radius `--radius-lg`, centered on `--background`. Light: `--surface` with a 1px `--hairline`. Dark: `--surface` with the 1px inner top highlight (white 5%). The brand panel on the left is 420px wide with 40px padding. Its fill is `--surface-inset` in light and `#2f2d2b` in dark. The form panel has 96px top, 48px bottom and up to 64px side padding, and its form column is 360px wide.
+- **Brand panel.** The wordmark sits top left. Behind it, the vertical くうき watermark is set at 164px, weight 700, in the accent fill at 10% opacity in light and 13% in dark. It is decorative and hidden from assistive tech. On top is the [plane field](#motion).
+- **Form column.** The heading is H1 (30/36, 600, −0.02em, balanced), followed by a 15/24 `--text-muted` subtitle 6px below. Groups are 28px apart and fields 16px apart. Auth CardField labels are 13/20 at weight 500; the general Field label remains 600. Inputs are 44px tall with radius `--radius-sm`, 14px inline padding and a `--control-border` border; their dark fill is also `#2f2d2b`. The primary button is full width and 44px tall. "Can't sign in?" is a 13/20 500 `--accent-text` link at the end of the Password label row. Under the form, the tagline is 13/20, +0.01em, centered and `--text-muted`.
 - **Error state.** The input border turns `--danger-text`, and the focus ring stays outside it (2px surface gap, then 2px `--focus`). Below the input sits a 16px Lucide alert icon and 13/20 text, both in `--danger-text`. An outlined secondary button, "Email me a link to get back in", with a mail icon, follows before Continue. Every error has an icon and text.
-- **Utility controls.** These sit top right, each 44×44: language (globe and code), the Horizon theme toggle, the accent trigger (a 14px `--accent` dot) and help. Icons are 16px in `--text-muted`.
+- **Utility controls.** These sit top right, each 44×44: language (globe and code), the Horizon theme toggle and help. Icons are 16px in `--text-muted`.
 - **Horizon theme toggle.** Built from the Horizon paths of [toggles.dev](https://toggles.dev) (`@theme-toggles/react`, MIT) as a small Kuuki component with an attribution comment, not the package component. The icon is 16px in a 32×32 viewBox, both paths filled with `--text-muted`. In light the sun is fully up. In dark the sun moves down 50% to sit half below the horizon. The whole icon shifts up 4.5px in dark and 0.5px in light for optical centering. Both moves take 500ms with `cubic-bezier(0,0,0.15,1)` and are instant under reduced motion. The toggle shows the theme in effect and switches to the opposite theme on click. Until then, the preference stays `system`. `aria-pressed` is true in dark, and the label is always "Dark theme" / «Тёмная тема». Settings and the avatar menu keep their current theme controls.
 - **Hit areas.** The reveal button is 40×40 inside the field. Text links grow to about 44px tall through padding and an equal negative margin. "Can't sign in?" grows up and sideways only, never over the password input.
-- **Mobile (≤700px).** A brand band sits on top: dark `--background`, 364px tall on board "3.2", holding a 52px header with the 28px wordmark and the utility controls, a horizontal くうき watermark at 104px and 14 planes. The form is in a bottom sheet: `--surface`, top corners `--radius-lg`, padding 28px top, 20px sides and 46px bottom. Its heading is 28/34, and inputs and the primary button are 48px tall with 16px text, so iOS does not zoom on focus. In light the sheet has a `--hairline` top edge; in dark, the white 6% inner highlight.
-- **Getting back in.** The Request, Check your inbox, Set password and Link expired states (boards "2.1" to "2.4") reuse the card with its top pinned. They have no tagline. Mobile shows them in the same sheet.
+- **Mobile (≤700px).** A brand band sits on top: dark `--background`, up to 302px tall after removing the board's device status bar, shrinking toward 160px on short viewports, holding a 52px header with the 28px wordmark and the utility controls, a horizontal くうき watermark at 104px and 14 planes. The form is in a bottom sheet: `--surface`, top corners `--radius-lg`, padding 28px top, 20px sides and 46px bottom. Its heading is 28/34, and inputs and the primary button are 48px tall with 16px text, so iOS does not zoom on focus. In light the sheet has a `--hairline` top edge; in dark, the white 6% inner highlight.
+- **Getting back in.** The Request, Check your inbox, Set password and Link expired states (boards "2.1" to "2.4") reuse the card with its wordmark and corner controls in place across states. They have no tagline. Mobile shows them in the same sheet.
 
-The dark brand-panel and input fill `#2f2d2b` sits between `--background` and `--surface` and has no token. Add a role-named token in `styles.css` instead of a literal.
+Dark brand-panel and input fills use the role tokens `--auth-brand-surface` and `--auth-input-surface` (`#2f2d2b`). The Next-owned isolated activation page retains system fonts under its restrictive CSP and has native help; it returns to the card after saving without signing in automatically.
 
 ### Accent picker
 
@@ -242,7 +231,7 @@ Shared controls live in [`apps/next/src/client/ui/`](apps/next/src/client/ui/) w
 | Menu | Radix dropdown, level 2, radius `--radius-md`, min 200px, max `min(320px, 100vw − 16px)`, items radius `--radius-sm` at 40px (44px coarse). Check and radio items, uppercase 12px labels, separators, `danger` variant. Collision-aware with 8px padding; origin follows the trigger. |
 | SegmentedControl | Radio-group semantics: one tab stop, arrows move and select, Home/End jump. Equal cells (min 104px) wrap into rows at 320px; 3px padding, container `--radius-md`, thumb `--radius-sm` sliding 200ms. 44px cells. |
 | SwitchRow | 44×26 switch with a 44px hit area, label, description, a consequence line in `--text`, and a disabled reason. Disabled stays visible. |
-| SwatchPicker | Radiogroup of the six accents (five once the auth redesign lands; it follows the list), 44px pills with 28px dots and localized names; arrows move and select; writes the name through `setAccent`. |
+| SwatchPicker | Radiogroup of the five accents, 44px pills with 28px dots and localized names; arrows move and select; writes the name through `setAccent`. |
 | Disclosure | Trigger 44px, chevron rotates 200ms; rows 0fr→1fr over 300ms. Collapsed content is `inert` and hidden. Used for optional flight details. |
 | Toast | Level 2, radius `--radius-md`, width `min(420px, 100%)`, bottom-centered; bottom-right at 24px from 700px up. Kinds info, success, error: Lucide icon with a screen-reader label and a 4px fill-grade left border on success and error. Errors announce assertively, others politely. Auto-dismiss 5s, errors 8s, 0 persists; pauses on hover, focus and hidden tab. Message states the outcome. `ShellNotices` mounts one owner-scoped `ToastProvider` in the member shell, so notices survive client navigation; `ToastSlot` places a caller-owned notice (the Journal's pending-delete Undo) in the same region. |
 | FloatingActionBar | Level 2 sticky bar, radius `--radius-md`, region with a polite pluralized count. Sticks above the safe area and the tab bar (`--action-bar-bottom`) without pushing content. Journal uses it for selected-row deletion and clear-selection actions. |
@@ -275,12 +264,12 @@ Capture, auth, privacy, settings, errors, validation and destructive flows are c
 |---|---|
 | Glass, blur, grain, gradient buttons, glow | Solid levels 0–3 and flat accent fill. |
 | Journey UI and navigation | Removed (D7); `/journey` redirects to `/overview`. |
-| く logo mark | 空 tile (see Logo mark). The auth redesign plans to replace the tile with a text wordmark. |
+| く logo mark | 空 tile (see Logo mark). Auth surfaces use a text wordmark; member and loading surfaces retain the tile. |
 | Filled or heavier active-tab icon | Accent text, 600 label and a 2px accent bar. |
 | Legacy `.button`, `.field`, and `.capture-confirm` | `Button`, `Field`, and `DestructiveConfirm`. Still used by unmigrated routes; new work uses the ui kit. Unused `.dialog-*`, `.period-switch`, and `.read-sheet` rules were removed. |
 
 ## Integrated journeys and evidence
 
-Profile, leaderboard, Settings and entry/onboarding use their scoped modules alongside these primitives. The guest landing labels sample Ticket/Stamp/profile data; authenticated Capture reuses the normal manual/import save authorities. Reveal reads canonical saved Tickets, preserves fulfilled reads during batch continuation and only presses new published countries. Future-only saves show booked Tickets.
+Profile, leaderboard, Settings and entry/onboarding use their scoped modules alongside these primitives. Guests see the one-form auth card; authenticated Capture reuses the normal manual/import save authorities. Reveal reads canonical saved Tickets, preserves fulfilled reads during batch continuation and only presses new published countries. Future-only saves show booked Tickets.
 
-Settings guards owned links, browser history and document exits while edits are unsaved. Activation remains a restricted static completion asset composed by the Worker; password recovery is separate. Their transport and hosting authorities are linked in the [release runbook](docs/runbooks/2026-10-04-next-release-candidate.md). The [handoff](docs/plans/2026-10-04-redesign-2.0-implementation-handoff.md) records current functional acceptance, carried dependencies and the explicitly deferred visual/atlas and release evidence. No visual or numeric audit acceptance is implied by these source contracts.
+Settings guards owned links, browser history and document exits while edits are unsaved. Next owns the restricted activation completion assets composed by the Worker; activation and reset share the get-back-in request card while retaining separate token authorities. Their transport and hosting authorities are linked in the [release runbook](docs/runbooks/2026-10-04-next-release-candidate.md). The [handoff](docs/plans/2026-10-04-redesign-2.0-implementation-handoff.md) records current functional acceptance, carried dependencies and the explicitly deferred visual/atlas and release evidence. No visual or numeric audit acceptance is implied by these source contracts.

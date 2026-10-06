@@ -1,6 +1,6 @@
 # `POST /api/auth/link/request` (get-back-in link)
 
-Status: ready-for-agent
+Status: resolved
 Type: task
 Blocked by: none
 Spec: [spec.md](../spec.md) — "Get-back-in link endpoint", "Seam 1 › Link request", user stories 39–43, 47, 67
@@ -14,3 +14,11 @@ Regenerate the API route inventory with its generator script. Never hand-edit it
 - Every "Seam 1 › Link request" case in the spec is a passing API integration test, including the 503 being identical for known and unknown emails.
 - API typecheck and the API test suite pass, and the route-inventory drift check is clean.
 - No UI changes.
+
+## Answer
+
+The generic get-back-in endpoint is integrated with activation/reset dispatch, HMAC email rate limits and pre-lookup configuration checks. Held-lookup tests prove the response does not wait for account lookup.
+
+## Comments
+
+- 2026-10-06: Integrated and independently reviewed on `feat/auth-one-form-resume`. Full validation: 544 API tests, 1,060 Next unit tests and 143 browser journeys; applicable types, lint, production build and both Worker smokes pass. See the [handoff](../../../docs/plans/2026-10-06-auth-one-form-handoff.md) for commits, evidence, design decisions and the carried gap. No remote changes or deployment.

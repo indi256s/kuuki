@@ -1,6 +1,6 @@
 # One-form flow: Continue → sign in / wrong password / create step
 
-Status: ready-for-agent
+Status: resolved
 Type: task
 Blocked by: 01, 04
 Spec: [spec.md](../spec.md) — "Client state machine", "Copy and i18n", "Seam 2", user stories 7–31
@@ -17,3 +17,11 @@ Replace the card's temporary sign-in wiring with the `CardState` machine from th
 
 ## Acceptance
 Playwright journeys for every "Seam 2" case about Continue, wrong password, unknown email/create step, Change and short password. Full navigation suite, typecheck and unit tests pass.
+
+## Answer
+
+Continue, wrong-password recovery and in-place creation are integrated. Inputs and heading focus survive server failures; malformed success replies cannot mutate identity or navigate.
+
+## Comments
+
+- 2026-10-06: Integrated and independently reviewed on `feat/auth-one-form-resume`. Full validation: 544 API tests, 1,060 Next unit tests and 143 browser journeys; applicable types, lint, production build and both Worker smokes pass. See the [handoff](../../../docs/plans/2026-10-06-auth-one-form-handoff.md) for commits, evidence, design decisions and the carried gap. No remote changes or deployment.

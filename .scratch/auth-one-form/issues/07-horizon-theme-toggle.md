@@ -1,6 +1,6 @@
 # Horizon theme toggle in the card corner
 
-Status: ready-for-agent
+Status: resolved
 Type: task
 Blocked by: 04
 Spec: [spec.md](../spec.md) — "Visual system › Theme toggle (Horizon)", "Seam 2 › Theme toggle", user stories 58–62
@@ -11,3 +11,11 @@ A small Kuuki component carrying Horizon's published SVG paths from `@theme-togg
 
 ## Acceptance
 Every "Seam 2 › Theme toggle" case (emulateMedia light → unpressed; click → `data-theme` dark and `aria-pressed=true`; survives reload). Full navigation suite, typecheck and unit tests pass.
+
+## Answer
+
+The attributed Horizon artwork follows device theme until explicit selection, persists the selected theme and respects reduced motion. Settings and avatar controls retain their existing contract.
+
+## Comments
+
+- 2026-10-06: Integrated and independently reviewed on `feat/auth-one-form-resume`. Full validation: 544 API tests, 1,060 Next unit tests and 143 browser journeys; applicable types, lint, production build and both Worker smokes pass. See the [handoff](../../../docs/plans/2026-10-06-auth-one-form-handoff.md) for commits, evidence, design decisions and the carried gap. No remote changes or deployment.

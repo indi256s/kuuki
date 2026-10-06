@@ -1,6 +1,6 @@
 # Brand panel plane field and くうき watermark
 
-Status: ready-for-agent
+Status: resolved
 Type: task
 Blocked by: 04
 Spec: [spec.md](../spec.md) — "Visual system › Plane field", user stories 51–53
@@ -12,3 +12,11 @@ Fill ticket 04's brand-panel slot. Desktop gets 30 planes (12 small, 10 medium, 
 ## Acceptance
 - Playwright: with reduced motion emulated, the planes are present and not animating; the field is present in desktop and mobile layouts.
 - Full navigation suite, typecheck and unit tests pass.
+
+## Answer
+
+The exact desktop/mobile plane field is integrated with transform-only drift, glyph rotation, wordmark masking, visibility/offscreen pausing and reduced-motion freeze. Browser checks use fresh animations after deterministic sampling.
+
+## Comments
+
+- 2026-10-06: Integrated and independently reviewed on `feat/auth-one-form-resume`. Full validation: 544 API tests, 1,060 Next unit tests and 143 browser journeys; applicable types, lint, production build and both Worker smokes pass. See the [handoff](../../../docs/plans/2026-10-06-auth-one-form-handoff.md) for commits, evidence, design decisions and the carried gap. No remote changes or deployment.

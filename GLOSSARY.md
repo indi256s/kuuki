@@ -6,18 +6,17 @@ details, no plans. Started 2026-06-23 during the Phase 8 prod-login grilling.
 ## Auth & migration vocabulary
 
 ### Login enablement
-Establishing a *usable* credential in a migrated account so it can authenticate.
-The current flow confirms email ownership with a one-use activation link and
-lets the account owner choose a personal password, preserving the original ID.
-**Not** the same as Password reset.
+Establishing a usable credential in a migrated account after its owner proves email ownership through a get-back-in link, preserving the original journal identity. Distinct from replacing an already usable credential through password reset.
 
 ### Password reset (flow)
-A self-serve "forgot password → prove identity → set a new password" flow.
-Available to activated accounts through `/forgot-password` and `/reset-password`.
-Requests return a generic response; a one-use, expiring email token authorizes
-the password change and revokes existing sessions. Activation remains a separate
-migrated-account flow. See the [Next release gates](docs/runbooks/2026-10-04-next-release-candidate.md)
-for hosted email/recovery evidence; local implementation does not establish delivery.
+Replacing an activated account's password after its owner proves identity through an expiring, one-use get-back-in link. Completing the change revokes existing sessions.
+
+### Get-back-in link
+An email link that proves ownership and permits choosing a password, whether the journal needs login enablement or password reset. The owner does not need to know which account state applies.
+_Avoid_: Magic sign-in link — saving the password does not sign the owner in automatically.
+
+### Create step
+The account-creation confirmation shown when the entered email has no Kuuki journal. It retains the entered email and password while the person confirms that they want to start a journal.
 
 ### Migrated account
 One of the 26 `users` rows ported from the old Supabase backend. Owns

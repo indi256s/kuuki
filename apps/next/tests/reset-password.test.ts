@@ -71,7 +71,7 @@ test('retryable and malformed completions keep the token and password until conf
   await page.getByLabel('New password', { exact: true }).fill('new-password-2026')
   for (const message of ['Too many attempts.', 'Could not save your password.', 'Could not save your password.']) {
     await page.getByRole('button', { name: 'Save password' }).click()
-    await expect(page.getByRole('alert')).toContainText(message)
+    await expect(page.locator('main').getByRole('alert')).toContainText(message)
     await expect(page).toHaveURL(/\/reset-password$/)
     await expect(page.getByLabel('New password', { exact: true })).toHaveValue('new-password-2026')
   }

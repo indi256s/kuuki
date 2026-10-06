@@ -1,6 +1,6 @@
 # Reset Set-password page and the "Password saved" notice
 
-Status: ready-for-agent
+Status: resolved
 Type: task
 Blocked by: 05
 Spec: [spec.md](../spec.md) — "Set-password pages" (reset variant, after saving), "Seam 2 › Reset link / Expired token", user stories 43–48
@@ -14,3 +14,11 @@ Design: boards 2.3 (reset variant) and 2.4
 
 ## Acceptance
 Playwright: a reset link through the set-password page lands on `/` with "Password saved. Sign in with it now." (token from the mail capture or a seeded token, as current recovery journeys do); an expired token shows "Link expired". Full navigation suite, typecheck and unit tests pass.
+
+## Answer
+
+The single-password reset and saved-password notice are integrated. A real one-use journey verifies session revocation, token reuse rejection and explicit sign-in; retry and language changes preserve mounted credentials. Safe email prefill uses a same-origin typed hint; token-only association remains in ticket 13.
+
+## Comments
+
+- 2026-10-06: Integrated and independently reviewed on `feat/auth-one-form-resume`. Full validation: 544 API tests, 1,060 Next unit tests and 143 browser journeys; applicable types, lint, production build and both Worker smokes pass. See the [handoff](../../../docs/plans/2026-10-06-auth-one-form-handoff.md) for commits, evidence, design decisions and the carried gap. No remote changes or deployment.

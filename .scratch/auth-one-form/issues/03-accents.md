@@ -1,6 +1,6 @@
 # Five accents: drop kincha/sumi, add asagi
 
-Status: ready-for-agent
+Status: resolved
 Type: task
 Blocked by: none
 Spec: [spec.md](../spec.md) — "Visual system › Accents", "Other checks › Tokens", "Seam 2 › Accents", user stories 64–65
@@ -17,3 +17,11 @@ Design: board "4.2 Spec — accent proposal" (see the design notes `4.2-accents.
 - The token test passes with five accents.
 - A Playwright journey with a `kincha` cookie renders terracotta.
 - Next typecheck, unit tests and the affected Playwright files pass.
+
+## Answer
+
+Five exact Paper accents are integrated with legacy cookie/localStorage migrations and contrast checks. The picker follows the shared list.
+
+## Comments
+
+- 2026-10-06: Integrated and independently reviewed on `feat/auth-one-form-resume`. Full validation: 544 API tests, 1,060 Next unit tests and 143 browser journeys; applicable types, lint, production build and both Worker smokes pass. See the [handoff](../../../docs/plans/2026-10-06-auth-one-form-handoff.md) for commits, evidence, design decisions and the carried gap. No remote changes or deployment.
