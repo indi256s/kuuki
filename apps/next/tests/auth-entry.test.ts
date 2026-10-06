@@ -285,10 +285,8 @@ test('the desktop brand panel has 30 planes (12 small, 10 medium, 8 large) over 
   expect(glyphs[0].y).toBeLessThan(glyphs[1].y)
   expect(glyphs[1].y).toBeLessThan(glyphs[2].y)
   expect(await page.locator('[data-plane]').first().evaluate(element => element.closest('[aria-hidden=true]') !== null)).toBe(true)
-  // The planes stay behind the wordmark and never take pointer input.
-  const wordmark = (await card(page).wordmark.boundingBox())!
-  const top = await page.evaluate(({ x, y }) => document.elementFromPoint(x, y)?.closest('[role=img]')?.getAttribute('aria-label'), { x: wordmark.x + wordmark.width / 2, y: wordmark.y + wordmark.height / 2 })
-  expect(top).toBe('Kuuki')
+  // Check the computed transparent mask; decorative pointer hit-testing cannot prove painted clearance.
+  await expect(page.locator('.auth-planes')).toHaveCSS('mask-image', /radial-gradient\(.*rgba\(0, 0, 0, 0\).*rgb\(0, 0, 0\)\)/)
 })
 
 test('the mobile brand band has 14 planes (5 small, 5 medium, 4 large) over a horizontal watermark', async ({ page }) => {
@@ -299,6 +297,7 @@ test('the mobile brand band has 14 planes (5 small, 5 medium, 4 large) over a ho
   expect(glyphs[0].x).toBeLessThan(glyphs[1].x)
   expect(glyphs[1].x).toBeLessThan(glyphs[2].x)
   expect(glyphs[0].y).toBeCloseTo(glyphs[2].y, 0)
+  await expect(page.locator('.auth-planes')).toHaveCSS('mask-image', /radial-gradient\(.*rgba\(0, 0, 0, 0\).*rgb\(0, 0, 0\)\)/)
 })
 
 for (const [name, viewport] of [['desktop', { width: 1440, height: 900 }], ['mobile', { width: 390, height: 844 }]] as const) {
@@ -322,6 +321,22 @@ test('planes drift with transform only, and stop while the page is hidden', asyn
     .filter(animation => (animation as CSSAnimation).effect instanceof KeyframeEffect && (animation.effect as KeyframeEffect).target instanceof SVGElement)
     .flatMap(animation => (animation.effect as KeyframeEffect).getKeyframes().flatMap(keyframe => Object.keys(keyframe).filter(key => !['offset', 'easing', 'composite', 'computedOffset'].includes(key)))))])
   expect(properties).toEqual(['transform'])
+  // Sample rendered transforms at fixed animation times, without waiting for wall-clock motion.
+  const drift = await page.locator('[data-plane]:visible').first().evaluate(plane => {
+    const animation = plane.getAnimations()[0], currentTime = animation.currentTime
+    animation.pause()
+    animation.currentTime = 0
+    const start = new DOMMatrix(getComputedStyle(plane).transform)
+    animation.currentTime = 1000
+    const end = new DOMMatrix(getComputedStyle(plane).transform)
+    const glyph = new DOMMatrix(getComputedStyle(plane.firstElementChild!).transform)
+    animation.currentTime = currentTime
+    animation.play()
+    return { x: end.m41 - start.m41, y: end.m42 - start.m42, rotation: Math.atan2(glyph.m12, glyph.m11) * 180 / Math.PI }
+  })
+  expect(drift.x).toBeGreaterThan(0)
+  expect(drift.y).toBeCloseTo(-2 * drift.x, 3)
+  expect(drift.rotation).toBeCloseTo(-18.4, 3)
   // The vertical offset of the first plane on screen, which changes every frame while the field runs.
   const sample = () => page.evaluate(() => {
     const plane = [...document.querySelectorAll('[data-plane]')].find(element => element.getClientRects().length > 0)!
