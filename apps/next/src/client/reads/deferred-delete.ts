@@ -1,9 +1,9 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { api } from '../../../../web/src/lib/apiClient'
+import { api } from '@kuuki/client/apiClient'
 import { trackPrivateOperation } from '../activity'
-import type { DerivedAck } from '../../../../web/src/lib/derivedState'
+import type { DerivedAck } from '@kuuki/client/derivedState'
 
 /** The six seconds are visible time. Nothing is sent if the host unmounts during Undo; `onAbandoned` then receives the dropped IDs. */
 export function useDeferredDelete(onCommitted: (ack: DerivedAck, ids: number[]) => void, onAbandoned?: (ids: number[]) => void) {

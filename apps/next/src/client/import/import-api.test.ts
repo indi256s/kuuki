@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { cancelBatch, confirmItems, discardBatch, listUnfinished, patchDraft, submitSource } from './import-api'
 
 const post = vi.fn(), get = vi.fn(), patch = vi.fn(), del = vi.fn()
-vi.mock('../../../../web/src/lib/apiClient', () => ({
+vi.mock('@kuuki/client/apiClient', () => ({
   api: { post: (...a: unknown[]) => post(...a), get: (...a: unknown[]) => get(...a), patch: (...a: unknown[]) => patch(...a), delete: (...a: unknown[]) => del(...a) },
   ApiError: class ApiError extends Error { constructor(public status: number, message: string, public code?: string) { super(message) } },
 }))
@@ -21,7 +21,7 @@ describe('import api', () => {
   })
 
   it('retries once without the zone when the server rejects it', async () => {
-    const { ApiError } = await import('../../../../web/src/lib/apiClient')
+    const { ApiError } = await import('@kuuki/client/apiClient')
     post.mockRejectedValueOnce(new ApiError(400, 'bad zone', 'INVALID_TIMEZONE')).mockResolvedValueOnce({ results: [], batch: { id: 'b1', status: 'review', sequence: 2, reviewRowCount: 0 } })
     await confirmItems('b1', [{ draftId: 'd1', version: 1 }])
     expect(post.mock.calls[0][1]).toHaveProperty('timezone')

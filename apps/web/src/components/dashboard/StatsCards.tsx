@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next'
 import { useFlightStats } from '@/hooks/useStats'
-import { formatDistance } from '@/lib/geo'
+import { formatDistance } from '@kuuki/client/geo'
 import { Card, CardContent } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Plane, TrendingUp, Globe2, Building2 } from 'lucide-react'

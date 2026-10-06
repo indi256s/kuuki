@@ -1,6 +1,6 @@
 import type { Flight } from '@/hooks/useFlights'
 import { findAirport, findAirline, findAircraft, getAirlineLogoUrl } from '@kuuki/data'
-import { formatDistance, formatDuration, daysUntilFlight } from '@/lib/geo'
+import { formatDistance, formatDuration, daysUntilFlight } from '@kuuki/client/geo'
 import { FlightCardActions } from './FlightCardActions'
 import { AircraftShimmerBadge } from './AircraftShimmerBadge'
 import { cn, getContrastColor } from '@/lib/utils'

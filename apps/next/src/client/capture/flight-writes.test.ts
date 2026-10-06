@@ -1,12 +1,12 @@
 // @vitest-environment jsdom
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { ApiError } from '../../../../web/src/lib/apiClient'
-import { clearFlightCreateOperations, pendingFlightCreateOperation } from '../../../../web/src/lib/flightCreateOperations'
+import { ApiError } from '@kuuki/client/apiClient'
+import { clearFlightCreateOperations, pendingFlightCreateOperation } from '@kuuki/client/flightCreateOperations'
 import { browserTimezone, createFlight, createFlights, updateFlight } from './flight-writes'
 
 const post = vi.fn()
 const patch = vi.fn()
-vi.mock('../../../../web/src/lib/apiClient', () => ({
+vi.mock('@kuuki/client/apiClient', () => ({
   api: { post: (...args: unknown[]) => post(...args), patch: (...args: unknown[]) => patch(...args) },
   ApiError: class ApiError extends Error { constructor(public status: number, message: string, public code?: string) { super(message) } },
 }))

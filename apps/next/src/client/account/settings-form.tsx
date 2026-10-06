@@ -3,7 +3,7 @@
 import { useEffect, useLayoutEffect, useRef, useState, type FormEvent } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { api, ApiError, getAuthGeneration } from '../../../../web/src/lib/apiClient'
+import { api, ApiError, getAuthGeneration } from '@kuuki/client/apiClient'
 import { trackPrivateOperation, withIdentityMutation } from '../activity'
 import { useAppearance } from '../preferences'
 import { setLocale, setTheme } from '../appearance'

@@ -1,6 +1,0 @@
-export { CountryStamp, CountryStampMini } from './CountryStamp'
-export { PassportStamps, PassportStampsVirtualized } from './PassportStamps'
-export { StampPopup } from './StampPopup'
-export { EmptyPassport } from './EmptyPassport'
-export { ClaimDialog } from './ClaimDialog'
-export { CountryClaimMap, CountryClaimMapSimple } from './CountryClaimMap'

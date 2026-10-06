@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { calculateFlightDuration } from './geo'
+import { calculateFlightDuration } from '@kuuki/client/geo'
 
 describe('calculateFlightDuration', () => {
   it.each([

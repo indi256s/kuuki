@@ -3,10 +3,10 @@
 // the lifecycle API reads (ADR 0001 §1). The zone is request context only: it is kept out of the stored
 // retry payload, so a replay from another zone is still the same operation. apps/web stays untouched.
 import { FLIGHT_BULK_CREATE_MAX, validateFlightInput } from '@kuuki/shared'
-import { api, ApiError } from '../../../../web/src/lib/apiClient'
-import { completeFlightCreateOperation, getFlightCreateOperation } from '../../../../web/src/lib/flightCreateOperations'
-import type { DerivedAck } from '../../../../web/src/lib/derivedState'
-import type { Flight, FlightInsert, FlightUpdate } from '../../../../web/src/lib/flights'
+import { api, ApiError } from '@kuuki/client/apiClient'
+import { completeFlightCreateOperation, getFlightCreateOperation } from '@kuuki/client/flightCreateOperations'
+import type { DerivedAck } from '@kuuki/client/derivedState'
+import type { Flight, FlightInsert, FlightUpdate } from '@kuuki/client/flights'
 
 /** The browser's IANA zone, or null when unavailable (the server then falls back to UTC). */
 export function browserTimezone(): string | null {

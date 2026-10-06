@@ -2,7 +2,7 @@
 import { cleanup, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import type { MissingAircraftPage } from '../../../../../packages/shared/src/overview'
+import type { MissingAircraftPage } from '@kuuki/shared/overview'
 import type { AircraftApi } from '../import/aircraft-panel'
 import { OverviewRankings } from './rankings'
 import { busySummary, fakeLabels } from './fixtures'
@@ -12,7 +12,7 @@ const refresh = vi.hoisted(() => vi.fn())
 vi.mock('next/navigation', () => ({ useRouter: () => ({ push: vi.fn(), refresh }) }))
 const apiGet = vi.hoisted(() => vi.fn())
 const apiPost = vi.hoisted(() => vi.fn())
-vi.mock('../../../../web/src/lib/apiClient', () => ({ api: { get: apiGet, post: apiPost }, getAuthGeneration: () => 0 }))
+vi.mock('@kuuki/client/apiClient', () => ({ api: { get: apiGet, post: apiPost }, getAuthGeneration: () => 0 }))
 afterEach(() => { cleanup(); refresh.mockClear(); apiGet.mockReset(); apiPost.mockReset() })
 
 const flight = (id: number) => ({ id, flight_number: String(100 + id), airline_iata: 'AA', date: '2026-03-01', origin: 'JFK', destination: 'BOS' })

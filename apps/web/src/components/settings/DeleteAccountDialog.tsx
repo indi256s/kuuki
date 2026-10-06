@@ -17,8 +17,8 @@ import { useAuthStore } from '@/stores/authStore'
 import { useFlightStats } from '@/hooks/useStats'
 import { usePassportStats, usePassportClaims } from '@/hooks/usePassport'
 import { verifyPassword } from '@/lib/auth'
-import { getAllFlights } from '@/lib/flights'
-import { exportFlights, exportClaims } from '@/lib/export'
+import { getAllFlights } from '@kuuki/client/flights'
+import { exportFlights, exportClaims } from '@kuuki/client/export'
 import { useToast } from '@/hooks/useToast'
 
 interface DeleteAccountDialogProps {

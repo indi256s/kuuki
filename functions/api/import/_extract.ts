@@ -1,3 +1,4 @@
+import { IMPORT_MAX_FILE_BYTES } from '../../../packages/shared/src/constants'
 // Provider extraction shared by the synchronous parse endpoint and the persisted import job writer
 // (ADR 0001 §6, controller ruling R3): one prompt, one schema, one model and one set of limits.
 // Nothing here persists anything; callers decide what to keep (the job writer drops `raw_text`).
@@ -16,7 +17,7 @@ import { decodedBase64Size } from './_body'
 import { DEFAULT_MODEL, PROVIDER_TIMEOUT_MS, ProviderResponseError, providerFailure, usageBucket } from './_provider'
 import { HttpError } from '../_lib/http'
 
-export const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10 MB
+export const MAX_FILE_SIZE = IMPORT_MAX_FILE_BYTES
 export const MAX_TEXT_LENGTH = 100_000 // chars — cap the (previously uncapped) text branch; controls Gemini cost
 // A 10 MiB file becomes at most 13,981,016 base64 bytes; 14 MiB includes
 // the JSON envelope. The stream limit applies even without Content-Length.

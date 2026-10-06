@@ -6,8 +6,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { CountryDetail } from '../../server/passport'
 
 const mocks = vi.hoisted(() => ({ get: vi.fn(), unclaim: vi.fn(), deleteVisit: vi.fn(), addVisit: vi.fn(), claim: vi.fn(), acknowledge: vi.fn() }))
-vi.mock('../../../../web/src/lib/apiClient', () => ({ api: { get: mocks.get }, getAuthGeneration: () => 1 }))
-vi.mock('../../../../web/src/lib/passport', () => ({ unclaimCountry: mocks.unclaim, deleteGroundVisit: mocks.deleteVisit, addGroundVisit: mocks.addVisit, claimCountry: mocks.claim }))
+vi.mock('@kuuki/client/apiClient', () => ({ api: { get: mocks.get }, getAuthGeneration: () => 1 }))
+vi.mock('@kuuki/client/passport', () => ({ unclaimCountry: mocks.unclaim, deleteGroundVisit: mocks.deleteVisit, addGroundVisit: mocks.addVisit, claimCountry: mocks.claim }))
 vi.mock('../activity', () => ({ trackPrivateOperation: () => () => {} }))
 vi.mock('../write-feedback', () => ({ useWriteFeedback: () => ({ acknowledge: mocks.acknowledge, status: 'ready' }) }))
 

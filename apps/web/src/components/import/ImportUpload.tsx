@@ -1,3 +1,4 @@
+import { IMPORT_MAX_FILE_BYTES } from '@kuuki/shared/constants'
 import { useState, useRef, useCallback, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Card, CardContent } from '@/components/ui/card'
@@ -17,7 +18,7 @@ interface ImportUploadProps {
   onSkip?: () => void
 }
 
-const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10 MB
+const MAX_FILE_SIZE = IMPORT_MAX_FILE_BYTES
 const ACCEPTED_TYPES = ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg']
 
 export function ImportUpload({ onSubmit, disabled, variant = 'full', onSkip }: ImportUploadProps) {

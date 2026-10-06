@@ -58,10 +58,11 @@
     }
   }
   let accent = read('kuuki_accent')
-  let legacyAccent = null
-  try { legacyAccent = localStorage.getItem('kuuki-accent-color') } catch { /* storage unavailable */ }
-  const mapped = ({ blue: 'ai', cyan: 'ai', teal: 'matcha', yellow: 'kincha', purple: 'sakura', coral: 'sakura', red: 'terracotta', orange: 'terracotta' })[legacyAccent]
-  if (mapped) accent = mapped
+  if (!['terracotta', 'ai', 'matcha', 'kincha', 'sakura', 'sumi'].includes(accent)) {
+    let legacyAccent = null
+    try { legacyAccent = localStorage.getItem('kuuki-accent-color') } catch { /* storage unavailable */ }
+    accent = ({ blue: 'ai', cyan: 'ai', teal: 'matcha', yellow: 'kincha', purple: 'sakura', coral: 'sakura', red: 'terracotta', orange: 'terracotta' })[legacyAccent]
+  }
   if (!['terracotta', 'ai', 'matcha', 'kincha', 'sakura', 'sumi'].includes(accent)) accent = 'terracotta'
   if (read('kuuki_accent') !== accent) {
     document.cookie = `kuuki_accent=${accent}; Path=/; Max-Age=31536000; SameSite=Lax`

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { ApiError } from '../../../../web/src/lib/apiClient'
+import { ApiError } from '@kuuki/client/apiClient'
 import { flightErrorMessage, validateFlightValues } from './flight-messages'
 
 const valid = { date: '2026-10-05', origin: 'TBS', destination: 'IST', airline: '', aircraft: '', number: '', departure: '', arrival: '' }

@@ -1,19 +1,10 @@
 import { useQuery } from '@tanstack/react-query'
 import {
   getPublicProfile,
-  getUserStats,
-  getUserBadges,
-  getUserRankings,
-  searchUsers,
   type PublicProfileData,
-  type UserStats,
-  type LeaderboardEntry,
 } from '@/lib/profiles'
-import { useAuthStore } from '@/stores/authStore'
-import { queryKeys } from '@/lib/queryKeys'
 
 const PROFILE_KEY = 'profile'
-const SEARCH_USERS_KEY = 'searchUsers'
 
 /**
  * Hook for fetching a public profile by username
@@ -31,68 +22,5 @@ export function usePublicProfile(username: string | undefined) {
   })
 }
 
-/**
- * Hook for fetching current user's stats from user_stats table
- * More accurate than calculated stats from flights
- */
-export function useUserStats() {
-  const userId = useAuthStore((state) => state.user?.id)
-
-  return useQuery({
-    queryKey: queryKeys.userStats(userId),
-    queryFn: () => {
-      if (!userId) return null
-      return getUserStats(userId)
-    },
-    enabled: !!userId,
-    staleTime: 1000 * 60 * 2, // 2 minutes (stats update via triggers)
-  })
-}
-
-/**
- * Hook for fetching current user's badges
- */
-export function useUserBadges() {
-  const userId = useAuthStore((state) => state.user?.id)
-
-  return useQuery({
-    queryKey: queryKeys.userBadges(userId),
-    queryFn: () => {
-      if (!userId) return []
-      return getUserBadges(userId)
-    },
-    enabled: !!userId,
-  })
-}
-
-/**
- * Hook for fetching current user's leaderboard rankings
- */
-export function useUserRankings() {
-  const userId = useAuthStore((state) => state.user?.id)
-
-  return useQuery({
-    queryKey: queryKeys.userRankings(userId),
-    queryFn: () => {
-      if (!userId) return []
-      return getUserRankings(userId)
-    },
-    enabled: !!userId,
-  })
-}
-
-/**
- * Hook for searching users by username
- * Used in compare feature
- */
-export function useSearchUsers(query: string) {
-  return useQuery({
-    queryKey: [SEARCH_USERS_KEY, query],
-    queryFn: () => searchUsers(query),
-    enabled: query.length >= 2,
-    staleTime: 1000 * 30, // 30 seconds
-  })
-}
-
 // Re-export types
-export type { PublicProfileData, UserStats, LeaderboardEntry }
+export type { PublicProfileData }

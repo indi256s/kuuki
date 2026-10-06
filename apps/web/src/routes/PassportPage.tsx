@@ -19,7 +19,7 @@ import { Button } from '@/components/ui/button'
 import { MapCard } from '@/components/map/MapCard'
 import { cn } from '@/lib/utils'
 import { allowedLegacyReturn, parseLegacyEntry, returnAfterLegacyWrite } from '@/lib/legacyBridge'
-import { getCountryByCode } from '@/lib/passport'
+import { getCountryByCode } from '@kuuki/client/passport'
 import {
   Stamp,
   Plus,

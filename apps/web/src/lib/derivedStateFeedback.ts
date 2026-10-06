@@ -1,12 +1,12 @@
 import type { QueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
-import { api, getAuthGeneration } from './apiClient'
+import { api, getAuthGeneration } from '@kuuki/client/apiClient'
 import { invalidateUserData } from './queryInvalidation'
 import { useAuthStore } from '@/stores/authStore'
 import i18n from './i18n'
 
-import type { DerivedAck } from './derivedState'
-export type { DerivedAck } from './derivedState'
+import type { DerivedAck } from '@kuuki/client/derivedState'
+export type { DerivedAck } from '@kuuki/client/derivedState'
 interface DerivedStatus { derived_state: 'ready' | 'pending' | 'error'; revision: number; published_revision: number }
 
 const polling = new Map<string, number>()

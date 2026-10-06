@@ -3,7 +3,7 @@
  * Contextual humor for empty states, errors, and achievements
  */
 
-export const gladosText = {
+const gladosText = {
     // Empty states
     emptyStates: {
         noFlights: 'No flights detected. This is fine. Everything is fine.',

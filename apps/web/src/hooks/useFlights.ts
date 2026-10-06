@@ -23,7 +23,7 @@ import {
   type SortConfig,
   type SortField,
   type SortOrder,
-} from '@/lib/flights'
+} from '@kuuki/client/flights'
 import { useAuthStore } from '@/stores/authStore'
 import { useEffect } from 'react'
 import { reconcileDerivedState } from '@/lib/derivedStateFeedback'

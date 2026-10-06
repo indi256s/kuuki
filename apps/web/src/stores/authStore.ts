@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { advanceAuthGeneration, beginIdentityOperation, setUnauthorizedHandler, type IdentityOperationToken } from '@/lib/apiClient'
+import { advanceAuthGeneration, beginIdentityOperation, setUnauthorizedHandler, type IdentityOperationToken } from '@kuuki/client/apiClient'
 import { resetPrivateClientState } from '@/lib/identityReset'
 import { allowedLegacyReturn } from '@/lib/legacyBridge'
 import {
@@ -228,5 +228,3 @@ identityChannel?.addEventListener('message', event => {
 // Selector hooks for convenience
 export const useUser = () => useAuthStore((state) => state.user)
 export const useProfile = () => useAuthStore((state) => state.profile)
-export const useIsAuthenticated = () => useAuthStore((state) => !!state.user)
-export const useIsLoading = () => useAuthStore((state) => state.isLoading)

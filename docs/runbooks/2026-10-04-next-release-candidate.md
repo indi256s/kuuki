@@ -71,7 +71,7 @@ pnpm typecheck
 pnpm typecheck:api
 pnpm typecheck:scripts
 pnpm typecheck:maintenance
-node --test scripts/draft-storage.test.mjs scripts/check-preview-config.test.mjs
+node --test scripts/check-preview-config.test.mjs
 pnpm exec tsx scripts/map-geometry.test.ts
 node scripts/check-preview-config.mjs --config apps/next/wrangler.toml --maintenance-config workers/maintenance/wrangler.toml
 pnpm --filter @kuuki/web build
@@ -231,3 +231,19 @@ conditional on a measured deficit and an approved cost/retention envelope.
    decision; CI's existing guarded Vite deployment path is unchanged.
 6. Instant Navigation and new lifecycle/transit/auto-confirm/undo remain named
    deferred requirements. Full Redesign 2.0 and production release are incomplete.
+
+## Legacy retirement boundary
+
+The Vite rollback app is retained. Cleanup of unreachable files does not accept
+hosted cutover or authorize API, schema, session or worktree deletion. Retirement
+requires a separately approved release decision with hosted Next acceptance,
+backup/restore evidence and a replacement rollback path under the existing
+[remediation release gates](audit-remediation-release.md). Confirm external API
+usage and the actual legacy-session cutover plus TTL before removing transports
+or cookie compatibility. There is no calendar deadline established here.
+
+Shared browser transports live in private `@kuuki/client`; neither frontend
+imports the other's source. Supabase-generated profile/auth types remain in Vite
+until that retained surface has an accepted replacement. Historical migrations,
+seed files and local redesign ledgers are preservation evidence, not cleanup
+instructions; do not execute destructive seed preambles or discard those ledgers.

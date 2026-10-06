@@ -1,4 +1,5 @@
 'use client'
+import { IMPORT_MAX_FILE_BYTES } from '@kuuki/shared/constants'
 
 import { FileText, Upload } from 'lucide-react'
 import { useEffect, useId, useRef, useState, type DragEvent } from 'react'
@@ -9,7 +10,7 @@ import { SegmentedControl } from '../ui/segmented-control'
 import { S } from './copy'
 import type { ImportSource } from './import-api'
 
-export const MAX_FILE_BYTES = 10 * 1024 * 1024
+export const MAX_FILE_BYTES = IMPORT_MAX_FILE_BYTES
 const ACCEPT = 'application/pdf,image/png,image/jpeg'
 
 /** Base64 of the file, built in memory for the request body only. It is never written to browser storage. */
@@ -86,7 +87,7 @@ export function SourceStep({ locale, busy, initialMode, onSubmit, notice }: {
         <span className="import-drop-title">{file ? <><span className="sr-only">{S.dropChosen[locale]}: </span>{file.name}</> : S.dropTitle[locale]}</span>
         <span className="import-drop-hint" id={`${dropId}-hint`}>{file ? S.dropChange[locale] : S.dropHint[locale]}</span>
       </button>
-      <input ref={input} type="file" accept={ACCEPT} className="sr-only" tabIndex={-1} aria-hidden="true" data-testid="import-file-input"
+      <input ref={input} type="file" accept={ACCEPT} className="sr-only" tabIndex={-1} aria-hidden="true"
         onChange={event => { choose(event.target.files?.[0]); event.target.value = '' }} />
     </div> : <div className="import-text-wrap">
       <label htmlFor={textId} className="import-text-label">{S.textLabel[locale]}</label>

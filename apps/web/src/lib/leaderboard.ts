@@ -1,4 +1,4 @@
-import { api } from './apiClient'
+import { api } from '@kuuki/client/apiClient'
 
 export type LeaderboardCategory = 'flights' | 'distance' | 'countries' | 'cities' | 'airlines'
 

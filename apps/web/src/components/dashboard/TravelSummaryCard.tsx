@@ -2,7 +2,7 @@ import { Plane, Globe2, Ruler } from 'lucide-react'
 import { useDashboardStats } from '@/hooks/useDashboardStats'
 import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/utils'
-import { formatDistance } from '@/lib/geo'
+import { formatDistance } from '@kuuki/client/geo'
 
 interface TravelSummaryCardProps {
   className?: string

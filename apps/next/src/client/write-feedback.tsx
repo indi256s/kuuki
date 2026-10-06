@@ -2,9 +2,9 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { getAuthGeneration } from '../../../web/src/lib/apiClient'
+import { getAuthGeneration } from '@kuuki/client/apiClient'
 import { trackPrivateOperation } from './activity'
-import type { DerivedAck } from '../../../web/src/lib/derivedState'
+import type { DerivedAck } from '@kuuki/client/derivedState'
 import { awaitPublication } from './publication'
 
 export { awaitPublication }

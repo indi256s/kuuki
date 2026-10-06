@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { QueryClient, QueryClientProvider, useQuery, useQueryClient } from '@tanstack/react-query'
-import { api } from '../../../../web/src/lib/apiClient'
+import { api } from '@kuuki/client/apiClient'
 import { trackPrivateOperation } from '../activity'
 import { ROUTE_LINK_EVENT } from '../navigation-link'
 import { RouteMapPanel, type MapLayer } from '../maps/panel'
@@ -17,7 +17,7 @@ import { arrivalFlightId, arrivalHref, countryNamer, groupByRegion, headerFigure
 import type { PassportData } from '../../server/passport'
 import type { Locale } from '../../server/locale'
 import { normalizePassportQuery, withQuery } from '../../lib/url-state'
-import type { OverviewPeriod } from '../../../../../packages/shared/src/overview'
+import type { OverviewPeriod } from '@kuuki/shared/overview'
 
 type Patch = Partial<Record<'view' | 'sort' | 'country' | 'layer', string | null>>
 

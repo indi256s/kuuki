@@ -1,5 +1,5 @@
 import { QueryClient, QueryCache } from '@tanstack/react-query'
-import { ApiError } from './apiClient'
+import { ApiError } from '@kuuki/client/apiClient'
 
 /** Cancelled requests were dropped on purpose. The account-lock rejection is transient, so it still retries. */
 function isCancellation(error: unknown): boolean {
@@ -46,7 +46,7 @@ export const queryClient = new QueryClient({
       // This prevents duplicate errors on initial load failures
       if (query.state.data !== undefined) {
         console.error('[QueryCache] Background refetch failed:', error)
-        // Toast handling is done by individual components or useErrorHandler
+        // Toast handling is done by individual components or mutation error handlers
         // We just log here for debugging/future Sentry integration
       }
     },

@@ -4,7 +4,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { createElement } from 'react'
 
 // Mock the apiClient - must be defined before importing the hooks under test
-vi.mock('@/lib/apiClient', async () => await import('@/test/mocks/apiClient'))
+vi.mock('@kuuki/client/apiClient', async () => await import('@/test/mocks/apiClient'))
 
 // Mock auth store
 vi.mock('@/stores/authStore', () => ({

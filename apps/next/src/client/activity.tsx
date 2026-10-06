@@ -2,8 +2,8 @@
 
 import { useEffect, useSyncExternalStore, type ReactNode } from 'react'
 import { useRouter } from 'next/navigation'
-import { api, beginIdentityOperation, getAuthGeneration } from '../../../web/src/lib/apiClient'
-import { clearFlightCreateOperations } from '../../../web/src/lib/flightCreateOperations'
+import { api, beginIdentityOperation, getAuthGeneration } from '@kuuki/client/apiClient'
+import { clearFlightCreateOperations } from '@kuuki/client/flightCreateOperations'
 import { clearDrafts } from './capture/drafts'
 import { clearCapturePreferences } from './capture/capture-preferences'
 import { LIFECYCLE_CHANGED_EVENT, clearOwnerSyncMarkers, syncOwner, type SyncReply } from './lifecycle-sync'

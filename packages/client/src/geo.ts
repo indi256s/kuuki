@@ -27,7 +27,7 @@ function toRadians(degrees: number): number {
  * Calculate great circle distance between two points using Haversine formula
  * @returns Distance in kilometers
  */
-export function greatCircleDistance(
+function greatCircleDistance(
   lat1: number,
   lon1: number,
   lat2: number,
@@ -198,67 +198,6 @@ function localTimeToUtcMs(
   } catch {
     return null
   }
-}
-
-/**
- * Generate points along a great circle arc for map visualization
- * @param lat1 Start latitude
- * @param lon1 Start longitude
- * @param lat2 End latitude
- * @param lon2 End longitude
- * @param numPoints Number of points to generate (default 50)
- * @returns Array of [longitude, latitude] coordinates (GeoJSON format)
- */
-export function generateGreatCircleArc(
-  lat1: number,
-  lon1: number,
-  lat2: number,
-  lon2: number,
-  numPoints = 50
-): [number, number][] {
-  const points: [number, number][] = []
-
-  const lat1Rad = toRadians(lat1)
-  const lon1Rad = toRadians(lon1)
-  const lat2Rad = toRadians(lat2)
-  const lon2Rad = toRadians(lon2)
-
-  // Calculate angular distance
-  const d = 2 * Math.asin(
-    Math.sqrt(
-      Math.sin((lat2Rad - lat1Rad) / 2) ** 2 +
-      Math.cos(lat1Rad) * Math.cos(lat2Rad) * Math.sin((lon2Rad - lon1Rad) / 2) ** 2
-    )
-  )
-
-  for (let i = 0; i <= numPoints; i++) {
-    const f = i / numPoints
-
-    const A = Math.sin((1 - f) * d) / Math.sin(d)
-    const B = Math.sin(f * d) / Math.sin(d)
-
-    const x = A * Math.cos(lat1Rad) * Math.cos(lon1Rad) + B * Math.cos(lat2Rad) * Math.cos(lon2Rad)
-    const y = A * Math.cos(lat1Rad) * Math.sin(lon1Rad) + B * Math.cos(lat2Rad) * Math.sin(lon2Rad)
-    const z = A * Math.sin(lat1Rad) + B * Math.sin(lat2Rad)
-
-    const lat = Math.atan2(z, Math.sqrt(x ** 2 + y ** 2))
-    const lon = Math.atan2(y, x)
-
-    // Return as [longitude, latitude] for GeoJSON
-    points.push([lon * (180 / Math.PI), lat * (180 / Math.PI)])
-  }
-
-  return points
-}
-
-/**
- * Check if a flight date is in the future
- */
-export function isUpcomingFlight(date: string): boolean {
-  const flightDate = new Date(date)
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
-  return flightDate > today
 }
 
 /**

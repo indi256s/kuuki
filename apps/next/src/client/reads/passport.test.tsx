@@ -6,7 +6,7 @@ import type { PassportData } from '../../server/passport'
 const mocks = vi.hoisted(() => ({ get: vi.fn(), push: vi.fn() }))
 vi.mock('next/navigation', () => ({ useRouter: () => ({ push: mocks.push, refresh: vi.fn(), replace: vi.fn() }), useSearchParams: () => new URLSearchParams(''), usePathname: () => '/passport' }))
 vi.mock('next/link', async () => ({ default: (await import('../../test/next-link')).linkStandIn(href => mocks.push(href)) }))
-vi.mock('../../../../web/src/lib/apiClient', () => ({ api: { get: mocks.get }, getAuthGeneration: () => 1 }))
+vi.mock('@kuuki/client/apiClient', () => ({ api: { get: mocks.get }, getAuthGeneration: () => 1 }))
 vi.mock('../activity', () => ({ trackPrivateOperation: () => () => {} }))
 vi.mock('../write-feedback', () => ({ useWriteFeedback: () => ({ acknowledge: vi.fn(), status: 'idle' }) }))
 vi.mock('../ui/use-mobile', () => ({ useMobile: () => false }))

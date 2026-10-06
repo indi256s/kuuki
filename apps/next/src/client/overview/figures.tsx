@@ -1,4 +1,4 @@
-import type { OverviewSummary } from '../../../../../packages/shared/src/overview'
+import type { OverviewSummary } from '@kuuki/shared/overview'
 import { formatDistanceKm, formatNumber, formatCount, type Locale } from '../../lib/format'
 import { S, forms, t } from './copy'
 import { comparisonCaption, earthCaption, timeFigure } from './model'

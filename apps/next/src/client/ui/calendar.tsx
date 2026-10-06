@@ -1,7 +1,7 @@
 'use client'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { useEffect, useId, useRef, useState, type KeyboardEvent, type Ref } from 'react'
-import { addDays } from '../../../../../packages/shared/src/calendar'
+import { addDays } from '@kuuki/shared/calendar'
 import { formatDateOnly, formatMonthYear, type Locale } from '../../lib/format'
 import './flight-controls.css'
 

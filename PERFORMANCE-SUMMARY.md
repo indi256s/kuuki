@@ -1,5 +1,7 @@
 # Performance Optimization Summary
 
+> Historical Vite performance evidence (February 2026). This is not a current Next release assessment; see [the release runbook](docs/runbooks/2026-10-04-next-release-candidate.md).
+
 **Date**: 2026-02-07  
 **Status**: ✅ Complete  
 **Commit**: 747b7a2

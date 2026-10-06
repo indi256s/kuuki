@@ -2,7 +2,7 @@
   "name": "kuuki",
   "version": "0.0.1",
   "private": true,
-  "description": "Kuuki (空気) - Travel geek platform for flight tracking and leaderboards",
+  "description": "Kuuki (\u7a7a\u6c17) - Travel geek platform for flight tracking and leaderboards",
   "scripts": {
     "dev": "turbo dev",
     "dev:pages": "wrangler pages dev --ip 0.0.0.0 --proxy 5173 -- pnpm --filter @kuuki/web dev",
@@ -18,7 +18,6 @@
     "build:maintenance": "wrangler deploy --dry-run --config workers/maintenance/wrangler.toml --outdir .wrangler/maintenance-build",
     "preflight": "tsx scripts/migration-preflight.ts",
     "generate:regions": "tsx scripts/generate-country-regions.ts",
-    "clean": "turbo clean",
     "prepare": "git config core.hooksPath .githooks",
     "smoke:runtime": "tsx scripts/smoke-local-runtime.ts --check",
     "dev:fixture": "tsx scripts/smoke-local-runtime.ts",

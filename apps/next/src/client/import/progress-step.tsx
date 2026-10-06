@@ -50,7 +50,7 @@ export function ProgressStep({ locale, batch, drafts, sourceName, onCancel, canc
         </li>
       })}
     </ol>
-    <div className="sr-only" role="status" aria-live="polite" data-testid="import-announcement">{announcement}</div>
+    <div className="sr-only" role="status" aria-live="polite">{announcement}</div>
     <h3 className="import-found-title">{S.foundRows[locale]}: <span className="import-count">{count(locale, 'found', drafts.length)}</span></h3>
     {drafts.length > 0 ? <ul className="import-found">
       {drafts.map((draft, position) => <li key={draft.id} data-new={initial.has(draft.id) ? undefined : 'true'} style={{ ['--stagger' as string]: `${(position % 8) * 40}ms` }}>

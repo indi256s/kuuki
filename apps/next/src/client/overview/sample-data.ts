@@ -1,6 +1,6 @@
 // Static sample data for the first-run preview. It is never fetched, cached or merged into a real summary: the
 // preview component is the only consumer, and it renders inert and labelled as an example.
-import type { OverviewSummary } from '../../../../../packages/shared/src/overview'
+import type { OverviewSummary } from '@kuuki/shared/overview'
 
 const months = ['2025-11', '2025-12', '2026-01', '2026-02', '2026-03', '2026-04', '2026-05', '2026-06', '2026-07', '2026-08', '2026-09', '2026-10']
   .map((month, index) => ({ month, flights: [1, 3, 0, 2, 1, 0, 2, 4, 1, 0, 2, 3][index] }))

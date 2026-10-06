@@ -9,7 +9,7 @@ import { AircraftPicker } from './AircraftPicker'
 import { useCreateFlight, useUpdateFlight, useCheckDuplicate, type Flight } from '@/hooks/useFlights'
 import { useIsMobile } from '@/hooks/useIsMobile'
 import { findAirport, findAircraft } from '@kuuki/data'
-import { calculateFlightDistance, calculateFlightDuration, estimateFlightDuration } from '@/lib/geo'
+import { calculateFlightDistance, calculateFlightDuration, estimateFlightDuration } from '@kuuki/client/geo'
 import {
   Dialog,
   DialogContent,
@@ -36,7 +36,7 @@ import { DatePicker } from '@/components/ui/date-picker'
 import { TimePicker } from '@/components/ui/time-picker'
 import { Separator } from '@/components/ui/separator'
 import { AlertCircle, ArrowLeftRight, Plane, Trash2 } from 'lucide-react'
-import { abandonFlightCreateOperation, currentFlightOperationId, pendingFlightCreateOperation, rotateFlightOperationId } from '@/lib/flightCreateOperations'
+import { abandonFlightCreateOperation, currentFlightOperationId, pendingFlightCreateOperation, rotateFlightOperationId } from '@kuuki/client/flightCreateOperations'
 import { useAuthStore } from '@/stores/authStore'
 
 const flightSchema = z.object({
@@ -252,7 +252,7 @@ export function FlightForm({ isOpen, onClose, onSaved, editFlight, onDelete }: F
     }
     try {
       await createFlight.mutateAsync({
-        flight: pending.body as Omit<import('@/lib/flights').FlightInsert, 'id' | 'created_at' | 'user_id'>,
+        flight: pending.body as Omit<import('@kuuki/client/flights').FlightInsert, 'id' | 'created_at' | 'user_id'>,
         operationId,
         retryKey,
       })

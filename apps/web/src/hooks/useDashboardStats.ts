@@ -1,8 +1,8 @@
 import { useQuery } from '@tanstack/react-query'
-import { api } from '@/lib/apiClient'
+import { api } from '@kuuki/client/apiClient'
 import { useAuthStore } from '@/stores/authStore'
 import { useDashboardStore } from '@/stores/dashboardStore'
-import { filterParams } from '@/lib/flights'
+import { filterParams } from '@kuuki/client/flights'
 import { queryKeys } from '@/lib/queryKeys'
 import type { OverviewSummary } from '@kuuki/shared'
 

@@ -2,7 +2,7 @@ import { useState, useCallback, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { MapPin, Car, Ship, Loader2 } from 'lucide-react'
 import { useClaimCountry, useAddGroundVisit } from '@/hooks/usePassport'
-import { getCountryByCode } from '@/lib/passport'
+import { getCountryByCode } from '@kuuki/client/passport'
 import {
   Dialog,
   DialogContent,

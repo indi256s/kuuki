@@ -7,7 +7,7 @@ import { AvatarMenu } from './avatar-menu'
 const patch = vi.fn()
 const refresh = vi.fn()
 vi.mock('next/navigation', () => ({ useRouter: () => ({ refresh }) }))
-vi.mock('../../../web/src/lib/apiClient', () => ({ api: { patch: (...args: unknown[]) => patch(...args), post: vi.fn() }, getAuthGeneration: () => 1 }))
+vi.mock('@kuuki/client/apiClient', () => ({ api: { patch: (...args: unknown[]) => patch(...args), post: vi.fn() }, getAuthGeneration: () => 1 }))
 vi.mock('./activity', () => ({ trackPrivateOperation: () => () => undefined, withIdentityMutation: vi.fn() }))
 
 describe('AvatarMenu', () => {

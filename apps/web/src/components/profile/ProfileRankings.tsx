@@ -2,7 +2,7 @@ import { useTranslation } from 'react-i18next'
 import { Trophy, TrendingUp, Globe2, MapPin, Building2, Plane } from 'lucide-react'
 import { Progress } from '@/components/ui/progress'
 import { Skeleton } from '@/components/ui/skeleton'
-import { formatDistance } from '@/lib/geo'
+import { formatDistance } from '@kuuki/client/geo'
 import type { LeaderboardEntry } from '@/lib/profiles'
 
 // Category icons

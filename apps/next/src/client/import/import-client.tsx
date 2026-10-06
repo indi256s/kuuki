@@ -3,7 +3,7 @@
 import clsx from 'clsx'
 import { useRouter } from 'next/navigation'
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
-import type { Flight } from '../../../../web/src/lib/flights'
+import type { Flight } from '@kuuki/client/flights'
 import type { BulkItemResult } from '../../../../../functions/api/_services/flightCreate'
 import type { Locale } from '../../lib/format'
 import { useMobile } from '../ui/use-mobile'

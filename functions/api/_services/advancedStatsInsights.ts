@@ -1,3 +1,4 @@
+import { EARTH_CIRCUMFERENCE_KM, MOON_DISTANCE_KM } from '../../../packages/shared/src/constants'
 // Advanced-stats PROSE/insight breakdowns — faithful ports of the live PL/pgSQL
 // `compute_*` functions (see db/_extracted/LOGIC_SPEC.md "refresh_advanced_stats").
 //
@@ -149,10 +150,10 @@ function fleetInsights(totalFlights: number, hero: FleetHeroRow | null): FleetIn
   const durationMin = hero.total_duration_minutes
 
   let funFact: string
-  if (distanceKm >= 384400) {
+  if (distanceKm >= MOON_DISTANCE_KM) {
     funFact = 'Enough to reach the Moon. The irony of going nowhere in particular is not lost on us.'
-  } else if (distanceKm >= 40075) {
-    funFact = `That's ${toFixed1(distanceKm / 40075)} laps around Earth on this aircraft alone. For science.`
+  } else if (distanceKm >= EARTH_CIRCUMFERENCE_KM) {
+    funFact = `That's ${toFixed1(distanceKm / EARTH_CIRCUMFERENCE_KM)} laps around Earth on this aircraft alone. For science.`
   } else if (distanceKm >= 10000) {
     funFact = `Enough to cross the Atlantic ${roundN(distanceKm / 5570, 0)} times. The cabin air was complimentary.`
   } else if (distanceKm >= 3000) {

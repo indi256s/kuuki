@@ -1,4 +1,4 @@
-import type { OverviewSummary } from '../../../../../packages/shared/src/overview'
+import type { OverviewSummary } from '@kuuki/shared/overview'
 import { formatCount, formatNumber, type Locale } from '../../lib/format'
 import { BUCKET_LABELS, BUCKET_TOKENS } from '../../lib/map-buckets'
 import { OverviewMapPreview } from './map-preview'

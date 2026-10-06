@@ -1,6 +1,6 @@
 # Kuuki - Backend Structure
 
-> **For AI Agents:** Database schema, RLS policies, triggers, and API contracts. Use this when working with Supabase or the Cloudflare Worker.
+> **Historical Supabase/Vite context.** Retained for source migration research. Current schema and handlers live in [D1 migrations](../db/migrations/) and [functions/api](../functions/api/); current runtime and release gates are in the [Next runbook](runbooks/2026-10-04-next-release-candidate.md).
 
 ---
 

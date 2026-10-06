@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
-import { api } from '../../../../web/src/lib/apiClient'
+import { api } from '@kuuki/client/apiClient'
 import { JournalQueue } from './journal-queue'
 import { awaitPublication } from '../publication'
 import type { AwaitingQueue } from '../awaiting'
@@ -9,7 +9,7 @@ import type { AwaitingQueue } from '../awaiting'
 const state = vi.hoisted(() => ({ online: true, data: null as AwaitingQueue | null, error: false, reload: vi.fn(), refresh: vi.fn() }))
 vi.mock('../awaiting', () => ({ useAwaiting: () => state, useOnline: () => state.online }))
 vi.mock('next/navigation', () => ({ useRouter: () => ({ refresh: state.refresh }) }))
-vi.mock('../../../../web/src/lib/apiClient', async importOriginal => ({ ...await importOriginal<typeof import('../../../../web/src/lib/apiClient')>(), api: { post: vi.fn(), get: vi.fn() } }))
+vi.mock('@kuuki/client/apiClient', async importOriginal => ({ ...await importOriginal<typeof import('@kuuki/client/apiClient')>(), api: { post: vi.fn(), get: vi.fn() } }))
 vi.mock('../activity', () => ({ trackPrivateOperation: () => () => {} }))
 vi.mock('../publication', () => ({ awaitPublication: vi.fn() }))
 
@@ -20,7 +20,7 @@ beforeEach(() => {
   vi.mocked(api.get).mockResolvedValue({ candidates: [], marker: null })
 })
 afterEach(() => vi.restoreAllMocks())
-const mount = () => render(<JournalQueue ownerId="queue-owner" locale="en" hiddenIds={[]} onEdit={vi.fn()} onDelete={vi.fn()} />)
+const mount = () => render(<JournalQueue locale="en" hiddenIds={[]} onEdit={vi.fn()} onDelete={vi.fn()} />)
 
 it('keeps queue failures visible alongside cached flights and disables offline mutations', async () => {
   state.error = true; state.online = false
@@ -90,7 +90,7 @@ it.each([['en', 'Based on flight times'], ['ru', 'Определено по вр
     wouldRemoveStamp: {}, marker: null, derivedState: 'ready', revision: 1,
   }
   vi.mocked(api.get).mockResolvedValue(snapshot)
-  render(<JournalQueue ownerId="queue-owner" locale={locale} hiddenIds={[]} onEdit={vi.fn()} onDelete={vi.fn()} />)
+  render(<JournalQueue locale={locale} hiddenIds={[]} onEdit={vi.fn()} onDelete={vi.fn()} />)
   fireEvent.click(await screen.findByRole('button', { name: locale === 'en' ? 'Review historical connections' : /Проверить|историч/i }))
   expect(await screen.findByText(new RegExp(phrase))).toBeInTheDocument()
 })
@@ -108,13 +108,13 @@ it('names the section plainly and says filters do not affect it only when filter
   expect(screen.getByRole('region', { name: 'Awaiting action' })).toBeInTheDocument()
   expect(screen.getByRole('heading', { level: 2 })).toHaveTextContent(/^Awaiting action$/)
   expect(screen.queryByText('Not affected by your filters.')).not.toBeInTheDocument()
-  rerender(<JournalQueue ownerId="queue-owner" locale="en" filtered hiddenIds={[]} onEdit={vi.fn()} onDelete={vi.fn()} />)
+  rerender(<JournalQueue locale="en" filtered hiddenIds={[]} onEdit={vi.fn()} onDelete={vi.fn()} />)
   expect(screen.getByText('Not affected by your filters.')).toBeInTheDocument()
 })
 
 it('uses neutral Russian action copy and shows one offline notice that every blocked action points to', () => {
   state.online = false
-  render(<JournalQueue ownerId="queue-owner" locale="ru" filtered hiddenIds={[]} onEdit={vi.fn()} onDelete={vi.fn()} />)
+  render(<JournalQueue locale="ru" filtered hiddenIds={[]} onEdit={vi.fn()} onDelete={vi.fn()} />)
   expect(screen.getByRole('heading', { level: 2 })).toHaveTextContent(/^Ждут действия$/)
   expect(screen.getByText('Фильтры списка на них не действуют.')).toBeInTheDocument()
   expect(screen.getAllByRole('button', { name: 'Не летали' })).toHaveLength(3)
@@ -143,7 +143,7 @@ it('focuses the arrival card a passport pending stamp links to, once the queue h
   const view = mount()
   expect(document.activeElement).toBe(document.body)
   state.data = data
-  view.rerender(<JournalQueue ownerId="queue-owner" locale="en" hiddenIds={[]} onEdit={vi.fn()} onDelete={vi.fn()} />)
+  view.rerender(<JournalQueue locale="en" hiddenIds={[]} onEdit={vi.fn()} onDelete={vi.fn()} />)
   await waitFor(() => expect(document.activeElement).toBe(view.container.querySelector('[data-confirm-flight="2"]')))
   expect(view.container.querySelector('#arrival-2')).not.toBeNull()
   window.history.replaceState(null, '', '/')

@@ -1,4 +1,4 @@
-import { api, ApiError } from './apiClient'
+import { api, ApiError } from '@kuuki/client/apiClient'
 import type { Tables } from './database.types'
 
 export type Profile = Tables<'profiles'>
@@ -60,28 +60,6 @@ export async function getPublicProfile(username: string): Promise<PublicProfileD
 }
 
 /**
- * Search for users by username (for compare feature)
- * Only returns public profiles
- */
-export async function searchUsers(query: string, limit = 10): Promise<Profile[]> {
-  if (!query || query.length < 2) {
-    return []
-  }
-
-  // The search endpoint returns public profile DTOs; consumers read only public columns.
-  const results = await api.get<Profile[]>('/api/profiles/search', { q: query })
-  return (results ?? []).slice(0, limit)
-}
-
-/**
- * Get user stats for the current user
- * (userId is accepted for signature compatibility; the API resolves the user from the session.)
- */
-export async function getUserStats(_userId: string): Promise<UserStats | null> {
-  return api.get<UserStats | null>('/api/me/stats')
-}
-
-/**
  * Get user's badges with badge definitions
  * (userId is accepted for signature compatibility; the API resolves the user from the session.)
  */
@@ -90,42 +68,4 @@ export async function getUserBadges(
 ): Promise<Array<UserBadge & { badge: BadgeDefinition }>> {
   const badges = await api.get<Array<UserBadge & { badge: BadgeDefinition }>>('/api/me/badges')
   return badges ?? []
-}
-
-/**
- * Get all badge definitions (for showing progress)
- */
-export async function getAllBadges(): Promise<BadgeDefinition[]> {
-  const badges = await api.get<BadgeDefinition[]>('/api/badges')
-  return badges ?? []
-}
-
-/**
- * Get user's leaderboard rankings
- * (userId is accepted for signature compatibility; the API resolves the user from the session.)
- */
-export async function getUserRankings(_userId: string): Promise<LeaderboardEntry[]> {
-  const rankings = await api.get<LeaderboardEntry[]>('/api/me/rankings')
-  return rankings ?? []
-}
-
-/**
- * Check if a username is available
- * (excludeUserId is accepted for signature compatibility; the API excludes the
- * authenticated user's own row server-side.)
- */
-export async function checkUsernameAvailable(
-  username: string,
-  _excludeUserId?: string
-): Promise<boolean> {
-  const data = await api.get<{ available: boolean }>('/api/profiles/check-username', { username })
-  return data.available
-}
-
-
-/**
- * Get the CSS custom property value for a theme color
- */
-export function getThemeColorVar(themeColor: ThemeColorKey): string {
-  return THEME_COLORS[themeColor]
 }

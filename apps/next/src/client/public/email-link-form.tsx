@@ -2,7 +2,7 @@
 
 import { useState, type FormEvent } from 'react'
 import Link from 'next/link'
-import { api, ApiError } from '../../../../web/src/lib/apiClient'
+import { api, ApiError } from '@kuuki/client/apiClient'
 import { AuthPanel } from './auth-shell'
 import { Field } from '../ui/field'
 import { Button } from '../ui/button'

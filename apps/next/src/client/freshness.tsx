@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { getAuthGeneration } from '../../../web/src/lib/apiClient'
+import { getAuthGeneration } from '@kuuki/client/apiClient'
 import { trackPrivateOperation } from './activity'
 import { awaitPublication } from './write-feedback'
 

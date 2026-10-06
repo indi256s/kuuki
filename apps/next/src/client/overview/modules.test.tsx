@@ -9,7 +9,7 @@ import { OverviewRhythm } from './rhythm'
 import { busySummary, emptySummary, fakeLabels, singleFlightSummary, stressSummary } from './fixtures'
 
 // The map's route read stays pending here; its states are covered in map-band.test.tsx.
-vi.mock('../../../../web/src/lib/apiClient', () => ({ api: { get: () => new Promise(() => {}) } }))
+vi.mock('@kuuki/client/apiClient', () => ({ api: { get: () => new Promise(() => {}) } }))
 vi.mock('next/navigation', () => ({ useRouter: () => ({ push: vi.fn(), refresh: vi.fn() }) }))
 afterEach(cleanup)
 

@@ -12,7 +12,7 @@ import { useFlightRoutes } from '@/hooks/useFlights'
 import { MAP_CSS_VARS } from '@/lib/mapColors'
 import { findAirport } from '@kuuki/data'
 import { getCountryData } from '@/lib/countries'
-import type { FlightRoute } from '@/lib/flights'
+import type { FlightRoute } from '@kuuki/client/flights'
 import { cn } from '@/lib/utils'
 
 // Natural Earth 110m TopoJSON - lightweight world map

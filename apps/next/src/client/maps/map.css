@@ -2,7 +2,6 @@
 .route-map-panel { display: grid; gap: 1rem; min-width: 0; }
 .route-map-toolbar, .route-map-controls { display: flex; flex-wrap: wrap; align-items: center; gap: .6rem; }
 .route-map-toolbar { justify-content: space-between; }
-.route-map-placeholder, .route-map-fallback { min-height: 20rem; display: grid; place-items: center; background: color-mix(in srgb, currentColor 5%, transparent); }
 .route-map-shell { position: relative; min-width: 0; }
 .route-map-stage { position: relative; display: grid; min-width: 0; }
 .route-map-stage > * { grid-area: 1 / 1; min-width: 0; }

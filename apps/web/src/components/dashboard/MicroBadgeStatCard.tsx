@@ -13,7 +13,7 @@ import { useBadgeTier } from '@/hooks/useBadgeTier'
 import { getTierVisual } from '@/lib/tier-visuals'
 import { getFlavorText, getTimeRelatable } from '@/lib/glados-dashboard'
 import { BADGE_TRACKS, type BadgeTrackId } from '@/lib/badge-tracks'
-import { formatDistance } from '@/lib/geo'
+import { formatDistance } from '@kuuki/client/geo'
 import { formatDuration } from '@/lib/formatDuration'
 import { cn } from '@/lib/utils'
 

@@ -2,10 +2,10 @@
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import { BadgeNotifications, unseenBadges } from './badge-notifications'
-import { api } from '../../../../web/src/lib/apiClient'
+import { api } from '@kuuki/client/apiClient'
 import type { EarnedBadge } from './achievements'
 vi.mock('../activity', () => ({ IdentitySnapshot: ({ children }: { children: React.ReactNode }) => children, trackPrivateOperation: () => () => {} }))
-vi.mock('../../../../web/src/lib/apiClient', () => ({ api: { get: vi.fn() }, getAuthGeneration: () => 0 }))
+vi.mock('@kuuki/client/apiClient', () => ({ api: { get: vi.fn() }, getAuthGeneration: () => 0 }))
 const award = (id: number, user = 'u'): EarnedBadge => ({ id, user_id: user, badge_id: id, earned_at: `2026-10-04T12:00:0${id}Z`, badge: { id, code: `flights-${id}`, name: 'Launch Pad', description: null, category: 'flights', tier: 'bronze', icon: null, points: 10, criteria: { flights: id } } })
 beforeEach(() => vi.mocked(api.get).mockReset())
 afterEach(() => vi.restoreAllMocks())

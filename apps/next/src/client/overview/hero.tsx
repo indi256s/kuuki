@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { useSyncExternalStore } from 'react'
 import { findAirport } from '@kuuki/data/airport-lookup'
-import type { OverviewSummary } from '../../../../../packages/shared/src/overview'
+import type { OverviewSummary } from '@kuuki/shared/overview'
 import { formatCount, type Locale } from '../../lib/format'
 import { useAwaiting, type AwaitingQueue } from '../awaiting'
 import { Ticket } from '../signature/ticket'

@@ -1,13 +1,13 @@
 // @vitest-environment jsdom
 import { act, render, screen, waitFor } from '@testing-library/react'
 import { expect, it, vi } from 'vitest'
-import { api } from '../../../web/src/lib/apiClient'
+import { api } from '@kuuki/client/apiClient'
 import { AwaitingProvider } from './awaiting'
 import { QueueSummarySlot } from './queue-summary'
 import { AddActions } from './add-actions'
 
 vi.mock('./activity', () => ({ trackPrivateOperation: () => () => {} }))
-vi.mock('../../../web/src/lib/apiClient', () => ({ api: { get: vi.fn() }, getAuthGeneration: () => 0 }))
+vi.mock('@kuuki/client/apiClient', () => ({ api: { get: vi.fn() }, getAuthGeneration: () => 0 }))
 
 it('shares distinct C4 counts with navigation/capture, retains cached counts on failure, and hides zero', async () => {
   vi.mocked(api.get).mockResolvedValueOnce({ actionableCount: 5, awaitingFlightCount: 2, draftRowCount: 3 }).mockRejectedValueOnce(new Error('unavailable')).mockResolvedValueOnce({ actionableCount: 0, awaitingFlightCount: 0, draftRowCount: 0 })

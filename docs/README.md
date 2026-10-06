@@ -28,7 +28,7 @@
 | Build UI components | [DESIGN.md](../DESIGN.md) |
 | Work with database | [D1 migrations](../db/migrations/) and [migration release gates](./runbooks/audit-remediation-release.md) |
 | Check Next implementation/release status | [Next release candidate](./runbooks/2026-10-04-next-release-candidate.md) |
-| Resume the active redesign plan | [Redesign handoff](./plans/2026-10-04-redesign-2.0-implementation-handoff.md) |
+| Check the merged redesign and deferred release evidence | [Redesign handoff](./plans/2026-10-04-redesign-2.0-implementation-handoff.md) |
 
 ## Additional Documentation
 
@@ -36,7 +36,7 @@
 |----------|---------|
 | [SPEC.md](./SPEC.md) | Original interview-derived specification (archival) |
 | [SITEMAP.md](./SITEMAP.md) | Route inventory |
-| [tasks/](./tasks/) | Detailed implementation tasks per phase |
+| [tasks/](./tasks/) | Historical MVP implementation tasks per phase |
 | [plans/](./plans/) | Ad-hoc design documents |
 
 ## Current Status

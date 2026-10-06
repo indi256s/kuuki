@@ -1,7 +1,8 @@
+import { EARTH_CIRCUMFERENCE_KM } from '@kuuki/shared/constants'
 import { useTranslation } from 'react-i18next'
 import { Plane, TrendingUp, Globe2, Building2, MapPin, Layers } from 'lucide-react'
 import { Skeleton } from '@/components/ui/skeleton'
-import { formatDistance } from '@/lib/geo'
+import { formatDistance } from '@kuuki/client/geo'
 import type { UserStats } from '@/lib/profiles'
 
 interface ProfileStatsProps {
@@ -40,7 +41,7 @@ export function ProfileStats({ stats, isLoading, hideTitle = false }: ProfileSta
 
   const totalFlights = stats.total_flights ?? 0
   const totalDistance = stats.total_distance_km ?? 0
-  const earthTrips = Math.floor(totalDistance / 40075)
+  const earthTrips = Math.floor(totalDistance / EARTH_CIRCUMFERENCE_KM)
   const showExtended = totalFlights >= 10
 
   const gridStats = [

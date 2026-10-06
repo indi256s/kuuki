@@ -2,10 +2,10 @@
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { beforeEach, expect, it, vi } from 'vitest'
 import { OnboardingName } from './onboarding-name'
-import { api } from '../../../../web/src/lib/apiClient'
+import { api } from '@kuuki/client/apiClient'
 const push = vi.fn(), refresh = vi.fn()
 vi.mock('next/navigation', () => ({ useRouter: () => ({ push, refresh }) }))
-vi.mock('../../../../web/src/lib/apiClient', () => ({ api: { get: vi.fn(), patch: vi.fn() }, getAuthGeneration: () => 0, ApiError: class extends Error {} }))
+vi.mock('@kuuki/client/apiClient', () => ({ api: { get: vi.fn(), patch: vi.fn() }, getAuthGeneration: () => 0, ApiError: class extends Error {} }))
 vi.mock('../activity', () => ({ trackPrivateOperation: () => () => {} }))
 vi.mock('../profile/avatar', () => ({ ProfileAvatar: () => <span /> }))
 const props = { ownerId: 'a', username: '', displayName: '', profileUrl: 'https://configured.example/fly/your-name', locale: 'en' as const }

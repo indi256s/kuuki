@@ -1,7 +1,7 @@
 'use client'
 
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react'
-import { api, getAuthGeneration } from '../../../web/src/lib/apiClient'
+import { api, getAuthGeneration } from '@kuuki/client/apiClient'
 import { trackPrivateOperation } from './activity'
 import { LIFECYCLE_CHANGED_EVENT } from './lifecycle-sync'
 import type { readAwaitingQueue } from '../../../../functions/api/_services/queue'

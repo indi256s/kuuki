@@ -76,6 +76,7 @@ See [AGENTS.md](AGENTS.md) for checks by change type and [CI](.github/workflows/
 ```text
 apps/next/           Current Next app, composed Worker and browser tests
 apps/web/            Legacy Vite app and rollback assets
+packages/client/     Browser API, flight, passport, geography and export helpers
 packages/shared/     DTOs, validation, translations
 packages/data/       Static airport, aircraft, airline and country references
 functions/api/       Shared API/domain handlers and retained Pages wrappers

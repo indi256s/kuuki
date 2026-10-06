@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { ApiError } from '../../../../web/src/lib/apiClient'
+import { ApiError } from '@kuuki/client/apiClient'
 import { DraftSaver, type SaveState } from './draft-saver'
 import { draft } from './fixtures'
 import type { Draft, DraftPatchBody } from './import-types'

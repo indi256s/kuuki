@@ -1,3 +1,4 @@
+import { AIRCRAFT_BATCH_SIZE } from '@kuuki/shared/constants'
 // Aircraft review after a save: suggestions come from `/api/enrich/aircraft`, accepting goes through
 // `/api/flights/aircraft-batch`. The legacy rules are kept: only suggestions at or above 0.7 are offered, all of them
 // start selected, and select-all doubles as deselect-all. Every flight keeps its own outcome, and the requests run
@@ -6,7 +7,7 @@ import { formatNumber, type Locale } from '../../lib/format'
 import { S } from './copy'
 import { classifyRequestFailure } from './import-errors'
 
-export const AIRCRAFT_BATCH = 20
+export const AIRCRAFT_BATCH = AIRCRAFT_BATCH_SIZE
 export const RELIABLE = 0.7
 
 export interface AircraftTarget { id: number; flight_number: string | null; airline_iata: string | null; date: string; origin: string; destination: string }

@@ -1,3 +1,4 @@
+import { JOURNAL_PAGE_SIZE } from '../../../packages/shared/src/constants'
 // GET /api/flights — list (filters + sort + paging). POST /api/flights — create.
 // Both own-scoped; the create also requires CSRF. Mirrors the live trigger chain (LOGIC_SPEC):
 // duration → distance → insert → visits → recompute → unlocks → badges → advanced stats.
@@ -28,7 +29,7 @@ export function listFlights(request: Request, env: Env, data: RequestData): Prom
     const user = requireUser(data)
     const params = new URL(request.url).searchParams
     const filters = parseFlightFilters(params)
-    const { limit, offset } = parsePagination(params, 20)
+    const { limit, offset } = parsePagination(params, JOURNAL_PAGE_SIZE)
     const sort = parseSort(params)
     return json(await readJournal(env.DB, user.id, filters, sort, limit, offset))
   })

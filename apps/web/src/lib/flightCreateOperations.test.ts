@@ -7,7 +7,7 @@ import {
   UnconfirmedFlightOperationError,
   ExpiredFlightOperationError,
   pendingImportFlightOperations,
-} from './flightCreateOperations'
+} from '@kuuki/client/flightCreateOperations'
 
 beforeEach(() => clearFlightCreateOperations())
 

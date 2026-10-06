@@ -1,11 +1,12 @@
 'use client'
+import { JOURNAL_PAGE_SIZE } from '@kuuki/shared/constants'
 
 import { useCallback, useEffect, useId, useRef, useState, useTransition } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { ArrowDown, ArrowUp } from 'lucide-react'
 import { QueryClient, QueryClientProvider, useQuery, useQueryClient } from '@tanstack/react-query'
-import { api } from '../../../../web/src/lib/apiClient'
+import { api } from '@kuuki/client/apiClient'
 import { trackPrivateOperation } from '../activity'
 import { isPublicationPending } from '../freshness'
 import { useWriteFeedback } from '../write-feedback'
@@ -119,7 +120,7 @@ function JournalInner({ ownerId, locale, initial, query, page, filtered }: Props
       const untrack = trackPrivateOperation(controller)
       signal.addEventListener('abort', () => controller.abort(), { once: true })
       try {
-        return await api.get<JournalData>('/api/flights', { ...Object.fromEntries(params), page: undefined, flight: undefined, queue: undefined, batch: undefined, limit: 20, offset: (page - 1) * 20 }, { signal: controller.signal })
+        return await api.get<JournalData>('/api/flights', { ...Object.fromEntries(params), page: undefined, flight: undefined, queue: undefined, batch: undefined, limit: JOURNAL_PAGE_SIZE, offset: (page - 1) * JOURNAL_PAGE_SIZE }, { signal: controller.signal })
       } finally { untrack() }
     },
     initialData: initial, initialDataUpdatedAt: initial.updatedAt, staleTime: 60_000, refetchOnWindowFocus: true, retry: 1,
@@ -200,7 +201,7 @@ function JournalInner({ ownerId, locale, initial, query, page, filtered }: Props
     if (undoButton.current) { undoButton.current.focus(); return } // the flight is being deleted
     if (!lastFlight.current || !focusRow(lastFlight.current)) listHeading.current?.focus()
   }
-  const pageCount = Math.max(1, Math.ceil((data?.total ?? 0) / 20))
+  const pageCount = Math.max(1, Math.ceil((data?.total ?? 0) / JOURNAL_PAGE_SIZE))
   async function selectAll() {
     if (selecting) return
     setSelecting(true); setSelectionError(false)
@@ -256,7 +257,7 @@ function JournalInner({ ownerId, locale, initial, query, page, filtered }: Props
   }
   const withoutPage = (() => { const next = new URLSearchParams(query); next.delete('page'); return next.toString() })()
   return <section ref={root} data-testid="journal-data" className="journal-data read-stack">
-    <JournalQueue ownerId={ownerId} locale={locale} filtered={filtered} hiddenIds={hidden} onEdit={id => open(id, true)} onDelete={ids => scheduleDelete(ids, 'queue')} />
+    <JournalQueue locale={locale} filtered={filtered} hiddenIds={hidden} onEdit={id => open(id, true)} onDelete={ids => scheduleDelete(ids, 'queue')} />
     <section className="read-section">
       <h2 ref={listHeading} tabIndex={-1}>{locale === 'ru' ? 'Перелёты' : 'Flights'}</h2>
       <JournalFilters locale={locale} query={query} filtered={filtered} navigating={navigating} apply={changes => apply(changes, 'refine')} external={external} onExternal={navigateExternally} />

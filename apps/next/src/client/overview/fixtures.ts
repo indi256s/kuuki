@@ -1,6 +1,6 @@
 // Overview summaries at every data volume, shared by the module tests and T18's acceptance. Plain data, no mocks.
 import type { OverviewLabels } from './labels'
-import type { OverviewSummary } from '../../../../../packages/shared/src/overview'
+import type { OverviewSummary } from '@kuuki/shared/overview'
 
 const regions = (reached: Record<string, [number, number]> = {}): NonNullable<OverviewSummary['regions']> =>
   [['africa', 58], ['americas', 54], ['asia', 52], ['europe', 51], ['oceania', 28], ['antarctica', 3]]

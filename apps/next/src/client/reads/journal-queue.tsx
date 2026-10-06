@@ -4,14 +4,13 @@ import { useEffect, useId, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { findAirport } from '@kuuki/data/airport-lookup'
 import countries from '@kuuki/data/countries.json'
-import { api, ApiError, getAuthGeneration } from '../../../../web/src/lib/apiClient'
+import { api, ApiError, getAuthGeneration } from '@kuuki/client/apiClient'
 import type { ConfirmOutcome, ConfirmRequest } from '../../../../../functions/api/_services/confirmation'
 import type { readTransitReview, ReviewOutcome, ReviewRequest } from '../../../../../functions/api/_services/transitReview'
 import { useAwaiting, useOnline, type AwaitingQueue } from '../awaiting'
 import { trackPrivateOperation } from '../activity'
 import { LIFECYCLE_CHANGED_EVENT } from '../lifecycle-sync'
 import { awaitPublication } from '../publication'
-import { DraftLinks } from './draft-links'
 import { Ticket } from '../signature/ticket'
 import { Stamp } from '../signature/stamp'
 import { Button } from '../ui/button'
@@ -22,7 +21,7 @@ import type { Locale } from '../../server/locale'
 type Entry = AwaitingQueue['awaitingFlights'][number]
 const forms = { en: { one: '{count} draft row', other: '{count} draft rows' }, ru: { one: '{count} строка для проверки', few: '{count} строки для проверки', many: '{count} строк для проверки', other: '{count} строки для проверки' } }
 
-export function JournalQueue({ ownerId, locale, filtered = false, hiddenIds, onEdit, onDelete }: { ownerId: string; locale: Locale; filtered?: boolean; hiddenIds: number[]; onEdit: (id: number) => void; onDelete: (ids: number[]) => void }) {
+export function JournalQueue({ locale, filtered = false, hiddenIds, onEdit, onDelete }: { locale: Locale; filtered?: boolean; hiddenIds: number[]; onEdit: (id: number) => void; onDelete: (ids: number[]) => void }) {
   const { data, error, reload } = useAwaiting()
   const router = useRouter()
   const online = useOnline()
@@ -136,7 +135,6 @@ export function JournalQueue({ ownerId, locale, filtered = false, hiddenIds, onE
       {data.actionableCount === 0 && !entries.length && !data.drafts.length && <p>{ru ? 'Всё проверено.' : 'Everything is reviewed.'}</p>}
       {data.awaitingFlightCount > data.awaitingFlights.length && <p>{ru ? 'Показаны первые 100 перелётов. После подтверждения загрузится следующая часть.' : 'Showing the first 100 flights. Confirm them to load the next batch.'}</p>}
     </>}
-    <DraftLinks ownerId={ownerId} locale={locale} />
     <div ref={statusRef} tabIndex={-1} role="status" aria-live="polite">{message}</div>
     {failure && <p ref={failureRef} tabIndex={-1} role="alert">{failure}</p>}
     {receipt && !busy && <Button disabled={!online} {...offline} onClick={() => void confirm([], receipt)}>{receipt.committed ? (ru ? 'Проверить обновление' : 'Check publication') : (ru ? 'Повторить подтверждение' : 'Retry confirmation')}</Button>}

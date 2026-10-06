@@ -46,8 +46,8 @@ describe('import', () => {
     expect(normalizeImportQuery(qs(`source=text&batch=${id.toUpperCase()}`))).toMatchObject({ query: `source=text&batch=${id}`, canonical: false })
     expect(normalizeImportQuery(qs('source=paste&batch=nope')).query).toBe('')
   })
-  it('does not touch the draft handoff key', () => {
-    expect(normalizeImportQuery(qs('draft=abc'))).toMatchObject({ query: 'draft=abc', canonical: true })
+  it('preserves unknown query keys', () => {
+    expect(normalizeImportQuery(qs('campaign=abc'))).toMatchObject({ query: 'campaign=abc', canonical: true })
   })
 })
 

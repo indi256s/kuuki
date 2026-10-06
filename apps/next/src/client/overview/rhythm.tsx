@@ -1,4 +1,4 @@
-import type { OverviewSummary } from '../../../../../packages/shared/src/overview'
+import type { OverviewSummary } from '@kuuki/shared/overview'
 import { formatNumber, type Locale } from '../../lib/format'
 import { S, fill, t } from './copy'
 import { monthStrip, regionName } from './model'

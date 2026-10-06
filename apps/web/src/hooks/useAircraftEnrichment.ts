@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { api } from '@/lib/apiClient'
+import { api } from '@kuuki/client/apiClient'
 import { queryKeys } from '@/lib/queryKeys'
 import { useAuthStore } from '@/stores/authStore'
 import { reconcileDerivedState, type DerivedAck } from '@/lib/derivedStateFeedback'

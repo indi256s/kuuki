@@ -10,18 +10,18 @@ import type { Snapshot } from './import-types'
 const post = vi.fn()
 const refresh = vi.fn()
 const discardBatch = vi.fn(async () => ({ deleted: true }))
-vi.mock('../../../../web/src/lib/flights', async importOriginal => ({ ...(await importOriginal<typeof import('../../../../web/src/lib/flights')>()), checkDuplicateFlight: vi.fn(async () => null) }))
+vi.mock('@kuuki/client/flights', async importOriginal => ({ ...(await importOriginal<typeof import('@kuuki/client/flights')>()), checkDuplicateFlight: vi.fn(async () => null) }))
 vi.mock('next/navigation', () => ({ useRouter: () => ({ refresh }) }))
 vi.mock('../write-feedback', () => ({ useWriteFeedback: () => ({ acknowledge: vi.fn(), status: 'idle' }) }))
 vi.mock('../signature/stamp', () => ({ Stamp: () => null }))
-vi.mock('../../../../web/src/lib/apiClient', async importOriginal => ({ ...(await importOriginal<typeof import('../../../../web/src/lib/apiClient')>()), api: { post: (...args: unknown[]) => post(...args) } }))
+vi.mock('@kuuki/client/apiClient', async importOriginal => ({ ...(await importOriginal<typeof import('@kuuki/client/apiClient')>()), api: { post: (...args: unknown[]) => post(...args) } }))
 vi.mock('./import-api', async importOriginal => ({
   ...(await importOriginal<typeof import('./import-api')>()),
   confirmItems: vi.fn(), cancelBatch: vi.fn(), discardBatch: () => discardBatch(), patchDraft: vi.fn(), listUnfinished: vi.fn(async () => []),
   fetchPressedCountries: vi.fn(async () => new Set<string>()), submitSource: vi.fn(), readBatch: vi.fn(),
 }))
 
-import { clearFlightCreateOperations } from '../../../../web/src/lib/flightCreateOperations'
+import { clearFlightCreateOperations } from '@kuuki/client/flightCreateOperations'
 import { FlightForm } from '../capture/flight-form'
 import { createFlights } from '../capture/flight-writes'
 import { toFlightInput } from './flight-input'

@@ -2,7 +2,7 @@
 
 Kuuki is a personal flight journal with a restrained editorial character. Typography, whitespace, and the details of stamps and tickets carry the design. This document is the single authoritative design reference for the Next experience and supersedes conflicting color, font, glass, grain, and motion guidance elsewhere. The [Redesign 2.0 UX brief](docs/plans/2026-10-04-redesign-2.0-ux-ui.md) explains the experience decisions. The Vite app remains a compatibility surface during migration.
 
-**Status labels.** Everything below describes what is built on `feature/redesign-2.0` unless marked. **Planned (Wn/Tnn)** is documented intent not yet built; Wn/Tnn is the wave and task in the [implementation plan](docs/plans/2026-10-04-redesign-2.0-implementation.md). **Superseded** is older guidance that Redesign 2.0 replaced; the line says by what. Where the brief and the code disagree, the code is recorded here and the brief's intent is noted.
+**Status labels.** Everything below describes what is built on `main` after PR #42 unless marked. **Planned (Wn/Tnn)** is documented intent not yet built; Wn/Tnn is the wave and task in the [implementation plan](docs/plans/2026-10-04-redesign-2.0-implementation.md). **Superseded** is older guidance that Redesign 2.0 replaced; the line says by what. Where the brief and the code disagree, the code is recorded here and the brief's intent is noted.
 
 ## Color and surfaces
 
@@ -111,7 +111,7 @@ Shell and control tokens (all in `:root`):
 
 Runtime variables set by the shell and primitives, not for authoring: `--tabbar-offset`, `--toast-bottom-offset`, `--action-bar-bottom` (mobile, derived from the tab bar and safe area; zeroed while the keyboard is open), `--sheet-drag`, `--sheet-kb`, `--n` (segmented option count).
 
-**Z-index scale** (literals in the CSS, lowest to highest): tab bar 30 (`--z-tabbar`), floating action bar 40, overlay 50, dialog and sheet 51, combobox and calendar popovers 55, menu 60, toast 70, skip link 100. Overlays therefore sit above the tab bar, and menus above the dialog that hosts them. Legacy `.read-sheet` (80/81) and `.capture-confirm` (90) sit outside the scale and are Superseded by Sheet and DestructiveConfirm; they remain on unmigrated surfaces.
+**Z-index scale** (literals in the CSS, lowest to highest): tab bar 30 (`--z-tabbar`), floating action bar 40, overlay 50, dialog and sheet 51, combobox and calendar popovers 55, menu 60, toast 70, skip link 100. Overlays therefore sit above the tab bar, and menus above the dialog that hosts them. Legacy `.capture-confirm` (90) remains on an unmigrated surface and is superseded by DestructiveConfirm. The unused `.read-sheet` rules were removed.
 
 Motion tokens: see Motion.
 
@@ -241,7 +241,7 @@ Capture, auth, privacy, settings, errors, validation and destructive flows are c
 | Journey UI and navigation | Removed (D7); `/journey` redirects to `/overview`. |
 | く logo mark | 空 tile (see Logo mark). |
 | Filled or heavier active-tab icon | Accent text, 600 label and a 2px accent bar. |
-| `.button`, `.field`, `.dialog-*` in `styles.css`; `.period-switch`; `.read-sheet`; `.capture-confirm` | `Button`, `Field`, `Dialog`, `SegmentedControl`, `Sheet`, `DestructiveConfirm`. Still used by unmigrated routes; new work uses the ui kit. |
+| Legacy `.button`, `.field`, and `.capture-confirm` | `Button`, `Field`, and `DestructiveConfirm`. Still used by unmigrated routes; new work uses the ui kit. Unused `.dialog-*`, `.period-switch`, and `.read-sheet` rules were removed. |
 
 ## Integrated journeys and evidence
 

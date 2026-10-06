@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { api, ApiError, getAuthGeneration } from '../../../../web/src/lib/apiClient'
+import { api, ApiError, getAuthGeneration } from '@kuuki/client/apiClient'
 import { trackPrivateOperation } from '../activity'
 import { ProfileAvatar } from '../profile/avatar'
 import { Button } from '../ui/button'

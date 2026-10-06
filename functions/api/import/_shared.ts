@@ -50,17 +50,6 @@ export interface ParseResponse {
   gemini_count?: number // How many flights Gemini found before validation
 }
 
-export function getMimeType(type: 'pdf' | 'image' | 'text'): string {
-  switch (type) {
-    case 'pdf':
-      return 'application/pdf'
-    case 'image':
-      return 'image/jpeg' // Will be overridden if PNG detected
-    default:
-      return 'text/plain'
-  }
-}
-
 export function detectImageMimeType(base64: string): string {
   // Check magic bytes in base64
   if (base64.startsWith('/9j/')) return 'image/jpeg'

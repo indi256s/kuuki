@@ -1,5 +1,5 @@
 // Thin typed calls to the import endpoints. No retries or copy here: callers classify failures (import-errors.ts).
-import { api, type CallOptions } from '../../../../web/src/lib/apiClient'
+import { api, type CallOptions } from '@kuuki/client/apiClient'
 import { sendWithZone, withZone } from '../capture/flight-writes'
 import { importKey, type ConfirmItem } from './confirm-runner'
 import type { AircraftAccept, EnrichResult } from './aircraft-review'

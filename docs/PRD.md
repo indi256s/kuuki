@@ -478,7 +478,7 @@ If any check fails, reconsider the feature or find an alternative approach.
 | Document | Purpose |
 |----------|---------|
 | [APP_FLOW.md](./APP_FLOW.md) | User navigation paths and screen inventory |
-| [TECH_STACK.md](./TECH_STACK.md) | All dependencies with exact versions |
+| [Package manifests](../package.json) and [lockfile](../pnpm-lock.yaml) | Current dependency ranges and installed versions; [TECH_STACK.md](./TECH_STACK.md) records the legacy Vite stack |
 | [FRONTEND_GUIDELINES.md](./FRONTEND_GUIDELINES.md) | Design system and UI patterns |
 | [BACKEND_STRUCTURE.md](./BACKEND_STRUCTURE.md) | Database schema and API contracts |
 | [PLAN.md](./PLAN.md) | Implementation roadmap and status |

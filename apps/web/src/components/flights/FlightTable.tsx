@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next'
 import type { Flight, SortConfig, SortField } from '@/hooks/useFlights'
 import { findAirport, findAirline, findAircraft, getAirlineLogoUrl } from '@kuuki/data'
-import { formatDistance, formatDuration, daysUntilFlight } from '@/lib/geo'
+import { formatDistance, formatDuration, daysUntilFlight } from '@kuuki/client/geo'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import {

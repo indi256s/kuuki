@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import type { FlightFilters } from '@/lib/flights'
+import type { FlightFilters } from '@kuuki/client/flights'
 
 interface DashboardState {
     // Full flight filters

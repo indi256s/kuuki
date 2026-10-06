@@ -1,7 +1,7 @@
 import 'server-only'
 import { readOverview } from '../../../../functions/api/_services/overview'
 import { getRequestEnv, getRequestIdentity } from './identity'
-import type { OverviewPeriod } from '../../../../packages/shared/src/overview'
+import type { OverviewPeriod } from '@kuuki/shared/overview'
 
 export async function getOwnOverview(period: OverviewPeriod = 'all') {
   const identity = await getRequestIdentity()

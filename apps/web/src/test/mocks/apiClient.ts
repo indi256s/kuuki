@@ -1,7 +1,7 @@
 // Drop-in mock for src/lib/apiClient used by unit tests. Replaces the old Supabase mock.
 //
 // Usage in a test file:
-//   vi.mock('@/lib/apiClient', async () => await import('@/test/mocks/apiClient'))
+//   vi.mock('@kuuki/client/apiClient', async () => await import('@/test/mocks/apiClient'))
 //   import { api, resetApiMock } from '@/test/mocks/apiClient'
 //   beforeEach(resetApiMock)
 //   vi.mocked(api.get).mockResolvedValue({ entries: [], total: 0 })

@@ -2,7 +2,7 @@
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { ApiError } from '../../../../web/src/lib/apiClient'
+import { ApiError } from '@kuuki/client/apiClient'
 import type { ConfirmResponse, Draft, Snapshot } from './import-types'
 import { draft, snapshot } from './fixtures'
 

@@ -2,11 +2,46 @@ import { api, ApiError, type CallOptions } from './apiClient'
 import { FLIGHT_BULK_CREATE_MAX, validateFlightInput } from '@kuuki/shared'
 import { completeFlightCreateOperation, getFlightCreateOperation } from './flightCreateOperations'
 import type { DerivedAck } from './derivedState'
-import type { Tables, TablesInsert, TablesUpdate } from './database.types'
 
-export type Flight = Tables<'flights'>
-export type FlightInsert = TablesInsert<'flights'>
-export type FlightUpdate = TablesUpdate<'flights'>
+/** Own-flight row consumed by both clients. The API omits the owner; callers refill it. */
+export interface Flight {
+  id: number
+  user_id: string
+  date: string
+  origin: string
+  destination: string
+  airline_iata: string | null
+  aircraft_icao: string | null
+  flight_number: string | null
+  departure_time: string | null
+  arrival_time: string | null
+  departure_utc: string | null
+  arrival_utc: string | null
+  origin_tz: string | null
+  dest_tz: string | null
+  distance_km: number | null
+  duration_minutes: number | null
+  source: string
+  is_upcoming: boolean
+  enrichment_status: string
+  created_at: string
+  lifecycle_state?: 'upcoming' | 'awaiting' | 'logged'
+  confirmation_source?: 'save' | 'user' | 'automatic' | 'legacy' | null
+  confirmed_at?: string | null
+  lifecycle_timezone?: string | null
+  awaiting_after?: string | null
+  auto_confirm_after?: string | null
+  arrival_transit?: boolean | null
+  arrival_transit_leg_id?: number | null
+}
+
+type FlightWritable = Pick<Flight,
+  'id' | 'user_id' | 'date' | 'origin' | 'destination' | 'airline_iata' | 'aircraft_icao' |
+  'flight_number' | 'departure_time' | 'arrival_time' | 'departure_utc' | 'arrival_utc' |
+  'origin_tz' | 'dest_tz' | 'distance_km' | 'duration_minutes' | 'source' |
+  'is_upcoming' | 'enrichment_status' | 'created_at'>
+export type FlightInsert = Pick<FlightWritable, 'user_id' | 'date' | 'origin' | 'destination'> & Partial<Omit<FlightWritable, 'user_id' | 'date' | 'origin' | 'destination'>>
+export type FlightUpdate = Partial<FlightWritable>
 
 export interface FlightFilters {
   year?: number
@@ -41,8 +76,8 @@ export interface FlightStats {
 
 /**
  * Own-flight DTO as returned by the API (functions/api/_lib/flights.ts → toOwnFlight).
- * Mirrors Tables<'flights'> minus `user_id` (always the requester) and minus the D1-internal
- * `aircraft_lookup_attempts` counter (not present in the Supabase-generated types).
+ * The API omits `user_id` (always the requester) and its D1-internal
+ * `aircraft_lookup_attempts` counter.
  */
 interface ApiFlight extends DerivedAck {
   id: number
@@ -64,10 +99,18 @@ interface ApiFlight extends DerivedAck {
   is_upcoming: boolean
   enrichment_status: string
   created_at: string
+  lifecycle_state?: Flight['lifecycle_state']
+  confirmation_source?: Flight['confirmation_source']
+  confirmed_at?: Flight['confirmed_at']
+  lifecycle_timezone?: Flight['lifecycle_timezone']
+  awaiting_after?: Flight['awaiting_after']
+  auto_confirm_after?: Flight['auto_confirm_after']
+  arrival_transit?: Flight['arrival_transit']
+  arrival_transit_leg_id?: Flight['arrival_transit_leg_id']
 }
 
 /**
- * Lift an ApiFlight DTO back into the Tables<'flights'> row type the frontend consumers expect.
+ * Lift an ApiFlight DTO into the row shape frontend consumers expect.
  * The API omits `user_id`; we re-attach the caller-known id so the declared `Flight` return type
  * holds. (No consumer reads `user_id` off a returned flight — it is filled for type-shape parity.)
  */

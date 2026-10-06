@@ -1,0 +1,25 @@
+{
+  "name": "@kuuki/client",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./apiClient": "./src/apiClient.ts",
+    "./flights": "./src/flights.ts",
+    "./flightCreateOperations": "./src/flightCreateOperations.ts",
+    "./derivedState": "./src/derivedState.ts",
+    "./passport": "./src/passport.ts",
+    "./geo": "./src/geo.ts",
+    "./export": "./src/export.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@kuuki/data": "workspace:*",
+    "@kuuki/shared": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.0"
+  }
+}

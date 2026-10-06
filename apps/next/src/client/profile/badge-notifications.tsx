@@ -1,6 +1,6 @@
 'use client'
 import { useEffect, useRef, useState } from 'react'
-import { api, getAuthGeneration } from '../../../../web/src/lib/apiClient'
+import { api, getAuthGeneration } from '@kuuki/client/apiClient'
 import { IdentitySnapshot, trackPrivateOperation } from '../activity'
 import { LIFECYCLE_CHANGED_EVENT } from '../lifecycle-sync'
 import { badgeEventId, badgeName, type EarnedBadge } from './achievements'

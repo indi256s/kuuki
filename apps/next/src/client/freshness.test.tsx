@@ -4,7 +4,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 
 const { awaitPublication } = vi.hoisted(() => ({ awaitPublication: vi.fn<(revision: number) => Promise<'delayed'>>(async () => 'delayed') }))
 vi.mock('next/navigation', () => ({ useRouter: () => ({ refresh: vi.fn() }) }))
-vi.mock('../../../web/src/lib/apiClient', () => ({ getAuthGeneration: () => 1 }))
+vi.mock('@kuuki/client/apiClient', () => ({ getAuthGeneration: () => 1 }))
 vi.mock('./activity', () => ({ trackPrivateOperation: () => () => {} }))
 vi.mock('./write-feedback', () => ({ awaitPublication }))
 

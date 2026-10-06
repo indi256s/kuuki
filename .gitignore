@@ -51,6 +51,7 @@ docs/research/.local-performance.json
 # Supabase
 .supabase/
 supabase/.env
+supabase/.temp/
 
 # Cloudflare
 .wrangler/
@@ -65,8 +66,11 @@ scripts/*.dat
 # Git worktrees
 .worktrees/
 
-# Agent tooling (keep out of remote)
+# Local agent state (selected project skills are intentionally tracked)
 .agents/
 .claude/
 .planning/
 CLAUDE.md
+
+# Private backup of local redesign review evidence
+.scratch/legacy-cleanup/

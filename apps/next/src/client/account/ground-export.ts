@@ -8,13 +8,13 @@ function cell(value: string | number | null): string {
   return /[,"\n\r]/.test(safe) ? `"${safe.replace(/"/g, '""')}"` : safe
 }
 
-export function generateGroundVisitsCsv(visits: GroundVisit[]): string {
+function generateGroundVisitsCsv(visits: GroundVisit[]): string {
   const header = 'country_code,visit_year,entry_method,note,created_at'
   const rows = visits.map(visit => [visit.countryCode, visit.visitYear, visit.entryMethod, visit.note, visit.createdAt].map(cell).join(','))
   return '\uFEFF' + header + '\n' + rows.join('\n')
 }
 
 export async function exportGroundVisits(visits: GroundVisit[]): Promise<void> {
-  const { downloadCsv, getTimestampedFilename } = await import('../../../../web/src/lib/export')
+  const { downloadCsv, getTimestampedFilename } = await import('@kuuki/client/export')
   downloadCsv(generateGroundVisitsCsv(visits), getTimestampedFilename('ground-visits'))
 }

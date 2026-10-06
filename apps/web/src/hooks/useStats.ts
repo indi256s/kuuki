@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { getFlightStats, type FlightStats } from '@/lib/flights'
+import { getFlightStats, type FlightStats } from '@kuuki/client/flights'
 import { useAuthStore } from '@/stores/authStore'
 import { queryKeys } from '@/lib/queryKeys'
 

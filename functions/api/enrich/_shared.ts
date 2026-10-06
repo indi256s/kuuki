@@ -1,3 +1,4 @@
+import { AIRCRAFT_BATCH_SIZE } from '../../../packages/shared/src/constants'
 // Shared types and utilities for aircraft enrichment (Gemini-backed).
 //
 // NOTE: the AirLabs Routes API tier was removed — enrichment is Gemini-only now.
@@ -32,7 +33,7 @@ export interface EnrichmentResponse {
 }
 
 // Maximum number of flights per batch request
-export const MAX_BATCH_SIZE = 20
+export const MAX_BATCH_SIZE = AIRCRAFT_BATCH_SIZE
 
 /**
  * Build flight line with optional airline name for better search context.

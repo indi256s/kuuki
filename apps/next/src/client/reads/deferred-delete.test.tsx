@@ -2,10 +2,10 @@
 import { act, fireEvent, renderHook } from '@testing-library/react'
 import { useEffect } from 'react'
 import { afterEach, expect, it, vi } from 'vitest'
-import { api } from '../../../../web/src/lib/apiClient'
+import { api } from '@kuuki/client/apiClient'
 import { useDeferredDelete } from './deferred-delete'
 
-vi.mock('../../../../web/src/lib/apiClient', () => ({ api: { delete: vi.fn(), post: vi.fn() } }))
+vi.mock('@kuuki/client/apiClient', () => ({ api: { delete: vi.fn(), post: vi.fn() } }))
 vi.mock('../activity', () => ({ trackPrivateOperation: () => () => {} }))
 afterEach(() => { vi.useRealTimers(); vi.restoreAllMocks() })
 

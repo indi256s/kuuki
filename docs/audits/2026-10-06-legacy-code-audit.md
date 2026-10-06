@@ -1,0 +1,205 @@
+# Legacy code audit after Redesign 2.0
+
+Audited source: `main` at `65107eecbb9ea40f772348d1392447d3bb2604a1`, the merge of PR #42, on 2026-10-06. No application code, deployment, database, dependency or worktree was changed by this audit.
+
+Five Sonnet scouts covered Next, API/workers/packages, Vite, scripts/database/docs, and dependencies/duplicates/limits. Three Opus judges independently checked the Next, Vite and scripts/database/docs findings. The API/packages Opus judge failed at the Claude rate limit; a resumed attempt failed for the same reason. A GPT-6-Sol reviewer completed the fallback API/packages review. Its coverage limits are identified below rather than attributed to Opus. The primary agent recovered the reports and rechecked the key findings on the same source commit.
+
+The main findings are a reproducible accent preference bug, an obsolete browser-local import-draft flow, 19 unreachable Vite source files, and live Next dependencies on eight Vite library files. Much of the remaining old code is deliberately retained for rollback, migration or compatibility.
+
+## Cleanup disposition (2026-10-06)
+
+The original audit below describes base `65107ee`. The subsequent local cleanup
+on `chore/legacy-cleanup` addresses the findings as follows; historical locations
+below remain evidence against that base, not current file references.
+
+| Finding group | Disposition |
+|---|---|
+| Accent preference | Fixed current-cookie precedence, legacy-only migration and blocked-storage handling; actual bootstrap regression test added. |
+| Browser-local drafts | Removed unused writer/reader/list UI and obsolete CI script. Kept the identity-reset `clearDrafts` privacy sweep. Generic URL-key coverage remains. |
+| Next CSS and small orphans | Removed orphan account stylesheet, 17 dead selectors, six unused test IDs and obsolete queue owner prop; internal ground CSV helper is no longer exported. |
+| Vite unreachable code | Removed the 19 proven orphan files, Compare feature and newly orphaned helpers/query keys, mascot artifacts and two unused Radix dependencies/chunks. Reachable rollback app and activation/PWA assets remain. |
+| Cross-app boundary | Moved seven live libraries to private `@kuuki/client`; rewrote both apps and tests. Explicit flight/claim client rows replace the Supabase aliases there. Vite profile/auth database types remain live. |
+| Backend/package orphans | Removed `revokeAllSessions`, `getMimeType`, six unused data lookup exports and unused shared enum arrays/types. Shared packages are private and repository consumers were checked. Reused narrow aircraft/airport lookup implementations. |
+| Coupled duplicate values | Reused pure shared constants for journal pagination, aircraft batches, import file size, Earth and Moon distances; reused the server session-cookie constant. Next shared imports now use package exports. |
+| Distinct/uncertain duplicates | Kept raw versus route-adjusted Haversine, geometry safeguards, tiny parsers, client wire DTOs, semantic date/IATA validation, geography maps and intentionally different endpoint limits. Unverified individual shared types/error codes/timers are retained; no equivalence was established. |
+| Config/cache/docs | Removed unused clean delegation, empty workspace glob and tracked Supabase CLI cache; ignored future cache. Marked historical backend/roadmap/performance evidence; reconciled merged redesign and CSS guidance. Tracked project skills are intentional; ignore rules continue protecting local agent state. |
+| Public API and data history | Retained exposed routes, receipt/session/auth contracts, old aggregates, migration/import tools, database tables and seeds. No schema/data deletion or cloud action is part of cleanup. |
+| Release and deferred work | Kept the maintenance hold and deferred import-worker wiring. Explicitly documented the Vite retirement boundary in the release runbook. No cutover or deployment acceptance claimed. |
+| Local/tooling artifacts | Kept project skill collections, meaningful regeneration tools and all worktrees/local ledgers. Ignored enrichment-worker dependencies are local residue, not tracked app code. Removal would discard evidence or alter tooling policy without a demonstrated benefit. |
+
+Verification results are recorded in the [cleanup handoff](../plans/2026-10-06-legacy-cleanup-handoff.md).
+
+## Priority findings
+
+| Item | Location | Notes |
+|------|----------|-------|
+| Accent choice reverts on reload | `apps/next/public/bootstrap.js:60`, `apps/next/src/client/appearance.tsx:29` | Confirmed bug: a mappable `kuuki-accent-color` always overrides the current `kuuki_accent` cookie, while `setAccent` writes only the cookie. |
+| Browser-local import draft flow | `apps/next/src/client/capture/drafts.ts:105`, `apps/next/src/client/reads/draft-links.tsx:19`, `apps/next/src/client/reads/journal-queue.tsx:139` | No production writer remains; the visible continuation link targets a `draft` query parameter that the current import flow never consumes. |
+| Next relies on Vite library source | `apps/next/src/client/account/settings-data.ts:1`, `apps/web/src/lib/` | 31 production Next files, 61 including tests, import seven Vite modules; their closure also includes Supabase-generated `database.types.ts`, so removing `apps/web` would break Next. |
+| CI deployment still selects Vite | `.github/workflows/ci.yml:134`, `.github/workflows/ci.yml:148`, `wrangler.toml:5` | Checked-in CI deploys the guarded `apps/web/dist` Pages artifact; Next is built and packaged as a candidate, and hosted production state was not inspected. |
+| Local redesign evidence needs preservation | `docs/plans/2026-10-04-redesign-2.0-implementation-handoff.md:60` | 279 ignored `.superpowers` files remain in the redesign worktree; preserve them and reconcile the handoff before removing any checkout. |
+
+Accent reproduction: initialize `kuuki_accent=sakura` and localStorage `kuuki-accent-color=teal`, then execute the actual bootstrap script. Both the cookie and `data-accent` become `matcha`. A Node VM reproduction passed assertions for that unwanted result. A fix should establish explicit precedence: migrate the old key only when no valid current preference exists, or deliberately synchronize/retire the old key. Cover current-cookie precedence, legacy-only migration and inaccessible storage in a focused regression check. No fix was applied.
+
+The draft diagnosis corrects an earlier scout claim: `normalizeImportQuery` **preserves** unknown query keys, including `draft`; it does not discard them. The missing reader is the problem. Remove the dead writer, continuation panel and obsolete write-path CI test together. `clearDrafts` still runs during identity reset and protects old browser-local data; keep that privacy sweep until deployment history establishes that it is unnecessary, or old drafts have expired. The old TTL is 30 days. Do not equate an unconsumed draft key with permission to discard user data.
+
+## Next cleanup candidates
+
+| Item | Location | Notes |
+|------|----------|-------|
+| `account.css` | `apps/next/src/client/account/account.css:1` | Zero importers; all four selectors have no consumers. Confirmed dead. |
+| `saveDraft`, exported `loadDraft`, `dismissDraft` and associated old draft types | `apps/next/src/client/capture/drafts.ts:1`, `:79`, `:105`, `:124` | The write path is test-only, `loadDraft` still supports the obsolete list internally, and removal must preserve any required identity-reset sweep. |
+| `DraftLinks` | `apps/next/src/client/reads/draft-links.tsx:12`, `journal-queue.tsx:14`, `:139` | Mounted but obsolete; it cannot restore an import in the current flow. |
+| Old draft storage test | `scripts/draft-storage.test.mjs:3`, `.github/workflows/ci.yml:38` | Exercises only the obsolete local writer; delete its CI invocation if that writer is removed. |
+| Draft-specific URL assertion | `apps/next/src/lib/url-state.test.ts:49` | The “draft handoff” wording is obsolete; preserve useful generic unknown-key behavior coverage. |
+| `generateGroundVisitsCsv` export | `apps/next/src/client/account/ground-export.ts:11` | Used in its own file; optional unexport, not deletion. |
+| Unused test IDs | `client/import/progress-step.tsx:53`, `source-step.tsx:89`, `(member)/journal/page.tsx:30`, `overview/page.tsx:45`, `passport/page.tsx:27`, `client/overview/missing-aircraft.tsx:109` | `import-announcement`, `import-file-input`, the three `*-loading` IDs and `overview-aircraft-review` have no test consumer; harmless optional cleanup. |
+
+Locations abbreviated to `client/` or `(member)/` above are under `apps/next/src/client/` and `apps/next/src/app/(member)/` respectively.
+
+There are 17 unused selectors outside `account.css`, plus its four selectors:
+
+| Item | Location | Notes |
+|------|----------|-------|
+| `.category-tabs`, `.ranking-caption` | `apps/next/src/app/public.css:1` | No Next markup or dynamic-class consumer. Confirmed dead. |
+| `.period-switch`, `.figure-strip`, `.detail-list`, `.sort-control`, `.read-sheet`, `.read-sheet-overlay` | `apps/next/src/app/reads.css:1` | No consumers; retain live `.insight-list` and `.journal-filter` when trimming shared rules. |
+| `.landing-note`, `.auth-entry`, `.auth-card`, `.dialog-overlay`, `.dialog-content`, `.dialog-actions` | `apps/next/src/app/styles.css:13`, `:14`, `:22`, `:24` | No Next class consumers; Vite's `data-slot="dialog-overlay"` and `data-slot="dialog-content"` are unrelated attributes, not users of these Next rules. |
+| `.capture-combo` | `apps/next/src/client/capture/capture.css:1` | Replaced by the live `flight-combobox` control. Confirmed dead. |
+| `.route-map-placeholder`, `.route-map-fallback` | `apps/next/src/client/maps/map.css:5` | Unused exact selectors; `.route-map-placeholder-layer` remains live and must stay. |
+| `.account-settings`, `.account-check`, `.account-actions`, `.account-delete` | `apps/next/src/client/account/account.css:1` | No consumers; removing the orphan file removes these four. |
+
+Optional unexports are low-value cleanup. Judges found internally used values and props types with no external importer; they are not dead implementations. Keep test seams such as `retryableIds`, `mixOklch`, `resetOwnerSyncMemory`, `resetStampPressMemory`, and overview/import fixtures. Keep the documented development gallery, planned `--ease-icon`, contrast-tested `--info-text`, and explicit Next cache/prefetch flags recorded in the release contract.
+
+## Vite source that is unreachable
+
+The static import walk resolves the `@/` alias, literal dynamic imports and test mocks, and checks Next and other repository consumers. It reports 219 Vite source files and 187 reachable from `main.tsx`; after excluding tests, test setup and the framework declaration file, these 19 production files are unreachable. Independent Opus review confirmed the graph results. The primary agent reran the graph after resuming.
+
+| Item | Location | Notes |
+|------|----------|-------|
+| `BadgeProgress` | `apps/web/src/components/badges/BadgeProgress.tsx:1` | Zero importers. Confirmed dead. |
+| `CollapsibleCard` | `apps/web/src/components/common/CollapsibleCard.tsx:1` | Zero importers. Confirmed dead. |
+| Compare cluster (four files) | `apps/web/src/components/compare/CompareModal.tsx:1`, `CompareChart.tsx:1`, `UserSearchInput.tsx:1`, `apps/web/src/hooks/useCompare.ts:1` | References stay inside the unreachable cluster; the architecture plan calls comparison a candidate retained feature, so deletion still needs a product decision. |
+| Landing cluster (three files) | `apps/web/src/components/landing/index.ts:1`, `HeroSection.tsx:1`, `FeatureGrid.tsx:1` | Only the orphan barrel references the two components. Confirmed dead. |
+| `MapCollapsible`, `RouteMap` | `apps/web/src/components/map/MapCollapsible.tsx:1`, `RouteMap.tsx:1` | Unreachable pair; similarly named `RouteMapWithCountries` and `FullRouteMap` stay live. |
+| `ProfileSettingsDialog`, `ThemeColorPicker` | `apps/web/src/components/profile/ProfileSettingsDialog.tsx:1`, `ThemeColorPicker.tsx:1` | Unreachable pair; shared theme constants and profile writes remain live elsewhere. |
+| `AtmosphericCard` | `apps/web/src/components/ui/AtmosphericCard.tsx:1` | Zero importers. Confirmed dead. |
+| Navigation and scroll controls | `apps/web/src/components/ui/navigation-menu.tsx:1`, `scroll-area.tsx:1` | Zero importers; these are the only code importers of the two unused Radix dependencies. |
+| `useErrorHandler` | `apps/web/src/hooks/useErrorHandler.ts:1` | No caller; a comment in `queryClient.ts` is not a caller. |
+| Orphan onboarding/passport barrels | `apps/web/src/components/onboarding/index.ts:1`, `apps/web/src/components/passport/index.ts:1` | Consumers use leaf imports instead. Confirmed dead. |
+| Two Radix dependencies | `apps/web/package.json:27`, `:30`, `apps/web/vite.config.ts:111`, `:113` | `@radix-ui/react-navigation-menu` and `@radix-ui/react-scroll-area` can go with their orphan controls; update manual chunks and lockfile together. |
+
+Removal is technically plausible but remains outside this read-only audit. Vite changes also alter Tailwind's scanned CSS, the rollback build and the Pages deployment artifact. The project instruction permits changes to this app only to keep rollback working; approve a specific cleanup scope before applying it.
+
+Additional dead declarations:
+
+| Item | Location | Notes |
+|------|----------|-------|
+| Unused country helpers | `apps/web/src/lib/countries.ts:13` | `getCountryName`, `getCountriesByContinent`, `calculateWorldCompletion`, `getContinentBreakdown`, `getContinentTotals` have no external consumers; `getCountryContinent` and `getTotalCountryCount` support those functions internally. |
+| `getCountryColor` | `apps/web/src/lib/countries.ts:20`, `packages/data/src/index.ts:159` | The identically named map callback is locally defined, not imported from either helper; do not count that name collision as usage. |
+| `checkUsernameAvailable`, `getThemeColorVar` | `apps/web/src/lib/profiles.ts:117`, `:129` | No consumers; Next calls the username endpoint directly, so keep that endpoint. |
+| `useUserRankings`, profile-module `useUserBadges` | `apps/web/src/hooks/useProfile.ts:55`, `:71` | Unused; the live badge hook comes from a different module. |
+| `useAllBadgeTiers` | `apps/web/src/hooks/useBadgeTier.ts:35` | No consumers. Confirmed dead. |
+| `useIsAuthenticated`, `useIsLoading` | `apps/web/src/stores/authStore.ts:231` | No consumers. Confirmed dead. |
+| `isUpcomingFlight` | `apps/web/src/lib/geo.ts:257` | No consumers; retain the other geo functions used by Next. |
+| CSV generators, `greatCircleDistance`, `gladosText` exports | `apps/web/src/lib/export.ts:116`, `:160`, `apps/web/src/lib/geo.ts:30`, `apps/web/src/lib/glados-text.ts:6` | Internally used; optional unexport, not deletion. |
+| Unreferenced mascot artifacts | `apps/web/public/mascot-concepts.html:1`, `apps/web/public/images/mascot.webp` | Unused by code but directly served as public assets; their retirement changes the published artifact. |
+
+Deleting orphan clusters can reveal more dead helpers: `useBadgeProgress`, `useAllBadges`, `generateGreatCircleArc`, `useUserStats`, `useSearchUsers` and `searchUsers`. Recheck them after the approved deletions rather than treating future orphaning as current proof. Keep `maintenance.html`, activation assets, service-worker transition files, PWA dependencies and the reachable rollback application.
+
+## Live cross-app dependencies and retirement gates
+
+Next imports `apiClient`, `flights`, `flightCreateOperations`, `derivedState`, `passport`, `geo` and `export` from `apps/web/src/lib`. Their transitive closure includes `database.types.ts`. The last file still models Supabase-era tables/RPCs and omits newer D1 lifecycle fields, but its `Flight` and `CountryClaim` types are live. Replace it with an accepted current DTO contract before deleting it.
+
+Extract only demonstrated shared modules into an appropriate existing package or Next ownership boundary. Do not make Vite depend on the Next application as a shortcut, and do not move an entire legacy library tree merely to change its directory name. Preserve both consumers' API and type contracts.
+
+The Next build embeds Vite at `/legacy/` ([builder](../../scripts/build-next.mjs), [Worker](../../apps/next/worker.ts)). Rollback rehearsal also uses `apps/web/dist`. Retain legacy-only APIs and derived analytics until rollback retirement is accepted. No explicit Vite retirement deadline or acceptance condition was found.
+
+Keep compatibility routes `/dashboard`, `/flights`, `/journey`, `/landing`, the Passport management redirect, service-worker retirement, theme/locale keys, and export-count migration. The older `period` and `status=past` query adapters may be removable only after usage/deployment evidence establishes they are unnecessary. Better Auth's legacy opaque sessions require the actual cutover date plus their 30-day TTL; a Git commit date is insufficient.
+
+`MAINTENANCE_MODE=true` is intentional, not a confirmed cron defect: [release steps 3 and 7](../runbooks/audit-remediation-release.md) explicitly require the app and maintenance worker to remain held until schema, evidence and repair are authorized. Do not turn it off as dead-code cleanup. Production wiring of `IMPORT_JOBS` is separately deferred by ADR 0001; an unbound local-only implementation is not dead code.
+
+## API, workers and package findings
+
+The fallback judge resolved the route disagreement by tracing shared Vite wrappers. The scout count of “27 routes without Next callers” was based on direct URL text and missed transitive calls; it is not a reliable deletion count. No API route is approved for removal by this audit. If paths or exported HTTP methods later change, regenerate the route inventory with `node scripts/build-next.mjs --inventory-only`.
+
+| Item | Location | Notes |
+|------|----------|-------|
+| `POST /api/auth/refresh` | `apps/web/src/lib/apiClient.ts:172`, `apps/next/src/client/account/settings-data.ts:1` | Next-live through the shared API client; not legacy-only. |
+| `/api/flights/check-duplicate`, `/api/flights/all` | `apps/web/src/lib/flights.ts:250`, `:331`, `apps/next/src/client/capture/flight-form.tsx:22`, `apps/next/src/client/account/settings-data.ts:2` | Next-live through `checkDuplicateFlight` and `getAllFlights`; not legacy-only. |
+| `/api/reference/airports`, `/api/reference/aircraft`, `/api/me/dashboard-stats` | `functions/api/reference/airports.ts:1`, `aircraft.ts:1`, `functions/api/me/dashboard-stats.ts:36` | No current internal caller found, but registered API routes remain reachable under their respective auth policies; reference reads are public and dashboard stats requires a user, so retirement requires contract/usage evidence. |
+| `/api/auth/signin`, `/api/auth/signup` implementations | `functions/api/auth/[[path]].ts:2`, `:13` | Called by Better Auth email URL aliases; deleting their implementation files breaks live sign-in/sign-up. |
+| `/api/auth/get-session`, `/api/auth/sign-out` | `functions/api/auth/[[path]].ts:16`, `scripts/build-next.mjs:31` | Deliberate Better Auth surface, with tests/smoke consumers; no current Next UI caller does not prove an unused contract. |
+| Parse and password verification APIs | `functions/api/import/parse.ts:1`, `functions/api/auth/verify-password.ts:1` | Rollback consumers remain; the parse endpoint also has explicit retention coverage. |
+| Older flight aggregate/filter APIs | `apps/web/src/lib/flights.ts:263`, `:282`, `:290`, `:298`, `:306`, `:314`, `:322`, `apps/web/src/hooks/useFlightDurations.ts:16`, `useImportDuplicates.ts:22` | Stats/routes/recent/upcoming/years/airlines/aircraft/durations/duplicate-candidates are rollback surfaces, not deletion candidates while Vite remains supported. |
+| Badges, leaderboard, rankings, stats and public/profile APIs | `apps/web/src/lib/profiles.ts:48`, `:72`, `:81`, `:99`, `:108`, `apps/web/src/lib/leaderboard.ts:51`, `:74`, `:88` | Legacy wrappers or test/runtime consumers remain; the profile-search wrapper belongs to the unreachable Compare feature and needs a product/API decision. |
+| Older overview/public-profile transports | `functions/api/me/overview.ts:1`, `functions/api/public/profiles/[username].ts:1` | Vite and runtime/navigation checks still use them even where Next reads the underlying service directly. |
+| Pages `onRequest*` wrappers | `apps/next/api-capture.ts:17`, `functions/api/` | Next's direct capture dispatch bypasses selected wrappers, but Pages rollback and tests still execute them. |
+| `revokeAllSessions` | `functions/api/_lib/session.ts:96` | Declaration-only repository references. Confirmed dead helper, unlike the underlying session compatibility path. |
+| `getMimeType` | `functions/api/import/_shared.ts:53` | Declaration-only repository references. Confirmed dead helper. |
+| `createSession`, `setSessionCookies`, service test seams | `functions/api/_lib/session.ts:24`, `functions/api/_lib/authCookies.ts:18`, `functions/test/` | Used by meaningful auth/service tests; keep test coverage, not indiscriminate export removal. |
+| Advanced stats pipeline | `functions/api/_services/derivedState.ts:217`, `advancedStats.ts:1`, `advancedStatsBreakdowns.ts:1`, `advancedStatsInsights.ts:1`, `apps/web/src/hooks/useAdvancedStats.ts:135` | Still computed during repair and read by rollback; retiring it is a later behavior/schema change. |
+| Shared constants | `packages/shared/src/constants.ts:4`, `:13`, `:17`, `:21`, `:24`, `:27`, `packages/shared/src/index.ts:2` | No repository consumer of the six values or two derived types beyond the barrel; check exported package compatibility before removing the exports/file, or reuse relevant constants deliberately. |
+| Shared types | `packages/shared/src/types.ts:1` | The file is live in Vite/data; scouts listed unused individual types, but the fallback judge did not validate every type, so retain unverified declarations. |
+| Data lookup exports | `packages/data/src/index.ts:81`, `:101`, `:121`, `:151`, `:155`, `:159` | `findAircraftByIata`, `findAirportByIcao`, `findAirlineByIcao`, `findCountry`, `getCountryName`, `getCountryColor` have no repository consumers; check package export contracts before pruning. |
+| Shared i18n and data barrel | `packages/shared/src/index.ts:9`, `packages/data/src/index.ts:1`, `apps/next/src/client/profile/achievements.ts:1` | Vite consumes the broad bundles and Next consumes badge translations; entire files are live, even if most keys are rollback-only. |
+| Package `tsc` outputs | `packages/shared/package.json`, `packages/data/package.json` | Exports point at source while build emits `dist`; evaluate build/typecheck dependencies before changing this redundant-looking task. |
+| Old schema objects | `db/migrations/0001_init.sql:103`, `:132`, `:242`, `functions/api/_lib/users.ts:89`, `functions/api/_lib/flights.ts:13` | Code-word tables lack runtime consumers, `user_aircraft` still participates in account deletion, and `aircraft_lookup_attempts` remains selected but hidden from the DTO; preserve historical data and migration contracts, with no DROP recommendation. |
+| Directed `RouteProjection.routes` | `packages/shared/src/routeProjection.ts:55`, `functions/api/flights/route-projection.ts:65` | Current Next rendering primarily uses `pairs`, but the directed field is an exposed and tested response contract; client-only usage does not prove it disposable. |
+
+No root or Next dependency was proven unused. The only confirmed unused dependency pair is the two Vite Radix packages already listed. Unverified data fields and package subpath exports stay in place; being unread by Next alone is insufficient when rollback and package consumers remain.
+
+## Duplication, drift and limits
+
+These are maintenance observations, not reasons to build new generic frameworks. Prefer an existing shared contract where the values must change together; leave small coincidentally equal values local.
+
+| Item | Location | Notes |
+|------|----------|-------|
+| Journal page size `20` | `apps/next/src/server/journal.ts:9`, `apps/next/src/client/reads/journal.tsx:122`, `functions/api/flights/index.ts:31` | Client limit/offset and server pagination are coupled; one pure shared constant could prevent drift, but do not import server-only code into the client. |
+| Aircraft batch size `20` | `apps/next/src/client/import/aircraft-review.ts:9`, `functions/api/enrich/_shared.ts:35`, `functions/api/flights/aircraft-batch.ts:19` | Separate client and server caps agree today; consolidate only the contract that must evolve together. |
+| File cap `10 MiB` | `apps/next/src/client/import/source-step.tsx:12`, `functions/api/import/_extract.ts:19` | Frontend and backend mirror the file cap; preserve authoritative server validation even if the shared limit is extracted. |
+| Earth circumference `40075` | `packages/shared/src/constants.ts:24`, `apps/next/src/client/overview/model.ts:8`, `apps/next/src/app/(public)/fly/[username]/page.tsx:41`, `apps/web/src/components/profile/ProfileStats.tsx:43` | Existing named constant is unused while consumers repeat the value; either use it or retire the unused declaration, without adding another constant layer. |
+| Moon distance `384400` | `packages/shared/src/constants.ts:27`, `functions/api/_services/advancedStatsInsights.ts:152` | Existing named constant and local threshold duplicate the same value; low-priority drift observation. |
+| Session/CSRF cookie names | `functions/api/_lib/cookies.ts:3`, `functions/api/_lib/betterAuth.ts:80`, `:81`, `:90`, `apps/web/src/lib/apiClient.ts:14` | Reuse server cookie constants where appropriate; keep browser code independent of server implementation imports. |
+| `BatchStatus` and import wire fields | `apps/next/src/client/import/import-types.ts:1`, `:4`, `:8`, `functions/api/_services/importDrafts.ts:21`, `:25` | Explicitly mirrored to keep Worker implementation out of Next bundles; accepted duplication unless moved into a pure wire-contract module for a demonstrated need. |
+| Enrichment and parse DTOs | `apps/web/src/hooks/useAircraftEnrichment.ts:7`, `functions/api/enrich/_shared.ts:5`, `apps/web/src/hooks/useImport.ts:30`, `functions/api/import/_shared.ts:30` | Similar/identical wire shapes; retain compatibility and consolidate only after proving semantic equivalence. |
+| `BulkCreateResult` | `apps/next/src/client/capture/flight-writes.ts:51`, `apps/web/src/lib/flights.ts:162` | Matching local result types; low-priority type duplication. |
+| `parseJson` | `functions/api/_lib/badges.ts:49`, `functions/api/me/advanced-stats.ts:33` | Tiny local helpers; no new abstraction warranted for two copies alone. |
+| Haversine/lookup implementations | `functions/api/_services/stats.ts:22`, `apps/web/src/lib/geo.ts:30`, `:58`, `packages/data/src/index.ts:77`, `:97`, `packages/data/src/airport-lookup.ts:8`, `packages/data/src/aircraft-lookup.ts:7` | Similar math and lookups serve distinct output/bundling roles; preserve raw versus routing-adjusted distance and narrow-data imports. |
+| Coincident/antipodal geometry guard | `apps/next/src/client/maps/geometry.ts:17`, `apps/next/src/client/maps/types.ts:9` | Same dot-product threshold appears in rendering and a cheap list cue; useful parity observation, not dead validation. |
+| IATA/date syntax checks | `packages/shared/src/flightValidation.ts:28`, `:47`, `apps/next/src/client/import/review-model.ts:43`, `functions/api/flights/duplicate-candidates.ts:15` | Shape-only regexes are not interchangeable with real calendar validation; do not replace semantic checks blindly. |
+| Country/continent maps | `functions/api/_lib/continents.ts:1`, `countryRegions.generated.ts:1`, `packages/data/src/countries.json` | Compatibility region maps are intentionally distinct; equal-looking geography values do not establish an identical domain contract. |
+| Small local literals and types | `functions/api/_lib/activation.ts:6`, `passwordRecovery.ts:8`, `apps/next/src/app/(member)/*/loading.tsx` | Same email-link lifetime or loading body can remain local; equality alone is not useful abstraction evidence. |
+| Wrangler IDs and compatibility dates | `wrangler.toml`, `apps/next/wrangler.toml`, `workers/maintenance/wrangler.toml`, `workers/import/wrangler.local.toml` | Repetition is deployment configuration, while different dates may be intentional; do not unify them as cosmetic deduplication. |
+| `MAX_COUNTRY_CODES=512` | `functions/api/_services/periodScope.ts:8`, `overview.ts:130`, `functions/api/flights/route-projection.ts:63` | Current catalog has 246 entries, but imported/reference evidence can contain other two-character codes; the scout did not prove the runtime guard unreachable, so keep bounded reads and explicit failure. |
+| `MAX_PROJECTED_ROUTES=5000` | `functions/api/flights/route-projection.ts:12` | Deliberate bounded/truncated response with contract coverage; lack of a measured large account is not proof the guard is unnecessary. |
+| Bulk `50`, confirmation `100`, draft `100`, pagination `200` | `packages/shared/src/flightValidation.ts:19`, `functions/api/_services/confirmation.ts:29`, `importDrafts.ts:13`, `functions/api/_lib/flightQuery.ts:169` | Different operations and endpoints; the 50-row import chunk does not make 100-item flight confirmation unreachable, and parser pagination is capped at 200. |
+
+Other scout-only duplicate lists (individual unused shared types, every error-code literal, state-row types, confidence thresholds and all publication timers) were not fully independently validated. They remain low-priority observations rather than approved deletions or claims of identical semantics.
+
+## Scripts, configuration, documentation and local leftovers
+
+| Item | Location | Notes |
+|------|----------|-------|
+| Supabase CLI temp marker | `supabase/.temp/cli-latest:1` | Tracked CLI cache containing `v2.75.0`, with no consumer; confirmed disposable artifact. |
+| No-op clean task | `package.json:21`, `turbo.json:21` | No workspace package defines `clean`; remove the unused root delegation and Turbo task together if approved. |
+| Empty workspace glob | `pnpm-workspace.yaml:4` | No `workers/*/package.json` exists; redundant configuration, low-value removal. |
+| Old performance reports | `PERFORMANCE-AUDIT.md:1`, `PERFORMANCE-SUMMARY.md:1` | February Vite reports that reference only each other; archive and label historical or remove by choice. |
+| Redesign handoff/index wording | `docs/plans/2026-10-04-redesign-2.0-implementation-handoff.md:5`, `:48`, `docs/README.md:31` | Still describes integration as pending despite merged PR #42; update the merged state without erasing deferred evidence or release gates. |
+| Superseded CSS guidance | `DESIGN.md:114`, `:244` | Still claims old dialog/sheet/period styles are used on unmigrated surfaces; `.button` and `.field` remain live, so narrow the wording. |
+| Historical documentation wording | `docs/BACKEND_STRUCTURE.md:1`, `docs/PLAN.md:1`, `docs/README.md:39`, `docs/PRD.md:481` | Add/align archival labels; do not treat historical diagrams or product plans as current deployment authorities. |
+| Agent ignore/track mismatch | `.gitignore:69`, `.agents/skills/`, provider skill symlinks | Ignore comments say to keep agent directories out of remote, but files and some links are tracked; decide the distribution policy rather than deleting secret-prevention ignore rules. |
+| Project skill collection | `docs/skills/` | Most generic skills are tooling assets, not executable app dependencies; no code caller does not prove them useless, and EUI's relevance is a skill-policy choice. |
+| Deleted enrichment worker residue | `workers/aircraft-enrichment/` | Ignored local `node_modules` only, no tracked source or workspace manifest; local housekeeping, not a code removal. |
+| Merged worktrees | `git worktree list` | Multiple merged checkouts remain; preserve local ledgers and explicit handoff evidence before any separately authorized removal. |
+
+Keep the Supabase→D1 chain: `sb-to-d1`, `ship-oracle`, `derive`, `validate`, migration admission/reader/proposal tools, and their meaningful tests. `ship-oracle.ts` is imported by `sb-to-d1.ts:16`; the scout missed that caller. Keep Supabase migrations and historical handoffs until preservation is confirmed, as [the release runbook requires](../runbooks/audit-remediation-release.md). Old `db/seed` SQL contains destructive DELETE preambles and is superseded by the safe importer; retain it as migration history for now and never run it on a populated target.
+
+`import-openflights.ts` is an unwired manual regeneration tool for live airport/airline datasets, not proven dead. `build-country-neighbors.mjs` and `map-build-geometry.py` regenerate live assets. `map-benchmark.ts` is a manual performance tool. `db/_extracted/LOGIC_SPEC.md` documents the ported algorithms. `dev:pages`, `build:api`, legacy smoke fixtures and legacy tests remain part of the current build/rollback contract.
+
+## Verification and limits
+
+The audit used repository-wide searches, static import graphs, framework/route entrypoint inspection, source/config/runbook comparison, and independent judge reviews. The resumed primary pass reproduced the accent defect with the actual bootstrap in a Node VM, reran the Vite reachability graph, confirmed the 31/61 cross-app import count, searched exact CSS tokens, checked draft readers/writers, checked the cron hold against release instructions, and counted the 279 local ledger files.
+
+No application tests, builds, screenshots, layout audits, cloud writes or paid provider calls were run for this report. Prior scout tool output from default Knip was noisy: Pages handlers, framework entrypoints, static assets and documented manual tools were often false positives. Tool-only “unused” results were not accepted as deletion proof. Static reachability does not prove absence of external endpoint consumers, public URLs, deployed old clients or preserved historical data.
+
+Recommended sequence: fix accent precedence; retire the broken browser-local draft continuation while preserving any required privacy sweep; remove proven orphan Next CSS and dead backend helpers; approve Vite orphan cleanup separately; resolve the live cross-app DTO/library boundary; then retire rollback/migration compatibility only under their release and preservation gates. Cosmetic unexports, arbitrary token pruning and new generic abstractions can wait.

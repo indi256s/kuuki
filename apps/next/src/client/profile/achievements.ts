@@ -1,5 +1,5 @@
-import en from '../../../../../packages/shared/src/i18n/en.json'
-import ru from '../../../../../packages/shared/src/i18n/ru.json'
+import en from '@kuuki/shared/i18n/en'
+import ru from '@kuuki/shared/i18n/ru'
 import type { toUserBadgeWithDefinition } from '../../../../../functions/api/_lib/badges'
 import type { Locale } from '../../lib/format'
 

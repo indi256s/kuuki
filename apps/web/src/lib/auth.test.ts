@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 
 // Replace the real apiClient with the shared mock.
-vi.mock('@/lib/apiClient', async () => await import('@/test/mocks/apiClient'))
+vi.mock('@kuuki/client/apiClient', async () => await import('@/test/mocks/apiClient'))
 import { api, ApiError, resetApiMock } from '@/test/mocks/apiClient'
 
 // Import after mocking

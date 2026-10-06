@@ -5,7 +5,7 @@ import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { renderToString } from 'react-dom/server'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { ApiError } from '../../../../web/src/lib/apiClient'
+import { ApiError } from '@kuuki/client/apiClient'
 import { FlightForm } from './flight-form'
 import { FlightCaptureDialog, FlightDetailSheet } from './flight-panels'
 import { clearCapturePreferences } from './capture-preferences'
@@ -15,7 +15,7 @@ import type { Locale } from '../../lib/format'
 const mocks = vi.hoisted(() => ({ create: vi.fn(), update: vi.fn(), duplicate: vi.fn(), get: vi.fn(), remove: vi.fn(), acknowledge: vi.fn(), refresh: vi.fn(), push: vi.fn() }))
 vi.mock('next/navigation', () => ({ useRouter: () => ({ refresh: mocks.refresh, push: mocks.push }) }))
 vi.mock('./flight-writes', () => ({ createFlight: mocks.create, updateFlight: mocks.update }))
-vi.mock('../../../../web/src/lib/flights', () => ({ getFlight: mocks.get, checkDuplicateFlight: mocks.duplicate, deleteFlight: mocks.remove }))
+vi.mock('@kuuki/client/flights', () => ({ getFlight: mocks.get, checkDuplicateFlight: mocks.duplicate, deleteFlight: mocks.remove }))
 vi.mock('../activity', () => ({ trackPrivateOperation: () => () => {} }))
 vi.mock('../write-feedback', () => ({ useWriteFeedback: () => ({ acknowledge: mocks.acknowledge, status: 'ready' }) }))
 const flight = { id: 7, date: '2026-10-05', origin: 'TBS', destination: 'IST', airline_iata: 'TK', aircraft_icao: 'B738', flight_number: 'TK123', departure_time: '12:00', arrival_time: '14:00', lifecycle_state: 'awaiting' }

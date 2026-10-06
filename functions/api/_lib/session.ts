@@ -91,8 +91,3 @@ export async function revokeSession(db: D1Database, token: string | undefined): 
   const tokenHash = await sha256Hex(token)
   await db.prepare('DELETE FROM sessions WHERE token_hash = ?').bind(tokenHash).run()
 }
-
-/** Revoke every session for a user (account deletion / password change). */
-export async function revokeAllSessions(db: D1Database, userId: string): Promise<void> {
-  await db.prepare('DELETE FROM sessions WHERE user_id = ?').bind(userId).run()
-}

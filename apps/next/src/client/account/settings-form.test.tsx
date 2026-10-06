@@ -3,14 +3,14 @@ import { act, fireEvent, render, screen, waitFor, within } from '@testing-librar
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { SettingsForm } from './settings-form'
-import { ApiError } from '../../../../web/src/lib/apiClient'
+import { ApiError } from '@kuuki/client/apiClient'
 
 const m = vi.hoisted(() => ({ patch: vi.fn(), get: vi.fn(), remove: vi.fn(), post: vi.fn(), refresh: vi.fn(), push: vi.fn(), flights: vi.fn(), exportFlights: vi.fn(), exportClaims: vi.fn(), exportGround: vi.fn(), identity: vi.fn() }))
 vi.mock('next/navigation', () => ({ useRouter: () => ({ refresh: m.refresh, push: m.push }) }))
 vi.mock('../activity', () => ({ trackPrivateOperation: () => () => {}, withIdentityMutation: m.identity }))
-vi.mock('../../../../web/src/lib/apiClient', async original => ({ ...await original<typeof import('../../../../web/src/lib/apiClient')>(), api: { patch: m.patch, get: m.get, delete: m.remove, post: m.post } }))
-vi.mock('../../../../web/src/lib/flights', () => ({ getAllFlights: m.flights }))
-vi.mock('../../../../web/src/lib/export', () => ({ exportFlights: m.exportFlights, exportClaims: m.exportClaims }))
+vi.mock('@kuuki/client/apiClient', async original => ({ ...await original<typeof import('@kuuki/client/apiClient')>(), api: { patch: m.patch, get: m.get, delete: m.remove, post: m.post } }))
+vi.mock('@kuuki/client/flights', () => ({ getAllFlights: m.flights }))
+vi.mock('@kuuki/client/export', () => ({ exportFlights: m.exportFlights, exportClaims: m.exportClaims }))
 vi.mock('./ground-export', () => ({ exportGroundVisits: m.exportGround }))
 const profile = { id: 'a', username: 'member-a', display_name: 'Original', bio: 'About', home_airport: null, avatar_url: null, gemini_api_key: null, is_public: true, show_on_leaderboards: true, locale: 'en', theme_color: null, created_at: '', updated_at: '' }
 const counts = { flights: 12, completed: 10, claims: 2, ground: 1, drafts: 3 }

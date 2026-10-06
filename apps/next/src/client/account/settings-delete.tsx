@@ -1,7 +1,7 @@
 'use client'
 
 import { useRef, useState, type FormEvent } from 'react'
-import { api, ApiError } from '../../../../web/src/lib/apiClient'
+import { api, ApiError } from '@kuuki/client/apiClient'
 import { withIdentityMutation } from '../activity'
 import { Dialog } from '../ui/dialog'
 import { Button } from '../ui/button'

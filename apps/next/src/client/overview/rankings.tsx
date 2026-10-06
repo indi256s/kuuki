@@ -1,5 +1,5 @@
 import { Fragment } from 'react'
-import type { OverviewSummary } from '../../../../../packages/shared/src/overview'
+import type { OverviewSummary } from '@kuuki/shared/overview'
 import { formatNumber, type Locale } from '../../lib/format'
 import { journalHref, type JournalLink } from '../../lib/url-state'
 import { S, t } from './copy'

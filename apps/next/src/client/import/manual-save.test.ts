@@ -2,14 +2,14 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 const post = vi.fn()
-vi.mock('../../../../web/src/lib/apiClient', async importOriginal => ({ ...(await importOriginal<typeof import('../../../../web/src/lib/apiClient')>()), api: { post: (...args: unknown[]) => post(...args) } }))
+vi.mock('@kuuki/client/apiClient', async importOriginal => ({ ...(await importOriginal<typeof import('@kuuki/client/apiClient')>()), api: { post: (...args: unknown[]) => post(...args) } }))
 
-import { clearFlightCreateOperations, pendingFlightCreateOperation } from '../../../../web/src/lib/flightCreateOperations'
+import { clearFlightCreateOperations, pendingFlightCreateOperation } from '@kuuki/client/flightCreateOperations'
 import { emptyValues } from './review-model'
 import { classifyManualFailure, newManualRow, retryUnconfirmedSave, saveManualRows, settleUnconfirmedSave, startNewOperation, unconfirmedSaves, type ManualRowState } from './manual-save'
 import { createFlights } from '../capture/flight-writes'
 import { toFlightInput } from './flight-input'
-import { ApiError } from '../../../../web/src/lib/apiClient'
+import { ApiError } from '@kuuki/client/apiClient'
 
 const values = (over: Partial<ReturnType<typeof emptyValues>> = {}) => ({ ...emptyValues(), date: '2026-03-01', origin: 'JFK', destination: 'BOS', ...over })
 const sentItems = (call: number) => (post.mock.calls[call][1] as { items: Array<{ key: string; flight: Record<string, unknown> }> }).items

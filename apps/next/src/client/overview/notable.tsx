@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import type { OverviewSummary } from '../../../../../packages/shared/src/overview'
+import type { OverviewSummary } from '@kuuki/shared/overview'
 import { formatCount, formatDistanceKm, type Locale } from '../../lib/format'
 import { journalHref } from '../../lib/url-state'
 import { S, fill, forms, t } from './copy'

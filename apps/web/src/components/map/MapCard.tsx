@@ -2,7 +2,7 @@ import { lazy, Suspense, useState, useMemo, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Maximize2, Minimize2, Route, Flag, Layers } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import type { FlightRoute } from '@/lib/flights'
+import type { FlightRoute } from '@kuuki/client/flights'
 import type { PassportEntry } from '@kuuki/shared'
 
 const RouteMapWithCountries = lazy(() =>

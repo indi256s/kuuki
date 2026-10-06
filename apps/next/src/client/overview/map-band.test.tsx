@@ -6,7 +6,7 @@ import { BUCKET_LABELS, BUCKET_TOKENS } from '../../lib/map-buckets'
 import { busySummary, fakeLabels } from './fixtures'
 
 const mocks = vi.hoisted(() => ({ get: vi.fn(), refresh: vi.fn() }))
-vi.mock('../../../../web/src/lib/apiClient', () => ({ api: { get: mocks.get } }))
+vi.mock('@kuuki/client/apiClient', () => ({ api: { get: mocks.get } }))
 vi.mock('../activity', () => ({ trackPrivateOperation: () => () => {} }))
 vi.mock('next/navigation', () => ({ useRouter: () => ({ push: vi.fn(), refresh: mocks.refresh }) }))
 import { OverviewMap } from './map-band'

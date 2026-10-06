@@ -1,3 +1,4 @@
+import { EARTH_CIRCUMFERENCE_KM } from '@kuuki/shared/constants'
 import Link from 'next/link'
 import { Suspense } from 'react'
 import { getPublicProfile } from '../../../../server/public'
@@ -38,7 +39,7 @@ export async function ProfileData({ username }: { username: string }) {
       {data.derivedState === 'pending' && <p role="status">{ru ? 'Недавние изменения обрабатываются. Рейтинг может появиться позже.' : 'Recent changes are being prepared. Rankings may take a little longer to appear.'}</p>}
       <section><h2>{owner ? ru ? 'Ваша статистика' : 'Your statistics' : ru ? 'Статистика' : 'Statistics'}</h2>{stats ? <>
         {(Number.isFinite(stats.total_distance_km) && (stats.total_distance_km > 0 || stats.total_flights === 0)) && <><dl className="profile-hero"><div><dt>{ru ? 'Расстояние' : 'Distance'}</dt><dd>{formatDistanceKm(locale, stats.total_distance_km)}</dd></div></dl>
-        <p>{ru ? 'Вокруг Земли' : 'Around the world'}: {formatNumber(locale, Math.round(stats.total_distance_km / 40075 * 10) / 10)}×</p></>}
+        <p>{ru ? 'Вокруг Земли' : 'Around the world'}: {formatNumber(locale, Math.round(stats.total_distance_km / EARTH_CIRCUMFERENCE_KM * 10) / 10)}×</p></>}
         <dl className="profile-metrics">{([
           [ru ? 'Перелёты' : 'Flights', stats.total_flights], [ru ? 'Страны и территории' : 'Countries and territories', stats.countries_count],
           [ru ? 'Аэропорты' : 'Airports', stats.airports_count],

@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { api } from '@/lib/apiClient'
+import { api } from '@kuuki/client/apiClient'
 import { useAuthStore } from '@/stores/authStore'
 import type { ExtractedFlight } from './useImport'
 

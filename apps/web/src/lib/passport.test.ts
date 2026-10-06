@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { getUserCountries, getCountryStats, getPassportStats } from './passport'
+import { getUserCountries, getCountryStats, getPassportStats } from '@kuuki/client/passport'
 
-vi.mock('@/lib/apiClient', async () => await import('@/test/mocks/apiClient'))
+vi.mock('@kuuki/client/apiClient', async () => await import('@/test/mocks/apiClient'))
 import { api, resetApiMock } from '@/test/mocks/apiClient'
 
 describe('passport', () => {

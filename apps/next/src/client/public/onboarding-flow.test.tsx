@@ -3,8 +3,8 @@ import { readFileSync } from 'node:fs'
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { beforeEach, expect, it, vi } from 'vitest'
 import { OnboardingFlow } from './onboarding-flow'
-import { getFlight } from '../../../../web/src/lib/flights'
-import { getAuthGeneration } from '../../../../web/src/lib/apiClient'
+import { getFlight } from '@kuuki/client/flights'
+import { getAuthGeneration } from '@kuuki/client/apiClient'
 import { fetchPressedCountries } from '../import/import-api'
 import type { ImportResult } from '../import/import-client'
 const push = vi.fn()
@@ -12,8 +12,8 @@ let resultCallback: ((result: ImportResult) => void) | undefined
 const flight = { id: 44, user_id: 'a', origin: 'TBS', destination: 'IST', date: '2026-12-01', is_upcoming: true, derived_state: 'ready' }
 vi.mock('next/navigation', () => ({ useRouter: () => ({ push }) }))
 vi.mock('../activity', () => ({ trackPrivateOperation: () => () => {} }))
-vi.mock('../../../../web/src/lib/apiClient', () => ({ getAuthGeneration: vi.fn(() => 0) }))
-vi.mock('../../../../web/src/lib/flights', () => ({ getFlight: vi.fn(async () => flight) }))
+vi.mock('@kuuki/client/apiClient', () => ({ getAuthGeneration: vi.fn(() => 0) }))
+vi.mock('@kuuki/client/flights', () => ({ getFlight: vi.fn(async () => flight) }))
 vi.mock('../import/import-api', () => ({ fetchPressedCountries: vi.fn(async () => new Set()) }))
 vi.mock('../capture/flight-form', () => ({ FlightForm: ({ onSaved }: { onSaved: (flight: object, status: string) => void }) => <button onClick={() => onSaved(flight, 'ready')}>Save real form</button> }))
 vi.mock('../import/import-client', () => ({ ImportClient: ({ initialBatchId, initialSource, onBatchId, onResult }: { initialBatchId?: string; initialSource: string; onBatchId: (id: string) => void; onResult: typeof resultCallback }) => { resultCallback = onResult; return <><p>Resume {initialBatchId} {initialSource}</p><button onClick={() => onBatchId('11111111-1111-1111-1111-111111111111')}>Accept durable batch</button></> } }))
@@ -66,7 +66,7 @@ it('uses honest saved-flight copy when a published save adds no countries', asyn
   expect(screen.getByText('No new country stamps this time. Your flight is saved.')).toBeVisible()
 })
 it('uses authenticated canonical import fields even when the shared own-flight adapter has no user_id', async () => {
-  const { getFlight } = await import('../../../../web/src/lib/flights')
+  const { getFlight } = await import('@kuuki/client/flights')
   vi.mocked(getFlight).mockResolvedValueOnce({ ...flight, user_id: '' } as unknown as Awaited<ReturnType<typeof getFlight>>)
   const view = render(<OnboardingFlow {...props} source="file" />)
   await act(async () => resultCallback?.({ eventId: 'onboarding:a:import:future', flightIds: [44], savedCount: 1, publication: 'ready', newCodes: ['JP'] }))

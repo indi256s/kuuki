@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
-import { advanceAuthGeneration, api, beginIdentityOperation, setUnauthorizedHandler } from './apiClient'
+import { advanceAuthGeneration, api, beginIdentityOperation, setUnauthorizedHandler } from '@kuuki/client/apiClient'
 
 let resolveResponse: ((response: Response) => void) | undefined
 const fetchMock = vi.fn(() => new Promise<Response>((resolve) => { resolveResponse = resolve }))

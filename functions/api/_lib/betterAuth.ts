@@ -3,7 +3,7 @@ import { kyselyAdapter } from '@better-auth/kysely-adapter'
 import { Kysely } from 'kysely'
 import { D1Dialect } from 'kysely-d1'
 import { hashPassword, verifyPassword, generateToken } from './crypto'
-import { CSRF_COOKIE, SESSION_TTL_SECONDS, serializeCookie, clearCookie, parseCookies } from './cookies'
+import { CSRF_COOKIE, SESSION_COOKIE, SESSION_TTL_SECONDS, serializeCookie, clearCookie, parseCookies } from './cookies'
 import { revokeSession } from './session'
 import { requireCsrf, requireSameOrigin } from './auth'
 
@@ -77,8 +77,8 @@ export async function signInWithBetterAuth(env: Env, request: Request, email: st
   const response = await createAuth(env).api.signInEmail({ body: { email, password }, headers: request.headers, asResponse: true })
   if (!response.ok) return response
   const result = new Response(response.body, response)
-  await revokeSession(env.DB, parseCookies(request.headers.get('Cookie')).kuuki_session)
-  result.headers.append('Set-Cookie', clearCookie('kuuki_session', { httpOnly: true }))
+  await revokeSession(env.DB, parseCookies(request.headers.get('Cookie'))[SESSION_COOKIE])
+  result.headers.append('Set-Cookie', clearCookie(SESSION_COOKIE, { httpOnly: true }))
   appendCsrfCookie(result.headers, request)
   result.headers.set('Cache-Control', 'no-store')
   return result
@@ -87,6 +87,6 @@ export async function signInWithBetterAuth(env: Env, request: Request, email: st
 export async function signOutWithBetterAuth(env: Env, request: Request): Promise<Response> {
   requireCsrf(request)
   // Revoke the legacy cookie first so an old identity cannot reappear after signout.
-  await revokeSession(env.DB, parseCookies(request.headers.get('Cookie')).kuuki_session)
+  await revokeSession(env.DB, parseCookies(request.headers.get('Cookie'))[SESSION_COOKIE])
   return createAuth(env).api.signOut({ headers: request.headers, asResponse: true })
 }

@@ -7,7 +7,7 @@ import { PassportManage } from './passport-manage'
 
 const mocks = vi.hoisted(() => ({ list: vi.fn(), accept: vi.fn(), acknowledge: vi.fn() }))
 vi.mock('next/navigation', () => ({ useRouter: () => ({ refresh: vi.fn() }) }))
-vi.mock('../../../../web/src/lib/flights', () => ({ getAllFlights: mocks.list }))
+vi.mock('@kuuki/client/flights', () => ({ getAllFlights: mocks.list }))
 vi.mock('../import/import-api', () => ({ acceptAircraftBatch: mocks.accept }))
 vi.mock('../activity', () => ({ trackPrivateOperation: () => () => {} }))
 vi.mock('../write-feedback', () => ({ useWriteFeedback: () => ({ acknowledge: mocks.acknowledge, status: 'ready' }) }))

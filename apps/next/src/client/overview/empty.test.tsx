@@ -8,7 +8,7 @@ import { busySummary, emptySummary, fakeLabels, legacyOnlySummary, singleFlightS
 import { SAMPLE_SUMMARY } from './sample-data'
 
 // The map's route read stays pending here; its states are covered in map-band.test.tsx.
-vi.mock('../../../../web/src/lib/apiClient', () => ({ api: { get: () => new Promise(() => {}) } }))
+vi.mock('@kuuki/client/apiClient', () => ({ api: { get: () => new Promise(() => {}) } }))
 vi.mock('next/navigation', () => ({ useRouter: () => ({ push: vi.fn() }) }))
 vi.mock('../awaiting', () => ({ useAwaiting: () => ({ data: null, error: false, reload: () => {} }) }))
 afterEach(cleanup)

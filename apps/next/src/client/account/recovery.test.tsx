@@ -3,13 +3,13 @@ import { StrictMode } from 'react'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, expect, it, vi } from 'vitest'
-import { ApiError } from '../../../../web/src/lib/apiClient'
+import { ApiError } from '@kuuki/client/apiClient'
 import { ResetPasswordForm } from './reset-password-form'
 import { EmailLinkForm } from '../public/email-link-form'
 
 const post = vi.hoisted(() => vi.fn())
 const identity = vi.hoisted(() => vi.fn(async (run: (token: symbol) => Promise<unknown>) => run(Symbol('identity'))))
-vi.mock('../../../../web/src/lib/apiClient', async importOriginal => ({ ...await importOriginal<typeof import('../../../../web/src/lib/apiClient')>(), api: { post } }))
+vi.mock('@kuuki/client/apiClient', async importOriginal => ({ ...await importOriginal<typeof import('@kuuki/client/apiClient')>(), api: { post } }))
 vi.mock('../activity', () => ({ withIdentityMutation: identity }))
 afterEach(() => { post.mockReset(); identity.mockClear(); delete window.__kuukiResetToken })
 

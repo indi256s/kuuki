@@ -10,7 +10,7 @@ import {
   unclaimCountry,
   getCountryStats,
   type CountryClaim,
-} from '@/lib/passport'
+} from '@kuuki/client/passport'
 import { useAuthStore } from '@/stores/authStore'
 import type { PassportEntry, CountryStats, EntryMethod } from '@kuuki/shared'
 import { reconcileDerivedState } from '@/lib/derivedStateFeedback'

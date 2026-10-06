@@ -1,4 +1,4 @@
-import type { OverviewSummary } from '../../../../../packages/shared/src/overview'
+import type { OverviewSummary } from '@kuuki/shared/overview'
 import type { Locale } from '../../lib/format'
 import { S, t } from './copy'
 import { OverviewEmptyYear, OverviewFirstRun } from './empty'

@@ -1,5 +1,5 @@
 import { useMutation } from '@tanstack/react-query'
-import { api, ApiError } from '@/lib/apiClient'
+import { api, ApiError } from '@kuuki/client/apiClient'
 
 export type EnrichmentStatus = 'pending' | 'enriched' | 'failed' | 'skipped'
 

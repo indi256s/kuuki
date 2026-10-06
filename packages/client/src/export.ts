@@ -113,7 +113,7 @@ function generateCSV(headers: string[], rows: string[]): string {
 /**
  * Generate flights CSV
  */
-export function generateFlightsCsv(flights: Flight[], options: ExportOptions = {}): string {
+function generateFlightsCsv(flights: Flight[], options: ExportOptions = {}): string {
   const { enriched = false } = options
   const columns = enriched ? FLIGHT_COLUMNS_ENRICHED : FLIGHT_COLUMNS_PORTABLE
 
@@ -157,7 +157,7 @@ export function generateFlightsCsv(flights: Flight[], options: ExportOptions = {
 /**
  * Generate country claims CSV
  */
-export function generateClaimsCsv(claims: CountryClaim[]): string {
+function generateClaimsCsv(claims: CountryClaim[]): string {
   const rows = claims.map(claim => {
     const countryInfo = countryMap[claim.country_code]
 

@@ -11,7 +11,7 @@ import { MobileTabBar } from '@/components/layout/MobileTabBar'
 import { FloatingActionButton } from '@/components/common/FloatingActionButton'
 import { useSyncUpcomingFlights, useDeleteFlight, type Flight } from '@/hooks/useFlights'
 import { Button } from '@/components/ui/button'
-import { getFlight } from '@/lib/flights'
+import { getFlight } from '@kuuki/client/flights'
 import { allowedLegacyReturn, parseLegacyEntry, returnAfterLegacyWrite } from '@/lib/legacyBridge'
 import { useAuthStore } from '@/stores/authStore'
 import {

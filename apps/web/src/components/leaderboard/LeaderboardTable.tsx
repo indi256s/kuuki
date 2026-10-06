@@ -13,7 +13,7 @@ import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { cn } from '@/lib/utils'
 import { UserAvatar } from '@/components/common/UserAvatar'
-import { formatDistance } from '@/lib/geo'
+import { formatDistance } from '@kuuki/client/geo'
 import type { LeaderboardEntryWithProfile, LeaderboardCategory } from '@/hooks/useLeaderboard'
 
 interface LeaderboardTableProps {

@@ -2,7 +2,7 @@
 
 import { useCallback, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
-import type { OverviewPeriod } from '../../../../../packages/shared/src/overview'
+import type { OverviewPeriod } from '@kuuki/shared/overview'
 import { formatCount, formatNumber, type Locale } from '../../lib/format'
 import { CountryPreview, previewArcPath, type CountryVisit } from '../maps/preview'
 import { useRouteProjection } from '../maps/projection'

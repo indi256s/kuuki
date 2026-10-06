@@ -1,7 +1,7 @@
 import { findAirport } from '@kuuki/data/airport-lookup'
 import { findAircraft } from '@kuuki/data/aircraft-lookup'
-import { ApiError } from '../../../../web/src/lib/apiClient'
-import { SettledFlightOperationError } from '../../../../web/src/lib/flightCreateOperations'
+import { ApiError } from '@kuuki/client/apiClient'
+import { SettledFlightOperationError } from '@kuuki/client/flightCreateOperations'
 import type { Locale } from '../../lib/format'
 
 export type FlightValues = { date: string; origin: string; destination: string; airline: string; aircraft: string; number: string; departure: string; arrival: string }

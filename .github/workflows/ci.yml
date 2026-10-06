@@ -35,7 +35,7 @@ jobs:
       - run: pnpm --filter @kuuki/web test:run
       - run: pnpm test:api
       - run: pnpm --filter @kuuki/next test
-      - run: node --test scripts/draft-storage.test.mjs scripts/check-preview-config.test.mjs
+      - run: node --test scripts/check-preview-config.test.mjs
       - run: pnpm exec tsx scripts/map-geometry.test.ts
       - run: node scripts/check-preview-config.mjs --config apps/next/wrangler.toml --maintenance-config workers/maintenance/wrangler.toml
       - run: pnpm --filter @kuuki/web build

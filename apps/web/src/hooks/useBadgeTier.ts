@@ -3,7 +3,6 @@ import { useDashboardStats } from './useDashboardStats'
 import { useAdvancedStats } from './useAdvancedStats'
 import {
   BADGE_TRACKS,
-  BADGE_TRACK_IDS,
   type BadgeTier,
   type BadgeTrackId,
 } from '@/lib/badge-tracks'
@@ -27,29 +26,6 @@ export function useBadgeTier(trackId: BadgeTrackId): BadgeTierResult {
     const value = getStatValue(trackId, stats, advanced)
     return computeTier(trackId, value)
   }, [trackId, stats, advanced])
-}
-
-/**
- * Returns badge tier info for all tracks at once
- */
-export function useAllBadgeTiers(): Record<BadgeTrackId, BadgeTierResult> {
-  const { data: stats } = useDashboardStats()
-  const { data: advanced } = useAdvancedStats()
-
-  return useMemo(() => {
-    const result = {} as Record<BadgeTrackId, BadgeTierResult>
-
-    for (const trackId of BADGE_TRACK_IDS) {
-      if (!stats) {
-        result[trackId] = { tier: null, tierIndex: -1, value: 0 }
-      } else {
-        const value = getStatValue(trackId, stats, advanced)
-        result[trackId] = computeTier(trackId, value)
-      }
-    }
-
-    return result
-  }, [stats, advanced])
 }
 
 function getStatValue(

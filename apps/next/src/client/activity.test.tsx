@@ -5,7 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 const refresh = vi.fn()
 const api = { get: vi.fn(), post: vi.fn() }
 vi.mock('next/navigation', () => ({ useRouter: () => ({ refresh }) }))
-vi.mock('../../../web/src/lib/apiClient', () => ({
+vi.mock('@kuuki/client/apiClient', () => ({
   api, beginIdentityOperation: vi.fn(), getAuthGeneration: () => 1,
 }))
 
@@ -77,7 +77,7 @@ describe('ActivityBridge owner sync', () => {
 })
 
 it("clears the departing owner's capture recents and disclosure preferences when signing out", async () => {
-  const { beginIdentityOperation } = await import('../../../web/src/lib/apiClient')
+  const { beginIdentityOperation } = await import('@kuuki/client/apiClient')
   vi.mocked(beginIdentityOperation).mockReturnValue({ ready: Promise.resolve(), token: Symbol(), release: vi.fn() } as never)
   // The departing cookie owner is resolved under the account lock before the mutation runs.
   api.get.mockResolvedValueOnce({ user: { id: 'a' } })

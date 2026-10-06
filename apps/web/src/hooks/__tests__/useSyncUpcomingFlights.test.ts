@@ -3,10 +3,10 @@ import { renderHook, waitFor } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { expect, it, vi } from 'vitest'
 
-vi.mock('@/lib/flights', () => ({ syncUpcomingFlights: vi.fn() }))
+vi.mock('@kuuki/client/flights', () => ({ syncUpcomingFlights: vi.fn() }))
 vi.mock('@/stores/authStore', () => ({ useAuthStore: (selector: (state: { user: { id: string } }) => unknown) => selector({ user: { id: 'owner' } }) }))
 vi.mock('@/lib/derivedStateFeedback', () => ({ reconcileDerivedState: vi.fn() }))
-import { syncUpcomingFlights } from '@/lib/flights'
+import { syncUpcomingFlights } from '@kuuki/client/flights'
 import { reconcileDerivedState } from '@/lib/derivedStateFeedback'
 import { useSyncUpcomingFlights } from '../useFlights'
 

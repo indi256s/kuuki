@@ -13,7 +13,7 @@ import { Sheet } from '../ui/sheet'
 import { ShellNotices } from '../shell-notices'
 import { normalizeJournalQuery } from '../../lib/url-state'
 import type { JournalData } from '../../server/journal'
-import { api } from '../../../../web/src/lib/apiClient'
+import { api } from '@kuuki/client/apiClient'
 
 const nav = vi.hoisted(() => ({ push: vi.fn(), replace: vi.fn(), refresh: vi.fn(), set: vi.fn<(query: string | Promise<string>) => void>() }))
 vi.mock('next/navigation', () => ({ useRouter: () => nav, usePathname: () => '/journal' }))
@@ -31,7 +31,7 @@ vi.mock('../capture/flight-panels', () => ({
       <button onClick={() => { onDelete(flightId); onOpenChange(false) }}>Delete in sheet</button>
     </Sheet>,
 }))
-vi.mock('../../../../web/src/lib/apiClient', () => ({ api: { get: vi.fn(), delete: vi.fn(), post: vi.fn() } }))
+vi.mock('@kuuki/client/apiClient', () => ({ api: { get: vi.fn(), delete: vi.fn(), post: vi.fn() } }))
 
 type Row = { id: number; date: string; lifecycle_state: string; origin?: string; destination?: string; aircraft_icao?: string | null; duration_minutes?: number | null; flight_number?: string | null; distance_km?: number | null }
 type Flight = JournalData['flights'][number]

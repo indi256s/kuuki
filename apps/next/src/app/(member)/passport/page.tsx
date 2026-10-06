@@ -9,7 +9,7 @@ import { isCatalogCountry } from '../../../client/passport/model'
 import { IdentitySnapshot } from '../../../client/activity'
 import { ReadFreshness } from '../../../client/freshness'
 import { PassportView } from '../../../client/reads/passport'
-import type { OverviewPeriod } from '../../../../../../packages/shared/src/overview'
+import type { OverviewPeriod } from '@kuuki/shared/overview'
 import '../../reads.css'
 
 async function PassportData({ period }: {period?: OverviewPeriod}) {
@@ -24,5 +24,5 @@ export default async function Passport({ searchParams }: {searchParams: Promise<
   const normalized = normalizePassportQuery(await searchParams, isCatalogCountry)
   if (!normalized.canonical) redirect(withQuery('/passport', normalized.query))
   const period = (normalized.state.year ?? undefined) as OverviewPeriod | undefined
-  return <><div className="page-heading"><h1>{locale === 'ru' ? 'Паспорт' : 'Passport'}</h1></div><Suspense fallback={<p className="loading" data-testid="passport-loading" role="status">{locale === 'ru' ? 'Загружаем паспорт…' : 'Loading passport…'}</p>}><PassportData period={period} /></Suspense></>
+  return <><div className="page-heading"><h1>{locale === 'ru' ? 'Паспорт' : 'Passport'}</h1></div><Suspense fallback={<p className="loading" role="status">{locale === 'ru' ? 'Загружаем паспорт…' : 'Loading passport…'}</p>}><PassportData period={period} /></Suspense></>
 }

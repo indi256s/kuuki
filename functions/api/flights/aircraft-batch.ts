@@ -1,3 +1,4 @@
+import { AIRCRAFT_BATCH_SIZE } from '../../../packages/shared/src/constants'
 // POST /api/flights/aircraft-batch — accept up to 20 aircraft suggestions for owned flights.
 //
 // Outcome contract (replay-safe absolute set):
@@ -16,7 +17,7 @@ import { toOwnFlight, type FlightRow } from '../_lib/flights'
 import { dirtyUserStatement, repairUserDerivedState } from '../_services/derivedState'
 import { FLIGHT_COLUMNS } from './index'
 
-const MAX_ITEMS = 20
+const MAX_ITEMS = AIRCRAFT_BATCH_SIZE
 type ItemResult =
   | { id: number | null; status: 'accepted'; flight: ReturnType<typeof toOwnFlight> }
   | { id: number | null; status: 'error'; http_status: number; code: string; error: string }

@@ -2,8 +2,8 @@
 
 import { useEffect, useRef, useState } from 'react'
 import aircraft from '@kuuki/data/aircraft'
-import { getAuthGeneration } from '../../../../web/src/lib/apiClient'
-import { getAllFlights, type Flight } from '../../../../web/src/lib/flights'
+import { getAuthGeneration } from '@kuuki/client/apiClient'
+import { getAllFlights, type Flight } from '@kuuki/client/flights'
 import { trackPrivateOperation } from '../activity'
 import { useWriteFeedback } from '../write-feedback'
 import { acceptAircraft, AIRCRAFT_BATCH, countAircraftRun, retryableAircraft, summarizeAircraftRun, type AircraftOutcome, type AircraftRunCounts } from '../import/aircraft-review'

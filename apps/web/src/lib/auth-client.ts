@@ -1,5 +1,5 @@
 import { createAuthClient } from 'better-auth/react'
-import { api, ApiError, type IdentityOperationToken } from './apiClient'
+import { api, ApiError, type IdentityOperationToken } from '@kuuki/client/apiClient'
 
 /** Route Better Auth actions through the API client's identity lock and timeout handling. */
 export function authClientFor(identityToken?: IdentityOperationToken) {

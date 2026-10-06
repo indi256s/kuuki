@@ -3,7 +3,7 @@
 import { NavigationLink as Link } from './navigation-link'
 import { useRouter } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
-import { api, getAuthGeneration } from '../../../web/src/lib/apiClient'
+import { api, getAuthGeneration } from '@kuuki/client/apiClient'
 import { trackPrivateOperation, withIdentityMutation } from './activity'
 import { setLocale, setTheme } from './appearance'
 import { useAppearance } from './preferences'

@@ -1,12 +1,15 @@
 import { api } from './apiClient'
 import type { DerivedAck } from './derivedState'
-import type { Tables, TablesInsert } from './database.types'
 import type { PassportEntry, CountryStats, GroundVisit, Continent, EntryMethod } from '@kuuki/shared'
 import countriesData from '@kuuki/data/countries.json'
 
-// Re-export types from database
-export type CountryClaim = Tables<'country_claims'>
-export type CountryClaimInsert = TablesInsert<'country_claims'>
+export interface CountryClaim {
+  id: string
+  user_id: string
+  country_code: string
+  claimed_at: string | null
+}
+export type CountryClaimInsert = Pick<CountryClaim, 'user_id' | 'country_code'> & Partial<Pick<CountryClaim, 'id' | 'claimed_at'>>
 
 // Type for the countries.json data
 type CountryDataMap = Record<string, {
@@ -197,7 +200,7 @@ export async function getUserCountries(_userId: string): Promise<PassportEntry[]
  */
 export async function getUserClaims(userId: string): Promise<CountryClaim[]> {
   const rows = await api.get<ApiClaimListRow[]>('/api/passport/claims')
-  // The API strips user_id; refill it so the CountryClaim (Tables row) shape stays intact.
+  // The API strips user_id; refill it for the caller's row shape.
   return (rows ?? []).map((row) => ({
     id: row.id,
     user_id: userId,
@@ -214,7 +217,7 @@ export async function claimCountry(
   countryCode: string,
 ): Promise<CountryClaim & DerivedAck> {
   const claim = await api.put<ApiClaimListRow & DerivedAck>(`/api/passport/claims/${countryCode}`)
-  // The API strips user_id; refill it so the CountryClaim (Tables row) shape stays intact.
+  // The API strips user_id; refill it for the caller's row shape.
   return {
     id: claim.id,
     user_id: userId,

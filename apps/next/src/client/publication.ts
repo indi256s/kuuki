@@ -1,6 +1,6 @@
 // Bounded backoff poll for derived publication. Kept apart from write-feedback so the owner-sync trigger in
 // activity.tsx can use it without an import cycle.
-import { api } from '../../../web/src/lib/apiClient'
+import { api } from '@kuuki/client/apiClient'
 
 type Publication = { derived_state: 'ready' | 'pending' | 'error'; published_revision: number }
 const delays = [1000, 2000, 4000, 8000, 8000, 8000]

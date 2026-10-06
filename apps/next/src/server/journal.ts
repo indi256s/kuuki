@@ -1,3 +1,4 @@
+import { JOURNAL_PAGE_SIZE } from '@kuuki/shared/constants'
 import 'server-only'
 import { normalizeJournalQuery } from '../lib/url-state'
 import { parseFlightFilters, parseSort } from '../../../../functions/api/_lib/flightQuery'
@@ -6,7 +7,7 @@ import { getRequestEnv, getRequestIdentity } from './identity'
 
 export type { JournalData } from '../../../../functions/api/_services/journal'
 
-export const journalPageSize = 20
+export const journalPageSize = JOURNAL_PAGE_SIZE
 
 export function journalParams(input: Record<string, string | string[] | undefined>) {
   const normalized = normalizeJournalQuery(input)

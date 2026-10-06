@@ -2,7 +2,7 @@ import { useState, useCallback, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Search, Info, X } from 'lucide-react'
 import { usePassportCountries } from '@/hooks/usePassport'
-import { getAllCountries } from '@/lib/passport'
+import { getAllCountries } from '@kuuki/client/passport'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import {

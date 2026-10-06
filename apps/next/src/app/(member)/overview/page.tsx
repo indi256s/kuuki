@@ -11,7 +11,7 @@ import { S, t } from '../../../client/overview/copy'
 import { referenceLabels } from '../../../client/overview/labels'
 import { OverviewFailure, OverviewView } from '../../../client/overview/view'
 import type { Locale } from '../../../server/locale'
-import type { OverviewPeriod } from '../../../../../../packages/shared/src/overview'
+import type { OverviewPeriod } from '@kuuki/shared/overview'
 import '../../reads.css'
 
 type Owned = NonNullable<Awaited<ReturnType<typeof getOwnOverview>>>
@@ -42,5 +42,5 @@ export default async function Overview({ searchParams }: { searchParams: Promise
   if (!normalized.canonical) redirect(withQuery('/overview', normalized.query))
   const period: OverviewPeriod = (normalized.state.year ?? 'all') as OverviewPeriod
   return <><div className="page-heading"><p className="eyebrow">{t(S.eyebrow, locale)}</p><h1>{t(S.heading, locale)}</h1><p className="lead">{t(S.lead, locale)}</p></div>
-    <Suspense key={period} fallback={<p className="loading" data-testid="overview-loading" role="status">{t(S.loading, locale)}</p>}><OverviewData period={period} locale={locale} /></Suspense></>
+    <Suspense key={period} fallback={<p className="loading" role="status">{t(S.loading, locale)}</p>}><OverviewData period={period} locale={locale} /></Suspense></>
 }

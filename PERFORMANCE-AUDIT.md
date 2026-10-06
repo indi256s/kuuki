@@ -1,5 +1,7 @@
 # Performance Audit Report - Kuuki App
 
+> Historical Vite performance evidence (February 2026). This is not a current Next release assessment; see [the release runbook](docs/runbooks/2026-10-04-next-release-candidate.md).
+
 **Date**: 2026-02-07  
 **Auditor**: Subagent (kuuki-perf-audit-v2)  
 **Build Tool**: Vite 6 + React 19 + Tailwind v4

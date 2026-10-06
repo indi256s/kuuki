@@ -1,4 +1,4 @@
-import { api, ApiError, type IdentityOperationToken } from './apiClient'
+import { api, ApiError, type IdentityOperationToken } from '@kuuki/client/apiClient'
 import { authClientFor } from './auth-client'
 import type { Tables } from './database.types'
 

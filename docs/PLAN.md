@@ -1,6 +1,6 @@
 # Kuuki - Implementation Plan
 
-> **Start here:** Check [README.md](./README.md) for quick reference and project structure.
+> **Historical MVP roadmap.** Status and stack below record the original Vite application. Start with [README.md](./README.md) for current source and release authorities.
 > **Specs:** See [SPEC.md](./SPEC.md) for complete product requirements.
 > **Tasks:** See [tasks/](./tasks/) for detailed implementation per phase.
 > **Design System:** See [FRONTEND_GUIDELINES.md](./FRONTEND_GUIDELINES.md) for UI guidelines.

@@ -2,8 +2,8 @@
 
 import { useRouter } from 'next/navigation'
 import { useRef, useState } from 'react'
-import { api } from '../../../../web/src/lib/apiClient'
-import type { MissingAircraftPage } from '../../../../../packages/shared/src/overview'
+import { api } from '@kuuki/client/apiClient'
+import type { MissingAircraftPage } from '@kuuki/shared/overview'
 import { formatCount, formatNumber, type Locale } from '../../lib/format'
 import { trackPrivateOperation } from '../activity'
 import { AircraftPanel, type AircraftApi } from '../import/aircraft-panel'
@@ -106,7 +106,7 @@ export function MissingAircraftReview({ locale, period, count, read = readMissin
   return <div className="ov-missing">{count > 0 ? <><span>{formatCount(locale, count, forms.noAircraft)}</span>{' '}
     <Button dense variant="ghost" onClick={() => onOpenChange(true)}>{t(S.reviewAircraft, locale)}</Button></> : null}
     <Sheet open={open} onOpenChange={onOpenChange} title={t(S.reviewTitle, locale)} description={t(S.reviewDescription, locale)} closeLabel={t(S.close, locale)} side="bottom" className="ov-review-sheet">
-      <div className="import-page ov-review" data-testid="overview-aircraft-review">
+      <div className="import-page ov-review">
         {load.phase === 'loading' ? <p role="status" className="muted">{t(S.reviewLoading, locale)}</p> : null}
         {load.phase === 'failed' ? <div role="alert"><p>{t(S.reviewFailed, locale)}</p><Button dense onClick={() => fetchPage(current.current, 'open')}>{t(S.retry, locale)}</Button></div> : null}
         {page && page.total === 0 && !work.dirty ? <p className="muted">{t(S.reviewNone, locale)}</p> : null}

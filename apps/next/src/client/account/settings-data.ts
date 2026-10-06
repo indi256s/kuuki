@@ -1,6 +1,6 @@
-import { api, getAuthGeneration } from '../../../../web/src/lib/apiClient'
-import { getAllFlights } from '../../../../web/src/lib/flights'
-import type { CountryClaim } from '../../../../web/src/lib/passport'
+import { api, getAuthGeneration } from '@kuuki/client/apiClient'
+import { getAllFlights } from '@kuuki/client/flights'
+import type { CountryClaim } from '@kuuki/client/passport'
 import { useEffect, useRef, useState } from 'react'
 
 export type SettingsCounts = { flights: number; completed: number; claims: number; ground: number; drafts: number }
@@ -46,7 +46,7 @@ export function useSettingsExportLimit(ownerId: string) {
 export async function downloadSettingsData(ownerId: string, kind: ExportKind, signal: AbortSignal): Promise<number> {
   const generation = getAuthGeneration()
   const current = () => !signal.aborted && generation === getAuthGeneration()
-  const helpers = await import('../../../../web/src/lib/export')
+  const helpers = await import('@kuuki/client/export')
   if (!current()) return 0
   if (kind === 'flights') {
     const rows = await getAllFlights(ownerId, { signal })

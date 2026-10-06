@@ -1,11 +1,12 @@
+import { EARTH_CIRCUMFERENCE_KM } from '@kuuki/shared/constants'
 // Pure view-model helpers for the Overview modules: captions, comparison text, ranking shape and month strip.
 // No DOM, no data lookups; the modules pass already localized labels in.
-import type { OverviewDelta, OverviewSummary } from '../../../../../packages/shared/src/overview'
+import type { OverviewDelta, OverviewSummary } from '@kuuki/shared/overview'
 import { formatCount, formatDuration, formatMonthYear, formatNumber, type Locale } from '../../lib/format'
 import { S, fill, forms, t } from './copy'
 
 const MINUS = '−'
-const EARTH_KM = 40075
+const EARTH_KM = EARTH_CIRCUMFERENCE_KM
 
 /** "−85% vs 2025", "+3 vs 2025" or "First year"; null when there is nothing honest to say (no baseline and no change). */
 export function comparisonCaption(locale: Locale, delta: OverviewDelta | null, comparison: NonNullable<OverviewSummary['comparison']>, unit: (n: number) => string = n => formatNumber(locale, n)): string | null {

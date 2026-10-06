@@ -1,6 +1,6 @@
 // The reusable summaries must describe a possible account, or T18's volume acceptance proves nothing.
 import { describe, expect, it } from 'vitest'
-import type { OverviewSummary } from '../../../../../packages/shared/src/overview'
+import type { OverviewSummary } from '@kuuki/shared/overview'
 import { findAirport } from '@kuuki/data/airport-lookup'
 import { busySummary, emptySummary, legacyOnlySummary, singleFlightSummary, stressSummary } from './fixtures'
 

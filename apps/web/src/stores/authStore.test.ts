@@ -3,8 +3,8 @@ import { queryClient } from '@/lib/queryClient'
 import { queryKeys } from '@/lib/queryKeys'
 import { useAuthStore } from './authStore'
 import { signIn, signOut, deleteAccount, getProfile, getMe } from '@/lib/auth'
-import { getFlightCreateOperation, pendingFlightCreateOperation, clearFlightCreateOperations } from '@/lib/flightCreateOperations'
-import { api } from '@/lib/apiClient'
+import { getFlightCreateOperation, pendingFlightCreateOperation, clearFlightCreateOperations } from '@kuuki/client/flightCreateOperations'
+import { api } from '@kuuki/client/apiClient'
 
 vi.mock('@/lib/auth', () => ({
   signIn: vi.fn(), signUp: vi.fn(), signOut: vi.fn(), deleteAccount: vi.fn(), getMe: vi.fn(), getProfile: vi.fn(),

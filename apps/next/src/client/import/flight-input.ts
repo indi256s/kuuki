@@ -1,8 +1,8 @@
 // Pure helpers for flights saved without the batch (manual rows) and for the done summary.
 import { findAircraft } from '@kuuki/data/aircraft-lookup'
 import { findAirport } from '@kuuki/data/airport-lookup'
-import { calculateFlightDistance, calculateFlightDuration, estimateFlightDuration } from '../../../../web/src/lib/geo'
-import type { FlightInsert } from '../../../../web/src/lib/flights'
+import { calculateFlightDistance, calculateFlightDuration, estimateFlightDuration } from '@kuuki/client/geo'
+import type { FlightInsert } from '@kuuki/client/flights'
 import { normaliseValues, type FieldValues } from './review-model'
 
 /** Same derived fields the capture form fills, so a manual row here and a flight added on /add look alike. */

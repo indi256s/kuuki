@@ -27,6 +27,7 @@
       }
     ],
     "paths": {
+      "vitest": ["./node_modules/vitest"],
       "@/*": [
         "./src/*"
       ]

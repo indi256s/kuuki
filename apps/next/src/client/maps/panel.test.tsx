@@ -3,7 +3,7 @@ import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { RouteProjection } from '@kuuki/shared'
 const mocks = vi.hoisted(() => ({ get: vi.fn(), renderer: vi.fn() }))
-vi.mock('../../../../web/src/lib/apiClient', () => ({ api: { get: mocks.get } }))
+vi.mock('@kuuki/client/apiClient', () => ({ api: { get: mocks.get } }))
 vi.mock('../activity', () => ({ trackPrivateOperation: () => () => {} }))
 vi.mock('./renderer', () => ({ FullRouteMap: (props: unknown) => { mocks.renderer(props); return <div>Interactive map</div> } }))
 import { RouteMapPanel } from './panel'

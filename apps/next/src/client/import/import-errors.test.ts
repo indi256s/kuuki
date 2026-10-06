@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { ApiError } from '../../../../web/src/lib/apiClient'
+import { ApiError } from '@kuuki/client/apiClient'
 import { classifyBatchFailure, classifyRequestFailure, classifyRowFailure, retryAtOf } from './import-errors'
 
 describe('request failures (ApiError.code / status -> cause and action)', () => {
