@@ -11,21 +11,28 @@ Doctor run `37434105847` passed. Deployment jobs were skipped by release guards.
 The user requested merge/deploy, reviewed the database release proposal and
 legacy activation flow, then said “let's do it.” Carry authorization for staging
 preparation and the controlled production baseline/additive migration/import
-release forward. Required preservation gates still apply. Production data,
-credentials, routing and deployments have not been changed. No real mail or
+release forward. Required preservation gates still apply. Production application data,
+credentials, routing and deployments have not been changed. A diagnostic sign-in
+created a test session and successful sign-out revoked it. No real mail or
 provider calls were made; retain their separate recipient/provider gates.
 
-Retained secret values remain the pending input:
+Production pepper compatibility remains the pending credential gate:
 
-1. The retained Pages secret values or their storage location. Cloudflare exposes
-   their names but redacts values. Preserve `AUTH_SECRET`; do not rotate it or
-   infer that the local `.dev.vars` pepper matches production. A read-only check
-   against the stored hosted atlas test credential found that local AUTH_SECRET
-   does not verify its production password hash. `cf pages projects get` confirms
-   deployed values are redacted. Local env files have no Gemini or activation-mail
-   credential. A private editable `production.env` is prepared in the evidence
-   directory with empty AUTH_SECRET, GEMINI_API_KEY and ACTIVATION_MAIL_AUTH_TOKEN
-   entries. Generate Better Auth secrets separately; no existing pepper was changed.
+1. The private `production.env` now contains AUTH_SECRET, BETTER_AUTH_SECRET,
+   GEMINI_API_KEY and ACTIVATION_MAIL_AUTH_TOKEN. Better Auth was generated locally;
+   none of these production values has been deployed. Presence does not establish
+   provider/mail permission or delivery acceptance.
+2. The user states AUTH_SECRET was copied from original production storage, but it
+   does not verify the current production atlas test credential. The hash format
+   is supported and the file has one unquoted AUTH_SECRET entry without escaping
+   or inline comments. The same fixture successfully signed in against the live
+   production app (HTTP 200), then signed out (HTTP 200). This establishes that the
+   supplied value differs from the pepper currently used by production. Evidence:
+   private `local-pepper-verification.json` and `live-pepper-fixture-check.json`.
+   Obtain the retained Cloudflare Pages **kuuki production environment** AUTH_SECRET
+   from its original store; Cloudflare API/CLI redact stored secret values. Do not
+   rotate it while preserving the other two accounts' credentials.
+
 Identity mapping: the verified fresh source and live production share one email
    and username across different IDs, and 64 differing flight rows share IDs.
    The user said the current production account need not be kept. Further read-only
@@ -115,7 +122,7 @@ the fresh-source verification. Temporary working copies are
 in `/tmp/kuuki-release-20261006`; the read-only conflict helper is ignored at
 `.scratch/legacy-cleanup/source-target-conflicts.ts`. Do not publish these files.
 
-Next: obtain the retained secrets; finish staging auth and
+Next: correct and verify the retained production AUTH_SECRET; finish staging auth and
 compatibility gates. Then enumerate and hold every production writer (including
 immutable Pages deployment URLs), re-read source/target conflicts, export and
 prove hosted restoration, baseline the ledger without running 0001, apply admitted
