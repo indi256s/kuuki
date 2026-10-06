@@ -2,7 +2,7 @@
 
 Status: resolved
 Owner task: T13
-Source: fix rounds 3–5 and authorized continuation (R2-N1, R4-N1, R5-I1, R5-I2); `apps/next/src/client/reads/journal-filters.tsx` (`sent`, `known`, `external`), `apps/next/src/client/reads/journal.tsx` (`navigateExternally`), `apps/next/src/client/journal-links.ts`
+Source: fix rounds 3–5 and authorized continuation (R2-N1, R4-N1, R5-I1, R5-I2); `apps/next/src/client/reads/journal-filters.tsx` (`sent`, `known`, `external`), `apps/next/src/client/reads/journal.tsx` (`navigateExternally`), `apps/next/src/client/navigation-link.tsx`
 
 ## What differed
 The filter drafts settle on the page's navigation transition: while a navigation started by `apply` is pending, URL changes count as its own responses. Suppose the member navigated elsewhere while one was pending (Reset, Back/Forward, or a shell link to `/journal`). That navigation superseded the pending one, but its URL was taken as the pending one's response. The drafts kept the superseded value after the transition settled, and the next Search sent it again. If the destination equalled the rendered query, the page's `requested` base kept the superseded target too.
@@ -16,16 +16,16 @@ Explicit navigations are announced as they start. The page's `navigateExternally
 The announcements come from these sources:
 - **Journal-owned links.** Both Reset links (toolbar and empty result) and the empty-page first-page link use next/link `onNavigate` with `navigateExternally`.
 - **Back/Forward.** A `popstate` listener on `/journal`.
-- **Shell links.** Shell links to `/journal` use `onNavigate={announceJournalLink(href)}`, which dispatches `kuuki:journal-link` on `window`. These are the desktop and mobile Journal tabs (`nav.tsx`), both queue-summary links (`queue-summary.tsx`), and the Awaiting action link in the add menu and sheet (`add-actions.tsx`).
+- **Shell links.** Shell links render `NavigationLink`, whose `onNavigate` dispatches `kuuki:route-link` (`ROUTE_LINK_EVENT`) on `window` with the href; the mounted Journal acts only when its pathname is `/journal`. (Until the PR #42 review this was a separate `kuuki:journal-link` event from `journal-links.ts`.) These are the desktop and mobile Journal tabs (`nav.tsx`), both queue-summary links (`queue-summary.tsx`), and the Awaiting action link in the add menu and sheet (`add-actions.tsx`).
 
 next/link calls `onNavigate` only for a plain, local click that no `onClick` cancelled. A modified click (new tab) therefore leaves the page alone.
 
 Coverage:
 - **Journal regressions.** `apps/next/src/client/reads/journal.test.tsx` holds the filter navigation pending for Reset (both links), Back to the rendered URL, Forward to another filter, a commit after a pending Reset followed by untouched mobile Apply, same-query Status restoration, first-page then Search, the Journal tab, the queue link and an announced `airline=LH`. The continuation regressions use void router methods and suspended router state, settling only the newest destination while superseded responses remain unresolved. They assert desktop/mobile values, unchanged Apply behavior, and the next Search URL as applicable.
-- **Link guard.** `apps/next/src/client/journal-links.test.tsx` fails if any of those shell links stops announcing.
+- **Link guard.** `apps/next/src/client/journal-route-links.test.tsx` fails if any of those shell links stops announcing.
 
 ## Limits (not open gaps)
-- **New links.** A new next/link to `/journal` that renders while the Journal is mounted must use `announceJournalLink`. The guard covers the components listed above, not links added elsewhere later.
+- **New links.** A new next/link to `/journal` that renders while the Journal is mounted must use `NavigationLink`. The guard covers the components listed above, not links added elsewhere later.
 - **Plain anchors.** Plain `<a href="/journal…">` anchors (flight form outside the Journal, import done step, Overview edit links) cause a full document load, so no filter state survives them.
 - **Programmatic pushes.** `router.push('/journal')` in `capture/flight-panels.tsx` and `capture/flight-form.tsx` runs only on pages without the Journal; inside the Journal those components receive callbacks instead.
 - **Separate caveat.** The handled-navigation-failure retry caveat from the round-3 review (`requested` keeps a failed target when the query does not change) was separate from this issue; resolved 2026-10-06 (see Resolution below).
