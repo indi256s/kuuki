@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <!-- Isolated activation page (boards 2.3 activation variant and 2.4). Its CSP is default-src 'none': no app scripts,
+       stylesheets, fonts or images, so it is self-contained and uses the system font stack (Onest cannot load here). -->
+  <script src="/activate.js"></script>
+  <title>Welcome back to Kuuki</title>
+  <!-- scripts/build-next.mjs fills this with the :root theme and accent tokens from apps/next/src/app/styles.css. -->
+  <style id="activation-tokens"></style>
+  <style>
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--background);color:var(--text);font:400 15px/24px system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased}
+    [hidden]{display:none!important}
+    button,input,select{font:inherit;color:inherit}
+    a,button,input,select{outline:none}
+    a:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+    h1:focus{outline:none}
+    .defs{position:absolute}
+
+    /* Wordmark: "Ku" in the accent text, "uki" in the text color. */
+    .wordmark{position:relative;display:inline-flex;align-items:baseline;font-size:36px;line-height:1;font-weight:700;letter-spacing:-.04em;white-space:nowrap}
+    .wordmark-ku{color:var(--accent-text)}.wordmark-uki{color:var(--text)}
+
+    /* Page and card (desktop, boards 1.1 and 3.1). */
+    .page{min-height:100dvh;display:grid;place-items:center;padding:32px 24px}
+    .card{position:relative;display:flex;width:min(1040px,100%);min-height:620px;border:1px solid var(--hairline);border-radius:var(--radius-lg);background:var(--surface);overflow:clip}
+    :root[data-theme=dark] .card{border-color:transparent;box-shadow:inset 0 1px 0 var(--surface-highlight)}
+    .brand{position:relative;flex:0 0 min(420px,40%);display:flex;flex-direction:column;padding:40px;overflow:clip;background:var(--auth-brand-surface,var(--surface-inset))}
+    .brand-field{position:absolute;inset:0;pointer-events:none}
+    .kana{position:absolute;left:128px;top:86px;display:flex;flex-direction:column;align-items:center;margin:0;color:var(--accent);opacity:.1;font:700 164px/164px var(--font-kana)}
+    :root[data-theme=dark] .kana{opacity:.13}
+    .planes{position:absolute;left:0;top:0;fill:none;stroke:var(--accent);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+    .planes-mobile{display:none}
+    .plane-s{stroke-opacity:.22}.plane-m{stroke-opacity:.302}.plane-l{stroke-opacity:.4}
+    :root[data-theme=dark] .plane-s{stroke-opacity:.278}:root[data-theme=dark] .plane-m{stroke-opacity:.38}:root[data-theme=dark] .plane-l{stroke-opacity:.502}
+    .panel{position:relative;flex:1 1 0;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:96px clamp(24px,6vw,64px) 48px}
+    .column{display:flex;flex-direction:column;width:min(360px,100%)}
+    .state{display:flex;flex-direction:column;gap:28px}
+
+    /* Corner controls: language and the Horizon theme toggle, each at least 44x44. */
+    .corner{position:absolute;top:36px;right:28px;z-index:1;display:flex;align-items:center}
+    .corner-control{position:relative;display:inline-flex;align-items:center;justify-content:center;gap:6px;min-width:44px;height:44px;padding:0;border:0;border-radius:var(--radius-sm);background:transparent;color:var(--text-muted);font-size:13px;line-height:20px;font-weight:500;cursor:pointer;transition:background-color var(--dur-fast) var(--ease-out)}
+    .corner-language{padding-inline:12px}
+    .corner-language select{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;font-size:16px;appearance:none}
+    .corner-language:has(select:focus-visible){outline:2px solid var(--focus);outline-offset:2px}
+    .icon{flex-shrink:0;fill:none;stroke:currentColor;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round}
+    /* Horizon (toggles.dev): light shows the sun up; dark sets it half below the line. The icon shifts for optical centring. */
+    .horizon{fill:currentColor;translate:0 -.5px;transition:translate 500ms cubic-bezier(0,0,.15,1)}
+    .horizon-sun{transition:transform 500ms cubic-bezier(0,0,.15,1)}
+    :root[data-theme=dark] .horizon{translate:0 -4.5px}
+    :root[data-theme=dark] .horizon-sun{transform:translateY(16px)}
+
+    /* Heading, field and actions (boards 2.3 and 2.4). */
+    .heading{display:flex;flex-direction:column;gap:6px}
+    h1{margin:0;font-size:30px;line-height:36px;font-weight:600;letter-spacing:-.02em}
+    .heading p{margin:0;color:var(--text-muted)}
+    form{display:flex;flex-direction:column;gap:28px;margin:0}
+    .field{display:flex;flex-direction:column;gap:6px}
+    label{font-size:13px;line-height:20px;font-weight:500}
+    .control{position:relative}
+    .control input{width:100%;height:44px;padding:0 41px 0 14px;border:1px solid var(--control-border);border-radius:var(--radius-sm);background:var(--auth-input-surface,var(--background));color:var(--text);font-size:15px;line-height:24px}
+    .control input[aria-invalid=true]{border-color:var(--danger-text)}
+    .control input[readonly]{border-color:var(--hairline);color:var(--text-muted)}
+    .reveal{position:absolute;top:50%;right:1px;display:grid;place-items:center;width:40px;height:40px;padding:0;border:0;border-radius:8px;background:transparent;color:var(--text-muted);translate:0 -50%;cursor:pointer;transition:background-color var(--dur-fast) var(--ease-out)}
+    .hint{margin:0;font-size:13px;line-height:20px;color:var(--text-muted)}
+    .error{display:flex;align-items:center;gap:6px;margin:0;padding-top:2px;font-size:13px;line-height:20px;color:var(--danger-text)}
+    .actions{display:flex;flex-direction:column;align-items:flex-start;gap:8px}
+    .primary{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;height:44px;padding:0 16px;border:0;border-radius:var(--radius-sm);background:var(--accent);color:var(--accent-foreground);font-size:15px;line-height:24px;font-weight:600;text-decoration:none;cursor:pointer;transition:transform var(--dur-press) var(--ease-out),background-color var(--dur-fast) var(--ease-out)}
+    .primary:active:not([aria-disabled=true]){transform:scale(.96)}
+    .primary[aria-disabled=true]{cursor:progress}
+    .spinner{animation:spin .8s linear infinite;stroke-width:2}
+    @keyframes spin{to{transform:rotate(1turn)}}
+    .text-link{display:inline-flex;align-items:center;gap:6px;height:44px;color:var(--accent-text);font-size:13px;line-height:20px;font-weight:500;text-decoration:none;text-underline-offset:3px;border-radius:var(--radius-xs)}
+
+    @media(hover:hover) and (pointer:fine){
+      .corner-control:hover,.reveal:hover{background:var(--surface-inset)}
+      .primary:hover:not([aria-disabled=true]){background:var(--accent-hover)}
+      .text-link:hover{text-decoration:underline}
+    }
+    @media(prefers-reduced-motion:reduce){
+      .corner-control,.reveal,.primary,.horizon,.horizon-sun{transition:none}
+      .primary:active:not([aria-disabled=true]){transform:none}
+    }
+
+    /* Mobile: brand band above a bottom sheet (boards 3.2 and 3.3). */
+    @media(max-width:700px){
+      body{background:var(--auth-band-surface,var(--surface-inset))}
+      .page{display:block;padding:0}
+      .card,:root[data-theme=dark] .card{flex-direction:column;width:100%;min-height:100dvh;border:0;border-radius:0;box-shadow:none;background:transparent;overflow:visible}
+      .brand{flex:0 0 auto;height:clamp(160px,100dvh - 480px,302px);padding:12px 6px 0 19px;background:var(--auth-band-surface,var(--surface-inset))}
+      .wordmark{font-size:28px}
+      .kana{left:0;right:0;top:125px;flex-direction:row;justify-content:center;font-size:104px;line-height:104px;letter-spacing:.04em}
+      .planes-desktop{display:none}
+      .planes-mobile{display:block;left:50%;top:-15px;margin-left:-195px}
+      .corner{top:4px;right:6px}
+      .panel{flex:1 0 auto;padding:28px 20px 46px;border-radius:var(--radius-lg) var(--radius-lg) 0 0;background:var(--surface);box-shadow:var(--auth-sheet-edge,0 -1px 0 var(--hairline))}
+      .column{width:100%}
+      .state,form{gap:24px}
+      h1{font-size:28px;line-height:34px}
+      .control input{height:48px;padding-right:47px;font-size:16px}
+      .reveal{right:3px;width:44px;height:44px}
+      .primary{height:48px;font-size:16px}
+    }
+  </style>
+</head>
+<body>
+  <svg class="defs" width="0" height="0" aria-hidden="true">
+    <defs>
+      <path id="plane" d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/>
+      <clipPath id="horizon-clip"><path d="M0 0h32v29h-32z"/></clipPath>
+    </defs>
+  </svg>
+  <div class="page"><div class="card">
+    <div class="brand">
+      <div class="brand-field" aria-hidden="true">
+        <p class="kana"><span>く</span><span>う</span><span>き</span></p>
+        <!-- Frozen plane field (the boards' reduced-motion frame): 30 planes on desktop, 14 in the mobile band. -->
+        <svg class="planes planes-desktop" width="420" height="620" viewBox="0 0 420 620"><use href="#plane" class="plane-s" transform="translate(29 245) rotate(-18.4) scale(.5) translate(-12 -12)"/><use href="#plane" class="plane-m" transform="translate(45 325) rotate(-18.4) scale(.67) translate(-12 -12)"/><use href="#plane" class="plane-m" transform="translate(43 377) rotate(-18.4) scale(.67) translate(-12 -12)"/><use href="#plane" class="plane-l" transform="translate(73 208) rotate(-18.4) scale(.92) translate(-12 -12)"/><use href="#plane" class="plane-s" transform="translate(85 440) rotate(-18.4) scale(.5) translate(-12 -12)"/><use href="#plane" class="plane-m" transform="translate(96 575) rotate(-18.4) scale(.67) translate(-12 -12)"/><use href="#plane" class="plane-m" transform="translate(99 118) rotate(-18.4) scale(.67) translate(-12 -12)"/><use href="#plane" class="plane-s" transform="translate(122 575) rotate(-18.4) scale(.5) translate(-12 -12)"/><use href="#plane" class="plane-m" transform="translate(133 605) rotate(-18.4) scale(.67) translate(-12 -12)"/><use href="#plane" class="plane-m" transform="translate(148 272) rotate(-18.4) scale(.67) translate(-12 -12)"/><use href="#plane" class="plane-l" transform="translate(150 380) rotate(-18.4) scale(.92) translate(-12 -12)"/><use href="#plane" class="plane-m" transform="translate(158 577) rotate(-18.4) scale(.67) translate(-12 -12)"/><use href="#plane" class="plane-l" transform="translate(187 226) rotate(-18.4) scale(.92) translate(-12 -12)"/><use href="#plane" class="plane-m" transform="translate(201 21) rotate(-18.4) scale(.67) translate(-12 -12)"/><use href="#plane" class="plane-l" transform="translate(210 576) rotate(-18.4) scale(.92) translate(-12 -12)"/><use href="#plane" class="plane-s" transform="translate(221 417) rotate(-18.4) scale(.5) translate(-12 -12)"/><use href="#plane" class="plane-s" transform="translate(233 519) rotate(-18.4) scale(.5) translate(-12 -12)"/><use href="#plane" class="plane-s" transform="translate(244 563) rotate(-18.4) scale(.5) translate(-12 -12)"/><use href="#plane" class="plane-m" transform="translate(268 269) rotate(-18.4) scale(.67) translate(-12 -12)"/><use href="#plane" class="plane-s" transform="translate(278 317) rotate(-18.4) scale(.5) translate(-12 -12)"/><use href="#plane" class="plane-s" transform="translate(279 48) rotate(-18.4) scale(.5) translate(-12 -12)"/><use href="#plane" class="plane-l" transform="translate(289 504) rotate(-18.4) scale(.92) translate(-12 -12)"/><use href="#plane" class="plane-l" transform="translate(303 225) rotate(-18.4) scale(.92) translate(-12 -12)"/><use href="#plane" class="plane-l" transform="translate(325 240) rotate(-18.4) scale(.92) translate(-12 -12)"/><use href="#plane" class="plane-s" transform="translate(336 82) rotate(-18.4) scale(.5) translate(-12 -12)"/><use href="#plane" class="plane-l" transform="translate(347 122) rotate(-18.4) scale(.92) translate(-12 -12)"/><use href="#plane" class="plane-s" transform="translate(364 342) rotate(-18.4) scale(.5) translate(-12 -12)"/><use href="#plane" class="plane-s" transform="translate(384 78) rotate(-18.4) scale(.5) translate(-12 -12)"/><use href="#plane" class="plane-m" transform="translate(398 602) rotate(-18.4) scale(.67) translate(-12 -12)"/><use href="#plane" class="plane-s" transform="translate(17 351) rotate(-18.4) scale(.5) translate(-12 -12)"/></svg>
+        <svg class="planes planes-mobile" width="390" height="264" viewBox="0 0 390 264"><use href="#plane" class="plane-s" transform="translate(199 194) rotate(-18.4) scale(.5) translate(-12 -12)"/><use href="#plane" class="plane-m" transform="translate(323 195) rotate(-18.4) scale(.67) translate(-12 -12)"/><use href="#plane" class="plane-l" transform="translate(41 194) rotate(-18.4) scale(.92) translate(-12 -12)"/><use href="#plane" class="plane-s" transform="translate(188 233) rotate(-18.4) scale(.5) translate(-12 -12)"/><use href="#plane" class="plane-m" transform="translate(261 148) rotate(-18.4) scale(.67) translate(-12 -12)"/><use href="#plane" class="plane-l" transform="translate(77 162) rotate(-18.4) scale(.92) translate(-12 -12)"/><use href="#plane" class="plane-s" transform="translate(157 175) rotate(-18.4) scale(.5) translate(-12 -12)"/><use href="#plane" class="plane-m" transform="translate(128 205) rotate(-18.4) scale(.67) translate(-12 -12)"/><use href="#plane" class="plane-l" transform="translate(104 135) rotate(-18.4) scale(.92) translate(-12 -12)"/><use href="#plane" class="plane-s" transform="translate(283 249) rotate(-18.4) scale(.5) translate(-12 -12)"/><use href="#plane" class="plane-m" transform="translate(321 146) rotate(-18.4) scale(.67) translate(-12 -12)"/><use href="#plane" class="plane-l" transform="translate(153 131) rotate(-18.4) scale(.92) translate(-12 -12)"/><use href="#plane" class="plane-s" transform="translate(40 232) rotate(-18.4) scale(.5) translate(-12 -12)"/><use href="#plane" class="plane-m" transform="translate(372 181) rotate(-18.4) scale(.67) translate(-12 -12)"/></svg>
+      </div>
+      <span class="wordmark" role="img" aria-label="Kuuki"><span class="wordmark-ku">Ku</span><span class="wordmark-uki">uki</span></span>
+    </div>
+    <div class="corner">
+      <span class="corner-control corner-language">
+        <svg class="icon" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
+        <span id="locale-label" aria-hidden="true">EN</span>
+        <select id="locale" aria-label="Language" data-i18n-label="language"><option value="en">EN</option><option value="ru">RU</option></select>
+      </span>
+      <!-- Horizon theme toggle artwork: @theme-toggles/react by Alfie Jones (MIT), redrawn without the package. -->
+      <button id="theme-toggle" class="corner-control" type="button" aria-pressed="false" aria-label="Dark theme" title="Dark theme" data-i18n-label="darkTheme">
+        <svg class="horizon" width="16" height="16" viewBox="0 0 32 32" aria-hidden="true">
+          <path d="M30.7 29.9H1.3c-.7 0-1.3.5-1.3 1.1 0 .6.6 1 1.3 1h29.3c.7 0 1.3-.5 1.3-1.1.1-.5-.5-1-1.2-1z"/>
+          <g clip-path="url(#horizon-clip)"><path class="horizon-sun" d="M16 8.8c-3.4 0-6.1 2.8-6.1 6.1s2.7 6.3 6.1 6.3 6.1-2.8 6.1-6.1-2.7-6.3-6.1-6.3zm13.3 11L26 15l3.3-4.8c.3-.5.1-1.1-.5-1.2l-5.7-1-1-5.7c-.1-.6-.8-.8-1.2-.5L16 5.1l-4.8-3.3c-.5-.4-1.2-.1-1.3.4L8.9 8 3.2 9c-.6.1-.8.8-.5 1.2L6 15l-3.3 4.8c-.3.5-.1 1.1.5 1.2l5.7 1 1 5.7c.1.6.8.8 1.2.5L16 25l4.8 3.3c.5.3 1.1.1 1.2-.5l1-5.7 5.7-1c.7-.1.9-.8.6-1.3zM16 22.5A7.6 7.6 0 0 1 8.3 15c0-4.2 3.5-7.5 7.7-7.5s7.7 3.4 7.7 7.5c0 4.2-3.4 7.5-7.7 7.5z"/></g>
+        </svg>
+      </button>
+    </div>
+    <main class="panel"><div class="column">
+      <section id="set-password" class="state" hidden>
+        <div class="heading"><h1 id="set-heading" tabindex="-1" data-i18n="heading">Welcome back to Kuuki</h1><p data-i18n="description">Kuuki has moved. Set a password to open your journal. Your flights are all there.</p></div>
+        <form id="activation-form" novalidate>
+          <!-- Lets a password manager file the new password; it holds the email when the page knows it. -->
+          <input id="username" name="username" type="email" autocomplete="username" hidden>
+          <div class="field">
+            <label for="password" data-i18n="password">New password</label>
+            <div class="control">
+              <input id="password" name="password" type="password" autocomplete="new-password" maxlength="1024" aria-describedby="password-hint">
+              <button id="reveal" class="reveal" type="button" aria-pressed="false" aria-label="Show password" data-i18n-label="show">
+                <svg id="eye" class="icon" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M2.06 12.35a1 1 0 0 1 0-.7 10.75 10.75 0 0 1 19.88 0 1 1 0 0 1 0 .7 10.75 10.75 0 0 1-19.88 0"/><circle cx="12" cy="12" r="3"/></svg>
+                <svg id="eye-off" class="icon" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true" hidden><path d="M10.733 5.076a10.744 10.744 0 0 1 11.205 6.575 1 1 0 0 1 0 .696 10.747 10.747 0 0 1-1.444 2.49"/><path d="M14.084 14.158a3 3 0 0 1-4.242-4.242"/><path d="M17.479 17.499a10.75 10.75 0 0 1-15.417-5.151 1 1 0 0 1 0-.696 10.75 10.75 0 0 1 4.446-5.143"/><path d="m2 2 20 20"/></svg>
+              </button>
+            </div>
+            <p id="password-hint" class="hint" data-i18n="rule">At least 8 characters</p>
+            <p id="password-error" class="error" role="alert" hidden><svg class="icon" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg><span id="password-error-text"></span></p>
+          </div>
+          <button id="submit" class="primary" type="submit" aria-disabled="false">
+            <svg id="spinner" class="icon spinner" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true" hidden><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+            <span id="submit-label">Save password</span>
+          </button>
+        </form>
+      </section>
+      <section id="expired" class="state" hidden>
+        <div class="heading"><h1 id="expired-heading" tabindex="-1" data-i18n="expiredHeading">This link has expired</h1><p data-i18n="expiredDescription">Links work once, for 30 minutes.</p></div>
+        <div class="actions">
+          <a id="resend" class="primary" href="/" data-primary-path="/activation-request" data-i18n="resend">Send a new link</a>
+          <a id="signin" class="text-link" href="/" data-primary-path="/signin"><svg class="icon" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg><span data-i18n="signin">Back to sign in</span></a>
+        </div>
+      </section>
+      <!-- Where a saved password goes: the card's password-saved notice on the main origin (rewritten by the Worker). -->
+      <a id="saved" href="/?mode=signin" data-primary-path="/?notice=password-saved" hidden></a>
+      <noscript><p>Enable JavaScript to set your password. / Включите JavaScript, чтобы задать пароль.</p></noscript>
+    </div></main>
+  </div></div>
+</body>
+</html>
