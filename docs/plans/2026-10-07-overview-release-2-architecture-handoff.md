@@ -88,7 +88,7 @@ typecheck exited 0. Next build passed with the generated 72-route inventory,
 105 assets / 9226424 bytes, entry 2278 bytes. Next full suite passed: 105 files / 1102 tests. Existing navigation and
 compiled Better Auth warnings remain.
 
-Task 4 is complete in this commit: OR-within/AND-across facets, suppression-aware
+Task 4 is complete at `787680d`: OR-within/AND-across facets, suppression-aware
 country/region evidence, undirected routes, raw-country domestic comparison,
 aggregate per-flight haul, local departure bands and equal-span previous periods.
 Empty arrays clear a facet; unknown values remain active and match nothing.
@@ -99,8 +99,29 @@ Task 4 RED: 1 failed suite (missing module). Focused GREEN: 1 file / 15 tests;
 full API: 61 files / 683 tests passed; API typecheck exited 0. No client/routes
 changed; the Task 3 Next test/build evidence remains applicable.
 
-Task 5 is next: figures, coverage, home and compute entry. Tasks 5–17 are
-unstarted; there is no unresolved user decision.
+Task 5 is paused on issue 07. Its figures, coverage, home and compute entry
+are implemented but uncommitted, with no task checkboxes checked. Initial RED
+failed in two suites on the missing compute module. All nine pure-engine
+tests pass; the actual owner-builder integration fails when a known JFK home
+is outside the TBS–IST flown endpoints. The payload carries `homeOverride`
+JFK but refs only IST/TBS, so the engine falls back to TBS. This conflicts with
+Task 2's endpoint-only reference rule and Task 5's known-override rule.
+
+```text
+Test Files  1 failed | 1 passed (2)
+     Tests  1 failed | 34 passed (35)
+```
+
+API typecheck exited 0. Full Task 5 checks are held pending approval; Task 4's
+full API evidence and Task 3's Next evidence remain valid for those accepted
+commits. Task 5 tests/source remain in the worktree; this checkpoint commits
+only the issue and handoff. The owner builder is unchanged. Tasks 6–17 are
+unstarted. No per-task review has run, as directed by the user.
+
+Next action: wait for approval to include a known home override in the airport
+reference subset, preserving one batch and owner isolation, then update the
+Task 2 rule/tests and finish Task 5's failing test, full checks and exact plan
+commit. Do not implement that correction before the user answers.
 
 Keep the final whole-branch Opus review over
 `feat/overview-release-1-migrations...HEAD` through T3 `delegate_task`, with a
