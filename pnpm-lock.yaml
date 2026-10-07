@@ -33,6 +33,9 @@ importers:
       '@google/genai':
         specifier: ^1.52.0
         version: 1.52.0
+      '@photostructure/tz-lookup':
+        specifier: 11.7.0
+        version: 11.7.0
       better-auth:
         specifier: ^1.7.7
         version: 1.7.7(drizzle-orm@0.45.3(@cloudflare/workers-types@5.20261006.1)(better-sqlite3@12.6.2)(kysely@0.29.6))(next@16.3.8(@playwright/test@1.63.0)(@types/node@24.19.1)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(vitest@4.1.11)
@@ -1906,6 +1909,9 @@ packages:
   '@opentelemetry/semantic-conventions@1.43.0':
     resolution: {integrity: sha512-eSYWTm620tTk45EKSedaUL8MFYI8hW164hIXsgIHyxu3VobUB3fFCu5t0hQby6OoWRPsG1KkKUG2M5UadiLiVg==}
     engines: {node: '>=14'}
+
+  '@photostructure/tz-lookup@11.7.0':
+    resolution: {integrity: sha512-QbKHXvleluMIlAHf2JiQTJNU5rLQBeQhLobyRqgXZ6NNGKqNikaRkjYviJ4nMU7Y75QE7bBYM8xjiFGjAukyhw==}
 
   '@playwright/test@1.63.0':
     resolution: {integrity: sha512-oxMK4vllB9RK5NQ2l1pq1IfOf2AvnEuj/vYGDj0H2nMtmtZpKtCwt/l00GEO6xjGfpBNAvjovvYdCm50dRQkpQ==}
@@ -7337,6 +7343,8 @@ snapshots:
       - supports-color
 
   '@opentelemetry/semantic-conventions@1.43.0': {}
+
+  '@photostructure/tz-lookup@11.7.0': {}
 
   '@playwright/test@1.63.0':
     dependencies:

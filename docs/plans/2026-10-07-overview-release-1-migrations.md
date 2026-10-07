@@ -98,7 +98,7 @@
   - `zoneAt(p: LatLon): string`: tz-lookup's IANA zone, including `Etc/GMT±n` over oceans.
   - `zonesOverflown(a: LatLon, b: LatLon, instant: Date): number`: number of changes in `utcOffsetMinutes(zoneAt(sample), instant)` between consecutive samples of `greatCirclePoints(a, b, 50)`. A null offset is skipped.
 
-- [ ] **Step 1: Write the failing tests.**
+- [x] **Step 1: Write the failing tests.**
   - `same zone hop is zero`: KUT–TBS on 2026-06-01 → 0.
   - `TBS to IST crosses one offset`: on 2026-06-01 → ≥ 1.
   - `LHR to JFK crosses the Atlantic zones`: → ≥ 4.
@@ -106,10 +106,10 @@
   - `history follows the flight date`: TBS–SVO on 2012-06-01 (Moscow +4 = Tbilisi +4) → 0; on 2026-06-01 → ≥ 1.
   - `golden routes`: `toMatchInlineSnapshot` over `[TBS-JFK, NRT-SFO, JFK-HKG, SIN-SYD, DXB-LAX]` on 2026-06-01. The reviewer checks each value for plausibility against a map; do not hand-edit them.
   - `cost stays bounded`: DXB–LAX completes in < 50 ms on a warm run (`performance.now()`). Production runs on Workers Paid (confirmed in the 6 October handoff).
-- [ ] **Step 2:** `pnpm test:api -- functions/test/zones-overflown.test.ts`. Expected: FAIL (missing module).
-- [ ] **Step 3:** `pnpm add -w @photostructure/tz-lookup@11.7.0`; implement `zones.ts`.
-- [ ] **Step 4:** Re-run. Expected: PASS. Run `pnpm next:build`. Expected: success. Record the Worker bundle size before/after in the commit body.
-- [ ] **Step 5:** Commit `feat(api): zones overflown from tz-lookup offsets`.
+- [x] **Step 2:** `pnpm test:api -- functions/test/zones-overflown.test.ts`. Expected: FAIL (missing module).
+- [x] **Step 3:** `pnpm add -w @photostructure/tz-lookup@11.7.0`; implement `zones.ts`.
+- [x] **Step 4:** Re-run. Expected: PASS. Run `pnpm next:build`. Expected: success. Record the Worker bundle size before/after in the commit body.
+- [x] **Step 5:** Commit `feat(api): zones overflown from tz-lookup offsets`.
 
 ### Task 3: Migration 0008, ADR and glossary
 
