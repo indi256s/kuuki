@@ -25,3 +25,10 @@ it('stored invalid known facets default independently and stale string values su
     makers: ['invalid'], bodies: ['narrow'], depHours: [24], arrHours: [6], alliances: ['oneworld'] } })).filter)
     .toEqual({ airports: ['OBSOLETE'], families: ['old'], bodies: ['narrow'], arrHours: [6], alliances: ['oneworld'] })
 })
+
+it('persisted filter insertion order survives tolerant parsing without admitting invalid or unknown facets', () => {
+  const prefs = parsePrefs(JSON.stringify({ version: 1, filter: {
+    arrHours: [6], unknown: ['x'], airlines: ['TK'], makers: ['invalid'], countries: ['JP'], period: { years: [2026] },
+  } }))
+  expect(Object.keys(prefs.filter)).toEqual(['arrHours', 'airlines', 'countries', 'period'])
+})

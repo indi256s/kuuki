@@ -58,7 +58,9 @@ export function parsePrefs(raw: string | null): OverviewPrefs {
         stored.version < 0 || stored.version > 1) return defaults
     const filter: OverviewFilter = {}
     if (object(stored.filter)) {
-      for (const key of Object.keys(filterSchema.shape) as Array<keyof OverviewFilter>) {
+      for (const rawKey of Object.keys(stored.filter)) {
+        if (!Object.hasOwn(filterSchema.shape, rawKey)) continue
+        const key = rawKey as keyof OverviewFilter
         const parsed = filterSchema.shape[key].safeParse(stored.filter[key])
         if (parsed.success && parsed.data !== undefined) Object.assign(filter, { [key]: parsed.data })
       }

@@ -486,14 +486,14 @@ Task 33 deletes the legacy `client/overview/{view,hero,figures,map-band,map-prev
   - `topFamily: { family: string; flights: number } | null`.
   - `familyCount: number`.
 
-- [ ] **Step 1: Write the failing tests:**
+- [x] **Step 1: Write the failing tests:**
   - `makers.test.ts › board makers`: the flights per key are airbus 38, boeing 21, embraer 3, atr 2, other 0, unknown 5; `leader.key === 'airbus'`; `flights.length === 69`.
   - `makers.test.ts › other lists families`: one SU95 and two CRJ9 give two `other` rows: the CRJ family (2 flights) first, then the Superjet family (1 flight).
   - `fleet-clock.test.ts › body split`: the board's narrow total is 48 and wide total 16; `topFamily` equals `{ family: 'A320', flights: 27 }`.
   - `fleet-clock.test.ts › family durations exclude estimates`.
   - `makers.test.ts › aggregate has no per-flight list` (n5001).
-- [ ] **Steps 2–4:** FAIL → implement → PASS.
-- [ ] **Step 5:** Commit `feat(overview): manufacturers data and fleet v2`.
+- [x] **Steps 2–4:** FAIL → implement → PASS.
+- [x] **Step 5:** Commit `feat(overview): manufacturers data and fleet v2`.
 
 ### Task 9: Clock and Rhythm v2
 
@@ -514,13 +514,13 @@ Task 33 deletes the legacy `client/overview/{view,hero,figures,map-band,map-prev
   - `odometer: { key: string; date: string; km: number; flightId: number | null }[]`: cumulative km per counted flight in date order; per month in aggregate mode.
   - `max: { flights; distanceKm; durationMinutes }` over `cells`.
 
-- [ ] **Step 1: Write the failing tests:**
+- [x] **Step 1: Write the failing tests:**
   - `› clock arrivals and before-noon`: on the board fixture, `peakHour` and `beforeNoonShare` equal values the test counts directly from the fixture rows.
   - `› arrivals use arrMinute`: rows with `arrMinute` 400 and 1300 → `arrByHour[6].flights === 1` and `arrByHour[21].flights === 1`.
   - `› rhythm longest gap`: rows in 2021-01 and 2021-07 → `{ months: 5, from: '2021-02', to: '2021-06' }`.
   - `› odometer is cumulative`: the last `km === 141204` on the board fixture.
-- [ ] **Steps 2–4:** FAIL → implement → PASS.
-- [ ] **Step 5:** Commit `feat(overview): clock arrivals and rhythm odometer`.
+- [x] **Steps 2–4:** FAIL → implement → PASS.
+- [x] **Step 5:** Commit `feat(overview): clock arrivals and rhythm odometer`.
 
 ### Task 10: Crossings v2
 
@@ -536,13 +536,13 @@ Task 33 deletes the legacy `client/overview/{view,hero,figures,map-band,map-prev
 
 This is open decision 1: the default is endpoint offsets, not overflown zones.
 
-- [ ] **Step 1: Write the failing tests:**
+- [x] **Step 1: Write the failing tests:**
   - `› forward and back split`: shifts of +180 and −120 minutes → `forwardHours 3`, `backHours 2`, `clockShiftHours 5`.
   - `› offsets wrap into 24 hourly slots`: AKL in March 2023 (+13) hits the −11 slot; Kathmandu (+5:45) hits the +5 slot; `offsets.length === 24`.
   - `› shiftByYear zero-fills`: the board's 2015 entry has `flights === 0`.
   - `› last crossings`: on the board fixture, `lastEquator` is the latest equator-crossing flight.
-- [ ] **Steps 2–4:** FAIL → implement → PASS.
-- [ ] **Step 5:** Commit `feat(overview): crossings split, offsets and last crossings`.
+- [x] **Steps 2–4:** FAIL → implement → PASS.
+- [x] **Step 5:** Commit `feat(overview): crossings split, offsets and last crossings`.
 
 ### Task 11: Narrator engine
 
@@ -717,13 +717,13 @@ This is open decision 1: the default is endpoint offsets, not overflown zones.
 - `useOpenFlight()` returns `(id: number) => void`. It pushes `?flight=<id>` with `{ scroll: false }` and is a no-op in aggregate mode. `<OverviewFlightSheet />` renders `FlightDetailSheet` for `?flight=`, the same way Journal does.
 - `useMakerMetric()` reads and writes `?makers=flights|hours|km` with `router.replace`; the default is `flights`.
 
-- [ ] **Step 1: Write the failing tests:**
+- [x] **Step 1: Write the failing tests:**
   - `filter-actions.test.ts › removeLast removes the newest value`: `{airlines:['TK','QR'], countries:['JP']}` gives `{airlines:['TK','QR']}`, then `{airlines:['TK']}`.
   - `filter-actions.test.ts › removing the last value deletes the facet`.
   - `overview-context.test.tsx › unknown facet value yields zero scope, not a crash`: `airlines:['ZZ']` gives `scope.figures.flights === 0`.
   - `overview-context.test.tsx › prefs save is debounced and last write wins`: three quick changes produce one PUT carrying the final body.
-- [ ] **Steps 2–4:** FAIL → implement → PASS.
-- [ ] **Step 5:** Commit `feat(overview): client context, filter actions and ui bus`.
+- [x] **Steps 2–4:** FAIL → implement → PASS.
+- [x] **Step 5:** Commit `feat(overview): client context, filter actions and ui bus`.
 
 ### Task 17: Dev route, page shell and page states
 

@@ -5,7 +5,8 @@ import type { OverviewFilter, OverviewPayload } from '@kuuki/shared/overview/mod
 type Revalidation = 'unchanged' | 'updated' | 'failed'
 export type OverviewDataStore = ReturnType<typeof createOverviewDataStore>
 
-export function createOverviewDataStore(initial: OverviewPayload | null, fetcher: typeof fetch = fetch) {
+export function createOverviewDataStore(initial: OverviewPayload | null, fetcher: typeof fetch = fetch,
+  canPublish?: (response: Response) => boolean) {
   let payload = initial
   let pending: Promise<Revalidation> | null = null
   const subscribers = new Set<() => void>()
@@ -17,6 +18,8 @@ export function createOverviewDataStore(initial: OverviewPayload | null, fetcher
       if (response.status === 304) return 'unchanged'
       if (response.status !== 200) return 'failed'
       next = await response.json() as OverviewPayload
+      // Admission and publication share this synchronous continuation after the final await.
+      if (canPublish && !canPublish(response)) return 'failed'
     } catch { return 'failed' }
     payload = next
     for (const notify of subscribers) notify()

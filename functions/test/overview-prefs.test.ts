@@ -62,8 +62,12 @@ it('PUT round-trips unknown facet values without touching another owner, home or
     const etag = (await readOverviewData(db, USER.id)).etag
     const response = await call(db, csrfRequest(path, 'PUT', valid))
     expect(response.status).toBe(200)
-    expect(await response.json()).toEqual(valid)
-    expect(await (await call(db, new Request(`https://kuuki.test${path}`))).json()).toEqual(valid)
+    const returned = await response.json() as OverviewPrefs
+    expect(returned).toEqual(valid)
+    expect(Object.keys(returned.filter)).toEqual(Object.keys(valid.filter))
+    const reloaded = await (await call(db, new Request(`https://kuuki.test${path}`))).json() as OverviewPrefs
+    expect(reloaded).toEqual(valid)
+    expect(Object.keys(reloaded.filter)).toEqual(Object.keys(valid.filter))
     const stored = await db.prepare('SELECT overview_prefs,home_airport FROM profiles WHERE id = ?').bind(USER.id)
       .first<{ overview_prefs: string; home_airport: string }>()
     expect(JSON.parse(stored!.overview_prefs)).toEqual(valid)

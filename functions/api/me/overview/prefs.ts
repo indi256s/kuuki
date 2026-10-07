@@ -22,8 +22,10 @@ export const onRequestPut: PagesFunction<Env, string, RequestData> = context => 
   })
   const parsed = overviewPrefsSchema.safeParse(body)
   if (!parsed.success || JSON.stringify(body).length > 8192) throw invalidPrefs()
+  // Validation stays strict; tolerant parsing of this validated body retains facet insertion order.
+  const prefs = { ...parsed.data, filter: parsePrefs(JSON.stringify(body)).filter }
   const profile = await context.env.DB.prepare('UPDATE profiles SET overview_prefs = ?, updated_at = ? WHERE id = ? RETURNING id')
-    .bind(JSON.stringify(parsed.data), nowIso(), user.id).first<{ id: string }>()
+    .bind(JSON.stringify(prefs), nowIso(), user.id).first<{ id: string }>()
   if (!profile) throw new HttpError(404, 'Profile not found', 'NOT_FOUND')
-  return json(parsed.data)
+  return json(prefs)
 })
