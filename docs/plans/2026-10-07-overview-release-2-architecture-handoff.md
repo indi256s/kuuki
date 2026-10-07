@@ -73,18 +73,23 @@ full API: 60 files / 659 tests passed; API typecheck exited 0. Owner separation,
 transit bits, 5001-row totals, empty payloads and revision readiness are covered.
 No routes/client changes; Next tests/build are not required yet.
 
-Task 3 is paused on a material plan conflict. The endpoint and server data
-helper are implemented but uncommitted. Focused RED failed on the missing
-endpoint; GREEN is 1 file / 19 tests passed, and API typecheck exited 0.
-The actual local profile PATCH changes home without changing the ETag, so a
-conditional GET returns 304 with stale client data. Issue 06 records the
-reproducible probe and recommended extension to the profile write path.
+Task 3 is implemented in this commit: owner GET with no-store/ETag, stamp-only
+304 and auth before reads, plus the server data helper. The user approved issue
+06's extension: a home-field profile PATCH atomically updates the profile and
+conditionally marks its owner dirty, then uses the existing repair flow.
+Other profile fields keep their previous behavior. Repeating a home value also
+invalidates, matching the existing UPDATE semantics. Issue 06 is resolved.
 
-Await approval to invalidate/repair the existing revision for home-airport
-edits, keeping the planned ETag and stamp-only fast path, or a different user
-decision. Do not fix the profile handler or change the ETag contract before the
-answer. Build/route generation and full API/Next checks are held at this gate.
-No Task 3 checkbox is checked; Tasks 4–17 are unstarted.
+Endpoint RED failed on the missing module. Home-regression RED: 4 failed /
+1 passed / 19 skipped. Final focused GREEN: 1 file / 25 tests passed, including
+replacement/clearing, unchanged unrelated fields, atomic rollback, failed repair
+recovery and a missing profile. Full API: 60 files / 668 tests passed; API
+typecheck exited 0. Next build passed with the generated 72-route inventory,
+105 assets / 9226424 bytes, entry 2278 bytes. Next full suite passed: 105 files / 1102 tests. Existing navigation and
+compiled Better Auth warnings remain.
+
+Task 4 is next: pure faceted filters and previous-period arithmetic. Tasks 4–17
+are unstarted; there is no unresolved user decision.
 
 Keep the final whole-branch Opus review over
 `feat/overview-release-1-migrations...HEAD` through T3 `delegate_task`, with a

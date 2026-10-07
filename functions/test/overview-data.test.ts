@@ -2,8 +2,133 @@ import { expect, it, vi } from 'vitest'
 import { aggregateRows } from '../../packages/shared/src/overview/aggregate'
 import type { OverviewRow } from '../../packages/shared/src/overview/model'
 import { overviewEtag, readOverviewData } from '../api/_services/overviewData'
-import { dirtyUserStatement } from '../api/_services/derivedState'
+import { dirtyUserStatement, repairUserDerivedState } from '../api/_services/derivedState'
+import { onRequestGet as getOverviewData } from '../api/me/overview/data'
+import { updateProfileRequest } from '../api/profiles/me'
+import { apiContext, csrfRequest } from './harness'
 import { bulkFlights, overviewAccount, USER } from './overview-fixture'
+
+it('serves no-store payload with etag', async () => {
+  const { db, dispose } = await overviewAccount([])
+  try {
+    const response = await getOverviewData({ ...apiContext(db, new Request('https://kuuki.test/api/me/overview/data')),
+      data: { user: USER } } as never)
+    expect(response.status).toBe(200)
+    expect(response.headers.get('Cache-Control')).toBe('no-store')
+    const payload = await response.json() as { etag: string; schemaVersion: number }
+    expect(payload.schemaVersion).toBe(2)
+    expect(response.headers.get('ETag')).toBe(payload.etag)
+  } finally { await dispose() }
+})
+
+it('304 on matching etag reads only the stamp; a new revision serves fresh data', async () => {
+  const { db, dispose } = await overviewAccount([])
+  try {
+    const etag = (await readOverviewData(db, USER.id)).etag
+    const prepare = vi.fn(db.prepare.bind(db))
+    const batch = vi.fn(db.batch.bind(db))
+    const readDb = { prepare, batch } as unknown as D1Database
+    const request = new Request('https://kuuki.test/api/me/overview/data', { headers: { 'If-None-Match': etag } })
+    const response = await getOverviewData({ ...apiContext(readDb, request), data: { user: USER } } as never)
+    expect(response.status).toBe(304)
+    expect(await response.text()).toBe('')
+    expect(response.headers.get('ETag')).toBe(etag)
+    expect(response.headers.get('Cache-Control')).toBe('no-store')
+    expect(prepare).toHaveBeenCalledTimes(1)
+    expect(prepare.mock.calls[0][0]).toContain('user_derived_state')
+    expect(batch).not.toHaveBeenCalled()
+    await dirtyUserStatement(db, USER.id).run()
+    const fresh = await getOverviewData({ ...apiContext(db, request), data: { user: USER } } as never)
+    expect(fresh.status).toBe(200)
+    expect(fresh.headers.get('ETag')).not.toBe(etag)
+  } finally { await dispose() }
+})
+
+it('anonymous is 401 before any database access', async () => {
+  const prepare = vi.fn()
+  const batch = vi.fn()
+  const db = { prepare, batch } as unknown as D1Database
+  const response = await getOverviewData(apiContext(db, new Request('https://kuuki.test/api/me/overview/data')) as never)
+  expect(response.status).toBe(401)
+  expect(prepare).not.toHaveBeenCalled()
+  expect(batch).not.toHaveBeenCalled()
+})
+
+it.each(['JFK', null])('a home-airport edit to %s invalidates the old etag and repairs publication', async home => {
+  const { db, dispose } = await overviewAccount([], d => [
+    d.prepare("UPDATE profiles SET home_airport = 'TBS' WHERE id = ?").bind(USER.id),
+  ])
+  try {
+    const old = await readOverviewData(db, USER.id)
+    const patch = await updateProfileRequest(csrfRequest('/api/profiles/me', 'PATCH', { home_airport: home }),
+      { DB: db } as Env, { user: USER })
+    expect(patch.status).toBe(200)
+    const response = await getOverviewData({ ...apiContext(db, new Request('https://kuuki.test/api/me/overview/data',
+      { headers: { 'If-None-Match': old.etag } })), data: { user: USER } } as never)
+    expect(response.status).toBe(200)
+    const fresh = await response.json() as { etag: string; homeOverride: string | null; derivedReady: boolean }
+    expect(fresh.homeOverride).toBe(home)
+    expect(fresh.etag).not.toBe(old.etag)
+    expect(fresh.derivedReady).toBe(true)
+  } finally { await dispose() }
+})
+
+it('other profile edits leave the overview etag unchanged', async () => {
+  const { db, dispose } = await overviewAccount([])
+  try {
+    const old = await readOverviewData(db, USER.id)
+    const patch = await updateProfileRequest(csrfRequest('/api/profiles/me', 'PATCH', { display_name: 'Traveler' }),
+      { DB: db } as Env, { user: USER })
+    expect(patch.status).toBe(200)
+    expect((await readOverviewData(db, USER.id)).etag).toBe(old.etag)
+  } finally { await dispose() }
+})
+
+it('home and revision roll back together if the dirty mark fails', async () => {
+  const { db, dispose } = await overviewAccount([])
+  try {
+    const old = await readOverviewData(db, USER.id)
+    await db.prepare("CREATE TRIGGER fail_stamp BEFORE UPDATE ON user_derived_state BEGIN SELECT RAISE(ABORT, 'synthetic failure'); END").run()
+    const patch = await updateProfileRequest(csrfRequest('/api/profiles/me', 'PATCH', { home_airport: 'JFK' }),
+      { DB: db } as Env, { user: USER })
+    expect(patch.status).toBe(500)
+    const after = await readOverviewData(db, USER.id)
+    expect(after.etag).toBe(old.etag)
+    expect(after.homeOverride).toBe(old.homeOverride)
+  } finally { await dispose() }
+})
+
+it('a missing profile returns 404 without marking the owner dirty', async () => {
+  const { db, dispose } = await overviewAccount([])
+  try {
+    const old = await readOverviewData(db, USER.id)
+    await db.prepare('DELETE FROM profiles WHERE id = ?').bind(USER.id).run()
+    const patch = await updateProfileRequest(csrfRequest('/api/profiles/me', 'PATCH', { home_airport: 'JFK' }),
+      { DB: db } as Env, { user: USER })
+    expect(patch.status).toBe(404)
+    expect((await readOverviewData(db, USER.id)).etag).toBe(old.etag)
+  } finally { await dispose() }
+})
+
+it('failed publication keeps the accepted home edit recoverable with a new stamp', async () => {
+  const { db, dispose } = await overviewAccount([])
+  try {
+    const old = await readOverviewData(db, USER.id)
+    await db.prepare("CREATE TRIGGER fail_publication BEFORE UPDATE OF published_revision ON user_derived_state BEGIN SELECT RAISE(ABORT, 'synthetic failure'); END").run()
+    const patch = await updateProfileRequest(csrfRequest('/api/profiles/me', 'PATCH', { home_airport: 'JFK' }),
+      { DB: db } as Env, { user: USER })
+    expect(patch.status).toBe(200)
+    const pending = await readOverviewData(db, USER.id)
+    expect(pending.homeOverride).toBe('JFK')
+    expect(pending.etag).not.toBe(old.etag)
+    expect(pending.derivedReady).toBe(false)
+    await db.prepare('DROP TRIGGER fail_publication').run()
+    expect(await repairUserDerivedState(db, USER.id)).toMatchObject({ derived_state: 'ready' })
+    const repaired = await readOverviewData(db, USER.id)
+    expect(repaired.derivedReady).toBe(true)
+    expect(repaired.etag).not.toBe(pending.etag)
+  } finally { await dispose() }
+})
 
 it('payload carries every lifecycle state in one owner-scoped batch', async () => {
   const { db, dispose } = await overviewAccount([

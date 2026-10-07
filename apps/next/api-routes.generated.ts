@@ -329,6 +329,12 @@ export const apiRoutes = [
     ]
   },
   {
+    "route": "/api/me/overview/data",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
     "route": "/api/me/overview/missing-aircraft",
     "methods": [
       "GET"

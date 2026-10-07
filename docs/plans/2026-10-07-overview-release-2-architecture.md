@@ -185,6 +185,7 @@ export interface OverviewPayload {
 **Files:**
 - Create: `functions/api/me/overview/data.ts`
 - Modify: `apps/next/src/server/overview.ts` (add `getOwnOverviewData()` mirroring `getOwnOverview`), `apps/next/api-routes.generated.ts` (via build)
+- Modify: `functions/api/profiles/me.ts` (user-approved home-edit invalidation)
 - Test: `functions/test/overview-data.test.ts` (extend)
 
 **Interfaces:**
@@ -193,16 +194,25 @@ export interface OverviewPayload {
   - 200 with the payload, plus `Cache-Control: no-store` and an `ETag`.
   - 304 with an empty body when `If-None-Match` equals the current etag; the stamp is read with a single `stateOf` before any flights read.
   - 401 when anonymous.
+  - A profile PATCH carrying `home_airport` (including clearing it) atomically
+    updates the profile and marks the owner dirty, then uses the existing repair
+    flow. This keeps the ETag format and stamp-only 304 path valid after home
+    edits. Other profile edits do not change the Overview revision. Approved by
+    the user on 7 October; issue 06 records the original stale-304 proof.
 - Produces: `getOwnOverviewData(): Promise<{ ownerId: string; payload: OverviewPayload } | null>`.
 
-- [ ] **Step 1: Write the failing tests:**
+- [x] **Step 1: Write the failing tests:**
   - `serves no-store payload with etag`.
   - `304 on matching etag reads only the stamp`: a spy DB counts statements; expect exactly 1.
   - `anonymous is 401`.
-- [ ] **Step 2:** Run. Expected: FAIL.
-- [ ] **Step 3:** Implement; run `pnpm next:build` to regenerate routes.
-- [ ] **Step 4:** `pnpm test:api`, `pnpm --filter @kuuki/next test`. Expected: PASS.
-- [ ] **Step 5:** Commit `feat(api): GET /api/me/overview/data`.
+  - Home change and clearing invalidate an old ETag and publish the new stamp;
+    unrelated profile edits preserve it. Failed dirty marking rolls back the
+    profile update; failed repair retains the edit and a recoverable dirty stamp;
+    a missing profile returns 404 without a dirty mark.
+- [x] **Step 2:** Run. Expected: FAIL.
+- [x] **Step 3:** Implement; run `pnpm next:build` to regenerate routes.
+- [x] **Step 4:** `pnpm test:api`, `pnpm --filter @kuuki/next test`. Expected: PASS.
+- [x] **Step 5:** Commit `feat(api): GET /api/me/overview/data`.
 
 ### Task 4: Filter engine
 

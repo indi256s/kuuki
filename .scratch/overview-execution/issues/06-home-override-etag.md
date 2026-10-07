@@ -1,6 +1,6 @@
 # Home-airport edits do not invalidate the Overview payload
 
-Status: open
+Status: resolved — user approved home-edit revision invalidation
 
 Release 2 Task 3 specifies `W/"ov2-<revision>-<evidence_revision>"` and a 304
 fast path reading only `stateOf`. The payload includes `profiles.home_airport`,
@@ -41,3 +41,11 @@ Focused tests: 1 file / 19 tests passed; API typecheck exited 0. The initial
 focused run failed on the missing endpoint. Build/route generation and full
 API/Next checks are held until this behavior decision. No Task 3 checkbox is
 checked and Tasks 4–17 have not begun.
+
+On 7 October the user answered “yes” to the recommended extension. The plan now
+includes the profile write path. A home-field PATCH uses an atomic update and
+conditional dirty marker followed by existing repair; other fields keep their
+original behavior. Regression tests cover replacement/clearing, rollback,
+publication recovery and missing profiles. The format and stamp-only 304 path
+are preserved. Every accepted home-field PATCH invalidates, including a repeated
+value, matching the existing profile UPDATE behavior.
