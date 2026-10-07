@@ -2,7 +2,7 @@
 // flights upcoming -> awaiting -> logged, so a confirmed owner session asks `POST /api/flights/sync-upcoming` itself:
 // at most once per 10 minutes per owner across every tab (a shared localStorage timestamp, written before the request),
 // never for a guest, with at most two follow-up passes while the server says `more`. The caller refreshes the page
-// afterwards (derived-publication poll when pending) and announces `kuuki:lifecycle-changed` when flights moved.
+// immediately and announces `kuuki:lifecycle-changed` when flights moved, then refreshes again if pending publication completes.
 
 export const OWNER_SYNC_INTERVAL_MS = 10 * 60_000
 /** After a failed attempt the next try waits this long, not the whole interval. */

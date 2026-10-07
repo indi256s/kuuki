@@ -74,10 +74,11 @@ export default {
     headers.set('X-Content-Type-Options', 'nosniff')
     headers.set('Referrer-Policy', url.pathname === '/reset-password' ? 'no-referrer' : 'strict-origin-when-cross-origin')
     const contentType = headers.get('Content-Type')
-    if ((request.method === 'GET' || request.method === 'HEAD') && cachedMapAssets.has(url.pathname) &&
+    const font = url.pathname.startsWith('/fonts/') && /\.(?:woff2|ttf)$/.test(url.pathname)
+    if ((request.method === 'GET' || request.method === 'HEAD') && (cachedMapAssets.has(url.pathname) || font) &&
       (response.status === 200 || response.status === 304) && !headers.has('Set-Cookie') &&
       (response.status === 304 || (contentType && !contentType.includes('text/html')))) {
-      headers.set('Cache-Control', 'public, max-age=31536000, immutable')
+      headers.set('Cache-Control', font ? 'public, max-age=3600, must-revalidate' : 'public, max-age=31536000, immutable')
     } else if (!url.pathname.startsWith('/_next/static/') || response.status >= 400) {
       headers.set('Cache-Control', 'no-store')
     }

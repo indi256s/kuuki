@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { render, screen } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
-import { CountryPreview } from './preview'
+import { CountryPreview, previewArcPath } from './preview'
 
 describe('country preview evidence', () => {
   it.each(['en', 'ru'] as const)('keeps awaiting countries unpressed and separate from visited counts in %s', locale => {
@@ -22,7 +22,7 @@ describe('country preview evidence', () => {
       { ...pair, a: 'BOS', b: 'JFK', from: [-71, 42.4] as [number, number], to: [-73.8, 40.6] as [number, number] },
       { ...pair, a: 'LAX', b: 'NRT', from: [-118.4, 33.9] as [number, number], to: [140.4, 35.8] as [number, number] },
       { ...pair, a: 'XXX', b: 'JFK', from: null, to: [-73.8, 40.6] as [number, number] },
-    ]
+    ].map(pair => ({ a: pair.a, b: pair.b, d: previewArcPath(pair) }))
     const { container } = render(<CountryPreview locale="en" countryIds={['US']} visits={[{ countryCode: 'US', count: 3 }]} routes={routes} />)
     const arcs = [...container.querySelectorAll('path[data-route]')]
     expect(arcs.map(arc => arc.getAttribute('data-route'))).toEqual(['BOS-JFK', 'LAX-NRT'])

@@ -44,7 +44,7 @@ export function ResetPasswordForm({ locale: initialLocale }: { locale: Locale })
       if (address.length <= 320 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(address)) setEmail(address)
     } catch { /* A token-only visit still works when no same-origin email hint is available. */ }
   }, [])
-  useEffect(() => { if (token !== null) heading.current?.focus() }, [token, busy, success])
+  useEffect(() => { if (token !== null) heading.current?.focus() }, [token, success])
   async function submit(event: FormEvent) {
     event.preventDefault()
     if (busy || !token) return
