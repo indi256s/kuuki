@@ -318,14 +318,14 @@ The home override reuses the existing private `profiles.home_airport`; no column
   - Expected: `samples ≥ 30`, then re-run with `--write`.
   - With fewer samples, keep the prior and record that.
   - Commit `chore(shared): fit block-time model on production sample` and show the coefficient diff to the user.
-- [ ] **Step 3:** Locally:
+- [x] **Step 3:** Locally:
   - Run `overview-backfill-proposal.ts --target local …`.
   - Review the manifest: expected total distance ≈ old ÷ 1.1 per user; list every `kept_unexplained` and `no_coordinates` row for the user.
   - Execute the SQL on the local copy.
   - Bundle the operator (`wrangler deploy --dry-run --outdir <tmp>`) and run it in Miniflare over the same `d1Persist` with `dispatchFetch` (`/repair` loop, `/refresh-leaderboards`).
   - Re-run the proposal.
   - Expected: 0 changes, `dirty 0`, `metricsNull 0`.
-- [ ] **Step 4:** Write `docs/runbooks/overview-release-1.md`. Each production write step is marked **separate authorization**. The ordered sequence:
+- [x] **Step 4:** Write `docs/runbooks/overview-release-1.md`. Each production write step is marked **separate authorization**. The ordered sequence:
   1. Writer hold per the audit runbook.
   2. Time Travel bookmark + SQL export + restore proof on a separate DB.
   3. Read-only ledger check (deploy-kuuki step 2).
@@ -340,4 +340,4 @@ The home override reuses the existing private `profiles.home_airport`; no column
   12. Release hold, then smoke: create a flight and check its distance, source and zones; check the leaderboard and profile totals.
   
   Rollback: forward-fix while held; D1 restore only under hold, per the audit runbook.
-- [ ] **Step 5:** Commit `docs: overview release 1 runbook and rehearsal evidence`. Stop. Production execution happens only when the user authorizes each marked step.
+- [x] **Step 5:** Commit `docs: overview release 1 runbook and rehearsal evidence`. Stop. Production execution happens only when the user authorizes each marked step.

@@ -40,54 +40,78 @@ Tasks 1–5 reviews and fixes remain valid. Review is deferred to the full branc
 
 ## Latest checks
 
-After Task 7:
+Task 8 checks with the fitted production-sample model:
 
 ```text
-API:     Test Files 57 passed (57), Tests 631 passed (631)
+API:     Test Files 58 passed (58), Tests 635 passed (635)
 Next:    Test Files 105 passed (105), Tests 1102 passed (1102)
-Focused: Test Files 1 passed (1), Tests 5 passed (5)
+Focused: Test Files 4 passed (4), Tests 34 passed (34)
 ```
 
-API, scripts and operator typechecks exited 0. Operator Wrangler dry-run
-exited 0 with a synthetic D1 binding: `Total Upload: 58.36 KiB / gzip: 13.50 KiB`.
-The compiled bundle passed isolated Miniflare authentication, repair/rerun,
-leaderboard refresh and count-only status checks. Initial smoke harness startup
-failed because an external script needed an explicit `modulesRoot`; correcting
-the private harness resolved it without changing production code.
-
-Task 6's Next build evidence remains valid for the application bundle:
+API/scripts typechecks and Next build exited 0. Operator typecheck passed in
+Task 7; its source is unchanged. The current build reports:
 
 ```json
 {"node":"v24.18.0","openNextEntryBytes":2278,"assetCount":105,"assetBytes":9285828,"apiRoutes":71}
 ```
 
-Task 7 changes only the standalone operator, its tests, tooling and docs; no
-application bundle source changed. Existing navigation and compiled Better
-Auth duplicate-key warnings remain. Logs and private smoke harness are under
-`/tmp/kuuki-overview-execution/r1-t7-*`.
+Final restore-only guard and fixture edits are covered by the repeated API suite
+and API/scripts typechecks; they do not enter the app bundle. The earlier passing
+Next tests and build remain applicable. A SQLITE_BUSY fixture failure was fixed
+by serializing runtimes for the same persistent namespace.
 
-## Tasks 6–7
+Existing navigation and compiled Better Auth duplicate-key warnings remain.
+The restored-export operator bundle dry-run passed: 57.31 KiB / gzip 13.43 KiB.
+Local compiled repair published 18 users with no failures; final status is
+28 users / 412 flights / dirty 0 / metricsNull 0. Refresh produced 25 rows for
+five eligible ready users; repeat repair and proposal both report zero work.
+All 134 historical badge rows remain intact; four new awards are allowed.
 
-- Task 6: `d627aba`, pure two-pass backfill planner and read-only proposal,
-  with both approved CAS/drift corrections. Issues 03/04 record the decisions.
-  Per-task review cancelled under the user's revised workflow.
-- Task 7: implemented in this commit. Fixed operations authenticate before D1;
-  repairs cap at 50 oldest stale users, isolate failures and count outcomes;
-  leaderboard refresh reuses the existing five-category publication service.
-  The private production-config directory is now gitignored. No deploy config
-  with a real binding or token has been created.
+## Tasks 6–8
 
-## Next action / required authorization
+- Task 6: `d627aba`, two-pass backfill planner / read-only proposal and both
+  user-approved CAS/drift corrections. Issues 03/04 retain the decisions.
+  Per-task review cancelled under the revised workflow.
+- Task 7: `5726e13`, authenticated fixed-operation release operator; tests cover
+  auth before D1, failure recovery, 50-user oldest-first cap and leaderboards.
+- Task 8 calibration: `3c444cf`, 315 valid samples, 13 skipped, RMSE 51.516435.
+  Prior retained as the sparse/singular fallback; coefficient diff shown.
+- Task 8 tooling/runbook/evidence: this commit adds the isolated private restore
+  tool and synthetic preservation/refusal tests, and documents all separately
+  authorized production steps. Every Task 8 checkbox is complete.
 
-Task 8 Step 1 requires the user's approval before copying private production
-data: read-only `wrangler d1 export kuuki-db --remote --output <private path>`
-for D1 `2a8e3895-6a98-4473-8d7b-a43ca0c0026f`, account
-`5cadcff0282e54f3ff1d7062d4dbb97a`. The export briefly blocks D1. Store it under
-mode-0700 temporary storage with file mode 0600, then perform the local-only
-restore, calibration and rehearsal. This approval does not authorize other
-remote reads, remote writes or deployment. Do not execute the export until the
-user answers. Task 8 and all Release 2 tasks remain unstarted.
+The user explicitly approved one remote production export and the local-only
+rehearsal. It is saved privately with mode 0600, SHA-256
+`9c203950a2e7b8b62b7a0aaa7e893898ed0a8f96313b0e23271e066f3b51057c`.
+Restore applied only 0008 after ledger 0001–0007 and passed raw preservation for
+33 tables / 2221 records, foreign keys and local integrity. The initial Python
+SQLite 3.39.4 baseline rounded coordinate literals; Node SQLite 3.53.3 compared
+all records exactly without tolerance or data changes. All seven schema review
+dimensions match, with historical advanced-stats column order admitted privately.
+
+The proposal changed 411 of 412 flights / 18 users. Populated distance totals
+773324 → 703878 km; one previously empty total gains 128414 km. Three unresolved
+routes keep their stored distances; two unexplained durations (50/160) remain.
+The private complete per-user/exception report is
+`/var/folders/hy/6ftrhvk16w942tqtvgsxy6pc0000gn/T/kuuki-overview-release-1-f_cw0lq1/backfill-review.md`.
+The export, local D1, admissions, manifests, snapshots and detailed logs are in
+that private directory. Synthetic check logs are under
+`/tmp/kuuki-overview-execution/r1-t8-*`.
+
+## Next action
+
+Release 1 local implementation is complete. Per-task reviews are removed by
+user instruction; whole-branch review remains deferred to completion. The
+original branch instruction calls for the Release 1 review over `main...HEAD`
+and then creation of `feat/overview-release-2-architecture` from this HEAD in
+this same worktree. Do not run production steps as part of that continuation.
+
+No production hold/write, secret setting, operator/app deployment, GitHub
+operation or UI change was performed. Only the explicitly approved production
+export was remote. All later remote actions need fresh authorization under
+`docs/runbooks/overview-release-1.md`. Release 1 is not deployed; Release 2 must
+not ship until its production dependency is admitted.
 
 Issue 02 (browser metric declarations) remains open for the first consumer,
-before design handoff. No remote operation, push, PR, merge or UI change has
-been performed. All original hard stops remain in effect.
+before design handoff. All Release 2 tasks remain unstarted. Keep the original
+UI, GitHub, production, parity-report and material-plan-conflict hard stops.
