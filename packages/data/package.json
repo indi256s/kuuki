@@ -12,6 +12,8 @@
     "./airlines": "./src/airlines.json",
     "./airport-lookup": "./src/airport-lookup.ts",
     "./aircraft-lookup": "./src/aircraft-lookup.ts",
+    "./aircraft-makers": "./src/aircraft-makers.ts",
+    "./alliance-membership": "./src/alliance-membership.ts",
     "./countries.json": "./src/countries.json",
     "./country-neighbors": "./src/country-neighbors.ts"
   },
