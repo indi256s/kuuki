@@ -161,19 +161,19 @@ The home override reuses the existing private `profiles.home_airport`; no column
   - `fitBlockTimeModel(samples: Array<{ distanceKm: number; east: number; minutes: number }>): BlockTimeModel`: ordinary least squares on the five terms. Returns the prior when `samples.length < 30` or any distance band has < 5 samples.
   - `isLegacyEstimate(minutes: number, distanceKm: number): boolean`: true when `|minutes − round(d/v·60 + (d > 3000 ? 45 : 30))| ≤ 1` for any `v ∈ {300, 500, 750, 800, 850}`. These are the old client and server formulas.
 
-- [ ] **Step 1: Write the failing tests.**
+- [x] **Step 1: Write the failing tests.**
   - `prior reproduces the old default`: `estimateBlockMinutes(1000, 0)` with the prior → 105.
   - `monotonic in distance`: for d in 100…15 000 step 100, the estimate never decreases.
   - `fit recovers known coefficients`: 200 synthetic samples generated from `{intercept 25, slopes [0.08,0.072,0.07], jet -0.004}` with zero noise → every coefficient within 1e-6.
   - `fit falls back to prior on thin data`: 29 samples → returns the prior.
   - `legacy detector`: `isLegacyEstimate(round(2000/850·60+30), 2000)` → true; `isLegacyEstimate(137, 2000)` → false.
-- [ ] **Step 2:** `pnpm test:api -- packages/shared/src/blockTime.test.ts`. Expected: FAIL.
-- [ ] **Step 3:** Implement `blockTime.ts` with the prior in `blockTimeModel.generated.ts`. Then implement `scripts/fit-block-time.ts --database-id <id> --persist <abs dir> [--schema-admission <json>] [--write]`.
+- [x] **Step 2:** `pnpm test:api -- packages/shared/src/blockTime.test.ts`. Expected: FAIL.
+- [x] **Step 3:** Implement `blockTime.ts` with the prior in `blockTimeModel.generated.ts`. Then implement `scripts/fit-block-time.ts --database-id <id> --persist <abs dir> [--schema-admission <json>] [--write]`.
   - It opens the local copy through the same `MigrationReader` + `assessSchemaAdmission` path as Task 6. A restored production copy carries the admitted `user_advanced_stats` column-order variant, so `openLocalTarget`'s exact check would refuse it.
   - It reads `awaiting`/`logged` flights with both times, resolves tz from the package when the row has none, computes minutes with `computeFlightDuration`, and prints `{samples, rmse, model}`.
   - With `--write` it regenerates the module (header: generated, sample count, date; no user identifiers).
-- [ ] **Step 4:** Re-run the tests. Expected: PASS. Run `pnpm typecheck:scripts`. Expected: clean.
-- [ ] **Step 5:** Commit `feat(shared): calibrated block-time model with prior`. The real fit is regenerated in Task 8 from the restored production export, and that diff is reviewed on its own.
+- [x] **Step 4:** Re-run the tests. Expected: PASS. Run `pnpm typecheck:scripts`. Expected: clean.
+- [x] **Step 5:** Commit `feat(shared): calibrated block-time model with prior`. The real fit is regenerated in Task 8 from the restored production export, and that diff is reviewed on its own.
 
 ### Task 5: Server-authoritative write path
 

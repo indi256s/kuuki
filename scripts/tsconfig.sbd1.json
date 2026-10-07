@@ -32,6 +32,7 @@
     "./smoke-local-runtime.ts",
     "./smoke-next-runtime.ts",
     "./generate-country-regions.ts",
+    "./fit-block-time.ts",
     "./verify-import-provider.ts",
     "./evaluate-import.ts",
     "../functions/env.d.ts"
