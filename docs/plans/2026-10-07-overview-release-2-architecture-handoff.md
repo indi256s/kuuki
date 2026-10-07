@@ -211,7 +211,7 @@ Task 3's Next test/build evidence remains applicable. Task 10 checkboxes are
 checked in its implementation commit. Logs and compact full snapshot inspection
 are under `/tmp/kuuki-overview-execution/r2-t10-*`.
 
-Task 11 is complete in this commit: versioned shared preferences and owner
+Task 11 is complete at `7db82c7`: versioned shared preferences and owner
 GET/CSRF-protected PUT, strict zod 4 validation, bounded JSON reads and 8192
 serialized-character validation. Both order and hidden lists reject duplicates
 and unknown sections. Partial order lists remain valid, as the Interfaces do
@@ -236,9 +236,39 @@ warning remains. No client/UI code changed; prior Next unit evidence remains
 applicable. Task 11 checkboxes are in its implementation commit. No per-task
 review under the user's revised workflow.
 
-Task 12 is next: memory-only client store and the carried issue 02 browser
-metric type correction. Tasks 12–17 are unstarted. No open user decision.
-No UI, production/remote or GitHub actions.
+Task 12 is paused with source/tests prepared and uncommitted. The store is
+memory only, sends conditional no-store/same-origin fetches, retains payloads on
+network/HTTP/JSON failure, coalesces concurrent requests, notifies subscribers
+on 200, and memoizes scopes per store/ETag/serialized filter. Focus and visible
+Document events share a two-second throttle and detach removes both listeners.
+Requests use the platform's 30-second abort signal, matching existing transport
+timeouts. No localStorage/sessionStorage, IndexedDB or Cache API is accessed.
+Issue 02's optional read-only metric fields are prepared in the browser types;
+the write allowlist is unchanged. No UI consumer is added.
+
+Initial RED: missing store module. Focused GREEN: 1 file / 10 tests.
+Full API with four workers: 69 files / 768 tests passed in 87.64s. Full Next:
+106 files / 1112 tests passed in 24.31s (existing jsdom navigation notices).
+API and client typechecks exit 0. Next typecheck exits 2 on the real-window
+helper call:
+
+```text
+error TS2345: Argument of type 'Window & typeof globalThis' is not assignable to parameter of type 'Window & Document'.
+Type 'Window & typeof globalThis' is missing the following properties from type 'Document': alinkColor, all, anchors, applets, and 153 more.
+```
+
+Issue 10 records the wrong Task 12 parameter contract. A real Window exposes
+its Document via `.document`; it is not itself a Document. Recommend changing
+the plan and helper target to `Window`, keeping the tested event owners and
+runtime behavior unchanged. Do not hide the actual-window test call behind a
+cast. Await user approval under the plan-conflict rule before this correction,
+Task 12's final passing typecheck/commit or Task 13 implementation. Task 12 boxes
+remain unchecked; Tasks 13–17 are unstarted. Task 13 package/documentation
+lookups only confirmed version 1.0.0 availability; no dependency was installed.
+
+No route/UI changes in Task 12, so the successful Task 11 build remains valid.
+Independent review stays deferred until the final branch review. No UI,
+production/remote or GitHub actions.
 
 Keep the final whole-branch Opus review over
 `feat/overview-release-1-migrations...HEAD` through T3 `delegate_task`, with a
