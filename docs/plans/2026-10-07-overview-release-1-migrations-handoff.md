@@ -40,12 +40,12 @@ Tasks 1–5 reviews and fixes remain valid. Review is deferred to the full branc
 
 ## Latest checks
 
-Task 8 checks with the fitted production-sample model:
+Final Release 1 checks, including the whole-branch review fix:
 
 ```text
-API:     Test Files 58 passed (58), Tests 635 passed (635)
+API:     Test Files 58 passed (58), Tests 636 passed (636)
 Next:    Test Files 105 passed (105), Tests 1102 passed (1102)
-Focused: Test Files 4 passed (4), Tests 34 passed (34)
+Focused: Test Files 2 passed (2), Tests 15 passed (15)
 ```
 
 API/scripts typechecks and Next build exited 0. Operator typecheck passed in
@@ -55,10 +55,10 @@ Task 7; its source is unchanged. The current build reports:
 {"node":"v24.18.0","openNextEntryBytes":2278,"assetCount":105,"assetBytes":9285828,"apiRoutes":71}
 ```
 
-Final restore-only guard and fixture edits are covered by the repeated API suite
-and API/scripts typechecks; they do not enter the app bundle. The earlier passing
-Next tests and build remain applicable. A SQLITE_BUSY fixture failure was fixed
-by serializing runtimes for the same persistent namespace.
+Final backfill reporting edits are covered by the repeated API suite and
+API/scripts typechecks. This planner is used by proposal tooling, not the app
+bundle; the earlier passing build remains applicable. A SQLITE_BUSY fixture
+failure was fixed by serializing runtimes for the same persistent namespace.
 
 Existing navigation and compiled Better Auth duplicate-key warnings remain.
 The restored-export operator bundle dry-run passed: 57.31 KiB / gzip 13.43 KiB.
@@ -97,6 +97,28 @@ The private complete per-user/exception report is
 The export, local D1, admissions, manifests, snapshots and detailed logs are in
 that private directory. Synthetic check logs are under
 `/tmp/kuuki-overview-execution/r1-t8-*`.
+
+## Whole-branch review fixes
+
+Opus 5.5 round 1 over `main...c652772` found no blocking correctness or spec
+compliance defect and two verified low findings:
+
+1. A newly filled estimate with no old duration was counted as
+   `estimate_replaced`. The reporting guard now requires a non-NULL old duration.
+   The regression went RED before the one-line fix; affected tests pass. Recount
+   of the saved rehearsal snapshot still reports 66 replacements and no newly
+   filled estimates, and the complete SQL SHA-256 is unchanged.
+2. Runbook step 7 referenced a nonexistent file-execution procedure and required
+   per-UPDATE counts that Wrangler's aggregate import response cannot provide.
+   The runbook now includes private payload preparation, a single query-API batch
+   and a count-only response verifier before operator repair. Eight offline
+   response checks pass, including CAS miss, missing results/metadata, API and
+   statement failures, and invalid JSON. No remote request was made. Before
+   production use, the query route needs its separately approved isolated remote
+   proof of ordered counts, CAS miss and rollback.
+
+This commit resolves both findings. The procedure correction receives a fresh
+Opus review round before Release 2; per-task reviews remain removed.
 
 ## Next action
 

@@ -32,6 +32,14 @@ it('replaces legacy distance and estimate, but keeps unexplained historical dura
   expect(changes[1].classes).toContain('kept_unexplained')
 })
 
+it('fills a missing duration without reporting a replaced legacy estimate', () => {
+  const changes = planFlightBackfill([row({ distance_km: null, duration_minutes: null })], coords)
+  expect(changes[0].after).toMatchObject({ distance_km: 8980, duration_source: 'estimate',
+    duration_minutes: estimateBlockMinutes(8980, eastwardShare(coords.get('TBS')!, coords.get('JFK')!)) })
+  expect(changes[0].classes).not.toContain('estimate_replaced')
+  expect(changes[0].classes).not.toContain('kept_unexplained')
+})
+
 it('fills timezone before measuring times, including a DST red-eye', () => {
   const changes = planFlightBackfill([row({ origin: 'JFK', destination: 'LHR', date: '2026-03-28',
     departure_time: '22:30', arrival_time: '10:30' })], coords)

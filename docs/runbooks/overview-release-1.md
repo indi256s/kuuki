@@ -101,6 +101,91 @@ non-metric flight columns and canonical/reference records remain unchanged,
 foreign keys remain valid, and every original earned badge row is intact. New
 awards are allowed; revocation or changed historical award evidence is not.
 
+## Backfill execution and per-statement verification
+
+Wrangler's remote `--file` path imports the file and returns aggregate totals.
+Those totals cannot prove that every guarded UPDATE matched. Use the
+[Cloudflare D1 query API](https://developers.cloudflare.com/api/resources/d1/subresources/database/methods/query/)
+with a batch instead: it returns an ordered array of statement results, including
+`meta.changes`. Preserve the reviewed statements and submit them in one request;
+never remove CAS guards or split the updates from their dirty markers.
+
+The preparation below is local only. Replace the absolute private paths with
+those admitted in step 6. It binds the exact SQL hash and production target,
+then writes a mode-0600 request body without printing SQL:
+
+```sh
+node --input-type=module - /absolute/private/backfill.sql /absolute/private/backfill.sql.manifest.json /absolute/private/request.json <<'JS'
+import assert from 'node:assert/strict'
+import { createHash } from 'node:crypto'
+import { readFileSync, writeFileSync } from 'node:fs'
+import { unstable_splitSqlQuery } from 'wrangler'
+const [sqlPath, manifestPath, output] = process.argv.slice(2)
+const sql = readFileSync(sqlPath, 'utf8')
+const manifest = JSON.parse(readFileSync(manifestPath, 'utf8'))
+assert.equal(manifest.accountId, '5cadcff0282e54f3ff1d7062d4dbb97a')
+assert.equal(manifest.databaseId, '2a8e3895-6a98-4473-8d7b-a43ca0c0026f')
+assert.equal(createHash('sha256').update(sql).digest('hex'), manifest.sqlSha256)
+const batch = unstable_splitSqlQuery(sql).map(sql => ({ sql }))
+assert.equal(batch.length, manifest.changeCount + Math.ceil(manifest.users.length / 100))
+writeFileSync(output, JSON.stringify({ batch }), { flag: 'wx', mode: 0o600 })
+console.log(JSON.stringify({ statements: batch.length, flightUpdates: manifest.changeCount }))
+JS
+```
+
+Before the production request, separately authorize an isolated remote fixture
+proof of the query API's ordered per-statement response, CAS-miss count and batch
+rollback, as required for release tooling in the audit/lifecycle runbooks. Local
+Miniflare evidence does not establish remote behavior. If the response cannot
+prove one match per UPDATE, stop; do not accept import totals as a substitute.
+
+**Separate authorization — production write, step 7 only.** Put only the
+Authorization header in `/absolute/private/d1-curl.conf` (mode 0600), using the
+approved D1 credential. Review the payload against the admitted SQL immediately
+before this request. Keep the response private; do not print it or auto-retry an
+ambiguous failure. With a failed response or lost connection, retain the hold
+and separately authorize the reads needed to establish what committed.
+
+```sh
+umask 077
+curl --fail --silent --show-error --config /absolute/private/d1-curl.conf \
+  --request POST --header 'Content-Type: application/json' \
+  --data-binary @/absolute/private/request.json \
+  --output /absolute/private/response.json \
+  https://api.cloudflare.com/client/v4/accounts/5cadcff0282e54f3ff1d7062d4dbb97a/d1/database/2a8e3895-6a98-4473-8d7b-a43ca0c0026f/query
+```
+
+Verify the response locally before moving on to the operator. The first
+`changeCount` results are the flight UPDATEs; the remaining results are dirty
+markers. Require a successful envelope, exactly one result per submitted
+statement, successful individual results and `meta.changes === 1` for every
+flight UPDATE. A zero means drift and does not roll back the other successful
+statements; retain the hold and forward-fix after review. This verifier reports
+only counts, including on failure:
+
+```sh
+node --input-type=module - /absolute/private/request.json /absolute/private/response.json /absolute/private/backfill.sql.manifest.json <<'JS'
+import { readFileSync } from 'node:fs'
+try {
+  const [requestPath, responsePath, manifestPath] = process.argv.slice(2)
+  const request = JSON.parse(readFileSync(requestPath, 'utf8'))
+  const response = JSON.parse(readFileSync(responsePath, 'utf8'))
+  const manifest = JSON.parse(readFileSync(manifestPath, 'utf8'))
+  const results = response.result
+  const ok = response.success === true && !(response.errors?.length)
+    && Array.isArray(results) && results.length === request.batch.length
+    && results.every(r => r.success === true)
+    && results.slice(0, manifest.changeCount).every(r => r.meta?.changes === 1)
+  console.log(JSON.stringify({ accepted: ok, expectedUpdates: manifest.changeCount,
+    verifiedUpdates: Array.isArray(results) ? results.slice(0, manifest.changeCount).filter(r => r.meta?.changes === 1).length : 0 }))
+  if (!ok) process.exitCode = 1
+} catch {
+  console.log(JSON.stringify({ accepted: false, invalidInput: true }))
+  process.exitCode = 1
+}
+JS
+```
+
 ## Rehearsal evidence — 7 October 2026
 
 The user authorized one read-only production export and local rehearsal. No
@@ -128,7 +213,7 @@ writer hold; regenerate and compare under the production gates below.
 | Leaderboards | 25 rows = 5 categories × 5 eligible ready users |
 | Rerun | Zero proposal changes; repeat repair zero work |
 | Preservation after repair | 26 canonical/reference tables unchanged outside approved metrics; all 134 historical badges preserved; 4 new awards |
-| Checks | API 58 files / 635 tests; Next 105 files / 1,102 tests; API/scripts types and Next build passed |
+| Checks | API 58 files / 636 tests; Next 105 files / 1,102 tests; API/scripts types and Next build passed |
 
 The initial Python SQLite 3.39.4 comparison baseline rounded 58 airport
 coordinate fields differently from the export literals. Node SQLite 3.53.3
@@ -143,6 +228,10 @@ one Miniflare runtime at a time for each persistent namespace.
 The three exceptional rows were flight 454 (MOW → MRU, distance 9,549 km kept),
 486 (SAW → POD, unknown distance and unexplained duration 50 minutes kept) and
 487 (POD → IST, unknown distance and unexplained duration 160 minutes kept).
+A recount after the reporting fix still gives 66 replaced estimates: this export
+had no newly filled estimate durations. The corrected planner excludes previously
+NULL durations from `estimate_replaced`; the complete SQL hash is unchanged.
+
 Complete per-user manifests and exception reports remain in private temporary
 storage; no journal records are committed here.
 
@@ -187,10 +276,11 @@ storage; no journal records are committed here.
    SHA-256. The artifact's `sourceFreshnessVerified: false` is not an acceptance.
 7. **Separate authorization — execute the reviewed backfill SQL.** Confirm
    target IDs, hold, backup/restore proof, admission and exact file hash again.
-   Apply the private SQL only to the named D1 using the audited file-execution
-   procedure. Require each proposed flight UPDATE to affect one row; zero means
-   drift, not permission to remove its guards. Keep the hold and forward-fix
-   unexplained failures.
+   Use the one-request query API batch and response verifier above, after its
+   separately authorized isolated remote proof. Do not use Wrangler's aggregate
+   file-import totals for this gate. Require each proposed flight UPDATE to
+   affect one row; zero means drift, not permission to remove its guards. Keep
+   the hold and forward-fix unexplained failures before operator repair.
 8. **Operator setup and publication — separate authorizations.** Set the named
    Worker's `OPERATOR_TOKEN` only after approval. If secret setup offers to
    create a missing Worker, stop for additional creation approval. Deploy the

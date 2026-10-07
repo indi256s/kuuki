@@ -66,7 +66,7 @@ export function planFlightBackfill(flights: BackfillFlight[], coords: Map<string
       duration.minutes = flight.duration_minutes
       duration.source = 'estimate'
       classes.push('kept_unexplained')
-    } else if (duration.source === 'estimate') classes.push('estimate_replaced')
+    } else if (duration.source === 'estimate' && flight.duration_minutes !== null) classes.push('estimate_replaced')
     if (duration.source === 'times' || duration.source === 'route_median') classes.push(duration.source)
     if (times.originTz !== flight.origin_tz || times.destTz !== flight.dest_tz) classes.push('tz_filled')
     if (distance !== flight.distance_km) classes.push('distance_changed')
