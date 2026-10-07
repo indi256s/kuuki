@@ -1,4 +1,5 @@
 import type { OverviewRow } from './model'
+import { absoluteClockShiftMinutes, recordExtrema } from './records'
 
 const sum = (a: number | null, b: number | null) => a === null && b === null ? null : (a ?? 0) + (b ?? 0)
 
@@ -12,9 +13,12 @@ export function aggregateRows(rows: OverviewRow[]): OverviewRow[] {
     const group = groups.get(key)
     if (!group) {
       groups.set(key, { ...row, date: `${month}-01`, depMinute: hour === null ? null : hour * 60,
-        flightNumber: null, departureUtc: null })
+        flightNumber: null, departureUtc: null, recordExtrema: recordExtrema([row]),
+        clockShiftMinutes: absoluteClockShiftMinutes(row) })
       continue
     }
+    group.recordExtrema = recordExtrema([group, row])
+    group.clockShiftMinutes = sum(group.clockShiftMinutes ?? null, absoluteClockShiftMinutes(row))
     group.id = Math.min(group.id, row.id)
     group.weight += row.weight
     group.distanceKm = sum(group.distanceKm, row.distanceKm)

@@ -20,6 +20,13 @@ export interface OverviewFilter {
 export const HAUL_KM = { medium: 1500, long: 4000 } as const
 export const BAND_START_HOUR = { night: 22, morning: 6, afternoon: 12, evening: 18 } as const
 
+export interface RecordRef { flightId: number; origin: string; destination: string; value: number }
+export interface RecordExtrema {
+  longest: RecordRef | null; shortest: RecordRef | null
+  longestDuration: RecordRef | null; shortestDuration: RecordRef | null
+  biggestClockJump: RecordRef | null
+}
+
 export interface OverviewRow {
   id: number
   weight: number
@@ -39,6 +46,8 @@ export interface OverviewRow {
   destTz: string | null
   departureUtc: string | null
   suppressed: 0 | 1 | 2 | 3
+  recordExtrema?: RecordExtrema
+  clockShiftMinutes?: number | null
 }
 
 export interface OverviewPayload {

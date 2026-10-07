@@ -1,5 +1,6 @@
 import { isEmptyFilter, rowCountries } from './filter'
 import type { OverviewFilter, OverviewPayload, OverviewRow } from './model'
+import type { Records } from './records'
 
 export type Gate<T> = { status: 'ready'; value: T } | { status: 'below'; have: number; need: number }
 export interface Figures {
@@ -15,6 +16,7 @@ export interface Coverage {
 export interface OverviewScope {
   filter: OverviewFilter; figures: Figures; coverage: Coverage
   home: { iata: string; source: 'override' | 'most_departed' } | null
+  records: Gate<Records>
 }
 
 const metric = (value: number | null): number => value !== null && Number.isFinite(value) && value >= 0 ? value : 0

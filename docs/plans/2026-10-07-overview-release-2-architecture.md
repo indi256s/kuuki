@@ -149,6 +149,8 @@ export interface OverviewRow {
   originTz: string | null; destTz: string | null
   departureUtc: string | null   // null in aggregate mode
   suppressed: 0 | 1 | 2 | 3     // bit 1 origin, bit 2 destination: D12 country evidence suppressed
+  recordExtrema?: RecordExtrema  // aggregate-only individual winners with values and ids
+  clockShiftMinutes?: number | null  // aggregate-only sum of absolute individual jumps
 }
 export interface OverviewPayload {
   schemaVersion: 2; etag: string; generatedAt: string; mode: 'flights' | 'aggregate'
@@ -166,6 +168,12 @@ export interface OverviewPayload {
 
 - More interfaces:
   - `aggregateRows(rows: OverviewRow[]): OverviewRow[]`. It groups by `(state, origin, destination, airline, aircraft, month, depHour, durationSource, suppressed)`: it sums weight/distance/duration/zones, keeps the min id and nulls the per-flight fields. Rows are sorted by `(date, id)`.
+    Before clearing per-flight dates/times, preserve `recordExtrema` (the five
+    Task 6 individual record references, with lowest-ID ties) and nullable
+    `clockShiftMinutes` (sum of absolute individual DST-aware jumps). Preserve
+    these summaries on re-aggregation. Approved during Task 6; issue 08 records
+    the original information loss. Weighted inputs without these summaries
+    provide no unsupported individual records or invented clock-shift sum.
   - `overviewEtag(state: { revision: number; evidence_revision: number }): string` → `W/"ov2-<revision>-<evidence_revision>"`.
   - `readOverviewData(db: D1Database, userId: string): Promise<OverviewPayload>`. One `db.batch`: flights, suppressions, referenced airports/aircraft, derived state, plus `profiles.home_airport`. `suppressed` comes from `country_evidence_suppressions` by `(flight_id, endpoint)`. `mode` is `'aggregate'` when `rows.length > AGGREGATE_THRESHOLD`.
 
@@ -328,8 +336,10 @@ export function computeOverview(payload: OverviewPayload, filter: OverviewFilter
     Day-level entries (`busiestDay`, `longestGroundStopDays`) are null in aggregate mode.
   - `records(rows, refs, mode): Gate<Records>`. Minimum 5 flights; ties go to the lowest id.
   - Clock jump = `utcOffsetMinutes(destTz, t) − utcOffsetMinutes(originTz, t)`, where `t = departureUtc ?? date+'T12:00:00Z'`.
+  - Aggregate records select from `recordExtrema`, preserving real values and
+    winning IDs. Missing aggregate extrema return null individual references.
 
-- [ ] **Step 1: Write the failing tests:**
+- [x] **Step 1: Write the failing tests:**
   - `below five is gated`.
   - `extremes and ties`.
   - `estimate durations excluded from duration records`.
@@ -337,8 +347,11 @@ export function computeOverview(payload: OverviewPayload, filter: OverviewFilter
   - `ground stop counts days between flight dates`.
   - `aggregate mode nulls day-level records`.
   - `clock jump is DST-aware`: JFK→LHR on 2026-03-28 and on 2026-03-30 give different jumps.
-- [ ] **Step 2–4:** FAIL → implement → PASS.
-- [ ] **Step 5:** Commit `feat(overview): records`.
+  - Aggregation preserves individual duration extrema, DST clock-jump winners,
+    absolute shift sums and lowest-ID ties across groups and re-aggregation.
+    Missing summary metadata must not produce records from group means.
+- [x] **Step 2–4:** FAIL → implement → PASS.
+- [x] **Step 5:** Commit `feat(overview): records`.
 
 ### Task 7: Crossings
 
@@ -348,7 +361,8 @@ export function computeOverview(payload: OverviewPayload, filter: OverviewFilter
 - Consumes: `greatCirclePoints` (Release 1).
 - Produces:
   - `interface Crossings { zonesOverflown: number; clockShiftHours: number; equator: number; dateLine: number; arcticCircle: number; antarcticCircle: number; eastboundShare: number }`.
-    - `clockShiftHours` = Σ|jump| / 60.
+    - `clockShiftHours` = Σ|jump| / 60; aggregate rows contribute their stored
+      `clockShiftMinutes` rather than recomputing from the collapsed month date.
     - `eastboundShare` = the weighted share of rows whose wrapped longitude delta is > 0.
   - Path crossings are counted on `greatCirclePoints(a, b, 50)`, memoised per directional route.
     - Equator: sign changes of lat.

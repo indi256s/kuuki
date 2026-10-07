@@ -271,7 +271,8 @@ it('aggregates weighted sums, minimum ids and nullable metrics deterministically
   const rows = [row({ weight: 2, distanceKm: 200, zonesOverflown: null }),
     row({ id: 4, date: '2025-01-25', weight: 3, distanceKm: 300, depMinute: 400, durationMinutes: null, zonesOverflown: null })]
   const expected = [{ ...row(), id: 4, weight: 5, date: '2025-01-01', distanceKm: 500, durationMinutes: 60,
-    depMinute: 360, zonesOverflown: null, flightNumber: null, departureUtc: null }]
+    depMinute: 360, zonesOverflown: null, flightNumber: null, departureUtc: null, clockShiftMinutes: null,
+    recordExtrema: { longest: null, shortest: null, longestDuration: null, shortestDuration: null, biggestClockJump: null } }]
   expect(aggregateRows(rows)).toEqual(expected)
   expect(aggregateRows([...rows].reverse())).toEqual(expected)
   expect(rows[0].flightNumber).toBe('381')

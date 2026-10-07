@@ -114,33 +114,29 @@ exited 0. No route or client code changed; Task 3's Next test/build evidence
 remains applicable. No per-task review, as directed by the user. Task 5 boxes
 are checked in its implementation commit.
 
-Task 6 is paused on issue 08. Records, the shared clock-jump helper and compute
-wiring are implemented but uncommitted; no Task 6 boxes are checked. Initial
-RED failed in two files: missing records module and missing scope field.
-Focused GREEN: 2 files / 18 tests; full API: 63 files / 703 tests; API typecheck
-exited 0. Stronger aggregate regressions subsequently expose a contract gap:
-summed durations plus the minimum ID cannot recover individual duration
-extrema, and the collapsed month date loses the actual DST clock-jump winner
-and the sum of absolute clock shifts required by Task 7.
+Task 6 is complete in this commit: weighted Records gate, distance and precise
+duration extrema, signed DST-aware clock jumps with lowest-ID ties, all-endpoint
+latitude records including transits, calendar-month streaks and date gaps.
+Aggregate mode keeps day-level entries null. Busiest-day ties choose the first
+calendar date; latitude ties choose the alphabetically first code. Malformed
+legacy dates/metrics and missing zones remain finite and do not throw.
 
-```text
-Test Files  1 failed | 1 passed (2)
-     Tests  2 failed | 18 passed (20)
-```
+The user approved issue 08's aggregate contract change. Task 2's rows now retain
+individual `recordExtrema` with real values/winning IDs and nullable absolute
+`clockShiftMinutes`, computed before collapsing timestamps. Summaries survive
+merging and re-aggregation. Missing summaries yield null unsupported individual
+records. Task 7 consumes the shift sums. No canonical D1 fields/grouping/threshold
+changed. The original mean-based regression expectation was corrected; issue
+08 is resolved.
 
-Five same-group durations 60/180/120/120/120 yield shortest ID 1 / 60 and
-longest ID 2 / 180 in flight mode, but the prepared aggregate implementation
-returns ID 1 / 120 for both. The March DST case yields winner ID 2 / 300 and
-1260 summed minutes originally versus ID 1 / 300 and 1500 after aggregation.
-The initial aggregate-mean test expectation was removed as incorrect; required
-day-level null assertions remain. No product correction has been implemented.
+Initial RED: missing module/scope field; subsequent duration and DST regressions
+failed on real information loss. Final focused GREEN: 3 files / 48 tests. Full
+API: 63 files / 706 tests passed; API typecheck exited 0. Task 3's unaffected
+Next evidence remains applicable. No per-task review under the revised user
+workflow. Task 6 checkboxes are in its implementation commit.
 
-Next action: wait for approval to preserve per-group record extrema (values
-and real winning IDs) and absolute clock-shift sums in the aggregate contract,
-updating Tasks 2/6/7 and adding regressions. Then finish Task 6's full checks
-and exact plan commit. Aggregate groups without that metadata should expose no
-unsupported individual record references. Tasks 7–17 have not begun. No
-per-task review has run, as directed by the user. No UI/remote/GitHub actions.
+Task 7 is next: Crossings. Tasks 7–17 are unstarted; no unresolved decision.
+No UI, production/remote or GitHub actions were performed.
 
 Keep the final whole-branch Opus review over
 `feat/overview-release-1-migrations...HEAD` through T3 `delegate_task`, with a

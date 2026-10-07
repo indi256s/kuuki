@@ -1,6 +1,6 @@
 # Aggregate sums lose individual record winners and DST clock shifts
 
-Status: open — waiting for the user's plan-conflict decision
+Status: resolved — user approved preserving individual aggregate summaries
 
 Task 2's aggregate contract retains sums, the minimum flight ID and the first
 day of the month, while clearing departure UTC. Task 6 needs individual record
@@ -56,3 +56,14 @@ the intended behavior more substantially.
 The user's material plan-conflict gate requires approval before either option.
 Task 6 source/tests remain uncommitted and its boxes unchecked. Task 7 and later
 tasks have not begun. No UI, production/remote or GitHub action was performed.
+
+## Comments
+
+The user answered “all approved” to the recorded change. Aggregate rows now
+retain the five individual record extrema with real winning IDs and a nullable
+absolute clock-shift sum before collapsing dates/times. Both survive merging
+and re-aggregation. Records uses the stored summaries in aggregate mode;
+missing summary metadata provides null references. No canonical D1 fields,
+grouping dimensions or row thresholds changed. Tasks 2/6/7 are updated.
+Focused GREEN: 3 files / 48 tests, including duration and DST regressions,
+cross-group ties, re-aggregation, estimates and absent metadata.
