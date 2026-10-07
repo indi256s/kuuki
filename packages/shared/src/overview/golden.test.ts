@@ -176,6 +176,82 @@ function expectClockAndRhythm(fixture: OverviewPayload, result: ReturnType<typeo
   expect(new Set(value.odometer.map(point => point.key)).size).toBe(expected.length)
 }
 
+// Independent oracle: Intl offsets and dense spherical interpolation, never engine time/path helpers.
+function expectedCrossingTime(row: OverviewRow) {
+  const instant = new Date(row.departureUtc ?? `${row.date}T12:00:00Z`)
+  const offset = (zone: string | null) => {
+    if (!zone) return null
+    const text = new Intl.DateTimeFormat('en', { timeZone: zone, timeZoneName: 'longOffset' })
+      .formatToParts(instant).find(part => part.type === 'timeZoneName')!.value
+    if (text === 'GMT') return 0
+    const parts = /^GMT([+-])(\d+):(\d+)$/.exec(text)!
+    return (parts[1] === '+' ? 1 : -1) * (Number(parts[2]) * 60 + Number(parts[3]))
+  }
+  const a = offset(row.originTz), b = offset(row.destTz)
+  const jump = a === null || b === null ? 0 : b - a
+  return { forwardMinutes: Math.max(0, jump), backMinutes: Math.max(0, -jump),
+    offsets: [...new Set([a, b].filter((value): value is number => value !== null)
+      .map(value => { let hour = Math.floor(value / 60); while (hour > 12) hour -= 24; while (hour < -11) hour += 24; return hour }))]
+      .sort((a, b) => a - b) }
+}
+
+function expectCrossings(fixture: OverviewPayload, result: ReturnType<typeof computeOverview>, source = fixture.rows) {
+  if (result.crossings.status !== 'ready') return
+  const rows = source.filter(row => row.state !== 'upcoming')
+  const years = rows.map(row => Number(row.date.slice(0, 4)))
+  const first = Math.min(...years), last = Math.max(...years)
+  const byYear = Array.from({ length: last - first + 1 }, (_, i) => ({ key: String(first + i).padStart(4, '0'),
+    year: first + i, forward: 0, back: 0, flights: 0 }))
+  let forward = 0, back = 0
+  const hits = new Set<number>()
+  const latest: Record<string, { flightId: number | null; origin: string; destination: string; value: number; date: string } | null> =
+    { lastEquator: null, lastArctic: null, lastAntarctic: null, lastDateLine: null }
+  const paths = new Map<string, number[]>()
+  for (const row of rows) {
+    const time = expectedCrossingTime(row)
+    forward += time.forwardMinutes; back += time.backMinutes
+    const year = byYear[Number(row.date.slice(0, 4)) - first]
+    year.forward += time.forwardMinutes; year.back += time.backMinutes; year.flights++
+    for (const hour of time.offsets) hits.add(hour)
+    const route = `${row.origin}-${row.destination}`
+    if (!paths.has(route)) {
+      const vector = (code: string) => {
+        const airport = fixture.refs.airports[code], lat = airport.lat! * Math.PI / 180, lon = airport.lon! * Math.PI / 180
+        return [Math.cos(lat) * Math.cos(lon), Math.cos(lat) * Math.sin(lon), Math.sin(lat)]
+      }
+      const a = vector(row.origin), b = vector(row.destination)
+      const angle = Math.acos(Math.max(-1, Math.min(1, a.reduce((sum, v, i) => sum + v * b[i], 0))))
+      const counts = [0, 0, 0, 0], previous = [0, 0, 0]
+      let longitude: number | null = null
+      for (let step = 0; step <= 1000; step++) {
+        const t = step / 1000, sin = Math.sin(angle)
+        const point = a.map((v, i) => angle < 1e-7 ? v : (Math.sin((1 - t) * angle) * v + Math.sin(t * angle) * b[i]) / sin)
+        const latitude = Math.atan2(point[2], Math.hypot(point[0], point[1])) * 180 / Math.PI
+        const lon = Math.atan2(point[1], point[0]) * 180 / Math.PI
+        for (const [i, boundary] of [0, 66.5634, -66.5634].entries()) {
+          const side = Math.sign(latitude - boundary)
+          if (side && previous[i] && side !== previous[i]) counts[i]++
+          if (side) previous[i] = side
+        }
+        if (longitude !== null && Math.abs(lon - longitude) > 180) counts[3]++
+        longitude = lon
+      }
+      paths.set(route, counts)
+    }
+    for (const [i, field] of ['lastEquator', 'lastArctic', 'lastAntarctic', 'lastDateLine'].entries()) {
+      const count = paths.get(route)![i], old = latest[field]
+      if (count && (!old || row.date > old.date || (row.date === old.date && row.id < old.flightId!))) {
+        latest[field] = { flightId: row.id, origin: row.origin, destination: row.destination, value: count, date: row.date }
+      }
+    }
+  }
+  for (const year of byYear) { year.forward /= 60; year.back /= 60 }
+  if (fixture.mode === 'aggregate') for (const ref of Object.values(latest)) if (ref) ref.flightId = null
+  expect(result.crossings.value).toMatchObject({ forwardHours: Math.round(forward / 60), backHours: Math.round(back / 60),
+    clockShiftHours: Math.round(forward / 60) + Math.round(back / 60), shiftByYear: byYear,
+    offsets: Array.from({ length: 24 }, (_, i) => ({ key: String(i - 11), offset: i - 11, hit: hits.has(i - 11) })), ...latest })
+}
+
 it.each(names)('%s matches its generated fixture and known snapshot values', name => {
   const path = fileURLToPath(new URL(`./__fixtures__/${name}.json`, import.meta.url))
   const generated = generate(name)
@@ -217,6 +293,7 @@ it.each(names)('%s matches its generated fixture and known snapshot values', nam
     expect(result.crossings).toMatchObject({ status: 'ready', value: { clockShiftHours: 50 } })
   }
   expectClockAndRhythm(fixture, result)
+  expectCrossings(fixture, result, name === 'n5001' ? generate(name, false).rows : fixture.rows)
   expect(result.rankings).toMatchObject(expectedRankingOutputs(fixture))
   expect(result).toMatchSnapshot()
 })
@@ -230,6 +307,8 @@ it('board fixture reproduces board totals', () => {
   expect(result.rhythm.value.odometer.at(-1)?.km).toBe(141204)
   expect(result.rhythm.value.odometer).toHaveLength(69)
   expectClockAndRhythm(fixture, result)
+  expectCrossings(fixture, result)
+  expect(result.crossings).toMatchObject({ status: 'ready', value: { shiftByYear: expect.arrayContaining([{ key: '2015', year: 2015, forward: 0, back: 0, flights: 0 }]) } })
   expect(result.rankings).toMatchObject(expectedRankingOutputs(fixture))
   expect(result.rankings.airlines[0]).toEqual({ key: 'TK', count: 24 })
   expect(result.records).toMatchObject({ status: 'ready', value: { northernmost: { iata: 'KTT', lat: expect.closeTo(67.6986111111, 8) } } })
@@ -274,6 +353,12 @@ it('n5001 precise duration evidence is derived exhaustively from actual source m
     members += rows.length
     const minutes = rows.filter(row => row.durationSource === 'times').map(row => row.durationMinutes!).sort((a, b) => a - b)
     expect(group.preciseDurationSamples ?? []).toEqual(minutes)
+    const evidence = rows.map(expectedCrossingTime)
+    expect(group.crossingTime).toEqual({
+      forwardMinutes: evidence.reduce((sum, time) => sum + time.forwardMinutes, 0),
+      backMinutes: evidence.reduce((sum, time) => sum + time.backMinutes, 0),
+      offsets: [...new Set(evidence.flatMap(time => time.offsets))].sort((a, b) => a - b),
+    })
     precise += minutes.length
   }
   expect(members).toBe(5001)

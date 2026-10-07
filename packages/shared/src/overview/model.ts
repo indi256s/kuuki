@@ -78,6 +78,8 @@ export interface OverviewRow {
   recordExtrema?: RecordExtrema
   recordFlights?: RecordFlights
   clockShiftMinutes?: number | null
+  // Captured from actual instants before aggregate dates/absolute sums lose time evidence.
+  crossingTime?: { forwardMinutes: number; backMinutes: number; offsets: number[] }
 }
 
 export interface OverviewPayload {
