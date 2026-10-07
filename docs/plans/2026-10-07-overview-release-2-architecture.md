@@ -172,7 +172,10 @@ export interface OverviewPayload {
 - [x] **Step 1: Write the failing tests:**
   - `payload carries every lifecycle state`: 1 upcoming + 1 awaiting + 1 logged → 3 rows with their states.
   - `transit suppression is a bit, not a missing country`: a confirmed connection → destination bit set; `refs.airports[dest].country` still present.
-  - `refs are the referenced subset`: refs keys = endpoints and aircraft used.
+  - `refs are the referenced subset`: airport keys = endpoints plus the owner's
+    home override when known in D1; aircraft keys = aircraft used. Unknown home
+    overrides add no reference and fall back. The known-home extension was
+    approved by the user during Task 5; issue 07 records the failing proof.
   - `aggregate mode preserves totals`: `bulkFlights(db, 5001)` (from `overview-fixture.ts`) → `mode 'aggregate'`, Σweight 5001, Σdistance equals the flight-mode sum.
   - `etag changes with revision`: a mutation changes `etag`.
 - [x] **Step 2:** `pnpm test:api -- functions/test/overview-data.test.ts`. Expected: FAIL.
@@ -295,7 +298,7 @@ export function computeOverview(payload: OverviewPayload, filter: OverviewFilter
   - `null` with no counted rows.
 - `computeOverview` filters `payload.rows` once with `matches` and passes the counted scope rows (`awaiting`/`logged`) to each section function. `globe` also receives all rows.
 
-- [ ] **Step 1: Write the failing tests:**
+- [x] **Step 1: Write the failing tests:**
   - `upcoming never counts`: 2 logged + 1 upcoming → flights 2.
   - `estimates make totals approximate`.
   - `passport count only when unfiltered`: empty filter → `source 'passport'` with `payload.passport.countries`; filtered → `'by_air'`.
@@ -303,8 +306,8 @@ export function computeOverview(payload: OverviewPayload, filter: OverviewFilter
   - `empty scope is finite`: every number finite. Tasks 6–9 extend this test with their section's `below` result and finite values.
   - `home override and fallback`.
   - `weights count as flights`: one aggregate row with weight 7 → flights 7.
-- [ ] **Step 2–4:** Run → FAIL; implement; run → PASS.
-- [ ] **Step 5:** Commit `feat(overview): figures, coverage, home and compute entry`.
+- [x] **Step 2–4:** Run → FAIL; implement; run → PASS.
+- [x] **Step 5:** Commit `feat(overview): figures, coverage, home and compute entry`.
 
 ### Task 6: Records
 

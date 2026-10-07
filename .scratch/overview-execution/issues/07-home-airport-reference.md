@@ -1,6 +1,6 @@
 # A known home outside flown endpoints is absent from the payload references
 
-Status: open — waiting for the user's plan-conflict decision
+Status: resolved — user approved known-home references
 
 Release 2 Task 2 requires airport reference keys to equal the flown endpoints.
 Task 5 requires a known home override to win, even when it is not the most
@@ -40,3 +40,12 @@ that changes behavior. Task 5 remains uncommitted, with no checked task boxes;
 Tasks 6–17 have not begun. Full checks are held while this known failure awaits
 the decision. Per-task reviews are omitted under the user's revised workflow;
 the final whole-branch review remains required.
+
+## Comments
+
+The user approved the recommended change. The owner-scoped airport SELECT now
+unions that owner's home with the flown endpoints, in the original batch. The
+projection adds it only when D1 returned a known airport. Tests verify the
+known JFK override outside endpoints, a single batch, an unknown ZZZ fallback
+without added metadata and the existing owner-isolation subset. The plan's
+Task 2 reference-subset rule is updated. Focused GREEN: 2 files / 36 tests.

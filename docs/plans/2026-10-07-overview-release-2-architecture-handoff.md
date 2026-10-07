@@ -99,29 +99,22 @@ Task 4 RED: 1 failed suite (missing module). Focused GREEN: 1 file / 15 tests;
 full API: 61 files / 683 tests passed; API typecheck exited 0. No client/routes
 changed; the Task 3 Next test/build evidence remains applicable.
 
-Task 5 is paused on issue 07. Its figures, coverage, home and compute entry
-are implemented but uncommitted, with no task checkboxes checked. Initial RED
-failed in two suites on the missing compute module. All nine pure-engine
-tests pass; the actual owner-builder integration fails when a known JFK home
-is outside the TBS–IST flown endpoints. The payload carries `homeOverride`
-JFK but refs only IST/TBS, so the engine falls back to TBS. This conflicts with
-Task 2's endpoint-only reference rule and Task 5's known-override rule.
+Task 5 is complete in this commit: counted weighted totals, separate awaiting,
+precision coverage, Passport versus scoped air evidence, equal-period prior
+values and home selection over all counted rows. Aggregate metric fields are
+already sums. Missing/invalid metrics contribute no numeric value. Known home
+metadata is included outside flown endpoints in the existing owner batch, as
+approved by the user; unknown homes still fall back. Issue 07 is resolved and
+Task 2's reference-subset rule/tests are updated.
 
-```text
-Test Files  1 failed | 1 passed (2)
-     Tests  1 failed | 34 passed (35)
-```
+Initial RED: 2 failed suites (missing compute). The subsequent integration
+proved the known JFK home failure before the approved correction. Focused
+GREEN: 2 files / 36 tests. Full API: 62 files / 694 tests passed; API typecheck
+exited 0. No route or client code changed; Task 3's Next test/build evidence
+remains applicable. No per-task review, as directed by the user. Task 5 boxes
+are checked in its implementation commit.
 
-API typecheck exited 0. Full Task 5 checks are held pending approval; Task 4's
-full API evidence and Task 3's Next evidence remain valid for those accepted
-commits. Task 5 tests/source remain in the worktree; this checkpoint commits
-only the issue and handoff. The owner builder is unchanged. Tasks 6–17 are
-unstarted. No per-task review has run, as directed by the user.
-
-Next action: wait for approval to include a known home override in the airport
-reference subset, preserving one batch and owner isolation, then update the
-Task 2 rule/tests and finish Task 5's failing test, full checks and exact plan
-commit. Do not implement that correction before the user answers.
+Task 6 is next: records. Tasks 6–17 are unstarted. No unresolved user decision.
 
 Keep the final whole-branch Opus review over
 `feat/overview-release-1-migrations...HEAD` through T3 `delegate_task`, with a

@@ -25,8 +25,9 @@ export async function readOverviewData(db: D1Database, userId: string): Promise<
       duration_source, origin_tz, dest_tz, departure_utc FROM flights WHERE user_id = ? ORDER BY date, id`).bind(userId),
     db.prepare('SELECT flight_id, endpoint FROM country_evidence_suppressions WHERE user_id = ?').bind(userId),
     db.prepare(`SELECT iata, latitude, longitude, country_code, city, name FROM airports_reference
-      WHERE iata IN (SELECT origin FROM flights WHERE user_id = ? UNION SELECT destination FROM flights WHERE user_id = ?)
-      ORDER BY iata`).bind(userId, userId),
+      WHERE iata IN (SELECT origin FROM flights WHERE user_id = ? UNION SELECT destination FROM flights WHERE user_id = ?
+        UNION SELECT home_airport FROM profiles WHERE id = ?)
+      ORDER BY iata`).bind(userId, userId, userId),
     db.prepare(`SELECT icao, manufacturer, type, model, name FROM aircraft_reference
       WHERE icao IN (SELECT aircraft_icao FROM flights WHERE user_id = ?) ORDER BY icao`).bind(userId),
     db.prepare('SELECT home_airport FROM profiles WHERE id = ?').bind(userId),
@@ -49,8 +50,11 @@ export async function readOverviewData(db: D1Database, userId: string): Promise<
   }))
   const airports = new Map((results[2].results as AirportRow[]).map(row => [row.iata, row]))
   const aircraft = new Map((results[3].results as AircraftRow[]).map(row => [row.icao, row]))
+  const homeOverride = (results[4].results[0] as { home_airport: string | null } | undefined)?.home_airport ?? null
   const refs: OverviewPayload['refs'] = { airports: {}, aircraft: {}, regions: {} }
-  for (const code of [...new Set(rows.flatMap(row => [row.origin, row.destination]))].sort()) {
+  const airportCodes = new Set(rows.flatMap(row => [row.origin, row.destination]))
+  if (homeOverride && airports.has(homeOverride)) airportCodes.add(homeOverride)
+  for (const code of [...airportCodes].sort()) {
     const ref = airports.get(code)
     refs.airports[code] = { lat: ref?.latitude ?? null, lon: ref?.longitude ?? null,
       country: ref?.country_code || null, city: ref?.city ?? null, name: ref?.name ?? code }
@@ -67,7 +71,7 @@ export async function readOverviewData(db: D1Database, userId: string): Promise<
     schemaVersion: 2, etag: overviewEtag(state ?? { revision: 0, evidence_revision: 0 }),
     generatedAt: new Date().toISOString(), mode, derivedReady: data.derivedState === 'ready',
     passport: { countries: data.pressedCountryCount, regions: data.regions.filter(region => region.pressed > 0).length },
-    homeOverride: (results[4].results[0] as { home_airport: string | null } | undefined)?.home_airport ?? null,
+    homeOverride,
     rows: mode === 'aggregate' ? aggregateRows(rows) : rows, refs,
   }
 }

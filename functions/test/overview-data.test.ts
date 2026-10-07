@@ -1,6 +1,7 @@
 import { expect, it, vi } from 'vitest'
 import { aggregateRows } from '../../packages/shared/src/overview/aggregate'
 import type { OverviewRow } from '../../packages/shared/src/overview/model'
+import { computeOverview } from '../../packages/shared/src/overview/compute'
 import { overviewEtag, readOverviewData } from '../api/_services/overviewData'
 import { dirtyUserStatement, repairUserDerivedState } from '../api/_services/derivedState'
 import { onRequestGet as getOverviewData } from '../api/me/overview/data'
@@ -182,6 +183,33 @@ it('refs are the referenced subset and never include another owner', async () =>
     expect(payload.rows).toHaveLength(1)
     expect(payload.homeOverride).toBe('TBS')
     expect(payload.refs.regions).toMatchObject({ GE: 'asia', TR: 'asia' })
+  } finally { await dispose() }
+})
+
+it('a known home override wins even when it is not a flown endpoint', async () => {
+  const { db, dispose } = await overviewAccount([
+    { id: 1, date: '2025-01-01', origin: 'TBS', destination: 'IST', state: 'logged' },
+  ], d => [d.prepare("UPDATE profiles SET home_airport = 'JFK' WHERE id = ?").bind(USER.id)])
+  try {
+    const batch = vi.fn(db.batch.bind(db))
+    const data = await readOverviewData({ prepare: db.prepare.bind(db), batch } as unknown as D1Database, USER.id)
+    expect(batch).toHaveBeenCalledTimes(1)
+    expect(await db.prepare("SELECT iata FROM airports_reference WHERE iata = 'JFK'").first()).toEqual({ iata: 'JFK' })
+    expect(data.homeOverride).toBe('JFK')
+    expect(Object.keys(data.refs.airports)).toEqual(['IST', 'JFK', 'TBS'])
+    expect(computeOverview(data, {}).home).toEqual({ iata: 'JFK', source: 'override' })
+  } finally { await dispose() }
+})
+
+it('an unknown home outside flown endpoints adds no reference and falls back', async () => {
+  const { db, dispose } = await overviewAccount([
+    { id: 1, date: '2025-01-01', origin: 'TBS', destination: 'IST', state: 'logged' },
+  ], d => [d.prepare("UPDATE profiles SET home_airport = 'ZZZ' WHERE id = ?").bind(USER.id)])
+  try {
+    const data = await readOverviewData(db, USER.id)
+    expect(data.homeOverride).toBe('ZZZ')
+    expect(Object.keys(data.refs.airports)).toEqual(['IST', 'TBS'])
+    expect(computeOverview(data, {}).home).toEqual({ iata: 'TBS', source: 'most_departed' })
   } finally { await dispose() }
 })
 
