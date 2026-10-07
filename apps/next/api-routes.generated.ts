@@ -435,6 +435,12 @@ export const apiRoutes = [
     ]
   },
   {
+    "route": "/api/public/profiles/:username/overview",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
     "route": "/api/reference/aircraft",
     "methods": [
       "GET"

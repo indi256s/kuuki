@@ -255,7 +255,7 @@ jsdom navigation notices. API typecheck exit 0. Those full-suite results are
 reused because runtime behavior did not change. Successful Task 11 build also
 remains applicable; no route or UI change. Checkboxes are committed with code.
 
-Task 13 is complete: exact Charts 1.0.0 in root and Next, direct engine-row
+Task 13 is complete at `65d07f1`: exact Charts 1.0.0 in root and Next, direct engine-row
 fixtures for Rhythm/Clock/Fleet, deterministic DOM-free SVG and React SSR.
 Issue 11 is resolved under the user's revised instruction to make routine
 best-practice API corrections without repeated questions. The mandatory scale
@@ -276,7 +276,24 @@ GREEN. Route client JS before/after is 1,268,522 bytes across 18 deduplicated
 route/root/polyfill files, delta 0 bytes. Full lock diff reviewed: Charts
 transitive dependencies plus same-version ESLint peer-key normalization.
 
-Task 13 checkboxes are committed with code. Tasks 14–17 remain unstarted.
+Task 13 checkboxes are committed with code. Task 14 is complete: public GET subset and shared server read helper, with
+explicit public DTO types. Existing public-profile visibility gate runs before
+owner flights; visibility/current section consent are rechecked after reading.
+Projection allowlists records without day entries/flight IDs, Fleet only on
+opt-in, sorted undirected routes without counts, and valid endpoint coordinates.
+Upcoming and home-only airports are excluded. The owner's remembered filter
+is ignored for the public empty scope. Existing private profile shells are
+unchanged; the subset returns the existing unknown-profile 404 envelope for
+both unknown and private accounts. Empty/below sections are omitted.
+
+RED was missing endpoint. Final focused GREEN: `Test Files 1 passed (1); Tests
+10 passed (10)` in 5.96s. Full API: `Test Files 71 passed (71); Tests 779 passed
+(779)` in 90.96s. API/Next/shared typechecks exit 0. Build succeeds: entry 2278
+bytes, 105 assets / 9226424 bytes, 74 routes including the new GET, generated
+inventory committed. Existing Better Auth warning remains. Task 13 full Next
+107/1113 evidence remains applicable to this server-helper-only addition.
+Full owned code/tests/inventory reviewed. Checkboxes are committed with code.
+Tasks 15–17 remain unstarted.
 No open routine decision; explicit production/GitHub/UI/parity gates remain.
 No per-task review under
 the user's revised workflow; final whole-branch Opus review over

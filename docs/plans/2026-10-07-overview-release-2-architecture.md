@@ -554,7 +554,7 @@ export function parsePrefs(raw: string | null): OverviewPrefs  // never throws; 
 
 ### Task 14: Public `/fly` subset
 
-**Files:** Create `functions/api/public/profiles/[username]/overview.ts`, `functions/test/public-overview.test.ts`; Modify `apps/next/src/server/public.ts` (add `getPublicOverview(username)`); regenerate routes.
+**Files:** Create `functions/api/public/profiles/[username]/overview.ts`, `functions/api/_services/publicOverview.ts`, `packages/shared/src/overview/public.ts`, `functions/test/public-overview.test.ts`; Modify `apps/next/src/server/public.ts` (add `getPublicOverview(username)`); regenerate routes.
 
 **Interfaces:**
 - Consumes: `readPublicProfile`, `readOverviewData`, `parsePrefs`, `computeOverview`.
@@ -570,15 +570,15 @@ interface PublicOverview {
 ```
 
 - The engine runs on the owner's counted rows with an empty filter. Upcoming rows are excluded.
-- Unknown or private user → the same 404 body as `/api/public/profiles/:username`.
+- Unknown or private user → the same 404 body as an unknown username on `/api/public/profiles/:username`. The existing private profile shell is unchanged. Check visibility before the owner flight read and recheck visibility/current section consent before returning.
 - `Cache-Control: public, max-age=300`.
 
-- [ ] **Step 1: Write the failing tests:**
+- [x] **Step 1: Write the failing tests:**
   - `private and unknown are identical 404s`.
   - `sections follow owner choice`.
   - `public subset leaks nothing finer than a month`: the serialised JSON has no `/\d{4}-\d{2}-\d{2}/`, no `home`, `flightNumber`, `count`, `id`, `flightId` or `depMinute` keys, and no upcoming route.
-- [ ] **Step 2–4:** FAIL → implement (+ `pnpm next:build`) → PASS.
-- [ ] **Step 5:** Commit `feat(api): public overview subset for /fly`.
+- [x] **Step 2–4:** FAIL → implement (+ `pnpm next:build`) → PASS.
+- [x] **Step 5:** Commit `feat(api): public overview subset for /fly`.
 
 ### Task 15: Share-card PNG pipeline
 
