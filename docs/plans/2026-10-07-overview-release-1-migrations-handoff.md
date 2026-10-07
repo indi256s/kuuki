@@ -31,51 +31,63 @@ Each task received its required independent T3 review using
 `claudeAgent` / `claude-opus-5-5`. Task IDs and full evidence remain in the local
 ledger `.superpowers/sdd/2026-10-07-overview-release-1-migrations/progress.md`.
 
+## Review workflow update
+
+The user removed per-task reviews on 7 October: “do not run review for each
+task, we will run a full review later, when you finish”. Task 6 review was
+cancelled after dispatch; do not start further per-task reviews. Completed
+Tasks 1–5 reviews and fixes remain valid. Review is deferred to the full branch.
+
 ## Latest checks
 
-Task 6 implementation checks:
+After Task 7:
 
 ```text
-API:   Test Files  56 passed (56)
-       Tests       626 passed (626)
-Next:  Test Files  105 passed (105)
-       Tests       1102 passed (1102)
-Focused planner/CLI: Test Files 2 passed (2), Tests 14 passed (14)
+API:     Test Files 57 passed (57), Tests 631 passed (631)
+Next:    Test Files 105 passed (105), Tests 1102 passed (1102)
+Focused: Test Files 1 passed (1), Tests 5 passed (5)
 ```
 
-`pnpm typecheck:api` and `pnpm typecheck:scripts` exited 0.
-`pnpm next:build` exited 0:
+API, scripts and operator typechecks exited 0. Operator Wrangler dry-run
+exited 0 with a synthetic D1 binding: `Total Upload: 58.36 KiB / gzip: 13.50 KiB`.
+The compiled bundle passed isolated Miniflare authentication, repair/rerun,
+leaderboard refresh and count-only status checks. Initial smoke harness startup
+failed because an external script needed an explicit `modulesRoot`; correcting
+the private harness resolved it without changing production code.
+
+Task 6's Next build evidence remains valid for the application bundle:
 
 ```json
 {"node":"v24.18.0","openNextEntryBytes":2278,"assetCount":105,"assetBytes":9285828,"apiRoutes":71}
 ```
 
-An initial concurrent Next run had three `Test timed out in 5000ms` failures;
-the complete serial rerun passed without changing client code or timeouts.
-Existing navigation and compiled Better Auth duplicate-key warnings remain.
-Evidence logs are under `/tmp/kuuki-overview-execution/r1-t6-*`.
-The final API/type checks followed the planner's measured-duration clamp fix;
-the retained Next/build evidence predates only that unconsumed planner change
-and its regression test.
+Task 7 changes only the standalone operator, its tests, tooling and docs; no
+application bundle source changed. Existing navigation and compiled Better
+Auth duplicate-key warnings remain. Logs and private smoke harness are under
+`/tmp/kuuki-overview-execution/r1-t7-*`.
 
-## Task 6 implementation
+## Tasks 6–7
 
-The user approved both plan corrections: include `airline_iata` and
-`flight_number` in CAS guards; expect an empty re-plan after a canonical times
-PATCH, with fresh proposals tested separately after airline-only drift.
-Issues 03 and 04 record the proofs and resolutions.
+- Task 6: `d627aba`, pure two-pass backfill planner and read-only proposal,
+  with both approved CAS/drift corrections. Issues 03/04 record the decisions.
+  Per-task review cancelled under the user's revised workflow.
+- Task 7: implemented in this commit. Fixed operations authenticate before D1;
+  repairs cap at 50 oldest stale users, isolate failures and count outcomes;
+  leaderboard refresh reuses the existing five-category publication service.
+  The private production-config directory is now gitignored. No deploy config
+  with a real binding or token has been created.
 
-This commit implements the pure two-pass planner, guarded SQL renderer and
-read-only CLI with schema admission, private exclusive artifacts and hashed
-per-user manifests. It reuses write-path timezone/time resolution and existing
-proposal SQL helpers. Regressions cover idempotence, pooled medians, retained
-unexplained values, all approved drift cases, derived repair, artifact safety
-and refusal before private reads. Remote routing uses a fake reader only.
+## Next action / required authorization
 
-## Next action
+Task 8 Step 1 requires the user's approval before copying private production
+data: read-only `wrangler d1 export kuuki-db --remote --output <private path>`
+for D1 `2a8e3895-6a98-4473-8d7b-a43ca0c0026f`, account
+`5cadcff0282e54f3ff1d7062d4dbb97a`. The export briefly blocks D1. Store it under
+mode-0700 temporary storage with file mode 0600, then perform the local-only
+restore, calibration and rehearsal. This approval does not authorize other
+remote reads, remote writes or deployment. Do not execute the export until the
+user answers. Task 8 and all Release 2 tasks remain unstarted.
 
-Obtain the Task 6 independent T3 Opus 5.5 review over `3156daf..HEAD` and resolve
-verified findings before starting Task 7. No material decision is pending.
 Issue 02 (browser metric declarations) remains open for the first consumer,
 before design handoff. No remote operation, push, PR, merge or UI change has
-been performed. Tasks 7–8 and all Release 2 tasks remain unstarted.
+been performed. All original hard stops remain in effect.

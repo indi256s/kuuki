@@ -11,6 +11,7 @@
     "typecheck:api": "tsc --noEmit -p functions/tsconfig.json",
     "typecheck:scripts": "tsc --noEmit -p scripts/tsconfig.sbd1.json",
     "typecheck:maintenance": "tsc --noEmit -p workers/maintenance/tsconfig.json",
+    "typecheck:operator": "tsc --noEmit -p workers/release-operator/tsconfig.json",
     "test": "pnpm test:api && pnpm --filter @kuuki/next test",
     "test:api": "vitest run --config functions/vitest.config.ts",
     "build:api": "wrangler pages functions build --outdir .wrangler/functions-build --metafile .wrangler/functions-build/bundle-meta.json",
