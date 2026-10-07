@@ -6,21 +6,21 @@ Kuuki is a personal flight journal with a restrained editorial character. Typogr
 
 ## Color and surfaces
 
-Use semantic CSS variables from [`apps/next/src/app/styles.css`](apps/next/src/app/styles.css); do not place palette literals in components. Light uses paper (`#fbfaf8`) and charcoal text (`#302d2a`); dark uses ink (`#292827`) and warm white text (`#f1efeb`). Terracotta is the accent in both themes. Text colors are separate from fills. Muted text must meet 4.5:1 contrast, control borders and focus must meet 3:1; do not fade text with opacity. `apps/next/src/app/tokens.test.ts` parses `styles.css` and checks these pairs. Hairlines are for structure, control borders for inputs and controls. In-flow cards use one subtle boundary and no shadow. Floating surfaces use a solid background and elevation. No glass, backdrop blur, glow, gradient buttons, or decorative grain.
+Use semantic CSS variables from [`apps/next/src/app/styles.css`](apps/next/src/app/styles.css); do not place palette literals in components. Light uses paper (`#fbfaf8`) and charcoal text (`#302d2a`); dark uses ink (`#292827`) and warm white text (`#f1efeb`). Shu 朱 (vermilion) is the default accent in both themes. Text colors are separate from fills. Muted text must meet 4.5:1 contrast, control borders and focus must meet 3:1; do not fade text with opacity. `apps/next/src/app/tokens.test.ts` parses `styles.css` and checks these pairs. Hairlines are for structure, control borders for inputs and controls. In-flow cards use one subtle boundary and no shadow. Floating surfaces use a solid background and elevation. No glass, backdrop blur, glow, gradient buttons, or decorative grain.
 
-Map fills use a sequential accent ramp and a titled legend with fixed buckets 1, 2–3, 4–9, 10+. Flag colors may inform stamp ink, never map fill. Claims must have a text and shape cue. Unknown legacy accent values map to terracotta and never overwrite status colors. Accents are set on `<html data-accent>` and stored by name; the picker is `SwatchPicker`.
+Map fills use a sequential accent ramp and a titled legend with fixed buckets 1, 2–3, 4–9, 10+. Flag colors may inform stamp ink, never map fill. Claims must have a text and shape cue. Unknown legacy accent values map to shu and never overwrite status colors. Accents are set on `<html data-accent>` and stored by name; the picker is `SwatchPicker`.
 
-Five accents are built. Stored `kincha` and `sumi` names become `terracotta` in bootstrap and the appearance client. Legacy yellow maps to terracotta; teal and cyan map to asagi. Values follow Paper board "4.2 Spec — accent proposal":
+Five accents. Shu replaced Terracotta as the default on 2026-10-07: terracotta used only 69% of the chroma its lightness allows, so it read as brown and generic. **Not built yet:** `styles.css`, `tokens.test.ts`, bootstrap and the appearance client still ship terracotta and the old danger values; the migration belongs to the next spec. When built, stored `terracotta`, `kincha` and `sumi` names become `shu` in bootstrap and the appearance client. Legacy yellow maps to shu; teal and cyan map to asagi. Values follow Paper board "4.2 Spec — accent proposal":
 
 | Accent | Light fill / text | Dark fill / text | Foreground (light / dark) | Distance from status hue |
 |---|---|---|---|---|
-| Terracotta (default) | `#a94e35` / `#97412a` | `#e6a184` / `#efae91` | `#fffaf6` / `#292827` | unchanged |
+| Shu 朱 (default) | `#c23417` | `#ea846f` | `#fff` / `#292827` | 21° from danger |
 | Ai | `#4e5ea2` | `#acbbef` | `#fff` / `#292827` | 22° from info |
 | Matcha | `#59702a` | `#b7ce92` | `#fff` / `#292827` | 25° from success |
 | Asagi (浅葱) | `#0c747d` | `#85cfd8` | `#fff` / `#292827` | 45° from info |
-| Sakura | `#964969` | `#e8a9c0` | `#fff` / `#292827` | 30° from danger |
+| Sakura | `#964969` | `#e8a9c0` | `#fff` / `#292827` | 17° from danger |
 
-The board gives one value per accent for fill and text. As now, `--accent-text` equals `--accent` for every accent except terracotta. `tokens.test.ts` checks the 4.5:1 and 3:1 pairs with these values; the boards do not prove contrast.
+The board gives one value per accent for fill and text, and `--accent-text` equals `--accent` for every accent, including shu. Measured shu pairs: light 5.30:1 on the background, 5.53:1 on the surface, 4.86:1 on the inset, white on the fill 5.53:1; dark 5.63:1 on the background, 4.81:1 on the surface, ink on the fill 5.63:1. Dark shu on the dark inset is 4.12:1, so accent text never sits on the dark inset. In OKLCH the warm end is crowded: shu 33°, danger 12°, Sakura 355°, about 20° apart each, so there is no room for another warm accent unless danger moves. `tokens.test.ts` checks the 4.5:1 and 3:1 pairs with these values; the boards do not prove contrast.
 
 ## Type and layout
 
@@ -55,13 +55,13 @@ Frozen by the Redesign 2.0 plan (D1–D12). Lifecycle and import details live in
 | ID | Decision |
 |---|---|
 | D1 | `/`, `/signin` and `/signup` render the one-form [auth card](#auth-card); members continue through the Overview/onboarding gate. The landing hero, sample flight cards and FAQ are removed. |
-| D2 | Five named accents: Terracotta (default), Ai, Matcha, Asagi and Sakura. Store the name, never an arbitrary color; kincha and sumi map to terracotta. |
+| D2 | Five named accents: Shu 朱 (default since 2026-10-07, replacing Terracotta), Ai, Matcha, Asagi and Sakura. Store the name, never an arbitrary color; terracotta, kincha and sumi map to shu. |
 | D3 | System theme by default; an explicit saved preference is preserved. |
 | D4 | Light neutrals are barely warm; dark uses charcoal. |
 | D5 | Commissioner selected by user request, superseding the earlier RU/EN specimen (see Typeface decision). |
 | D6 | Russian copy uses «вы» everywhere. |
 | D7 | Journey UI and navigation are removed; a bookmarked `/journey` redirects to `/overview` (built). |
-| D8 | Overview has a period control only; Journal owns all detailed filters. |
+| D8 | Overview has a period control only; Journal owns all detailed filters. **To be superseded** by the [Overview redesign](#overview-redesign): whole-page faceted filters. D8 holds until that ships. |
 | D9 | `/fly/:username` is preserved; previews and share URLs use the configured origin. |
 | D10 | Existing rank titles become localized achievement names; no new badge rules. |
 | D11 | Awaiting flights auto-confirm seven days after they become date-eligible, with automatic provenance and no celebration; the rule is explained in queue helper text. |
@@ -84,14 +84,16 @@ Names are fixed; values live only in `styles.css` (`:root`, `:root[data-theme=da
 | `--success-text` / `--success-fill` | `#146d34` / `#2a904b` | `#76c788` / `#4eb068` | Text grade ≥4.5:1; fill grade for backgrounds and icons, never text. |
 | `--warning-text` / `--warning-fill` | `#824c00` / `#ae6700` | `#e1a263` / `#cf8634` | Same rule. |
 | `--info-text` / `--info-fill` | `#175d9b` / `#2b7ec9` | `#73b6fa` / `#4c9deb` | Same rule; `--info-fill` also highlights search matches. |
-| `--danger-text` / `--danger-fill` | `#a43535` / `#c74b47` | `#ffaaa5` / `#ea6a64` | Same rule; danger buttons are outlined in `--danger-text`. |
+| `--danger-text` / `--danger-fill` | `#a02442` / `#ca3056` | `#f0a7af` / `#f25776` | Same rule; danger buttons are outlined in `--danger-text`. Crimson since 2026-10-07 so errors read apart from the shu accent (was `#a43535` / `#c74b47`, `#ffaaa5` / `#ea6a64`; not built yet). Text 7.12:1 light, 7.60:1 dark on the background. |
 | `--rank-gold` / `-silver` / `-bronze` | `#775800` / `#595e64` / `#8a4b24` | `#d5b36a` / `#b2b8bf` / `#eca57d` | Text grade ≥4.5:1; always paired with the rank number. |
 | `--surface-floating` | `--surface` | `#3c3a37` | Level 2 and 3 fill. |
 | `--shadow-floating` / `--shadow-modal` | two-layer black 8% / 10–12% | none | Dark theme drops the shadow. |
 | `--ring-floating` | none | `0 0 0 1px` white 8% | Dark replacement for the shadow. |
 | `--scrim` / `--outline-media` | black 40% / black 10% | black 60% / white 10% | Modal backdrop; 1px outline on images and avatars. |
 | `--map-land` / `--map-border` / `--map-route` | `--surface-inset` / `--hairline` / `--accent` | same | Map base layers; follow theme. |
-| `--map-bucket-1…4` | `color-mix(in oklch, accent 24 / 43 / 65 / 90%, map-land)` | same | Sequential ramp, bucket 1 lightest; thresholds 1, 2–3, 4–9, 10+ from one shared function. |
+| `--map-bucket-1…4` | `color-mix(in oklab, accent 24 / 43 / 65 / 90%, map-land)` | same | Sequential ramp, bucket 1 lightest; thresholds 1, 2–3, 4–9, 10+ from one shared function. Mix in oklab: in oklch the hue drifts toward the land color, so shu buckets would turn orange. Shu light `#ecc6bb` / `#e5a494` / `#da7d68` / `#c94c33`; dark `#674e47` / `#865c51` / `#ac6b5d` / `#d87d6a`. The built code still mixes in oklch. |
+| `--mark-1…4` / `--mark-ghost` | `--accent` / `#da6a53` / `#b28555` / `#66605b` / `#978c7f` | `--accent` / `#c85f49` / `#a17749` / `#c4beb7` / `#897e70` | Chart data marks (designed for the Overview redesign, not built). Every mark ≥3:1 on `--background`; `--hairline` is never a data color. Mark-2 values are for shu; other accents need their own mark-2 at spec time. Charts read them through `--ts-chart-1…6`, never as hex in chart code. |
+| `--heat-1…4` | `#e6c8c1` / `#e4735c` / `--accent` / `#892410` | same | Rhythm heatmap steps above `--surface-inset` (designed, not built). The pale steps sit below 3:1 by nature of a sequential ramp; every value is also in the tooltip and table. |
 
 Radius and spacing: `--radius-xs` 6px, `--radius-sm` 10, `--radius-md` 14, `--radius-lg` 20, `--radius-full` 9999px; `--space-1` 4px, `-2` 8, `-3` 12, `-4` 16, `-5` 20, `-6` 24, `-8` 32, `-12` 48.
 
@@ -136,6 +138,8 @@ Levels 2 and 3 are built on every ui-kit primitive. In dark, Ticket, read panels
 ## Motion
 
 Tokens: `--ease-out` cubic-bezier(.23,1,.32,1) for enter/exit and press; `--ease-in-out` cubic-bezier(.77,0,.175,1) for on-screen movement (height, segmented thumb); `--ease-drawer` cubic-bezier(.32,.72,0,1) for sheets; `--ease-icon` cubic-bezier(.2,0,0,1) for icon crossfades (defined, no consumer yet). `--ease-horizon` cubic-bezier(0,0,.15,1) for the Horizon sun and the theme sweep it leads. Durations: `--dur-press` 120ms, `--dur-fast` 150ms, `--dur-base` 200ms, `--dur-sheet` 300ms, `--dur-moment` 450ms (rare delight only), `--dur-horizon` 500ms (Horizon sun and theme sweep).
+
+Planned exceptions for the designed [Overview redesign](#overview-redesign), not built: the globe replay loop, a 600ms camera re-frame on filter change and the TanStack chart tweens (library default, reduced motion snaps). Figures and chips still swap instantly.
 
 Rules: ease-in is banned; exits use ease-out and run about 20% faster than enters; never `transition: all`; animate transform, opacity and sparingly filter; height disclosure uses grid rows 0fr→1fr; no bounce on routine UI; content present on first render does not animate in; no count-up from zero.
 
@@ -259,9 +263,68 @@ Used for airports, airlines and aircraft. Matches code, label, detail and verifi
 
 `Ticket` and `Stamp` live in `apps/next/src/client/signature/`. Ticket: level 1, radius `--radius-md`, route in mono 34/40 with a dashed perforation (stub beside the main block from 700px up), status pill, states upcoming, today, awaiting (accent border and 4px start rule) and logged. Lifecycle actions stay outside the decorative SVG, and essential labels are HTML at least 12px. Stamp: round for air, rectangular for land and sea, dashed ring for claims, an empty slot for pending, and rings by visits (1; 2–9; 10 or more); ink is normalized in OKLCH per theme (≥3:1 on the surface; neutral ink for black and near-white flags). Keep only Ticket and map code that has an actual consumer.
 
+## Overview redesign
+
+**Designed, not built.** Decided on 2026-10-07 and drawn on Paper boards "9.1 Overview — desktop" and "9.2 Overview — mobile" in the "Kuuki — Auth redesign" file. No spec has been written and nothing is implemented. The built Overview still follows D8. Full lists: [`decisions.md`](.scratch/overview-redesign/decisions.md) (product) and [`design-decisions.md`](.scratch/overview-redesign/design-decisions.md) (visual and interaction). The dark, filtered (Year 2025 + Turkish), first-run and zero-result boards are still to be drawn.
+
+**Page order.** A slim Next/awaiting strip, then the globe card, then four figures (both pinned), then six reorderable sections: Records, Crossings, Fleet, Clock, Rhythm and Rankings.
+
+**Filters** (supersede D8 when built)
+- Faceted filters scope the whole page. Values in one facet are ORed; facets are ANDed. Facets: period (years plus a custom month range), country, region, airline, aircraft, route, manufacturer, body type, haul, domestic/international and departure-time band. A country matches on origin or destination; transit stops don't count (the D12 rule).
+- One chip per facet, such as "Airline · Turkish, Qatar +1 ×", at level 2 over the globe. A "+ Filter" popover with a command-style search over all facets; it becomes a full-height sheet on phones. With an empty query it offers top values as one-tap picks.
+- The filter is stored on the account. The H1 names the scope ("Hi, Alex · Japan, Turkish").
+- Every chart is a filter input: clicking a mark, or pressing Enter on a focused one, adds the chip.
+
+**Globe card**
+- MapLibre globe with flightcn routes, on `--surface-inset` inside a level 1 card in the 1200px lane. Rim: one flat 8px ring at accent 14% (22% in dark) plus a 1px hairline at the limb. This is a stated exception to "no glow".
+- Card corners are control zones: chips top-left, Fullscreen top-right, replay controls bottom-left, legend bottom-right.
+- Out-of-scope countries and routes are ghosted (hatch, 15% hairlines); in-scope ones are re-bucketed on the map ramp.
+- Replay: a chronological loop with a pause button, month label (mono) and year scrubber. Pause is stored on the account, and the replay pauses off-screen and in a hidden tab. Under reduced motion it never plays.
+- Camera: a 600ms re-frame with `--ease-in-out` when the filter changes; a jump cut under reduced motion.
+- Mobile: a full-width card about 360px tall. The first ~10px of a drag decides: vertical scrolls the page, horizontal spins the globe.
+
+**Figures.** Four equal figures at 56px Commissioner 600, tabular, −0.03em, each with a 13/20 muted caption; on mobile they form a 2×2 grid at 40px.
+- Deltas appear only with a time filter. They compare against the previous period of the same length and always carry a sign and arrow, in `--success-text` or `--warning-text`.
+- With facet filters only, each figure shows its share of all flights instead ("24 flights · 35% of all").
+
+**Sections**
+- Headers are an H2 with a 6-dot grip in `--text-muted` in the left gutter, plus a ⋯ menu (Move up, Move down, Hide).
+- Dragging uses the whole header; on touch it starts with a long press.
+- A footer row brings hidden sections back ("2 hidden sections · Show").
+- The layout is stored on the account.
+
+**Charts.** Section charts use TanStack Charts (`@tanstack/charts` 1.0.0) and no other chart library. Charts by section:
+
+| Section | Chart |
+|---|---|
+| Records | A distance × block-time scatter with a fitted line and labelled outliers |
+| Crossings | A jet-lag ledger: one arrow per flight, pointing up for eastbound and down for westbound |
+| Fleet | A waffle with one cell per flight: a filled square for Airbus, a filled circle for Boeing, an outlined square for Embraer/ATR and a dashed outline for unknown |
+| Clock | A 24h radial clock with the night arc 22–06 and a Departures / Arrivals toggle |
+| Rhythm | The years × months heatmap plus a cumulative-km odometer with a date brush, and From / To month pickers (44px) as the alternative to dragging |
+| Rankings | A rank-by-year bump chart with dash styles that the legend repeats, the top 5, and "versus" rows drawn as one split bar |
+
+Rules that apply to every chart:
+- Colour is never the only cue: shapes, arrow directions and dashes carry it too.
+- Filtered views draw all flights as a grey ghost layer behind the matches.
+- Under each chart, a "View as table" button opens its data as a table; that table is also the screen-reader path.
+- The first tap pins a tooltip with "Add filter" or "Open flight"; a tap never filters directly.
+- Segmented controls use the standard 44px cells. Dense corner controls are 32px visually, with 44px hit areas on coarse pointers.
+- Captions are 15/24 Commissioner 600 in normal case, never all caps.
+- Below-the-fold charts load lazily behind fixed-height skeletons.
+- On a filter change, charts in view tween with the library default; the rest snap to their final state.
+
+**Brush limit.** In @tanstack/charts 1.0.0, `brushX` has no separate hit-area option, so its handles can't reach 44px without being drawn at 44px. The month pickers are the reliable alternative. The brush overlay also sets `touch-action: none`, so a vertical swipe that starts on it doesn't scroll the page.
+
+**States**
+- First run: a still, empty globe with the narrator line and Import / Add buttons; no figures or sections.
+- Filtered to zero: everything is ghosted, figures show em-dashes, and the sections collapse into one narrator line with "Remove last filter" and "Clear all".
+
+**Narrator.** An unnamed, dry narrator, set in 15/24 `--text-muted` under a hairline at section feet, at most 60ch, with no icon and no quotes. Quips are triggered by data and stay stable for the same data. EN and RU are written natively, and RU uses «вы».
+
 ## Copy and trust
 
-Capture, auth, privacy, settings, errors, validation and destructive flows are calm and direct, with no humor. Wit is allowed only as a secondary line in non-critical empty states, achievements and insights, never replacing the instruction. Russian copy uses «вы»; no «ты» forms. Every string is written in RU and EN together with real plural forms (inline `{en, ru}` pairs or `locale-en` / `locale-ru` spans, plurals through the shared formatter), and checked at 320px and 200% text size.
+Capture, auth, privacy, settings, errors, validation and destructive flows are calm and direct, with no humor. Wit is allowed only as a secondary line in non-critical empty states, achievements and insights, never replacing the instruction. The designed Overview narrator is the planned exception: it appears in section footers, figure captions, threshold placeholders and empty filter results, and never replaces an instruction. Russian copy uses «вы»; no «ты» forms. Every string is written in RU and EN together with real plural forms (inline `{en, ru}` pairs or `locale-en` / `locale-ru` spans, plurals through the shared formatter), and checked at 320px and 200% text size.
 
 "Nothing is stamped without you" is a precise rule, not an absolute promise: the one documented exception (D11) is that an awaiting flight is confirmed automatically seven days after it becomes date-eligible. Say so wherever the promise appears, for example in queue helper text. Never write "never" or "always" about stamping.
 
@@ -270,6 +333,7 @@ Capture, auth, privacy, settings, errors, validation and destructive flows are c
 | Superseded | Replaced by |
 |---|---|
 | Glass, blur, grain, gradient buttons, glow | Solid levels 0–3 and flat accent fill. |
+| Terracotta default accent (`#a94e35` / `#e6a184`) and red danger (`#a43535`) | Shu 朱 and crimson danger (decided 2026-10-07; code migration pending). |
 | Journey UI and navigation | Removed (D7); `/journey` redirects to `/overview`. |
 | く logo mark | 空 tile (see Logo mark). Auth surfaces use a text wordmark; member and loading surfaces retain the tile. |
 | Filled or heavier active-tab icon | Accent text, 600 label and a 2px accent bar. |
