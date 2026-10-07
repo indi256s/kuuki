@@ -66,6 +66,62 @@ function generate(name: typeof names[number]): OverviewPayload {
       regions: Object.fromEntries([...countries].sort().map(code => [code, refs.regions[code]])) } }
 }
 
+// Independent fixture oracle: derive the requested outputs from counted source rows,
+// without invoking ranking, calendar or classification production helpers.
+function expectedRankingOutputs(fixture: OverviewPayload) {
+  const rows = fixture.rows.filter(row => row.state === 'logged' || row.state === 'awaiting')
+  const dated = rows.filter(row => /^\d{4}-\d{2}-\d{2}$/.test(row.date) &&
+    new Date(`${row.date}T00:00:00Z`).toISOString().slice(0, 10) === row.date)
+  const years = [...new Set(dated.map(row => Number(row.date.slice(0, 4))))].sort((a, b) => a - b).slice(-6)
+  const leaders: Record<string, unknown> = {}, rankByYear: Record<string, unknown> = {}
+  for (const category of ['airlines', 'airports', 'routes'] as const) {
+    const keys = (row: OverviewRow) => category === 'airlines' ? (row.airline ? [row.airline] : [])
+      : category === 'airports' ? [row.origin, row.destination] : [[row.origin, row.destination].sort().join('-')]
+    const totals: Record<string, number> = {}, selected: Record<string, number> = {}
+    const byYear: Record<number, Record<string, number>> = Object.fromEntries(years.map(year => [year, {}]))
+    for (const row of rows) for (const key of keys(row)) totals[key] = (totals[key] ?? 0) + row.weight
+    for (const row of dated) {
+      const year = Number(row.date.slice(0, 4))
+      if (!years.includes(year)) continue
+      for (const key of keys(row)) {
+        selected[key] = (selected[key] ?? 0) + row.weight
+        byYear[year][key] = (byYear[year][key] ?? 0) + row.weight
+      }
+    }
+    const order = (counts: Record<string, number>) => Object.keys(counts).sort((a, b) => counts[b] - counts[a] || a.localeCompare(b))
+    const top = order(totals).slice(0, 5).map(key => ({ key, count: totals[key] }))
+    const total = Object.values(totals).reduce((a, b) => a + b, 0)
+    leaders[category] = { top, total, topShare: total ? top[0].count / total : 0,
+      top5Share: total ? top.reduce((sum, row) => sum + row.count, 0) / total : 0 }
+    const entities = order(selected).slice(0, 5)
+    rankByYear[category] = years.flatMap(year => entities.filter(entity => byYear[year][entity] > 0)
+      .sort((a, b) => byYear[year][b] - byYear[year][a] || a.localeCompare(b)).map(entity => ({
+        key: `${entity}:${year}`, entity, year, count: byYear[year][entity],
+        rank: 1 + entities.filter(other => (byYear[year][other] ?? 0) > byYear[year][entity]).length,
+      })))
+  }
+  const total = rows.reduce((sum, row) => sum + row.weight, 0)
+  const versus = ['makers', 'haul', 'daytime'].map(id => {
+    let left = 0, right = 0
+    for (const row of rows) {
+      if (id === 'makers') {
+        const maker = row.aircraft === null ? null : fixture.refs.aircraft[row.aircraft]?.manufacturer
+        if (maker === 'Airbus') left += row.weight
+        if (maker === 'Boeing') right += row.weight
+      } else if (id === 'haul' && row.distanceKm !== null) {
+        if (row.distanceKm / row.weight < 4000) left += row.weight
+        else right += row.weight
+      } else if (id === 'daytime' && row.depMinute !== null) {
+        if (row.depMinute >= 360 && row.depMinute < 1320) left += row.weight
+        else right += row.weight
+      }
+    }
+    return { id, left: { key: id === 'makers' ? 'airbus' : id === 'haul' ? 'short' : 'day', count: left },
+      right: { key: id === 'makers' ? 'boeing' : id === 'haul' ? 'long' : 'night', count: right }, excluded: total - left - right }
+  })
+  return { leaders, rankByYear, versus }
+}
+
 it.each(names)('%s matches its generated fixture and known snapshot values', name => {
   const path = fileURLToPath(new URL(`./__fixtures__/${name}.json`, import.meta.url))
   const generated = generate(name)
@@ -106,6 +162,7 @@ it.each(names)('%s matches its generated fixture and known snapshot values', nam
     expect(result.clock).toMatchObject({ status: 'ready', value: { redEyes: 10 } })
     expect(result.crossings).toMatchObject({ status: 'ready', value: { clockShiftHours: 50 } })
   }
+  expect(result.rankings).toMatchObject(expectedRankingOutputs(fixture))
   expect(result).toMatchSnapshot()
 })
 
@@ -114,6 +171,7 @@ it('board fixture reproduces board totals', () => {
   const result = computeOverview(fixture, {})
   expect(fixture.schemaVersion).toBe(3)
   expect(result.figures).toMatchObject({ flights: 69, awaiting: 3, distanceKm: 141204 })
+  expect(result.rankings).toMatchObject(expectedRankingOutputs(fixture))
   expect(result.rankings.airlines[0]).toEqual({ key: 'TK', count: 24 })
   expect(result.records).toMatchObject({ status: 'ready', value: { northernmost: { iata: 'KTT', lat: expect.closeTo(67.6986111111, 8) } } })
   expect(result.crossings).toMatchObject({ status: 'ready', value: { arcticCircle: 2, clockShiftHours: 85 } })

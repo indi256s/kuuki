@@ -1,8 +1,11 @@
+import { readFileSync } from 'node:fs'
 import { expect, it } from 'vitest'
 import { findAirport } from '../../../data/src/airport-lookup'
 import { greatCircleKm } from '../geo'
 import { rhythm } from './rhythm'
 import { rankings } from './rankings'
+import { aggregateRows } from './aggregate'
+import { computeOverview } from './compute'
 import { globe } from './globe'
 import type { OverviewPayload, OverviewRow } from './model'
 
@@ -42,7 +45,7 @@ it('ranking ties are alphabetical, routes undirected, airports count both endpoi
   const rows = [row({ weight: 2 }), row({ id: 2, origin: 'NRT', destination: 'TBS', airline: 'BA', weight: 2 }),
     row({ id: 3, destination: 'IST', airline: 'A9' })]
   const result = rankings(rows)
-  expect(result).toEqual({ airlines: [{ key: 'BA', count: 2 }, { key: 'TK', count: 2 }, { key: 'A9', count: 1 }],
+  expect({ airlines: result.airlines, airports: result.airports, routes: result.routes }).toEqual({ airlines: [{ key: 'BA', count: 2 }, { key: 'TK', count: 2 }, { key: 'A9', count: 1 }],
     airports: [{ key: 'TBS', count: 5 }, { key: 'NRT', count: 4 }, { key: 'IST', count: 1 }],
     routes: [{ key: 'NRT-TBS', count: 4 }, { key: 'IST-TBS', count: 1 }] })
   expect(rankings([...rows].reverse())).toEqual(result)
@@ -95,4 +98,81 @@ it('globe output is unchanged by input order and ghosts are chronological', () =
   const result = globe(all, all.slice(0, 2), refs)
   expect(result.ghosts.map(item => item.id)).toEqual([3, 4])
   expect(globe([...all].reverse(), [all[1], all[0]], refs)).toEqual(result)
+})
+
+
+it('board leaders, latest six years and versus use the counted source flights', () => {
+  const payload = JSON.parse(readFileSync(new URL('./__fixtures__/board.json', import.meta.url), 'utf8')) as OverviewPayload
+  const result = computeOverview(payload, {}).rankings
+  expect(result.leaders.airlines.top[0]).toEqual({ key: 'TK', count: 24 })
+  expect(result.leaders.airlines.total).toBe(69)
+  expect(result.leaders.airlines.topShare).toBeCloseTo(24 / 69)
+  expect(result.leaders.airports.total).toBe(138)
+  expect(result.leaders.routes.total).toBe(69)
+  for (const category of ['airlines', 'airports', 'routes'] as const) {
+    expect([...new Set(result.rankByYear[category].map(item => item.year))]).toEqual([2021, 2022, 2023, 2024, 2025, 2026])
+    expect(new Set(result.rankByYear[category].map(item => item.entity)).size).toBeLessThanOrEqual(5)
+  }
+  expect(result.versus[0]).toEqual({ id: 'makers', left: { key: 'airbus', count: 38 }, right: { key: 'boeing', count: 21 }, excluded: 10 })
+  expect(result.versus[2].right).toEqual({ key: 'night', count: 8 })
+})
+
+it('yearly ranks select weighted leaders in the latest six distinct years and omit zero rows', () => {
+  const rows = [row({ date: '2010-01-01', airline: 'OLD', weight: 100 }),
+    ...[2012, 2014, 2018, 2020, 2024, 2026].map(year => row({ date: `${year}-01-01`, airline: 'A', weight: 2 })),
+    ...['B', 'C', 'D', 'E', 'F'].map(airline => row({ date: '2026-01-01', airline, weight: airline === 'B' ? 2 : 1 }))]
+  const result = rankings(rows)
+  expect(result.rankByYear.airlines).toEqual([
+    ...[2012, 2014, 2018, 2020, 2024].map(year => ({ key: `A:${year}`, entity: 'A', year, rank: 1, count: 2 })),
+    { key: 'A:2026', entity: 'A', year: 2026, rank: 1, count: 2 },
+    { key: 'B:2026', entity: 'B', year: 2026, rank: 1, count: 2 },
+    { key: 'C:2026', entity: 'C', year: 2026, rank: 3, count: 1 },
+    { key: 'D:2026', entity: 'D', year: 2026, rank: 3, count: 1 },
+    { key: 'E:2026', entity: 'E', year: 2026, rank: 3, count: 1 },
+  ])
+  expect(result.leaders.airlines.top).toHaveLength(5)
+  expect(result.leaders.airlines.total).toBe(118)
+  expect(result.leaders.airlines.topShare).toBeCloseTo(100 / 118)
+  expect(result.leaders.airlines.top5Share).toBeCloseTo(116 / 118)
+  expect(rankings([...rows].reverse())).toEqual(result)
+})
+
+it('empty, missing-carrier and invalid-date rankings retain category denominators without invented years', () => {
+  const empty = rankings([])
+  for (const category of ['airlines', 'airports', 'routes'] as const) {
+    expect(empty.leaders[category]).toEqual({ top: [], total: 0, topShare: 0, top5Share: 0 })
+    expect(empty.rankByYear[category]).toEqual([])
+  }
+  expect(empty.versus.every(pair => pair.left.count === 0 && pair.right.count === 0 && pair.excluded === 0)).toBe(true)
+  const rows = [row({ airline: null, date: 'bad', weight: 3 }), row({ date: '2025-02-30' }),
+    row({ date: '0000-02-29' }), row({ date: '0099-01-01' })]
+  const result = rankings(rows)
+  expect(result.leaders.airlines).toEqual({ top: [{ key: 'TK', count: 3 }], total: 3, topShare: 1, top5Share: 1 })
+  expect(result.leaders.airports.total).toBe(12)
+  expect(result.leaders.routes.total).toBe(6)
+  expect(result.rankByYear.airlines.map(item => item.year)).toEqual([0, 99])
+})
+
+it('versus uses weighted canonical makers, per-flight haul and valid departure-band boundaries', () => {
+  const rows = [row({ aircraft: 'BCS3', weight: 2, distanceKm: 7998, depMinute: 359 }),
+    row({ aircraft: 'B738', weight: 3, distanceKm: 12000, depMinute: 360 }),
+    row({ aircraft: 'AT76', weight: 4, distanceKm: 0, depMinute: 1319 }),
+    row({ aircraft: 'E190', weight: 5, distanceKm: null, depMinute: 1320 }),
+    row({ aircraft: null, weight: 6, distanceKm: -1, depMinute: null }),
+    row({ aircraft: 'ZZZ', weight: 7, distanceKm: Infinity, depMinute: 1440 }),
+    row({ weight: 8, distanceKm: NaN, depMinute: -1 }),
+    row({ weight: 9, distanceKm: null, depMinute: NaN }),
+    row({ weight: 10, distanceKm: null, depMinute: Infinity })]
+  expect(rankings(rows).versus).toEqual([
+    { id: 'makers', left: { key: 'airbus', count: 2 }, right: { key: 'boeing', count: 3 }, excluded: 49 },
+    { id: 'haul', left: { key: 'short', count: 6 }, right: { key: 'long', count: 3 }, excluded: 45 },
+    { id: 'daytime', left: { key: 'day', count: 7 }, right: { key: 'night', count: 7 }, excluded: 40 },
+  ])
+})
+
+it('rankings preserve raw versus aggregate counts, selected entities and classifications', () => {
+  const rows = Array.from({ length: 12 }, (_, i) => row({ id: i + 1, date: `2025-01-${String(i + 1).padStart(2, '0')}`,
+    aircraft: i % 2 ? 'B738' : 'A320', airline: i % 2 ? 'BA' : 'TK',
+    distanceKm: i % 2 ? 4000 : 3999, depMinute: i % 2 ? 1320 : 360 }))
+  expect(rankings(aggregateRows(rows))).toEqual(rankings(rows))
 })

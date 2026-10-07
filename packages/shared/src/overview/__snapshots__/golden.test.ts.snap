@@ -136,10 +136,123 @@ exports[`dateLine matches its generated fixture and known snapshot values 1`] = 
         "key": "SFO",
       },
     ],
+    "leaders": {
+      "airlines": {
+        "top": [
+          {
+            "count": 6,
+            "key": "TK",
+          },
+        ],
+        "top5Share": 1,
+        "topShare": 1,
+        "total": 6,
+      },
+      "airports": {
+        "top": [
+          {
+            "count": 6,
+            "key": "NRT",
+          },
+          {
+            "count": 6,
+            "key": "SFO",
+          },
+        ],
+        "top5Share": 1,
+        "topShare": 0.5,
+        "total": 12,
+      },
+      "routes": {
+        "top": [
+          {
+            "count": 6,
+            "key": "NRT-SFO",
+          },
+        ],
+        "top5Share": 1,
+        "topShare": 1,
+        "total": 6,
+      },
+    },
+    "rankByYear": {
+      "airlines": [
+        {
+          "count": 6,
+          "entity": "TK",
+          "key": "TK:2025",
+          "rank": 1,
+          "year": 2025,
+        },
+      ],
+      "airports": [
+        {
+          "count": 6,
+          "entity": "NRT",
+          "key": "NRT:2025",
+          "rank": 1,
+          "year": 2025,
+        },
+        {
+          "count": 6,
+          "entity": "SFO",
+          "key": "SFO:2025",
+          "rank": 1,
+          "year": 2025,
+        },
+      ],
+      "routes": [
+        {
+          "count": 6,
+          "entity": "NRT-SFO",
+          "key": "NRT-SFO:2025",
+          "rank": 1,
+          "year": 2025,
+        },
+      ],
+    },
     "routes": [
       {
         "count": 6,
         "key": "NRT-SFO",
+      },
+    ],
+    "versus": [
+      {
+        "excluded": 0,
+        "id": "makers",
+        "left": {
+          "count": 6,
+          "key": "airbus",
+        },
+        "right": {
+          "count": 0,
+          "key": "boeing",
+        },
+      },
+      {
+        "excluded": 0,
+        "id": "haul",
+        "left": {
+          "count": 0,
+          "key": "short",
+        },
+        "right": {
+          "count": 6,
+          "key": "long",
+        },
+      },
+      {
+        "excluded": 0,
+        "id": "daytime",
+        "left": {
+          "count": 6,
+          "key": "day",
+        },
+        "right": {
+          "count": 0,
+          "key": "night",
+        },
       },
     ],
   },
@@ -513,6 +626,136 @@ exports[`microstate matches its generated fixture and known snapshot values 1`] 
         "key": "SIN",
       },
     ],
+    "leaders": {
+      "airlines": {
+        "top": [
+          {
+            "count": 4,
+            "key": "TK",
+          },
+        ],
+        "top5Share": 1,
+        "topShare": 1,
+        "total": 4,
+      },
+      "airports": {
+        "top": [
+          {
+            "count": 2,
+            "key": "BAH",
+          },
+          {
+            "count": 2,
+            "key": "LUX",
+          },
+          {
+            "count": 2,
+            "key": "MLA",
+          },
+          {
+            "count": 2,
+            "key": "SIN",
+          },
+        ],
+        "top5Share": 1,
+        "topShare": 0.25,
+        "total": 8,
+      },
+      "routes": {
+        "top": [
+          {
+            "count": 1,
+            "key": "BAH-MLA",
+          },
+          {
+            "count": 1,
+            "key": "BAH-SIN",
+          },
+          {
+            "count": 1,
+            "key": "LUX-MLA",
+          },
+          {
+            "count": 1,
+            "key": "LUX-SIN",
+          },
+        ],
+        "top5Share": 1,
+        "topShare": 0.25,
+        "total": 4,
+      },
+    },
+    "rankByYear": {
+      "airlines": [
+        {
+          "count": 4,
+          "entity": "TK",
+          "key": "TK:2025",
+          "rank": 1,
+          "year": 2025,
+        },
+      ],
+      "airports": [
+        {
+          "count": 2,
+          "entity": "BAH",
+          "key": "BAH:2025",
+          "rank": 1,
+          "year": 2025,
+        },
+        {
+          "count": 2,
+          "entity": "LUX",
+          "key": "LUX:2025",
+          "rank": 1,
+          "year": 2025,
+        },
+        {
+          "count": 2,
+          "entity": "MLA",
+          "key": "MLA:2025",
+          "rank": 1,
+          "year": 2025,
+        },
+        {
+          "count": 2,
+          "entity": "SIN",
+          "key": "SIN:2025",
+          "rank": 1,
+          "year": 2025,
+        },
+      ],
+      "routes": [
+        {
+          "count": 1,
+          "entity": "BAH-MLA",
+          "key": "BAH-MLA:2025",
+          "rank": 1,
+          "year": 2025,
+        },
+        {
+          "count": 1,
+          "entity": "BAH-SIN",
+          "key": "BAH-SIN:2025",
+          "rank": 1,
+          "year": 2025,
+        },
+        {
+          "count": 1,
+          "entity": "LUX-MLA",
+          "key": "LUX-MLA:2025",
+          "rank": 1,
+          "year": 2025,
+        },
+        {
+          "count": 1,
+          "entity": "LUX-SIN",
+          "key": "LUX-SIN:2025",
+          "rank": 1,
+          "year": 2025,
+        },
+      ],
+    },
     "routes": [
       {
         "count": 1,
@@ -529,6 +772,44 @@ exports[`microstate matches its generated fixture and known snapshot values 1`] 
       {
         "count": 1,
         "key": "LUX-SIN",
+      },
+    ],
+    "versus": [
+      {
+        "excluded": 0,
+        "id": "makers",
+        "left": {
+          "count": 4,
+          "key": "airbus",
+        },
+        "right": {
+          "count": 0,
+          "key": "boeing",
+        },
+      },
+      {
+        "excluded": 0,
+        "id": "haul",
+        "left": {
+          "count": 2,
+          "key": "short",
+        },
+        "right": {
+          "count": 2,
+          "key": "long",
+        },
+      },
+      {
+        "excluded": 0,
+        "id": "daytime",
+        "left": {
+          "count": 4,
+          "key": "day",
+        },
+        "right": {
+          "count": 0,
+          "key": "night",
+        },
       },
     ],
   },
@@ -637,7 +918,70 @@ exports[`n0 matches its generated fixture and known snapshot values 1`] = `
   "rankings": {
     "airlines": [],
     "airports": [],
+    "leaders": {
+      "airlines": {
+        "top": [],
+        "top5Share": 0,
+        "topShare": 0,
+        "total": 0,
+      },
+      "airports": {
+        "top": [],
+        "top5Share": 0,
+        "topShare": 0,
+        "total": 0,
+      },
+      "routes": {
+        "top": [],
+        "top5Share": 0,
+        "topShare": 0,
+        "total": 0,
+      },
+    },
+    "rankByYear": {
+      "airlines": [],
+      "airports": [],
+      "routes": [],
+    },
     "routes": [],
+    "versus": [
+      {
+        "excluded": 0,
+        "id": "makers",
+        "left": {
+          "count": 0,
+          "key": "airbus",
+        },
+        "right": {
+          "count": 0,
+          "key": "boeing",
+        },
+      },
+      {
+        "excluded": 0,
+        "id": "haul",
+        "left": {
+          "count": 0,
+          "key": "short",
+        },
+        "right": {
+          "count": 0,
+          "key": "long",
+        },
+      },
+      {
+        "excluded": 0,
+        "id": "daytime",
+        "left": {
+          "count": 0,
+          "key": "day",
+        },
+        "right": {
+          "count": 0,
+          "key": "night",
+        },
+      },
+    ],
   },
   "records": {
     "have": 0,
@@ -758,10 +1102,123 @@ exports[`n1 matches its generated fixture and known snapshot values 1`] = `
         "key": "TBS",
       },
     ],
+    "leaders": {
+      "airlines": {
+        "top": [
+          {
+            "count": 1,
+            "key": "TK",
+          },
+        ],
+        "top5Share": 1,
+        "topShare": 1,
+        "total": 1,
+      },
+      "airports": {
+        "top": [
+          {
+            "count": 1,
+            "key": "IST",
+          },
+          {
+            "count": 1,
+            "key": "TBS",
+          },
+        ],
+        "top5Share": 1,
+        "topShare": 0.5,
+        "total": 2,
+      },
+      "routes": {
+        "top": [
+          {
+            "count": 1,
+            "key": "IST-TBS",
+          },
+        ],
+        "top5Share": 1,
+        "topShare": 1,
+        "total": 1,
+      },
+    },
+    "rankByYear": {
+      "airlines": [
+        {
+          "count": 1,
+          "entity": "TK",
+          "key": "TK:2020",
+          "rank": 1,
+          "year": 2020,
+        },
+      ],
+      "airports": [
+        {
+          "count": 1,
+          "entity": "IST",
+          "key": "IST:2020",
+          "rank": 1,
+          "year": 2020,
+        },
+        {
+          "count": 1,
+          "entity": "TBS",
+          "key": "TBS:2020",
+          "rank": 1,
+          "year": 2020,
+        },
+      ],
+      "routes": [
+        {
+          "count": 1,
+          "entity": "IST-TBS",
+          "key": "IST-TBS:2020",
+          "rank": 1,
+          "year": 2020,
+        },
+      ],
+    },
     "routes": [
       {
         "count": 1,
         "key": "IST-TBS",
+      },
+    ],
+    "versus": [
+      {
+        "excluded": 0,
+        "id": "makers",
+        "left": {
+          "count": 1,
+          "key": "airbus",
+        },
+        "right": {
+          "count": 0,
+          "key": "boeing",
+        },
+      },
+      {
+        "excluded": 0,
+        "id": "haul",
+        "left": {
+          "count": 1,
+          "key": "short",
+        },
+        "right": {
+          "count": 0,
+          "key": "long",
+        },
+      },
+      {
+        "excluded": 0,
+        "id": "daytime",
+        "left": {
+          "count": 0,
+          "key": "day",
+        },
+        "right": {
+          "count": 1,
+          "key": "night",
+        },
       },
     ],
   },
@@ -1136,6 +1593,158 @@ exports[`n10 matches its generated fixture and known snapshot values 1`] = `
         "key": "SFO",
       },
     ],
+    "leaders": {
+      "airlines": {
+        "top": [
+          {
+            "count": 4,
+            "key": "TK",
+          },
+          {
+            "count": 3,
+            "key": "BA",
+          },
+          {
+            "count": 3,
+            "key": "JL",
+          },
+        ],
+        "top5Share": 1,
+        "topShare": 0.4,
+        "total": 10,
+      },
+      "airports": {
+        "top": [
+          {
+            "count": 4,
+            "key": "IST",
+          },
+          {
+            "count": 4,
+            "key": "TBS",
+          },
+          {
+            "count": 3,
+            "key": "JFK",
+          },
+          {
+            "count": 3,
+            "key": "LHR",
+          },
+          {
+            "count": 3,
+            "key": "NRT",
+          },
+        ],
+        "top5Share": 0.85,
+        "topShare": 0.2,
+        "total": 20,
+      },
+      "routes": {
+        "top": [
+          {
+            "count": 4,
+            "key": "IST-TBS",
+          },
+          {
+            "count": 3,
+            "key": "JFK-LHR",
+          },
+          {
+            "count": 3,
+            "key": "NRT-SFO",
+          },
+        ],
+        "top5Share": 1,
+        "topShare": 0.4,
+        "total": 10,
+      },
+    },
+    "rankByYear": {
+      "airlines": [
+        {
+          "count": 4,
+          "entity": "TK",
+          "key": "TK:2020",
+          "rank": 1,
+          "year": 2020,
+        },
+        {
+          "count": 3,
+          "entity": "BA",
+          "key": "BA:2020",
+          "rank": 2,
+          "year": 2020,
+        },
+        {
+          "count": 3,
+          "entity": "JL",
+          "key": "JL:2020",
+          "rank": 2,
+          "year": 2020,
+        },
+      ],
+      "airports": [
+        {
+          "count": 4,
+          "entity": "IST",
+          "key": "IST:2020",
+          "rank": 1,
+          "year": 2020,
+        },
+        {
+          "count": 4,
+          "entity": "TBS",
+          "key": "TBS:2020",
+          "rank": 1,
+          "year": 2020,
+        },
+        {
+          "count": 3,
+          "entity": "JFK",
+          "key": "JFK:2020",
+          "rank": 3,
+          "year": 2020,
+        },
+        {
+          "count": 3,
+          "entity": "LHR",
+          "key": "LHR:2020",
+          "rank": 3,
+          "year": 2020,
+        },
+        {
+          "count": 3,
+          "entity": "NRT",
+          "key": "NRT:2020",
+          "rank": 3,
+          "year": 2020,
+        },
+      ],
+      "routes": [
+        {
+          "count": 4,
+          "entity": "IST-TBS",
+          "key": "IST-TBS:2020",
+          "rank": 1,
+          "year": 2020,
+        },
+        {
+          "count": 3,
+          "entity": "JFK-LHR",
+          "key": "JFK-LHR:2020",
+          "rank": 2,
+          "year": 2020,
+        },
+        {
+          "count": 3,
+          "entity": "NRT-SFO",
+          "key": "NRT-SFO:2020",
+          "rank": 2,
+          "year": 2020,
+        },
+      ],
+    },
     "routes": [
       {
         "count": 4,
@@ -1148,6 +1757,44 @@ exports[`n10 matches its generated fixture and known snapshot values 1`] = `
       {
         "count": 3,
         "key": "NRT-SFO",
+      },
+    ],
+    "versus": [
+      {
+        "excluded": 0,
+        "id": "makers",
+        "left": {
+          "count": 4,
+          "key": "airbus",
+        },
+        "right": {
+          "count": 6,
+          "key": "boeing",
+        },
+      },
+      {
+        "excluded": 0,
+        "id": "haul",
+        "left": {
+          "count": 4,
+          "key": "short",
+        },
+        "right": {
+          "count": 6,
+          "key": "long",
+        },
+      },
+      {
+        "excluded": 0,
+        "id": "daytime",
+        "left": {
+          "count": 4,
+          "key": "day",
+        },
+        "right": {
+          "count": 6,
+          "key": "night",
+        },
       },
     ],
   },
@@ -2581,6 +3228,543 @@ exports[`n500 matches its generated fixture and known snapshot values 1`] = `
         "key": "SFO",
       },
     ],
+    "leaders": {
+      "airlines": {
+        "top": [
+          {
+            "count": 152,
+            "key": "BA",
+          },
+          {
+            "count": 152,
+            "key": "TK",
+          },
+          {
+            "count": 151,
+            "key": "JL",
+          },
+        ],
+        "top5Share": 1,
+        "topShare": 0.33406593406593404,
+        "total": 455,
+      },
+      "airports": {
+        "top": [
+          {
+            "count": 152,
+            "key": "IST",
+          },
+          {
+            "count": 152,
+            "key": "JFK",
+          },
+          {
+            "count": 152,
+            "key": "LHR",
+          },
+          {
+            "count": 152,
+            "key": "TBS",
+          },
+          {
+            "count": 151,
+            "key": "NRT",
+          },
+        ],
+        "top5Share": 0.8340659340659341,
+        "topShare": 0.16703296703296702,
+        "total": 910,
+      },
+      "routes": {
+        "top": [
+          {
+            "count": 152,
+            "key": "IST-TBS",
+          },
+          {
+            "count": 152,
+            "key": "JFK-LHR",
+          },
+          {
+            "count": 151,
+            "key": "NRT-SFO",
+          },
+        ],
+        "top5Share": 1,
+        "topShare": 0.33406593406593404,
+        "total": 455,
+      },
+    },
+    "rankByYear": {
+      "airlines": [
+        {
+          "count": 26,
+          "entity": "BA",
+          "key": "BA:2020",
+          "rank": 1,
+          "year": 2020,
+        },
+        {
+          "count": 26,
+          "entity": "TK",
+          "key": "TK:2020",
+          "rank": 1,
+          "year": 2020,
+        },
+        {
+          "count": 25,
+          "entity": "JL",
+          "key": "JL:2020",
+          "rank": 3,
+          "year": 2020,
+        },
+        {
+          "count": 26,
+          "entity": "JL",
+          "key": "JL:2021",
+          "rank": 1,
+          "year": 2021,
+        },
+        {
+          "count": 26,
+          "entity": "TK",
+          "key": "TK:2021",
+          "rank": 1,
+          "year": 2021,
+        },
+        {
+          "count": 25,
+          "entity": "BA",
+          "key": "BA:2021",
+          "rank": 3,
+          "year": 2021,
+        },
+        {
+          "count": 26,
+          "entity": "BA",
+          "key": "BA:2022",
+          "rank": 1,
+          "year": 2022,
+        },
+        {
+          "count": 26,
+          "entity": "JL",
+          "key": "JL:2022",
+          "rank": 1,
+          "year": 2022,
+        },
+        {
+          "count": 25,
+          "entity": "TK",
+          "key": "TK:2022",
+          "rank": 3,
+          "year": 2022,
+        },
+        {
+          "count": 26,
+          "entity": "BA",
+          "key": "BA:2023",
+          "rank": 1,
+          "year": 2023,
+        },
+        {
+          "count": 26,
+          "entity": "TK",
+          "key": "TK:2023",
+          "rank": 1,
+          "year": 2023,
+        },
+        {
+          "count": 24,
+          "entity": "JL",
+          "key": "JL:2023",
+          "rank": 3,
+          "year": 2023,
+        },
+        {
+          "count": 26,
+          "entity": "JL",
+          "key": "JL:2024",
+          "rank": 1,
+          "year": 2024,
+        },
+        {
+          "count": 26,
+          "entity": "TK",
+          "key": "TK:2024",
+          "rank": 1,
+          "year": 2024,
+        },
+        {
+          "count": 24,
+          "entity": "BA",
+          "key": "BA:2024",
+          "rank": 3,
+          "year": 2024,
+        },
+        {
+          "count": 25,
+          "entity": "BA",
+          "key": "BA:2025",
+          "rank": 1,
+          "year": 2025,
+        },
+        {
+          "count": 24,
+          "entity": "JL",
+          "key": "JL:2025",
+          "rank": 2,
+          "year": 2025,
+        },
+        {
+          "count": 23,
+          "entity": "TK",
+          "key": "TK:2025",
+          "rank": 3,
+          "year": 2025,
+        },
+      ],
+      "airports": [
+        {
+          "count": 26,
+          "entity": "IST",
+          "key": "IST:2020",
+          "rank": 1,
+          "year": 2020,
+        },
+        {
+          "count": 26,
+          "entity": "JFK",
+          "key": "JFK:2020",
+          "rank": 1,
+          "year": 2020,
+        },
+        {
+          "count": 26,
+          "entity": "LHR",
+          "key": "LHR:2020",
+          "rank": 1,
+          "year": 2020,
+        },
+        {
+          "count": 26,
+          "entity": "TBS",
+          "key": "TBS:2020",
+          "rank": 1,
+          "year": 2020,
+        },
+        {
+          "count": 25,
+          "entity": "NRT",
+          "key": "NRT:2020",
+          "rank": 5,
+          "year": 2020,
+        },
+        {
+          "count": 26,
+          "entity": "IST",
+          "key": "IST:2021",
+          "rank": 1,
+          "year": 2021,
+        },
+        {
+          "count": 26,
+          "entity": "NRT",
+          "key": "NRT:2021",
+          "rank": 1,
+          "year": 2021,
+        },
+        {
+          "count": 26,
+          "entity": "TBS",
+          "key": "TBS:2021",
+          "rank": 1,
+          "year": 2021,
+        },
+        {
+          "count": 25,
+          "entity": "JFK",
+          "key": "JFK:2021",
+          "rank": 4,
+          "year": 2021,
+        },
+        {
+          "count": 25,
+          "entity": "LHR",
+          "key": "LHR:2021",
+          "rank": 4,
+          "year": 2021,
+        },
+        {
+          "count": 26,
+          "entity": "JFK",
+          "key": "JFK:2022",
+          "rank": 1,
+          "year": 2022,
+        },
+        {
+          "count": 26,
+          "entity": "LHR",
+          "key": "LHR:2022",
+          "rank": 1,
+          "year": 2022,
+        },
+        {
+          "count": 26,
+          "entity": "NRT",
+          "key": "NRT:2022",
+          "rank": 1,
+          "year": 2022,
+        },
+        {
+          "count": 25,
+          "entity": "IST",
+          "key": "IST:2022",
+          "rank": 4,
+          "year": 2022,
+        },
+        {
+          "count": 25,
+          "entity": "TBS",
+          "key": "TBS:2022",
+          "rank": 4,
+          "year": 2022,
+        },
+        {
+          "count": 26,
+          "entity": "IST",
+          "key": "IST:2023",
+          "rank": 1,
+          "year": 2023,
+        },
+        {
+          "count": 26,
+          "entity": "JFK",
+          "key": "JFK:2023",
+          "rank": 1,
+          "year": 2023,
+        },
+        {
+          "count": 26,
+          "entity": "LHR",
+          "key": "LHR:2023",
+          "rank": 1,
+          "year": 2023,
+        },
+        {
+          "count": 26,
+          "entity": "TBS",
+          "key": "TBS:2023",
+          "rank": 1,
+          "year": 2023,
+        },
+        {
+          "count": 24,
+          "entity": "NRT",
+          "key": "NRT:2023",
+          "rank": 5,
+          "year": 2023,
+        },
+        {
+          "count": 26,
+          "entity": "IST",
+          "key": "IST:2024",
+          "rank": 1,
+          "year": 2024,
+        },
+        {
+          "count": 26,
+          "entity": "NRT",
+          "key": "NRT:2024",
+          "rank": 1,
+          "year": 2024,
+        },
+        {
+          "count": 26,
+          "entity": "TBS",
+          "key": "TBS:2024",
+          "rank": 1,
+          "year": 2024,
+        },
+        {
+          "count": 24,
+          "entity": "JFK",
+          "key": "JFK:2024",
+          "rank": 4,
+          "year": 2024,
+        },
+        {
+          "count": 24,
+          "entity": "LHR",
+          "key": "LHR:2024",
+          "rank": 4,
+          "year": 2024,
+        },
+        {
+          "count": 25,
+          "entity": "JFK",
+          "key": "JFK:2025",
+          "rank": 1,
+          "year": 2025,
+        },
+        {
+          "count": 25,
+          "entity": "LHR",
+          "key": "LHR:2025",
+          "rank": 1,
+          "year": 2025,
+        },
+        {
+          "count": 24,
+          "entity": "NRT",
+          "key": "NRT:2025",
+          "rank": 3,
+          "year": 2025,
+        },
+        {
+          "count": 23,
+          "entity": "IST",
+          "key": "IST:2025",
+          "rank": 4,
+          "year": 2025,
+        },
+        {
+          "count": 23,
+          "entity": "TBS",
+          "key": "TBS:2025",
+          "rank": 4,
+          "year": 2025,
+        },
+      ],
+      "routes": [
+        {
+          "count": 26,
+          "entity": "IST-TBS",
+          "key": "IST-TBS:2020",
+          "rank": 1,
+          "year": 2020,
+        },
+        {
+          "count": 26,
+          "entity": "JFK-LHR",
+          "key": "JFK-LHR:2020",
+          "rank": 1,
+          "year": 2020,
+        },
+        {
+          "count": 25,
+          "entity": "NRT-SFO",
+          "key": "NRT-SFO:2020",
+          "rank": 3,
+          "year": 2020,
+        },
+        {
+          "count": 26,
+          "entity": "IST-TBS",
+          "key": "IST-TBS:2021",
+          "rank": 1,
+          "year": 2021,
+        },
+        {
+          "count": 26,
+          "entity": "NRT-SFO",
+          "key": "NRT-SFO:2021",
+          "rank": 1,
+          "year": 2021,
+        },
+        {
+          "count": 25,
+          "entity": "JFK-LHR",
+          "key": "JFK-LHR:2021",
+          "rank": 3,
+          "year": 2021,
+        },
+        {
+          "count": 26,
+          "entity": "JFK-LHR",
+          "key": "JFK-LHR:2022",
+          "rank": 1,
+          "year": 2022,
+        },
+        {
+          "count": 26,
+          "entity": "NRT-SFO",
+          "key": "NRT-SFO:2022",
+          "rank": 1,
+          "year": 2022,
+        },
+        {
+          "count": 25,
+          "entity": "IST-TBS",
+          "key": "IST-TBS:2022",
+          "rank": 3,
+          "year": 2022,
+        },
+        {
+          "count": 26,
+          "entity": "IST-TBS",
+          "key": "IST-TBS:2023",
+          "rank": 1,
+          "year": 2023,
+        },
+        {
+          "count": 26,
+          "entity": "JFK-LHR",
+          "key": "JFK-LHR:2023",
+          "rank": 1,
+          "year": 2023,
+        },
+        {
+          "count": 24,
+          "entity": "NRT-SFO",
+          "key": "NRT-SFO:2023",
+          "rank": 3,
+          "year": 2023,
+        },
+        {
+          "count": 26,
+          "entity": "IST-TBS",
+          "key": "IST-TBS:2024",
+          "rank": 1,
+          "year": 2024,
+        },
+        {
+          "count": 26,
+          "entity": "NRT-SFO",
+          "key": "NRT-SFO:2024",
+          "rank": 1,
+          "year": 2024,
+        },
+        {
+          "count": 24,
+          "entity": "JFK-LHR",
+          "key": "JFK-LHR:2024",
+          "rank": 3,
+          "year": 2024,
+        },
+        {
+          "count": 25,
+          "entity": "JFK-LHR",
+          "key": "JFK-LHR:2025",
+          "rank": 1,
+          "year": 2025,
+        },
+        {
+          "count": 24,
+          "entity": "NRT-SFO",
+          "key": "NRT-SFO:2025",
+          "rank": 2,
+          "year": 2025,
+        },
+        {
+          "count": 23,
+          "entity": "IST-TBS",
+          "key": "IST-TBS:2025",
+          "rank": 3,
+          "year": 2025,
+        },
+      ],
+    },
     "routes": [
       {
         "count": 152,
@@ -2593,6 +3777,44 @@ exports[`n500 matches its generated fixture and known snapshot values 1`] = `
       {
         "count": 151,
         "key": "NRT-SFO",
+      },
+    ],
+    "versus": [
+      {
+        "excluded": 0,
+        "id": "makers",
+        "left": {
+          "count": 152,
+          "key": "airbus",
+        },
+        "right": {
+          "count": 303,
+          "key": "boeing",
+        },
+      },
+      {
+        "excluded": 0,
+        "id": "haul",
+        "left": {
+          "count": 152,
+          "key": "short",
+        },
+        "right": {
+          "count": 303,
+          "key": "long",
+        },
+      },
+      {
+        "excluded": 0,
+        "id": "daytime",
+        "left": {
+          "count": 303,
+          "key": "day",
+        },
+        "right": {
+          "count": 152,
+          "key": "night",
+        },
       },
     ],
   },
@@ -10135,6 +11357,543 @@ exports[`n5001 matches its generated fixture and known snapshot values 1`] = `
         "key": "SFO",
       },
     ],
+    "leaders": {
+      "airlines": {
+        "top": [
+          {
+            "count": 1516,
+            "key": "BA",
+          },
+          {
+            "count": 1516,
+            "key": "TK",
+          },
+          {
+            "count": 1515,
+            "key": "JL",
+          },
+        ],
+        "top5Share": 1,
+        "topShare": 0.3334066417418078,
+        "total": 4547,
+      },
+      "airports": {
+        "top": [
+          {
+            "count": 1516,
+            "key": "IST",
+          },
+          {
+            "count": 1516,
+            "key": "JFK",
+          },
+          {
+            "count": 1516,
+            "key": "LHR",
+          },
+          {
+            "count": 1516,
+            "key": "TBS",
+          },
+          {
+            "count": 1515,
+            "key": "NRT",
+          },
+        ],
+        "top5Share": 0.8334066417418078,
+        "topShare": 0.1667033208709039,
+        "total": 9094,
+      },
+      "routes": {
+        "top": [
+          {
+            "count": 1516,
+            "key": "IST-TBS",
+          },
+          {
+            "count": 1516,
+            "key": "JFK-LHR",
+          },
+          {
+            "count": 1515,
+            "key": "NRT-SFO",
+          },
+        ],
+        "top5Share": 1,
+        "topShare": 0.3334066417418078,
+        "total": 4547,
+      },
+    },
+    "rankByYear": {
+      "airlines": [
+        {
+          "count": 256,
+          "entity": "TK",
+          "key": "TK:2020",
+          "rank": 1,
+          "year": 2020,
+        },
+        {
+          "count": 254,
+          "entity": "BA",
+          "key": "BA:2020",
+          "rank": 2,
+          "year": 2020,
+        },
+        {
+          "count": 254,
+          "entity": "JL",
+          "key": "JL:2020",
+          "rank": 2,
+          "year": 2020,
+        },
+        {
+          "count": 256,
+          "entity": "JL",
+          "key": "JL:2021",
+          "rank": 1,
+          "year": 2021,
+        },
+        {
+          "count": 254,
+          "entity": "BA",
+          "key": "BA:2021",
+          "rank": 2,
+          "year": 2021,
+        },
+        {
+          "count": 254,
+          "entity": "TK",
+          "key": "TK:2021",
+          "rank": 2,
+          "year": 2021,
+        },
+        {
+          "count": 255,
+          "entity": "BA",
+          "key": "BA:2022",
+          "rank": 1,
+          "year": 2022,
+        },
+        {
+          "count": 253,
+          "entity": "JL",
+          "key": "JL:2022",
+          "rank": 2,
+          "year": 2022,
+        },
+        {
+          "count": 253,
+          "entity": "TK",
+          "key": "TK:2022",
+          "rank": 2,
+          "year": 2022,
+        },
+        {
+          "count": 252,
+          "entity": "TK",
+          "key": "TK:2023",
+          "rank": 1,
+          "year": 2023,
+        },
+        {
+          "count": 251,
+          "entity": "BA",
+          "key": "BA:2023",
+          "rank": 2,
+          "year": 2023,
+        },
+        {
+          "count": 250,
+          "entity": "JL",
+          "key": "JL:2023",
+          "rank": 3,
+          "year": 2023,
+        },
+        {
+          "count": 252,
+          "entity": "JL",
+          "key": "JL:2024",
+          "rank": 1,
+          "year": 2024,
+        },
+        {
+          "count": 251,
+          "entity": "TK",
+          "key": "TK:2024",
+          "rank": 2,
+          "year": 2024,
+        },
+        {
+          "count": 250,
+          "entity": "BA",
+          "key": "BA:2024",
+          "rank": 3,
+          "year": 2024,
+        },
+        {
+          "count": 252,
+          "entity": "BA",
+          "key": "BA:2025",
+          "rank": 1,
+          "year": 2025,
+        },
+        {
+          "count": 250,
+          "entity": "JL",
+          "key": "JL:2025",
+          "rank": 2,
+          "year": 2025,
+        },
+        {
+          "count": 250,
+          "entity": "TK",
+          "key": "TK:2025",
+          "rank": 2,
+          "year": 2025,
+        },
+      ],
+      "airports": [
+        {
+          "count": 256,
+          "entity": "IST",
+          "key": "IST:2020",
+          "rank": 1,
+          "year": 2020,
+        },
+        {
+          "count": 256,
+          "entity": "TBS",
+          "key": "TBS:2020",
+          "rank": 1,
+          "year": 2020,
+        },
+        {
+          "count": 254,
+          "entity": "JFK",
+          "key": "JFK:2020",
+          "rank": 3,
+          "year": 2020,
+        },
+        {
+          "count": 254,
+          "entity": "LHR",
+          "key": "LHR:2020",
+          "rank": 3,
+          "year": 2020,
+        },
+        {
+          "count": 254,
+          "entity": "NRT",
+          "key": "NRT:2020",
+          "rank": 3,
+          "year": 2020,
+        },
+        {
+          "count": 256,
+          "entity": "NRT",
+          "key": "NRT:2021",
+          "rank": 1,
+          "year": 2021,
+        },
+        {
+          "count": 254,
+          "entity": "IST",
+          "key": "IST:2021",
+          "rank": 2,
+          "year": 2021,
+        },
+        {
+          "count": 254,
+          "entity": "JFK",
+          "key": "JFK:2021",
+          "rank": 2,
+          "year": 2021,
+        },
+        {
+          "count": 254,
+          "entity": "LHR",
+          "key": "LHR:2021",
+          "rank": 2,
+          "year": 2021,
+        },
+        {
+          "count": 254,
+          "entity": "TBS",
+          "key": "TBS:2021",
+          "rank": 2,
+          "year": 2021,
+        },
+        {
+          "count": 255,
+          "entity": "JFK",
+          "key": "JFK:2022",
+          "rank": 1,
+          "year": 2022,
+        },
+        {
+          "count": 255,
+          "entity": "LHR",
+          "key": "LHR:2022",
+          "rank": 1,
+          "year": 2022,
+        },
+        {
+          "count": 253,
+          "entity": "IST",
+          "key": "IST:2022",
+          "rank": 3,
+          "year": 2022,
+        },
+        {
+          "count": 253,
+          "entity": "NRT",
+          "key": "NRT:2022",
+          "rank": 3,
+          "year": 2022,
+        },
+        {
+          "count": 253,
+          "entity": "TBS",
+          "key": "TBS:2022",
+          "rank": 3,
+          "year": 2022,
+        },
+        {
+          "count": 252,
+          "entity": "IST",
+          "key": "IST:2023",
+          "rank": 1,
+          "year": 2023,
+        },
+        {
+          "count": 252,
+          "entity": "TBS",
+          "key": "TBS:2023",
+          "rank": 1,
+          "year": 2023,
+        },
+        {
+          "count": 251,
+          "entity": "JFK",
+          "key": "JFK:2023",
+          "rank": 3,
+          "year": 2023,
+        },
+        {
+          "count": 251,
+          "entity": "LHR",
+          "key": "LHR:2023",
+          "rank": 3,
+          "year": 2023,
+        },
+        {
+          "count": 250,
+          "entity": "NRT",
+          "key": "NRT:2023",
+          "rank": 5,
+          "year": 2023,
+        },
+        {
+          "count": 252,
+          "entity": "NRT",
+          "key": "NRT:2024",
+          "rank": 1,
+          "year": 2024,
+        },
+        {
+          "count": 251,
+          "entity": "IST",
+          "key": "IST:2024",
+          "rank": 2,
+          "year": 2024,
+        },
+        {
+          "count": 251,
+          "entity": "TBS",
+          "key": "TBS:2024",
+          "rank": 2,
+          "year": 2024,
+        },
+        {
+          "count": 250,
+          "entity": "JFK",
+          "key": "JFK:2024",
+          "rank": 4,
+          "year": 2024,
+        },
+        {
+          "count": 250,
+          "entity": "LHR",
+          "key": "LHR:2024",
+          "rank": 4,
+          "year": 2024,
+        },
+        {
+          "count": 252,
+          "entity": "JFK",
+          "key": "JFK:2025",
+          "rank": 1,
+          "year": 2025,
+        },
+        {
+          "count": 252,
+          "entity": "LHR",
+          "key": "LHR:2025",
+          "rank": 1,
+          "year": 2025,
+        },
+        {
+          "count": 250,
+          "entity": "IST",
+          "key": "IST:2025",
+          "rank": 3,
+          "year": 2025,
+        },
+        {
+          "count": 250,
+          "entity": "NRT",
+          "key": "NRT:2025",
+          "rank": 3,
+          "year": 2025,
+        },
+        {
+          "count": 250,
+          "entity": "TBS",
+          "key": "TBS:2025",
+          "rank": 3,
+          "year": 2025,
+        },
+      ],
+      "routes": [
+        {
+          "count": 256,
+          "entity": "IST-TBS",
+          "key": "IST-TBS:2020",
+          "rank": 1,
+          "year": 2020,
+        },
+        {
+          "count": 254,
+          "entity": "JFK-LHR",
+          "key": "JFK-LHR:2020",
+          "rank": 2,
+          "year": 2020,
+        },
+        {
+          "count": 254,
+          "entity": "NRT-SFO",
+          "key": "NRT-SFO:2020",
+          "rank": 2,
+          "year": 2020,
+        },
+        {
+          "count": 256,
+          "entity": "NRT-SFO",
+          "key": "NRT-SFO:2021",
+          "rank": 1,
+          "year": 2021,
+        },
+        {
+          "count": 254,
+          "entity": "IST-TBS",
+          "key": "IST-TBS:2021",
+          "rank": 2,
+          "year": 2021,
+        },
+        {
+          "count": 254,
+          "entity": "JFK-LHR",
+          "key": "JFK-LHR:2021",
+          "rank": 2,
+          "year": 2021,
+        },
+        {
+          "count": 255,
+          "entity": "JFK-LHR",
+          "key": "JFK-LHR:2022",
+          "rank": 1,
+          "year": 2022,
+        },
+        {
+          "count": 253,
+          "entity": "IST-TBS",
+          "key": "IST-TBS:2022",
+          "rank": 2,
+          "year": 2022,
+        },
+        {
+          "count": 253,
+          "entity": "NRT-SFO",
+          "key": "NRT-SFO:2022",
+          "rank": 2,
+          "year": 2022,
+        },
+        {
+          "count": 252,
+          "entity": "IST-TBS",
+          "key": "IST-TBS:2023",
+          "rank": 1,
+          "year": 2023,
+        },
+        {
+          "count": 251,
+          "entity": "JFK-LHR",
+          "key": "JFK-LHR:2023",
+          "rank": 2,
+          "year": 2023,
+        },
+        {
+          "count": 250,
+          "entity": "NRT-SFO",
+          "key": "NRT-SFO:2023",
+          "rank": 3,
+          "year": 2023,
+        },
+        {
+          "count": 252,
+          "entity": "NRT-SFO",
+          "key": "NRT-SFO:2024",
+          "rank": 1,
+          "year": 2024,
+        },
+        {
+          "count": 251,
+          "entity": "IST-TBS",
+          "key": "IST-TBS:2024",
+          "rank": 2,
+          "year": 2024,
+        },
+        {
+          "count": 250,
+          "entity": "JFK-LHR",
+          "key": "JFK-LHR:2024",
+          "rank": 3,
+          "year": 2024,
+        },
+        {
+          "count": 252,
+          "entity": "JFK-LHR",
+          "key": "JFK-LHR:2025",
+          "rank": 1,
+          "year": 2025,
+        },
+        {
+          "count": 250,
+          "entity": "IST-TBS",
+          "key": "IST-TBS:2025",
+          "rank": 2,
+          "year": 2025,
+        },
+        {
+          "count": 250,
+          "entity": "NRT-SFO",
+          "key": "NRT-SFO:2025",
+          "rank": 2,
+          "year": 2025,
+        },
+      ],
+    },
     "routes": [
       {
         "count": 1516,
@@ -10147,6 +11906,44 @@ exports[`n5001 matches its generated fixture and known snapshot values 1`] = `
       {
         "count": 1515,
         "key": "NRT-SFO",
+      },
+    ],
+    "versus": [
+      {
+        "excluded": 0,
+        "id": "makers",
+        "left": {
+          "count": 1516,
+          "key": "airbus",
+        },
+        "right": {
+          "count": 3031,
+          "key": "boeing",
+        },
+      },
+      {
+        "excluded": 0,
+        "id": "haul",
+        "left": {
+          "count": 1516,
+          "key": "short",
+        },
+        "right": {
+          "count": 3031,
+          "key": "long",
+        },
+      },
+      {
+        "excluded": 0,
+        "id": "daytime",
+        "left": {
+          "count": 3028,
+          "key": "day",
+        },
+        "right": {
+          "count": 1519,
+          "key": "night",
+        },
       },
     ],
   },
@@ -14785,6 +16582,114 @@ exports[`polar matches its generated fixture and known snapshot values 1`] = `
         "key": "LAX",
       },
     ],
+    "leaders": {
+      "airlines": {
+        "top": [
+          {
+            "count": 6,
+            "key": "TK",
+          },
+        ],
+        "top5Share": 1,
+        "topShare": 1,
+        "total": 6,
+      },
+      "airports": {
+        "top": [
+          {
+            "count": 3,
+            "key": "DXB",
+          },
+          {
+            "count": 3,
+            "key": "HKG",
+          },
+          {
+            "count": 3,
+            "key": "JFK",
+          },
+          {
+            "count": 3,
+            "key": "LAX",
+          },
+        ],
+        "top5Share": 1,
+        "topShare": 0.25,
+        "total": 12,
+      },
+      "routes": {
+        "top": [
+          {
+            "count": 3,
+            "key": "DXB-LAX",
+          },
+          {
+            "count": 3,
+            "key": "HKG-JFK",
+          },
+        ],
+        "top5Share": 1,
+        "topShare": 0.5,
+        "total": 6,
+      },
+    },
+    "rankByYear": {
+      "airlines": [
+        {
+          "count": 6,
+          "entity": "TK",
+          "key": "TK:2025",
+          "rank": 1,
+          "year": 2025,
+        },
+      ],
+      "airports": [
+        {
+          "count": 3,
+          "entity": "DXB",
+          "key": "DXB:2025",
+          "rank": 1,
+          "year": 2025,
+        },
+        {
+          "count": 3,
+          "entity": "HKG",
+          "key": "HKG:2025",
+          "rank": 1,
+          "year": 2025,
+        },
+        {
+          "count": 3,
+          "entity": "JFK",
+          "key": "JFK:2025",
+          "rank": 1,
+          "year": 2025,
+        },
+        {
+          "count": 3,
+          "entity": "LAX",
+          "key": "LAX:2025",
+          "rank": 1,
+          "year": 2025,
+        },
+      ],
+      "routes": [
+        {
+          "count": 3,
+          "entity": "DXB-LAX",
+          "key": "DXB-LAX:2025",
+          "rank": 1,
+          "year": 2025,
+        },
+        {
+          "count": 3,
+          "entity": "HKG-JFK",
+          "key": "HKG-JFK:2025",
+          "rank": 1,
+          "year": 2025,
+        },
+      ],
+    },
     "routes": [
       {
         "count": 3,
@@ -14793,6 +16698,44 @@ exports[`polar matches its generated fixture and known snapshot values 1`] = `
       {
         "count": 3,
         "key": "HKG-JFK",
+      },
+    ],
+    "versus": [
+      {
+        "excluded": 0,
+        "id": "makers",
+        "left": {
+          "count": 6,
+          "key": "airbus",
+        },
+        "right": {
+          "count": 0,
+          "key": "boeing",
+        },
+      },
+      {
+        "excluded": 0,
+        "id": "haul",
+        "left": {
+          "count": 0,
+          "key": "short",
+        },
+        "right": {
+          "count": 6,
+          "key": "long",
+        },
+      },
+      {
+        "excluded": 0,
+        "id": "daytime",
+        "left": {
+          "count": 6,
+          "key": "day",
+        },
+        "right": {
+          "count": 0,
+          "key": "night",
+        },
       },
     ],
   },
@@ -15274,10 +17217,123 @@ exports[`redEyeDst matches its generated fixture and known snapshot values 1`] =
         "key": "LHR",
       },
     ],
+    "leaders": {
+      "airlines": {
+        "top": [
+          {
+            "count": 10,
+            "key": "TK",
+          },
+        ],
+        "top5Share": 1,
+        "topShare": 1,
+        "total": 10,
+      },
+      "airports": {
+        "top": [
+          {
+            "count": 10,
+            "key": "JFK",
+          },
+          {
+            "count": 10,
+            "key": "LHR",
+          },
+        ],
+        "top5Share": 1,
+        "topShare": 0.5,
+        "total": 20,
+      },
+      "routes": {
+        "top": [
+          {
+            "count": 10,
+            "key": "JFK-LHR",
+          },
+        ],
+        "top5Share": 1,
+        "topShare": 1,
+        "total": 10,
+      },
+    },
+    "rankByYear": {
+      "airlines": [
+        {
+          "count": 10,
+          "entity": "TK",
+          "key": "TK:2026",
+          "rank": 1,
+          "year": 2026,
+        },
+      ],
+      "airports": [
+        {
+          "count": 10,
+          "entity": "JFK",
+          "key": "JFK:2026",
+          "rank": 1,
+          "year": 2026,
+        },
+        {
+          "count": 10,
+          "entity": "LHR",
+          "key": "LHR:2026",
+          "rank": 1,
+          "year": 2026,
+        },
+      ],
+      "routes": [
+        {
+          "count": 10,
+          "entity": "JFK-LHR",
+          "key": "JFK-LHR:2026",
+          "rank": 1,
+          "year": 2026,
+        },
+      ],
+    },
     "routes": [
       {
         "count": 10,
         "key": "JFK-LHR",
+      },
+    ],
+    "versus": [
+      {
+        "excluded": 0,
+        "id": "makers",
+        "left": {
+          "count": 10,
+          "key": "airbus",
+        },
+        "right": {
+          "count": 0,
+          "key": "boeing",
+        },
+      },
+      {
+        "excluded": 0,
+        "id": "haul",
+        "left": {
+          "count": 0,
+          "key": "short",
+        },
+        "right": {
+          "count": 10,
+          "key": "long",
+        },
+      },
+      {
+        "excluded": 0,
+        "id": "daytime",
+        "left": {
+          "count": 0,
+          "key": "day",
+        },
+        "right": {
+          "count": 10,
+          "key": "night",
+        },
       },
     ],
   },
@@ -15648,6 +17704,103 @@ exports[`transit matches its generated fixture and known snapshot values 1`] = `
         "key": "TBS",
       },
     ],
+    "leaders": {
+      "airlines": {
+        "top": [
+          {
+            "count": 2,
+            "key": "TK",
+          },
+        ],
+        "top5Share": 1,
+        "topShare": 1,
+        "total": 2,
+      },
+      "airports": {
+        "top": [
+          {
+            "count": 2,
+            "key": "IST",
+          },
+          {
+            "count": 1,
+            "key": "NRT",
+          },
+          {
+            "count": 1,
+            "key": "TBS",
+          },
+        ],
+        "top5Share": 1,
+        "topShare": 0.5,
+        "total": 4,
+      },
+      "routes": {
+        "top": [
+          {
+            "count": 1,
+            "key": "IST-NRT",
+          },
+          {
+            "count": 1,
+            "key": "IST-TBS",
+          },
+        ],
+        "top5Share": 1,
+        "topShare": 0.5,
+        "total": 2,
+      },
+    },
+    "rankByYear": {
+      "airlines": [
+        {
+          "count": 2,
+          "entity": "TK",
+          "key": "TK:2025",
+          "rank": 1,
+          "year": 2025,
+        },
+      ],
+      "airports": [
+        {
+          "count": 2,
+          "entity": "IST",
+          "key": "IST:2025",
+          "rank": 1,
+          "year": 2025,
+        },
+        {
+          "count": 1,
+          "entity": "NRT",
+          "key": "NRT:2025",
+          "rank": 2,
+          "year": 2025,
+        },
+        {
+          "count": 1,
+          "entity": "TBS",
+          "key": "TBS:2025",
+          "rank": 2,
+          "year": 2025,
+        },
+      ],
+      "routes": [
+        {
+          "count": 1,
+          "entity": "IST-NRT",
+          "key": "IST-NRT:2025",
+          "rank": 1,
+          "year": 2025,
+        },
+        {
+          "count": 1,
+          "entity": "IST-TBS",
+          "key": "IST-TBS:2025",
+          "rank": 1,
+          "year": 2025,
+        },
+      ],
+    },
     "routes": [
       {
         "count": 1,
@@ -15656,6 +17809,44 @@ exports[`transit matches its generated fixture and known snapshot values 1`] = `
       {
         "count": 1,
         "key": "IST-TBS",
+      },
+    ],
+    "versus": [
+      {
+        "excluded": 0,
+        "id": "makers",
+        "left": {
+          "count": 2,
+          "key": "airbus",
+        },
+        "right": {
+          "count": 0,
+          "key": "boeing",
+        },
+      },
+      {
+        "excluded": 0,
+        "id": "haul",
+        "left": {
+          "count": 1,
+          "key": "short",
+        },
+        "right": {
+          "count": 1,
+          "key": "long",
+        },
+      },
+      {
+        "excluded": 0,
+        "id": "daytime",
+        "left": {
+          "count": 2,
+          "key": "day",
+        },
+        "right": {
+          "count": 0,
+          "key": "night",
+        },
       },
     ],
   },
