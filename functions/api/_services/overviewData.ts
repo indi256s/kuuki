@@ -84,7 +84,8 @@ export async function readOverviewData(db: D1Database, userId: string): Promise<
   return {
     schemaVersion: 3, etag: overviewEtag(userId, state ?? { revision: 0, evidence_revision: 0 }),
     generatedAt: new Date().toISOString(), mode, derivedReady: data.derivedState === 'ready',
-    passport: { countries: data.pressedCountryCount, regions: data.regions.filter(region => region.pressed > 0).length },
+    passport: { countries: data.pressedCountryCount, regions: data.regions.filter(region => region.pressed > 0).length,
+      countryCodes: [...new Set(data.countries.filter(country => country.status === 'pressed').map(country => country.country_code))].sort() },
     homeOverride,
     rows: mode === 'aggregate' ? aggregateRows(rows) : rows, refs,
   }

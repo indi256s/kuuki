@@ -1,3 +1,4 @@
+import { calendarDay, type NextFlight, type ReplayItem } from './next'
 import { isEmptyFilter, rowCountries } from './filter'
 import type { OverviewFilter, OverviewPayload, OverviewRow } from './model'
 import type { Records } from './records'
@@ -14,6 +15,9 @@ export interface Figures {
   distanceKm: number
   durationMinutes: number; durationApproximate: boolean
   countries: { value: number; source: 'passport' | 'by_air' }; regions: number
+  firstDate: string | null; airports: number; estimatedFlights: number; equatorLaps: number
+  byYear: { key: string; year: number; flights: number }[]
+  share: { flights: number; distanceKm: number; durationMinutes: number; countries: number; airports: number } | null
   deltas: { flights: number; distanceKm: number; durationMinutes: number } | null
 }
 export interface Coverage {
@@ -29,6 +33,8 @@ export interface OverviewScope {
   rhythm: Gate<Rhythm>
   rankings: Rankings
   globe: GlobeData
+  next: NextFlight[]
+  replay: ReplayItem[]
 }
 
 const metric = (value: number | null): number => value !== null && Number.isFinite(value) && value >= 0 ? value : 0
@@ -47,12 +53,37 @@ export function totals(rows: OverviewRow[]): NonNullable<Figures['deltas']> {
 }
 
 export function figures(rows: OverviewRow[], payload: OverviewPayload, filter: OverviewFilter,
-  deltas: Figures['deltas']): Figures {
+  deltas: Figures['deltas'], counted: OverviewRow[]): Figures {
   const countries = new Set(rows.flatMap(row => rowCountries(row, payload.refs)))
   const regions = new Set([...countries].map(country => payload.refs.regions[country]).filter(Boolean))
   const unfiltered = isEmptyFilter(filter)
+  const scopeTotals = totals(rows)
+  const airports = new Set(rows.flatMap(row => [row.origin, row.destination])).size
+  const dates = rows.map(row => row.date).filter(date => calendarDay(date) !== null).sort()
+  const years = counted.map(row => row.date).filter(date => calendarDay(date) !== null).map(date => Number(date.slice(0, 4)))
+  const yearCounts = new Map<number, number>()
+  for (const row of rows) if (calendarDay(row.date) !== null) {
+    const year = Number(row.date.slice(0, 4))
+    yearCounts.set(year, (yearCounts.get(year) ?? 0) + row.weight)
+  }
+  const byYear: Figures['byYear'] = []
+  if (years.length) {
+    const first = years.reduce((a, b) => Math.min(a, b)), last = years.reduce((a, b) => Math.max(a, b))
+    for (let year = first; year <= last; year++) byYear.push({ key: String(year).padStart(4, '0'), year, flights: yearCounts.get(year) ?? 0 })
+  }
+  let share: Figures['share'] = null
+  if (!filter.period && !unfiltered) {
+    const all = totals(counted)
+    const ratio = (value: number, total: number) => total > 0 ? Math.max(0, Math.min(1, value / total)) : 0
+    share = { flights: ratio(scopeTotals.flights, all.flights), distanceKm: ratio(scopeTotals.distanceKm, all.distanceKm),
+      durationMinutes: ratio(scopeTotals.durationMinutes, all.durationMinutes), countries: ratio(countries.size, payload.passport.countries),
+      airports: ratio(airports, new Set(counted.flatMap(row => [row.origin, row.destination])).size) }
+  }
   return {
-    ...totals(rows), awaiting: rows.reduce((sum, row) => sum + (row.state === 'awaiting' ? row.weight : 0), 0),
+    ...scopeTotals, firstDate: dates[0] ?? null, airports, byYear, share,
+    estimatedFlights: rows.reduce((sum, row) => sum + (row.durationSource === 'estimate' ? row.weight : 0), 0),
+    equatorLaps: scopeTotals.distanceKm / 40075,
+    awaiting: rows.reduce((sum, row) => sum + (row.state === 'awaiting' ? row.weight : 0), 0),
     durationApproximate: rows.some(row => row.durationSource === 'estimate' && row.durationMinutes !== null &&
       Number.isFinite(row.durationMinutes) && row.durationMinutes >= 0),
     countries: { value: unfiltered ? payload.passport.countries : countries.size, source: unfiltered ? 'passport' : 'by_air' },

@@ -52,6 +52,6 @@ for (const code of [...new Set(rows.flatMap(row => row.aircraft ? [row.aircraft]
 }
 const pressed = new Set(rows.filter(row => row.state === 'logged').flatMap(row => rowCountries(row, refs)))
 const payload: OverviewPayload = { schemaVersion: 3, etag: 'W/"ov3-board-1-1"', generatedAt, mode: 'flights',
-  derivedReady: true, homeOverride: null, passport: { countries: pressed.size,
+  derivedReady: true, homeOverride: null, passport: { countries: pressed.size, countryCodes: [...pressed].sort(),
     regions: new Set([...pressed].map(code => refs.regions[code])).size }, rows, refs }
 writeFileSync(new URL('../../packages/shared/src/overview/__fixtures__/board.json', import.meta.url), `${JSON.stringify(payload, null, 2)}\n`)

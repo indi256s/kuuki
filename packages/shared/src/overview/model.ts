@@ -65,7 +65,7 @@ export interface OverviewPayload {
   generatedAt: string
   mode: 'flights' | 'aggregate'
   derivedReady: boolean
-  passport: { countries: number; regions: number }
+  passport: { countries: number; regions: number; countryCodes: string[] }
   homeOverride: string | null
   rows: OverviewRow[]
   refs: {

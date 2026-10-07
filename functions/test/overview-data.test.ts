@@ -162,7 +162,7 @@ it('payload carries every lifecycle state in one owner-scoped batch', async () =
     const payload = await readOverviewData(readDb, USER.id)
     expect(batch).toHaveBeenCalledTimes(1)
     expect(payload).toMatchObject({ schemaVersion: 3, mode: 'flights', derivedReady: true, homeOverride: null,
-      passport: { countries: 2, regions: 2 } })
+      passport: { countries: 2, regions: 2, countryCodes: ['GE', 'US'] } })
     expect(payload.rows.map(row => [row.id, row.state, row.weight])).toEqual([
       [3, 'logged', 1], [2, 'awaiting', 1], [1, 'upcoming', 1],
     ])
@@ -253,7 +253,7 @@ it('etag uses ov3 prefix, changes with either revision and exposes pending publi
     const before = await readOverviewData(db, USER.id)
     expect(before.rows).toEqual([])
     expect(before.refs).toEqual({ airports: {}, aircraft: {}, regions: {} })
-    expect(before.passport).toEqual({ countries: 0, regions: 0 })
+    expect(before.passport).toEqual({ countries: 0, regions: 0, countryCodes: [] })
     await dirtyUserStatement(db, USER.id).run()
     const after = await readOverviewData(db, USER.id)
     expect(after.etag).not.toBe(before.etag)
@@ -361,4 +361,30 @@ it.each(['bad', '24:00', '06:60', '6:40'])('invalid stored arrival time %s skips
   ], d => [d.prepare("UPDATE flights SET arrival_time = ?, departure_utc = '2025-03-01T22:00:00Z', dest_tz = 'Asia/Dubai', duration_source = 'times' WHERE id = 1").bind(arrival)])
   try { expect((await readOverviewData(db, USER.id)).rows[0].arrMinute).toBeNull() }
   finally { await dispose() }
+})
+
+it('pressed passport identities include claim, ground and legacy evidence but exclude pending and other owners', async () => {
+  const { db, dispose } = await overviewAccount([
+    { id: 1, date: '2026-10-10', origin: 'TBS', destination: 'LHR', state: 'upcoming' },
+    { id: 2, date: '2026-10-11', origin: 'TBS', destination: 'DXB', state: 'upcoming' },
+    { id: 3, date: '2026-10-12', origin: 'TBS', destination: 'JFK', state: 'upcoming' },
+    { id: 4, date: '2026-10-13', origin: 'TBS', destination: 'IST', state: 'upcoming' },
+    { id: 5, date: '2026-10-01', origin: 'TBS', destination: 'BKK', state: 'awaiting' },
+  ], d => [
+    d.prepare("INSERT INTO country_claims(id,user_id,country_code) VALUES ('claim',?,'GB')").bind(USER.id),
+    d.prepare("INSERT INTO ground_visits(id,user_id,country_code) VALUES ('ground',?,'AE')").bind(USER.id),
+    d.prepare(`INSERT INTO legacy_visit_evidence(source_id,user_id,airport_iata,country_code,first_visit,last_visit,visit_count,source_digest,provenance,contributes,source_json)
+      VALUES ('legacy',?,'JFK','US','2019-01-01','2019-01-01',1,'d','archive',1,'{}')`).bind(USER.id),
+    d.prepare("INSERT INTO users(id,email,password_hash) VALUES ('other','other@example.test','hash')"),
+    d.prepare("INSERT INTO profiles(id) VALUES ('other')"),
+    d.prepare("INSERT INTO country_claims(id,user_id,country_code) VALUES ('other-claim','other','TR')"),
+  ])
+  try {
+    await repairUserDerivedState(db, 'other')
+    const payload = await readOverviewData(db, USER.id)
+    expect(payload.passport.countryCodes).toEqual(['AE', 'GB', 'US'])
+    expect(payload.passport.countries).toBe(3)
+    expect(computeOverview(payload, { airlines: ['XX'] }).next.map(row => [row.destination, row.newCountry]))
+      .toEqual([['LHR', false], ['DXB', false], ['JFK', false], ['IST', true]])
+  } finally { await dispose() }
 })

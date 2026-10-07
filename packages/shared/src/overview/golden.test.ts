@@ -59,7 +59,7 @@ function generate(name: typeof names[number]): OverviewPayload {
   const evidence = new Set(rows.filter(row => row.state !== 'upcoming').flatMap(row => rowCountries(row, refs)))
   const mode = rows.length > AGGREGATE_THRESHOLD ? 'aggregate' : 'flights'
   return { schemaVersion: 3, etag: 'W/"ov3-fixture-1-1"', generatedAt: '2026-10-07T00:00:00.000Z', mode, derivedReady: true,
-    homeOverride: null, passport: { countries: evidence.size,
+    homeOverride: null, passport: { countries: evidence.size, countryCodes: [...evidence].sort(),
       regions: new Set([...evidence].map(country => refs.regions[country])).size }, rows: mode === 'aggregate' ? aggregateRows(rows) : rows,
     refs: { airports: Object.fromEntries([...usedAirports].sort().map(code => [code, refs.airports[code]])),
       aircraft: Object.fromEntries([...usedAircraft].filter((code): code is string => !!code).sort().map(code => [code, refs.aircraft[code]])),

@@ -7,6 +7,22 @@
   "homeOverride": null,
   "passport": {
     "countries": 14,
+    "countryCodes": [
+      "AE",
+      "DE",
+      "ES",
+      "FI",
+      "GB",
+      "GE",
+      "JP",
+      "MV",
+      "NL",
+      "NZ",
+      "QA",
+      "TH",
+      "TR",
+      "US"
+    ],
     "regions": 4
   },
   "rows": [
