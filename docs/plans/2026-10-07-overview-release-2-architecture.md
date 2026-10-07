@@ -405,7 +405,7 @@ export function computeOverview(payload: OverviewPayload, filter: OverviewFilter
 
 ### Task 9: Rhythm, rankings and globe data
 
-**Files:** Create `packages/shared/src/overview/rhythm.ts`, `rankings.ts`, `globe.ts`, `rhythm-rankings-globe.test.ts`; Modify `compute.ts`.
+**Files:** Create `packages/shared/src/overview/rhythm.ts`, `rankings.ts`, `globe.ts`, `rhythm-rankings-globe.test.ts`; Modify `compute.ts`, `figures.ts`, `figures.test.ts`; reuse coordinate validation through `geo.ts` and `crossings.ts`.
 
 **Interfaces:**
 - Produces:
@@ -427,14 +427,14 @@ export function computeOverview(payload: OverviewPayload, filter: OverviewFilter
     - `centroid: { lat: number; lon: number } | null`: the visit-weighted 3-D mean of endpoint unit vectors, normalised; null when there are no coordinates or the norm is < 1e-9.
   - `globe(allRows, scopeRows, refs): GlobeData`.
 
-- [ ] **Step 1: Write the failing tests:**
+- [x] **Step 1: Write the failing tests:**
   - `rhythm cells are a full grid`: flights in 2022-12 and 2024-03 → `years [2024, 2023, 2022]`, 36 cells; `2022-12` has the flight, `2023-*` are zeros.
   - `ranking ties are alphabetical`.
   - `ghost routes and countries exclude in-scope keys`.
   - `centroid of TBS×3 + NRT×1 lies between them, nearer TBS`.
   - `antipodal centroid is null`.
-- [ ] **Step 2–4:** FAIL → implement → PASS.
-- [ ] **Step 5:** Commit `feat(overview): rhythm, rankings and globe data`.
+- [x] **Step 2–4:** FAIL → implement → PASS.
+- [x] **Step 5:** Commit `feat(overview): rhythm, rankings and globe data`.
 
 ### Task 10: Golden fixtures and property tests
 

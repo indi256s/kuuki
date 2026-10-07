@@ -4,6 +4,9 @@ import type { Records } from './records'
 import type { Crossings } from './crossings'
 import type { Fleet } from './fleet'
 import type { Clock } from './clock'
+import type { Rhythm } from './rhythm'
+import type { Rankings } from './rankings'
+import type { GlobeData } from './globe'
 
 export type Gate<T> = { status: 'ready'; value: T } | { status: 'below'; have: number; need: number }
 export interface Figures {
@@ -23,6 +26,9 @@ export interface OverviewScope {
   crossings: Gate<Crossings>
   fleet: Gate<Fleet>
   clock: Gate<Clock>
+  rhythm: Gate<Rhythm>
+  rankings: Rankings
+  globe: GlobeData
 }
 
 const metric = (value: number | null): number => value !== null && Number.isFinite(value) && value >= 0 ? value : 0

@@ -1,5 +1,11 @@
 export interface LatLon { lat: number; lon: number }
 
+export function coordinates(point: { lat: number | null; lon: number | null } | undefined): LatLon | null {
+  const lat = point?.lat, lon = point?.lon
+  return lat != null && lon != null && Number.isFinite(lat) && Number.isFinite(lon) &&
+    Math.abs(lat) <= 90 && Math.abs(lon) <= 180 ? { lat, lon } : null
+}
+
 export const EARTH_RADIUS_KM = 6371
 const RAD = Math.PI / 180
 

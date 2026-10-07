@@ -1,4 +1,4 @@
-import { greatCirclePoints, type LatLon } from '../geo'
+import { coordinates, greatCirclePoints, type LatLon } from '../geo'
 import type { Gate } from './figures'
 import type { OverviewPayload, OverviewRow } from './model'
 import { absoluteClockShiftMinutes } from './records'
@@ -8,12 +8,6 @@ export interface Crossings {
   arcticCircle: number; antarcticCircle: number; eastboundShare: number
 }
 type PathCrossings = Pick<Crossings, 'equator' | 'dateLine' | 'arcticCircle' | 'antarcticCircle'>
-
-function coordinates(airport: OverviewPayload['refs']['airports'][string] | undefined): LatLon | null {
-  const lat = airport?.lat, lon = airport?.lon
-  return lat != null && lon != null && Number.isFinite(lat) && Number.isFinite(lon) &&
-    Math.abs(lat) <= 90 && Math.abs(lon) <= 180 ? { lat, lon } : null
-}
 
 function latitudeCrossings(points: LatLon[], latitude: number): number {
   let previous = 0, count = 0

@@ -151,7 +151,7 @@ A full retry with `pnpm test:api --maxWorkers=4` passed: 64 files / 716 tests.
 API typecheck exited 0. No baseline test/script was changed. The Task 3 Next
 evidence remains applicable because no client/routes changed. No per-task review.
 
-Task 8 is complete in this commit: weighted Fleet coverage, type shares, curated
+Task 8 is complete at `d960602`: weighted Fleet coverage, type shares, curated
 family totals, sorted manufacturer/body chart rows, complete 24-hour and
 three-haul Clock grids, night-band red eyes and precise-pair speed. Aircraft
 without metadata remain typed but add no invented family/manufacturer/body.
@@ -167,7 +167,23 @@ workers: 65 files / 725 tests passed; API typecheck exited 0. Empty-scope tests
 include the Fleet and Clock gates. No client/routes changed, so Task 3's Next
 evidence remains applicable. No per-task review under the user's workflow.
 
-Task 9 is next: Rhythm, rankings and globe data. Tasks 9–17 are unstarted;
+Task 9 is complete in this commit: full zero-filled Rhythm grids with gap years,
+weighted full rankings and undirected routes, scope/ghost globe data and a
+visit-weighted spherical centroid. Countries use unsuppressed evidence once per
+country per flight; airports retain both endpoint visits, including transits.
+Upcoming rows stay only in chronological ghost entries. Ghost routes/countries
+exclude in-scope keys. Sorted airport counts make centroid arithmetic independent
+of row order; antipodal or unlocated scopes return null. The existing coordinate
+validator moved from Crossings to geo for reuse, with no validation change.
+
+RED: missing modules and scope fields. Final focused GREEN: 3 files / 28 tests,
+including all Crossings regressions after the validator move. Full API with four
+workers: 66 files / 734 tests passed; API typecheck exited 0. Empty scope checks
+now cover all section gates, rankings and centroid; upcoming-only behavior is
+also explicit. No routes/client changes; Task 3 Next evidence remains valid.
+No per-task review under the revised workflow.
+
+Task 10 is next: golden fixtures and property tests. Tasks 10–17 are unstarted;
 no unresolved user decision. No UI, production/remote or GitHub actions.
 
 Keep the final whole-branch Opus review over
