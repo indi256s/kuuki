@@ -1,3 +1,5 @@
+import { allianceAt } from '../../../data/src/alliance-membership'
+import { makerOf } from '../../../data/src/aircraft-makers'
 import { BAND_START_HOUR, HAUL_KM, type DepartureBand, type Haul,
   type OverviewFilter, type OverviewPayload, type OverviewRow } from './model'
 
@@ -27,7 +29,7 @@ function monthIndex(month: string): number | null {
   return Number(month.slice(0, 4)) * 12 + Number(month.slice(5)) - 1
 }
 
-const has = (values: readonly string[] | undefined, value: string | null | undefined) =>
+const has = <T>(values: readonly T[] | undefined, value: T | null | undefined) =>
   !values?.length || (value != null && values.includes(value))
 
 export function matches(row: OverviewRow, filter: OverviewFilter, refs: Refs): boolean {
@@ -46,10 +48,20 @@ export function matches(row: OverviewRow, filter: OverviewFilter, refs: Refs): b
     if (countries?.length && !evidence.some(country => countries.includes(country))) return false
     if (regions?.length && !evidence.some(country => regions.includes(refs.regions[country]))) return false
   }
+  const airports = filter.airports
+  if (airports?.length && ![row.origin, row.destination].some(code => airports.includes(code))) return false
   const aircraft = row.aircraft === null ? undefined : refs.aircraft[row.aircraft]
   if (!has(filter.airlines, row.airline) || !has(filter.aircraft, row.aircraft) ||
       !has(filter.routes, routeKey(row.origin, row.destination)) ||
-      !has(filter.manufacturers, aircraft?.manufacturer) || !has(filter.bodyTypes, aircraft?.type)) return false
+      !has(filter.alliances, allianceAt(row.airline, row.date)) ||
+      !has(filter.families, aircraft?.family) || !has(filter.makers, makerOf(row.aircraft))) return false
+  const body = aircraft?.type === 'widebody' ? 'wide'
+    : ['narrowbody', 'regional', 'bizjet', 'turboprop', 'piston'].includes(aircraft?.type ?? '') ? 'narrow' : null
+  if (!has(filter.bodies, body)) return false
+  for (const [hours, minute] of [[filter.depHours, row.depMinute], [filter.arrHours, row.arrMinute]] as const) {
+    if (hours?.length && (minute === null || !Number.isFinite(minute) || minute < 0 || minute > 1439 ||
+        !hours.includes(Math.floor(minute / 60)))) return false
+  }
   if (filter.haul?.length) {
     const km = row.distanceKm === null ? null : row.distanceKm / row.weight
     if (km === null || !Number.isFinite(km) || km < 0 || row.weight <= 0 || !filter.haul.includes(haulOf(km))) return false

@@ -240,7 +240,10 @@ it('aggregate mode preserves totals above 5000 rows', async () => {
     expect(payload.rows.length).toBeLessThan(5001)
     expect(payload.rows.reduce((sum, row) => sum + row.weight, 0)).toBe(5001)
     expect(payload.rows.reduce((sum, row) => sum + (row.distanceKm ?? 0), 0)).toBe(500100)
-    expect(payload.rows.every(row => row.date.endsWith('-01') && row.flightNumber === null && row.departureUtc === null)).toBe(true)
+    const sourceMonths = await db.prepare(`SELECT MIN(date) AS date FROM flights WHERE user_id = ?
+      GROUP BY substr(date, 1, 7) ORDER BY date`).bind(USER.id).all<{ date: string }>()
+    expect(payload.rows.map(row => row.date)).toEqual(sourceMonths.results.map(row => row.date))
+    expect(payload.rows.every(row => row.flightNumber === null && row.departureUtc === null)).toBe(true)
   } finally { await dispose() }
 })
 
@@ -289,7 +292,7 @@ const row = (overrides: Partial<OverviewRow> = {}): OverviewRow => ({
 it('aggregates weighted sums, minimum ids and nullable metrics deterministically', () => {
   const rows = [row({ weight: 2, distanceKm: 200, zonesOverflown: null }),
     row({ id: 4, date: '2025-01-25', weight: 3, distanceKm: 300, depMinute: 400, durationMinutes: 90, zonesOverflown: null })]
-  const expected = [{ ...row(), id: 4, weight: 5, date: '2025-01-01', distanceKm: 500, durationMinutes: 150,
+  const expected = [{ ...row(), id: 4, weight: 5, date: '2025-01-03', distanceKm: 500, durationMinutes: 150,
     depMinute: 360, zonesOverflown: null, flightNumber: null, departureUtc: null, clockShiftMinutes: null,
     recordExtrema: { longest: null, shortest: null, longestDuration: null, shortestDuration: null, biggestClockJump: null } }]
   expect(aggregateRows(rows)).toEqual(expected)

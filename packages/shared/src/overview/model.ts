@@ -1,4 +1,6 @@
 import type { DurationSource } from '../types'
+import type { Alliance } from '../../../data/src/alliance-membership'
+import type { MakerKey } from '../../../data/src/aircraft-makers'
 
 export const AGGREGATE_THRESHOLD = 5000
 
@@ -11,12 +13,18 @@ export interface OverviewFilter {
   airlines?: string[]
   aircraft?: string[]
   routes?: string[]
-  manufacturers?: string[]
-  bodyTypes?: string[]
+  airports?: string[]
+  alliances?: Alliance[]
+  families?: string[]
+  makers?: MakerKey[]
+  bodies?: Array<'narrow' | 'wide'>
+  depHours?: number[]
+  arrHours?: number[]
   haul?: Haul[]
   domestic?: Array<'domestic' | 'international'>
   departureBands?: DepartureBand[]
 }
+export type FacetKey = Exclude<keyof OverviewFilter, 'period'>
 export const HAUL_KM = { medium: 1500, long: 4000 } as const
 export const BAND_START_HOUR = { night: 22, morning: 6, afternoon: 12, evening: 18 } as const
 

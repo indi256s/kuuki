@@ -1,7 +1,8 @@
 import { z } from 'zod'
 import type { OverviewFilter } from './model'
 
-const section = z.enum(['records', 'crossings', 'fleet', 'clock', 'rhythm', 'rankings'])
+export const DEFAULT_ORDER = ['rankings', 'records', 'manufacturers', 'fleet', 'clock', 'rhythm', 'crossings'] as const
+const section = z.enum(DEFAULT_ORDER)
 export type SectionId = z.infer<typeof section>
 export interface OverviewPrefs {
   version: 1
@@ -11,7 +12,7 @@ export interface OverviewPrefs {
   publicSections: { records: boolean; fleet: boolean }
 }
 export const DEFAULT_PREFS: OverviewPrefs = { version: 1, filter: {},
-  layout: { order: ['records', 'crossings', 'fleet', 'clock', 'rhythm', 'rankings'], hidden: [] },
+  layout: { order: [...DEFAULT_ORDER], hidden: [] },
   replayPaused: false, publicSections: { records: false, fleet: false } }
 
 const strings = z.array(z.string())
@@ -20,7 +21,12 @@ const filterSchema = z.strictObject({
   period: z.union([z.strictObject({ years: z.array(z.number().int().min(0).max(9999)) }),
     z.strictObject({ from: month, to: month }).refine(value => value.from <= value.to)]).optional(),
   countries: strings.optional(), regions: strings.optional(), airlines: strings.optional(), aircraft: strings.optional(),
-  routes: strings.optional(), manufacturers: strings.optional(), bodyTypes: strings.optional(),
+  routes: strings.optional(), airports: strings.optional(), families: strings.optional(),
+  alliances: z.array(z.enum(['star', 'oneworld', 'skyteam'])).optional(),
+  makers: z.array(z.enum(['airbus', 'boeing', 'embraer', 'atr', 'other', 'unknown'])).optional(),
+  bodies: z.array(z.enum(['narrow', 'wide'])).optional(),
+  depHours: z.array(z.number().int().min(0).max(23)).optional(),
+  arrHours: z.array(z.number().int().min(0).max(23)).optional(),
   haul: z.array(z.enum(['short', 'medium', 'long'])).optional(),
   domestic: z.array(z.enum(['domestic', 'international'])).optional(),
   departureBands: z.array(z.enum(['night', 'morning', 'afternoon', 'evening'])).optional(),
@@ -35,6 +41,12 @@ const object = (value: unknown): value is Record<string, unknown> =>
 function field<T>(schema: z.ZodType<T>, value: unknown, fallback: T): T {
   const parsed = schema.safeParse(value)
   return parsed.success ? parsed.data : fallback
+}
+
+export function normalizeLayout(raw: { order?: unknown; hidden?: unknown }): OverviewPrefs['layout'] {
+  const known = (value: unknown): SectionId[] => Array.isArray(value)
+    ? [...new Set(value.filter((id): id is SectionId => section.safeParse(id).success))] : []
+  return { order: [...new Set([...known(raw.order), ...DEFAULT_ORDER])], hidden: known(raw.hidden) }
 }
 
 export function parsePrefs(raw: string | null): OverviewPrefs {
@@ -54,7 +66,7 @@ export function parsePrefs(raw: string | null): OverviewPrefs {
     const layout = object(stored.layout) ? stored.layout : {}
     const publicSections = object(stored.publicSections) ? stored.publicSections : {}
     return { version: 1, filter,
-      layout: { order: field(sections, layout.order, defaults.layout.order), hidden: field(sections, layout.hidden, []) },
+      layout: normalizeLayout(layout),
       replayPaused: field(z.boolean(), stored.replayPaused, false),
       publicSections: { records: field(z.boolean(), publicSections.records, false),
         fleet: field(z.boolean(), publicSections.fleet, false) } }

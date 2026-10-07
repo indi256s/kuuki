@@ -7,8 +7,10 @@ import { overviewAccount, USER } from './overview-fixture'
 
 const path = '/api/me/overview/prefs'
 const valid: OverviewPrefs = { version: 1, filter: { airlines: ['NO_LONGER_FLOWN'], countries: ['ZZ'],
-  period: { from: '2025-11', to: '2026-02' }, haul: ['long'], departureBands: ['night'] },
-  layout: { order: ['fleet', 'records', 'crossings', 'clock', 'rhythm', 'rankings'], hidden: ['rhythm'] },
+  period: { from: '2025-11', to: '2026-02' }, haul: ['long'], departureBands: ['night'],
+  airports: ['OBSOLETE'], alliances: ['oneworld'], families: ['obsolete'], makers: ['unknown'],
+  bodies: ['narrow'], depHours: [0, 23], arrHours: [6] },
+  layout: { order: ['fleet', 'records', 'crossings', 'clock', 'rhythm', 'rankings', 'manufacturers'], hidden: ['rhythm'] },
   replayPaused: true, publicSections: { records: true, fleet: false } }
 const call = (db: D1Database, request: Request) => (request.method === 'PUT' ? onRequestPut : onRequestGet)(
   { ...apiContext(db, request), data: { user: USER } } as never)
@@ -20,7 +22,7 @@ it('defaults when unset, with no-store', async () => {
     expect(response.status).toBe(200)
     expect(response.headers.get('Cache-Control')).toBe('no-store')
     expect(await response.json()).toEqual({ version: 1, filter: {},
-      layout: { order: ['records', 'crossings', 'fleet', 'clock', 'rhythm', 'rankings'], hidden: [] },
+      layout: { order: ['rankings', 'records', 'manufacturers', 'fleet', 'clock', 'rhythm', 'crossings'], hidden: [] },
       replayPaused: false, publicSections: { records: false, fleet: false } })
   } finally { await dispose() }
 })
@@ -46,7 +48,7 @@ it('default results do not share mutable account preferences', () => {
   const prefs = parsePrefs(null)
   prefs.layout.order.reverse()
   prefs.publicSections.records = true
-  expect(parsePrefs(null).layout.order[0]).toBe('records')
+  expect(parsePrefs(null).layout.order[0]).toBe('rankings')
   expect(parsePrefs(null).publicSections.records).toBe(false)
 })
 
@@ -78,6 +80,10 @@ it('rejects malformed, oversize and invalid-field writes with INVALID_PREFS, pre
     const invalid: unknown[] = ['{', 'x'.repeat(128 * 1024 + 1), null, [], { ...valid, version: 0 }, { ...valid, replayPaused: 'yes' },
       { ...valid, filter: { airlines: ['x'.repeat(8192)] } },
       { ...valid, filter: { countries: [42] } },
+      ...[{ makers: ['Airbus'] }, { bodies: ['widebody'] }, { alliances: ['unknown'] },
+        { depHours: [-1] }, { depHours: [24] }, { arrHours: [6.5] }, { arrHours: ['6'] },
+        { families: [42] }, { airports: [42] }, { manufacturers: ['Airbus'] }, { unknown: [] }]
+        .map(filter => ({ ...valid, filter })),
       { ...valid, layout: { order: ['records', 'records'], hidden: [] } },
       { ...valid, layout: { order: ['unknown'], hidden: [] } },
       { ...valid, layout: { order: valid.layout.order, hidden: ['unknown'] } },

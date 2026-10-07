@@ -23,7 +23,7 @@ it('OR within, AND across every facet', () => {
   const rows = [row(), row({ id: 2, airline: 'A9', destination: 'NRT' }), row({ id: 3, airline: 'BA' })]
   expect(rows.filter(r => matches(r, { airlines: ['TK', 'A9'] }, refs)).map(r => r.id)).toEqual([1, 2])
   expect(rows.filter(r => matches(r, { airlines: ['TK', 'A9'], countries: ['JP'] }, refs)).map(r => r.id)).toEqual([2])
-  expect(matches(row(), { regions: ['europe', 'asia'], manufacturers: ['Airbus'], bodyTypes: ['narrowbody'],
+  expect(matches(row(), { regions: ['europe', 'asia'], makers: ['airbus'], bodies: ['narrow'],
     aircraft: ['A320'], haul: ['short'], domestic: ['international'], departureBands: ['morning'] }, refs)).toBe(true)
   expect(matches(row(), { regions: ['europe'] }, refs)).toBe(false)
 })
@@ -53,7 +53,7 @@ it('haul and band edges', () => {
 })
 
 it.each<OverviewFilter>([
-  { aircraft: ['A320'] }, { bodyTypes: ['narrowbody'] }, { manufacturers: ['Airbus'] },
+  { aircraft: ['A320'] }, { bodies: ['narrow'] }, { makers: ['airbus'] },
   { departureBands: ['night'] }, { airlines: ['TK'] }, { haul: ['short'] }, { domestic: ['domestic'] },
 ])('missing attribute never matches: %j', filter => {
   expect(matches(row({ aircraft: null, airline: null, depMinute: null, distanceKm: null, destination: 'ZZZ' }), filter, refs)).toBe(false)
@@ -95,4 +95,46 @@ it('empty arrays mean cleared facets', () => {
   expect(matches(row(), { airlines: [], period: { years: [] } }, refs)).toBe(true)
   expect(isEmptyFilter({ airlines: ['obsolete'] })).toBe(false)
   expect(isEmptyFilter({ period: { years: [2025] } })).toBe(false)
+})
+
+it('new facets match actual metadata, dates and either airport endpoint', () => {
+  const data = { ...refs, aircraft: { ...refs.aircraft,
+    E190: { manufacturer: 'Embraer', type: 'regional', family: 'E-Jet', name: 'E190' },
+    B77W: { manufacturer: 'Boeing', type: 'widebody', family: '777', name: 'B77W' },
+  } }
+  const check = (extra: Partial<OverviewRow>, filter: OverviewFilter) => matches(row(extra), filter, data)
+  expect(check({ origin: 'IST', destination: 'FRA' }, { airports: ['IST'] })).toBe(true)
+  expect(check({ origin: 'FRA', destination: 'IST', suppressed: 2 }, { airports: ['IST'] })).toBe(true)
+  expect(check({}, { airports: ['FRA'] })).toBe(false)
+  expect(check({ airline: 'S7', date: '2019-01-01' }, { alliances: ['oneworld'] })).toBe(true)
+  expect(check({ airline: 'S7', date: '2023-01-01' }, { alliances: ['oneworld'] })).toBe(false)
+  expect(check({ aircraft: null }, { makers: ['unknown'] })).toBe(true)
+  expect(check({ aircraft: 'E190' }, { families: ['E-Jet'] })).toBe(true)
+  expect(check({ aircraft: 'E190' }, { families: ['777'] })).toBe(false)
+  expect(check({ aircraft: 'E190' }, { bodies: ['narrow'] })).toBe(true)
+  expect(check({ aircraft: 'B77W' }, { bodies: ['narrow'] })).toBe(false)
+  for (const aircraft of [null, 'UNLISTED']) {
+    expect(check({ aircraft }, { bodies: ['narrow', 'wide'] })).toBe(false)
+  }
+  for (const type of [null, '', 'unlisted']) {
+    expect(matches(row(), { bodies: ['narrow'] }, { ...refs,
+      aircraft: { A320: { ...refs.aircraft.A320, type } } })).toBe(false)
+  }
+  expect(check({ aircraft: 'B77W' }, { makers: ['airbus', 'boeing'], bodies: ['wide'] })).toBe(true)
+  expect(check({}, { makers: ['airbus', 'boeing'], bodies: ['wide'] })).toBe(false)
+  expect(check({ aircraft: 'E190' }, { makers: ['airbus', 'boeing'], bodies: ['narrow'] })).toBe(false)
+})
+
+it('local hour facets validate minutes and keep missing time distinct from midnight', () => {
+  for (const key of ['depMinute', 'arrMinute'] as const) {
+    const facet = key === 'depMinute' ? 'depHours' : 'arrHours'
+    expect([419, 420, 479, 480].map(minute => matches(row({ [key]: minute }), { [facet]: [7] }, refs)))
+      .toEqual([false, true, true, false])
+    expect(matches(row({ [key]: 400 }), { [facet]: [6] }, refs)).toBe(true)
+    for (const minute of [null, NaN, Infinity, -1, 1439.5, 1440]) {
+      expect(matches(row({ [key]: minute }), { [facet]: [0, 23] }, refs)).toBe(false)
+    }
+    expect(matches(row({ [key]: 0 }), { [facet]: [0] }, refs)).toBe(true)
+    expect(matches(row({ [key]: 1439 }), { [facet]: [23] }, refs)).toBe(true)
+  }
 })

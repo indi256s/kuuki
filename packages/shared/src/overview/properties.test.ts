@@ -27,9 +27,13 @@ it('adding a value to an active facet never decreases flights', () => {
 })
 
 it('adding a facet never increases flights', () => {
-  fc.assert(fc.property(rowsArbitrary, rows => {
+  fc.assert(fc.property(rowsArbitrary, fc.record<OverviewFilter>({
+    airports: fc.subarray(['IST', 'TBS', 'ZZZ']), alliances: fc.subarray(['star', 'oneworld', 'skyteam'] as const),
+    families: fc.subarray(['A320', '777', 'obsolete']), makers: fc.subarray(['airbus', 'boeing', 'unknown'] as const),
+    bodies: fc.subarray(['narrow', 'wide'] as const), depHours: fc.subarray([0, 7, 10, 23]), arrHours: fc.subarray([0, 6, 23]),
+  }), (rows, facets) => {
     const broad = computeOverview(payload(rows), { airlines: ['TK', 'BA'] }).figures.flights
-    const narrow = computeOverview(payload(rows), { airlines: ['TK', 'BA'], aircraft: ['A320'] }).figures.flights
+    const narrow = computeOverview(payload(rows), { airlines: ['TK', 'BA'], aircraft: ['A320'], ...facets }).figures.flights
     expect(narrow).toBeLessThanOrEqual(broad)
   }), options)
 })

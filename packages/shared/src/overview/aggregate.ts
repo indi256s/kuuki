@@ -1,3 +1,4 @@
+import { allianceAt } from '../../../data/src/alliance-membership'
 import type { OverviewRow } from './model'
 import { absoluteClockShiftMinutes, recordExtrema } from './records'
 
@@ -7,23 +8,25 @@ export function aggregateRows(rows: OverviewRow[]): OverviewRow[] {
   const groups = new Map<string, OverviewRow>()
   for (const row of rows) {
     const month = row.date.slice(0, 7)
-    const hour = row.depMinute === null ? null : Math.floor(row.depMinute / 60)
-    const arrivalHour = row.arrMinute === null || !Number.isFinite(row.arrMinute) || row.arrMinute < 0 || row.arrMinute >= 1440
+    const hour = row.depMinute === null || !Number.isFinite(row.depMinute) || row.depMinute < 0 || row.depMinute > 1439
+      ? null : Math.floor(row.depMinute / 60)
+    const arrivalHour = row.arrMinute === null || !Number.isFinite(row.arrMinute) || row.arrMinute < 0 || row.arrMinute > 1439
       ? null : Math.floor(row.arrMinute / 60)
     // Keep arrival-hour filters, haul filters, paired speed metrics and zone coverage identical to individual rows.
     const key = JSON.stringify([row.state, row.origin, row.destination, row.airline, row.aircraft,
-      month, hour, arrivalHour, row.durationSource, row.suppressed, row.originTz, row.destTz,
+      month, allianceAt(row.airline, row.date), hour, arrivalHour, row.durationSource, row.suppressed, row.originTz, row.destTz,
       row.distanceKm === null ? null : row.distanceKm / row.weight,
       row.durationMinutes === null ? null : row.durationMinutes > 0])
     const group = groups.get(key)
     if (!group) {
-      groups.set(key, { ...row, date: `${month}-01`, depMinute: hour === null ? null : hour * 60,
+      groups.set(key, { ...row, depMinute: hour === null ? null : hour * 60,
         arrMinute: arrivalHour === null ? null : arrivalHour * 60, flightNumber: null, departureUtc: null, recordExtrema: recordExtrema([row]),
         clockShiftMinutes: absoluteClockShiftMinutes(row) })
       continue
     }
     group.recordExtrema = recordExtrema([group, row])
     group.clockShiftMinutes = sum(group.clockShiftMinutes ?? null, absoluteClockShiftMinutes(row))
+    if (row.date < group.date) group.date = row.date
     group.id = Math.min(group.id, row.id)
     group.weight += row.weight
     group.distanceKm = sum(group.distanceKm, row.distanceKm)
