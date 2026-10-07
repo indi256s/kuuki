@@ -33,13 +33,14 @@ ledger `.superpowers/sdd/2026-10-07-overview-release-1-migrations/progress.md`.
 
 ## Latest checks
 
-After `17a6be5`'s code change:
+Task 6 implementation checks:
 
 ```text
-API:   Test Files  54 passed (54)
-       Tests       612 passed (612)
+API:   Test Files  56 passed (56)
+       Tests       626 passed (626)
 Next:  Test Files  105 passed (105)
        Tests       1102 passed (1102)
+Focused planner/CLI: Test Files 2 passed (2), Tests 14 passed (14)
 ```
 
 `pnpm typecheck:api` and `pnpm typecheck:scripts` exited 0.
@@ -49,40 +50,32 @@ Next:  Test Files  105 passed (105)
 {"node":"v24.18.0","openNextEntryBytes":2278,"assetCount":105,"assetBytes":9285828,"apiRoutes":71}
 ```
 
-Existing Next navigation warnings and compiled Better Auth duplicate-key
-warning remain unchanged. Evidence logs are under
-`/tmp/kuuki-overview-execution/r1-t5-rounding-*`.
+An initial concurrent Next run had three `Test timed out in 5000ms` failures;
+the complete serial rerun passed without changing client code or timeouts.
+Existing navigation and compiled Better Auth duplicate-key warnings remain.
+Evidence logs are under `/tmp/kuuki-overview-execution/r1-t6-*`.
+The final API/type checks followed the planner's measured-duration clamp fix;
+the retained Next/build evidence predates only that unconsumed planner change
+and its regression test.
 
-## Task 6 preparation and blocker
+## Task 6 implementation
 
-The user approved adding `airline_iata` and `flight_number` to the CAS snapshot
-and SQL WHERE guards, updating the plan and adding drift regressions. The plan
-interface change and resolved issue 03 are currently uncommitted, reserved
-for the Task 6 implementation commit.
+The user approved both plan corrections: include `airline_iata` and
+`flight_number` in CAS guards; expect an empty re-plan after a canonical times
+PATCH, with fresh proposals tested separately after airline-only drift.
+Issues 03 and 04 record the proofs and resolutions.
 
-The uncommitted `functions/test/flight-backfill.test.ts` starts the required
-planner, SQL application, idempotence, median, preservation, repair and approved
-CAS guard tests. Its initial RED check exited 1 as intended:
-
-```text
-Cannot find module '../api/_services/flightBackfill'
-Test Files  1 failed (1)
-Tests       no tests
-```
-
-No Task 6 planner/CLI implementation exists yet. A second verified plan
-conflict is awaiting the user's answer: the actual times PATCH leaves all eight
-metrics canonical, so the no-change rule requires an empty re-plan, but the
-planned times-drift test requires that row to appear again. See issue 04 and
-its synthetic probe output. The pending question asks to expect an empty
-re-plan after canonical times PATCH and to prove fresh proposals separately
-with airline-only drift. Do not silently change that acceptance step.
+This commit implements the pure two-pass planner, guarded SQL renderer and
+read-only CLI with schema admission, private exclusive artifacts and hashed
+per-user manifests. It reuses write-path timezone/time resolution and existing
+proposal SQL helpers. Regressions cover idempotence, pooled medians, retained
+unexplained values, all approved drift cases, derived repair, artifact safety
+and refusal before private reads. Remote routing uses a fake reader only.
 
 ## Next action
 
-Receive the user's answer on issue 04. If approved, update that plan test step,
-add the actual times PATCH regression, and implement Task 6. Finish focused and
-full checks, tick its checkboxes in the exact planned implementation commit,
-then obtain a new independent Opus review before Task 7. Preserve uncommitted
-Task 6 preparation. No remote operation, push, PR, merge or UI change has been
-performed. Tasks 7–8 and all Release 2 tasks remain unstarted.
+Obtain the Task 6 independent T3 Opus 5.5 review over `3156daf..HEAD` and resolve
+verified findings before starting Task 7. No material decision is pending.
+Issue 02 (browser metric declarations) remains open for the first consumer,
+before design handoff. No remote operation, push, PR, merge or UI change has
+been performed. Tasks 7–8 and all Release 2 tasks remain unstarted.

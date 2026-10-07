@@ -1,6 +1,6 @@
 # Times-drift re-plan expectation contradicts canonical writes
 
-Status: open — awaiting user decision
+Status: resolved — user approved correcting the drift expectation
 
 Release 1 Task 6 says rows whose metrics are already correct produce no change.
 Its times-drift test also requires re-planning a row after an actual times PATCH
@@ -26,3 +26,7 @@ while independently checking that airline-only drift rejects stale SQL and
 produces a fresh proposal with the new CAS snapshot. No planner implementation
 or conflicting test expectation has been written. User instruction requires
 approval for a behavior-changing plan conflict.
+
+On 7 October 2026 the user selected “Correct the drift expectation
+(Recommended)”. Task 6 expects an empty re-plan after the canonical times PATCH
+and separately checks fresh proposals after airline-only drift.

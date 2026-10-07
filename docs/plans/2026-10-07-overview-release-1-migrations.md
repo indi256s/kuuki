@@ -32,7 +32,7 @@
 
 1. **Airport missing from `airports_reference` or without coordinates** (unresolved MOW/GAT/POD). Expected: distance falls back to the clamped client value or NULL, zones NULL, no throw. The backfill leaves that row's distance untouched. Tests: Task 5 `unknown airport keeps client distance`, Task 6 `no coordinates is reported, not rewritten`.
 2. **Legacy duration that matches no old estimate formula.** It may be a real value from the Supabase era. Expected: value kept, labelled `estimate`, counted `kept_unexplained` in the manifest. Test: Task 6 `unexplained legacy duration is kept`.
-3. **Row edited after the proposal was generated (drift).** Expected: its compare-and-set UPDATE changes 0 rows. A re-plan reports it, and the newer edit is never overwritten. Test: Task 6 `drifted row is not overwritten`.
+3. **Row edited after the proposal was generated (drift).** Expected: its compare-and-set UPDATE changes 0 rows, and the newer edit is never overwritten. A re-plan reports remaining corrections; an already canonical times PATCH needs no proposal. Test: Task 6 `drifted row is not overwritten`. (User-approved correction, 2026-10-07.)
 4. **Red-eye across a DST change with tz filled from the package** (imported flight that had no tz). Expected: `times`, positive minutes identical to `computeFlightDuration`, `departure_utc` set. Test: Task 5 `import without tz gets times across DST`.
 5. **Operator misuse.** Missing or wrong token, repeated calls. Expected: 401 without touching D1; repeated repair is idempotent; refresh leaves no ready user missing from `leaderboard_cache`. Tests: Task 7.
 
@@ -236,7 +236,7 @@ The home override reuses the existing private `profiles.home_airport`; no column
 - Produces:
   - `type BackfillClass = 'tz_filled' | 'times' | 'route_median' | 'estimate_replaced' | 'kept_unexplained' | 'distance_changed' | 'zones_set' | 'no_coordinates'`
   - `interface BackfillChange { id: number; userId: string; before: CasColumns; after: MetricColumns; classes: BackfillClass[] }`
-    - `CasColumns` = origin, destination, date, departure_time, arrival_time, origin_tz, dest_tz, distance_km, duration_minutes, duration_source.
+    - `CasColumns` = origin, destination, date, airline_iata, flight_number, departure_time, arrival_time, origin_tz, dest_tz, distance_km, duration_minutes, duration_source.
     - `MetricColumns` = origin_tz, dest_tz, departure_utc, arrival_utc, distance_km, duration_minutes, duration_source, zones_overflown.
   - `planFlightBackfill(flights: BackfillFlight[], coords: Map<string, LatLon>, model?: BlockTimeModel): BackfillChange[]`. Pure. Two passes:
     1. tz fill + `times` for every flight.
@@ -252,24 +252,24 @@ The home override reuses the existing private `profiles.home_airport`; no column
     - change count; per-class counts;
     - per-user flights changed and distance/duration totals before → after (user IDs only; no emails).
 
-- [ ] **Step 1: Write the failing tests** (pure planner, plus an apply round-trip on Miniflare):
+- [x] **Step 1: Write the failing tests** (pure planner, plus an apply round-trip on Miniflare):
   - `legacy ×1.10 distance is replaced`: TBS→JFK stored 9878 → change to 8980, `distance_changed`.
   - `legacy estimate is replaced by the ladder`: stored `round(9878/800·60+45)`, no times → `estimate_replaced`, model value.
   - `unexplained legacy duration is kept`: stored 611 min, no times → kept 611, `estimate`, `kept_unexplained`.
   - `tz fill turns times on`: times present, tz null → `tz_filled` + `times`.
   - `no coordinates is reported, not rewritten`: destination `MOW` without coords → distance unchanged, `no_coordinates`.
   - `apply is idempotent`: render → execute on the DB → re-plan returns `[]`.
-  - `drifted row is not overwritten`: plan, then PATCH that flight's times, then execute the SQL → that row keeps the PATCH result; re-plan lists it again with the new `before`.
+  - `drifted row is not overwritten`: plan, then PATCH that flight's times, then execute the SQL → that row keeps the PATCH result; re-plan returns `[]` because PATCH already wrote canonical metrics. Separately, airline-only drift rejects stale SQL and re-plan lists the row with its new `before`. Guard flight-number-only drift too. (User-approved correction, 2026-10-07.)
   - `derived totals follow after repair`: execute, `repairUserDerivedState` → `user_stats.total_distance_km` equals the new sum; badge rows count unchanged.
-- [ ] **Step 2:** `pnpm test:api -- functions/test/flight-backfill.test.ts`. Expected: FAIL.
-- [ ] **Step 3:** Implement the planner, the renderer, and `scripts/overview-backfill-proposal.ts`:
+- [x] **Step 2:** `pnpm test:api -- functions/test/flight-backfill.test.ts`. Expected: FAIL.
+- [x] **Step 3:** Implement the planner, the renderer, and `scripts/overview-backfill-proposal.ts`:
   - `--target local --database-id <id> --persist <abs dir>` or `--target remote --account-id <id> --database-id <id>` (read-only reader);
   - `[--schema-admission <json>]`;
   - `--output-sql <abs path>`;
   - refuses to write SQL unless the schema is admitted;
   - always prints the manifest summary to stdout.
-- [ ] **Step 4:** Run `pnpm test:api` and `pnpm typecheck:scripts`. Expected: PASS / clean.
-- [ ] **Step 5:** Commit `feat(scripts): read-only flight metrics backfill proposal`.
+- [x] **Step 4:** Run `pnpm test:api` and `pnpm typecheck:scripts`. Expected: PASS / clean.
+- [x] **Step 5:** Commit `feat(scripts): read-only flight metrics backfill proposal`.
 
 ### Task 7: Temporary release operator (repair + leaderboards)
 
