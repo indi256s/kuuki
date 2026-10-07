@@ -113,15 +113,15 @@ Section types are declared in each section's task. `compute.ts` composes them.
   - Regional: E170–E195 and E290/E295 → `E-Jet`; CRJ1–CRJX → `CRJ`; AT43–AT76 → `ATR 42/72`; DH8A–DH8D → `Dash 8`.
   - Anything else → its `model`.
 
-- [ ] **Step 1: Write the failing test** `every type has a curated family`.
+- [x] **Step 1: Write the failing test** `every type has a curated family`.
   - Every entry has a non-empty `family`.
-  - `findAircraft('A20N').family === 'A320'`, `B38M → '737'`, `B77W → '777'`, `E195 → 'E-Jet'`, `AT76 → 'ATR 42/72'`.
+  - `findAircraft('A20N').family === 'A320'`, `B38M → '737'`, `B77W → '777'`, `E195 → 'E-Jet'`, `AT72 → 'ATR 42/72'`.
   - Distinct families < 215.
   - `familyOf('ZZZZ', { model: 'Foo 1' }) === 'Foo 1'`, and `familyOf('ZZZZ') === null`.
-- [ ] **Step 2:** `pnpm test:api -- packages/data`. Expected: FAIL.
-- [ ] **Step 3:** Add the field (mechanical; apply the rule) and `familyOf`.
-- [ ] **Step 4:** Re-run. Expected: PASS. Run `pnpm typecheck:api`.
-- [ ] **Step 5:** Commit `feat(data): curated aircraft families`.
+- [x] **Step 2:** `pnpm test:api packages/data`. Expected: FAIL.
+- [x] **Step 3:** Add the field (mechanical; apply the rule) and `familyOf`.
+- [x] **Step 4:** Re-run. Expected: PASS. Run `pnpm typecheck:api`.
+- [x] **Step 5:** Commit `feat(data): curated aircraft families`.
 
 ### Task 2: Payload contract, aggregation and builder
 

@@ -168,6 +168,7 @@ export interface Aircraft {
   iata: string | null             // "738"
   manufacturer: string            // "Boeing"
   model: string                   // "737-800"
+  family: string
   name: string                    // "Boeing 737-800"
   type: AircraftType
   engineType: EngineType

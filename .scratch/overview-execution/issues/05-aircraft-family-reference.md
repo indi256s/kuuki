@@ -1,6 +1,6 @@
 # Aircraft family test references an absent aircraft
 
-Status: open
+Status: resolved — user approved the existing AT72 example
 
 Release 2 Task 1 adds families to the existing 215 aircraft entries, but its
 required example `findAircraft('AT76').family` references an absent entry.
@@ -31,3 +31,6 @@ The user's instruction requires stopping when a plan conflict changes behavior.
 
 Task 1 is paused before implementation. Its failing test and Vitest discovery
 configuration are prepared; no task checkbox is checked and no later task began.
+
+On 7 October the user answered “approved” to the recommended correction.
+The Task 1 example uses AT72; the reference dataset stays at 215 entries.

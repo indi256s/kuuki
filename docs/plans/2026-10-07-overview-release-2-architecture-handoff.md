@@ -41,37 +41,31 @@ further proposals. Release 1 has not been deployed; only the separately approved
 read-only production export was remote. Full evidence and commits are in the
 Release 1 handoff and local ledger.
 
-## Current task and blocker
+## Release 2 progress
 
-Task 1 is at the failing-test stage. Its new aircraft-family test and Vitest
-discovery change are prepared, without product implementation. Focused output:
+Task 1 is complete in this commit: family fields for all 215 entries, canonical
+Aircraft type, lookup helper and tests. User approved replacing the absent AT76
+example with existing AT72; issue 05 is resolved. Other reference fields and
+entry order are unchanged. The given family groups are applied, with E175 wing
+variants grouped as E-Jet; unlisted aircraft use their existing model.
 
 ```text
-Test Files  1 failed (1)
-     Tests  7 failed (7)
+Focused: Test Files 1 passed (1), Tests 7 passed (7)
+API:     Test Files 59 passed (59), Tests 643 passed (643)
 ```
 
-The required AT76 example is absent from the 215-entry reference dataset;
-AT72 exists. Issue
-`.scratch/overview-execution/issues/05-aircraft-family-reference.md` records
-the exact probe and proposed correction. Await the user's choice: replace the
-test example with existing AT72 (recommended), or authorize an added AT76
-reference entry. Do not implement either choice before the answer.
-
-No Task 1 checkbox is checked; Tasks 2–17 have not begun. Do not advance while
-this decision is unresolved. No Release 2 product commit exists yet.
+API typecheck exited 0. The corrected focused tests failed before implementation
+(1 file / 7 tests). No route or client code changed; Next tests/build are not
+required for this task. No per-task review under the user's revised workflow.
 
 ## Continuation
 
-After approval, record the decision in issue 05 and the plan; finish Task 1's
-implementation, focused/full checks and `feat(data): curated aircraft families`
-commit with its checkboxes. The canonical Aircraft type actually lives in
-`packages/shared/src/types.ts`, imported by the data package; note that file
-ownership correction in the commit body.
+Task 2 is next: payload contract, weighted aggregation and owner builder. Tasks
+2–17 are unstarted. Keep the final whole-branch Opus review over
+`feat/overview-release-1-migrations...HEAD` through T3 `delegate_task`, with a
+new request ID for each round. Issue 02's browser metric type correction remains
+for the first client consumer before design handoff. Logs are under
+`/tmp/kuuki-overview-execution/`; the primary-owned local ledger is
+`.superpowers/sdd/2026-10-07-overview-release-2-architecture/progress.md`.
 
-The user removed per-task reviews. The required final whole-branch Opus 5.5
-review is over `feat/overview-release-1-migrations...HEAD`, through T3
-`delegate_task`, with a distinct request ID for each round. Keep issue 02's
-browser metric type correction for the first client consumer before design
-handoff. Logs are in `/tmp/kuuki-overview-execution/`; the local execution ledger
-is `.superpowers/sdd/2026-10-07-overview-release-2-architecture/progress.md`.
+All production/remote, GitHub/main, UI, parity and material-conflict gates remain.
