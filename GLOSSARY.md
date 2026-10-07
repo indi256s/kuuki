@@ -94,3 +94,20 @@ the mutation.
 ### Enrichment
 Background filling of flight details (aircraft, distance, duration) from
 reference data after a flight is saved; tracked by `enrichment_status`.
+
+## Flight metrics vocabulary
+
+### Duration source
+The provenance of a flight's duration: `times` (the flight's own local times),
+`route_median` (observed durations on its directional route), `schedule`
+(accepted scheduled times), or `estimate` (a model or retained historical value).
+Absent when duration is unknown.
+
+### Zones overflown
+The count of UTC-offset changes along the great-circle route at the departure
+instant. Returning to an earlier offset counts another change. Unknown when
+either endpoint lacks coordinates. _Avoid_: number of distinct IANA zones.
+
+### Clock shift
+The difference between the destination and origin UTC offsets, accounting for
+daylight saving at the departure instant. Separate from zones overflown.

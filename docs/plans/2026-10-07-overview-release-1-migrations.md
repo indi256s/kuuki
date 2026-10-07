@@ -133,19 +133,19 @@ CREATE INDEX idx_flights_route_times ON flights(origin, destination, duration_mi
 
 The home override reuses the existing private `profiles.home_airport`; no column is added for it. Aircraft family stays in package data (Release 2), so `aircraft_reference` is unchanged.
 
-- [ ] **Step 1: Write the failing tests** (use `databaseThrough('0007_import_drafts.sql')` from `lifecycle-fixture.ts`, then apply 0008).
+- [x] **Step 1: Write the failing tests** (use `databaseThrough('0007_import_drafts.sql')` from `lifecycle-fixture.ts`, then apply 0008).
   - `0008 adds nullable metrics to existing rows`: a flight inserted before 0008 reads `duration_source IS NULL AND zones_overflown IS NULL`.
   - `CHECK rejects bad values`: `duration_source='guess'`, `zones_overflown=-1`, `overview_prefs='{'`, and an 8193-char JSON string all throw.
   - `old writers still work`: `OLD_CREATE_FLIGHT` and `OLD_EDIT` from `lifecycle-fixture.ts` succeed after 0008.
   - `public profile never exposes prefs`: `GET /api/public/profiles/:username` for a public profile with `overview_prefs` set has no `overview_prefs` key.
-- [ ] **Step 2:** `pnpm test:api -- functions/test/flight-metrics-migration.test.ts`. Expected: FAIL.
-- [ ] **Step 3:** Write the migration and the DTO/column changes. ADR 0002 records:
+- [x] **Step 2:** `pnpm test:api -- functions/test/flight-metrics-migration.test.ts`. Expected: FAIL.
+- [x] **Step 3:** Write the migration and the DTO/column changes. ADR 0002 records:
   - why distance became pure great-circle (with the ~9.1 % drop in stored totals);
   - the ladder;
   - the zones definition and the tz-lookup accuracy caveat (~5 % offset mismatches near borders, per its README);
   - why the operator Worker exists.
-- [ ] **Step 4:** Run `pnpm test:api`. Expected: all PASS, including `wrangler-migrations.test.ts` and `scripts/migration.test.ts`. If a schema-hash fixture pins the migration set, update it in this commit and name it in the commit body.
-- [ ] **Step 5:** Commit `feat(db): 0008 flight metrics and overview prefs columns`.
+- [x] **Step 4:** Run `pnpm test:api`. Expected: all PASS, including `wrangler-migrations.test.ts` and `scripts/migration.test.ts`. If a schema-hash fixture pins the migration set, update it in this commit and name it in the commit body.
+- [x] **Step 5:** Commit `feat(db): 0008 flight metrics and overview prefs columns`.
 
 ### Task 4: Calibrated block-time model
 

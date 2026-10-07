@@ -50,6 +50,8 @@ export interface PublicProfile {
 export type EnrichmentStatus = 'pending' | 'enriched' | 'failed' | 'skipped'
 
 // Flight record
+export type DurationSource = 'times' | 'route_median' | 'schedule' | 'estimate'
+
 export interface Flight {
   id: number
   userId: string
@@ -63,6 +65,8 @@ export interface Flight {
   aircraftIcao: string | null
   distanceKm: number | null
   durationMinutes: number | null
+  durationSource: DurationSource | null
+  zonesOverflown: number | null
   source: 'manual' | 'ai_import'
   enrichmentStatus: EnrichmentStatus | null
   createdAt: string
