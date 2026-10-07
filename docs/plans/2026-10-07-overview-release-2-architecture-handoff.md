@@ -73,7 +73,7 @@ full API: 60 files / 659 tests passed; API typecheck exited 0. Owner separation,
 transit bits, 5001-row totals, empty payloads and revision readiness are covered.
 No routes/client changes; Next tests/build are not required yet.
 
-Task 3 is implemented in this commit: owner GET with no-store/ETag, stamp-only
+Task 3 is complete at `bc07f69`: owner GET with no-store/ETag, stamp-only
 304 and auth before reads, plus the server data helper. The user approved issue
 06's extension: a home-field profile PATCH atomically updates the profile and
 conditionally marks its owner dirty, then uses the existing repair flow.
@@ -88,8 +88,19 @@ typecheck exited 0. Next build passed with the generated 72-route inventory,
 105 assets / 9226424 bytes, entry 2278 bytes. Next full suite passed: 105 files / 1102 tests. Existing navigation and
 compiled Better Auth warnings remain.
 
-Task 4 is next: pure faceted filters and previous-period arithmetic. Tasks 4–17
-are unstarted; there is no unresolved user decision.
+Task 4 is complete in this commit: OR-within/AND-across facets, suppression-aware
+country/region evidence, undirected routes, raw-country domestic comparison,
+aggregate per-flight haul, local departure bands and equal-span previous periods.
+Empty arrays clear a facet; unknown values remain active and match nothing.
+Year sets are sorted/deduplicated; invalid periods fail closed without throwing.
+Calendar-month arithmetic uses integer labels, independent of timezones.
+
+Task 4 RED: 1 failed suite (missing module). Focused GREEN: 1 file / 15 tests;
+full API: 61 files / 683 tests passed; API typecheck exited 0. No client/routes
+changed; the Task 3 Next test/build evidence remains applicable.
+
+Task 5 is next: figures, coverage, home and compute entry. Tasks 5–17 are
+unstarted; there is no unresolved user decision.
 
 Keep the final whole-branch Opus review over
 `feat/overview-release-1-migrations...HEAD` through T3 `delegate_task`, with a

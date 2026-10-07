@@ -248,17 +248,17 @@ export const BAND_START_HOUR = { night: 22, morning: 6, afternoon: 12, evening: 
   - `previousPeriod(filter): OverviewFilter | null`. Null when there is no period or the years are non-contiguous.
   - `isEmptyFilter(filter): boolean`.
 
-- [ ] **Step 1: Write the failing tests** (rows built inline):
+- [x] **Step 1: Write the failing tests** (rows built inline):
   - `OR within, AND across`: airlines [TK, A9] matches both; adding `countries: ['JP']` keeps only the Japan rows.
   - `transit country does not match`: destination-suppressed row ∉ its destination country, ∈ its origin country.
   - `route is undirected`: `routes: ['IST-TBS']` matches TBS→IST and IST→TBS.
   - `haul and band edges`: `haulOf(1499)` short, `haulOf(1500)` medium, `haulOf(4000)` long; `bandOf(22*60)` night, `bandOf(359)` night, `bandOf(360)` morning.
   - `missing attribute never matches`: aircraft null ∉ `bodyTypes: ['narrowbody']`.
   - `previous period`: {years:[2024]} → {years:[2023]}; {from:'2025-11', to:'2026-02'} → {from:'2025-07', to:'2025-10'}; {years:[2023,2024]} → {years:[2021,2022]}; {years:[2019,2024]} → null; no period → null.
-- [ ] **Step 2:** `pnpm test:api -- packages/shared/src/overview/filter.test.ts`. Expected: FAIL.
-- [ ] **Step 3:** Implement.
-- [ ] **Step 4:** Re-run. Expected: PASS.
-- [ ] **Step 5:** Commit `feat(overview): faceted filter engine`.
+- [x] **Step 2:** `pnpm test:api -- packages/shared/src/overview/filter.test.ts`. Expected: FAIL.
+- [x] **Step 3:** Implement.
+- [x] **Step 4:** Re-run. Expected: PASS.
+- [x] **Step 5:** Commit `feat(overview): faceted filter engine`.
 
 ### Task 5: Figures, coverage, home and `computeOverview`
 
