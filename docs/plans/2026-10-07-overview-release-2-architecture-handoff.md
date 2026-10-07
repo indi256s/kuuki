@@ -167,7 +167,7 @@ workers: 65 files / 725 tests passed; API typecheck exited 0. Empty-scope tests
 include the Fleet and Clock gates. No client/routes changed, so Task 3's Next
 evidence remains applicable. No per-task review under the user's workflow.
 
-Task 9 is complete in this commit: full zero-filled Rhythm grids with gap years,
+Task 9 is complete at `23f95a7`: full zero-filled Rhythm grids with gap years,
 weighted full rankings and undirected routes, scope/ghost globe data and a
 visit-weighted spherical centroid. Countries use unsuppressed evidence once per
 country per flight; airports retain both endpoint visits, including transits.
@@ -183,8 +183,44 @@ now cover all section gates, rankings and centroid; upcoming-only behavior is
 also explicit. No routes/client changes; Task 3 Next evidence remains valid.
 No per-task review under the revised workflow.
 
-Task 10 is next: golden fixtures and property tests. Tasks 10–17 are unstarted;
-no unresolved user decision. No UI, production/remote or GitHub actions.
+Task 10 is complete in this commit: ten generated golden payloads/snapshots,
+including 5001-row aggregate mode, and six deterministic fast-check properties
+with 200 runs each. The generator uses package coordinates/timezones/aircraft
+metadata and synthetic stored metrics/lifecycle/suppression combinations. The
+value-expansion property starts with an active facet, because an empty facet
+means clear. Exact fast-check 4.10.2 and its pure-rand dependency are development
+only; pnpm also normalized three existing ESLint peer keys without version changes.
+
+Initial RED: missing fast-check and ten missing fixtures. The generation run
+passed ten explicit known-value tests and wrote ten snapshots. Primary review
+inspected every snapshot section and independently verified weighted fixture
+counts and stored distance/duration sums. Additional explicit values cover
+polar/date-line geometry and a DST red-eye. The first property run found a test
+callback returning the assertion object; a block callback fixed it. No engine
+change was necessary. Per-task independent review is deferred to the final
+whole-branch review, as the user instructed.
+
+```text
+Focused: Test Files 2 passed (2), Tests 16 passed (16)
+API:     Test Files 68 passed (68), Tests 750 passed (750)
+```
+
+The full API command used `--maxWorkers=4` and passed in 156.11s. API and shared
+package typechecks exited 0. No client/routes or runtime dependencies changed;
+Task 3's Next test/build evidence remains applicable. Task 10 checkboxes are
+checked in its implementation commit. Logs and compact full snapshot inspection
+are under `/tmp/kuuki-overview-execution/r2-t10-*`.
+
+Task 11 is paused before implementation. Issue 09 records a verified plan
+conflict: Review Focus 4 says old preferences return defaults, while Task 11's
+required test says old versions merge known fields. For version 0 with
+replayPaused true, those policies return false versus true. The design-owned
+spec does not choose a migration policy, and no current parser resolves it.
+Recommended decision: preserve valid known fields from older versions, fill
+absent/invalid fields with defaults, and reset malformed JSON/unknown future
+versions completely. Await the user's decision before changing the plan or
+writing the parser/API. Tasks 11–17 remain unstarted. No UI, production/remote
+or GitHub actions.
 
 Keep the final whole-branch Opus review over
 `feat/overview-release-1-migrations...HEAD` through T3 `delegate_task`, with a

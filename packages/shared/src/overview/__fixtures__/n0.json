@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 2,
+  "etag": "W/\"ov2-1-1\"",
+  "generatedAt": "2026-10-07T00:00:00.000Z",
+  "mode": "flights",
+  "derivedReady": true,
+  "homeOverride": null,
+  "passport": {
+    "countries": 0,
+    "regions": 0
+  },
+  "rows": [],
+  "refs": {
+    "airports": {},
+    "aircraft": {},
+    "regions": {}
+  }
+}

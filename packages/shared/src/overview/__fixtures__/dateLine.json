@@ -1,0 +1,164 @@
+{
+  "schemaVersion": 2,
+  "etag": "W/\"ov2-1-1\"",
+  "generatedAt": "2026-10-07T00:00:00.000Z",
+  "mode": "flights",
+  "derivedReady": true,
+  "homeOverride": null,
+  "passport": {
+    "countries": 2,
+    "regions": 2
+  },
+  "rows": [
+    {
+      "id": 1,
+      "weight": 1,
+      "date": "2025-01-01",
+      "state": "logged",
+      "origin": "NRT",
+      "destination": "SFO",
+      "airline": "TK",
+      "aircraft": "A320",
+      "flightNumber": "1",
+      "depMinute": 600,
+      "distanceKm": 8226,
+      "durationMinutes": 120,
+      "durationSource": "times",
+      "zonesOverflown": 2,
+      "originTz": "Asia/Tokyo",
+      "destTz": "America/Los_Angeles",
+      "departureUtc": null,
+      "suppressed": 0
+    },
+    {
+      "id": 2,
+      "weight": 1,
+      "date": "2025-01-01",
+      "state": "logged",
+      "origin": "SFO",
+      "destination": "NRT",
+      "airline": "TK",
+      "aircraft": "A320",
+      "flightNumber": "2",
+      "depMinute": 600,
+      "distanceKm": 8226,
+      "durationMinutes": 120,
+      "durationSource": "times",
+      "zonesOverflown": 2,
+      "originTz": "America/Los_Angeles",
+      "destTz": "Asia/Tokyo",
+      "departureUtc": null,
+      "suppressed": 0
+    },
+    {
+      "id": 3,
+      "weight": 1,
+      "date": "2025-01-01",
+      "state": "logged",
+      "origin": "NRT",
+      "destination": "SFO",
+      "airline": "TK",
+      "aircraft": "A320",
+      "flightNumber": "3",
+      "depMinute": 600,
+      "distanceKm": 8226,
+      "durationMinutes": 120,
+      "durationSource": "times",
+      "zonesOverflown": 2,
+      "originTz": "Asia/Tokyo",
+      "destTz": "America/Los_Angeles",
+      "departureUtc": null,
+      "suppressed": 0
+    },
+    {
+      "id": 4,
+      "weight": 1,
+      "date": "2025-01-01",
+      "state": "logged",
+      "origin": "SFO",
+      "destination": "NRT",
+      "airline": "TK",
+      "aircraft": "A320",
+      "flightNumber": "4",
+      "depMinute": 600,
+      "distanceKm": 8226,
+      "durationMinutes": 120,
+      "durationSource": "times",
+      "zonesOverflown": 2,
+      "originTz": "America/Los_Angeles",
+      "destTz": "Asia/Tokyo",
+      "departureUtc": null,
+      "suppressed": 0
+    },
+    {
+      "id": 5,
+      "weight": 1,
+      "date": "2025-01-01",
+      "state": "logged",
+      "origin": "NRT",
+      "destination": "SFO",
+      "airline": "TK",
+      "aircraft": "A320",
+      "flightNumber": "5",
+      "depMinute": 600,
+      "distanceKm": 8226,
+      "durationMinutes": 120,
+      "durationSource": "times",
+      "zonesOverflown": 2,
+      "originTz": "Asia/Tokyo",
+      "destTz": "America/Los_Angeles",
+      "departureUtc": null,
+      "suppressed": 0
+    },
+    {
+      "id": 6,
+      "weight": 1,
+      "date": "2025-01-01",
+      "state": "logged",
+      "origin": "SFO",
+      "destination": "NRT",
+      "airline": "TK",
+      "aircraft": "A320",
+      "flightNumber": "6",
+      "depMinute": 600,
+      "distanceKm": 8226,
+      "durationMinutes": 120,
+      "durationSource": "times",
+      "zonesOverflown": 2,
+      "originTz": "America/Los_Angeles",
+      "destTz": "Asia/Tokyo",
+      "departureUtc": null,
+      "suppressed": 0
+    }
+  ],
+  "refs": {
+    "airports": {
+      "NRT": {
+        "lat": 35.772,
+        "lon": 140.3929,
+        "country": "JP",
+        "city": "Tokyo",
+        "name": "Narita International Airport"
+      },
+      "SFO": {
+        "lat": 37.6213,
+        "lon": -122.379,
+        "country": "US",
+        "city": "San Francisco",
+        "name": "San Francisco International Airport"
+      }
+    },
+    "aircraft": {
+      "A320": {
+        "manufacturer": "Airbus",
+        "type": "narrowbody",
+        "family": "A320",
+        "name": "Airbus A320"
+      }
+    },
+    "regions": {
+      "JP": "asia",
+      "US": "americas"
+    }
+  }
+}

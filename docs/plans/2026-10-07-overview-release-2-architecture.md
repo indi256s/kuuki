@@ -450,7 +450,7 @@ export function computeOverview(payload: OverviewPayload, filter: OverviewFilter
   - `microstate` (SIN, BAH, MLA, LUX);
   - sizes `n0`, `n1`, `n10`, `n500`, `n5001` (aggregate mode).
 
-- [ ] **Step 1: Write the tests:**
+- [x] **Step 1: Write the tests:**
   - **Golden:** each fixture's snapshot, plus explicit asserts:
     - `n0`: all sections `below`, `home null`;
     - `n1`: flights 1;
@@ -464,10 +464,10 @@ export function computeOverview(payload: OverviewPayload, filter: OverviewFilter
     4. `computeOverview(aggregate(rows))` equals `computeOverview(rows)` for flights, distanceKm, durationMinutes, crossings.zonesOverflown and rankings.
     5. Shuffling `rows` changes nothing (deep equal).
     6. No number in the output is NaN or infinite.
-- [ ] **Step 2:** Run. The first run writes snapshots. The reviewer inspects them against the fixtures' known values before accepting.
-- [ ] **Step 3:** Fix any engine defect the properties find, in the owning module.
-- [ ] **Step 4:** `pnpm test:api`. Expected: PASS.
-- [ ] **Step 5:** Commit `test(overview): golden fixtures and property tests`.
+- [x] **Step 2:** Run. The first run writes snapshots. The reviewer inspects them against the fixtures' known values before accepting.
+- [x] **Step 3:** Fix any engine defect the properties find, in the owning module.
+- [x] **Step 4:** `pnpm test:api`. Expected: PASS.
+- [x] **Step 5:** Commit `test(overview): golden fixtures and property tests`.
 
 ### Task 11: Preferences API
 

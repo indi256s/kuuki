@@ -1,0 +1,64 @@
+{
+  "schemaVersion": 2,
+  "etag": "W/\"ov2-1-1\"",
+  "generatedAt": "2026-10-07T00:00:00.000Z",
+  "mode": "flights",
+  "derivedReady": true,
+  "homeOverride": null,
+  "passport": {
+    "countries": 1,
+    "regions": 1
+  },
+  "rows": [
+    {
+      "id": 1,
+      "weight": 1,
+      "date": "2020-01-01",
+      "state": "awaiting",
+      "origin": "TBS",
+      "destination": "IST",
+      "airline": "TK",
+      "aircraft": "A320",
+      "flightNumber": "1",
+      "depMinute": 30,
+      "distanceKm": 1349,
+      "durationMinutes": 120,
+      "durationSource": "estimate",
+      "zonesOverflown": 2,
+      "originTz": "Asia/Tbilisi",
+      "destTz": "Europe/Istanbul",
+      "departureUtc": null,
+      "suppressed": 2
+    }
+  ],
+  "refs": {
+    "airports": {
+      "IST": {
+        "lat": 41.2753,
+        "lon": 28.7519,
+        "country": "TR",
+        "city": "Istanbul",
+        "name": "Istanbul Airport"
+      },
+      "TBS": {
+        "lat": 41.6692008972,
+        "lon": 44.95470047,
+        "country": "GE",
+        "city": "Tbilisi",
+        "name": "Tbilisi International Airport"
+      }
+    },
+    "aircraft": {
+      "A320": {
+        "manufacturer": "Airbus",
+        "type": "narrowbody",
+        "family": "A320",
+        "name": "Airbus A320"
+      }
+    },
+    "regions": {
+      "GE": "asia",
+      "TR": "asia"
+    }
+  }
+}

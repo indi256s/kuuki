@@ -1,0 +1,179 @@
+{
+  "schemaVersion": 2,
+  "etag": "W/\"ov2-1-1\"",
+  "generatedAt": "2026-10-07T00:00:00.000Z",
+  "mode": "flights",
+  "derivedReady": true,
+  "homeOverride": null,
+  "passport": {
+    "countries": 3,
+    "regions": 2
+  },
+  "rows": [
+    {
+      "id": 1,
+      "weight": 1,
+      "date": "2025-01-01",
+      "state": "logged",
+      "origin": "JFK",
+      "destination": "HKG",
+      "airline": "TK",
+      "aircraft": "A320",
+      "flightNumber": "1",
+      "depMinute": 600,
+      "distanceKm": 12970,
+      "durationMinutes": 120,
+      "durationSource": "times",
+      "zonesOverflown": 2,
+      "originTz": "America/New_York",
+      "destTz": "Asia/Hong_Kong",
+      "departureUtc": null,
+      "suppressed": 0
+    },
+    {
+      "id": 2,
+      "weight": 1,
+      "date": "2025-01-01",
+      "state": "logged",
+      "origin": "DXB",
+      "destination": "LAX",
+      "airline": "TK",
+      "aircraft": "A320",
+      "flightNumber": "2",
+      "depMinute": 600,
+      "distanceKm": 13400,
+      "durationMinutes": 120,
+      "durationSource": "times",
+      "zonesOverflown": 2,
+      "originTz": "Asia/Dubai",
+      "destTz": "America/Los_Angeles",
+      "departureUtc": null,
+      "suppressed": 0
+    },
+    {
+      "id": 3,
+      "weight": 1,
+      "date": "2025-01-01",
+      "state": "logged",
+      "origin": "JFK",
+      "destination": "HKG",
+      "airline": "TK",
+      "aircraft": "A320",
+      "flightNumber": "3",
+      "depMinute": 600,
+      "distanceKm": 12970,
+      "durationMinutes": 120,
+      "durationSource": "times",
+      "zonesOverflown": 2,
+      "originTz": "America/New_York",
+      "destTz": "Asia/Hong_Kong",
+      "departureUtc": null,
+      "suppressed": 0
+    },
+    {
+      "id": 4,
+      "weight": 1,
+      "date": "2025-01-01",
+      "state": "logged",
+      "origin": "DXB",
+      "destination": "LAX",
+      "airline": "TK",
+      "aircraft": "A320",
+      "flightNumber": "4",
+      "depMinute": 600,
+      "distanceKm": 13400,
+      "durationMinutes": 120,
+      "durationSource": "times",
+      "zonesOverflown": 2,
+      "originTz": "Asia/Dubai",
+      "destTz": "America/Los_Angeles",
+      "departureUtc": null,
+      "suppressed": 0
+    },
+    {
+      "id": 5,
+      "weight": 1,
+      "date": "2025-01-01",
+      "state": "logged",
+      "origin": "JFK",
+      "destination": "HKG",
+      "airline": "TK",
+      "aircraft": "A320",
+      "flightNumber": "5",
+      "depMinute": 600,
+      "distanceKm": 12970,
+      "durationMinutes": 120,
+      "durationSource": "times",
+      "zonesOverflown": 2,
+      "originTz": "America/New_York",
+      "destTz": "Asia/Hong_Kong",
+      "departureUtc": null,
+      "suppressed": 0
+    },
+    {
+      "id": 6,
+      "weight": 1,
+      "date": "2025-01-01",
+      "state": "logged",
+      "origin": "DXB",
+      "destination": "LAX",
+      "airline": "TK",
+      "aircraft": "A320",
+      "flightNumber": "6",
+      "depMinute": 600,
+      "distanceKm": 13400,
+      "durationMinutes": 120,
+      "durationSource": "times",
+      "zonesOverflown": 2,
+      "originTz": "Asia/Dubai",
+      "destTz": "America/Los_Angeles",
+      "departureUtc": null,
+      "suppressed": 0
+    }
+  ],
+  "refs": {
+    "airports": {
+      "DXB": {
+        "lat": 25.2532,
+        "lon": 55.3657,
+        "country": "AE",
+        "city": "Dubai",
+        "name": "Dubai International Airport"
+      },
+      "HKG": {
+        "lat": 22.308,
+        "lon": 113.9185,
+        "country": "HK",
+        "city": "Hong Kong",
+        "name": "Hong Kong International Airport"
+      },
+      "JFK": {
+        "lat": 40.6413,
+        "lon": -73.7781,
+        "country": "US",
+        "city": "New York",
+        "name": "John F. Kennedy International Airport"
+      },
+      "LAX": {
+        "lat": 33.9425,
+        "lon": -118.4081,
+        "country": "US",
+        "city": "Los Angeles",
+        "name": "Los Angeles International Airport"
+      }
+    },
+    "aircraft": {
+      "A320": {
+        "manufacturer": "Airbus",
+        "type": "narrowbody",
+        "family": "A320",
+        "name": "Airbus A320"
+      }
+    },
+    "regions": {
+      "AE": "asia",
+      "HK": "asia",
+      "US": "americas"
+    }
+  }
+}
