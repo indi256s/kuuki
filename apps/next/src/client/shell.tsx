@@ -11,7 +11,7 @@ import { getGateProfile } from '../server/gates'
 import type { Locale } from '../server/locale'
 
 function Wordmark({ label = 'Kuuki home' }: { label?: string }) {
-  return <Link href="/" className="wordmark" aria-label={label}><span className="mark" aria-hidden>空</span><span>kuuki</span></Link>
+  return <Link href="/" className="wordmark" aria-label={label}><span className="mark" aria-hidden>{['く', 'う', 'き'].map(glyph => <span className="mark-glyph" key={glyph}>{glyph}</span>)}</span><span>Kuuki</span></Link>
 }
 function Main({ children }: { children: ReactNode }) { return <main id="main" className="page-shell">{children}</main> }
 

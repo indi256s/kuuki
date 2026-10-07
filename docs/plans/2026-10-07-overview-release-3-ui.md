@@ -101,7 +101,7 @@ All of it runs on the Release 2 engine.
   - Alliances are mark-first (★ Star, ○ Oneworld, △ SkyTeam) and never share a chart with makers.
   - Numbers and legends stay text ink.
 - **No accent text on the dark inset** (4.12:1). Use `--text` there.
-- **Contrast:** every data mark is at least 3:1 against `--background`. Accepted exceptions: pale heat-ramp steps, map buckets 1–3, the Other swatch. Each of these always has a printed value or legend label.
+- **Contrast:** every data mark is at least 3:1 against `--background`. Accepted exceptions for the exact specified palette: heat-ramp steps below 3:1 in either theme (including dark steps 3–4), map buckets 1–3, and the Other and Unknown swatches. Each always has a visible text-ink value or legend label; charts also provide accessible tooltip/value content and View as table. The specified colours remain verbatim. See [palette contrast acceptance](../../.scratch/overview-redesign/issues/01-palette-contrast.md) for the measured conflict and consumer verification gates.
 
 **Layout bans**
 - No divider hairlines inside content or page chrome:
@@ -283,26 +283,28 @@ Task 33 deletes the legacy `client/overview/{view,hero,figures,map-band,map-prev
 - Produces:
   - `OverviewRow.arrMinute: number | null`: the local arrival minute, 0–1439.
   - `OverviewPayload.schemaVersion: 3`.
-  - ETag `W/"ov3-<revision>-<evidence_revision>"`.
+  - ETag `W/"ov3-<encoded-owner>-<revision>-<evidence_revision>"`; preserve Release2 owner isolation.
   - `board.json`, consumed by Tasks 5–10 and 17.
-- `arrMinute` comes from D1 `flights.arrival_time` (`HH:MM`, local, `db/migrations/0001_init.sql:120`). If that is null, and `departureUtc`, `durationMinutes` and `destTz` are present with `durationSource !== 'estimate'`, it is the local time in `destTz` of `departureUtc + durationMinutes`. Otherwise it is null. No D1 migration is needed.
+- `arrMinute` comes from D1 `flights.arrival_time` (`HH:MM`, local, `db/migrations/0001_init.sql:120`). If that is null, and `departureUtc`, `durationMinutes` and `destTz` are present with precise `durationSource` (`times`, `route_median` or `schedule`), it is the local time in `destTz` of `departureUtc + durationMinutes`. Otherwise it is null. No D1 migration is needed.
 - **Board fixture.** The generator reads `.scratch/overview-redesign/prototype/charts/flights.json` (69 flights) and writes a v3 payload:
   - Family → ICAO: `737→B738`, `777→B77W`, `A330→A333`, `A350→A359`, `A320→A320`, `E190→E190`, `ATR72→AT76`, `unknown→null`.
   - `depMinute = depLocalHour × 60`; `durationMinutes = blockMinutes`.
-  - The 6 earliest-dated flights with durations get `durationSource: 'estimate'`; all others get `'own'`.
+  - The 6 earliest-dated flights with durations get `durationSource: 'estimate'`; all other duration-bearing rows normalize prototype `'own'` to the domain's `'times'`; missing duration has null provenance.
   - The 3 newest flights get `state: 'awaiting'`.
   - Two `upcoming` rows: DXB→MLE at `generatedAt` + 3 days, and IST→NRT at + 40 days.
   - `flightNumber`: `` `${airline} ${100 + index}` ``.
-  - Timezones and countries come from the airport lookup.
+  - Timezones and countries come from the airport lookup. Add sourced KTT/AT76 reference records for the required real routes/type before regenerating the board.
   - `generatedAt` is `2026-10-07T09:00:00Z`.
 
-- [ ] **Step 1: Write the failing tests:**
+- **Source-fidelity acceptance:** the supplied 69 flights establish 14 countries and already include DOH→MLE on 2023-07-27. Hero figures must therefore show 14, and the upcoming DXB→MLE has `newCountry: false`. The Paper labels claiming 16/Maldives-new are illustrative errors; do not change real flights or invent passport evidence to reproduce them. See [board source reconciliation](../../.scratch/overview-redesign/issues/02-board-source-parity.md).
+
+- [x] **Step 1: Write the failing tests:**
   - `overview-data.test.ts › arrival minute prefers stored arrival time`: `arrival_time '06:40'` gives `arrMinute: 400`.
   - `overview-data.test.ts › arrival minute derives from precise duration in destination zone`: departure UTC `2025-03-01T22:00Z`, 240 minutes, destTz `Asia/Dubai` → `arrMinute: 360`. The same flight with `durationSource 'estimate'` → `null`.
   - `overview-data.test.ts › etag uses ov3 prefix`.
   - `golden.test.ts › board fixture reproduces board totals`: `figures.flights === 69`, `figures.awaiting === 3`, `figures.distanceKm === 141204`, `rankings.airlines[0]` equals `{ key: 'TK', count: 24 }`.
-- [ ] **Steps 2–4:** FAIL → implement (generator first, then run it with `pnpm tsx scripts/overview/board-fixture.mts`) → PASS. Update the golden snapshots only for the `arrMinute`/`schemaVersion` diff, and say so in the commit body.
-- [ ] **Step 5:** Commit `feat(overview): payload v3 with arrival minute and board fixture`.
+- [x] **Steps 2–4:** FAIL → implement (generator first, then run it with `pnpm tsx scripts/overview/board-fixture.mts`) → PASS. Update the golden snapshots only for the `arrMinute`/`schemaVersion` diff, and say so in the commit body.
+- [x] **Step 5:** Commit `feat(overview): payload v3 with arrival minute and board fixture`.
 
 ### Task 3: Maker and alliance tables
 
@@ -319,7 +321,7 @@ Task 33 deletes the legacy `client/overview/{view,hero,figures,map-band,map-prev
   - `allianceAt(iata: string | null, date: string): Alliance | null`.
   - `formerAlliance(iata: string, date: string): { alliance: Alliance; leftYear: number } | null`.
 - **Maker rule:** the current type-certificate designation (A220 = Airbus). Embraer covers the E-Jets (`E170–E295`, `E75L/E75S`). ATR covers `AT43–AT76`. Everything else that is listed goes to `other`.
-- **Alliance rule:** the operating carrier's membership on the flight date. Cover every airline in `packages/data/src/airlines.json` that has a non-null `alliance`, plus known leavers. Source the dates from each alliance's current member and former-member tables, and cite them per row.
+- **Alliance rule:** the operating carrier's membership on the flight date. Cover every airline in `packages/data/src/airlines.json` that has a non-null `alliance`, plus known leavers. Source the dates from each alliance's current member and former-member tables, and cite them per row. Investigate stale static labels rather than inheriting them: EN has no evidenced operating-carrier span; OK is SkyTeam. Recognized affiliate/associate participation qualifies. The source dossier and dated admission note distinguish formal membership dates from admitted archive as-of and final operating-day boundaries; unresolved additional historical spans remain documented instead of receiving invented days.
 
 - [ ] **Step 1: Write the failing tests:**
   - `aircraft-makers.test.ts › every reference aircraft has a slot`: every `icao` in `aircraft.json` is a key of the table.
@@ -396,7 +398,7 @@ Task 33 deletes the legacy `client/overview/{view,hero,figures,map-band,map-prev
 - [ ] **Step 1: Write the failing tests:**
   - `figures.test.ts › board figures`: `airports === 18`, `firstDate === '2014-03-28'`, `estimatedFlights === 6`, `byYear.length === 13`, the 2019 entry has `flights === 14`, the 2015 entry has `flights === 0`, `equatorLaps` rounds to 3.5.
   - `figures.test.ts › share only for facet-only filters`: `{airlines:['TK']}` gives `share.flights` ≈ 24/69 and `deltas === null`. `{period:{years:[2025]}, airlines:['TK']}` gives `share === null`. `{}` gives `share === null`.
-  - `next.test.ts › board next flights`: `next[0]` is DXB→MLE with `daysAway === 3`; `next.length === 2`; `newCountry` is true for MLE (Maldives is not in the fixture).
+  - `next.test.ts › board next flights`: `next[0]` is DXB→MLE with `daysAway === 3`; `next.length === 2`; `newCountry` is false for MLE (the real source already contains DOH→MLE); use a separate absent-country case to verify true.
   - `next.test.ts › replay is chronological and scoped`: with `{airlines:['TK']}`, `replay.length === 24` and the dates are non-decreasing. With n5001 (aggregate), every item has `flightId === null` and a `YYYY-MM` date.
 - [ ] **Steps 2–4:** FAIL → implement → PASS.
 - [ ] **Step 5:** Commit `feat(overview): figures v2, next flights and replay list`.
@@ -604,16 +606,16 @@ This is open decision 1: the default is endpoint offsets, not overflown zones.
   - `prefers-reduced-motion`: a static く.
   - It replaces the 空 tile.
 
-- [ ] **Step 1: Write the failing tests:**
+- [x] **Step 1: Write the failing tests:**
   - `tokens.test.ts`:
     - the accent list is the five above;
     - the Shu light buckets are within ±1 per channel of `#ecc6bb`, `#e5a494`, `#da7d68`, `#c94c33`, and the dark buckets of `#674e47`, `#865c51`, `#ac6b5d`, `#d87d6a`;
     - `--mark-ghost`, `--cat-maker-airbus` and `--cat-alliance-star` exist in both themes.
   - `bootstrap-accent.test.ts › legacy names map to shu`, for each of the four legacy names.
   - `shell.test.tsx › wordmark renders three kana and Kuuki`.
-- [ ] **Steps 2–4:** FAIL → implement → PASS. Then run `pnpm --filter @kuuki/next lint`.
-- [ ] **Step 5:** Run V(9.6) for the header at 1440 and 390.
-- [ ] **Step 6:** Commit `feat(design): Shu accent, data and category tokens, kana wordmark`.
+- [x] **Steps 2–4:** FAIL → implement → PASS. Then run `pnpm --filter @kuuki/next lint`.
+- [x] **Step 5:** Run V(9.6) for the header at 1440 and 390.
+- [x] **Step 6:** Commit `feat(design): Shu accent, data and category tokens, kana wordmark`.
 
 ### Task 14: Chip, Popover, Skeleton, category marks and month range
 

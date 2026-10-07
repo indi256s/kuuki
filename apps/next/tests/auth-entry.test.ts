@@ -273,6 +273,18 @@ function createStep(page: Page) {
   }
 }
 
+async function expectDarkChangeInk(change: Locator) {
+  const paint = await change.evaluate(element => {
+    const style = getComputedStyle(element)
+    let ancestor = element.parentElement
+    while (ancestor && getComputedStyle(ancestor).backgroundColor === 'rgba(0, 0, 0, 0)') ancestor = ancestor.parentElement
+    return { color: style.color, background: style.backgroundColor, paintedBackground: ancestor ? getComputedStyle(ancestor).backgroundColor : null }
+  })
+  expect(paint.background).toBe('rgba(0, 0, 0, 0)')
+  expect(paint.paintedBackground).toBe('rgb(64, 61, 58)')
+  expect(paint.color).toBe('rgb(241, 239, 235)')
+}
+
 async function continueAs(page: Page, email: string, password: string) {
   const c = card(page)
   await c.email.fill(email)
@@ -415,7 +427,8 @@ test('Creating focuses the heading, and server failures return focus there with 
   }
 })
 
-test('an unknown email turns the card into the create step in place, and Create account reaches onboarding', async ({ page, baseURL }) => {
+test('an unknown email turns the card into the create step in place, and Create account reaches onboarding', async ({ page, context, baseURL }) => {
+  await context.addCookies([{ name: 'kuuki_theme', value: 'dark', url: baseURL! }, { name: 'kuuki_accent', value: 'shu', url: baseURL! }])
   await ownIp(page, baseURL!)
   await page.goto('/')
   const email = newEmail()
@@ -425,6 +438,9 @@ test('an unknown email turns the card into the create step in place, and Create 
   await expect(s.subtitle).toBeVisible()
   await expect(s.status).toHaveText(`No Kuuki journal uses ${email} yet.`)
   await expect(s.change).toBeVisible()
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark')
+  await expect(page.locator('html')).toHaveAttribute('data-accent', 'shu')
+  await expectDarkChangeInk(s.change)
   await expect(s.password).toHaveValue('personal-password-2026')
   await expect(s.password).toHaveAttribute('autocomplete', 'new-password')
   await expect(s.hint).toBeVisible()
@@ -521,7 +537,7 @@ test('an email taken a moment ago returns to the form, and an account created wi
 })
 
 test('the create step follows the Russian locale', async ({ page, context, baseURL }) => {
-  await context.addCookies([{ name: 'kuuki_locale', value: 'ru', url: baseURL! }])
+  await context.addCookies([{ name: 'kuuki_locale', value: 'ru', url: baseURL! }, { name: 'kuuki_theme', value: 'dark', url: baseURL! }, { name: 'kuuki_accent', value: 'shu', url: baseURL! }])
   await page.route('**/api/auth/continue', route => route.fulfill({ json: { next: 'create' } }))
   await page.goto('/')
   await page.getByRole('textbox', { name: 'Почта', exact: true }).fill('ru@example.test')
@@ -532,7 +548,11 @@ test('the create step follows the Russian locale', async ({ page, context, baseU
   await expect(page.getByRole('status')).toHaveText('Журнала Kuuki для ru@example.test пока нет.')
   await expect(page.getByLabel('Придумайте пароль', { exact: true })).toHaveValue('personal-password-2026')
   await expect(page.getByText('Не менее 8 символов', { exact: true })).toBeVisible()
-  await expect(page.getByRole('button', { name: 'Изменить', exact: true })).toBeVisible()
+  const change = page.getByRole('button', { name: 'Изменить', exact: true })
+  await expect(change).toBeVisible()
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark')
+  await expect(page.locator('html')).toHaveAttribute('data-accent', 'shu')
+  await expectDarkChangeInk(change)
 })
 
 /** The brand panel's decorative planes, by size, counting only the ones the current layout shows. */

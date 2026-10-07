@@ -1,6 +1,6 @@
-# Overview Release 3 UI — initial handoff
+# Overview Release 3 UI — execution handoff
 
-Date: 2026-10-07. Scope: Task 1 preparation only; application implementation has not started.
+Date: 2026-10-07. Scope: entire 34-task plan in progress. Tasks1–2 and13 accepted; Task3 is in independent review. Task14 is next; later tasks remain pending.
 
 ## Owning checkout and revisions
 
@@ -29,6 +29,18 @@ All commands run from the new worktree root, serially:
 Full logs and the SHA-256 reference manifest: `/tmp/kuuki-r3-task1-logs/` (`install.log`, `api.log`, `next-unit.log`, `reference-manifest.txt`, `design-merge.diff`).
 
 Checks also confirmed the merge adds only the four intended design-record paths, identical to the design branch, and leaves `apps/`, `functions/`, `packages/`, manifests and the lockfile unchanged. No build or browser fixture was requested or run. No push, deployment or remote D1 operation was performed.
+
+## Current implementation progress
+
+Task13 source is uncommitted in the UI checkout. Shu migration, exact palettes and kana Wordmark passed 1,123 Next unit tests, focused fixes (45 tests), lint/typecheck, eight header size/theme/language captures and an OpenNext build. All nine compiled foundation checks passed. The full navigation run initially found two stale border-height assertions; the corrected 48/56px and zero-border checks passed, followed by all156 navigation tests (exit0, /tmp/kuuki-r3-task13-navigation-rerun.log). Independent round2 closed navigation/palette findings but identified I3: dark Shu text on the auth create-step Change button's inset surface is4.124:1. A minimal dark ink rule now covers this button and Passport list links on the floating sheet. Both auth cases produced actual compiled RED before the fix. The fresh build and all9 affected compiled checks passed, including real Passport links and auth edit/focus behavior. Final navigation passed all156 tests (exit0, /tmp/kuuki-r3-task13-navigation-final.log). Round3 focused independent review approved the final source/test change with no findings. Task13 is accepted; controller commit follows. Own devservers stopped and generated next-env.d.ts restored.
+
+Task2 accepted after two independent review rounds. Engine commit489115b was cherry-picked to UI asbf94757. Payloadv3, precise arrival derivation, owner-qualified ETag, aggregate arrival preservation and real board generator passed856 API/10 data-store tests and both typechecks. Sourced canonical KTT/AT76 repairs passed74 focused tests, typecheck and generator/reference preservation. The commit hook's full workspace lint/typecheck and API typecheck passed. Real board:69 counted,141204km,14countries; KTT northernmost,2 Arctic crossings,18 counted airports located and canonical ATR family. Task2 checkboxes and its source-parity issue gate are complete.
+
+Binding review dispositions are recorded in the plan, appended dated design decision and local tickets: [palette exceptions](../../.scratch/overview-redesign/issues/01-palette-contrast.md) retain exact Unknown/heat values with visible ink/value/table/tooltip gates at14/27/30/final; [board source fidelity](../../.scratch/overview-redesign/issues/02-board-source-parity.md) uses actual14 countries and upcomingMLE newCountry=false because real DOH→MLE is already logged. Do not fabricate evidence to reproduce illustrative16/new labels. Original source routes/dates/distances/durations remain intact.
+
+Alliance primary-source dossiers rounds1–3 are complete. Task3 maker/alliance implementation is complete in the engine checkout at489115b:115 focused /972 full API tests, API/data/shared typechecks, lint and diff check passed; full independent review is active. The dated design admission note records recognized associate/affiliate participation, corrected static labels, qualified SU archive as-of and operational-day boundaries, and excluded incomplete histories. No dates are padded from unknown year/month. Task14 follows Task13 acceptance; its dispatch preparation is .superpowers/sdd/r3-task14-brief.md.
+
+Detailed tasks/IDs/checks and Paper reference exports are in UI `.superpowers/sdd/progress.md` and accompanying reports. User profile remains GPT‑6.1Sol medium implementation/research, high substantial review. No push, PR, deploy or remote D1 writes are authorized.
 
 ## Next work
 

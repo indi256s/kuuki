@@ -108,7 +108,8 @@ test.describe('mobile shell at 390px', () => {
   test('the header is 48px and content clears the tab bar', async ({ page }) => {
     await asMember(page)
     await page.goto('/overview')
-    expect((await page.locator('header.site-header').boundingBox())!.height).toBeCloseTo(49, 0) // 48px + 1px border
+    expect((await page.locator('header.site-header').boundingBox())!.height).toBeCloseTo(48, 0)
+    await expect(page.locator('header.site-header')).toHaveCSS('border-bottom-width', '0px')
     const tab = (await page.locator('nav.tab-bar').boundingBox())!
     const paddingBottom = await page.locator('main#main').evaluate(node => parseFloat(getComputedStyle(node).paddingBottom))
     expect(paddingBottom).toBeGreaterThanOrEqual(tab.height)
@@ -159,7 +160,8 @@ test.describe('desktop shell', () => {
   test('header is 56px with nav, split Add and avatar menu; tab bar is hidden', async ({ page }) => {
     await asMember(page)
     await page.goto('/overview')
-    expect((await page.locator('header.site-header').boundingBox())!.height).toBeCloseTo(57, 0)
+    expect((await page.locator('header.site-header').boundingBox())!.height).toBeCloseTo(56, 0)
+    await expect(page.locator('header.site-header')).toHaveCSS('border-bottom-width', '0px')
     await expect(page.locator('nav.tab-bar')).toBeHidden()
     await expect(page.locator('nav.desktop-nav a:visible')).toHaveCount(4)
     await expect(page.locator('nav.desktop-nav a[href="/overview"]')).toHaveAttribute('aria-current', 'page')

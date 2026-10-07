@@ -12,8 +12,8 @@ describe('SwatchPicker', () => {
 
   it('selecting Matcha calls setAccent("matcha") and exposes named radios', async () => {
     render(<SwatchPicker locale="en" />)
-    for (const name of ['Terracotta', 'Ai', 'Matcha', 'Asagi', 'Sakura']) expect(screen.getByRole('radio', { name })).toBeInTheDocument()
-    expect(screen.getByRole('radio', { name: 'Terracotta' })).toHaveAttribute('aria-checked', 'true')
+    for (const name of ['Shu', 'Ai', 'Matcha', 'Asagi', 'Sakura']) expect(screen.getByRole('radio', { name })).toBeInTheDocument()
+    expect(screen.getByRole('radio', { name: 'Shu' })).toHaveAttribute('aria-checked', 'true')
     await userEvent.click(screen.getByRole('radio', { name: 'Matcha' }))
     expect(setAccent).toHaveBeenCalledWith('matcha')
     expect(screen.getByRole('radio', { name: 'Matcha' })).toHaveAttribute('aria-checked', 'true')
