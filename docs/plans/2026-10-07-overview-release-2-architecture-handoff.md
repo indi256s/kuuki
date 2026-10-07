@@ -236,45 +236,29 @@ warning remains. No client/UI code changed; prior Next unit evidence remains
 applicable. Task 11 checkboxes are in its implementation commit. No per-task
 review under the user's revised workflow.
 
-Task 12 is paused with source/tests prepared and uncommitted. The store is
-memory only, sends conditional no-store/same-origin fetches, retains payloads on
-network/HTTP/JSON failure, coalesces concurrent requests, notifies subscribers
-on 200, and memoizes scopes per store/ETag/serialized filter. Focus and visible
-Document events share a two-second throttle and detach removes both listeners.
-Requests use the platform's 30-second abort signal, matching existing transport
-timeouts. No localStorage/sessionStorage, IndexedDB or Cache API is accessed.
-Issue 02's optional read-only metric fields are prepared in the browser types;
-the write allowlist is unchanged. No UI consumer is added.
+Task 12 is complete: in-memory conditional revalidation, old-payload retention
+on network/HTTP/JSON errors, request coalescing, 200 subscriber notification,
+and per-store/ETag/serialized-filter memoization. Window focus and visible
+Document events share a two-second throttle; detach removes both listeners.
+No persistent storage or UI consumer is added. Platform abort timeout is 30s.
+Issue 02 is resolved by optional read-only metric transport fields, with the
+existing writable allowlist unchanged.
 
-Initial RED: missing store module. Focused GREEN: 1 file / 10 tests.
-Full API with four workers: 69 files / 768 tests passed in 87.64s. Full Next:
-106 files / 1112 tests passed in 24.31s (existing jsdom navigation notices).
-API and client typechecks exit 0. Next typecheck exits 2 on the real-window
-helper call:
+The user approved issue 10's correction from `Window & Document` to `Window`.
+Both plan and helper accept real browser windows without casts, using
+`target.document` for visibility events. Initial RED was the missing module.
+Approved focused GREEN: `Test Files 1 passed (1); Tests 10 passed (10)`.
+Next/client typechecks exit 0. Full API before this annotation-only correction:
+`Test Files 69 passed (69); Tests 768 passed (768)` (87.64s). Full Next:
+`Test Files 106 passed (106); Tests 1112 passed (1112)` (24.31s), with existing
+jsdom navigation notices. API typecheck exit 0. Those full-suite results are
+reused because runtime behavior did not change. Successful Task 11 build also
+remains applicable; no route or UI change. Checkboxes are committed with code.
 
-```text
-error TS2345: Argument of type 'Window & typeof globalThis' is not assignable to parameter of type 'Window & Document'.
-Type 'Window & typeof globalThis' is missing the following properties from type 'Document': alinkColor, all, anchors, applets, and 153 more.
-```
-
-Issue 10 records the wrong Task 12 parameter contract. A real Window exposes
-its Document via `.document`; it is not itself a Document. Recommend changing
-the plan and helper target to `Window`, keeping the tested event owners and
-runtime behavior unchanged. Do not hide the actual-window test call behind a
-cast. Await user approval under the plan-conflict rule before this correction,
-Task 12's final passing typecheck/commit or Task 13 implementation. Task 12 boxes
-remain unchecked; Tasks 13–17 are unstarted. Task 13 package/documentation
-lookups only confirmed version 1.0.0 availability; no dependency was installed.
-
-No route/UI changes in Task 12, so the successful Task 11 build remains valid.
-Independent review stays deferred until the final branch review. No UI,
-production/remote or GitHub actions.
-
-Keep the final whole-branch Opus review over
-`feat/overview-release-1-migrations...HEAD` through T3 `delegate_task`, with a
-new request ID for each round. Issue 02's browser metric type correction remains
-for the first client consumer before design handoff. Logs are under
-`/tmp/kuuki-overview-execution/`; the primary-owned local ledger is
+Tasks 13–17 remain unstarted. No open Task 12 decision. No per-task review under
+the user's revised workflow; final whole-branch Opus review over
+`feat/overview-release-1-migrations...HEAD` remains required via T3 delegation.
+Logs: `/tmp/kuuki-overview-execution/r2-t12-*`. Local execution ledger:
 `.superpowers/sdd/2026-10-07-overview-release-2-architecture/progress.md`.
 
 All production/remote, GitHub/main, UI, parity and material-conflict gates remain.

@@ -515,17 +515,17 @@ export function parsePrefs(raw: string | null): OverviewPrefs  // never throws; 
     - Sends `If-None-Match: payload.etag` with `credentials: 'same-origin'`.
     - Keeps the old payload on failure.
     - Nothing touches `localStorage`, `sessionStorage`, IndexedDB or the Cache API.
-  - `attachRevalidation(store, target: Window & Document)` → detach fn. It listens to `focus` and to `visibilitychange` when visible, at most once per 2 s.
+  - `attachRevalidation(store, target: Window)` → detach fn. It listens to window `focus` and to `target.document` `visibilitychange` when visible, at most once per 2 s. The user approved correcting the original `Window & Document` intersection to accept actual browser windows.
   - `scopeFor(store, filter)`: memoised `computeOverview` keyed by etag + `JSON.stringify(filter)`.
 
-- [ ] **Step 1: Write the failing tests** (vitest + fake fetch):
+- [x] **Step 1: Write the failing tests** (vitest + fake fetch):
   - `304 keeps payload`.
   - `200 replaces and notifies`.
   - `failure keeps payload`.
   - `focus burst revalidates once`.
   - `no persistent storage is touched` (spies on Storage).
-- [ ] **Step 2–4:** `pnpm --filter @kuuki/next test -- data-store` FAIL → implement → PASS.
-- [ ] **Step 5:** Commit `feat(next): in-memory overview data store`.
+- [x] **Step 2–4:** `pnpm --filter @kuuki/next test -- data-store` FAIL → implement → PASS.
+- [x] **Step 5:** Commit `feat(next): in-memory overview data store`.
 
 ### Task 13: TanStack Charts foundation
 

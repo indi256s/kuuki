@@ -1,6 +1,6 @@
 # Revalidation target is not a Window-and-Document intersection
 
-Status: open — waiting for the user's plan-contract correction
+Status: resolved — user approved the Window contract correction
 
 Task 12 specifies `attachRevalidation(store, target: Window & Document)`.
 The browser window owns focus events and its `.document` owns visibility
@@ -37,3 +37,11 @@ Task 12 source/tests remain uncommitted and its plan boxes unchecked. The user
 requires stopping when a plan step is wrong, so the signature/plan correction
 is held pending approval. Task 13 implementation has not begun; package catalog
 and documentation lookups were read-only. No UI, remote or GitHub actions.
+
+## Resolution
+
+The user approved the correction ("Do it / All approved"). The helper and
+plan now accept `Window`, retaining `target.document` event ownership. The
+actual-window test passes without casts: 1 file / 10 tests. Next and client
+typechecks exit 0. The earlier full API 69/768 and Next 106/1112 results
+remain applicable because the correction changes only a type annotation.
