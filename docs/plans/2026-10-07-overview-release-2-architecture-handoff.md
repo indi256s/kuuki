@@ -236,7 +236,7 @@ warning remains. No client/UI code changed; prior Next unit evidence remains
 applicable. Task 11 checkboxes are in its implementation commit. No per-task
 review under the user's revised workflow.
 
-Task 12 is complete: in-memory conditional revalidation, old-payload retention
+Task 12 is complete at `a1fbe2f`: in-memory conditional revalidation, old-payload retention
 on network/HTTP/JSON errors, request coalescing, 200 subscriber notification,
 and per-store/ETag/serialized-filter memoization. Window focus and visible
 Document events share a two-second throttle; detach removes both listeners.
@@ -255,7 +255,26 @@ jsdom navigation notices. API typecheck exit 0. Those full-suite results are
 reused because runtime behavior did not change. Successful Task 11 build also
 remains applicable; no route or UI change. Checkboxes are committed with code.
 
-Tasks 13–17 remain unstarted. No open Task 12 decision. No per-task review under
+Task 13 is paused at issue 11. Exact Charts 1.0.0 is installed in root and
+Next, and unstyled DOM-free/React SSR tests are prepared, uncommitted. Both
+initial missing-package RED runs failed as expected. Both post-install runs
+fail (1 file / 1 test each):
+
+```text
+TypeError: Chart scales must define reserved `x` and `y` entries
+```
+
+Next typecheck exits 2 with TS2769: `Property 'scales' is missing ... but required`.
+API typecheck exits 0; it excludes these shared/Next test files. The prescribed
+mark-only definitions omit mandatory scales in pinned 1.0.0. Recommend band
+x/y for Rhythm month/year and band x + linear y for Clock/Fleet fixture bars,
+keeping engine rows/mappings unchanged. Update Task 13 Step 1 accordingly.
+Await approval under the wrong-plan-step rule before implementing correction.
+Task 13 boxes are unchecked. Full suites/build and size delta are held pending
+passing fixtures. Before-install Overview client JS is 1,268,522 bytes across
+18 deduplicated route/root/polyfill files (`r2-t13-js-before.json`). Source
+lookups used Context7 and installed 1.0.0 source; no production chart is added.
+Tasks 14–17 remain unstarted. No open Task 12 decision. No per-task review under
 the user's revised workflow; final whole-branch Opus review over
 `feat/overview-release-1-migrations...HEAD` remains required via T3 delegation.
 Logs: `/tmp/kuuki-overview-execution/r2-t12-*`. Local execution ledger:
