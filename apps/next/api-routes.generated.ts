@@ -348,6 +348,12 @@ export const apiRoutes = [
     ]
   },
   {
+    "route": "/api/me/overview/share.png",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
     "route": "/api/me/rankings",
     "methods": [
       "GET"

@@ -293,7 +293,7 @@ bytes, 105 assets / 9226424 bytes, 74 routes including the new GET, generated
 inventory committed. Existing Better Auth warning remains. Task 13 full Next
 107/1113 evidence remains applicable to this server-helper-only addition.
 Full owned code/tests/inventory reviewed. Checkboxes are committed with code.
-Tasks 15–17 remain unstarted.
+Task 15 is complete; Tasks 16–17 remain unstarted.
 No open routine decision; explicit production/GitHub/UI/parity gates remain.
 No per-task review under
 the user's revised workflow; final whole-branch Opus review over
@@ -302,3 +302,29 @@ Logs: `/tmp/kuuki-overview-execution/r2-t12-*`. Local execution ledger:
 `.superpowers/sdd/2026-10-07-overview-release-2-architecture/progress.md`.
 
 All production/remote, GitHub/main, UI, parity and material-conflict gates remain.
+
+Task 15: owner-only no-store share PNG pipeline, strict bounded base64url filter,
+remembered filter fallback, same Clock rows → TanStack SVG data-URI in the
+expressly prescribed plain four-number paper stub. No product UI changed.
+Exact @cf-wasm/og 0.5.0 workerd import, bundled default font, cache disabled,
+async rendering errors caught by the standard API envelope. Context7 lacked
+an applicable package; official package docs/installed exports used instead.
+Current Cloudflare limit is 64 MiB uncompressed (4 September 2026 changelog);
+plan measurement corrected under routine-choice authorization. Dry-run:
+`Total Upload: 22461.50 KiB / gzip: 4640.51 KiB`, so render in-process.
+No extra Worker/binding, remote calls or deployment.
+
+RED: missing handler/service. Final focused: `Test Files 1 passed (1); Tests
+12 passed (12)` in 2.60s, actual Node-adapter PNG plus filter/auth checks.
+Full API: `Test Files 72 passed (72); Tests 791 passed (791)` in 95.32s.
+Full Next: `Test Files 107 passed (107); Tests 1113 passed (1113)` in 22.79s.
+API/scripts/Worker typechecks exit 0. Build succeeds, 75 generated routes,
+105 assets / 9226424 bytes. Existing Better Auth warning/navigation notices.
+Composed local Worker: `Share card workerd passed`, width 1200, height 1500,
+bytes 12457, outboundCalls 0; `Next workerd smoke passed` and
+`Next boundary smoke passed`. Harness now loads dry-run WASM modules in both
+main and maintenance fixtures; the prior missing-module startup was fixed.
+Complete source/test/inventory/lock diff reviewed: renderer dependencies plus
+same-version optional Next/ESLint peer normalization. Task checkboxes committed
+with code; final whole-branch Opus review remains pending, no per-task reviews.
+Logs: `/tmp/kuuki-overview-execution/r2-t15-*`.

@@ -43,6 +43,7 @@
   "packageManager": "pnpm@9.15.0",
   "dependencies": {
     "@better-auth/kysely-adapter": "^1.7.7",
+    "@cf-wasm/og": "0.5.0",
     "@google/genai": "^1.52.0",
     "@photostructure/tz-lookup": "11.7.0",
     "@tanstack/charts": "1.0.0",

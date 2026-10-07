@@ -19,16 +19,22 @@ const origin = check ? 'https://app.fixture.test' : `http://127.0.0.1:${port}`
 const bundleDir = join(root, nextOnly ? '.wrangler/next-only' : '.wrangler/next-build')
 const assetsDir = join(root, 'apps/next/.open-next/assets')
 let mailCalls = 0
+let unexpectedOutboundCalls = 0
 
 execFileSync('pnpm', ['--filter', '@kuuki/next', 'exec', 'wrangler', 'deploy', ...(nextOnly ? ['.open-next/worker.js'] : []), '--dry-run', '--env', '', '--config', 'wrangler.toml', '--outdir', bundleDir], {
   cwd: root, stdio: 'inherit', env: { ...process.env, WRANGLER_SEND_METRICS: 'false' },
 })
 const bundle = readdirSync(bundleDir).find(name => /^worker\.(?:js|mjs)$/.test(name))
 if (!bundle) throw new Error('Wrangler dry-run Worker bundle missing')
+const modules = [
+  { type: 'ESModule' as const, path: join(bundleDir, bundle) },
+  ...readdirSync(bundleDir).filter(name => name.endsWith('.wasm'))
+    .map(name => ({ type: 'CompiledWasm' as const, path: join(bundleDir, name) })),
+]
 
 const mf = new Miniflare({
   name: 'kuuki-next-fixture', log: new Log(LogLevel.WARN),
-  modules: [{ type: 'ESModule', path: join(bundleDir, bundle) }], compatibilityDate: '2026-08-06',
+  modules, compatibilityDate: '2026-08-06',
   compatibilityFlags: ['nodejs_compat'], host: '127.0.0.1', port,
   d1Databases: { DB: 'kuuki-next-synthetic-fixture' },
   bindings: {
@@ -53,6 +59,7 @@ const mf = new Miniflare({
       return new WorkerResponse(JSON.stringify({ success: true, errors: [], result: { delivered: [], queued: body.to, permanent_bounces: [] } }),
         { headers: { 'Content-Type': 'application/json' } })
     }
+    unexpectedOutboundCalls++
     return new WorkerResponse('Outbound network disabled in Next fixture', { status: 502 })
   },
 })
@@ -93,7 +100,7 @@ function artifact() {
 
 async function maintenanceProbe() {
   const hold = new Miniflare({
-    name: 'kuuki-next-maintenance-probe', modules: [{ type: 'ESModule', path: join(bundleDir, bundle!) }],
+    name: 'kuuki-next-maintenance-probe', modules,
     compatibilityDate: '2026-08-06', compatibilityFlags: ['nodejs_compat'],
     bindings: { PAGES_ORIGIN: origin, MAINTENANCE_MODE: 'true' },
     outboundService: async () => new WorkerResponse('Outbound disabled', { status: 502 }),
@@ -259,6 +266,24 @@ async function main() {
     const updateAfterRenewal = await db.prepare("SELECT MAX(updatedAt) AS updatedAt FROM auth_sessions WHERE userId = (SELECT id FROM users WHERE email = 'a@example.test')")
       .first<{ updatedAt: string }>()
     if (!updateAfterRenewal?.updatedAt || updateAfterRenewal.updatedAt <= oldUpdate) throw new Error('Cookie-writing API did not slide session expiry')
+    await db.prepare(`WITH RECURSIVE n(x) AS (SELECT 1 UNION ALL SELECT x + 1 FROM n WHERE x < 10)
+      INSERT INTO flights(user_id,date,origin,destination,lifecycle_state,confirmation_source,confirmed_at,
+        departure_time,duration_minutes,duration_source,distance_km,origin_tz,dest_tz,zones_overflown)
+      SELECT (SELECT id FROM users WHERE email='a@example.test'),'2026-01-03','JFK','BOS','logged','save',
+        '2026-01-03T12:00:00Z','10:00',70,'times',300,'America/New_York','America/New_York',0 FROM n`).run()
+    const outboundBeforeCard = unexpectedOutboundCalls
+    const card = await assertResponse('/api/me/overview/share.png', 200, { headers: { Cookie: cookie } })
+    if (card.headers.get('Content-Type') !== 'image/png' || card.headers.get('Cache-Control') !== 'no-store') {
+      throw new Error('Share card lost PNG or private cache headers')
+    }
+    const png = new Uint8Array(await card.arrayBuffer()), ihdr = new DataView(png.buffer)
+    if (png.slice(0, 8).join(',') !== '137,80,78,71,13,10,26,10' || ihdr.getUint32(16) !== 1200 || ihdr.getUint32(20) !== 1500) {
+      throw new Error('Share card did not render a 1200x1500 PNG in workerd')
+    }
+    if (unexpectedOutboundCalls !== outboundBeforeCard) throw new Error('Share rendering made an outbound request')
+    await assertResponse('/api/me/overview/share.png', 401)
+    await assertResponse('/api/me/overview/share.png?filter=invalid', 400, { headers: { Cookie: cookie } })
+    console.log(JSON.stringify({ result: 'Share card workerd passed', width: 1200, height: 1500, bytes: png.length, outboundCalls: 0 }))
     console.log(JSON.stringify({ result: 'Next workerd smoke passed', artifact: artifact() }))
   } finally { await mf.dispose() }
 }

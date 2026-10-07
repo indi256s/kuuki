@@ -590,18 +590,18 @@ interface PublicOverview {
   - The layout is a **stub**: four figures as plain text on the paper token colour, plus one fixture chart (the Task 13 `barY` of `clock.byHour`). The design thread replaces the layout and chart definitions only.
   - Charts in the card come from `renderChartSvg` on the same engine rows and are embedded as an SVG data-URI `<img>`. There is no second chart stack.
 
-- [ ] **Step 1 (spike):** Add `@cf-wasm/og@0.5.0` and render the stub, including the embedded chart SVG, in the Next Worker. Run `pnpm next:build` and record the compressed Worker size, then decide:
-  - If it stays under the Workers Paid limit with ≥ 1 MB headroom, render in-process.
+- [x] **Step 1 (spike):** Add `@cf-wasm/og@0.5.0` and render the stub, including the embedded chart SVG, in the Next Worker. Run `pnpm next:build` and a Wrangler dry-run; record uncompressed and gzip Worker sizes, then decide:
+  - If it stays under the current 64 MiB uncompressed Workers limit with ≥ 1 MiB headroom, render in-process. Cloudflare replaced compressed limits on [4 September 2026](https://developers.cloudflare.com/changelog/post/2026-09-04-increased-worker-size-limit/).
   - Otherwise move rendering to `workers/share-card` behind a service binding, and record the decision in the commit body.
   
-  Before adding the package, check the current `@cf-wasm/og` docs (Context7) for its Workers import path.
-- [ ] **Step 2: Write the failing tests:**
+  Before adding the package, check the current `@cf-wasm/og` docs (Context7) for its Workers import path. Context7 had no applicable package; official docs and installed 0.5.0 exports specify `@cf-wasm/og/workerd`. Measured dry-run: `Total Upload: 22461.50 KiB / gzip: 4640.51 KiB`; use in-process rendering. Local workerd renders a real 1200×1500 PNG, embedded Clock chart, with zero outbound calls.
+- [x] **Step 2: Write the failing tests:**
   - `owner gets a 1200x1500 png`: PNG signature; IHDR width/height read from bytes 16–23.
   - `card embeds the chart svg`: the layout function's intermediate tree contains an `<img>` whose `src` starts with `data:image/svg+xml`.
   - `anonymous is 401`.
   - `invalid filter param is 400`.
-- [ ] **Step 3–4:** Implement → PASS (`pnpm test:api`, `pnpm next:build`).
-- [ ] **Step 5:** Commit `feat(api): share card render pipeline (stub layout)`.
+- [x] **Step 3–4:** Implement → PASS (`pnpm test:api`, `pnpm next:build`).
+- [x] **Step 5:** Commit `feat(api): share card render pipeline (stub layout)`.
 
 ### Task 16: Schedule suggestions (ladder rung 3)
 
