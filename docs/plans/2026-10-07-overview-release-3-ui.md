@@ -562,13 +562,13 @@ This is open decision 1: the default is endpoint offsets, not overflown zones.
 - `corpus.ts` exports `CORPUS: Record<string, [Line, Line, Line]>`, where `Line` is `{ en: string; ru: string }`. This task ships one neutral placeholder trigger per slot; Task 12 replaces the corpus.
 - `<Narrator slot />` renders a `<p className="narrator">` or nothing.
 
-- [ ] **Step 1: Write the failing tests:**
+- [x] **Step 1: Write the failing tests:**
   - `› stable for the same scope`: two calls with an identical seed and filter return the same string. Reordering `airlines:['QR','TK']` to `['TK','QR']` returns the same string.
   - `› variant spreads across seeds`: 30 different seeds hit all 3 variants.
   - `› params are filled with locale numbers`: `ru` renders `14 535`.
   - `› below-gate uses below trigger`.
-- [ ] **Steps 2–4:** FAIL → implement → PASS.
-- [ ] **Step 5:** Commit `feat(overview): narrator trigger engine`.
+- [x] **Steps 2–4:** FAIL → implement → PASS.
+- [x] **Step 5:** Commit `feat(overview): narrator trigger engine`.
 
 ### Task 12: Narrator corpus (owner review gate)
 
