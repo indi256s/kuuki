@@ -60,7 +60,7 @@ required for this task. No per-task review under the user's revised workflow.
 
 ## Continuation
 
-Task 2 is complete in this commit: payload model, deterministic weighted
+Task 2 is complete at `0e118a1`: payload model, deterministic weighted
 aggregation and the owner builder. Passport uses the existing batch-read pattern;
 its original reader delegates to the same projection, preserving its response.
 The builder shares one batch across canonical rows, suppressions, referenced
@@ -73,7 +73,20 @@ full API: 60 files / 659 tests passed; API typecheck exited 0. Owner separation,
 transit bits, 5001-row totals, empty payloads and revision readiness are covered.
 No routes/client changes; Next tests/build are not required yet.
 
-Task 3 is next: owner endpoint and server data helper. Tasks 3–17 are unstarted. Keep the final whole-branch Opus review over
+Task 3 is paused on a material plan conflict. The endpoint and server data
+helper are implemented but uncommitted. Focused RED failed on the missing
+endpoint; GREEN is 1 file / 19 tests passed, and API typecheck exited 0.
+The actual local profile PATCH changes home without changing the ETag, so a
+conditional GET returns 304 with stale client data. Issue 06 records the
+reproducible probe and recommended extension to the profile write path.
+
+Await approval to invalidate/repair the existing revision for home-airport
+edits, keeping the planned ETag and stamp-only fast path, or a different user
+decision. Do not fix the profile handler or change the ETag contract before the
+answer. Build/route generation and full API/Next checks are held at this gate.
+No Task 3 checkbox is checked; Tasks 4–17 are unstarted.
+
+Keep the final whole-branch Opus review over
 `feat/overview-release-1-migrations...HEAD` through T3 `delegate_task`, with a
 new request ID for each round. Issue 02's browser metric type correction remains
 for the first client consumer before design handoff. Logs are under
