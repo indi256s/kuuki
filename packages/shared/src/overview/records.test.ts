@@ -5,7 +5,7 @@ import type { OverviewPayload, OverviewRow } from './model'
 
 const row = (extra: Partial<OverviewRow> = {}): OverviewRow => ({
   id: 1, weight: 1, date: '2025-01-01', state: 'logged', origin: 'JFK', destination: 'LHR',
-  airline: null, aircraft: null, flightNumber: null, depMinute: null, distanceKm: 1000,
+  airline: null, aircraft: null, flightNumber: null, depMinute: null, arrMinute: null, distanceKm: 1000,
   durationMinutes: 120, durationSource: 'times', zonesOverflown: 5, originTz: 'America/New_York',
   destTz: 'Europe/London', departureUtc: null, suppressed: 0, ...extra,
 })

@@ -15,7 +15,7 @@ const refs: OverviewPayload['refs'] = { airports: Object.fromEntries(codes.map(c
 })), aircraft: {}, regions: {} }
 const row = (origin: string, destination: string, extra: Partial<OverviewRow> = {}): OverviewRow => ({
   id: 1, weight: 1, date: '2026-01-01', state: 'logged', origin, destination,
-  airline: null, aircraft: null, flightNumber: null, depMinute: null, distanceKm: 1000,
+  airline: null, aircraft: null, flightNumber: null, depMinute: null, arrMinute: null, distanceKm: 1000,
   durationMinutes: 120, durationSource: 'times', zonesOverflown: 2,
   originTz: findAirport(origin)?.timezone ?? 'UTC', destTz: findAirport(destination)?.timezone ?? 'UTC',
   departureUtc: null, suppressed: 0, ...extra,

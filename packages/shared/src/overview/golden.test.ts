@@ -30,7 +30,7 @@ function flight(id: number, origin: string, destination: string, extra: Partial<
   const a = findAirport(origin), b = findAirport(destination)
   if (!a || !b) throw new Error('Missing fixture route')
   return { id, weight: 1, date: '2025-01-01', state: 'logged', origin, destination, airline: 'TK', aircraft: 'A320',
-    flightNumber: String(id), depMinute: 600, distanceKm: Math.round(greatCircleKm({ lat: a.latitude, lon: a.longitude },
+    flightNumber: String(id), depMinute: 600, arrMinute: null, distanceKm: Math.round(greatCircleKm({ lat: a.latitude, lon: a.longitude },
       { lat: b.latitude, lon: b.longitude })), durationMinutes: 120, durationSource: 'times', zonesOverflown: 2,
     originTz: a.timezone, destTz: b.timezone, departureUtc: null, suppressed: 0, ...extra }
 }
@@ -58,7 +58,7 @@ function generate(name: typeof names[number]): OverviewPayload {
   const countries = new Set([...usedAirports].map(code => refs.airports[code].country).filter((code): code is string => !!code))
   const evidence = new Set(rows.filter(row => row.state !== 'upcoming').flatMap(row => rowCountries(row, refs)))
   const mode = rows.length > AGGREGATE_THRESHOLD ? 'aggregate' : 'flights'
-  return { schemaVersion: 2, etag: 'W/"ov2-1-1"', generatedAt: '2026-10-07T00:00:00.000Z', mode, derivedReady: true,
+  return { schemaVersion: 3, etag: 'W/"ov3-fixture-1-1"', generatedAt: '2026-10-07T00:00:00.000Z', mode, derivedReady: true,
     homeOverride: null, passport: { countries: evidence.size,
       regions: new Set([...evidence].map(country => refs.regions[country])).size }, rows: mode === 'aggregate' ? aggregateRows(rows) : rows,
     refs: { airports: Object.fromEntries([...usedAirports].sort().map(code => [code, refs.airports[code]])),
@@ -97,4 +97,37 @@ it.each(names)('%s matches its generated fixture and known snapshot values', nam
     expect(result.crossings).toMatchObject({ status: 'ready', value: { clockShiftHours: 50 } })
   }
   expect(result).toMatchSnapshot()
+})
+
+it('board fixture reproduces board totals', () => {
+  const fixture = JSON.parse(readFileSync(new URL('./__fixtures__/board.json', import.meta.url), 'utf8')) as OverviewPayload
+  const result = computeOverview(fixture, {})
+  expect(fixture.schemaVersion).toBe(3)
+  expect(result.figures).toMatchObject({ flights: 69, awaiting: 3, distanceKm: 141204 })
+  expect(result.rankings.airlines[0]).toEqual({ key: 'TK', count: 24 })
+  expect(result.records).toMatchObject({ status: 'ready', value: { northernmost: { iata: 'KTT', lat: expect.closeTo(67.6986111111, 8) } } })
+  expect(result.crossings).toMatchObject({ status: 'ready', value: { arcticCircle: 2, clockShiftHours: 85 } })
+  expect(fixture.refs.airports.KTT).toMatchObject({ lat: expect.closeTo(67.6986111111, 8), lon: expect.closeTo(24.8480555556, 8), country: 'FI' })
+  expect(fixture.rows.filter(row => row.origin === 'KTT' || row.destination === 'KTT'))
+    .toHaveLength(2)
+  expect(fixture.rows.filter(row => row.origin === 'KTT' || row.destination === 'KTT')
+    .every(row => row.originTz === 'Europe/Helsinki' && row.destTz === 'Europe/Helsinki')).toBe(true)
+  expect(result.globe.airports.filter(({ iata }) => fixture.refs.airports[iata].lat !== null && fixture.refs.airports[iata].lon !== null))
+    .toHaveLength(18)
+  expect(computeOverview(fixture, { routes: ['HEL-KTT'], domestic: ['domestic'] }).figures.flights).toBe(2)
+  expect(fixture.rows.filter(row => row.state === 'upcoming').map(row => [row.origin, row.destination, row.date]))
+    .toEqual([['DXB', 'MLE', '2026-10-10'], ['IST', 'NRT', '2026-11-16']])
+  const counted = fixture.rows.filter(row => row.state !== 'upcoming')
+  expect(counted.filter(row => row.durationSource === 'estimate').map(row => row.id)).toEqual([1, 2, 3, 4, 5, 6])
+  expect(counted.filter(row => row.state === 'awaiting').map(row => row.id)).toEqual([67, 68, 69])
+  const prototype = JSON.parse(readFileSync(new URL('../../../../.scratch/overview-redesign/prototype/charts/flights.json', import.meta.url), 'utf8'))
+  expect(counted.map(row => [row.date, row.distanceKm, row.durationMinutes]))
+    .toEqual(prototype.map((row: { date: string; distanceKm: number; blockMinutes: number }) => [row.date, row.distanceKm, row.blockMinutes]))
+})
+
+it('board AT76 uses the canonical ATR 72-600 reference', () => {
+  const fixture = JSON.parse(readFileSync(new URL('./__fixtures__/board.json', import.meta.url), 'utf8')) as OverviewPayload
+  expect(findAircraft('AT76')).toMatchObject({ manufacturer: 'ATR', model: '72-600', type: 'turboprop', capacity: null })
+  expect(familyOf('AT76')).toBe('ATR 42/72')
+  expect(fixture.refs.aircraft.AT76).toEqual({ manufacturer: 'ATR', type: 'turboprop', family: 'ATR 42/72', name: 'ATR 72-600' })
 })

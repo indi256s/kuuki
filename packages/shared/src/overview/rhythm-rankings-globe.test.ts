@@ -15,7 +15,7 @@ const refs: OverviewPayload['refs'] = { aircraft: {}, regions: { GE: 'asia', JP:
   })) }
 const row = (extra: Partial<OverviewRow> = {}): OverviewRow => ({
   id: 1, weight: 1, date: '2025-01-01', state: 'logged', origin: 'TBS', destination: 'NRT',
-  airline: 'TK', aircraft: null, flightNumber: null, depMinute: null, distanceKm: 1000,
+  airline: 'TK', aircraft: null, flightNumber: null, depMinute: null, arrMinute: null, distanceKm: 1000,
   durationMinutes: 120, durationSource: 'times', zonesOverflown: 2,
   originTz: 'Asia/Tbilisi', destTz: 'Asia/Tokyo', departureUtc: null, suppressed: 0, ...extra,
 })

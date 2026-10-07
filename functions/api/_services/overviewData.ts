@@ -1,3 +1,4 @@
+import { utcOffsetMinutes } from '../../../packages/shared/src/timezones'
 import { familyOf } from '../../../packages/data/src/aircraft-lookup'
 import { aggregateRows } from '../../../packages/shared/src/overview/aggregate'
 import { AGGREGATE_THRESHOLD, type OverviewPayload, type OverviewRow } from '../../../packages/shared/src/overview/model'
@@ -7,21 +8,34 @@ import { COUNTRY_REGION } from '../_lib/countryRegions.generated'
 import { passportRead } from './passport'
 
 export const overviewEtag = (userId: string, state: { revision: number; evidence_revision: number }): string =>
-  `W/"ov2-${encodeURIComponent(userId)}-${state.revision}-${state.evidence_revision}"`
+  `W/"ov3-${encodeURIComponent(userId)}-${state.revision}-${state.evidence_revision}"`
 
 type AirportRow = { iata: string; latitude: number | null; longitude: number | null; country_code: string | null; city: string | null; name: string }
 type AircraftRow = { icao: string; manufacturer: string | null; type: string | null; model: string | null; name: string | null }
 
-function departureMinute(time: string | null): number | null {
+function localMinute(time: string | null): number | null {
   if (!time || !/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(time)) return null
   return Number(time.slice(0, 2)) * 60 + Number(time.slice(3, 5))
+}
+
+function arrivalMinute(row: FlightRow): number | null {
+  if (row.arrival_time !== null) return localMinute(row.arrival_time)
+  const duration = row.duration_minutes
+  if (!row.departure_utc || !row.dest_tz || duration === null || !Number.isFinite(duration) || duration < 0 ||
+      !['times', 'route_median', 'schedule'].includes(row.duration_source ?? '')) return null
+  const departure = new Date(row.departure_utc)
+  if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?Z$/.test(row.departure_utc) ||
+      !Number.isFinite(departure.getTime()) || departure.toISOString().slice(0, 10) !== row.departure_utc.slice(0, 10)) return null
+  const arrival = new Date(departure.getTime() + duration * 60_000)
+  const offset = utcOffsetMinutes(row.dest_tz, arrival)
+  return offset === null ? null : (arrival.getUTCHours() * 60 + arrival.getUTCMinutes() + offset + 1440) % 1440
 }
 
 export async function readOverviewData(db: D1Database, userId: string): Promise<OverviewPayload> {
   const passport = passportRead(db, userId)
   const statements = [
     db.prepare(`SELECT id, date, origin, destination, lifecycle_state, airline_iata, aircraft_icao,
-      flight_number, departure_time, distance_km, duration_minutes, zones_overflown,
+      flight_number, departure_time, arrival_time, distance_km, duration_minutes, zones_overflown,
       duration_source, origin_tz, dest_tz, departure_utc FROM flights WHERE user_id = ? ORDER BY date, id`).bind(userId),
     db.prepare('SELECT flight_id, endpoint FROM country_evidence_suppressions WHERE user_id = ?').bind(userId),
     db.prepare(`SELECT iata, latitude, longitude, country_code, city, name FROM airports_reference
@@ -43,7 +57,7 @@ export async function readOverviewData(db: D1Database, userId: string): Promise<
   const rows: OverviewRow[] = (results[0].results as FlightRow[]).map(row => ({
     id: row.id, weight: 1, date: row.date, state: row.lifecycle_state,
     origin: row.origin, destination: row.destination, airline: row.airline_iata, aircraft: row.aircraft_icao,
-    flightNumber: row.flight_number, depMinute: departureMinute(row.departure_time),
+    flightNumber: row.flight_number, depMinute: localMinute(row.departure_time), arrMinute: arrivalMinute(row),
     distanceKm: row.distance_km, durationMinutes: row.duration_minutes, zonesOverflown: row.zones_overflown,
     durationSource: row.duration_source, originTz: row.origin_tz, destTz: row.dest_tz, departureUtc: row.departure_utc,
     suppressed: (bits.get(row.id) ?? 0) as OverviewRow['suppressed'],
@@ -68,7 +82,7 @@ export async function readOverviewData(db: D1Database, userId: string): Promise<
   }
   const mode = rows.length > AGGREGATE_THRESHOLD ? 'aggregate' : 'flights'
   return {
-    schemaVersion: 2, etag: overviewEtag(userId, state ?? { revision: 0, evidence_revision: 0 }),
+    schemaVersion: 3, etag: overviewEtag(userId, state ?? { revision: 0, evidence_revision: 0 }),
     generatedAt: new Date().toISOString(), mode, derivedReady: data.derivedState === 'ready',
     passport: { countries: data.pressedCountryCount, regions: data.regions.filter(region => region.pressed > 0).length },
     homeOverride,

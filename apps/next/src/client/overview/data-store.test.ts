@@ -5,7 +5,7 @@ import type { OverviewPayload } from '@kuuki/shared/overview/model'
 import { attachRevalidation, createOverviewDataStore, scopeFor } from './data-store'
 
 const initial = fixture as OverviewPayload
-const updated = { ...initial, etag: 'W/"ov2-2-1"', rows: initial.rows.slice(0, 1) }
+const updated = { ...initial, etag: 'W/"ov3-fixture-2-1"', rows: initial.rows.slice(0, 1) }
 const response = (payload: OverviewPayload) => new Response(JSON.stringify(payload), { status: 200 })
 afterEach(() => { vi.restoreAllMocks(); vi.useRealTimers(); vi.unstubAllGlobals() })
 
@@ -24,13 +24,14 @@ it('304 keeps payload without reading a body or notifying', async () => {
   expect(new Headers(options?.headers).get('If-None-Match')).toBe(initial.etag)
 })
 
-it('200 replaces and notifies; unsubscribe stops notifications', async () => {
+it('v3 refresh replaces and notifies; unsubscribe stops notifications', async () => {
   const fetcher = vi.fn<typeof fetch>().mockImplementation(async () => response(updated))
   const store = createOverviewDataStore(initial, fetcher)
   const notified = vi.fn(() => expect(store.get()?.etag).toBe(updated.etag))
   const unsubscribe = store.subscribe(notified)
   expect(await store.revalidate()).toBe('updated')
   expect(store.get()).toEqual(updated)
+  expect(store.get()?.schemaVersion).toBe(3)
   expect(notified).toHaveBeenCalledTimes(1)
   unsubscribe()
   await store.revalidate()

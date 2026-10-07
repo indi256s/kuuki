@@ -17,7 +17,7 @@ it('serves no-store payload with etag', async () => {
     expect(response.status).toBe(200)
     expect(response.headers.get('Cache-Control')).toBe('no-store')
     const payload = await response.json() as { etag: string; schemaVersion: number }
-    expect(payload.schemaVersion).toBe(2)
+    expect(payload.schemaVersion).toBe(3)
     expect(response.headers.get('ETag')).toBe(payload.etag)
   } finally { await dispose() }
 })
@@ -161,7 +161,7 @@ it('payload carries every lifecycle state in one owner-scoped batch', async () =
     const readDb = { prepare: db.prepare.bind(db), batch } as unknown as D1Database
     const payload = await readOverviewData(readDb, USER.id)
     expect(batch).toHaveBeenCalledTimes(1)
-    expect(payload).toMatchObject({ schemaVersion: 2, mode: 'flights', derivedReady: true, homeOverride: null,
+    expect(payload).toMatchObject({ schemaVersion: 3, mode: 'flights', derivedReady: true, homeOverride: null,
       passport: { countries: 2, regions: 2 } })
     expect(payload.rows.map(row => [row.id, row.state, row.weight])).toEqual([
       [3, 'logged', 1], [2, 'awaiting', 1], [1, 'upcoming', 1],
@@ -244,7 +244,7 @@ it('aggregate mode preserves totals above 5000 rows', async () => {
   } finally { await dispose() }
 })
 
-it('etag changes with either revision and exposes pending publication', async () => {
+it('etag uses ov3 prefix, changes with either revision and exposes pending publication', async () => {
   const { db, dispose } = await overviewAccount([])
   try {
     const before = await readOverviewData(db, USER.id)
@@ -255,7 +255,7 @@ it('etag changes with either revision and exposes pending publication', async ()
     const after = await readOverviewData(db, USER.id)
     expect(after.etag).not.toBe(before.etag)
     expect(after.derivedReady).toBe(false)
-    expect(overviewEtag(USER.id, { revision: 2, evidence_revision: 1 })).toBe(`W/"ov2-${encodeURIComponent(USER.id)}-2-1"`)
+    expect(overviewEtag(USER.id, { revision: 2, evidence_revision: 1 })).toBe(`W/"ov3-${encodeURIComponent(USER.id)}-2-1"`)
     expect(overviewEtag(USER.id, { revision: 2, evidence_revision: 2 })).not.toBe(after.etag)
   } finally { await dispose() }
 })
@@ -281,7 +281,7 @@ it('keeps unknown reference codes and null metrics without inventing evidence', 
 
 const row = (overrides: Partial<OverviewRow> = {}): OverviewRow => ({
   id: 9, weight: 1, date: '2025-01-03', state: 'logged', origin: 'TBS', destination: 'IST',
-  airline: 'TK', aircraft: 'A320', flightNumber: '381', depMinute: 390, distanceKm: 100,
+  airline: 'TK', aircraft: 'A320', flightNumber: '381', depMinute: 390, arrMinute: null, distanceKm: 100,
   durationMinutes: 60, zonesOverflown: 2, durationSource: 'times', originTz: 'Asia/Tbilisi',
   destTz: 'Europe/Istanbul', departureUtc: '2025-01-03T02:30:00Z', suppressed: 0, ...overrides,
 })
@@ -301,7 +301,61 @@ it.each<Partial<OverviewRow>>([
   { state: 'upcoming' }, { origin: 'JFK' }, { destination: 'JFK' }, { airline: null }, { aircraft: null },
   { date: '2025-02-01' }, { depMinute: null }, { durationSource: 'estimate' }, { suppressed: 2 },
   { originTz: 'Asia/Baku' }, { destTz: null }, { distanceKm: null }, { distanceKm: 5000 },
-  { durationMinutes: null }, { durationMinutes: 0 },
+  { durationMinutes: null }, { durationMinutes: 0 }, { arrMinute: 360 },
 ])('keeps distinct aggregate dimensions: %j', different => {
   expect(aggregateRows([row(), row({ ...different, id: 10 })])).toHaveLength(2)
+})
+
+it('arrival minute prefers stored arrival time', async () => {
+  const { db, dispose } = await overviewAccount([
+    { id: 1, date: '2025-03-01', origin: 'TBS', destination: 'IST', state: 'logged', minutes: 240 },
+  ], d => [d.prepare("UPDATE flights SET arrival_time = '06:40', departure_utc = '2025-03-01T22:00:00Z', dest_tz = 'Asia/Dubai', duration_source = 'estimate' WHERE id = 1")])
+  try { expect((await readOverviewData(db, USER.id)).rows[0].arrMinute).toBe(400) }
+  finally { await dispose() }
+})
+
+it.each([
+  ['times', '2025-03-01T22:00:00Z', 240, 'Asia/Dubai', 360],
+  ['route_median', '2025-03-01T22:00:00Z', 240, 'Asia/Kathmandu', 465],
+  ['schedule', '2025-03-29T23:00:00Z', 240, 'Europe/London', 240],
+  ['times', '2025-03-01T18:00:00Z', 120, 'Asia/Dubai', 0],
+  ['estimate', '2025-03-01T22:00:00Z', 240, 'Asia/Dubai', null],
+  [null, '2025-03-01T22:00:00Z', 240, 'Asia/Dubai', null],
+  ['times', 'bad', 240, 'Asia/Dubai', null],
+  ['times', '1', 240, 'Asia/Dubai', null],
+  ['times', '2025-02-30T22:00:00Z', 240, 'Asia/Dubai', null],
+  ['times', null, 240, 'Asia/Dubai', null],
+  ['times', '2025-03-01T22:00:00Z', -1, 'Asia/Dubai', null],
+  ['times', '2025-03-01T22:00:00Z', null, 'Asia/Dubai', null],
+  ['times', '2025-03-01T22:00:00Z', 240, 'Invalid/Zone', null],
+  ['times', '2025-03-01T22:00:00Z', 240, null, null],
+])('arrival minute derives from precise duration in destination zone: %s %s %s %s', async (source, departure, minutes, zone, expected) => {
+  const { db, dispose } = await overviewAccount([
+    { id: 1, date: '2025-03-01', origin: 'TBS', destination: 'IST', state: 'logged' },
+  ], d => [d.prepare("UPDATE flights SET arrival_time = NULL, departure_utc = ?, duration_minutes = ?, duration_source = ?, dest_tz = ? WHERE id = 1")
+    .bind(departure, minutes, source, zone)])
+  try { expect((await readOverviewData(db, USER.id)).rows[0].arrMinute).toBe(expected) }
+  finally { await dispose() }
+})
+
+it('aggregate mode preserves arrival-hour counts above 5000 flights', async () => {
+  const { db, dispose } = await overviewAccount([], d => [bulkFlights(d, 5001),
+    d.prepare("UPDATE flights SET date = '2025-01-01', arrival_time = CASE WHEN id % 2 = 0 THEN '06:40' ELSE '18:10' END"),
+  ])
+  try {
+    const payload = await readOverviewData(db, USER.id)
+    expect(payload.mode).toBe('aggregate')
+    expect(payload.rows).toHaveLength(2)
+    expect(payload.rows.filter(row => row.arrMinute === 360).reduce((sum, row) => sum + row.weight, 0)).toBe(2500)
+    expect(payload.rows.filter(row => row.arrMinute === 1080).reduce((sum, row) => sum + row.weight, 0)).toBe(2501)
+    expect(aggregateRows(payload.rows)).toEqual(payload.rows)
+  } finally { await dispose() }
+})
+
+it.each(['bad', '24:00', '06:60', '6:40'])('invalid stored arrival time %s skips safely', async arrival => {
+  const { db, dispose } = await overviewAccount([
+    { id: 1, date: '2025-03-01', origin: 'TBS', destination: 'IST', state: 'logged', minutes: 240 },
+  ], d => [d.prepare("UPDATE flights SET arrival_time = ?, departure_utc = '2025-03-01T22:00:00Z', dest_tz = 'Asia/Dubai', duration_source = 'times' WHERE id = 1").bind(arrival)])
+  try { expect((await readOverviewData(db, USER.id)).rows[0].arrMinute).toBeNull() }
+  finally { await dispose() }
 })

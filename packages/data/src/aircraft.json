@@ -492,6 +492,18 @@
     "capacity": null
   },
   {
+    "icao": "AT76",
+    "iata": null,
+    "manufacturer": "ATR",
+    "model": "72-600",
+    "family": "ATR 42/72",
+    "name": "ATR 72-600",
+    "type": "turboprop",
+    "engineType": "turboprop",
+    "engineCount": 2,
+    "capacity": null
+  },
+  {
     "icao": "ATP",
     "iata": "ATP",
     "manufacturer": "BAE Systems",

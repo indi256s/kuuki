@@ -38,6 +38,7 @@ export interface OverviewRow {
   aircraft: string | null
   flightNumber: string | null
   depMinute: number | null
+  arrMinute: number | null
   distanceKm: number | null
   durationMinutes: number | null
   zonesOverflown: number | null
@@ -51,7 +52,7 @@ export interface OverviewRow {
 }
 
 export interface OverviewPayload {
-  schemaVersion: 2
+  schemaVersion: 3
   etag: string
   generatedAt: string
   mode: 'flights' | 'aggregate'

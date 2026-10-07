@@ -4,12 +4,12 @@ import type { OverviewPayload, OverviewRow } from './model'
 
 const row = (extra: Partial<OverviewRow> = {}): OverviewRow => ({
   id: 1, weight: 1, date: '2025-01-01', state: 'logged', origin: 'TBS', destination: 'IST',
-  airline: 'TK', aircraft: 'A320', flightNumber: '381', depMinute: 600, distanceKm: 1000,
+  airline: 'TK', aircraft: 'A320', flightNumber: '381', depMinute: 600, arrMinute: null, distanceKm: 1000,
   durationMinutes: 120, durationSource: 'times', zonesOverflown: 2,
   originTz: 'Asia/Tbilisi', destTz: 'Europe/Istanbul', departureUtc: null, suppressed: 0, ...extra,
 })
 const payload = (rows: OverviewRow[], extra: Partial<OverviewPayload> = {}): OverviewPayload => ({
-  schemaVersion: 2, etag: 'W/"ov2-1-1"', generatedAt: '2026-01-01T00:00:00Z', mode: 'flights',
+  schemaVersion: 3, etag: 'W/"ov3-fixture-1-1"', generatedAt: '2026-01-01T00:00:00Z', mode: 'flights',
   derivedReady: true, passport: { countries: 5, regions: 3 }, homeOverride: null, rows,
   refs: {
     airports: {
