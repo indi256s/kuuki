@@ -1,6 +1,6 @@
 # Overview Release 3 UI — execution handoff
 
-Date: 2026-10-07. Scope: entire 34-task plan in progress. Tasks1–4 and13 accepted. Task4 passed990 API tests and independent full review; committed at enginebd01dbb and integrated as UI6afb922. Task14 is accepted: final source review approved the focus and immediate-dismissal corrections; combined source passed1164 Next unit tests, a fresh production build and all156 navigation tests. Its commit is the current control-source commit in Git history. Task5 implementation is active. Visual checks are skipped by user.
+Date: 2026-10-07. Scope: entire 34-task plan in progress. Tasks1–7 and13–15 source-accepted; Task7 UI integration is pending. Task4 passed990 API tests and independent full review; committed at enginebd01dbb and integrated as UI6afb922. Task14 is accepted: final source review approved the focus and immediate-dismissal corrections; combined source passed1164 Next unit tests, a fresh production build and all156 navigation tests. Its commit is67fbf1525d41d05ea5d0ba479ee976681f230202. Task5 passed1001 API tests, independent review approved it without findings, and engine638f5e8 was integrated as UI4a32274. Task6 passed1017 API tests and independent round2 review, committed engine1b28447 and integrated UIe1caabd. Task7 Rankings passed1022 API tests and independent source review, committed engine98a0850; it will be integrated into UI after Task15 acceptance. Task8 Makers/Fleet is active from this clean engine revision. Task15 is source-accepted: independent round5 approved all fixes with no findings; final40 focused tests and affected lint/Next types passed. Full suites, build/navigation and route byte delta are deferred to a later integrated checkpoint by user instruction. Its source commit is the current chart-kit commit in Git history. Visual checks are skipped by user.
 
 ## Owning checkout and revisions
 
@@ -44,18 +44,17 @@ Detailed tasks/IDs/checks and Paper reference exports are in UI `.superpowers/sd
 
 The separate Next runtime thread `3958a5ff-0321-4a22-89dc-0a72b1e05b79` owns the Next16.4 upgrade, instant navigation, account caching and write invalidation in its own checkout. Release3 continues on its pinned framework revision; accepted runtime changes need deliberate integration before final release checks. Browser fixtures here will use the existing KUUKI_NEXT_PORT override to avoid port collisions.
 
+The parallel optimization thread `0d466822-77f1-4464-b927-93426711efb5` owns measured navigation, bundle-loading, map-cache, Passport-view and Journal feedback improvements on main. Preserve its edits; reconcile its accepted result before integrating shared shell/editor behavior. This thread continues Release3 and skips all visual verification.
+
 ## Next work
 
-Continue with Tasks5–11 and15 from [the copied implementation plan](2026-10-07-overview-release-3-ui.md):
+Continue with Tasks8–11 and16 from [the copied implementation plan](2026-10-07-overview-release-3-ui.md):
 
-- Task 5: figures v2, upcoming flights and replay list.
-- Task 6: records cabinet.
-- Task 7: rankings v2.
 - Task 8: makers and fleet v2.
 - Task 9: clock and rhythm v2.
 - Task 10: crossings v2.
 - Task 11: narrator engine with neutral placeholders.
-- Task 15: chart kit and table/touch/lazy-loading paths.
+- Task 16: Overview context, filter actions and UI bus.
 
 Task 12 is the separate narrator corpus owner-review gate; do not mark it accepted without owner review. All later tasks remain unchecked. The user requests GPT-6.1 Sol for every agent, overriding the plan's executor/reviewer model choices. Builds and browser fixtures must stay serial.
 
@@ -66,3 +65,7 @@ The plan's open-decision defaults remain in effect: endpoint hourly UTC offsets;
 ## User verification override — 2026-10-07
 
 The user instructed: "do not do visual checks, skip them". Visual checks and their plan acceptance gates are waived for the rest of Release3. Screenshot/manual gallery checks already started were stopped; no further visual inspection or comparison is required. Functional tests, typechecks, lint, builds and runtime navigation checks remain required.
+
+## User test batching override — 2026-10-07
+
+The user instructed not to run all tests for each task and to run them together later. Continue focused task/fix checks and affected lint/typechecks; defer full API/Next suites, builds and full navigation to later integrated checkpoints. This overrides the previous per-task broad gates. Visual verification remains skipped. Task15 may proceed through focused review/acceptance without another full suite/build/navigation run; bundle comparison waits for a later integrated build and must name its actual included changes.

@@ -246,3 +246,7 @@ Task14 controls review dispositions (2026-10-07): fix both Important findings fr
 ## 2026-10-07 — membership aggregation and Passport identity
 
 Task4 groups monthly rows by actual dated membership state and retains an earliest actual represented date so alliance facets survive aggregation. Monthly period/replay labels and Release2 metric distinctions remain. Task5 upcoming-country novelty requires Passport country identities; current payload carries only scalar counts. Add sorted pressed countryCodes from the already owner-scoped passportRead result, without another query or a new service, and update required constructors/fixture generators. No country novelty is inferred from counts.
+
+## 2026-10-07 — record witnesses and public projection
+
+Task6 captures actual winner/latest-flight/exact-departure context before lossy monthly aggregation. Private numeric identities preserve deterministic selection; every aggregate computed cabinet ID is null. Legacy missing context remains null without replacing individual metrics with sums or dates with group representatives. Northern latest-flight distance may be null; no available actual witness leaves flight null. Busy year/month ties pick earliest; latest/remaining-departure ties pick lowest original ID; year countries use scoped suppression-aware evidence. Public Records keeps the existing explicit route/value and latitude-only allowlist, excluding newly rich private context. Required minimal aggregation/public-projection ownership is admitted; no new query/service/framework.

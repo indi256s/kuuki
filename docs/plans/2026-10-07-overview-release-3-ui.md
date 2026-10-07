@@ -44,6 +44,8 @@ All of it runs on the Release 2 engine.
 
 **User verification override (2026-10-07):** Skip all visual checks, screenshot/manual gallery inspection and visual comparison gates. Continue functional tests, typechecks, lint, builds and runtime navigation verification.
 
+**User test-batching override (2026-10-07):** Run focused behavioral checks and affected lint/typechecks per task. Defer full API/Next suites, production builds and full navigation checks to later integrated checkpoints; do not rerun them for every task. This supersedes per-task full-suite/build/navigation steps below. Deferred integration checks remain pending until the batch runs.
+
 **Precedence**
 - The board wins on layout, type sizes and copy, except where "Audit fixes" or "Critique fixes" in `design-decisions.md` explicitly override it (example: segmented cells are 44px, not 32px).
 - Inside `design-decisions.md`, a later dated section beats an earlier line.
@@ -399,19 +401,19 @@ Task 33 deletes the legacy `client/overview/{view,hero,figures,map-band,map-prev
   - `next: NextFlight[]` — `{ flightId; date; origin; destination; airline; flightNumber; daysAway: number; newCountry: boolean }`. These are upcoming rows sorted by date. They ignore the filter. `daysAway` counts from `payload.generatedAt`'s UTC date. `newCountry` is true when the destination country appears in no counted row and not in the passport.
   - `replay: ReplayItem[]` — `{ key; flightId: number | null; origin; destination; date; weight }`. These are in-scope counted rows in date order. In aggregate mode they are monthly route rows, with `date` `YYYY-MM` and `flightId: null`.
 
-- [ ] **Step 1: Write the failing tests:**
+- [x] **Step 1: Write the failing tests:**
   - `figures.test.ts › board figures`: `airports === 18`, `firstDate === '2014-03-28'`, `estimatedFlights === 6`, `byYear.length === 13`, the 2019 entry has `flights === 14`, the 2015 entry has `flights === 0`, `equatorLaps` rounds to 3.5.
   - `figures.test.ts › share only for facet-only filters`: `{airlines:['TK']}` gives `share.flights` ≈ 24/69 and `deltas === null`. `{period:{years:[2025]}, airlines:['TK']}` gives `share === null`. `{}` gives `share === null`.
   - `next.test.ts › board next flights`: `next[0]` is DXB→MLE with `daysAway === 3`; `next.length === 2`; `newCountry` is false for MLE (the real source already contains DOH→MLE); use a separate absent-country case to verify true.
   - `next.test.ts › replay is chronological and scoped`: with `{airlines:['TK']}`, `replay.length === 24` and the dates are non-decreasing. With n5001 (aggregate), every item has `flightId === null` and a `YYYY-MM` date.
-- [ ] **Steps 2–4:** FAIL → implement → PASS.
-- [ ] **Step 5:** Commit `feat(overview): figures v2, next flights and replay list`.
+- [x] **Steps 2–4:** FAIL → implement → PASS.
+- [x] **Step 5:** Commit `feat(overview): figures v2, next flights and replay list`.
 
 ### Task 6: Records cabinet
 
 **Executor:** [Engine] · final review Opus
 
-**Files:** Modify `records.ts`, `records.test.ts` and `model.ts`.
+**Files:** Modify `records.ts`, `records.test.ts` and `model.ts`. Preserve actual source context through `aggregate.ts` and its tests; update only the required aggregate fixture/computed snapshots through the existing generator. Keep the existing public subset explicit in `public.ts`/`publicOverview.ts` and cover its privacy boundary with API tests.
 
 **Interfaces:** `Records` (still `Gate<Records>`, ≥ 5 flights) becomes:
 - `longest`:
@@ -426,13 +428,15 @@ Task 33 deletes the legacy `client/overview/{view,hero,figures,map-band,map-prev
 - Kept from Release 2: `longestDuration`, `shortestDuration`, `biggestClockJump`, `busiestDay`, `southernmost`, `longestStreakMonths`, `longestGroundStopDays`.
 - In aggregate mode, every `flightId` is null.
 
-- [ ] **Step 1: Write the failing tests:**
+**Controller admission (2026-10-07):** Keep internal numeric witness identity separate from exposed aggregate cabinet IDs. Actual context is captured before aggregation; legacy missing context stays null, including rich dates, rather than using representative dates or metric sums. Nullable distance/north records remain nullable; no valid calendar year gives `busiestYear: null`. The latest northern flight carries its actual distance as nullable `value`; no available witness gives `flight: null`. Earliest departure uses its minute as `value`. Distance/duration/absolute-clock ties retain lowest source ID; latitude ties retain lexical IATA. Latest-flight same-day ties and remaining departure ties use lowest ID; year/month ties use the earliest. Year countries are scoped suppression-aware flight evidence. The public Records response remains its current explicit allowlist and never includes new private context.
+
+- [x] **Step 1: Write the failing tests:**
   - `records.test.ts › board cabinet`: `longest.origin/destination` is DOH/AKL; `longest.value === 14535`; `previousBestKm` equals the fixture's longest distance before that date (compute it in the test from the fixture rows); `busiestYear.year === 2019` with `flights === 14` and `months.length === 12`.
   - `records.test.ts › speed excludes estimates`: making the longest flight's `durationSource 'estimate'` gives `speedKmh === null` and `durationApproximate === true`.
   - `records.test.ts › earliest departure tie goes to later date`.
   - `records.test.ts › aggregate refs have null flight ids` (n5001).
-- [ ] **Steps 2–4:** FAIL → implement → PASS.
-- [ ] **Step 5:** Commit `feat(overview): record cabinet fields`.
+- [x] **Steps 2–4:** FAIL → implement → PASS.
+- [x] **Step 5:** Commit `feat(overview): record cabinet fields`.
 
 ### Task 7: Rankings v2
 
@@ -452,13 +456,13 @@ Task 33 deletes the legacy `client/overview/{view,hero,figures,map-band,map-prev
   - `haul` is `short` (< 4,000 km, short plus medium) against `long` (≥ 4,000 km), with `excluded` = flights without distance.
   - `daytime` is morning, afternoon and evening against night, with `excluded` = untimed flights.
 
-- [ ] **Step 1: Write the failing tests:**
+- [x] **Step 1: Write the failing tests:**
   - `› board leaders`: `leaders.airlines.top[0]` equals `{ key: 'TK', count: 24 }`, `leaders.airlines.total === 69` and `topShare` ≈ 24/69.
   - `› ties share a rank`: a two-entity, same-count year gives both `rank: 1`, and the next entity gets `rank: 3`.
   - `› rankByYear covers latest six years`: board years are `[2021, 2022, 2023, 2024, 2025, 2026]`, with at most 5 distinct entities.
   - `› versus`: the board `makers` row is `{ left: { key: 'airbus', count: 38 }, right: { key: 'boeing', count: 21 } }`; `daytime` has `right.count === 8` (the red-eyes).
-- [ ] **Steps 2–4:** FAIL → implement → PASS.
-- [ ] **Step 5:** Commit `feat(overview): ranking leaders, rank by year and head to head`.
+- [x] **Steps 2–4:** FAIL → implement → PASS.
+- [x] **Step 5:** Commit `feat(overview): ranking leaders, rank by year and head to head`.
 
 ### Task 8: Makers and Fleet v2
 
@@ -679,15 +683,15 @@ This is open decision 1: the default is endpoint offsets, not overflown zones.
 - `TableView({ table })`: a "View as table" text button with a 44px hit area. It toggles a disclosure containing a `<table>` with `<caption>`.
 - `LazyChart({ height, label, children(inView) })`: renders `Skeleton` until the IntersectionObserver (200px root margin) first fires. After that, `inView` tracks visibility.
 
-- [ ] **Step 1: Write the failing tests:**
+- [x] **Step 1: Write the failing tests:**
   - `› server-renders svg with aria label`, using `renderToString`.
   - `› mouse select calls onPick`.
   - `› touch tap pins actions and does not call onPick`: `pointerdown` with `pointerType 'touch'`, then select → the action buttons are visible and `onPick` was not called. Clicking "Add filter" runs the action.
   - `› empty rows render an empty chart without throwing`.
   - `› view as table shows caption and rows`.
   - `› lazy chart keeps skeleton height until intersecting`.
-- [ ] **Steps 2–4:** FAIL → implement → PASS. Then run `pnpm next:build` and record the Overview route's client JS delta in the commit body.
-- [ ] **Step 5:** Commit `feat(overview): chart kit with tap-to-pin, table view and lazy mount`.
+- [x] **Steps 2–4:** FAIL → implement → PASS. Build and Overview client JS delta are deferred to the later integrated checkpoint under the user test-batching override; record that deferral in the commit body.
+- [x] **Step 5:** Commit `feat(overview): chart kit with tap-to-pin, table view and lazy mount`.
 
 ### Task 16: Overview context, filter actions and UI bus
 
