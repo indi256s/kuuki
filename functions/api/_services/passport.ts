@@ -34,7 +34,7 @@ export type GroundVisit = { country_code: string; visit_year: number | null; ent
  * what the leaderboard `countries` category ranks. One owner-scoped batch supplies every collection and the
  * revision metadata, shared by `GET /api/passport/countries` and the Next server read.
  */
-export async function readPassport(db: D1Database, userId: string) {
+export function passportRead(db: D1Database, userId: string) {
   const statements = [
     db.prepare('SELECT country_code, first_visit, last_visit, visit_count, airport_iata, city FROM visits WHERE user_id = ?').bind(userId),
     db.prepare('SELECT country_code, claimed_at FROM country_claims WHERE user_id = ?').bind(userId),
@@ -44,25 +44,35 @@ export async function readPassport(db: D1Database, userId: string) {
        FROM country_visit_evidence WHERE user_id = ? ORDER BY country_code`).bind(userId),
     db.prepare('SELECT revision, published_revision, evidence_revision, last_error FROM user_derived_state WHERE user_id = ?').bind(userId),
   ]
-  const results = await db.batch(statements)
-  assertRows(results, 'Passport read failed', statements.length)
-  const rows = results[3].results as Array<Omit<CountryEvidenceRow, 'policy_version'>>
-  const countries: PassportCountry[] = rows.map(row => ({ ...row, region: catalogRegionOf(row.country_code) }))
-  const pressed = countries.filter(row => row.status === 'pressed').map(row => row.country_code)
-  const pending = countries.filter(row => row.status === 'pending').map(row => row.country_code)
   return {
-    visits: results[0].results as Visit[],
-    claims: results[1].results as Claim[],
-    groundVisits: results[2].results as GroundVisit[],
-    countries,
-    pressedCountryCount: pressed.length,
-    pendingCountryCount: pending.length,
-    flightCountryCount: flightCountriesOf(rows as CountryEvidenceRow[]).length,
-    regionPolicyVersion: REGION_POLICY.version,
-    regions: regionProgress(pressed, pending),
-    updatedAt: Date.now(),
-    ...derivedStateOf(results[4].results[0] as StateRow | undefined),
+    statements,
+    derive(results: D1Result[]) {
+      assertRows(results, 'Passport read failed', statements.length)
+      const rows = results[3].results as Array<Omit<CountryEvidenceRow, 'policy_version'>>
+      const countries: PassportCountry[] = rows.map(row => ({ ...row, region: catalogRegionOf(row.country_code) }))
+      const pressed = countries.filter(row => row.status === 'pressed').map(row => row.country_code)
+      const pending = countries.filter(row => row.status === 'pending').map(row => row.country_code)
+      const state = results[4].results[0] as StateRow | undefined
+      return { state, data: {
+        visits: results[0].results as Visit[],
+        claims: results[1].results as Claim[],
+        groundVisits: results[2].results as GroundVisit[],
+        countries,
+        pressedCountryCount: pressed.length,
+        pendingCountryCount: pending.length,
+        flightCountryCount: flightCountriesOf(rows as CountryEvidenceRow[]).length,
+        regionPolicyVersion: REGION_POLICY.version,
+        regions: regionProgress(pressed, pending),
+        updatedAt: Date.now(),
+        ...derivedStateOf(state),
+      } }
+    },
   }
+}
+
+export async function readPassport(db: D1Database, userId: string) {
+  const read = passportRead(db, userId)
+  return read.derive(await db.batch(read.statements)).data
 }
 
 export type PassportData = Awaited<ReturnType<typeof readPassport>>

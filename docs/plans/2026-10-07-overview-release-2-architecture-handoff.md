@@ -43,7 +43,7 @@ Release 1 handoff and local ledger.
 
 ## Release 2 progress
 
-Task 1 is complete in this commit: family fields for all 215 entries, canonical
+Task 1 is complete at `917665c`: family fields for all 215 entries, canonical
 Aircraft type, lookup helper and tests. User approved replacing the absent AT76
 example with existing AT72; issue 05 is resolved. Other reference fields and
 entry order are unchanged. The given family groups are applied, with E175 wing
@@ -60,8 +60,20 @@ required for this task. No per-task review under the user's revised workflow.
 
 ## Continuation
 
-Task 2 is next: payload contract, weighted aggregation and owner builder. Tasks
-2–17 are unstarted. Keep the final whole-branch Opus review over
+Task 2 is complete in this commit: payload model, deterministic weighted
+aggregation and the owner builder. Passport uses the existing batch-read pattern;
+its original reader delegates to the same projection, preserving its response.
+The builder shares one batch across canonical rows, suppressions, referenced
+subsets, home override and Passport/state. Unknown references retain null
+metadata; nullable aggregate sums stay null when all inputs are null, and mixed
+endpoint timezone labels become null rather than selecting an arbitrary label.
+
+Task 2 RED: 1 failed suite (missing module). Focused GREEN: 1 file / 16 tests;
+full API: 60 files / 659 tests passed; API typecheck exited 0. Owner separation,
+transit bits, 5001-row totals, empty payloads and revision readiness are covered.
+No routes/client changes; Next tests/build are not required yet.
+
+Task 3 is next: owner endpoint and server data helper. Tasks 3–17 are unstarted. Keep the final whole-branch Opus review over
 `feat/overview-release-1-migrations...HEAD` through T3 `delegate_task`, with a
 new request ID for each round. Issue 02's browser metric type correction remains
 for the first client consumer before design handoff. Logs are under

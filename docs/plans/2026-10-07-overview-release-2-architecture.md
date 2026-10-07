@@ -169,16 +169,16 @@ export interface OverviewPayload {
   - `overviewEtag(state: { revision: number; evidence_revision: number }): string` → `W/"ov2-<revision>-<evidence_revision>"`.
   - `readOverviewData(db: D1Database, userId: string): Promise<OverviewPayload>`. One `db.batch`: flights, suppressions, referenced airports/aircraft, derived state, plus `profiles.home_airport`. `suppressed` comes from `country_evidence_suppressions` by `(flight_id, endpoint)`. `mode` is `'aggregate'` when `rows.length > AGGREGATE_THRESHOLD`.
 
-- [ ] **Step 1: Write the failing tests:**
+- [x] **Step 1: Write the failing tests:**
   - `payload carries every lifecycle state`: 1 upcoming + 1 awaiting + 1 logged → 3 rows with their states.
   - `transit suppression is a bit, not a missing country`: a confirmed connection → destination bit set; `refs.airports[dest].country` still present.
   - `refs are the referenced subset`: refs keys = endpoints and aircraft used.
   - `aggregate mode preserves totals`: `bulkFlights(db, 5001)` (from `overview-fixture.ts`) → `mode 'aggregate'`, Σweight 5001, Σdistance equals the flight-mode sum.
   - `etag changes with revision`: a mutation changes `etag`.
-- [ ] **Step 2:** `pnpm test:api -- functions/test/overview-data.test.ts`. Expected: FAIL.
-- [ ] **Step 3:** Implement.
-- [ ] **Step 4:** Re-run. Expected: PASS.
-- [ ] **Step 5:** Commit `feat(overview): owner payload contract and builder`.
+- [x] **Step 2:** `pnpm test:api -- functions/test/overview-data.test.ts`. Expected: FAIL.
+- [x] **Step 3:** Implement.
+- [x] **Step 4:** Re-run. Expected: PASS.
+- [x] **Step 5:** Commit `feat(overview): owner payload contract and builder`.
 
 ### Task 3: Owner payload endpoint
 
