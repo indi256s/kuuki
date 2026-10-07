@@ -370,15 +370,15 @@ export function computeOverview(payload: OverviewPayload, filter: OverviewFilter
     - Polar circles: crossings of ±66.5634°.
   - `crossings(rows, refs): Gate<Crossings>`: minimum 3 rows with both tz.
 
-- [ ] **Step 1: Write the failing tests** (golden values computed from package coordinates):
+- [x] **Step 1: Write the failing tests** (golden values computed from package coordinates):
   - JFK–HKG → dateLine 1, arctic 2.
   - DXB–LAX → arctic 2, dateLine 0.
   - NRT–SFO → dateLine 1.
   - SIN–SYD → equator 1.
   - Weights multiply counts.
   - `below three with tz is gated`.
-- [ ] **Step 2–4:** FAIL → implement → PASS.
-- [ ] **Step 5:** Commit `feat(overview): crossings`.
+- [x] **Step 2–4:** FAIL → implement → PASS.
+- [x] **Step 5:** Commit `feat(overview): crossings`.
 
 ### Task 8: Fleet and Clock
 

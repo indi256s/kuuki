@@ -114,7 +114,7 @@ exited 0. No route or client code changed; Task 3's Next test/build evidence
 remains applicable. No per-task review, as directed by the user. Task 5 boxes
 are checked in its implementation commit.
 
-Task 6 is complete in this commit: weighted Records gate, distance and precise
+Task 6 is complete at `3874bab`: weighted Records gate, distance and precise
 duration extrema, signed DST-aware clock jumps with lowest-ID ties, all-endpoint
 latitude records including transits, calendar-month streaks and date gaps.
 Aggregate mode keeps day-level entries null. Busiest-day ties choose the first
@@ -135,7 +135,23 @@ API: 63 files / 706 tests passed; API typecheck exited 0. Task 3's unaffected
 Next evidence remains applicable. No per-task review under the revised user
 workflow. Task 6 checkboxes are in its implementation commit.
 
-Task 7 is next: Crossings. Tasks 7–17 are unstarted; no unresolved decision.
+Task 7 is complete in this commit: sampled great-circle crossings, per-call
+memoization by directional route, weighted path counts, nullable stored zone
+sums and individual DST clock-shift sums. Direction shares use rows with known
+coordinates; missing coordinates cannot be classified. Latitude samples exactly
+on a circle are skipped when counting sign transitions, avoiding double touches.
+
+RED: two failed files (missing module/scope field). Focused GREEN: 2 files /
+19 tests. All four package-coordinate plan goldens match, with additional
+weight/SUM, DST, wrap, memoization, southern polar and missing-geometry checks.
+First full API: 63 files passed / 1 failed, 715 tests passed / 1 failed. The
+unchanged provider-gate child process returned 143 after about its existing
+three-second timeout on a loaded run. It passed alone (1 file / 2 tests).
+A full retry with `pnpm test:api --maxWorkers=4` passed: 64 files / 716 tests.
+API typecheck exited 0. No baseline test/script was changed. The Task 3 Next
+evidence remains applicable because no client/routes changed. No per-task review.
+
+Task 8 is next: Fleet and Clock. Tasks 8–17 are unstarted; no unresolved decision.
 No UI, production/remote or GitHub actions were performed.
 
 Keep the final whole-branch Opus review over

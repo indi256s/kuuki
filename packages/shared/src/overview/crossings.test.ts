@@ -1,0 +1,81 @@
+import { expect, it, vi } from 'vitest'
+import { findAirport } from '../../../data/src/airport-lookup'
+import * as geo from '../geo'
+import { aggregateRows } from './aggregate'
+import { crossings } from './crossings'
+import type { OverviewPayload, OverviewRow } from './model'
+
+const codes = ['JFK', 'HKG', 'DXB', 'LAX', 'NRT', 'SFO', 'SIN', 'SYD', 'TBS', 'LHR']
+const refs: OverviewPayload['refs'] = { airports: Object.fromEntries(codes.map(code => {
+  const airport = findAirport(code)
+  if (!airport) throw new Error(`Missing fixture airport ${code}`)
+  return [code, { lat: airport.latitude, lon: airport.longitude, country: airport.countryCode,
+    city: airport.city, name: airport.name }]
+})), aircraft: {}, regions: {} }
+const row = (origin: string, destination: string, extra: Partial<OverviewRow> = {}): OverviewRow => ({
+  id: 1, weight: 1, date: '2026-01-01', state: 'logged', origin, destination,
+  airline: null, aircraft: null, flightNumber: null, depMinute: null, distanceKm: 1000,
+  durationMinutes: 120, durationSource: 'times', zonesOverflown: 2,
+  originTz: findAirport(origin)?.timezone ?? 'UTC', destTz: findAirport(destination)?.timezone ?? 'UTC',
+  departureUtc: null, suppressed: 0, ...extra,
+})
+function ready(rows: OverviewRow[], references = refs) {
+  const result = crossings(rows, references)
+  if (result.status !== 'ready') throw new Error('Expected ready crossings')
+  return result.value
+}
+
+it.each([
+  ['JFK', 'HKG', { dateLine: 1, arcticCircle: 2 }],
+  ['DXB', 'LAX', { dateLine: 0, arcticCircle: 2 }],
+  ['NRT', 'SFO', { dateLine: 1 }],
+  ['SIN', 'SYD', { equator: 1 }],
+] as const)('%s–%s matches the package-coordinate golden crossings', (origin, destination, expected) => {
+  expect(ready([row(origin, destination), row('TBS', 'TBS', { id: 2, zonesOverflown: 0 }),
+    row('TBS', 'TBS', { id: 3, zonesOverflown: 0 })])).toMatchObject(expected)
+})
+
+it('below three with tz is gated using weights', () => {
+  expect(crossings([], refs)).toEqual({ status: 'below', have: 0, need: 3 })
+  expect(crossings([row('NRT', 'SFO'), row('NRT', 'SFO', { id: 2 }),
+    row('NRT', 'SFO', { id: 3, originTz: null })], refs)).toEqual({ status: 'below', have: 2, need: 3 })
+})
+
+it('weights multiply path counts while zones and stored clock shifts are already sums', () => {
+  const rows = Array.from({ length: 7 }, (_, i) => row('NRT', 'SFO', { id: i + 1 }))
+  const result = ready(aggregateRows(rows))
+  expect(result).toMatchObject({ dateLine: 7, zonesOverflown: 14, clockShiftHours: 119, eastboundShare: 1 })
+})
+
+it('aggregate clock shifts preserve individual DST changes', () => {
+  const rows = ['2026-03-28', '2026-03-30', '2026-03-28']
+    .map((date, i) => row('JFK', 'LHR', { date, id: i + 1 }))
+  expect(ready(rows).clockShiftHours).toBe(13)
+  expect(ready(aggregateRows(rows)).clockShiftHours).toBe(13)
+})
+
+it('eastbound share wraps longitude and weights directional routes', () => {
+  const rows = [row('NRT', 'SFO'), row('NRT', 'SFO', { id: 2 }), row('SFO', 'NRT', { id: 3 })]
+  expect(ready(rows).eastboundShare).toBeCloseTo(2 / 3)
+  expect(ready(aggregateRows(rows)).eastboundShare).toBeCloseTo(2 / 3)
+})
+
+it('memoises geometry once per directional route within a computation', () => {
+  const sample = vi.spyOn(geo, 'greatCirclePoints')
+  try {
+    ready([row('NRT', 'SFO'), row('NRT', 'SFO', { id: 2 }), row('SFO', 'NRT', { id: 3 })])
+    expect(sample).toHaveBeenCalledTimes(2)
+    expect(sample.mock.calls.every(call => call[2] === 50)).toBe(true)
+  } finally { sample.mockRestore() }
+})
+
+it('counts southern polar crossings and keeps missing geometry finite', () => {
+  const custom: OverviewPayload['refs'] = { ...refs, airports: { ...refs.airports,
+    AAA: { lat: -60, lon: 0, country: null, city: null, name: 'AAA' },
+    BBB: { lat: -60, lon: 180, country: null, city: null, name: 'BBB' } } }
+  expect(ready([row('AAA', 'BBB'), row('TBS', 'TBS', { id: 2 }), row('TBS', 'TBS', { id: 3 })], custom).antarcticCircle).toBe(2)
+  const missing = ready(Array.from({ length: 3 }, (_, i) => row('ZZZ', 'ZZZ', { id: i + 1, zonesOverflown: null })))
+  expect(missing).toEqual({ zonesOverflown: 0, clockShiftHours: 0, equator: 0, dateLine: 0,
+    arcticCircle: 0, antarcticCircle: 0, eastboundShare: 0 })
+  expect(Object.values(missing).every(Number.isFinite)).toBe(true)
+})
