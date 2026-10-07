@@ -35,7 +35,7 @@ function flight(id: number, origin: string, destination: string, extra: Partial<
     originTz: a.timezone, destTz: b.timezone, departureUtc: null, suppressed: 0, ...extra }
 }
 
-function generate(name: typeof names[number]): OverviewPayload {
+function generate(name: typeof names[number], aggregate = true): OverviewPayload {
   let rows: OverviewRow[]
   if (name === 'polar') rows = Array.from({ length: 6 }, (_, i) => i % 2 ? flight(i + 1, 'DXB', 'LAX') : flight(i + 1, 'JFK', 'HKG'))
   else if (name === 'dateLine') rows = Array.from({ length: 6 }, (_, i) => i % 2 ? flight(i + 1, 'SFO', 'NRT') : flight(i + 1, 'NRT', 'SFO'))
@@ -60,7 +60,7 @@ function generate(name: typeof names[number]): OverviewPayload {
   const mode = rows.length > AGGREGATE_THRESHOLD ? 'aggregate' : 'flights'
   return { schemaVersion: 3, etag: 'W/"ov3-fixture-1-1"', generatedAt: '2026-10-07T00:00:00.000Z', mode, derivedReady: true,
     homeOverride: null, passport: { countries: evidence.size, countryCodes: [...evidence].sort(),
-      regions: new Set([...evidence].map(country => refs.regions[country])).size }, rows: mode === 'aggregate' ? aggregateRows(rows) : rows,
+      regions: new Set([...evidence].map(country => refs.regions[country])).size }, rows: mode === 'aggregate' && aggregate ? aggregateRows(rows) : rows,
     refs: { airports: Object.fromEntries([...usedAirports].sort().map(code => [code, refs.airports[code]])),
       aircraft: Object.fromEntries([...usedAircraft].filter((code): code is string => !!code).sort().map(code => [code, refs.aircraft[code]])),
       regions: Object.fromEntries([...countries].sort().map(code => [code, refs.regions[code]])) } }
@@ -198,4 +198,30 @@ it('board AT76 uses the canonical ATR 72-600 reference', () => {
   expect(findAircraft('AT76')).toMatchObject({ manufacturer: 'ATR', model: '72-600', type: 'turboprop', capacity: null })
   expect(familyOf('AT76')).toBe('ATR 42/72')
   expect(fixture.refs.aircraft.AT76).toEqual({ manufacturer: 'ATR', type: 'turboprop', family: 'ATR 42/72', name: 'ATR 72-600' })
+})
+
+it('n5001 precise duration evidence is derived exhaustively from actual source members', () => {
+  const source = generate('n5001', false).rows
+  const fixture = JSON.parse(readFileSync(new URL('./__fixtures__/n5001.json', import.meta.url), 'utf8')) as OverviewPayload
+  expect(fixture.rows).toHaveLength(641)
+  let members = 0, precise = 0
+  for (const group of fixture.rows) {
+    const rows = source.filter(row => row.state === group.state && row.origin === group.origin && row.destination === group.destination &&
+      row.airline === group.airline && row.aircraft === group.aircraft && row.date.slice(0, 7) === group.date.slice(0, 7) &&
+      Math.floor(row.depMinute! / 60) === Math.floor(group.depMinute! / 60) && row.arrMinute === group.arrMinute &&
+      row.durationSource === group.durationSource && row.suppressed === group.suppressed &&
+      row.originTz === group.originTz && row.destTz === group.destTz && row.distanceKm === group.distanceKm! / group.weight)
+    expect(rows).toHaveLength(group.weight)
+    members += rows.length
+    const minutes = rows.filter(row => row.durationSource === 'times').map(row => row.durationMinutes!).sort((a, b) => a - b)
+    expect(group.preciseDurationSamples ?? []).toEqual(minutes)
+    precise += minutes.length
+  }
+  expect(members).toBe(5001)
+  expect(precise).toBe(4000)
+  const raw = computeOverview({ ...fixture, mode: 'flights', rows: source }, {})
+  const grouped = computeOverview(fixture, {})
+  expect(grouped.fleet).toEqual(raw.fleet)
+  if (raw.makers.status !== 'ready') throw new Error('Expected ready makers')
+  expect(grouped.makers).toEqual({ status: 'ready', value: { ...raw.makers.value, flights: [] } })
 })

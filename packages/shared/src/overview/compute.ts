@@ -4,6 +4,7 @@ import type { OverviewFilter, OverviewPayload } from './model'
 import { records } from './records'
 import { crossings } from './crossings'
 import { fleet } from './fleet'
+import { makers } from './makers'
 import { clock } from './clock'
 import { rhythm } from './rhythm'
 import { rankings } from './rankings'
@@ -17,7 +18,7 @@ export function computeOverview(payload: OverviewPayload, filter: OverviewFilter
   const deltas = previous ? totals(counted.filter(row => matches(row, previous, payload.refs))) : null
   return { filter, figures: figures(rows, payload, filter, deltas, counted), coverage: coverage(rows), home: home(counted, payload),
     records: records(rows, payload.refs, payload.mode), crossings: crossings(rows, payload.refs),
-    fleet: fleet(rows, payload.refs), clock: clock(rows), rhythm: rhythm(rows),
+    fleet: fleet(rows, payload.refs, payload.mode), makers: makers(rows, payload.refs, payload.mode), clock: clock(rows), rhythm: rhythm(rows),
     rankings: rankings(rows), globe: globe(payload.rows, rows, payload.refs),
     next: nextFlights(payload, counted), replay: replayItems(rows, payload.mode) }
 }

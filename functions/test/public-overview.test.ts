@@ -54,7 +54,10 @@ it.each([[false, false], [true, false], [false, true], [true, true]])('sections 
         'longestStreakMonths', 'northernmost', 'shortest', 'shortestDuration', 'southernmost'])
       expect((body.records as { northernmost: unknown }).northernmost).toEqual({ iata: 'IST', lat: 40 })
     }
-    if (fleet) expect(body.fleet).toMatchObject({ typed: 5, total: 5, topType: { icao: 'A320', share: 1 } })
+    if (fleet) {
+      expect(body.fleet).toMatchObject({ typed: 5, total: 5, topType: { icao: 'A320', share: 1 } })
+      expect(Object.keys(body.fleet as object).sort()).toEqual(['byBodyType', 'byManufacturer', 'families', 'topType', 'total', 'typed', 'types'])
+    }
   } finally { await dispose() }
 })
 

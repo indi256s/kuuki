@@ -4,6 +4,7 @@ import type { OverviewFilter, OverviewPayload, OverviewRow } from './model'
 import type { Records } from './records'
 import type { Crossings } from './crossings'
 import type { Fleet } from './fleet'
+import type { Makers } from './makers'
 import type { Clock } from './clock'
 import type { Rhythm } from './rhythm'
 import type { Rankings } from './rankings'
@@ -29,6 +30,7 @@ export interface OverviewScope {
   records: Gate<Records>
   crossings: Gate<Crossings>
   fleet: Gate<Fleet>
+  makers: Gate<Makers>
   clock: Gate<Clock>
   rhythm: Gate<Rhythm>
   rankings: Rankings
@@ -42,6 +44,13 @@ const metric = (value: number | null): number => value !== null && Number.isFini
 export function hasPreciseDuration(row: OverviewRow): boolean {
   return row.durationMinutes !== null && Number.isFinite(row.durationMinutes) && row.durationMinutes >= 0 &&
     row.durationSource !== null && row.durationSource !== 'estimate'
+}
+
+export function preciseDurationSamples(row: OverviewRow, raw = true): number[] {
+  if (row.durationSource === null || row.durationSource === 'estimate') return []
+  if (row.preciseDurationSamples) return row.preciseDurationSamples.filter(value => Number.isFinite(value) && value >= 0)
+  // Weighted or legacy aggregate rows have no exact constituent evidence.
+  return raw && row.weight === 1 && !row.recordExtrema && !row.recordFlights && hasPreciseDuration(row) ? [row.durationMinutes!] : []
 }
 
 export function totals(rows: OverviewRow[]): NonNullable<Figures['deltas']> {

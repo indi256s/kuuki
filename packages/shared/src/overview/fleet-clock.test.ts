@@ -1,6 +1,8 @@
+import { readFileSync } from 'node:fs'
 import { expect, it } from 'vitest'
 import { familyOf, findAircraft } from '../../../data/src/aircraft-lookup'
 import { fleet } from './fleet'
+import { computeOverview } from './compute'
 import { clock } from './clock'
 import { aggregateRows } from './aggregate'
 import { matches } from './filter'
@@ -28,7 +30,7 @@ function ready<T>(gate: Gate<T>): T {
 it('top type share uses typed flights and chart rows are sorted by flights then key', () => {
   const result = ready(fleet([row({ aircraft: 'A320', weight: 4 }), row({ aircraft: 'A319', weight: 2 }),
     row({ aircraft: 'B738', weight: 2 }), row({ aircraft: null, weight: 2 })], refs))
-  expect(result).toEqual({ topType: { icao: 'A320', share: 0.5 }, typed: 8, total: 10, types: 3, families: 2,
+  expect(result).toMatchObject({ topType: { icao: 'A320', share: 0.5 }, typed: 8, total: 10, types: 3, families: 2,
     byManufacturer: [{ key: 'Airbus', flights: 6 }, { key: 'Boeing', flights: 2 }],
     byBodyType: [{ key: 'narrowbody', flights: 8 }] })
   expect(ready(fleet([row({ aircraft: 'A320', weight: 2 }), row({ aircraft: 'A319', weight: 2 }), row({ aircraft: 'B738' })], refs)).topType)
@@ -43,7 +45,7 @@ it('families use the curated familyOf payload metadata', () => {
 it('fleet gates by typed weight and tolerates missing reference metadata', () => {
   expect(fleet([row({ weight: 4 }), row({ aircraft: null, weight: 100 })], refs))
     .toEqual({ status: 'below', have: 4, need: 5 })
-  expect(ready(fleet([row({ aircraft: 'ZZZZ', weight: 5 })], refs))).toEqual({
+  expect(ready(fleet([row({ aircraft: 'ZZZZ', weight: 5 })], refs))).toMatchObject({
     topType: { icao: 'ZZZZ', share: 1 }, typed: 5, total: 5, types: 1, families: 0, byBodyType: [], byManufacturer: [],
   })
 })
@@ -121,4 +123,67 @@ it('clock gates by valid departure times and keeps missing metrics finite', () =
   expect(result.haul.every(item => item.flights === 0)).toBe(true)
   expect(result.byHour.every(item => Number.isFinite(item.flights))).toBe(true)
   expect(ready(clock(ten({ durationMinutes: 0 }))).averageSpeedKmh).toBeNull()
+})
+
+it('body split and most-flown family reproduce the board source', () => {
+  const board = JSON.parse(readFileSync(new URL('./__fixtures__/board.json', import.meta.url), 'utf8')) as OverviewPayload
+  const result = ready(fleet(board.rows.filter(row => row.state !== 'upcoming'), board.refs))
+  expect(result.bodies.filter(row => row.body === 'narrow').reduce((sum, row) => sum + row.flights, 0)).toBe(48)
+  expect(result.bodies.filter(row => row.body === 'wide').reduce((sum, row) => sum + row.flights, 0)).toBe(16)
+  expect(result.topFamily).toEqual({ family: 'A320', flights: 27 })
+  expect(result.familyCount).toBe(7)
+  expect(result.untyped).toBe(5)
+  expect(result.familyRows.map(row => row.family)).toEqual(['A320', '737', 'E-Jet', 'ATR 42/72', 'A350', '777', 'A330'])
+})
+
+it('family durations exclude estimates and invalids, preserve real samples and never divide weighted sums', () => {
+  const rows = [120, 30, 90, 0].map((durationMinutes, i) => row({ id: i + 1, durationMinutes }))
+  rows.push(row({ id: 5, durationMinutes: 600, durationSource: 'estimate' }),
+    row({ id: 6, durationMinutes: null }), row({ id: 7, durationMinutes: -1 }),
+    row({ id: 8, durationMinutes: NaN }), row({ id: 9, durationSource: null }),
+    row({ id: 10, weight: 3, durationMinutes: 750 }))
+  const expected = ready(fleet(rows, refs))
+  expect(expected.familyRows).toEqual([{ key: 'narrow:airbus:A320', family: 'A320', maker: 'airbus', body: 'narrow', flights: 12, minutes: [0, 30, 90, 120] }])
+  const grouped = aggregateRows(rows)
+  expect(ready(fleet(grouped, refs))).toEqual(expected)
+  expect(ready(fleet(aggregateRows([...rows].reverse()), refs))).toEqual(expected)
+  expect(ready(fleet(aggregateRows(grouped), refs))).toEqual(expected)
+  const legacy = grouped.map(row => { const copy = { ...row }; delete copy.preciseDurationSamples; return copy })
+  expect(ready(fleet(legacy, refs)).familyRows[0].minutes).toEqual([])
+  const payload = JSON.parse(readFileSync(new URL('./__fixtures__/n10.json', import.meta.url), 'utf8')) as OverviewPayload
+  const legacySingletons = { ...payload, mode: 'aggregate' as const, refs, rows: ten() }
+  expect(ready(computeOverview(legacySingletons, {}).fleet).familyRows[0].minutes).toEqual([])
+})
+
+it('new fleet rows omit missing metadata and use stable maker and body order', () => {
+  const extraRefs = { ...refs, aircraft: { ...refs.aircraft,
+    B77W: { manufacturer: 'Boeing', type: 'widebody', family: '777', name: null },
+    MISSING: { manufacturer: null, type: null, family: null, name: null } } }
+  const rows = [row({ aircraft: 'B77W', weight: 2 }), row({ aircraft: 'E75L', weight: 2 }), row({ weight: 2 }),
+    row({ aircraft: 'MISSING', weight: 2 }), row({ aircraft: null })]
+  const result = ready(fleet(rows, extraRefs))
+  expect(result.bodies).toEqual([{ key: 'narrow:airbus', body: 'narrow', maker: 'airbus', flights: 2 },
+    { key: 'narrow:embraer', body: 'narrow', maker: 'embraer', flights: 2 },
+    { key: 'wide:boeing', body: 'wide', maker: 'boeing', flights: 2 }])
+  expect(result.familyCount).toBe(3)
+  expect(result.topFamily).toEqual({ family: '777', flights: 2 })
+  expect(result.familyRows.every(row => row.minutes.length === 0)).toBe(true)
+  expect(result.untyped).toBe(1)
+})
+
+
+it('fleet body classification follows filter semantics and excludes absent metadata and zero rows', () => {
+  for (const [type, body] of [['narrowbody', 'narrow'], ['regional', 'narrow'], ['bizjet', 'narrow'],
+    ['turboprop', 'narrow'], ['piston', 'narrow'], ['widebody', 'wide'], [null, null]] as const) {
+    const metadata = { ...refs, aircraft: { A320: { ...refs.aircraft.A320, type } } }
+    const result = ready(fleet([row({ weight: 5 }), row({ aircraft: 'B738', weight: 0 })], metadata))
+    expect(result.bodies).toEqual(body ? [{ key: `${body}:airbus`, body, maker: 'airbus', flights: 5 }] : [])
+    expect(result.familyCount).toBe(body ? 1 : 0)
+    expect(result.topFamily).toEqual(body ? { family: 'A320', flights: 5 } : null)
+  }
+  const metadata = { ...refs, aircraft: { ...refs.aircraft, A319: { ...refs.aircraft.A319, type: 'widebody' } } }
+  const rows = [row({ aircraft: 'A319', weight: 2 }), row({ weight: 3 })]
+  const result = ready(fleet(rows, metadata))
+  expect(result.familyRows.map(row => [row.body, row.family, row.flights])).toEqual([['narrow', 'A320', 3], ['wide', 'A320', 2]])
+  expect(ready(fleet([...rows].reverse(), metadata))).toEqual(result)
 })

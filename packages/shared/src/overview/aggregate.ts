@@ -1,5 +1,6 @@
 import { allianceAt } from '../../../data/src/alliance-membership'
 import type { OverviewRow } from './model'
+import { preciseDurationSamples } from './figures'
 import { absoluteClockShiftMinutes, dateInstant, recordExtrema, recordFlights } from './records'
 
 const sum = (a: number | null, b: number | null) => a === null && b === null ? null : (a ?? 0) + (b ?? 0)
@@ -17,14 +18,18 @@ export function aggregateRows(rows: OverviewRow[]): OverviewRow[] {
       month, dateInstant(row.date) !== null, allianceAt(row.airline, row.date), hour, arrivalHour, row.durationSource, row.suppressed, row.originTz, row.destTz,
       row.distanceKm === null ? null : row.distanceKm / row.weight,
       row.durationMinutes === null ? null : row.durationMinutes > 0])
+    const samples = preciseDurationSamples(row)
     const group = groups.get(key)
     if (!group) {
-      groups.set(key, { ...row, depMinute: hour === null ? null : hour * 60,
+      const first: OverviewRow = { ...row, preciseDurationSamples: samples, depMinute: hour === null ? null : hour * 60,
         arrMinute: arrivalHour === null ? null : arrivalHour * 60, flightNumber: null, departureUtc: null, recordExtrema: recordExtrema([row]),
         recordFlights: recordFlights([row]),
-        clockShiftMinutes: absoluteClockShiftMinutes(row) })
+        clockShiftMinutes: absoluteClockShiftMinutes(row) }
+      if (!samples.length) delete first.preciseDurationSamples
+      groups.set(key, first)
       continue
     }
+    if (samples.length) (group.preciseDurationSamples ??= []).push(...samples)
     group.recordFlights = recordFlights([group, row])
     group.recordExtrema = recordExtrema([group, row])
     group.clockShiftMinutes = sum(group.clockShiftMinutes ?? null, absoluteClockShiftMinutes(row))
@@ -35,5 +40,6 @@ export function aggregateRows(rows: OverviewRow[]): OverviewRow[] {
     group.durationMinutes = sum(group.durationMinutes, row.durationMinutes)
     group.zonesOverflown = sum(group.zonesOverflown, row.zonesOverflown)
   }
+  for (const group of groups.values()) group.preciseDurationSamples?.sort((a, b) => a - b)
   return [...groups.values()].sort((a, b) => a.date.localeCompare(b.date) || a.id - b.id)
 }

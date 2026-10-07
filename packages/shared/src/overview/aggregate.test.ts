@@ -57,3 +57,23 @@ it('same-distance source witnesses retain the actual tie winner before aggregati
   expect(aggregateRows([...rows].reverse())).toEqual(grouped)
   expect(aggregateRows(grouped)).toEqual(grouped)
 })
+
+it('precise samples survive lossy merging, reversal and reaggregation without changing grouping', () => {
+  const rows = [30, 120, 90].map((durationMinutes, i) => ({ ...row(i + 1, null, '2025-01-03'), durationMinutes }))
+  const grouped = aggregateRows(rows)
+  expect(grouped).toHaveLength(1)
+  expect(grouped[0]).toMatchObject({ weight: 3, durationMinutes: 240, preciseDurationSamples: [30, 90, 120] })
+  expect(aggregateRows([...rows].reverse())).toEqual(grouped)
+  expect(aggregateRows(grouped)).toEqual(grouped)
+  expect(rows.every(row => !('preciseDurationSamples' in row))).toBe(true)
+  const emptyEvidence = { ...rows[0], preciseDurationSamples: [] }
+  expect(aggregateRows([emptyEvidence, rows[1]])[0].preciseDurationSamples).toEqual([120])
+  expect(emptyEvidence.preciseDurationSamples).toEqual([])
+  const malformedEvidence = { ...rows[0], preciseDurationSamples: [-1, NaN, Infinity] }
+  expect(aggregateRows([malformedEvidence])[0].preciseDurationSamples).toBeUndefined()
+  expect(aggregateRows([{ ...rows[0], durationSource: 'estimate', preciseDurationSamples: [30] }])[0].preciseDurationSamples).toBeUndefined()
+  const ineligible = [row(4, null, '2025-01-03')].map(row => ({ ...row, weight: 2 }))
+    .concat([{ ...row(5, null, '2025-01-03'), durationSource: 'estimate' as const },
+      { ...row(6, null, '2025-01-03'), durationMinutes: -1 }])
+  expect(aggregateRows(ineligible).every(row => !row.preciseDurationSamples)).toBe(true)
+})

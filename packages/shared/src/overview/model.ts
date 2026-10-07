@@ -73,6 +73,8 @@ export interface OverviewRow {
   destTz: string | null
   departureUtc: string | null
   suppressed: 0 | 1 | 2 | 3
+  // Exact constituent durations retained before aggregate sums lose their distribution.
+  preciseDurationSamples?: number[]
   recordExtrema?: RecordExtrema
   recordFlights?: RecordFlights
   clockShiftMinutes?: number | null
