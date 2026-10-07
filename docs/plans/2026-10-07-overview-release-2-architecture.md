@@ -539,18 +539,18 @@ export function parsePrefs(raw: string | null): OverviewPrefs  // never throws; 
   - engine rows go straight into `cell(...)` and `barY(...)` marks with no reshaping;
   - `createChartScene(definition, { width, height })` + `renderChartSvg(scene, { ariaLabel, idPrefix })` works without a DOM;
   - `<Chart definition height ariaLabel />` from `@tanstack/charts/react` server-renders an `<svg>` (prerender uses its 640 × 320 initial geometry).
-- The test definitions are fixtures, not product charts. Keep them unstyled: no tokens, colours or legends.
+- The test definitions are fixtures, not product charts. Keep them unstyled: no tokens, colours or legends. Version 1.0.0 requires explicit x/y scales; supply band/band for cells and band/linear for bars. The user authorized routine API corrections without repeated approval.
 
-- [ ] **Step 1: Write the failing tests:**
-  - `charts.test.ts › engine rows render without reshaping`. For a 10-flight fixture, `defineChart({ marks: [cell(scope.rhythm.value.cells, { x: 'month', y: 'year', color: 'flights', key: 'key' })] })` and `barY(scope.clock.value.byHour, { x: 'key', y: 'flights' })` each go through `createChartScene(def, { width: 600, height: 300 })` + `renderChartSvg`. Expect:
+- [x] **Step 1: Write the failing tests:**
+  - `charts.test.ts › engine rows render without reshaping`. For a 10-flight fixture, `defineChart({ marks: [cell(scope.rhythm.value.cells, { x: 'month', y: 'year', color: 'flights', key: 'key' })], scales: { x: { scale: scaleBand }, y: { scale: scaleBand } } })` and `barY(scope.clock.value.byHour, { x: 'key', y: 'flights' })` in a definition with band x and linear y scales each go through `createChartScene(def, { width: 600, height: 300 })` + `renderChartSvg`. Expect:
     - the markup starts with `<svg`;
     - it contains the `aria-label`;
     - rendering twice gives byte-identical strings (determinism the share card relies on).
   - `chart-ssr.test.tsx › Chart server-renders svg`: `renderToString(<Chart definition={def} height={320} ariaLabel="Clock" />)` contains `<svg` and `Clock`.
-- [ ] **Step 2:** `pnpm test:api -- packages/shared/src/overview/charts.test.ts` and `pnpm --filter @kuuki/next test -- chart-ssr`. Expected: FAIL (package missing).
-- [ ] **Step 3:** `pnpm add -w @tanstack/charts@1.0.0 && pnpm --filter @kuuki/next add @tanstack/charts@1.0.0`. Import from subpaths where the docs offer one (`@tanstack/charts/react`, `/svg`, `/scales/band`, `/scales/linear`, `/geo`) so the client chunk stays tree-shaken.
-- [ ] **Step 4:** Re-run both tests. Expected: PASS. Then `pnpm next:build`. Expected: success. Record the Overview route's client JS size delta in the commit body.
-- [ ] **Step 5:** Commit `chore(charts): add TanStack Charts and prove SSR and DOM-free rendering`.
+- [x] **Step 2:** `pnpm test:api -- packages/shared/src/overview/charts.test.ts` and `pnpm --filter @kuuki/next test -- chart-ssr`. Expected: FAIL (package missing).
+- [x] **Step 3:** `pnpm add -w --save-exact @tanstack/charts@1.0.0 && pnpm --filter @kuuki/next add --save-exact @tanstack/charts@1.0.0`. Import from subpaths where the docs offer one (`@tanstack/charts/react`, `/svg`, `/scales/band`, `/scales/linear`, `/geo`) so the client chunk stays tree-shaken.
+- [x] **Step 4:** Re-run both tests. Expected: PASS. Then `pnpm next:build`. Expected: success. Record the Overview route's client JS size delta in the commit body.
+- [x] **Step 5:** Commit `chore(charts): add TanStack Charts and prove SSR and DOM-free rendering`.
 
 ### Task 14: Public `/fly` subset
 

@@ -255,26 +255,30 @@ jsdom navigation notices. API typecheck exit 0. Those full-suite results are
 reused because runtime behavior did not change. Successful Task 11 build also
 remains applicable; no route or UI change. Checkboxes are committed with code.
 
-Task 13 is paused at issue 11. Exact Charts 1.0.0 is installed in root and
-Next, and unstyled DOM-free/React SSR tests are prepared, uncommitted. Both
-initial missing-package RED runs failed as expected. Both post-install runs
-fail (1 file / 1 test each):
+Task 13 is complete: exact Charts 1.0.0 in root and Next, direct engine-row
+fixtures for Rhythm/Clock/Fleet, deterministic DOM-free SVG and React SSR.
+Issue 11 is resolved under the user's revised instruction to make routine
+best-practice API corrections without repeated questions. The mandatory scale
+configuration is band/band for Rhythm and band/linear for bar fixtures, with
+no product chart, tokens, colors or legends. Heterogeneous scenes are built in
+individually inferred closures so shared test types remain valid.
 
-```text
-TypeError: Chart scales must define reserved `x` and `y` entries
-```
+Both initial RED suites failed with the missing dependency; the initial
+post-install mark-only fixture failed for absent required scales. Final focused
+DOM-free and SSR tests each pass 1/1. API/Next/shared typechecks exit 0 (shared
+has no typecheck script; direct tsc --noEmit -p used). Full API: `Test Files
+70 passed (70); Tests 769 passed (769)` in 99.68s. Full Next: `Test Files
+107 passed (107); Tests 1113 passed (1113)` in 25.34s; existing navigation
+notices remain. Build succeeds: entry 2278 bytes, assets 105 / 9226424 bytes,
+routes 73; existing Better Auth duplicate-key warning remains. Full API evidence
+is reused after the final test-only closure typing fix, verified by focused
+GREEN. Route client JS before/after is 1,268,522 bytes across 18 deduplicated
+route/root/polyfill files, delta 0 bytes. Full lock diff reviewed: Charts
+transitive dependencies plus same-version ESLint peer-key normalization.
 
-Next typecheck exits 2 with TS2769: `Property 'scales' is missing ... but required`.
-API typecheck exits 0; it excludes these shared/Next test files. The prescribed
-mark-only definitions omit mandatory scales in pinned 1.0.0. Recommend band
-x/y for Rhythm month/year and band x + linear y for Clock/Fleet fixture bars,
-keeping engine rows/mappings unchanged. Update Task 13 Step 1 accordingly.
-Await approval under the wrong-plan-step rule before implementing correction.
-Task 13 boxes are unchecked. Full suites/build and size delta are held pending
-passing fixtures. Before-install Overview client JS is 1,268,522 bytes across
-18 deduplicated route/root/polyfill files (`r2-t13-js-before.json`). Source
-lookups used Context7 and installed 1.0.0 source; no production chart is added.
-Tasks 14–17 remain unstarted. No open Task 12 decision. No per-task review under
+Task 13 checkboxes are committed with code. Tasks 14–17 remain unstarted.
+No open routine decision; explicit production/GitHub/UI/parity gates remain.
+No per-task review under
 the user's revised workflow; final whole-branch Opus review over
 `feat/overview-release-1-migrations...HEAD` remains required via T3 delegation.
 Logs: `/tmp/kuuki-overview-execution/r2-t12-*`. Local execution ledger:

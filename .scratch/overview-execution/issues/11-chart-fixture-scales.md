@@ -1,6 +1,6 @@
 # Chart fixtures omit mandatory scale definitions
 
-Status: open — waiting for the user's wrong-plan-step correction
+Status: resolved — routine correction authorized by the user
 
 Task 13 Step 1 uses `defineChart({ marks: [...] })` for the Rhythm cells and
 Clock bars. The pinned `@tanstack/charts@1.0.0` requires reserved x/y scales;
@@ -57,3 +57,13 @@ JS delta are held until the known failure is resolved. Before-dependency
 Overview client JS: 18 deduplicated route/root/polyfill files, 1,268,522 bytes,
 recorded in `/tmp/kuuki-overview-execution/r2-t13-js-before.json`.
 No Task 14–17 implementation, per-task review, UI, remote or GitHub action.
+
+## Resolution
+
+The user instructed: "Do not ask every time. Do a best practice". Required
+x/y fixture scales are implemented and the plan updated. Engine rows and mark
+mappings are unchanged; no product chart or styling is added. Focused DOM-free
+and React SSR tests each pass 1/1; shared/Next typechecks exit 0. The shared
+test creates each heterogeneous scene inside its own inferred closure rather
+than passing an incompatible union of definitions to a generic constructor.
+Full API 70/769 and Next 107/1113 pass. Production/GitHub/UI/parity gates remain.
