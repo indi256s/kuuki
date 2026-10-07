@@ -13,7 +13,7 @@ import { rateLimit } from '../_lib/ratelimit'
 import { DEFAULT_MODEL, ProviderResponseError, providerFailure, usageBucket } from '../import/_provider'
 
 // Below the 30s web client deadline; cancellation stops local work even if the provider stalls.
-const ENRICHMENT_DEADLINE_MS = 20_000
+export const ENRICHMENT_DEADLINE_MS = 20_000
 
 // JSON schema for structured output from Gemini
 const ENRICHMENT_RESPONSE_SCHEMA = {

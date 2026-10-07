@@ -214,6 +214,18 @@ export const apiRoutes = [
     ]
   },
   {
+    "route": "/api/flights/schedule-batch",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "route": "/api/flights/schedule-suggestions",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
     "route": "/api/flights/stats",
     "methods": [
       "GET"

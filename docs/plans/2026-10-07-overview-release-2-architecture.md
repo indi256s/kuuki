@@ -605,7 +605,7 @@ interface PublicOverview {
 
 ### Task 16: Schedule suggestions (ladder rung 3)
 
-**Files:** Create `functions/api/flights/schedule-suggestions.ts`, `functions/api/flights/schedule-batch.ts`, `functions/test/schedule-suggestions.test.ts` (with `import-fake-provider.ts`-style fake); Modify `functions/api/_services/flightMetrics.ts` (PATCH preservation), regenerate routes.
+**Files:** Create `functions/api/flights/schedule-suggestions.ts`, `functions/api/flights/schedule-batch.ts`, `functions/test/schedule-suggestions.test.ts` (with `import-fake-provider.ts`-style fake); Modify `functions/api/flights/[id].ts` (pass the existing resolver’s `timesFromSchedule` flag for PATCH preservation), export the shared deadline from `functions/api/enrich/aircraft.ts`, regenerate routes.
 
 **Interfaces:**
 - Consumes: `resolveFlightMetrics` (`timesFromSchedule`), the Gemini client pattern and `ENRICHMENT_DEADLINE_MS` from `functions/api/enrich/aircraft.ts`, `AIRCRAFT_BATCH_SIZE`.
@@ -619,14 +619,14 @@ interface PublicOverview {
   - PATCH rule: if the stored source is `schedule` and the times are unchanged → keep `schedule`. Edited times → `times`.
 - Production enablement (API key, cost, data use) is a separate authorization, like the import provider gate.
 
-- [ ] **Step 1: Write the failing tests:**
+- [x] **Step 1: Write the failing tests:**
   - `suggestions never write`.
   - `only estimate flights with a number are eligible`.
   - `accept stores schedule source and times`.
   - `owner edit of times turns schedule into times`.
   - `missing key is 503`.
-- [ ] **Step 2–4:** FAIL → implement → PASS.
-- [ ] **Step 5:** Commit `feat(api): reviewed schedule suggestions`.
+- [x] **Step 2–4:** FAIL → implement → PASS.
+- [x] **Step 5:** Commit `feat(api): reviewed schedule suggestions`.
 
 ### Task 17: Parity report and legacy retirement
 

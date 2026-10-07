@@ -88,6 +88,8 @@ export function updateFlightRequest(request: Request, env: Env, data: RequestDat
       destTz: patch.dest_tz === undefined && destination !== existing.destination ? null : destTz,
       clientDistanceKm: mergedDistance,
       excludeFlightId: id,
+      timesFromSchedule: existing.duration_source === 'schedule' &&
+        departureTime === existing.departure_time && arrivalTime === existing.arrival_time,
     }) : {
       originTz: existing.origin_tz, destTz: existing.dest_tz,
       departureUtc: existing.departure_utc, arrivalUtc: existing.arrival_utc,

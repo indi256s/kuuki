@@ -293,7 +293,7 @@ bytes, 105 assets / 9226424 bytes, 74 routes including the new GET, generated
 inventory committed. Existing Better Auth warning remains. Task 13 full Next
 107/1113 evidence remains applicable to this server-helper-only addition.
 Full owned code/tests/inventory reviewed. Checkboxes are committed with code.
-Task 15 is complete; Tasks 16–17 remain unstarted.
+Task 15 is complete at `31ae8ab`; Task 16 is complete; Task 17 remains unstarted.
 No open routine decision; explicit production/GitHub/UI/parity gates remain.
 No per-task review under
 the user's revised workflow; final whole-branch Opus review over
@@ -328,3 +328,33 @@ Complete source/test/inventory/lock diff reviewed: renderer dependencies plus
 same-version optional Next/ESLint peer normalization. Task checkboxes committed
 with code; final whole-branch Opus review remains pending, no per-task reviews.
 Logs: `/tmp/kuuki-overview-execution/r2-t15-*`.
+
+Task 16: authenticated/CSRF-protected bounded schedule suggestions and acceptance.
+Suggestions read only owned flights, skip non-estimates/missing airline or number,
+return 404 for unknown/foreign IDs, and save no flight/profile/projection data.
+Reuse Gemini model/client/grounded search, 20s deadline and paid-quota counter
+30/hour. Missing key returns 503 PROVIDER_DISABLED before D1. Structured provider
+output is bounded/validated, indexed to the input and projected; absent evidence
+means no inferred times/confidence 0. Local deadline fences an SDK ignoring abort.
+No production provider configuration or remote call.
+
+Acceptance uses ordinary time validation and the existing metrics resolver with
+schedule flag; the measured median still outranks schedule. Every guarded update
+and conditional dirty marker is in one D1 batch, with one repair afterward.
+CAS covers route/date/airline/number/time inputs and all eight stored metrics;
+concurrent changes get per-item STATE_CONFLICT without overwriting. Partial
+errors, atomic rollback and absolute-set replay match the aircraft batch pattern.
+PATCH reuses the existing timesFromSchedule flag at its call site for unchanged
+schedule times; edited local times become times. No extra preservation helper.
+The plan's file list was corrected to the actual PATCH call site.
+
+RED: missing endpoints. First GREEN exposed three test-fixture mistakes (D1 meta
+comparison, incorrect revision-column name, exec splitting trigger lines), fixed
+without changing product behavior. Final focused: `Test Files 1 passed (1); Tests
+27 passed (27)` in 8.99s. Full API: `Test Files 73 passed (73); Tests 818 passed
+(818)` in 92.44s; API typecheck exit 0. Build succeeds, 77 generated routes;
+entry 2278 bytes, 105 assets / 9226424 bytes. Existing Better Auth warning remains.
+Task 15 full Next 107/1113 and Worker smoke/boundary evidence remain applicable;
+this task changes API handlers, not the runtime boundary or UI. Owned source,
+tests and route diff reviewed; task checkboxes are in the implementation commit.
+No per-task review; final Opus branch review remains pending. Logs r2-t16-*.
