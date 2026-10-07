@@ -2,6 +2,8 @@ import { isEmptyFilter, rowCountries } from './filter'
 import type { OverviewFilter, OverviewPayload, OverviewRow } from './model'
 import type { Records } from './records'
 import type { Crossings } from './crossings'
+import type { Fleet } from './fleet'
+import type { Clock } from './clock'
 
 export type Gate<T> = { status: 'ready'; value: T } | { status: 'below'; have: number; need: number }
 export interface Figures {
@@ -19,6 +21,8 @@ export interface OverviewScope {
   home: { iata: string; source: 'override' | 'most_departed' } | null
   records: Gate<Records>
   crossings: Gate<Crossings>
+  fleet: Gate<Fleet>
+  clock: Gate<Clock>
 }
 
 const metric = (value: number | null): number => value !== null && Number.isFinite(value) && value >= 0 ? value : 0

@@ -84,6 +84,8 @@ it('empty scope is finite', () => {
   expect(empty.coverage).toEqual({ total: 0, typed: 0, withDepartureTime: 0, withBothTz: 0, preciseDuration: 0 })
   expect(empty.records).toEqual({ status: 'below', have: 0, need: 5 })
   expect(empty.crossings).toEqual({ status: 'below', have: 0, need: 3 })
+  expect(empty.fleet).toEqual({ status: 'below', have: 0, need: 5 })
+  expect(empty.clock).toEqual({ status: 'below', have: 0, need: 10 })
   expectFinite(empty)
   expectFinite(computeOverview(payload([]), {}))
 })

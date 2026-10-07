@@ -393,15 +393,15 @@ export function computeOverview(payload: OverviewPayload, filter: OverviewFilter
   - `clock(rows): Gate<Clock>`: minimum 10 with departure time.
   - `averageSpeedKmh` = Σdistance ÷ Σduration × 60 over precise rows with both values; null when there are none.
 
-- [ ] **Step 1: Write the failing tests:**
+- [x] **Step 1: Write the failing tests:**
   - `top type share of typed`.
   - `families use familyOf`.
   - `red-eye is the night band`.
   - `chart rows are complete`: `byHour` has 24 rows with keys '00'…'23' even when 3 hours have flights; `haul` always has 3 rows.
   - `speed needs precise durations` (only estimates → null).
   - `haul uses per-flight distance in aggregate rows`.
-- [ ] **Step 2–4:** FAIL → implement → PASS.
-- [ ] **Step 5:** Commit `feat(overview): fleet and clock`.
+- [x] **Step 2–4:** FAIL → implement → PASS.
+- [x] **Step 5:** Commit `feat(overview): fleet and clock`.
 
 ### Task 9: Rhythm, rankings and globe data
 

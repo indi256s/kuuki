@@ -135,7 +135,7 @@ API: 63 files / 706 tests passed; API typecheck exited 0. Task 3's unaffected
 Next evidence remains applicable. No per-task review under the revised user
 workflow. Task 6 checkboxes are in its implementation commit.
 
-Task 7 is complete in this commit: sampled great-circle crossings, per-call
+Task 7 is complete at `df92407`: sampled great-circle crossings, per-call
 memoization by directional route, weighted path counts, nullable stored zone
 sums and individual DST clock-shift sums. Direction shares use rows with known
 coordinates; missing coordinates cannot be classified. Latitude samples exactly
@@ -151,8 +151,24 @@ A full retry with `pnpm test:api --maxWorkers=4` passed: 64 files / 716 tests.
 API typecheck exited 0. No baseline test/script was changed. The Task 3 Next
 evidence remains applicable because no client/routes changed. No per-task review.
 
-Task 8 is next: Fleet and Clock. Tasks 8–17 are unstarted; no unresolved decision.
-No UI, production/remote or GitHub actions were performed.
+Task 8 is complete in this commit: weighted Fleet coverage, type shares, curated
+family totals, sorted manufacturer/body chart rows, complete 24-hour and
+three-haul Clock grids, night-band red eyes and precise-pair speed. Aircraft
+without metadata remain typed but add no invented family/manufacturer/body.
+Clock counts accepted departure times; only its duration-dependent speed needs
+precise duration provenance, following the Task 8 Interfaces. Estimates,
+missing pairs, invalid values and zero durations contribute no speed. Aggregate
+metrics are already sums; haul uses per-flight distance, and counts use weights.
+
+RED: missing Fleet module/scope field. Initial implementation exposed two
+exact-float test assertions; these now use numeric tolerance without changing
+the speed formula. Final focused GREEN: 2 files / 18 tests. Full API with four
+workers: 65 files / 725 tests passed; API typecheck exited 0. Empty-scope tests
+include the Fleet and Clock gates. No client/routes changed, so Task 3's Next
+evidence remains applicable. No per-task review under the user's workflow.
+
+Task 9 is next: Rhythm, rankings and globe data. Tasks 9–17 are unstarted;
+no unresolved user decision. No UI, production/remote or GitHub actions.
 
 Keep the final whole-branch Opus review over
 `feat/overview-release-1-migrations...HEAD` through T3 `delegate_task`, with a
