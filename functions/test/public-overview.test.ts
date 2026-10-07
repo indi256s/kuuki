@@ -48,7 +48,12 @@ it.each([[false, false], [true, false], [false, true], [true, true]])('sections 
     const body = await response.json() as Record<string, unknown>
     expect(Object.hasOwn(body, 'records')).toBe(records)
     expect(Object.hasOwn(body, 'fleet')).toBe(fleet)
-    if (records) expect(body.records).toMatchObject({ longest: { origin: 'TBS', destination: 'IST', value: 504 } })
+    if (records) {
+      expect(body.records).toMatchObject({ longest: { origin: 'TBS', destination: 'IST', value: 504 } })
+      expect(Object.keys(body.records as object).sort()).toEqual(['biggestClockJump', 'longest', 'longestDuration',
+        'longestStreakMonths', 'northernmost', 'shortest', 'shortestDuration', 'southernmost'])
+      expect((body.records as { northernmost: unknown }).northernmost).toEqual({ iata: 'IST', lat: 40 })
+    }
     if (fleet) expect(body.fleet).toMatchObject({ typed: 5, total: 5, topType: { icao: 'A320', share: 1 } })
   } finally { await dispose() }
 })
@@ -65,6 +70,8 @@ it('public subset leaks nothing finer than a month and counts neither upcoming n
     expect(text).not.toMatch(/\d{4}-\d{2}-\d{2}/)
     expect(text).not.toContain('PRIVATE-NUMBER')
     const forbidden = new Set(['home', 'homeOverride', 'home_airport', 'flightNumber', 'count', 'id', 'flightId',
+      'date', 'airline', 'durationMinutes', 'durationSource', 'durationApproximate', 'speedKmh',
+      'clockShiftMinutes', 'previousBestKm', 'equatorShare', 'shareOfLongest', 'earliestDeparture', 'busiestYear', 'flight',
       'depMinute', 'departureUtc', 'originTz', 'destTz', 'busiestDay', 'longestGroundStopDays'])
     const inspect = (value: unknown) => {
       if (value && typeof value === 'object') for (const [key, child] of Object.entries(value)) {

@@ -83,6 +83,16 @@ it.each(names)('%s matches its generated fixture and known snapshot values', nam
   if (name === 'n1') expect(result.figures.flights).toBe(1)
   if (name === 'n5001') {
     expect(fixture.mode).toBe('aggregate')
+    let ids = 0
+    const inspect = (value: unknown) => {
+      if (value && typeof value === 'object') for (const [key, child] of Object.entries(value)) {
+        if (key === 'flightId') { expect(child).toBeNull(); ids++ }
+        if (typeof child === 'number') expect(Number.isFinite(child)).toBe(true)
+        inspect(child)
+      }
+    }
+    inspect(result.records)
+    expect(ids).toBe(7)
     expect(result.records).toMatchObject({ status: 'ready', value: { busiestDay: null, longestGroundStopDays: null } })
   }
   if (name === 'microstate') expect(result.figures.countries).toEqual({ value: 4, source: 'by_air' })

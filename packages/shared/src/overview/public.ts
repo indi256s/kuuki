@@ -1,9 +1,16 @@
 import type { Fleet } from './fleet'
-import type { RecordExtrema, RecordRef } from './model'
-import type { Records } from './records'
+import type { RecordRef } from './model'
 
-export type PublicRecords = Omit<Records, keyof RecordExtrema | 'busiestDay' | 'longestGroundStopDays'> & {
-  [K in keyof RecordExtrema]: Omit<RecordRef, 'flightId'> | null
+type PublicRecord = Omit<RecordRef, 'flightId'> | null
+export interface PublicRecords {
+  longest: PublicRecord
+  shortest: PublicRecord
+  longestDuration: PublicRecord
+  shortestDuration: PublicRecord
+  biggestClockJump: PublicRecord
+  northernmost: { iata: string; lat: number } | null
+  southernmost: { iata: string; lat: number } | null
+  longestStreakMonths: number
 }
 export interface PublicOverview {
   routes: Array<[string, string]>

@@ -28,11 +28,29 @@ export type FacetKey = Exclude<keyof OverviewFilter, 'period'>
 export const HAUL_KM = { medium: 1500, long: 4000 } as const
 export const BAND_START_HOUR = { night: 22, morning: 6, afternoon: 12, evening: 18 } as const
 
-export interface RecordRef { flightId: number; origin: string; destination: string; value: number }
+export interface RecordRef { flightId: number | null; origin: string; destination: string; value: number }
+// Source identities stay numeric until the cabinet is projected, including legacy carried extrema.
+export interface SourceRecordRef { flightId: number; origin: string; destination: string; value: number }
+export interface DistanceRecordWitness extends SourceRecordRef {
+  date?: string | null
+  airline?: string | null
+  flightNumber?: string | null
+  durationMinutes?: number | null
+  durationSource?: DurationSource | null
+  clockShiftMinutes?: number | null
+}
 export interface RecordExtrema {
-  longest: RecordRef | null; shortest: RecordRef | null
-  longestDuration: RecordRef | null; shortestDuration: RecordRef | null
-  biggestClockJump: RecordRef | null
+  longest: DistanceRecordWitness | null; shortest: DistanceRecordWitness | null
+  longestDuration: SourceRecordRef | null; shortestDuration: SourceRecordRef | null
+  biggestClockJump: SourceRecordRef | null
+}
+export interface LatestFlightWitness {
+  flightId: number; origin: string; destination: string; value: number | null; date: string
+}
+export interface DepartureWitness extends SourceRecordRef { date: string; depMinute: number }
+export interface RecordFlights {
+  latest: LatestFlightWitness | null
+  earliestDeparture: DepartureWitness | null
 }
 
 export interface OverviewRow {
@@ -56,6 +74,7 @@ export interface OverviewRow {
   departureUtc: string | null
   suppressed: 0 | 1 | 2 | 3
   recordExtrema?: RecordExtrema
+  recordFlights?: RecordFlights
   clockShiftMinutes?: number | null
 }
 

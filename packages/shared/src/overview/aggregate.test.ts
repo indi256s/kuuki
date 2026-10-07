@@ -42,3 +42,18 @@ it('aggregation normalizes invalid local times to missing and valid times to hou
   expect(grouped.map(r => [r.depMinute, r.arrMinute, r.weight])).toEqual([[null, null, 6], [0, 0, 1], [1380, 1380, 1]])
   expect(aggregateRows(grouped)).toEqual(grouped)
 })
+
+it('same-distance source witnesses retain the actual tie winner before aggregation loses its context', () => {
+  const rows = [row(9, null, '2025-01-01'), { ...row(2, null, '2025-01-20'), flightNumber: 'ACTUAL', durationMinutes: 240 },
+    { ...row(7, null, '2025-01-25'), depMinute: 430 }]
+  const grouped = aggregateRows(rows)
+  expect(grouped).toHaveLength(1)
+  expect(grouped[0]).toMatchObject({ id: 2, date: '2025-01-01', weight: 3, distanceKm: 6000,
+    durationMinutes: 600, flightNumber: null, depMinute: 420,
+    recordExtrema: { longest: { flightId: 2, date: '2025-01-20', flightNumber: 'ACTUAL', durationMinutes: 240 },
+      shortest: { flightId: 2, date: '2025-01-20' } },
+    recordFlights: { latest: { flightId: 7, date: '2025-01-25', value: 2000 },
+      earliestDeparture: { flightId: 2, date: '2025-01-20', depMinute: 425 } } })
+  expect(aggregateRows([...rows].reverse())).toEqual(grouped)
+  expect(aggregateRows(grouped)).toEqual(grouped)
+})

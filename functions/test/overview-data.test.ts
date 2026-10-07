@@ -1,6 +1,6 @@
 import { expect, it, vi } from 'vitest'
 import { aggregateRows } from '../../packages/shared/src/overview/aggregate'
-import type { OverviewRow } from '../../packages/shared/src/overview/model'
+import type { OverviewPayload, OverviewRow } from '../../packages/shared/src/overview/model'
 import { computeOverview } from '../../packages/shared/src/overview/compute'
 import { overviewEtag, readOverviewData } from '../api/_services/overviewData'
 import { dirtyUserStatement, repairUserDerivedState } from '../api/_services/derivedState'
@@ -244,6 +244,28 @@ it('aggregate mode preserves totals above 5000 rows', async () => {
       GROUP BY substr(date, 1, 7) ORDER BY date`).bind(USER.id).all<{ date: string }>()
     expect(payload.rows.map(row => row.date)).toEqual(sourceMonths.results.map(row => row.date))
     expect(payload.rows.every(row => row.flightNumber === null && row.departureUtc === null)).toBe(true)
+    // Exercise the real SELECT/map/aggregate/JSON boundary with a witness unlike the group representative.
+    await db.batch([
+      db.prepare("UPDATE flights SET date = '2026-03-28', departure_time = '07:10', arrival_time = '10:00', duration_minutes = 60, duration_source = 'times', origin_tz = 'America/New_York', dest_tz = 'Europe/London' WHERE user_id = ?").bind(USER.id),
+      db.prepare("UPDATE flights SET date = '2026-03-30', departure_time = '07:05', duration_minutes = 180, flight_number = 'ACTUAL-WINNER', departure_utc = '2026-03-30T12:00:00Z' WHERE id = 1"),
+      db.prepare("UPDATE flights SET date = '2026-03-31', distance_km = NULL WHERE id = 5001"),
+    ])
+    const response = await getOverviewData({ ...apiContext(db, new Request('https://kuuki.test/api/me/overview/data')),
+      data: { user: USER } } as never)
+    expect(response.status).toBe(200)
+    const serialized = await response.json() as OverviewPayload
+    const group = serialized.rows.find(row => row.weight === 5000)!
+    expect(group).toMatchObject({ id: 1, date: '2026-03-28', distanceKm: 500000, durationMinutes: 300120,
+      depMinute: 420, flightNumber: null, departureUtc: null,
+      recordExtrema: { longest: { flightId: 1, date: '2026-03-30', flightNumber: 'ACTUAL-WINNER', durationMinutes: 180, clockShiftMinutes: 300 } } })
+    const cabinet = computeOverview(serialized, {}).records
+    expect(cabinet).toMatchObject({ status: 'ready', value: {
+      longest: { flightId: null, date: '2026-03-30', value: 100, flightNumber: 'ACTUAL-WINNER', durationMinutes: 180,
+        speedKmh: 100 * 60 / 180, clockShiftMinutes: 300, previousBestKm: 100 },
+      earliestDeparture: { flightId: null, date: '2026-03-30', value: 425, depMinute: 425 },
+      northernmost: { flight: { flightId: null, date: '2026-03-31', value: null } },
+    } })
+    expect(aggregateRows(serialized.rows)).toEqual(serialized.rows)
   } finally { await dispose() }
 })
 
@@ -294,6 +316,7 @@ it('aggregates weighted sums, minimum ids and nullable metrics deterministically
     row({ id: 4, date: '2025-01-25', weight: 3, distanceKm: 300, depMinute: 400, durationMinutes: 90, zonesOverflown: null })]
   const expected = [{ ...row(), id: 4, weight: 5, date: '2025-01-03', distanceKm: 500, durationMinutes: 150,
     depMinute: 360, zonesOverflown: null, flightNumber: null, departureUtc: null, clockShiftMinutes: null,
+    recordFlights: { latest: null, earliestDeparture: null },
     recordExtrema: { longest: null, shortest: null, longestDuration: null, shortestDuration: null, biggestClockJump: null } }]
   expect(aggregateRows(rows)).toEqual(expected)
   expect(aggregateRows([...rows].reverse())).toEqual(expected)

@@ -33,7 +33,8 @@ export async function readPublicOverview(db: D1Database, username: string): Prom
     result.records = {
       longest: publicRecord(records.longest), shortest: publicRecord(records.shortest),
       longestDuration: publicRecord(records.longestDuration), shortestDuration: publicRecord(records.shortestDuration),
-      biggestClockJump: publicRecord(records.biggestClockJump), northernmost: records.northernmost,
+      biggestClockJump: publicRecord(records.biggestClockJump),
+      northernmost: records.northernmost ? { iata: records.northernmost.iata, lat: records.northernmost.lat } : null,
       southernmost: records.southernmost, longestStreakMonths: records.longestStreakMonths,
     }
   }
