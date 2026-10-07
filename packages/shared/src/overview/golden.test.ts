@@ -122,6 +122,60 @@ function expectedRankingOutputs(fixture: OverviewPayload) {
   return { leaders, rankByYear, versus }
 }
 
+// Independent new-output oracle over fixture records, separate from engine helpers.
+function expectClockAndRhythm(fixture: OverviewPayload, result: ReturnType<typeof computeOverview>) {
+  const rows = fixture.rows.filter(row => row.state === 'logged' || row.state === 'awaiting')
+  const validMinute = (minute: number | null): minute is number => minute !== null && Number.isFinite(minute) && minute >= 0 && minute < 1440
+  if (result.clock.status === 'ready') {
+    const hours = (arrival: boolean) => Array.from({ length: 24 }, (_, hour) => ({ key: String(hour).padStart(2, '0'), hour,
+      flights: rows.reduce((sum, row) => {
+        const minute = arrival ? row.arrMinute : row.depMinute
+        return sum + (validMinute(minute) && Math.floor(minute / 60) === hour ? row.weight : 0)
+      }, 0) }))
+    const departures = hours(false), arrivals = hours(true)
+    const peak = (buckets: typeof departures) => {
+      const best = [...buckets].sort((a, b) => b.flights - a.flights || a.hour - b.hour)[0]
+      return best.flights > 0 ? { hour: best.hour, flights: best.flights } : null
+    }
+    const timed = rows.filter(row => validMinute(row.depMinute))
+    expect(result.clock.value).toMatchObject({ arrByHour: arrivals,
+      withArrivalTime: arrivals.reduce((sum, row) => sum + row.flights, 0),
+      beforeNoonShare: timed.filter(row => row.depMinute! < 720).reduce((sum, row) => sum + row.weight, 0) /
+        timed.reduce((sum, row) => sum + row.weight, 0), peakHour: peak(departures), arrPeakHour: peak(arrivals) })
+  }
+  if (result.rhythm.status !== 'ready') return
+  const value = result.rhythm.value
+  const monthCounts = Array.from({ length: 12 }, (_, i) => ({ month: i + 1,
+    flights: rows.filter(row => Number(row.date.slice(5, 7)) === i + 1).reduce((sum, row) => sum + row.weight, 0) }))
+  const best = monthCounts.sort((a, b) => b.flights - a.flights || a.month - b.month)[0]
+  expect(value.busiestMonthOfYear).toEqual(best.flights > 0 ? best : null)
+  const occupied = [...new Set(rows.map(row => Number(row.date.slice(0, 4)) * 12 + Number(row.date.slice(5, 7)) - 1))].sort((a, b) => a - b)
+  const label = (month: number) => `${String(Math.floor(month / 12)).padStart(4, '0')}-${String(month % 12 + 1).padStart(2, '0')}`
+  const gaps = occupied.slice(1).map((month, i) => ({ months: month - occupied[i] - 1, from: label(occupied[i] + 1), to: label(month - 1) }))
+    .filter(gap => gap.months > 0).sort((a, b) => b.months - a.months || a.from.localeCompare(b.from))
+  expect(value.longestGap).toEqual(gaps[0] ?? null)
+  const metric = (number: number | null) => number !== null && Number.isFinite(number) && number >= 0 ? number : 0
+  const months = [...new Set(rows.map(row => row.date.slice(0, 7)))].sort()
+  const sums = months.map(month => {
+    const members = rows.filter(row => row.date.slice(0, 7) === month)
+    return { flights: members.reduce((sum, row) => sum + row.weight, 0),
+      distanceKm: members.reduce((sum, row) => sum + metric(row.distanceKm), 0),
+      durationMinutes: members.reduce((sum, row) => sum + metric(row.durationMinutes), 0) }
+  })
+  expect(value.max).toEqual({ flights: Math.max(0, ...sums.map(sum => sum.flights)),
+    distanceKm: Math.max(0, ...sums.map(sum => sum.distanceKm)), durationMinutes: Math.max(0, ...sums.map(sum => sum.durationMinutes)) })
+  let km = 0
+  const expected = fixture.mode === 'aggregate' ? months.map((month, i) => {
+    km += sums[i].distanceKm
+    return { date: month, km, flightId: null }
+  }) : [...rows].sort((a, b) => a.date.localeCompare(b.date) || a.id - b.id).map(row => {
+    km += metric(row.distanceKm)
+    return { date: row.date, km, flightId: row.id }
+  })
+  expect(value.odometer.map(({ date, km, flightId }) => ({ date, km, flightId }))).toEqual(expected)
+  expect(new Set(value.odometer.map(point => point.key)).size).toBe(expected.length)
+}
+
 it.each(names)('%s matches its generated fixture and known snapshot values', name => {
   const path = fileURLToPath(new URL(`./__fixtures__/${name}.json`, import.meta.url))
   const generated = generate(name)
@@ -162,6 +216,7 @@ it.each(names)('%s matches its generated fixture and known snapshot values', nam
     expect(result.clock).toMatchObject({ status: 'ready', value: { redEyes: 10 } })
     expect(result.crossings).toMatchObject({ status: 'ready', value: { clockShiftHours: 50 } })
   }
+  expectClockAndRhythm(fixture, result)
   expect(result.rankings).toMatchObject(expectedRankingOutputs(fixture))
   expect(result).toMatchSnapshot()
 })
@@ -171,6 +226,10 @@ it('board fixture reproduces board totals', () => {
   const result = computeOverview(fixture, {})
   expect(fixture.schemaVersion).toBe(3)
   expect(result.figures).toMatchObject({ flights: 69, awaiting: 3, distanceKm: 141204 })
+  if (result.rhythm.status !== 'ready') throw new Error('Expected ready board rhythm')
+  expect(result.rhythm.value.odometer.at(-1)?.km).toBe(141204)
+  expect(result.rhythm.value.odometer).toHaveLength(69)
+  expectClockAndRhythm(fixture, result)
   expect(result.rankings).toMatchObject(expectedRankingOutputs(fixture))
   expect(result.rankings.airlines[0]).toEqual({ key: 'TK', count: 24 })
   expect(result.records).toMatchObject({ status: 'ready', value: { northernmost: { iata: 'KTT', lat: expect.closeTo(67.6986111111, 8) } } })

@@ -187,3 +187,28 @@ it('fleet body classification follows filter semantics and excludes absent metad
   expect(result.familyRows.map(row => [row.body, row.family, row.flights])).toEqual([['narrow', 'A320', 3], ['wide', 'A320', 2]])
   expect(ready(fleet([...rows].reverse(), metadata))).toEqual(result)
 })
+
+
+it('clock arrivals use local arrMinute independently and before-noon uses valid departure weight', () => {
+  const rows = [row({ id: 1, weight: 5, depMinute: 0, arrMinute: 400 }),
+    row({ id: 2, weight: 5, depMinute: 720, arrMinute: 1300 }),
+    row({ id: 3, weight: 2, depMinute: null, arrMinute: 0 }),
+    ...[null, -1, 1440, NaN, Infinity].map((arrMinute, i) => row({ id: i + 4, depMinute: null, arrMinute }))]
+  const result = ready(clock(rows))
+  expect(result).toMatchObject({ withDepartureTime: 10, withArrivalTime: 12, beforeNoonShare: 0.5,
+    peakHour: { hour: 0, flights: 5 }, arrPeakHour: { hour: 6, flights: 5 } })
+  expect(result.arrByHour).toHaveLength(24)
+  expect(result.arrByHour.filter(item => item.flights > 0)).toEqual([
+    { key: '00', hour: 0, flights: 2 }, { key: '06', hour: 6, flights: 5 }, { key: '21', hour: 21, flights: 5 },
+  ])
+  expect(ready(clock([...rows].reverse()))).toEqual(result)
+  expect(ready(clock(aggregateRows(rows)))).toEqual(result)
+  const explicit = ready(clock([...ten(), row({ arrMinute: 400, depMinute: null }), row({ arrMinute: 1300, depMinute: null })]))
+  expect(explicit.arrByHour[6].flights).toBe(1)
+  expect(explicit.arrByHour[21].flights).toBe(1)
+  expect(ready(clock(ten({ arrMinute: null, depMinute: 719 })))).toMatchObject({
+    beforeNoonShare: 1, withArrivalTime: 0, arrPeakHour: null })
+  expect(ready(clock(ten({ arrMinute: 1439, depMinute: 1439 })))).toMatchObject({
+    beforeNoonShare: 0, arrPeakHour: { hour: 23, flights: 10 } })
+  expect(clock(ten({ depMinute: null, arrMinute: 400 }))).toEqual({ status: 'below', have: 0, need: 10 })
+})

@@ -176,3 +176,72 @@ it('rankings preserve raw versus aggregate counts, selected entities and classif
     distanceKm: i % 2 ? 4000 : 3999, depMinute: i % 2 ? 1320 : 360 }))
   expect(rankings(aggregateRows(rows))).toEqual(rankings(rows))
 })
+
+
+function readyRhythm(rows: OverviewRow[], mode: OverviewPayload['mode'] = 'flights') {
+  const result = rhythm(rows, mode)
+  if (result.status !== 'ready') throw new Error('Expected ready rhythm')
+  return result.value
+}
+
+it('rhythm longest gap is internal, earliest on ties and preserves early calendar years', () => {
+  const rows = [row({ date: '2021-01-01' }), row({ id: 2, date: '2021-07-01' }),
+    row({ id: 3, date: '2022-01-01' })]
+  const result = readyRhythm(rows)
+  expect(result.longestGap).toEqual({ months: 5, from: '2021-02', to: '2021-06' })
+  expect(result.busiestMonthOfYear).toEqual({ month: 1, flights: 2 })
+  expect(readyRhythm([...rows].reverse())).toEqual(result)
+  expect(readyRhythm([row({ date: '0000-12-31' }), row({ date: '0001-02-01' })]).longestGap)
+    .toEqual({ months: 1, from: '0001-01', to: '0001-01' })
+  expect(readyRhythm([row({ date: '0099-12-31' }), row({ date: '0100-01-01' })]).longestGap).toBeNull()
+  expect(readyRhythm([row({ date: '2021-02-01', weight: 3 }), row({ date: '2022-01-01', weight: 3 })]).busiestMonthOfYear)
+    .toEqual({ month: 1, flights: 3 })
+})
+
+it('rhythm odometer retains actual dated flights and independently normalized metric maxima', () => {
+  const rows = [row({ id: 4, date: '0099-01-01', distanceKm: Infinity, durationMinutes: -1 }),
+    row({ id: 2, date: '0000-02-29', distanceKm: 50, durationMinutes: 900 }),
+    row({ id: 1, date: '0000-02-29', distanceKm: 100, durationMinutes: NaN }),
+    row({ id: 3, date: '0000-03-01', distanceKm: -1, durationMinutes: 20, weight: 5 }),
+    row({ id: 5, date: '2025-02-30', distanceKm: 800, durationMinutes: 30 }),
+    row({ id: 6, date: '2025-04-bad', distanceKm: null, durationMinutes: null }),
+    row({ id: 7, date: 'invalid', distanceKm: 99999 }),
+    row({ id: 8, date: '0000-03-02', distanceKm: NaN }),
+    row({ id: 9, date: '0000-03-03', distanceKm: null })]
+  const result = readyRhythm(rows)
+  expect(result.odometer.map(({ date, km, flightId }) => ({ date, km, flightId }))).toEqual([
+    { date: '0000-02-29', km: 100, flightId: 1 }, { date: '0000-02-29', km: 150, flightId: 2 },
+    { date: '0000-03-01', km: 150, flightId: 3 }, { date: '0000-03-02', km: 150, flightId: 8 },
+    { date: '0000-03-03', km: 150, flightId: 9 }, { date: '0099-01-01', km: 150, flightId: 4 },
+  ])
+  expect(new Set(result.odometer.map(point => point.key)).size).toBe(6)
+  expect(result.max).toEqual({ flights: 7, distanceKm: 800, durationMinutes: 900 })
+  expect(readyRhythm([...rows].reverse())).toEqual(result)
+  // Legacy month-prefix cells retain malformed days; dated odometer points do not fabricate them.
+  expect(result.cells.find(cell => cell.key === '2025-02')?.distanceKm).toBe(800)
+  const empty = readyRhythm([row({ date: '2025-01-01', weight: 0, distanceKm: NaN, durationMinutes: Infinity }),
+    row({ date: '2025-02-01', weight: 0, distanceKm: -1, durationMinutes: null })])
+  expect(empty.max).toEqual({ flights: 0, distanceKm: 0, durationMinutes: 0 })
+  expect(empty.busiestMonthOfYear).toBeNull()
+  expect(empty.longestGap).toBeNull()
+})
+
+it('aggregate odometer emits monthly sums with null IDs through computeOverview', () => {
+  const rows = [row({ id: 1, date: '2025-01-02', weight: 3, distanceKm: 300 }),
+    row({ id: 2, date: '2025-01-03', distanceKm: 50 }), row({ id: 3, date: '2025-07-03', distanceKm: 20 })]
+  const payload = JSON.parse(readFileSync(new URL('./__fixtures__/n10.json', import.meta.url), 'utf8')) as OverviewPayload
+  const grouped = aggregateRows(rows)
+  const result = computeOverview({ ...payload, rows: grouped, mode: 'aggregate' }, {}).rhythm
+  if (result.status !== 'ready') throw new Error('Expected ready rhythm')
+  expect(result.value.odometer).toEqual([
+    { key: 'aggregate:2025-01', date: '2025-01', km: 350, flightId: null },
+    { key: 'aggregate:2025-07', date: '2025-07', km: 370, flightId: null },
+  ])
+  const raw = readyRhythm(rows)
+  expect(raw.odometer.map(point => point.km)).toEqual([300, 350, 370])
+  expect(result.value).toMatchObject({ years: raw.years, cells: raw.cells, max: raw.max,
+    busiestMonthOfYear: raw.busiestMonthOfYear, longestGap: raw.longestGap })
+  expect(readyRhythm([...grouped].reverse(), 'aggregate')).toEqual(result.value)
+  const invalid = readyRhythm([row({ date: '2025-02-30' }), row({ date: '2025-03-01', distanceKm: null })], 'aggregate')
+  expect(invalid.odometer).toEqual([{ key: 'aggregate:2025-03', date: '2025-03', km: 0, flightId: null }])
+})
