@@ -1,0 +1,34 @@
+{
+ "light": {
+  "card": "#ffffff",
+  "ocean": "#fbfaf8",
+  "land": "#f2f0ed",
+  "border": "#dedad5",
+  "text": "#302d2a",
+  "accent": "#a94e35",
+  "rimPct": 14,
+  "buckets": [
+   "#dfccb8",
+   "#d1ae92",
+   "#c38a69",
+   "#b16042"
+  ],
+  "rim": "#f5e6e1"
+ },
+ "dark": {
+  "card": "#353331",
+  "ocean": "#292827",
+  "land": "#403d3a",
+  "border": "#554f4a",
+  "text": "#f1efeb",
+  "accent": "#e6a184",
+  "rimPct": 22,
+  "buckets": [
+   "#635549",
+   "#826855",
+   "#a77e65",
+   "#d4977b"
+  ],
+  "rim": "#574b40"
+ }
+}
