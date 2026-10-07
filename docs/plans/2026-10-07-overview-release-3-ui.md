@@ -42,6 +42,8 @@ All of it runs on the Release 2 engine.
 
 ## Global Constraints
 
+**User verification override (2026-10-07):** Skip all visual checks, screenshot/manual gallery inspection and visual comparison gates. Continue functional tests, typechecks, lint, builds and runtime navigation verification.
+
 **Precedence**
 - The board wins on layout, type sizes and copy, except where "Audit fixes" or "Critique fixes" in `design-decisions.md` explicitly override it (example: segmented cells are 44px, not 32px).
 - Inside `design-decisions.md`, a later dated section beats an earlier line.
@@ -320,10 +322,11 @@ Task 33 deletes the legacy `client/overview/{view,hero,figures,map-band,map-prev
   - `MEMBERSHIP: readonly { iata: string; alliance: Alliance; from: string; to: string | null; source: string }[]`. Dates are `YYYY-MM-DD`; `source` is the URL that was cited.
   - `allianceAt(iata: string | null, date: string): Alliance | null`.
   - `formerAlliance(iata: string, date: string): { alliance: Alliance; leftYear: number } | null`.
+  - Reused-code safety: `formerAlliance` conservatively returns null for MX on every date, because current MX is Breeze and no exact reassignment day is admitted. `allianceAt` retains old Mexicana’s verified active interval; ordinary carrier former/gap notes remain available.
 - **Maker rule:** the current type-certificate designation (A220 = Airbus). Embraer covers the E-Jets (`E170–E295`, `E75L/E75S`). ATR covers `AT43–AT76`. Everything else that is listed goes to `other`.
 - **Alliance rule:** the operating carrier's membership on the flight date. Cover every airline in `packages/data/src/airlines.json` that has a non-null `alliance`, plus known leavers. Source the dates from each alliance's current member and former-member tables, and cite them per row. Investigate stale static labels rather than inheriting them: EN has no evidenced operating-carrier span; OK is SkyTeam. Recognized affiliate/associate participation qualifies. The source dossier and dated admission note distinguish formal membership dates from admitted archive as-of and final operating-day boundaries; unresolved additional historical spans remain documented instead of receiving invented days.
 
-- [ ] **Step 1: Write the failing tests:**
+- [x] **Step 1: Write the failing tests:**
   - `aircraft-makers.test.ts › every reference aircraft has a slot`: every `icao` in `aircraft.json` is a key of the table.
   - `aircraft-makers.test.ts › current type designation`: `BCS3→airbus`, `BCS1→airbus`, `B712→boeing`, `B38M→boeing`, `MD11→other`, `E190→embraer`, `AT76→atr`, `DH8D→other`, `SU95→other`, `CRJ9→other`, `null→unknown`.
   - `alliance-membership.test.ts › membership at date`:
@@ -335,14 +338,14 @@ Task 33 deletes the legacy `client/overview/{view,hero,figures,map-band,map-prev
     - `formerAlliance('S7','2023-01-01')` equals `{ alliance: 'oneworld', leftYear: 2022 }`;
     - `allianceAt('FZ','2024-01-01') === null`.
   - `alliance-membership.test.ts › rows are well formed`: `from < to` when `to` is set; no overlapping spans per airline; every `source` starts with `https://`.
-- [ ] **Steps 2–4:** FAIL → implement → PASS.
-- [ ] **Step 5:** Commit `feat(data): maker slots and dated alliance membership`.
+- [x] **Steps 2–4:** FAIL → implement → PASS.
+- [x] **Step 5:** Commit `feat(data): maker slots and dated alliance membership`.
 
 ### Task 4: Facets v2 and prefs layout v2
 
 **Executor:** [Engine] · final review Opus
 
-**Files:** Modify `packages/shared/src/overview/model.ts`, `filter.ts`, `prefs.ts`, `filter.test.ts` and `properties.test.ts`, plus the prefs endpoint tests in `functions/test/`. Create `packages/shared/src/overview/prefs.test.ts`.
+**Files:** Modify `packages/shared/src/overview/model.ts`, `filter.ts`, `prefs.ts`, `filter.test.ts` and `properties.test.ts`, plus the prefs endpoint tests in `functions/test/`. Create `packages/shared/src/overview/prefs.test.ts`. Also modify `aggregate.ts` and its tests to preserve date-based alliance facets: membership state is a grouping dimension, and the deterministic representative date is the earliest actual represented source date. Monthly periods/replay labels and all Release 2 metric distinctions remain intact.
 
 **Interfaces:**
 - Consumes: `makerOf`, `allianceAt` (Task 3).
@@ -362,7 +365,7 @@ Task 33 deletes the legacy `client/overview/{view,hero,figures,map-band,map-prev
   - `parsePrefs` strips unknown filter keys, including legacy `manufacturers` and `bodyTypes`, instead of rejecting the object.
   - Prefs `version` stays `1`. No production prefs exist yet.
 
-- [ ] **Step 1: Write the failing tests:**
+- [x] **Step 1: Write the failing tests:**
   - `filter.test.ts › new facets match`:
     - `airports:['IST']` matches IST→FRA and FRA→IST;
     - `alliances:['oneworld']` matches an S7 flight dated 2019 and not one dated 2023;
@@ -374,16 +377,17 @@ Task 33 deletes the legacy `client/overview/{view,hero,figures,map-band,map-prev
   - `properties.test.ts`: the existing property ("a filter never increases flights") extended to generate the new facets.
   - `prefs.test.ts › legacy prefs normalize without throwing`. Input: `{"version":1,"filter":{"manufacturers":["Airbus"],"bodyTypes":["widebody"],"airlines":["TK"]},"layout":{"order":["records","rankings","bogus","records"],"hidden":["fleet","bogus"]},"replayPaused":false,"publicSections":{"records":true,"fleet":false}}`. Expect `filter` equal to `{ airlines: ['TK'] }`, `order` equal to `['records','rankings','manufacturers','fleet','clock','rhythm','crossings']`, and `hidden` equal to `['fleet']`.
   - The prefs PUT endpoint test rejects a body whose `layout.order` contains an unknown id (400) and accepts the normalized seven.
-- [ ] **Steps 2–4:** FAIL → implement → PASS.
-- [ ] **Step 5:** Commit `feat(overview): facets v2 and seven-section layout`.
+- [x] **Steps 2–4:** FAIL → implement → PASS.
+- [x] **Step 5:** Commit `feat(overview): facets v2 and seven-section layout`.
 
 ### Task 5: Figures v2, Next flights and the replay list
 
 **Executor:** [Engine] · final review Opus
 
-**Files:** Modify `figures.ts`, `compute.ts`, `model.ts` and `figures.test.ts`. Create `next.ts` and `next.test.ts`.
+**Files:** Modify `figures.ts`, `compute.ts`, `model.ts` and `figures.test.ts`. Create `next.ts` and `next.test.ts`. Add the required Passport country identity field through `functions/api/_services/overviewData.ts`, its focused API tests, and minimal payload constructors/fixture generators needed for the additive field.
 
 **Interfaces:**
+- `OverviewPayload.passport` gains `countryCodes: string[]`: sorted, unique pressed-country codes from the existing owner-scoped Passport read. Counts alone cannot establish whether an upcoming destination was visited by claim, ground visit or legacy evidence. Preserve schema v3 and the owner-qualified ETag.
 - `Figures` gains:
   - `firstDate: string | null`: the earliest counted date.
   - `airports: number`: distinct endpoints in scope.
@@ -631,20 +635,20 @@ This is open decision 1: the default is endpoint offsets, not overflown zones.
   - 32px visual with a 44px coarse hit area.
   - The body button opens the facet; a separate × button removes it.
   - Text ellipsizes; the × always stays visible.
-- `PopoverRoot` / `PopoverTrigger` / `PopoverContent({ align, children })`: a Radix wrapper on level 2, with Esc and outside-click to close and focus returned to the trigger.
+- `PopoverRoot` / `PopoverTrigger` / `PopoverContent({ align, children })`: a Radix wrapper on level 2, with Esc and outside-click to close. Esc and nonfocusable outside dismissal return focus to the actual opener; an intentionally clicked outside control keeps focus. Dismissal unmounts immediately so a rapid reopening captures the current opener; entry motion and its reduced-motion fade remain.
 - `Skeleton({ height, label })`: a fixed-height `--surface-inset` block with `aria-busy` and the label for screen readers. No shimmer.
 - `MakerSwatch({ maker, size = 12 })`: a filled rounded square with radius 20%, `--cat-maker-*`.
 - `AllianceMark({ alliance, size = 12 })`: ★ ○ △ in `--cat-alliance-*`, with an `aria-label` naming the alliance.
-- `MonthRange({ from, to, min, max, onChange, onClear, locale })`: two 44px month pickers (From / To) and a 44px Clear button. It emits `{ from: 'YYYY-MM', to: 'YYYY-MM' } | null`, and `from > to` swaps them.
+- `MonthRange({ from, to, min, max, onChange, onClear, locale })`: two 44px month pickers (From / To) and a 44px Clear button. It emits `{ from: 'YYYY-MM', to: 'YYYY-MM' } | null`, and `from > to` swaps them. Every nonempty endpoint must satisfy the current bounds before emission; changed bounds invalidate incompatible partial drafts.
 
-- [ ] **Step 1: Write the failing tests:**
+- [x] **Step 1: Write the failing tests:**
   - `chip.test.tsx › remove does not open`.
   - `popover.test.tsx › escape closes and restores focus`.
   - `category-mark.test.tsx › alliance mark has accessible name`.
   - `month-range.test.tsx › swaps reversed range` and `› clear emits null`.
-- [ ] **Steps 2–4:** FAIL → implement → PASS.
-- [ ] **Step 5:** Add gallery entries and check `/dev/gallery?theme=dark&locale=ru` by eye.
-- [ ] **Step 6:** Commit `feat(ui): chip, popover, skeleton, category marks, month range`.
+- [x] **Steps 2–4:** FAIL → implement → PASS.
+- [x] **Step 5:** Add gallery entries. Visual inspection is skipped under the explicit user verification override.
+- [x] **Step 6:** Commit `feat(ui): chip, popover, skeleton, category marks, month range`.
 
 ### Task 15: Chart kit
 

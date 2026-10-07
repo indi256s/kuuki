@@ -3,7 +3,14 @@
 import './gallery.css'
 import { Archive, Plane, Trash2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
+import { MAKER_SLOTS } from '@kuuki/data/aircraft-makers'
+import { ALLIANCES } from '@kuuki/data/alliance-membership'
 import { setTheme } from '../../../client/appearance'
+import { AllianceMark, MakerSwatch } from '../../../client/ui/category-mark'
+import { Chip } from '../../../client/ui/chip'
+import { MonthRange, type MonthRangeValue } from '../../../client/ui/month-range'
+import { PopoverContent, PopoverRoot, PopoverTrigger } from '../../../client/ui/popover'
+import { Skeleton } from '../../../client/ui/skeleton'
 import { Button } from '../../../client/ui/button'
 import { DestructiveConfirm } from '../../../client/ui/destructive-confirm'
 import { Dialog } from '../../../client/ui/dialog'
@@ -45,6 +52,9 @@ export function Gallery({ initialTheme, initialLocale }: { initialTheme: Theme; 
 
 function Sections({ locale, theme, t }: { locale: Locale; theme: Theme; t: (en: string, ru: string) => string }) {
   const toast = useToast()
+  const [range, setRange] = useState<MonthRangeValue | null>({ from: '2025-01', to: '2025-12' })
+  const [chip, setChip] = useState(true)
+  const [filterOpen, setFilterOpen] = useState(false)
   const [dialog, setDialog] = useState(false)
   const [confirm, setConfirm] = useState(false)
   const [sheetB, setSheetB] = useState(false)
@@ -67,6 +77,25 @@ function Sections({ locale, theme, t }: { locale: Locale; theme: Theme; t: (en: 
         <div className="gallery-row"><Button variant="primary">{t('Save flight', 'Сохранить перелёт')}</Button><Button>{t('Cancel', 'Отмена')}</Button><Button variant="ghost">{t('Skip', 'Пропустить')}</Button><Button variant="danger">{t('Delete flight', 'Удалить перелёт')}</Button></div>
         <div className="gallery-row ui-button-group"><Button dense variant="primary">{t('Dense', 'Компактная')}</Button><Button dense>{t('Dense', 'Компактная')}</Button><Button dense static>{t('Static', 'Без нажатия')}</Button></div>
         <div className="gallery-row"><Button variant="primary" loading loadingLabel={t('Saving…', 'Сохраняем…')}>{t('Save flight', 'Сохранить перелёт')}</Button><Button variant="primary" disabledReason={t('Add a destination to save.', 'Добавьте пункт назначения, чтобы сохранить.')}>{t('Save flight', 'Сохранить перелёт')}</Button></div>
+      </section>
+      <section><h2>{t('Filter controls', 'Фильтры')}</h2>
+        <div className="gallery-row">
+          {chip ? <Chip label={`${t('Period', 'Период')} · ${range?.from ?? '…'} — ${range?.to ?? '…'}`} onOpen={() => setFilterOpen(true)} onRemove={() => { setChip(false); setRange(null) }} removeLabel={t('Remove period filter', 'Убрать фильтр периода')} /> : <Button dense onClick={() => setChip(true)}>{t('Restore chip', 'Вернуть фильтр')}</Button>}
+          <PopoverRoot open={filterOpen} onOpenChange={setFilterOpen}>
+            <PopoverTrigger asChild><Button dense>{t('Edit filter', 'Изменить фильтр')}</Button></PopoverTrigger>
+            <PopoverContent aria-label={t('Period filter', 'Фильтр периода')}>
+              <MonthRange from={range?.from ?? ''} to={range?.to ?? ''} min="2000-01" max="2026-12" locale={locale} onChange={setRange} onClear={() => setFilterOpen(false)} />
+            </PopoverContent>
+          </PopoverRoot>
+        </div>
+        <MonthRange from={range?.from ?? ''} to={range?.to ?? ''} min="2000-01" max="2026-12" locale={locale} onChange={setRange} onClear={() => {}} />
+      </section>
+      <section><h2>{t('Loading placeholder', 'Заглушка загрузки')}</h2><Skeleton height={180} label={t('Loading chart', 'Загрузка диаграммы')} /></section>
+      <section><h2>{t('Manufacturers', 'Производители')}</h2>
+        <div className="gallery-row">{MAKER_SLOTS.map(maker => <span key={maker} className="ui-category-label"><MakerSwatch maker={maker} />{{ airbus: 'Airbus', boeing: 'Boeing', embraer: 'Embraer', atr: 'ATR', other: t('Other', 'Другие'), unknown: t('Unknown', 'Неизвестно') }[maker]}</span>)}</div>
+      </section>
+      <section><h2>{t('Alliances', 'Альянсы')}</h2>
+        <div className="gallery-row">{ALLIANCES.map(alliance => <span key={alliance} className="ui-category-label"><AllianceMark alliance={alliance} />{{ star: 'Star Alliance', oneworld: 'oneworld', skyteam: 'SkyTeam' }[alliance]}</span>)}</div>
       </section>
       <section><h2>Field</h2>
         <div className="gallery-fields">

@@ -1,6 +1,6 @@
 # Overview Release 3 UI — execution handoff
 
-Date: 2026-10-07. Scope: entire 34-task plan in progress. Tasks1–2 and13 accepted; Task3 is in independent review. Task14 is next; later tasks remain pending.
+Date: 2026-10-07. Scope: entire 34-task plan in progress. Tasks1–4 and13 accepted. Task4 passed990 API tests and independent full review; committed at enginebd01dbb and integrated as UI6afb922. Task14 is accepted: final source review approved the focus and immediate-dismissal corrections; combined source passed1164 Next unit tests, a fresh production build and all156 navigation tests. Its commit is the current control-source commit in Git history. Task5 implementation is active. Visual checks are skipped by user.
 
 ## Owning checkout and revisions
 
@@ -32,23 +32,22 @@ Checks also confirmed the merge adds only the four intended design-record paths,
 
 ## Current implementation progress
 
-Task13 source is uncommitted in the UI checkout. Shu migration, exact palettes and kana Wordmark passed 1,123 Next unit tests, focused fixes (45 tests), lint/typecheck, eight header size/theme/language captures and an OpenNext build. All nine compiled foundation checks passed. The full navigation run initially found two stale border-height assertions; the corrected 48/56px and zero-border checks passed, followed by all156 navigation tests (exit0, /tmp/kuuki-r3-task13-navigation-rerun.log). Independent round2 closed navigation/palette findings but identified I3: dark Shu text on the auth create-step Change button's inset surface is4.124:1. A minimal dark ink rule now covers this button and Passport list links on the floating sheet. Both auth cases produced actual compiled RED before the fix. The fresh build and all9 affected compiled checks passed, including real Passport links and auth edit/focus behavior. Final navigation passed all156 tests (exit0, /tmp/kuuki-r3-task13-navigation-final.log). Round3 focused independent review approved the final source/test change with no findings. Task13 is accepted; controller commit follows. Own devservers stopped and generated next-env.d.ts restored.
+Task13 is committed at759b283978c8fe1d482f3e418cab9cd7fc6bac94. Shu migration, exact palettes and kana Wordmark passed 1,123 Next unit tests, focused fixes (45 tests), lint/typecheck, eight header size/theme/language captures and an OpenNext build. All nine compiled foundation checks passed. The full navigation run initially found two stale border-height assertions; the corrected 48/56px and zero-border checks passed, followed by all156 navigation tests (exit0, /tmp/kuuki-r3-task13-navigation-rerun.log). Independent round2 closed navigation/palette findings but identified I3: dark Shu text on the auth create-step Change button's inset surface is4.124:1. A minimal dark ink rule now covers this button and Passport list links on the floating sheet. Both auth cases produced actual compiled RED before the fix. The fresh build and all9 affected compiled checks passed, including real Passport links and auth edit/focus behavior. Final navigation passed all156 tests (exit0, /tmp/kuuki-r3-task13-navigation-final.log). Round3 focused independent review approved the final source/test change with no findings. Task13 is accepted and committed at759b283978c8fe1d482f3e418cab9cd7fc6bac94; full workspace lint/typecheck commit hook passed. Own devservers stopped and generated next-env.d.ts restored.
 
 Task2 accepted after two independent review rounds. Engine commit489115b was cherry-picked to UI asbf94757. Payloadv3, precise arrival derivation, owner-qualified ETag, aggregate arrival preservation and real board generator passed856 API/10 data-store tests and both typechecks. Sourced canonical KTT/AT76 repairs passed74 focused tests, typecheck and generator/reference preservation. The commit hook's full workspace lint/typecheck and API typecheck passed. Real board:69 counted,141204km,14countries; KTT northernmost,2 Arctic crossings,18 counted airports located and canonical ATR family. Task2 checkboxes and its source-parity issue gate are complete.
 
 Binding review dispositions are recorded in the plan, appended dated design decision and local tickets: [palette exceptions](../../.scratch/overview-redesign/issues/01-palette-contrast.md) retain exact Unknown/heat values with visible ink/value/table/tooltip gates at14/27/30/final; [board source fidelity](../../.scratch/overview-redesign/issues/02-board-source-parity.md) uses actual14 countries and upcomingMLE newCountry=false because real DOH→MLE is already logged. Do not fabricate evidence to reproduce illustrative16/new labels. Original source routes/dates/distances/durations remain intact.
 
-Alliance primary-source dossiers rounds1–3 are complete. Task3 maker/alliance implementation is complete in the engine checkout at489115b:115 focused /972 full API tests, API/data/shared typechecks, lint and diff check passed; full independent review is active. The dated design admission note records recognized associate/affiliate participation, corrected static labels, qualified SU archive as-of and operational-day boundaries, and excluded incomplete histories. No dates are padded from unknown year/month. Task14 follows Task13 acceptance; its dispatch preparation is .superpowers/sdd/r3-task14-brief.md.
+Alliance primary-source dossiers rounds1–3 are complete. Task3 maker/alliance implementation is complete in the engine checkout at489115b:115 focused /972 full API tests, API/data/shared typechecks, lint and diff check passed; independent review round1 found I1: former-alliance lookup transfers old Mexicana history to today’s MX carrier, Breeze. The fix conservatively suppresses MX former-history notes on every date while preserving verified historical active dates, without inventing a reassignment day. Round2 independently approved it;125 focused tests, typechecks and full workspace commit checks passed. Task3 is accepted at engineff72affff60814625526dc2e13020196af88e3e5 and UI6aab73c. M1 lint configuration warnings are nonblocking tooling noise. The dated design admission note records recognized associate/affiliate participation, corrected static labels, qualified SU archive as-of and operational-day boundaries, and excluded incomplete histories. No dates are padded from unknown year/month. Task14 independent Chip/Popover/Skeleton/MonthRange controls at759b283 passed88 UI tests, lint/typecheck and diff check; their partial independent review identified blank-dismissal focus loss and invalid-range emission after bounds change. Both original repairs are complete. Canonical category marks are integrated;107 UI tests passed. Whole-task round2 review found an additional lifecycle defect: React autoFocus or a focusing child ref bypasses Radix open-autofocus and loses the actual opener. The bounded early-child correction passed12 tests. Round3 found that the optional120ms exit retains the old opener on rapid reopening. The controller admitted immediate dismissal, preserving entry motion, and its bounded correction passes16 focused tests. Round4 independent review approved the final source without findings. The final full Next run passed1164 tests with unchanged timeouts, and the fresh post-fix build passed. Task4 shared-source integration followed; combined full Next unit tests passed1164/113files, fresh production build passed and full functional navigation passed156 (exit0, /tmp/kuuki-r3-task4-task14-integrated-navigation.log). Task14 is accepted. Earlier intermittent Passport, recovery and import-reload failures did not reproduce in the final run. Visual checks remain waived. No duplicate classification tables or temporary canonical aliases.
 
 Detailed tasks/IDs/checks and Paper reference exports are in UI `.superpowers/sdd/progress.md` and accompanying reports. User profile remains GPT‑6.1Sol medium implementation/research, high substantial review. No push, PR, deploy or remote D1 writes are authorized.
 
+The separate Next runtime thread `3958a5ff-0321-4a22-89dc-0a72b1e05b79` owns the Next16.4 upgrade, instant navigation, account caching and write invalidation in its own checkout. Release3 continues on its pinned framework revision; accepted runtime changes need deliberate integration before final release checks. Browser fixtures here will use the existing KUUKI_NEXT_PORT override to avoid port collisions.
+
 ## Next work
 
-Continue with Tasks 2–11 and 13–15 from [the copied implementation plan](2026-10-07-overview-release-3-ui.md):
+Continue with Tasks5–11 and15 from [the copied implementation plan](2026-10-07-overview-release-3-ui.md):
 
-- Task 2: payload v3, arrival minute and the board fixture.
-- Task 3: maker and alliance tables.
-- Task 4: facets v2 and normalized seven-section prefs.
 - Task 5: figures v2, upcoming flights and replay list.
 - Task 6: records cabinet.
 - Task 7: rankings v2.
@@ -56,8 +55,6 @@ Continue with Tasks 2–11 and 13–15 from [the copied implementation plan](202
 - Task 9: clock and rhythm v2.
 - Task 10: crossings v2.
 - Task 11: narrator engine with neutral placeholders.
-- Task 13: Shu accent, data tokens and kana logo.
-- Task 14: shared UI controls and category marks.
 - Task 15: chart kit and table/touch/lazy-loading paths.
 
 Task 12 is the separate narrator corpus owner-review gate; do not mark it accepted without owner review. All later tasks remain unchecked. The user requests GPT-6.1 Sol for every agent, overriding the plan's executor/reviewer model choices. Builds and browser fixtures must stay serial.
@@ -65,3 +62,7 @@ Task 12 is the separate narrator corpus owner-review gate; do not mark it accept
 Retain Release 2's owner-qualified ETags and account isolation when Task 2 changes the version prefix to `ov3`; its plan example omits the owner qualifier. Preserve the reviewed aggregate-metric distinctions. Imported `DESIGN.md` contains an older Overview summary (six sections, scatter/jet-lag arrows, narrator hairline); the Release 3 Global Constraints and later dated design decisions supersede it. Reconcile documentation in Task 34 rather than implementing those historical descriptions.
 
 The plan's open-decision defaults remain in effect: endpoint hourly UTC offsets; haul split at 4,000 km; `--mark-2` for far-side haul/red-eye segments. No additional product decision was made in Task 1.
+
+## User verification override — 2026-10-07
+
+The user instructed: "do not do visual checks, skip them". Visual checks and their plan acceptance gates are waived for the rest of Release3. Screenshot/manual gallery checks already started were stopped; no further visual inspection or comparison is required. Functional tests, typechecks, lint, builds and runtime navigation checks remain required.
