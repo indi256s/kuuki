@@ -79,29 +79,37 @@ function configuredMailSender(env: Env, purpose: keyof typeof MAIL): MailSender 
   const accountId = env.ACTIVATION_MAIL_ACCOUNT_ID
   const bearer = env.ACTIVATION_MAIL_AUTH_TOKEN
   const from = env.ACTIVATION_MAIL_FROM
-  if (!accountId || !/^[0-9a-f]{32}$/i.test(accountId) || !bearer || /\s/.test(bearer) ||
-      !from || !/^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+$/.test(from)) {
+  const binding = env.ACTIVATION_MAIL
+  if (!from || !/^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+$/.test(from) ||
+      (!binding && (!accountId || !/^[0-9a-f]{32}$/i.test(accountId) || !bearer || /\s/.test(bearer)))) {
     throw new HttpError(503, mail.unavailable, mail.code)
   }
   const url = `https://api.cloudflare.com/client/v4/accounts/${accountId}/email/sending/send`
   return {
     async send(to, link) {
       const controller = new AbortController()
-      const timer = setTimeout(() => controller.abort(), 10_000)
+      const timer = binding ? undefined : setTimeout(() => controller.abort(), 10_000)
       let status: number | undefined
       let errorCodes: number[] = []
       try {
+        const message = {
+          from, to: [to], subject: mail.subject,
+          text: `${mail.subject} using this link:\n\n${link}\n`,
+          html: `<p>${mail.subject} using this link:</p><p><a href="${escapeHtml(link)}">${mail.action}</a></p>`,
+        }
+        if (binding) {
+          // Native sends cannot be cancelled: wait for acknowledgement before invalidating an issued link.
+          const receipt = await binding.send(message)
+          if (typeof receipt?.messageId !== 'string' || receipt.messageId.length === 0) throw new Error(SENDER_FAILURE)
+          return
+        }
         const response = await fetch(url, {
           method: 'POST',
           // workerd supports manual/follow only; !response.ok rejects redirects.
           redirect: 'manual',
           signal: controller.signal,
           headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${bearer}` },
-          body: JSON.stringify({
-            from, to: [to], subject: mail.subject,
-            text: `${mail.subject} using this link:\n\n${link}\n`,
-            html: `<p>${mail.subject} using this link:</p><p><a href="${escapeHtml(link)}">${mail.action}</a></p>`,
-          }),
+          body: JSON.stringify(message),
         })
         status = response.status
         const receipt = await readBoundedResponse(response)
@@ -113,7 +121,7 @@ function configuredMailSender(env: Env, purpose: keyof typeof MAIL): MailSender 
       } catch {
         // Provider bodies and transport errors can contain addresses, links, or credentials.
         console.error(JSON.stringify({ event: 'mail_send_failed', purpose, status, errorCodes,
-          reason: controller.signal.aborted ? 'timeout' : status === undefined ? 'transport' : 'response',
+          reason: controller.signal.aborted ? 'timeout' : binding ? 'binding' : status === undefined ? 'transport' : 'response',
         }))
         throw new Error(SENDER_FAILURE)
       } finally {

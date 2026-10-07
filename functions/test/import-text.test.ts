@@ -24,6 +24,9 @@ it('imports a structured travel log locally, preserving uncertainty and excludin
     '2020-03-25 | EVN → ROV | Azimuth A4226 | 12:55 → 12:35 [canceled; times from calendar]',
     '2022-03-13 | SAW → AYT | Pegasus Airlines PC2012 | 15:40 → 16:55 [unpaid reservation]',
     '2024-10-31 | TBS → DOH | Qatar Airways QR254 | 20:55 → 23:00 [superseded; replaced by QR256 at 14:20]',
+    '2026-03-10 | JFK → LHR | BA178 [replaced by BA179]',
+    '2026-03-11 | JFK → LHR | BA178 [cancelled due to weather]',
+    '2026-03-12 | JFK → LHR | BA178 [refunded on 2026-03-11]',
     'Other-passenger bookings or conflicting ownership (18)',
     '2026-01-30 | TBS → GYD | Azal J28234 | 17:50 → 19:00 [other passenger]',
     '2026-01-31 | GYD → TBS | J28225 | 20:50 → 22:00',
@@ -84,9 +87,10 @@ it('keeps uncertain cancellation evidence for review instead of excluding or pre
     '2025-01-02 | JFK → LHR | BA178 [canceled?]',
     '2025-01-03 | JFK → LHR | BA178 [booking canceled?]',
     '2025-01-04 | JFK → LHR | BA178 [not canceled; canceled email was for outbound]',
+    '2025-01-05 | JFK → LHR | BA178 [replaced by BA179; disputed]',
   ].join('\n') })
   expect(result.flights.map(f => [f.date, rowOf(f).selected])).toEqual([
-    ['2025-01-02', false], ['2025-01-03', false], ['2025-01-04', false],
+    ['2025-01-02', false], ['2025-01-03', false], ['2025-01-04', false], ['2025-01-05', false],
   ])
 })
 

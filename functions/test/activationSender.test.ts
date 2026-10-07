@@ -1,5 +1,5 @@
 import { afterEach, expect, it, vi } from 'vitest'
-import { configuredActivationSender } from '../api/_lib/activationSender'
+import { configuredActivationSender, configuredRecoverySender } from '../api/_lib/activationSender'
 
 const ACCOUNT_ID = '0123456789abcdef0123456789abcdef'
 const TOKEN = 'synthetic-cloudflare-token'
@@ -16,6 +16,52 @@ function receipt(result: Record<string, unknown>, errors: unknown[] = []): Respo
 }
 
 afterEach(() => { vi.restoreAllMocks(); vi.useRealTimers() })
+
+it.each([
+  [configuredActivationSender, 'Activate your Kuuki account'],
+  [configuredRecoverySender, 'Reset your Kuuki password'],
+])('uses the native binding without a REST credential for %s', async (configure, subject) => {
+  const send = vi.fn().mockResolvedValue({ messageId: 'accepted-message' })
+  const fetchMock = vi.spyOn(globalThis, 'fetch').mockRejectedValue(new Error('REST must not be used'))
+  const nativeEnv = { ACTIVATION_MAIL_FROM: env.ACTIVATION_MAIL_FROM, ACTIVATION_MAIL: { send } } as unknown as Env
+
+  await configure(nativeEnv).send(RECIPIENT, LINK)
+
+  expect(fetchMock).not.toHaveBeenCalled()
+  expect(send).toHaveBeenCalledOnce()
+  expect(send.mock.calls[0][0]).toMatchObject({
+    from: env.ACTIVATION_MAIL_FROM, to: [RECIPIENT], subject,
+    text: expect.stringContaining(LINK),
+    html: expect.stringContaining('href="https://activate.example.test/activate.html#token=a&amp;b&quot;&lt;c&gt;"'),
+  })
+})
+
+it.each([undefined, { messageId: '' }, new Error(`${RECIPIENT} ${LINK}`)])('rejects native binding failures privately without falling back to REST', async (receipt) => {
+  const send = receipt instanceof Error ? vi.fn().mockRejectedValue(receipt) : vi.fn().mockResolvedValue(receipt)
+  const fetchMock = vi.spyOn(globalThis, 'fetch').mockRejectedValue(new Error('REST must not be used'))
+  const log = vi.spyOn(console, 'error').mockImplementation(() => {})
+
+  await expect(configuredActivationSender({ ...env, ACTIVATION_MAIL: { send } } as Env).send(RECIPIENT, LINK))
+    .rejects.toThrow(/^Activation sender failed$/)
+
+  expect(fetchMock).not.toHaveBeenCalled()
+  expect(log).toHaveBeenCalledWith(JSON.stringify({ event: 'mail_send_failed', purpose: 'activation', errorCodes: [], reason: 'binding' }))
+})
+
+it('waits for late native acknowledgement rather than rejecting an uncancellable send', async () => {
+  vi.useFakeTimers()
+  vi.spyOn(console, 'error').mockImplementation(() => {})
+  vi.spyOn(globalThis, 'fetch').mockRejectedValue(new Error('REST must not be used'))
+  let acknowledge!: (receipt: { messageId: string }) => void
+  const send = vi.fn().mockReturnValue(new Promise(resolve => { acknowledge = resolve }))
+  const completion = configuredActivationSender({ ...env, ACTIVATION_MAIL: { send } } as Env).send(RECIPIENT, LINK)
+    .then(() => true, () => false)
+
+  await vi.advanceTimersByTimeAsync(10_000)
+  acknowledge({ messageId: 'accepted-later' })
+  expect(await completion).toBe(true)
+  expect(send).toHaveBeenCalledOnce()
+})
 
 it('sends Cloudflare Email Sending content and accepts an explicit queued receipt', async () => {
   const fetchMock = vi.spyOn(globalThis, 'fetch').mockResolvedValue(receipt({
