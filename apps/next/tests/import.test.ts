@@ -373,3 +373,25 @@ test.describe('Import done → Passport hero', () => {
     expect(await routeTransitions(page)).toMatchObject({ markers: [], heroCopies: 0 })
   })
 })
+
+test('processing text keeps real localized counts and wrapped labels at enlarged mobile text size', async ({ page, baseURL }) => {
+  await page.setViewportSize({ width: 320, height: 700 })
+  await page.context().addCookies([{ name: 'kuuki_locale', value: 'ru', url: baseURL! }])
+  const server = await setup(page, baseURL)
+  server.status = 'processing'; server.stage = 'recognizing'; server.drafts = [row('d1')]
+  await page.goto(`/import?batch=${BATCH}`)
+  const found = page.locator('.import-found-title')
+  await expect(found).toContainText('1')
+  await found.evaluate(heading => { heading.style.fontSize = '40px'; heading.style.lineHeight = '48px' })
+  const layout = await found.evaluate(heading => {
+    const box = heading.getBoundingClientRect(), text = heading.querySelector('.import-count > span')!.getBoundingClientRect()
+    return { headingWidth: box.width, textWidth: text.width, right: text.right, viewport: innerWidth }
+  })
+  expect(layout.textWidth).toBeLessThanOrEqual(layout.headingWidth)
+  expect(layout.right).toBeLessThanOrEqual(layout.viewport)
+  server.drafts = [row('d1'), row('d2')]; server.stage = 'validating'; server.sequence++
+  await expect(found).toHaveAccessibleName(/2 перелёта/)
+  await expect(page.locator('.import-stages li').nth(0)).toHaveAttribute('data-state', 'done')
+  await expect(page.locator('.import-stages li').nth(1)).toHaveAttribute('data-state', 'done')
+  await expect(page.locator('.import-stages li').nth(2)).toHaveAttribute('data-state', 'active')
+})

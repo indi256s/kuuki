@@ -627,6 +627,8 @@ test('planes drift with transform only, and stop while the page is hidden', asyn
     document.dispatchEvent(new Event('visibilitychange'))
   })
   await expect.poll(async () => (await planeAnimations(page)).running).toBe(0)
+  // CSS reports paused before its pending pause commits on the animation timeline.
+  await page.evaluate(() => Promise.all(document.getAnimations().map(animation => animation.ready)))
   const frozen = await sample()
   await page.waitForTimeout(300)
   expect(await sample()).toBe(frozen)

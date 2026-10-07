@@ -106,7 +106,7 @@ export function SourceStep({ locale, busy, initialMode, onSubmit, notice }: {
         <p>{S.emailHelpBody[locale]}</p>
         <p>{S.importLimit[locale]}</p>
         <textarea className="import-textarea import-prompt" readOnly rows={8} aria-label={S.promptLabel[locale]} value={S.prompt[locale]} />
-        <div className="import-actions"><Button onClick={() => void copy()}>{S.copyPrompt[locale]}</Button></div>
+        <div className="import-actions"><Button morphText textAlternatives={[S.copyPrompt[locale], locale === 'ru' ? 'Скопировано' : 'Copied']} onClick={() => void copy()}>{copied === 'ok' ? (locale === 'ru' ? 'Скопировано' : 'Copied') : S.copyPrompt[locale]}</Button></div>
         <p className="import-hint" role="status">{copied === 'ok' ? S.copied[locale] : copied === 'failed' ? S.copyFailed[locale] : ''}</p>
       </div>
     </Disclosure>

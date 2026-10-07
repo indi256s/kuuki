@@ -8,7 +8,7 @@ import './profile.css'
 export function ShareProfile({ url, locale }: { url: string; locale: Locale }) {
   const [result, setResult] = useState<'copied' | 'fallback' | null>(null)
   const ru = locale === 'ru'
-  return <div className="profile-share"><Button onClick={async () => { try { await navigator.clipboard.writeText(url); setResult('copied') } catch { setResult('fallback') } }}>{ru ? 'Скопировать ссылку' : 'Copy profile link'}</Button>
+  return <div className="profile-share"><Button morphText textAlternatives={[ru ? 'Скопировать ссылку' : 'Copy profile link', ru ? 'Скопировано' : 'Copied']} onClick={async () => { try { await navigator.clipboard.writeText(url); setResult('copied') } catch { setResult('fallback') } }}>{result === 'copied' ? (ru ? 'Скопировано' : 'Copied') : (ru ? 'Скопировать ссылку' : 'Copy profile link')}</Button>
     {result === 'copied' && <p role="status">{ru ? 'Ссылка скопирована.' : 'Link copied.'}</p>}
     {result === 'fallback' && <label>{ru ? 'Скопируйте ссылку вручную' : 'Copy this link manually'}<input readOnly value={url} autoFocus onFocus={event => event.target.select()} /></label>}
   </div>

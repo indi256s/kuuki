@@ -138,7 +138,7 @@ export function AircraftPanel({ locale, targets, onSaved, onWorkChange, api = de
       </div>
       <ul className="import-rows">{view.suggested.map(row)}</ul>
       <div className="import-actions">
-        <Button variant="primary" loading={applying} loadingLabel={S.aircraftAccepting[locale]}
+        <Button variant="primary" morphText loading={applying} loadingLabel={S.aircraftAccepting[locale]}
           disabledReason={open.filter(item => selected.has(item.flightId)).length === 0 ? S.nothingChosen[locale] : undefined}
           onClick={() => void accept(open.filter(item => selected.has(item.flightId)).map(item => item.flightId))}>
           {count(locale, 'aircraftSaveN', open.filter(item => selected.has(item.flightId)).length)}
