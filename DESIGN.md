@@ -83,15 +83,17 @@ Names are fixed; values live only in `styles.css` (`:root`, `:root[data-theme=da
 | `--accent-hover` | `color-mix(in oklch, accent 82%, text)` | same | Primary hover fill; derived. |
 | `--success-text` / `--success-fill` | `#146d34` / `#2a904b` | `#76c788` / `#4eb068` | Text grade ≥4.5:1; fill grade for backgrounds and icons, never text. |
 | `--warning-text` / `--warning-fill` | `#824c00` / `#ae6700` | `#e1a263` / `#cf8634` | Same rule. |
-| `--info-text` / `--info-fill` | `#175d9b` / `#2b7ec9` | `#73b6fa` / `#4c9deb` | Same rule; `--info-fill` also highlights search matches. |
+| `--info-text` / `--info-fill` | `#175d9b` / `#2b7ec9` | `#73b6fa` / `#4c9deb` | Same rule; search matches use `--info-text` on `--surface-inset` (≥4.5:1). |
 | `--danger-text` / `--danger-fill` | `#a43535` / `#c74b47` | `#ffaaa5` / `#ea6a64` | Same rule; danger buttons are outlined in `--danger-text`. |
 | `--rank-gold` / `-silver` / `-bronze` | `#775800` / `#595e64` / `#8a4b24` | `#d5b36a` / `#b2b8bf` / `#eca57d` | Text grade ≥4.5:1; always paired with the rank number. |
 | `--surface-floating` | `--surface` | `#3c3a37` | Level 2 and 3 fill. |
 | `--shadow-floating` / `--shadow-modal` | two-layer black 8% / 10–12% | none | Dark theme drops the shadow. |
 | `--ring-floating` | none | `0 0 0 1px` white 8% | Dark replacement for the shadow. |
 | `--scrim` / `--outline-media` | black 40% / black 10% | black 60% / white 10% | Modal backdrop; 1px outline on images and avatars. |
-| `--map-land` / `--map-border` / `--map-route` | `--surface-inset` / `--hairline` / `--accent` | same | Map base layers; follow theme. |
+| `--map-land` / `--map-border` / `--map-route` | `--surface-inset` / `--hairline` / `--accent` | same | Map base layers; follow theme. Static previews select generated light/dark outline assets from the same tokens. |
 | `--map-bucket-1…4` | `color-mix(in oklch, accent 24 / 43 / 65 / 90%, map-land)` | same | Sequential ramp, bucket 1 lightest; thresholds 1, 2–3, 4–9, 10+ from one shared function. |
+
+Regenerate static outlines with `python3 scripts/map-build-geometry.py --rebuild apps/next/public/maps/countries-110m-2.0.2.geojson`. The outline URLs are immutable: palette changes also require a new asset version in the preview and cache inventory.
 
 Radius and spacing: `--radius-xs` 6px, `--radius-sm` 10, `--radius-md` 14, `--radius-lg` 20, `--radius-full` 9999px; `--space-1` 4px, `-2` 8, `-3` 12, `-4` 16, `-5` 20, `-6` 24, `-8` 32, `-12` 48.
 
@@ -171,7 +173,7 @@ Additional motion contracts:
 
 Delight moments use `--dur-moment`. The built `Stamp` press starts from scale 1.06, opacity 0, blur 2px, with a one-frame brightness darkening, and plays once per immutable ID (module `Set` plus `sessionStorage`) so remounts and refetches never replay it. Onboarding applies the 80ms stagger and cap of eight to newly published country acknowledgments. Reveal shows at most eight stamps and links to Passport for the complete collection; refetches and historical evidence do not replay the first-save moment.
 
-Reduced motion means gentler, not none. Built in `ui.css`: no scale or translate, color and opacity at 150ms linear; dialog and menu fade; sheet and toast fade (drag still works); thumb, disclosure and chevron static; stamp press becomes a 200ms fade; the tab bar does not slide; the two route transitions swap instantly, like every other route change.
+Reduced motion means gentler, not none. Auth and activation pending spinners stay static; their status text remains visible. Built in `ui.css`: no scale or translate, color and opacity at 150ms linear; dialog and menu fade; sheet and toast fade (drag still works); thumb, disclosure and chevron static; stamp press becomes a 200ms fade; the tab bar does not slide; the two route transitions swap instantly, like every other route change.
 
 ## Iconography
 
@@ -187,7 +189,7 @@ Active state never relies on color alone: accent text, label weight 600, and a 2
 
 One breakpoint at 700px switches between desktop and mobile. The header and tab bar sit outside the single `<main id="main" class="page-shell">`; a skip link precedes them. `BrandShell` (guests) shows the wordmark, sign-in and sign-up links, and the language/theme controls; `MemberShell` adds navigation.
 
-**Desktop (above 700px).** Header 56px, solid `--background`, hairline bottom border, content aligned to 1200px. Left: wordmark, then Overview, Journal, Passport, Leaderboard (Обзор, Журнал, Паспорт, Рейтинг). Links are 44px high, radius `--radius-sm`, hover `--surface-inset`; active is `--accent-text`, 600, with a 2px accent underline inset 12px. Right: queue slot, split Add, avatar menu.
+**Desktop (above 700px).** Header minimum height 56px, solid `--background`, hairline bottom border, content aligned to 1200px. Spacing tightens fluidly and controls wrap when localized queue text needs another row. Left: wordmark, then Overview, Journal, Passport, Leaderboard (Обзор, Журнал, Паспорт, Рейтинг). Links are 44px high, radius `--radius-sm`, hover `--surface-inset`; active is `--accent-text`, 600, with a 2px accent underline inset 12px. Right: queue slot, split Add, avatar menu.
 - **Split Add.** Accent fill, `--control-h-sm` tall, radius `--radius-sm`. The main half is a link to `/add` (manual entry); the chevron half opens a Menu with Upload a boarding pass or PDF, Paste text, Enter manually. One shared list (`ADD_ACTIONS`) feeds this menu and the mobile sheet. The brief names two items; the built menu has three.
 - **Avatar menu.** A 40px circle button using the shared profile photo or reactive blob fallback, ringed by `--outline-media`. Menu: My profile (with Public or Hidden status), Public profile checkbox (turning it off also leaves leaderboards), Settings, Theme radios (Light, Dark, System), Language radios (EN, RU), Sign out. Accent selection is in Settings.
 
@@ -197,7 +199,7 @@ One breakpoint at 700px switches between desktop and mobile. The header and tab 
 - **Add** is a button, not a link: it opens a bottom Sheet titled "Add a flight" holding the three `AddActions` as 52px (`--action-row-h`) rows with 20px icons. The sheet closes on any route change.
 - **Me** is active on `/me` and the viewer's own `/fly/<username>`, never another member's.
 - **Keyboard.** When the visual viewport is more than 120px shorter than the layout (and not pinch-zoomed) `html[data-keyboard=true]` slides the bar off-screen while it stays in the DOM and focus order, and resets the offsets below. With `resizes-content` viewports the flag may not fire; the bar then rides above the keyboard.
-- **Clearance.** `--tabbar-offset` (bar plus safe area) pads the page bottom (+24px); toasts lift by `--toast-bottom-offset`; the floating action bar sits at tab bar plus 16px.
+- **Clearance.** Fixed settings actions use the greater of `--tabbar-offset` and the safe-area inset, plus 12px, so the inset is counted once. `--tabbar-offset` (bar plus safe area) pads the page bottom (+24px); toasts lift by `--toast-bottom-offset`; the floating action bar sits at tab bar plus 16px.
 
 **Queue badge.** `QueueSummarySlot` reads the owner-scoped `AwaitingProvider` and links to `/journal?queue=awaiting`. Its localized accessible name separates flights awaiting confirmation from retained import rows needing review. A zero count is hidden; an initial transport failure says Queue unavailable rather than zero. The header and Add menu/sheet share this authority. Mobile headers display the current page title.
 
@@ -219,7 +221,7 @@ One breakpoint at 700px switches between desktop and mobile. The header and tab 
 - **Mobile (≤700px).** A brand band sits on top: dark `--background`, up to 302px tall after removing the board's device status bar, shrinking toward 160px on short viewports, holding a 52px header with the 28px wordmark and the utility controls, a horizontal くうき watermark at 104px and 14 planes. The form is in a bottom sheet: `--surface`, top corners `--radius-lg`, padding 28px top, 20px sides and 46px bottom. Its heading is 28/34, and inputs and the primary button are 48px tall with 16px text, so iOS does not zoom on focus. In light the sheet has a `--hairline` top edge; in dark, the white 6% inner highlight.
 - **Getting back in.** The Request, Check your inbox, Set password and Link expired states (boards "2.1" to "2.4") reuse the card with its wordmark and corner controls in place across states. They have no tagline. Mobile shows them in the same sheet.
 
-Dark brand-panel and input fills use the role tokens `--auth-brand-surface` and `--auth-input-surface` (`#2f2d2b`). The Next-owned isolated activation page retains system fonts under its restrictive CSP and has native help; it returns to the card after saving without signing in automatically.
+Dark brand-panel and input fills use the role tokens `--auth-brand-surface` and `--auth-input-surface` (`#2f2d2b`). The Next-owned isolated activation page retains system fonts under its restrictive CSP and has native help that locks background scrolling; it returns to the card after saving without signing in automatically.
 
 ### Accent picker
 
@@ -250,7 +252,7 @@ A typeable date field, not a picker-only control. The input is text with `inputM
 
 ### Combobox
 
-Used for airports, airlines and aircraft. Matches code, label, detail and verified search aliases; an exact code match ranks first; with an empty query per-account recents come first; at most 50 rows. A polite status announces the count with real plural forms. Options are 44px with `<mark>` highlights (`--info-fill`) and mono codes. Arrows move, Enter chooses, Escape closes.
+Used for airports, airlines and aircraft. Matches code, label, detail and verified search aliases; an exact code match ranks first; with an empty query per-account recents come first; at most 50 rows. A polite status announces the count with real plural forms. Options are 44px with `<mark>` highlights (`--info-text` on `--surface-inset`, ≥4.5:1) and mono codes. Arrows move, Enter chooses, Escape closes.
 - **Honest fallback labelling.** In Russian, aircraft and airline rows without a localized name show their English reference name with «Название на английском». English does not label its normal reference names as a translation fallback. Verified airport aliases remain searchable. Owner-scoped recents use local storage across tabs, with an in-memory fallback when storage is unavailable.
 - **Desktop.** A level 2 popover under the input, max height 360px.
 - **Mobile (≤700px).** A full-height search Sheet (`.flight-full-sheet`) with the search input pinned at the top (sticky) and focused on open; results scroll beneath. Close is labelled «Закрыть поиск». On close, focus returns to the origin field without reopening the list.

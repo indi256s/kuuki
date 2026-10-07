@@ -29,7 +29,8 @@ export function CountryPreview({ countryIds, locale, period = 'all', visits, rou
     : locale === 'ru' ? `Стран на карте за ${period}: ${pressedCount}` : `${pressedCount} map countries in ${period}`
   return <figure className="country-preview">
     <svg viewBox="0 0 720 360" role="img" aria-label={label + (pending.size ? locale === 'ru' ? `; ждут отметки: ${pending.size}` : `; ${pending.size} waiting for a stamp` : '')}>
-      <image href="/maps/world-outline-110m-2.0.2.svg" width="720" height="360" />
+      <image className="country-preview-outline-light" href="/maps/world-outline-110m-2.0.2-light.svg" width="720" height="360" />
+      <image className="country-preview-outline-dark" href="/maps/world-outline-110m-2.0.2-dark.svg" width="720" height="360" />
       {routes?.map(({ a, b, d }) => d ? <path key={`${a}-${b}`} data-route={`${a}-${b}`} d={d} fill="none" stroke="var(--map-route)" strokeWidth="1" strokeOpacity=".7" strokeLinecap="round" /> : null)}
       {dots.map(code => {
         const point = (centers as unknown as Record<string, [number, number]>)[code]

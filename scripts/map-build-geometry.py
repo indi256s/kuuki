@@ -10,6 +10,7 @@ antimeridian split, which is idempotent) when the original inputs are not at han
 """
 import csv
 import json
+import re
 import sys
 from pathlib import Path
 
@@ -135,8 +136,19 @@ def write_outputs(features, output_path):
                 continue
             path_parts.append('M' + 'L'.join(f'{x},{y}' for x, y in map(project, points)) + 'Z')
         paths.append(f'<path d="{"".join(path_parts)}"/>')
-    svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 360" fill="#d8d3cc" stroke="#fbfaf8" stroke-width=".35">' + ''.join(paths) + '</svg>'
-    Path(output_path).with_name('world-outline-110m-2.0.2.svg').write_text(svg)
+    css = (Path(__file__).resolve().parents[1] / 'apps/next/src/app/styles.css').read_text()
+    light = dict(re.findall(r'(--[\w-]+):([^;}]*)', re.search(r':root\{([^}]*)\}', css).group(1)))
+    dark = {**light, **dict(re.findall(r'(--[\w-]+):([^;}]*)', re.search(r':root\[data-theme=dark\]\{([^}]*)\}', css).group(1)))}
+    for theme, tokens in [('light', light), ('dark', dark)]:
+        def color(name):
+            value = tokens[name].strip()
+            while value.startswith('var('):
+                value = tokens[value[4:-1]].strip()
+            if not re.fullmatch(r'#[0-9a-fA-F]{6}', value):
+                raise ValueError(f'{theme} {name} is not a hex color: {value}')
+            return value
+        svg = f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 360" fill="{color("--map-land")}" stroke="{color("--map-border")}" stroke-width=".35">' + ''.join(paths) + '</svg>'
+        Path(output_path).with_name(f'world-outline-110m-2.0.2-{theme}.svg').write_text(svg)
     Path(output_path).with_name('country-centers-110m-2.0.2.json').write_text(json.dumps(centers, separators=(',', ':')))
 
 

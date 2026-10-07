@@ -244,7 +244,8 @@ async function main() {
       if (conditional.headers.get('Cache-Control') !== 'no-store') throw new Error(`Conditional boundary lost no-store: ${path}`)
     }
     for (const [cache, paths] of [
-      ['public, max-age=31536000, immutable', ['/maps/world-outline-110m-2.0.2.svg', '/maps/country-centers-110m-2.0.2.json',
+      ['public, max-age=31536000, immutable', ['/maps/world-outline-110m-2.0.2.svg',
+      '/maps/world-outline-110m-2.0.2-light.svg', '/maps/world-outline-110m-2.0.2-dark.svg', '/maps/country-centers-110m-2.0.2.json',
       '/maps/countries-110m-2.0.2.geojson',
       '/maps/maplibre-6.12.0/maplibre-gl.css', '/maps/maplibre-6.12.0/maplibre-gl-worker.mjs',
       '/maps/maplibre-6.12.0/maplibre-gl-shared.mjs']],

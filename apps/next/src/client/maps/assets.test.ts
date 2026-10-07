@@ -30,8 +30,8 @@ describe('pinned country geometry', () => {
     expect(rings(russia).some(ring => ring.every(([lon]) => lon < 0))).toBe(true)
   })
 
-  it('draws no SVG preview path segment wider than half the world, except the polar cap', () => {
-    const svg = asset('world-outline-110m-2.0.2.svg')
+  it.each(['light', 'dark'])('draws no %s SVG preview path segment wider than half the world, except the polar cap', theme => {
+    const svg = asset(`world-outline-110m-2.0.2-${theme}.svg`)
     const wide: number[] = []
     for (const [index, path] of [...svg.matchAll(/<path d="([^"]+)"/g)].entries()) {
       for (const sub of path[1].split('M').filter(Boolean)) {
