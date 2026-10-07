@@ -22,6 +22,25 @@ async function fixture() {
 }
 
 describe('durable derived repair', () => {
+  it('publishes without reading or rewriting the retained legacy stats table', async () => {
+    const db = await fixture()
+    await db.prepare("INSERT INTO user_advanced_stats (user_id, manufacturer_breakdown) VALUES ('u1', '{\"historical\":7}')").run()
+    const before = await db.prepare("SELECT * FROM user_advanced_stats WHERE user_id = 'u1'").first()
+    const guarded = new Proxy(db, {
+      get(target, property) {
+        if (property === 'prepare') return (sql: string) => {
+          if (sql.includes('user_advanced_stats')) throw new Error('Retired table accessed')
+          return target.prepare(sql)
+        }
+        const value = Reflect.get(target, property, target)
+        return typeof value === 'function' ? value.bind(target) : value
+      },
+    }) as D1Database
+    await db.batch([dirtyUserStatement(db, 'u1')])
+    expect(await repairUserDerivedState(guarded, 'u1')).toEqual({ derived_state: 'ready', revision: 1 })
+    expect(await db.prepare("SELECT * FROM user_advanced_stats WHERE user_id = 'u1'").first()).toEqual(before)
+  })
+
   it('publishes flight and independent legacy evidence once, preserving historical badges', async () => {
     const db = await fixture()
     await db.batch([
@@ -54,14 +73,14 @@ describe('durable derived repair', () => {
     const db = await fixture()
     await db.batch([dirtyUserStatement(db, 'u1')])
     await db.prepare(
-      "CREATE TRIGGER fail_advanced BEFORE INSERT ON user_advanced_stats BEGIN SELECT RAISE(FAIL, 'late failure'); END",
+      "CREATE TRIGGER fail_stats BEFORE INSERT ON user_stats BEGIN SELECT RAISE(FAIL, 'late failure'); END",
     ).run()
     expect(await repairUserDerivedState(db, 'u1')).toEqual({ derived_state: 'pending', revision: 1 })
     expect((await db.prepare("SELECT COUNT(*) AS n FROM visits WHERE user_id='u1'").first<{n:number}>())?.n).toBe(0)
     expect((await db.prepare("SELECT COUNT(*) AS n FROM user_stats WHERE user_id='u1'").first<{n:number}>())?.n).toBe(0)
     expect((await db.prepare("SELECT published_revision,last_error FROM user_derived_state WHERE user_id='u1'")
       .first())).toEqual({ published_revision: 0, last_error: 'DERIVED_REPAIR_FAILED' })
-    await db.prepare('DROP TRIGGER fail_advanced').run()
+    await db.prepare('DROP TRIGGER fail_stats').run()
 
     // Interleave a newer canonical commit immediately before the old publish batch.
     let publishing = false

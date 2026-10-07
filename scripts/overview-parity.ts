@@ -3,10 +3,8 @@ import { mkdtempSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { computeAircraftBreakdown, computeDurationStats } from '../functions/api/_services/advancedStatsBreakdowns'
 import { readOverview } from '../functions/api/_services/overview'
 import { readOverviewData } from '../functions/api/_services/overviewData'
-import { combineReads } from '../functions/api/_services/stats'
 import { computeOverview } from '../packages/shared/src/overview/compute'
 import { recordExtrema } from '../packages/shared/src/overview/records'
 import { openLocalTarget, parseLocalTarget } from './migration-target'
@@ -19,8 +17,15 @@ const ranked = (row: { key: string; count: number } | undefined): string | null 
 export async function overviewParity(db: D1Database, userId: string): Promise<ParityRow[]> {
   if (!await db.prepare('SELECT 1 FROM profiles WHERE id=?').bind(userId).first()) throw new Error('Owner profile not found')
   const legacy = await readOverview(db, userId)
-  const read = combineReads(computeAircraftBreakdown(db, userId), computeDurationStats(db, userId))
-  const [aircraft, duration] = read.derive(await db.batch(read.statements))
+  // Freeze the two legacy aggregates from 1ebf7b3 so retirement preserves this diagnostic.
+  const aircraft = await db.prepare(`SELECT COUNT(DISTINCT COALESCE(ar.manufacturer, 'Unknown')) AS manufacturers
+    FROM flights f LEFT JOIN aircraft_reference ar ON f.aircraft_icao=ar.icao
+    WHERE f.user_id=? AND f.aircraft_icao IS NOT NULL
+    AND f.lifecycle_state IN ('logged','awaiting')`).bind(userId).first<{ manufacturers: number }>()
+  const duration = await db.prepare(`SELECT COALESCE(MAX(duration_minutes),0) AS longest_minutes,
+    COALESCE(MIN(NULLIF(duration_minutes,0)),0) AS shortest_minutes FROM flights
+    WHERE user_id=? AND lifecycle_state IN ('logged','awaiting') AND duration_minutes IS NOT NULL`)
+    .bind(userId).first<{ longest_minutes: number; shortest_minutes: number }>()
   const shortest = await db.prepare(`SELECT MIN(distance_km) AS km FROM flights WHERE user_id=?
     AND lifecycle_state IN ('logged','awaiting')`).bind(userId).first<{ km: number | null }>()
   const payload = await readOverviewData(db, userId)
@@ -40,12 +45,12 @@ export async function overviewParity(db: D1Database, userId: string): Promise<Pa
     ['duration minutes', legacy.totals.durationMinutes, scope.figures.durationMinutes],
     ['airlines', legacy.totals.airlines, distinct('airline')],
     ['aircraft types (ICAO)', legacy.totals.aircraft, distinct('aircraft')],
-    ['manufacturers', Object.keys(aircraft.manufacturers).length, manufacturers],
+    ['manufacturers', aircraft?.manufacturers ?? 0, manufacturers],
     ['regions', legacy.totals.continents, scope.figures.regions],
     ['longest flight km', legacy.insights.longestFlight?.distanceKm ?? null, extrema.longest?.value ?? null],
     ['shortest flight km', shortest?.km ?? null, extrema.shortest?.value ?? null],
-    ['longest duration minutes', duration.longest_minutes || null, extrema.longestDuration?.value ?? null],
-    ['shortest duration minutes', duration.shortest_minutes || null, extrema.shortestDuration?.value ?? null],
+    ['longest duration minutes', duration?.longest_minutes || null, extrema.longestDuration?.value ?? null],
+    ['shortest duration minutes', duration?.shortest_minutes || null, extrema.shortestDuration?.value ?? null],
     ['top airline', ranked(legacy.topLists.airlines[0] && { key: legacy.topLists.airlines[0].id, count: legacy.topLists.airlines[0].count }), ranked(scope.rankings.airlines[0])],
     ['top airport', ranked(legacy.topLists.airports[0] && { key: legacy.topLists.airports[0].id, count: legacy.topLists.airports[0].count }), ranked(scope.rankings.airports[0])],
     ['top route', route ? `${route.origin}→${route.destination} (${route.count})` : null, ranked(scope.rankings.routes[0])],

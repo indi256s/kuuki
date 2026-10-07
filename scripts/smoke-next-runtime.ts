@@ -228,6 +228,8 @@ async function main() {
     const cookie = cookies.map(value => value.split(';', 1)[0]).join('; ')
     const overviewApi = await assertResponse('/api/me/overview', 200, { headers: { Cookie: cookie } })
     if (!overviewApi.headers.get('Content-Type')?.includes('application/json')) throw new Error('Overview API is not JSON')
+    await assertResponse('/api/me/advanced-stats', 404, { headers: { Cookie: cookie } })
+    await assertResponse('/api/me/dashboard-stats', 404, { headers: { Cookie: cookie } })
     const activation = await assertResponse('/activate', 200)
     if (activation.headers.get('Cache-Control') !== 'no-store' || activation.headers.get('Referrer-Policy') !== 'no-referrer' ||
       !activation.headers.get('Content-Security-Policy')?.includes("default-src 'none'")) throw new Error('Activation isolation headers missing')

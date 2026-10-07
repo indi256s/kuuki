@@ -7,8 +7,8 @@ Owning checkout:
 Scope: the approved Overview data architecture plan, strictly in task order.
 No UI or design work. Read the design-owned spec at
 `/Users/indi256/Documents/kuuki/kuuki/.scratch/overview-redesign/decisions.md`;
-never copy or edit it. Production/remote Cloudflare, GitHub/main, UI, Task 17
-parity acceptance and material plan conflicts remain user approval gates.
+never copy or edit it. Production/remote Cloudflare, GitHub/main and UI remain user approval gates. Task 17 parity acceptance
+is complete; routine implementation choices are authorized without repeat asks.
 
 ## Accepted base
 
@@ -387,7 +387,7 @@ Task 16 route build (77 routes) and Task 15 Next 107/1113 + Worker smoke/boundar
 checks remain applicable; this step only adds CLI/test/typecheck inclusion.
 Complete owned CLI/test/config diff reviewed; normal hooks apply to checkpoint.
 
-STOP at Task 17 Step 2: present the private report and wait for the user to
+Checkpoint at Task 17 Step 2 (superseded by acceptance below): present the private report and wait for the user to
 accept it, as expressly required by the plan/user hard stop. Routine choices
 are authorized without repeat questions. Step 1 alone is checked; Step 2 and
 retirement Steps 3–5 remain unchecked. The final task commit remains
@@ -404,3 +404,38 @@ R2 whole-branch Opus review over `feat/overview-release-1-migrations...HEAD`
 remains pending until implementation is finished. No remote D1, production
 write/deploy, provider enablement, GitHub/main or UI action in these tasks.
 Logs: `/tmp/kuuki-overview-execution/r2-t17-*`.
+
+
+Task 17 Steps 2–5: the user accepted the parity report and directed “all approved
+commit”. All 17 data tasks are implemented. Legacy advanced/dashboard handlers
+and three advanced services are removed; repair no longer reads or writes them.
+Historical user_advanced_stats rows, schema and deleteUserCascade entry remain.
+The CLI freezes only its two required read-only legacy aggregates from 1ebf7b3;
+all 14 metric rows still match the accepted private report on the same local
+restore. Keep the old Overview/missing-aircraft/route-projection APIs until the
+separate design thread swaps the page. No UI or design-owned spec changes.
+
+The new retirement regression failed before implementation (ready expected,
+pending received), then passed and preserved the complete historical row.
+Late-failure rollback now targets the retained user_stats publication; mixed
+country-policy and aircraft replay tests keep their remaining assertions.
+Focused final: `Test Files 4 passed (4); Tests 51 passed (51)` in 14.91s.
+Full API final: `Test Files 74 passed (74); Tests 822 passed (822)` in 105.36s.
+API/scripts/Worker typechecks exit 0. Next build exit 0: 75 routes, entry 2278
+bytes, 105 assets / 9226424 bytes; existing bundled Better Auth warning.
+No advancedStats/advanced-stats/dashboard-stats matches in apps/functions/packages.
+Composed Worker smoke explicitly verifies both retired paths return 404:
+`Next workerd smoke passed` and `Next boundary smoke passed`. Actual share PNG
+still 1200×1500 / 12457 bytes / outboundCalls 0. Local parity check:
+`Parity unchanged: all 14 metric rows match the accepted report`.
+Task 15 full Next unit evidence (107 files / 1113 tests) is reused: no client
+source changed afterward. Complete retirement diff and whitespace reviewed.
+Logs: `/tmp/kuuki-overview-execution/r2-t17-retirement-*`.
+
+The user replaced the final Opus delegated review with a new ordinary T3 thread,
+GPT-6.1 Sol, High reasoning. Launch it after this final task commit in the owning
+existing worktree, for read-only full-range review over
+`feat/overview-release-1-migrations...HEAD`. The final review is pending and its
+findings have not been claimed clean. Per-task reviews remain skipped by user
+request. R1 final review is clean at 903dd58. No new remote D1, production write,
+deploy, provider enablement, GitHub/main or UI action was performed.

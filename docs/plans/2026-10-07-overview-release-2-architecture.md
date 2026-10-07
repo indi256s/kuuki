@@ -643,10 +643,13 @@ interface PublicOverview {
   - Writes a private copy to the tmpdir.
 
 - [x] **Step 1:** Run the parity script on the restored production copy for the owner's account. Expected: equal counts. Distance and duration differences are explained only by Release 1 (great-circle, ladder). List any other delta.
-- [ ] **Step 2:** Show the report to the user. **Stop until they accept it.**
-- [ ] **Step 3:** Delete the legacy files. Run `grep -rn "advancedStats\|advanced-stats\|dashboard-stats" apps functions packages`. Expected: no hits outside the generated routes, which `pnpm next:build` regenerates.
-- [ ] **Step 4:** `pnpm typecheck:api`, `pnpm test:api`, `pnpm next:build`. Expected: all pass.
-- [ ] **Step 5:** Commit `refactor(api): retire legacy advanced stats after parity`.
+- [x] **Step 2:** Show the report to the user. **Stop until they accept it.** Accepted in this thread with “all approved commit”.
+- [x] **Step 3:** Delete the legacy files. Run `grep -rn "advancedStats\|advanced-stats\|dashboard-stats" apps functions packages`. Expected: no hits outside the generated routes, which `pnpm next:build` regenerates.
+- [x] **Step 4:** `pnpm typecheck:api`, `pnpm test:api`, `pnpm next:build`. Expected: all pass.
+- [x] **Step 5:** Commit `refactor(api): retire legacy advanced stats after parity`.
+
+
+Retirement keeps the parity CLI runnable by freezing its two needed read-only legacy aggregates from `1ebf7b3` in the script. No legacy computation remains in the application. The historical table and deletion cascade are retained, and the composed-Worker smoke checks both retired routes return 404.
 
 ---
 

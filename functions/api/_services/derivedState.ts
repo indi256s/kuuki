@@ -9,7 +9,6 @@ import {
   type BatchedRead,
   type DerivedVisit,
 } from './stats'
-import { computedAdvancedStatsStatement } from './advancedStats'
 import { countryEvidenceRead, countryEvidenceStatements, flightCountriesOf } from './countryEvidence'
 
 export interface DerivedRepairResult {
@@ -214,12 +213,11 @@ export async function repairUserDerivedState(db: D1Database, userId: string): Pr
     const read = combineReads(
       proposedVisits(db, userId),
       computeStatsForVisits(db, userId),
-      computedAdvancedStatsStatement(db, userId),
       computedBadgeStatements(db, userId),
       countryEvidenceRead(db, userId, legacyEvidenceStatement(db, userId), mergeVisits),
     )
-    const [visits, statsFor, advancedFor, badgesFor, evidence] = read.derive(await db.batch(read.statements))
-    // One country calculation: stats, advanced breakdowns and the published projection all read it.
+    const [visits, statsFor, badgesFor, evidence] = read.derive(await db.batch(read.statements))
+    // Stats and the published projection share one country calculation.
     const countries = flightCountriesOf(evidence.rows)
     const stats = statsFor(visits, countries)
     const now = nowIso()
@@ -240,7 +238,6 @@ export async function repairUserDerivedState(db: D1Database, userId: string): Pr
       ).bind(userId, userId),
       ...visitStatements(db, userId, visits),
       computedStatsStatement(db, userId, stats),
-      advancedFor(stats, countries),
       ...badgesFor(stats),
       ...countryEvidenceStatements(db, userId, evidence),
     ]

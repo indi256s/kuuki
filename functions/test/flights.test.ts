@@ -349,7 +349,6 @@ type AircraftReplayBody = { results: Array<{ id: number | null; status: string; 
 const snapshotFlights = async (db: D1Database) => (await db.prepare('SELECT * FROM flights ORDER BY id').all()).results
 const snapshotDerived = async (db: D1Database) => ({
   stats: await db.prepare('SELECT total_flights,aircraft_count FROM user_stats WHERE user_id = ?').bind(user.id).first(),
-  advanced: await db.prepare('SELECT aircraft_breakdown,aircraft_type_breakdown,manufacturer_breakdown FROM user_advanced_stats WHERE user_id = ?').bind(user.id).first(),
 })
 
 it('replays an identical aircraft batch to the same per-item results and unchanged flight rows', async () => {

@@ -214,8 +214,6 @@ describe('derived consumers read the same calculation', () => {
       // GE (Asia) and US (North America): TR no longer counts for the continent figure.
       expect(await userStats(db)).toMatchObject({ continents_count: 2 })
       expect(await db.prepare('SELECT badge_id FROM user_badges WHERE user_id = ?').bind(USER.id).all().then(r => r.results)).toEqual([{ badge_id: 7 }])
-      const advanced = await db.prepare('SELECT continent_breakdown, region_breakdown FROM user_advanced_stats WHERE user_id = ?').bind(USER.id).first<{ continent_breakdown: string; region_breakdown: string }>()
-      expect(JSON.parse(advanced!.region_breakdown)).toEqual({ asia: 1, americas: 1 })
     } finally { await dispose() }
   })
 })

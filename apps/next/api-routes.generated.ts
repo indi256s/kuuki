@@ -305,12 +305,6 @@ export const apiRoutes = [
     ]
   },
   {
-    "route": "/api/me/advanced-stats",
-    "methods": [
-      "GET"
-    ]
-  },
-  {
     "route": "/api/me/awaiting",
     "methods": [
       "GET"
@@ -318,12 +312,6 @@ export const apiRoutes = [
   },
   {
     "route": "/api/me/badges",
-    "methods": [
-      "GET"
-    ]
-  },
-  {
-    "route": "/api/me/dashboard-stats",
     "methods": [
       "GET"
     ]
