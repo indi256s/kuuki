@@ -18,7 +18,16 @@ describe('block time calibration', () => {
     expect(PRIOR_BLOCK_TIME_MODEL).toEqual({ intercept: 30, slopes: [0.075, 0.075, 0.075], jet: 0, samples: 0, rmse: null, fittedAt: null })
   })
 
-  it('monotonic in distance with the prior', () => {
+  it('shipped model is monotonic in distance', () => {
+    let previous = estimateBlockMinutes(0, 0)
+    for (let d = 100; d <= 15000; d += 100) {
+      const minutes = estimateBlockMinutes(d, 0)
+      expect(minutes).toBeGreaterThanOrEqual(previous)
+      previous = minutes
+    }
+  })
+
+  it('prior is monotonic in distance', () => {
     let previous = estimateBlockMinutes(0, 0, PRIOR_BLOCK_TIME_MODEL)
     for (let d = 100; d <= 15000; d += 100) {
       const minutes = estimateBlockMinutes(d, 0, PRIOR_BLOCK_TIME_MODEL)
