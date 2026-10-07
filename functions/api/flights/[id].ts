@@ -6,8 +6,7 @@ import { runHandler, readJson, json, HttpError } from '../_lib/http'
 import { requireUser, requireCsrf, type RequestData } from '../_lib/auth'
 import { toOwnFlight, type FlightRow } from '../_lib/flights'
 import { parseFlightBody } from '../_lib/flightValidation'
-import { computeFlightDuration } from '../_services/flightDuration'
-import { fillDistanceAndDuration } from '../_services/stats'
+import { resolveFlightMetrics } from '../_services/flightMetrics'
 import { dirtyUserStatement, repairUserDerivedState } from '../_services/derivedState'
 import { LIFECYCLE_COLUMN_NAMES, lifecycleForEdit, lifecycleValues, takeRequestTimezone } from '../_services/lifecycle'
 import { FLIGHT_COLUMNS } from './index'
@@ -70,29 +69,37 @@ export function updateFlightRequest(request: Request, env: Env, data: RequestDat
     const routeChanged = origin !== existing.origin || destination !== existing.destination
     const timeChanged = date !== existing.date || departureTime !== existing.departure_time || arrivalTime !== existing.arrival_time || originTz !== existing.origin_tz || destTz !== existing.dest_tz
     const mergedDistance = patch.distance_km !== undefined ? patch.distance_km : routeChanged ? null : existing.distance_km
-    const mergedDuration = patch.duration_minutes !== undefined ? patch.duration_minutes : routeChanged || timeChanged ? null : existing.duration_minutes
     const source = patch.source ?? existing.source
     const enrichmentStatus = patch.enrichment_status ?? existing.enrichment_status
 
     // ADR 0001 §2: date and route edits move lifecycle (and the is_upcoming projection) with the same UPDATE.
     const lifecycle = lifecycleForEdit(existing, { date, origin, destination }, timezone)
 
-    const { departureUtc, arrivalUtc, durationMinutes: tzDur } = computeFlightDuration({
+    const metricsChanged = routeChanged || timeChanged || flightNumber !== existing.flight_number
+    const metrics = metricsChanged ? await resolveFlightMetrics(env.DB, {
       date,
+      origin,
+      destination,
+      airlineIata,
+      flightNumber,
       departureTime,
       arrivalTime,
-      originTz,
-      destTz,
-      existingDurationMinutes: mergedDuration,
-    })
-
-    const { distanceKm, durationMinutes } = await fillDistanceAndDuration(env.DB, origin, destination, mergedDistance, patch.duration_minutes !== undefined ? patch.duration_minutes : tzDur)
+      originTz: patch.origin_tz === undefined && origin !== existing.origin ? null : originTz,
+      destTz: patch.dest_tz === undefined && destination !== existing.destination ? null : destTz,
+      clientDistanceKm: mergedDistance,
+      excludeFlightId: id,
+    }) : {
+      originTz: existing.origin_tz, destTz: existing.dest_tz,
+      departureUtc: existing.departure_utc, arrivalUtc: existing.arrival_utc,
+      distanceKm: existing.distance_km, durationMinutes: existing.duration_minutes,
+      durationSource: existing.duration_source, zonesOverflown: existing.zones_overflown,
+    }
 
     const [update] = await env.DB.batch([env.DB.prepare(
       `UPDATE flights SET
          date = ?, origin = ?, destination = ?, airline_iata = ?, aircraft_icao = ?, flight_number = ?,
          departure_time = ?, arrival_time = ?, departure_utc = ?, arrival_utc = ?, origin_tz = ?, dest_tz = ?,
-         distance_km = ?, duration_minutes = ?, source = ?, enrichment_status = ?,
+         distance_km = ?, duration_minutes = ?, duration_source = ?, zones_overflown = ?, source = ?, enrichment_status = ?,
          ${LIFECYCLE_COLUMN_NAMES.map(name => `${name} = ?`).join(', ')}
        WHERE id = ? AND user_id = ? AND lifecycle_state = ?
          AND arrival_transit IS ? AND arrival_transit_leg_id IS ?`,
@@ -106,12 +113,14 @@ export function updateFlightRequest(request: Request, env: Env, data: RequestDat
         flightNumber,
         departureTime,
         arrivalTime,
-        departureUtc,
-        arrivalUtc,
-        originTz,
-        destTz,
-        distanceKm,
-        durationMinutes,
+        metrics.departureUtc,
+        metrics.arrivalUtc,
+        metrics.originTz,
+        metrics.destTz,
+        metrics.distanceKm,
+        metrics.durationMinutes,
+        metrics.durationSource,
+        metrics.zonesOverflown,
         source,
         enrichmentStatus,
         ...lifecycleValues(lifecycle),

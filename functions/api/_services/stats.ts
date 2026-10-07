@@ -1,70 +1,11 @@
 // Core write-path services — ported from the live PL/pgSQL (see db/_extracted/LOGIC_SPEC.md).
-// Distance/duration fill runs on flight writes; the stats and badge statements below are
-// composed by derivedState.repairUserDerivedState.
+// Stats and badge statements below are composed by derivedState.repairUserDerivedState.
 //
 // Parity notes (do not "fix"): recompute does NOT set most_visited_*, world_completion_pct,
 // or time_zones_count.
 
 import { nowIso } from '../_lib/time'
 import { continentOf7 } from '../_lib/continents'
-
-// Plausibility bounds for distance/duration. The server CLAMPS client-supplied values so a
-// forged number can't inflate user_stats or unlock badges (security finding: client-trusted
-// distance_km / duration_minutes were written verbatim, no recompute, no CHECK).
-const MAX_DISTANCE_KM = 20_000 // > longest real non-stop (~15,300 km), < half-Earth great-circle
-const MAX_DURATION_MIN = 1_200 // 20 h ceiling
-const clampDistance = (d: number | null): number | null => (d == null ? null : Math.max(0, Math.min(MAX_DISTANCE_KM, d)))
-const clampDuration = (m: number | null): number | null => (m == null ? null : Math.max(0, Math.min(MAX_DURATION_MIN, m)))
-
-// --- distance / duration (fill_flight_distance + haversine_km) ----------------------------
-
-/** Great-circle km with the live 1.10 routing factor, rounded to an integer. */
-export function haversineKm(lat1: number, lon1: number, lat2: number, lon2: number): number {
-  const R = 6371
-  const ROUTING_FACTOR = 1.1
-  const rad = (x: number) => (x * Math.PI) / 180
-  const dlat = rad(lat2 - lat1)
-  const dlon = rad(lon2 - lon1)
-  const a = Math.sin(dlat / 2) ** 2 + Math.cos(rad(lat1)) * Math.cos(rad(lat2)) * Math.sin(dlon / 2) ** 2
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
-  return Math.round(R * c * ROUTING_FACTOR)
-}
-
-/**
- * Fill distance_km (and a duration fallback) from airports_reference when distance is null —
- * mirrors fill_flight_distance. Returns the resolved values to write on the flight row.
- */
-export async function fillDistanceAndDuration(
-  db: D1Database,
-  origin: string,
-  destination: string,
-  distanceKm: number | null,
-  durationMinutes: number | null,
-): Promise<{ distanceKm: number | null; durationMinutes: number | null }> {
-  // Clamp a client-supplied distance/duration to a plausible range instead of trusting it verbatim.
-  if (distanceKm != null) return { distanceKm: clampDistance(distanceKm), durationMinutes: clampDuration(durationMinutes) }
-
-  const o = await db
-    .prepare('SELECT latitude, longitude FROM airports_reference WHERE iata = ?')
-    .bind(origin)
-    .first<{ latitude: number | null; longitude: number | null }>()
-  const d = await db
-    .prepare('SELECT latitude, longitude FROM airports_reference WHERE iata = ?')
-    .bind(destination)
-    .first<{ latitude: number | null; longitude: number | null }>()
-
-  if (o?.latitude == null || o.longitude == null || d?.latitude == null || d.longitude == null) {
-    return { distanceKm, durationMinutes: clampDuration(durationMinutes) }
-  }
-
-  const dist = haversineKm(o.latitude, o.longitude, d.latitude, d.longitude)
-  let dur = durationMinutes
-  if (durationMinutes == null && dist > 0) {
-    const overhead = dist > 3000 ? 45 : 30
-    dur = Math.round((dist / 800) * 60 + overhead)
-  }
-  return { distanceKm: clampDistance(dist), durationMinutes: clampDuration(dur) }
-}
 
 /** Reads that share one D1 batch; `derive` receives their results in statement order. */
 export interface BatchedRead<T> {

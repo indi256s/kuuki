@@ -199,7 +199,7 @@ The home override reuses the existing private `profiles.home_airport`; no column
     - Client `duration_minutes` is ignored.
 - PATCH rule: recompute metrics only when route, date, times, tz or flight number change. Otherwise keep the stored metric columns, including `duration_source`.
 
-- [ ] **Step 1: Write the failing tests** (Miniflare harness; insert `airports_reference` rows with the package coordinates):
+- [x] **Step 1: Write the failing tests** (Miniflare harness; insert `airports_reference` rows with the package coordinates):
   - `create stores great-circle distance, not the client value`: POST TBS→JFK with `distance_km: 1` → stored 8980, `zones_overflown` > 0.
   - `unknown airport keeps client distance`: destination `GAT` (no coords) with `distance_km: 700` → 700; `zones_overflown` null.
   - `import without tz gets times across DST`. Draft conversion (`draftToFlightInput` path) JFK→LHR, 2026-03-28, dep 22:30, arr 10:30, no tz. Expect:
@@ -215,10 +215,10 @@ The home override reuses the existing private `profiles.home_airport`; no column
   - `patch of airline keeps metrics`: PATCH `airline_iata` only → duration, source and zones unchanged.
   - `patch of times recomputes`: PATCH new times on an `estimate` flight → `times`.
   - `leaderboard input follows`: after publish, `user_stats.total_distance_km` equals the sum of stored great-circle distances.
-- [ ] **Step 2:** `pnpm test:api -- functions/test/flight-metrics.test.ts`. Expected: FAIL.
-- [ ] **Step 3:** Implement and wire both write paths.
-- [ ] **Step 4:** Run `pnpm test:api` (whole suite: flights, overview, derived, import-conversion). Expected: PASS. Fixtures asserting ×1.10 distances are updated in this commit and listed in the body.
-- [ ] **Step 5:** Commit `feat(api): server-authoritative distance, tz, duration provenance and zones`.
+- [x] **Step 2:** `pnpm test:api -- functions/test/flight-metrics.test.ts`. Expected: FAIL.
+- [x] **Step 3:** Implement and wire both write paths.
+- [x] **Step 4:** Run `pnpm test:api` (whole suite: flights, overview, derived, import-conversion). Expected: PASS. Fixtures asserting ×1.10 distances are updated in this commit and listed in the body.
+- [x] **Step 5:** Commit `feat(api): server-authoritative distance, tz, duration provenance and zones`.
 
 ### Task 6: Backfill planner and read-only proposal
 
