@@ -63,7 +63,7 @@ export async function resolveFlightMetrics(db: D1Database, input: {
       originTz, destTz, existingDurationMinutes: null })
   } catch { /* invalid historical times have no measured duration */ }
   const distanceKm = origin && destination ? Math.min(20000, Math.round(greatCircleKm(origin, destination)))
-    : input.clientDistanceKm != null && Number.isFinite(input.clientDistanceKm) ? Math.max(0, Math.min(20000, input.clientDistanceKm)) : null
+    : input.clientDistanceKm != null && Number.isFinite(input.clientDistanceKm) ? Math.round(Math.max(0, Math.min(20000, input.clientDistanceKm))) : null
   const median = times.durationMinutes !== null && !input.timesFromSchedule ? null : await readBlockTimeMedian(db, input)
   const duration = decideDuration({ timesMinutes: times.durationMinutes, timesFromSchedule: input.timesFromSchedule ?? false,
     median, distanceKm, east: origin && destination ? eastwardShare(origin, destination) : 0 })

@@ -63,8 +63,10 @@ describe('server-authoritative flight metrics', () => {
   })
 
   it('unknown airport keeps client distance, otherwise distance and provenance are null', async () => {
-    expect(await create({ ...route, destination: 'GAT', distance_km: 700 }, 'metrics-unknown-client'))
+    expect(await create({ ...route, destination: 'GAT', distance_km: 700.4 }, 'metrics-unknown-client'))
       .toMatchObject({ distance_km: 700, zones_overflown: null, duration_source: 'estimate', duration_minutes: estimateBlockMinutes(700, 0) })
+    expect(await create({ ...route, destination: 'GAT', distance_km: 700.6 }, 'metrics-unknown-rounded'))
+      .toMatchObject({ distance_km: 701, zones_overflown: null })
     expect(await create({ ...route, destination: 'GAT' }, 'metrics-unknown-null'))
       .toMatchObject({ distance_km: null, zones_overflown: null, duration_source: null, duration_minutes: null })
   })
