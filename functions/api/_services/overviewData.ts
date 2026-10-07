@@ -6,8 +6,8 @@ import type { FlightRow } from '../_lib/flights'
 import { COUNTRY_REGION } from '../_lib/countryRegions.generated'
 import { passportRead } from './passport'
 
-export const overviewEtag = (state: { revision: number; evidence_revision: number }): string =>
-  `W/"ov2-${state.revision}-${state.evidence_revision}"`
+export const overviewEtag = (userId: string, state: { revision: number; evidence_revision: number }): string =>
+  `W/"ov2-${encodeURIComponent(userId)}-${state.revision}-${state.evidence_revision}"`
 
 type AirportRow = { iata: string; latitude: number | null; longitude: number | null; country_code: string | null; city: string | null; name: string }
 type AircraftRow = { icao: string; manufacturer: string | null; type: string | null; model: string | null; name: string | null }
@@ -68,7 +68,7 @@ export async function readOverviewData(db: D1Database, userId: string): Promise<
   }
   const mode = rows.length > AGGREGATE_THRESHOLD ? 'aggregate' : 'flights'
   return {
-    schemaVersion: 2, etag: overviewEtag(state ?? { revision: 0, evidence_revision: 0 }),
+    schemaVersion: 2, etag: overviewEtag(userId, state ?? { revision: 0, evidence_revision: 0 }),
     generatedAt: new Date().toISOString(), mode, derivedReady: data.derivedState === 'ready',
     passport: { countries: data.pressedCountryCount, regions: data.regions.filter(region => region.pressed > 0).length },
     homeOverride,

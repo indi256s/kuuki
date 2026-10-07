@@ -439,3 +439,36 @@ existing worktree, for read-only full-range review over
 findings have not been claimed clean. Per-task reviews remain skipped by user
 request. R1 final review is clean at 903dd58. No new remote D1, production write,
 deploy, provider enablement, GitHub/main or UI action was performed.
+
+## Final review remediation (2026-10-07)
+
+The independent GPT-6.1 Sol High review of 903dd58 through 4d3bb55, including
+both user-requested Thermos passes, found four verified P2 issues. The user then
+instructed “address all”, authorizing local fixes in this same worktree, then
+authorized committing the fixes and integrating the completed data branch
+into main while preserving the design checkout's work in progress.
+
+- Owner identity now participates in both payload and conditional-response
+  ETags, preventing an equal-revision account from reusing another owner's
+  validator. The single-stamp 304 read remains intact.
+- Aggregate groups distinguish per-flight distance, missing/zero/positive
+  duration eligibility, and both zone labels. This preserves haul filters,
+  paired speed totals and weighted timezone coverage without extending the
+  DTO. Individual extrema, clock-shift summaries and re-aggregation remain.
+- Shares return no-store 503 / DERIVED_PENDING while publication is pending,
+  before computing or rendering stale D12 country evidence. A retry after
+  repair uses the current projection.
+
+Six new regression cases failed against the original implementation, then
+passed after the fixes. Focused checks: 6 files / 92 tests. Full API: 74 files /
+834 tests. API/scripts/Worker typechecks and affected lint/typecheck pass.
+Next data-store/chart checks: 2 files / 11 tests; the prior full Next unit
+evidence remains applicable to unchanged client source. Next build passes:
+75 routes, entry 2278 bytes, 105 assets / 9226424 bytes. Workerd and boundary smokes pass;
+share PNG remains 1200×1500 / 12457 bytes with zero outbound calls. Both fresh
+Thermos remediation passes report no verified remaining findings. All required
+local checks are complete. Logs: `/tmp/kuuki-r2-fixes-*`.
+
+No deployment, remote D1/provider operation, UI change or edit to the
+design-owned decisions file was performed. Existing legacy Overview APIs
+remain in place for the separate design thread.

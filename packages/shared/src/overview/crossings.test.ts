@@ -2,6 +2,7 @@ import { expect, it, vi } from 'vitest'
 import { findAirport } from '../../../data/src/airport-lookup'
 import * as geo from '../geo'
 import { aggregateRows } from './aggregate'
+import { coverage } from './figures'
 import { crossings } from './crossings'
 import type { OverviewPayload, OverviewRow } from './model'
 
@@ -24,6 +25,16 @@ function ready(rows: OverviewRow[], references = refs) {
   if (result.status !== 'ready') throw new Error('Expected ready crossings')
   return result.value
 }
+
+it('aggregation retains both-zone coverage across different or missing zone labels', () => {
+  const rows = [row('TBS', 'LHR'), row('TBS', 'LHR', { id: 2, originTz: 'Asia/Baku' }),
+    row('TBS', 'LHR', { id: 3 }), row('TBS', 'LHR', { id: 4, destTz: null })]
+  const grouped = aggregateRows(rows)
+  expect(coverage(grouped).withBothTz).toBe(3)
+  expect(crossings(grouped, refs)).toEqual(crossings(rows, refs))
+  expect(coverage(aggregateRows(grouped))).toEqual(coverage(rows))
+  expect(crossings(aggregateRows(grouped), refs)).toEqual(crossings(rows, refs))
+})
 
 it.each([
   ['JFK', 'HKG', { dateLine: 1, arcticCircle: 2 }],

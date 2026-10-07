@@ -55,6 +55,25 @@ it('anonymous is 401 before any database access', async () => {
   expect(batch).not.toHaveBeenCalled()
 })
 
+it('a different owner with the same revision counters receives its own payload', async () => {
+  const { db, dispose } = await overviewAccount([
+    { id: 1, date: '2025-01-01', origin: 'TBS', destination: 'IST', state: 'logged' },
+  ])
+  try {
+    await db.batch([
+      db.prepare("INSERT INTO users(id,email,password_hash) VALUES('other','other@example.test','hash')"),
+      db.prepare("INSERT INTO profiles(id) VALUES('other')"), dirtyUserStatement(db, 'other'),
+    ])
+    await repairUserDerivedState(db, 'other')
+    const first = await readOverviewData(db, USER.id)
+    const response = await getOverviewData({ ...apiContext(db, new Request('https://kuuki.test/api/me/overview/data',
+      { headers: { 'If-None-Match': first.etag } })), data: { user: { id: 'other', email: 'other@example.test' } } } as never)
+    expect(response.status).toBe(200)
+    expect(response.headers.get('ETag')).not.toBe(first.etag)
+    expect(await response.json()).toMatchObject({ rows: [] })
+  } finally { await dispose() }
+})
+
 it.each(['JFK', null])('a home-airport edit to %s invalidates the old etag and repairs publication', async home => {
   const { db, dispose } = await overviewAccount([], d => [
     d.prepare("UPDATE profiles SET home_airport = 'TBS' WHERE id = ?").bind(USER.id),
@@ -236,8 +255,8 @@ it('etag changes with either revision and exposes pending publication', async ()
     const after = await readOverviewData(db, USER.id)
     expect(after.etag).not.toBe(before.etag)
     expect(after.derivedReady).toBe(false)
-    expect(overviewEtag({ revision: 2, evidence_revision: 1 })).toBe('W/"ov2-2-1"')
-    expect(overviewEtag({ revision: 2, evidence_revision: 2 })).not.toBe(after.etag)
+    expect(overviewEtag(USER.id, { revision: 2, evidence_revision: 1 })).toBe(`W/"ov2-${encodeURIComponent(USER.id)}-2-1"`)
+    expect(overviewEtag(USER.id, { revision: 2, evidence_revision: 2 })).not.toBe(after.etag)
   } finally { await dispose() }
 })
 
@@ -269,8 +288,8 @@ const row = (overrides: Partial<OverviewRow> = {}): OverviewRow => ({
 
 it('aggregates weighted sums, minimum ids and nullable metrics deterministically', () => {
   const rows = [row({ weight: 2, distanceKm: 200, zonesOverflown: null }),
-    row({ id: 4, date: '2025-01-25', weight: 3, distanceKm: 300, depMinute: 400, durationMinutes: null, zonesOverflown: null })]
-  const expected = [{ ...row(), id: 4, weight: 5, date: '2025-01-01', distanceKm: 500, durationMinutes: 60,
+    row({ id: 4, date: '2025-01-25', weight: 3, distanceKm: 300, depMinute: 400, durationMinutes: 90, zonesOverflown: null })]
+  const expected = [{ ...row(), id: 4, weight: 5, date: '2025-01-01', distanceKm: 500, durationMinutes: 150,
     depMinute: 360, zonesOverflown: null, flightNumber: null, departureUtc: null, clockShiftMinutes: null,
     recordExtrema: { longest: null, shortest: null, longestDuration: null, shortestDuration: null, biggestClockJump: null } }]
   expect(aggregateRows(rows)).toEqual(expected)
@@ -281,6 +300,8 @@ it('aggregates weighted sums, minimum ids and nullable metrics deterministically
 it.each<Partial<OverviewRow>>([
   { state: 'upcoming' }, { origin: 'JFK' }, { destination: 'JFK' }, { airline: null }, { aircraft: null },
   { date: '2025-02-01' }, { depMinute: null }, { durationSource: 'estimate' }, { suppressed: 2 },
+  { originTz: 'Asia/Baku' }, { destTz: null }, { distanceKm: null }, { distanceKm: 5000 },
+  { durationMinutes: null }, { durationMinutes: 0 },
 ])('keeps distinct aggregate dimensions: %j', different => {
   expect(aggregateRows([row(), row({ ...different, id: 10 })])).toHaveLength(2)
 })

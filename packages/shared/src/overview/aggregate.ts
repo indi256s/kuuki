@@ -8,8 +8,11 @@ export function aggregateRows(rows: OverviewRow[]): OverviewRow[] {
   for (const row of rows) {
     const month = row.date.slice(0, 7)
     const hour = row.depMinute === null ? null : Math.floor(row.depMinute / 60)
+    // Keep haul filters, paired speed metrics and zone coverage identical to individual rows.
     const key = JSON.stringify([row.state, row.origin, row.destination, row.airline, row.aircraft,
-      month, hour, row.durationSource, row.suppressed])
+      month, hour, row.durationSource, row.suppressed, row.originTz, row.destTz,
+      row.distanceKm === null ? null : row.distanceKm / row.weight,
+      row.durationMinutes === null ? null : row.durationMinutes > 0])
     const group = groups.get(key)
     if (!group) {
       groups.set(key, { ...row, date: `${month}-01`, depMinute: hour === null ? null : hour * 60,
@@ -24,8 +27,6 @@ export function aggregateRows(rows: OverviewRow[]): OverviewRow[] {
     group.distanceKm = sum(group.distanceKm, row.distanceKm)
     group.durationMinutes = sum(group.durationMinutes, row.durationMinutes)
     group.zonesOverflown = sum(group.zonesOverflown, row.zonesOverflown)
-    if (group.originTz !== row.originTz) group.originTz = null
-    if (group.destTz !== row.destTz) group.destTz = null
   }
   return [...groups.values()].sort((a, b) => a.date.localeCompare(b.date) || a.id - b.id)
 }

@@ -167,14 +167,14 @@ export interface OverviewPayload {
 ```
 
 - More interfaces:
-  - `aggregateRows(rows: OverviewRow[]): OverviewRow[]`. It groups by `(state, origin, destination, airline, aircraft, month, depHour, durationSource, suppressed)`: it sums weight/distance/duration/zones, keeps the min id and nulls the per-flight fields. Rows are sorted by `(date, id)`.
+  - `aggregateRows(rows: OverviewRow[]): OverviewRow[]`. It groups by `(state, origin, destination, airline, aircraft, month, depHour, durationSource, suppressed, originTz, destTz, per-flight distance, duration eligibility)`: it sums weight/distance/duration/zones, keeps the min id and nulls the per-flight fields. Duration eligibility distinguishes missing, zero and positive values. Matching zone labels preserve both-zone coverage via the existing weights; per-flight distance and duration eligibility preserve haul filters and paired speed metrics. Rows are sorted by `(date, id)`.
     Before clearing per-flight dates/times, preserve `recordExtrema` (the five
     Task 6 individual record references, with lowest-ID ties) and nullable
     `clockShiftMinutes` (sum of absolute individual DST-aware jumps). Preserve
     these summaries on re-aggregation. Approved during Task 6; issue 08 records
     the original information loss. Weighted inputs without these summaries
     provide no unsupported individual records or invented clock-shift sum.
-  - `overviewEtag(state: { revision: number; evidence_revision: number }): string` → `W/"ov2-<revision>-<evidence_revision>"`.
+  - `overviewEtag(userId: string, state: { revision: number; evidence_revision: number }): string` → `W/"ov2-<encoded owner>-<revision>-<evidence_revision>"`. Owner identity prevents equal counters on different accounts from sharing a validator; the stamp-only 304 read remains unchanged.
   - `readOverviewData(db: D1Database, userId: string): Promise<OverviewPayload>`. One `db.batch`: flights, suppressions, referenced airports/aircraft, derived state, plus `profiles.home_airport`. `suppressed` comes from `country_evidence_suppressions` by `(flight_id, endpoint)`. `mode` is `'aggregate'` when `rows.length > AGGREGATE_THRESHOLD`.
 
 - [x] **Step 1: Write the failing tests:**
@@ -587,6 +587,7 @@ interface PublicOverview {
 **Interfaces:**
 - Consumes: `readOverviewData`, `parsePrefs`, `computeOverview`; `createChartScene` + `renderChartSvg` (Task 13).
 - Produces: `GET /api/me/overview/share.png?filter=<base64url JSON>` (owner only, `no-store`) → `image/png`, 1 200 × 1 500.
+  - Pending D12 publication (`derivedReady: false`) returns a no-store 503 with code `DERIVED_PENDING` before computation/rendering. Retrying after repair uses the current country evidence.
   - The layout is a **stub**: four figures as plain text on the paper token colour, plus one fixture chart (the Task 13 `barY` of `clock.byHour`). The design thread replaces the layout and chart definitions only.
   - Charts in the card come from `renderChartSvg` on the same engine rows and are embedded as an SVG data-URI `<img>`. There is no second chart stack.
 

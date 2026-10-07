@@ -24,5 +24,6 @@ export const onRequestGet: PagesFunction<Env, string, RequestData> = context => 
   if (!profile) throw new HttpError(404, 'Profile not found', 'NOT_FOUND')
   const filter = explicit ?? parsePrefs(profile.overview_prefs).filter
   const payload = await readOverviewData(context.env.DB, user.id)
+  if (!payload.derivedReady) throw new HttpError(503, 'Overview is updating. Please try again.', 'DERIVED_PENDING')
   return renderShareCard(computeOverview(payload, filter), context)
 })

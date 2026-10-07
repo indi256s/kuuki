@@ -2,6 +2,8 @@ import { expect, it } from 'vitest'
 import { familyOf, findAircraft } from '../../../data/src/aircraft-lookup'
 import { fleet } from './fleet'
 import { clock } from './clock'
+import { aggregateRows } from './aggregate'
+import { matches } from './filter'
 import type { Gate } from './figures'
 import type { OverviewPayload, OverviewRow } from './model'
 
@@ -83,6 +85,30 @@ it('haul and hour counts use weights while aggregate speed uses stored sums', ()
   expect(result.haul).toEqual([{ key: 'short', flights: 0 }, { key: 'medium', flights: 0 }, { key: 'long', flights: 10 }])
   expect(result.byHour[10].flights).toBe(10)
   expect(result.averageSpeedKmh).toBeCloseTo(1000)
+})
+
+it('aggregation preserves speed pairs and haul counts when distances are missing', () => {
+  const rows = ten({ durationMinutes: 60 }).map((item, i) => ({ ...item, distanceKm: i ? null : 100 }))
+  expect(ready(clock(rows)).averageSpeedKmh).toBe(100)
+  expect(ready(clock(aggregateRows(rows)))).toEqual(ready(clock(rows)))
+})
+
+it('aggregation preserves haul filters for differing fallback distances on the same route', () => {
+  const rows = ten().map((item, i) => ({ ...item, distanceKm: i % 2 ? 5000 : 1000 }))
+  const grouped = aggregateRows(rows)
+  expect(ready(clock(grouped))).toEqual(ready(clock(rows)))
+  for (const haul of ['short', 'medium', 'long'] as const) {
+    const count = (items: OverviewRow[]) => items.filter(item => matches(item, { haul: [haul] }, refs))
+      .reduce((sum, item) => sum + item.weight, 0)
+    expect(count(grouped)).toBe(count(rows))
+  }
+})
+
+it('aggregation excludes missing and zero durations from paired speed totals', () => {
+  const rows = ten()
+  rows[0] = row({ durationMinutes: null })
+  rows[1] = row({ durationMinutes: 0 })
+  expect(ready(clock(aggregateRows(rows)))).toEqual(ready(clock(rows)))
 })
 
 it('clock gates by valid departure times and keeps missing metrics finite', () => {

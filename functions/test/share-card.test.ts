@@ -8,6 +8,7 @@ import * as card from '../api/_services/overviewShareCard'
 import { DEFAULT_PREFS } from '../../packages/shared/src/overview/prefs'
 import { apiContext } from './harness'
 import { overviewAccount, USER } from './overview-fixture'
+import { dirtyUserStatement, repairUserDerivedState } from '../api/_services/derivedState'
 
 // Node tests use the package's Node adapter; local workerd proves its Worker adapter separately.
 vi.mock('@cf-wasm/og/workerd', async () => import('@cf-wasm/og/node'))
@@ -40,6 +41,37 @@ it('card embeds the chart svg from unchanged Clock rows', () => {
   const svg = decodeURIComponent(String(image.props.src).split(',')[1])
   expect(svg).toContain('<svg')
   expect(svg).toContain('aria-label="Clock"')
+})
+
+it('withholds filtered shares after failed D12 publication, then renders repaired evidence', async () => {
+  const { db, dispose } = await overviewAccount([
+    { id: 1, date: '2025-01-01', origin: 'TBS', destination: 'IST', state: 'logged',
+      dep: '2025-01-01T08:00:00Z', arr: '2025-01-01T10:00:00Z' },
+    { id: 2, date: '2025-01-01', origin: 'IST', destination: 'JFK', state: 'logged',
+      dep: '2025-01-01T12:00:00Z', arr: '2025-01-01T22:00:00Z' },
+  ])
+  try {
+    await db.batch([db.prepare('UPDATE flights SET arrival_transit=1,arrival_transit_leg_id=2 WHERE id=1'),
+      dirtyUserStatement(db, USER.id, true)])
+    await db.prepare("CREATE TRIGGER fail_share_publication BEFORE UPDATE OF published_revision ON user_derived_state BEGIN SELECT RAISE(ABORT, 'synthetic failure'); END").run()
+    expect(await repairUserDerivedState(db, USER.id)).toMatchObject({ derived_state: 'pending' })
+    const render = vi.spyOn(card, 'renderShareCard').mockImplementation(async scope => new Response(String(scope.figures.flights)))
+    const filter = Buffer.from('{"countries":["TR"]}').toString('base64url')
+    const get = () => onRequestGet({ ...apiContext(db, new Request(`https://kuuki.test/api/me/overview/share.png?filter=${filter}`)),
+      data: { user: USER } } as never)
+    const pending = await get()
+    expect(pending.status).toBe(503)
+    expect(pending.headers.get('Cache-Control')).toBe('no-store')
+    expect(await pending.json()).toMatchObject({ code: 'DERIVED_PENDING' })
+    expect(render).not.toHaveBeenCalled()
+    await db.prepare('DROP TRIGGER fail_share_publication').run()
+    expect(await repairUserDerivedState(db, USER.id)).toMatchObject({ derived_state: 'ready' })
+    const repaired = await get()
+    expect(repaired.status).toBe(200)
+    expect(await repaired.text()).toBe('0')
+    expect(render).toHaveBeenCalledTimes(1)
+    expect(render.mock.calls[0][0].figures.countries.value).toBe(0)
+  } finally { await dispose() }
 })
 
 it('valid filters survive decoding and remembered preferences apply only without an explicit filter', async () => {
