@@ -308,13 +308,13 @@ The home override reuses the existing private `profiles.home_airport`; no column
   - Splits the export with wrangler's `unstable_splitSqlQuery`, drops `BEGIN`/`COMMIT`/`PRAGMA`/`sqlite_sequence` statements, and executes in `db.batch` chunks of 200. This is the procedure proven in `.scratch/next-release/operator-local-test.ts`.
   - Then runs `applyMigrations(db, { after: <last ledger row> })`.
 
-- [ ] **Step 1:** Ask the user before copying private production data. Then:
+- [x] **Step 1:** Ask the user before copying private production data. Then:
   - `pnpm exec wrangler d1 export kuuki-db --remote --output <abs private dir>/kuuki-<UTC>.sql`. This is read-only, but it briefly blocks the DB.
   - `chmod 600` the file.
   - Restore it with `scripts/restore-export-local.ts`.
   
   No remote writes.
-- [ ] **Step 2:** Locally: apply 0008 (done by the restore's `applyMigrations`), then run `pnpm exec tsx scripts/fit-block-time.ts --database-id <id> --persist <dir> --schema-admission <reviewed json>`.
+- [x] **Step 2:** Locally: apply 0008 (done by the restore's `applyMigrations`), then run `pnpm exec tsx scripts/fit-block-time.ts --database-id <id> --persist <dir> --schema-admission <reviewed json>`.
   - Expected: `samples ≥ 30`, then re-run with `--write`.
   - With fewer samples, keep the prior and record that.
   - Commit `chore(shared): fit block-time model on production sample` and show the coefficient diff to the user.
