@@ -293,7 +293,7 @@ bytes, 105 assets / 9226424 bytes, 74 routes including the new GET, generated
 inventory committed. Existing Better Auth warning remains. Task 13 full Next
 107/1113 evidence remains applicable to this server-helper-only addition.
 Full owned code/tests/inventory reviewed. Checkboxes are committed with code.
-Task 15 is complete at `31ae8ab`; Task 16 is complete; Task 17 remains unstarted.
+Task 15 is complete at `31ae8ab`; Task 16 is complete at `07dac49`; Task 17 Step 1 is complete, awaiting Step 2 report acceptance.
 No open routine decision; explicit production/GitHub/UI/parity gates remain.
 No per-task review under
 the user's revised workflow; final whole-branch Opus review over
@@ -358,3 +358,49 @@ Task 15 full Next 107/1113 and Worker smoke/boundary evidence remain applicable;
 this task changes API handlers, not the runtime boundary or UI. Owned source,
 tests and route diff reviewed; task checkboxes are in the implementation commit.
 No per-task review; final Opus branch review remains pending. Logs r2-t16-*.
+
+Task 17 Step 1: read-only parity script on the explicitly admitted Release 1
+local restore. Owner identity selected by exact local git-author email match;
+no email or journal rows printed. It compares the retained legacy Overview
+reader and actual advanced breakdown/duration computation with the new engine.
+Aircraft types means distinct ICAO codes; flight extrema are reported in km,
+with precise duration extrema in separate rows. No legacy files have been
+retired, and the user_advanced_stats table/cascade entry remain unchanged.
+
+All numeric metrics and top airline/airport match for the owner. The sole
+Release 2 delta is the expressly approved directed → undirected route ranking;
+the two directions' sum was verified against the original private snapshot.
+Both table columns read the same repaired post-Release-1 snapshot. Original
+export comparison separately verifies great-circle distance changes and eight
+changed durations (six median, two estimate); no other Release 2 delta.
+Private report with explanations (mode 0600):
+`/var/folders/hy/6ftrhvk16w942tqtvgsxy6pc0000gn/T/kuuki-overview-parity-Bpx90k/report.md`
+SHA-256: `6b48a8bf9be6c87a7ab947821ee17dad93f287647014feb3e5af7dc2700f2093`.
+No owner aggregates or journal rows are copied into tracked report documents.
+
+RED: missing parity module. Focused GREEN: `Test Files 1 passed (1); Tests
+3 passed (3)` in 3.38s, including no writes, estimate-excluded record difference,
+directional-route difference, missing owner and stale projection refusal.
+Full API before acceptance: `Test Files 74 passed (74); Tests 821 passed (821)`
+in 123.08s. API/scripts typechecks exit 0. Real local report command exits 0.
+Task 16 route build (77 routes) and Task 15 Next 107/1113 + Worker smoke/boundary
+checks remain applicable; this step only adds CLI/test/typecheck inclusion.
+Complete owned CLI/test/config diff reviewed; normal hooks apply to checkpoint.
+
+STOP at Task 17 Step 2: present the private report and wait for the user to
+accept it, as expressly required by the plan/user hard stop. Routine choices
+are authorized without repeat questions. Step 1 alone is checked; Step 2 and
+retirement Steps 3–5 remain unchecked. The final task commit remains
+`refactor(api): retire legacy advanced stats after parity` after acceptance.
+When deleting the legacy modules, preserve runnable report diagnostics (its
+current import consumes the legacy computations before deletion), remove only
+legacy-specific cases from mixed test files, keep the legacy table/cascade,
+and regenerate routes/run required checks. No app callers of the old endpoints
+were found in the current tree. No UI work is needed on current evidence.
+
+Per-task reviews were skipped at user request. R1 whole-branch Opus round 2
+is clean after both reporting/runbook findings were fixed at `903dd58`.
+R2 whole-branch Opus review over `feat/overview-release-1-migrations...HEAD`
+remains pending until implementation is finished. No remote D1, production
+write/deploy, provider enablement, GitHub/main or UI action in these tasks.
+Logs: `/tmp/kuuki-overview-execution/r2-t17-*`.

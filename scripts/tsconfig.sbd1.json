@@ -34,6 +34,7 @@
     "./generate-country-regions.ts",
     "./fit-block-time.ts",
     "./overview-backfill-proposal.ts",
+    "./overview-parity.ts",
     "./restore-export-local.ts",
     "./verify-import-provider.ts",
     "./evaluate-import.ts",

@@ -642,7 +642,7 @@ interface PublicOverview {
   - Prints a table of metric | legacy | new | delta for: flights, distance, duration, airlines, aircraft types, manufacturers, regions, longest/shortest flight, top airline/airport/route.
   - Writes a private copy to the tmpdir.
 
-- [ ] **Step 1:** Run the parity script on the restored production copy for the owner's account. Expected: equal counts. Distance and duration differences are explained only by Release 1 (great-circle, ladder). List any other delta.
+- [x] **Step 1:** Run the parity script on the restored production copy for the owner's account. Expected: equal counts. Distance and duration differences are explained only by Release 1 (great-circle, ladder). List any other delta.
 - [ ] **Step 2:** Show the report to the user. **Stop until they accept it.**
 - [ ] **Step 3:** Delete the legacy files. Run `grep -rn "advancedStats\|advanced-stats\|dashboard-stats" apps functions packages`. Expected: no hits outside the generated routes, which `pnpm next:build` regenerates.
 - [ ] **Step 4:** `pnpm typecheck:api`, `pnpm test:api`, `pnpm next:build`. Expected: all pass.
