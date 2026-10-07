@@ -127,7 +127,7 @@ export function JournalFilters({ locale, query, filtered, apply, navigating, ext
   const sheetRef = useRef<HTMLDivElement>(null)
 
   const knownParams = new URLSearchParams(known)
-  const selectValues: Values = { status: knownParams.get('status') ?? '', sort: knownParams.get('sort') ?? 'date', order: knownParams.get('order') ?? 'desc' }
+  const selectValues: Values = { status: sent.status ?? knownParams.get('status') ?? '', sort: sent.sort ?? knownParams.get('sort') ?? 'date', order: sent.order ?? knownParams.get('order') ?? 'desc' }
 
   const problems = (values: Values, shown: Record<string, boolean>) => {
     const result: Record<string, string | undefined> = {}
@@ -148,7 +148,7 @@ export function JournalFilters({ locale, query, filtered, apply, navigating, ext
   }
   const send = (changes: Change) => {
     if (!Object.keys(changes).length) return
-    const keys = Object.keys(changes).filter(key => key === 'q' || (TEXT_KEYS as readonly string[]).includes(key))
+    const keys = Object.keys(changes)
     // Recorded before the navigation starts, so a synchronous response is already known to be ours.
     setSent(old => ({ ...old, ...Object.fromEntries(keys.map(key => [key, changes[key]])) }))
     if (!apply(changes)) setSent(old => { const next = { ...old }; for (const key of keys) delete next[key]; return next })

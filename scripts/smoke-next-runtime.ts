@@ -243,6 +243,28 @@ async function main() {
       const conditional = await assertResponse(path, 304, { headers: { 'If-None-Match': tag } })
       if (conditional.headers.get('Cache-Control') !== 'no-store') throw new Error(`Conditional boundary lost no-store: ${path}`)
     }
+    const mapCache = 'public, max-age=31536000, immutable'
+    for (const path of ['/maps/world-outline-110m-2.0.2.svg', '/maps/country-centers-110m-2.0.2.json',
+      '/maps/countries-110m-2.0.2.geojson',
+      '/maps/maplibre-6.12.0/maplibre-gl.css', '/maps/maplibre-6.12.0/maplibre-gl-worker.mjs',
+      '/maps/maplibre-6.12.0/maplibre-gl-shared.mjs']) {
+      const asset = await assertResponse(path, 200)
+      if (asset.headers.get('Cache-Control') !== mapCache) throw new Error(`Versioned map asset is uncached: ${path}`)
+      const head = await assertResponse(path, 200, { method: 'HEAD' })
+      if (head.headers.get('Cache-Control') !== mapCache) throw new Error(`Versioned map HEAD is uncached: ${path}`)
+      const tag = asset.headers.get('ETag')
+      if (tag) {
+        const conditional = await assertResponse(path, 304, { headers: { 'If-None-Match': tag } })
+        if (conditional.headers.get('Cache-Control') !== mapCache) throw new Error(`Versioned map 304 is uncached: ${path}`)
+      }
+    }
+    for (const path of ['/bootstrap.js', '/maps/missing-110m-2.0.2.svg', '/maps/maplibre-6.12.0/LICENSE.txt']) {
+      const response = await request(path)
+      if (response.headers.get('Cache-Control') !== 'no-store') throw new Error(`Unversioned or missing asset became cacheable: ${path}`)
+      if (path.includes('/missing-') && response.status < 400) throw new Error('Missing map asset did not fail')
+    }
+    const bootstrapHead = await assertResponse('/bootstrap.js', 200, { method: 'HEAD' })
+    if (bootstrapHead.headers.get('Cache-Control') !== 'no-store') throw new Error('Unversioned HEAD became cacheable')
     await maintenanceProbe()
     if (boundaryOnly) { console.log(JSON.stringify({ result: 'Next boundary smoke passed', artifact: artifact() })); return }
     const publicShell = await fetch(`http://127.0.0.1:${port}/`)

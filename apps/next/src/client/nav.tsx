@@ -49,7 +49,7 @@ export function MobilePageTitle() {
 
 export function PrimaryNav({ locale = 'en' }: { locale?: Locale }) {
   const pathname = usePathname()
-  return <nav aria-label={locale === 'ru' ? 'Основная навигация' : 'Primary'} className="desktop-nav"><ul className="main-nav">{NAV_ITEMS.map(item => <li key={item.href}><Link href={item.href} aria-current={isActive(pathname, item.href) ? 'page' : undefined}><NavLabel en={item.label} ru={item.ru} /></Link></li>)}</ul></nav>
+  return <nav aria-label={locale === 'ru' ? 'Основная навигация' : 'Primary'} className="desktop-nav"><ul className="main-nav">{NAV_ITEMS.map(item => <li key={item.href}><Link href={item.href} prefetch={item.href === '/leaderboard' ? undefined : true} aria-current={isActive(pathname, item.href) ? 'page' : undefined}><NavLabel en={item.label} ru={item.ru} /></Link></li>)}</ul></nav>
 }
 
 /**
@@ -71,8 +71,8 @@ function useKeyboardFlag() {
   }, [])
 }
 
-function Tab({ href, active, icon, en, ru }: { href: string; active: boolean; icon: ReactNode; en: string; ru: string }) {
-  return <li><Link href={href} className="tab" aria-current={active ? 'page' : undefined}>{icon}<span className="tab-label"><NavLabel en={en} ru={ru} /></span></Link></li>
+function Tab({ href, active, icon, en, ru, prefetch }: { href: string; active: boolean; icon: ReactNode; en: string; ru: string; prefetch?: boolean }) {
+  return <li><Link href={href} prefetch={prefetch} className="tab" aria-current={active ? 'page' : undefined}>{icon}<span className="tab-label"><NavLabel en={en} ru={ru} /></span></Link></li>
 }
 
 export function TabBar({ locale = 'en', username }: { locale?: Locale; username?: string | null }) {
@@ -85,8 +85,8 @@ export function TabBar({ locale = 'en', username }: { locale?: Locale; username?
   if (sheetPath !== pathname) { setSheetPath(pathname); setAddOpen(false) }
   const icon = (Icon: typeof Plus) => <Icon size={22} strokeWidth={2} aria-hidden="true" />
   return <nav aria-label={ru ? 'Вкладки' : 'Tabs'} className="tab-bar"><ul>
-    <Tab href="/overview" active={isActive(pathname, '/overview')} icon={icon(LayoutGrid)} en="Overview" ru="Обзор" />
-    <Tab href="/journal" active={isActive(pathname, '/journal')} icon={icon(BookOpen)} en="Journal" ru="Журнал" />
+    <Tab href="/overview" prefetch active={isActive(pathname, '/overview')} icon={icon(LayoutGrid)} en="Overview" ru="Обзор" />
+    <Tab href="/journal" prefetch active={isActive(pathname, '/journal')} icon={icon(BookOpen)} en="Journal" ru="Журнал" />
     <li>
       <Sheet open={addOpen} onOpenChange={setAddOpen} side="bottom" closeLabel={ru ? 'Закрыть' : 'Close'}
         title={ru ? 'Добавить перелёт' : 'Add a flight'}
@@ -94,7 +94,7 @@ export function TabBar({ locale = 'en', username }: { locale?: Locale; username?
         <AddActions variant="sheet" onNavigate={() => setAddOpen(false)} />
       </Sheet>
     </li>
-    <Tab href="/passport" active={isActive(pathname, '/passport')} icon={icon(Stamp)} en="Passport" ru="Паспорт" />
+    <Tab href="/passport" prefetch active={isActive(pathname, '/passport')} icon={icon(Stamp)} en="Passport" ru="Паспорт" />
     <Tab href="/me" active={isMeActive(pathname, username)} icon={icon(CircleUser)} en="Me" ru="Я" />
   </ul></nav>
 }

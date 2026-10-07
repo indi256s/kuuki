@@ -1,0 +1,36 @@
+{
+  "origin": "http://127.0.0.1:8817",
+  "phase": "final production preview after journal detail loader and pending status changes",
+  "nextBuildId": "xbg5FFLpzOMqAXuy19pzN",
+  "environment": "Isolated agent-browser headless Chromium session, signed-in synthetic a@example.test one-flight fixture; no persistent data changes",
+  "flightDetail": {
+    "ticketPredicate": "Dialog contains JFK, BOS, and Jan 3, 2026; dialog existence alone did not count as ready.",
+    "firstOpenClickToOpeningStatusMs": 20,
+    "firstOpenClickToDialogElementMs": 72,
+    "firstOpenClickToCorrectTicketMs": 91,
+    "firstOpenResourceEvidence": {
+      "journalRscTransferBytes": 2062,
+      "journalRscDurationMs": 12,
+      "javascriptTransfersBytes": [1847, 5806, 16492, 143094],
+      "flightApiTransferBytes": 669
+    },
+    "warmReopenToCorrectTicketMsConcurrent": [84, 104, 89],
+    "warmReopenToCorrectTicketMsLater": [185, 67, 95],
+    "closeClearedFlightQuery": true,
+    "closeRestoredRowFocus": true,
+    "escapeClearedFlightQuery": true,
+    "escapeRestoredRowFocus": true,
+    "directDeeplinkHydratedCorrectTicket": true,
+    "directDeeplinkCloseClearedFlightQuery": true,
+    "note": "Earlier pre-final lazy implementation exposed fallback at 34 ms and visible dialog at 340 ms. Final first click showed correct ticket at 91 ms. Warm reopen times vary with navigation/server work, including root benchmark activity during the first set."
+  },
+  "journalStatus": {
+    "rapidSequence": ["upcoming", "logged", "awaiting", "logged"],
+    "finalUrl": "/journal?status=logged",
+    "finalSelected": "logged",
+    "finalResult": "One JFK–BOS logged flight row, matching synthetic fixture",
+    "resetToAllUrl": "/journal",
+    "resetToAllRows": 1,
+    "note": "The four selects were issued in 0.8 s total. Root separately measured final status-selection feedback n=5; this check covers final state after rapid changes."
+  }
+}

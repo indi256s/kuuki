@@ -1,0 +1,45 @@
+{
+  "origin": "http://127.0.0.1:8817",
+  "environment": "Local production preview before final rebuild; isolated headless Chromium via agent-browser; signed-in one-flight fixture",
+  "method": "performance.now() from DOM click to explicit visible/ready predicates. 5,000 map pairs generated with the shape in apps/next/tests/performance.bench.ts and returned through session-local fetch override; no persistent data changed.",
+  "map5000Pairs": {
+    "syntheticResponseBytes": 711897,
+    "initialPanelMs": 7,
+    "initialCanvasMs": 392,
+    "initialStageReadyMs": 606,
+    "initialRouteRowsAfterRoutesClickMs": 103,
+    "reopenToStageReadyMsConcurrent": [956, 886, 949],
+    "reopenToStageReadyMsIsolated": [833, 900, 884, 770, 778],
+    "reopenToCanvasMsIsolated": [593, 656, 633, 555, 550],
+    "reopenToPanelMsIsolated": [12, 12, 11, 14, 12],
+    "rowsOnEachIsolatedReopen": 5000,
+    "layerClickToSelectedAndRowsMs": {
+      "routes": [106, 31, 98, 29, 103],
+      "countries": [60, 64, 62],
+      "frequency": [109, 106]
+    },
+    "fitRoutesFrameRuns": [
+      {"frames": 37, "p95Ms": 18, "maxMs": 19, "over50Ms": 0},
+      {"frames": 37, "p95Ms": 18, "maxMs": 19, "over50Ms": 0},
+      {"frames": 37, "p95Ms": 18, "maxMs": 18, "over50Ms": 0}
+    ],
+    "note": "Original after n=3 reopens overlapped root benchmark activity; n=5 isolated samples are more comparable to before n=3 [791,765,806] ms. Synthetic projection and one browser/device are not real network or low-end device measurements."
+  },
+  "mobileJournal": {
+    "viewport": [390, 844],
+    "stagingChangedUrlBeforeApply": false,
+    "statusApplyToMatchingResultsMs": [207, 32, 32, 32],
+    "filterSheetOpenMs": [9, 17, 17, 17],
+    "firstFlightDetail": {
+      "clickToFallbackMs": 34,
+      "clickToVisibleDialogMs": 340,
+      "firstDialogJsTransferBytes": 167239,
+      "warmReopenToVisibleDialogMs": 24,
+      "closeRestoredRowFocus": true,
+      "closeClearedFlightQuery": true,
+      "escapeRestoredRowFocus": true,
+      "escapeClearedFlightQuery": true
+    },
+    "note": "First detail click loaded lazy chunks including a 143,094-transfer-byte script. First status Apply also overlapped other work, so three subsequent 32 ms samples are the stable local evidence."
+  }
+}

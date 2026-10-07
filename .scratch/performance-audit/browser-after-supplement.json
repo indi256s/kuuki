@@ -1,0 +1,19 @@
+{
+  "origin": "http://127.0.0.1:8817",
+  "environment": "Stable local production preview before final rebuild; isolated headless Chromium session; signed-in one-flight fixture",
+  "passportView": {
+    "method": "Five Stamps-to-Map-to-Stamps cycles; click until selected radio and visible heading. Resource Timing checked for matching Next RSC request.",
+    "mapReadyMs": [13, 20, 18, 24, 17],
+    "stampsReadyMs": [23, 14, 25, 18, 16],
+    "rscRequestsPerSwitch": 0,
+    "historyEntriesPerSwitch": 1,
+    "backForwardReadyMs": [13, 84, 135, 157, 119, 145],
+    "backForwardCorrectRadioAndHeading": true,
+    "keyboardArrowRightFromStampsSelectedMap": true,
+    "keyboardNavigationFocusedH1": true,
+    "directMapFrequencyCountryDeeplinkHydrated": true,
+    "reducedMotionSwitchMs": [11, 17, 17, 17, 17, 17],
+    "reducedMotionThumbDuration": "0s",
+    "note": "Some real projection API requests occurred on Map re-entry; no Next RSC request occurred for view switches."
+  }
+}

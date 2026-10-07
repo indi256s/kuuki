@@ -1,0 +1,3748 @@
+{
+  "phase": "before-cold",
+  "count": 5000,
+  "generatedAt": "2026-10-07T19:11:27.073Z",
+  "commit": "2b5b3a4b317c8cb7f6dede6272baa32a48810423",
+  "buildId": "EQi_qGtAkEdHkILj16UUc",
+  "conditions": {
+    "viewport": "1280x800",
+    "cpu": "unthrottled",
+    "network": "localhost, unthrottled",
+    "cold": "fresh browser process, existing auth cookies, empty HTTP and router cache",
+    "warm": "same hydrated browser, HTTP/router caches enabled"
+  },
+  "loads": [
+    {
+      "route": "journal",
+      "iteration": 0,
+      "cls": 0.014734596419334414,
+      "fcp": 180,
+      "lcp": 572,
+      "longtasks": [],
+      "readyMs": 301.60000002384186,
+      "resources": [
+        {
+          "bytes": 7343,
+          "decodedBytes": 29439,
+          "endMs": 75.19999998807907,
+          "initiator": "link",
+          "path": "/_next/static/chunks/3qrcc0ph2gkvd.css",
+          "startMs": 69.69999998807907
+        },
+        {
+          "bytes": 1402,
+          "decodedBytes": 3223,
+          "endMs": 87.5,
+          "initiator": "link",
+          "path": "/_next/static/chunks/2floqq6zn3wjt.css",
+          "startMs": 69.90000003576279
+        },
+        {
+          "bytes": 1471,
+          "decodedBytes": 4384,
+          "endMs": 87.60000002384186,
+          "initiator": "link",
+          "path": "/_next/static/chunks/373lbhvpc1r1i.css",
+          "startMs": 69.90000003576279
+        },
+        {
+          "bytes": 3727,
+          "decodedBytes": 16780,
+          "endMs": 88.19999998807907,
+          "initiator": "link",
+          "path": "/_next/static/chunks/1rbcwfa9zhejw.css",
+          "startMs": 69.90000003576279
+        },
+        {
+          "bytes": 972,
+          "decodedBytes": 1858,
+          "endMs": 87.90000003576279,
+          "initiator": "link",
+          "path": "/_next/static/chunks/006nrbxnx-k09.css",
+          "startMs": 70
+        },
+        {
+          "bytes": 1790,
+          "decodedBytes": 5232,
+          "endMs": 88.19999998807907,
+          "initiator": "link",
+          "path": "/_next/static/chunks/0bxr2y51-f9ef.css",
+          "startMs": 70
+        },
+        {
+          "bytes": 2034,
+          "decodedBytes": 6645,
+          "endMs": 94.5,
+          "initiator": "link",
+          "path": "/_next/static/chunks/39dioubvbxly6.css",
+          "startMs": 70
+        },
+        {
+          "bytes": 2624,
+          "decodedBytes": 8600,
+          "endMs": 105.5,
+          "initiator": "link",
+          "path": "/_next/static/chunks/3w5tu81mltute.js",
+          "startMs": 70.10000002384186
+        },
+        {
+          "bytes": 8740,
+          "decodedBytes": 31485,
+          "endMs": 106.9000000357628,
+          "initiator": "script",
+          "path": "/_next/static/chunks/0c_9yyzf_6rpm.js",
+          "startMs": 70.10000002384186
+        },
+        {
+          "bytes": 73278,
+          "decodedBytes": 233202,
+          "endMs": 119.69999998807909,
+          "initiator": "script",
+          "path": "/_next/static/chunks/03kfi98ln2-8l.js",
+          "startMs": 70.10000002384186
+        },
+        {
+          "bytes": 4149,
+          "decodedBytes": 9721,
+          "endMs": 105.60000002384186,
+          "initiator": "script",
+          "path": "/_next/static/chunks/turbopack-2lgxib3bx900x.js",
+          "startMs": 70.19999998807907
+        },
+        {
+          "bytes": 11167,
+          "decodedBytes": 35653,
+          "endMs": 107.4000000357628,
+          "initiator": "script",
+          "path": "/_next/static/chunks/3q50e7cbysvhf.js",
+          "startMs": 70.19999998807907
+        },
+        {
+          "bytes": 43295,
+          "decodedBytes": 156262,
+          "endMs": 115.60000002384186,
+          "initiator": "script",
+          "path": "/_next/static/chunks/21-ownes04iw3.js",
+          "startMs": 70.19999998807907
+        },
+        {
+          "bytes": 614,
+          "decodedBytes": 477,
+          "endMs": 126.4000000357628,
+          "initiator": "script",
+          "path": "/_next/static/chunks/0fcsjmfd1sp5s.js",
+          "startMs": 70.19999998807907
+        },
+        {
+          "bytes": 1570,
+          "decodedBytes": 2437,
+          "endMs": 126.5,
+          "initiator": "script",
+          "path": "/_next/static/chunks/0hzkbsqwc5pnw.js",
+          "startMs": 70.19999998807907
+        },
+        {
+          "bytes": 14301,
+          "decodedBytes": 40633,
+          "endMs": 131.69999998807907,
+          "initiator": "script",
+          "path": "/_next/static/chunks/1xrt35eyi7yx4.js",
+          "startMs": 70.19999998807907
+        },
+        {
+          "bytes": 30709,
+          "decodedBytes": 93543,
+          "endMs": 137.4000000357628,
+          "initiator": "script",
+          "path": "/_next/static/chunks/1dre8c-f_56iy.js",
+          "startMs": 70.19999998807907
+        },
+        {
+          "bytes": 15159,
+          "decodedBytes": 39604,
+          "endMs": 131.10000002384186,
+          "initiator": "script",
+          "path": "/_next/static/chunks/1upm8nyf9ikis.js",
+          "startMs": 70.30000001192093
+        },
+        {
+          "bytes": 11717,
+          "decodedBytes": 33344,
+          "endMs": 171.69999998807907,
+          "initiator": "script",
+          "path": "/_next/static/chunks/04-zygmprjyq2.js",
+          "startMs": 70.30000001192093
+        },
+        {
+          "bytes": 34910,
+          "decodedBytes": 110553,
+          "endMs": 188.30000001192093,
+          "initiator": "script",
+          "path": "/_next/static/chunks/2_dkcqutyjzlh.js",
+          "startMs": 70.30000001192093
+        },
+        {
+          "bytes": 16817,
+          "decodedBytes": 49873,
+          "endMs": 174,
+          "initiator": "script",
+          "path": "/_next/static/chunks/3sx36n8m13lsh.js",
+          "startMs": 70.40000003576279
+        },
+        {
+          "bytes": 5806,
+          "decodedBytes": 42868,
+          "endMs": 191.10000002384183,
+          "initiator": "script",
+          "path": "/_next/static/chunks/0-n34y7sd7jqy.js",
+          "startMs": 70.40000003576279
+        },
+        {
+          "bytes": 11797,
+          "decodedBytes": 53951,
+          "endMs": 191.60000002384183,
+          "initiator": "script",
+          "path": "/_next/static/chunks/32pdcaoo31pic.js",
+          "startMs": 70.40000003576279
+        },
+        {
+          "bytes": 10956,
+          "decodedBytes": 62453,
+          "endMs": 192.19999998807907,
+          "initiator": "script",
+          "path": "/_next/static/chunks/3ah0s41o7us5n.js",
+          "startMs": 70.40000003576279
+        },
+        {
+          "bytes": 810,
+          "decodedBytes": 1024,
+          "endMs": 220.80000001192093,
+          "initiator": "script",
+          "path": "/_next/static/chunks/2cz47oa_yrf33.js",
+          "startMs": 70.40000003576279
+        },
+        {
+          "bytes": 6985,
+          "decodedBytes": 16183,
+          "endMs": 222.30000001192093,
+          "initiator": "script",
+          "path": "/_next/static/chunks/2gviakv-oh5ky.js",
+          "startMs": 70.40000003576279
+        },
+        {
+          "bytes": 14620,
+          "decodedBytes": 43789,
+          "endMs": 200,
+          "initiator": "script",
+          "path": "/_next/static/chunks/1yagfm8myqn5r.js",
+          "startMs": 70.5
+        },
+        {
+          "bytes": 11395,
+          "decodedBytes": 35882,
+          "endMs": 223.5,
+          "initiator": "script",
+          "path": "/_next/static/chunks/02flxxga298f2.js",
+          "startMs": 70.5
+        },
+        {
+          "bytes": 33698,
+          "decodedBytes": 156554,
+          "endMs": 228.9000000357628,
+          "initiator": "script",
+          "path": "/_next/static/chunks/1ys7t0yr2ska6.js",
+          "startMs": 70.5
+        },
+        {
+          "bytes": 143183,
+          "decodedBytes": 572388,
+          "endMs": 241.60000002384183,
+          "initiator": "script",
+          "path": "/_next/static/chunks/2wdlhgv0j1sq0.js",
+          "startMs": 70.5
+        },
+        {
+          "bytes": 18032,
+          "decodedBytes": 50556,
+          "endMs": 246.80000001192093,
+          "initiator": "script",
+          "path": "/_next/static/chunks/1_rm_d759cxcx.js",
+          "startMs": 70.5
+        },
+        {
+          "bytes": 2008,
+          "decodedBytes": 4655,
+          "endMs": 94.5,
+          "initiator": "link",
+          "path": "/bootstrap.js",
+          "startMs": 70.60000002384186
+        },
+        {
+          "bytes": 69540,
+          "decodedBytes": 69240,
+          "endMs": 140.4000000357628,
+          "initiator": "css",
+          "path": "/fonts/Commissioner-Regular.woff2",
+          "startMs": 103.30000001192091
+        },
+        {
+          "bytes": 69644,
+          "decodedBytes": 69344,
+          "endMs": 172.9000000357628,
+          "initiator": "css",
+          "path": "/fonts/Commissioner-Medium.woff2",
+          "startMs": 105.19999998807909
+        },
+        {
+          "bytes": 68984,
+          "decodedBytes": 68684,
+          "endMs": 173.60000002384186,
+          "initiator": "css",
+          "path": "/fonts/Commissioner-SemiBold.woff2",
+          "startMs": 105.19999998807909
+        },
+        {
+          "bytes": 91626,
+          "decodedBytes": 187208,
+          "endMs": 154.69999998807907,
+          "initiator": "css",
+          "path": "/fonts/JetBrainsMono.ttf",
+          "startMs": 105.4000000357628
+        },
+        {
+          "bytes": 466,
+          "decodedBytes": 266,
+          "endMs": 306,
+          "initiator": "fetch",
+          "path": "/",
+          "startMs": 293.69999998807907
+        },
+        {
+          "bytes": 483,
+          "decodedBytes": 325,
+          "endMs": 305.80000001192093,
+          "initiator": "fetch",
+          "path": "/overview",
+          "startMs": 293.69999998807907
+        },
+        {
+          "bytes": 483,
+          "decodedBytes": 325,
+          "endMs": 305.9000000357628,
+          "initiator": "fetch",
+          "path": "/passport",
+          "startMs": 293.80000001192093
+        },
+        {
+          "bytes": 474,
+          "decodedBytes": 328,
+          "endMs": 305.9000000357628,
+          "initiator": "fetch",
+          "path": "/leaderboard",
+          "startMs": 293.9000000357628
+        },
+        {
+          "bytes": 471,
+          "decodedBytes": 320,
+          "endMs": 313.30000001192093,
+          "initiator": "fetch",
+          "path": "/add",
+          "startMs": 307.5
+        },
+        {
+          "bytes": 1003,
+          "decodedBytes": 1576,
+          "endMs": 322.5,
+          "initiator": "fetch",
+          "path": "/",
+          "startMs": 308.5
+        },
+        {
+          "bytes": 1259,
+          "decodedBytes": 2510,
+          "endMs": 322.30000001192093,
+          "initiator": "fetch",
+          "path": "/overview",
+          "startMs": 308.9000000357628
+        },
+        {
+          "bytes": 1009,
+          "decodedBytes": 1626,
+          "endMs": 322.4000000357628,
+          "initiator": "fetch",
+          "path": "/journal",
+          "startMs": 309.19999998807907
+        },
+        {
+          "bytes": 1261,
+          "decodedBytes": 2510,
+          "endMs": 325.69999998807907,
+          "initiator": "fetch",
+          "path": "/passport",
+          "startMs": 314.10000002384186
+        },
+        {
+          "bytes": 1004,
+          "decodedBytes": 1634,
+          "endMs": 331.9000000357628,
+          "initiator": "fetch",
+          "path": "/leaderboard",
+          "startMs": 323.30000001192093
+        },
+        {
+          "bytes": 1005,
+          "decodedBytes": 1627,
+          "endMs": 331.80000001192093,
+          "initiator": "fetch",
+          "path": "/add",
+          "startMs": 323.69999998807907
+        },
+        {
+          "bytes": 779,
+          "decodedBytes": 818,
+          "endMs": 392.60000002384186,
+          "initiator": "other",
+          "path": "/icon.svg",
+          "startMs": 388.4000000357628
+        },
+        {
+          "bytes": 322,
+          "decodedBytes": 2,
+          "endMs": 414.60000002384186,
+          "initiator": "fetch",
+          "path": "/api/me/badges",
+          "startMs": 403.4000000357628
+        },
+        {
+          "bytes": 412,
+          "decodedBytes": 134,
+          "endMs": 549.6000000238419,
+          "initiator": "fetch",
+          "path": "/api/me/awaiting",
+          "startMs": 404.4000000357628
+        },
+        {
+          "bytes": 578,
+          "decodedBytes": 453,
+          "endMs": 549.8000000119209,
+          "initiator": "fetch",
+          "path": "/api/auth/me",
+          "startMs": 404.5
+        },
+        {
+          "bytes": 401,
+          "decodedBytes": 91,
+          "endMs": 549.8000000119209,
+          "initiator": "fetch",
+          "path": "/api/me/transit-review",
+          "startMs": 404.5
+        },
+        {
+          "bytes": 363,
+          "decodedBytes": 55,
+          "endMs": 565.1000000238419,
+          "initiator": "fetch",
+          "path": "/api/flights/sync-upcoming",
+          "startMs": 554.3000000119209
+        }
+      ],
+      "ttfb": 37.19999998807907,
+      "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/151.0.0.0 Safari/537.36",
+      "jsGzipBytes": 519847
+    },
+    {
+      "route": "journal",
+      "iteration": 1,
+      "cls": 0.014735128283500673,
+      "fcp": 176,
+      "lcp": 492,
+      "longtasks": [],
+      "readyMs": 328.39999997615814,
+      "resources": [
+        {
+          "bytes": 7343,
+          "decodedBytes": 29439,
+          "endMs": 85.80000001192093,
+          "initiator": "link",
+          "path": "/_next/static/chunks/3qrcc0ph2gkvd.css",
+          "startMs": 77.19999998807907
+        },
+        {
+          "bytes": 3727,
+          "decodedBytes": 16780,
+          "endMs": 85.09999996423721,
+          "initiator": "link",
+          "path": "/_next/static/chunks/1rbcwfa9zhejw.css",
+          "startMs": 77.30000001192093
+        },
+        {
+          "bytes": 1402,
+          "decodedBytes": 3223,
+          "endMs": 91.30000001192091,
+          "initiator": "link",
+          "path": "/_next/static/chunks/2floqq6zn3wjt.css",
+          "startMs": 77.30000001192093
+        },
+        {
+          "bytes": 972,
+          "decodedBytes": 1858,
+          "endMs": 84.89999997615814,
+          "initiator": "link",
+          "path": "/_next/static/chunks/006nrbxnx-k09.css",
+          "startMs": 77.39999997615814
+        },
+        {
+          "bytes": 1790,
+          "decodedBytes": 5232,
+          "endMs": 85.09999996423721,
+          "initiator": "link",
+          "path": "/_next/static/chunks/0bxr2y51-f9ef.css",
+          "startMs": 77.39999997615814
+        },
+        {
+          "bytes": 2034,
+          "decodedBytes": 6645,
+          "endMs": 91.39999997615814,
+          "initiator": "link",
+          "path": "/_next/static/chunks/39dioubvbxly6.css",
+          "startMs": 77.39999997615814
+        },
+        {
+          "bytes": 1471,
+          "decodedBytes": 4384,
+          "endMs": 91.69999998807909,
+          "initiator": "link",
+          "path": "/_next/static/chunks/373lbhvpc1r1i.css",
+          "startMs": 77.39999997615814
+        },
+        {
+          "bytes": 2624,
+          "decodedBytes": 8600,
+          "endMs": 94.0999999642372,
+          "initiator": "link",
+          "path": "/_next/static/chunks/3w5tu81mltute.js",
+          "startMs": 77.5
+        },
+        {
+          "bytes": 8740,
+          "decodedBytes": 31485,
+          "endMs": 107.5999999642372,
+          "initiator": "script",
+          "path": "/_next/static/chunks/0c_9yyzf_6rpm.js",
+          "startMs": 77.5
+        },
+        {
+          "bytes": 43295,
+          "decodedBytes": 156262,
+          "endMs": 128.80000001192093,
+          "initiator": "script",
+          "path": "/_next/static/chunks/21-ownes04iw3.js",
+          "startMs": 77.5
+        },
+        {
+          "bytes": 73278,
+          "decodedBytes": 233202,
+          "endMs": 143.0999999642372,
+          "initiator": "script",
+          "path": "/_next/static/chunks/03kfi98ln2-8l.js",
+          "startMs": 77.5
+        },
+        {
+          "bytes": 4149,
+          "decodedBytes": 9721,
+          "endMs": 102.19999998807909,
+          "initiator": "script",
+          "path": "/_next/static/chunks/turbopack-2lgxib3bx900x.js",
+          "startMs": 77.69999998807907
+        },
+        {
+          "bytes": 11167,
+          "decodedBytes": 35653,
+          "endMs": 108.30000001192091,
+          "initiator": "script",
+          "path": "/_next/static/chunks/3q50e7cbysvhf.js",
+          "startMs": 77.69999998807907
+        },
+        {
+          "bytes": 614,
+          "decodedBytes": 477,
+          "endMs": 114.5,
+          "initiator": "script",
+          "path": "/_next/static/chunks/0fcsjmfd1sp5s.js",
+          "startMs": 77.69999998807907
+        },
+        {
+          "bytes": 1570,
+          "decodedBytes": 2437,
+          "endMs": 118.0999999642372,
+          "initiator": "script",
+          "path": "/_next/static/chunks/0hzkbsqwc5pnw.js",
+          "startMs": 77.69999998807907
+        },
+        {
+          "bytes": 15159,
+          "decodedBytes": 39604,
+          "endMs": 131.30000001192093,
+          "initiator": "script",
+          "path": "/_next/static/chunks/1upm8nyf9ikis.js",
+          "startMs": 77.69999998807907
+        },
+        {
+          "bytes": 14301,
+          "decodedBytes": 40633,
+          "endMs": 176.19999998807907,
+          "initiator": "script",
+          "path": "/_next/static/chunks/1xrt35eyi7yx4.js",
+          "startMs": 77.69999998807907
+        },
+        {
+          "bytes": 30709,
+          "decodedBytes": 93543,
+          "endMs": 194.69999998807907,
+          "initiator": "script",
+          "path": "/_next/static/chunks/1dre8c-f_56iy.js",
+          "startMs": 77.69999998807907
+        },
+        {
+          "bytes": 11717,
+          "decodedBytes": 33344,
+          "endMs": 156.69999998807907,
+          "initiator": "script",
+          "path": "/_next/static/chunks/04-zygmprjyq2.js",
+          "startMs": 77.80000001192093
+        },
+        {
+          "bytes": 34910,
+          "decodedBytes": 110553,
+          "endMs": 198.69999998807907,
+          "initiator": "script",
+          "path": "/_next/static/chunks/2_dkcqutyjzlh.js",
+          "startMs": 77.80000001192093
+        },
+        {
+          "bytes": 16817,
+          "decodedBytes": 49873,
+          "endMs": 180.80000001192093,
+          "initiator": "script",
+          "path": "/_next/static/chunks/3sx36n8m13lsh.js",
+          "startMs": 77.89999997615814
+        },
+        {
+          "bytes": 6985,
+          "decodedBytes": 16183,
+          "endMs": 198.80000001192093,
+          "initiator": "script",
+          "path": "/_next/static/chunks/2gviakv-oh5ky.js",
+          "startMs": 77.89999997615814
+        },
+        {
+          "bytes": 810,
+          "decodedBytes": 1024,
+          "endMs": 228.5999999642372,
+          "initiator": "script",
+          "path": "/_next/static/chunks/2cz47oa_yrf33.js",
+          "startMs": 77.89999997615814
+        },
+        {
+          "bytes": 5806,
+          "decodedBytes": 42868,
+          "endMs": 205.39999997615817,
+          "initiator": "script",
+          "path": "/_next/static/chunks/0-n34y7sd7jqy.js",
+          "startMs": 78
+        },
+        {
+          "bytes": 11797,
+          "decodedBytes": 53951,
+          "endMs": 206.5,
+          "initiator": "script",
+          "path": "/_next/static/chunks/32pdcaoo31pic.js",
+          "startMs": 78
+        },
+        {
+          "bytes": 10956,
+          "decodedBytes": 62453,
+          "endMs": 209.89999997615817,
+          "initiator": "script",
+          "path": "/_next/static/chunks/3ah0s41o7us5n.js",
+          "startMs": 78
+        },
+        {
+          "bytes": 2008,
+          "decodedBytes": 4655,
+          "endMs": 91.80000001192091,
+          "initiator": "link",
+          "path": "/bootstrap.js",
+          "startMs": 78.09999996423721
+        },
+        {
+          "bytes": 11395,
+          "decodedBytes": 35882,
+          "endMs": 214.5999999642372,
+          "initiator": "script",
+          "path": "/_next/static/chunks/02flxxga298f2.js",
+          "startMs": 78.09999996423721
+        },
+        {
+          "bytes": 33698,
+          "decodedBytes": 156554,
+          "endMs": 219.0999999642372,
+          "initiator": "script",
+          "path": "/_next/static/chunks/1ys7t0yr2ska6.js",
+          "startMs": 78.09999996423721
+        },
+        {
+          "bytes": 14620,
+          "decodedBytes": 43789,
+          "endMs": 233.30000001192093,
+          "initiator": "script",
+          "path": "/_next/static/chunks/1yagfm8myqn5r.js",
+          "startMs": 78.09999996423721
+        },
+        {
+          "bytes": 18032,
+          "decodedBytes": 50556,
+          "endMs": 234.19999998807907,
+          "initiator": "script",
+          "path": "/_next/static/chunks/1_rm_d759cxcx.js",
+          "startMs": 78.09999996423721
+        },
+        {
+          "bytes": 143183,
+          "decodedBytes": 572388,
+          "endMs": 255.5,
+          "initiator": "script",
+          "path": "/_next/static/chunks/2wdlhgv0j1sq0.js",
+          "startMs": 78.09999996423721
+        },
+        {
+          "bytes": 69540,
+          "decodedBytes": 69240,
+          "endMs": 143.30000001192093,
+          "initiator": "css",
+          "path": "/fonts/Commissioner-Regular.woff2",
+          "startMs": 100.5
+        },
+        {
+          "bytes": 68984,
+          "decodedBytes": 68684,
+          "endMs": 143.69999998807907,
+          "initiator": "css",
+          "path": "/fonts/Commissioner-SemiBold.woff2",
+          "startMs": 102.19999998807909
+        },
+        {
+          "bytes": 69644,
+          "decodedBytes": 69344,
+          "endMs": 178.39999997615814,
+          "initiator": "css",
+          "path": "/fonts/Commissioner-Medium.woff2",
+          "startMs": 102.19999998807909
+        },
+        {
+          "bytes": 91626,
+          "decodedBytes": 187208,
+          "endMs": 163.0999999642372,
+          "initiator": "css",
+          "path": "/fonts/JetBrainsMono.ttf",
+          "startMs": 102.39999997615814
+        },
+        {
+          "bytes": 466,
+          "decodedBytes": 266,
+          "endMs": 314.39999997615814,
+          "initiator": "fetch",
+          "path": "/",
+          "startMs": 307.5999999642372
+        },
+        {
+          "bytes": 483,
+          "decodedBytes": 325,
+          "endMs": 324.69999998807907,
+          "initiator": "fetch",
+          "path": "/overview",
+          "startMs": 307.69999998807907
+        },
+        {
+          "bytes": 483,
+          "decodedBytes": 325,
+          "endMs": 324.5999999642372,
+          "initiator": "fetch",
+          "path": "/passport",
+          "startMs": 307.69999998807907
+        },
+        {
+          "bytes": 474,
+          "decodedBytes": 328,
+          "endMs": 324.5999999642372,
+          "initiator": "fetch",
+          "path": "/leaderboard",
+          "startMs": 307.69999998807907
+        },
+        {
+          "bytes": 471,
+          "decodedBytes": 320,
+          "endMs": 327.19999998807907,
+          "initiator": "fetch",
+          "path": "/add",
+          "startMs": 316.0999999642372
+        },
+        {
+          "bytes": 1003,
+          "decodedBytes": 1576,
+          "endMs": 339.5999999642372,
+          "initiator": "fetch",
+          "path": "/",
+          "startMs": 325.89999997615814
+        },
+        {
+          "bytes": 1262,
+          "decodedBytes": 2510,
+          "endMs": 339.69999998807907,
+          "initiator": "fetch",
+          "path": "/overview",
+          "startMs": 326.19999998807907
+        },
+        {
+          "bytes": 1006,
+          "decodedBytes": 1626,
+          "endMs": 339.5,
+          "initiator": "fetch",
+          "path": "/journal",
+          "startMs": 326.5
+        },
+        {
+          "bytes": 1261,
+          "decodedBytes": 2510,
+          "endMs": 342.80000001192093,
+          "initiator": "fetch",
+          "path": "/passport",
+          "startMs": 330.0999999642372
+        },
+        {
+          "bytes": 1006,
+          "decodedBytes": 1634,
+          "endMs": 349.5,
+          "initiator": "fetch",
+          "path": "/leaderboard",
+          "startMs": 340.5999999642372
+        },
+        {
+          "bytes": 1005,
+          "decodedBytes": 1627,
+          "endMs": 349.39999997615814,
+          "initiator": "fetch",
+          "path": "/add",
+          "startMs": 341
+        },
+        {
+          "bytes": 779,
+          "decodedBytes": 818,
+          "endMs": 408.199999988079,
+          "initiator": "other",
+          "path": "/icon.svg",
+          "startMs": 401.199999988079
+        },
+        {
+          "bytes": 322,
+          "decodedBytes": 2,
+          "endMs": 469.300000011921,
+          "initiator": "fetch",
+          "path": "/api/me/badges",
+          "startMs": 420.5999999642372
+        },
+        {
+          "bytes": 412,
+          "decodedBytes": 134,
+          "endMs": 469.199999988079,
+          "initiator": "fetch",
+          "path": "/api/me/awaiting",
+          "startMs": 420.699999988079
+        },
+        {
+          "bytes": 578,
+          "decodedBytes": 453,
+          "endMs": 469.300000011921,
+          "initiator": "fetch",
+          "path": "/api/auth/me",
+          "startMs": 420.699999988079
+        },
+        {
+          "bytes": 401,
+          "decodedBytes": 91,
+          "endMs": 640.5999999642372,
+          "initiator": "fetch",
+          "path": "/api/me/transit-review",
+          "startMs": 420.800000011921
+        },
+        {
+          "bytes": 363,
+          "decodedBytes": 55,
+          "endMs": 651.1999999880791,
+          "initiator": "fetch",
+          "path": "/api/flights/sync-upcoming",
+          "startMs": 473.699999988079
+        }
+      ],
+      "ttfb": 33.30000001192093,
+      "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/151.0.0.0 Safari/537.36",
+      "jsGzipBytes": 519847
+    },
+    {
+      "route": "journal",
+      "iteration": 2,
+      "cls": 0.014735128283500673,
+      "fcp": 164,
+      "lcp": 596,
+      "longtasks": [],
+      "readyMs": 384.699999988079,
+      "resources": [
+        {
+          "bytes": 1402,
+          "decodedBytes": 3223,
+          "endMs": 81.30000001192093,
+          "initiator": "link",
+          "path": "/_next/static/chunks/2floqq6zn3wjt.css",
+          "startMs": 65.80000001192093
+        },
+        {
+          "bytes": 3727,
+          "decodedBytes": 16780,
+          "endMs": 81.80000001192093,
+          "initiator": "link",
+          "path": "/_next/static/chunks/1rbcwfa9zhejw.css",
+          "startMs": 65.80000001192093
+        },
+        {
+          "bytes": 7343,
+          "decodedBytes": 29439,
+          "endMs": 82.09999996423721,
+          "initiator": "link",
+          "path": "/_next/static/chunks/3qrcc0ph2gkvd.css",
+          "startMs": 65.80000001192093
+        },
+        {
+          "bytes": 1471,
+          "decodedBytes": 4384,
+          "endMs": 81.80000001192093,
+          "initiator": "link",
+          "path": "/_next/static/chunks/373lbhvpc1r1i.css",
+          "startMs": 65.89999997615814
+        },
+        {
+          "bytes": 1790,
+          "decodedBytes": 5232,
+          "endMs": 81.80000001192093,
+          "initiator": "link",
+          "path": "/_next/static/chunks/0bxr2y51-f9ef.css",
+          "startMs": 65.89999997615814
+        },
+        {
+          "bytes": 972,
+          "decodedBytes": 1858,
+          "endMs": 81.59999996423721,
+          "initiator": "link",
+          "path": "/_next/static/chunks/006nrbxnx-k09.css",
+          "startMs": 66
+        },
+        {
+          "bytes": 2034,
+          "decodedBytes": 6645,
+          "endMs": 85.80000001192093,
+          "initiator": "link",
+          "path": "/_next/static/chunks/39dioubvbxly6.css",
+          "startMs": 66
+        },
+        {
+          "bytes": 2624,
+          "decodedBytes": 8600,
+          "endMs": 90.5999999642372,
+          "initiator": "link",
+          "path": "/_next/static/chunks/3w5tu81mltute.js",
+          "startMs": 66
+        },
+        {
+          "bytes": 8740,
+          "decodedBytes": 31485,
+          "endMs": 91.80000001192091,
+          "initiator": "script",
+          "path": "/_next/static/chunks/0c_9yyzf_6rpm.js",
+          "startMs": 66
+        },
+        {
+          "bytes": 73278,
+          "decodedBytes": 233202,
+          "endMs": 98.69999998807909,
+          "initiator": "script",
+          "path": "/_next/static/chunks/03kfi98ln2-8l.js",
+          "startMs": 66
+        },
+        {
+          "bytes": 43295,
+          "decodedBytes": 156262,
+          "endMs": 119.80000001192091,
+          "initiator": "script",
+          "path": "/_next/static/chunks/21-ownes04iw3.js",
+          "startMs": 66
+        },
+        {
+          "bytes": 614,
+          "decodedBytes": 477,
+          "endMs": 107.39999997615814,
+          "initiator": "script",
+          "path": "/_next/static/chunks/0fcsjmfd1sp5s.js",
+          "startMs": 66.09999996423721
+        },
+        {
+          "bytes": 4149,
+          "decodedBytes": 9721,
+          "endMs": 109,
+          "initiator": "script",
+          "path": "/_next/static/chunks/turbopack-2lgxib3bx900x.js",
+          "startMs": 66.09999996423721
+        },
+        {
+          "bytes": 11167,
+          "decodedBytes": 35653,
+          "endMs": 113.19999998807909,
+          "initiator": "script",
+          "path": "/_next/static/chunks/3q50e7cbysvhf.js",
+          "startMs": 66.09999996423721
+        },
+        {
+          "bytes": 30709,
+          "decodedBytes": 93543,
+          "endMs": 117,
+          "initiator": "script",
+          "path": "/_next/static/chunks/1dre8c-f_56iy.js",
+          "startMs": 66.09999996423721
+        },
+        {
+          "bytes": 1570,
+          "decodedBytes": 2437,
+          "endMs": 128.69999998807907,
+          "initiator": "script",
+          "path": "/_next/static/chunks/0hzkbsqwc5pnw.js",
+          "startMs": 66.09999996423721
+        },
+        {
+          "bytes": 15159,
+          "decodedBytes": 39604,
+          "endMs": 117.30000001192091,
+          "initiator": "script",
+          "path": "/_next/static/chunks/1upm8nyf9ikis.js",
+          "startMs": 66.19999998807907
+        },
+        {
+          "bytes": 14301,
+          "decodedBytes": 40633,
+          "endMs": 130.80000001192093,
+          "initiator": "script",
+          "path": "/_next/static/chunks/1xrt35eyi7yx4.js",
+          "startMs": 66.19999998807907
+        },
+        {
+          "bytes": 34910,
+          "decodedBytes": 110553,
+          "endMs": 229.89999997615817,
+          "initiator": "script",
+          "path": "/_next/static/chunks/2_dkcqutyjzlh.js",
+          "startMs": 66.19999998807907
+        },
+        {
+          "bytes": 11717,
+          "decodedBytes": 33344,
+          "endMs": 257.30000001192093,
+          "initiator": "script",
+          "path": "/_next/static/chunks/04-zygmprjyq2.js",
+          "startMs": 66.19999998807907
+        },
+        {
+          "bytes": 810,
+          "decodedBytes": 1024,
+          "endMs": 231.0999999642372,
+          "initiator": "script",
+          "path": "/_next/static/chunks/2cz47oa_yrf33.js",
+          "startMs": 66.30000001192093
+        },
+        {
+          "bytes": 16817,
+          "decodedBytes": 49873,
+          "endMs": 232.19999998807907,
+          "initiator": "script",
+          "path": "/_next/static/chunks/3sx36n8m13lsh.js",
+          "startMs": 66.30000001192093
+        },
+        {
+          "bytes": 6985,
+          "decodedBytes": 16183,
+          "endMs": 250.80000001192093,
+          "initiator": "script",
+          "path": "/_next/static/chunks/2gviakv-oh5ky.js",
+          "startMs": 66.30000001192093
+        },
+        {
+          "bytes": 5806,
+          "decodedBytes": 42868,
+          "endMs": 258.30000001192093,
+          "initiator": "script",
+          "path": "/_next/static/chunks/0-n34y7sd7jqy.js",
+          "startMs": 66.30000001192093
+        },
+        {
+          "bytes": 11797,
+          "decodedBytes": 53951,
+          "endMs": 312.30000001192093,
+          "initiator": "script",
+          "path": "/_next/static/chunks/32pdcaoo31pic.js",
+          "startMs": 66.30000001192093
+        },
+        {
+          "bytes": 10956,
+          "decodedBytes": 62453,
+          "endMs": 272.30000001192093,
+          "initiator": "script",
+          "path": "/_next/static/chunks/3ah0s41o7us5n.js",
+          "startMs": 66.39999997615814
+        },
+        {
+          "bytes": 14620,
+          "decodedBytes": 43789,
+          "endMs": 274.39999997615814,
+          "initiator": "script",
+          "path": "/_next/static/chunks/1yagfm8myqn5r.js",
+          "startMs": 66.39999997615814
+        },
+        {
+          "bytes": 143183,
+          "decodedBytes": 572388,
+          "endMs": 292,
+          "initiator": "script",
+          "path": "/_next/static/chunks/2wdlhgv0j1sq0.js",
+          "startMs": 66.39999997615814
+        },
+        {
+          "bytes": 33698,
+          "decodedBytes": 156554,
+          "endMs": 314.80000001192093,
+          "initiator": "script",
+          "path": "/_next/static/chunks/1ys7t0yr2ska6.js",
+          "startMs": 66.39999997615814
+        },
+        {
+          "bytes": 2008,
+          "decodedBytes": 4655,
+          "endMs": 85.59999996423721,
+          "initiator": "link",
+          "path": "/bootstrap.js",
+          "startMs": 66.5
+        },
+        {
+          "bytes": 11395,
+          "decodedBytes": 35882,
+          "endMs": 306.80000001192093,
+          "initiator": "script",
+          "path": "/_next/static/chunks/02flxxga298f2.js",
+          "startMs": 66.5
+        },
+        {
+          "bytes": 18032,
+          "decodedBytes": 50556,
+          "endMs": 312.19999998807907,
+          "initiator": "script",
+          "path": "/_next/static/chunks/1_rm_d759cxcx.js",
+          "startMs": 66.5
+        },
+        {
+          "bytes": 69540,
+          "decodedBytes": 69240,
+          "endMs": 132.30000001192093,
+          "initiator": "css",
+          "path": "/fonts/Commissioner-Regular.woff2",
+          "startMs": 94.5
+        },
+        {
+          "bytes": 68984,
+          "decodedBytes": 68684,
+          "endMs": 132.39999997615814,
+          "initiator": "css",
+          "path": "/fonts/Commissioner-SemiBold.woff2",
+          "startMs": 96.30000001192091
+        },
+        {
+          "bytes": 69644,
+          "decodedBytes": 69344,
+          "endMs": 261.30000001192093,
+          "initiator": "css",
+          "path": "/fonts/Commissioner-Medium.woff2",
+          "startMs": 96.30000001192091
+        },
+        {
+          "bytes": 91626,
+          "decodedBytes": 187208,
+          "endMs": 278.0999999642372,
+          "initiator": "css",
+          "path": "/fonts/JetBrainsMono.ttf",
+          "startMs": 96.39999997615814
+        },
+        {
+          "bytes": 466,
+          "decodedBytes": 266,
+          "endMs": 381,
+          "initiator": "fetch",
+          "path": "/",
+          "startMs": 362.89999997615814
+        },
+        {
+          "bytes": 483,
+          "decodedBytes": 325,
+          "endMs": 380.89999997615814,
+          "initiator": "fetch",
+          "path": "/overview",
+          "startMs": 362.89999997615814
+        },
+        {
+          "bytes": 483,
+          "decodedBytes": 325,
+          "endMs": 381,
+          "initiator": "fetch",
+          "path": "/passport",
+          "startMs": 363
+        },
+        {
+          "bytes": 474,
+          "decodedBytes": 328,
+          "endMs": 383.199999988079,
+          "initiator": "fetch",
+          "path": "/leaderboard",
+          "startMs": 363.0999999642372
+        },
+        {
+          "bytes": 471,
+          "decodedBytes": 320,
+          "endMs": 387.39999997615814,
+          "initiator": "fetch",
+          "path": "/add",
+          "startMs": 382.800000011921
+        },
+        {
+          "bytes": 1003,
+          "decodedBytes": 1576,
+          "endMs": 396.800000011921,
+          "initiator": "fetch",
+          "path": "/",
+          "startMs": 383.39999997615814
+        },
+        {
+          "bytes": 1261,
+          "decodedBytes": 2510,
+          "endMs": 396.5999999642372,
+          "initiator": "fetch",
+          "path": "/overview",
+          "startMs": 383.800000011921
+        },
+        {
+          "bytes": 1008,
+          "decodedBytes": 1626,
+          "endMs": 396.800000011921,
+          "initiator": "fetch",
+          "path": "/journal",
+          "startMs": 384.300000011921
+        },
+        {
+          "bytes": 1259,
+          "decodedBytes": 2510,
+          "endMs": 399.5,
+          "initiator": "fetch",
+          "path": "/passport",
+          "startMs": 388.300000011921
+        },
+        {
+          "bytes": 1006,
+          "decodedBytes": 1634,
+          "endMs": 514,
+          "initiator": "fetch",
+          "path": "/leaderboard",
+          "startMs": 397.5999999642372
+        },
+        {
+          "bytes": 1005,
+          "decodedBytes": 1627,
+          "endMs": 513.8999999761581,
+          "initiator": "fetch",
+          "path": "/add",
+          "startMs": 398.0999999642372
+        },
+        {
+          "bytes": 779,
+          "decodedBytes": 818,
+          "endMs": 523.5999999642372,
+          "initiator": "other",
+          "path": "/icon.svg",
+          "startMs": 464.5
+        },
+        {
+          "bytes": 322,
+          "decodedBytes": 2,
+          "endMs": 571.8000000119209,
+          "initiator": "fetch",
+          "path": "/api/me/badges",
+          "startMs": 470.199999988079
+        },
+        {
+          "bytes": 412,
+          "decodedBytes": 134,
+          "endMs": 571.6999999880791,
+          "initiator": "fetch",
+          "path": "/api/me/awaiting",
+          "startMs": 470.39999997615814
+        },
+        {
+          "bytes": 578,
+          "decodedBytes": 453,
+          "endMs": 571.6999999880791,
+          "initiator": "fetch",
+          "path": "/api/auth/me",
+          "startMs": 470.5
+        },
+        {
+          "bytes": 401,
+          "decodedBytes": 91,
+          "endMs": 680.6999999880791,
+          "initiator": "fetch",
+          "path": "/api/me/transit-review",
+          "startMs": 470.699999988079
+        },
+        {
+          "bytes": 363,
+          "decodedBytes": 55,
+          "endMs": 690.3000000119209,
+          "initiator": "fetch",
+          "path": "/api/flights/sync-upcoming",
+          "startMs": 576.0999999642372
+        }
+      ],
+      "ttfb": 32.59999996423721,
+      "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/151.0.0.0 Safari/537.36",
+      "jsGzipBytes": 519847
+    },
+    {
+      "route": "overview",
+      "iteration": 0,
+      "cls": 0.01228078022003174,
+      "fcp": 164,
+      "lcp": 396,
+      "longtasks": [],
+      "readyMs": 381.10000002384186,
+      "resources": [
+        {
+          "bytes": 7343,
+          "decodedBytes": 29439,
+          "endMs": 86.60000002384186,
+          "initiator": "link",
+          "path": "/_next/static/chunks/3qrcc0ph2gkvd.css",
+          "startMs": 71.19999998807907
+        },
+        {
+          "bytes": 1402,
+          "decodedBytes": 3223,
+          "endMs": 83.5,
+          "initiator": "link",
+          "path": "/_next/static/chunks/2floqq6zn3wjt.css",
+          "startMs": 71.5
+        },
+        {
+          "bytes": 3727,
+          "decodedBytes": 16780,
+          "endMs": 85.30000001192093,
+          "initiator": "link",
+          "path": "/_next/static/chunks/1rbcwfa9zhejw.css",
+          "startMs": 71.5
+        },
+        {
+          "bytes": 1620,
+          "decodedBytes": 4502,
+          "endMs": 84.60000002384186,
+          "initiator": "link",
+          "path": "/_next/static/chunks/0i4mxoc8-o-_d.css",
+          "startMs": 71.60000002384186
+        },
+        {
+          "bytes": 1790,
+          "decodedBytes": 5232,
+          "endMs": 84.69999998807907,
+          "initiator": "link",
+          "path": "/_next/static/chunks/0bxr2y51-f9ef.css",
+          "startMs": 71.60000002384186
+        },
+        {
+          "bytes": 2507,
+          "decodedBytes": 11063,
+          "endMs": 85.30000001192093,
+          "initiator": "link",
+          "path": "/_next/static/chunks/1k7uc3w8giqay.css",
+          "startMs": 71.60000002384186
+        },
+        {
+          "bytes": 2034,
+          "decodedBytes": 6645,
+          "endMs": 88.5,
+          "initiator": "link",
+          "path": "/_next/static/chunks/39dioubvbxly6.css",
+          "startMs": 71.60000002384186
+        },
+        {
+          "bytes": 2624,
+          "decodedBytes": 8600,
+          "endMs": 90.60000002384186,
+          "initiator": "link",
+          "path": "/_next/static/chunks/3w5tu81mltute.js",
+          "startMs": 71.69999998807907
+        },
+        {
+          "bytes": 8740,
+          "decodedBytes": 31485,
+          "endMs": 101.19999998807909,
+          "initiator": "script",
+          "path": "/_next/static/chunks/0c_9yyzf_6rpm.js",
+          "startMs": 71.69999998807907
+        },
+        {
+          "bytes": 43295,
+          "decodedBytes": 156262,
+          "endMs": 110.80000001192091,
+          "initiator": "script",
+          "path": "/_next/static/chunks/21-ownes04iw3.js",
+          "startMs": 71.80000001192093
+        },
+        {
+          "bytes": 73278,
+          "decodedBytes": 233202,
+          "endMs": 112.80000001192091,
+          "initiator": "script",
+          "path": "/_next/static/chunks/03kfi98ln2-8l.js",
+          "startMs": 71.80000001192093
+        },
+        {
+          "bytes": 4149,
+          "decodedBytes": 9721,
+          "endMs": 98.60000002384186,
+          "initiator": "script",
+          "path": "/_next/static/chunks/turbopack-2lgxib3bx900x.js",
+          "startMs": 71.90000003576279
+        },
+        {
+          "bytes": 11167,
+          "decodedBytes": 35653,
+          "endMs": 101.9000000357628,
+          "initiator": "script",
+          "path": "/_next/static/chunks/3q50e7cbysvhf.js",
+          "startMs": 71.90000003576279
+        },
+        {
+          "bytes": 1570,
+          "decodedBytes": 2437,
+          "endMs": 106,
+          "initiator": "script",
+          "path": "/_next/static/chunks/0hzkbsqwc5pnw.js",
+          "startMs": 71.90000003576279
+        },
+        {
+          "bytes": 614,
+          "decodedBytes": 477,
+          "endMs": 122.10000002384186,
+          "initiator": "script",
+          "path": "/_next/static/chunks/0fcsjmfd1sp5s.js",
+          "startMs": 71.90000003576279
+        },
+        {
+          "bytes": 15159,
+          "decodedBytes": 39604,
+          "endMs": 126.30000001192091,
+          "initiator": "script",
+          "path": "/_next/static/chunks/1upm8nyf9ikis.js",
+          "startMs": 71.90000003576279
+        },
+        {
+          "bytes": 14301,
+          "decodedBytes": 40633,
+          "endMs": 126.4000000357628,
+          "initiator": "script",
+          "path": "/_next/static/chunks/1xrt35eyi7yx4.js",
+          "startMs": 71.90000003576279
+        },
+        {
+          "bytes": 30709,
+          "decodedBytes": 93543,
+          "endMs": 135.60000002384186,
+          "initiator": "script",
+          "path": "/_next/static/chunks/1dre8c-f_56iy.js",
+          "startMs": 71.90000003576279
+        },
+        {
+          "bytes": 34910,
+          "decodedBytes": 110553,
+          "endMs": 138.10000002384186,
+          "initiator": "script",
+          "path": "/_next/static/chunks/2_dkcqutyjzlh.js",
+          "startMs": 71.90000003576279
+        },
+        {
+          "bytes": 810,
+          "decodedBytes": 1024,
+          "endMs": 146.69999998807907,
+          "initiator": "script",
+          "path": "/_next/static/chunks/2cz47oa_yrf33.js",
+          "startMs": 72
+        },
+        {
+          "bytes": 16817,
+          "decodedBytes": 49873,
+          "endMs": 152.9000000357628,
+          "initiator": "script",
+          "path": "/_next/static/chunks/3sx36n8m13lsh.js",
+          "startMs": 72
+        },
+        {
+          "bytes": 14139,
+          "decodedBytes": 37467,
+          "endMs": 155.9000000357628,
+          "initiator": "script",
+          "path": "/_next/static/chunks/0ya7tn3qt97f6.js",
+          "startMs": 72
+        },
+        {
+          "bytes": 13014,
+          "decodedBytes": 56822,
+          "endMs": 156.69999998807907,
+          "initiator": "script",
+          "path": "/_next/static/chunks/0l_788ml94y-r.js",
+          "startMs": 72
+        },
+        {
+          "bytes": 20301,
+          "decodedBytes": 63034,
+          "endMs": 159.69999998807907,
+          "initiator": "script",
+          "path": "/_next/static/chunks/2ean80k9ej3ki.js",
+          "startMs": 72
+        },
+        {
+          "bytes": 11717,
+          "decodedBytes": 33344,
+          "endMs": 172.5,
+          "initiator": "script",
+          "path": "/_next/static/chunks/04-zygmprjyq2.js",
+          "startMs": 72
+        },
+        {
+          "bytes": 2008,
+          "decodedBytes": 4655,
+          "endMs": 87.40000003576279,
+          "initiator": "link",
+          "path": "/bootstrap.js",
+          "startMs": 72.10000002384186
+        },
+        {
+          "bytes": 18032,
+          "decodedBytes": 50556,
+          "endMs": 179.80000001192093,
+          "initiator": "script",
+          "path": "/_next/static/chunks/1_rm_d759cxcx.js",
+          "startMs": 72.10000002384186
+        },
+        {
+          "bytes": 33698,
+          "decodedBytes": 156554,
+          "endMs": 186.60000002384183,
+          "initiator": "script",
+          "path": "/_next/static/chunks/1ys7t0yr2ska6.js",
+          "startMs": 72.10000002384186
+        },
+        {
+          "bytes": 52437,
+          "decodedBytes": 143659,
+          "endMs": 186.5,
+          "initiator": "image",
+          "path": "/maps/world-outline-110m-2.0.2.svg",
+          "startMs": 90.60000002384186
+        },
+        {
+          "bytes": 69540,
+          "decodedBytes": 69240,
+          "endMs": 179.30000001192093,
+          "initiator": "css",
+          "path": "/fonts/Commissioner-Regular.woff2",
+          "startMs": 98
+        },
+        {
+          "bytes": 69644,
+          "decodedBytes": 69344,
+          "endMs": 141.10000002384186,
+          "initiator": "css",
+          "path": "/fonts/Commissioner-Medium.woff2",
+          "startMs": 100.10000002384186
+        },
+        {
+          "bytes": 68984,
+          "decodedBytes": 68684,
+          "endMs": 141.30000001192093,
+          "initiator": "css",
+          "path": "/fonts/Commissioner-SemiBold.woff2",
+          "startMs": 100.10000002384186
+        },
+        {
+          "bytes": 466,
+          "decodedBytes": 266,
+          "endMs": 236.30000001192093,
+          "initiator": "fetch",
+          "path": "/",
+          "startMs": 221.9000000357628
+        },
+        {
+          "bytes": 481,
+          "decodedBytes": 324,
+          "endMs": 236.4000000357628,
+          "initiator": "fetch",
+          "path": "/journal",
+          "startMs": 222
+        },
+        {
+          "bytes": 483,
+          "decodedBytes": 325,
+          "endMs": 236.4000000357628,
+          "initiator": "fetch",
+          "path": "/passport",
+          "startMs": 222
+        },
+        {
+          "bytes": 474,
+          "decodedBytes": 328,
+          "endMs": 236.5,
+          "initiator": "fetch",
+          "path": "/leaderboard",
+          "startMs": 222.10000002384183
+        },
+        {
+          "bytes": 779,
+          "decodedBytes": 818,
+          "endMs": 240.4000000357628,
+          "initiator": "other",
+          "path": "/icon.svg",
+          "startMs": 232
+        },
+        {
+          "bytes": 471,
+          "decodedBytes": 320,
+          "endMs": 249.30000001192093,
+          "initiator": "fetch",
+          "path": "/add",
+          "startMs": 237.80000001192093
+        },
+        {
+          "bytes": 1004,
+          "decodedBytes": 1576,
+          "endMs": 249.10000002384183,
+          "initiator": "fetch",
+          "path": "/",
+          "startMs": 238.5
+        },
+        {
+          "bytes": 1011,
+          "decodedBytes": 1628,
+          "endMs": 249.10000002384183,
+          "initiator": "fetch",
+          "path": "/overview",
+          "startMs": 239.10000002384183
+        },
+        {
+          "bytes": 1260,
+          "decodedBytes": 2507,
+          "endMs": 249.30000001192093,
+          "initiator": "fetch",
+          "path": "/journal",
+          "startMs": 239.5
+        },
+        {
+          "bytes": 1259,
+          "decodedBytes": 2510,
+          "endMs": 257.10000002384186,
+          "initiator": "fetch",
+          "path": "/passport",
+          "startMs": 250
+        },
+        {
+          "bytes": 1009,
+          "decodedBytes": 1634,
+          "endMs": 257,
+          "initiator": "fetch",
+          "path": "/leaderboard",
+          "startMs": 250.5
+        },
+        {
+          "bytes": 1005,
+          "decodedBytes": 1627,
+          "endMs": 261.69999998807907,
+          "initiator": "fetch",
+          "path": "/add",
+          "startMs": 251.19999998807907
+        },
+        {
+          "bytes": 322,
+          "decodedBytes": 2,
+          "endMs": 431.5,
+          "initiator": "fetch",
+          "path": "/api/me/badges",
+          "startMs": 368.60000002384186
+        },
+        {
+          "bytes": 412,
+          "decodedBytes": 134,
+          "endMs": 431.5,
+          "initiator": "fetch",
+          "path": "/api/me/awaiting",
+          "startMs": 368.9000000357628
+        },
+        {
+          "bytes": 578,
+          "decodedBytes": 453,
+          "endMs": 489,
+          "initiator": "fetch",
+          "path": "/api/auth/me",
+          "startMs": 369.300000011921
+        },
+        {
+          "bytes": 750,
+          "decodedBytes": 1069,
+          "endMs": 489,
+          "initiator": "fetch",
+          "path": "/api/flights/route-projection",
+          "startMs": 369.300000011921
+        },
+        {
+          "bytes": 363,
+          "decodedBytes": 55,
+          "endMs": 505.199999988079,
+          "initiator": "fetch",
+          "path": "/api/flights/sync-upcoming",
+          "startMs": 492.60000002384186
+        }
+      ],
+      "ttfb": 62.90000003576279,
+      "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/151.0.0.0 Safari/537.36",
+      "jsGzipBytes": 364510
+    },
+    {
+      "route": "overview",
+      "iteration": 1,
+      "cls": 0.01228078022003174,
+      "fcp": 180,
+      "lcp": 308,
+      "longtasks": [],
+      "readyMs": 319.10000002384186,
+      "resources": [
+        {
+          "bytes": 7343,
+          "decodedBytes": 29439,
+          "endMs": 81.30000001192093,
+          "initiator": "link",
+          "path": "/_next/static/chunks/3qrcc0ph2gkvd.css",
+          "startMs": 72.80000001192093
+        },
+        {
+          "bytes": 3727,
+          "decodedBytes": 16780,
+          "endMs": 97,
+          "initiator": "link",
+          "path": "/_next/static/chunks/1rbcwfa9zhejw.css",
+          "startMs": 72.80000001192093
+        },
+        {
+          "bytes": 1402,
+          "decodedBytes": 3223,
+          "endMs": 95.80000001192091,
+          "initiator": "link",
+          "path": "/_next/static/chunks/2floqq6zn3wjt.css",
+          "startMs": 72.89999997615814
+        },
+        {
+          "bytes": 2507,
+          "decodedBytes": 11063,
+          "endMs": 96.60000002384186,
+          "initiator": "link",
+          "path": "/_next/static/chunks/1k7uc3w8giqay.css",
+          "startMs": 72.89999997615814
+        },
+        {
+          "bytes": 2034,
+          "decodedBytes": 6645,
+          "endMs": 95.89999997615814,
+          "initiator": "link",
+          "path": "/_next/static/chunks/39dioubvbxly6.css",
+          "startMs": 73
+        },
+        {
+          "bytes": 1620,
+          "decodedBytes": 4502,
+          "endMs": 96.80000001192091,
+          "initiator": "link",
+          "path": "/_next/static/chunks/0i4mxoc8-o-_d.css",
+          "startMs": 73
+        },
+        {
+          "bytes": 1790,
+          "decodedBytes": 5232,
+          "endMs": 97,
+          "initiator": "link",
+          "path": "/_next/static/chunks/0bxr2y51-f9ef.css",
+          "startMs": 73
+        },
+        {
+          "bytes": 2624,
+          "decodedBytes": 8600,
+          "endMs": 113.30000001192091,
+          "initiator": "link",
+          "path": "/_next/static/chunks/3w5tu81mltute.js",
+          "startMs": 73
+        },
+        {
+          "bytes": 8740,
+          "decodedBytes": 31485,
+          "endMs": 114.5,
+          "initiator": "script",
+          "path": "/_next/static/chunks/0c_9yyzf_6rpm.js",
+          "startMs": 73
+        },
+        {
+          "bytes": 4149,
+          "decodedBytes": 9721,
+          "endMs": 113.10000002384186,
+          "initiator": "script",
+          "path": "/_next/static/chunks/turbopack-2lgxib3bx900x.js",
+          "startMs": 73.10000002384186
+        },
+        {
+          "bytes": 43295,
+          "decodedBytes": 156262,
+          "endMs": 124,
+          "initiator": "script",
+          "path": "/_next/static/chunks/21-ownes04iw3.js",
+          "startMs": 73.10000002384186
+        },
+        {
+          "bytes": 73278,
+          "decodedBytes": 233202,
+          "endMs": 131.5,
+          "initiator": "script",
+          "path": "/_next/static/chunks/03kfi98ln2-8l.js",
+          "startMs": 73.10000002384186
+        },
+        {
+          "bytes": 11167,
+          "decodedBytes": 35653,
+          "endMs": 141,
+          "initiator": "script",
+          "path": "/_next/static/chunks/3q50e7cbysvhf.js",
+          "startMs": 73.10000002384186
+        },
+        {
+          "bytes": 14301,
+          "decodedBytes": 40633,
+          "endMs": 131.80000001192093,
+          "initiator": "script",
+          "path": "/_next/static/chunks/1xrt35eyi7yx4.js",
+          "startMs": 73.19999998807907
+        },
+        {
+          "bytes": 614,
+          "decodedBytes": 477,
+          "endMs": 139.39999997615814,
+          "initiator": "script",
+          "path": "/_next/static/chunks/0fcsjmfd1sp5s.js",
+          "startMs": 73.19999998807907
+        },
+        {
+          "bytes": 1570,
+          "decodedBytes": 2437,
+          "endMs": 139.39999997615814,
+          "initiator": "script",
+          "path": "/_next/static/chunks/0hzkbsqwc5pnw.js",
+          "startMs": 73.19999998807907
+        },
+        {
+          "bytes": 30709,
+          "decodedBytes": 93543,
+          "endMs": 146.89999997615814,
+          "initiator": "script",
+          "path": "/_next/static/chunks/1dre8c-f_56iy.js",
+          "startMs": 73.19999998807907
+        },
+        {
+          "bytes": 15159,
+          "decodedBytes": 39604,
+          "endMs": 176.89999997615814,
+          "initiator": "script",
+          "path": "/_next/static/chunks/1upm8nyf9ikis.js",
+          "startMs": 73.19999998807907
+        },
+        {
+          "bytes": 34910,
+          "decodedBytes": 110553,
+          "endMs": 241.30000001192093,
+          "initiator": "script",
+          "path": "/_next/static/chunks/2_dkcqutyjzlh.js",
+          "startMs": 73.19999998807907
+        },
+        {
+          "bytes": 11717,
+          "decodedBytes": 33344,
+          "endMs": 148.69999998807907,
+          "initiator": "script",
+          "path": "/_next/static/chunks/04-zygmprjyq2.js",
+          "startMs": 73.30000001192093
+        },
+        {
+          "bytes": 2008,
+          "decodedBytes": 4655,
+          "endMs": 100.69999998807909,
+          "initiator": "link",
+          "path": "/bootstrap.js",
+          "startMs": 73.39999997615814
+        },
+        {
+          "bytes": 16817,
+          "decodedBytes": 49873,
+          "endMs": 210.60000002384183,
+          "initiator": "script",
+          "path": "/_next/static/chunks/3sx36n8m13lsh.js",
+          "startMs": 73.39999997615814
+        },
+        {
+          "bytes": 13014,
+          "decodedBytes": 56822,
+          "endMs": 246.30000001192093,
+          "initiator": "script",
+          "path": "/_next/static/chunks/0l_788ml94y-r.js",
+          "startMs": 73.39999997615814
+        },
+        {
+          "bytes": 14139,
+          "decodedBytes": 37467,
+          "endMs": 247.5,
+          "initiator": "script",
+          "path": "/_next/static/chunks/0ya7tn3qt97f6.js",
+          "startMs": 73.39999997615814
+        },
+        {
+          "bytes": 20301,
+          "decodedBytes": 63034,
+          "endMs": 249.5,
+          "initiator": "script",
+          "path": "/_next/static/chunks/2ean80k9ej3ki.js",
+          "startMs": 73.39999997615814
+        },
+        {
+          "bytes": 33698,
+          "decodedBytes": 156554,
+          "endMs": 254.89999997615817,
+          "initiator": "script",
+          "path": "/_next/static/chunks/1ys7t0yr2ska6.js",
+          "startMs": 73.39999997615814
+        },
+        {
+          "bytes": 810,
+          "decodedBytes": 1024,
+          "endMs": 260.30000001192093,
+          "initiator": "script",
+          "path": "/_next/static/chunks/2cz47oa_yrf33.js",
+          "startMs": 73.39999997615814
+        },
+        {
+          "bytes": 18032,
+          "decodedBytes": 50556,
+          "endMs": 265.89999997615814,
+          "initiator": "script",
+          "path": "/_next/static/chunks/1_rm_d759cxcx.js",
+          "startMs": 73.39999997615814
+        },
+        {
+          "bytes": 52437,
+          "decodedBytes": 143659,
+          "endMs": 268.60000002384186,
+          "initiator": "image",
+          "path": "/maps/world-outline-110m-2.0.2.svg",
+          "startMs": 99.19999998807909
+        },
+        {
+          "bytes": 69540,
+          "decodedBytes": 69240,
+          "endMs": 142,
+          "initiator": "css",
+          "path": "/fonts/Commissioner-Regular.woff2",
+          "startMs": 107.19999998807909
+        },
+        {
+          "bytes": 68984,
+          "decodedBytes": 68684,
+          "endMs": 201.30000001192093,
+          "initiator": "css",
+          "path": "/fonts/Commissioner-SemiBold.woff2",
+          "startMs": 109.60000002384186
+        },
+        {
+          "bytes": 69644,
+          "decodedBytes": 69344,
+          "endMs": 201.39999997615817,
+          "initiator": "css",
+          "path": "/fonts/Commissioner-Medium.woff2",
+          "startMs": 109.69999998807909
+        },
+        {
+          "bytes": 466,
+          "decodedBytes": 266,
+          "endMs": 314.89999997615814,
+          "initiator": "fetch",
+          "path": "/",
+          "startMs": 301.30000001192093
+        },
+        {
+          "bytes": 481,
+          "decodedBytes": 324,
+          "endMs": 314.60000002384186,
+          "initiator": "fetch",
+          "path": "/journal",
+          "startMs": 301.39999997615814
+        },
+        {
+          "bytes": 483,
+          "decodedBytes": 325,
+          "endMs": 314.60000002384186,
+          "initiator": "fetch",
+          "path": "/passport",
+          "startMs": 301.39999997615814
+        },
+        {
+          "bytes": 474,
+          "decodedBytes": 328,
+          "endMs": 314.69999998807907,
+          "initiator": "fetch",
+          "path": "/leaderboard",
+          "startMs": 301.5
+        },
+        {
+          "bytes": 471,
+          "decodedBytes": 320,
+          "endMs": 323.19999998807907,
+          "initiator": "fetch",
+          "path": "/add",
+          "startMs": 316.39999997615814
+        },
+        {
+          "bytes": 1003,
+          "decodedBytes": 1576,
+          "endMs": 334.5,
+          "initiator": "fetch",
+          "path": "/",
+          "startMs": 317.30000001192093
+        },
+        {
+          "bytes": 1010,
+          "decodedBytes": 1628,
+          "endMs": 334.60000002384186,
+          "initiator": "fetch",
+          "path": "/overview",
+          "startMs": 317.60000002384186
+        },
+        {
+          "bytes": 1259,
+          "decodedBytes": 2507,
+          "endMs": 334.69999998807907,
+          "initiator": "fetch",
+          "path": "/journal",
+          "startMs": 318
+        },
+        {
+          "bytes": 1259,
+          "decodedBytes": 2510,
+          "endMs": 340.69999998807907,
+          "initiator": "fetch",
+          "path": "/passport",
+          "startMs": 324
+        },
+        {
+          "bytes": 1005,
+          "decodedBytes": 1634,
+          "endMs": 346.19999998807907,
+          "initiator": "fetch",
+          "path": "/leaderboard",
+          "startMs": 335.60000002384186
+        },
+        {
+          "bytes": 1006,
+          "decodedBytes": 1627,
+          "endMs": 346.30000001192093,
+          "initiator": "fetch",
+          "path": "/add",
+          "startMs": 335.89999997615814
+        },
+        {
+          "bytes": 779,
+          "decodedBytes": 818,
+          "endMs": 481.5,
+          "initiator": "other",
+          "path": "/icon.svg",
+          "startMs": 474.800000011921
+        },
+        {
+          "bytes": 322,
+          "decodedBytes": 2,
+          "endMs": 605.6000000238419,
+          "initiator": "fetch",
+          "path": "/api/me/badges",
+          "startMs": 478.10000002384186
+        },
+        {
+          "bytes": 412,
+          "decodedBytes": 134,
+          "endMs": 605.5,
+          "initiator": "fetch",
+          "path": "/api/me/awaiting",
+          "startMs": 478.89999997615814
+        },
+        {
+          "bytes": 578,
+          "decodedBytes": 453,
+          "endMs": 605.5,
+          "initiator": "fetch",
+          "path": "/api/auth/me",
+          "startMs": 479.10000002384186
+        },
+        {
+          "bytes": 750,
+          "decodedBytes": 1069,
+          "endMs": 605.6000000238419,
+          "initiator": "fetch",
+          "path": "/api/flights/route-projection",
+          "startMs": 479.10000002384186
+        },
+        {
+          "bytes": 363,
+          "decodedBytes": 55,
+          "endMs": 624.8999999761581,
+          "initiator": "fetch",
+          "path": "/api/flights/sync-upcoming",
+          "startMs": 610.8000000119209
+        }
+      ],
+      "ttfb": 61.89999997615814,
+      "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/151.0.0.0 Safari/537.36",
+      "jsGzipBytes": 364510
+    },
+    {
+      "route": "overview",
+      "iteration": 2,
+      "cls": 0.01228078022003174,
+      "fcp": 168,
+      "lcp": 216,
+      "longtasks": [],
+      "readyMs": 237.30000001192093,
+      "resources": [
+        {
+          "bytes": 7343,
+          "decodedBytes": 29439,
+          "endMs": 82.39999997615814,
+          "initiator": "link",
+          "path": "/_next/static/chunks/3qrcc0ph2gkvd.css",
+          "startMs": 69.69999998807907
+        },
+        {
+          "bytes": 1402,
+          "decodedBytes": 3223,
+          "endMs": 81.19999998807907,
+          "initiator": "link",
+          "path": "/_next/static/chunks/2floqq6zn3wjt.css",
+          "startMs": 69.80000001192093
+        },
+        {
+          "bytes": 3727,
+          "decodedBytes": 16780,
+          "endMs": 82,
+          "initiator": "link",
+          "path": "/_next/static/chunks/1rbcwfa9zhejw.css",
+          "startMs": 69.80000001192093
+        },
+        {
+          "bytes": 1620,
+          "decodedBytes": 4502,
+          "endMs": 81.80000001192093,
+          "initiator": "link",
+          "path": "/_next/static/chunks/0i4mxoc8-o-_d.css",
+          "startMs": 69.89999997615814
+        },
+        {
+          "bytes": 2507,
+          "decodedBytes": 11063,
+          "endMs": 81.89999997615814,
+          "initiator": "link",
+          "path": "/_next/static/chunks/1k7uc3w8giqay.css",
+          "startMs": 69.89999997615814
+        },
+        {
+          "bytes": 1790,
+          "decodedBytes": 5232,
+          "endMs": 82,
+          "initiator": "link",
+          "path": "/_next/static/chunks/0bxr2y51-f9ef.css",
+          "startMs": 69.89999997615814
+        },
+        {
+          "bytes": 2034,
+          "decodedBytes": 6645,
+          "endMs": 86.19999998807907,
+          "initiator": "link",
+          "path": "/_next/static/chunks/39dioubvbxly6.css",
+          "startMs": 70
+        },
+        {
+          "bytes": 2624,
+          "decodedBytes": 8600,
+          "endMs": 91.19999998807909,
+          "initiator": "link",
+          "path": "/_next/static/chunks/3w5tu81mltute.js",
+          "startMs": 70
+        },
+        {
+          "bytes": 4149,
+          "decodedBytes": 9721,
+          "endMs": 99.89999997615814,
+          "initiator": "script",
+          "path": "/_next/static/chunks/turbopack-2lgxib3bx900x.js",
+          "startMs": 70.10000002384186
+        },
+        {
+          "bytes": 8740,
+          "decodedBytes": 31485,
+          "endMs": 101.89999997615814,
+          "initiator": "script",
+          "path": "/_next/static/chunks/0c_9yyzf_6rpm.js",
+          "startMs": 70.10000002384186
+        },
+        {
+          "bytes": 11167,
+          "decodedBytes": 35653,
+          "endMs": 102.30000001192091,
+          "initiator": "script",
+          "path": "/_next/static/chunks/3q50e7cbysvhf.js",
+          "startMs": 70.10000002384186
+        },
+        {
+          "bytes": 43295,
+          "decodedBytes": 156262,
+          "endMs": 112.19999998807909,
+          "initiator": "script",
+          "path": "/_next/static/chunks/21-ownes04iw3.js",
+          "startMs": 70.10000002384186
+        },
+        {
+          "bytes": 73278,
+          "decodedBytes": 233202,
+          "endMs": 116.60000002384186,
+          "initiator": "script",
+          "path": "/_next/static/chunks/03kfi98ln2-8l.js",
+          "startMs": 70.10000002384186
+        },
+        {
+          "bytes": 614,
+          "decodedBytes": 477,
+          "endMs": 107.60000002384186,
+          "initiator": "script",
+          "path": "/_next/static/chunks/0fcsjmfd1sp5s.js",
+          "startMs": 70.19999998807907
+        },
+        {
+          "bytes": 1570,
+          "decodedBytes": 2437,
+          "endMs": 125.19999998807909,
+          "initiator": "script",
+          "path": "/_next/static/chunks/0hzkbsqwc5pnw.js",
+          "startMs": 70.19999998807907
+        },
+        {
+          "bytes": 14301,
+          "decodedBytes": 40633,
+          "endMs": 134.10000002384186,
+          "initiator": "script",
+          "path": "/_next/static/chunks/1xrt35eyi7yx4.js",
+          "startMs": 70.19999998807907
+        },
+        {
+          "bytes": 30709,
+          "decodedBytes": 93543,
+          "endMs": 141.19999998807907,
+          "initiator": "script",
+          "path": "/_next/static/chunks/1dre8c-f_56iy.js",
+          "startMs": 70.19999998807907
+        },
+        {
+          "bytes": 15159,
+          "decodedBytes": 39604,
+          "endMs": 134,
+          "initiator": "script",
+          "path": "/_next/static/chunks/1upm8nyf9ikis.js",
+          "startMs": 70.39999997615814
+        },
+        {
+          "bytes": 34910,
+          "decodedBytes": 110553,
+          "endMs": 141.69999998807907,
+          "initiator": "script",
+          "path": "/_next/static/chunks/2_dkcqutyjzlh.js",
+          "startMs": 70.39999997615814
+        },
+        {
+          "bytes": 11717,
+          "decodedBytes": 33344,
+          "endMs": 153.39999997615814,
+          "initiator": "script",
+          "path": "/_next/static/chunks/04-zygmprjyq2.js",
+          "startMs": 70.39999997615814
+        },
+        {
+          "bytes": 16817,
+          "decodedBytes": 49873,
+          "endMs": 155.80000001192093,
+          "initiator": "script",
+          "path": "/_next/static/chunks/3sx36n8m13lsh.js",
+          "startMs": 70.39999997615814
+        },
+        {
+          "bytes": 810,
+          "decodedBytes": 1024,
+          "endMs": 152.10000002384186,
+          "initiator": "script",
+          "path": "/_next/static/chunks/2cz47oa_yrf33.js",
+          "startMs": 70.5
+        },
+        {
+          "bytes": 14139,
+          "decodedBytes": 37467,
+          "endMs": 185,
+          "initiator": "script",
+          "path": "/_next/static/chunks/0ya7tn3qt97f6.js",
+          "startMs": 70.5
+        },
+        {
+          "bytes": 13014,
+          "decodedBytes": 56822,
+          "endMs": 186.30000001192093,
+          "initiator": "script",
+          "path": "/_next/static/chunks/0l_788ml94y-r.js",
+          "startMs": 70.5
+        },
+        {
+          "bytes": 20301,
+          "decodedBytes": 63034,
+          "endMs": 191.60000002384183,
+          "initiator": "script",
+          "path": "/_next/static/chunks/2ean80k9ej3ki.js",
+          "startMs": 70.60000002384186
+        },
+        {
+          "bytes": 2008,
+          "decodedBytes": 4655,
+          "endMs": 86.19999998807907,
+          "initiator": "link",
+          "path": "/bootstrap.js",
+          "startMs": 70.69999998807907
+        },
+        {
+          "bytes": 18032,
+          "decodedBytes": 50556,
+          "endMs": 167,
+          "initiator": "script",
+          "path": "/_next/static/chunks/1_rm_d759cxcx.js",
+          "startMs": 70.69999998807907
+        },
+        {
+          "bytes": 33698,
+          "decodedBytes": 156554,
+          "endMs": 193.89999997615817,
+          "initiator": "script",
+          "path": "/_next/static/chunks/1ys7t0yr2ska6.js",
+          "startMs": 70.69999998807907
+        },
+        {
+          "bytes": 52437,
+          "decodedBytes": 143659,
+          "endMs": 173.80000001192093,
+          "initiator": "image",
+          "path": "/maps/world-outline-110m-2.0.2.svg",
+          "startMs": 88.80000001192093
+        },
+        {
+          "bytes": 69540,
+          "decodedBytes": 69240,
+          "endMs": 142.80000001192093,
+          "initiator": "css",
+          "path": "/fonts/Commissioner-Regular.woff2",
+          "startMs": 96.60000002384186
+        },
+        {
+          "bytes": 68984,
+          "decodedBytes": 68684,
+          "endMs": 155.60000002384186,
+          "initiator": "css",
+          "path": "/fonts/Commissioner-SemiBold.woff2",
+          "startMs": 98.69999998807909
+        },
+        {
+          "bytes": 69644,
+          "decodedBytes": 69344,
+          "endMs": 155.80000001192093,
+          "initiator": "css",
+          "path": "/fonts/Commissioner-Medium.woff2",
+          "startMs": 98.89999997615814
+        },
+        {
+          "bytes": 466,
+          "decodedBytes": 266,
+          "endMs": 224.39999997615817,
+          "initiator": "fetch",
+          "path": "/",
+          "startMs": 219.39999997615817
+        },
+        {
+          "bytes": 481,
+          "decodedBytes": 324,
+          "endMs": 232.30000001192093,
+          "initiator": "fetch",
+          "path": "/journal",
+          "startMs": 219.39999997615817
+        },
+        {
+          "bytes": 483,
+          "decodedBytes": 325,
+          "endMs": 232.19999998807907,
+          "initiator": "fetch",
+          "path": "/passport",
+          "startMs": 219.5
+        },
+        {
+          "bytes": 474,
+          "decodedBytes": 328,
+          "endMs": 232.30000001192093,
+          "initiator": "fetch",
+          "path": "/leaderboard",
+          "startMs": 219.5
+        },
+        {
+          "bytes": 471,
+          "decodedBytes": 320,
+          "endMs": 234.10000002384183,
+          "initiator": "fetch",
+          "path": "/add",
+          "startMs": 225.89999997615817
+        },
+        {
+          "bytes": 1004,
+          "decodedBytes": 1576,
+          "endMs": 237.19999998807907,
+          "initiator": "fetch",
+          "path": "/",
+          "startMs": 233.39999997615817
+        },
+        {
+          "bytes": 1012,
+          "decodedBytes": 1628,
+          "endMs": 248.69999998807907,
+          "initiator": "fetch",
+          "path": "/overview",
+          "startMs": 233.80000001192093
+        },
+        {
+          "bytes": 1260,
+          "decodedBytes": 2507,
+          "endMs": 248.80000001192093,
+          "initiator": "fetch",
+          "path": "/journal",
+          "startMs": 234.19999998807907
+        },
+        {
+          "bytes": 1258,
+          "decodedBytes": 2510,
+          "endMs": 248.89999997615817,
+          "initiator": "fetch",
+          "path": "/passport",
+          "startMs": 234.5
+        },
+        {
+          "bytes": 1005,
+          "decodedBytes": 1634,
+          "endMs": 255.89999997615817,
+          "initiator": "fetch",
+          "path": "/leaderboard",
+          "startMs": 239.80000001192093
+        },
+        {
+          "bytes": 1005,
+          "decodedBytes": 1627,
+          "endMs": 258.60000002384186,
+          "initiator": "fetch",
+          "path": "/add",
+          "startMs": 249.5
+        },
+        {
+          "bytes": 779,
+          "decodedBytes": 818,
+          "endMs": 354.80000001192093,
+          "initiator": "other",
+          "path": "/icon.svg",
+          "startMs": 350.30000001192093
+        },
+        {
+          "bytes": 322,
+          "decodedBytes": 2,
+          "endMs": 404.60000002384186,
+          "initiator": "fetch",
+          "path": "/api/me/badges",
+          "startMs": 353.69999998807907
+        },
+        {
+          "bytes": 412,
+          "decodedBytes": 134,
+          "endMs": 404.60000002384186,
+          "initiator": "fetch",
+          "path": "/api/me/awaiting",
+          "startMs": 353.89999997615814
+        },
+        {
+          "bytes": 578,
+          "decodedBytes": 453,
+          "endMs": 431.800000011921,
+          "initiator": "fetch",
+          "path": "/api/auth/me",
+          "startMs": 354
+        },
+        {
+          "bytes": 750,
+          "decodedBytes": 1069,
+          "endMs": 431.60000002384186,
+          "initiator": "fetch",
+          "path": "/api/flights/route-projection",
+          "startMs": 354.10000002384186
+        },
+        {
+          "bytes": 363,
+          "decodedBytes": 55,
+          "endMs": 446.89999997615814,
+          "initiator": "fetch",
+          "path": "/api/flights/sync-upcoming",
+          "startMs": 435.699999988079
+        }
+      ],
+      "ttfb": 66.10000002384186,
+      "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/151.0.0.0 Safari/537.36",
+      "jsGzipBytes": 364510
+    },
+    {
+      "route": "passport",
+      "iteration": 0,
+      "cls": 0.00019804911613464351,
+      "fcp": 324,
+      "lcp": 324,
+      "longtasks": [
+        {
+          "duration": 50,
+          "start": 119.60000002384186
+        }
+      ],
+      "readyMs": 341.19999998807907,
+      "resources": [
+        {
+          "bytes": 7343,
+          "decodedBytes": 29439,
+          "endMs": 117.5,
+          "initiator": "link",
+          "path": "/_next/static/chunks/3qrcc0ph2gkvd.css",
+          "startMs": 95.89999997615814
+        },
+        {
+          "bytes": 3727,
+          "decodedBytes": 16780,
+          "endMs": 117.19999998807909,
+          "initiator": "link",
+          "path": "/_next/static/chunks/1rbcwfa9zhejw.css",
+          "startMs": 96
+        },
+        {
+          "bytes": 1402,
+          "decodedBytes": 3223,
+          "endMs": 116.5,
+          "initiator": "link",
+          "path": "/_next/static/chunks/2floqq6zn3wjt.css",
+          "startMs": 96.10000002384186
+        },
+        {
+          "bytes": 1790,
+          "decodedBytes": 5232,
+          "endMs": 117.19999998807909,
+          "initiator": "link",
+          "path": "/_next/static/chunks/0bxr2y51-f9ef.css",
+          "startMs": 96.19999998807909
+        },
+        {
+          "bytes": 2586,
+          "decodedBytes": 9598,
+          "endMs": 117.10000002384186,
+          "initiator": "link",
+          "path": "/_next/static/chunks/1gk1g8yfwdxhl.css",
+          "startMs": 96.19999998807909
+        },
+        {
+          "bytes": 2034,
+          "decodedBytes": 6645,
+          "endMs": 117,
+          "initiator": "link",
+          "path": "/_next/static/chunks/39dioubvbxly6.css",
+          "startMs": 96.30000001192091
+        },
+        {
+          "bytes": 2624,
+          "decodedBytes": 8600,
+          "endMs": 133.39999997615814,
+          "initiator": "link",
+          "path": "/_next/static/chunks/3w5tu81mltute.js",
+          "startMs": 96.30000001192091
+        },
+        {
+          "bytes": 8740,
+          "decodedBytes": 31485,
+          "endMs": 136.19999998807907,
+          "initiator": "script",
+          "path": "/_next/static/chunks/0c_9yyzf_6rpm.js",
+          "startMs": 96.30000001192091
+        },
+        {
+          "bytes": 43295,
+          "decodedBytes": 156262,
+          "endMs": 147.19999998807907,
+          "initiator": "script",
+          "path": "/_next/static/chunks/21-ownes04iw3.js",
+          "startMs": 96.30000001192091
+        },
+        {
+          "bytes": 73278,
+          "decodedBytes": 233202,
+          "endMs": 154,
+          "initiator": "script",
+          "path": "/_next/static/chunks/03kfi98ln2-8l.js",
+          "startMs": 96.30000001192091
+        },
+        {
+          "bytes": 4149,
+          "decodedBytes": 9721,
+          "endMs": 133.39999997615814,
+          "initiator": "script",
+          "path": "/_next/static/chunks/turbopack-2lgxib3bx900x.js",
+          "startMs": 96.39999997615814
+        },
+        {
+          "bytes": 1570,
+          "decodedBytes": 2437,
+          "endMs": 165.60000002384186,
+          "initiator": "script",
+          "path": "/_next/static/chunks/0hzkbsqwc5pnw.js",
+          "startMs": 96.39999997615814
+        },
+        {
+          "bytes": 614,
+          "decodedBytes": 477,
+          "endMs": 165.60000002384186,
+          "initiator": "script",
+          "path": "/_next/static/chunks/0fcsjmfd1sp5s.js",
+          "startMs": 96.39999997615814
+        },
+        {
+          "bytes": 11167,
+          "decodedBytes": 35653,
+          "endMs": 167.5,
+          "initiator": "script",
+          "path": "/_next/static/chunks/3q50e7cbysvhf.js",
+          "startMs": 96.39999997615814
+        },
+        {
+          "bytes": 30709,
+          "decodedBytes": 93543,
+          "endMs": 173.19999998807907,
+          "initiator": "script",
+          "path": "/_next/static/chunks/1dre8c-f_56iy.js",
+          "startMs": 96.39999997615814
+        },
+        {
+          "bytes": 14301,
+          "decodedBytes": 40633,
+          "endMs": 156.19999998807907,
+          "initiator": "script",
+          "path": "/_next/static/chunks/1xrt35eyi7yx4.js",
+          "startMs": 96.5
+        },
+        {
+          "bytes": 15159,
+          "decodedBytes": 39604,
+          "endMs": 157.80000001192093,
+          "initiator": "script",
+          "path": "/_next/static/chunks/1upm8nyf9ikis.js",
+          "startMs": 96.5
+        },
+        {
+          "bytes": 34910,
+          "decodedBytes": 110553,
+          "endMs": 174.80000001192093,
+          "initiator": "script",
+          "path": "/_next/static/chunks/2_dkcqutyjzlh.js",
+          "startMs": 96.5
+        },
+        {
+          "bytes": 810,
+          "decodedBytes": 1024,
+          "endMs": 186.89999997615817,
+          "initiator": "script",
+          "path": "/_next/static/chunks/2cz47oa_yrf33.js",
+          "startMs": 96.60000002384186
+        },
+        {
+          "bytes": 514,
+          "decodedBytes": 248,
+          "endMs": 187,
+          "initiator": "script",
+          "path": "/_next/static/chunks/0ax1xhmi96_p-.js",
+          "startMs": 96.60000002384186
+        },
+        {
+          "bytes": 11717,
+          "decodedBytes": 33344,
+          "endMs": 190.30000001192093,
+          "initiator": "script",
+          "path": "/_next/static/chunks/04-zygmprjyq2.js",
+          "startMs": 96.60000002384186
+        },
+        {
+          "bytes": 16817,
+          "decodedBytes": 49873,
+          "endMs": 196,
+          "initiator": "script",
+          "path": "/_next/static/chunks/3sx36n8m13lsh.js",
+          "startMs": 96.60000002384186
+        },
+        {
+          "bytes": 12339,
+          "decodedBytes": 37653,
+          "endMs": 204.69999998807907,
+          "initiator": "script",
+          "path": "/_next/static/chunks/0ts3c2kc3807z.js",
+          "startMs": 96.60000002384186
+        },
+        {
+          "bytes": 2008,
+          "decodedBytes": 4655,
+          "endMs": 121.60000002384186,
+          "initiator": "link",
+          "path": "/bootstrap.js",
+          "startMs": 96.69999998807909
+        },
+        {
+          "bytes": 11395,
+          "decodedBytes": 35882,
+          "endMs": 201,
+          "initiator": "script",
+          "path": "/_next/static/chunks/02flxxga298f2.js",
+          "startMs": 96.69999998807909
+        },
+        {
+          "bytes": 14552,
+          "decodedBytes": 33152,
+          "endMs": 206.69999998807907,
+          "initiator": "script",
+          "path": "/_next/static/chunks/0iyt4sodypz3f.js",
+          "startMs": 96.69999998807909
+        },
+        {
+          "bytes": 18032,
+          "decodedBytes": 50556,
+          "endMs": 209.30000001192093,
+          "initiator": "script",
+          "path": "/_next/static/chunks/1_rm_d759cxcx.js",
+          "startMs": 96.69999998807909
+        },
+        {
+          "bytes": 10956,
+          "decodedBytes": 62453,
+          "endMs": 212.80000001192093,
+          "initiator": "script",
+          "path": "/_next/static/chunks/3ah0s41o7us5n.js",
+          "startMs": 96.69999998807909
+        },
+        {
+          "bytes": 69540,
+          "decodedBytes": 69240,
+          "endMs": 180.10000002384186,
+          "initiator": "css",
+          "path": "/fonts/Commissioner-Regular.woff2",
+          "startMs": 121.80000001192091
+        },
+        {
+          "bytes": 68984,
+          "decodedBytes": 68684,
+          "endMs": 180.39999997615817,
+          "initiator": "css",
+          "path": "/fonts/Commissioner-SemiBold.woff2",
+          "startMs": 121.80000001192091
+        },
+        {
+          "bytes": 69644,
+          "decodedBytes": 69344,
+          "endMs": 195.69999998807907,
+          "initiator": "css",
+          "path": "/fonts/Commissioner-Medium.woff2",
+          "startMs": 121.80000001192091
+        },
+        {
+          "bytes": 91626,
+          "decodedBytes": 187208,
+          "endMs": 226.69999998807907,
+          "initiator": "css",
+          "path": "/fonts/JetBrainsMono.ttf",
+          "startMs": 158.30000001192093
+        },
+        {
+          "bytes": 779,
+          "decodedBytes": 818,
+          "endMs": 297.89999997615814,
+          "initiator": "other",
+          "path": "/icon.svg",
+          "startMs": 293.89999997615814
+        },
+        {
+          "bytes": 466,
+          "decodedBytes": 266,
+          "endMs": 323.19999998807907,
+          "initiator": "fetch",
+          "path": "/",
+          "startMs": 309.89999997615814
+        },
+        {
+          "bytes": 483,
+          "decodedBytes": 325,
+          "endMs": 323.39999997615814,
+          "initiator": "fetch",
+          "path": "/overview",
+          "startMs": 310
+        },
+        {
+          "bytes": 481,
+          "decodedBytes": 324,
+          "endMs": 323.69999998807907,
+          "initiator": "fetch",
+          "path": "/journal",
+          "startMs": 310.10000002384186
+        },
+        {
+          "bytes": 474,
+          "decodedBytes": 328,
+          "endMs": 328.39999997615814,
+          "initiator": "fetch",
+          "path": "/leaderboard",
+          "startMs": 310.19999998807907
+        },
+        {
+          "bytes": 471,
+          "decodedBytes": 320,
+          "endMs": 336,
+          "initiator": "fetch",
+          "path": "/add",
+          "startMs": 325.5
+        },
+        {
+          "bytes": 1005,
+          "decodedBytes": 1576,
+          "endMs": 336.19999998807907,
+          "initiator": "fetch",
+          "path": "/",
+          "startMs": 326.60000002384186
+        },
+        {
+          "bytes": 1261,
+          "decodedBytes": 2510,
+          "endMs": 336.10000002384186,
+          "initiator": "fetch",
+          "path": "/overview",
+          "startMs": 327
+        },
+        {
+          "bytes": 1260,
+          "decodedBytes": 2507,
+          "endMs": 339.69999998807907,
+          "initiator": "fetch",
+          "path": "/journal",
+          "startMs": 329.30000001192093
+        },
+        {
+          "bytes": 1009,
+          "decodedBytes": 1628,
+          "endMs": 348.60000002384186,
+          "initiator": "fetch",
+          "path": "/passport",
+          "startMs": 337
+        },
+        {
+          "bytes": 1006,
+          "decodedBytes": 1634,
+          "endMs": 348.5,
+          "initiator": "fetch",
+          "path": "/leaderboard",
+          "startMs": 337.5
+        },
+        {
+          "bytes": 1004,
+          "decodedBytes": 1627,
+          "endMs": 348.60000002384186,
+          "initiator": "fetch",
+          "path": "/add",
+          "startMs": 337.89999997615814
+        },
+        {
+          "bytes": 322,
+          "decodedBytes": 2,
+          "endMs": 448.10000002384186,
+          "initiator": "fetch",
+          "path": "/api/me/badges",
+          "startMs": 437.300000011921
+        },
+        {
+          "bytes": 412,
+          "decodedBytes": 134,
+          "endMs": 510.5,
+          "initiator": "fetch",
+          "path": "/api/me/awaiting",
+          "startMs": 437.5
+        },
+        {
+          "bytes": 578,
+          "decodedBytes": 453,
+          "endMs": 510.39999997615814,
+          "initiator": "fetch",
+          "path": "/api/auth/me",
+          "startMs": 437.60000002384186
+        },
+        {
+          "bytes": 363,
+          "decodedBytes": 55,
+          "endMs": 524.3999999761581,
+          "initiator": "fetch",
+          "path": "/api/flights/sync-upcoming",
+          "startMs": 513.6999999880791
+        }
+      ],
+      "ttfb": 30.399999976158146,
+      "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/151.0.0.0 Safari/537.36",
+      "jsGzipBytes": 332618
+    },
+    {
+      "route": "passport",
+      "iteration": 1,
+      "cls": 0.00023783507347106933,
+      "fcp": 204,
+      "lcp": 204,
+      "longtasks": [],
+      "readyMs": 272.9000000357628,
+      "resources": [
+        {
+          "bytes": 7343,
+          "decodedBytes": 29439,
+          "endMs": 76.80000001192093,
+          "initiator": "link",
+          "path": "/_next/static/chunks/3qrcc0ph2gkvd.css",
+          "startMs": 69.80000001192093
+        },
+        {
+          "bytes": 1402,
+          "decodedBytes": 3223,
+          "endMs": 96.60000002384186,
+          "initiator": "link",
+          "path": "/_next/static/chunks/2floqq6zn3wjt.css",
+          "startMs": 70
+        },
+        {
+          "bytes": 3727,
+          "decodedBytes": 16780,
+          "endMs": 97.9000000357628,
+          "initiator": "link",
+          "path": "/_next/static/chunks/1rbcwfa9zhejw.css",
+          "startMs": 70
+        },
+        {
+          "bytes": 2586,
+          "decodedBytes": 9598,
+          "endMs": 97.10000002384186,
+          "initiator": "link",
+          "path": "/_next/static/chunks/1gk1g8yfwdxhl.css",
+          "startMs": 70.10000002384186
+        },
+        {
+          "bytes": 2034,
+          "decodedBytes": 6645,
+          "endMs": 97.69999998807909,
+          "initiator": "link",
+          "path": "/_next/static/chunks/39dioubvbxly6.css",
+          "startMs": 70.10000002384186
+        },
+        {
+          "bytes": 1790,
+          "decodedBytes": 5232,
+          "endMs": 97.80000001192091,
+          "initiator": "link",
+          "path": "/_next/static/chunks/0bxr2y51-f9ef.css",
+          "startMs": 70.10000002384186
+        },
+        {
+          "bytes": 2624,
+          "decodedBytes": 8600,
+          "endMs": 111.60000002384186,
+          "initiator": "link",
+          "path": "/_next/static/chunks/3w5tu81mltute.js",
+          "startMs": 70.10000002384186
+        },
+        {
+          "bytes": 8740,
+          "decodedBytes": 31485,
+          "endMs": 112.69999998807909,
+          "initiator": "script",
+          "path": "/_next/static/chunks/0c_9yyzf_6rpm.js",
+          "startMs": 70.10000002384186
+        },
+        {
+          "bytes": 73278,
+          "decodedBytes": 233202,
+          "endMs": 124.80000001192091,
+          "initiator": "script",
+          "path": "/_next/static/chunks/03kfi98ln2-8l.js",
+          "startMs": 70.19999998807907
+        },
+        {
+          "bytes": 4149,
+          "decodedBytes": 9721,
+          "endMs": 111.60000002384186,
+          "initiator": "script",
+          "path": "/_next/static/chunks/turbopack-2lgxib3bx900x.js",
+          "startMs": 70.30000001192093
+        },
+        {
+          "bytes": 43295,
+          "decodedBytes": 156262,
+          "endMs": 121.5,
+          "initiator": "script",
+          "path": "/_next/static/chunks/21-ownes04iw3.js",
+          "startMs": 70.30000001192093
+        },
+        {
+          "bytes": 11167,
+          "decodedBytes": 35653,
+          "endMs": 136.10000002384186,
+          "initiator": "script",
+          "path": "/_next/static/chunks/3q50e7cbysvhf.js",
+          "startMs": 70.30000001192093
+        },
+        {
+          "bytes": 614,
+          "decodedBytes": 477,
+          "endMs": 134.30000001192093,
+          "initiator": "script",
+          "path": "/_next/static/chunks/0fcsjmfd1sp5s.js",
+          "startMs": 70.40000003576279
+        },
+        {
+          "bytes": 30709,
+          "decodedBytes": 93543,
+          "endMs": 137.4000000357628,
+          "initiator": "script",
+          "path": "/_next/static/chunks/1dre8c-f_56iy.js",
+          "startMs": 70.40000003576279
+        },
+        {
+          "bytes": 1570,
+          "decodedBytes": 2437,
+          "endMs": 134.4000000357628,
+          "initiator": "script",
+          "path": "/_next/static/chunks/0hzkbsqwc5pnw.js",
+          "startMs": 70.5
+        },
+        {
+          "bytes": 14301,
+          "decodedBytes": 40633,
+          "endMs": 136.5,
+          "initiator": "script",
+          "path": "/_next/static/chunks/1xrt35eyi7yx4.js",
+          "startMs": 70.5
+        },
+        {
+          "bytes": 11717,
+          "decodedBytes": 33344,
+          "endMs": 151.4000000357628,
+          "initiator": "script",
+          "path": "/_next/static/chunks/04-zygmprjyq2.js",
+          "startMs": 70.5
+        },
+        {
+          "bytes": 15159,
+          "decodedBytes": 39604,
+          "endMs": 153,
+          "initiator": "script",
+          "path": "/_next/static/chunks/1upm8nyf9ikis.js",
+          "startMs": 70.5
+        },
+        {
+          "bytes": 34910,
+          "decodedBytes": 110553,
+          "endMs": 161.5,
+          "initiator": "script",
+          "path": "/_next/static/chunks/2_dkcqutyjzlh.js",
+          "startMs": 70.5
+        },
+        {
+          "bytes": 810,
+          "decodedBytes": 1024,
+          "endMs": 146.69999998807907,
+          "initiator": "script",
+          "path": "/_next/static/chunks/2cz47oa_yrf33.js",
+          "startMs": 70.60000002384186
+        },
+        {
+          "bytes": 16817,
+          "decodedBytes": 49873,
+          "endMs": 154.80000001192093,
+          "initiator": "script",
+          "path": "/_next/static/chunks/3sx36n8m13lsh.js",
+          "startMs": 70.60000002384186
+        },
+        {
+          "bytes": 12339,
+          "decodedBytes": 37653,
+          "endMs": 171.19999998807907,
+          "initiator": "script",
+          "path": "/_next/static/chunks/0ts3c2kc3807z.js",
+          "startMs": 70.60000002384186
+        },
+        {
+          "bytes": 514,
+          "decodedBytes": 248,
+          "endMs": 197.5,
+          "initiator": "script",
+          "path": "/_next/static/chunks/0ax1xhmi96_p-.js",
+          "startMs": 70.60000002384186
+        },
+        {
+          "bytes": 2008,
+          "decodedBytes": 4655,
+          "endMs": 102.9000000357628,
+          "initiator": "link",
+          "path": "/bootstrap.js",
+          "startMs": 70.69999998807907
+        },
+        {
+          "bytes": 11395,
+          "decodedBytes": 35882,
+          "endMs": 181.4000000357628,
+          "initiator": "script",
+          "path": "/_next/static/chunks/02flxxga298f2.js",
+          "startMs": 70.69999998807907
+        },
+        {
+          "bytes": 14552,
+          "decodedBytes": 33152,
+          "endMs": 185.10000002384183,
+          "initiator": "script",
+          "path": "/_next/static/chunks/0iyt4sodypz3f.js",
+          "startMs": 70.69999998807907
+        },
+        {
+          "bytes": 18032,
+          "decodedBytes": 50556,
+          "endMs": 203.19999998807907,
+          "initiator": "script",
+          "path": "/_next/static/chunks/1_rm_d759cxcx.js",
+          "startMs": 70.69999998807907
+        },
+        {
+          "bytes": 10956,
+          "decodedBytes": 62453,
+          "endMs": 204.5,
+          "initiator": "script",
+          "path": "/_next/static/chunks/3ah0s41o7us5n.js",
+          "startMs": 70.69999998807907
+        },
+        {
+          "bytes": 69540,
+          "decodedBytes": 69240,
+          "endMs": 202.19999998807907,
+          "initiator": "css",
+          "path": "/fonts/Commissioner-Regular.woff2",
+          "startMs": 101.80000001192091
+        },
+        {
+          "bytes": 68984,
+          "decodedBytes": 68684,
+          "endMs": 164.30000001192093,
+          "initiator": "css",
+          "path": "/fonts/Commissioner-SemiBold.woff2",
+          "startMs": 101.9000000357628
+        },
+        {
+          "bytes": 69644,
+          "decodedBytes": 69344,
+          "endMs": 202.30000001192093,
+          "initiator": "css",
+          "path": "/fonts/Commissioner-Medium.woff2",
+          "startMs": 101.9000000357628
+        },
+        {
+          "bytes": 91626,
+          "decodedBytes": 187208,
+          "endMs": 186.10000002384183,
+          "initiator": "css",
+          "path": "/fonts/JetBrainsMono.ttf",
+          "startMs": 129.69999998807907
+        },
+        {
+          "bytes": 466,
+          "decodedBytes": 266,
+          "endMs": 277,
+          "initiator": "fetch",
+          "path": "/",
+          "startMs": 264.19999998807907
+        },
+        {
+          "bytes": 483,
+          "decodedBytes": 325,
+          "endMs": 277.10000002384186,
+          "initiator": "fetch",
+          "path": "/overview",
+          "startMs": 264.19999998807907
+        },
+        {
+          "bytes": 481,
+          "decodedBytes": 324,
+          "endMs": 277.10000002384186,
+          "initiator": "fetch",
+          "path": "/journal",
+          "startMs": 264.5
+        },
+        {
+          "bytes": 474,
+          "decodedBytes": 328,
+          "endMs": 279.5,
+          "initiator": "fetch",
+          "path": "/leaderboard",
+          "startMs": 264.60000002384186
+        },
+        {
+          "bytes": 471,
+          "decodedBytes": 320,
+          "endMs": 287.10000002384186,
+          "initiator": "fetch",
+          "path": "/add",
+          "startMs": 278.9000000357628
+        },
+        {
+          "bytes": 1003,
+          "decodedBytes": 1576,
+          "endMs": 295.30000001192093,
+          "initiator": "fetch",
+          "path": "/",
+          "startMs": 279.80000001192093
+        },
+        {
+          "bytes": 1260,
+          "decodedBytes": 2510,
+          "endMs": 295.19999998807907,
+          "initiator": "fetch",
+          "path": "/overview",
+          "startMs": 280.4000000357628
+        },
+        {
+          "bytes": 1260,
+          "decodedBytes": 2507,
+          "endMs": 295.30000001192093,
+          "initiator": "fetch",
+          "path": "/journal",
+          "startMs": 280.9000000357628
+        },
+        {
+          "bytes": 1008,
+          "decodedBytes": 1628,
+          "endMs": 298.19999998807907,
+          "initiator": "fetch",
+          "path": "/passport",
+          "startMs": 287.9000000357628
+        },
+        {
+          "bytes": 1004,
+          "decodedBytes": 1634,
+          "endMs": 303.80000001192093,
+          "initiator": "fetch",
+          "path": "/leaderboard",
+          "startMs": 296.19999998807907
+        },
+        {
+          "bytes": 1006,
+          "decodedBytes": 1627,
+          "endMs": 303.69999998807907,
+          "initiator": "fetch",
+          "path": "/add",
+          "startMs": 296.60000002384186
+        },
+        {
+          "bytes": 779,
+          "decodedBytes": 818,
+          "endMs": 386.5,
+          "initiator": "other",
+          "path": "/icon.svg",
+          "startMs": 380.800000011921
+        },
+        {
+          "bytes": 322,
+          "decodedBytes": 2,
+          "endMs": 412,
+          "initiator": "fetch",
+          "path": "/api/me/badges",
+          "startMs": 398
+        },
+        {
+          "bytes": 412,
+          "decodedBytes": 134,
+          "endMs": 458.800000011921,
+          "initiator": "fetch",
+          "path": "/api/me/awaiting",
+          "startMs": 398.199999988079
+        },
+        {
+          "bytes": 578,
+          "decodedBytes": 453,
+          "endMs": 458.699999988079,
+          "initiator": "fetch",
+          "path": "/api/auth/me",
+          "startMs": 398.300000011921
+        },
+        {
+          "bytes": 363,
+          "decodedBytes": 55,
+          "endMs": 475,
+          "initiator": "fetch",
+          "path": "/api/flights/sync-upcoming",
+          "startMs": 460.60000002384186
+        }
+      ],
+      "ttfb": 21.600000023841854,
+      "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/151.0.0.0 Safari/537.36",
+      "jsGzipBytes": 332618
+    },
+    {
+      "route": "passport",
+      "iteration": 2,
+      "cls": 0.00019804911613464351,
+      "fcp": 180,
+      "lcp": 180,
+      "longtasks": [],
+      "readyMs": 284.80000001192093,
+      "resources": [
+        {
+          "bytes": 7343,
+          "decodedBytes": 29439,
+          "endMs": 83.10000002384186,
+          "initiator": "link",
+          "path": "/_next/static/chunks/3qrcc0ph2gkvd.css",
+          "startMs": 65.30000001192093
+        },
+        {
+          "bytes": 1402,
+          "decodedBytes": 3223,
+          "endMs": 80.20000004768372,
+          "initiator": "link",
+          "path": "/_next/static/chunks/2floqq6zn3wjt.css",
+          "startMs": 65.40000003576279
+        },
+        {
+          "bytes": 3727,
+          "decodedBytes": 16780,
+          "endMs": 82.10000002384186,
+          "initiator": "link",
+          "path": "/_next/static/chunks/1rbcwfa9zhejw.css",
+          "startMs": 65.40000003576279
+        },
+        {
+          "bytes": 2586,
+          "decodedBytes": 9598,
+          "endMs": 81,
+          "initiator": "link",
+          "path": "/_next/static/chunks/1gk1g8yfwdxhl.css",
+          "startMs": 65.5
+        },
+        {
+          "bytes": 2034,
+          "decodedBytes": 6645,
+          "endMs": 81.70000004768372,
+          "initiator": "link",
+          "path": "/_next/static/chunks/39dioubvbxly6.css",
+          "startMs": 65.5
+        },
+        {
+          "bytes": 1790,
+          "decodedBytes": 5232,
+          "endMs": 81.90000003576279,
+          "initiator": "link",
+          "path": "/_next/static/chunks/0bxr2y51-f9ef.css",
+          "startMs": 65.5
+        },
+        {
+          "bytes": 2624,
+          "decodedBytes": 8600,
+          "endMs": 91,
+          "initiator": "link",
+          "path": "/_next/static/chunks/3w5tu81mltute.js",
+          "startMs": 65.60000002384186
+        },
+        {
+          "bytes": 8740,
+          "decodedBytes": 31485,
+          "endMs": 106.10000002384186,
+          "initiator": "script",
+          "path": "/_next/static/chunks/0c_9yyzf_6rpm.js",
+          "startMs": 65.60000002384186
+        },
+        {
+          "bytes": 73278,
+          "decodedBytes": 233202,
+          "endMs": 117,
+          "initiator": "script",
+          "path": "/_next/static/chunks/03kfi98ln2-8l.js",
+          "startMs": 65.60000002384186
+        },
+        {
+          "bytes": 4149,
+          "decodedBytes": 9721,
+          "endMs": 104.70000004768372,
+          "initiator": "script",
+          "path": "/_next/static/chunks/turbopack-2lgxib3bx900x.js",
+          "startMs": 65.70000004768372
+        },
+        {
+          "bytes": 43295,
+          "decodedBytes": 156262,
+          "endMs": 114.9000000357628,
+          "initiator": "script",
+          "path": "/_next/static/chunks/21-ownes04iw3.js",
+          "startMs": 65.70000004768372
+        },
+        {
+          "bytes": 11167,
+          "decodedBytes": 35653,
+          "endMs": 106.5,
+          "initiator": "script",
+          "path": "/_next/static/chunks/3q50e7cbysvhf.js",
+          "startMs": 65.80000001192093
+        },
+        {
+          "bytes": 614,
+          "decodedBytes": 477,
+          "endMs": 127.10000002384186,
+          "initiator": "script",
+          "path": "/_next/static/chunks/0fcsjmfd1sp5s.js",
+          "startMs": 65.80000001192093
+        },
+        {
+          "bytes": 30709,
+          "decodedBytes": 93543,
+          "endMs": 138,
+          "initiator": "script",
+          "path": "/_next/static/chunks/1dre8c-f_56iy.js",
+          "startMs": 65.80000001192093
+        },
+        {
+          "bytes": 1570,
+          "decodedBytes": 2437,
+          "endMs": 127.10000002384186,
+          "initiator": "script",
+          "path": "/_next/static/chunks/0hzkbsqwc5pnw.js",
+          "startMs": 65.90000003576279
+        },
+        {
+          "bytes": 14301,
+          "decodedBytes": 40633,
+          "endMs": 131.5,
+          "initiator": "script",
+          "path": "/_next/static/chunks/1xrt35eyi7yx4.js",
+          "startMs": 65.90000003576279
+        },
+        {
+          "bytes": 15159,
+          "decodedBytes": 39604,
+          "endMs": 131.4000000357628,
+          "initiator": "script",
+          "path": "/_next/static/chunks/1upm8nyf9ikis.js",
+          "startMs": 65.90000003576279
+        },
+        {
+          "bytes": 34910,
+          "decodedBytes": 110553,
+          "endMs": 181.5,
+          "initiator": "script",
+          "path": "/_next/static/chunks/2_dkcqutyjzlh.js",
+          "startMs": 65.90000003576279
+        },
+        {
+          "bytes": 810,
+          "decodedBytes": 1024,
+          "endMs": 146.80000001192093,
+          "initiator": "script",
+          "path": "/_next/static/chunks/2cz47oa_yrf33.js",
+          "startMs": 66
+        },
+        {
+          "bytes": 16817,
+          "decodedBytes": 49873,
+          "endMs": 151,
+          "initiator": "script",
+          "path": "/_next/static/chunks/3sx36n8m13lsh.js",
+          "startMs": 66
+        },
+        {
+          "bytes": 514,
+          "decodedBytes": 248,
+          "endMs": 153.30000001192093,
+          "initiator": "script",
+          "path": "/_next/static/chunks/0ax1xhmi96_p-.js",
+          "startMs": 66
+        },
+        {
+          "bytes": 11717,
+          "decodedBytes": 33344,
+          "endMs": 173.4000000357628,
+          "initiator": "script",
+          "path": "/_next/static/chunks/04-zygmprjyq2.js",
+          "startMs": 66
+        },
+        {
+          "bytes": 2008,
+          "decodedBytes": 4655,
+          "endMs": 84.10000002384186,
+          "initiator": "link",
+          "path": "/bootstrap.js",
+          "startMs": 66.10000002384186
+        },
+        {
+          "bytes": 11395,
+          "decodedBytes": 35882,
+          "endMs": 163.20000004768372,
+          "initiator": "script",
+          "path": "/_next/static/chunks/02flxxga298f2.js",
+          "startMs": 66.10000002384186
+        },
+        {
+          "bytes": 14552,
+          "decodedBytes": 33152,
+          "endMs": 173.5,
+          "initiator": "script",
+          "path": "/_next/static/chunks/0iyt4sodypz3f.js",
+          "startMs": 66.10000002384186
+        },
+        {
+          "bytes": 12339,
+          "decodedBytes": 37653,
+          "endMs": 174.60000002384186,
+          "initiator": "script",
+          "path": "/_next/static/chunks/0ts3c2kc3807z.js",
+          "startMs": 66.10000002384186
+        },
+        {
+          "bytes": 18032,
+          "decodedBytes": 50556,
+          "endMs": 183,
+          "initiator": "script",
+          "path": "/_next/static/chunks/1_rm_d759cxcx.js",
+          "startMs": 66.10000002384186
+        },
+        {
+          "bytes": 10956,
+          "decodedBytes": 62453,
+          "endMs": 189.70000004768372,
+          "initiator": "script",
+          "path": "/_next/static/chunks/3ah0s41o7us5n.js",
+          "startMs": 66.10000002384186
+        },
+        {
+          "bytes": 69540,
+          "decodedBytes": 69240,
+          "endMs": 138.9000000357628,
+          "initiator": "css",
+          "path": "/fonts/Commissioner-Regular.woff2",
+          "startMs": 87.20000004768372
+        },
+        {
+          "bytes": 68984,
+          "decodedBytes": 68684,
+          "endMs": 138.80000001192093,
+          "initiator": "css",
+          "path": "/fonts/Commissioner-SemiBold.woff2",
+          "startMs": 87.20000004768372
+        },
+        {
+          "bytes": 69644,
+          "decodedBytes": 69344,
+          "endMs": 178,
+          "initiator": "css",
+          "path": "/fonts/Commissioner-Medium.woff2",
+          "startMs": 87.30000001192093
+        },
+        {
+          "bytes": 91626,
+          "decodedBytes": 187208,
+          "endMs": 161.5,
+          "initiator": "css",
+          "path": "/fonts/JetBrainsMono.ttf",
+          "startMs": 115.20000004768372
+        },
+        {
+          "bytes": 466,
+          "decodedBytes": 266,
+          "endMs": 273.5,
+          "initiator": "fetch",
+          "path": "/",
+          "startMs": 265.4000000357628
+        },
+        {
+          "bytes": 483,
+          "decodedBytes": 325,
+          "endMs": 273.7000000476837,
+          "initiator": "fetch",
+          "path": "/overview",
+          "startMs": 265.4000000357628
+        },
+        {
+          "bytes": 481,
+          "decodedBytes": 324,
+          "endMs": 273.7000000476837,
+          "initiator": "fetch",
+          "path": "/journal",
+          "startMs": 265.4000000357628
+        },
+        {
+          "bytes": 474,
+          "decodedBytes": 328,
+          "endMs": 281.4000000357628,
+          "initiator": "fetch",
+          "path": "/leaderboard",
+          "startMs": 265.5
+        },
+        {
+          "bytes": 779,
+          "decodedBytes": 818,
+          "endMs": 281.4000000357628,
+          "initiator": "other",
+          "path": "/icon.svg",
+          "startMs": 266
+        },
+        {
+          "bytes": 471,
+          "decodedBytes": 320,
+          "endMs": 290,
+          "initiator": "fetch",
+          "path": "/add",
+          "startMs": 275.4000000357628
+        },
+        {
+          "bytes": 1002,
+          "decodedBytes": 1576,
+          "endMs": 289.9000000357628,
+          "initiator": "fetch",
+          "path": "/",
+          "startMs": 276.10000002384186
+        },
+        {
+          "bytes": 1262,
+          "decodedBytes": 2510,
+          "endMs": 289.9000000357628,
+          "initiator": "fetch",
+          "path": "/overview",
+          "startMs": 276.9000000357628
+        },
+        {
+          "bytes": 1257,
+          "decodedBytes": 2507,
+          "endMs": 292.60000002384186,
+          "initiator": "fetch",
+          "path": "/journal",
+          "startMs": 283.30000001192093
+        },
+        {
+          "bytes": 1009,
+          "decodedBytes": 1628,
+          "endMs": 303.4000000357628,
+          "initiator": "fetch",
+          "path": "/passport",
+          "startMs": 290.60000002384186
+        },
+        {
+          "bytes": 1005,
+          "decodedBytes": 1634,
+          "endMs": 303.60000002384186,
+          "initiator": "fetch",
+          "path": "/leaderboard",
+          "startMs": 291.10000002384186
+        },
+        {
+          "bytes": 1006,
+          "decodedBytes": 1627,
+          "endMs": 303.7000000476837,
+          "initiator": "fetch",
+          "path": "/add",
+          "startMs": 291.30000001192093
+        },
+        {
+          "bytes": 322,
+          "decodedBytes": 2,
+          "endMs": 433.9000000357628,
+          "initiator": "fetch",
+          "path": "/api/me/badges",
+          "startMs": 423.300000011921
+        },
+        {
+          "bytes": 412,
+          "decodedBytes": 134,
+          "endMs": 492.10000002384186,
+          "initiator": "fetch",
+          "path": "/api/me/awaiting",
+          "startMs": 423.5
+        },
+        {
+          "bytes": 578,
+          "decodedBytes": 453,
+          "endMs": 492,
+          "initiator": "fetch",
+          "path": "/api/auth/me",
+          "startMs": 423.5
+        },
+        {
+          "bytes": 363,
+          "decodedBytes": 55,
+          "endMs": 507.300000011921,
+          "initiator": "fetch",
+          "path": "/api/flights/sync-upcoming",
+          "startMs": 495.5
+        }
+      ],
+      "ttfb": 25.5,
+      "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/151.0.0.0 Safari/537.36",
+      "jsGzipBytes": 332618
+    }
+  ],
+  "samples": []
+}
