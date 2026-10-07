@@ -69,7 +69,7 @@ Chartable outputs are tidy row arrays that TanStack Charts marks take as they ar
    - `{years: [2023, 2024]}` compares with 2021–2022.
    
    Test: Task 4 `previous period`.
-4. **Stale remembered prefs**: an airline no longer flown, an older prefs version, malformed JSON. Expected: unknown facet values are kept but match nothing (so the H1 can still name them); malformed or old prefs read as defaults; never a 500. Tests: Task 11.
+4. **Stale remembered prefs**: an airline no longer flown, an older prefs version, malformed JSON. Expected: unknown facet values are kept but match nothing (so the H1 can still name them); valid known fields from older versions merge with current defaults, with absent/invalid fields defaulted; malformed JSON or unknown future versions read as complete defaults; never a 500. This version policy was approved during Task 11. Tests: Task 11.
 5. **Public endpoint on a profile that turned private, or an unknown username.** Expected: identical 404s. The response never contains a `YYYY-MM-DD` date, `home`, `flightNumber` or per-route counts. Test: Task 14 `public subset leaks nothing finer than a month`.
 
 ---
@@ -486,14 +486,14 @@ export interface OverviewPrefs {
   publicSections: { records: boolean; fleet: boolean }
 }
 export const DEFAULT_PREFS: OverviewPrefs  // empty filter; order as listed; none hidden; replay running; public sections off
-export function parsePrefs(raw: string | null): OverviewPrefs  // never throws; unknown/old/malformed → defaults, merged per field
+export function parsePrefs(raw: string | null): OverviewPrefs  // never throws; valid older fields merge with defaults; malformed JSON/unknown future versions → complete defaults
 ```
 
 - `GET /api/me/overview/prefs` → `OverviewPrefs`.
 - `PUT /api/me/overview/prefs` (CSRF) validates with zod 4. It rejects unknown section ids, duplicates in `order`, and serialised length > 8 192 with 400 `INVALID_PREFS`, and stores to `profiles.overview_prefs`. It does **not** bump derived revision.
 - The home override stays on `PATCH /api/profiles/me` (`home_airport`).
 
-- [ ] **Step 1: Write the failing tests:**
+- [x] **Step 1: Write the failing tests:**
   - `defaults when unset`.
   - `malformed stored JSON reads as defaults`.
   - `old version merges known fields`.
@@ -501,8 +501,8 @@ export function parsePrefs(raw: string | null): OverviewPrefs  // never throws; 
   - `oversize and duplicate order are 400`.
   - `PUT without CSRF is 403`.
   - `unknown facet values survive round-trip`.
-- [ ] **Step 2–4:** FAIL → implement (+ `pnpm next:build`) → PASS.
-- [ ] **Step 5:** Commit `feat(api): overview preferences`.
+- [x] **Step 2–4:** FAIL → implement (+ `pnpm next:build`) → PASS.
+- [x] **Step 5:** Commit `feat(api): overview preferences`.
 
 ### Task 12: Client data store
 

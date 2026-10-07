@@ -211,16 +211,34 @@ Task 3's Next test/build evidence remains applicable. Task 10 checkboxes are
 checked in its implementation commit. Logs and compact full snapshot inspection
 are under `/tmp/kuuki-overview-execution/r2-t10-*`.
 
-Task 11 is paused before implementation. Issue 09 records a verified plan
-conflict: Review Focus 4 says old preferences return defaults, while Task 11's
-required test says old versions merge known fields. For version 0 with
-replayPaused true, those policies return false versus true. The design-owned
-spec does not choose a migration policy, and no current parser resolves it.
-Recommended decision: preserve valid known fields from older versions, fill
-absent/invalid fields with defaults, and reset malformed JSON/unknown future
-versions completely. Await the user's decision before changing the plan or
-writing the parser/API. Tasks 11–17 remain unstarted. No UI, production/remote
-or GitHub actions.
+Task 11 is complete in this commit: versioned shared preferences and owner
+GET/CSRF-protected PUT, strict zod 4 validation, bounded JSON reads and 8192
+serialized-character validation. Both order and hidden lists reject duplicates
+and unknown sections. Partial order lists remain valid, as the Interfaces do
+not require completeness. Unknown object fields are rejected on writes; unknown
+facet strings survive. Home remains on profile PATCH, and preference writes do
+not dirty the derived state or change the Overview ETag. Missing profiles return
+404. No other owner is read or updated.
+
+The user approved issue 09: valid known fields from numeric older versions merge
+with defaults, with absent/invalid fields defaulted independently; malformed
+JSON and unknown future versions reset completely. Read results own their
+mutable defaults. The plan's Review Focus/Interfaces now agree and issue 09 is
+resolved. Current-version writes require the complete declared shape.
+
+RED: missing module. Final focused GREEN: 1 file / 18 tests. The first integration
+run exposed an unseeded second-owner profile in the test fixture; adding it
+made the owner-isolation assertion meaningful. Full API with four workers:
+69 files / 768 tests passed in 89.28s. API/shared typechecks exited 0. Next build
+passed: entry 2278 bytes, assets 105 / 9226424 bytes, routes 73 including new
+GET/PUT prefs. Generated inventory is committed. Existing compiled Better Auth
+warning remains. No client/UI code changed; prior Next unit evidence remains
+applicable. Task 11 checkboxes are in its implementation commit. No per-task
+review under the user's revised workflow.
+
+Task 12 is next: memory-only client store and the carried issue 02 browser
+metric type correction. Tasks 12–17 are unstarted. No open user decision.
+No UI, production/remote or GitHub actions.
 
 Keep the final whole-branch Opus review over
 `feat/overview-release-1-migrations...HEAD` through T3 `delegate_task`, with a

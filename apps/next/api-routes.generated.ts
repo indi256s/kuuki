@@ -341,6 +341,13 @@ export const apiRoutes = [
     ]
   },
   {
+    "route": "/api/me/overview/prefs",
+    "methods": [
+      "GET",
+      "PUT"
+    ]
+  },
+  {
     "route": "/api/me/rankings",
     "methods": [
       "GET"

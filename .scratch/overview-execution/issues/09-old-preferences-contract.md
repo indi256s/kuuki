@@ -1,6 +1,6 @@
 # Old preferences have conflicting read contracts
 
-Status: open — waiting for the user's material plan-conflict decision
+Status: resolved — user approved merging valid older-version fields
 
 Release 2 Task 11 has not been implemented. The design-owned decisions file
 requires remembering account filters/layout/replay but does not choose a
@@ -31,3 +31,11 @@ correcting the required merge test.
 
 Task 11 and subsequent tasks remain unstarted pending the user's answer.
 No preferences API, UI, production/remote or GitHub action was performed.
+
+## Comments
+
+The user answered “yes” to the recommended policy. Review Focus and the
+Task 11 Interfaces now match it: numeric older versions preserve valid known
+fields, absent/invalid fields default independently, malformed JSON and unknown
+future versions return complete defaults. Unknown facet strings remain intact.
+The parser and authenticated GET/CSRF-protected PUT implement this policy.
