@@ -183,7 +183,7 @@ now cover all section gates, rankings and centroid; upcoming-only behavior is
 also explicit. No routes/client changes; Task 3 Next evidence remains valid.
 No per-task review under the revised workflow.
 
-Task 10 is complete in this commit: ten generated golden payloads/snapshots,
+Task 10 is complete at `db0089c`: ten generated golden payloads/snapshots,
 including 5001-row aggregate mode, and six deterministic fast-check properties
 with 200 runs each. The generator uses package coordinates/timezones/aircraft
 metadata and synthetic stored metrics/lifecycle/suppression combinations. The
