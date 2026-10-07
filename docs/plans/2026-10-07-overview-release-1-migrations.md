@@ -72,7 +72,7 @@
   - `eastwardShare(a: LatLon, b: LatLon): number`: Σ signed eastward km between samples ÷ path km, in [-1, 1]
   - `utcOffsetMinutes(timeZone: string, instant: Date): number | null`: null for an unknown zone. Uses one cached `Intl.DateTimeFormat('en-US', { timeZone, timeZoneName: 'longOffset' })` per zone and parses `GMT±HH:MM`.
 
-- [ ] **Step 1: Write the failing tests.** Coordinates come from `packages/data/src/airports.json`.
+- [x] **Step 1: Write the failing tests.** Coordinates come from `packages/data/src/airports.json`.
   - `great-circle distances match haversine`: `Math.round(greatCircleKm(TBS, JFK)) === 8980`, `LHR–JFK === 5540`, `KUT–TBS === 212`. Also `greatCircleKm(a, b) === greatCircleKm(b, a)` and `greatCircleKm(a, a) === 0`.
   - `path samples`: `greatCirclePoints(JFK, HKG)` has length 261. Its max lat is in [83.9, 84.0]. Every consecutive pair is ≤ 50.0 km apart. `greatCirclePoints({lat:0,lon:0},{lat:0,lon:180})` contains only finite numbers.
   - `eastward share`: `eastwardShare(LHR, JFK) < 0`, and `eastwardShare(JFK, LHR) === -eastwardShare(LHR, JFK)` within 1e-9.
@@ -81,10 +81,10 @@
     - `'Asia/Kathmandu'` → 345. `'Europe/Moscow'` on 2012-06-01 → 240 and on 2026-06-01 → 180.
     - `'Not/AZone'` → null.
   - `flight-input.test.ts › routeKm uses pure great circle`: `routeKm('TBS','JFK') === 8980`.
-- [ ] **Step 2:** Run `pnpm test:api -- packages/shared/src/geo.test.ts` and `pnpm --filter @kuuki/next test -- flight-input`. Expected: FAIL (module not found / 9878).
-- [ ] **Step 3:** Implement the interfaces above and update the client helper.
-- [ ] **Step 4:** Re-run both. Expected: PASS. Run `pnpm typecheck:api`. Expected: clean.
-- [ ] **Step 5:** Commit `feat(shared): pure great-circle geometry and tz offsets`.
+- [x] **Step 2:** Run `pnpm test:api -- packages/shared/src/geo.test.ts` and `pnpm --filter @kuuki/next test -- flight-input`. Expected: FAIL (module not found / 9878).
+- [x] **Step 3:** Implement the interfaces above and update the client helper.
+- [x] **Step 4:** Re-run both. Expected: PASS. Run `pnpm typecheck:api`. Expected: clean.
+- [x] **Step 5:** Commit `feat(shared): pure great-circle geometry and tz offsets`.
 
 ### Task 2: Zones overflown
 

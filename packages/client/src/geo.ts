@@ -1,7 +1,5 @@
 import type { AircraftType } from '@kuuki/shared/types'
-
-const EARTH_RADIUS_KM = 6371
-const ROUTING_ADJUSTMENT = 1.10
+import { greatCircleKm } from '@kuuki/shared/geo'
 
 // Speed estimates (km/h) for different aircraft types
 const SPEED_BY_AIRCRAFT_TYPE: Record<AircraftType, number> = {
@@ -16,47 +14,14 @@ const SPEED_BY_AIRCRAFT_TYPE: Record<AircraftType, number> = {
 // Default speed when aircraft type unknown
 const DEFAULT_SPEED_KMH = 800
 
-/**
- * Convert degrees to radians
- */
-function toRadians(degrees: number): number {
-  return degrees * (Math.PI / 180)
-}
-
-/**
- * Calculate great circle distance between two points using Haversine formula
- * @returns Distance in kilometers
- */
-function greatCircleDistance(
-  lat1: number,
-  lon1: number,
-  lat2: number,
-  lon2: number
-): number {
-  const dLat = toRadians(lat2 - lat1)
-  const dLon = toRadians(lon2 - lon1)
-
-  const a =
-    Math.sin(dLat / 2) ** 2 +
-    Math.cos(toRadians(lat1)) * Math.cos(toRadians(lat2)) * Math.sin(dLon / 2) ** 2
-
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
-
-  return EARTH_RADIUS_KM * c
-}
-
-/**
- * Calculate flight distance with routing adjustment
- * Typical flight routes are ~10% longer than great circle due to airways, wind routing, etc.
- */
+/** Rounded great-circle flight distance in km. */
 export function calculateFlightDistance(
   lat1: number,
   lon1: number,
   lat2: number,
   lon2: number
 ): number {
-  const gcDistance = greatCircleDistance(lat1, lon1, lat2, lon2)
-  return Math.round(gcDistance * ROUTING_ADJUSTMENT)
+  return Math.round(greatCircleKm({ lat: lat1, lon: lon1 }, { lat: lat2, lon: lon2 }))
 }
 
 /**
