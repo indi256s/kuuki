@@ -43,4 +43,20 @@ Final API 614/614 and Next 625/625 passed, with no failures or skips; the exact 
 
 An exploratory browser run before the user's skip instruction finished 36/37: the unchanged account-isolation journey intermittently matched two `.ov-globe` elements. It passed separately on the unchanged baseline. Prototype timer changes in the Undo journeys were reverted, so browser files are byte-identical to baseline. This attempted run is not claimed as a clean full-browser pass.
 
-Separate focused Overview runs passed before (56 cases, 16.57 s) and after (40 cases, 11.34 s). This observed 5.23 s reduction is consistent with fewer fixture startups; it is not a statistical benchmark. Local full-suite runs overlapped other checks, so their timings are not a controlled performance comparison. Hosted two-worker savings require a new GitHub run. No deployment or remote database writes are performed; publish with normal Git updates and preserve unrelated local work.
+Separate focused Overview runs passed before (56 cases, 16.57 s) and after (40 cases, 11.34 s). This observed 5.23 s reduction is consistent with fewer fixture startups; it is not a statistical benchmark. Local full-suite runs overlapped other checks, so their timings are not a controlled performance comparison. Hosted comparison is recorded below. No deployment or remote database writes are performed; publish with normal Git updates and preserve unrelated local work.
+
+## Hosted result
+
+[CI run 37784558334](https://github.com/indi256s/kuuki/actions/runs/37784558334), for code commit `e03d1bf3`, passed all five jobs. React Doctor also passed. Browser execution/download steps are absent; build, lint, types, all API shards, Next/Node checks and compiled Worker smoke remain.
+
+| Measurement | Before | After |
+| --- | ---: | ---: |
+| First job start to last job completion | 259 s | 183 s |
+| checks job | 250 s | 159 s |
+| Next unit test step | 146 s | 78 s |
+| compiled Worker job (e2e) | 259 s | 116 s |
+| API shard 1 test step | 112 s | 110 s |
+| API shard 2 test step | 152 s | 138 s |
+| API shard 3 test step | 109 s | 123 s |
+
+Observed active job span fell by 76 s (29.34%); Next unit execution fell by 68 s (46.58%). This compares two successful hosted runs, excludes queue time and does not establish a repeated benchmark. Runner/setup/build variability explains why unrelated timings also differ. API shard 2 is now the longest job (182 s), with its test step at 138 s. Its real import lifecycle proof remains intact.
