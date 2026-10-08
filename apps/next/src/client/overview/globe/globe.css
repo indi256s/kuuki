@@ -54,3 +54,11 @@
 .globe-country-evidence .kc-svg text{font-size:14px}
 
 .country-treemap-chart>div{block-size:auto!important;min-block-size:280px}
+
+/* Wide Overview: the card height follows --ov-globe-h (set on .ov3-globe-band) and the map canvas fills the card width; the globe still fits the shorter side. Fullscreen is untouched. */
+@media(min-width:1280px){
+.ov3-globe-band .globe-card:not(.globe-card-fullscreen){block-size:var(--ov-globe-h,520px)}
+.ov3-globe-band .globe-card:not(.globe-card-fullscreen) .globe-surface{display:flex;flex-direction:column}
+.ov3-globe-band .globe-card:not(.globe-card-fullscreen) .globe-viewport{inline-size:100%;flex:1 1 0;min-block-size:0;aspect-ratio:auto;margin-inline:0}
+.ov3-globe-band .globe-card:not(.globe-card-fullscreen) .globe-data{flex:none}
+}

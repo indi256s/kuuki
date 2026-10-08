@@ -26,3 +26,17 @@
   .ov3-bento-row[data-pair=true] { grid-template-columns: minmax(0, 392fr) minmax(0, 792fr); }
   .ov3-bento-row[data-pair=true][data-narrow-first=false] { grid-template-columns: minmax(0, 792fr) minmax(0, 392fr); }
 }
+/* Flatten layout wrappers without changing the saved reading order. */
+@media (min-width: 1440px) {
+  .ov3-bento { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); align-items: start; }
+  .ov3-bento > .ov3-bento-row { display: contents; }
+  .ov3-bento-row > .ov3-frame { grid-column: 1 / -1; }
+  .ov3-bento-row[data-pair=true] > .ov3-frame:is([data-section=manufacturers], [data-section=clock]) { grid-column: span 4; }
+  .ov3-bento-row[data-pair=true] > .ov3-frame:is([data-section=fleet], [data-section=rhythm]) { grid-column: span 8; }
+}
+@media (min-width: 1800px) {
+  .ov3-bento-row:has(> [data-section=rankings]):has(+ .ov3-bento-row > [data-section=records]) > .ov3-frame,
+  .ov3-bento-row:has(> [data-section=records]) + .ov3-bento-row > .ov3-frame[data-section=rankings] { grid-column: span 8; }
+  .ov3-bento-row:has(> [data-section=records]):has(+ .ov3-bento-row > [data-section=rankings]) > .ov3-frame,
+  .ov3-bento-row:has(> [data-section=rankings]) + .ov3-bento-row > .ov3-frame[data-section=records] { grid-column: span 4; }
+}

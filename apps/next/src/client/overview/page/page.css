@@ -1,6 +1,6 @@
 .ov3-page {
-  width: min(var(--content-width), calc(100% - 2 * var(--page-gutter)));
-  margin-inline: auto;
+  /* The shell already applies --content-width and --page-gutter; adding them again here doubled the gutter. */
+  width: 100%;
   padding-block: 40px 96px;
   display: flex;
   flex-direction: column;
@@ -8,8 +8,10 @@
   overflow-wrap: anywhere;
 }
 .ov3-page h1 { margin: 0; }
+.ov3-page-heading { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; }
 .ov3-scope { color: var(--text-muted); }
-.ov3-globe-band { display: grid; grid-template-columns: minmax(0, 792fr) minmax(0, 392fr); gap: 16px; }
+.ov3-overview-workspace { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; align-items: start; }
+.ov3-globe-band { display: grid; grid-template-columns: minmax(0, 1fr) clamp(360px, 33%, 480px); gap: 16px; min-width: 0; }
 .ov3-globe, .ov3-hero, .ov3-section {
   min-width: 0;
   padding: 24px;
@@ -55,6 +57,13 @@
 /* Cards fit their content: the shorter card of a pair (Clock beside Rhythm) stays its own height instead of stretching into an empty panel. */
 .ov3-bento-row[data-pair=true] { align-items: start; }
 .ov3-hidden { color: var(--text-muted); font-size: 13px; }
+/* Wide screens: the map card grows with the viewport (capped), and a comparison chapter docks beside the band instead of below it. */
+@media (min-width: 1280px) {
+  .ov3-globe-band { --ov-globe-h: clamp(520px, 30vw, 720px); }
+}
+@media (min-width: 1600px) {
+  .ov3-overview-workspace[data-comparing=true] { grid-template-columns: minmax(0, 1fr) clamp(400px, 28vw, 560px); }
+}
 @media (min-width: 701px) and (max-width: 1023px) {
   .ov3-globe-band { grid-template-columns: minmax(0, 1fr); }
   .ov3-hero .ui-skeleton { height: 240px !important; }

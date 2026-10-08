@@ -150,6 +150,13 @@ the journal’s evidence. It remains secondary to facts, coverage and instructio
 Russian addresses the owner as «вы».
 
 ### Bento
-The reorderable Overview arrangement of full-width sections and adjacent
-narrow/wide section pairs. On mobile, sections become tiles that open their
+The reorderable Overview arrangement of full-width sections and narrow/wide
+sections in a responsive grid. On mobile, sections become tiles that open their
 full content in sheets; hidden sections can be restored.
+
+### Chapter comparison
+Two selections of completed flights from the same journal: a held reference
+filter and the current live filter. A reference keeps the full period and
+facets for this page visit, uses the latest journal data, and is cleared when
+the page or owner changes. Shared, new-in-current and reference-only routes
+describe membership in those selections, not a cause or a growth rate.

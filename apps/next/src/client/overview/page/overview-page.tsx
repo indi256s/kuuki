@@ -8,6 +8,7 @@ import { OverviewFlightSheet } from '../store/open-flight'
 import { HeroPanel } from '../hero/hero-panel'
 import { NextStrip } from '../hero/next-strip'
 import { OverviewGlobe } from '../globe/globe'
+import { ComparisonControl, ComparisonPanel } from '../comparison/comparison-panel'
 import { referenceLabels } from '../labels'
 import { S, t } from '../copy'
 import { Button } from '../../ui/button'
@@ -34,7 +35,7 @@ export function OverviewPage({ name, ...provider }: Props) {
   return <OverviewProvider {...provider}><PageContent name={name} /><OverviewFlightSheet /></OverviewProvider>
 }
 function PageContent({ name }: { name: string }) {
-  const { scope, all, payload, filter, layout, locale, setLayout, isCurrent, actions, revalidate } = useOverview()
+  const { scope, all, payload, filter, layout, locale, setLayout, isCurrent, actions, revalidate, chapter } = useOverview()
   const mobile = useMobile()
   const labels = useMemo(() => referenceLabels(locale), [locale])
   const firstRun = scope?.figures.flights === 0 && isEmptyFilter(filter) && payload?.derivedReady === true &&
@@ -102,18 +103,24 @@ function PageContent({ name }: { name: string }) {
   }
   const greeting = t({ en: name ? `Hi, ${name}` : 'Hi', ru: name ? `Здравствуйте, ${name}` : 'Здравствуйте' }, locale)
   return <div ref={page} className="ov3-page" lang={locale}>
-    <h1 tabIndex={-1}>{greeting}<span className="ov3-scope">{scopeTitle(filter, labels, locale)}</span></h1>
+    <div className="ov3-page-heading">
+      <h1 tabIndex={-1}>{greeting}<span className="ov3-scope">{scopeTitle(filter, labels, locale)}</span></h1>
+      {!firstRun || chapter ? <ComparisonControl /> : null}
+    </div>
     {payload?.mode === 'aggregate' && payload.aggregateResolution !== 'day' && filter.period && 'from' in filter.period && filter.period.from.length === 10 ? <div role="alert">
       <p>{locale === 'ru' ? 'В этой старой сводке нет точных дат. Обновите данные или сбросьте диапазон.' : 'This older summary has no exact-day detail. Refresh the data or clear the range.'}</p>
       <Button onClick={() => void revalidate()}>{t(S.retry, locale)}</Button><Button onClick={() => actions.setPeriod(null)}>{locale === 'ru' ? 'Очистить диапазон' : 'Clear range'}</Button>
     </div> : !scope || !all || !payload ? <><p role="status">{t(S.loading, locale)}</p><Skeleton height={520} label={t(S.loading, locale)} /></> : <>
       <div data-region="next"><NextStrip /></div>
       {!payload.derivedReady ? <p role="status" className="status-note">{t(S.countriesUpdating, locale)}</p> : null}
-      <div className="ov3-globe-band">
-        <section className="ov3-globe-region ov-globe" aria-label={t(S.map, locale)} data-globe={firstRun ? 'blank' : zero ? 'ghost' : 'ready'}>
-          <OverviewGlobe topLeft={<FilterBar />} />{firstRun ? <FirstRun /> : null}
-        </section>
-        {!firstRun ? <div data-region="figures"><HeroPanel /></div> : null}
+      <div className="ov3-overview-workspace" data-comparing={chapter ? 'true' : undefined}>
+        <div className="ov3-globe-band">
+          <section className="ov3-globe-region ov-globe" aria-label={t(S.map, locale)} data-globe={firstRun ? 'blank' : zero ? 'ghost' : 'ready'}>
+            <OverviewGlobe topLeft={<FilterBar />} />{firstRun ? <FirstRun /> : null}
+          </section>
+          {!firstRun ? <div data-region="figures"><HeroPanel /></div> : null}
+        </div>
+        <ComparisonPanel />
       </div>
       {zero ? <ZeroResult /> : !firstRun && mobile !== null ? mobile ? <div className="ov3-sections" data-surface="tiles">
         {packTiles(layout.order, layout.hidden).map(({ id, span }) => {

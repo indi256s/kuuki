@@ -5,6 +5,9 @@
   .member-header .site-header-inner{flex-wrap:wrap;column-gap:clamp(var(--space-2),calc(4vw - 1.25rem),var(--space-8));row-gap:var(--space-2)}
   .member-header .main-nav a{padding-inline:clamp(var(--space-2),calc(2vw - .375rem),14px)}
 }
+/* Overview is the one wide route: header, page shell and workspace share a single fluid width and gutter (24px, easing up to 48px on very wide screens; 16px at <=700px comes from styles.css). */
+:root:has(.ov3-page){--content-width:2560px}
+@media(min-width:701px){:root:has(.ov3-page){--page-gutter:clamp(24px,calc(24px + (100vw - 1280px) / 40),48px)}}
 .header-end{margin-inline-start:auto;display:flex;align-items:center;gap:var(--space-3)}
 .header-desktop-only{display:flex;align-items:center;gap:var(--space-3)}
 .desktop-nav{display:block}

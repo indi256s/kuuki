@@ -6,7 +6,7 @@ import { dropIndex } from './reorder'
 
 type Options = { ids: SectionId[]; onCommit: (id: SectionId, index: number) => boolean | void; announce: (id: SectionId, index: number, count: number) => void }
 type Indicator = { top: number; left: number; width: number }
-type Gesture = { id: SectionId; pointerId: number; handle: HTMLElement; x: number; y: number; pointerY: number; coarse: boolean; active: boolean; index: number }
+type Gesture = { id: SectionId; pointerId: number; handle: HTMLElement; x: number; y: number; pointerX: number; pointerY: number; coarse: boolean; active: boolean; index: number }
 export function useReorder(options: Options) {
   const latest = useRef(options)
   const nodes = useRef(new Map<SectionId, HTMLElement>())
@@ -42,17 +42,19 @@ export function useReorder(options: Options) {
   function measure() {
     const current = gesture.current
     if (!current?.active) return
-    const rects = latest.current.ids.filter(id => id !== current.id).flatMap(id => {
+    const measured = latest.current.ids.flatMap(id => {
       const node = nodes.current.get(id)
       if (!node) return []
       const { top, bottom, left, right } = node.getBoundingClientRect()
       return [{ id, top, bottom, left, right }]
     })
-    current.index = dropIndex(current.pointerY, rects)
+    const rects = measured.filter(rect => rect.id !== current.id)
+    current.index = dropIndex(current.pointerY, rects, current.pointerX, {
+      left: Math.min(...measured.map(rect => rect.left)), right: Math.max(...measured.map(rect => rect.right)),
+    })
     const target = rects[current.index] ?? rects.at(-1)
     if (!target) { setIndicator(null); return }
-    const bounds = [...nodes.current.values()].map(node => node.getBoundingClientRect())
-    const left = Math.min(...bounds.map(rect => rect.left)), right = Math.max(...bounds.map(rect => rect.right))
+    const { left, right } = target
     const top = current.index < rects.length ? target.top : target.bottom, width = right - left
     setIndicator(old => old?.top === top && old.left === left && old.width === width ? old : { top, left, width })
   }
@@ -81,11 +83,12 @@ export function useReorder(options: Options) {
     const coarse = event.pointerType === 'touch' || window.matchMedia('(pointer: coarse)').matches
     suppressClick.current = null
     gesture.current = { id, pointerId: event.pointerId, handle: event.currentTarget, x: event.clientX, y: event.clientY,
-      pointerY: event.clientY, coarse, active: false, index: latest.current.ids.indexOf(id) }
+      pointerX: event.clientX, pointerY: event.clientY, coarse, active: false, index: latest.current.ids.indexOf(id) }
     const move = (e: PointerEvent) => {
       const current = gesture.current
       if (!current || e.pointerId !== current.pointerId) return
       current.pointerY = e.clientY
+      current.pointerX = e.clientX
       const distance = Math.hypot(e.clientX - current.x, e.clientY - current.y)
       if (!current.active) {
         if (current.coarse && distance >= 8) { stop(); return }
@@ -96,7 +99,7 @@ export function useReorder(options: Options) {
     const end = (e: PointerEvent) => {
       const current = gesture.current
       if (!current || e.pointerId !== current.pointerId) return
-      if (current.active && e.type === 'pointerup') { current.pointerY = e.clientY; measure() }
+      if (current.active && e.type === 'pointerup') { current.pointerX = e.clientX; current.pointerY = e.clientY; measure() }
       const commit = current.active && e.type === 'pointerup' && latest.current.ids.indexOf(id) !== current.index
       stop()
       if (commit && latest.current.onCommit(id, current.index) !== false) latest.current.announce(id, current.index, latest.current.ids.length)

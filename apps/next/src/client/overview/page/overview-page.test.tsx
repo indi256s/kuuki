@@ -33,3 +33,17 @@ it('saved exact-day preferences show unavailable monthly detail and recover afte
   expect(fetcher.mock.calls.filter(call => String(call[0]) === '/api/me/overview/data')).toHaveLength(1)
   expect(save).not.toHaveBeenCalled()
 })
+
+it('lets the owner clear a kept reference after revalidation removes the last flight', async () => {
+  const one: OverviewPayload = { ...payload, rows: [payload.rows[0]], etag: 'W/"ov3-last-owner-1-0"', derivedReady: true,
+    passport: { ...payload.passport, countries: 0, countryCodes: [], regions: 0 } }
+  const empty: OverviewPayload = { ...one, rows: [], etag: 'W/"ov3-last-owner-2-0"' }
+  vi.stubGlobal('fetch', vi.fn<typeof fetch>().mockResolvedValue(Response.json(empty)))
+  render(<OverviewPage payload={one} prefs={DEFAULT_PREFS} ownerKey="last-owner" name="" locale="en" live={true} saver={saver} />)
+  fireEvent.click(screen.getByRole('button', { name: 'Keep for comparison' }))
+  await act(async () => window.dispatchEvent(new Event('focus')))
+  await waitFor(() => expect(screen.getByRole('region', { name: 'Compare chapters' })).toHaveTextContent('The reference has no flights'))
+  expect(screen.getByRole('link', { name: 'Import flights' })).toBeVisible()
+  fireEvent.click(screen.getByRole('button', { name: 'Clear comparison' }))
+  expect(screen.queryByRole('region', { name: 'Compare chapters' })).toBeNull()
+})
