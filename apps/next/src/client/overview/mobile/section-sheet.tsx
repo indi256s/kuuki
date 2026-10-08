@@ -18,7 +18,7 @@ type Props = {
   onCloseAutoFocus: (event: Event) => void
 }
 export function SectionSheet({ openId, order, onNavigate, onClose, onMove, onHide, onCloseAutoFocus }: Props) {
-  const { locale } = useOverview()
+  const { locale, scope } = useOverview()
   const index = openId ? order.indexOf(openId) : -1
   const entry = openId && index >= 0 ? SECTIONS[openId] : null
   const title = entry ? t(entry.title, locale) : ''
@@ -39,6 +39,6 @@ export function SectionSheet({ openId, order, onNavigate, onClose, onMove, onHid
       <Button variant="ghost" disabled={!previous} onClick={() => previous && onNavigate(previous)} aria-label={label(previous, 'previous')}><ChevronLeft size={18} aria-hidden="true" />{previous ? t(SECTIONS[previous].title, locale) : t({ en: 'Previous', ru: 'Предыдущий' }, locale)}</Button>
       <Button variant="ghost" disabled={!next} onClick={() => next && onNavigate(next)} aria-label={label(next, 'next')}>{next ? t(SECTIONS[next].title, locale) : t({ en: 'Next', ru: 'Следующий' }, locale)}<ChevronRight size={18} aria-hidden="true" /></Button>
     </div> : null}>
-    {entry && openId ? <><div className="ov3-sheet-pager" aria-hidden="true">{order.map(id => <span key={id} data-active={id === openId} />)}</div><entry.Section span="sheet" /><Narrator slot={openId} /></> : null}
+    {entry && openId ? <><div className="ov3-sheet-pager" aria-hidden="true">{order.map(id => <span key={id} data-active={id === openId} />)}</div><entry.Section span="sheet" />{scope && entry.gate(scope)?.status !== 'below' ? <Narrator slot={openId} /> : null}</> : null}
   </Sheet>
 }

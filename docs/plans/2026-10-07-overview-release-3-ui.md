@@ -42,7 +42,7 @@ All of it runs on the Release 2 engine.
 
 ## Global Constraints
 
-**Unit-test authoring override (2026-10-08):** The owner instructed: “do not write any unit tests.” Remaining tasks must add or modify no unit tests. Preserve existing tests and valid evidence; verify with source/caller checks, affected lint/typechecks and available checks at the final integrated checkpoint. This supersedes unit-test authoring steps below.
+**Unit-test authoring override (2026-10-08):** The owner instructed: “do not write any unit tests.” The owner clarified: “Allow existing-test corrections; add no new tests.” Remaining tasks may correct existing tests but add no new unit tests or cases. Preserve existing tests and valid evidence; verify with source/caller checks, affected lint/typechecks and available checks at the final integrated checkpoint. This supersedes unit-test authoring steps below.
 
 **User verification override (2026-10-07):** Skip all visual checks, screenshot/manual gallery inspection and visual comparison gates. Continue functional tests, typechecks, lint, builds and runtime navigation verification.
 

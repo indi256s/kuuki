@@ -95,10 +95,10 @@ function PageContent({ name }: { name: string }) {
     setLayout(old => ({ ...old, hidden: id === 'all' ? [] : old.hidden.filter(section => section !== id) }))
   }
   const frame = (id: SectionId, span: Span) => {
-    const { Section, title } = SECTIONS[id]
+    const { Section, title, gate } = SECTIONS[id]
     return <SectionFrame key={id} id={id} title={t(title, locale)} index={visible.indexOf(id)} count={visible.length}
       onMove={(section, index) => { if (move(section, index)) { restoreMenuFocus(section); announce(section, index, visible.length) } }} onHide={hide}
-      drag={reorder.bindings(id)} narrator={<Narrator slot={id} />}><Section span={span} /></SectionFrame>
+      drag={reorder.bindings(id)} narrator={scope && gate(scope)?.status !== 'below' ? <Narrator slot={id} /> : null}><Section span={span} /></SectionFrame>
   }
   const greeting = t({ en: name ? `Hi, ${name}` : 'Hi', ru: name ? `Здравствуйте, ${name}` : 'Здравствуйте' }, locale)
   return <div ref={page} className="ov3-page" lang={locale}>
