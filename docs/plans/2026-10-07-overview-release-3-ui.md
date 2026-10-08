@@ -151,6 +151,7 @@ All of it runs on the Release 2 engine.
   - the page ending;
   - Share.
 - **Dependencies:** add only `@radix-ui/react-popover` (pinned exactly, the release that matches the installed `react-dialog@1.1.15`), `d3-scale@4.0.2`, `d3-shape@3.2.0`, and their `@types/*` as exact dev dependencies. No other runtime dependency; flightcn is vendored.
+  - **Task22 dependency admission (2026-10-08):** installed TanStack Charts 1.0.0 exposes `geoShape`, but does not export the required `geoOrthographic`. Promote its already-resolved `d3-geo@3.1.1` to a direct Next dependency and `@types/d3-geo@3.1.1` to an exact dev dependency. Preserve every other dependency/version; this adds no new package version or projection implementation. Root confirmed both pinned versions in the current lockfile and the installed `/geo` API.
 - **Commits** carry no Claude/AI attribution. No push, no deploy, no remote D1. Deploys are manual through `deploy-kuuki` and are not part of this plan.
 
 **Commands and executors**
@@ -589,10 +590,12 @@ This is open decision 1: the default is endpoint offsets, not overflown zones.
   - Rhythm: "Every July since 2021…".
   - Fleet: "Mostly narrowbodies…".
 
-- [ ] **Step 1:** Write the trigger list and lines into the review sheet: id, slot, condition, three EN lines, three RU lines.
-- [ ] **Step 2:** Add the test `› every trigger has three EN and RU lines with matching params`. Each placeholder set equals the trigger's param keys.
-- [ ] **Step 3:** Implement the triggers and corpus. Run `pnpm --filter @kuuki/next test -- narrator`. Expected: PASS.
+- [x] **Step 1:** Write the trigger list and lines into the review sheet: id, slot, condition, three EN lines, three RU lines.
+- [x] **Step 2:** Add the test `› every trigger has three EN and RU lines with matching params`. Each placeholder set equals the trigger's param keys.
+- [x] **Step 3:** Implement the triggers and corpus. Run `pnpm --filter @kuuki/next test -- narrator`. Expected: PASS.
 - [ ] **Step 4:** Commit `feat(overview): narrator corpus (pending owner review)`. **Stop and ask the owner to review `.scratch/overview-redesign/narrator-corpus.md`.** Apply the edits in a follow-up commit `fix(overview): narrator corpus after owner review`.
+
+**Technical status (2026-10-08):** independent round2 approved the complete 42-trigger/126-pair corpus and regenerated sheet after I1–I3/M1 fixes. All 30 focused tests, affected typecheck/lint and live sheet consistency pass. Step4 remains pending explicit owner review; technical approval does not grant owner approval. Visual verification skipped by user.
 
 ### Task 13: Shu accent, data tokens and the kana logo
 
@@ -750,14 +753,14 @@ This is open decision 1: the default is endpoint offsets, not overflown zones.
   - **First run** (`figures.flights === 0` with an empty filter): the globe card with a still blank globe; the `firstRun` narrator line plus Import and Add buttons centred over the lower third; no figures or sections.
   - **Zero result** (`figures.flights === 0` with a non-empty filter): chips stay; the globe is fully ghosted; figures show "—"; sections are replaced by one `zero` narrator line plus "Remove last filter" and "Clear all" buttons.
 
-- [ ] **Step 1: Write the failing tests:**
+- [x] **Step 1: Write the failing tests:**
   - `› first run shows narrator, import and add, no figures`.
   - `› zero-result renders one narrator line and two actions`: clicking "Remove last filter" removes `QR`.
   - `› sections follow layout order and skip hidden`.
   - `scope-title.test.ts › two values then +N`.
-- [ ] **Steps 2–4:** FAIL → implement → PASS.
-- [ ] **Step 5:** Run V(9.3) and V(9.4) for the page frame only.
-- [ ] **Step 6:** Commit `feat(overview): page shell, states and dev fixture route`.
+- [x] **Steps 2–4:** FAIL → implement → PASS.
+- [x] **Step 5:** SKIPPED by explicit user instruction: visual V(9.3)/V(9.4) page-frame checks. Focused functional checks and source review passed; no rendered geometry claim.
+- [x] **Step 6:** Commit `feat(overview): page shell, states and dev fixture route`.
 
 ### Task 18: Section frame, bento packing, reorder and hide
 
