@@ -9,11 +9,11 @@ vi.mock('./preferences', () => ({ Preferences: () => null }))
 vi.mock('next/navigation', () => ({ usePathname: () => '/overview', useRouter: () => ({}) }))
 import { BrandShell } from './shell'
 
-it('wordmark renders three decorative kana and Kuuki with a home link', () => {
+it('wordmark renders three decorative kana and kuuki with a home link', () => {
   render(<BrandShell locale="en"><h1>Page</h1></BrandShell>)
   const link = screen.getByRole('link', { name: 'Kuuki home' })
   expect(link).toHaveAttribute('href', '/')
-  expect(link).toHaveTextContent('Kuuki')
+  expect(link).toHaveTextContent('kuuki')
   const tile = link.querySelector('[aria-hidden]')!
   expect([...tile.children].map(glyph => glyph.textContent)).toEqual(['く', 'う', 'き'])
   expect(screen.getByRole('main')).toHaveTextContent('Page')
@@ -31,5 +31,5 @@ it('keeps the kana cycle scoped and provides a static reduced-motion glyph', () 
   expect(css).toMatch(/\.wordmark\{[^}]*min-height:44px/)
   expect(css).toMatch(/:focus-visible[^}]*outline:2px solid var\(--focus\);outline-offset:2px/)
   expect(css).toMatch(/\.site-header\{background:var\(--background\)\}/)
-  expect(css).toMatch(/:root \.tab-bar\{border-top:0\}/)
+  expect(css).toMatch(/:root \.tab-bar\{border-block-start:0\}/)
 })

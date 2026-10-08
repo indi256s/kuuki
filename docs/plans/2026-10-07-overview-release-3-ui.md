@@ -1284,7 +1284,7 @@ Every section task follows the same contract, so it is stated once here.
 
 **GLOSSARY.md:** Maker slot, Alliance at date, Head to head, Record cabinet, Ghost layer, Narrator, Bento.
 
-- [ ] **Step 1:** Write the doc updates. Keep each to the decisions; don't copy the plan.
+- [x] **Step 1:** Write the doc updates. Keep each to the decisions; don't copy the plan.
 - [ ] **Step 2:** Final verification: every command in Task 33 Step 2, plus V(9.3), V(9.4), V(9.5), V(10.2) and V(10.3) on `fixture=board`, plus `fixture=empty|n1|zero|aggregate` at 390 and 1440.
 - [ ] **Step 3:** Run the whole-branch Opus review against this plan's Review Focus and Global Constraints. Fix in Sonnet rounds; re-review only the scoped diffs.
 - [ ] **Step 4:** Update the handoff: branch, checks, open decisions and any accepted board deviations. Commit `docs(overview): design system and glossary for the redesigned overview`.
