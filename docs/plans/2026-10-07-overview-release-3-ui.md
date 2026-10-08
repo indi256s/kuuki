@@ -843,6 +843,8 @@ This is open decision 1: the default is endpoint offsets, not overflown zones.
 
 ### Task 20: Filter bar and "+ Filter" panel
 
+**Implementation checkpoint (2026-10-08):** Complete in fd71a2e, integrated as fcffe7c. Five production filter files and actual page wiring; 73 existing focused checks, types and scoped lint pass. No new tests authored under the owner override; direct new panel/overflow coverage remains a final audit limitation. Visual Step 5 skipped; broad checks are batched at the final cutover.
+
 **Executor:** [UI] · final review Opus
 
 **Files:** Create in `client/overview/filters/`: `facet-index.ts`, `chip-label.ts`, `filter-bar.tsx`, `filter-panel.tsx`, `filters.css`, and tests `facet-index.test.ts`, `chip-label.test.ts`, `filter-panel.test.tsx`.
@@ -960,6 +962,8 @@ This is open decision 1: the default is endpoint offsets, not overflown zones.
 
 ### Task 23: MapLibre globe, camera, route card and axis lock
 
+**Implementation checkpoint (2026-10-08):** Complete with Task24 in 97ed02f, integrated as 62b92b7. Full owned self-review, 54 focused checks and final affected lint/types pass. Pre-override tests preserved; existing corrections only afterwards. All browser/device/visual Step 5 checks skipped. Actual page uses the shared OverviewGlobe consumer; real GPU/touch behavior remains unverified.
+
 **Executor:** [UI·Opus] · final review Opus
 
 **Files:**
@@ -1006,6 +1010,8 @@ This is open decision 1: the default is endpoint offsets, not overflown zones.
 
 ### Task 24: flightcn planes, replay and transport
 
+**Implementation checkpoint (2026-10-08):** Shared one-clock consumer and native transport integrated with Task23 in 62b92b7. Build/route-byte comparison deferred to the final frozen-source batch. Manual/visual Step 5 skipped. No further per-task review.
+
 **Executor:** [UI·Opus] · final review Opus
 
 **Files:**
@@ -1045,6 +1051,8 @@ This is open decision 1: the default is endpoint offsets, not overflown zones.
 - [ ] **Step 6:** Commit `feat(overview): chronological replay with flightcn planes`.
 
 ### Tasks 25–31: Sections
+
+**Implementation checkpoint (2026-10-08):** All seven actual sections and pure mobile tiles are implemented and registered, committed in 8e1a9f4 and integrated as 6fd991e. Scoped types/lint pass; 72 of 73 focused checks originally passed. The remaining existing aircraft case was corrected to the real “Save 1 aircraft” label and a successful accept response; it now passes (2.26s). Actual frames avoid duplicating the below-gate narrator (abdb79b). No new unit tests after the owner override, full suites deferred, all visual checks skipped, final review reserved for the consolidated audit.
 
 Every section task follows the same contract, so it is stated once here.
 

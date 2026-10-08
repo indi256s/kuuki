@@ -7,8 +7,7 @@ import { OverviewProvider, useOverview } from '../store/overview-context'
 import { OverviewFlightSheet } from '../store/open-flight'
 import { HeroPanel } from '../hero/hero-panel'
 import { NextStrip } from '../hero/next-strip'
-import { GlobeCard } from '../globe/globe-card'
-import { SvgGlobe } from '../globe/svg-globe'
+import { OverviewGlobe } from '../globe/globe'
 import { referenceLabels } from '../labels'
 import { S, t } from '../copy'
 import { Skeleton } from '../../ui/skeleton'
@@ -106,7 +105,7 @@ function PageContent({ name }: { name: string }) {
       <div data-region="next"><NextStrip /></div>
       <div className="ov3-globe-band">
         <section className="ov3-globe-region ov-globe" aria-label={t(S.map, locale)} data-globe={firstRun ? 'blank' : zero ? 'ghost' : 'ready'}>
-          <GlobeCard locale={locale} topLeft={<FilterBar />}>{({ fullscreen }) => <><SvgGlobe globe={scope.globe} all={all.globe} airports={payload.refs.airports} size={fullscreen ? 640 : 436} locale={locale} />{firstRun ? <FirstRun /> : null}</>}</GlobeCard>
+          <OverviewGlobe topLeft={<FilterBar />} />{firstRun ? <FirstRun /> : null}
         </section>
         {!firstRun ? <div data-region="figures"><HeroPanel /></div> : null}
       </div>
