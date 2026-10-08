@@ -5,6 +5,10 @@ import { isEmptyFilter } from '@kuuki/shared/overview/filter'
 import type { OverviewFilter } from '@kuuki/shared/overview/model'
 import { OverviewProvider, useOverview } from '../store/overview-context'
 import { OverviewFlightSheet } from '../store/open-flight'
+import { HeroPanel } from '../hero/hero-panel'
+import { NextStrip } from '../hero/next-strip'
+import { GlobeCard } from '../globe/globe-card'
+import { SvgGlobe } from '../globe/svg-globe'
 import { referenceLabels } from '../labels'
 import { S, t } from '../copy'
 import { Skeleton } from '../../ui/skeleton'
@@ -21,7 +25,7 @@ export function OverviewPage({ name, ...provider }: Props) {
   return <OverviewProvider {...provider}><PageContent name={name} /><OverviewFlightSheet /></OverviewProvider>
 }
 function PageContent({ name }: { name: string }) {
-  const { scope, filter, layout, locale, actions } = useOverview()
+  const { scope, all, payload, filter, layout, locale, actions } = useOverview()
   const mobile = useMobile()
   const labels = useMemo(() => referenceLabels(locale), [locale])
   const firstRun = scope?.figures.flights === 0 && isEmptyFilter(filter)
@@ -30,11 +34,11 @@ function PageContent({ name }: { name: string }) {
   const greeting = t({ en: name ? `Hi, ${name}` : 'Hi', ru: name ? `Здравствуйте, ${name}` : 'Здравствуйте' }, locale)
   return <div className="ov3-page" lang={locale}>
     <h1 tabIndex={-1}>{greeting}<span className="ov3-scope">{scopeTitle(filter, labels, locale)}</span></h1>
-    {!scope ? <><p role="status">{t(S.loading, locale)}</p><Skeleton height={520} label={t(S.loading, locale)} /></> : <>
-      <div data-region="next"><Skeleton height={44} label={t(S.nextFlight, locale)} /></div>
+    {!scope || !all || !payload ? <><p role="status">{t(S.loading, locale)}</p><Skeleton height={520} label={t(S.loading, locale)} /></> : <>
+      <div data-region="next"><NextStrip /></div>
       <div className="ov3-globe-band">
-        <section className="ov3-globe" aria-label={t(S.map, locale)} data-globe={firstRun ? 'blank' : zero ? 'ghost' : 'pending'}>
-          <div className="ov3-chips">
+        <section className="ov3-globe-region ov-globe" aria-label={t(S.map, locale)} data-globe={firstRun ? 'blank' : zero ? 'ghost' : 'ready'}>
+          <GlobeCard locale={locale} topLeft={<div className="ov3-chips">
             {(Object.keys(filter) as Array<keyof OverviewFilter>).map(facet => {
               const label = scopeTitle({ [facet]: filter[facet] }, labels, locale).slice(3)
               return label ? <Chip key={facet} label={label}
@@ -42,14 +46,9 @@ function PageContent({ name }: { name: string }) {
                 onRemove={() => facet === 'period' ? actions.setPeriod(null) : actions.removeFacet(facet)}
                 removeLabel={t({ en: `Remove ${label}`, ru: `Убрать ${label}` }, locale)} /> : null
             })}
-          </div>
-          <div className="ov3-blank-globe" aria-hidden="true" />
-          {firstRun ? <FirstRun /> : <span className="ov3-pending-label">{t({ en: 'Map pending', ru: 'Карта готовится' }, locale)}</span>}
+          </div>}>{({ fullscreen }) => <><SvgGlobe globe={scope.globe} all={all.globe} airports={payload.refs.airports} size={fullscreen ? 640 : 436} locale={locale} />{firstRun ? <FirstRun /> : null}</>}</GlobeCard>
         </section>
-        {!firstRun ? <section className="ov3-hero" data-region="figures" aria-label={t(S.figures, locale)}>
-          {zero ? <dl className="ov3-zero-figures">{[S.flights, S.distance, S.countries, S.time].map(label => <div key={label.en}><dt>{t(label, locale)}</dt><dd>—</dd></div>)}</dl>
-            : <Skeleton height={472} label={t({ en: 'Figures pending', ru: 'Итоги готовятся' }, locale)} />}
-        </section> : null}
+        {!firstRun ? <div data-region="figures"><HeroPanel /></div> : null}
       </div>
       {zero ? <ZeroResult /> : !firstRun && mobile !== null ? <div className="ov3-sections" data-surface={mobile ? 'tiles' : 'sections'}>
         {visible.map(id => {

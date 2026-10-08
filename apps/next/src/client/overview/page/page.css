@@ -26,7 +26,8 @@
   background: var(--surface-inset);
 }
 :root[data-theme=dark] :is(.ov3-globe, .ov3-hero, .ov3-section) { border-color: transparent; box-shadow: inset 0 1px 0 var(--surface-highlight); }
-.ov3-globe:only-child { grid-column: 1 / -1; }
+.ov3-globe-region { min-inline-size: 0; position: relative; }
+.ov3-globe-region:only-child { grid-column: 1 / -1; }
 .ov3-chips { display: flex; flex-wrap: wrap; gap: 8px; align-self: stretch; z-index: 1; }
 .ov3-chips .ui-chip { max-width: 100%; }
 .ov3-blank-globe {

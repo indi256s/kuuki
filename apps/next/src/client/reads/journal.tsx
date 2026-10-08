@@ -1,5 +1,6 @@
 'use client'
 import { JOURNAL_PAGE_SIZE } from '@kuuki/shared/constants'
+import { allianceAt } from '@kuuki/data/alliance-membership'
 
 import { useCallback, useEffect, useId, useRef, useState, useTransition } from 'react'
 import Link from 'next/link'
@@ -19,6 +20,7 @@ import { Disclosure } from '../ui/disclosure'
 import { JournalQueue } from './journal-queue'
 import { useDeferredDelete } from './deferred-delete'
 import { Button } from '../ui/button'
+import { AllianceMark } from '../ui/category-mark'
 import { DeleteUndo } from './delete-undo'
 import { ToastSlot } from '../ui/toast'
 import { announceShellNotice } from '../shell-notices'
@@ -221,21 +223,25 @@ function JournalInner({ ownerId, locale, initial, query, page, filtered }: Props
   const chains = new Map<number, number[]>()
   for (const decision of decisions.values()) if (decision.kind === 'link' && decision.chainIds.length >= 3) for (const id of decision.chainIds) chains.set(id, decision.chainIds)
   const route = (flight: Flight) => locale === 'ru' ? `из ${flight.origin} в ${flight.destination}` : `${flight.origin} to ${flight.destination}`
-  const rowName = (flight: Flight) => [route(flight), formatDateOnly(locale, flight.date, 'long'), flight.flight_number ?? flight.airline_iata, flight.aircraft_icao, flight.duration_minutes ? formatDuration(locale, flight.duration_minutes) : null, flight.distance_km ? formatDistanceKm(locale, flight.distance_km) : null].filter(Boolean).join(', ')
-  const row = (flight: Flight) => <div className="journal-entry" key={flight.id}>
+  const duration = (flight: Flight) => flight.duration_minutes ? `${flight.duration_source === 'estimate' ? '≈ ' : ''}${formatDuration(locale, flight.duration_minutes)}` : null
+  const rowName = (flight: Flight) => [route(flight), formatDateOnly(locale, flight.date, 'long'), flight.flight_number ?? flight.airline_iata, flight.aircraft_icao, duration(flight), flight.distance_km ? formatDistanceKm(locale, flight.distance_km) : null].filter(Boolean).join(', ')
+  const row = (flight: Flight) => {
+    const alliance = allianceAt(flight.airline_iata, flight.date)
+    return <div className="journal-entry" key={flight.id}>
             <label className="journal-checkbox"><input type="checkbox" aria-label={`${t.select}: ${route(flight)}, ${formatDateOnly(locale, flight.date, 'long')}`} checked={selected.includes(flight.id)} onChange={event => select(ids => event.target.checked ? [...ids, flight.id] : ids.filter(id => id !== flight.id))} /></label>
             <div className="flight-row">
               <button type="button" className="flight-row-open" data-flight-row={flight.id} aria-label={rowName(flight)} onClick={() => open(flight.id)} />
               <span className="flight-row-date mono" aria-hidden="true">{formatDateOnly(locale, flight.date, 'padded')}</span>
               <strong className="flight-row-route mono" aria-hidden="true">{flight.origin} → {flight.destination}</strong>
-              <span className="flight-row-number" aria-hidden="true">{flight.flight_number ?? flight.airline_iata ?? '—'}</span>
+              <span className="flight-row-number">{alliance ? <><AllianceMark alliance={alliance} size={12} />{' '}</> : null}<span aria-hidden="true">{flight.flight_number ?? flight.airline_iata ?? '—'}</span></span>
               {flight.aircraft_icao
                 ? <span className="journal-aircraft-cell" aria-hidden="true">{flight.aircraft_icao}</span>
                 : <span className="journal-aircraft-cell" data-action="add-aircraft"><Button dense aria-label={`${t.addAircraft}, ${route(flight)}, ${formatDateOnly(locale, flight.date, 'long')}`} disabled={!online} aria-describedby={!online ? offlineId : undefined} onClick={() => open(flight.id, true, 'aircraft')}>{t.addAircraft}</Button></span>}
-              <span className="flight-row-duration" aria-hidden="true">{flight.duration_minutes ? formatDuration(locale, flight.duration_minutes) : '—'}</span>
+              <span className="flight-row-duration" aria-hidden="true">{duration(flight) ?? '—'}</span>
               <span className="flight-row-distance mono" aria-hidden="true">{flight.distance_km ? formatDistanceKm(locale, flight.distance_km) : '—'}</span>
             </div>
           </div>
+  }
   const flightRows = (flights: Flight[]) => {
     const shown = new Set<number>()
     return flights.map(flight => {

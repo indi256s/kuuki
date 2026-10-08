@@ -46,6 +46,8 @@ All of it runs on the Release 2 engine.
 
 **User test-batching override (2026-10-07):** Run focused behavioral checks and affected lint/typechecks per task. Defer full API/Next suites, production builds and full navigation checks to later integrated checkpoints; do not rerun them for every task. This supersedes per-task full-suite/build/navigation steps below. Deferred integration checks remain pending until the batch runs.
 
+**User review-batching override (2026-10-08):** Skip further per-task independent review rounds. Continue implementer self-checks and focused functional checks; run the consolidated whole-branch review and authorized Thermos/Ponytail audit at the end. This supersedes the per-task reviewer gates and executor review labels below.
+
 **Precedence**
 - The board wins on layout, type sizes and copy, except where "Audit fixes" or "Critique fixes" in `design-decisions.md` explicitly override it (example: segmented cells are 44px, not 32px).
 - Inside `design-decisions.md`, a later dated section beats an earlier line.
@@ -873,7 +875,9 @@ This is open decision 1: the default is endpoint offsets, not overflown zones.
 
 ### Task 21: Hero panel and Next strip
 
-**Executor:** [UI] · final review Opus
+**Executor:** [UI] · consolidated final review
+
+**Implementation status (2026-10-08):** Accepted component source cffcb96 / UIe7db9fe, fixed accessible Next name and valid early-year captions;69 focused tests/types/lint passed. Actual dev-page wiring now passes all17 page tests. Full integration checks remain batched; all visual checks are skipped.
 
 **Files:**
 - Create: `client/overview/hero/{hero-panel.tsx,year-strip.tsx,next-strip.tsx,hero.css}` and tests `hero-panel.test.tsx`, `next-strip.test.tsx`.
@@ -902,20 +906,22 @@ This is open decision 1: the default is endpoint offsets, not overflown zones.
   - Hover or focus sets `ui-bus.hoverGhost`. A click opens the flight sheet.
   - Nothing renders when there is neither.
 
-- [ ] **Step 1: Write the failing tests:**
+- [x] **Step 1: Write the failing tests:**
   - `› deltas only with a time filter`.
   - `› share line only for facet-only filters`.
   - `› approximate duration shows ≈ and estimated count`.
   - `› year tap sets the period`.
   - `› strip shows IN 3 DAYS and new country`.
   - `› awaiting variant when nothing is booked`.
-- [ ] **Steps 2–4:** FAIL → implement → PASS.
-- [ ] **Step 5:** Run V(9.3) on the hero and strip, and V(9.4) on the mobile figures.
-- [ ] **Step 6:** Commit `feat(overview): ranked hero panel and next strip`.
+- [x] **Steps 2–4:** FAIL → implement → PASS.
+- [x] **Step 5:** Visual verification skipped by explicit user instruction.
+- [x] **Step 6:** Commit `feat(overview): ranked hero panel and next strip`.
 
 ### Task 22: Globe card and SVG globe
 
-**Executor:** [UI·Opus] · final review Opus
+**Executor:** [UI] · consolidated final review
+
+**Implementation status (2026-10-08):** Accepted component source33d7f02 / UI0b3070a;24 focused tests/types/lint passed. Actual dev page now emits sphere/routes/rim SVG at SSR and retains first-run/zero behavior;17 page tests pass. Full integration checks remain batched; all visual checks are skipped.
 
 **Files:** Create `client/overview/globe/{globe-card.tsx,svg-globe.tsx,globe.css}` and tests `svg-globe.test.tsx`, `globe-card.test.tsx`.
 
@@ -935,14 +941,14 @@ This is open decision 1: the default is endpoint offsets, not overflown zones.
   - `rotate` comes from `globe.centroid`.
 - With `figures.flights === 0` (first run), the globe has no routes and no replay.
 
-- [ ] **Step 1: Write the failing tests:**
+- [x] **Step 1: Write the failing tests:**
   - `› server render has sphere and route paths without land`.
   - `› land appears after geojson loads`, with mocked fetch.
   - `› ghost routes render beneath in-scope routes`.
   - `› fullscreen opens dialog and escape closes`.
-- [ ] **Steps 2–4:** FAIL → implement → PASS.
-- [ ] **Step 5:** Run V(9.3) and V(9.4) for the globe card with WebGL disabled (`--disable-webgl`), and compare with the boards.
-- [ ] **Step 6:** Commit `feat(overview): globe card and SVG orthographic globe`.
+- [x] **Steps 2–4:** FAIL → implement → PASS.
+- [x] **Step 5:** Visual verification skipped by explicit user instruction.
+- [x] **Step 6:** Commit `feat(overview): globe card and SVG orthographic globe`.
 
 ### Task 23: MapLibre globe, camera, route card and axis lock
 
@@ -1203,7 +1209,9 @@ Every section task follows the same contract, so it is stated once here.
 
 ### Task 32: Alliance marks and "≈" in the Journal
 
-**Executor:** [UI] · final review Opus
+**Executor:** [UI] · consolidated final review
+
+**Implementation status (2026-10-08):** Implemented date-specific AllianceMark and shared visible/accessible estimated-duration prefix. Three new focused Journal tests pass EN/RU; existing Journal DTO already carries duration_source, so no API change is needed. Full integration checks remain batched; all visual checks are skipped.
 
 **Files:** Modify `apps/next/src/client/reads/journal.tsx:224-238` and its test. If the Journal list response lacks `duration_source`, add it in the Journal list API handler under `functions/api` and its test.
 
@@ -1211,9 +1219,9 @@ Every section task follows the same contract, so it is stated once here.
 - Journal rows show `AllianceMark` (12px) before the airline code when `allianceAt(airline, date)` is non-null.
 - Durations whose source is an estimate are prefixed with "≈" in both the visible cell and the row's accessible name.
 
-- [ ] **Step 1:** Write the failing tests `› aligned airline shows alliance mark` and `› estimated duration shows ≈`.
-- [ ] **Steps 2–4:** FAIL → implement → PASS.
-- [ ] **Step 5:** Commit `feat(journal): alliance marks and approximate durations`.
+- [x] **Step 1:** Write the failing tests `› aligned airline shows alliance mark` and `› estimated duration shows ≈`.
+- [x] **Steps 2–4:** FAIL → implement → PASS.
+- [x] **Step 5:** Commit `feat(journal): alliance marks and approximate durations`.
 
 ### Task 33: Cut over `/overview` and retire legacy code
 
