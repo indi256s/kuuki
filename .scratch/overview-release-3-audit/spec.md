@@ -1,6 +1,6 @@
 # Release 3 consolidated delivery audit — 8 October 2026
 
-Status: blocked
+Status: resolved
 
 What this repo does: Kuuki keeps private flight journals and publishes owner-selected profile information. The audit assumes personal journal load, concurrent requests and multiple tabs; the real board has 69 completed flights, while the existing 5,001-flight fixture exercises aggregate volume.
 
@@ -18,11 +18,11 @@ Historical planning/research prose and non-runtime scratch prototype implementat
 
 ## Must fix
 
-1. **Schema applied; data backfill/publication approval pending — BLOCKED.**
+1. **Schema, backfill, publication and deployment — RESOLVED.**
    - **What this is:** Journal, flight writes and Overview read columns/indexes introduced by migrations 0008 and now 0009.
-   - **Problem:** Initial read-only ledgers stopped at0007. That schema gap is now closed; bulk metric backfill and derived publication still require separate approved artifacts before deployment.
-   - **Fix:** Approved writer hold, fresh exact backup/restore, seven-dimension schema admission and standard0008+0009 application are complete on both targets; existing rows/columns are preserved. Exact backfill/publication rehearsal passes. Remote backfill, temporary operator publication and deployment remain pending separate data approval. [The blocker ticket](issues/01-missing-flight-metrics-migration.md) records identities and authorization boundaries.
-   - **If we skip it:** Existing metrics retain missing provenance and the required publication admission is incomplete. No remote backfill/operator/R3 application deployment has run.
+   - **Problem:** Initial read-only ledgers stopped at0007. Schema and publication admission were initially incomplete; both are now resolved by the approved cutover below.
+   - **Fix:** Approved writer hold, fresh exact backup/restore, seven-dimension schema admission and standard0008+0009 application are complete on both targets; existing rows/columns are preserved. Exact reviewed backfills and publication passed on both targets after owner approval; temporary resources were deleted and R3 deployment/monitoring passed. [The resolved release record](issues/01-missing-flight-metrics-migration.md) records identities and authorization boundaries.
+   - **If we skip it:** Existing metrics retain missing provenance and the required publication admission is incomplete. Without the approved cutover, deploying the current app would not be admitted.
 
 2. **Background saves restore withdrawn publication consent — FIXED.**
    - **What this is:** Overview saves filters, layout and replay preferences in the same document as public-section flags.
@@ -94,9 +94,21 @@ Promotion uses the separate clean main checkout `/private/tmp/kuuki-r3-release-6
 
 ### Approved D1 migration cutover
 
-The owner approved production and preview migrations. Clean admitted main `e37dc10200d30b1eac354cb329e7a3088fec557b` applied exactly0008+0009 via standard Wrangler, preview then production. Both ledgers now contain0001–0009. Writer hold preserves all four app Workers' code, runtime and other binding values;568discovered HTTP entrypoints reject/block writes. Full before/after raw snapshots show zero writes. Fresh Cloudflare exports/Time Travel bookmarks, exact35-table NodeSQLite restore including sequences, integrity/FK checks, seven-dimension admission, localD1 rehearsal and remote post-migration preservation/schema proofs pass. Private evidence lives outside Git in `/private/tmp/kuuki-r3-d1-cutover-rZBTsHTx`.
+The owner approved production and preview migrations. Clean admitted main `e37dc10200d30b1eac354cb329e7a3088fec557b` applied exactly0008+0009 via standard Wrangler, preview then production. Both ledgers now contain0001–0009. The writer hold preserved all four app Workers' code, runtime and other binding values; 568 discovered HTTP entrypoints rejected/blocked writes. Full before/after raw snapshots show zero writes. Fresh Cloudflare exports/Time Travel bookmarks, exact35-table NodeSQLite restore including sequences, integrity/FK checks, seven-dimension admission, localD1 rehearsal and remote post-migration preservation/schema proofs pass. Private evidence lives outside Git in `/private/tmp/kuuki-r3-d1-cutover-rZBTsHTx`.
 
-The exact backfill/publication rehearsal passes:411production flights/18users;2preview flights/2users; every guarded UPDATE matches one row. Production repairs18users, leaves dirty/metricsNull0, publishes25leaderboard rows for5eligible users, preserves all135historical badges and adds4awards. Both SQL artifacts independently regenerate byte-for-byte, applied flight values match the proposals, and replanning returns zero changes. All24canonical/non-metric tables and non-metric flight fields are preserved. A fresh GPT‑6.1 Sol high reviewer independently checked restore/pre-post snapshots, schema, proposal/replanning, stats, badge and leaderboard results; no open correctness finding remains. Remote backfill/publication are unapproved and unperformed. The app remains held while that separate approval is pending. Full-source freshness must be rechecked immediately before application; CAS alone does not pin reference coordinates or median donors.
+The exact local backfill/publication rehearsal and independent GPT‑6.1 Sol high evidence review passed with no open correctness finding.
+
+The owner approved the exact remote backfill, stats publication, temporary authenticated operators and isolated remote protocol proof. Fresh full-source snapshots matched every held table, including coordinates and median donors; both regenerated proposals matched the approved SQL hashes. The isolated remote D1 proof verified ordered per-statement results, CAS match 1/miss 0 and rollback on a failing CHECK, then the fixture was deleted. One-request batches applied exactly 2 preview and 411 production guarded flight updates, every UPDATE matching one row. Publication repaired 2 preview and 18 production journals, with dirty/metricsNull 0 on both; production has 25 leaderboard rows for 5 eligible users. Fresh snapshots confirm exact metric values, canonical and non-metric flight preservation, all 135 historical badges retained plus 4 new awards, correct journal totals and zero FK violations. Official new-file proposals return zero changes on both targets. Both temporary operators were deleted and their local tokens removed; all private proof/artifacts remain outside Git.
+
+Release 3 deployed from clean main `bbb88414476ac9e571b8c729aaefe9cd44a199d7`, whose only differences from successful code CI `6cc8f8ff93664667637696a6b95d2395ebce1f78` are the four reviewed documentation records. The same accepted build was deployed with `--no-autoconfig --strict`, tag `bbb8841` and the exact commit subject. Interactive confirmation acknowledged replacing the temporary API writer hold with the admitted source config. Preview HTML/session passed before production; canonical HTML 200, session 200/`null` and activation `/activate` 200 passed after both production deploys. Each production Worker had a connected error tail for 300 seconds with zero error events. Writers are reopened; Task34 release is complete. No rollback was needed.
+
+| Worker | Previous held rollback version | Release3 version |
+| --- | --- | --- |
+| `kuuki-next` | `0bc3863f-5e2d-4769-a65d-a421cdf6d79a` | `d91b1cb4-22bf-4147-b510-989594a433de` |
+| `kuuki-activation` | `63dd4493-406c-49be-b8e1-c5859ef32f35` | `f8e53b74-f761-484c-a639-0ee137274826` |
+| `kuuki-next-preview` | `894284b2-4aac-480f-85ce-ad5951644eaa` | `fa26ff19-964e-4588-9431-a2b832bc1f49` |
+
+The existing preview activation code/bindings were preserved and its temporary hold released as version `9fccd8b7-e325-429d-b4dd-545daef9504a`; preview activation HTTP 200 passed. Historical Pages remains denied/held with Git deployments disabled. Existing preview maintenance stays held before DB access; no production maintenance Worker, cron, import provider, Pages frontend or framework experiment was deployed. Dirty MAIN, unrelated worktrees and port8800 remain preserved.
 
 ### React Doctor warning dispositions
 
@@ -115,6 +127,6 @@ One proposed review change was declined as an existing contract: airline-only PA
 
 The Overview manifest's 719,251 gzip bytes cover all 27 client files, including deferred MapLibre; they are not initial network transfer. MapLibre accounts for 279,398 gzip bytes and is dynamically imported. No invented byte budget or physical-device performance claim is made.
 
-Verdict: all eight concrete code findings are fixed, focused checks pass and consolidated remediation review is resolved. PR47 merged as `6cc8f8ff93664667637696a6b95d2395ebce1f78`, with identical tree to audited head `ad17e99`. Post-merge CI/CD37747939613 and React Doctor37747939621 pass. Main CI passed1042API/1437Next/101functional navigation cases. The separate clean main build passed118assets/10,279,913bytes/73APIroutes. Approved0008+0009 migrations are now applied on both targets with fresh held restore/schema/preservation proof. Exact backfill/publication rehearsal and independent evidence review pass; remote bulk data/operator approval and R3 deployment remain pending. The app is held.
+Verdict: all eight concrete code findings are fixed, focused checks pass and consolidated remediation review is resolved. PR47 merged as `6cc8f8ff93664667637696a6b95d2395ebce1f78`, with identical tree to audited head `ad17e99`. Post-merge CI/CD37747939613 and React Doctor37747939621 pass:1042API/1437Next/101functional navigation cases. Clean main build passed118assets/10,279,913bytes/73APIroutes. Approved0008+0009 migrations, exact guarded backfills and publication passed on both targets with fresh hold/restore/schema/preservation proof. R3 is deployed on preview and both production Workers from `bbb8841`; smoke and connected 300-second error monitoring passed. Task34 and delivery are complete.
 
-Not checked: visuals, devices, screenshots and layout comparisons; historical/non-runtime unread areas are listed above. No remote backfill/operator/R3 deployment or new regression cases; historical clock provenance remains ambiguous.
+Not checked: visuals, devices, screenshots, layout comparisons and new regression cases; historical/non-runtime unread areas are listed above. No authenticated production verification-account mutation was added. Error monitoring establishes the observed five-minute window only; historical ambiguous clock provenance remains preserved.
