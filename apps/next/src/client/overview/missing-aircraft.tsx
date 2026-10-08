@@ -2,7 +2,6 @@
 
 import { useRouter } from 'next/navigation'
 import { lazy, Suspense, useEffect, useRef, useState } from 'react'
-import { api } from '@kuuki/client/apiClient'
 import type { OverviewRow } from '@kuuki/shared/overview/model'
 import type { MissingAircraftPage } from '@kuuki/shared/overview'
 import { formatCount, formatNumber, type Locale } from '../../lib/format'
@@ -13,14 +12,11 @@ import { Button } from '../ui/button'
 import { Sheet } from '../ui/sheet'
 import { S, fill, forms, t } from './copy'
 import '../../app/(member)/import/import.css'
+import './missing-aircraft.css'
 
 const AircraftPanel = lazy(() => import('../import/aircraft-panel').then(module => ({ default: module.AircraftPanel })))
 
-type Read = (period: string, after: string | null, signal: AbortSignal) => Promise<MissingAircraftPage>
-
-/** Owner-scoped keyset page (at most 100, newest first) of the same set the summary counts: completed flights of the period with no aircraft. */
-export const readMissingAircraft: Read = (period, after, signal) =>
-  api.get<MissingAircraftPage>('/api/me/overview/missing-aircraft', { period, ...(after ? { after } : {}) }, { signal })
+type Read = (after: string | null, signal: AbortSignal) => Promise<MissingAircraftPage>
 
 /** Same missing-only keyset contract, backed by the admitted owner payload. */
 export function payloadMissingAircraft(rows: OverviewRow[], after: string | null, signal: AbortSignal): MissingAircraftPage {
@@ -44,11 +40,10 @@ type Notice = 'more' | 'refresh' | null
  * could be identified or saved, and a confirmed save re-reads the same page (the saved flights leave it, the next ones
  * fill it, the total follows) before the server summary is refreshed.
  */
-export function MissingAircraftReview({ locale, period, count, read = readMissingAircraft, aircraftApi, actionLabel, onConfirmedSaved }: {
+export function MissingAircraftReview({ locale, count, read, aircraftApi, actionLabel, onConfirmedSaved }: {
   locale: Locale
-  period: string
   count: number
-  read?: Read
+  read: Read
   actionLabel?: string
   onConfirmedSaved?: (run: AircraftRun) => void
   aircraftApi?: AircraftApi
@@ -79,7 +74,7 @@ export function MissingAircraftReview({ locale, period, count, read = readMissin
     pending.current = { controller, release: trackPrivateOperation(controller) }
     if (mode === 'open') setLoad({ phase: 'loading' }); else setBusy(true)
     setNotice(null)
-    read(period, after, controller.signal).then(page => {
+    read(after, controller.signal).then(page => {
       if (controller.signal.aborted) return
       current.current = after
       // Keep the reviewed boundary: the refreshed page may contain older targets not reviewed yet.

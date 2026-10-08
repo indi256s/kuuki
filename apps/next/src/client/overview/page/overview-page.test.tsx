@@ -92,7 +92,7 @@ it.each([n1, aggregate])('real nonempty fixtures stay ready without editor reads
 it('dev wrapper prevents private GET/PUT and editor calls after actual edits and lifecycle events', async () => {
   vi.useFakeTimers()
   navigation.query = 'flight=1'
-  vi.stubGlobal('requestAnimationFrame', (callback: FrameRequestCallback) => { callback(0); return 0 })
+  vi.stubGlobal('requestAnimationFrame', vi.fn(() => 0))
   const fetcher = vi.fn(); vi.stubGlobal('fetch', fetcher)
   render(<DevOverview payload={payload} prefs={zeroPrefs()} locale="ru" theme="dark" />)
   act(() => screen.getByRole('button', { name: 'Сбросить всё' }).click())
@@ -142,7 +142,7 @@ it('composes inside the member main without nesting landmarks and supplies one m
   const view = render(<main id="main"><OverviewPage payload={payload} prefs={DEFAULT_PREFS} ownerKey="dev" name="Alex" locale="en" saver={saver} live={false} /></main>)
   expect(screen.getAllByRole('main')).toHaveLength(1)
   view.unmount()
-  vi.stubGlobal('requestAnimationFrame', (callback: FrameRequestCallback) => { callback(0); return 0 })
+  vi.stubGlobal('requestAnimationFrame', vi.fn(() => 0))
   render(<DevOverview payload={payload} prefs={DEFAULT_PREFS} theme="light" locale="en" />)
   expect(screen.getByRole('main')).toHaveAttribute('id', 'main')
 })
@@ -194,7 +194,7 @@ it.each([['Records', 1], ['Manufacturers', 2], ['Fleet', 3]] as const)('desktop 
   await user.click(screen.getByRole('button', { name: `${title} options` }))
   await user.keyboard('{ArrowDown}{Enter}')
   expect(screen.getAllByRole('heading', { level: 2 })[position - 1]).toHaveTextContent(title)
-  expect(screen.getByRole('status')).toHaveTextContent(`${title} moved to position ${position} of 7`)
+  expect(document.querySelector('.ov3-layout-status')).toHaveTextContent(`${title} moved to position ${position} of 7`)
   expect(screen.getByRole('button', { name: `${title} options` })).toHaveFocus()
 })
 
@@ -208,7 +208,7 @@ it.each(['en', 'ru'] as const)('move/hide/show persist once per action and retai
   const choose = async (title: string, label: string) => { open(options(title)); fireEvent.click(screen.getByRole('menuitem', { name: label })) }
   const flush = async () => { await act(() => vi.advanceTimersByTimeAsync(800)) }
   await choose(locale === 'en' ? 'Fleet' : 'Парк', locale === 'en' ? 'Move up' : 'Выше')
-  expect(screen.getByRole('status')).toHaveTextContent(locale === 'en' ? 'Fleet moved to position 2 of 6' : 'Парк: позиция 2 из 6')
+  expect(document.querySelector('.ov3-layout-status')).toHaveTextContent(locale === 'en' ? 'Fleet moved to position 2 of 6' : 'Парк: позиция 2 из 6')
   await flush()
   expect(save).toHaveBeenCalledTimes(1)
   const reordered = ['rankings', 'records', 'fleet', 'manufacturers', 'clock', 'rhythm', 'crossings']
@@ -223,7 +223,7 @@ it.each(['en', 'ru'] as const)('move/hide/show persist once per action and retai
   expect(save).toHaveBeenCalledTimes(3)
   expect(save.mock.calls[2][0].layout).toEqual({ order: reordered, hidden: ['rankings'] })
   expect(screen.getAllByRole('heading', { level: 2 })[0]).toHaveTextContent(locale === 'en' ? 'Records' : 'Рекорды')
-  expect(screen.getByRole('status')).toHaveTextContent(locale === 'en' ? 'Fleet moved to position 2 of 6' : 'Парк: позиция 2 из 6')
+  expect(document.querySelector('.ov3-layout-status')).toHaveTextContent(locale === 'en' ? 'Fleet moved to position 2 of 6' : 'Парк: позиция 2 из 6')
   open(screen.getByRole('button', { name: locale === 'en' ? 'Show' : 'Показать' }))
   fireEvent.click(screen.getByRole('menuitem', { name: locale === 'en' ? 'Show all' : 'Показать все' }))
   await flush()
@@ -268,7 +268,7 @@ it('real page drag preserves hidden ids, writes only on accepted drop, and retir
   pointer(header(), 'pointerdown', 520)
   pointer(window, 'pointermove', 100)
   pointer(window, 'pointerup', 100)
-  expect(screen.getByRole('status')).toHaveTextContent('Fleet moved to position 1 of 6')
+  expect(document.querySelector('.ov3-layout-status')).toHaveTextContent('Fleet moved to position 1 of 6')
   expect(screen.getAllByRole('heading', { level: 2 })[0]).toHaveTextContent('Fleet')
   await act(() => vi.advanceTimersByTimeAsync(800))
   expect(save).toHaveBeenCalledTimes(1)

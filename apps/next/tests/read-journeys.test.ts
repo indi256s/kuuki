@@ -83,34 +83,35 @@ test('Journal rows keep their desktop alignment and mobile card order', async ({
   expect(mobile).toEqual({ firstLine: true, secondLine: true, outlineWidth: '1px', outlineStyle: 'solid', outlineMatchesControl: true })
 })
 
-test('the period stays with the map while ordinary read navigation stays lightweight', async ({ page, baseURL }) => {
+test('the bookmarked period seeds Overview filters without the retired projection, and Passport remains usable', async ({ page, baseURL }) => {
   await signIn(page, baseURL!)
-  const heavy: string[] = []
   const projections: string[] = []
   page.on('request', request => {
     const url = new URL(request.url())
-    if (url.pathname.startsWith('/maps/') && !url.pathname.endsWith('.svg')) heavy.push(url.pathname)
     if (url.pathname.includes('route-projection')) projections.push(url.search)
   })
-  await page.goto('/overview?period=2026')
-  await expect(page.getByTestId('overview-flights')).toHaveText('1')
-  // The preview draws the period's arcs from the shared projection without loading the interactive map.
-  await expect(page.locator('.ov-map path[data-route]')).toHaveCount(1)
-  await expect(page.locator('.ov-legend-line')).toContainText('1 route')
-  expect(projections).toEqual(['?period=2026'])
-  expect(heavy).toHaveLength(0)
-  const mapLink = page.getByRole('link', { name: /Open Passport map/ })
-  await expect(mapLink).toHaveAttribute('href', /year=2026/)
+  await page.goto('/overview?period=2024')
+  await expect(page.getByLabel('Flights', { exact: true })).toHaveText('—')
+  await expect(page.locator('.ov-globe svg').first()).toBeVisible()
+  await page.getByRole('button', { name: 'Filter', exact: true }).click()
+  await page.getByRole('combobox', { name: 'Search all filters' }).fill('2026')
+  await page.getByRole('option', { name: /2026/ }).click()
+  await page.keyboard.press('Escape')
+  await expect(page.getByLabel('Flights', { exact: true })).toHaveText('1')
+  await expect(page.locator('[data-filter-chip="period"]')).toContainText('2026')
+  await expect(page.locator('h1')).toContainText('2026')
+  // The bookmark seeded 2024 once; the provider now owns the live scope.
+  expect(new URL(page.url()).searchParams.get('year')).toBe('2024')
+  expect(projections).toEqual([])
   await page.goto('/passport')
   await expect(page.getByTestId('passport-data')).toBeVisible()
-  expect(projections).toEqual(['?period=2026'])
-  expect(heavy).toHaveLength(0)
+  expect(projections).toEqual([])
   await page.getByRole('button', { name: /United States/ }).first().click()
   await expect(page.getByRole('dialog')).toBeVisible()
   await expect(page.getByRole('dialog')).toContainText('JFK')
   await page.keyboard.press('Escape')
   await page.goto('/overview?period=2024')
-  await expect(page.getByTestId('overview-empty-year')).toBeVisible()
+  await expect(page.locator('.ov3-zero')).toBeVisible()
 })
 
 test('auth validation and real sign-in reach the owned overview', async ({ page }) => {
@@ -122,7 +123,7 @@ test('auth validation and real sign-in reach the owned overview', async ({ page 
   await page.getByLabel('Password', { exact: true }).fill('rehearsal-password-2026')
   await page.getByRole('button', { name: 'Continue', exact: true }).click()
   await page.waitForURL(url => url.pathname === '/overview')
-  await expect(page.getByTestId('overview-flights')).toHaveText('1')
+  await expect(page.getByLabel('Flights', { exact: true })).toHaveText('1')
   await page.goto('/?mode=signin')
   await page.waitForURL(url => url.pathname === '/overview')
 })

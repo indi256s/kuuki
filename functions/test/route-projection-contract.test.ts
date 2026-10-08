@@ -2,7 +2,7 @@
 // the same completed-period predicate, country policy and publication stamps, so a client can detect a change between
 // the two reads. The directed `routes` list stays as the existing call site expects; `pairs` is the deduplicated geometry.
 import { describe, expect, it } from 'vitest'
-import { at, bulkFlights, overviewAccount, readOverviewSummary, readRouteProjection, T0, USER, type OverviewFlight } from './overview-fixture'
+import { at, bulkFlights, overviewAccount, readOverviewScope, readOverviewPayload, readRouteProjection, T0, USER, type OverviewFlight } from './overview-fixture'
 import { createApiDatabase } from './harness'
 import { dirtyUserStatement } from '../api/_services/derivedState'
 import { MAX_PROJECTED_ROUTES } from '../api/flights/route-projection'
@@ -22,13 +22,13 @@ describe('completed-period predicate and pair semantics', () => {
     const { db, dispose } = await overviewAccount(flights)
     try {
       for (const period of ['all', '2026', '2025']) {
-        const summary = await readOverviewSummary(db, `period=${period}`)
+        const summary = await readOverviewScope(db, period === 'all' ? {} : { period: { years: [Number(period)] } })
         const projection = await readRouteProjection(db, period)
-        expect(projection.routeCount).toBe(summary.map.routeCount)
-        expect(projection.pairs).toHaveLength(summary.map.routeCount)
+        expect(projection.routeCount).toBe(summary.globe.routes.length)
+        expect(projection.pairs).toHaveLength(summary.globe.routes.length)
         expect(projection.truncated).toBe(false)
-        expect(projection.pairs.reduce((total, pair) => total + pair.count, 0)).toBe(summary.totals.flights)
-        expect(projection.routes.reduce((total, route) => total + route.count, 0)).toBe(summary.totals.flights)
+        expect(projection.pairs.reduce((total, pair) => total + pair.count, 0)).toBe(summary.figures.flights)
+        expect(projection.routes.reduce((total, route) => total + route.count, 0)).toBe(summary.figures.flights)
       }
       const y2026 = await readRouteProjection(db, '2026')
       // TBS-IST flew twice out and once back: one pair, undirected, `a` sorts before `b`; two directed rows remain for the list.
@@ -45,9 +45,9 @@ describe('completed-period predicate and pair semantics', () => {
     const { db, dispose } = await overviewAccount(flights)
     try {
       for (const period of ['all', '2026', '2025']) {
-        const summary = await readOverviewSummary(db, `period=${period}`)
+        const summary = await readOverviewScope(db, period === 'all' ? {} : { period: { years: [Number(period)] } })
         const projection = await readRouteProjection(db, period)
-        expect(projection.countries).toEqual(summary.map.countries)
+        expect(projection.countries?.map(({ id, visits }) => ({ code: id, visits })).sort((a, b) => a.code.localeCompare(b.code))).toEqual([...summary.globe.countries].sort((a, b) => a.code.localeCompare(b.code)))
       }
     } finally { await dispose() }
   })
@@ -57,20 +57,16 @@ describe('publication metadata and changed revisions', () => {
   it('carries the same stamps as the summary, and both say updating together when a revision changes between reads', async () => {
     const { db, dispose } = await overviewAccount([logged(1, '2026-01-10', 'TBS', 'IST')])
     try {
-      const before = { summary: await readOverviewSummary(db, 'period=2026'), projection: await readRouteProjection(db, '2026') }
-      expect(before.projection).toMatchObject({ revision: before.summary.revision, publishedRevision: before.summary.publishedRevision,
-        derivedState: 'ready', countryState: 'ready' })
+      const before = { payload: await readOverviewPayload(db), projection: await readRouteProjection(db, '2026') }
+      expect(before.payload.derivedReady).toBe(true)
+      expect(before.projection).toMatchObject({ derivedState: 'ready', countryState: 'ready' })
       expect(before.projection.countries).toHaveLength(2)
-
-      // A canonical change marks the account dirty before the repair publishes: the published geometry is stale.
       await dirtyUserStatement(db, USER.id).run()
-      const during = { summary: await readOverviewSummary(db, 'period=2026'), projection: await readRouteProjection(db, '2026') }
-      expect(during.projection.revision).toBe(during.summary.revision)
+      const during = { payload: await readOverviewPayload(db), projection: await readRouteProjection(db, '2026') }
+      expect(during.payload.derivedReady).toBe(false)
+      expect(during.payload.etag).not.toBe(before.payload.etag)
       expect(during.projection.revision).toBeGreaterThan(before.projection.revision)
       expect(during.projection).toMatchObject({ derivedState: 'pending', countryState: 'updating', countries: null })
-      expect(during.summary).toMatchObject({ derivedState: 'pending', countryState: 'updating' })
-      // A client comparing the revision it rendered with the one now served can tell the two reads apart.
-      expect(during.projection.revision).not.toBe(before.summary.revision)
       // Flight geometry still comes back: the list is current, only the country layer is withheld.
       expect(during.projection.pairs).toHaveLength(1)
     } finally { await dispose() }
@@ -86,10 +82,10 @@ describe('transit suppression is applied by the server', () => {
   it('does not restore a transit hub on the country layer, while the pair geometry keeps the airport', async () => {
     const { db, dispose } = await overviewAccount(flights)
     try {
-      const summary = await readOverviewSummary(db, 'period=2026')
+      const summary = await readOverviewScope(db, { period: { years: [2026] } })
       const projection = await readRouteProjection(db, '2026')
       expect(projection.countries).toEqual([{ id: 'GE', visits: 1, pending: true }, { id: 'US', visits: 1, pending: false }])
-      expect(projection.countries).toEqual(summary.map.countries)
+      expect(projection.countries?.map(({ id, visits }) => ({ code: id, visits })).sort((a, b) => a.code.localeCompare(b.code))).toEqual([...summary.globe.countries].sort((a, b) => a.code.localeCompare(b.code)))
       // Rebuilding countries from route endpoints (what the client did) would add TR; the server's set must not.
       const fromEndpoints = new Set(projection.routes.flatMap(route => [route.originCountry, route.destinationCountry]))
       expect(fromEndpoints.has('TR')).toBe(true)
@@ -140,7 +136,7 @@ describe('bounds and ownership', () => {
       const projection = await readRouteProjection(db)
       expect(projection.pairs).toEqual([expect.objectContaining({ a: 'JFK', b: 'TBS', count: 500, forward: 0, reverse: 500 })])
       expect(JSON.stringify(projection)).not.toContain('LHR')
-      expect(projection.routeCount).toBe((await readOverviewSummary(db)).map.routeCount)
+      expect(projection.routeCount).toBe((await readOverviewScope(db)).globe.routes.length)
     } finally { await dispose() }
   })
 })

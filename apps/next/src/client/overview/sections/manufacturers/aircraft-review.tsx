@@ -27,9 +27,9 @@ export function PayloadAircraftReview() {
   const current = () => {
     if (!latest.current.isCurrent() || latest.current.ownerKey !== ownerKey) throw new DOMException('Session changed', 'AbortError')
   }
-  return <MissingAircraftReview key={ownerKey} locale={locale} period="all" count={scope.coverage.total - scope.coverage.typed}
+  return <MissingAircraftReview key={ownerKey} locale={locale} count={scope.coverage.total - scope.coverage.typed}
     actionLabel={locale === 'ru' ? 'Указать самолёт →' : 'Add aircraft →'}
-    read={async (_, after, signal) => { current(); return payloadMissingAircraft(rows(), after, signal) }}
+    read={async (after, signal) => { current(); return payloadMissingAircraft(rows(), after, signal) }}
     onConfirmedSaved={run => {
       for (const [id, row] of run.rows) if (row.status === 'saved') saved.current.add(id)
       void latest.current.revalidate()

@@ -8,33 +8,33 @@ import { signIn, fixtureHeaders } from './helpers'
 test('direct Overview navigation renders authorized summary', async ({ page, baseURL }) => {
   await signIn(page, baseURL!)
   await page.goto('/overview')
-  await expect(page.locator('h1')).toHaveText('Overview')
-  await expect(page.getByTestId('overview-data')).toBeVisible()
-  await expect(page.getByTestId('overview-flights')).toHaveText('1')
+  await expect(page.locator('h1')).toHaveText(/^Hi(?:,| ·|$)/)
+  await expect(page.locator('.ov-globe')).toBeVisible()
+  await expect(page.getByLabel('Flights', { exact: true })).toHaveText('1')
 })
 
 test('read-route navigation settles on authorized content', async ({ page, baseURL }) => {
   await signIn(page, baseURL!)
   await page.goto('/overview')
-  await expect(page.getByTestId('overview-data')).toBeVisible()
+  await expect(page.locator('.ov-globe')).toBeVisible()
   for (const [route, heading] of [['journal', 'Journal'], ['passport', 'Passport'], ['overview', 'Overview']]) {
     await page.locator(`nav:is([aria-label="Primary"], [aria-label="Tabs"]) a[href="/${route}"]:visible`).click()
     await page.waitForURL(url => url.pathname === `/${route}`)
-    await expect(page.locator('h1')).toHaveText(heading)
-    await expect(page.getByTestId(`${route}-data`)).toBeVisible()
+    await expect(page.locator('h1')).toHaveText(route === 'overview' ? /^Hi(?:,| ·|$)/ : heading)
+    await expect(route === 'overview' ? page.locator('.ov-globe') : page.getByTestId(`${route}-data`)).toBeVisible()
     await expect(page.locator(`nav:is([aria-label="Primary"], [aria-label="Tabs"]) a[href="/${route}"]:visible`)).toHaveAttribute('aria-current', 'page')
   }
 })
 
 test('fresh documents, RSC and API reads isolate account data without response cookies', async ({ page, baseURL }) => {
   await signIn(page, baseURL!)
-  const a = await page.request.get('/api/me/overview')
+  const a = await page.request.get('/api/me/overview/data')
   expect(a.status()).toBe(200)
   const aData = await a.json()
-  expect(aData.totals.flights).toBe(1)
+  expect(aData.rows.filter((row: { state: string }) => row.state !== 'upcoming').reduce((sum: number, row: { weight: number }) => sum + row.weight, 0)).toBe(1)
   await page.goto('/overview')
-  await expect(page.getByTestId('overview-data')).toBeVisible()
-  await expect(page.getByTestId('overview-flights')).toHaveText('1')
+  await expect(page.locator('.ov-globe')).toBeVisible()
+  await expect(page.getByLabel('Flights', { exact: true })).toHaveText('1')
   const document = await page.request.get('/overview')
   expect(document.status()).toBe(200)
   expect(document.headers()['cache-control']).toContain('no-store')
@@ -45,13 +45,15 @@ test('fresh documents, RSC and API reads isolate account data without response c
   expect(rsc.headers()['cache-control']).toContain('no-store')
   expect(rsc.headers()['set-cookie']).toBeUndefined()
   await signIn(page, baseURL!, 'b@example.test')
-  const b = await page.request.get('/api/me/overview')
+  const b = await page.request.get('/api/me/overview/data')
   expect(b.status()).toBe(200)
-  expect((await b.json()).totals.flights).toBe(0)
+  const bData = await b.json()
+  expect(bData.rows).toEqual([])
+  expect(bData.etag).not.toBe(aData.etag)
   await page.goto('/overview')
-  await expect(page.getByTestId('overview-data')).toBeVisible()
-  await expect(page.getByTestId('overview-empty')).toBeVisible()
-  await expect(page.getByTestId('overview-flights')).toHaveCount(0) // the sample preview never carries the real figure
+  await expect(page.locator('.ov-globe')).toBeVisible()
+  await expect(page.locator('.ov3-first-run')).toBeVisible()
+  await expect(page.getByLabel('Flights', { exact: true })).toHaveCount(0) // first run has no fabricated figure
 })
 
 test('API misses return JSON and unsupported methods return 405', async ({ request }) => {
@@ -87,7 +89,7 @@ test.describe('legacy and normalized URLs', () => {
     await asMember(page)
     await page.goto('/journey')
     await page.waitForURL(url => url.pathname === '/overview')
-    await expect(page.locator('h1')).toHaveText('Overview')
+    await expect(page.locator('h1')).toHaveText(/^Hi(?:,| ·|$)/)
   })
 
   test('/flights maps legacy params onto the journal', async ({ page }) => {

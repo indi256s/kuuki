@@ -98,7 +98,7 @@ test('an old tab preserves the new account draft and retry receipt on focus', as
   await signIn(oldTab, baseURL!)
   const oldOwner = (await (await context.request.get('/api/auth/me')).json() as { user: { id: string } }).user.id
   await oldTab.goto('/overview')
-  await expect(oldTab.getByTestId('overview-data')).toBeVisible()
+  await expect(oldTab.locator('.ov-globe')).toBeVisible()
   await oldTab.evaluate(() => Object.defineProperty(document, 'visibilityState', { configurable: true, get: () => 'visible' }))
   const bootstrap = oldTab.waitForResponse(response => response.url().endsWith('/api/auth/me'))
   await oldTab.evaluate(() => window.dispatchEvent(new Event('focus')))

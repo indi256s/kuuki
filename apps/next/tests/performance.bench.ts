@@ -70,8 +70,8 @@ async function seed(context: BrowserContext, origin: string, count: number): Pro
 async function ready(page: Page, route: string, count: number) {
   const formatted = count.toLocaleString('en-US')
   if (route === 'overview') {
-    if (count === 0) await expect(page.getByTestId('overview-empty')).toBeVisible()
-    else await expect(page.getByTestId('overview-flights')).toHaveText(formatted)
+    if (count === 0) await expect(page.locator('.ov3-first-run')).toBeVisible()
+    else await expect(page.getByLabel('Flights', { exact: true })).toHaveText(formatted)
   } else if (route === 'journal') {
     await expect(page.getByTestId('journal-data').getByText(`${formatted} ${count === 1 ? 'flight' : 'flights'}`, { exact: true })).toBeVisible()
   } else {

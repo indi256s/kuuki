@@ -145,7 +145,7 @@ export interface OverviewSummary {
   countryIds: string[]
 }
 
-/** Flights the missing-aircraft review loads per page (`GET /api/me/overview/missing-aircraft`). */
+/** Flights the payload-backed missing-aircraft review loads per page. */
 export const MISSING_AIRCRAFT_PAGE = 100
 
 /** One flight in the missing-aircraft review: completed, owned, in the period, with no aircraft recorded. */

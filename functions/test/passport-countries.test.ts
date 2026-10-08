@@ -5,7 +5,7 @@ import { apiContext } from './harness'
 import { accountWith, at, T0, USER, userStats, type FixtureFlight } from './country-fixture'
 import { onRequestGet as listCountries } from '../api/passport/countries/index'
 import { onRequestGet as countryStats } from '../api/passport/countries/[cc]/stats'
-import { onRequestGet as getOverview } from '../api/me/overview'
+import { onRequestGet as getOverview } from '../api/me/overview/data'
 import { repairUserDerivedState } from '../api/_services/derivedState'
 
 const FLIGHTS: FixtureFlight[] = [
@@ -57,9 +57,9 @@ describe('Passport country list', () => {
       const flightCountries = body.countries.filter((row: any) => row.logged_visit_count + row.awaiting_visit_count > 0).map((row: any) => row.country_code)
       expect(body.flightCountryCount).toBe(flightCountries.length)
       expect(await userStats(db)).toMatchObject({ countries_count: body.flightCountryCount })
-      const overview = await (await getOverview({ ...apiContext(db, new Request('https://kuuki.test/api/me/overview?period=all')), data: { user: USER } } as never)).json() as any
-      expect(overview.countryIds).toEqual(flightCountries)
-      expect(overview.totals.countries).toBe(body.flightCountryCount)
+      const overview = await (await getOverview({ ...apiContext(db, new Request('https://kuuki.test/api/me/overview/data')), data: { user: USER } } as never)).json() as any
+      expect(overview.passport.countryCodes).toEqual(body.countries.filter((row: any) => row.status === 'pressed').map((row: any) => row.country_code).sort())
+      expect(overview.passport.countries).toBe(body.pressedCountryCount)
     } finally { await dispose() }
   })
 

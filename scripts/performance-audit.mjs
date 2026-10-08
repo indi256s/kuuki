@@ -59,7 +59,8 @@ const init = `(() => {
   const ready = (route, total) => {
     if (route === 'journal') return !!document.querySelector('[data-testid="journal-data"]') && hydrated(document.querySelector('input[type="search"]')) &&
       document.querySelector('[data-testid="journal-data"]').innerText.includes(total.toLocaleString('en-US') + (total === 1 ? ' flight' : ' flights'));
-    if (route === 'overview') return document.querySelector('[data-testid="overview-flights"]')?.textContent === total.toLocaleString('en-US') && hydrated(document.querySelector('.ov-period button'));
+    if (route === 'overview') return document.querySelector('.ov3-hero-flight .ov3-hero-value')?.textContent ===
+      (total === 0 && document.querySelector('[data-filter-chip]') ? '—' : total.toLocaleString('en-US')) && hydrated(document.querySelector('.ov-filter-add'));
     if (route === 'passport') return !!document.querySelector('[data-testid="passport-data"]') && hydrated(document.querySelector('[role="radiogroup"] button'));
     return false;
   };
@@ -227,27 +228,29 @@ for (let iteration = 0; iteration < 5; iteration++) {
 result.samples.push(...evaluate('__kuukiPerf.samples')); save()
 browser(['open', `${origin}/overview`])
 evaluate(`(async () => {
-  const { wait, ready, sample, button } = __kuukiBench;
-  await wait(() => ready('overview', ${count}));
+  const { wait, ready, sample } = __kuukiBench;
+  const yearButton = year => document.querySelector('.ov3-years button[aria-label^="' + year + ' ·"]');
+  const selected = year => yearButton(year)?.getAttribute('aria-pressed') === 'true';
+  const reset = () => document.querySelector('[data-filter-chip="period"] .ui-chip-remove').click();
+  const allTime = () => !document.querySelector('[data-filter-chip="period"]') && ready('overview', ${count});
+  await wait(allTime);
   for (let i = 0; i < 5; i++) {
-    await sample('overview:year', () => button('2025', document.querySelector('.ov-period')).click(), () => ready('overview', ${Math.floor(count / 7) + (count % 7 > 5 ? 1 : 0)}) && location.search === '?year=2025', () => button('2025', document.querySelector('.ov-period')).getAttribute('aria-checked') === 'true');
-    await sample('overview:reset', () => button('All time', document.querySelector('.ov-period')).click(), () => ready('overview', ${count}) && !location.search, () => button('All time', document.querySelector('.ov-period')).getAttribute('aria-checked') === 'true');
+    await sample('overview:year', () => yearButton('2025').click(), () => ready('overview', ${Math.floor(count / 7) + (count % 7 > 5 ? 1 : 0)}) && selected('2025'), () => selected('2025'));
+    await sample('overview:reset', reset, allTime, () => !document.querySelector('[data-filter-chip="period"]'));
   }
   for (const year of ['2026', '2024', '2023', '2022', '2021', '2020']) for (let i = 0; i < 3; i++) {
-    button('All time', document.querySelector('.ov-period')).click(); await wait(() => ready('overview', ${count}) && !location.search);
+    if (document.querySelector('[data-filter-chip="period"]')) reset();
+    await wait(allTime);
     const total = Math.floor(${count} / 7) + (${count} % 7 > Number(year) - 2020 ? 1 : 0);
-    await sample('overview:year-' + year, () => {
-      const radio = button(year, document.querySelector('.ov-period'));
-      if (radio) radio.click(); else __kuukiBench.select(document.querySelector('.ov-older select'), year);
-    }, () => ready('overview', total) && location.search === '?year=' + year,
-      () => button(year, document.querySelector('.ov-period'))?.getAttribute('aria-checked') === 'true');
+    await sample('overview:year-' + year, () => yearButton(year).click(), () => ready('overview', total) && selected(year), () => selected(year));
   }
+  reset(); await wait(allTime);
   for (let i = 0; i < 5; i++) {
-    await sample('overview:rapid', () => { for (const year of ['2023', '2024', '2025']) button(year, document.querySelector('.ov-period')).click(); },
-      () => ready('overview', ${Math.floor(count / 7) + (count % 7 > 5 ? 1 : 0)}) && location.search === '?year=2025');
+    await sample('overview:rapid', () => { for (const year of ['2023', '2024', '2025']) yearButton(year).click(); },
+      () => ready('overview', ${Math.floor(count / 7) + (count % 7 > 5 ? 1 : 0)}) && selected('2025'));
     await new Promise(r => setTimeout(r, 200));
-    if (location.search !== '?year=2025') throw Error('stale overview period');
-    button('All time', document.querySelector('.ov-period')).click(); await wait(() => ready('overview', ${count}) && !location.search);
+    if (!selected('2025') || document.querySelector('[data-filter-chip="period"] .ui-chip-label')?.textContent !== 'Period · 2025') throw Error('stale overview period');
+    reset(); await wait(allTime);
   }
   return true;
 })()`)

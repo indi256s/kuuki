@@ -12,7 +12,8 @@ import './hero.css'
 
 const copy = {
   km: { en: 'Kilometres', ru: 'Километры' }, air: { en: 'In the air', ru: 'В воздухе' },
-  byAir: { en: 'by air', ru: 'по воздуху' }, all: { en: 'of all', ru: 'от всех' },
+  byAir: { en: 'by air', ru: 'по воздуху' },
+  lastPublished: { en: 'last published total', ru: 'последний опубликованный итог' }, all: { en: 'of all', ru: 'от всех' },
   since: { en: 'Flights since', ru: 'Перелёты с' },
   equator: { en: 'round the equator', ru: 'вокруг экватора' },
   mobileEquator: { en: 'the equator', ru: 'экватора' },
@@ -58,7 +59,7 @@ export function HeroPanel() {
     { key: 'duration', name: t(copy.air, locale), value: <>{f.durationApproximate ? '≈ ' : ''}{units(formatDurationDays(locale, f.durationMinutes))}</>,
       caption: airCaption, delta: deltas ? f.durationMinutes - deltas.durationMinutes : null, format: formatDuration, share: share?.durationMinutes },
     { key: 'countries', name: t(S.countries, locale), value: formatNumber(locale, f.countries.value),
-      caption: `${t(S.countries, locale)}${f.countries.source === 'by_air' ? ` · ${t(copy.byAir, locale)}` : ''}`, delta: null, share: share?.countries },
+      caption: `${t(S.countries, locale)}${f.countries.source === 'by_air' ? ` · ${t(copy.byAir, locale)}` : !payload.derivedReady ? ` · ${t(copy.lastPublished, locale)}` : ''}`, delta: null, share: share?.countries },
     { key: 'airports', name: t(S.airports, locale), value: formatNumber(locale, f.airports), caption: t(S.airports, locale), delta: null, share: share?.airports },
   ]
   return <section className="ov3-hero-panel" aria-label={t(S.figures, locale)}>

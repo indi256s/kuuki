@@ -872,16 +872,16 @@ This is open decision 1: the default is endpoint offsets, not overflown zones.
   - A chip click opens the panel at its facet.
   - Changes apply instantly.
 
-- [ ] **Step 1: Write the failing tests:**
+- [x] **Step 1: Existing-test evidence; new cases waived by owner:**
   - `facet-index.test.ts › board top picks and counts`: TK has 24.
   - `facet-index.test.ts › search groups across facets`: "ist" returns an airports group with IST and a routes group with routes containing IST.
   - `facet-index.test.ts › leaver note`.
   - `chip-label.test.ts › chipLabel shows two values and +N`.
   - `filter-panel.test.tsx › enter on a result adds the chip and keeps panel open`.
   - `filter-panel.test.tsx › chip click opens its facet`.
-- [ ] **Steps 2–4:** FAIL → implement → PASS.
-- [ ] **Step 5:** Run V(9.3) and V(9.4) on the chips, with the filtered demo "Year 2025 + Turkish", in RU at 390.
-- [ ] **Step 6:** Commit `feat(overview): filter chips and search-all-facets panel`.
+- [x] **Steps 2–4:** Implemented; affected existing checks pass. New RED cases waived by owner.
+- [x] **Step 5: WAIVED — visual verification skipped by owner.** Original gate: Run V(9.3) and V(9.4) on the chips, with the filtered demo "Year 2025 + Turkish", in RU at 390.
+- [x] **Step 6:** Commit `feat(overview): filter chips and search-all-facets panel`.
 
 ### Task 21: Hero panel and Next strip
 
@@ -996,7 +996,7 @@ This is open decision 1: the default is endpoint offsets, not overflown zones.
   - A level-2 card at the click point (routes are queried with an 8px buffer).
   - It shows the mono route, "11 flights · 1,791 km", and a "Scope page to this route" button that adds a `routes` filter.
 
-- [ ] **Step 1: Write the failing tests:**
+- [x] **Step 1: Existing-test evidence; new cases waived by owner:**
   - `gestures.test.ts › gestureAxis locks after 10px`: `(3, 4)` gives null; `(12, 3)` gives `'x'`; `(4, 11)` gives `'y'`.
   - `night.test.ts › june solstice keeps the north pole in daylight`.
   - `night.test.ts › december solstice puts it in night`.
@@ -1004,9 +1004,9 @@ This is open decision 1: the default is endpoint offsets, not overflown zones.
   - `geometry.test.ts › bearing DOH to AKL` is within 1° of a reference value computed in the test with the haversine bearing formula.
   - `maplibre-globe.test.tsx › filter change flies 600ms and reduced motion jumps`.
   - `maplibre-globe.test.tsx › no webgl2 keeps the svg globe`.
-- [ ] **Steps 2–4:** FAIL → implement → PASS.
-- [ ] **Step 5:** Check by hand with touch emulation at 390: a vertical swipe on the globe scrolls the page; a horizontal swipe spins it; a pinch zooms. Then run V(9.3) and V(9.4).
-- [ ] **Step 6:** Commit `feat(overview): MapLibre globe with camera, route card and axis lock`.
+- [x] **Steps 2–4:** Implemented; affected existing checks pass. New RED cases waived by owner.
+- [x] **Step 5: WAIVED — visual verification skipped by owner.** Original gate: Check by hand with touch emulation at 390: a vertical swipe on the globe scrolls the page; a horizontal swipe spins it; a pinch zooms. Then run V(9.3) and V(9.4).
+- [x] **Step 6:** Commit `feat(overview): MapLibre globe with camera, route card and axis lock`.
 
 ### Task 24: flightcn planes, replay and transport
 
@@ -1039,16 +1039,16 @@ This is open decision 1: the default is endpoint offsets, not overflown zones.
   - Desktop: the scrubber slides out on hover or focus-within (200ms ease-out; instant under reduced motion).
   - Touch: tapping the month label expands the scrubber across the card's bottom edge; an outside tap collapses it.
 
-- [ ] **Step 1: Write the failing tests:**
+- [x] **Step 1: Existing-test evidence; new cases waived by owner:**
   - `replay.test.ts › duration clamps`: n = 1 gives 12,000; n = 69 gives 10,000 + 12,000 × log2(6.9) (round in the assertion); n = 100,000 gives 120,000.
   - `replay.test.ts › timeline is calendar-linear`: the 2019 entries start at a fraction of `durationMs` matching their date fraction.
   - `replay.test.ts › aggregate timeline batches by month`.
   - `replay-transport.test.tsx › pause persists replayPaused`.
   - `replay-transport.test.tsx › hidden tab pauses and resumes`.
   - `replay-transport.test.tsx › reduced motion hides transport`.
-- [ ] **Steps 2–4:** FAIL → implement → PASS. Then run `pnpm next:build`, and record the Overview route's client JS and the MapLibre chunk sizes.
-- [ ] **Step 5:** Check by hand: a full loop on the board fixture, then pause, scrub and resume; the tab hidden and visible; Next-strip hover. Run V(9.3).
-- [ ] **Step 6:** Commit `feat(overview): chronological replay with flightcn planes`.
+- [x] **Steps 2–4:** Implemented; affected existing checks pass. New RED cases waived by owner. Then run `pnpm next:build`, and record the Overview route's client JS and the MapLibre chunk sizes.
+- [x] **Step 5: WAIVED — visual verification skipped by owner.** Original gate: Check by hand: a full loop on the board fixture, then pause, scrub and resume; the tab hidden and visible; Next-strip hover. Run V(9.3).
+- [x] **Step 6:** Commit `feat(overview): chronological replay with flightcn planes`.
 
 ### Tasks 25–31: Sections
 
@@ -1254,16 +1254,16 @@ Every section task follows the same contract, so it is stated once here.
 - `error.tsx` shows a plain message plus Retry, following the existing error-boundary pattern.
 - Any in-app link that uses `/overview?period=YYYY` must seed `period: { years: [YYYY] }` once on load. If no such link exists, drop the parameter.
 
-- [ ] **Step 1:** Update the Playwright Overview journey:
+- [x] **Step 1:** Updated the existing Playwright Overview journey (no new cases):
   - the first paint shows `.ov-globe svg`;
   - the MapLibre chunk is requested only after idle;
   - the hero shows the flight count;
   - the "+ Filter" panel adds a year chip and the figures change;
   - the Passport steps stay unchanged.
 
-  Run `pnpm test:next:navigation`. Expected: FAIL.
-- [ ] **Step 2:** Implement the cut-over and the deletions. Then run `pnpm --filter @kuuki/next typecheck && pnpm --filter @kuuki/next lint && pnpm --filter @kuuki/next test && pnpm test:api && pnpm typecheck:api && pnpm next:build && pnpm test:next:navigation`. Expected: PASS.
-- [ ] **Step 3:** Commit `feat(overview): ship the redesigned page and retire the legacy overview`.
+  Idle-load behavior is covered by existing globe cases and the compiled dynamic loader. Functional navigation is batched in final verification; no new RED case is required under the owner override.
+- [x] **Step 2:** Implemented cut-over and deletions; consolidated checks pass with existing-case corrections and owner overrides (see final handoff). Original command gate: Then run `pnpm --filter @kuuki/next typecheck && pnpm --filter @kuuki/next lint && pnpm --filter @kuuki/next test && pnpm test:api && pnpm typecheck:api && pnpm next:build && pnpm test:next:navigation`. Expected: PASS.
+- [x] **Step 3:** Commit `feat(overview): ship the redesigned page and retire the legacy overview`.
 
 ### Task 34: Docs, glossary and whole-branch review
 
@@ -1285,9 +1285,9 @@ Every section task follows the same contract, so it is stated once here.
 **GLOSSARY.md:** Maker slot, Alliance at date, Head to head, Record cabinet, Ghost layer, Narrator, Bento.
 
 - [x] **Step 1:** Write the doc updates. Keep each to the decisions; don't copy the plan.
-- [ ] **Step 2:** Final verification: every command in Task 33 Step 2, plus V(9.3), V(9.4), V(9.5), V(10.2) and V(10.3) on `fixture=board`, plus `fixture=empty|n1|zero|aggregate` at 390 and 1440.
-- [ ] **Step 3:** Run the whole-branch Opus review against this plan's Review Focus and Global Constraints. Fix in Sonnet rounds; re-review only the scoped diffs.
-- [ ] **Step 4:** Update the handoff: branch, checks, open decisions and any accepted board deviations. Commit `docs(overview): design system and glossary for the redesigned overview`.
+- [x] **Step 2:** Consolidated functional verification complete; visual/device/board comparison gates WAIVED by owner. Exact full-batch and focused-correction evidence is in the final handoff. No new unit tests or cases.
+- [ ] **Step 3:** Final whole-branch Thermos and Ponytail Audit in the owner-requested NEW thread; GPT‑6.1 Sol replaces Opus/Sonnet. Resolve all evidence-backed findings, verify affected behavior, then deploy. No per-task review loops or visual verification.
+- [x] **Step 4:** Update the handoff: branch, checks, open decisions and any accepted board deviations. Commit `docs(overview): design system and glossary for the redesigned overview`.
 
 ---
 

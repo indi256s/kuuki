@@ -2,11 +2,10 @@
 // the figures read (airline, aircraft, distance, duration), and a reader that calls the route like a client would.
 import { apiContext } from './harness'
 import { accountWith, USER, type FixtureFlight } from './country-fixture'
-import { onRequestGet as getOverview } from '../api/me/overview'
+import { onRequestGet as getOverview } from '../api/me/overview/data'
+import { computeOverview } from '../../packages/shared/src/overview/compute'
+import type { OverviewFilter, OverviewPayload } from '../../packages/shared/src/overview/model'
 import { onRequestGet as getProjection } from '../api/flights/route-projection'
-import type { OverviewSummary } from '../../packages/shared/src/overview'
-import { onRequestGet as getMissingAircraft } from '../api/me/overview/missing-aircraft'
-import type { MissingAircraftPage } from '../../packages/shared/src/overview'
 import type { RouteProjection } from '../../packages/shared/src/routeProjection'
 
 export { USER, at, T0, publish } from './country-fixture'
@@ -30,10 +29,14 @@ export function overviewAccount(flights: OverviewFlight[], extra: (db: D1Databas
   ])
 }
 
-export async function readOverviewSummary(db: D1Database, query = 'period=all', user: { id: string; email: string } = USER): Promise<OverviewSummary> {
-  const response = await getOverview({ ...apiContext(db, new Request(`https://kuuki.test/api/me/overview?${query}`)), data: { user } } as never)
+export async function readOverviewPayload(db: D1Database, user: { id: string; email: string } = USER): Promise<OverviewPayload> {
+  const response = await getOverview({ ...apiContext(db, new Request('https://kuuki.test/api/me/overview/data')), data: { user } } as never)
   if (response.status !== 200) throw new Error(`Overview read failed: ${response.status}`)
-  return response.json() as Promise<OverviewSummary>
+  return response.json() as Promise<OverviewPayload>
+}
+
+export async function readOverviewScope(db: D1Database, filter: OverviewFilter = {}, user: { id: string; email: string } = USER) {
+  return computeOverview(await readOverviewPayload(db, user), filter)
 }
 
 /** `count` completed flights one day apart from 2020-01-01, for volume tests (one statement, no per-row writes). */
@@ -56,16 +59,4 @@ export async function readRouteProjection(db: D1Database, period = 'all', user: 
   const response = await getProjection({ ...apiContext(db, new Request(`https://kuuki.test/api/flights/route-projection?period=${period}`)), data: { user } } as never)
   if (response.status !== 200) throw new Error(`Route projection read failed: ${response.status}`)
   return response.json() as Promise<RouteProjection>
-}
-
-/** One page of the missing-aircraft review set, called like a client would (`period=all|YYYY[&after=cursor]`). */
-export async function readMissingAircraftPage(db: D1Database, query = 'period=all', user: { id: string; email: string } = USER): Promise<MissingAircraftPage> {
-  const response = await getMissingAircraft({ ...apiContext(db, new Request(`https://kuuki.test/api/me/overview/missing-aircraft?${query}`)), data: { user } } as never)
-  if (response.status !== 200) throw new Error(`Missing-aircraft read failed: ${response.status}`)
-  return response.json() as Promise<MissingAircraftPage>
-}
-
-export async function missingAircraftStatus(db: D1Database, query: string, user: { id: string; email: string } = USER): Promise<number> {
-  const response = await getMissingAircraft({ ...apiContext(db, new Request(`https://kuuki.test/api/me/overview/missing-aircraft?${query}`)), data: { user } } as never)
-  return response.status
 }

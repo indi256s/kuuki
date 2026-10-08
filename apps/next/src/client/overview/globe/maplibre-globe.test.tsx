@@ -20,6 +20,7 @@ vi.mock('maplibre-gl', () => ({ setWorkerUrl: vi.fn(), Map: class {
   off(event: string, callback: (...args: any[]) => void) { this.listeners.get(event)?.delete(callback); return this }
   once(event: string, callback: (...args: any[]) => void) { const once = (...args: any[]) => { this.off(event, once); callback(...args) }; this.on(event, once); return this }
   emit(event: string, data?: unknown) { this.listeners.get(event)?.forEach(callback => callback(data)) }
+  getStyle() { return this.removed ? undefined : { version: 8 } }
   getCanvas() { return this.canvas } loaded() { return true } remove() { this.removed = true; this.listeners.clear() }
   getCenter() { return { lng: 0, lat: 0 } }
   addSource(id: string, source: any) { this.sources.set(id, { ...source, setData: vi.fn() }) }

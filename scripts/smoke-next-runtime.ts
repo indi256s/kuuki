@@ -226,7 +226,7 @@ async function main() {
     const cookies = signIn.headers.getSetCookie()
     if (cookies.length < 2) throw new Error('Sign-in lost multiple Set-Cookie headers')
     const cookie = cookies.map(value => value.split(';', 1)[0]).join('; ')
-    const overviewApi = await assertResponse('/api/me/overview', 200, { headers: { Cookie: cookie } })
+    const overviewApi = await assertResponse('/api/me/overview/data', 200, { headers: { Cookie: cookie } })
     if (!overviewApi.headers.get('Content-Type')?.includes('application/json')) throw new Error('Overview API is not JSON')
     await assertResponse('/api/me/advanced-stats', 404, { headers: { Cookie: cookie } })
     await assertResponse('/api/me/dashboard-stats', 404, { headers: { Cookie: cookie } })

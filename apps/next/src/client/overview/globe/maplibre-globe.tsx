@@ -123,7 +123,7 @@ function GlobeLayers({ props, host, select }: { props: MaplibreGlobeProps; host:
       disposed = true; window.clearTimeout(timeout); map.off('idle', idle); map.off('click', click)
       for (const layer of [...layers].reverse()) if (map.getLayer(layer)) map.removeLayer(layer)
       for (const source of sources) if (map.getSource(source)) map.removeSource(source)
-      if (map.hasImage('globe-hatch')) map.removeImage('globe-hatch')
+      if (map.getStyle() && map.hasImage('globe-hatch')) map.removeImage('globe-hatch')
     }
   }, [map, ready, land, host])
   useEffect(() => {

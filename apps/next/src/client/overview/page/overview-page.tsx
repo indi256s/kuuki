@@ -36,7 +36,8 @@ function PageContent({ name }: { name: string }) {
   const { scope, all, payload, filter, layout, locale, setLayout, isCurrent } = useOverview()
   const mobile = useMobile()
   const labels = useMemo(() => referenceLabels(locale), [locale])
-  const firstRun = scope?.figures.flights === 0 && isEmptyFilter(filter)
+  const firstRun = scope?.figures.flights === 0 && isEmptyFilter(filter) && payload?.derivedReady === true &&
+    payload.passport.countries === 0 && payload.passport.countryCodes.length === 0 && payload.passport.regions === 0
   const zero = scope?.figures.flights === 0 && !isEmptyFilter(filter)
   const visible = layout.order.filter(id => !layout.hidden.includes(id))
   const [openId, setOpenId] = useState<SectionId | null>(null)
@@ -103,6 +104,7 @@ function PageContent({ name }: { name: string }) {
     <h1 tabIndex={-1}>{greeting}<span className="ov3-scope">{scopeTitle(filter, labels, locale)}</span></h1>
     {!scope || !all || !payload ? <><p role="status">{t(S.loading, locale)}</p><Skeleton height={520} label={t(S.loading, locale)} /></> : <>
       <div data-region="next"><NextStrip /></div>
+      {!payload.derivedReady ? <p role="status" className="status-note">{t(S.countriesUpdating, locale)}</p> : null}
       <div className="ov3-globe-band">
         <section className="ov3-globe-region ov-globe" aria-label={t(S.map, locale)} data-globe={firstRun ? 'blank' : zero ? 'ghost' : 'ready'}>
           <OverviewGlobe topLeft={<FilterBar />} />{firstRun ? <FirstRun /> : null}
