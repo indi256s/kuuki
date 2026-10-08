@@ -593,9 +593,9 @@ This is open decision 1: the default is endpoint offsets, not overflown zones.
 - [x] **Step 1:** Write the trigger list and lines into the review sheet: id, slot, condition, three EN lines, three RU lines.
 - [x] **Step 2:** Add the test `› every trigger has three EN and RU lines with matching params`. Each placeholder set equals the trigger's param keys.
 - [x] **Step 3:** Implement the triggers and corpus. Run `pnpm --filter @kuuki/next test -- narrator`. Expected: PASS.
-- [ ] **Step 4:** Commit `feat(overview): narrator corpus (pending owner review)`. **Stop and ask the owner to review `.scratch/overview-redesign/narrator-corpus.md`.** Apply the edits in a follow-up commit `fix(overview): narrator corpus after owner review`.
+- [x] **Step 4:** Commit `feat(overview): narrator corpus (pending owner review)`. **Stop and ask the owner to review `.scratch/overview-redesign/narrator-corpus.md`.** Apply the edits in a follow-up commit `fix(overview): narrator corpus after owner review`.
 
-**Technical status (2026-10-08):** independent round2 approved the complete 42-trigger/126-pair corpus and regenerated sheet after I1–I3/M1 fixes. All 30 focused tests, affected typecheck/lint and live sheet consistency pass. Step4 remains pending explicit owner review; technical approval does not grant owner approval. Visual verification skipped by user.
+**Technical status (2026-10-08):** independent round2 approved the complete 42-trigger/126-pair corpus and regenerated sheet after I1–I3/M1 fixes. All 30 focused tests, affected typecheck/lint and live sheet consistency pass. Source committed as `8f9c604509bd577defa412033d85d90f163d71c6`; owner explicitly approved the EN/RU copy on 2026-10-08 and requested no edits. Task12 is accepted. Visual verification skipped by user.
 
 ### Task 13: Shu accent, data tokens and the kana logo
 

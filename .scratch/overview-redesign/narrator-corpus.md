@@ -1,6 +1,6 @@
-# Narrator corpus — pending owner review
+# Narrator corpus — owner approved
 
-Implementation proposal only. Task12 is not accepted. Root owns independent review, commits and the explicit owner review gate. No runtime normal/sarcastic mode is added. Each trigger has three paired variants; all are secondary observations, and first-run/zero lines leave functional instructions to the page.
+Owner approved the EN/RU copy on 2026-10-08 after source commit 8f9c604 and independent round2 approval. Task12 is accepted; no copy edits were requested. No runtime normal/sarcastic mode is added. Each trigger has three paired variants; all are secondary observations, and first-run/zero lines leave functional instructions to the page.
 42 triggers: 26 factual observations, ten slot fallbacks, six actual below-gate fallbacks. Higher priority wins; equal priorities retain declaration order. All factual section triggers require their actual ready gate. Rankings/globe have no invented gate; firstRun and zero use semantic filter emptiness.
 Numbers are params from the current scope unless explicitly labelled all-time. Years/hours/dates are actual label params. Auckland hours and before-noon percentages are rounded to one decimal and described as approximate. Airport entries count both endpoints; routes combine directions; known-body denominators exclude unclassified types. No private flight identities appear in params or copy.
 ## Actual fixture selections
