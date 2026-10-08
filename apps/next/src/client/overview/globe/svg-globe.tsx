@@ -68,7 +68,7 @@ export const SvgGlobe = memo(function SvgGlobe({ globe, all, airports, rotate, s
     observer.observe(element)
     measure(element.getBoundingClientRect().width)
     window.addEventListener('kuuki:identity-reset', retire)
-    return () => { retire(); window.removeEventListener('kuuki:identity-reset', retire) }
+    return () => { retired = true; observer.disconnect(); window.removeEventListener('kuuki:identity-reset', retire) }
   }, [])
   const [mountedLand, setMountedLand] = useState<GlobeLand | null>(null)
   useEffect(() => {

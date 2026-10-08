@@ -38,7 +38,7 @@ export function KuukiChart<T>({ points, height, ariaLabel, ariaDescription, pale
   const selectedKey = selection?.key
   const portalOwner = host.current?.closest('[role="dialog"]') ?? (typeof document !== 'undefined' ? document.body : null)
   const nativePopover = typeof HTMLElement !== 'undefined' && typeof HTMLElement.prototype.showPopover === 'function'
-  const ownerBox = !nativePopover && portalOwner && portalOwner !== document.body ? portalOwner.getBoundingClientRect() : null
+  const ownerBox = typeof document !== 'undefined' && !nativePopover && portalOwner && portalOwner !== document.body ? portalOwner.getBoundingClientRect() : null
   const hasPoint = !!point
   const dismiss = useCallback(() => {
     if (portal.current?.contains(document.activeElement)) (selectedKey && marks.current.get(selectedKey) || host.current)?.focus()
