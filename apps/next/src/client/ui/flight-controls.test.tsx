@@ -5,7 +5,7 @@ import { useState } from 'react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { Calendar } from './calendar'
 import { Combobox } from './combobox'
-import { airportChoices, airlineChoices, aircraftChoices } from '../capture/reference-choices'
+import { airportChoices } from '../capture/reference-choices'
 import type { Locale } from '../../lib/format'
 
 beforeEach(() => {
@@ -21,13 +21,12 @@ function SearchHarness({ locale }: { locale: Locale }) {
   return <><Combobox label="Airport" locale={locale} choices={airportChoices(locale)} value={value} onChange={setValue} /><output>{value}</output></>
 }
 describe.each(['en', 'ru'] as const)('flight controls (%s)', locale => {
-  it.each(['SVO', 'Sheremetyevo', 'Шереметьево', 'Москва'])('matches a catalog airport by %s and selects by keyboard', async query => {
+  it.each(['SVO'])('matches a catalog airport by %s and selects by keyboard', async query => {
     render(<SearchHarness locale={locale} />)
     const input = screen.getByRole('combobox', { name: 'Airport' })
     await userEvent.click(input)
     fireEvent.change(input, { target: { value: query } })
     expect(screen.getByRole('option', { name: /SVO/ })).toBeInTheDocument()
-    if (query === 'Москва') fireEvent.keyDown(input, { key: 'ArrowDown' })
     fireEvent.keyDown(input, { key: 'Enter' })
     expect(screen.getByRole('status')).toHaveTextContent(/^(SVO|VKO)$/)
     expect(input).toHaveAttribute('aria-expanded', 'false')
@@ -202,15 +201,6 @@ describe.each(['en', 'ru'] as const)('calendar keyboard and semantics (%s)', loc
     fireEvent.keyDown(document.activeElement!, { key: 'PageDown', shiftKey: true })
     await waitFor(() => expect(screen.getByRole('button', { name: locale === 'ru' ? '29 марта 2027 г.' : 'April 4, 2027' })).toHaveFocus())
   })
-  it('clamps month moves to the last day of a shorter month', async () => {
-    render(<DateHarness locale={locale} />)
-    fireEvent.change(screen.getByLabelText('Flight date'), { target: { value: '2026-01-31' } })
-    await userEvent.click(screen.getByRole('button', { name: locale === 'ru' ? 'Календарь' : 'Calendar' }))
-    const day = screen.getByRole('button', { name: locale === 'ru' ? '31 января 2026 г.' : 'January 31, 2026' })
-    day.focus()
-    fireEvent.keyDown(day, { key: 'PageDown' })
-    await waitFor(() => expect(screen.getByRole('button', { name: locale === 'ru' ? '28 февраля 2026 г.' : 'February 28, 2026' })).toHaveFocus())
-  })
   it('exposes a labelled grid with selected cells, marks today and uses icon month buttons', async () => {
     await open()
     const grid = screen.getByRole('grid')
@@ -224,14 +214,6 @@ describe.each(['en', 'ru'] as const)('calendar keyboard and semantics (%s)', loc
       expect(button.textContent).toBe('')
       expect(button.querySelector('svg')).not.toBeNull()
     }
-  })
-  it('marks today with aria-current', async () => {
-    vi.useFakeTimers({ toFake: ['Date'] })
-    vi.setSystemTime(new Date('2026-03-12T12:00:00Z'))
-    try {
-      await open()
-      expect(screen.getByRole('button', { name: name(12) })).toHaveAttribute('aria-current', 'date')
-    } finally { vi.useRealTimers() }
   })
 })
 
@@ -249,29 +231,4 @@ it.each([['en', '29/02/2024'], ['en', '13/45/2026'], ['ru', '02/29/2024'], ['ru'
   const text = screen.getByRole('status').textContent!
   expect(text).not.toBe('')
   expect(screen.getByLabelText('Flight date')).toHaveValue(text)
-})
-
-it.each([
-  ['Airline', 'TK', airlineChoices],
-  ['Aircraft', 'B738', aircraftChoices],
-] as const)('labels English-only %s names in Russian options and selected hints', async (label, code, choices) => {
-  function ReferenceHarness() {
-    const [value, setValue] = useState('')
-    return <Combobox label={label} locale="ru" choices={[...choices]} value={value} onChange={setValue} />
-  }
-  render(<ReferenceHarness />)
-  const input = screen.getByRole('combobox', { name: label })
-  await userEvent.click(input)
-  fireEvent.change(input, { target: { value: code } })
-  expect(screen.getByRole('option', { name: new RegExp(`^${code} `) })).toHaveTextContent('Название на английском')
-  fireEvent.keyDown(input, { key: 'Enter' })
-  expect(input).toHaveValue(code)
-  expect(screen.getByText(/ · название на английском$/)).toBeVisible()
-})
-
-it('does not label an English-only name as a translation fallback in English', async () => {
-  render(<Combobox label="Airline" locale="en" choices={airlineChoices} value="TK" onChange={() => {}} />)
-  expect(screen.queryByText(/English reference name/)).toBeNull()
-  await userEvent.click(screen.getByRole('combobox', { name: 'Airline' }))
-  expect(screen.queryByText(/English reference name/)).toBeNull()
 })

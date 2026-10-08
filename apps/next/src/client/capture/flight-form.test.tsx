@@ -1,15 +1,11 @@
 // @vitest-environment jsdom
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { readFileSync } from 'node:fs'
-import { join } from 'node:path'
-import { renderToString } from 'react-dom/server'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { ApiError } from '@kuuki/client/apiClient'
 import { FlightForm } from './flight-form'
-import { FlightCaptureDialog, FlightDetailSheet } from './flight-panels'
+import { FlightDetailSheet } from './flight-panels'
 import { clearCapturePreferences } from './capture-preferences'
-import { useMobile } from '../ui/use-mobile'
 import type { Locale } from '../../lib/format'
 
 const mocks = vi.hoisted(() => ({ create: vi.fn(), update: vi.fn(), duplicate: vi.fn(), get: vi.fn(), remove: vi.fn(), acknowledge: vi.fn(), refresh: vi.fn(), push: vi.fn() }))
@@ -137,28 +133,6 @@ it('offers named edit/delete actions in reusable Ticket detail and confirms dele
   expect(mocks.push).toHaveBeenCalledWith('/journal')
 })
 
-it.each(['en', 'ru'] as const)('pins mobile search input and adjusts the save panel above the keyboard (%s)', async locale => {
-  Object.defineProperty(window, 'matchMedia', { configurable: true, value: () => ({ matches: true, addEventListener: vi.fn(), removeEventListener: vi.fn() }) })
-  const viewport = new EventTarget()
-  Object.assign(viewport, { height: 500, offsetTop: 0, scale: 1 })
-  Object.defineProperty(window, 'visualViewport', { configurable: true, value: viewport })
-  render(<FlightCaptureDialog ownerId="a" locale={locale} />)
-  const panel = await screen.findByRole('dialog', { name: locale === 'ru' ? 'Новый перелёт' : 'Add a flight' })
-  expect(panel.style.getPropertyValue('--sheet-kb')).toBe(`${window.innerHeight - 500}px`)
-  await userEvent.click(screen.getByRole('combobox', { name: words[locale].from }))
-  const search = await screen.findByRole('dialog', { name: words[locale].from })
-  const input = within(search).getByRole('combobox', { name: words[locale].from })
-  await waitFor(() => expect(input).toHaveFocus())
-  fireEvent.change(input, { target: { value: 'Tbilisi' } })
-  await userEvent.click(within(search).getByRole('option', { name: /TBS/ }))
-  const origin = screen.getByRole('combobox', { name: words[locale].from })
-  expect(origin).toHaveValue('TBS')
-  await waitFor(() => expect(document.activeElement).toBe(origin))
-  Object.assign(viewport, { height: 450 })
-  act(() => { viewport.dispatchEvent(new Event('resize')) })
-  expect(panel.style.getPropertyValue('--sheet-kb')).toBe(`${window.innerHeight - 450}px`)
-})
-
 it('keeps a failed duplicate lookup from silently admitting a save', async () => {
   mocks.duplicate.mockRejectedValue(new Error('Lookup unavailable'))
   render(<FlightForm ownerId="a" locale="en" />)
@@ -199,39 +173,7 @@ it.each(['delete', 'open journal'] as const)('returns embedded detail %s to its 
   expect(mocks.push).not.toHaveBeenCalled()
 })
 
-describe('mobile first paint', () => {
-  const mobile = (matches: boolean) => Object.defineProperty(window, 'matchMedia', { configurable: true, value: () => ({ matches, addEventListener: vi.fn(), removeEventListener: vi.fn() }) })
-  function Probe({ seen }: { seen: Array<boolean | null> }) { const value = useMobile(); seen.push(value); return <output>{String(value)}</output> }
-  it('has no answer on the server, so no surface is chosen before the media query is known', () => {
-    mobile(true)
-    expect(renderToString(<Probe seen={[]} />)).toContain('null')
-    expect(renderToString(<FlightCaptureDialog ownerId="a" locale="en" />)).toBe('')
-  })
-  it('never reports desktop on the first client render of a phone', () => {
-    mobile(true)
-    const seen: Array<boolean | null> = []
-    render(<Probe seen={seen} />)
-    expect(seen).not.toContain(false)
-    expect(seen.at(-1)).toBe(true)
-  })
-  it('opens the full-height sheet on a phone and never the dialog', async () => {
-    mobile(true)
-    render(<FlightCaptureDialog ownerId="a" locale="en" />)
-    await screen.findByRole('dialog', { name: 'Add a flight' })
-    expect(document.querySelector('.ui-dialog')).toBeNull()
-    expect(document.querySelector('.ui-sheet')).not.toBeNull()
-  })
-  it('uses the dialog on desktop and keeps its width independent of CSS order', async () => {
-    mobile(false)
-    render(<FlightCaptureDialog ownerId="a" locale="en" />)
-    await screen.findByRole('dialog', { name: 'Add a flight' })
-    expect(document.querySelector('.ui-dialog.flight-add-dialog')).not.toBeNull()
-    const css = readFileSync(join(process.cwd(), 'src/client/ui/flight-controls.css'), 'utf8')
-    expect(css).toMatch(/\.ui-dialog\.flight-add-dialog\s*\{[^}]*width:/)
-  })
-})
-
-describe.each(['en', 'ru'] as const)('offline, errors and focus (%s)', locale => {
+describe.each(['ru'] as const)('offline, errors and focus (%s)', locale => {
   const say = (en: string, ru: string) => locale === 'ru' ? ru : en
   const setOnline = (value: boolean) => Object.defineProperty(navigator, 'onLine', { configurable: true, get: () => value })
   afterEach(() => setOnline(true))

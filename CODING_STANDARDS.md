@@ -18,20 +18,20 @@ Before reporting a change done, run the checks for its behavior in addition to a
 | --- | --- |
 | API handlers | `pnpm typecheck:api`, `pnpm test:api` |
 | Next UI | `pnpm next:build`, then the full `pnpm test:next:navigation` suite; shared controls break journeys in other test files |
-| Worker dispatch, auth boundary or static assets | `pnpm next:build`, `pnpm --filter @kuuki/next typecheck:worker`, `pnpm next:smoke`, `pnpm next:smoke:boundary` |
+| Worker dispatch, auth boundary or static assets | `pnpm next:build`, `pnpm --filter @kuuki/next typecheck:worker`, `pnpm next:smoke` (includes boundary checks) |
 | Migration or release tooling | Relevant isolated preservation and admission checks from `docs/runbooks/audit-remediation-release.md` and the current deploy procedure in `docs/skills/deploy-kuuki/SKILL.md` |
 | Prose only | Verify changed claims, links and commands against their sources; application tests are unnecessary |
 
 Run builds and browser/runtime fixtures serially: they share `.wrangler/next-build` and port 8800. Use current build output after source changes.
 
 - In a fresh worktree, run `pnpm next:build` before Playwright or `typecheck:worker`. Both read its output.
-- Sign-in allows 20 attempts per 15 minutes per client IP, and every Playwright request shares one IP. A test that signs in repeatedly sends its own `CF-Connecting-IP` header, as `apps/next/tests/shell.test.ts` does.
+- Sign-in allows 20 attempts per 15 minutes per client IP, and every Playwright request shares one IP. A test that signs in repeatedly sends its own `CF-Connecting-IP` header, using `fixtureHeaders` in `apps/next/tests/helpers.ts`.
 - After moving an App Router route, run `pnpm --filter @kuuki/next exec next typegen` before typechecking. Stale `.next/types` report TS2307.
 - The root Miniflare rejects compatibility dates newer than its build. Check its installed version in `pnpm-lock.yaml`; a fixture that needs a newer date uses the Miniflare bundled with Wrangler.
 
 ## Review judgement calls
 
-1. **Contract coverage.** Each ADR clause, plan acceptance item or design-brief rule that the diff implements has a test that goes red if the clause breaks. A test that would stay green against the old behaviour does not count.
+1. **Contract coverage.** Test credible failures once at the owning boundary. Keep focused regression checks for auth, ownership, data preservation, destructive operations and accessibility. Another layer needs a distinct risk, such as transport or lifecycle behavior. Avoid tests that copy inventories, inspect implementation strings or repeat an existing stronger journey. A regression test must fail against the old behavior.
 2. **Carried gaps.** A gap handed to a later task becomes a failing test or an issue file under `.scratch/`, not only a ledger note.
 3. **Gate before read.** Auth, ownership and visibility checks run before any private read. A guest gets a redirect status, not a streamed 200.
 4. **Canonical fields win.** In error envelopes and DTOs, spread optional details first and the canonical fields (`error`, `code`, ids, states) after.

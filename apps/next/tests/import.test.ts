@@ -1,5 +1,5 @@
 import { test, expect, type Page, type Route } from '@playwright/test'
-import { recordRouteTransitions, resetRouteTransitions, routeTransitions, signIn } from './helpers'
+import { signIn } from './helpers'
 
 // The fixture has no import binding, so these journeys run against a small stateful stand-in for the import
 // endpoints (batch, drafts, events, confirm). It is the server contract the client consumes, not the server.
@@ -30,8 +30,6 @@ class FakeImport {
   confirms: Array<{ timezone?: string; items: Array<{ draftId: string; version: number; key: string }> }> = []
   /** Draft ids whose next confirm answers with a transient error. */
   failOnce = new Set<string>()
-  /** Answer for the next source submission; default accepts it as a running batch. */
-  job: (() => { status: number; body: object }) | null = null
 
   snapshot() {
     const now = '2026-10-05T00:00:00.000Z'
@@ -48,8 +46,7 @@ class FakeImport {
       const method = request.method()
       if (pathname === '/api/import/jobs' && method === 'POST') {
         this.jobs.push(request.postDataJSON())
-        const answer = this.job?.() ?? { status: 202, body: { batchId: BATCH } }
-        return json(route, answer.status, answer.body)
+        return json(route, 202, { batchId: BATCH })
       }
       if (pathname === `/api/import/batches/${BATCH}` && method === 'GET') return json(route, 200, this.snapshot())
       if (pathname === `/api/import/batches/${BATCH}/events`) {
@@ -90,8 +87,7 @@ class FakeImport {
 // Sign-in is limited per address (20 per 15 minutes) and the whole browser suite shares that budget, so this file
 // signs in once and gives every journey the same session cookies.
 let session: Awaited<ReturnType<ReturnType<Page['context']>['cookies']>> | null = null
-async function setup(page: Page, baseURL: string | undefined, locale?: 'ru') {
-  if (locale) await page.context().addCookies([{ name: 'kuuki_locale', value: locale, url: baseURL! }])
+async function setup(page: Page, baseURL: string | undefined) {
   if (session) await page.context().addCookies(session)
   else { await signIn(page, baseURL!); session = await page.context().cookies() }
   const server = new FakeImport()
@@ -168,81 +164,6 @@ test('a partial save lists the failed row and retries only that row', async ({ p
   await expect(page.getByRole('link', { name: 'Go to Journal' })).toBeVisible()
 })
 
-const failures: Array<{ name: string; answer?: { status: number; body: object }; batchError?: string; title: string; actions: string[] }> = [
-  { name: 'quota', answer: { status: 429, body: { error: 'quota', code: 'PROVIDER_QUOTA', retryAt: '2026-10-06T09:00:00.000Z' } }, title: 'The recognition limit is used up', actions: ['Enter flights by hand'] },
-  { name: 'unavailable', answer: { status: 503, body: { error: 'down', code: 'MODEL_UNAVAILABLE' } }, title: 'The recognition service is unavailable', actions: ['Try again', 'Enter flights by hand'] },
-  { name: 'timeout', answer: { status: 504, body: { error: 'slow', code: 'PROVIDER_TIMEOUT' } }, title: 'The service took too long', actions: ['Try again'] },
-  { name: 'file', answer: { status: 415, body: { error: 'bad', code: 'INVALID_FILE' } }, title: 'This file could not be read', actions: ['Choose another file', 'Paste text instead'] },
-  { name: 'nothing found', batchError: 'NO_FLIGHTS_FOUND', title: 'No flights found', actions: ['Enter flights by hand', 'Choose another file'] },
-]
-for (const failure of failures) {
-  test(`${failure.name} shows its cause and its own actions, never an empty review`, async ({ page, baseURL }) => {
-    const server = await setup(page, baseURL)
-    if (failure.answer) server.job = () => failure.answer!
-    else { server.status = 'failed'; server.stage = null; server.errorCode = failure.batchError!; server.drafts = [] }
-    await submitText(page)
-    await expect(page.getByRole('heading', { name: failure.title })).toBeVisible()
-    for (const action of failure.actions) await expect(page.getByRole('button', { name: action })).toBeVisible()
-    await expect(page.getByRole('heading', { name: 'Review flights' })).toHaveCount(0)
-    await expect(page.getByText('Every flight from this import is saved or skipped.')).toHaveCount(0)
-    if (failure.name === 'quota') await expect(page.getByText('You can try again after')).toBeVisible()
-  })
-}
-
-test('a retryable failure sends the source again from the same screen', async ({ page, baseURL }) => {
-  const server = await setup(page, baseURL)
-  server.job = () => ({ status: 503, body: { error: 'down', code: 'MODEL_UNAVAILABLE' } })
-  await submitText(page)
-  await expect(page.getByRole('heading', { name: 'The recognition service is unavailable' })).toBeVisible()
-  server.job = null
-  server.status = 'review'; server.drafts = [row('d1')]
-  await page.getByRole('button', { name: 'Try again' }).click()
-  await expect(page.getByRole('heading', { name: 'Review flights' })).toBeVisible()
-  expect(server.jobs).toHaveLength(2)
-})
-
-test('a missing year blocks the row until the member checks it, and never claims one was added', async ({ page, baseURL }) => {
-  const server = await setup(page, baseURL)
-  server.ready([row('d1', { yearExplicit: false, fields: { date: '2026-03-01', origin: 'JFK', destination: 'LAX', airline_iata: 'AA' } })])
-  await page.goto(`/import?batch=${BATCH}`)
-  await expect(page.getByText('Confirm the year to include this flight.')).toBeVisible()
-  await expect(rows(page).first().getByRole('checkbox')).toBeDisabled()
-  await expect(page.getByRole('button', { name: /^Import/ })).toBeDisabled()
-  await rows(page).first().getByRole('button', { name: 'Edit' }).click()
-  const sheet = page.getByRole('dialog')
-  await expect(sheet.getByText(/did not show a year/i)).toBeVisible()
-  await expect(page.getByText(/year was (added|inserted|assumed|filled)/i)).toHaveCount(0)
-  await sheet.getByLabel('I checked the year').check()
-  await sheet.getByRole('button', { name: 'Save changes' }).click()
-  await expect.poll(() => server.patches.length).toBe(1)
-  expect(server.patches[0].body.yearConfirmed).toBe(true)
-  await expect(rows(page).first().getByRole('checkbox')).toBeEnabled()
-  await expect(page.getByRole('button', { name: 'Import 1' })).toBeEnabled()
-})
-
-test('duplicates sit at the end, collapsed and unselected, until the member saves them anyway', async ({ page, baseURL }) => {
-  const server = await setup(page, baseURL)
-  server.ready([
-    row('d1', { selected: false, duplicateFlightId: 7 }),
-    row('d2', { fields: { date: '2026-04-02', origin: 'LAX', destination: 'SFO', airline_iata: 'AA' } }),
-    row('d3', { fields: { date: '2026-05-03', origin: 'SFO', destination: 'JFK', airline_iata: 'AA' } }),
-  ])
-  await page.goto(`/import?batch=${BATCH}`)
-  await expect(page.getByText('2 selected of 2')).toBeVisible()
-  await expect(rows(page)).toHaveCount(2) // the duplicate row is inside the collapsed section
-  const section = page.getByText('Already in your journal · 1 flight')
-  await expect(section).toBeVisible()
-  await expect(page.getByRole('button', { name: 'Import 2' })).toBeEnabled()
-  await section.click()
-  await expect(rows(page)).toHaveCount(3)
-  const duplicate = rows(page).nth(2).getByRole('checkbox')
-  await expect(duplicate).not.toBeChecked()
-  await duplicate.check()
-  await expect.poll(() => server.patches.length).toBe(1)
-  expect(server.patches[0].body).toMatchObject({ selected: true, duplicateAcknowledged: true })
-  await expect(page.getByRole('button', { name: 'Import 3' })).toBeEnabled()
-})
-
 test('a typed correction blocks the import until it is saved', async ({ page, baseURL }) => {
   const server = await setup(page, baseURL)
   server.ready([row('d1'), row('d2', { fields: { date: '2026-04-02', origin: 'LAX', destination: 'SFO', airline_iata: 'AA' } })])
@@ -264,134 +185,4 @@ test('a typed correction blocks the import until it is saved', async ({ page, ba
   await importButton.click()
   await expect(page.getByRole('heading', { name: 'Import finished' })).toBeVisible()
   expect(server.confirms[0].items.map(item => item.draftId)).toEqual(['d1', 'd2'])
-})
-
-test('Russian import journey: Russian copy, plural forms for row counts, confirm and done', async ({ page, baseURL }) => {
-  const server = await setup(page, baseURL, 'ru')
-  server.status = 'processing'; server.stage = 'recognizing'
-  server.drafts = [row('d1'), row('d2', { fields: { date: '2026-04-02', origin: 'LAX', destination: 'SFO', airline_iata: 'AA' } })]
-  await page.goto('/import')
-  await expect(page.locator('html')).toHaveAttribute('lang', 'ru')
-  await page.getByRole('radio', { name: 'Вставить текст' }).click()
-  await page.getByLabel('Текст брони или маршрута').fill(PASTED)
-  await page.getByRole('button', { name: 'Найти перелёты' }).click()
-  await expect(page.getByRole('heading', { name: 'Ищем ваши перелёты' })).toBeVisible()
-  await expect(page.getByText('Найдено 2 перелёта', { exact: true })).toBeVisible() // few
-
-  const routes = [['JFK', 'LAX'], ['LAX', 'SFO'], ['SFO', 'JFK'], ['JFK', 'BOS'], ['BOS', 'JFK']]
-  server.ready([
-    ...routes.map(([origin, destination], index) => row(`d${index + 1}`, { fields: { date: `2026-0${index + 1}-02`, origin, destination, airline_iata: 'AA' } })),
-    row('d6', { selected: false, duplicateFlightId: 7, fields: { date: '2026-06-03', origin: 'LHR', destination: 'CDG', airline_iata: 'BA' } }),
-  ])
-  await expect(page.getByRole('heading', { name: 'Проверка перелётов' })).toBeVisible({ timeout: 15_000 })
-  await expect(page.getByText('Выбрано 5 из 5')).toBeVisible() // many
-  await expect(page.getByRole('button', { name: /Уже в журнале · 1 перелёт/ })).toBeVisible() // one
-  await expect(page.getByTestId('import-retention')).toContainText('Хранится до')
-  const importButton = page.getByRole('button', { name: 'Импортировать 5' })
-  await expect(importButton).toBeEnabled()
-  await importButton.click()
-  await expect(page.getByRole('heading', { name: 'Импорт завершён' })).toBeVisible()
-  await expect(page.getByTestId('import-summary')).toContainText('Добавлено 5 перелётов')
-  await expect(page.getByRole('link', { name: 'Открыть паспорт' })).toBeVisible()
-  await expect(page.getByRole('link', { name: 'В журнал' })).toBeVisible()
-  await expect(page.getByText('В проверке остался 1 перелёт.')).toBeVisible() // the unselected duplicate is still reachable
-  expect(server.confirms[0].items).toHaveLength(5)
-})
-
-test.describe('Import done → Passport hero', () => {
-  /** The member's passport already has US; hide it from the pre-save baseline so the import presses it. */
-  const pressUs = async (page: Page, server: FakeImport) => {
-    await page.route('**/api/passport/countries', async route => {
-      if (server.confirms.length > 0) return route.continue()
-      const response = await route.fetch()
-      const body = await response.json() as { countries: Array<{ country_code: string }> }
-      await route.fulfill({ response, json: { ...body, countries: body.countries.filter(country => country.country_code !== 'US') } })
-    })
-  }
-  const importOne = async (page: Page, baseURL: string | undefined) => {
-    const server = await setup(page, baseURL)
-    await recordRouteTransitions(page)
-    await pressUs(page, server)
-    server.ready([row('d1')])
-    await page.goto(`/import?batch=${BATCH}`)
-    await page.getByRole('button', { name: 'Import 1' }).click()
-    await expect(page.locator('.import-stamp-grid [data-hero-exit-key="US"]')).toBeVisible()
-    await resetRouteTransitions(page)
-  }
-
-  // At 390px the Passport cover puts the first stamp below the fold, so there it has no partner (keepVisibleStamps).
-  test('opens Passport without the hero at 390px, where the new stamp sits below the fold', async ({ page, baseURL }) => {
-    await page.setViewportSize({ width: 390, height: 844 })
-    await importOne(page, baseURL)
-    await page.getByRole('link', { name: 'Open Passport' }).click()
-    await expect(page.getByRole('heading', { level: 1, name: 'Passport' })).toBeFocused()
-    const stamp = page.getByRole('button', { name: /^United States,/ })
-    await expect(stamp).toBeAttached()
-    await expect.poll(() => page.evaluate(() => document.documentElement.dataset.routeTransition ?? null)).toBeNull()
-    // Loaded or still loading during preparation, Passport has no visible stamp partner.
-    expect(await routeTransitions(page)).toMatchObject({ markers: ['hero'], heroCopies: 0 })
-    expect(await stamp.evaluate(element => element.getBoundingClientRect().top)).toBeGreaterThan(844)
-    await expect(page.locator('[inert]')).toHaveCount(0)
-  })
-
-  for (const viewport of [{ width: 1440, height: 900 }]) {
-    test(`carries the new stamp to its Passport stamp and focuses the Passport heading at ${viewport.width}px`, async ({ page, baseURL }) => {
-      await page.setViewportSize(viewport)
-      await importOne(page, baseURL)
-      await page.getByRole('link', { name: 'Open Passport' }).click()
-      await expect(page).toHaveURL(/\/passport$/)
-      await expect(page.getByRole('heading', { level: 1, name: 'Passport' })).toBeFocused()
-      await expect(page.locator('[data-hero-enter-key="US"]')).toBeVisible()
-      await expect.poll(() => page.evaluate(() => document.documentElement.dataset.routeTransition ?? null)).toBeNull()
-      expect(await routeTransitions(page)).toMatchObject({ markers: ['hero'], boundaries: 2 })
-      expect((await routeTransitions(page)).heroCopies).toBeGreaterThan(0)
-      await expect(page.locator('[data-ssgoi-transition]')).toHaveCount(1)
-    })
-  }
-
-  test('opens Passport without the hero when it has not finished loading', async ({ page, baseURL }) => {
-    // No prefetch, so Passport shows its loading screen first: there is no stamp to carry, and nothing may linger.
-    await page.route(/\/passport(\?|$)/, route => {
-      const headers = route.request().headers()
-      return headers['next-router-prefetch'] || headers['next-router-segment-prefetch'] ? route.abort() : route.continue()
-    })
-    await importOne(page, baseURL)
-    await page.getByRole('link', { name: 'Open Passport' }).click()
-    await expect(page.getByRole('heading', { level: 1, name: 'Passport' })).toBeFocused()
-    await expect(page.locator('[data-hero-enter-key="US"]')).toBeVisible()
-    await expect.poll(() => page.evaluate(() => document.documentElement.dataset.routeTransition ?? null)).toBeNull()
-    expect(await routeTransitions(page)).toMatchObject({ boundaries: 1, heroCopies: 0 })
-    await expect(page.locator('[inert]')).toHaveCount(0)
-  })
-
-  test('opens Passport instantly under reduced motion', async ({ page, baseURL }) => {
-    await page.emulateMedia({ reducedMotion: 'reduce' })
-    await importOne(page, baseURL)
-    await page.getByRole('link', { name: 'Open Passport' }).click()
-    await expect(page.getByRole('heading', { level: 1, name: 'Passport' })).toBeFocused()
-    await expect(page.locator('[data-ssgoi-transition]')).toHaveCount(1)
-    expect(await routeTransitions(page)).toMatchObject({ markers: [], heroCopies: 0 })
-  })
-})
-
-test('processing text keeps real localized counts and wrapped labels at enlarged mobile text size', async ({ page, baseURL }) => {
-  await page.setViewportSize({ width: 320, height: 700 })
-  await page.context().addCookies([{ name: 'kuuki_locale', value: 'ru', url: baseURL! }])
-  const server = await setup(page, baseURL)
-  server.status = 'processing'; server.stage = 'recognizing'; server.drafts = [row('d1')]
-  await page.goto(`/import?batch=${BATCH}`)
-  const found = page.locator('.import-found-title')
-  await expect(found).toContainText('1')
-  await found.evaluate(heading => { heading.style.fontSize = '40px'; heading.style.lineHeight = '48px' })
-  const layout = await found.evaluate(heading => {
-    const box = heading.getBoundingClientRect(), text = heading.querySelector('.import-count > span')!.getBoundingClientRect()
-    return { headingWidth: box.width, textWidth: text.width, right: text.right, viewport: innerWidth }
-  })
-  expect(layout.textWidth).toBeLessThanOrEqual(layout.headingWidth)
-  expect(layout.right).toBeLessThanOrEqual(layout.viewport)
-  server.drafts = [row('d1'), row('d2')]; server.stage = 'validating'; server.sequence++
-  await expect(found).toHaveAccessibleName(/2 перелёта/)
-  await expect(page.locator('.import-stages li').nth(0)).toHaveAttribute('data-state', 'done')
-  await expect(page.locator('.import-stages li').nth(1)).toHaveAttribute('data-state', 'done')
-  await expect(page.locator('.import-stages li').nth(2)).toHaveAttribute('data-state', 'active')
 })

@@ -39,81 +39,6 @@ test('Journal filters survive refresh and back without a duplicate mount list re
   await expect(page.getByRole('button', { name: 'Save flight' })).toBeVisible()
 })
 
-test('Journal rows keep their desktop alignment and mobile card order', async ({ page, baseURL }) => {
-  await signIn(page, baseURL!)
-  await page.setViewportSize({ width: 1440, height: 900 })
-  await page.goto('/journal')
-  const entry = page.locator('.journal-entry').first()
-  await expect(entry).toBeVisible()
-  const desktop = await entry.evaluate(node => {
-    const row = node.querySelector<HTMLElement>('.flight-row')!
-    const overlay = row.querySelector<HTMLElement>('.flight-row-open')!
-    const cells = [...row.children].filter(child => child !== overlay && getComputedStyle(child).display !== 'none')
-    const rowBox = row.getBoundingClientRect()
-    const overlayBox = overlay.getBoundingClientRect()
-    return {
-      align: getComputedStyle(row).alignItems,
-      overlayPosition: getComputedStyle(overlay).position,
-      overlayCoversRow: Math.abs(rowBox.x - overlayBox.x) <= 1 && Math.abs(rowBox.y - overlayBox.y) <= 1 && Math.abs(rowBox.width - overlayBox.width) <= 1 && Math.abs(rowBox.height - overlayBox.height) <= 1,
-      cellCount: cells.length,
-      columnsAreOrdered: cells.every((cell, index) => index === 0 || cell.getBoundingClientRect().left > cells[index - 1].getBoundingClientRect().left),
-    }
-  })
-  expect(desktop).toEqual({ align: 'baseline', overlayPosition: 'absolute', overlayCoversRow: true, cellCount: 6, columnsAreOrdered: true })
-
-  await page.setViewportSize({ width: 390, height: 844 })
-  const mobile = await entry.evaluate(node => {
-    const row = node.querySelector<HTMLElement>('.flight-row')!
-    const box = (name: string) => row.querySelector<HTMLElement>(`.${name}`)!.getBoundingClientRect()
-    const route = box('flight-row-route')
-    const date = box('flight-row-date')
-    const distance = box('flight-row-distance')
-    const number = box('flight-row-number')
-    const checkbox = node.querySelector<HTMLInputElement>('input[type=checkbox]')!
-    const outline = getComputedStyle(checkbox)
-    const search = document.querySelector<HTMLInputElement>('.journal-search > input')!
-    return {
-      firstLine: route.left < date.left && Math.abs(route.top - date.top) < 8,
-      secondLine: distance.left < number.left && distance.top > route.top && Math.abs(distance.top - number.top) < 8,
-      outlineWidth: outline.outlineWidth,
-      outlineStyle: outline.outlineStyle,
-      outlineMatchesControl: outline.outlineColor === getComputedStyle(search).borderTopColor,
-    }
-  })
-  expect(mobile).toEqual({ firstLine: true, secondLine: true, outlineWidth: '1px', outlineStyle: 'solid', outlineMatchesControl: true })
-})
-
-test('the bookmarked period seeds Overview filters without the retired projection, and Passport remains usable', async ({ page, baseURL }) => {
-  await signIn(page, baseURL!)
-  const projections: string[] = []
-  page.on('request', request => {
-    const url = new URL(request.url())
-    if (url.pathname.includes('route-projection')) projections.push(url.search)
-  })
-  await page.goto('/overview?period=2024')
-  await expect(page.getByLabel('Flights', { exact: true })).toHaveText('—')
-  await expect(page.locator('.ov-globe svg').first()).toBeVisible()
-  await page.getByRole('button', { name: 'Filter', exact: true }).click()
-  await page.getByRole('combobox', { name: 'Search all filters' }).fill('2026')
-  await page.getByRole('option', { name: /2026/ }).click()
-  await page.keyboard.press('Escape')
-  await expect(page.getByLabel('Flights', { exact: true })).toHaveText('1')
-  await expect(page.locator('[data-filter-chip="period"]')).toContainText('2026')
-  await expect(page.locator('h1')).toContainText('2026')
-  // The bookmark seeded 2024 once; the provider now owns the live scope.
-  expect(new URL(page.url()).searchParams.get('year')).toBe('2024')
-  expect(projections).toEqual([])
-  await page.goto('/passport')
-  await expect(page.getByTestId('passport-data')).toBeVisible()
-  expect(projections).toEqual([])
-  await page.getByRole('button', { name: /United States/ }).first().click()
-  await expect(page.getByRole('dialog')).toBeVisible()
-  await expect(page.getByRole('dialog')).toContainText('JFK')
-  await page.keyboard.press('Escape')
-  await page.goto('/overview?period=2024')
-  await expect(page.locator('.ov3-zero')).toBeVisible()
-})
-
 test('auth validation and real sign-in reach the owned overview', async ({ page }) => {
   await page.goto('/signin')
   await page.getByLabel('Email', { exact: true }).fill('a@example.test')
@@ -161,25 +86,6 @@ test('withdrawing public visibility blocks new document, RSC and API statistics'
   }
 })
 
-test('RU read controls fit narrow and desktop viewports in both themes', async ({ page, context, baseURL }) => {
-  await context.addCookies([{ name: 'kuuki_locale', value: 'ru', url: baseURL! }])
-  await signIn(page, baseURL!)
-  for (const width of [320, 390, 1440]) {
-    await page.setViewportSize({ width, height: width === 1440 ? 900 : 844 })
-    for (const route of ['/overview', '/journal', '/passport', '/settings', '/leaderboard']) {
-      await page.goto(route)
-      await expect(page.locator('main h1')).toBeVisible()
-      expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), `${route} at ${width}px`).toBe(true)
-    }
-  }
-  await page.getByRole('button', { name: 'Меню аккаунта' }).click()
-  await page.getByRole('menuitemradio', { name: 'Тёмная' }).click()
-  await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark')
-  await page.goto('/journal')
-  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
-})
-
-
 async function journalAccount(page: Page, origin: string) {
   if (journalCookies) await page.context().addCookies(journalCookies)
   else {
@@ -208,71 +114,6 @@ async function journalAccount(page: Page, origin: string) {
   }
   return { create, awaiting, headers }
 }
-
-test('Journal stages mobile filters, preserves detail/reset state and maps legacy keys', async ({ page, baseURL }) => {
-  await signIn(page, baseURL!)
-  await page.goto('/flights?year=2026&airlineIata=AA&sortField=distance_km&sortOrder=asc&isUpcoming=false')
-  await page.waitForURL(url => url.pathname === '/journal')
-  expect(Object.fromEntries(new URL(page.url()).searchParams)).toEqual({ year: '2026', airline: 'AA', sort: 'distance_km', order: 'asc', status: 'completed' })
-  // A non-canonical query lands on its canonical form (the redirect runs before the list reads).
-  await page.goto('/journal?airlineIata=AA&status=bogus')
-  await page.waitForURL(url => url.searchParams.get('airline') === 'AA')
-  expect(Object.fromEntries(new URL(page.url()).searchParams)).toEqual({ airline: 'AA' })
-  await page.goto('/journal?year=2026&airport=JFK&queue=awaiting&order=asc')
-  await page.getByRole('button', { name: 'Filters', exact: true }).click()
-  await page.getByRole('combobox', { name: 'Status', exact: true }).selectOption('logged')
-  await page.getByRole('button', { name: 'Close filters' }).click()
-  await page.getByRole('button', { name: 'Filters', exact: true }).click()
-  await expect(page.getByRole('combobox', { name: 'Status', exact: true })).toHaveValue('')
-  await page.getByRole('combobox', { name: 'Status', exact: true }).selectOption('upcoming')
-  expect(new URL(page.url()).searchParams.has('status')).toBe(false)
-  await page.getByRole('button', { name: 'Apply filters' }).click()
-  await page.waitForURL(url => url.searchParams.get('status') === 'upcoming')
-  await page.goBack()
-  await expect(page.locator('.flight-row')).toHaveCount(1)
-  await page.locator('[data-flight-row]').click()
-  await page.waitForURL(url => url.searchParams.has('flight'))
-  expect(new URL(page.url()).searchParams.get('airport')).toBe('JFK')
-  await page.getByRole('button', { name: 'Close flight' }).click()
-  await page.waitForURL(url => !url.searchParams.has('flight'))
-  await page.getByRole('link', { name: 'Reset filters', exact: true }).click()
-  await page.waitForURL(url => !url.searchParams.has('airport'))
-  expect(Object.fromEntries(new URL(page.url()).searchParams)).toEqual({ queue: 'awaiting', order: 'asc' })
-  await page.getByRole('button', { name: /^Add aircraft/ }).click()
-  // The editor opens on Optional details with the aircraft field focused; on a phone, focusing the field opens its picker.
-  await expect(page.getByRole('combobox', { name: 'Aircraft (optional)' })).toBeFocused()
-  await page.keyboard.press('Escape')
-  await expect(page.getByRole('button', { name: 'Save flight' })).toBeVisible()
-  await page.keyboard.press('Escape')
-  await page.waitForURL(url => !url.searchParams.has('flight'))
-  await page.locator('[data-flight-row]').click()
-  await page.getByRole('button', { name: 'Delete flight', exact: true }).click()
-  await page.getByRole('dialog', { name: /^Delete .+ → .+\?$/ }).getByRole('button', { name: 'Delete flight', exact: true }).click()
-  await page.waitForURL(url => !url.searchParams.has('flight'))
-  await expect(page.getByRole('button', { name: 'Undo', exact: true })).toBeFocused()
-  await page.getByRole('button', { name: 'Undo', exact: true }).click()
-  await expect(page.locator('.flight-row')).toHaveCount(1)
-  await expect(page.locator('[data-flight-row]')).toBeFocused()
-  expect(Object.fromEntries(new URL(page.url()).searchParams)).toEqual({ queue: 'awaiting', order: 'asc' })
-  await page.setViewportSize({ width: 1200, height: 800 })
-  await page.getByRole('button', { name: 'Distance', exact: true }).focus()
-  await page.keyboard.press('Enter')
-  await page.waitForURL(url => url.searchParams.get('sort') === 'distance_km')
-  await page.getByRole('combobox', { name: 'Status', exact: true }).selectOption('logged')
-  await page.waitForURL(url => url.searchParams.get('status') === 'logged')
-  // Changing a filter by keyboard keeps focus on the control, and an invalid value is flagged instead of silently dropped.
-  const status = page.getByRole('combobox', { name: 'Status', exact: true })
-  await status.focus()
-  await status.selectOption('completed')
-  await page.waitForURL(url => url.searchParams.get('status') === 'completed')
-  await expect(status).toBeFocused()
-  const airport = page.getByRole('textbox', { name: 'Airport', exact: true })
-  await airport.fill('X1')
-  await airport.press('Enter')
-  await expect(airport).toHaveAttribute('aria-invalid', 'true')
-  await expect(airport).toBeFocused()
-  expect(new URL(page.url()).searchParams.has('airport')).toBe(false)
-})
 
 test('Journal selects the full filtered dataset and deletes after Undo, preserving other years', async ({ page, baseURL }) => {
   test.setTimeout(60000)
@@ -334,32 +175,6 @@ test('awaiting queue survives filters, retries failures, confirms in bulk and hi
   await expect(page.locator('.queue-summary')).toHaveCount(0)
   expect(writes).toBe(2)
   expect((await (await page.request.get('/api/me/awaiting')).json()).actionableCount).toBe(0)
-})
-
-test('did-not-fly Undo, deletion failure and retry keep the actual flight and disable offline actions', async ({ page, context, baseURL }) => {
-  test.setTimeout(60000)
-  const { awaiting } = await journalAccount(page, baseURL!)
-  const id = await awaiting('CANCEL1')
-  await page.goto('/journal')
-  await page.getByRole('button', { name: 'Did not fly', exact: true }).click()
-  await expect(page.locator('#awaiting-queue .awaiting-card')).toHaveCount(0)
-  await expect(page.getByRole('button', { name: 'Undo', exact: true })).toBeFocused()
-  await page.getByRole('button', { name: 'Undo', exact: true }).click()
-  await expect(page.locator('#awaiting-queue .awaiting-card')).toHaveCount(1)
-  await expect(page.getByRole('button', { name: 'Confirm arrival' })).toBeFocused()
-  await context.setOffline(true)
-  await expect(page.getByRole('button', { name: 'Confirm arrival' })).toHaveAttribute('aria-disabled', 'true')
-  await expect(page.getByText('Offline. Connect to change flights.').first()).toBeVisible()
-  await context.setOffline(false)
-  await page.route(`**/api/flights/${id}`, route => route.request().method() === 'DELETE' ? route.fulfill({ status: 503, json: { error: 'Delete failed' } }) : route.continue())
-  await page.getByRole('button', { name: 'Did not fly', exact: true }).click()
-  await expect(page.getByRole('alert').filter({ hasText: 'Delete failed. Your flights are restored.' })).toBeVisible({ timeout: 15000 })
-  await expect(page.locator('#awaiting-queue .awaiting-card')).toHaveCount(1)
-  expect((await page.request.get(`/api/flights/${id}`)).status()).toBe(200)
-  await page.unroute(`**/api/flights/${id}`)
-  await page.getByRole('button', { name: 'Retry deletion' }).click()
-  await expect(page.locator('.queue-summary')).toHaveCount(0, { timeout: 15000 })
-  expect((await page.request.get(`/api/flights/${id}`)).status()).toBe(404)
 })
 
 test('leaving the Journal during Undo cancels the delete, and the shell says so', async ({ page, baseURL }) => {

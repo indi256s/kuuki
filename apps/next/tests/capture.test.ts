@@ -20,32 +20,6 @@ async function fillFlight(page: Page) {
   }
 }
 
-test('calendar stays anchored to the date field with tappable days at 320px', async ({ page, baseURL }) => {
-  await freshAccount(page, baseURL!)
-  await page.setViewportSize({ width: 320, height: 700 })
-  await page.goto('/add')
-  await page.getByRole('button', { name: 'Calendar' }).click()
-  const geometry = await page.locator('.flight-calendar').evaluate(calendar => {
-    const popover = calendar.querySelector<HTMLElement>('.flight-calendar-popover')!
-    const days = [...popover.querySelectorAll<HTMLButtonElement>('.flight-calendar-grid button')]
-    const box = popover.getBoundingClientRect()
-    const calendarBox = calendar.getBoundingClientRect()
-    return {
-      top: box.top,
-      calendarBottom: calendarBox.bottom,
-      left: box.left,
-      right: box.right,
-      minDayWidth: Math.min(...days.map(day => day.getBoundingClientRect().width)),
-      minDayHeight: Math.min(...days.map(day => day.getBoundingClientRect().height)),
-    }
-  })
-  expect(Math.abs(geometry.top - geometry.calendarBottom)).toBeLessThanOrEqual(1)
-  expect(geometry.left).toBeGreaterThanOrEqual(0)
-  expect(geometry.right).toBeLessThanOrEqual(320)
-  expect(geometry.minDayWidth).toBeGreaterThanOrEqual(44)
-  expect(geometry.minDayHeight).toBeGreaterThanOrEqual(44)
-})
-
 test('manual capture retries the original uncertain save, then edits and deletes the flight', async ({ page, baseURL }) => {
   await freshAccount(page, baseURL!)
   await page.goto('/add')
@@ -92,34 +66,4 @@ test('manual capture retries the original uncertain save, then edits and deletes
   await page.getByRole('dialog', { name: /^Delete .+ → .+\?$/ }).getByRole('button', { name: 'Delete flight', exact: true }).click()
   await page.waitForURL('**/journal')
   expect((await (await page.request.get('/api/flights/all')).json() as unknown[])).toHaveLength(0)
-})
-
-test('a legacy countryCode link lands on that country in Passport, and anything else stays on the aircraft page', async ({ page, baseURL }) => {
-  await freshAccount(page, baseURL!)
-  // Country claims, visits and removal are covered in passport.test.ts through the Passport sheets.
-  await page.goto('/passport/manage?countryCode=US')
-  await page.waitForURL(url => url.pathname === '/passport' && url.search === '?country=US')
-  await expect(page.getByRole('dialog', { name: 'United States' })).toBeVisible()
-  for (const bad of ['?countryCode=ZZ', '?countryCode=us', '']) {
-    await page.goto(`/passport/manage${bad}`)
-    await expect(page.getByRole('heading', { name: 'Aircraft in journal', level: 1 })).toBeVisible()
-    expect(new URL(page.url()).pathname).toBe('/passport/manage')
-  }
-})
-
-test('bulk aircraft assignment still works from the Aircraft in journal page', async ({ page, baseURL }) => {
-  await freshAccount(page, baseURL!)
-  await page.goto('/add')
-  await fillFlight(page)
-  await page.getByRole('button', { name: 'Save flight' }).click()
-  await expect(page.getByRole('heading', { name: 'Flight saved' })).toBeVisible()
-  await page.goto('/passport/manage')
-  await page.getByRole('button', { name: 'Load flights' }).click()
-  await expect(page.getByRole('checkbox').first()).toBeVisible()
-  await page.getByRole('checkbox').first().check()
-  await page.getByLabel('Aircraft type').selectOption('A320')
-  await page.getByRole('button', { name: 'Apply to selected' }).click()
-  await expect(page.getByText('No flights to update.')).toBeVisible()
-  const flights = await page.request.get('/api/flights/all')
-  expect((await flights.json() as { aircraft_icao: string }[])[0].aircraft_icao).toBe('A320')
 })

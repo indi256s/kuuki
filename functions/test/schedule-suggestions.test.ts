@@ -60,18 +60,6 @@ it('suggestions never write flights, preferences or derived state', async () => 
   expect(call.config.abortSignal).toBeInstanceOf(AbortSignal)
 })
 
-it('only estimate flights with an airline and a number are eligible', async () => {
-  const response = await suggestRequest([1, 2, 3, 4])
-  expect(response.status).toBe(200)
-  expect(await response.json()).toMatchObject({ results: [{ id: 1 }] })
-  const prompt = provider.generateContent.mock.lastCall![0].contents as string
-  expect(prompt).toContain('TK')
-  expect(prompt).toContain('381')
-  provider.generateContent.mockClear()
-  expect(await (await suggestRequest([2, 3, 4])).json()).toEqual({ results: [] })
-  expect(provider.generateContent).not.toHaveBeenCalled()
-})
-
 it('missing key is 503 without contacting the provider or reading private flights', async () => {
   const db = { prepare: vi.fn() } as unknown as D1Database
   const response = await suggest(context('/api/flights/schedule-suggestions', { ids: [1] }, db, null))

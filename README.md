@@ -63,12 +63,11 @@ pnpm test
 pnpm next:build
 pnpm --filter @kuuki/next typecheck:worker
 pnpm next:smoke
-pnpm next:smoke:boundary
 pnpm --filter @kuuki/next exec playwright install chromium
 pnpm test:next:navigation
 ```
 
-The full navigation suite is required for UI changes. After changing API paths or exported HTTP methods, regenerate and include `apps/next/api-routes.generated.ts` with `node scripts/build-next.mjs --inventory-only`; edit the handlers or generator rather than generated output.
+The full navigation suite is required for UI changes. `pnpm next:smoke` includes the boundary checks; `pnpm next:smoke:boundary` is a shorter diagnostic alternative. After changing API paths or exported HTTP methods, regenerate and include `apps/next/api-routes.generated.ts` with `node scripts/build-next.mjs --inventory-only`; edit the handlers or generator rather than generated output.
 
 See [CODING_STANDARDS.md](CODING_STANDARDS.md) for checks by change type and [CI](.github/workflows/ci.yml) for the verification pipeline. `pnpm smoke:runtime` checks the compiled Pages Functions transport locally. `pnpm next:build` builds that API and OpenNext output, including activation and old service-worker retirement assets; it does not deploy. The preview/smoke scripts and `pnpm build:maintenance` use Wrangler dry-run builds.
 

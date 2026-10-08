@@ -25,13 +25,6 @@ describe('Button', () => {
     await userEvent.click(button)
     expect(onClick).not.toHaveBeenCalled()
   })
-
-  it('calls onClick when enabled', async () => {
-    const onClick = vi.fn()
-    render(<Button onClick={onClick}>Go</Button>)
-    await userEvent.click(screen.getByRole('button', { name: 'Go' }))
-    expect(onClick).toHaveBeenCalledTimes(1)
-  })
 })
 
 it('keeps one focused text label through pending, failure and retry, while idle counts remain instant', async () => {

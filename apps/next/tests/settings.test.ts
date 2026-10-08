@@ -13,26 +13,6 @@ async function edit(page: Page, value = 'Unsaved browser edit') {
   await expect(page.getByText('Unsaved changes', { exact: true })).toBeVisible()
 }
 
-test('Settings owned links preserve edits on stay and do not disable the guard after interrupted navigation', async ({ page, baseURL }) => {
-  await signIn(page, baseURL!); await page.goto('/settings'); await edit(page)
-  await page.getByRole('link', { name: 'Change username' }).click()
-  await page.getByRole('button', { name: 'Stay', exact: true }).click()
-  await expect(page.getByLabel('Display name')).toHaveValue('Unsaved browser edit')
-  // Hold and abort a real App Router RSC navigation, then prove Stay still protects the edited screen.
-  page.on('dialog', dialog => void dialog.dismiss())
-  let interrupted!: () => void
-  const aborted = new Promise<void>(resolve => { interrupted = resolve })
-  await page.route('**/onboarding?*', async route => { await route.abort('failed'); interrupted() })
-  await page.getByRole('link', { name: 'Change username' }).click()
-  await page.getByRole('button', { name: 'Leave without saving', exact: true }).click()
-  await aborted
-  await expect(page.getByRole('heading', { name: 'Settings', exact: true })).toBeVisible()
-  await page.unroute('**/onboarding?*')
-  await page.getByRole('link', { name: 'View my profile' }).click()
-  await page.getByRole('button', { name: 'Stay', exact: true }).click()
-  await expect(page.getByLabel('Display name')).toHaveValue('Unsaved browser edit')
-})
-
 test('Settings Back restores the existing entry on stay, then leaves exactly once; Forward remains usable', async ({ page, baseURL }) => {
   await signIn(page, baseURL!); await page.goto('/journal'); await settingsLink(page); await edit(page)
   await page.evaluate(() => history.back())

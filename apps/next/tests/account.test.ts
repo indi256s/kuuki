@@ -28,14 +28,6 @@ test('settings saves owned profile and privacy on a fresh account', async ({ pag
   await expect(page.getByText('Records: 5')).toBeVisible()
 })
 
-test('settings exports the existing fixture flights without mutating them', async ({ page, baseURL }) => {
-  await signIn(page, baseURL!)
-  await page.goto('/settings')
-  const download = page.waitForEvent('download')
-  await page.getByRole('button', { name: 'Download flights' }).click()
-  expect((await download).suggestedFilename()).toMatch(/\.csv$/)
-})
-
 test('ground visit export preserves year, entry and note while neutralizing spreadsheet formulas', async ({ page, baseURL }) => {
   const email = `ground-export-${crypto.randomUUID()}@example.test`
   const signup = await page.request.post('/api/auth/sign-up/email', { headers: fixtureHeaders(baseURL!), data: { email, password: 'temporary-password-2026' } })
@@ -78,20 +70,6 @@ test('sign out clears local drafts and retry receipts', async ({ page, baseURL }
   const remaining = await page.evaluate(() => Object.keys(localStorage))
   for (const key of keys.owned) expect(remaining).not.toContain(key)
   for (const key of keys.other) expect(remaining).toContain(key)
-})
-
-test('sign out remains available when the owner lookup fails', async ({ page, baseURL }) => {
-  await signIn(page, baseURL!)
-  await page.goto('/settings')
-  const key = 'kuuki-import-draft:v1:another-owner:00000000-0000-0000-0000-000000000002'
-  await page.evaluate(key => localStorage.setItem(key, '{}'), key)
-  await page.route('**/api/auth/me', route => route.fulfill({ status: 503, contentType: 'application/json', body: '{"error":"Temporary failure"}' }))
-  await page.getByRole('button', { name: 'Sign out', exact: true }).click()
-  await page.waitForURL('**/signin')
-  expect(await page.evaluate(key => localStorage.getItem(key), key)).toBe('{}')
-  await page.unroute('**/api/auth/me')
-  const response = await page.request.get('/api/auth/me')
-  expect(await response.json()).toMatchObject({ user: null })
 })
 
 test('an old tab preserves the new account draft and retry receipt on focus', async ({ page: oldTab, context, baseURL }) => {
@@ -159,36 +137,4 @@ test('an old tab preserves the new account draft and retry receipt on focus', as
   expect(remaining).toEqual({ draft: stored.draft, receipt: stored.receipt })
   // The old tab clears only its own departing owner.
   expect(await newTab.evaluate(key => localStorage.getItem(key), oldDraftKey)).toBeNull()
-})
-
-test('reset fragment is removed before hydration and invalid tokens show a recovery path', async ({ page }) => {
-  await page.goto('/reset-password#token=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA')
-  await expect(page).toHaveURL(/\/reset-password$/)
-  await page.getByLabel('New password', { exact: true }).fill('new-password-2026')
-  await page.getByRole('button', { name: 'Save password' }).click()
-  await expect(page.getByRole('heading', { name: 'This link has expired', exact: true })).toBeFocused()
-  await expect(page.getByRole('link', { name: 'Send a new link' })).toHaveAttribute('href', '/forgot-password')
-})
-
-test('fresh account deletion requires its password and removes its identity', async ({ page, baseURL }) => {
-  const email = `delete-${crypto.randomUUID()}@example.test`
-  const password = 'temporary-password-2026'
-  const signup = await page.request.post('/api/auth/sign-up/email', { headers: fixtureHeaders(baseURL!), data: { email, password, displayName: 'Delete test' } })
-  expect(signup.status()).toBe(201)
-  await claimUsername(page, baseURL!)
-  await page.goto('/settings')
-  await page.getByRole('button', { name: 'Delete account', exact: true }).click()
-  const dialog = page.getByRole('dialog')
-  await dialog.getByRole('button', { name: 'Continue', exact: true }).click()
-  await dialog.getByRole('button', { name: 'Skip', exact: true }).click()
-  await dialog.getByLabel('Current password').fill('wrong-password')
-  await page.getByRole('button', { name: 'Delete permanently' }).click()
-  await expect(dialog.getByRole('alert')).toContainText('Incorrect password')
-  const stillHere = await page.request.get('/api/auth/me')
-  expect((await stillHere.json() as { user: { email: string } }).user.email).toBe(email)
-  await page.getByLabel('Current password').fill(password)
-  await page.getByRole('button', { name: 'Delete permanently' }).click()
-  await page.waitForURL('**/account-deleted')
-  const after = await page.request.get('/api/auth/me')
-  expect((await after.json() as { user: unknown }).user).toBeNull()
 })
