@@ -8,7 +8,7 @@ import { COUNTRY_REGION } from '../_lib/countryRegions.generated'
 import { passportRead } from './passport'
 
 export const overviewEtag = (userId: string, state: { revision: number; evidence_revision: number }): string =>
-  `W/"ov3-${encodeURIComponent(userId)}-${state.revision}-${state.evidence_revision}"`
+  `W/"ov4-day-${encodeURIComponent(userId)}-${state.revision}-${state.evidence_revision}"`
 
 type AirportRow = { iata: string; latitude: number | null; longitude: number | null; country_code: string | null; city: string | null; name: string }
 type AircraftRow = { icao: string; manufacturer: string | null; type: string | null; model: string | null; name: string | null }
@@ -83,10 +83,10 @@ export async function readOverviewData(db: D1Database, userId: string): Promise<
   const mode = rows.length > AGGREGATE_THRESHOLD ? 'aggregate' : 'flights'
   return {
     schemaVersion: 3, etag: overviewEtag(userId, state ?? { revision: 0, evidence_revision: 0 }),
-    generatedAt: new Date().toISOString(), mode, derivedReady: data.derivedState === 'ready',
+    generatedAt: new Date().toISOString(), mode, ...(mode === 'aggregate' ? { aggregateResolution: 'day' as const } : {}), derivedReady: data.derivedState === 'ready',
     passport: { countries: data.pressedCountryCount, regions: data.regions.filter(region => region.pressed > 0).length,
       countryCodes: [...new Set(data.countries.filter(country => country.status === 'pressed').map(country => country.country_code))].sort() },
     homeOverride,
-    rows: mode === 'aggregate' ? aggregateRows(rows) : rows, refs,
+    rows: mode === 'aggregate' ? aggregateRows(rows, 'day') : rows, refs,
   }
 }

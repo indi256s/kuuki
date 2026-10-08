@@ -5,7 +5,7 @@ import { ChevronDown, Plus } from 'lucide-react'
 import { AddActions } from './add-actions'
 import { Menu } from './ui/menu'
 
-/** Desktop capture entry: the main half is manual add; the chevron lists upload, paste and manual. */
+/** Arc split-button composition, adapted through existing route links and Menu (MIT; ui/ARC-LICENSE.txt). Desktop capture entry: the main half is manual add; the chevron lists upload, paste and manual. */
 export function SplitAdd({ locale = 'en' }: { locale?: 'en' | 'ru' }) {
   const ru = locale === 'ru'
   return <div className="split-add">

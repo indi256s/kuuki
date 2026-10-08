@@ -3,30 +3,33 @@
   color: var(--text-muted);
   font: 400 13px/20px var(--font-sans);
   font-variant-numeric: tabular-nums;
-  --ts-chart-focus-fill: var(--background);
 }
 
 .kc-tooltip {
-  --ts-chart-tooltip-background: var(--surface-floating);
-  --ts-chart-tooltip-color: var(--text);
-  --ts-chart-tooltip-border: 1px solid var(--control-border);
-  --ts-chart-tooltip-border-radius: var(--radius-md);
-  --ts-chart-tooltip-shadow: var(--shadow-floating);
-  --ts-chart-tooltip-font: 400 13px/20px var(--font-sans);
-  --ts-chart-tooltip-padding: var(--space-3);
-  --ts-chart-tooltip-max-width: min(320px, calc(100vw - 32px));
+  position: fixed;
+  z-index: 55;
+  pointer-events: auto;
+  background: var(--surface-floating);
+  border: 1px solid var(--control-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-floating);
+  padding: var(--space-3);
+  max-width: min(320px, calc(100vw - 32px));
+  font: 400 13px/20px var(--font-sans);
   color: var(--text);
   font-variant-numeric: tabular-nums;
 }
+
+.kc-tooltip[popover] { inset: auto; margin: 0; }
 
 .kc svg text[font-size="12"],
 .kc svg text[font-size="22"] { font-family: var(--font-mono); }
 .kc svg text[font-size="22"] { font-weight: 500; }
 .kc svg text[font-size="13"] { font-family: var(--font-sans); }
-.kc .ts-chart-host:focus:not(:focus-visible),
-.kc svg.ts-chart:focus:not(:focus-visible) { outline: none; }
-.kc .ts-chart-host:focus-visible,
-.kc svg.ts-chart:focus-visible,
+.kc-svg:focus:not(:focus-visible),
+.kc-svg g:focus:not(:focus-visible) { outline: none; }
+.kc-svg:focus-visible,
+.kc-svg g:focus-visible,
 .kc button:focus-visible,
 .kc-tooltip button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
@@ -39,3 +42,20 @@
 .kc-table caption { text-align: left; font: 600 15px/24px var(--font-sans); padding-block: var(--space-2); }
 .kc-table th, .kc-table td { padding: var(--space-2); text-align: left; border: 0; }
 .kc-table [data-numeric] { text-align: right; font-variant-numeric: tabular-nums; }
+
+.kc-svg { display: block; width: 100%; overflow: visible; }
+.kc-svg [role="button"] { cursor: pointer; }
+/* SVG geometry updates animate only while visible; initial SSR geometry is already final. */
+.kc[data-in-view="true"] .kc-svg :is(path, circle, rect) {
+  transition: d 1100ms var(--ease-in-out), cx 1100ms var(--ease-in-out), cy 1100ms var(--ease-in-out), x 1100ms var(--ease-in-out), y 1100ms var(--ease-in-out), width 1100ms var(--ease-in-out), height 1100ms var(--ease-in-out), transform 1100ms var(--ease-in-out);
+}
+.kc[data-in-view="true"] .arc-waffle-cell { transition: transform 300ms var(--ease-in-out); }
+.kc[data-in-view="true"] .arc-waffle-cell rect { transition-duration: 300ms; }
+.arc-brush svg { display: block; width: 100%; }
+.arc-brush-handles { display: flex; gap: var(--space-3); flex-wrap: wrap; }
+.arc-brush-handles label { display: grid; flex: 1; min-width: 120px; }
+.arc-brush input { min-height: 44px; width: 100%; accent-color: var(--accent); }
+@media (prefers-reduced-motion: reduce) {
+  .kc[data-in-view="true"] .kc-svg :is(path, circle, rect),
+  .kc[data-in-view="true"] .arc-waffle-cell { transition: none; }
+}

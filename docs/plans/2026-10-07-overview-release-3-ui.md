@@ -1,5 +1,7 @@
 # Overview Release 3: UI/UX Implementation Plan
 
+Arc integration successor (2026-10-08): [implementation plan](2026-10-08-arc-integration.md) and [execution handoff](2026-10-08-arc-integration-handoff.md) track the local Arc/SVG replacement on `feat/arc-integration`, based on 4b4fe54. TanStack renderer/dependency descriptions below are historical Release 3 evidence; accepted calculations, seven sections, map/replay and actions carry forward. This successor does not extend deployment authorization.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Replace the Overview page in place with the Paper design:

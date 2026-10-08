@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { useCallback, useEffect, useRef, useState, type CSSProperties } from 'react'
 import { useRouter } from 'next/navigation'
+import { ClipboardPaste, PencilLine, Upload } from 'lucide-react'
 import type { Flight } from '@kuuki/client/flights'
 import { getFlight } from '@kuuki/client/flights'
 import type { DerivedAck } from '@kuuki/client/derivedState'
@@ -111,10 +112,11 @@ export function OnboardingFlow({ ownerId, locale, step, batchId, source }: { own
     <div hidden={step === 'reveal'}>
       <h1>{ru ? 'Добавьте первый перелёт' : 'Add your first flight'}</h1>
       {!choice && <div className="onboarding-choices">{([
-        ['file', ru ? 'Загрузить посадочные или PDF' : 'Upload boarding passes or PDFs'],
-        ['text', ru ? 'Вставить текст из письма' : 'Paste text from an email'],
-        ['manual', ru ? 'Ввести вручную' : 'Enter manually'],
-      ] as const).map(([value, label]) => <Button key={value} variant="secondary" onClick={() => setChoice(value)}>{label}</Button>)}</div>}
+        ['file', Upload, ru ? 'Загрузить посадочные или PDF' : 'Upload boarding passes or PDFs'],
+        ['text', ClipboardPaste, ru ? 'Вставить текст из письма' : 'Paste text from an email'],
+        ['manual', PencilLine, ru ? 'Ввести вручную' : 'Enter manually'],
+      ] as const).map(([value, Icon, label]) => <Button key={value} variant="secondary" className="onboarding-choice" static onClick={() => setChoice(value)}>
+        <span className="onboarding-choice-row"><Icon size={18} strokeWidth={1.75} aria-hidden="true" />{label}</span></Button>)}</div>}
       {choice === 'manual' && (baselineLoaded ? <FlightForm ownerId={ownerId} locale={locale} onSaved={onSaved} onOpenJournal={continueToReveal} /> : <p role="status">{ru ? 'Готовим журнал…' : 'Preparing your journal…'}</p>)}
       {(choice === 'file' || choice === 'text') && <ImportClient ownerId={ownerId} locale={locale} initialBatchId={batchId} initialSource={choice} onBatchId={onBatchId} onResult={onResult} />}
       {result && <Button onClick={continueToReveal}>{ru ? 'Посмотреть результат' : 'See your result'}</Button>}
@@ -132,7 +134,7 @@ export function OnboardingFlow({ ownerId, locale, step, batchId, source }: { own
       {publication === 'ready' && newCodes === null && <p>{ru ? 'Итоги обновлены. Откройте Паспорт, чтобы увидеть свои места.' : 'Totals updated. Open Passport to see your places.'}</p>}
       {publication === 'ready' && newCodes !== null && newCodes.length > 0 && <p>{formatCount(locale, newCodes.length, { en: { one: '{count} new country or territory', other: '{count} new countries and territories' }, ru: { one: '{count} новая страна или территория', few: '{count} новые страны и территории', many: '{count} новых стран и территорий', other: '{count} новой страны или территории' } })} · <Link href="/passport">{ru ? 'Открыть Паспорт' : 'Open Passport'}</Link></p>}
       {publication === 'ready' && eventId && <div className="onboarding-stamps">{(newCodes ?? []).slice(0, 8).map((code, index) => { const country = catalogCountry(code); return <div key={code} style={{ '--onboarding-stamp-delay': `${index * 80}ms` } as CSSProperties}><Stamp countryCode={code} nativeName={country?.nativeName ?? code} name={new Intl.DisplayNames([locale], { type: 'region' }).of(code) ?? code} kind="air" locale={locale} pressEventId={`${eventId}:${code}`} /></div> })}</div>}
-      <Link href="/overview" className="button primary">{ru ? 'Перейти к обзору' : 'Go to Overview'}</Link>
+      <Link href="/overview" className="ui-button" data-variant="primary">{ru ? 'Перейти к обзору' : 'Go to Overview'}</Link>
     </section>}
   </>
 }

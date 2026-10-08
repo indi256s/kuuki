@@ -7,27 +7,30 @@ this reduction does not preserve equivalent coverage.
 
 ## Measured reduction
 
-Baseline: checkout `4b4fe54e`, including the pre-existing local edits. Counts are
-discovered Vitest/Playwright cases and Node test-runner cases, including expanded
-parameterized cases. Standalone smoke assertions and build steps are unchanged
-and are not counted as runner cases.
+The initial working-checkout audit at `4b4fe54e` removed 1,367 of 2,671
+cases (51.18%), including the pre-existing uncommitted tests. Before publication,
+Arc integration and release receipts advanced remote `main` to `d19b1d6a`.
+The merge preserves both histories and every Arc application change.
 
-| Suite | Full inventory before | CI cases before | After | Deleted |
+The final comparison below uses **committed Arc main** as its baseline;
+unrelated local work is excluded. Counts include expanded runner cases.
+Standalone smoke assertions and build steps are not counted as runner cases.
+
+| Suite | Full inventory before | CI cases before | After | Net retired |
 | --- | ---: | ---: | ---: | ---: |
-| API, shared and data Vitest | 1,059 | 1,059 | 640 | 419 |
-| Next component/unit Vitest | 1,440 | 1,440 | 616 | 824 |
+| API, shared and data Vitest | 1,047 | 1,047 | 630 | 417 |
+| Next component/unit Vitest | 1,456 | 1,456 | 627 | 829 |
 | Playwright browser journeys | 161 | 101 | 37 | 124 |
 | Preview config and dependency-patch Node tests | 11 | 11 | 11 | 0 |
-| **Total** | **2,671** | **2,611** | **1,304** | **1,367** |
+| **Total** | **2,675** | **2,615** | **1,305** | **1,370** |
 
-Physical deletion removes **51.18%** of the full inventory. CI executes
-**50.06% fewer cases** (2,611 → 1,304). The old browser filename/grep selection
+Net case retirement is **51.21%** of the full inventory; CI executes
+**50.10% fewer cases** (2,615 → 1,305). The old browser filename/grep selection
 excluded 60 cases; CI now runs every remaining browser case. No retired cases
 were moved behind tags, skips, manual jobs or change-based routing.
 
-Deleted 104 whole test files and reduced cases in five unit files and twelve browser
-files. Removed unused browser transition-recording helpers. Application behavior,
-fixtures, dependencies and unrelated local work are preserved.
+Application behavior, fixtures and unrelated local work are preserved. Unused
+browser transition-recording helpers were removed.
 
 ## Coverage decisions
 
@@ -54,27 +57,46 @@ lifecycle scenario at every layer is still covered.
 - Update README and coding standards to require tests for credible owner-boundary
   risks rather than one test per design/plan clause.
 
+## Arc merge decisions
+
+Preserve the new Arc proof for actual DOM-free SVG rendering, replay pointer
+preview/commit/Escape rollback and focus, saved exact-day preferences recovering
+from legacy monthly data, exact-day Journal bookmarks, and previous-period
+leap-day/early-year arithmetic. Each formerly retired file keeps only the
+relevant regression, apart from the single-case SVG suite.
+
+Keep every newly added Arc suite, including Journal mutation/receipt/ownership
+cases, range draft admission, daily weighted series, category evidence,
+comparison arithmetic, and accessible chart targets. Keep the two early-year
+calendar regressions added to the retained controls suite.
+
+Retire five further locale-matrix cases to preserve the quota: Russian match
+announcements keep count 2 while dropping 1/5/21; mobile selection/Escape and
+calendar Escape focus keep RU while dropping their EN duplicates. Both locales
+still exercise date admission and their distinct calendar week boundaries.
+
 ## Validation
 
-Baseline API: 1,059 passed. Baseline Next: 1,437 passed and three failed under
-load; the complete affected files passed a focused serial rerun (76 cases).
-The two affected capture cases remain. The overview presentation suite was
-retired for scope/coverage reasons; its deletion is not a flaky-test fix.
+Initial working-checkout API: 1,059 passed. Initial Next: three failures under
+load, then the complete affected files passed a serial rerun (76 cases). The
+initial retained Next suite passed 616/616 and browsers 37/37; API passed 639/640
+with an unchanged database setup/teardown failure, then its whole file passed
+15/15 in isolation. These are historical checks before the Arc merge.
 
-Final Next unit run: 616 passed, zero failed or skipped. Next build, Next lint,
-API/Next/Worker type checks, map geometry self-check, preview configuration
-isolation check and full compiled Worker smoke passed. The unchanged 11 Node
-tests passed during the baseline audit.
+Final merged candidate: **630 API/shared/data, 627 Next component/unit, 37
+browser and 11 Node tests passed**, with zero failures or skips. Next build,
+Next lint, API/Next/Worker type checks and full compiled Worker smoke passed.
+The unchanged map-geometry and preview-isolation checks passed in the initial
+audit; the full smoke also verifies the current compiled Worker boundary.
 
-Final API run: 639 passed, one failed, zero skipped. The unchanged flight-metrics
-case failed in database fixture setup after 10.6 seconds and reported a server
-teardown error. The entire affected file then passed in isolation (15/15),
-including that case in 479 ms. This is consistent with a load-related fixture
-failure; the complete API run was not repeated or represented as a clean pass.
-Final browser run: all 37 passed (2.7 minutes).
+Independent preservation review approved the final merge with no blockers.
+All 13 brand-new Arc test files and every Arc application change are preserved
+byte-for-byte against `d19b1d6a`. `git diff --check` passed.
 
-Independent preservation review found no critical keeper restoration necessary;
-its two documentation/evidence corrections were applied. `git diff --check`
-passed. No application code or test assertions were changed to conceal failures.
+Publication preserves the audit commit `91e1b4bb` and Arc main `d19b1d6a` as
+merge parents, with a normal push. Unrelated local edits remain uncommitted;
+backup branch refs and a local preservation snapshot are retained.
+
 CI runtime savings have not been measured on GitHub; halving case count does not
-halve build, fixture startup or total workflow duration.
+halve build, fixture startup or total workflow duration. No production deploy or
+remote database writes are part of this publication.

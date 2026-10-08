@@ -78,11 +78,8 @@ export function ResetPasswordForm({ locale: initialLocale }: { locale: Locale })
       <Link href="/forgot-password" className="ui-button auth-primary" data-variant="primary">{t.newLink}</Link> :
       <form className="auth-form" onSubmit={submit} noValidate aria-busy={busy || undefined}>
         {email ? <input type="hidden" name="username" autoComplete="username" value={email} /> : null}
-        <div className="auth-field">
-          <CardField ref={passwordInput} locale={locale} label={t.password} name="password" type="password" autoComplete="new-password" maxLength={1024} readOnly={busy}
-            value={password} onChange={event => { setPassword(event.target.value); setPasswordError(false) }} error={passwordError ? passwordRule[locale] : undefined} aria-describedby="reset-password-hint" />
-          <span id="reset-password-hint" className="auth-field-hint">{t.hint}</span>
-        </div>
+        <CardField ref={passwordInput} locale={locale} label={t.password} name="password" type="password" autoComplete="new-password" maxLength={1024} readOnly={busy}
+          value={password} onChange={event => { setPassword(event.target.value); setPasswordError(false) }} hint={t.hint} error={passwordError ? passwordRule[locale] : undefined} />
         {error ? <FormMessage tone="error">{t[error]}</FormMessage> : null}
         <Button variant="primary" type="submit" className="auth-primary" loading={busy} loadingLabel={t.saving}>{t.save}</Button>
       </form>}

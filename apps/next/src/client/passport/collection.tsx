@@ -35,6 +35,7 @@ export function stampProps(entry: PassportEntry, locale: Locale, name: (code: st
   }
 }
 
+// Arc metric-card/progress composition (uiarc.dev, MIT; docs/research/2026-10-08-arc-source-inventory.md): immediate values, labelled track; Stamp stays native.
 /** The unboxed cover: stated total of the catalog, waiting caption, regions, new this year and the latest stamp. */
 export function PassportCover({ locale, figures, regions, name, onAdd, now }: {
   locale: Locale; figures: HeaderFigures; regions: PassportData['regions']; name: (code: string) => string; onAdd: () => void; now: Date
@@ -46,7 +47,7 @@ export function PassportCover({ locale, figures, regions, name, onAdd, now }: {
       <div className="passport-figure">
         <span className="eyebrow">{ru ? 'Страны и территории' : 'Countries and territories'}</span>
         <p className="passport-caption"><strong>{formatNumber(locale, figures.total)}</strong> <span className="passport-figure-of">{ru ? `из ${formatNumber(locale, CATALOG_TOTAL)}` : `of ${formatNumber(locale, CATALOG_TOTAL)}`}</span></p>
-        <div className="passport-progress" aria-hidden="true"><span style={{ width: `${share}%` } as CSSProperties} /></div>
+        <div className="passport-progress" role="progressbar" aria-label={ru ? 'Страны и территории в паспорте' : 'Countries and territories in passport'} aria-valuemin={0} aria-valuemax={CATALOG_TOTAL} aria-valuenow={figures.total}><span style={{ width: `${share}%` } as CSSProperties} /></div>
         {figures.pending > 0 ? <p className="passport-caption">· <a href={AWAITING_QUEUE_HREF}>{formatCount(locale, figures.pending, PENDING_FORMS)}</a></p> : null}
       </div>
       <div className="passport-figure passport-figure-regions">

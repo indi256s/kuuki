@@ -1,0 +1,40 @@
+Arc UI — third-party source notice
+==================================
+
+Parts of the UI source in client/ui, client/import, client/passport,
+client/capture, client/overview and their route styles are
+adapted from Arc (https://uiarc.dev, repository
+https://github.com/kuratlielia/arc-library), free-tier items only, fetched from
+https://uiarc.dev/r/{name}.json on 2026-10-08. Adapted files are modified for
+Kuuki (tokens, behavior, accessibility, motion policy); they are not upstream
+copies. Per-item source hashes, dependencies and adaptation decisions are in
+docs/research/2026-10-08-arc-source-inventory.md. Arc Pro source is not used.
+
+The MIT License below is reproduced verbatim from the repository LICENSE
+(SHA256 1b73a3fbab233cb995e6e9b6a63d302f91975c74c1629919c8e9820902820dde,
+fetched 2026-10-08), which matches the Free: MIT section of
+https://uiarc.dev/license. Keep this notice with any copied or adapted source.
+
+----------------------------------------------------------------------------
+
+MIT License
+
+Copyright (c) 2026 Elia Kuratli
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.

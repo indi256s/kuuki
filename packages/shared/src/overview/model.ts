@@ -87,6 +87,8 @@ export interface OverviewPayload {
   etag: string
   generatedAt: string
   mode: 'flights' | 'aggregate'
+  /** Absent on legacy aggregate payloads, whose rows group whole months. */
+  aggregateResolution?: 'day' | 'month'
   derivedReady: boolean
   passport: { countries: number; regions: number; countryCodes: string[] }
   homeOverride: string | null

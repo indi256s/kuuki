@@ -9,6 +9,7 @@ import { Disclosure } from '../ui/disclosure'
 import { SegmentedControl } from '../ui/segmented-control'
 import { S } from './copy'
 import type { ImportSource } from './import-api'
+import { ImportTextarea } from './import-textarea'
 
 export const MAX_FILE_BYTES = IMPORT_MAX_FILE_BYTES
 const ACCEPT = 'application/pdf,image/png,image/jpeg'
@@ -42,9 +43,9 @@ export function SourceStep({ locale, busy, initialMode, onSubmit, notice }: {
   const [dragging, setDragging] = useState(false)
   const [copied, setCopied] = useState<'ok' | 'failed' | null>(null)
   const input = useRef<HTMLInputElement>(null)
+  const prompt = useRef<HTMLTextAreaElement>(null)
   const operation = useRef<string | null>(null)
   const dropId = useId()
-  const textId = useId()
   useEffect(() => { if (copied) { const timer = setTimeout(() => setCopied(null), 4000); return () => clearTimeout(timer) } }, [copied])
 
   const choose = (next: File | null | undefined) => {
@@ -71,30 +72,30 @@ export function SourceStep({ locale, busy, initialMode, onSubmit, notice }: {
   }
 
   const copy = async () => {
-    try { await navigator.clipboard.writeText(S.prompt[locale]); setCopied('ok') } catch { setCopied('failed') }
+    try { await navigator.clipboard.writeText(S.prompt[locale]); setCopied('ok') } catch {
+      // No clipboard permission: the prompt stays on screen, selected, so the member can copy it by hand.
+      prompt.current?.focus(); prompt.current?.select(); setCopied('failed')
+    }
   }
-  const problemText = problem === 'type' ? S.fileBad[locale] : problem === 'size' ? S.fileBig[locale] : problem === 'read' ? S.fileRead[locale]
-    : problem === 'needFile' ? S.needFile[locale] : problem === 'needText' ? S.needText[locale] : null
+  const problemText = problem === 'needText' ? null : problem === 'type' ? S.fileBad[locale] : problem === 'size' ? S.fileBig[locale] : problem === 'read' ? S.fileRead[locale]
+    : problem === 'needFile' ? S.needFile[locale] : null
 
   return <section className="import-source" aria-label={S.stepSource[locale]}>
     <SegmentedControl label={S.modeLabel[locale]} value={mode} onChange={next => { setMode(next); setProblem(null) }}
       options={[{ value: 'file', label: S.modeFile[locale] }, { value: 'text', label: S.modeText[locale] }]} />
     {mode === 'file' ? <div className="import-drop-wrap">
       <button type="button" id={dropId} className="import-dropzone" data-dragging={dragging ? 'true' : undefined} disabled={busy}
-        onClick={() => input.current?.click()} onDragOver={event => { event.preventDefault(); setDragging(true) }} onDragLeave={() => setDragging(false)} onDrop={onDrop}
+        onClick={() => input.current?.click()} onDragOver={event => { event.preventDefault(); setDragging(true) }} onDragLeave={event => { if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setDragging(false) }} onDrop={onDrop}
         aria-describedby={`${dropId}-hint`}>
-        {file ? <FileText size={24} strokeWidth={1.5} aria-hidden="true" /> : <Upload size={24} strokeWidth={1.5} aria-hidden="true" />}
+        <span className="import-drop-icon" aria-hidden="true">{file ? <FileText size={24} strokeWidth={1.5} /> : <Upload size={24} strokeWidth={1.5} />}</span>
         <span className="import-drop-title">{file ? <><span className="sr-only">{S.dropChosen[locale]}: </span>{file.name}</> : S.dropTitle[locale]}</span>
         <span className="import-drop-hint" id={`${dropId}-hint`}>{file ? S.dropChange[locale] : S.dropHint[locale]}</span>
       </button>
       <input ref={input} type="file" accept={ACCEPT} className="sr-only" tabIndex={-1} aria-hidden="true"
         onChange={event => { choose(event.target.files?.[0]); event.target.value = '' }} />
-    </div> : <div className="import-text-wrap">
-      <label htmlFor={textId} className="import-text-label">{S.textLabel[locale]}</label>
-      <p className="import-hint" id={`${textId}-hint`}>{S.textHint[locale]}</p>
-      <textarea id={textId} className="import-textarea" rows={7} value={text} aria-describedby={`${textId}-hint`} disabled={busy}
-        onChange={event => { setText(event.target.value); operation.current = null; setProblem(null) }} />
-    </div>}
+    </div> : <ImportTextarea label={S.textLabel[locale]} hint={S.textHint[locale]} rows={7} value={text} disabled={busy}
+      error={problem === 'needText' ? S.needText[locale] : undefined}
+      onChange={event => { setText(event.target.value); operation.current = null; setProblem(null) }} />}
     <p className="import-problem" role={problemText ? 'alert' : undefined}>{problemText}</p>
     {notice ? <p className="import-hint" role="status">{notice}</p> : null}
     <div className="import-actions">
@@ -105,7 +106,7 @@ export function SourceStep({ locale, busy, initialMode, onSubmit, notice }: {
       <div className="import-email-help">
         <p>{S.emailHelpBody[locale]}</p>
         <p>{S.importLimit[locale]}</p>
-        <textarea className="import-textarea import-prompt" readOnly rows={8} aria-label={S.promptLabel[locale]} value={S.prompt[locale]} />
+        <ImportTextarea ref={prompt} className="import-prompt" readOnly rows={8} label={S.promptLabel[locale]} value={S.prompt[locale]} />
         <div className="import-actions"><Button morphText textAlternatives={[S.copyPrompt[locale], locale === 'ru' ? 'Скопировано' : 'Copied']} onClick={() => void copy()}>{copied === 'ok' ? (locale === 'ru' ? 'Скопировано' : 'Copied') : S.copyPrompt[locale]}</Button></div>
         <p className="import-hint" role="status">{copied === 'ok' ? S.copied[locale] : copied === 'failed' ? S.copyFailed[locale] : ''}</p>
       </div>

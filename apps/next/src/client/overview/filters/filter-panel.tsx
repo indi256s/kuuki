@@ -8,7 +8,8 @@ import { useOverview } from '../store/overview-context'
 import { Button } from '../../ui/button'
 import { PopoverRoot, PopoverContent } from '../../ui/popover'
 import { Sheet } from '../../ui/sheet'
-import { MonthRange } from '../../ui/month-range'
+import { periodDays } from '@kuuki/shared/overview/range'
+import { DateRangePicker, type DateRangeValue } from '../../ui/date-range-picker'
 import { MakerSwatch, AllianceMark } from '../../ui/category-mark'
 import { useMobile } from '../../ui/use-mobile'
 import { facetName, type FilterFacet } from './chip-label'
@@ -25,6 +26,12 @@ export function FilterPanel({ anchor, initialFacet, onClose }: { anchor: HTMLEle
   const restoreTarget = () => anchorAvailable() ? anchor : fallback.current?.isConnected ? fallback.current : document.querySelector<HTMLElement>('main h1, .ov3-page h1')
   const [query, setQuery] = useState(''), [facet, setFacet] = useState(initialFacet)
   const [browse, setBrowse] = useState(false), [custom, setCustom] = useState(false), [active, setActive] = useState(0)
+  const period = filter.period && 'from' in filter.period ? filter.period : null
+  const source = JSON.stringify(period)
+  const [rangeDraft, setRangeDraft] = useState<{ source: string; value: DateRangeValue } | null>(null)
+  const [rangeError, setRangeError] = useState('')
+  const range = rangeDraft?.source === source ? rangeDraft.value : period && periodDays(period) || { from: '', to: '' }
+  const dailyAvailable = payload?.mode !== 'aggregate' || payload.aggregateResolution === 'day'
   const index = useMemo(() => payload ? buildFacetIndex(payload, referenceLabels(locale), locale) : [], [payload, locale])
   const searching = query.trim().length > 0
   const groups = searching ? searchFacets(index, query, locale) : [{ facet: 'period' as const, options: topPicks(index) }]
@@ -101,9 +108,14 @@ export function FilterPanel({ anchor, initialFacet, onClose }: { anchor: HTMLEle
       </label>)}
       {facet === 'period' ? <>
         <Button variant="ghost" aria-expanded={custom || !!filter.period && 'from' in filter.period} onClick={() => setCustom(value => !value)}>{locale === 'ru' ? 'Свой диапазон' : 'Custom range'}</Button>
-        {custom || filter.period && 'from' in filter.period ? <MonthRange locale={locale}
-          from={filter.period && 'from' in filter.period ? filter.period.from : ''} to={filter.period && 'to' in filter.period ? filter.period.to : ''}
-          onChange={period => { if (isCurrent()) actions.setPeriod(period) }} onClear={() => { /* MonthRange already emits null once. */ }} /> : null}
+        {!dailyAvailable ? <p role="status">{locale === 'ru' ? 'Точные даты недоступны в старой сводке. Обновите страницу.' : 'Exact dates are unavailable in this older summary. Refresh the page.'}</p> : null}
+        {custom || filter.period && 'from' in filter.period ? <DateRangePicker locale={locale} {...range} disabled={!dailyAvailable}
+          error={rangeError} onChange={value => { setRangeDraft({ source, value }); setRangeError('') }}
+          onApply={() => {
+            const days = periodDays(range)
+            if (!days) { setRangeError(locale === 'ru' ? 'Укажите обе даты в правильном порядке.' : 'Enter both dates in chronological order.'); return }
+            if (isCurrent() && dailyAvailable) { actions.setPeriod(days); setRangeDraft(null); setRangeError('') }
+          }} onClear={() => { if (isCurrent()) { actions.setPeriod(null); setRangeDraft(null); setRangeError('') } }} /> : null}
       </> : null}
     </> : <div className="ov-filter-facets">{FACET_ORDER.map(key => <Button key={key} variant="ghost" onClick={() => { setFacet(key); setCustom(false) }}>{facetName(key, locale)} ›</Button>)}</div>}
   </div>

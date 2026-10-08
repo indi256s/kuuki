@@ -4,10 +4,12 @@ import Link from 'next/link'
 import type { ReactNode } from 'react'
 import { isEmptyFilter, previousPeriod } from '@kuuki/shared/overview/filter'
 import { calendarDay } from '@kuuki/shared/overview/next'
-import { formatCount, formatDistanceKm, formatDuration, formatDurationDays, formatMonthYear, formatNumber, type CountForms, type Locale } from '../../../lib/format'
+import { overviewSeries } from '@kuuki/shared/overview/series'
+import { formatCount, formatDistanceKm, formatDuration, formatDurationDays, formatMonthYear, formatPeriodDate, formatNumber, type CountForms, type Locale } from '../../../lib/format'
 import { forms, S, t } from '../copy'
 import { useOverview } from '../store/overview-context'
 import { YearStrip } from './year-strip'
+import { ArcSparkline } from '../charts/arc-sparkline'
 import './hero.css'
 
 const copy = {
@@ -38,10 +40,13 @@ export function HeroPanel() {
   const { scope, payload, filter, locale } = useOverview()
   if (!payload || !scope) return <p role="status">{t(S.loading, locale)}</p>
   const f = scope.figures, zero = f.flights === 0 && !isEmptyFilter(filter)
+  const trend = overviewSeries(payload, filter).monthly
+  const trendLabel = locale === 'ru' ? 'По месяцам выбранного периода' : 'By month in the selected period'
+  const trendLabels = (key: 'flights' | 'km') => trend.map(row => `${formatPeriodDate(locale, row.date)}: ${key === 'km' ? formatDistanceKm(locale, row.km) : formatCount(locale, row.flights, forms.flights)}`)
   const previous = previousPeriod(filter)?.period
   const label = previous ? 'years' in previous
     ? previous.years.length === 1 ? String(previous.years[0]) : `${previous.years[0]}–${previous.years.at(-1)}`
-    : `${formatMonthYear(locale, new Date(`${previous.from}-01T00:00:00Z`))}–${formatMonthYear(locale, new Date(`${previous.to}-01T00:00:00Z`))}` : null
+    : `${formatPeriodDate(locale, previous.from)}–${formatPeriodDate(locale, previous.to)}` : null
   const deltas = !zero && label && f.deltas ? f.deltas : null
   const share = !zero && !filter.period && !isEmptyFilter(filter) ? f.share : null
   const percent = (ratio: number) => `${formatNumber(locale, Math.round(ratio * 100))}% ${t(copy.all, locale)}`
@@ -70,6 +75,7 @@ export function HeroPanel() {
         <p className="ov3-hero-caption ov3-mobile-caption">{t(S.flights, locale)}{f.awaiting > 0 ? ` · ${formatNumber(locale, f.awaiting)} ${t(copy.toReview, locale)}` : ''}</p>
         {deltas && label ? <Delta value={f.flights - deltas.flights} label={label} locale={locale} /> : null}
         {share ? <p className="ov3-hero-share">{formatCount(locale, f.flights, forms.flights)} · {percent(share.flights)}</p> : null}
+        {!zero && trend.length > 0 ? <ArcSparkline values={trend.map(row => row.flights)} labels={trendLabels('flights')} summary={`${t(S.flights, locale)} · ${trendLabel}`} /> : null}
       </div>
       {review ? <Link className="ov3-hero-review" href="/journal?queue=awaiting">{review}</Link> : null}
     </div>
@@ -79,6 +85,7 @@ export function HeroPanel() {
       <dd className="ov3-hero-value" aria-label={metric.name}>{zero ? '—' : metric.value}</dd>
       {metric.delta !== null && label ? <Delta value={metric.delta} label={label} locale={locale} format={metric.format} /> : null}
       {metric.share !== undefined ? <p className="ov3-hero-share">{percent(metric.share)}</p> : null}
+      {metric.key === 'km' && !zero && trend.length > 0 ? <ArcSparkline values={trend.map(row => row.km)} labels={trendLabels('km')} summary={`${t(copy.km, locale)} · ${trendLabel}`} /> : null}
     </div>)}</dl>
   </section>
 }

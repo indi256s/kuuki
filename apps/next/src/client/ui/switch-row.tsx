@@ -36,7 +36,7 @@ export function SwitchRow({ label, description, consequence, checked, onCheckedC
         aria-labelledby={`${id}-l`}
         aria-describedby={describedBy}
         onClick={() => { if (!blocked) onCheckedChange(!checked) }}
-      ><span className="ui-switch-knob" aria-hidden="true" /></button>
+      ><span className="ui-switch-track" aria-hidden="true"><span className="ui-switch-knob" /></span></button>
     </div>
   )
 }

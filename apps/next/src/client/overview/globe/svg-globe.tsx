@@ -1,10 +1,7 @@
 'use client'
 
-import { memo, useEffect, useMemo, useState } from 'react'
-import { defineChart } from '@tanstack/charts/scene'
-import { Chart } from '@tanstack/charts/react'
-import { geoShape } from '@tanstack/charts/geo'
-import { geoDistance, geoInterpolate, geoOrthographic, type ExtendedFeatureCollection } from 'd3-geo'
+import { memo, useEffect, useMemo, useRef, useState } from 'react'
+import { geoDistance, geoInterpolate, geoOrthographic, geoPath, type ExtendedFeatureCollection } from 'd3-geo'
 import { coordinates } from '@kuuki/shared/geo'
 import type { GlobeData } from '@kuuki/shared/overview/globe'
 import type { OverviewFilter, OverviewPayload } from '@kuuki/shared/overview/model'
@@ -53,6 +50,26 @@ export function isLand(value: unknown): value is GlobeLand {
 }
 
 export const SvgGlobe = memo(function SvgGlobe({ globe, all, airports, rotate, size, locale, land, staticPlanes = false, maker }: SvgGlobeProps) {
+  const mapHost = useRef<HTMLDivElement>(null)
+  const [measuredSize, setMeasuredSize] = useState<number | null>(null)
+  const renderSize = measuredSize ?? size
+  useEffect(() => {
+    const element = mapHost.current
+    if (!element || typeof ResizeObserver === 'undefined') return
+    let retired = false
+    const measure = (width: number) => {
+      if (!retired && Number.isFinite(width) && width > 18) setMeasuredSize(width)
+    }
+    const observer = new ResizeObserver(entries => {
+      const entry = entries.find(entry => entry.target === element)
+      if (entry) measure(entry.contentRect.width)
+    })
+    const retire = () => { retired = true; observer.disconnect() }
+    observer.observe(element)
+    measure(element.getBoundingClientRect().width)
+    window.addEventListener('kuuki:identity-reset', retire)
+    return () => { retired = true; observer.disconnect(); window.removeEventListener('kuuki:identity-reset', retire) }
+  }, [])
   const [mountedLand, setMountedLand] = useState<GlobeLand | null>(null)
   useEffect(() => {
     const controller = new AbortController()
@@ -82,55 +99,40 @@ export const SvgGlobe = memo(function SvgGlobe({ globe, all, airports, rotate, s
   const longitude = rotate?.[0] ?? globe.centroid?.lon ?? 0
   // A null centroid uses the stable Greenwich/equator view, without inventing travel coordinates.
   const latitude = rotate?.[1] ?? globe.centroid?.lat ?? 0
-  const definition = useMemo(() => {
-    const projection = { type: () => geoOrthographic().rotate([-longitude, -latitude]), fit: 'sphere' as const, inset: 9 }
-    const sphere = [{ type: 'Sphere' as const }]
+  const layers = useMemo(() => {
+    const projection = geoOrthographic().rotate([-longitude, -latitude])
+      .fitExtent([[9, 9], [renderSize - 9, renderSize - 9]], { type: 'Sphere' })
+    const path = geoPath(projection).pointRadius(2.5)
     const point = (iata: string): [number, number] | null => {
       const ref = coordinates(airports[iata])
       return ref ? [ref.lon, ref.lat] : null
     }
     const arcs = (routes: GlobeData['routes']) => routes.flatMap(route => {
       const geometry = routeGeometry({ from: point(route.a), to: point(route.b) })
-      return geometry ? [{ type: 'Feature' as const, id: route.key, properties: { count: route.count }, geometry }] : []
+      const d = geometry && path(geometry)
+      return d ? [{ ...route, d }] : []
     })
-    const background = arcs(globe.ghostRoutes.flatMap(key => {
-      const route = allRoutes.get(key)
-      return route ? [route] : []
-    }))
-    const selected = arcs(globe.routes)
-    const visits = new Map(globe.countries.map(country => [country.code, country.visits]))
-    const ghostCountries = new Set(globe.ghostCountries)
-    const features = mountedLand?.features ?? []
+    const features = (mountedLand?.features ?? []).flatMap(feature => {
+      const d = path(feature)
+      return d ? [{ code: countryCode(feature), d }] : []
+    })
     const dots = globe.airports.flatMap(airport => {
       const position = point(airport.iata)
-      return position ? [{ type: 'Feature' as const, id: airport.iata, properties: {}, geometry: { type: 'Point' as const, coordinates: position } }] : []
+      const d = position && path({ type: 'Point', coordinates: position })
+      return d ? [{ key: airport.iata, d }] : []
     })
-    return defineChart({
-      margin: 0,
-      motion: false,
-      scales: { x: null, y: null },
-      marks: [
-        geoShape(sphere, { id: 'rim', className: 'globe-rim', projection, fill: 'var(--surface-inset)', stroke: 'var(--globe-rim)', strokeWidth: 16 }),
-        geoShape(sphere, { id: 'sphere', className: 'globe-sphere', projection, fill: 'var(--surface-inset)', stroke: 'var(--hairline)', strokeWidth: 1 }),
-        geoShape(features, { id: 'land', className: 'globe-land', projection, key: countryCode, fill: 'var(--map-land)', stroke: 'var(--map-border)', strokeWidth: 0.5 }),
-        geoShape(features.filter(feature => visits.has(countryCode(feature))), { id: 'countries', className: 'globe-countries', projection, key: countryCode, fill: feature => `var(${BUCKET_TOKENS[visitBucket(visits.get(countryCode(feature))!)]})` }),
-        geoShape(features.filter(feature => ghostCountries.has(countryCode(feature))), { id: 'ghost-countries', className: 'globe-ghost-countries', projection, key: countryCode, fill: 'var(--mark-ghost)', opacity: 0.15 }),
-        ...[1, 2, 3, 4].map(bucket => geoShape(background.filter(route => visitBucket(route.properties.count) === bucket), {
-          id: `ghost-routes-${bucket}`, className: 'globe-ghost-routes', projection, key: route => String(route.id), fill: 'none',
-          stroke: 'var(--mark-ghost)', strokeWidth: Math.min(3, bucket), opacity: 0.15,
-        })),
-        ...[1, 2, 3, 4].map(bucket => geoShape(selected.filter(route => visitBucket(route.properties.count) === bucket), {
-          id: `routes-${bucket}`, className: 'globe-routes', projection, key: route => String(route.id), fill: 'none',
-          stroke: `var(${maker ? `--cat-maker-${maker}` : BUCKET_TOKENS[bucket]})`, strokeWidth: Math.min(3, bucket),
-        })),
-        geoShape(dots, { id: 'airports', className: 'globe-airports', projection, key: airport => String(airport.id), r: 2.5, fill: 'var(--mark-1)' }),
-      ],
-    })
-  }, [globe, allRoutes, airports, longitude, latitude, mountedLand, maker])
+    return { sphere: path({ type: 'Sphere' })!, features, dots,
+      selected: arcs(globe.routes), background: arcs(globe.ghostRoutes.flatMap(key => {
+        const route = allRoutes.get(key)
+        return route ? [route] : []
+      })) }
+  }, [globe, allRoutes, airports, longitude, latitude, mountedLand, renderSize])
+  const visits = new Map(globe.countries.map(country => [country.code, country.visits]))
+  const ghostCountries = new Set(globe.ghostCountries)
 
   const staticGlyphs = useMemo(() => {
     if (!staticPlanes) return []
-    const projection = geoOrthographic().rotate([-longitude, -latitude]).fitExtent([[9, 9], [size - 9, size - 9]], { type: 'Sphere' })
+    const projection = geoOrthographic().rotate([-longitude, -latitude]).fitExtent([[9, 9], [renderSize - 9, renderSize - 9]], { type: 'Sphere' })
     return globe.routes.flatMap(route => {
       const from = coordinates(airports[route.a]), to = coordinates(airports[route.b])
       if (!from || !to || !routeGeometry({ from: [from.lon, from.lat], to: [to.lon, to.lat] })) return []
@@ -140,7 +142,7 @@ export const SvgGlobe = memo(function SvgGlobe({ globe, all, airports, rotate, s
       if (!position || !next) return []
       return [{ key: route.key, position, angle: Math.atan2(next[0] - position[0], position[1] - next[1]) * 180 / Math.PI }]
     })
-  }, [staticPlanes, longitude, latitude, size, globe.routes, airports])
+  }, [staticPlanes, longitude, latitude, renderSize, globe.routes, airports])
 
   const labels = locale === 'ru'
     ? { table: 'Данные глобуса', view: 'Показать таблицу', kind: 'Показатель', code: 'Код', selected: 'Выбрано', all: 'Всё время', route: 'Маршрут · перелёты', airport: 'Аэропорт · посещения', country: 'Страна · посещения', background: 'Фон' }
@@ -151,9 +153,18 @@ export const SvgGlobe = memo(function SvgGlobe({ globe, all, airports, rotate, s
     ...[...globe.countries.map(country => country.code), ...globe.ghostCountries].map(code => [labels.country, code, globe.countries.find(item => item.code === code)?.visits ?? 0, all.countries.find(item => item.code === code)?.visits ?? 0] as const),
   ]
   return <div className="svg-globe">
-    <div className="svg-globe-map">
-      <Chart definition={definition} initialWidth={size} aspectRatio={1} ariaLabel={t(S.map, locale)} tabIndex={-1} />
-      {staticGlyphs.length > 0 && <svg className="globe-static-planes" viewBox={`0 0 ${size} ${size}`} aria-hidden="true">
+    <div ref={mapHost} className="svg-globe-map">
+      <svg className="globe-svg" viewBox={`0 0 ${renderSize} ${renderSize}`} role="img" aria-label={t(S.map, locale)}>
+        <g className="globe-rim"><path d={layers.sphere} fill="var(--surface-inset)" stroke="var(--globe-rim)" strokeWidth={16} /></g>
+        <g className="globe-sphere"><path d={layers.sphere} fill="var(--surface-inset)" stroke="var(--hairline)" strokeWidth={1} /></g>
+        <g className="globe-land globe-detail">{layers.features.map(feature => <path key={feature.code} d={feature.d} fill="var(--map-land)" stroke="var(--map-border)" strokeWidth={0.5} />)}</g>
+        <g className="globe-countries globe-detail">{layers.features.filter(feature => visits.has(feature.code)).map(feature => <path key={feature.code} d={feature.d} fill={`var(${BUCKET_TOKENS[visitBucket(visits.get(feature.code)!)]})`} />)}</g>
+        <g className="globe-ghost-countries globe-detail">{layers.features.filter(feature => ghostCountries.has(feature.code)).map(feature => <path key={feature.code} d={feature.d} fill="var(--mark-ghost)" opacity={0.15} />)}</g>
+        <g className="globe-ghost-routes globe-detail">{layers.background.map(route => <path key={route.key} d={route.d} fill="none" stroke="var(--mark-ghost)" strokeWidth={Math.min(3, visitBucket(route.count))} opacity={0.15} />)}</g>
+        <g className="globe-routes globe-detail">{layers.selected.map(route => <path key={route.key} d={route.d} fill="none" stroke={`var(${maker ? `--cat-maker-${maker}` : BUCKET_TOKENS[visitBucket(route.count)]})`} strokeWidth={Math.min(3, visitBucket(route.count))} />)}</g>
+        <g className="globe-airports globe-detail">{layers.dots.map(dot => <path key={dot.key} d={dot.d} fill="var(--mark-1)" />)}</g>
+      </svg>
+      {staticGlyphs.length > 0 && <svg className="globe-static-planes" viewBox={`0 0 ${renderSize} ${renderSize}`} aria-hidden="true">
         {staticGlyphs.map(plane => <g key={plane.key} transform={`translate(${plane.position[0]} ${plane.position[1]}) rotate(${plane.angle})`}>
           {/* flightcn north-pointing icon, MIT; maps/licenses/flightcn.LICENSE. */}
           <path transform="translate(-9.6 -9.6) scale(.8)" fill={`var(${maker ? `--cat-maker-${maker}` : '--mark-1'})`} d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z" />
