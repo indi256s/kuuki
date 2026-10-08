@@ -1,6 +1,6 @@
 # Release 3 consolidated delivery audit — 8 October 2026
 
-Status: promotion
+Status: blocked
 
 What this repo does: Kuuki keeps private flight journals and publishes owner-selected profile information. The audit assumes personal journal load, concurrent requests and multiple tabs; the real board has 69 completed flights, while the existing 5,001-flight fixture exercises aggregate volume.
 
@@ -85,8 +85,12 @@ Historical planning/research prose and non-runtime scratch prototype implementat
 - Three existing tests received fixture/migration expectation corrections only. No new tests or cases were introduced.
 - CI navigation is restricted to the owner-accepted 101 functional cases across 15 files, with trace off and visual/layout cases excluded. Earlier candidate evidence was 99 initial passes plus five focused reruns, not a single final 101-case pass.
 - Package and fresh production builds passed: 118 assets / 10,279,802 bytes / 73 API routes, `/tmp/kuuki-r3-audit-build.log`. Composed Worker smoke and API boundary checks passed on isolated port 8824, `/tmp/kuuki-r3-audit-{smoke,boundary}.log`; Worker types also passed.
-- The consolidated remediation reviewer read the complete 557-line patch, all 20 changed/new files and relevant dependencies. All nine dispositions were checked. No additional defect was found in the fixes; missing remote schema admission remains blocking. GitHub promotion/CI is pending at this report revision.
-- Remediation commit `8b5e5c3` is pushed in registered [PR47](https://github.com/indi256s/kuuki/pull/47). [CI/CD run37745780614](https://github.com/indi256s/kuuki/actions/runs/37745780614) passed all five jobs: 1042 API cases, 1437 Next cases and a fresh single run of all101selected functional navigation cases. Its separate React Doctor job failed three errors; a URL-state method was mistaken for an observer and browser globals inside a Radix Portal were not recognized as client-only. A method rename and explicit browser guard clear all three; pinned0.9.17 reports zeroerrors/60warnings and73existing popover/context cases pass. Independent review validated all60warnings/15families; CI for this follow-up remains pending. No rule suppressions or threshold changes.
+- The consolidated remediation reviewer read the complete 557-line patch, all 20 changed/new files and relevant dependencies. All nine dispositions were checked. No additional defect was found in the fixes; missing remote schema admission remains blocking. GitHub promotion and post-merge CI are complete.
+- Remediation commit `8b5e5c3` is pushed in registered [PR47](https://github.com/indi256s/kuuki/pull/47). [CI/CD run37745780614](https://github.com/indi256s/kuuki/actions/runs/37745780614) passed all five jobs: 1042 API cases, 1437 Next cases and a fresh single run of all101selected functional navigation cases. Its separate React Doctor job failed three errors; a URL-state method was mistaken for an observer and browser globals inside a Radix Portal were not recognized as client-only. A method rename and explicit browser guard clear all three; pinned0.9.17 reports zeroerrors/60warnings and73existing popover/context cases pass. Independent review validated all60warnings/15families; all eight PR checks passed on follow-up `ad17e99`. No rule suppressions or threshold changes.
+
+Promotion uses the separate clean main checkout `/private/tmp/kuuki-r3-release-6cc8f8f`; dirty MAIN and unrelated worktrees were preserved. Fresh sequential production/preview ledger reads after merge again show exactly0001–0007, pending0008+0009. Initial authorization7403 errors were transient; existing OAuth retries succeeded without credential changes.
+
+[Main CI](https://github.com/indi256s/kuuki/actions/runs/37747939613) and [main React Doctor](https://github.com/indi256s/kuuki/actions/runs/37747939621) succeeded for exact code SHA6cc8f8f. Clean frozen-lockfile install, package build and Next production build also passed; logs `/tmp/kuuki-r3-clean-main-{install,packages,build}.log`. A documentation-only promotion record can reuse this CI after its path-only diff is verified.
 
 ### React Doctor warning dispositions
 
@@ -105,6 +109,6 @@ One proposed review change was declined as an existing contract: airline-only PA
 
 The Overview manifest's 719,251 gzip bytes cover all 27 client files, including deferred MapLibre; they are not initial network transfer. MapLibre accounts for 279,398 gzip bytes and is dynamically imported. No invented byte budget or physical-device performance claim is made.
 
-Verdict: all eight concrete code findings are fixed, focused checks pass and consolidated remediation review is resolved. GitHub promotion/CI remains pending. Remote schema admission is the explicit deployment blocker; the dated Release 1 rehearsal does not admit the amended schema.
+Verdict: all eight concrete code findings are fixed, focused checks pass and consolidated remediation review is resolved. PR47 merged as `6cc8f8ff93664667637696a6b95d2395ebce1f78`, with identical tree to audited head `ad17e99`. Post-merge CI/CD37747939613 and React Doctor37747939621 pass. Main CI passed1042API/1437Next/101functional navigation cases. The separate clean main build passed118assets/10,279,913bytes/73APIroutes; no remote write/deploy occurred. Remote schema admission is the explicit deployment blocker; the dated Release 1 rehearsal does not admit the amended schema.
 
 Not checked: visuals, devices, screenshots and layout comparisons; historical/non-runtime unread areas are listed above. No remote D1 writes or deployment, and no new regression cases by owner instruction; historical clock provenance remains ambiguous.
