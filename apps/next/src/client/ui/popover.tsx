@@ -16,6 +16,7 @@ const MountedPopoverContent = forwardRef<HTMLDivElement, RadixPopover.PopoverCon
 ) {
   // Capture on each fresh Portal mount, before child autoFocus or ref callbacks run.
   const [opener] = useState(() => {
+    if (typeof document === 'undefined') return null
     const active = document.activeElement
     return active instanceof HTMLElement && active !== document.body ? active : null
   })

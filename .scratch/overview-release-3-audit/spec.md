@@ -86,6 +86,20 @@ Historical planning/research prose and non-runtime scratch prototype implementat
 - CI navigation is restricted to the owner-accepted 101 functional cases across 15 files, with trace off and visual/layout cases excluded. Earlier candidate evidence was 99 initial passes plus five focused reruns, not a single final 101-case pass.
 - Package and fresh production builds passed: 118 assets / 10,279,802 bytes / 73 API routes, `/tmp/kuuki-r3-audit-build.log`. Composed Worker smoke and API boundary checks passed on isolated port 8824, `/tmp/kuuki-r3-audit-{smoke,boundary}.log`; Worker types also passed.
 - The consolidated remediation reviewer read the complete 557-line patch, all 20 changed/new files and relevant dependencies. All nine dispositions were checked. No additional defect was found in the fixes; missing remote schema admission remains blocking. GitHub promotion/CI is pending at this report revision.
+- Remediation commit `8b5e5c3` is pushed in registered [PR47](https://github.com/indi256s/kuuki/pull/47). [CI/CD run37745780614](https://github.com/indi256s/kuuki/actions/runs/37745780614) passed all five jobs: 1042 API cases, 1437 Next cases and a fresh single run of all101selected functional navigation cases. Its separate React Doctor job failed three errors; a URL-state method was mistaken for an observer and browser globals inside a Radix Portal were not recognized as client-only. A method rename and explicit browser guard clear all three; pinned0.9.17 reports zeroerrors/60warnings and73existing popover/context cases pass. Independent review validated all60warnings/15families; CI for this follow-up remains pending. No rule suppressions or threshold changes.
+
+### React Doctor warning dispositions
+
+All60warnings across15families were independently validated against source/callers. No additional correctness, security or accessibility defect was found. Root verified the journal rejection handler, render-time error delivery, tooltip event boundary, replay formatter and internal Journal destination.
+
+- Mixed exports12, array lookups15 and complexity9: bounded helpers/collections and existing state branches; no demonstrated production defect.
+- Static interaction1 and positional keys3: tooltip propagation boundary and stateless ordered actions/cells/spans; native controls own actions.
+- Non-null assertions3: entries or daytime pairs are established before access.
+- Atlas fetch effects2 and post-await updates2: public validated atlas, cancellation/current ownership guards and defined failure behavior.
+- Deferred CSS1: intentional MapLibre loading boundary; nonmodal dialog1 retains focus/Escape/close handling.
+- Intl construction7: real allocations, including replay-driven renders; slowdown is unmeasured. Internal anchor1 intentionally reaches Journal through a document navigation; no lost destination or permission bypass. Both remain bounded recommendations.
+- Keyboard activation1 is confined to a synthetic existing test opener; no shipped UI defect.
+- Journal handler-only state1 and missing catch1: state is consumed/thrown in render, `.then(success, failure)` handles rejection, and cleanup retires callbacks. Changing the error state to a ref would break boundary delivery.
 
 One proposed review change was declined as an existing contract: airline-only PATCH retains stored metrics, including a previously selected median. [Release 1's explicit PATCH rule](../../docs/plans/2026-10-07-overview-release-1-migrations.md#task-5-server-authoritative-write-path) states recomputation triggers and separately requires airline-only retention; the existing `patch of airline or client metrics keeps all stored metric columns, including historical values` case passes. Ponytail independently excluded this behavior for the same reason. Changing it would revise the accepted rule, so no implementation or assertion change was made. A selected median can therefore remain from the former carrier until a supported recomputation trigger occurs.
 

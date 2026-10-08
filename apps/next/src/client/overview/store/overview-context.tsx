@@ -25,7 +25,7 @@ function useController({ payload: initial, prefs: initialPrefs, ownerKey, locale
     let targets: string[] = []
     return {
       getRequested: () => requested,
-      observe(url: string, hash: string) {
+      observeURL(url: string, hash: string) {
         if (observed === url) return
         observed = url
         const target = url + hash, index = targets.indexOf(target)

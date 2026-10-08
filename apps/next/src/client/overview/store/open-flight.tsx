@@ -16,7 +16,7 @@ function useOverviewURL() {
   const { navigation, isCurrent } = useOverview()
   const query = params.toString()
   const url = pathname + (query ? `?${query}` : '')
-  useEffect(() => { navigation.observe(url, window.location.hash) }, [url, navigation])
+  useEffect(() => { navigation.observeURL(url, window.location.hash) }, [url, navigation])
   useEffect(() => {
     const traverse = () => navigation.traverse(window.location.pathname + window.location.search + window.location.hash)
     window.addEventListener('popstate', traverse)
