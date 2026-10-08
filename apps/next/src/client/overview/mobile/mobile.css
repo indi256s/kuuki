@@ -1,0 +1,16 @@
+.ov3-tile { font: inherit; color: var(--text); text-align: start; cursor: pointer; touch-action: pan-y; }
+.ov3-tile[data-tile-span=full] { grid-column: 1 / -1; }
+.ov3-tile-heading { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.ov3-tile-heading h2 { min-width: 0; }
+.ov3-tile:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.ov3-tile[data-dragging=true] { cursor: grabbing; }
+.ov3-sheet-heading { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+.ov3-sheet-position { color: var(--text-muted); font-size: 13px; font-weight: 400; }
+.ov3-sheet-pager { display: flex; gap: 4px; margin-bottom: 20px; }
+.ov3-sheet-pager span { flex: 1; height: 2px; background: var(--control-border); }
+.ov3-sheet-pager span[data-active=true] { background: var(--accent); }
+.ov3-sheet-navigation { display: flex; justify-content: space-between; gap: 8px; }
+.ov3-sheet-navigation .ui-button { min-height: 44px; white-space: normal; }
+.ov3-section-sheet.ui-sheet[data-side=bottom] { max-height: calc(100dvh - var(--sheet-kb) - max(16px, env(safe-area-inset-top))); }
+.ov3-section-sheet .ui-panel-header, .ov3-section-sheet .ui-panel-footer { border: 0; }
+.ov3-section-sheet .narrator { max-width: 60ch; color: var(--text-muted); font-size: 15px; line-height: 24px; }

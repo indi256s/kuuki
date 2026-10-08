@@ -51,15 +51,9 @@
 .ov3-zero-figures { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; margin: 0; }
 .ov3-zero-figures dt { font-size: 13px; color: var(--text-muted); }
 .ov3-zero-figures dd { margin: 0; font-size: 40px; line-height: 1.1; font-weight: 600; }
-/* ponytail: native grid may leave gaps after hide/reorder; Task18 adds adjacency packing. */
 .ov3-sections { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; }
-.ov3-section h2 { margin: 0 0 16px; }
+.ov3-sections[data-surface=tiles] h2 { margin: 0 0 16px; }
 .ov3-hidden { color: var(--text-muted); font-size: 13px; }
-@media (min-width: 1024px) {
-  .ov3-sections { grid-template-columns: minmax(0, 392fr) minmax(0, 384fr) minmax(0, 392fr); }
-  .ov3-section[data-span=wide] { grid-column: span 2; }
-  .ov3-section[data-span=full] { grid-column: 1 / -1; }
-}
 @media (min-width: 701px) and (max-width: 1023px) {
   .ov3-globe-band { grid-template-columns: minmax(0, 1fr); }
   .ov3-hero .ui-skeleton { height: 240px !important; }
@@ -73,6 +67,5 @@
   .ov3-hero .ui-skeleton { height: 200px !important; }
   .ov3-sections[data-surface=tiles] { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .ov3-sections[data-surface=tiles] .ov3-section { padding: 16px; }
-  .ov3-sections[data-surface=tiles] .ov3-section[data-section=manufacturers] { grid-column: 1 / -1; }
   .ov3-sections[data-surface=tiles] h2 { font-size: 17px; }
 }

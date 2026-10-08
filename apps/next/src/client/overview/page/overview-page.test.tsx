@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { act, cleanup, render, screen, within } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import { renderToString } from 'react-dom/server'
 import { hydrateRoot } from 'react-dom/client'
 import { LIFECYCLE_CHANGED_EVENT } from '../../lifecycle-sync'
@@ -72,7 +72,7 @@ it.each([false, true])('sections follow persisted order and hidden filtering on 
   prefs.layout.order.reverse(); prefs.layout.hidden = ['fleet', 'clock']
   mount(payload, prefs, 'ru')
   expect(screen.getAllByRole('heading', { level: 2 }).map(h => h.textContent)).toEqual(['Пересечения', 'Ритм', 'Производители', 'Рекорды', 'Рейтинги'])
-  expect(screen.getByRole('contentinfo')).toHaveTextContent('Скрытые разделы: 2')
+  expect(screen.getByRole('contentinfo')).toHaveTextContent('2 скрытых раздела')
 })
 it('missing payload loads instead of showing first run; SSR does not guess a section surface', () => {
   const view = mount(null)
@@ -129,7 +129,7 @@ it('keeps available scope after a real refresh failure instead of replacing it w
   await act(async () => { window.dispatchEvent(new Event('focus')) })
   expect(fetcher.mock.calls.filter(call => String(call[0]).startsWith('/api/'))).toHaveLength(1)
   expect(screen.getAllByRole('heading', { level: 2 })).toHaveLength(7)
-  expect(screen.queryByRole('status')).toBeNull()
+  expect(screen.queryByText('Loading overview')).toBeNull()
   expect(screen.queryByRole('link', { name: 'Import flights' })).toBeNull()
 })
 it('registry exposes actual gates including makers and ungated rankings to later section consumers', () => {
@@ -184,4 +184,147 @@ it('composes the real hero, global Next strip and SSR SVG globe from the owner p
   expect(html).toContain('<svg')
   expect(html).not.toContain('Map pending')
   expect(html).not.toContain('Figures pending')
+})
+
+it.each([['Records', 1], ['Manufacturers', 2], ['Fleet', 3]] as const)('desktop keyboard move restores %s options focus and announces position', async (title, position) => {
+  const { default: userEvent } = await import('@testing-library/user-event')
+  const user = userEvent.setup()
+  mount()
+  expect(screen.getAllByRole('heading', { level: 2 })).toHaveLength(7)
+  await user.click(screen.getByRole('button', { name: `${title} options` }))
+  await user.keyboard('{ArrowDown}{Enter}')
+  expect(screen.getAllByRole('heading', { level: 2 })[position - 1]).toHaveTextContent(title)
+  expect(screen.getByRole('status')).toHaveTextContent(`${title} moved to position ${position} of 7`)
+  expect(screen.getByRole('button', { name: `${title} options` })).toHaveFocus()
+})
+
+it.each(['en', 'ru'] as const)('move/hide/show persist once per action and retain full order/hidden positions (%s)', async locale => {
+  vi.useFakeTimers()
+  const open = (button: HTMLElement) => fireEvent.keyDown(button, { key: 'Enter' })
+  const save = vi.fn(saver), prefs = structuredClone(DEFAULT_PREFS)
+  prefs.layout.hidden = ['records']
+  const view = render(<OverviewPage payload={payload} prefs={prefs} ownerKey="dev" name="" locale={locale} live={false} saver={save} />)
+  const options = (title: string) => screen.getByRole('button', { name: locale === 'en' ? `${title} options` : `Настройки: ${title}` })
+  const choose = async (title: string, label: string) => { open(options(title)); fireEvent.click(screen.getByRole('menuitem', { name: label })) }
+  const flush = async () => { await act(() => vi.advanceTimersByTimeAsync(800)) }
+  await choose(locale === 'en' ? 'Fleet' : 'Парк', locale === 'en' ? 'Move up' : 'Выше')
+  expect(screen.getByRole('status')).toHaveTextContent(locale === 'en' ? 'Fleet moved to position 2 of 6' : 'Парк: позиция 2 из 6')
+  await flush()
+  expect(save).toHaveBeenCalledTimes(1)
+  const reordered = ['rankings', 'records', 'fleet', 'manufacturers', 'clock', 'rhythm', 'crossings']
+  expect(save.mock.calls[0][0].layout).toEqual({ order: reordered, hidden: ['records'] })
+  await choose(locale === 'en' ? 'Rankings' : 'Рейтинги', locale === 'en' ? 'Hide' : 'Скрыть')
+  await flush()
+  expect(save).toHaveBeenCalledTimes(2)
+  expect(save.mock.calls[1][0].layout).toEqual({ order: reordered, hidden: ['records', 'rankings'] })
+  open(screen.getByRole('button', { name: locale === 'en' ? 'Show' : 'Показать' }))
+  fireEvent.click(screen.getByRole('menuitem', { name: locale === 'en' ? 'Records' : 'Рекорды' }))
+  await flush()
+  expect(save).toHaveBeenCalledTimes(3)
+  expect(save.mock.calls[2][0].layout).toEqual({ order: reordered, hidden: ['rankings'] })
+  expect(screen.getAllByRole('heading', { level: 2 })[0]).toHaveTextContent(locale === 'en' ? 'Records' : 'Рекорды')
+  expect(screen.getByRole('status')).toHaveTextContent(locale === 'en' ? 'Fleet moved to position 2 of 6' : 'Парк: позиция 2 из 6')
+  open(screen.getByRole('button', { name: locale === 'en' ? 'Show' : 'Показать' }))
+  fireEvent.click(screen.getByRole('menuitem', { name: locale === 'en' ? 'Show all' : 'Показать все' }))
+  await flush()
+  expect(save).toHaveBeenCalledTimes(4)
+  expect(save.mock.calls[3][0].layout).toEqual({ order: reordered, hidden: [] })
+  expect(screen.getAllByRole('heading', { level: 2 })).toHaveLength(7)
+  expect(view.container.querySelectorAll('[data-pair="true"]')).toHaveLength(2)
+  const pair = view.container.querySelectorAll('[data-pair="true"]')[0]
+  expect(pair.getAttribute('data-narrow-first')).toBe('false')
+  expect(within(pair as HTMLElement).getAllByRole('heading', { level: 2 }).map(h => h.textContent)).toEqual(locale === 'en' ? ['Fleet', 'Manufacturers'] : ['Парк', 'Производители'])
+  expect(prefs.layout.hidden).toEqual(['records'])
+})
+
+
+it('real page drag preserves hidden ids, writes only on accepted drop, and retires on identity reset', async () => {
+  vi.useFakeTimers()
+  const prefs = structuredClone(DEFAULT_PREFS); prefs.layout.hidden = ['records']
+  const save = vi.fn(saver)
+  const raf = vi.fn(() => 1), cancel = vi.fn()
+  vi.stubGlobal('requestAnimationFrame', raf); vi.stubGlobal('cancelAnimationFrame', cancel)
+  render(<OverviewPage payload={payload} prefs={prefs} ownerKey="dev" name="" locale="en" live={false} saver={save} />)
+  const visible = ['rankings', 'manufacturers', 'fleet', 'clock', 'rhythm', 'crossings']
+  vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function (this: HTMLElement) {
+    const top = 100 + visible.indexOf(this.dataset.section ?? '') * 200
+    return { top, bottom: top + 100, left: 0, right: 1200, width: 1200, height: 100, x: 0, y: top, toJSON() {} }
+  })
+  const pointer = (target: Element | Window, type: string, y: number, pointerType = 'mouse') => {
+    const event = new Event(type, { bubbles: true, cancelable: true })
+    Object.assign(event, { pointerId: 1, clientX: 0, clientY: y, button: 0, pointerType, isPrimary: true })
+    fireEvent(target, event)
+  }
+  const header = () => screen.getByRole('heading', { name: 'Fleet' }).closest('header')!
+  const heading = screen.getByRole('heading', { level: 1 })
+  heading.focus()
+  pointer(header(), 'pointerdown', 520, 'touch')
+  await act(() => vi.advanceTimersByTimeAsync(1000))
+  expect(save).not.toHaveBeenCalled()
+  fireEvent.keyDown(window, { key: 'Escape' })
+  pointer(window, 'pointerup', 100, 'touch')
+  await act(() => vi.advanceTimersByTimeAsync(800))
+  expect(save).not.toHaveBeenCalled()
+  pointer(header(), 'pointerdown', 520)
+  pointer(window, 'pointermove', 100)
+  pointer(window, 'pointerup', 100)
+  expect(screen.getByRole('status')).toHaveTextContent('Fleet moved to position 1 of 6')
+  expect(screen.getAllByRole('heading', { level: 2 })[0]).toHaveTextContent('Fleet')
+  await act(() => vi.advanceTimersByTimeAsync(800))
+  expect(save).toHaveBeenCalledTimes(1)
+  expect(save.mock.calls[0][0].layout).toEqual({ order: ['fleet', 'rankings', 'records', 'manufacturers', 'clock', 'rhythm', 'crossings'], hidden: ['records'] })
+  expect(heading).toHaveFocus()
+  pointer(header(), 'pointerdown', 120, 'touch')
+  fireEvent(window, new Event('kuuki:identity-reset'))
+  await act(() => vi.advanceTimersByTimeAsync(1000))
+  pointer(window, 'pointerup', 600, 'touch')
+  expect(save).toHaveBeenCalledTimes(1)
+  expect(screen.queryByRole('heading', { name: 'Fleet' })).toBeNull()
+  expect(cancel).toHaveBeenCalled()
+})
+
+
+it.each([
+  ['Records', 'Manufacturers', false],
+  ['Manufacturers', 'Fleet', false],
+  ['Crossings', 'Rhythm', false],
+  ['Records', 'Show', true],
+] as const)('keyboard Hide %s restores focus to %s (only visible=%s)', async (title, target, onlyVisible) => {
+  const { default: userEvent } = await import('@testing-library/user-event')
+  const user = userEvent.setup(), prefs = structuredClone(DEFAULT_PREFS)
+  if (onlyVisible) prefs.layout.hidden = prefs.layout.order.filter(id => id !== 'records')
+  mount(payload, prefs)
+  await user.click(screen.getByRole('button', { name: `${title} options` }))
+  await user.keyboard('{End}{Enter}')
+  expect(screen.queryByRole('heading', { name: title })).toBeNull()
+  expect(screen.getByRole('button', { name: target === 'Show' ? target : `${target} options` })).toHaveFocus()
+})
+
+
+it.each(['other focus', 'identity reset', 'unmount'] as const)('pending menu focus respects %s before close cleanup', async interruption => {
+  vi.useFakeTimers()
+  const view = mount()
+  fireEvent.keyDown(screen.getByRole('button', { name: 'Records options' }), { key: 'Enter' })
+  fireEvent.click(screen.getByRole('menuitem', { name: 'Hide' }))
+  const other = document.createElement('button')
+  document.body.appendChild(other)
+  try {
+    if (interruption === 'identity reset') fireEvent(window, new Event('kuuki:identity-reset'))
+    if (interruption === 'unmount') view.unmount()
+    other.focus()
+    await act(() => vi.advanceTimersByTimeAsync(0))
+    expect(other).toHaveFocus()
+    if (interruption === 'identity reset') expect(screen.queryByRole('heading', { level: 2 })).toBeNull()
+  } finally { other.remove() }
+})
+
+it.each(['Records', 'Show all'])('final Show restoration focuses the restored section: %s', async choice => {
+  const { default: userEvent } = await import('@testing-library/user-event')
+  const user = userEvent.setup(), prefs = structuredClone(DEFAULT_PREFS)
+  prefs.layout.hidden = choice === 'Records' ? ['records'] : ['fleet', 'records']
+  mount(payload, prefs)
+  await user.click(screen.getByRole('button', { name: 'Show' }))
+  await user.keyboard(choice === 'Records' ? '{Home}{Enter}' : '{End}{Enter}')
+  expect(screen.queryByRole('button', { name: 'Show' })).toBeNull()
+  expect(screen.getByRole('button', { name: 'Records options' })).toHaveFocus()
 })

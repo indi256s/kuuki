@@ -14,13 +14,12 @@ function pending(title: Copy, gate: Entry['gate']): Entry {
   function Placeholder({ span }: { span: Span }) {
     const { locale } = useOverview()
     const label = t(title, locale)
-    return createElement('div', { 'data-span': span }, createElement('h2', null, label),
-      createElement(Skeleton, { height: span === 'narrow' ? 240 : 280, label }))
+    return createElement('div', { 'data-span': span }, createElement(Skeleton, { height: span === 'narrow' ? 240 : 280, label }))
   }
   function Tile() {
     const { locale } = useOverview()
     const label = t(title, locale)
-    return createElement('div', null, createElement('h2', null, label), createElement(Skeleton, { height: 96, label }))
+    return createElement('div', null, createElement(Skeleton, { height: 96, label }))
   }
   return { title, Section: Placeholder, Tile, gate }
 }

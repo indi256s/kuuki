@@ -1,0 +1,27 @@
+.ov3-bento { display: flex; flex-direction: column; gap: 16px; }
+.ov3-bento-row { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; }
+.ov3-frame { position: relative; padding: 16px 20px; }
+.ov3-section-header { display: flex; align-items: center; gap: 8px; min-height: 44px; margin-bottom: 16px; cursor: grab; touch-action: none; }
+/* Native touch dragging requires reserving the handle before pointerdown. */
+.ov3-section-header :is(button, a, input, select, textarea, [data-reorder-control]) { touch-action: auto; cursor: auto; }
+.ov3-frame[data-dragging] .ov3-section-header { cursor: grabbing; touch-action: none; user-select: none; }
+.ov3-section-title { flex: 1; min-width: 0; }
+.ov3-section-title h2 { margin: 0; font-size: 18px; line-height: 24px; letter-spacing: -0.01em; }
+.ov3-section-title p { margin: 4px 0 0; color: var(--text-muted); font-size: 13px; }
+.ov3-grip { position: absolute; left: 4px; color: var(--text-muted); visibility: hidden; }
+.ov3-frame:focus-within .ov3-grip { visibility: visible; }
+.ov3-section-narrator { margin-top: 24px; }
+.ov3-section-narrator .narrator { margin: 0; max-width: 60ch; font-size: 15px; line-height: 24px; font-weight: 400; color: var(--text-muted); }
+.ov3-insertion { position: fixed; height: 2px; background: var(--accent); pointer-events: none; z-index: 40; }
+.ov3-layout-status { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.ov3-hidden { display: flex; align-items: center; flex-wrap: wrap; }
+.ov3-frame .ui-button:focus-visible, .ov3-hidden .ui-button:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+@media (hover: hover) and (pointer: fine) { .ov3-frame:hover .ov3-grip { visibility: visible; } }
+@media (pointer: coarse) {
+  .ov3-grip { visibility: visible; }
+  .ov3-section-header .ui-button, .ov3-hidden .ui-button { min-width: 44px; min-height: 44px; }
+}
+@media (min-width: 1024px) {
+  .ov3-bento-row[data-pair=true] { grid-template-columns: minmax(0, 392fr) minmax(0, 792fr); }
+  .ov3-bento-row[data-pair=true][data-narrow-first=false] { grid-template-columns: minmax(0, 792fr) minmax(0, 392fr); }
+}
