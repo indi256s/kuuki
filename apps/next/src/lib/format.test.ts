@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { formatCount, formatDateOnly, formatDistanceKm, formatDuration, formatInstantDate, formatMonthYear, formatNumber, formatRelativeDate, pluralCategory, type CountForms } from './format'
+import { formatCount, formatDateOnly, formatDistanceKm, formatDuration, formatDurationDays, formatInstantDate, formatMonthYear, formatNumber, formatRelativeDate, pluralCategory, type CountForms } from './format'
 
 const flights: CountForms = {
   en: { one: '{count} flight', other: '{count} flights' },
@@ -113,4 +113,14 @@ describe('formatInstantDate', () => {
   it('returns an invalid instant unchanged', () => {
     expect(formatInstantDate('en', 'later')).toBe('later')
   })
+})
+
+// Whole-hour precision and unit wrapping are the new formatter's public contract.
+it.each([
+  [13200, '9 d 4 h', '9 д 4 ч'], [1440, '1 d 0 h', '1 д 0 ч'],
+  [1439, '23 h', '23 ч'], [59, '0 h', '0 ч'], [0, '0 h', '0 ч'], [-60, '0 h', '0 ч'],
+  [NaN, '0 h', '0 ч'], [Infinity, '0 h', '0 ч'],
+])('formats whole days/hours for %i minutes', (minutes, en, ru) => {
+  expect(formatDurationDays('en', minutes)).toBe(en)
+  expect(formatDurationDays('ru', minutes)).toBe(ru)
 })

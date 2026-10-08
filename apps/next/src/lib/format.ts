@@ -88,6 +88,14 @@ export function formatDuration(locale: Locale, minutes: number): string {
   return parts.join(' ')
 }
 
+/** Whole hours, clamped at zero; day-bearing values retain the remaining hours. */
+export function formatDurationDays(locale: Locale, minutes: number): string {
+  const total = Number.isFinite(minutes) ? Math.max(0, Math.floor(minutes / 60)) : 0
+  const days = Math.floor(total / 24), hours = total % 24
+  const hour = `${formatNumber(locale, hours)}${NBSP}${locale === 'ru' ? 'ч' : 'h'}`
+  return days ? `${formatNumber(locale, days)}${NBSP}${locale === 'ru' ? 'д' : 'd'} ${hour}` : hour
+}
+
 /**
  * How long ago a 'YYYY-MM-DD' calendar date was, short and localized: "today", "3 days ago", "2 wk. ago",
  * "2 mo. ago", "3 yr. ago" / «сегодня», «3 дн. назад», «2 мес. назад», «3 г. назад». Calendar arithmetic in UTC,
