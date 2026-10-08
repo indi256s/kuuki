@@ -26,7 +26,8 @@ export async function main(argv = process.argv.slice(2)): Promise<void> {
   try {
     const reader: MigrationReader = { async read(sql) { return (await target.db.prepare(sql).all()).results } }
     const flights = await reader.read(`SELECT date, origin, destination, departure_time, arrival_time, origin_tz, dest_tz FROM flights
-      WHERE lifecycle_state IN ('awaiting', 'logged') AND departure_time IS NOT NULL AND arrival_time IS NOT NULL`)
+      WHERE lifecycle_state IN ('awaiting', 'logged') AND departure_time IS NOT NULL AND arrival_time IS NOT NULL
+        AND times_from_schedule = 0 AND (duration_source IS NULL OR duration_source != 'schedule')`)
     const samples: BlockTimeSample[] = []
     let skipped = 0
     for (const flight of flights) {

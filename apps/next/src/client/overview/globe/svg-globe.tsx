@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { memo, useEffect, useMemo, useState } from 'react'
 import { defineChart } from '@tanstack/charts/scene'
 import { Chart } from '@tanstack/charts/react'
 import { geoShape } from '@tanstack/charts/geo'
@@ -52,7 +52,7 @@ export function isLand(value: unknown): value is GlobeLand {
   })
 }
 
-export function SvgGlobe({ globe, all, airports, rotate, size, locale, land, staticPlanes = false, maker }: SvgGlobeProps) {
+export const SvgGlobe = memo(function SvgGlobe({ globe, all, airports, rotate, size, locale, land, staticPlanes = false, maker }: SvgGlobeProps) {
   const [mountedLand, setMountedLand] = useState<GlobeLand | null>(null)
   useEffect(() => {
     const controller = new AbortController()
@@ -170,4 +170,4 @@ export function SvgGlobe({ globe, all, airports, rotate, size, locale, land, sta
       </table>
     </details>
   </div>
-}
+})

@@ -4,16 +4,16 @@ import type { RecordRef } from '../../../packages/shared/src/overview/model'
 import { parsePrefs } from '../../../packages/shared/src/overview/prefs'
 import type { PublicOverview } from '../../../packages/shared/src/overview/public'
 import { readOverviewData } from './overviewData'
-import { readPublicProfile } from './publicProfiles'
 
 function publicRecord(ref: RecordRef | null) {
   return ref ? { origin: ref.origin, destination: ref.destination, value: ref.value } : null
 }
 
 export async function readPublicOverview(db: D1Database, username: string): Promise<PublicOverview | null> {
-  const publicProfile = await readPublicProfile(db, username)
-  if (!publicProfile?.profile.is_public) return null
-  const ownerId = publicProfile.profile.id
+  const profile = await db.prepare('SELECT id, is_public FROM profiles WHERE lower(username) = lower(?) LIMIT 1')
+    .bind(username).first<{ id: string; is_public: number }>()
+  if (!profile?.is_public) return null
+  const ownerId = profile.id
   const payload = await readOverviewData(db, ownerId)
   // Recheck visibility and section consent after the private read, as publicProfiles does.
   const current = await db.prepare('SELECT is_public, overview_prefs FROM profiles WHERE id = ?').bind(ownerId)

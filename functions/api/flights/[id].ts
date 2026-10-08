@@ -11,6 +11,13 @@ import { dirtyUserStatement, repairUserDerivedState } from '../_services/derived
 import { LIFECYCLE_COLUMN_NAMES, lifecycleForEdit, lifecycleValues, takeRequestTimezone } from '../_services/lifecycle'
 import { FLIGHT_COLUMNS } from './index'
 
+const PATCH_CAS_COLUMNS = [
+  'date', 'origin', 'destination', 'airline_iata', 'aircraft_icao', 'flight_number',
+  'departure_time', 'arrival_time', 'departure_utc', 'arrival_utc', 'origin_tz', 'dest_tz',
+  'distance_km', 'duration_minutes', 'duration_source', 'times_from_schedule', 'zones_overflown', 'source', 'enrichment_status',
+  ...LIFECYCLE_COLUMN_NAMES,
+] as const satisfies ReadonlyArray<keyof FlightRow>
+
 function parseId(raw: string | undefined): number {
   const id = Number(raw)
   if (!Number.isInteger(id) || id <= 0) throw new HttpError(404, 'Flight not found', 'NOT_FOUND')
@@ -64,6 +71,8 @@ export function updateFlightRequest(request: Request, env: Env, data: RequestDat
     const flightNumber = merge('flight_number', existing.flight_number)
     const departureTime = merge('departure_time', existing.departure_time)
     const arrivalTime = merge('arrival_time', existing.arrival_time)
+    const timesFromSchedule = departureTime === existing.departure_time && arrivalTime === existing.arrival_time
+      ? existing.times_from_schedule : 0
     const originTz = merge('origin_tz', existing.origin_tz)
     const destTz = merge('dest_tz', existing.dest_tz)
     const routeChanged = origin !== existing.origin || destination !== existing.destination
@@ -88,8 +97,7 @@ export function updateFlightRequest(request: Request, env: Env, data: RequestDat
       destTz: patch.dest_tz === undefined && destination !== existing.destination ? null : destTz,
       clientDistanceKm: mergedDistance,
       excludeFlightId: id,
-      timesFromSchedule: existing.duration_source === 'schedule' &&
-        departureTime === existing.departure_time && arrivalTime === existing.arrival_time,
+      timesFromSchedule: timesFromSchedule === 1,
     }) : {
       originTz: existing.origin_tz, destTz: existing.dest_tz,
       departureUtc: existing.departure_utc, arrivalUtc: existing.arrival_utc,
@@ -101,10 +109,9 @@ export function updateFlightRequest(request: Request, env: Env, data: RequestDat
       `UPDATE flights SET
          date = ?, origin = ?, destination = ?, airline_iata = ?, aircraft_icao = ?, flight_number = ?,
          departure_time = ?, arrival_time = ?, departure_utc = ?, arrival_utc = ?, origin_tz = ?, dest_tz = ?,
-         distance_km = ?, duration_minutes = ?, duration_source = ?, zones_overflown = ?, source = ?, enrichment_status = ?,
+         distance_km = ?, duration_minutes = ?, duration_source = ?, times_from_schedule = ?, zones_overflown = ?, source = ?, enrichment_status = ?,
          ${LIFECYCLE_COLUMN_NAMES.map(name => `${name} = ?`).join(', ')}
-       WHERE id = ? AND user_id = ? AND lifecycle_state = ?
-         AND arrival_transit IS ? AND arrival_transit_leg_id IS ?`,
+       WHERE id = ? AND user_id = ? AND ${PATCH_CAS_COLUMNS.map(name => `${name} IS ?`).join(' AND ')}`,
     )
       .bind(
         date,
@@ -122,20 +129,17 @@ export function updateFlightRequest(request: Request, env: Env, data: RequestDat
         metrics.distanceKm,
         metrics.durationMinutes,
         metrics.durationSource,
+        timesFromSchedule,
         metrics.zonesOverflown,
         source,
         enrichmentStatus,
         ...lifecycleValues(lifecycle),
         id,
         user.id,
-        existing.lifecycle_state,
-        existing.arrival_transit,
-        existing.arrival_transit_leg_id,
+        ...PATCH_CAS_COLUMNS.map(name => existing[name]),
       ), dirtyUserStatement(env.DB, user.id, true)])
     if (!update.meta.changes) {
-      // The guard keeps a concurrent sync, confirmation or transit review from being overwritten by this edit's
-      // snapshot: the UPDATE writes every lifecycle column back, including the arrival decision. A flight deleted
-      // meanwhile is a 404, not a conflict.
+      // Reject changes to any rewritten snapshot field; a concurrent deletion remains a 404.
       await loadFlight(env.DB, id, user.id)
       throw new HttpError(409, 'Flight changed while it was being edited; reload and retry', 'STATE_CONFLICT', { cause: 'flight_changed' })
     }

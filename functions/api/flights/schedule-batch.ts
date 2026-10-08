@@ -43,15 +43,15 @@ export const onRequestPost: PagesFunction<Env, string, RequestData> = context =>
           originTz: row.origin_tz, destTz: row.dest_tz, clientDistanceKm: row.distance_km, timesFromSchedule: true, excludeFlightId: id })
         if (metrics.departureUtc === null || metrics.arrivalUtc === null) throw new HttpError(400, 'Schedule times need known time zones', 'INVALID_TIMES')
         statements.push(db.prepare(`UPDATE flights SET departure_time=?,arrival_time=?,origin_tz=?,dest_tz=?,
-          departure_utc=?,arrival_utc=?,distance_km=?,duration_minutes=?,duration_source=?,zones_overflown=?
+          departure_utc=?,arrival_utc=?,distance_km=?,duration_minutes=?,duration_source=?,zones_overflown=?,times_from_schedule=1
           WHERE id=? AND user_id=? AND date=? AND origin=? AND destination=? AND airline_iata IS ? AND flight_number IS ?
           AND departure_time IS ? AND arrival_time IS ? AND origin_tz IS ? AND dest_tz IS ? AND distance_km IS ?
-          AND duration_minutes IS ? AND duration_source IS ? AND departure_utc IS ? AND arrival_utc IS ? AND zones_overflown IS ?`)
+          AND duration_minutes IS ? AND duration_source IS ? AND departure_utc IS ? AND arrival_utc IS ? AND zones_overflown IS ? AND times_from_schedule IS ?`)
           .bind(input.departure_time, input.arrival_time, metrics.originTz, metrics.destTz, metrics.departureUtc, metrics.arrivalUtc,
             metrics.distanceKm, metrics.durationMinutes, metrics.durationSource, metrics.zonesOverflown,
             id, user.id, row.date, row.origin, row.destination, row.airline_iata, row.flight_number, row.departure_time,
             row.arrival_time, row.origin_tz, row.dest_tz, row.distance_km, row.duration_minutes, row.duration_source,
-            row.departure_utc, row.arrival_utc, row.zones_overflown),
+            row.departure_utc, row.arrival_utc, row.zones_overflown, row.times_from_schedule),
           dirtyUserStatement(db, user.id, true))
         accepted.push({ index, id })
         results.push(failure(id, new HttpError(409, 'Flight changed; reload and retry', 'STATE_CONFLICT')))

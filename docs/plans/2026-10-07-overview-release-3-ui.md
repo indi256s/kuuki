@@ -1286,7 +1286,8 @@ Every section task follows the same contract, so it is stated once here.
 
 - [x] **Step 1:** Write the doc updates. Keep each to the decisions; don't copy the plan.
 - [x] **Step 2:** Consolidated functional verification complete; visual/device/board comparison gates WAIVED by owner. Exact full-batch and focused-correction evidence is in the final handoff. No new unit tests or cases.
-- [ ] **Step 3:** Final whole-branch Thermos and Ponytail Audit in the owner-requested NEW thread; GPT‑6.1 Sol replaces Opus/Sonnet. Resolve all evidence-backed findings, verify affected behavior, then deploy. No per-task review loops or visual verification.
+- [x] **Step 3 — review:** Final whole-deployment Thermos and whole-repository Ponytail Audit completed in the owner-requested NEW thread using GPT‑6.1 Sol. Eight code findings fixed; focused checks, fresh build/Worker checks and one consolidated remediation review resolved. [Audit and coverage](../../.scratch/overview-release-3-audit/spec.md). No new test cases, per-task review loops or visual verification.
+- [ ] **Step 3 — release:** Promote through successful CI, then deploy. Both remote D1 ledgers stop at 0007; required 0008 and audit-added 0009 require separate writer-hold, backup/restore, schema/migration/backfill/publication authorization and admission before either app deploy. [Blocker](../../.scratch/overview-release-3-audit/issues/01-missing-flight-metrics-migration.md).
 - [x] **Step 4:** Update the handoff: branch, checks, open decisions and any accepted board deviations. Commit `docs(overview): design system and glossary for the redesigned overview`.
 
 ---

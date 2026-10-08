@@ -71,6 +71,7 @@ describe('flight metrics migration', () => {
 
   it('own-flight reads expose provenance and preserve zero zones', async () => {
     await applyMigrationAtomically(db, migration)
+    await applyMigrationAtomically(db, '0009_schedule_time_provenance.sql')
     const [, created] = await oldCreate(db, user.id, 'own-read', flight, 0)
     const id = created.meta.last_row_id
     await db.prepare("UPDATE flights SET duration_minutes = 120, duration_source = 'times', zones_overflown = 0 WHERE id = ?").bind(id).run()

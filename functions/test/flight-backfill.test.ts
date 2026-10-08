@@ -20,7 +20,7 @@ const row = (extra: Partial<BackfillFlight> = {}): BackfillFlight => ({
   airline_iata: 'TK', flight_number: '381', lifecycle_state: 'logged',
   departure_time: null, arrival_time: null, origin_tz: null, dest_tz: null,
   departure_utc: null, arrival_utc: null, distance_km: 9878, duration_minutes: legacyMinutes,
-  duration_source: null, zones_overflown: null, ...extra,
+  duration_source: null, times_from_schedule: 0, zones_overflown: null, ...extra,
 })
 
 it('replaces legacy distance and estimate, but keeps unexplained historical duration', () => {
@@ -83,7 +83,7 @@ it('builds pooled medians from newly measured eligible rows across all users', (
   const changes = planFlightBackfill(inputs, coords)
   expect(planFlightBackfill(inputs.map(f => ({ ...f, ...changes.find(c => c.id === f.id)?.after })), coords)).toEqual([])
   expect(planFlightBackfill([row({ duration_minutes: null }), ...inputs.slice(1, 3),
-    sample(9, '12:50', { duration_source: 'schedule' })], coords).find(c => c.id === 1)?.after.duration_source).toBe('estimate')
+    sample(9, '12:50', { duration_source: 'schedule', times_from_schedule: 1 })], coords).find(c => c.id === 1)?.after.duration_source).toBe('estimate')
 })
 
 it('pools pass-one times after the same 1200-minute clamp used by current writes', () => {

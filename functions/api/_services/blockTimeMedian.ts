@@ -17,7 +17,7 @@ export async function readBlockTimeMedian(db: D1Database, key: {
 }): Promise<number | null> {
   const { results } = await db.prepare(
     `SELECT airline_iata, flight_number, duration_minutes FROM flights INDEXED BY idx_flights_route_times
-     WHERE origin = ? AND destination = ? AND duration_source = 'times'
+     WHERE origin = ? AND destination = ? AND duration_source = 'times' AND times_from_schedule = 0
        AND lifecycle_state IN ('awaiting', 'logged') AND duration_minutes > 0 AND duration_minutes <= 1200
        AND id != ? ORDER BY id DESC LIMIT 1000`,
   ).bind(key.origin, key.destination, key.excludeFlightId ?? -1)

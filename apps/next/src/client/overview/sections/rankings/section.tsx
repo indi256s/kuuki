@@ -30,8 +30,9 @@ export function Section({ span }: { span: Span }) {
   const name = (kind: Category, key: string) => kind === 'airlines' ? labels.airline(key) : kind === 'airports' ? labels.airport(key) : key.replace('-', ' → ')
   const pick = (kind: Category, key: string) => { if (isCurrent()) actions.add(kind, key) }
   const rows = scope.rankings.rankByYear[category]
-  const baseline = all.rankings.rankByYear[category]
-  const entities = [...new Set(baseline.map(row => row.entity))]
+  const years = [...new Set(rows.map(row => String(row.year)))]
+  const baseline = all.rankings.rankByYear[category].filter(row => years.includes(String(row.year)))
+  const entities = [...new Set(rows.map(row => row.entity))]
   const palette = ['var(--mark-1)', 'var(--mark-2)', 'var(--mark-3)', 'var(--mark-4)', 'var(--mark-ghost)']
   const dashes = ['', '', '6 4', '', '1 4']
   const shown = entities.filter(entity => !hidden.includes(entity))
@@ -42,7 +43,7 @@ export function Section({ span }: { span: Span }) {
       ...shown.map(entity => lineY(rows.filter(row => row.entity === entity), { x: row => String(row.year), y: 'rank', z: 'entity', color: 'entity', key: 'key', curve: d3Curve(curveBumpX), strokeWidth: entities.indexOf(entity) === 0 ? 2.5 : 2, strokeDasharray: dashes[entities.indexOf(entity)], states: dim })),
       dot(rows.filter(row => shown.includes(row.entity)), { x: row => String(row.year), y: 'rank', color: 'entity', z: 'entity', key: 'key', r: 4 }),
     ],
-    scales: { x: { scale: scalePoint<string>().domain([...new Set(baseline.map(row => String(row.year)))]).padding(0.2), axis: { line: false } }, y: { scale: scaleLinear().domain([0.5, 5.5]), reverse: true, axis: { line: false, ticks: { values: [1, 2, 3, 4, 5] } } } },
+    scales: { x: { scale: scalePoint<string>().domain(years).padding(0.2), axis: { line: false } }, y: { scale: scaleLinear().domain([0.5, 5.5]), reverse: true, axis: { line: false, ticks: { values: [1, 2, 3, 4, 5] } } } },
     color: { domain: entities, range: palette, legend: interactiveColorLegend({ visible: { value: shown, onChange: next => setHidden(entities.filter(entity => !next.includes(entity))) }, format: value => name(category, String(value)), itemAriaLabel: value => name(category, String(value)), ariaLabel: copy(locale, 'Series visibility', 'Видимость рядов'), emptyLabel: copy(locale, 'No series shown', 'Все ряды скрыты'), hover: 'series' }) },
     margin: { left: 30, right: 20, top: 20, bottom: 50 },
   })

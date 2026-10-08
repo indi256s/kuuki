@@ -7,7 +7,8 @@ import { medianFromSamples, normalizeFlightNumber } from './blockTimeMedian'
 import { decideDuration, resolveFlightTimes } from './flightMetrics'
 
 const CAS_COLUMNS = ['origin', 'destination', 'date', 'airline_iata', 'flight_number', 'departure_time', 'arrival_time',
-  'origin_tz', 'dest_tz', 'distance_km', 'duration_minutes', 'duration_source'] as const
+  'origin_tz', 'dest_tz', 'distance_km', 'duration_minutes', 'duration_source', 'times_from_schedule',
+  'departure_utc', 'arrival_utc', 'zones_overflown', 'lifecycle_state'] as const
 const METRIC_COLUMNS = ['origin_tz', 'dest_tz', 'departure_utc', 'arrival_utc', 'distance_km', 'duration_minutes',
   'duration_source', 'zones_overflown'] as const
 export type CasColumns = Pick<FlightRow, typeof CAS_COLUMNS[number]>
@@ -34,7 +35,7 @@ export function planFlightBackfill(flights: BackfillFlight[], coords: Map<string
   })
   const pools = new Map<string, typeof measured>()
   for (const item of measured) {
-    if (!['awaiting', 'logged'].includes(item.flight.lifecycle_state) || item.flight.duration_source === 'schedule'
+    if (!['awaiting', 'logged'].includes(item.flight.lifecycle_state) || item.flight.times_from_schedule === 1 || item.flight.duration_source === 'schedule'
       || item.times.durationMinutes === null || item.times.durationMinutes <= 0 || item.times.durationMinutes > 1200) continue
     const key = JSON.stringify([item.flight.origin, item.flight.destination])
     const pool = pools.get(key) ?? []
@@ -47,7 +48,7 @@ export function planFlightBackfill(flights: BackfillFlight[], coords: Map<string
     const classes: BackfillClass[] = []
     const distance = origin && destination ? Math.min(20000, Math.round(greatCircleKm(origin, destination))) : flight.distance_km
     const east = origin && destination ? eastwardShare(origin, destination) : 0
-    const pool = times.durationMinutes !== null && flight.duration_source !== 'schedule' ? []
+    const pool = times.durationMinutes !== null && flight.times_from_schedule === 0 ? []
       : (pools.get(JSON.stringify([flight.origin, flight.destination])) ?? []).slice(0, 1001)
         .filter(p => p.flight.id !== flight.id).slice(0, 1000)
     const airline = flight.airline_iata?.toUpperCase().trim()
@@ -56,7 +57,7 @@ export function planFlightBackfill(flights: BackfillFlight[], coords: Map<string
       && normalizeFlightNumber(p.flight.airline_iata, p.flight.flight_number) === number) : []
     const median = medianFromSamples(sameNumber.map(p => p.times.durationMinutes!))
       ?? medianFromSamples(pool.map(p => p.times.durationMinutes!))
-    const duration = decideDuration({ timesMinutes: times.durationMinutes, timesFromSchedule: flight.duration_source === 'schedule',
+    const duration = decideDuration({ timesMinutes: times.durationMinutes, timesFromSchedule: flight.times_from_schedule === 1,
       median, distanceKm: distance, east })
     if (duration.source === 'estimate' && distance !== null) duration.minutes = estimateBlockMinutes(distance, east, model)
     // Retained unexplained values remain estimates on reruns; measured/median/schedule provenance is authoritative.

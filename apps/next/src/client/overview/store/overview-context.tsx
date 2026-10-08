@@ -14,7 +14,9 @@ import { createUIBus } from './ui-bus'
 
 type Saver = (prefs: OverviewPrefs, signal: AbortSignal) => Promise<OverviewPrefs>
 type Props = { payload: OverviewPayload | null; prefs: OverviewPrefs; ownerKey: string; locale: Locale; children: ReactNode; saver?: Saver; live?: boolean }
-const savePrefs: Saver = (prefs, signal) => api.put('/api/me/overview/prefs', prefs, { signal })
+const savePrefs: Saver = (prefs, signal) => api.put('/api/me/overview/prefs', {
+  version: prefs.version, filter: prefs.filter, layout: prefs.layout, replayPaused: prefs.replayPaused,
+}, { signal })
 type Lifetime = { active: boolean; generation: number; controllers: Set<AbortController> }
 
 function useController({ payload: initial, prefs: initialPrefs, ownerKey, locale, saver = savePrefs, live = true }: Props) {
@@ -111,6 +113,16 @@ function useController({ payload: initial, prefs: initialPrefs, ownerKey, locale
     } catch (error) { finish(); throw error }
   }, response => publicationGuards.get(response)?.() === true))
   const payload = useSyncExternalStore(store.subscribe, store.get, () => serverPayload)
+
+  useEffect(() => {
+    if (!live || !initial || store.get()?.etag === initial.etag || !currentLifetime()) return
+    let active = true
+    void store.revalidate().then(() => {
+      // A refresh already in flight may predate this server publication.
+      if (active && currentLifetime() && store.get()?.etag !== initial.etag) void store.revalidate()
+    })
+    return () => { active = false }
+  }, [initial, store, live, currentLifetime])
 
   useEffect(() => { runtime.saver = saver; runtime.locale = locale; runtime.incoming = initialPrefs }, [runtime, saver, locale, initialPrefs])
   useEffect(() => {

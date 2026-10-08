@@ -37,6 +37,35 @@ and existing durations to remain temporarily unlabelled. Unexplained legacy
 durations are retained, labelled `estimate` and reported as `kept_unexplained`;
 they may represent real observations from the Supabase era.
 
+### Clock provenance and concurrent writes
+
+`duration_source` describes the winning rung, not the origin of the raw clock
+values. Internal, server-owned `flights.times_from_schedule` is 0 or 1 and is
+excluded from public and own-flight DTOs. Schedule acceptance writes both clock
+values and marker 1 atomically, even when `route_median` wins the duration ladder.
+Ordinary creates and imports use the default 0. An owner PATCH preserves the
+marker when both clock values are unchanged, including date, route, time-zone
+or flight-number edits; changing either clock value resets it to 0. The resolver
+uses this marker to keep accepted schedules below observed route medians.
+
+Measured route-median reads reject marker-1 rows. Backfill excludes marker-1 clocks from observed sample pools, retains their
+schedule fallback and preserves the marker. Calibration excludes marker-1 rows
+and rows explicitly labelled `schedule`. Backfill compare-and-set guards include
+the marker, every metric it rewrites and its lifecycle eligibility snapshot.
+Ordinary PATCH guards every field it rewrites, including complete lifecycle and
+transit fields, while retaining the owner predicate. Schedule acceptance also
+guards the marker. A stale mutation returns `STATE_CONFLICT`; a flight deleted
+concurrently returns 404. Successful request mutations and their conditional
+derived-state dirty markers commit in the same atomic batch.
+
+Additive migration 0009 initializes marker 1 only for existing
+`duration_source = 'schedule'` rows. Historical `route_median` or `times` rows may
+already contain accepted schedule clocks, but their origin cannot be recovered
+reliably. They stay at marker 0; the migration neither infers schedule provenance
+nor relabels their duration source. This ambiguity remains in historical sample
+pools until an explicit new schedule acceptance or owner clock edit supplies
+provenance. Migration 0008 is unchanged.
+
 ### Zones and clock shift
 
 Sample the great-circle route at intervals of at most 50 km, including both

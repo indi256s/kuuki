@@ -11,7 +11,7 @@ import type { ConfirmationSource } from '../_services/lifecycle'
 export const FLIGHT_COLUMNS =
   'id, user_id, date, origin, destination, airline_iata, aircraft_icao, flight_number, ' +
   'departure_time, arrival_time, departure_utc, arrival_utc, origin_tz, dest_tz, distance_km, ' +
-  'duration_minutes, duration_source, zones_overflown, source, is_upcoming, enrichment_status, aircraft_lookup_attempts, created_at, ' +
+  'duration_minutes, duration_source, times_from_schedule, zones_overflown, source, is_upcoming, enrichment_status, aircraft_lookup_attempts, created_at, ' +
   'lifecycle_state, confirmation_source, confirmed_at, lifecycle_timezone, awaiting_after, auto_confirm_after, ' +
   'arrival_transit, arrival_transit_leg_id'
 
@@ -33,6 +33,7 @@ export interface FlightRow {
   distance_km: number | null
   duration_minutes: number | null
   duration_source: DurationSource | null
+  times_from_schedule: 0 | 1
   zones_overflown: number | null
   source: string
   is_upcoming: number | null

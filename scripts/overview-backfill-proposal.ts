@@ -44,7 +44,7 @@ export async function main(argv = process.argv.slice(2)): Promise<void> {
     }
     const flights = await reader.read(`SELECT id, user_id, origin, destination, date, airline_iata, flight_number,
       lifecycle_state, departure_time, arrival_time, origin_tz, dest_tz, departure_utc, arrival_utc,
-      distance_km, duration_minutes, duration_source, zones_overflown FROM flights ORDER BY id`) as unknown as BackfillFlight[]
+      distance_km, duration_minutes, duration_source, times_from_schedule, zones_overflown FROM flights ORDER BY id`) as unknown as BackfillFlight[]
     const airports = await reader.read('SELECT iata, latitude, longitude FROM airports_reference')
     const coords = new Map<string, LatLon>()
     for (const row of airports) {

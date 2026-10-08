@@ -17,15 +17,15 @@ merging to main also require the user's approval.
 | Production D1 | `kuuki-db`, `2a8e3895-6a98-4473-8d7b-a43ca0c0026f` |
 | Application Workers | `kuuki-next`, `kuuki-activation` |
 | Temporary operator | `kuuki-overview-release-operator` |
-| Migration | `0008_flight_metrics.sql` |
+| Current pending migrations | `0008_flight_metrics.sql`, `0009_schedule_time_provenance.sql` |
 | Operator config | `.scratch/overview-release-1/operator-prod.toml` (gitignored) |
 
 Pin `CLOUDFLARE_ACCOUNT_ID` to the account above for Wrangler commands. Commands
 run from the workspace root except the app deploy commands, which follow the
-deploy skill. Record the accepted Release 1 main-branch SHA and successful CI
-identity before deploying. Use that exact checkout, with no later migration
-files or unrelated changes. Do not run migration application from a Release 2
-checkout.
+deploy skill. Record the separately admitted audited main-branch SHA and successful CI
+identity before deploying. Use that exact clean checkout, with only the explicitly
+admitted pending migration files and no unrelated changes. Do not run migration
+application from a Release 2 or Release 3 feature checkout.
 
 Keep exports, restored databases, SQL, manifests, admission evidence, credentials
 and per-user review reports outside git. Use a mode-0700 private directory and
@@ -237,6 +237,13 @@ storage; no journal records are committed here.
 
 ## Production sequence
 
+Release 3 audit amendment (8 October 2026): the current candidate additionally
+requires `0009_schedule_time_provenance.sql`. The dated rehearsal above covered
+only `0008`; its schema hashes and proposals do not admit the amended candidate.
+Repeat schema admission and rehearsal with both exact migrations and the audited
+main candidate. No remote migration, initialization, backfill or writer hold is
+authorized by application deployment approval.
+
 1. **Separate authorization — writer hold.** Enumerate and hold every writer
    using the audit runbook: both app Workers, canonical/custom hosts, older
    immutable/Pages URLs, maintenance/import/background Workers, CI and operator
@@ -253,21 +260,23 @@ storage; no journal records are committed here.
    `SELECT name FROM d1_migrations ORDER BY id`; do not use `migrations list`
    because it creates the ledger if absent. Require exactly the known prefix
    through `0007`. Missing, extra, reordered or partially applied schema is a
-   stop condition. A pending `0008` blocks app deployment until this sequence
-   admits and applies it.
+   stop condition. Pending `0008` or `0009` blocks the current app deployment
+   until this sequence admits and applies both.
 4. **Separate authorization — pre-migration schema admission.** Review the held
    target against a fresh `0001`–`0007` fixture and the exact additive `0008`
-   diff. Review all seven dimensions, object inventory and preservation. No
+   and `0009` diffs. Review all seven dimensions, object inventory and preservation. No
    missing objects or unexplained semantic differences may be waived by a hash
    file. Save the admitted target, schema, backup and candidate identities.
-5. **Separate authorization — apply `0008`.** From the accepted Release 1
-   checkout, confirm `0008` is the only pending file, then use the standard
+5. **Separate authorization — apply `0008` and `0009`.** From the separately
+   admitted, clean audited main checkout, confirm those are the only pending files, then use the standard
    `wrangler d1 migrations apply kuuki-db --remote` procedure. Verify the new
-   ledger row, both flight columns, the profile preference column and the route
+   ledger rows, the three flight columns, the profile preference column and the route
    index on the explicit target; that remote verification also needs authorization. Do not run `0001` again, apply later
-   migrations, or rewrite historical values during this schema step.
+   migrations. `0009` initializes the schedule marker only for existing
+   `duration_source='schedule'` rows; it does not infer ambiguous historical
+   clock provenance. Preserve all other historical values during this schema step.
 6. **Separate authorization — regenerate held-production proposal.** Review the
-   post-`0008` schema against a fresh `0001`–`0008` fixture; create a new private
+   post-`0009` schema against a fresh `0001`–`0009` fixture; create a new private
    pinned admission if needed. Run `overview-backfill-proposal.ts --target
    remote --account-id <explicit-account> --database-id <explicit-d1-id>
    --schema-admission <private-review> --output-sql <new-private-file>`. Compare
@@ -302,7 +311,7 @@ storage; no journal records are committed here.
     gate for the accepted main SHA, including separate preview/production
     approvals and remote ledger checks on both D1 targets. Preview migrations
     need their own isolated authorization; production success does not admit
-    preview. Require the `0008` ledger row before either app deploy. Record the
+    preview. Require both `0008` and `0009` ledger rows before either current app deploy. Record the
     previous and new versions for both `kuuki-next` and `kuuki-activation`.
 12. **Separate authorization — release hold, then smoke.** Reopen writers only
     after preservation and release identity are accepted. Separately authorize

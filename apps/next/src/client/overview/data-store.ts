@@ -66,9 +66,9 @@ export function scopeFor(store: OverviewDataStore, filter: OverviewFilter): Over
   }
   const key = JSON.stringify(filter)
   let scope = cache.values.get(key)
-  if (!scope) {
-    scope = computeOverview(payload, filter)
-    cache.values.set(key, scope)
-  }
+  if (!scope) scope = computeOverview(payload, filter)
+  cache.values.delete(key)
+  cache.values.set(key, scope)
+  if (cache.values.size > 16) cache.values.delete(cache.values.keys().next().value!)
   return scope
 }

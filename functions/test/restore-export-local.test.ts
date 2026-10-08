@@ -40,7 +40,7 @@ it('restores a private export in chunks, preserves historical rows and applies o
     expect((await restored.prepare('SELECT * FROM user_badges').all()).results)
       .toEqual([{ id: 1, user_id: 'historical', badge_id: 97, earned_at: '2020-01-01' }])
     expect((await restored.prepare('PRAGMA foreign_key_check').all()).results).toEqual([])
-    expect(JSON.parse(log.mock.calls[0][0])).toMatchObject({ lastExportMigration: '0007_import_drafts.sql', migrationsApplied: ['0008_flight_metrics.sql'] })
+    expect(JSON.parse(log.mock.calls[0][0])).toMatchObject({ lastExportMigration: '0007_import_drafts.sql', migrationsApplied: ['0008_flight_metrics.sql', '0009_schedule_time_provenance.sql'] })
     expect(readFileSync(exportPath, 'utf8')).toBe(sql)
     await target.dispose()
     target = undefined
