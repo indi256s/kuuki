@@ -42,6 +42,8 @@ All of it runs on the Release 2 engine.
 
 ## Global Constraints
 
+**Unit-test authoring override (2026-10-08):** The owner instructed: “do not write any unit tests.” Remaining tasks must add or modify no unit tests. Preserve existing tests and valid evidence; verify with source/caller checks, affected lint/typechecks and available checks at the final integrated checkpoint. This supersedes unit-test authoring steps below.
+
 **User verification override (2026-10-07):** Skip all visual checks, screenshot/manual gallery inspection and visual comparison gates. Continue functional tests, typechecks, lint, builds and runtime navigation verification.
 
 **User test-batching override (2026-10-07):** Run focused behavioral checks and affected lint/typechecks per task. Defer full API/Next suites, production builds and full navigation checks to later integrated checkpoints; do not rerun them for every task. This supersedes per-task full-suite/build/navigation steps below. Deferred integration checks remain pending until the batch runs.
@@ -766,7 +768,7 @@ This is open decision 1: the default is endpoint offsets, not overflown zones.
 
 ### Task 18: Section frame, bento packing, reorder and hide
 
-**Executor:** [UI] · final review Opus
+**Executor:** [UI] · consolidated final review
 
 **Files:** Create in `client/overview/layout/`: `bento.ts`, `reorder.ts`, `use-reorder.ts`, `section-frame.tsx`, `hidden-footer.tsx`, `layout.css`, and tests `bento.test.ts`, `reorder.test.ts`, `section-frame.test.tsx`.
 
@@ -793,7 +795,7 @@ This is open decision 1: the default is endpoint offsets, not overflown zones.
   - The narrator sits at the foot.
 - `HiddenFooter({ hidden, onShow })`: "2 hidden sections · Show". Show opens a `Menu` listing each hidden section plus "Show all". A restored section returns at its index in `order`.
 
-- [ ] **Step 1: Write the failing tests:**
+- [x] **Step 1: Write the failing tests:**
   - `bento.test.ts › default order`: full rankings, full records, a pair of manufacturers and fleet (narrowFirst), a pair of clock and rhythm (narrowFirst), full crossings.
   - `bento.test.ts › wide before narrow pairs with narrowFirst false`.
   - `bento.test.ts › two narrows do not pair`.
@@ -801,13 +803,16 @@ This is open decision 1: the default is endpoint offsets, not overflown zones.
   - `reorder.test.ts › dropIndex midpoint`.
   - `section-frame.test.tsx › menu move up at top is disabled`.
   - `section-frame.test.tsx › keyboard move announces position`.
-- [ ] **Steps 2–4:** FAIL → implement → PASS.
-- [ ] **Step 5:** Check drag by hand on `/dev/overview?fixture=board` with a mouse and with touch emulation (chrome-devtools-axi). Record what was checked in the commit body.
-- [ ] **Step 6:** Commit `feat(overview): bento sections with drag, menu reorder and hide`.
+- [x] **Steps 2–4:** FAIL → implement → PASS.
+- [x] **Step 5:** Visual/manual/device verification SKIPPED by the owner; logical pointer/focus checks only.
+- [x] **Step 6:** Commit `feat(overview): bento sections with drag, menu reorder and hide`.
+
+
+**Status:** Accepted combined source PAGE47a14cde404c4db35359ece7868346c3aa7c7b72, central UIb4711d8e024554ccc17e4260885cb2972ca18aac. Task19 fixes final Show focus. 73 focused implementation tests and affected types/lint pass; central page/sheet integration42tests pass. Minor M1 native Radix cleanup timing limitation is explicitly triaged. Consolidated final review remains pending.
 
 ### Task 19: Mobile tiles and section sheet
 
-**Executor:** [UI] · final review Opus
+**Executor:** [UI] · consolidated final review
 
 **Files:** Create in `client/overview/mobile/`: `tiles.ts`, `section-tile.tsx`, `section-sheet.tsx`, `mobile.css`, and tests `tiles.test.ts`, `section-sheet.test.tsx`.
 
@@ -825,13 +830,16 @@ This is open decision 1: the default is endpoint offsets, not overflown zones.
   - The sheet sizes to its content and clears the status bar.
 - Mobile hero figures are part of Task 21.
 
-- [ ] **Step 1: Write the failing tests:**
+- [x] **Step 1: Write the failing tests:**
   - `tiles.test.ts › default mobile order and spans`: rankings and records half, manufacturers full, fleet and clock half, rhythm and crossings half.
   - `tiles.test.ts › orphan half becomes full`.
   - `section-sheet.test.tsx › next button opens the following section and pager shows 3 of 7`.
-- [ ] **Steps 2–4:** FAIL → implement → PASS.
-- [ ] **Step 5:** Run V(9.4) and V(9.5) for the frame only.
-- [ ] **Step 6:** Commit `feat(overview): mobile tiles and section sheet`.
+- [x] **Steps 2–4:** FAIL → implement → PASS.
+- [x] **Step 5:** Visual/manual/device verification SKIPPED by the owner; logical pointer/focus checks only.
+- [x] **Step 6:** Commit `feat(overview): mobile tiles and section sheet`.
+
+
+**Status:** Accepted combined source PAGE47a14cd, central UIb4711d8. Real mobile tiles/sheet and provider persistence installed; 73 focused implementation checks plus42central page/sheet checks pass. Real touch and all visual verification skipped by owner; consolidated final audit remains pending.
 
 ### Task 20: Filter bar and "+ Filter" panel
 
