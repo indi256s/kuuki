@@ -1,4 +1,5 @@
 import type { FacetKey, OverviewFilter } from '@kuuki/shared/overview/model'
+import { isEmptyFilter } from '@kuuki/shared/overview/filter'
 
 export type FacetValue<K extends FacetKey> = NonNullable<OverviewFilter[K]>[number]
 export function addValue<K extends FacetKey>(filter: OverviewFilter, facet: K, value: FacetValue<K>): OverviewFilter {
@@ -23,7 +24,7 @@ export function setPeriod(filter: OverviewFilter, period: OverviewFilter['period
 }
 export function clearAll(): OverviewFilter { return {} }
 export function removeLast(filter: OverviewFilter): OverviewFilter {
-  const key = Object.keys(filter).at(-1) as keyof OverviewFilter | undefined
+  const key = (Object.keys(filter) as (keyof OverviewFilter)[]).findLast(key => !isEmptyFilter({ [key]: filter[key] }))
   if (!key) return filter
   if (key === 'period') return removeFacet(filter, key)
   const values = filter[key]

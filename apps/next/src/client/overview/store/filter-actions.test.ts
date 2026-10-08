@@ -21,6 +21,15 @@ it('removing the last value deletes the facet; additions are typed immutable and
   expect(removeValue(original, 'depHours', 6)).toBe(original)
   expect(removeFacet(original, 'airlines')).toEqual({ depHours: [0] })
 })
+it('removeLast skips empty persisted facets and keeps the original filter intact', () => {
+  for (const empty of [{ countries: [] }, { period: { years: [] } }] satisfies OverviewFilter[]) {
+    const original: OverviewFilter = { airlines: ['TK', 'QR'], ...empty }
+    expect(removeLast(original)).toEqual({ airlines: ['TK'], ...empty })
+    expect(original).toEqual({ airlines: ['TK', 'QR'], ...empty })
+    const onlyEmpty: OverviewFilter = { ...empty }
+    expect(removeLast(onlyEmpty)).toBe(onlyEmpty)
+  }
+})
 it('reinserted facets become newest and period clearing preserves the other keys', () => {
   const first = { airlines: ['TK'], countries: ['JP'] }
   const next = addValue(removeFacet(first, 'airlines'), 'airlines', 'QR')
