@@ -4,10 +4,10 @@ import { useEffect, useMemo, useState } from 'react'
 import { defineChart } from '@tanstack/charts/scene'
 import { Chart } from '@tanstack/charts/react'
 import { geoShape } from '@tanstack/charts/geo'
-import { geoOrthographic, type ExtendedFeatureCollection } from 'd3-geo'
+import { geoDistance, geoInterpolate, geoOrthographic, type ExtendedFeatureCollection } from 'd3-geo'
 import { coordinates } from '@kuuki/shared/geo'
 import type { GlobeData } from '@kuuki/shared/overview/globe'
-import type { OverviewPayload } from '@kuuki/shared/overview/model'
+import type { OverviewFilter, OverviewPayload } from '@kuuki/shared/overview/model'
 import { formatCount, formatNumber, type Locale } from '../../../lib/format'
 import { BUCKET_TOKENS, visitBucket } from '../../../lib/map-buckets'
 import { routeGeometry } from '../../maps/geometry'
@@ -24,13 +24,15 @@ export type SvgGlobeProps = {
   size: number
   locale: Locale
   land?: GlobeLand
+  staticPlanes?: boolean
+  maker?: NonNullable<OverviewFilter['makers']>[number]
 }
 
 function countryCode(feature: GlobeLand['features'][number]): string {
   return String(feature.id ?? feature.properties?.id ?? '')
 }
 
-function isLand(value: unknown): value is GlobeLand {
+export function isLand(value: unknown): value is GlobeLand {
   if (!value || typeof value !== 'object' || !('type' in value) || value.type !== 'FeatureCollection' ||
     !('features' in value) || !Array.isArray(value.features) || value.features.length !== 174) return false
   const codes = new Set<string>()
@@ -50,7 +52,7 @@ function isLand(value: unknown): value is GlobeLand {
   })
 }
 
-export function SvgGlobe({ globe, all, airports, rotate, size, locale, land }: SvgGlobeProps) {
+export function SvgGlobe({ globe, all, airports, rotate, size, locale, land, staticPlanes = false, maker }: SvgGlobeProps) {
   const [mountedLand, setMountedLand] = useState<GlobeLand | null>(null)
   useEffect(() => {
     const controller = new AbortController()
@@ -119,12 +121,26 @@ export function SvgGlobe({ globe, all, airports, rotate, size, locale, land }: S
         })),
         ...[1, 2, 3, 4].map(bucket => geoShape(selected.filter(route => visitBucket(route.properties.count) === bucket), {
           id: `routes-${bucket}`, className: 'globe-routes', projection, key: route => String(route.id), fill: 'none',
-          stroke: `var(${BUCKET_TOKENS[bucket]})`, strokeWidth: Math.min(3, bucket),
+          stroke: `var(${maker ? `--cat-maker-${maker}` : BUCKET_TOKENS[bucket]})`, strokeWidth: Math.min(3, bucket),
         })),
         geoShape(dots, { id: 'airports', className: 'globe-airports', projection, key: airport => String(airport.id), r: 2.5, fill: 'var(--mark-1)' }),
       ],
     })
-  }, [globe, allRoutes, airports, longitude, latitude, mountedLand])
+  }, [globe, allRoutes, airports, longitude, latitude, mountedLand, maker])
+
+  const staticGlyphs = useMemo(() => {
+    if (!staticPlanes) return []
+    const projection = geoOrthographic().rotate([-longitude, -latitude]).fitExtent([[9, 9], [size - 9, size - 9]], { type: 'Sphere' })
+    return globe.routes.flatMap(route => {
+      const from = coordinates(airports[route.a]), to = coordinates(airports[route.b])
+      if (!from || !to || !routeGeometry({ from: [from.lon, from.lat], to: [to.lon, to.lat] })) return []
+      const interpolate = geoInterpolate([from.lon, from.lat], [to.lon, to.lat]), midpoint = interpolate(.5)
+      if (geoDistance([longitude, latitude], midpoint) > Math.PI / 2) return []
+      const position = projection(midpoint), next = projection(interpolate(.505))
+      if (!position || !next) return []
+      return [{ key: route.key, position, angle: Math.atan2(next[0] - position[0], position[1] - next[1]) * 180 / Math.PI }]
+    })
+  }, [staticPlanes, longitude, latitude, size, globe.routes, airports])
 
   const labels = locale === 'ru'
     ? { table: 'Данные глобуса', view: 'Показать таблицу', kind: 'Показатель', code: 'Код', selected: 'Выбрано', all: 'Всё время', route: 'Маршрут · перелёты', airport: 'Аэропорт · посещения', country: 'Страна · посещения', background: 'Фон' }
@@ -137,6 +153,12 @@ export function SvgGlobe({ globe, all, airports, rotate, size, locale, land }: S
   return <div className="svg-globe">
     <div className="svg-globe-map">
       <Chart definition={definition} initialWidth={size} aspectRatio={1} ariaLabel={t(S.map, locale)} tabIndex={-1} />
+      {staticGlyphs.length > 0 && <svg className="globe-static-planes" viewBox={`0 0 ${size} ${size}`} aria-hidden="true">
+        {staticGlyphs.map(plane => <g key={plane.key} transform={`translate(${plane.position[0]} ${plane.position[1]}) rotate(${plane.angle})`}>
+          {/* flightcn north-pointing icon, MIT; maps/licenses/flightcn.LICENSE. */}
+          <path transform="translate(-9.6 -9.6) scale(.8)" fill={`var(${maker ? `--cat-maker-${maker}` : '--mark-1'})`} d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z" />
+        </g>)}
+      </svg>}
     </div>
     <details className="svg-globe-data">
       <summary>{labels.view}</summary>

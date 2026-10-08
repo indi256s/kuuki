@@ -14,7 +14,7 @@ type MapContextValue = { map: MapLibreGL.Map | null; ready: boolean; themeRevisi
 export const MapContext = createContext<MapContextValue>({ map: null, ready: false, themeRevision: 0 })
 export const useMap = () => useContext(MapContext)
 
-export function Map({ children, onError, locale = 'en', className = 'route-map-canvas' }: { children: ReactNode; onError: () => void; locale?: 'en' | 'ru'; className?: string }) {
+export function Map({ children, onError, locale = 'en', className = 'route-map-canvas', projection }: { children: ReactNode; onError: () => void; locale?: 'en' | 'ru'; className?: string; projection?: MapLibreGL.ProjectionSpecification }) {
   const host = useRef<HTMLDivElement>(null)
   const [map, setMap] = useState<MapLibreGL.Map | null>(null)
   const [ready, setReady] = useState(false)
@@ -27,7 +27,7 @@ export function Map({ children, onError, locale = 'en', className = 'route-map-c
     MapLibreGL.setWorkerUrl('/maps/maplibre-6.12.0/maplibre-gl-worker.mjs')
     let instance: MapLibreGL.Map
     try {
-      instance = new MapLibreGL.Map({ container: host.current, style: blankStyle, ...mapOptions(locale) })
+      instance = new MapLibreGL.Map({ container: host.current, style: projection ? { ...blankStyle, projection } : blankStyle, ...mapOptions(locale) })
     } catch { onErrorRef.current(); return }
     // Keyboard users get the country and route lists; the canvas must not be an unnamed tab stop.
     instance.getCanvas().tabIndex = -1

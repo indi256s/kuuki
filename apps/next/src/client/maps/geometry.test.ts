@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { WORLD_BOUNDS, routeGeometry, wrappedBounds } from './geometry'
+import { WORLD_BOUNDS, bearing, routeGeometry, wrappedBounds } from './geometry'
 import type { ProjectedRoute } from './types'
 
 const route = (from: [number, number], to: [number, number]): ProjectedRoute => ({
@@ -30,3 +30,11 @@ describe('route geometry', () => {
     expect(WORLD_BOUNDS[1][1]).toBeLessThanOrEqual(85)
   })
 })
+
+ it('bearing DOH to AKL agrees with independent spherical heading', () => {
+  const a: [number, number] = [51.6138, 25.2731], b: [number, number] = [174.785, -37.008]
+  const [lon1, lat1] = a.map(n => n * Math.PI / 180), [lon2, lat2] = b.map(n => n * Math.PI / 180)
+  const reference = (Math.atan2(Math.sin(lon2 - lon1) * Math.cos(lat2), Math.cos(lat1) * Math.sin(lat2) -
+    Math.sin(lat1) * Math.cos(lat2) * Math.cos(lon2 - lon1)) * 180 / Math.PI + 360) % 360
+  expect(Math.abs(bearing(a, b) - reference)).toBeLessThan(1)
+ })

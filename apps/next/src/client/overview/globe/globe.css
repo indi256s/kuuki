@@ -25,3 +25,26 @@
 .globe-card-fullscreen{block-size:100%;border:0;border-radius:0}
 .globe-card-fullscreen .svg-globe-map{inline-size:min(100%,calc(100dvh - 160px))}
 @media(max-width:700px){.globe-card:not(.globe-card-fullscreen){block-size:360px}.globe-card-content{padding:var(--space-4)}.svg-globe-map{inline-size:min(100%,280px)}.globe-corner{max-inline-size:calc(100% - 2 * var(--space-4))}.globe-top-left{inset-block-start:var(--space-4);inset-inline-start:var(--space-4)}.globe-top-right{inset-block-start:var(--space-4);inset-inline-end:var(--space-4)}.globe-bottom-left{inset-block-end:var(--space-4);inset-inline-start:var(--space-4)}.globe-bottom-right{inset-block-end:var(--space-4);inset-inline-end:var(--space-4)}}
+.globe-surface{position:relative;block-size:100%}
+.globe-webgl-layer{position:absolute;inset-block-start:0;inset-inline:0;margin-inline:auto;inline-size:min(100%,436px);aspect-ratio:1;opacity:0;pointer-events:none;transition:opacity 200ms var(--ease-in-out)}
+.globe-surface[data-webgl-ready=true] .globe-webgl-layer{opacity:1;pointer-events:auto}
+.globe-surface[data-webgl-ready=true] .svg-globe-map .ts-chart__geo:not(.globe-rim):not(.globe-sphere),.globe-surface[data-webgl-ready=true] .globe-static-planes{visibility:hidden}
+.maplibre-globe,.globe-map-canvas{position:absolute;inset:0;touch-action:pan-y}
+.globe-map-canvas .maplibregl-canvas-container,.globe-map-canvas .maplibregl-canvas{touch-action:pan-y}
+.globe-plane{pointer-events:none}
+.globe-route-card{position:absolute;z-index:2;inline-size:min(280px,100%);padding:var(--space-3);background:var(--surface-floating);color:var(--text);border:1px solid var(--hairline);border-radius:var(--radius-md)}
+.globe-route-heading{display:flex;justify-content:space-between;align-items:center;gap:var(--space-2)}
+.globe-route-heading strong,.globe-route-card p{font-family:var(--font-mono)}
+.replay-transport{display:flex;align-items:center;gap:var(--space-2);color:var(--text)}
+.replay-month{font-family:var(--font-mono);white-space:nowrap}
+.replay-scrubber{inline-size:0;opacity:0;overflow:hidden;visibility:hidden;transition:inline-size 200ms ease-out,opacity 200ms ease-out,visibility 200ms}
+.replay-transport[data-expanded=true] .replay-scrubber{inline-size:min(300px,45vw);opacity:1;visibility:visible}
+.replay-scrubber .ts-chart{font-family:var(--font-mono)}
+.globe-card-fullscreen .globe-webgl-layer{inline-size:min(100%,calc(100dvh - 160px))}
+@media(hover:hover) and (pointer:fine){.replay-transport:hover .replay-scrubber,.replay-transport:focus-within .replay-scrubber{inline-size:min(300px,45vw);opacity:1;visibility:visible}}
+@media(pointer:coarse){.replay-transport .ui-button{min-block-size:44px;min-inline-size:44px}.replay-transport[data-expanded=true] .replay-scrubber{position:absolute;inset-inline-start:0;inset-block-end:48px;inline-size:min(300px,calc(100vw - 48px));background:var(--surface);border-radius:var(--radius-sm)}}
+@media(max-width:700px){.globe-webgl-layer{inline-size:min(100%,280px)}}
+@media(prefers-reduced-motion:reduce){.globe-webgl-layer,.replay-scrubber{transition:none}}
+
+.svg-globe-map{position:relative}
+.globe-static-planes{position:absolute;inset:0;inline-size:100%;block-size:100%;pointer-events:none}
