@@ -1,34 +1,32 @@
 'use client'
 
-import { createElement, type ComponentType } from 'react'
+import type { ComponentType } from 'react'
 import type { Gate, OverviewScope } from '@kuuki/shared/overview/figures'
 import type { SectionId } from '@kuuki/shared/overview/prefs'
-import { Skeleton } from '../../ui/skeleton'
-import { useOverview } from '../store/overview-context'
-import { t } from '../copy'
 
+import { Section as rankingsSection } from './rankings/section'
+import { Tile as rankingsTile } from './rankings/tile'
+import { Section as recordsSection } from './records/section'
+import { Tile as recordsTile } from './records/tile'
+import { Section as manufacturersSection } from './manufacturers/section'
+import { Tile as manufacturersTile } from './manufacturers/tile'
+import { Section as fleetSection } from './fleet/section'
+import { Tile as fleetTile } from './fleet/tile'
+import { Section as clockSection } from './clock/section'
+import { Tile as clockTile } from './clock/tile'
+import { Section as rhythmSection } from './rhythm/section'
+import { Tile as rhythmTile } from './rhythm/tile'
+import { Section as crossingsSection } from './crossings/section'
+import { Tile as crossingsTile } from './crossings/tile'
 export type Copy = { en: string; ru: string }
 export type Span = 'narrow' | 'wide' | 'full' | 'sheet'
 type Entry = { title: Copy; Section: ComponentType<{ span: Span }>; Tile: ComponentType; gate: (scope: OverviewScope) => Gate<unknown> | null }
-function pending(title: Copy, gate: Entry['gate']): Entry {
-  function Placeholder({ span }: { span: Span }) {
-    const { locale } = useOverview()
-    const label = t(title, locale)
-    return createElement('div', { 'data-span': span }, createElement(Skeleton, { height: span === 'narrow' ? 240 : 280, label }))
-  }
-  function Tile() {
-    const { locale } = useOverview()
-    const label = t(title, locale)
-    return createElement('div', null, createElement(Skeleton, { height: 96, label }))
-  }
-  return { title, Section: Placeholder, Tile, gate }
-}
 export const SECTIONS: Record<SectionId, Entry> = {
-  rankings: pending({ en: 'Rankings', ru: 'Рейтинги' }, () => null),
-  records: pending({ en: 'Records', ru: 'Рекорды' }, scope => scope.records),
-  manufacturers: pending({ en: 'Manufacturers', ru: 'Производители' }, scope => scope.makers),
-  fleet: pending({ en: 'Fleet', ru: 'Парк' }, scope => scope.fleet),
-  clock: pending({ en: 'Clock', ru: 'Часы' }, scope => scope.clock),
-  rhythm: pending({ en: 'Rhythm', ru: 'Ритм' }, scope => scope.rhythm),
-  crossings: pending({ en: 'Crossings', ru: 'Пересечения' }, scope => scope.crossings),
+  rankings: { title: { en: 'Rankings', ru: 'Рейтинги' }, Section: rankingsSection, Tile: rankingsTile, gate: () => null },
+  records: { title: { en: 'Records', ru: 'Рекорды' }, Section: recordsSection, Tile: recordsTile, gate: scope => scope.records },
+  manufacturers: { title: { en: 'Manufacturers', ru: 'Производители' }, Section: manufacturersSection, Tile: manufacturersTile, gate: scope => scope.makers },
+  fleet: { title: { en: 'Fleet', ru: 'Парк' }, Section: fleetSection, Tile: fleetTile, gate: scope => scope.fleet },
+  clock: { title: { en: 'Clock', ru: 'Часы' }, Section: clockSection, Tile: clockTile, gate: scope => scope.clock },
+  rhythm: { title: { en: 'Rhythm', ru: 'Ритм' }, Section: rhythmSection, Tile: rhythmTile, gate: scope => scope.rhythm },
+  crossings: { title: { en: 'Crossings', ru: 'Пересечения' }, Section: crossingsSection, Tile: crossingsTile, gate: scope => scope.crossings },
 }

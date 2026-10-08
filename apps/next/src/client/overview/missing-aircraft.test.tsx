@@ -2,11 +2,12 @@
 import { cleanup, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import type { OverviewRow } from '@kuuki/shared/overview/model'
 import type { MissingAircraftPage } from '@kuuki/shared/overview'
 import type { AircraftApi } from '../import/aircraft-panel'
 import { OverviewRankings } from './rankings'
 import { busySummary, fakeLabels } from './fixtures'
-import { MissingAircraftReview, readMissingAircraft } from './missing-aircraft'
+import { MissingAircraftReview, readMissingAircraft, payloadMissingAircraft } from './missing-aircraft'
 
 const refresh = vi.hoisted(() => vi.fn())
 vi.mock('next/navigation', () => ({ useRouter: () => ({ push: vi.fn(), refresh }) }))
@@ -260,5 +261,42 @@ describe('Rankings owns an active review across summary refreshes', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Discard and continue' }))
     await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
     expect(screen.queryByRole('button', { name: 'Review aircraft' })).toBeNull()
+  })
+})
+
+describe('payload missing-aircraft adapter', () => {
+  const source = (id: number, extra: Partial<OverviewRow> = {}): OverviewRow => ({ id, weight: 1, date: '2026-03-01', state: 'logged', origin: 'JFK', destination: 'BOS', airline: 'AA', aircraft: null, flightNumber: '123', depMinute: null, arrMinute: null, distanceKm: null, durationMinutes: null, zonesOverflown: null, durationSource: null, originTz: null, destTz: null, departureUtc: null, suppressed: 0, ...extra })
+  it('pages newest-first with a stable missing-only boundary after confirmed saves', () => {
+    const rows = Array.from({ length: 103 }, (_, i) => source(i + 1))
+    rows.push(source(200, { state: 'upcoming' }), source(201, { aircraft: 'B738' }), source(202, { weight: 5 }))
+    const signal = new AbortController().signal
+    const first = payloadMissingAircraft(rows, null, signal)
+    expect(first.total).toBe(103)
+    expect(first.flights.map(row => row.id)).toEqual(Array.from({ length: 100 }, (_, i) => 103 - i))
+    expect(first.nextCursor).toBe('2026-03-01:4')
+    const next = payloadMissingAircraft(rows.filter(row => row.id !== 103), first.nextCursor, signal)
+    expect(next.flights.map(row => row.id)).toEqual([3, 2, 1])
+    expect(next.offset).toBe(99)
+    expect(next.total).toBe(102)
+    expect(next.nextCursor).toBeNull()
+  })
+  it('aborted owner reads produce no page', () => {
+    const controller = new AbortController(); controller.abort()
+    expect(() => payloadMissingAircraft([source(1)], null, controller.signal)).toThrow()
+  })
+  it('opens payload rows without the legacy read and removes confirmed saves before rereading', async () => {
+    let rows = [source(1)]
+    const confirmed = vi.fn((run: import('../import/aircraft-review').AircraftRun) => {
+      rows = rows.filter(row => run.rows.get(row.id)?.status !== 'saved')
+    })
+    const read = vi.fn(async (_: string, after: string | null, signal: AbortSignal) => payloadMissingAircraft(rows, after, signal))
+    render(<MissingAircraftReview locale="en" period="all" count={1} read={read} aircraftApi={aircraftApi()} onConfirmedSaved={confirmed} actionLabel="Add aircraft →" />)
+    await open('Add aircraft →')
+    expect(apiGet).not.toHaveBeenCalled()
+    await userEvent.click(await screen.findByRole('button', { name: /Identify aircraft/i }))
+    await userEvent.click(await screen.findByRole('button', { name: /Save selected/i }))
+    await waitFor(() => expect(confirmed).toHaveBeenCalledTimes(1))
+    expect(await screen.findByText('Every flight in this period has an aircraft.')).toBeInTheDocument()
+    expect(read).toHaveBeenCalledTimes(2)
   })
 })
