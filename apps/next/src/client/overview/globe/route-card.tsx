@@ -20,7 +20,7 @@ export function RouteCard({ route, locale, onScope, onClose }: {
     style={{ left: route.x, top: route.y }} onPointerDown={event => event.stopPropagation()}
     onKeyDown={event => { if (event.key === 'Escape') { event.stopPropagation(); onClose() } }}>
     <div className="globe-route-heading"><strong>{route.key.replace('-', '–')}</strong>
-      <Button dense aria-label={locale === 'ru' ? 'Закрыть маршрут' : 'Close route'} onClick={onClose}><X size={16} aria-hidden="true" /></Button></div>
+      <Button className="globe-route-close" aria-label={locale === 'ru' ? 'Закрыть маршрут' : 'Close route'} onClick={onClose}><X size={16} aria-hidden="true" /></Button></div>
     <p>{formatCount(locale, route.count, forms.flights)} · <span title={locale === 'ru' ? 'Среднее расстояние сохранённых перелётов' : 'Average recorded flight distance'}>{route.distanceKm === null ? '—' : formatNumber(locale, route.distanceKm)}</span> {locale === 'ru' ? 'км' : 'km'}</p>
     <Button onClick={onScope}>{locale === 'ru' ? 'Выбрать этот маршрут для страницы' : 'Scope page to this route'}</Button>
   </div>

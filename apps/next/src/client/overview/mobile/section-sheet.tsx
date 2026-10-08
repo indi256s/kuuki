@@ -30,7 +30,7 @@ export function SectionSheet({ openId, order, onNavigate, onClose, onMove, onHid
   return <Sheet open={!!entry} onOpenChange={open => { if (!open) onClose() }} className="ov3-section-sheet"
     onCloseAutoFocus={onCloseAutoFocus} closeLabel={t({ en: 'Close', ru: 'Закрыть' }, locale)}
     title={<span className="ov3-sheet-heading"><span>{title}</span><span className="ov3-sheet-position">{t({ en: `${position} of ${count}`, ru: `${position} из ${count}` }, locale)}</span>
-      {entry && openId ? <Menu align="end" trigger={<Button variant="ghost" dense aria-label={t({ en: `${title} options`, ru: `Настройки: ${title}` }, locale)}><MoreHorizontal size={18} aria-hidden="true" /></Button>}>
+      {entry && openId ? <Menu align="end" trigger={<Button variant="ghost" className="ov3-options" aria-label={t({ en: `${title} options`, ru: `Настройки: ${title}` }, locale)}><MoreHorizontal size={18} aria-hidden="true" /></Button>}>
         <MenuItem disabled={index === 0} onSelect={() => onMove(openId, index - 1)}>{t({ en: 'Move up', ru: 'Выше' }, locale)}</MenuItem>
         <MenuItem disabled={index === order.length - 1} onSelect={() => onMove(openId, index + 1)}>{t({ en: 'Move down', ru: 'Ниже' }, locale)}</MenuItem>
         <MenuItem onSelect={() => onHide(openId)}>{t({ en: 'Hide', ru: 'Скрыть' }, locale)}</MenuItem>

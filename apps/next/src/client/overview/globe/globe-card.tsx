@@ -37,11 +37,13 @@ export function GlobeCard({ locale, children, topLeft, topRight, bottomLeft, bot
     <div className="globe-card-content">{children({ fullscreen, active: fullscreen || !open })}</div>
     {topLeft && <div onPointerDown={event => event.stopPropagation()} className="globe-corner globe-top-left">{topLeft}</div>}
     <div onPointerDown={event => event.stopPropagation()} className="globe-corner globe-top-right">{topRight}{opener}</div>
-    {bottomLeft && <div onPointerDown={event => event.stopPropagation()} className="globe-corner globe-bottom-left">{bottomLeft}</div>}
-    <div onPointerDown={event => event.stopPropagation()} className="globe-corner globe-bottom-right">{legend}</div>
+    <div className="globe-bottom">
+      {bottomLeft && <div onPointerDown={event => event.stopPropagation()} className="globe-bottom-left">{bottomLeft}</div>}
+      <div onPointerDown={event => event.stopPropagation()} className="globe-bottom-right">{legend}</div>
+    </div>
   </div>
   return <>
-    {surface(false, <Button ref={openerRef} dense aria-label={fullscreenLabel} onClick={() => changeOpen(true)}><Maximize size={16} strokeWidth={2} aria-hidden="true" /><span>{fullscreenLabel}</span></Button>)}
+    {surface(false, <Button ref={openerRef} aria-label={fullscreenLabel} onClick={() => changeOpen(true)}><Maximize size={16} strokeWidth={2} aria-hidden="true" /><span>{fullscreenLabel}</span></Button>)}
     {disclosure}
     <Dialog open={open} onOpenChange={changeOpen} title={title} closeLabel={t(S.close, locale)} className="globe-dialog"
       onCloseAutoFocus={event => { event.preventDefault(); openerRef.current?.focus() }}>

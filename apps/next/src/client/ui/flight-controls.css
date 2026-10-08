@@ -46,6 +46,7 @@
 .flight-combobox input:disabled,.flight-date-input input:disabled{background:var(--surface-inset);color:var(--text-muted);cursor:not-allowed}
 .flight-combobox input:focus-visible,.flight-calendar :is(input,button):focus-visible,.flight-search-input input:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
 .flight-search-popover,.flight-calendar-popover{border:1px solid var(--hairline)}
+.flight-date-input>button{display:grid;place-items:center;flex:none;width:44px;padding:0}
 .flight-calendar-heading>button{display:grid;place-items:center;width:44px;flex:none;border:0}
 .flight-calendar-grid button{font-variant-numeric:tabular-nums;transition:background-color var(--dur-fast) var(--ease-out)}
 .ui-date-range{min-width:0;margin:0;padding:0;border:0;display:grid;gap:var(--space-3)}

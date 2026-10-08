@@ -26,6 +26,8 @@
 .kc svg text[font-size="22"] { font-family: var(--font-mono); }
 .kc svg text[font-size="22"] { font-weight: 500; }
 .kc svg text[font-size="13"] { font-family: var(--font-sans); }
+/* Mono is a size-keyed default (12, 22). Axis names and numeric ticks that need the 12px floor opt back to the sans face with data-sans. */
+.kc svg text[data-sans] { font-family: var(--font-sans); }
 .kc-svg:focus:not(:focus-visible),
 .kc-svg g:focus:not(:focus-visible) { outline: none; }
 .kc-svg:focus-visible,

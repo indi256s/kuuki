@@ -30,7 +30,7 @@ export function ArcActivityHeatmap({ points, locale, mark }: { points: readonly 
       const count = point.datum.count, level = count <= 0 ? 0 : count <= bounds[0] ? 1 : count <= bounds[1] ? 2 : count <= bounds[2] ? 3 : 4
       const props = mark(point), date = new Date(start + index * DAY_MS)
       return <g key={point.key}>
-        {(index === 0 || date.getUTCDate() === 1) && <text x={x} y={16} fill="var(--text-muted)" fontSize={11}>{monthName.format(date)}</text>}
+        {(index === 0 || date.getUTCDate() === 1) && <text x={x} y={16} fill="var(--text-muted)" fontSize={12} data-sans>{monthName.format(date)}</text>}
         <g {...props} onKeyDown={event => {
           if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
             event.preventDefault()

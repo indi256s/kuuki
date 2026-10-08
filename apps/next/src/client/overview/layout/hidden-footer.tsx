@@ -16,7 +16,7 @@ export function HiddenFooter({ hidden, onShow }: { hidden: SectionId[]; onShow: 
       en: { one: '{count} hidden section', other: '{count} hidden sections' },
       ru: { one: '{count} скрытый раздел', few: '{count} скрытых раздела', many: '{count} скрытых разделов', other: '{count} скрытого раздела' },
     })} · </span>
-    <Menu trigger={<Button variant="ghost" dense data-section-show>{t({ en: 'Show', ru: 'Показать' }, locale)}</Button>}>
+    <Menu trigger={<Button variant="ghost" data-section-show>{t({ en: 'Show', ru: 'Показать' }, locale)}</Button>}>
       {hidden.map(id => <MenuItem key={id} onSelect={() => onShow(id)}>{t(SECTIONS[id].title, locale)}</MenuItem>)}
       <MenuItem onSelect={() => onShow('all')}>{t({ en: 'Show all', ru: 'Показать все' }, locale)}</MenuItem>
     </Menu>

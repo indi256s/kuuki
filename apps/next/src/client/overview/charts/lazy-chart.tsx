@@ -7,6 +7,7 @@ const subscribe = () => () => {}
 const observerAvailable = () => typeof IntersectionObserver !== 'undefined'
 const serverObserverAvailable = () => true
 
+// `height` only reserves space (pre-mount skeleton and closed chart); mounted content sizes naturally so an opened table pushes later content down.
 export function LazyChart({ height, label, children }: { height: number; label: string; children: (inView: boolean) => ReactNode }) {
   const host = useRef<HTMLDivElement>(null)
   const [mounted, setMounted] = useState(false)
@@ -27,5 +28,5 @@ export function LazyChart({ height, label, children }: { height: number; label: 
     visibility.observe(element)
     return () => { preload.disconnect(); visibility.disconnect() }
   }, [hasObserver])
-  return <div ref={host} style={{ height }}>{mounted || !hasObserver ? children(inView || !hasObserver) : <Skeleton height={height} label={label} />}</div>
+  return <div ref={host} style={{ minHeight: height }}>{mounted || !hasObserver ? children(inView || !hasObserver) : <Skeleton height={height} label={label} />}</div>
 }

@@ -41,10 +41,10 @@ export function Section({ span }: { span: Span }) {
   const slots = ridges.reduce((count, row, i) => count + (row.gapBefore && i > 0 ? 2 : 1), 0)
   const height = Math.max(200, slots * 42 + 66)
   return <div className="ov3-fleet" data-span={span}>
-    <div className="ov3-fleet-heading">{topRow && <MakerSwatch maker={topRow.maker} />} <strong>{top?.family ?? '—'}</strong> {flights(locale, top?.flights ?? 0)}<p>{copy(locale, 'Most flown type', 'Самый частый тип')} · {types(locale, data.familyCount)}</p></div>
+    <div className="ov3-fleet-heading">{topRow && <MakerSwatch maker={topRow.maker} />} <strong>{top?.family ?? '—'}</strong>{top && <> · {flights(locale, top.flights)}</>}<p>{copy(locale, 'Most flown type', 'Самый частый тип')} · {types(locale, data.familyCount)}</p></div>
     <div className="ov3-body-split">{(['narrow', 'wide'] as const).map(body => <div key={body}><div className="ov3-body-bands">{data.bodies.filter(row => row.body === body).map(row => <button key={row.key} style={{ flexGrow: row.flights, background: `var(--cat-maker-${row.maker})` }} aria-label={`${copy(locale, body === 'narrow' ? 'Narrowbody' : 'Widebody', body === 'narrow' ? 'Узкофюзеляжные' : 'Широкофюзеляжные')} · ${row.maker} · ${flights(locale, row.flights)}`} onClick={() => { if (isCurrent()) { actions.add('bodies', body); actions.add('makers', row.maker) } }} />)}</div><p>{copy(locale, body === 'narrow' ? 'Narrowbody' : 'Widebody', body === 'narrow' ? 'Узкофюзеляжные' : 'Широкофюзеляжные')} {data.bodies.filter(row => row.body === body).reduce((sum, row) => sum + row.flights, 0)}</p></div>)}</div>
     <PayloadAircraftReview />
-    <p className="ov3-chart-caption">{copy(locale, 'Flight length by type', 'Длительность по типам')}</p>
+    <h3 className="ov3-chart-caption">{copy(locale, 'Flight length by type', 'Длительность по типам')}</h3>
     <LazyChart height={height + 64} label={copy(locale, 'Flight length by type', 'Длительность по типам')}>{inView => <KuukiChart points={points} height={height} inView={inView} palette={MAKER_PALETTE} ariaLabel={copy(locale, 'Flight length by type', 'Длительность по типам')}
       onPick={point => pick(point.datum.family)} actions={point => [{ label: filterLabel(locale), run: () => pick(point.datum.family) }]}
       tip={points => <span>{points[0].datum.family} · {flights(locale, points[0].datum.flights)} · {Math.round(points[0].datum.x)} {copy(locale, 'min', 'мин')}</span>}

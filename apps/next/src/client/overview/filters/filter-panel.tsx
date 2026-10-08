@@ -131,7 +131,7 @@ export function FilterPanel({ anchor, initialFacet, onClose }: { anchor: HTMLEle
           event.preventDefault(); restoreTarget()?.focus()
         }
       }}>
-      <div className="ov-filter-heading"><strong>{title}</strong><Button dense variant="ghost" onClick={close}>{closeLabel}</Button></div>{body}
+      <div className="ov-filter-heading"><strong>{title}</strong><Button variant="ghost" onClick={close}>{closeLabel}</Button></div>{body}
     </PopoverContent>
   </PopoverRoot>
 }

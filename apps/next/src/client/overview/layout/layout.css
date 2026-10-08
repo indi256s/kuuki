@@ -12,6 +12,7 @@
 .ov3-frame:focus-within .ov3-grip { visibility: visible; }
 .ov3-section-narrator { margin-top: 24px; }
 .ov3-section-narrator .narrator { margin: 0; max-width: 60ch; font-size: 15px; line-height: 24px; font-weight: 400; color: var(--text-muted); }
+.ov3-options.ui-button { min-width: 44px; padding-inline: 0; }
 .ov3-insertion { position: fixed; height: 2px; background: var(--accent); pointer-events: none; z-index: 40; }
 .ov3-layout-status { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 .ov3-hidden { display: flex; align-items: center; flex-wrap: wrap; }

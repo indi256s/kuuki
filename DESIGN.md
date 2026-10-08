@@ -97,7 +97,7 @@ Names are fixed; values live only in `styles.css` (`:root`, `:root[data-theme=da
 | `--cat-maker-airbus` / `-boeing` / `-embraer` / `-atr` | `#0f6390` / `#16a384` / `#8c6d08` / `#9a52cf` | `#0685b6` / `#04ac7b` / `#a4770f` / `#a36ffa` | Fixed maker slots, with text labels and tables. Every mark uses the same filled rounded square (20% radius). |
 | `--cat-maker-other` / `-unknown` | `#c2bab0` / `#ece9e5` | `#c9c1b7` / `#47433f` | Other is recognized aircraft outside the named slots; Unknown is absent or unrecognized aircraft. |
 | `--cat-alliance-star` / `-oneworld` / `-skyteam` | `#6b5a2e` / `#6a3f55` / `#3e5266` | `#cdb98a` / `#d3a6bc` / `#a9bbd0` | Separate dated-alliance palette: ★ Star, ○ Oneworld, △ SkyTeam. Never combine with maker categories. |
-| `--accent-tint` / `--accent-on-tint` | accent 10% over surface in srgb / `#b02f14` | same tint formula / `--accent-text` | Tinted labels such as Next; foreground text is distinct from fill. |
+| `--accent-tint` / `--accent-on-tint` | accent 10% over surface in srgb / `#b02f14` | same tint formula / `--accent-text` 80% over `--text` (≥4.5:1 for every accent) | Tinted labels such as Next; foreground text is distinct from fill. |
 | `--globe-rim` | accent 14% over transparent in srgb | accent 22% over transparent in srgb | Flat, static 8px rim; no glow or animated gradient. |
 
 The exact heat ramp (including dark steps 3–4), map buckets 1–3, and Other/Unknown swatches have consciously accepted sub-3:1 pairs. Visible text-ink counts or labels, tooltip values, tables and non-color cues carry meaning. This is not blanket 3:1 acceptance; see [palette contrast acceptance](.scratch/overview-redesign/issues/01-palette-contrast.md). Shu is not a maker or alliance category color.

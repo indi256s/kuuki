@@ -13,9 +13,12 @@
 :root[data-theme="dark"] .ov3-hero-panel { border-color: transparent; box-shadow: inset 0 1px 0 var(--surface-highlight); }
 .ov3-hero-lead { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
 .ov3-hero-flight { min-width: 0; }
-.ov3-hero-value { margin: 0; font-size: 32px; line-height: 36px; font-weight: 600; letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
+.ov3-hero-value { margin: 0; font-size: 32px; line-height: 36px; font-weight: 600; letter-spacing: -.03em; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .ov3-hero-flight > .ov3-hero-value { font-size: 80px; line-height: 80px; letter-spacing: -.04em; }
-.ov3-hero-unit { font-size: 15px; letter-spacing: normal; }
+/* Each stat column is a size container: the widest figure (number plus unit, ~5em) must fit its column, so the size follows the column up to 32px. */
+.ov3-hero-metric { container-type: inline-size; }
+.ov3-hero-metric > .ov3-hero-value { font-size: clamp(20px, calc(100cqi / 5.2), 32px); line-height: 1.125; }
+.ov3-hero-unit { font-size: .5em; letter-spacing: normal; }
 .ov3-hero-caption { margin: 4px 0 0; color: var(--text-muted); font-size: 13px; line-height: 18px; }
 .ov3-hero-flight > .ov3-hero-caption { font-size: 14px; line-height: 20px; }
 .ov3-hero-review, .ov3-next-review { min-height: 44px; display: inline-flex; align-items: center; color: var(--accent-text); font-size: 13px; font-weight: 600; }
@@ -64,10 +67,10 @@
   .ov3-hero-km { order: 1; }
   .ov3-hero-countries { order: 2; }
   .ov3-hero-duration { order: 3; }
-  .ov3-hero-value, .ov3-hero-flight > .ov3-hero-value { font-size: 40px; line-height: 44px; }
+  .ov3-hero-flight > .ov3-hero-value { font-size: 40px; line-height: 44px; }
+  .ov3-hero-metric > .ov3-hero-value { font-size: clamp(24px, calc(100cqi / 5.2), 40px); line-height: 1.1; }
   .ov3-hero-caption, .ov3-hero-flight > .ov3-hero-caption { font-size: 13px; line-height: 20px; }
   .ov3-desktop-caption, .ov3-hero-review, .ov3-years, .ov3-hero-airports { display: none; }
-  .ov3-hero-km .ov3-hero-unit { display: none; }
   .ov3-mobile-caption { display: inline; }
   p.ov3-mobile-caption { display: block; }
   .ov3-next-strip { flex-wrap: wrap; gap: 4px 12px; }

@@ -68,7 +68,7 @@ export function FilterBar() {
   const visible = Math.min(shown, facets.length), remaining = facets.length - visible
   return <>
     <div className="ov-filter-bar" ref={bar} aria-label={locale === 'ru' ? 'Фильтры обзора' : 'Overview filters'}>
-      <Button dense className="ov-filter-add" onClick={event => open(event.currentTarget)}><Plus size={16} aria-hidden="true" />{locale === 'ru' ? 'Фильтр' : 'Filter'}</Button>
+      <Button className="ov-filter-add" onClick={event => open(event.currentTarget)}><Plus size={16} aria-hidden="true" />{locale === 'ru' ? 'Фильтр' : 'Filter'}</Button>
       {!facets.length ? <span className="ov-filter-all">{locale === 'ru' ? 'Все перелёты за всё время' : 'All flights, all time'}</span> : null}
       {facets.map((facet, position) => {
         const values = facet === 'period' ? filter.period && 'years' in filter.period ? filter.period.years
@@ -86,7 +86,7 @@ export function FilterBar() {
             removeLabel={locale === 'ru' ? `Убрать ${removal}` : `Remove ${removal}`} />
         </span>
       })}
-      <Button ref={overflow} dense hidden={!remaining} className="ov-filter-overflow"
+      <Button ref={overflow} hidden={!remaining} className="ov-filter-overflow"
         aria-label={locale === 'ru' ? `Ещё фильтров: ${formatNumber(locale, remaining)}` : `${formatNumber(locale, remaining)} more filters`}
         onClick={event => open(event.currentTarget)}>+{formatNumber(locale, remaining)}</Button>
     </div>

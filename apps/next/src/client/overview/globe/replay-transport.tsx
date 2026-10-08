@@ -49,9 +49,9 @@ export function ReplayTransport({ timeline, durationMs, timeMs, paused, setPause
   if (reduced || !timeline.length) return null
   return <div ref={host} className="replay-transport" data-expanded={expanded} onPointerDown={event => event.stopPropagation()}
     onKeyDown={event => { if (event.key === 'Escape') { event.stopPropagation(); finish('cancel'); setExpanded(false); label.current?.focus() } }}>
-    <Button dense aria-label={paused ? locale === 'ru' ? 'Продолжить повтор' : 'Play replay' : locale === 'ru' ? 'Приостановить повтор' : 'Pause replay'}
+    <Button className="replay-play" aria-label={paused ? locale === 'ru' ? 'Продолжить повтор' : 'Play replay' : locale === 'ru' ? 'Приостановить повтор' : 'Pause replay'}
       onClick={() => setPaused(!paused)}>{paused ? <Play size={16} aria-hidden="true" /> : <Pause size={16} aria-hidden="true" />}</Button>
-    <Button ref={label} dense className="replay-month" aria-expanded={expanded} onClick={() => setExpanded(!expanded)}>{format(value)}</Button>
+    <Button ref={label} className="replay-month" aria-expanded={expanded} onClick={() => setExpanded(!expanded)}>{format(value)}</Button>
     <div className="replay-scrubber">
       <input type="range" min={0} max={Math.max(0, candidates.length - 1)} step={1} value={index}
         aria-label={locale === 'ru' ? 'Месяц повтора' : 'Replay month'} aria-valuetext={candidates[index]?.month ?? ''}

@@ -30,7 +30,8 @@ const awaitingForms: CountForms = {
   ru: { one: '{count} ждёт проверки', few: '{count} ждут проверки', many: '{count} ждут проверки', other: '{count} ждут проверки' },
 }
 function units(value: string): ReactNode {
-  return value.split(/( \S+)/).map((part, index) => part.startsWith(' ') ? <span className="ov3-hero-unit" key={index}>{part}</span> : part)
+  // Formatters join number and unit with a no-break space; the unit is that space plus the non-digit run after it.
+  return value.split(/(\u00a0[^\d\s]+)/).map((part, index) => index % 2 ? <span className="ov3-hero-unit" key={index}>{part}</span> : part)
 }
 function Delta({ value, label, locale, format = formatNumber }: { value: number; label: string; locale: Locale; format?: (locale: Locale, value: number) => string }) {
   return <p className={`ov3-hero-delta${value < 0 ? ' negative' : ''}`}>{value < 0 ? '↓ −' : '↑ +'}{format(locale, Math.abs(value))} {locale === 'ru' ? 'к' : 'vs'} {label}</p>

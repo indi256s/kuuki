@@ -14,3 +14,8 @@
 .ov3-section-sheet.ui-sheet[data-side=bottom] { max-height: calc(100dvh - var(--sheet-kb) - max(16px, env(safe-area-inset-top))); }
 .ov3-section-sheet .ui-panel-header, .ov3-section-sheet .ui-panel-footer { border: 0; }
 .ov3-section-sheet .narrator { max-width: 60ch; color: var(--text-muted); font-size: 15px; line-height: 24px; }
+/* Mini bars must not break the airline code into stacked letters inside a half-width tile. */
+.ov3-tile .ov3-mini-bars div { min-width: 0; }
+.ov3-tile .ov3-mini-bars span { flex: none; min-width: 3ch; white-space: nowrap; overflow-wrap: normal; }
+.ov3-tile .ov3-mini-bars i { flex: 0 1 auto; min-width: 2px; max-width: calc(100% - 3ch - 8px); }
+.ov3-tile strong { overflow-wrap: anywhere; }

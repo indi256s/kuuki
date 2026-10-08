@@ -14,7 +14,7 @@
 .ov3-rank-row { display: grid; grid-template-columns: 20px 1fr auto; width: 100%; gap: 8px; padding: 4px 0; }
 .ov3-rank-row span:nth-child(2) { min-width: 0; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
 .ov3-rankings-bottom { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 350px), 1fr)); gap: 48px; margin-top: 32px; }
-.ov3-rankings-bottom > div { min-width: 0; }.ov3-chart-caption { font-size: 15px; font-weight: 600; }
+.ov3-rankings-bottom > div { min-width: 0; }.ov3-chart-caption { margin: 0 0 1em; font-size: 15px; line-height: 1.6; font-weight: 600; text-wrap: pretty; }
 .ov3-score { display: grid; grid-template-columns: 1fr 96px 1fr; gap: 8px; align-items: center; background: var(--surface-inset); border-radius: 10px; padding: 12px; margin-bottom: 12px; }
 .ov3-score strong { text-align: center; font-family: var(--font-mono); }.ov3-score button:last-child { text-align: right; }
 .ov3-mini-bars div { display: flex; gap: 8px; align-items: center; font: 12px var(--font-mono); margin-bottom: 4px; }.ov3-mini-bars i { height: 8px; background: var(--mark-1); border-radius: 3px; }
@@ -22,8 +22,10 @@
 .ov3-below a { display: inline-flex; padding-block: 12px; }
 .ov3-rankings button:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
 
-.ov3-bump-dashes { display: flex; flex-wrap: wrap; gap: 8px 16px; font-size: 12px; }.ov3-bump-dashes span { display: inline-flex; gap: 6px; align-items: center; }
-.ov3-bump-dashes button { display: inline-flex; gap: 6px; align-items: center; min-height: 44px; border: 0; background: none; color: var(--text); cursor: pointer; }
+.ov3-bump-dashes { display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 12px; }.ov3-bump-dashes span { display: inline-flex; gap: 6px; align-items: center; }
+.ov3-bump-dashes button { position: relative; display: inline-flex; gap: 6px; align-items: center; min-height: 32px; border: 0; background: none; color: var(--text); cursor: pointer; }
+/* Rows sit 4px apart; the 44px touch target extends past the visible 32px row. */
+.ov3-bump-dashes button::after { content: ""; position: absolute; inset: -6px 0; }
 .ov3-bump-dashes button[aria-pressed="false"] { text-decoration: line-through; }
 .ov3-rankings .kc-svg:has([data-selected="true"]):not(:has([data-bump-highlight])) [data-bump-series]:not(:has([data-selected="true"])) { opacity: .22; }
 .ov3-share-legend { display: grid; gap: 4px; }

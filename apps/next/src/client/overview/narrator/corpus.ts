@@ -6,9 +6,9 @@ const flights: [Line, Line, Line] = [
   { en: 'Flight total for this view: {flights}.', ru: 'В обзоре перелётов: {flights}.' },
 ]
 const below: [Line, Line, Line] = [
-  { en: 'Available evidence: {have}; required for this section: {need}.', ru: 'Есть: {have}; нужно: {need}.' },
-  { en: 'This section needs {need}; the current view provides {have}.', ru: 'Для раздела нужно: {need}. Есть: {have}.' },
-  { en: 'Evidence in this view: {have}. The section threshold is {need}.', ru: 'Данных: {have} из {need}.' },
+  { en: 'Not enough data for this section yet: {have} of the {need} it needs.', ru: 'Для раздела пока мало данных: {have} из {need} нужных.' },
+  { en: 'This section needs at least {need}. This view has {have}.', ru: 'Для раздела нужно минимум {need}. Сейчас {have}.' },
+  { en: 'This view has {have}; the section starts at {need}.', ru: 'Сейчас {have}; раздел появится при {need}.' },
 ]
 
 // Factual fallbacks for the ten slots and the six actual section gates.
@@ -94,7 +94,7 @@ export const CORPUS: Record<string, [Line, Line, Line]> = {
   ],
   'fleet:untyped': [
     { en: "Missing aircraft designations: {untyped}; total flights here: {total}. The fleet list has blanks.", ru: "Без типа самолёта: {untyped} из {total}. В списке флота пробелы." },
-    { en: "Flights without an aircraft designation: {untyped}; all flights: {total}. Unassigned seats in the data.", ru: "Тип не указан: {untyped} из {total}. Свободные графы остались." },
+    { en: "Flights with no aircraft recorded: {untyped} of {total}.", ru: "Самолёт не указан: {untyped} из {total}." },
     { en: "Your fleet view’s untyped count is {untyped} out of {total} flights. The missing field is still missing.", ru: "Перелётов без типа: {untyped} из {total}. Пустая графа пока пуста." },
   ],
   'clock:unique-peak': [
@@ -134,7 +134,7 @@ export const CORPUS: Record<string, [Line, Line, Line]> = {
   ],
   'rankings:airport-leader': [
     { en: "A leading airport here is {code}: {count} of {endpoints} endpoint entries. Both ends count.", ru: "Среди лидеров — {code}: {count} из {endpoints}. Оба конца маршрута." },
-    { en: "Your displayed top airport is {code}: endpoint entries {count} out of {endpoints}. The ledger counts arrivals and departures.", ru: "{code} вверху списка: {count} из {endpoints}. Учтены вылеты и прилёты." },
+    { en: "{code} tops the airport list: {count} of {endpoints}. Arrivals and departures both count.", ru: "{code} вверху списка: {count} из {endpoints}. Учтены вылеты и прилёты." },
     { en: "{code} heads the airport list: {count} of {endpoints} endpoint entries. This denominator has both ends.", ru: "{code} лидирует: {count} из {endpoints}. В знаменателе оба конца." },
   ],
   'rankings:airline-leader': [

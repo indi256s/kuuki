@@ -13,9 +13,16 @@ export const number = (locale: Locale, value: number) => formatNumber(locale, va
 export const flights = (locale: Locale, value: number) => formatCount(locale, value, forms.flights)
 export const percent = (value: number) => `${Math.round(value * 100)}%`
 export function Below({ id, gate, fix }: { id: SectionId; gate: Gate<unknown>; fix?: 'aircraft' | 'times' }) {
-  const { locale } = useOverview()
+  const { locale, scope } = useOverview()
   if (gate.status !== 'below') return null
-  return <div className="ov3-below"><Narrator slot={id} /><p>{copy(locale, 'Coverage', 'Покрытие')}: {number(locale, gate.have)} / {number(locale, gate.need)}</p>
+  const total = scope?.figures.flights ?? gate.have
+  const need = formatCount(locale, gate.need, forms.flightsOf)
+  const sentence = fix === 'times'
+    ? copy(locale, `Needs departure times on at least ${number(locale, gate.need)} flights. ${number(locale, gate.have)} of ${number(locale, total)} have them.`, `Нужно время вылета минимум у ${need}. Указано у ${number(locale, gate.have)} из ${number(locale, total)}.`)
+    : fix === 'aircraft'
+      ? copy(locale, `Needs an aircraft on at least ${number(locale, gate.need)} flights. ${number(locale, gate.have)} of ${number(locale, total)} have one.`, `Нужен самолёт минимум у ${need}. Указан у ${number(locale, gate.have)} из ${number(locale, total)}.`)
+      : null
+  return <div className="ov3-below">{sentence === null ? <Narrator slot={id} /> : <p>{sentence}</p>}
     {fix === 'aircraft' && <PayloadAircraftReview />}
     {fix === 'times' && <a href="/journal">{copy(locale, 'Add times →', 'Указать время →')}</a>}
   </div>
