@@ -64,6 +64,8 @@ export const S = {
   vs: p('vs {year}', 'к {year}'),
 
   map: p('Places by air', 'Места по воздуху'),
+  globeLoading: p('Loading globe…', 'Загружаем глобус…'),
+  globeUnavailable: p('Globe unavailable. Your routes and countries are in the table.', 'Глобус недоступен. Маршруты и страны доступны в таблице.'),
   mapLink: p('Open Passport map', 'Открыть карту паспорта'),
   legend: p('Visits per country', 'Посещений на страну'),
   countryList: p('Countries on the map', 'Страны на карте'),

@@ -5,7 +5,8 @@ import { matches, routeKey } from '@kuuki/shared/overview/filter'
 import { useOverview } from '../store/overview-context'
 import { GlobeCard } from './globe-card'
 import { CountryTreemap } from './country-treemap'
-import { SvgGlobe } from './svg-globe'
+import { GlobeDataTable } from './globe-data'
+import { S, t } from '../copy'
 import { buildTimeline, monthAt, replayDurationMs } from './replay'
 import { useReplay } from './use-replay'
 import { ReplayTransport } from './replay-transport'
@@ -17,28 +18,26 @@ function GlobeSurface(props: Omit<MaplibreGlobeProps, 'onReady' | 'onError'>) {
   const current = useRef(props.isCurrent)
   useEffect(() => { current.current = props.isCurrent }, [props.isCurrent])
   useEffect(() => {
-    let retired = false, idle: number | undefined, timeout: number | undefined
-    const stop = () => { retired = true; if (idle !== undefined) window.cancelIdleCallback(idle); window.clearTimeout(timeout) }
+    let retired = false
+    const stop = () => { retired = true }
     window.addEventListener('kuuki:identity-reset', stop)
     try {
       const context = document.createElement('canvas').getContext('webgl2')
       if (context) {
         context.getExtension('WEBGL_lose_context')?.loseContext()
-        const load = () => {
-          if (retired || !current.current()) return
-          void import('./maplibre-globe').then(module => {
-            if (!retired && current.current()) setRenderer(() => module.MaplibreGlobe)
-          }).catch(() => { if (!retired) setFailed(true) })
-        }
-        if (typeof window.requestIdleCallback === 'function') idle = window.requestIdleCallback(load, { timeout: 2000 })
-        else timeout = window.setTimeout(load, 200)
-      }
+        void import('./maplibre-globe').then(module => {
+          if (!retired && current.current()) setRenderer(() => module.MaplibreGlobe)
+        }).catch(() => { if (!retired && current.current()) setFailed(true) })
+      } else setFailed(true)
     } catch { setFailed(true) }
     return () => { stop(); window.removeEventListener('kuuki:identity-reset', stop) }
   }, [])
   return <div className="globe-surface" data-webgl-ready={ready && !failed}>
-    <SvgGlobe globe={props.globe} all={props.all} airports={props.airports} size={436} locale={props.locale} staticPlanes={props.reduced} maker={props.filter.makers?.length === 1 ? props.filter.makers[0] : undefined} />
-    {Renderer && !failed && <div className="globe-webgl-layer"><Renderer {...props} onReady={() => setReady(true)} onError={() => setFailed(true)} /></div>}
+    <div className="globe-viewport">
+      {!ready || failed ? <p className="globe-status" role="status">{t(failed ? S.globeUnavailable : S.globeLoading, props.locale)}</p> : null}
+      {Renderer && !failed && <div className="globe-webgl-layer"><Renderer {...props} onReady={() => setReady(true)} onError={() => setFailed(true)} /></div>}
+    </div>
+    <GlobeDataTable globe={props.globe} all={props.all} locale={props.locale} />
   </div>
 }
 

@@ -36,12 +36,13 @@ export function Map({ children, onError, locale = 'en', className = 'route-map-c
     const handleError = () => onErrorRef.current()
     const handleLoad = () => { window.clearTimeout(timeout); setReady(true) }
     instance.on('error', handleError)
+    instance.on('webglcontextlost', handleError)
     instance.on('load', handleLoad)
     setMap(instance)
     const observer = new MutationObserver(() => setThemeRevision(value => value + 1))
     observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme', 'data-accent'] })
     return () => { observer.disconnect(); window.clearTimeout(timeout); instance.off('error', handleError);
-      instance.off('load', handleLoad); instance.remove(); setMap(null); setReady(false) }
+      instance.off('load', handleLoad); instance.off('webglcontextlost', handleError); instance.remove(); setMap(null); setReady(false) }
   // The map is created once per mount; a locale change reloads the page.
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])

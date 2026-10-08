@@ -1,4 +1,39 @@
 import { test, expect } from '@playwright/test'
+import { signIn } from './helpers'
+
+test('the overview globe keeps its canvas visible in the card and fullscreen', async ({ page, baseURL }) => {
+  await signIn(page, baseURL!)
+  let releaseAtlas!: () => void
+  const atlasReady = new Promise<void>(resolve => { releaseAtlas = resolve })
+  await page.route('**/maps/countries-110m-2.0.2.geojson', async route => { await atlasReady; await route.continue() })
+  await page.goto('/overview')
+  await expect(page.getByRole('status').filter({ hasText: 'Loading globe…' })).toBeVisible()
+  await expect(page.locator('.globe-viewport svg')).toHaveCount(0)
+  releaseAtlas()
+  for (const width of [1280, 390]) {
+    await page.setViewportSize({ width, height: 844 })
+    const surface = page.locator('.globe-card:not(.globe-card-fullscreen) .globe-surface')
+    await expect(surface).toHaveAttribute('data-webgl-ready', 'true', { timeout: 20_000 })
+    await expect.poll(async () => {
+      const layer = await surface.locator('.globe-webgl-layer').boundingBox()
+      const host = await surface.locator('.globe-map-canvas').boundingBox()
+      return Boolean(layer && host && host.height > 0 && Math.abs(layer.height - host.height) < 1)
+    }).toBe(true)
+  }
+  await page.getByRole('button', { name: 'Fullscreen', exact: true }).click()
+  const fullscreen = page.locator('.globe-card-fullscreen .globe-surface')
+  await expect(fullscreen).toHaveAttribute('data-webgl-ready', 'true', { timeout: 20_000 })
+  await expect.poll(async () => {
+    const layer = await fullscreen.locator('.globe-webgl-layer').boundingBox()
+    const host = await fullscreen.locator('.globe-map-canvas').boundingBox()
+    return Boolean(layer && host && host.height > 0 && Math.abs(layer.height - host.height) < 1)
+  }).toBe(true)
+  await fullscreen.locator('.maplibregl-canvas').evaluate((canvas: HTMLCanvasElement) => {
+    canvas.getContext('webgl2')?.getExtension('WEBGL_lose_context')?.loseContext()
+  })
+  await expect(fullscreen.getByRole('status')).toContainText('Globe unavailable.')
+  await expect(fullscreen.locator('.maplibregl-canvas')).toHaveCount(0)
+})
 
 test('the opened map uses local assets, selectable routes and survives a theme change', async ({ page, baseURL }) => {
   expect((await page.request.post('/api/auth/sign-in/email', { headers: { Origin: baseURL! }, data: { email: 'a@example.test', password: 'rehearsal-password-2026' } })).status()).toBe(200)
@@ -42,4 +77,10 @@ test('WebGL failure keeps a keyboard usable route and country list', async ({ pa
   await page.keyboard.press('Enter')
   await expect(route).toHaveAttribute('aria-pressed', 'true')
   await expect(page.getByRole('list', { name: 'Visited countries', exact: true })).toContainText('United States')
+  await page.goto('/overview')
+  await expect(page.getByRole('status').filter({ hasText: 'Globe unavailable.' })).toBeVisible()
+  await expect(page.locator('.globe-viewport svg')).toHaveCount(0)
+  await page.locator('.globe-data summary').focus()
+  await page.keyboard.press('Enter')
+  await expect(page.getByRole('table', { name: 'Globe data' })).toContainText('US')
 })

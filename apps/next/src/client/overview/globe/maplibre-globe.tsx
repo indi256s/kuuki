@@ -17,7 +17,8 @@ import { nightPolygon } from './night'
 import { RouteCard, type GlobeRouteCard } from './route-card'
 import { PLANE_MS, type ReplayPlane, type TimelineItem } from './replay'
 import type { createUIBus } from '../store/ui-bus'
-import { isLand, type GlobeLand } from './svg-globe'
+import { isLand, type GlobeLand } from './atlas'
+import { globeZoom } from './camera'
 
 export type MaplibreGlobeProps = {
   globe: GlobeData; all: GlobeData; airports: OverviewPayload['refs']['airports']; filter: OverviewFilter
@@ -93,9 +94,9 @@ function GlobeLayers({ props, host, select }: { props: MaplibreGlobeProps; host:
     if (!map || !ready || !land) return
     let disposed = false
     try {
-      map.addSource('globe-countries', { type: 'geojson', data: land as GeoJSON.FeatureCollection })
+      map.addSource('globe-countries', { type: 'geojson', data: land, promoteId: 'id' })
       for (const id of sources.slice(1)) map.addSource(id, { type: 'geojson', data: empty() })
-      map.addLayer({ id: layers[0], type: 'fill', source: sources[0], paint: { 'fill-color': token('--map-land') } })
+      map.addLayer({ id: layers[0], type: 'fill', source: sources[0], paint: { 'fill-color': token('--map-land'), 'fill-outline-color': token('--map-border') } })
       map.addLayer({ id: layers[1], type: 'fill', source: sources[0], paint: { 'fill-opacity': ['case', ['boolean', ['feature-state', 'ghost'], false], 1, 0] } })
       map.addLayer({ id: layers[2], type: 'line', source: sources[1], filter: ['!', ['get', 'upcoming']], paint: { 'line-width': ['min', 3, ['get', 'bucket']], 'line-opacity': ['get', 'opacity'] } })
       map.addLayer({ id: layers[3], type: 'line', source: sources[1], filter: ['get', 'upcoming'], paint: { 'line-width': 1, 'line-dasharray': [3, 3], 'line-opacity': .15 } })
@@ -135,6 +136,7 @@ function GlobeLayers({ props, host, select }: { props: MaplibreGlobeProps; host:
       map.setFeatureState({ source: sources[0], id }, { bucket: visitBucket(visits.get(id) ?? 0), ghost: ghosts.has(id) })
     }
     map.setPaintProperty(layers[0], 'fill-color', bucket(['feature-state', 'bucket']))
+    map.setPaintProperty(layers[0], 'fill-outline-color', token('--map-border'))
     const canvas = document.createElement('canvas'); canvas.width = canvas.height = 8
     const context = canvas.getContext('2d')
     if (context) {
@@ -162,6 +164,11 @@ function GlobeLayers({ props, host, select }: { props: MaplibreGlobeProps; host:
     if (!map || !ready || !props.active) return
     const center = props.globe.centroid ? [props.globe.centroid.lon, props.globe.centroid.lat] as [number, number] : [0, 0] as [number, number]
     moveCamera(map, center, props.reduced)
+    const resize = () => {
+      if (latest.current.isCurrent()) map.jumpTo({ zoom: globeZoom(map.getContainer().clientWidth, map.getContainer().clientHeight, map.getCenter().lat, map.getVerticalFieldOfView()) })
+    }
+    map.on('resize', resize)
+    return () => { map.off('resize', resize) }
   }, [map, ready, props.active, props.globe.centroid, props.filter, props.reduced])
   useEffect(() => {
     if (!map || !ready || !host.current || !props.active) return
@@ -194,7 +201,8 @@ function GlobeLayers({ props, host, select }: { props: MaplibreGlobeProps; host:
   }) : null
 }
 function moveCamera(map: LibreMap, center: [number, number], reduced: boolean) {
-  if (reduced) map.jumpTo({ center }); else map.flyTo({ center, duration: 600, easing: t => t < .5 ? 2 * t * t : 1 - (-2 * t + 2) ** 2 / 2 })
+  const zoom = globeZoom(map.getContainer().clientWidth, map.getContainer().clientHeight, center[1], map.getVerticalFieldOfView())
+  if (reduced) map.jumpTo({ center, zoom }); else map.flyTo({ center, zoom, duration: 600, easing: t => t < .5 ? 2 * t * t : 1 - (-2 * t + 2) ** 2 / 2 })
 }
 export function MaplibreGlobe(props: MaplibreGlobeProps) {
   const host = useRef<HTMLDivElement>(null)
