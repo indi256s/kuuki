@@ -21,6 +21,9 @@ export const S = {
 
   dropTitle: p('Choose a file or drop it here', 'Выберите файл или перетащите его сюда'),
   dropHint: p('Boarding pass, PDF or screenshot, up to 10 MB.', 'Посадочный талон, PDF или скриншот, до 10 МБ.'),
+  dropPaste: p('Paste a screenshot with ⌘V or Ctrl+V.', 'Вставьте скриншот сочетанием ⌘V или Ctrl+V.'),
+  dropNow: p('Drop to add the file', 'Отпустите, чтобы добавить файл'),
+  dropRemove: p('Remove', 'Удалить'),
   dropChosen: p('Selected file', 'Выбранный файл'),
   dropChange: p('Choose another file', 'Выбрать другой файл'),
   fileBad: p('Use a PDF, PNG or JPEG file.', 'Подойдёт файл PDF, PNG или JPEG.'),

@@ -35,6 +35,14 @@ const batchRow = (id: string) => db.prepare('SELECT * FROM import_batches WHERE 
 const draftRows = (batchId: string) => db.prepare('SELECT * FROM import_drafts WHERE batch_id = ? ORDER BY ordinal').bind(batchId).all<Record<string, any>>().then(r => r.results)
 
 describe('POST /api/import/jobs', () => {
+  it('refuses file recognition without a provider credential before creating a batch', async () => {
+    const { status, body } = await postJob(db, { type: 'pdf', content: 'JVBERi0x' }, USER, {}, { GEMINI_API_KEY: undefined })
+    expect(status).toBe(503)
+    expect(body).toMatchObject({ code: 'IMPORT_SERVICE_UNAVAILABLE' })
+    expect(await count(db, 'import_batches')).toBe(0)
+    expect(provider.generateContent).not.toHaveBeenCalled()
+  })
+
   it('persists the batch and its drafts from one provider call and returns the snapshot', async () => {
     clock()
     answer([providerFlight(), providerFlight({ date: '2026-03-11', origin: 'LHR', destination: 'JFK', flight_number: '179' })])

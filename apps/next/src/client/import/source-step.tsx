@@ -1,8 +1,7 @@
 'use client'
 import { IMPORT_MAX_FILE_BYTES } from '@kuuki/shared/constants'
 
-import { FileText, Upload } from 'lucide-react'
-import { useEffect, useId, useRef, useState, type DragEvent } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { Locale } from '../../lib/format'
 import { Button } from '../ui/button'
 import { Disclosure } from '../ui/disclosure'
@@ -10,6 +9,7 @@ import { SegmentedControl } from '../ui/segmented-control'
 import { S } from './copy'
 import type { ImportSource } from './import-api'
 import { ImportTextarea } from './import-textarea'
+import { FileDropzone } from './file-dropzone'
 
 export const MAX_FILE_BYTES = IMPORT_MAX_FILE_BYTES
 const ACCEPT = 'application/pdf,image/png,image/jpeg'
@@ -40,28 +40,40 @@ export function SourceStep({ locale, busy, initialMode, onSubmit, notice }: {
   const [file, setFile] = useState<File | null>(null)
   const [text, setText] = useState('')
   const [problem, setProblem] = useState<'type' | 'size' | 'read' | 'needFile' | 'needText' | null>(null)
-  const [dragging, setDragging] = useState(false)
+  const [reading, setReading] = useState(false)
+  const readingSource = useRef(false)
+  const sourceRevision = useRef(0)
+  const mounted = useRef(false)
+  useEffect(() => { mounted.current = true; return () => { mounted.current = false } }, [])
   const [copied, setCopied] = useState<'ok' | 'failed' | null>(null)
-  const input = useRef<HTMLInputElement>(null)
   const prompt = useRef<HTMLTextAreaElement>(null)
   const operation = useRef<string | null>(null)
-  const dropId = useId()
   useEffect(() => { if (copied) { const timer = setTimeout(() => setCopied(null), 4000); return () => clearTimeout(timer) } }, [copied])
 
   const choose = (next: File | null | undefined) => {
+    sourceRevision.current += 1
     operation.current = null
-    if (!next) return
+    if (!next) { setFile(null); setProblem(null); return }
     const bad = checkFile(next)
     if (bad) { setFile(null); setProblem(bad); return }
     setFile(next); setProblem(null)
   }
-  const onDrop = (event: DragEvent<HTMLElement>) => { event.preventDefault(); setDragging(false); choose(event.dataTransfer.files[0]) }
 
   const submit = async () => {
+    if (busy || readingSource.current) return
     if (mode === 'file') {
       if (!file) { setProblem('needFile'); return }
+      const revision = sourceRevision.current
+      readingSource.current = true; setReading(true)
       let content: string
-      try { content = await fileToBase64(file) } catch { setProblem('read'); return }
+      try { content = await fileToBase64(file) } catch {
+        if (mounted.current && revision === sourceRevision.current) setProblem('read')
+        return
+      } finally {
+        readingSource.current = false
+        if (mounted.current) setReading(false)
+      }
+      if (!mounted.current || revision !== sourceRevision.current) return
       operation.current ??= crypto.randomUUID()
       onSubmit({ type: file.type === 'application/pdf' ? 'pdf' : 'image', content, sourceLabel: file.name }, operation.current)
     } else {
@@ -81,25 +93,15 @@ export function SourceStep({ locale, busy, initialMode, onSubmit, notice }: {
     : problem === 'needFile' ? S.needFile[locale] : null
 
   return <section className="import-source" aria-label={S.stepSource[locale]}>
-    <SegmentedControl label={S.modeLabel[locale]} value={mode} onChange={next => { setMode(next); setProblem(null) }}
+    <SegmentedControl label={S.modeLabel[locale]} value={mode} onChange={next => { sourceRevision.current += 1; operation.current = null; setMode(next); setProblem(null) }}
       options={[{ value: 'file', label: S.modeFile[locale] }, { value: 'text', label: S.modeText[locale] }]} />
-    {mode === 'file' ? <div className="import-drop-wrap">
-      <button type="button" id={dropId} className="import-dropzone" data-dragging={dragging ? 'true' : undefined} disabled={busy}
-        onClick={() => input.current?.click()} onDragOver={event => { event.preventDefault(); setDragging(true) }} onDragLeave={event => { if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setDragging(false) }} onDrop={onDrop}
-        aria-describedby={`${dropId}-hint`}>
-        <span className="import-drop-icon" aria-hidden="true">{file ? <FileText size={24} strokeWidth={1.5} /> : <Upload size={24} strokeWidth={1.5} />}</span>
-        <span className="import-drop-title">{file ? <><span className="sr-only">{S.dropChosen[locale]}: </span>{file.name}</> : S.dropTitle[locale]}</span>
-        <span className="import-drop-hint" id={`${dropId}-hint`}>{file ? S.dropChange[locale] : S.dropHint[locale]}</span>
-      </button>
-      <input ref={input} type="file" accept={ACCEPT} className="sr-only" tabIndex={-1} aria-hidden="true"
-        onChange={event => { choose(event.target.files?.[0]); event.target.value = '' }} />
-    </div> : <ImportTextarea label={S.textLabel[locale]} hint={S.textHint[locale]} rows={7} value={text} disabled={busy}
+    {mode === 'file' ? <FileDropzone file={file} accept={ACCEPT} disabled={busy} locale={locale} onFilesChange={files => choose(files[0])} /> : <ImportTextarea label={S.textLabel[locale]} hint={S.textHint[locale]} rows={7} value={text} disabled={busy}
       error={problem === 'needText' ? S.needText[locale] : undefined}
-      onChange={event => { setText(event.target.value); operation.current = null; setProblem(null) }} />}
+      onChange={event => { sourceRevision.current += 1; setText(event.target.value); operation.current = null; setProblem(null) }} />}
     <p className="import-problem" role={problemText ? 'alert' : undefined}>{problemText}</p>
     {notice ? <p className="import-hint" role="status">{notice}</p> : null}
     <div className="import-actions">
-      <Button variant="primary" loading={busy} loadingLabel={S.finding[locale]} onClick={() => void submit()}>{S.find[locale]}</Button>
+      <Button variant="primary" loading={busy || reading} loadingLabel={S.finding[locale]} onClick={() => void submit()}>{S.find[locale]}</Button>
     </div>
     <p className="import-privacy">{S.privacy[locale]}</p>
     <Disclosure summary={S.emailHelp[locale]}>

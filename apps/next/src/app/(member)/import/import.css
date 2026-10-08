@@ -25,14 +25,6 @@
 .import-steps li[aria-current=step] .import-step-number,.import-steps li[data-state=done] .import-step-number{background:var(--accent);border-color:var(--accent);color:var(--accent-foreground)}
 
 /* Source */
-.import-dropzone{display:grid;justify-items:center;gap:var(--space-2);width:100%;min-height:160px;padding:var(--space-8) var(--space-4);border:1px dashed var(--control-border);border-radius:var(--radius-md);background:var(--surface);color:var(--text);text-align:center;font:inherit;cursor:pointer;transition:border-color var(--dur-fast) var(--ease-out),background-color var(--dur-fast) var(--ease-out)}
-.import-dropzone:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
-.import-dropzone[data-dragging=true]{border-color:var(--accent);background:var(--surface-inset)}
-.import-dropzone:disabled{cursor:not-allowed;color:var(--text-muted)}
-.import-drop-title{font-size:17px;line-height:24px;font-weight:600;overflow-wrap:anywhere}
-.import-drop-hint{color:var(--text-muted);font-size:13px;line-height:20px}
-.import-drop-icon{display:grid;place-items:center;width:48px;height:48px;border-radius:var(--radius-full);background:var(--surface-inset);color:var(--text-muted)}
-.import-dropzone[data-dragging=true] .import-drop-icon{background:var(--surface);color:var(--accent-text)}
 .import-textarea{display:block;min-height:120px;padding:var(--space-3);font:inherit;line-height:24px;resize:vertical}
 .import-prompt{font-family:var(--font-mono);font-size:13px;line-height:20px}
 .import-email-help{display:grid;gap:var(--space-3);padding-top:var(--space-2)}
@@ -141,7 +133,7 @@
 @keyframes import-fade{from{opacity:0}to{opacity:1}}
 @media(prefers-reduced-motion:reduce){
   .import-found li[data-new=true]{animation:import-fade 150ms var(--ease-out) both;animation-delay:0ms}
-  .import-dropzone,.import-progressbar-fill,.import-check input{transition:none}
+  .import-progressbar-fill,.import-check input{transition:none}
   .import-stages li[data-state=active] .import-stage-marker svg{animation:none}
 }
 @media(max-width:700px){
@@ -150,4 +142,3 @@
   .import-failure{grid-template-columns:minmax(0,1fr)}
   .import-summary{font-size:17px;line-height:24px}
 }
-@media (hover:hover) and (pointer:fine){.import-dropzone:not(:disabled):hover{border-color:var(--accent)}}

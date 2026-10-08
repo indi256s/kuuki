@@ -10,7 +10,7 @@ preview_urls = false
 
 # Set per Worker with `wrangler secret put`. Deploy fails if one is missing. `secrets` does not inherit.
 [secrets]
-required = ["AUTH_SECRET", "BETTER_AUTH_SECRET"]
+required = ["AUTH_SECRET", "BETTER_AUTH_SECRET", "GEMINI_API_KEY"]
 
 [assets]
 directory = ".open-next/assets"
@@ -72,7 +72,7 @@ workers_dev = true
 preview_urls = true
 
 [env.preview.secrets]
-required = ["AUTH_SECRET", "BETTER_AUTH_SECRET"]
+required = ["AUTH_SECRET", "BETTER_AUTH_SECRET", "GEMINI_API_KEY"]
 
 [[env.preview.d1_databases]]
 binding = "DB"

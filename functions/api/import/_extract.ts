@@ -329,7 +329,7 @@ export async function extractFlights(env: Env, { type, content }: ParseRequest):
     const result = normalizeFlights(local)
     return { ...result, ...(local.rejected ? { rejected: [...(result.rejected ?? []), ...local.rejected] } : {}) }
   }
-  if (!env.GEMINI_API_KEY) throw new HttpError(500, 'Gemini API key not configured')
+  if (!env.GEMINI_API_KEY) throw new HttpError(503, 'Import service unavailable', 'IMPORT_SERVICE_UNAVAILABLE')
   const ai = new GoogleGenAI({ apiKey: env.GEMINI_API_KEY })
   const contents = extractionContents({ type, content })
 

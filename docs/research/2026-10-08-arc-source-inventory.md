@@ -55,6 +55,8 @@ No Arc item requires Tailwind, shadcn config or a font package. The registry's f
 
 ## Actual adoption map
 
+The import file source now uses `client/import/file-dropzone.tsx` and its CSS module, adapted from `https://uiarc.dev/r/file-dropzone.json` fetched on 2026-10-08. Registry SHA256: `f15cc4b530b5f270fb4dc25f9c0b5de67f650cecb8deb9863c4e6d9205dce186`; upstream TSX: `f160c1e56d39307af6bb0b9ad56a36ea3acef46b7b006218d2b26b1ce1ae0a24`; upstream CSS: `0d1cc9a41e724b04727f3392e29ef588c0211db4745bc87b784da999b03a2ef4`. It retains the sheet-stack target, compact selection row, thumbnail/removal, drag-depth handling and clipboard lifecycle. The single-document source owns validation and submission; per-file upload, batch management and `motion/react` are omitted. Kuuki tokens and reduced-motion CSS replace the upstream motion dependency; paste accepts images across the active file source screen and ignores editable fields. The existing MIT notice applies.
+
 The existing shared kit was adapted in place. Arc style/composition is applied to Button/Field/Segmented/Switch/Disclosure, Calendar/Combobox/search, Menu/Dialog/Sheet, Journal rows/pagination/floating actions, Import dropzone/textarea/progress/results, Passport metrics/timeline/search, Settings groups/deletion steps, auth/onboarding choices, shell SplitAdd/UserMenu/navigation, profile share fallback/badges and leaderboard tabs/progress. Existing authorities remain responsible for form submission, focus, timers, transport, pagination and validated writes.
 
 | Required addition | Local source / meaningful caller | Patch from upstream |

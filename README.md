@@ -36,7 +36,7 @@ Configure server secrets in Cloudflare or a gitignored local `.dev.vars` for the
 | `BETTER_AUTH_SECRET` | Independent Better Auth signing/encryption secret; generate with `openssl rand -base64 32` |
 | `AUTH_SECRET` | Password pepper; preserve the existing production value |
 | `PAGES_ORIGIN` | Exact canonical origin for auth and CSRF, including the Next Worker |
-| `GEMINI_API_KEY` | Server-side ticket parsing and aircraft enrichment |
+| `GEMINI_API_KEY` | Server-side ticket parsing and aircraft enrichment; required separately on the production and preview API Workers, not the activation Worker |
 | `MAINTENANCE_MODE` | Request hold before private database access |
 | `ACTIVATION_ORIGIN` | Separate HTTPS origin for legacy account activation |
 | `ACTIVATION_MAIL` | Native Email Sending binding on each Next Worker, restricted to the verified sender |

@@ -82,7 +82,7 @@ export async function submitImport(
   }
   const replayed = await replay()
   if (replayed) return replayed
-  if (!env.IMPORT_JOBS && !env.GEMINI_API_KEY && !(source.type === 'text' && parseStructuredText(source.content))) throw new HttpError(500, 'Gemini API key not configured')
+  if (!env.IMPORT_JOBS && !env.GEMINI_API_KEY && !(source.type === 'text' && parseStructuredText(source.content))) throw new HttpError(503, 'Import service unavailable', 'IMPORT_SERVICE_UNAVAILABLE')
 
   const batchId = crypto.randomUUID()
   if (!await createProcessingBatch(db, { id: batchId, userId, sourceType: source.type, sourceLabel, operationId }, now)) {
