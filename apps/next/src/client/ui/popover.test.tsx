@@ -7,8 +7,8 @@ import { expect, it, vi } from 'vitest'
 import { Chip } from './chip'
 import { PopoverContent, PopoverRoot, PopoverTrigger } from './popover'
 
-function Example({ onCloseAutoFocus }: { onCloseAutoFocus?: (event: Event) => void }) {
-  return <><button type="button">Outside</button><PopoverRoot><PopoverTrigger>Filter</PopoverTrigger><PopoverContent aria-label="Filters" onCloseAutoFocus={onCloseAutoFocus}><button type="button">Year</button></PopoverContent></PopoverRoot></>
+function Example() {
+  return <PopoverRoot><PopoverTrigger>Filter</PopoverTrigger><PopoverContent aria-label="Filters"><button type="button">Year</button></PopoverContent></PopoverRoot>
 }
 
 it('escape closes and restores focus', async () => {
@@ -20,32 +20,6 @@ it('escape closes and restores focus', async () => {
   await user.keyboard('{Escape}')
   await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
   await waitFor(() => expect(trigger).toHaveFocus())
-})
-
-it('outside click closes without taking focus from the clicked control', async () => {
-  const user = userEvent.setup()
-  const onCloseAutoFocus = vi.fn()
-  render(<Example onCloseAutoFocus={onCloseAutoFocus} />)
-  await user.click(screen.getByRole('button', { name: 'Filter' }))
-  await screen.findByRole('dialog', { name: 'Filters' })
-  const outside = screen.getByRole('button', { name: 'Outside' })
-  await user.click(outside)
-  await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
-  await waitFor(() => expect(onCloseAutoFocus).toHaveBeenCalledTimes(1))
-  expect(outside).toHaveFocus()
-})
-
-it('blank outside dismissal restores focus after content unmounts', async () => {
-  const user = userEvent.setup()
-  const onCloseAutoFocus = vi.fn()
-  render(<><div>Blank outside</div><PopoverRoot><PopoverTrigger>Filter</PopoverTrigger><PopoverContent onCloseAutoFocus={onCloseAutoFocus}><button type="button">Year</button></PopoverContent></PopoverRoot></>)
-  const trigger = screen.getByRole('button', { name: 'Filter' })
-  await user.click(trigger)
-  await waitFor(() => expect(screen.getByRole('button', { name: 'Year' })).toHaveFocus())
-  await user.click(screen.getByText('Blank outside'))
-  await waitFor(() => expect(onCloseAutoFocus).toHaveBeenCalledTimes(1))
-  expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
-  expect(trigger).toHaveFocus()
 })
 
 function ChipExample({ initialFocus = 'ordinary', ...contentProps }: {

@@ -344,28 +344,32 @@ it('arrival minute prefers stored arrival time', async () => {
   finally { await dispose() }
 })
 
-it.each([
-  ['times', '2025-03-01T22:00:00Z', 240, 'Asia/Dubai', 360],
-  ['route_median', '2025-03-01T22:00:00Z', 240, 'Asia/Kathmandu', 465],
-  ['schedule', '2025-03-29T23:00:00Z', 240, 'Europe/London', 240],
-  ['times', '2025-03-01T18:00:00Z', 120, 'Asia/Dubai', 0],
-  ['estimate', '2025-03-01T22:00:00Z', 240, 'Asia/Dubai', null],
-  [null, '2025-03-01T22:00:00Z', 240, 'Asia/Dubai', null],
-  ['times', 'bad', 240, 'Asia/Dubai', null],
-  ['times', '1', 240, 'Asia/Dubai', null],
-  ['times', '2025-02-30T22:00:00Z', 240, 'Asia/Dubai', null],
-  ['times', null, 240, 'Asia/Dubai', null],
-  ['times', '2025-03-01T22:00:00Z', -1, 'Asia/Dubai', null],
-  ['times', '2025-03-01T22:00:00Z', null, 'Asia/Dubai', null],
-  ['times', '2025-03-01T22:00:00Z', 240, 'Invalid/Zone', null],
-  ['times', '2025-03-01T22:00:00Z', 240, null, null],
-])('arrival minute derives from precise duration in destination zone: %s %s %s %s', async (source, departure, minutes, zone, expected) => {
-  const { db, dispose } = await overviewAccount([
-    { id: 1, date: '2025-03-01', origin: 'TBS', destination: 'IST', state: 'logged' },
-  ], d => [d.prepare("UPDATE flights SET arrival_time = NULL, departure_utc = ?, duration_minutes = ?, duration_source = ?, dest_tz = ? WHERE id = 1")
-    .bind(departure, minutes, source, zone)])
-  try { expect((await readOverviewData(db, USER.id)).rows[0].arrMinute).toBe(expected) }
-  finally { await dispose() }
+it('derives arrival minutes from precise duration and destination zones while skipping invalid evidence', async () => {
+  const cases = [
+    ['times', '2025-03-01T22:00:00Z', 240, 'Asia/Dubai', 360],
+    ['route_median', '2025-03-01T22:00:00Z', 240, 'Asia/Kathmandu', 465],
+    ['schedule', '2025-03-29T23:00:00Z', 240, 'Europe/London', 240],
+    ['times', '2025-03-01T18:00:00Z', 120, 'Asia/Dubai', 0],
+    ['estimate', '2025-03-01T22:00:00Z', 240, 'Asia/Dubai', null],
+    [null, '2025-03-01T22:00:00Z', 240, 'Asia/Dubai', null],
+    ['times', 'bad', 240, 'Asia/Dubai', null],
+    ['times', '1', 240, 'Asia/Dubai', null],
+    ['times', '2025-02-30T22:00:00Z', 240, 'Asia/Dubai', null],
+    ['times', null, 240, 'Asia/Dubai', null],
+    ['times', '2025-03-01T22:00:00Z', -1, 'Asia/Dubai', null],
+    ['times', '2025-03-01T22:00:00Z', null, 'Asia/Dubai', null],
+    ['times', '2025-03-01T22:00:00Z', 240, 'Invalid/Zone', null],
+    ['times', '2025-03-01T22:00:00Z', 240, null, null],
+  ] as const
+  const { db, dispose } = await overviewAccount(cases.map((_, index) => ({
+    id: index + 1, date: '2025-03-01', origin: 'TBS', destination: 'IST', state: 'logged',
+  })), d => cases.map(([source, departure, minutes, zone], index) =>
+    d.prepare('UPDATE flights SET arrival_time = NULL, departure_utc = ?, duration_minutes = ?, duration_source = ?, dest_tz = ? WHERE id = ?')
+      .bind(departure, minutes, source, zone, index + 1)))
+  try {
+    const rows = (await readOverviewData(db, USER.id)).rows
+    expect(rows.map(({ id, arrMinute }) => [id, arrMinute])).toEqual(cases.map(([, , , , expected], index) => [index + 1, expected]))
+  } finally { await dispose() }
 })
 
 it('aggregate mode preserves arrival-hour counts above 5000 flights', async () => {
@@ -383,12 +387,17 @@ it('aggregate mode preserves arrival-hour counts above 5000 flights', async () =
   } finally { await dispose() }
 })
 
-it.each(['bad', '24:00', '06:60', '6:40'])('invalid stored arrival time %s skips safely', async arrival => {
-  const { db, dispose } = await overviewAccount([
-    { id: 1, date: '2025-03-01', origin: 'TBS', destination: 'IST', state: 'logged', minutes: 240 },
-  ], d => [d.prepare("UPDATE flights SET arrival_time = ?, departure_utc = '2025-03-01T22:00:00Z', dest_tz = 'Asia/Dubai', duration_source = 'times' WHERE id = 1").bind(arrival)])
-  try { expect((await readOverviewData(db, USER.id)).rows[0].arrMinute).toBeNull() }
-  finally { await dispose() }
+it('skips invalid stored arrival times without deriving a fallback', async () => {
+  const arrivals = ['bad', '24:00', '06:60', '6:40']
+  const { db, dispose } = await overviewAccount(arrivals.map((_, index) => ({
+    id: index + 1, date: '2025-03-01', origin: 'TBS', destination: 'IST', state: 'logged', minutes: 240,
+  })), d => arrivals.map((arrival, index) =>
+    d.prepare("UPDATE flights SET arrival_time = ?, departure_utc = '2025-03-01T22:00:00Z', dest_tz = 'Asia/Dubai', duration_source = 'times' WHERE id = ?")
+      .bind(arrival, index + 1)))
+  try {
+    expect((await readOverviewData(db, USER.id)).rows.map(({ id, arrMinute }) => [id, arrMinute]))
+      .toEqual([[1, null], [2, null], [3, null], [4, null]])
+  } finally { await dispose() }
 })
 
 it('pressed passport identities include claim, ground and legacy evidence but exclude pending and other owners', async () => {
