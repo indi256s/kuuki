@@ -6,6 +6,7 @@ import { api, ApiError, getAuthGeneration } from '@kuuki/client/apiClient'
 import { trackPrivateOperation } from '../activity'
 import { ProfileAvatar } from '../profile/avatar'
 import { Button } from '../ui/button'
+import { Field } from '../ui/field'
 
 export function OnboardingName({ ownerId, username: initialUsername, displayName: initialName, profileUrl, locale }: { ownerId: string; username: string; displayName: string; profileUrl: string; locale: 'en' | 'ru' }) {
   const router = useRouter()
@@ -52,12 +53,16 @@ export function OnboardingName({ ownerId, username: initialUsername, displayName
     : check?.value !== normalized || check.status === 'checking' ? (ru ? 'Проверяем имя…' : 'Checking username…')
     : check.status === 'taken' ? (ru ? 'Это имя уже занято.' : 'That username is already taken.')
     : (ru ? 'Не удалось проверить имя. Измените имя или повторите проверку.' : 'Could not check username. Edit it or retry the check.')
+  const taken = valid && !available && check?.value === normalized && check.status === 'taken'
   return <form className="onboarding-form" onSubmit={save}>
     <ProfileAvatar id={ownerId} url={null} name={name || normalized || (ru ? 'Ваш профиль' : 'Your profile')} />
-    <div className="field"><label htmlFor="onboarding-name">{ru ? 'Отображаемое имя' : 'Display name'}</label><input id="onboarding-name" value={name} maxLength={80} disabled={saving} onChange={event => setName(event.target.value)} /></div>
-    <div className="field"><label htmlFor="onboarding-username">{ru ? 'Имя пользователя' : 'Username'}</label><input id="onboarding-username" value={username} disabled={saving} onChange={event => { setUsername(event.target.value); setMessage('') }} autoComplete="username" maxLength={30} aria-describedby="onboarding-availability onboarding-normalization" /></div>
-    <p className="onboarding-url">{preview.href}</p><p id="onboarding-normalization" className="field-help">{ru ? 'Мы сохраняем имя пользователя строчными латинскими буквами.' : 'We save your username in lowercase Latin letters.'}</p>
-    <p id="onboarding-availability" role="status">{availability}</p>{check?.value === normalized && check.status === 'failed' && <Button variant="secondary" type="button" onClick={() => setRetry(value => value + 1)}>{ru ? 'Повторить проверку' : 'Retry check'}</Button>}{message && <p role="alert">{message}</p>}
+    <Field label={ru ? 'Отображаемое имя' : 'Display name'} value={name} maxLength={80} disabled={saving} onChange={event => setName(event.target.value)} />
+    <Field label={ru ? 'Имя пользователя' : 'Username'} hint={ru ? 'Мы сохраняем имя пользователя строчными латинскими буквами.' : 'We save your username in lowercase Latin letters.'}
+      value={username} disabled={saving} onChange={event => { setUsername(event.target.value); setMessage('') }} autoComplete="username" maxLength={30}
+      aria-describedby="onboarding-availability" error={taken ? availability : undefined} />
+    <p className="onboarding-url">{preview.href}</p>
+    <p id="onboarding-availability" role="status">{taken ? null : availability}</p>
+    {check?.value === normalized && check.status === 'failed' && <Button variant="secondary" type="button" onClick={() => setRetry(value => value + 1)}>{ru ? 'Повторить проверку' : 'Retry check'}</Button>}{message && <p role="alert">{message}</p>}
     <Button type="submit" variant="primary" loading={saving} loadingLabel={ru ? 'Сохраняем…' : 'Saving…'} disabled={!valid || !available}>{ru ? 'Продолжить' : 'Continue'}</Button>
   </form>
 }

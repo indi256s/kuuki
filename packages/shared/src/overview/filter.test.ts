@@ -64,6 +64,7 @@ it('period boundaries are inclusive and stale facet values match nothing', () =>
   expect(['2025-10-31', '2025-11-01', '2026-02-28', '2026-03-01'].map(date => matches(row({ date }), filter, refs)))
     .toEqual([false, true, true, false])
   expect(matches(row({ date: '2024-12-31' }), { period: { years: [2023, 2024] } }, refs)).toBe(true)
+  expect(['2024-02-28', '2024-02-29', '2024-03-01', '2024-03-02'].map(date => matches(row({ date }), { period: { from: '2024-02-29', to: '2024-03-01' } }, refs))).toEqual([false, true, true, false])
   expect(matches(row(), { airlines: ['obsolete'] }, refs)).toBe(false)
   expect(matches(row(), { countries: ['XX'] }, refs)).toBe(false)
 })
@@ -74,6 +75,9 @@ it('previous period preserves facets and compares equal calendar spans', () => {
     .toEqual({ period: { from: '2025-07', to: '2025-10' }, airlines: ['TK'] })
   expect(previousPeriod({ period: { years: [2023, 2024] } })).toEqual({ period: { years: [2021, 2022] } })
   expect(previousPeriod({ period: { years: [2019, 2024] } })).toBeNull()
+  expect(previousPeriod({ period: { from: '2024-03-01', to: '2024-03-02' }, countries: ['JP'] })).toEqual({ period: { from: '2024-02-28', to: '2024-02-29' }, countries: ['JP'] })
+  expect(previousPeriod({ period: { from: '0099-01-01', to: '0099-01-01' } })).toEqual({ period: { from: '0098-12-31', to: '0098-12-31' } })
+  expect(previousPeriod({ period: { from: '0000-01-01', to: '0000-01-01' } })).toBeNull()
   expect(previousPeriod({})).toBeNull()
   const filter: OverviewFilter = { period: { years: [2024, 2023, 2024] }, countries: ['JP'] }
   expect(previousPeriod(filter)).toEqual({ period: { years: [2021, 2022] }, countries: ['JP'] })

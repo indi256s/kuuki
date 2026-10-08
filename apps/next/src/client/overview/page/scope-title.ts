@@ -1,5 +1,5 @@
 import type { FacetKey, OverviewFilter } from '@kuuki/shared/overview/model'
-import { formatMonthYear, formatNumber, type Locale } from '../../../lib/format'
+import { formatPeriodDate, formatNumber, type Locale } from '../../../lib/format'
 import { REGION_LABELS } from '../../passport/model'
 import type { OverviewLabels } from '../labels'
 import { S, t } from '../copy'
@@ -35,7 +35,7 @@ export function scopeTitle(filter: OverviewFilter, labels: ScopeLabels, locale: 
       const period = filter.period!
       if ('years' in period) {
         if (period.years.length) selections.push(`${t(S.period, locale)} ${period.years.map(String).join(', ')}`)
-      } else selections.push(`${t(S.period, locale)} ${formatMonthYear(locale, period.from)} – ${formatMonthYear(locale, period.to)}`)
+      } else selections.push(`${t(S.period, locale)} ${formatPeriodDate(locale, period.from)} – ${formatPeriodDate(locale, period.to)}`)
     } else if (Array.isArray(selected)) {
       for (const value of selected) selections.push(valueLabel(key, value, labels, locale))
     }

@@ -56,7 +56,8 @@ export function DoneStep({ locale, savedCount, requested, totalKm, newCountries,
   ]
   return <section className="import-done" aria-labelledby="import-done-title">
     <h2 id="import-done-title" ref={heading} tabIndex={-1}>{partial ? S.partialSaved[locale] : S.savedHeading[locale]}</h2>
-    <p className="import-summary" data-testid="import-summary">{chunks.map((chunk, index) => <span key={index} className="import-summary-chunk" style={{ ['--stagger' as string]: `${index * 100}ms` }}>{index > 0 ? ' · ' : ''}{chunk}</span>)}</p>
+    {/* Static metric tiles: the real results as saved, with no count-up. The separator keeps the spoken summary one sentence. */}
+    <p className="import-summary" data-testid="import-summary">{chunks.map((chunk, index) => <span key={index} className="import-summary-chunk">{index > 0 ? <span className="sr-only"> · </span> : null}{chunk}</span>)}</p>
     {checking ? <p className="import-hint" role="status">{S.checkingSaved[locale]}</p> : null}
     {checkFailed ? <p className="import-problem" role="alert">{S.checkFailed[locale]}</p> : null}
     {publication === 'pending' ? <p className="import-hint" role="status">{S.stampsWaiting[locale]}</p> : null}

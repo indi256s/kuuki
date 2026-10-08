@@ -17,10 +17,12 @@
 /* Stepper: named steps, never bare dots. */
 .import-steps{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:var(--space-2) var(--space-6)}
 .import-steps li{display:inline-flex;align-items:center;gap:var(--space-2);color:var(--text-muted);font-size:15px;line-height:24px}
+.import-steps li:not(:last-child)::after{content:"";width:var(--space-6);height:2px;margin-inline-start:var(--space-2);border-radius:var(--radius-full);background:var(--hairline)}
+.import-steps li[data-state=done]:not(:last-child)::after{background:var(--accent)}
 .import-steps li[aria-current=step]{color:var(--text);font-weight:600}
 .import-steps li[data-state=done]{color:var(--text)}
 .import-step-number{display:inline-grid;place-items:center;width:24px;height:24px;border:1px solid var(--control-border);border-radius:var(--radius-full);font-size:13px;font-variant-numeric:tabular-nums}
-.import-steps li[aria-current=step] .import-step-number{background:var(--accent);border-color:var(--accent);color:var(--accent-foreground)}
+.import-steps li[aria-current=step] .import-step-number,.import-steps li[data-state=done] .import-step-number{background:var(--accent);border-color:var(--accent);color:var(--accent-foreground)}
 
 /* Source */
 .import-dropzone{display:grid;justify-items:center;gap:var(--space-2);width:100%;min-height:160px;padding:var(--space-8) var(--space-4);border:1px dashed var(--control-border);border-radius:var(--radius-md);background:var(--surface);color:var(--text);text-align:center;font:inherit;cursor:pointer;transition:border-color var(--dur-fast) var(--ease-out),background-color var(--dur-fast) var(--ease-out)}
@@ -29,10 +31,9 @@
 .import-dropzone:disabled{cursor:not-allowed;color:var(--text-muted)}
 .import-drop-title{font-size:17px;line-height:24px;font-weight:600;overflow-wrap:anywhere}
 .import-drop-hint{color:var(--text-muted);font-size:13px;line-height:20px}
-.import-text-wrap{display:grid;gap:var(--space-2)}
-.import-text-label{font-weight:600}
-.import-textarea{width:100%;min-height:120px;padding:var(--space-3);border:1px solid var(--control-border);border-radius:var(--radius-sm);background:var(--surface);color:var(--text);font:inherit;resize:vertical}
-.import-textarea:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.import-drop-icon{display:grid;place-items:center;width:48px;height:48px;border-radius:var(--radius-full);background:var(--surface-inset);color:var(--text-muted)}
+.import-dropzone[data-dragging=true] .import-drop-icon{background:var(--surface);color:var(--accent-text)}
+.import-textarea{display:block;min-height:120px;padding:var(--space-3);font:inherit;line-height:24px;resize:vertical}
 .import-prompt{font-family:var(--font-mono);font-size:13px;line-height:20px}
 .import-email-help{display:grid;gap:var(--space-3);padding-top:var(--space-2)}
 
@@ -45,8 +46,16 @@
 
 /* Progress */
 .import-source-chip{display:inline-flex;flex-wrap:wrap;gap:var(--space-1);padding:var(--space-1) var(--space-3);border:1px solid var(--hairline);border-radius:var(--radius-full);background:var(--surface);justify-self:start;max-width:100%;overflow-wrap:anywhere}
-.import-stages{list-style:none;margin:0;padding:0;display:grid;gap:var(--space-2)}
-.import-stages li{display:flex;align-items:center;gap:var(--space-2);color:var(--text-muted)}
+.import-progressbar{height:8px;overflow:hidden;border:1px solid var(--hairline);border-radius:var(--radius-full);background:var(--surface-inset)}
+.import-progressbar-fill{display:block;width:100%;height:100%;border-radius:inherit;background:var(--accent);transform:scaleX(var(--done,0));transform-origin:left;transition:transform var(--dur-base) var(--ease-out)}
+.import-stages{list-style:none;margin:0;padding:0;display:grid}
+.import-stages li{position:relative;display:flex;align-items:center;gap:var(--space-3);min-height:40px;color:var(--text-muted)}
+.import-stages li:not(:last-child)::after{content:"";position:absolute;inset-inline-start:13px;top:calc(50% + 14px);height:calc(100% - 28px);width:2px;border-radius:var(--radius-full);background:var(--hairline)}
+.import-stages li[data-state=done]:not(:last-child)::after{background:var(--accent)}
+.import-stage-marker{flex:none;display:grid;place-items:center;width:28px;height:28px;border:1px solid var(--control-border);border-radius:var(--radius-full);background:var(--surface)}
+.import-stages li[data-state=done] .import-stage-marker{background:var(--accent);border-color:var(--accent);color:var(--accent-foreground)}
+.import-stages li[data-state=active] .import-stage-marker{border-color:var(--accent);color:var(--accent-text)}
+.import-stages li[data-state=active] .import-stage-marker svg{animation:import-spin 1s linear infinite}
 .import-stages li[data-state=active],.import-stages li[data-state=done]{color:var(--text)}
 .import-stages li[data-state=active]{font-weight:600}
 .import-stage-state{margin-left:auto;font-size:13px;color:var(--text-muted);font-weight:400}
@@ -57,9 +66,15 @@
 /* Review */
 .import-select-head{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:var(--space-2);padding:var(--space-1) var(--space-4);border:1px solid var(--hairline);border-radius:var(--radius-md);background:var(--surface-inset)}
 .import-check{display:inline-flex;align-items:center;gap:var(--space-3);min-height:44px;cursor:pointer}
-.import-check input{width:20px;height:20px;margin:0;accent-color:var(--accent);flex:none}
+.import-check input{appearance:none;display:grid;place-items:center;width:20px;height:20px;margin:0;flex:none;border:1px solid var(--control-border);border-radius:var(--radius-xs);background:var(--surface);cursor:pointer;transition:background-color var(--dur-fast) var(--ease-out),border-color var(--dur-fast) var(--ease-out)}
+.import-check input:checked,.import-check input:indeterminate{background:var(--accent);border-color:var(--accent)}
+.import-check input:checked::after,.import-check input:indeterminate::after{content:"";width:12px;height:12px;background:var(--accent-foreground);-webkit-mask:var(--import-mark) center/contain no-repeat;mask:var(--import-mark) center/contain no-repeat}
+.import-check input:checked{--import-mark:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2.5 6.5l2.5 2.5 4.5-5.5'/%3E%3C/svg%3E")}
+.import-check input:indeterminate{--import-mark:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' fill='none' stroke='black' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='M2.5 6h7'/%3E%3C/svg%3E")}
+.import-check input:disabled{opacity:.5}
 .import-check input:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
 .import-check input:disabled{cursor:not-allowed}
+@media(forced-colors:active){.import-check input:checked::after,.import-check input:indeterminate::after{background:CanvasText}.import-check input:checked,.import-check input:indeterminate{background:Canvas;border-color:CanvasText}}
 .import-rows{list-style:none;margin:0;padding:0;display:grid;gap:var(--space-3)}
 .import-row{display:grid;gap:var(--space-2);padding:var(--space-3) var(--space-4);border:1px solid var(--hairline);border-radius:var(--radius-md);background:var(--surface);min-width:0}
 .import-row[data-selected=true]{border-color:var(--control-border)}
@@ -71,7 +86,7 @@
 .import-row-route{font-size:17px;line-height:24px;font-weight:600}
 .import-row-meta{display:flex;flex-wrap:wrap;gap:var(--space-1) var(--space-3);color:var(--text-muted);font-size:13px;line-height:20px}
 .import-flags{display:flex;flex-wrap:wrap;gap:var(--space-2)}
-.import-chip{display:inline-flex;align-items:center;gap:var(--space-1);padding:2px var(--space-2);border:1px solid var(--hairline);border-radius:var(--radius-xs);font-size:12px;line-height:16px;color:var(--text-muted);background:var(--surface-inset)}
+.import-chip{display:inline-flex;align-items:center;gap:var(--space-1);min-height:24px;padding:2px var(--space-3);border:1px solid var(--hairline);border-radius:var(--radius-full);font-size:12px;line-height:16px;font-weight:500;color:var(--text-muted);background:var(--surface-inset)}
 .import-chip[data-tone=warning]{color:var(--warning-text);border-color:var(--warning-text)}
 .import-chip[data-tone=success]{color:var(--success-text);border-color:var(--success-text)}
 .import-chip[data-tone=danger]{color:var(--danger-text);border-color:var(--danger-text)}
@@ -112,8 +127,8 @@
 .import-question-failed{color:var(--danger-text)}
 
 /* Done */
-.import-summary{display:flex;flex-wrap:wrap;font-size:22px;line-height:28px;font-variant-numeric:tabular-nums}
-.import-summary-chunk{animation:import-enter var(--dur-moment) var(--ease-out) both;animation-delay:var(--stagger,0ms)}
+.import-summary{display:flex;flex-wrap:wrap;gap:var(--space-3);font-size:22px;line-height:28px;font-variant-numeric:tabular-nums}
+.import-summary-chunk{padding:var(--space-3) var(--space-4);border:1px solid var(--hairline);border-radius:var(--radius-md);background:var(--surface);min-width:0}
 .import-stamp-grid{display:flex;flex-wrap:wrap;gap:var(--space-4)}
 /* Passport-sized, so the actions stay near the fold: Open Passport prefetches only once it nears the viewport, and the hero needs that prefetch. */
 .import-stamp-grid>.stamp{width:160px}
@@ -122,10 +137,12 @@
 .import-aircraft-row[data-state=saved]{opacity:1}
 
 @keyframes import-enter{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@keyframes import-spin{to{transform:rotate(360deg)}}
 @keyframes import-fade{from{opacity:0}to{opacity:1}}
 @media(prefers-reduced-motion:reduce){
-  .import-found li[data-new=true],.import-summary-chunk{animation:import-fade 150ms var(--ease-out) both;animation-delay:0ms}
-  .import-dropzone{transition:none}
+  .import-found li[data-new=true]{animation:import-fade 150ms var(--ease-out) both;animation-delay:0ms}
+  .import-dropzone,.import-progressbar-fill,.import-check input{transition:none}
+  .import-stages li[data-state=active] .import-stage-marker svg{animation:none}
 }
 @media(max-width:700px){
   .import-page{padding-bottom:calc(var(--space-12) + var(--space-12))}

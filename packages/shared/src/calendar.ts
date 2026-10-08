@@ -17,7 +17,8 @@ function formatLabel(year: number, month: number, day: number): string {
 /** `label` shifted by `days` calendar days. */
 export function addDays(label: string, days: number): string {
   const [year, month, day] = parseLabel(label)
-  const shifted = new Date(Date.UTC(year, month - 1, day + days))
+  const shifted = new Date(0)
+  shifted.setUTCFullYear(year, month - 1, day + days)
   return formatLabel(shifted.getUTCFullYear(), shifted.getUTCMonth() + 1, shifted.getUTCDate())
 }
 

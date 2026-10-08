@@ -77,3 +77,18 @@ it('precise samples survive lossy merging, reversal and reaggregation without ch
       { ...row(6, null, '2025-01-03'), durationMinutes: -1 }])
   expect(aggregateRows(ineligible).every(row => !row.preciseDurationSamples)).toBe(true)
 })
+
+it('day aggregates retain inclusive range counts and precise weighted metrics within a month', () => {
+  const rows = [row(1, null, '2024-02-28'), row(2, null, '2024-02-29'), row(3, null, '2024-02-29'), row(4, null, '2024-03-01')]
+  const grouped = aggregateRows(rows, 'day')
+  expect(grouped.map(({ date, weight, durationMinutes, preciseDurationSamples }) => ({ date, weight, durationMinutes, preciseDurationSamples }))).toEqual([
+    { date: '2024-02-28', weight: 1, durationMinutes: 180, preciseDurationSamples: [180] },
+    { date: '2024-02-29', weight: 2, durationMinutes: 360, preciseDurationSamples: [180, 180] },
+    { date: '2024-03-01', weight: 1, durationMinutes: 180, preciseDurationSamples: [180] },
+  ])
+  const selected = grouped.filter(r => matches(r, { period: { from: '2024-02-29', to: '2024-02-29' } }, refs))
+  expect(selected.reduce((sum, r) => sum + r.weight, 0)).toBe(2)
+  expect(selected.reduce((sum, r) => sum + (r.distanceKm ?? 0), 0)).toBe(4000)
+  expect(aggregateRows(grouped, 'day')).toEqual(grouped)
+  expect(aggregateRows(rows)).toHaveLength(2)
+})

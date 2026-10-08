@@ -41,6 +41,9 @@ it('card embeds the chart svg from unchanged Clock rows', () => {
   const svg = decodeURIComponent(String(image.props.src).split(',')[1])
   expect(svg).toContain('<svg')
   expect(svg).toContain('aria-label="Clock"')
+  if (scope.clock.status !== 'ready') throw new Error('The fixture must satisfy the Clock minimum')
+  for (const row of scope.clock.value.byHour) expect(svg).toContain(`data-hour="${row.hour}" data-flights="${row.flights}"`)
+  expect(svg).not.toMatch(/NaN|Infinity/)
 })
 
 it('withholds filtered shares after failed D12 publication, then renders repaired evidence', async () => {

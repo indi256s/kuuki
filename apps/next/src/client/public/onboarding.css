@@ -4,7 +4,9 @@
 .onboarding-progress [aria-current=step] { color: var(--text); font-weight: 600; }
 .onboarding-progress span { font-family: var(--font-mono); }
 .onboarding-choices { display: grid; gap: var(--space-4); margin-block: var(--space-8); }
-.onboarding-choices button { justify-content: start; white-space: normal; text-align: start; min-height: 64px; }
+.onboarding-choices .onboarding-choice { justify-content: start; white-space: normal; text-align: start; min-height: 64px; padding-inline: var(--space-4); border-radius: var(--radius-md); }
+.onboarding-choice-row { display: flex; align-items: center; gap: var(--space-3); }
+.onboarding-choice-row svg { flex: none; color: var(--text-muted); }
 .onboarding-url { font-family: var(--font-mono); overflow-wrap: anywhere; }
 .onboarding-stamps { display: flex; flex-wrap: wrap; gap: var(--space-6); margin-block: var(--space-8); }
 .onboarding-skip { display: inline-flex; align-items: center; min-height: 44px; }

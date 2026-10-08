@@ -8,6 +8,7 @@ import { trackPrivateOperation } from '../activity'
 import { ROUTE_LINK_EVENT } from '../navigation-link'
 import { RouteMapPanel, type MapLayer } from '../maps/panel'
 import type { CountryVisit } from '../maps/preview'
+import { Button } from '../ui/button'
 import { SegmentedControl } from '../ui/segmented-control'
 import { useMobile } from '../ui/use-mobile'
 import { AddCountrySheet } from '../passport/add-country-sheet'
@@ -140,12 +141,12 @@ function Inner({ ownerId, locale, initial, period }: { ownerId: string; locale: 
       ? 'Последние изменения ещё обрабатываются. Штампы могут отставать от сохранённых перелётов.'
       : 'Recent changes are still being prepared. Stamps may lag behind saved flights.'}</p>}
     {collection.isError && <p role="alert" className="status-note">{ru ? 'Не удалось обновить паспорт. Показаны последние загруженные места.' : 'Could not refresh your passport. Showing the last loaded places.'}{' '}
-      <button type="button" onClick={() => void collection.refetch()}>{ru ? 'Повторить' : 'Try again'}</button></p>}
+      <Button dense onClick={() => void collection.refetch()}>{ru ? 'Повторить' : 'Try again'}</Button></p>}
     <PassportCover locale={locale} figures={figures} regions={data.regions} name={name} onAdd={startAdding} now={now} />
     <p role="status" className="passport-caption">{opening
       ? (ru ? `Открываем карточку прилёта: ${name(opening)}…` : `Opening the arrival card for ${name(opening)}…`)
       : notice}</p>
-    <div className="passport-toolbar">
+    <div className="passport-toolbar" role="group" aria-label={ru ? 'Вид и порядок паспорта' : 'Passport view and sort'}>
       <SegmentedControl label={ru ? 'Вид паспорта' : 'Passport view'} value={state.view} onChange={view => navigate({ view: view === 'stamps' ? null : view }, 'push')}
         options={[{ value: 'stamps', label: ru ? 'Штампы' : 'Stamps' }, { value: 'map', label: ru ? 'Карта' : 'Map' }]} />
       {state.view === 'stamps' && entries.length ? <SegmentedControl<PassportSort> label={ru ? 'Порядок штампов' : 'Sort stamps'} value={state.sort}

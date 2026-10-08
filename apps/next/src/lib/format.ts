@@ -1,3 +1,5 @@
+import { dayToEpoch } from '@kuuki/shared/overview/range'
+
 // Locale-aware formatting shared by server components and client islands. Pure: no DOM, no server-only imports.
 // The locale is always the UI language (request locale), never the runtime's default.
 
@@ -44,16 +46,19 @@ const dateOptions: Record<DateStyle, Intl.DateTimeFormatOptions> = {
 function utcFromDateOnly(value: string): Date | null {
   const m = value.match(/^(\d{4})-(\d{2})(?:-(\d{2}))?/)
   if (!m) return null
-  const year = Number(m[1]), month = Number(m[2]), day = Number(m[3] ?? 1)
-  const date = new Date(Date.UTC(year, month - 1, day, 12))
-  // Round-trip the components so impossible dates (2026-13-45, 2026-02-30) are rejected, not rolled over.
-  return date.getUTCFullYear() === year && date.getUTCMonth() === month - 1 && date.getUTCDate() === day ? date : null
+  const epoch = dayToEpoch(`${m[1]}-${m[2]}-${m[3] ?? '01'}`)
+  return epoch === null ? null : new Date(epoch + 12 * 3_600_000)
 }
 
 /** Formats a 'YYYY-MM-DD' calendar date without ever shifting the day. Returns the input unchanged if it is not a real calendar date. */
 export function formatDateOnly(locale: Locale, value: string, style: DateStyle = 'medium'): string {
   const date = utcFromDateOnly(value)
-  return date ? new Intl.DateTimeFormat(locale, { ...dateOptions[style], timeZone: 'UTC' }).format(date) : value
+  if (!date) return value
+  if (style === 'short') {
+    const year = String(date.getUTCFullYear()).padStart(4, '0'), month = String(date.getUTCMonth() + 1).padStart(2, '0'), day = String(date.getUTCDate()).padStart(2, '0')
+    return locale === 'ru' ? `${day}.${month}.${year}` : `${month}/${day}/${year}`
+  }
+  return new Intl.DateTimeFormat(locale, { ...dateOptions[style], timeZone: 'UTC' }).formatToParts(date).map(part => part.type === 'year' ? String(date.getUTCFullYear()) : part.value).join('').replaceAll('\u202f', ' ')
 }
 
 /**
@@ -73,7 +78,7 @@ export function formatInstantDate(locale: Locale, value: string, style: DateStyl
 export function formatMonthYear(locale: Locale, value: Date | string, month: 'long' | 'short' = 'long'): string {
   const date = typeof value === 'string' ? utcFromDateOnly(value) : value
   return date && !Number.isNaN(date.getTime())
-    ? new Intl.DateTimeFormat(locale, { month, year: 'numeric', timeZone: 'UTC' }).format(date)
+    ? new Intl.DateTimeFormat(locale, { month, year: 'numeric', timeZone: 'UTC' }).formatToParts(date).map(part => part.type === 'year' ? String(date.getUTCFullYear()) : part.value).join('').replaceAll('\u202f', ' ')
     : String(value)
 }
 
@@ -111,4 +116,9 @@ export function formatRelativeDate(locale: Locale, value: string, now = new Date
   if (days < 30) return format.format(-Math.floor(days / 7), 'week')
   const months = (now.getUTCFullYear() - date.getUTCFullYear()) * 12 + now.getUTCMonth() - date.getUTCMonth() - (now.getUTCDate() < date.getUTCDate() ? 1 : 0)
   return months < 12 ? format.format(-Math.max(1, months), 'month') : format.format(-Math.floor(months / 12), 'year')
+}
+
+/** Period bounds may be legacy months or exact calendar days. */
+export function formatPeriodDate(locale: Locale, value: string): string {
+  return value.length === 10 ? formatDateOnly(locale, value) : formatMonthYear(locale, value)
 }

@@ -72,6 +72,9 @@ it('shares airport, lifecycle, city/route search and exact filters across list, 
     ])
     for (const [query, expected] of [
       ['airport=tbs&year=2025&airline=TK&status=logged', 2],
+      ['from=2025-04-03&to=2025-04-04&year=2024&airport=TBS', 2],
+      ['from=2025-04-03&to=2025-04-03&status=logged', 1],
+      ['from=2025-04-04&to=2025-04-05&airline=TK', 2],
       ['airport=IST&origin=TBS&year=2025', 1],
       ['q=Tbilisi&year=2025', 2],
       ['q=2025-04', 3],
@@ -535,5 +538,19 @@ it('rejects an over-limit or CSRF-less bulk request before writing anything', as
     expect(await count(db, 'flights')).toBe(0)
     expect(await count(db, 'flight_idempotency')).toBe(0)
     expect(await derivedState(db)).toBeNull()
+  } finally { await dispose() }
+})
+
+it('list and ids reject invalid ranges with a validation error', async () => {
+  const { db, dispose } = await createApiDatabase()
+  try {
+    await seed(db)
+    for (const range of ['from=2025-04-03', 'to=2025-04-03', 'from=&to=', 'from=2025-04-04&to=2025-04-03', 'from=2025-02-29&to=2025-03-01', 'from=2025-04&to=2025-05', 'from=2025-04-31&to=2025-05-01']) {
+      for (const [path, handler] of [['/api/flights', listFlights], ['/api/flights/ids', flightIds]] as const) {
+        const response = await handler(context(db, `${path}?year=2025&${range}`, 'GET'))
+        expect(response.status).toBe(400)
+        expect(await response.json()).toMatchObject({ code: 'INVALID_DATE_RANGE' })
+      }
+    }
   } finally { await dispose() }
 })

@@ -188,7 +188,7 @@ describe('design tokens', () => {
       for (const [token, hex] of Object.entries(expected)) expect(resolve(vars, token), token).toEqual(parseHex(hex))
       expect(resolve(vars, '--mark-1')).toEqual(resolve(vars, '--accent'))
       for (const [i, token] of ['--mark-1', '--mark-2', '--mark-3', '--mark-4', '--mark-ghost'].entries()) {
-        expect(resolve(vars, `--ts-chart-${i + 1}`)).toEqual(resolve(vars, token))
+        expect(resolve(vars, `--kc-chart-${i + 1}`)).toEqual(resolve(vars, token))
       }
       expect(resolve(vars, '--heat-0')).toEqual(resolve(vars, '--surface-inset'))
       for (const [i, hex] of ['#e6c8c1', '#e4735c', '#c23417', '#892410'].entries()) {

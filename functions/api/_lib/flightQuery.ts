@@ -2,6 +2,8 @@
 // GET /api/flights/ids so the two stay in lockstep. SECURITY: sort field + direction are
 // allowlisted because the column name is interpolated into SQL; every value is bound.
 
+import { periodDays } from '../../../packages/shared/src/overview/range'
+import { HttpError } from './http'
 import { resolveAirportCodes } from '../../../packages/shared/src/airportSearch'
 import airportCatalog from '../../../packages/data/src/airports.json'
 
@@ -10,6 +12,8 @@ export interface FlightFilters {
   airport?: string
   status?: 'upcoming' | 'awaiting' | 'logged' | 'completed'
   year?: number
+  from?: string
+  to?: string
   airlineIata?: string
   aircraftIcao?: string
   isUpcoming?: boolean
@@ -43,13 +47,22 @@ function csv(value: string | null): string[] | undefined {
   return parts.length ? parts.slice(0, MAX_FILTER_VALUES) : undefined
 }
 
+function flightRange(from: string | null | undefined, to: string | null | undefined) {
+  if (from == null && to == null) return null
+  const range = from?.length === 10 && to?.length === 10 ? periodDays({ from, to }) : null
+  if (!range) throw new HttpError(400, 'Valid inclusive from/to calendar days required', 'INVALID_DATE_RANGE')
+  return range
+}
+
 /** Parse FlightFilters from the request query string (?year=&airlineIata=&originCodes=a,b ...). */
 export function parseFlightFilters(params: URLSearchParams): FlightFilters {
   const filters: FlightFilters = {}
   const q = params.get('q')?.trim().slice(0, 100)
   if (q) filters.q = q
   const year = params.get('year')
-  if (year && /^\d{4}$/.test(year)) filters.year = Number(year)
+  const range = flightRange(params.get('from'), params.get('to'))
+  if (range) Object.assign(filters, range)
+  else if (year && /^\d{4}$/.test(year)) filters.year = Number(year)
   const airlineIata = params.get('airline') ?? params.get('airlineIata')
   if (airlineIata) filters.airlineIata = airlineIata
   const aircraftIcao = params.get('aircraft') ?? params.get('aircraftIcao')
@@ -98,9 +111,11 @@ export function buildFlightWhere(userId: string, filters: FlightFilters): { wher
     clauses.push(filters.status === 'completed' ? "lifecycle_state IN ('awaiting', 'logged')" : 'lifecycle_state = ?')
     if (filters.status !== 'completed') binds.push(filters.status)
   }
-  if (filters.year) {
+  const range = flightRange(filters.from, filters.to)
+  if (range || filters.year !== undefined) {
     clauses.push('date >= ? AND date <= ?')
-    binds.push(`${filters.year}-01-01`, `${filters.year}-12-31`)
+    const year = String(filters.year).padStart(4, '0')
+    binds.push(range?.from ?? `${year}-01-01`, range?.to ?? `${year}-12-31`)
   }
   if (filters.airlineIataCodes?.length) {
     clauses.push(`airline_iata IN (${filters.airlineIataCodes.map(() => '?').join(', ')})`)

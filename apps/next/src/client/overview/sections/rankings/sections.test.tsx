@@ -7,6 +7,7 @@ import type { OverviewPayload } from '@kuuki/shared/overview/model'
 import { DEFAULT_PREFS, type SectionId } from '@kuuki/shared/overview/prefs'
 import { aggregateRows } from '@kuuki/shared/overview/aggregate'
 import { computeOverview } from '@kuuki/shared/overview/compute'
+import { dayToEpoch } from '@kuuki/shared/overview/range'
 import board from '../../../../../../../packages/shared/src/overview/__fixtures__/board.json'
 import { OverviewProvider, useOverview } from '../../store/overview-context'
 import { SECTIONS } from '../registry'
@@ -22,7 +23,7 @@ function mount(id: SectionId, data: OverviewPayload = payload, locale: 'en' | 'r
 }
 beforeEach(() => {
   url.params = new URLSearchParams(); url.push.mockClear(); url.replace.mockClear()
-  // Substitute only browser geometry: real TanStack scene, marks and selection stay in use.
+  // Substitute only browser geometry: actual SVG marks and selection stay in use.
   vi.spyOn(Element.prototype, 'getBoundingClientRect').mockReturnValue({ x: 0, y: 0, top: 0, left: 0, right: 640, bottom: 300, width: 640, height: 300, toJSON() {} })
   document.documentElement.lang = 'en'
 })
@@ -86,25 +87,31 @@ it('fleet sub-band writes both the body and maker facets', async () => {
   await userEvent.click(screen.getByRole('button', { name: /Narrowbody · airbus/ }))
   expect(overview.filter).toMatchObject({ bodies: ['narrow'], makers: ['airbus'] })
 })
-it('rhythm real heat and odometer selections write a single-month period', () => {
+it('rhythm heat selects a month and odometer selects an exact day', () => {
   const { container } = mount('rhythm')
   choose(container.querySelectorAll('.kc')[0])
   expect(overview.filter.period).toMatchObject({ from: expect.stringMatching(/^\d{4}-\d{2}$/), to: expect.stringMatching(/^\d{4}-\d{2}$/) })
   act(() => overview.actions.clear())
   choose(container.querySelectorAll('.kc')[1])
-  expect(overview.filter.period).toMatchObject({ from: expect.stringMatching(/^\d{4}-\d{2}$/), to: expect.stringMatching(/^\d{4}-\d{2}$/) })
+  expect(overview.filter.period).toMatchObject({ from: expect.stringMatching(/^\d{4}-\d{2}-\d{2}$/), to: expect.stringMatching(/^\d{4}-\d{2}-\d{2}$/) })
+  const period = overview.filter.period
+  if (!period || !('from' in period)) throw new Error('Odometer must select an exact day')
+  expect(period.from).toBe(period.to)
 })
-it('rhythm brush keyboard commit and month inputs write the same bounded period', () => {
+it('rhythm date inputs apply atomically and brush keyboard release commits its draft', () => {
   mount('rhythm')
-  const from = screen.getByLabelText('From'), to = screen.getByLabelText('To')
-  fireEvent.change(from, { target: { value: '2021-01' } })
-  fireEvent.change(to, { target: { value: '2024-01' } })
-  expect(overview.filter.period).toEqual({ from: '2021-01', to: '2024-01' })
+  const from = screen.getByLabelText('From date'), to = screen.getByLabelText('To date')
+  fireEvent.change(from, { target: { value: '2021-01-01' } })
+  fireEvent.change(to, { target: { value: '2024-01-01' } })
+  expect(overview.filter.period).toBeUndefined()
+  fireEvent.click(screen.getByRole('button', { name: 'Apply range' }))
+  expect(overview.filter.period).toEqual({ from: '2021-01-01', to: '2024-01-01' })
   const handle = screen.getByRole('slider', { name: 'Range end' })
   fireEvent.keyDown(handle, { key: 'ArrowRight' })
-  expect(overview.filter.period).toEqual({ from: '2021-01', to: '2024-02' })
-  fireEvent.change(to, { target: { value: '2024-01' } })
-  expect(overview.filter.period).toEqual({ from: '2021-01', to: '2024-01' })
+  fireEvent.change(handle, { target: { value: dayToEpoch('2024-01-02') } })
+  expect(overview.filter.period).toEqual({ from: '2021-01-01', to: '2024-01-01' })
+  fireEvent.keyUp(handle, { key: 'ArrowRight' })
+  expect(overview.filter.period).toEqual({ from: '2021-01-01', to: '2024-01-02' })
 })
 it('records private opener uses the actual cabinet id and route bus', async () => {
   mount('records')
@@ -157,7 +164,8 @@ it('manufacturer touch exposes real filter and flight actions with a factual too
   const y = Number(cell.getAttribute('y')) + Number(cell.getAttribute('height')) / 2
   const down = new MouseEvent('pointerdown', { bubbles: true, clientX: x, clientY: y })
   Object.defineProperty(down, 'pointerType', { value: 'touch' })
-  fireEvent(svg, down); fireEvent.click(svg, { clientX: x, clientY: y })
+  const mark = cell.closest('[data-kc-key]')!
+  fireEvent(mark, down); fireEvent.click(mark, { clientX: x, clientY: y })
   expect(overview.filter.makers).toBeUndefined()
   const dialog = screen.getByRole('dialog')
   expect(dialog.textContent).toMatch(/Airbus|Boeing|Embraer|ATR|Other|Unknown/)

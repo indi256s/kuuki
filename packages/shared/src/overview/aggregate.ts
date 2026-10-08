@@ -6,17 +6,17 @@ import { absoluteClockShiftMinutes, dateInstant, recordExtrema, recordFlights } 
 
 const sum = (a: number | null, b: number | null) => a === null && b === null ? null : (a ?? 0) + (b ?? 0)
 
-export function aggregateRows(rows: OverviewRow[]): OverviewRow[] {
+export function aggregateRows(rows: OverviewRow[], resolution: 'month' | 'day' = 'month'): OverviewRow[] {
   const groups = new Map<string, OverviewRow>()
   for (const row of rows) {
-    const month = row.date.slice(0, 7)
+    const calendar = resolution === 'day' ? row.date : row.date.slice(0, 7)
     const hour = row.depMinute === null || !Number.isFinite(row.depMinute) || row.depMinute < 0 || row.depMinute > 1439
       ? null : Math.floor(row.depMinute / 60)
     const arrivalHour = row.arrMinute === null || !Number.isFinite(row.arrMinute) || row.arrMinute < 0 || row.arrMinute > 1439
       ? null : Math.floor(row.arrMinute / 60)
     // Keep filters, paired metrics and zone coverage identical; invalid dates cannot add to valid calendar evidence.
     const key = JSON.stringify([row.state, row.origin, row.destination, row.airline, row.aircraft,
-      month, dateInstant(row.date) !== null, allianceAt(row.airline, row.date), hour, arrivalHour, row.durationSource, row.suppressed, row.originTz, row.destTz,
+      calendar, dateInstant(row.date) !== null, allianceAt(row.airline, row.date), hour, arrivalHour, row.durationSource, row.suppressed, row.originTz, row.destTz,
       row.distanceKm === null ? null : row.distanceKm / row.weight,
       row.durationMinutes === null ? null : row.durationMinutes > 0])
     const samples = preciseDurationSamples(row)

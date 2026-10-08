@@ -1,3 +1,11 @@
 .ov3-manufacturers { min-width: 0; }.ov3-maker-heading { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; }.ov3-maker-heading strong { font-size: 28px; }.ov3-maker-heading p { margin: 4px 0; }
 .ov3-maker-legend { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr)); gap: 8px 24px; }.ov3-maker-legend button { background: none; border: 0; color: var(--text); min-height: 44px; padding: 8px 0; text-align: left; cursor: pointer; white-space: normal; }.ov3-maker-legend button:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
 .ov3-maker-stack { display: flex; height: 12px; gap: 2px; margin: 16px 0; }.ov3-maker-stack i { border-radius: 3px; min-width: 0; }
+
+/* Preserve maker isolation for hover, keyboard focus and pinned touch actions. */
+.ov3-manufacturers .kc:has([data-waffle-group="airbus"][data-selected="true"]) [data-waffle-group]:not([data-waffle-group="airbus"]),
+.ov3-manufacturers .kc:has([data-waffle-group="boeing"][data-selected="true"]) [data-waffle-group]:not([data-waffle-group="boeing"]),
+.ov3-manufacturers .kc:has([data-waffle-group="embraer"][data-selected="true"]) [data-waffle-group]:not([data-waffle-group="embraer"]),
+.ov3-manufacturers .kc:has([data-waffle-group="atr"][data-selected="true"]) [data-waffle-group]:not([data-waffle-group="atr"]),
+.ov3-manufacturers .kc:has([data-waffle-group="other"][data-selected="true"]) [data-waffle-group]:not([data-waffle-group="other"]),
+.ov3-manufacturers .kc:has([data-waffle-group="unknown"][data-selected="true"]) [data-waffle-group]:not([data-waffle-group="unknown"]) { opacity: .22; }

@@ -21,7 +21,7 @@ it('pause uses and persists the actual provider preference', async () => {
   await act(() => vi.advanceTimersByTimeAsync(800))
   expect(saver.mock.calls[0][0].replayPaused).toBe(true)
 })
-it('native handle keyboard seeks month starts and label remains a valid candidate as replay moves', () => {
+it('native range keyboard seeks month starts and label remains a valid candidate as replay moves', () => {
   const seek = vi.fn(), { rerender } = render(<ReplayTransport {...props} seek={seek} />)
   fireEvent.click(screen.getByRole('button', { name: 'JAN 2019' }))
   const handle = screen.getByRole('slider', { name: 'Replay month' })
@@ -40,4 +40,21 @@ it('touch label expands, outside dismisses, and reduced motion hides transport',
   fireEvent.pointerDown(document.body); expect(label).toHaveAttribute('aria-expanded', 'false')
   rerender(<ReplayTransport {...props} reduced />)
   expect(screen.queryByRole('button')).not.toBeInTheDocument()
+})
+
+it('previews month starts, commits release and cancels to the actual drag origin with Escape focus return', () => {
+  const seek = vi.fn()
+  render(<ReplayTransport {...props} timeMs={123} seek={seek} />)
+  fireEvent.click(screen.getByRole('button', { name: 'JAN 2019' }))
+  const range = screen.getByRole('slider', { name: 'Replay month' })
+  fireEvent.pointerDown(range)
+  fireEvent.change(range, { target: { value: '1' } })
+  expect(seek).toHaveBeenLastCalledWith(31 / 456 * 12000, 'preview')
+  fireEvent.pointerUp(range)
+  expect(seek).toHaveBeenLastCalledWith(31 / 456 * 12000, 'commit')
+  fireEvent.pointerDown(range)
+  fireEvent.change(range, { target: { value: '2' } })
+  fireEvent.keyDown(range, { key: 'Escape' })
+  expect(seek).toHaveBeenLastCalledWith(123, 'cancel')
+  expect(screen.getByRole('button', { name: 'JAN 2019' })).toHaveFocus()
 })

@@ -58,7 +58,7 @@ export function attachRevalidation(store: OverviewDataStore, target: Window): ()
 const scopes = new WeakMap<OverviewDataStore, { etag: string; values: Map<string, OverviewScope> }>()
 export function scopeFor(store: OverviewDataStore, filter: OverviewFilter): OverviewScope | null {
   const payload = store.get()
-  if (!payload) return null
+  if (!payload || (payload.mode === 'aggregate' && payload.aggregateResolution !== 'day' && filter.period && 'from' in filter.period && filter.period.from.length === 10)) return null
   let cache = scopes.get(store)
   if (!cache || cache.etag !== payload.etag) {
     cache = { etag: payload.etag, values: new Map() }

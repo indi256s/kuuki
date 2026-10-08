@@ -1,3 +1,9 @@
 .ov3-rhythm { min-width: 0; }.ov3-heat-legend { display: flex; flex-wrap: wrap; gap: 16px; color: var(--text); }.ov3-heat-legend span { display: inline-flex; align-items: center; gap: 6px; }.ov3-heat-legend i { width: 16px; height: 16px; border-radius: 4px; }.ov3-rhythm-more { min-height: 44px; background: none; border: 0; color: var(--text); cursor: pointer; }.ov3-rhythm-more:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }.ov3-rhythm-stats { display: flex; flex-wrap: wrap; gap: 32px; }.ov3-rhythm-stats strong { display: block; font-size: 28px; }.ov3-odometer { touch-action: pan-y; }.ov3-heat-mini { display: grid; grid-template-columns: repeat(12, 1fr); gap: 3px; margin-bottom: 12px; }.ov3-heat-mini i { aspect-ratio: 1; border-radius: 3px; }
 
 .ov3-heat-year-totals { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 12px; font: 12px var(--font-mono); }
+
+.ov3-activity-year { display: flex; align-items: center; gap: 12px; margin-block: 12px; color: var(--text); }
+.ov3-activity-year select { min-height: 44px; padding-inline: 12px; border: 1px solid var(--control-border); border-radius: var(--radius-sm); background: var(--surface); color: var(--text); font: inherit; }
+.ov3-activity-year select:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.ov3-activity-scroll { overflow-x: auto; }
+.ov3-activity-scroll .kc { min-width: 900px; }

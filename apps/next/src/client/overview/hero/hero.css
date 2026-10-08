@@ -73,3 +73,7 @@
   .ov3-next-strip { flex-wrap: wrap; gap: 4px 12px; }
   .ov3-next-flight, .ov3-next-flight.ui-button > span { gap: 4px 8px; }
 }
+
+.ov3-sparkline { margin: 8px 0 0; max-width: 100%; }
+.ov3-sparkline svg { display: block; max-width: 100%; }
+.ov3-sparkline figcaption { color: var(--text-muted); font: 12px/16px var(--font-sans); }

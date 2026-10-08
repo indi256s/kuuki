@@ -141,3 +141,44 @@ it('scoped and background arcs use their own weighted counts for the fixed ramp 
     ['var(--mark-ghost)', '1', '0.15'], ['var(--mark-ghost)', '2', '0.15'], ['var(--mark-ghost)', '3', '0.15'], ['var(--mark-ghost)', '3', '0.15'],
   ])
 })
+
+it('fits mobile and fullscreen projections to measured pixels while keeping the rim, limb, dots and table stable', async () => {
+  let resize!: ResizeObserverCallback
+  let observed!: Element
+  const disconnect = vi.fn()
+  vi.stubGlobal('ResizeObserver', class {
+    constructor(callback: ResizeObserverCallback) { resize = callback }
+    observe(element: Element) { observed = element }
+    disconnect = disconnect
+  })
+  vi.stubGlobal('fetch', vi.fn(never))
+  const globe = { ...all, routes: [{ key: 'AAA-BBB', a: 'AAA', b: 'BBB', count: 4 }], ghostRoutes: [],
+    airports: [{ iata: 'AAA', count: 4 }], centroid: { lon: 0, lat: 0 } }
+  const airports = {
+    AAA: { lat: 0, lon: 0, country: null, city: null, name: 'A' },
+    BBB: { lat: 0, lon: 20, country: null, city: null, name: 'B' },
+  }
+  const { container, unmount } = render(<SvgGlobe {...props} globe={globe} all={globe} airports={airports} land={atlas} staticPlanes />)
+  await act(async () => {})
+  const table = container.querySelector('table')!.textContent
+  for (const width of [280, 600]) {
+    act(() => resize([{ target: observed, contentRect: { width } } as ResizeObserverEntry], {} as ResizeObserver))
+    expect(container.querySelector('.globe-svg')).toHaveAttribute('viewBox', `0 0 ${width} ${width}`)
+    expect(container.querySelector('.globe-static-planes')).toHaveAttribute('viewBox', `0 0 ${width} ${width}`)
+    const sphere = container.querySelector('.globe-sphere path')!
+    const positions = [...sphere.getAttribute('d')!.matchAll(/[ML](-?[\d.]+),(-?[\d.]+)/g)]
+    const xs = positions.map(match => Number(match[1])), ys = positions.map(match => Number(match[2]))
+    expect(Math.min(...xs)).toBeCloseTo(9)
+    expect(Math.max(...xs)).toBeCloseTo(width - 9)
+    expect(Math.min(...ys)).toBeCloseTo(9)
+    expect(Math.max(...ys)).toBeCloseTo(width - 9)
+    expect(sphere).toHaveAttribute('stroke-width', '1')
+    expect(container.querySelector('.globe-rim path')).toHaveAttribute('stroke-width', '16')
+    expect(container.querySelector('.globe-routes path')).toHaveAttribute('stroke-width', '3')
+    expect(container.querySelector('.globe-airports path')?.getAttribute('d')).toContain(`M${width / 2},${width / 2}m0,2.5a2.5,2.5`)
+    expect(container.querySelector('table')!.textContent).toBe(table)
+  }
+  expect(fetch).not.toHaveBeenCalled()
+  unmount()
+  expect(disconnect).toHaveBeenCalledOnce()
+})

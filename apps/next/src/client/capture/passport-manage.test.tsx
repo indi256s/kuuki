@@ -39,7 +39,8 @@ describe('PassportManage aircraft outcomes', () => {
     ], derived_state: 'pending', revision: 3 })
     await load(user)
     for (const checkbox of screen.getAllByRole('checkbox')) await user.click(checkbox)
-    await user.selectOptions(screen.getByLabelText('Aircraft type'), 'A320')
+    await user.clear(screen.getByRole('combobox', { name: 'Aircraft type' }))
+    await user.type(screen.getByRole('combobox', { name: 'Aircraft type' }), 'A320{Enter}')
     mocks.list.mockResolvedValue([flight(1, 'A320'), flight(2), flight(3)])
     await user.click(screen.getByRole('button', { name: 'Apply to selected' }))
 
@@ -71,7 +72,8 @@ describe('PassportManage aircraft outcomes', () => {
     await load(user)
     await user.click(screen.getAllByRole('checkbox')[0])
     await user.click(screen.getAllByRole('checkbox')[1])
-    await user.selectOptions(screen.getByLabelText('Aircraft type'), 'A320')
+    await user.clear(screen.getByRole('combobox', { name: 'Aircraft type' }))
+    await user.type(screen.getByRole('combobox', { name: 'Aircraft type' }), 'A320{Enter}')
     await user.click(screen.getByRole('button', { name: 'Apply to selected' }))
     await waitFor(() => expect(screen.getAllByText('May not be saved')).toHaveLength(2))
     expect(mocks.acknowledge).not.toHaveBeenCalled()
@@ -82,7 +84,8 @@ describe('PassportManage aircraft outcomes', () => {
     expect(within(fieldset).getAllByRole('checkbox').filter(box => (box as HTMLInputElement).checked)).toHaveLength(2)
 
     // The type picker may have changed since; the retry still resends what was sent.
-    await user.selectOptions(screen.getByLabelText('Aircraft type'), 'B738')
+    await user.clear(screen.getByRole('combobox', { name: 'Aircraft type' }))
+    await user.type(screen.getByRole('combobox', { name: 'Aircraft type' }), 'B738{Enter}')
     mocks.accept.mockResolvedValueOnce({ results: [
       { id: 1, status: 'accepted', flight: { id: 1, aircraft_icao: 'A320' } },
       { id: 2, status: 'accepted', flight: { id: 2, aircraft_icao: 'A320' } },
@@ -104,7 +107,8 @@ describe('PassportManage aircraft outcomes', () => {
     await load(user, 'ru')
     await user.click(screen.getAllByRole('checkbox')[0])
     await user.click(screen.getAllByRole('checkbox')[1])
-    await user.selectOptions(screen.getByLabelText('Тип самолёта'), 'A320')
+    await user.clear(screen.getByRole('combobox', { name: 'Тип самолёта' }))
+    await user.type(screen.getByRole('combobox', { name: 'Тип самолёта' }), 'A320{Enter}')
     await user.click(screen.getByRole('button', { name: 'Применить к выбранным' }))
     await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent('Не сохранено: 2'))
     expect(screen.getByRole('status')).toBeEmptyDOMElement()
@@ -121,7 +125,8 @@ describe('PassportManage aircraft outcomes', () => {
     await load(user)
     await user.click(screen.getAllByRole('checkbox')[0])
     await user.click(screen.getAllByRole('checkbox')[1])
-    await user.selectOptions(screen.getByLabelText('Aircraft type'), 'A320')
+    await user.clear(screen.getByRole('combobox', { name: 'Aircraft type' }))
+    await user.type(screen.getByRole('combobox', { name: 'Aircraft type' }), 'A320{Enter}')
     mocks.list.mockResolvedValue([flight(1, 'A320'), flight(2), flight(3)])
     await user.click(screen.getByRole('button', { name: 'Apply to selected' }))
     await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('Saved: 1 · Not saved: 1'))
@@ -142,7 +147,8 @@ describe('PassportManage aircraft outcomes', () => {
     mocks.accept.mockRejectedValueOnce(new TypeError('Failed to fetch'))
     await load(user)
     await user.click(screen.getAllByRole('checkbox')[0])
-    await user.selectOptions(screen.getByLabelText('Aircraft type'), 'A320')
+    await user.clear(screen.getByRole('combobox', { name: 'Aircraft type' }))
+    await user.type(screen.getByRole('combobox', { name: 'Aircraft type' }), 'A320{Enter}')
     await user.click(screen.getByRole('button', { name: 'Apply to selected' }))
     await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent('May not be saved: 1'))
     const first = screen.getByRole('alert').textContent
@@ -164,4 +170,16 @@ describe('PassportManage aircraft outcomes', () => {
     for (const checkbox of screen.getAllByRole('checkbox').slice(0, 20)) await user.click(checkbox)
     expect(screen.getAllByRole('checkbox').filter(box => (box as HTMLInputElement).disabled)).toHaveLength(2)
   })
+})
+
+it('keeps an unmatched aircraft search out of the batch write', async () => {
+  const user = userEvent.setup()
+  await load(user)
+  await user.click(screen.getAllByRole('checkbox')[0])
+  await user.type(screen.getByRole('combobox', { name: 'Aircraft type' }), 'ZZZZ')
+  expect(screen.getByText('Choose an aircraft from the list.')).toBeInTheDocument()
+  const apply = screen.getByRole('button', { name: 'Apply to selected' })
+  expect(apply).toHaveAttribute('aria-disabled', 'true')
+  await user.click(apply)
+  expect(mocks.accept).not.toHaveBeenCalled()
 })
