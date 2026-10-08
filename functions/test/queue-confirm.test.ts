@@ -6,7 +6,7 @@ import { hasSql, instrumentDb } from './db-hooks'
 import { FLIGHTS, USER, addUser, getAwaiting, operationId, postConfirm, queueAccount, tokens } from './queue-fixture'
 import { flightStatement, publish } from './country-fixture'
 import { onRequestGet as listPassport } from '../api/passport/countries/index'
-import { onRequestGet as getOverview } from '../api/me/overview'
+import { onRequestGet as getOverview } from '../api/me/overview/data'
 import { onRequestPost as confirmRoute } from '../api/flights/confirm'
 import { stateOf } from '../api/_services/derivedState'
 
@@ -80,13 +80,13 @@ describe('GET /api/me/awaiting', () => {
     const { db: raw, dispose } = await queueAccount()
     try {
       const passport = async (db: D1Database) => await (await listPassport({ ...apiContext(db, new Request('https://kuuki.test/api/passport/countries')), data: { user: USER }, params: {} } as never)).json() as any
-      const overview = async (db: D1Database) => await (await getOverview({ ...apiContext(db, new Request('https://kuuki.test/api/me/overview?period=all')), data: { user: USER } } as never)).json() as any
+      const overview = async (db: D1Database) => await (await getOverview({ ...apiContext(db, new Request('https://kuuki.test/api/me/overview/data')), data: { user: USER } } as never)).json() as any
       const before = await passport(raw)
       expect(before.countries.filter((row: any) => row.status === 'pending').map((row: any) => row.country_code).sort()).toEqual(['GB', 'GE'])
       expect(before.countries.map((row: any) => row.country_code)).not.toContain('TR') // the queue says transit by default
       const queue = await getAwaiting(raw)
       expect(queue.body.awaitingFlights.find((entry: any) => entry.flight.id === 1).effectiveDefault.transit).toBe(true)
-      expect((await overview(raw)).countryIds).toEqual(['AE', 'GB', 'GE', 'TH']) // awaiting counts as completed
+      expect((await overview(raw)).passport.countryCodes).toEqual(['AE', 'TH']) // only pressed Passport evidence counts
 
       // Confirm with the default (transit) while the repair is failing: committed but pending.
       const { db, hooks } = instrumentDb(raw)
@@ -94,7 +94,7 @@ describe('GET /api/me/awaiting', () => {
       const t = await tokens(raw)
       const pending = await postConfirm(db, { operationId: operationId(), items: [item(1, t[1]), item(3, t[3])] })
       expect(pending.body).toMatchObject({ derivedState: 'pending', newlyStampedCountries: null })
-      expect((await overview(raw)).countryState).toBe('updating') // never a mixed figure while pending
+      expect((await overview(raw)).derivedReady).toBe(false) // never a mixed figure while pending
       expect((await passport(raw)).derivedState).toBe('error') // the failed repair recorded its error: not ready either way
       expect((await getAwaiting(raw)).body.derivedState).toBe('error')
       expect((await getAwaiting(raw)).body.awaitingFlightCount).toBe(0) // the queue already knows the flights are confirmed
@@ -103,7 +103,7 @@ describe('GET /api/me/awaiting', () => {
       const after = await passport(raw)
       expect(after.countries.filter((row: any) => row.status === 'pending')).toEqual([])
       expect(after.countries.map((row: any) => row.country_code).sort()).toEqual(['AE', 'GB', 'GE', 'TH'])
-      expect((await overview(raw)).countryIds).toEqual(['AE', 'GB', 'GE', 'TH'])
+      expect((await overview(raw)).passport.countryCodes).toEqual(['AE', 'GB', 'GE', 'TH'])
       expect((await getAwaiting(raw)).body).toMatchObject({ awaitingFlightCount: 0, actionableCount: 0, derivedState: 'ready' })
     } finally { await dispose() }
   })

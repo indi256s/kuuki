@@ -3,6 +3,7 @@
 import { Check, Circle, LoaderCircle } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { formatDateOnly, type Locale } from '../../lib/format'
+import { FeedbackText } from '../ui/feedback-text'
 import { Button } from '../ui/button'
 import { Announcer } from './announcer'
 import { S, STAGE_KEY, count, tx } from './copy'
@@ -46,12 +47,12 @@ export function ProgressStep({ locale, batch, drafts, sourceName, onCancel, canc
         return <li key={name} data-state={state}>
           <Icon size={16} strokeWidth={2} aria-hidden="true" />
           <span>{tx(locale, STAGE_KEY[name])}</span>
-          <span className="import-stage-state">{state === 'done' ? S.stateDone[locale] : state === 'active' ? S.stateActive[locale] : S.statePending[locale]}</span>
+          <span className="import-stage-state"><FeedbackText fast locale={locale}>{state === 'done' ? S.stateDone[locale] : state === 'active' ? S.stateActive[locale] : S.statePending[locale]}</FeedbackText></span>
         </li>
       })}
     </ol>
     <div className="sr-only" role="status" aria-live="polite">{announcement}</div>
-    <h3 className="import-found-title">{S.foundRows[locale]}: <span className="import-count">{count(locale, 'found', drafts.length)}</span></h3>
+    <h3 className="import-found-title">{S.foundRows[locale]}: <span className="import-count"><FeedbackText numbers locale={locale}>{count(locale, 'found', drafts.length)}</FeedbackText></span></h3>
     {drafts.length > 0 ? <ul className="import-found">
       {drafts.map((draft, position) => <li key={draft.id} data-new={initial.has(draft.id) ? undefined : 'true'} style={{ ['--stagger' as string]: `${(position % 8) * 40}ms` }}>
         <span className="import-code">{draft.fields.origin || '—'} → {draft.fields.destination || '—'}</span>

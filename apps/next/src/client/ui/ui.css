@@ -188,3 +188,35 @@
 }
 
 .ui-dialog,.ui-sheet{--ticket-backdrop:var(--surface-floating)}
+
+/* ---------- Filter chip ---------- */
+.ui-chip{display:inline-flex;align-items:center;max-width:100%;min-width:0;min-height:32px;border:1px solid var(--control-border);border-radius:var(--radius-sm);background:var(--surface-floating);color:var(--text);box-shadow:var(--shadow-floating),var(--ring-floating)}
+.ui-chip-body,.ui-chip-remove{position:relative;display:inline-flex;align-items:center;justify-content:center;min-height:30px;border:0;border-radius:var(--radius-sm);background:transparent;color:inherit;font-size:13px;line-height:20px}
+.ui-chip-body{flex:1;min-width:0;gap:var(--space-2);padding:4px 8px 4px 12px}
+.ui-chip-swatch{display:inline-flex;flex:none}
+.ui-chip-label{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ui-chip-remove{flex:none;width:32px;padding:4px}
+.ui-chip-body:focus-visible,.ui-chip-remove:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media(pointer:coarse){
+  /* Expand vertically only: the adjacent body and remove targets must never overlap. */
+  .ui-chip-body::after,.ui-chip-remove::after{content:'';position:absolute;inset:-7px 0}
+  .ui-chip-body{min-width:44px}.ui-chip-remove{width:44px}
+  .ui-chip{margin-block:6px}
+}
+@media(hover:hover) and (pointer:fine){.ui-chip-body:hover,.ui-chip-remove:hover{background:var(--surface-inset)}}
+
+/* ---------- Popover and static skeleton ---------- */
+.ui-popover{z-index:60;max-width:min(420px,calc(100vw - 16px));max-height:var(--radix-popover-content-available-height);overflow:auto;padding:var(--space-4);border-radius:var(--radius-md);background:var(--surface-floating);color:var(--text);box-shadow:var(--shadow-floating),var(--ring-floating);transform-origin:var(--radix-popover-content-transform-origin)}
+.ui-popover[data-state=open]{animation:ui-pop-in var(--dur-fast) var(--ease-out)}
+.ui-skeleton{width:100%;flex:none;border-radius:var(--radius-md);background:var(--surface-inset)}
+@media(prefers-reduced-motion:reduce){.ui-popover[data-state=open]{animation:ui-fade-in var(--dur-fast) linear}}
+
+/* ---------- Native month range ---------- */
+.ui-month-range{display:flex;flex-wrap:wrap;align-items:flex-end;gap:var(--space-3);max-width:100%}
+.ui-month-range-field{display:grid;gap:var(--space-1);flex:1 1 140px;min-width:0;font-weight:600}
+.ui-month-range-field input{min-width:0;font-weight:400}
+
+/* ---------- Category marks ---------- */
+.ui-maker-swatch{display:inline-block;flex:none;border-radius:20%;vertical-align:middle}
+.ui-alliance-mark{display:inline-flex;flex:none;align-items:center;justify-content:center;line-height:1;vertical-align:middle}
+.ui-category-label{display:inline-flex;align-items:center;gap:var(--space-2);color:var(--text)}

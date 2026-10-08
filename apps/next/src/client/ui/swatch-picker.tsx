@@ -8,7 +8,7 @@ import type { Locale } from '../../lib/format'
 import './ui.css'
 
 const NAMES: Record<Accent, { en: string; ru: string }> = {
-  terracotta: { en: 'Terracotta', ru: 'Терракота' },
+  shu: { en: 'Shu', ru: 'Шу' },
   ai: { en: 'Ai', ru: 'Ай' },
   matcha: { en: 'Matcha', ru: 'Матча' },
   asagi: { en: 'Asagi', ru: 'Асаги' },
@@ -18,17 +18,17 @@ const NAMES: Record<Accent, { en: string; ru: string }> = {
 export type SwatchPickerProps = {
   locale: Locale
   label?: string
-  /** Controlled value; when omitted the picker follows `data-accent` on <html> (terracotta by default). */
+  /** Controlled value; when omitted the picker follows `data-accent` on <html> (shu by default). */
   value?: Accent
   onChange?: (accent: Accent) => void
 }
 
 /** Only the five named accents; selection goes through `setAccent`, which stores the name, never a color. */
 export function SwatchPicker({ locale, label, value, onChange }: SwatchPickerProps) {
-  const [own, setOwn] = useState<Accent>('terracotta')
+  const [own, setOwn] = useState<Accent>('shu')
   const refs = useRef<(HTMLButtonElement | null)[]>([])
   useEffect(() => {
-    const read = () => { const current = document.documentElement.dataset.accent; setOwn(isAccent(current) ? current : 'terracotta') }
+    const read = () => { const current = document.documentElement.dataset.accent; setOwn(isAccent(current) ? current : 'shu') }
     read()
     window.addEventListener('kuuki:appearance', read)
     return () => window.removeEventListener('kuuki:appearance', read)

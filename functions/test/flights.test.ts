@@ -247,7 +247,7 @@ it('preserves unchanged historical references but rejects a different unknown co
   } finally { await dispose() }
 })
 
-it('recalculates route distance and duration while respecting explicit overrides, and rejects a malformed date patch', async () => {
+it('recalculates route distance and duration while ignoring client overrides, and rejects a malformed date patch', async () => {
   const { db, dispose } = await createApiDatabase()
   try {
     await seed(db)
@@ -264,7 +264,7 @@ it('recalculates route distance and duration while respecting explicit overrides
     expect(after.duration_minutes).toBeGreaterThan(0)
     expect(after.duration_minutes).not.toBe(999)
     const overridden = await onRequestPatch(context(db, `/api/flights/${id}`, 'PATCH', { destination: 'IST', distance_km: 1234, duration_minutes: 321 }, undefined, id))
-    expect(await overridden.json()).toMatchObject({ distance_km: 1234, duration_minutes: 321 })
+    expect(await overridden.json()).toMatchObject({ distance_km: before.distance_km, duration_minutes: before.duration_minutes, duration_source: 'estimate' })
   } finally { await dispose() }
 })
 
@@ -349,7 +349,6 @@ type AircraftReplayBody = { results: Array<{ id: number | null; status: string; 
 const snapshotFlights = async (db: D1Database) => (await db.prepare('SELECT * FROM flights ORDER BY id').all()).results
 const snapshotDerived = async (db: D1Database) => ({
   stats: await db.prepare('SELECT total_flights,aircraft_count FROM user_stats WHERE user_id = ?').bind(user.id).first(),
-  advanced: await db.prepare('SELECT aircraft_breakdown,aircraft_type_breakdown,manufacturer_breakdown FROM user_advanced_stats WHERE user_id = ?').bind(user.id).first(),
 })
 
 it('replays an identical aircraft batch to the same per-item results and unchanged flight rows', async () => {

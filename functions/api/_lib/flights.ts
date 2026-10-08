@@ -1,8 +1,9 @@
 // Flight row + DTO mappers (mirrors _lib/profiles.ts). SQLite stores is_upcoming as 0/1; the API
 // returns a real boolean to match the old Supabase row shape. toOwnFlight is a strict allowlist:
 // it drops `user_id` (always the requester) and `aircraft_lookup_attempts` (a D1-only internal
-// enrichment counter never present in the Supabase types the frontend was generated from) → 19 cols.
+// enrichment counter never present in the Supabase types the frontend was generated from).
 
+import type { DurationSource } from '../../../packages/shared/src/types'
 import type { LifecycleState } from '../_services/countryEvidence'
 import type { ConfirmationSource } from '../_services/lifecycle'
 
@@ -10,7 +11,7 @@ import type { ConfirmationSource } from '../_services/lifecycle'
 export const FLIGHT_COLUMNS =
   'id, user_id, date, origin, destination, airline_iata, aircraft_icao, flight_number, ' +
   'departure_time, arrival_time, departure_utc, arrival_utc, origin_tz, dest_tz, distance_km, ' +
-  'duration_minutes, source, is_upcoming, enrichment_status, aircraft_lookup_attempts, created_at, ' +
+  'duration_minutes, duration_source, times_from_schedule, zones_overflown, source, is_upcoming, enrichment_status, aircraft_lookup_attempts, created_at, ' +
   'lifecycle_state, confirmation_source, confirmed_at, lifecycle_timezone, awaiting_after, auto_confirm_after, ' +
   'arrival_transit, arrival_transit_leg_id'
 
@@ -31,6 +32,9 @@ export interface FlightRow {
   dest_tz: string | null
   distance_km: number | null
   duration_minutes: number | null
+  duration_source: DurationSource | null
+  times_from_schedule: 0 | 1
+  zones_overflown: number | null
   source: string
   is_upcoming: number | null
   enrichment_status: string
@@ -48,7 +52,7 @@ export interface FlightRow {
 
 /**
  * Full own-flight DTO: the 19 original columns (no user_id / aircraft_lookup_attempts; is_upcoming →
- * boolean compatibility projection) plus the lifecycle fields of ADR 0001 §1. New readers use `lifecycle_state`.
+ * boolean compatibility projection), lifecycle fields of ADR 0001 §1 and metrics of ADR 0002.
  */
 export function toOwnFlight(row: FlightRow) {
   return {
@@ -67,6 +71,8 @@ export function toOwnFlight(row: FlightRow) {
     dest_tz: row.dest_tz,
     distance_km: row.distance_km,
     duration_minutes: row.duration_minutes,
+    duration_source: row.duration_source,
+    zones_overflown: row.zones_overflown,
     source: row.source,
     is_upcoming: !!row.is_upcoming,
     enrichment_status: row.enrichment_status,

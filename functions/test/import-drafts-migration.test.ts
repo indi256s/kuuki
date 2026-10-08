@@ -99,7 +99,7 @@ describe('0007 import drafts schema', () => {
 
   it('leaves 0006 state untouched: no flights or lifecycle tables change', async () => {
     const six = await databaseThrough('0006')
-    const seven = await databaseThrough()
+    const seven = await databaseThrough('0007_import_drafts.sql')
     try {
       const shape = (db: D1Database) => db.prepare("SELECT name, sql FROM sqlite_master WHERE name NOT LIKE 'import_%' AND name NOT LIKE 'idx_import_%' AND name NOT LIKE 'sqlite_autoindex_import_%' ORDER BY name").all()
       expect((await shape(seven.db)).results).toEqual((await shape(six.db)).results)

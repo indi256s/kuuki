@@ -9,8 +9,7 @@ import { HttpError } from '../_lib/http'
 import { sha256Hex } from '../_lib/crypto'
 import { FLIGHT_COLUMNS, toOwnFlight, type FlightRow } from '../_lib/flights'
 import { parseFlightBodies } from '../_lib/flightValidation'
-import { computeFlightDuration } from './flightDuration'
-import { fillDistanceAndDuration } from './stats'
+import { resolveFlightMetrics } from './flightMetrics'
 import { dirtyUserStatement, repairUserDerivedState, type DerivedRepairResult } from './derivedState'
 import { LIFECYCLE_COLUMN_NAMES, lifecycleForCreate, lifecycleValues } from './lifecycle'
 import { nowIso } from '../_lib/time'
@@ -61,22 +60,18 @@ export async function createFlightStatements(
   const lifecycle = lifecycleForCreate(date, timezone)
   const enrichmentStatus = input.enrichment_status ?? (input.aircraft_icao ? 'skipped' : 'pending')
 
-  const { departureUtc, arrivalUtc, durationMinutes: tzDur } = computeFlightDuration({
+  const { originTz, destTz, departureUtc, arrivalUtc, distanceKm, durationMinutes, durationSource, zonesOverflown } = await resolveFlightMetrics(db, {
     date,
+    origin,
+    destination,
+    airlineIata: input.airline_iata ?? null,
+    flightNumber: input.flight_number ?? null,
     departureTime: input.departure_time ?? null,
     arrivalTime: input.arrival_time ?? null,
     originTz: input.origin_tz ?? null,
     destTz: input.dest_tz ?? null,
-    existingDurationMinutes: input.duration_minutes ?? null,
+    clientDistanceKm: input.distance_km ?? null,
   })
-
-  const { distanceKm, durationMinutes } = await fillDistanceAndDuration(
-    db,
-    origin,
-    destination,
-    input.distance_km ?? null,
-    tzDur,
-  )
 
   const ledger = guard
     ? db.prepare(
@@ -97,8 +92,8 @@ export async function createFlightStatements(
       `INSERT INTO flights (
        date, origin, destination, airline_iata, aircraft_icao, flight_number,
        departure_time, arrival_time, departure_utc, arrival_utc, origin_tz, dest_tz,
-       distance_km, duration_minutes, source, enrichment_status, user_id, ${LIFECYCLE_COLUMN_NAMES.join(', ')}
-     ) SELECT ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ${LIFECYCLE_COLUMN_NAMES.map(() => '?').join(', ')} WHERE changes() = 1`,
+       distance_km, duration_minutes, duration_source, zones_overflown, source, enrichment_status, user_id, ${LIFECYCLE_COLUMN_NAMES.join(', ')}
+     ) SELECT ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ${LIFECYCLE_COLUMN_NAMES.map(() => '?').join(', ')} WHERE changes() = 1`,
     ).bind(
       date,
       origin,
@@ -110,10 +105,12 @@ export async function createFlightStatements(
       input.arrival_time ?? null,
       departureUtc,
       arrivalUtc,
-      input.origin_tz ?? null,
-      input.dest_tz ?? null,
+      originTz,
+      destTz,
       distanceKm,
       durationMinutes,
+      durationSource,
+      zonesOverflown,
       source,
       enrichmentStatus,
       userId,

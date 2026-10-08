@@ -8,6 +8,8 @@ import type { RequestData } from '../_lib/auth'
 import { toOwnProfile } from '../_lib/profiles'
 import type { ProfileRow } from '../_lib/profiles'
 import { nowIso } from '../_lib/time'
+import { dirtyUserStatement, repairUserDerivedState } from '../_services/derivedState'
+import { firstOf } from '../_services/stats'
 
 interface UpdateBody {
   username?: string | null
@@ -96,13 +98,17 @@ export function updateProfileRequest(request: Request, env: Env, data: RequestDa
     binds.push(nowIso())
     binds.push(user.id)
 
-    const row = await env.DB.prepare(
+    const statement = env.DB.prepare(
       `UPDATE profiles SET ${sets.join(', ')} WHERE id = ? RETURNING *`
     )
       .bind(...binds)
-      .first<ProfileRow>()
+    const editsHome = 'home_airport' in body
+    const row = editsHome
+      ? firstOf<ProfileRow>((await env.DB.batch([statement, dirtyUserStatement(env.DB, user.id, true)]))[0])
+      : await statement.first<ProfileRow>()
 
     if (!row) throw new HttpError(404, 'Profile not found', 'NOT_FOUND')
+    if (editsHome) await repairUserDerivedState(env.DB, user.id)
     return json(toOwnProfile(row))
   })
 }

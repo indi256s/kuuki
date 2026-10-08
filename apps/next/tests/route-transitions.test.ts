@@ -4,7 +4,7 @@ import { recordRouteTransitions, resetRouteTransitions, routeTransitions, signIn
 // DESIGN.md "Motion": the import hero and the leaderboard drill animate (the import hero is covered in import.test.ts); everything else swaps instantly.
 
 const settled = (page: Page) => expect.poll(() => page.evaluate(() => document.documentElement.dataset.routeTransition ?? null)).toBeNull()
-const heading = (page: Page, name: string) => page.getByRole('heading', { level: 1, name, exact: true })
+const heading = (page: Page, name: string) => page.getByRole('heading', { level: 1, name: name === 'Overview' ? /^Hi(?:,| ·|$)/ : name, exact: name !== 'Overview' })
 
 test.describe('leaderboard → public profile', () => {
   test('drills into the profile and Back reverses it', async ({ page }) => {

@@ -212,9 +212,11 @@ test('activation page keeps isolation, erases the fragment and sends a saved pas
   await expect(page.getByRole('heading', { level: 1, name: 'This link has expired' })).toBeVisible()
   await expect(page.getByRole('link', { name: 'Send a new link' })).toHaveAttribute('href', `${baseURL}/activation-request`)
   await expect(page.getByRole('link', { name: 'Back to sign in' })).toHaveAttribute('href', `${baseURL}/signin`)
-  let attempt = 0
-  await page.route('**/api/auth/activation/complete', route => {
+  let attempt = 0, release!: () => void
+  const held = new Promise<void>(resolve => { release = resolve })
+  await page.route('**/api/auth/activation/complete', async route => {
     attempt++
+    if (attempt === 1) await held
     return route.fulfill(attempt === 1 ? { status: 429, json: { error: 'Limited', code: 'RATE_LIMITED' } } : { json: { ok: true } })
   })
   const response = await page.goto(`/activate.html#token=${'A'.repeat(43)}`)
@@ -228,12 +230,18 @@ test('activation page keeps isolation, erases the fragment and sends a saved pas
   await expect(page.getByRole('heading', { level: 1, name: 'Welcome back to Kuuki' })).toBeVisible()
   await expect(page.locator('input[autocomplete="username"]')).toBeHidden()
   const help = page.getByRole('button', { name: 'Help', exact: true })
+  await page.setViewportSize({ width: 768, height: 400 })
   await help.focus()
   await help.press('Enter')
   const dialog = page.getByRole('dialog', { name: 'About Kuuki' })
   await expect(dialog).toBeVisible()
   await expect(dialog.getByRole('heading', { name: 'About Kuuki' })).toBeFocused()
   await expect(dialog).toContainText('Kuuki is a private flight journal.')
+  const scrollBefore = await page.evaluate(() => window.scrollY)
+  await page.mouse.move(5, 5)
+  await page.mouse.wheel(0, 250)
+  await page.waitForTimeout(100) // Wheel scrolling is processed asynchronously.
+  expect(await page.evaluate(() => window.scrollY)).toBe(scrollBefore)
   await page.keyboard.press('Tab')
   await expect(dialog.getByRole('button', { name: 'Close', exact: true })).toBeFocused()
   await page.keyboard.press('Escape')
@@ -246,7 +254,19 @@ test('activation page keeps isolation, erases the fragment and sends a saved pas
     return style.animationName === 'none' && style.transform === 'none'
   }))).toBe(true)
   await page.getByLabel('New password', { exact: true }).fill('personal-password')
+  const reveal = page.getByRole('button', { name: 'Show password', exact: true })
+  await reveal.click()
+  await expect(page.locator('#eye')).toBeHidden()
+  await expect(page.locator('#eye-off')).toBeVisible()
+  await expect(page.getByLabel('New password', { exact: true })).toHaveAttribute('type', 'text')
+  await reveal.click()
+  await expect(page.locator('#eye')).toBeVisible()
+  await expect(page.locator('#eye-off')).toBeHidden()
+  await expect(page.getByLabel('New password', { exact: true })).toHaveAttribute('type', 'password')
   await page.getByRole('button', { name: 'Save password' }).click()
+  await expect(page.locator('#spinner')).toBeVisible()
+  expect(await page.locator('#spinner').evaluate(node => node.getAnimations().length)).toBe(0)
+  release()
   await expect(page.locator('main').getByRole('alert')).toContainText('Too many attempts.')
   await page.getByRole('button', { name: 'Save password' }).click()
   // No email, token or password travels in the URL.
@@ -271,6 +291,18 @@ function createStep(page: Page) {
     hint: page.getByText('At least 8 characters', { exact: true }),
     create: page.getByRole('button', { name: 'Create account', exact: true }),
   }
+}
+
+async function expectDarkChangeInk(change: Locator) {
+  const paint = await change.evaluate(element => {
+    const style = getComputedStyle(element)
+    let ancestor = element.parentElement
+    while (ancestor && getComputedStyle(ancestor).backgroundColor === 'rgba(0, 0, 0, 0)') ancestor = ancestor.parentElement
+    return { color: style.color, background: style.backgroundColor, paintedBackground: ancestor ? getComputedStyle(ancestor).backgroundColor : null }
+  })
+  expect(paint.background).toBe('rgba(0, 0, 0, 0)')
+  expect(paint.paintedBackground).toBe('rgb(64, 61, 58)')
+  expect(paint.color).toBe('rgb(241, 239, 235)')
 }
 
 async function continueAs(page: Page, email: string, password: string) {
@@ -300,27 +332,31 @@ test('Continue with known credentials lands in the journal, even when session bo
   await expect(page).toHaveURL(/\/overview$/)
 })
 
-test('Checking… shows a spinner at full opacity and ignores a second press', async ({ page }) => {
-  let calls = 0, release!: () => void
-  const held = new Promise<void>(resolve => { release = resolve })
-  await page.route('**/api/auth/continue', async route => { calls++; await held; await route.fulfill({ status: 401, json: { error: 'Invalid email or password', code: 'INVALID_CREDENTIALS' } }) })
-  await page.goto('/')
-  const c = card(page)
-  const idle = await c.continue.evaluate(element => getComputedStyle(element).backgroundColor)
-  await continueAs(page, 'a@example.test', 'held-password')
-  const checking = page.getByRole('button', { name: 'Checking…', exact: true })
-  await expect(checking).toBeVisible()
-  await expect(checking).toHaveAttribute('aria-busy', 'true')
-  await expect(checking.locator('svg')).toBeVisible()
-  await expect(c.heading).toBeFocused()
-  expect(await checking.evaluate(element => [getComputedStyle(element).opacity, getComputedStyle(element).backgroundColor])).toEqual(['1', idle])
-  await checking.click({ force: true })
-  await c.password.press('Enter')
-  release()
-  await expect(page.getByText('Email or password is incorrect.', { exact: true })).toBeVisible()
-  await expect(c.heading).toBeFocused()
-  expect(calls).toBe(1)
-})
+for (const reducedMotion of ['no-preference', 'reduce'] as const) {
+  test(`Checking… keeps progress visible and ignores a second press (${reducedMotion})`, async ({ page }) => {
+    await page.emulateMedia({ reducedMotion })
+    let calls = 0, release!: () => void
+    const held = new Promise<void>(resolve => { release = resolve })
+    await page.route('**/api/auth/continue', async route => { calls++; await held; await route.fulfill({ status: 401, json: { error: 'Invalid email or password', code: 'INVALID_CREDENTIALS' } }) })
+    await page.goto('/')
+    const c = card(page)
+    const idle = await c.continue.evaluate(element => getComputedStyle(element).backgroundColor)
+    await continueAs(page, 'a@example.test', 'held-password')
+    const checking = page.getByRole('button', { name: 'Checking…', exact: true })
+    await expect(checking).toBeVisible()
+    await expect(checking).toHaveAttribute('aria-busy', 'true')
+    await expect(checking.locator('svg')).toBeVisible()
+    if (reducedMotion === 'reduce') expect(await checking.locator('svg').evaluate(node => node.getAnimations().length)).toBe(0)
+    await expect(c.heading).toBeFocused()
+    expect(await checking.evaluate(element => [getComputedStyle(element).opacity, getComputedStyle(element).backgroundColor])).toEqual(['1', idle])
+    await checking.click({ force: true })
+    await c.password.press('Enter')
+    release()
+    await expect(page.getByText('Email or password is incorrect.', { exact: true })).toBeVisible()
+    await expect(c.heading).toBeFocused()
+    expect(calls).toBe(1)
+  })
+}
 
 test('a wrong password keeps the email, shows the error with an icon and offers a link to get back in', async ({ page, baseURL }) => {
   await ownIp(page, baseURL!)
@@ -415,7 +451,8 @@ test('Creating focuses the heading, and server failures return focus there with 
   }
 })
 
-test('an unknown email turns the card into the create step in place, and Create account reaches onboarding', async ({ page, baseURL }) => {
+test('an unknown email turns the card into the create step in place, and Create account reaches onboarding', async ({ page, context, baseURL }) => {
+  await context.addCookies([{ name: 'kuuki_theme', value: 'dark', url: baseURL! }, { name: 'kuuki_accent', value: 'shu', url: baseURL! }])
   await ownIp(page, baseURL!)
   await page.goto('/')
   const email = newEmail()
@@ -425,6 +462,9 @@ test('an unknown email turns the card into the create step in place, and Create 
   await expect(s.subtitle).toBeVisible()
   await expect(s.status).toHaveText(`No Kuuki journal uses ${email} yet.`)
   await expect(s.change).toBeVisible()
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark')
+  await expect(page.locator('html')).toHaveAttribute('data-accent', 'shu')
+  await expectDarkChangeInk(s.change)
   await expect(s.password).toHaveValue('personal-password-2026')
   await expect(s.password).toHaveAttribute('autocomplete', 'new-password')
   await expect(s.hint).toBeVisible()
@@ -521,7 +561,7 @@ test('an email taken a moment ago returns to the form, and an account created wi
 })
 
 test('the create step follows the Russian locale', async ({ page, context, baseURL }) => {
-  await context.addCookies([{ name: 'kuuki_locale', value: 'ru', url: baseURL! }])
+  await context.addCookies([{ name: 'kuuki_locale', value: 'ru', url: baseURL! }, { name: 'kuuki_theme', value: 'dark', url: baseURL! }, { name: 'kuuki_accent', value: 'shu', url: baseURL! }])
   await page.route('**/api/auth/continue', route => route.fulfill({ json: { next: 'create' } }))
   await page.goto('/')
   await page.getByRole('textbox', { name: 'Почта', exact: true }).fill('ru@example.test')
@@ -532,7 +572,11 @@ test('the create step follows the Russian locale', async ({ page, context, baseU
   await expect(page.getByRole('status')).toHaveText('Журнала Kuuki для ru@example.test пока нет.')
   await expect(page.getByLabel('Придумайте пароль', { exact: true })).toHaveValue('personal-password-2026')
   await expect(page.getByText('Не менее 8 символов', { exact: true })).toBeVisible()
-  await expect(page.getByRole('button', { name: 'Изменить', exact: true })).toBeVisible()
+  const change = page.getByRole('button', { name: 'Изменить', exact: true })
+  await expect(change).toBeVisible()
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark')
+  await expect(page.locator('html')).toHaveAttribute('data-accent', 'shu')
+  await expectDarkChangeInk(change)
 })
 
 /** The brand panel's decorative planes, by size, counting only the ones the current layout shows. */
@@ -627,6 +671,8 @@ test('planes drift with transform only, and stop while the page is hidden', asyn
     document.dispatchEvent(new Event('visibilitychange'))
   })
   await expect.poll(async () => (await planeAnimations(page)).running).toBe(0)
+  // CSS reports paused before its pending pause commits on the animation timeline.
+  await page.evaluate(() => Promise.all(document.getAnimations().map(animation => animation.ready)))
   const frozen = await sample()
   await page.waitForTimeout(300)
   expect(await sample()).toBe(frozen)

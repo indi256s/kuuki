@@ -1,20 +1,22 @@
 // @vitest-environment jsdom
-import { cleanup, render, waitFor } from '@testing-library/react'
+import { act, cleanup, render, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 const refresh = vi.fn()
 const api = { get: vi.fn(), post: vi.fn() }
+const awaitPublication = vi.fn()
 vi.mock('next/navigation', () => ({ useRouter: () => ({ refresh }) }))
 vi.mock('@kuuki/client/apiClient', () => ({
   api, beginIdentityOperation: vi.fn(), getAuthGeneration: () => 1,
 }))
+vi.mock('./publication', () => ({ awaitPublication }))
 
 const sync = () => api.post.mock.calls.filter(call => call[0] === '/api/flights/sync-upcoming')
 
 describe('ActivityBridge owner sync', () => {
   beforeEach(async () => {
     vi.resetModules()
-    refresh.mockReset(); api.get.mockReset(); api.post.mockReset()
+    refresh.mockReset(); api.get.mockReset(); api.post.mockReset(); awaitPublication.mockReset()
     window.localStorage.clear()
     window.sessionStorage.clear()
   })
@@ -64,6 +66,36 @@ describe('ActivityBridge owner sync', () => {
     expect(refresh).not.toHaveBeenCalled()
     expect(changed).not.toHaveBeenCalled()
     window.removeEventListener('kuuki:lifecycle-changed', changed)
+  })
+
+  it.each(['pending', 'error'] as const)('shows committed lifecycle changes when derived publication is %s', async derivedState => {
+    api.get.mockResolvedValue({ user: { id: 'u1' } })
+    api.post.mockResolvedValue({ synced: 1, awaited: 1, autoConfirmed: 0, more: false, derived_state: derivedState, revision: 4 })
+    awaitPublication.mockResolvedValue('delayed')
+    const changed = vi.fn()
+    window.addEventListener('kuuki:lifecycle-changed', changed)
+    try {
+      await mount()
+      await waitFor(() => expect(refresh).toHaveBeenCalledTimes(1))
+      expect(changed).toHaveBeenCalledTimes(1)
+    } finally { window.removeEventListener('kuuki:lifecycle-changed', changed) }
+  })
+
+  it('refreshes derived results after publication without announcing the canonical change twice', async () => {
+    api.get.mockResolvedValue({ user: { id: 'u1' } })
+    api.post.mockResolvedValue({ synced: 1, awaited: 1, autoConfirmed: 0, more: false, derived_state: 'pending', revision: 4 })
+    let published!: (result: 'ready') => void
+    awaitPublication.mockImplementationOnce(() => new Promise(resolve => { published = resolve }))
+    const changed = vi.fn()
+    window.addEventListener('kuuki:lifecycle-changed', changed)
+    try {
+      await mount()
+      await waitFor(() => expect(refresh).toHaveBeenCalledTimes(1))
+      expect(changed).toHaveBeenCalledTimes(1)
+      await act(async () => { published('ready') })
+      expect(refresh).toHaveBeenCalledTimes(2)
+      expect(changed).toHaveBeenCalledTimes(1)
+    } finally { window.removeEventListener('kuuki:lifecycle-changed', changed) }
   })
 
   it('never lets a sync failure look like a sign-out', async () => {

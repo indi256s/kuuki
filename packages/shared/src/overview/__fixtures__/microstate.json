@@ -1,0 +1,150 @@
+{
+  "schemaVersion": 3,
+  "etag": "W/\"ov3-fixture-1-1\"",
+  "generatedAt": "2026-10-07T00:00:00.000Z",
+  "mode": "flights",
+  "derivedReady": true,
+  "homeOverride": null,
+  "passport": {
+    "countries": 4,
+    "countryCodes": [
+      "BH",
+      "LU",
+      "MT",
+      "SG"
+    ],
+    "regions": 2
+  },
+  "rows": [
+    {
+      "id": 1,
+      "weight": 1,
+      "date": "2025-01-01",
+      "state": "logged",
+      "origin": "SIN",
+      "destination": "BAH",
+      "airline": "TK",
+      "aircraft": "A320",
+      "flightNumber": "1",
+      "depMinute": 600,
+      "arrMinute": null,
+      "distanceKm": 6331,
+      "durationMinutes": 120,
+      "durationSource": "times",
+      "zonesOverflown": 2,
+      "originTz": "Asia/Singapore",
+      "destTz": "Asia/Bahrain",
+      "departureUtc": null,
+      "suppressed": 0
+    },
+    {
+      "id": 2,
+      "weight": 1,
+      "date": "2025-01-01",
+      "state": "logged",
+      "origin": "BAH",
+      "destination": "MLA",
+      "airline": "TK",
+      "aircraft": "A320",
+      "flightNumber": "2",
+      "depMinute": 600,
+      "arrMinute": null,
+      "distanceKm": 3582,
+      "durationMinutes": 120,
+      "durationSource": "times",
+      "zonesOverflown": 2,
+      "originTz": "Asia/Bahrain",
+      "destTz": "Europe/Malta",
+      "departureUtc": null,
+      "suppressed": 0
+    },
+    {
+      "id": 3,
+      "weight": 1,
+      "date": "2025-01-01",
+      "state": "logged",
+      "origin": "MLA",
+      "destination": "LUX",
+      "airline": "TK",
+      "aircraft": "A320",
+      "flightNumber": "3",
+      "depMinute": 600,
+      "arrMinute": null,
+      "distanceKm": 1671,
+      "durationMinutes": 120,
+      "durationSource": "times",
+      "zonesOverflown": 2,
+      "originTz": "Europe/Malta",
+      "destTz": "Europe/Luxembourg",
+      "departureUtc": null,
+      "suppressed": 0
+    },
+    {
+      "id": 4,
+      "weight": 1,
+      "date": "2025-01-01",
+      "state": "logged",
+      "origin": "LUX",
+      "destination": "SIN",
+      "airline": "TK",
+      "aircraft": "A320",
+      "flightNumber": "4",
+      "depMinute": 600,
+      "arrMinute": null,
+      "distanceKm": 10451,
+      "durationMinutes": 120,
+      "durationSource": "times",
+      "zonesOverflown": 2,
+      "originTz": "Europe/Luxembourg",
+      "destTz": "Asia/Singapore",
+      "departureUtc": null,
+      "suppressed": 0
+    }
+  ],
+  "refs": {
+    "airports": {
+      "BAH": {
+        "lat": 26.27079963684082,
+        "lon": 50.63359832763672,
+        "country": "BH",
+        "city": "Bahrain",
+        "name": "Bahrain International Airport"
+      },
+      "LUX": {
+        "lat": 49.6233333,
+        "lon": 6.2044444,
+        "country": "LU",
+        "city": "Luxemburg",
+        "name": "Luxembourg-Findel International Airport"
+      },
+      "MLA": {
+        "lat": 35.857498,
+        "lon": 14.4775,
+        "country": "MT",
+        "city": "Malta",
+        "name": "Malta International Airport"
+      },
+      "SIN": {
+        "lat": 1.3644,
+        "lon": 103.9915,
+        "country": "SG",
+        "city": "Singapore",
+        "name": "Singapore Changi Airport"
+      }
+    },
+    "aircraft": {
+      "A320": {
+        "manufacturer": "Airbus",
+        "type": "narrowbody",
+        "family": "A320",
+        "name": "Airbus A320"
+      }
+    },
+    "regions": {
+      "BH": "asia",
+      "LU": "europe",
+      "MT": "europe",
+      "SG": "asia"
+    }
+  }
+}

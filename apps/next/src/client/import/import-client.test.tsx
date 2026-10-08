@@ -1,9 +1,9 @@
 // @vitest-environment jsdom
-import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { ApiError } from '@kuuki/client/apiClient'
-import type { ConfirmResponse, Draft, Snapshot } from './import-types'
+import type { ConfirmResponse, Draft, ImportEvent, Snapshot } from './import-types'
 import { draft, snapshot } from './fixtures'
 
 const acknowledge = vi.fn()
@@ -275,6 +275,50 @@ describe('I3 retrying a stored failure uses a new operation id', () => {
 })
 
 describe('I4 cancelled batches keep their rows', () => {
+  it.each(['success', 'failure'] as const)('keeps a new processing import after an old cancellation answers late: %s', async outcome => {
+    const user = userEvent.setup()
+    const processingA = snapshot([draft({ id: 'a' })], { id: 'b1', status: 'processing', stage: 'recognizing', sequence: 2 })
+    const cancelledA = snapshot([draft({ id: 'a' })], { id: 'b1', status: 'cancelled', sequence: 3 })
+    const processingB = snapshot([draft({ id: 'x', fields: { date: '2026-05-01', origin: 'LHR', destination: 'CDG', airline_iata: 'BA' } })], { id: 'b2', status: 'processing', stage: 'recognizing', sequence: 1 })
+    let notifyA!: (event: ImportEvent) => void
+    let finishCancel!: (value: { cancelled: boolean }) => void
+    let rejectCancel!: (reason: Error) => void
+    let reads = 0
+    cancelBatch.mockImplementationOnce(() => new Promise((resolve, reject) => { finishCancel = resolve; rejectCancel = reject }))
+    const api: BatchApi = {
+      readBatch: vi.fn(async id => id === 'b2' ? processingB : ++reads === 1 ? processingA : cancelledA),
+      connect: vi.fn(async (id, _after, onEvent) => {
+        if (id === 'b1') notifyA = onEvent
+        await new Promise<void>(() => {})
+      }),
+      sleep: vi.fn(async () => {}),
+      submit: vi.fn(async () => processingB),
+    }
+    render(<ImportClient ownerId="u1" locale="en" initialBatchId="b1" batchApi={api} />)
+    await waitFor(() => expect(api.connect).toHaveBeenCalled())
+    await user.click(screen.getByRole('button', { name: /^cancel$/i }))
+    await waitFor(() => expect(cancelBatch).toHaveBeenCalled())
+    act(() => notifyA({ name: 'end', sequence: 3, rowIds: [], snapshot: false, reupload: false, status: 'cancelled' }))
+    await screen.findByRole('heading', { name: /partial result/i })
+    await user.click(screen.getByRole('button', { name: /^discard import$/i }))
+    await user.click(within(await screen.findByRole('dialog')).getByRole('button', { name: /^discard import$/i }))
+    await user.click(await screen.findByRole('radio', { name: /paste text/i }))
+    await user.type(screen.getByLabelText(/booking or itinerary text/i), 'LHR CDG')
+    await user.click(screen.getByRole('button', { name: /find flights/i }))
+    await screen.findByText('LHR → CDG')
+    expect(window.location.search).toBe('?batch=b2')
+
+    await act(async () => {
+      if (outcome === 'failure') rejectCancel(new Error('old cancellation failed'))
+      else finishCancel({ cancelled: true })
+    })
+    expect(screen.getByRole('button', { name: /^cancel$/i })).toBeEnabled()
+    expect(screen.queryByText('Could not cancel. Try again.')).not.toBeInTheDocument()
+    expect(window.location.search).toBe('?batch=b2')
+    expect(screen.getByText('LHR → CDG')).toBeInTheDocument()
+    expect(screen.queryByText('JFK → BOS')).not.toBeInTheDocument()
+  })
+
   it('cancel after one extracted row shows that row as a stopped review', async () => {
     const user = userEvent.setup()
     const reads = [snapshot([draft({ id: 'a' })], { status: 'processing', stage: 'recognizing', sequence: 2 }), snapshot([draft({ id: 'a' })], { status: 'cancelled', sequence: 3 })]

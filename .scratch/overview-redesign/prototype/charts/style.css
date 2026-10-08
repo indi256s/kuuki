@@ -1,0 +1,51 @@
+html, body { margin: 0; background: #fbfaf8; }
+body { padding: 40px; font: 400 13px/1.3 'Commissioner', system-ui, sans-serif; color: #302d2a; -webkit-font-smoothing: antialiased; }
+.stack { display: flex; flex-direction: column; gap: 56px; align-items: flex-start; }
+.stack > div { flex: none; }
+.mob { margin-left: 0; }
+
+/* Chart theme: container CSS + --ts-chart-* variables */
+.kc {
+  font: 400 13px/1.3 'Commissioner', system-ui, sans-serif;
+  color: var(--kc-muted);
+  --kc-mark-1:#c23417; --kc-mark-2:#da6a53; --kc-mark-3:#b28555; --kc-mark-4:#66605b; --kc-ghost:#978c7f; --kc-hair:#dedad5; --kc-text:#302d2a; --kc-muted:#66605b; --kc-success:#146d34;
+  --ts-chart-1: var(--kc-mark-1); --ts-chart-2: var(--kc-mark-2); --ts-chart-3: var(--kc-mark-3); --ts-chart-4: var(--kc-mark-4); --ts-chart-5: var(--kc-ghost);
+  --ts-chart-focus-fill: #fbfaf8;
+  --ts-chart-tooltip-background: #fff;
+  --ts-chart-tooltip-color: #302d2a;
+  --ts-chart-tooltip-border: 1px solid #dedad5;
+  --ts-chart-tooltip-border-radius: 10px;
+  --ts-chart-tooltip-shadow: 0 1px 2px rgba(0,0,0,.08), 0 4px 12px rgba(0,0,0,.08);
+  --ts-chart-tooltip-font: 400 13px/1.35 'Commissioner', system-ui, sans-serif;
+  --ts-chart-tooltip-padding: 10px 12px;
+  --ts-chart-tooltip-max-width: 320px;
+}
+:root[data-theme=dark] .kc {
+  --kc-mark-1:#ea846f; --kc-mark-2:#c85f49; --kc-mark-3:#a17749; --kc-mark-4:#c4beb7; --kc-ghost:#897e70; --kc-hair:#554f4a; --kc-text:#f1efeb; --kc-muted:#c4beb7; --kc-success:#76c788;
+  --ts-chart-tooltip-background:#3c3a37; --ts-chart-tooltip-color:#f1efeb; --ts-chart-tooltip-border:1px solid #554f4a; --ts-chart-tooltip-shadow:none;
+}
+/* The text mark and tick labels emit font-family="inherit" and expose no fontFamily/className,
+   so the 12px text (ticks, numbers) is routed to the mono face by size; 13px text stays Commissioner. */
+.kc svg text[font-size="12"] { font-family: 'JetBrains Mono', ui-monospace, monospace; }
+.kc svg text[font-size="22"] { font-family: 'JetBrains Mono', ui-monospace, monospace; font-weight: 500; }
+.kc svg text[font-size="13"] { font-family: 'Commissioner', system-ui, sans-serif; }
+
+/* tooltip body */
+.tt-route { font: 500 13px 'JetBrains Mono', monospace; color: #302d2a; letter-spacing: -0.01em; }
+.tt-sub { color: #66605b; margin-top: 1px; }
+.tt-grid { display: grid; grid-template-columns: auto auto; gap: 2px 14px; margin: 7px 0 0; align-items: baseline; }
+.tt-grid dt { color: #66605b; margin: 0; }
+.tt-grid dd { margin: 0; font: 400 12px 'JetBrains Mono', monospace; color: #302d2a; text-align: right; }
+.tt-note { margin-top: 8px; padding-top: 7px; border-top: 1px solid #dedad5; color: var(--kc-success); font-weight: 600; }
+.tt-actions { display: flex; gap: 8px; margin-top: 10px; }
+.tt-actions button { flex: 1; height: 36px; border-radius: 8px; font: 600 13px 'Commissioner', sans-serif; cursor: pointer; }
+.tt-actions .sec { background: #fff; border: 1px solid #dedad5; color: #302d2a; }
+.tt-actions .pri { background: #c23417; border: 1px solid #c23417; color: #fff; }
+
+.tt-actions button { white-space: nowrap; padding: 0 8px; }
+/* a mouse click focuses the svg; Chrome still paints its default ring for :focus there, so only keyboard focus keeps a ring */
+.kc .ts-chart-host:focus:not(:focus-visible), .kc svg.ts-chart:focus:not(:focus-visible) { outline: none; }
+.kc .ts-chart-host:focus-visible, .kc svg.ts-chart:focus-visible { outline: 2px solid var(--kc-mark-1); outline-offset: 2px; border-radius: 4px }
+.kc rect.handle { rx: 3px; ry: 3px; }
+/* odometer: vertical page scroll stays native on touch; the brush overlay handles its own gestures */
+.kc-odo, .kc-odo .ts-chart-host { touch-action: pan-y; }

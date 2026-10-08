@@ -70,3 +70,11 @@ const MERCATOR_LAT = 85
 
 /** Whole inhabited world for the first view: every longitude, without Antarctica's Mercator inflation. */
 export const WORLD_BOUNDS: [[number, number], [number, number]] = [[-180, -57], [180, 78]]
+
+/** Initial geographic heading, clockwise from north, in degrees. */
+export function bearing(a: [number, number], b: [number, number]): number {
+  const rad = Math.PI / 180
+  const lat1 = a[1] * rad, lat2 = b[1] * rad, delta = (b[0] - a[0]) * rad
+  return (Math.atan2(Math.sin(delta) * Math.cos(lat2), Math.cos(lat1) * Math.sin(lat2) -
+    Math.sin(lat1) * Math.cos(lat2) * Math.cos(delta)) / rad + 360) % 360
+}

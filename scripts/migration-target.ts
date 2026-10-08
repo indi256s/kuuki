@@ -124,14 +124,21 @@ export async function expectedSchemaSha256(): Promise<string> {
   return schemaRowsSha256(await expectedSchemaRows())
 }
 
-export async function openLocalTarget(options: LocalTargetOptions): Promise<LocalTarget> {
+export async function openLocalTarget(options: LocalTargetOptions, schemaAdmissionPath?: string): Promise<LocalTarget> {
   const mf = miniflare(options.databaseId, options.persistPath)
   try {
     const db = await mf.getD1Database('DB')
-    const actual = await schemaFingerprint(db)
-    const expected = await expectedSchemaSha256()
-    if (actual !== expected) throw new Error(`Target schema mismatch: actual=${actual} expected=${expected}`)
-    return { db, schemaSha256: actual, dispose: () => mf.dispose() }
+    let accountId = 'local'
+    if (schemaAdmissionPath) {
+      // A local D1 namespace has no Cloudflare account; the reviewed restore evidence supplies it.
+      const evidence = JSON.parse(readFileSync(schemaAdmissionPath, 'utf8')) as SchemaAdmission
+      if (typeof evidence.accountId !== 'string' || !/^[a-f0-9]{32}$/i.test(evidence.accountId)) throw new Error('Invalid schema admission account ID')
+      accountId = evidence.accountId
+    }
+    const admission = assessSchemaAdmission((await db.prepare(SCHEMA_SQL).all()).results, await expectedSchemaRows(),
+      { accountId, databaseId: options.databaseId }, schemaAdmissionPath)
+    if (!admission.admitted) throw new Error(`Target schema mismatch: actual=${admission.observedSha256} expected=${admission.expectedSha256} reason=${admission.reason}`)
+    return { db, schemaSha256: admission.observedSha256, dispose: () => mf.dispose() }
   } catch (error) {
     await mf.dispose()
     throw error

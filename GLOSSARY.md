@@ -94,3 +94,62 @@ the mutation.
 ### Enrichment
 Background filling of flight details (aircraft, distance, duration) from
 reference data after a flight is saved; tracked by `enrichment_status`.
+
+## Flight metrics vocabulary
+
+### Duration source
+The provenance of a flight's duration: `times` (the flight's own local times),
+`route_median` (observed durations on its directional route), `schedule`
+(accepted scheduled times), or `estimate` (a model or retained historical value).
+Absent when duration is unknown.
+
+### Zones overflown
+The count of UTC-offset changes along the great-circle route at the departure
+instant. Returning to an earlier offset counts another change. Unknown when
+either endpoint lacks coordinates. _Avoid_: number of distinct IANA zones.
+
+### Clock shift
+The difference between the destination and origin UTC offsets, accounting for
+daylight saving at the departure instant. Separate from zones overflown.
+
+## Overview vocabulary
+
+### Maker slot
+One of six fixed aircraft categories: Airbus, Boeing, Embraer, ATR, Other or
+Unknown. Other covers recognized aircraft families outside the four named
+slots; Unknown means aircraft information is absent or unrecognized. Slots
+follow the current type designation: A220 is Airbus; the Embraer slot covers
+E-Jets, while its other recognized families belong to Other.
+
+### Alliance at date
+The operating carrier’s verified alliance participation on the flight date.
+The membership start is inclusive and its end exclusive. Unknown, unaffiliated
+or former carriers have no assumed membership outside a verified active span;
+current membership, parent ownership and successor identity do not establish
+historical membership.
+
+### Head to head
+A comparison of actual flight counts: Airbus versus Boeing, shorter-haul
+versus long-haul, or daytime versus night departures. Each pair reports excluded
+flights whose evidence does not fit either side; untimed flights are excluded
+from the day/night comparison.
+
+### Record cabinet
+A collection of actual journal records with the witnessing flight’s date,
+route, value and provenance where applicable. Aggregate records retain the
+witness evidence without a private flight identifier. A record is an observed
+fact, not a fitted trend or an invented representative flight.
+
+### Ghost layer
+The all-completed-flight baseline shown behind the current filtered view for
+context. Ghosts do not add extra matching flights or increase scoped totals.
+
+### Narrator
+A deterministic, data-backed English or Russian line that comments dryly on
+the journal’s evidence. It remains secondary to facts, coverage and instructions;
+Russian addresses the owner as «вы».
+
+### Bento
+The reorderable Overview arrangement of full-width sections and adjacent
+narrow/wide section pairs. On mobile, sections become tiles that open their
+full content in sheets; hidden sections can be restored.

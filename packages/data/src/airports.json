@@ -2860,6 +2860,17 @@
     "timezone": "Europe/Moscow"
   },
   {
+    "iata": "KTT",
+    "icao": "EFKT",
+    "name": "Kittilä Airport",
+    "city": "Kittilä",
+    "country": "Finland",
+    "countryCode": "FI",
+    "latitude": 67.69861111111112,
+    "longitude": 24.848055555555554,
+    "timezone": "Europe/Helsinki"
+  },
+  {
     "iata": "KTW",
     "icao": "EPKT",
     "name": "Katowice International Airport",

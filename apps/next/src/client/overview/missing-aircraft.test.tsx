@@ -2,11 +2,10 @@
 import { cleanup, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import type { OverviewRow } from '@kuuki/shared/overview/model'
 import type { MissingAircraftPage } from '@kuuki/shared/overview'
 import type { AircraftApi } from '../import/aircraft-panel'
-import { OverviewRankings } from './rankings'
-import { busySummary, fakeLabels } from './fixtures'
-import { MissingAircraftReview, readMissingAircraft } from './missing-aircraft'
+import { MissingAircraftReview, payloadMissingAircraft } from './missing-aircraft'
 
 const refresh = vi.hoisted(() => vi.fn())
 vi.mock('next/navigation', () => ({ useRouter: () => ({ push: vi.fn(), refresh }) }))
@@ -31,7 +30,7 @@ const open = async (name = 'Review aircraft') => userEvent.click(screen.getByRol
 describe('MissingAircraftReview', () => {
   it('shows the count with an action, not a sort link, and reads nothing until opened', () => {
     const read = answer(page([1]))
-    render(<MissingAircraftReview locale="ru" period="2026" count={69} read={read} />)
+    render(<MissingAircraftReview locale="ru" count={69} read={read} />)
     expect(screen.getByText('У 69 рейсов не указан самолёт')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Проверить самолёты' })).toBeInTheDocument()
     expect(document.querySelector('a')).toBeNull()
@@ -40,9 +39,9 @@ describe('MissingAircraftReview', () => {
 
   it('opens the retained review in a sheet for the period, with the first page as targets and no disclosure when it is everything', async () => {
     const read = answer(page([1, 2, 3]))
-    render(<MissingAircraftReview locale="en" period="2026" count={3} read={read} aircraftApi={aircraftApi()} />)
+    render(<MissingAircraftReview locale="en" count={3} read={read} aircraftApi={aircraftApi()} />)
     await open()
-    expect(read).toHaveBeenCalledWith('2026', null, expect.any(AbortSignal))
+    expect(read).toHaveBeenCalledWith(null, expect.any(AbortSignal))
     expect(await screen.findByRole('dialog', { name: 'Aircraft for flights without one' })).toBeInTheDocument()
     expect(await screen.findByRole('button', { name: /identify aircraft/i })).toBeEnabled()
     expect(screen.queryByText(/without an aircraft\.$/)).toBeNull()
@@ -50,14 +49,14 @@ describe('MissingAircraftReview', () => {
   })
 
   it('discloses the exact range and total, and offers the next flights with their real number', async () => {
-    render(<MissingAircraftReview locale="en" period="all" count={1500} read={answer(page(Array.from({ length: 100 }, (_, i) => i + 1), 1500, 0, '2026-01-01:1'))} />)
+    render(<MissingAircraftReview locale="en" count={1500} read={answer(page(Array.from({ length: 100 }, (_, i) => i + 1), 1500, 0, '2026-01-01:1'))} />)
     await open()
     expect(await screen.findByText('Flights 1–100 of 1,500 without an aircraft.')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Show the next 100 flights' })).toBeInTheDocument()
   })
 
   it('names the last page with its own size, in Russian with a plural form', async () => {
-    render(<MissingAircraftReview locale="ru" period="all" count={203} read={answer(page(Array.from({ length: 100 }, (_, i) => i + 1), 203, 100, 'c'))} />)
+    render(<MissingAircraftReview locale="ru" count={203} read={answer(page(Array.from({ length: 100 }, (_, i) => i + 1), 203, 100, 'c'))} />)
     await open('Проверить самолёты')
     expect(await screen.findByText('Перелёты 101–200 из 203 без указанного самолёта.')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Показать следующие 3 перелёта' })).toBeInTheDocument()
@@ -65,22 +64,22 @@ describe('MissingAircraftReview', () => {
 
   it('continues past a first page that stays unidentified: the next page replaces it and is read after the cursor', async () => {
     const read = answer(page([1, 2], 3, 0, 'cursor-1'), page([3], 3, 2))
-    render(<MissingAircraftReview locale="en" period="2026" count={3} read={read} aircraftApi={{ enrich: vi.fn(async () => ({ results: [] })), accept: vi.fn() }} />)
+    render(<MissingAircraftReview locale="en" count={3} read={read} aircraftApi={{ enrich: vi.fn(async () => ({ results: [] })), accept: vi.fn() }} />)
     await open()
     await userEvent.click(await screen.findByRole('button', { name: /identify aircraft/i }))
     expect(await screen.findAllByText('The service gave no answer for this flight.')).toHaveLength(2)
     await userEvent.click(screen.getByRole('button', { name: 'Show the next 1 flight' }))
     expect(await screen.findByText('Flights 3–3 of 3 without an aircraft.')).toBeInTheDocument()
-    expect(read).toHaveBeenNthCalledWith(2, '2026', 'cursor-1', expect.any(AbortSignal))
+    expect(read).toHaveBeenNthCalledWith(2, 'cursor-1', expect.any(AbortSignal))
     expect(await screen.findByRole('button', { name: /identify aircraft/i })).toBeEnabled() // a fresh panel for the new page
     expect(screen.queryByRole('button', { name: /show the next/i })).toBeNull()
     await userEvent.click(screen.getByRole('button', { name: 'Back to the newest' }))
-    await waitFor(() => expect(read).toHaveBeenNthCalledWith(3, '2026', null, expect.any(AbortSignal)))
+    await waitFor(() => expect(read).toHaveBeenNthCalledWith(3, null, expect.any(AbortSignal)))
   })
 
   it('a failed continuation keeps the page, says so, and can be pressed again', async () => {
     const read = vi.fn().mockResolvedValueOnce(page([1], 2, 0, 'c')).mockRejectedValueOnce(new Error('down')).mockResolvedValueOnce(page([2], 2, 1))
-    render(<MissingAircraftReview locale="en" period="all" count={2} read={read} aircraftApi={aircraftApi()} />)
+    render(<MissingAircraftReview locale="en" count={2} read={read} aircraftApi={aircraftApi()} />)
     await open()
     await userEvent.click(await screen.findByRole('button', { name: 'Show the next 1 flight' }))
     expect(await screen.findByRole('alert')).toHaveTextContent('The next flights could not be loaded.')
@@ -91,17 +90,17 @@ describe('MissingAircraftReview', () => {
 
   it('a failed read is an alert with a retry, and the retry reads again', async () => {
     const read = vi.fn().mockRejectedValueOnce(new Error('down')).mockImplementation(async () => page([1]))
-    render(<MissingAircraftReview locale="en" period="all" count={1} read={read} aircraftApi={aircraftApi()} />)
+    render(<MissingAircraftReview locale="en" count={1} read={read} aircraftApi={aircraftApi()} />)
     await open()
     expect(await screen.findByRole('alert')).toHaveTextContent('could not be loaded')
     await userEvent.click(screen.getByRole('button', { name: 'Try again' }))
     expect(await screen.findByRole('button', { name: /identify aircraft/i })).toBeInTheDocument()
     expect(read).toHaveBeenCalledTimes(2)
-    expect(read).toHaveBeenLastCalledWith('all', null, expect.any(AbortSignal))
+    expect(read).toHaveBeenLastCalledWith(null, expect.any(AbortSignal))
   })
 
   it('an empty set says so instead of showing an empty review', async () => {
-    render(<MissingAircraftReview locale="en" period="all" count={1} read={answer(page([]))} />)
+    render(<MissingAircraftReview locale="en" count={1} read={answer(page([]))} />)
     await open()
     expect(await screen.findByText('Every flight in this period has an aircraft.')).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /identify aircraft/i })).toBeNull()
@@ -111,7 +110,7 @@ describe('MissingAircraftReview', () => {
     const accept = vi.fn(async () => ({ results: [{ id: 1, status: 'accepted' as const, flight: { id: 1, aircraft_icao: 'B738' } }], derived_state: 'ready' as const, revision: 3 }))
     // Before the save: flights 1 and 2 of three. After it: flight 1 has left the set, so the same page now holds 2 and 3.
     const read = answer(page([1, 2], 3, 0, null), page([2, 3], 2, 0))
-    render(<MissingAircraftReview locale="en" period="2026" count={3} read={read} aircraftApi={aircraftApi(accept)} />)
+    render(<MissingAircraftReview locale="en" count={3} read={read} aircraftApi={aircraftApi(accept)} />)
     await open()
     await userEvent.click(await screen.findByRole('button', { name: /identify aircraft/i }))
     expect(refresh).not.toHaveBeenCalled()
@@ -119,7 +118,7 @@ describe('MissingAircraftReview', () => {
     await userEvent.click(await screen.findByRole('button', { name: /save 1 aircraft/i }))
     await waitFor(() => expect(refresh).toHaveBeenCalledTimes(1))
     await waitFor(() => expect(read).toHaveBeenCalledTimes(2))
-    expect(read).toHaveBeenLastCalledWith('2026', null, expect.any(AbortSignal))
+    expect(read).toHaveBeenLastCalledWith(null, expect.any(AbortSignal))
     expect(await screen.findByText('1 aircraft saved.')).toBeInTheDocument()
     // The saved flight is gone and the one that moved up is offered: a fresh panel with the new targets.
     expect(await screen.findByRole('button', { name: /identify aircraft/i })).toBeEnabled()
@@ -131,7 +130,7 @@ describe('MissingAircraftReview', () => {
       { id: 2, status: 'error', http_status: 503, code: 'DOWN', error: 'Unavailable' },
     ] }).mockResolvedValueOnce({ results: [{ id: 2, status: 'accepted', flight: { id: 2, aircraft_icao: 'B738' } }] })
     const read = answer(page([1, 2, 3], 4, 0, 'cursor'), page([2, 3, 4], 3, 0, 'refreshed-cursor'), page([3, 4], 2), page([4], 2, 1))
-    render(<MissingAircraftReview locale="en" period="all" count={4} read={read} aircraftApi={aircraftApi(accept, 3)} />)
+    render(<MissingAircraftReview locale="en" count={4} read={read} aircraftApi={aircraftApi(accept, 3)} />)
     await open()
     await userEvent.click(await screen.findByRole('button', { name: /identify aircraft/i }))
     await userEvent.click(screen.getByRole('checkbox', { name: /103/ }))
@@ -147,14 +146,14 @@ describe('MissingAircraftReview', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Discard and continue' }))
     await waitFor(() => expect(read).toHaveBeenCalledTimes(4))
     // Continue after the reviewed boundary, not after unseen flights that filled the refreshed page.
-    expect(read).toHaveBeenLastCalledWith('all', 'cursor', expect.any(AbortSignal))
+    expect(read).toHaveBeenLastCalledWith('cursor', expect.any(AbortSignal))
     expect(await screen.findByRole('button', { name: /identify aircraft/i })).toBeInTheDocument()
   })
 
   it('counts the cursor suffix from the refreshed missing set, excluding already saved review rows', async () => {
     const accept = vi.fn(async () => ({ results: [{ id: 1, status: 'accepted' as const, flight: { id: 1, aircraft_icao: 'B738' } }] }))
     const read = answer(page([1, 2, 3], 5, 0, 'cursor'), page([2, 3, 4], 4, 0, 'new-cursor'), page([4, 5], 4, 2))
-    render(<MissingAircraftReview locale="en" period="all" count={5} read={read} aircraftApi={aircraftApi(accept, 3)} />)
+    render(<MissingAircraftReview locale="en" count={5} read={read} aircraftApi={aircraftApi(accept, 3)} />)
     await open()
     await userEvent.click(await screen.findByRole('button', { name: /identify aircraft/i }))
     await userEvent.click(screen.getByRole('checkbox', { name: /102/ }))
@@ -164,14 +163,14 @@ describe('MissingAircraftReview', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Show the next 2 flights' }))
     await userEvent.click(screen.getByRole('button', { name: 'Discard and continue' }))
     expect(await screen.findByText('Flights 3–4 of 4 without an aircraft.')).toBeInTheDocument()
-    expect(read).toHaveBeenLastCalledWith('all', 'cursor', expect.any(AbortSignal))
+    expect(read).toHaveBeenLastCalledWith('cursor', expect.any(AbortSignal))
   })
 
   it('blocks paging and close during a save, then requires explicit discard of unresolved review work', async () => {
     let finish!: (value: Awaited<ReturnType<AircraftApi['accept']>>) => void
     const accept = vi.fn(() => new Promise<Awaited<ReturnType<AircraftApi['accept']>>>(resolve => { finish = resolve }))
     const read = answer(page([1], 2, 0, 'cursor'), page([2], 2, 1))
-    render(<MissingAircraftReview locale="en" period="all" count={2} read={read} aircraftApi={aircraftApi(accept)} />)
+    render(<MissingAircraftReview locale="en" count={2} read={read} aircraftApi={aircraftApi(accept)} />)
     await open()
     await userEvent.click(await screen.findByRole('button', { name: /identify aircraft/i }))
     await userEvent.click(screen.getByRole('button', { name: /save 1 aircraft/i }))
@@ -194,7 +193,7 @@ describe('MissingAircraftReview', () => {
   it('a failed re-read after a save says the save worked and offers a retry of the list', async () => {
     const accept = vi.fn(async () => ({ results: [{ id: 1, status: 'accepted' as const, flight: { id: 1, aircraft_icao: 'B738' } }], derived_state: 'ready' as const, revision: 3 }))
     const read = vi.fn().mockResolvedValueOnce(page([1])).mockRejectedValueOnce(new Error('down')).mockResolvedValueOnce(page([], 0))
-    render(<MissingAircraftReview locale="en" period="all" count={1} read={read} aircraftApi={aircraftApi(accept)} />)
+    render(<MissingAircraftReview locale="en" count={1} read={read} aircraftApi={aircraftApi(accept)} />)
     await open()
     await userEvent.click(await screen.findByRole('button', { name: /identify aircraft/i }))
     await userEvent.click(await screen.findByRole('button', { name: /save 1 aircraft/i }))
@@ -205,7 +204,7 @@ describe('MissingAircraftReview', () => {
 
   it('when the page after the cursor is empty but newer flights remain, says so and goes back to the newest', async () => {
     const read = answer(page([], 4, 4))
-    render(<MissingAircraftReview locale="en" period="all" count={4} read={read} />)
+    render(<MissingAircraftReview locale="en" count={4} read={read} />)
     await open()
     expect(await screen.findByText('There are no older flights after these. Newer ones still have no aircraft.')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Back to the newest' })).toBeInTheDocument()
@@ -213,7 +212,7 @@ describe('MissingAircraftReview', () => {
 
   it('closing the sheet drops the loaded page, so the next open reads from the newest again', async () => {
     const read = answer(page([1]))
-    render(<MissingAircraftReview locale="en" period="all" count={1} read={read} aircraftApi={aircraftApi()} />)
+    render(<MissingAircraftReview locale="en" count={1} read={read} aircraftApi={aircraftApi()} />)
     await open()
     await screen.findByRole('button', { name: /identify aircraft/i })
     await userEvent.click(screen.getByRole('button', { name: 'Close' }))
@@ -221,31 +220,18 @@ describe('MissingAircraftReview', () => {
     await open()
     await screen.findByRole('button', { name: /identify aircraft/i })
     expect(read).toHaveBeenCalledTimes(2)
-    expect(read).toHaveBeenLastCalledWith('all', null, expect.any(AbortSignal))
+    expect(read).toHaveBeenLastCalledWith(null, expect.any(AbortSignal))
   })
 })
 
-describe('readMissingAircraft', () => {
-  it('asks the dedicated owner-scoped read for the period and the cursor, never the Journal list', async () => {
-    const signal = new AbortController().signal
-    apiGet.mockResolvedValue(page([]))
-    await readMissingAircraft('2026', null, signal)
-    await readMissingAircraft('all', '2026-03-01:9', signal)
-    expect(apiGet).toHaveBeenNthCalledWith(1, '/api/me/overview/missing-aircraft', { period: '2026' }, { signal })
-    expect(apiGet).toHaveBeenNthCalledWith(2, '/api/me/overview/missing-aircraft', { period: 'all', after: '2026-03-01:9' }, { signal })
-  })
-})
-
-describe('Rankings owns an active review across summary refreshes', () => {
+describe('active review across payload refreshes', () => {
   it('keeps uncertain recovery at zero missing until explicit discard and close, without a zero-count CTA', async () => {
-    const before = busySummary(10, 'all')
-    const after = { ...before, dataAvailability: { ...before.dataAvailability, missingAircraft: 0 } }
-    const { rerender } = render(<OverviewRankings summary={{ ...before, dataAvailability: { ...before.dataAvailability, missingAircraft: 2 } }} locale="en" labels={fakeLabels} />)
-    apiGet.mockResolvedValueOnce(page([1, 2])).mockResolvedValueOnce(page([], 0))
+    const read = answer(page([1, 2]), page([], 0))
+    const { rerender } = render(<MissingAircraftReview locale="en" count={2} read={read} />)
     apiPost.mockResolvedValueOnce({ results: [1, 2].map(id => ({ flight_id: String(id), aircraft_icao: 'B738', aircraft_name: null, confidence: 0.9 })) })
     // Both saves committed, but the answer for flight 2 is absent: the real accept reconciler marks it uncertain.
     apiPost.mockResolvedValueOnce({ results: [{ id: 1, status: 'accepted', flight: { id: 1, aircraft_icao: 'B738' } }] })
-    refresh.mockImplementationOnce(() => rerender(<OverviewRankings summary={after} locale="en" labels={fakeLabels} />))
+    refresh.mockImplementationOnce(() => rerender(<MissingAircraftReview locale="en" count={0} read={read} />))
     await open()
     await userEvent.click(await screen.findByRole('button', { name: /identify aircraft/i }))
     await userEvent.click(screen.getByRole('button', { name: /save 2 aircraft/i }))
@@ -260,5 +246,42 @@ describe('Rankings owns an active review across summary refreshes', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Discard and continue' }))
     await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
     expect(screen.queryByRole('button', { name: 'Review aircraft' })).toBeNull()
+  })
+})
+
+describe('payload missing-aircraft adapter', () => {
+  const source = (id: number, extra: Partial<OverviewRow> = {}): OverviewRow => ({ id, weight: 1, date: '2026-03-01', state: 'logged', origin: 'JFK', destination: 'BOS', airline: 'AA', aircraft: null, flightNumber: '123', depMinute: null, arrMinute: null, distanceKm: null, durationMinutes: null, zonesOverflown: null, durationSource: null, originTz: null, destTz: null, departureUtc: null, suppressed: 0, ...extra })
+  it('pages newest-first with a stable missing-only boundary after confirmed saves', () => {
+    const rows = Array.from({ length: 103 }, (_, i) => source(i + 1))
+    rows.push(source(200, { state: 'upcoming' }), source(201, { aircraft: 'B738' }), source(202, { weight: 5 }))
+    const signal = new AbortController().signal
+    const first = payloadMissingAircraft(rows, null, signal)
+    expect(first.total).toBe(103)
+    expect(first.flights.map(row => row.id)).toEqual(Array.from({ length: 100 }, (_, i) => 103 - i))
+    expect(first.nextCursor).toBe('2026-03-01:4')
+    const next = payloadMissingAircraft(rows.filter(row => row.id !== 103), first.nextCursor, signal)
+    expect(next.flights.map(row => row.id)).toEqual([3, 2, 1])
+    expect(next.offset).toBe(99)
+    expect(next.total).toBe(102)
+    expect(next.nextCursor).toBeNull()
+  })
+  it('aborted owner reads produce no page', () => {
+    const controller = new AbortController(); controller.abort()
+    expect(() => payloadMissingAircraft([source(1)], null, controller.signal)).toThrow()
+  })
+  it('opens payload rows without the legacy read and removes confirmed saves before rereading', async () => {
+    let rows = [source(1)]
+    const confirmed = vi.fn((run: import('../import/aircraft-review').AircraftRun) => {
+      rows = rows.filter(row => run.rows.get(row.id)?.status !== 'saved')
+    })
+    const read = vi.fn(async (after: string | null, signal: AbortSignal) => payloadMissingAircraft(rows, after, signal))
+    render(<MissingAircraftReview locale="en" count={1} read={read} aircraftApi={aircraftApi(vi.fn(async () => ({ results: [{ id: 1, status: 'accepted' as const, flight: { id: 1, aircraft_icao: 'B738' } }], derived_state: 'ready' as const, revision: 3 })))} onConfirmedSaved={confirmed} actionLabel="Add aircraft →" />)
+    await open('Add aircraft →')
+    expect(apiGet).not.toHaveBeenCalled()
+    await userEvent.click(await screen.findByRole('button', { name: /Identify aircraft/i }))
+    await userEvent.click(await screen.findByRole('button', { name: 'Save 1 aircraft' }))
+    await waitFor(() => expect(confirmed).toHaveBeenCalledTimes(1))
+    expect(await screen.findByText('Every flight in this period has an aircraft.')).toBeInTheDocument()
+    expect(read).toHaveBeenCalledTimes(2)
   })
 })

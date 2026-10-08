@@ -37,6 +37,7 @@ export function SettingsForm({ ownerId, profile, locale, counts = null }: { owne
   const appearance = useAppearance(locale), limit = useSettingsExportLimit(ownerId)
   useEffect(() => { if (!dirtyRef.current) { setDraft(values(profile)); setBaseline(values(profile)) } }, [profile])
   const edit = <K extends keyof typeof draft>(field: K, value: typeof draft[K]) => { setDraft(previous => ({ ...previous, [field]: value })); setMessage(''); setError('') }
+  const [keyboardText, setKeyboardText] = useState(false)
   async function save(event: FormEvent) {
     event.preventDefault()
     if (running.current || !dirty) return
@@ -82,7 +83,7 @@ export function SettingsForm({ ownerId, profile, locale, counts = null }: { owne
   const leaderboardReason = !draft.is_public ? text('Make your profile public first.', 'Сначала сделайте профиль публичным.') : counts === null ? text('Flight count unavailable. Refresh to check eligibility.', 'Количество перелётов недоступно. Обновите страницу для проверки.') : counts.completed < 5 ? formatCount(locale, 5 - counts.completed, flightsLeft) : undefined
   return <div className="settings-page settings-editor">
     <p className="eyebrow">{text('Your account', 'Ваш аккаунт')}</p><h1>{text('Settings', 'Настройки')}</h1>
-    <form id="settings-profile-form" onSubmit={save}>
+    <form id="settings-profile-form" onKeyDownCapture={event => { if (event.key === 'Enter') setKeyboardText(true) }} onPointerDownCapture={() => setKeyboardText(false)} onSubmit={save}>
       <section aria-labelledby="settings-profile-heading"><h2 id="settings-profile-heading">{text('Profile', 'Профиль')}</h2>
         <div className="settings-avatar" role="img" aria-label={text('Avatar preview', 'Предпросмотр аватара')} style={(draft.avatar_url.startsWith('https://') || draft.avatar_url.startsWith('data:image/')) ? { backgroundImage: `url(${JSON.stringify(draft.avatar_url)})` } : undefined}>{(draft.avatar_url.startsWith('https://') || draft.avatar_url.startsWith('data:image/')) ? null : (draft.display_name || profile.username || '?').slice(0, 1).toUpperCase()}</div>
         <Field label={text('Display name', 'Имя')} maxLength={80} value={draft.display_name} disabled={busy} onChange={event => edit('display_name', event.target.value)} />
@@ -109,7 +110,7 @@ export function SettingsForm({ ownerId, profile, locale, counts = null }: { owne
     </section>
     <section aria-labelledby="settings-account-heading"><h2 id="settings-account-heading">{text('Account', 'Аккаунт')}</h2><div className="settings-actions"><Button disabled={busy} onClick={() => guard.request(() => void signout())}>{text('Sign out', 'Выйти')}</Button><Button variant="danger" disabled={busy} onClick={() => guard.request(() => setDeleteOpen(true))}>{text('Delete account', 'Удалить аккаунт')}</Button></div></section>
     <p role="status">{message}</p><p role={error ? 'alert' : undefined} className="ui-field-error">{error}</p><p><Link prefetch={false} href={profile.username ? `/fly/${encodeURIComponent(profile.username)}` : '/onboarding'}>{text('View my profile', 'Мой профиль')}</Link></p>
-      {dirty ? <div className="settings-savebar"><span>{text('Unsaved changes', 'Есть несохранённые изменения')}</span><Button disabled={busy} onClick={() => { setDraft(baseline); setError(''); setMessage('') }}>{text('Discard', 'Отменить')}</Button><Button variant="primary" type="submit" form="settings-profile-form" disabled={exporting || identityBusy} loading={saving} loadingLabel={text('Saving…', 'Сохраняем…')}>{text('Save changes', 'Сохранить')}</Button></div> : null}
+      {dirty ? <div className="settings-savebar"><span>{text('Unsaved changes', 'Есть несохранённые изменения')}</span><Button disabled={busy} onClick={() => { setDraft(baseline); setError(''); setMessage('') }}>{text('Discard', 'Отменить')}</Button><Button variant="primary" type="submit" form="settings-profile-form" disabled={exporting || identityBusy} morphText instantText={keyboardText} onPointerDown={() => setKeyboardText(false)} loading={saving} loadingLabel={text('Saving…', 'Сохраняем…')}>{text('Save changes', 'Сохранить')}</Button></div> : null}
     {guard.dialog}<SettingsDelete open={deleteOpen} onClose={() => setDeleteOpen(false)} counts={counts} locale={locale} download={() => download(['flights', 'claims', 'ground'])} exporting={exporting} exportOutcome={{ message, error }} exportInfo={`${text('Limit: 5 CSV files per day. Remaining', 'Лимит: 5 CSV-файлов в день. Осталось')}: ${limit.remaining ?? '…'}. ${text('Resets', 'Обновится')}: ${resetTime} UTC.`} onBusy={setIdentityBusy} allowDocumentExit={guard.allowDocumentExit} />
   </div>
 }

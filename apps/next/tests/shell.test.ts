@@ -13,6 +13,57 @@ test.beforeAll(async ({ browser, baseURL }) => {
 })
 async function asMember(page: Page) { await page.context().addCookies(memberCookies) }
 
+for (const queueState of ['empty', 'count', 'unavailable']) {
+  test(`member header contains its controls near the mobile boundary (${queueState})`, async ({ page, context, baseURL }) => {
+    await asMember(page)
+    await page.route('**/api/me/awaiting', async route => {
+      if (queueState === 'unavailable') return route.fulfill({ status: 503, json: { error: 'Unavailable' } })
+      const response = await route.fetch()
+      const data = await response.json()
+      const count = queueState === 'count' ? 99 : 0
+      await route.fulfill({ response, json: { ...data, actionableCount: count, awaitingFlightCount: count, draftRowCount: 0 } })
+    })
+    for (const locale of ['en', 'ru']) {
+      await context.addCookies([{ name: 'kuuki_locale', value: locale, url: baseURL! }])
+      await page.setViewportSize({ width: 701, height: 800 })
+      const queueRead = page.waitForResponse(response => new URL(response.url()).pathname === '/api/me/awaiting')
+      await page.goto('/overview')
+      await queueRead
+      const queue = page.locator('.queue-summary')
+      if (queueState === 'empty') await expect(queue).toHaveCount(0)
+      else await expect(queue).toHaveText(queueState === 'count' ? '99' : locale === 'ru' ? 'Очередь недоступна' : 'Queue unavailable')
+      await page.evaluate(() => document.fonts.ready)
+      for (const width of [701, 768, 1440]) {
+        await page.setViewportSize({ width, height: 800 })
+        const report = await page.locator('header.site-header').evaluate(header => ({
+          pageWidth: document.documentElement.scrollWidth,
+          controls: [...header.querySelectorAll('a,button')].map(node => {
+            const box = node.getBoundingClientRect()
+            return { left: box.left, right: box.right }
+          }),
+        }))
+        expect(report.pageWidth, `${locale} ${queueState} at ${width}px`).toBeLessThanOrEqual(width)
+        for (const box of report.controls) {
+          expect(box.left).toBeGreaterThanOrEqual(0)
+          expect(box.right).toBeLessThanOrEqual(width)
+        }
+      }
+    }
+  })
+}
+
+test('profile keeps maximum-length names and large distances inside a narrow viewport', async ({ page }) => {
+  await asMember(page)
+  await page.setViewportSize({ width: 320, height: 700 })
+  await page.goto('/fly/fixture-a')
+  await expect(page.locator('.profile-hero dd').first()).toBeVisible()
+  await page.evaluate(() => document.fonts.ready)
+  await page.locator('.profile-head h1').evaluate(node => { node.textContent = 'A'.repeat(80) })
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(320)
+  await page.locator('.profile-hero dd').first().evaluate(node => { node.textContent = '1,141,255\u00a0km' })
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(320)
+})
+
 test('Commissioner loads with equal-width tabular digits at every UI weight', async ({ page }) => {
   await page.goto('/')
   const report = await page.evaluate(async () => {
@@ -108,7 +159,8 @@ test.describe('mobile shell at 390px', () => {
   test('the header is 48px and content clears the tab bar', async ({ page }) => {
     await asMember(page)
     await page.goto('/overview')
-    expect((await page.locator('header.site-header').boundingBox())!.height).toBeCloseTo(49, 0) // 48px + 1px border
+    expect((await page.locator('header.site-header').boundingBox())!.height).toBeCloseTo(48, 0)
+    await expect(page.locator('header.site-header')).toHaveCSS('border-bottom-width', '0px')
     const tab = (await page.locator('nav.tab-bar').boundingBox())!
     const paddingBottom = await page.locator('main#main').evaluate(node => parseFloat(getComputedStyle(node).paddingBottom))
     expect(paddingBottom).toBeGreaterThanOrEqual(tab.height)
@@ -159,7 +211,8 @@ test.describe('desktop shell', () => {
   test('header is 56px with nav, split Add and avatar menu; tab bar is hidden', async ({ page }) => {
     await asMember(page)
     await page.goto('/overview')
-    expect((await page.locator('header.site-header').boundingBox())!.height).toBeCloseTo(57, 0)
+    expect((await page.locator('header.site-header').boundingBox())!.height).toBeCloseTo(56, 0)
+    await expect(page.locator('header.site-header')).toHaveCSS('border-bottom-width', '0px')
     await expect(page.locator('nav.tab-bar')).toBeHidden()
     await expect(page.locator('nav.desktop-nav a:visible')).toHaveCount(4)
     await expect(page.locator('nav.desktop-nav a[href="/overview"]')).toHaveAttribute('aria-current', 'page')

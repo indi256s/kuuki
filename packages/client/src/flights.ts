@@ -1,5 +1,6 @@
 import { api, ApiError, type CallOptions } from './apiClient'
 import type { DerivedAck } from './derivedState'
+import type { DurationSource } from '@kuuki/shared/types'
 
 /** Own-flight row returned by the API; the owner is refilled for current client callers. */
 export interface Flight {
@@ -19,6 +20,8 @@ export interface Flight {
   dest_tz: string | null
   distance_km: number | null
   duration_minutes: number | null
+  readonly duration_source?: DurationSource | null
+  readonly zones_overflown?: number | null
   source: string
   is_upcoming: boolean
   enrichment_status: string
@@ -62,6 +65,8 @@ interface ApiFlight extends DerivedAck {
   dest_tz: string | null
   distance_km: number | null
   duration_minutes: number | null
+  readonly duration_source?: Flight['duration_source']
+  readonly zones_overflown?: Flight['zones_overflown']
   source: string
   is_upcoming: boolean
   enrichment_status: string

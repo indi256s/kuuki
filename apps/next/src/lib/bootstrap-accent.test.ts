@@ -42,16 +42,16 @@ describe('bootstrap accent preference', () => {
   })
 
   it('maps every legacy color to a current accent', () => {
-    const expected = { blue: 'ai', cyan: 'asagi', teal: 'asagi', yellow: 'terracotta', purple: 'sakura', coral: 'sakura', red: 'terracotta', orange: 'terracotta' }
+    const expected = { blue: 'ai', cyan: 'asagi', teal: 'asagi', yellow: 'shu', purple: 'sakura', coral: 'sakura', red: 'shu', orange: 'shu' }
     for (const [legacy, accent] of Object.entries(expected)) {
       expect(bootstrap('kuuki_theme=light; kuuki_locale=en', legacy).documentElement.dataset.accent, legacy).toBe(accent)
     }
   })
 
-  it.each(['kincha', 'sumi'])('rewrites a stored %s cookie to terracotta, ignoring the legacy color', removed => {
+  it.each(['terracotta', 'kincha', 'sumi', 'yellow'])('rewrites a stored %s cookie to shu, ignoring the legacy color', removed => {
     const result = bootstrap(`kuuki_theme=light; kuuki_locale=en; kuuki_accent=${removed}`, 'teal')
-    expect(result.documentElement.dataset.accent).toBe('terracotta')
-    expect(result.cookie).toContain('kuuki_accent=terracotta')
+    expect(result.documentElement.dataset.accent).toBe('shu')
+    expect(result.cookie).toContain('kuuki_accent=shu')
     expect(result.cookie).not.toContain(removed)
   })
 

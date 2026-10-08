@@ -23,6 +23,7 @@ The source tree no longer builds a Vite frontend. The 6 October release handoff 
 2. **Migrations.** List the ledger of each target D1, read-only:
    `wrangler d1 execute kuuki-db --remote --json --command "SELECT name FROM d1_migrations ORDER BY id"`
    and the same with `kuuki-preview --env preview`. Compare against `ls db/migrations/*.sql`. Done when every file is listed in both ledgers: nothing to migrate, continue. Any file missing from a ledger: stop and tell the user. Remote migrations follow `docs/runbooks/audit-remediation-release.md` (backup, writer hold, schema admission, explicit authorization), a separate task from this deploy.
+   Overview Release 1 requires the `0008_flight_metrics.sql` ledger row and the gates in [its runbook](../../runbooks/overview-release-1.md).
 3. **Build.** `pnpm turbo run build --filter='./packages/*'`, then `pnpm next:build`. It exits 0 and prints its JSON summary line.
 4. **Preview.** `wrangler deploy --no-autoconfig --strict --env preview --tag "$(git rev-parse --short HEAD)" --message "$(git log -1 --format=%s)"`. Done when `https://kuuki-next-preview.indi256s.workers.dev/` returns 200 with HTML and `/api/auth/get-session` returns 200 with body `null` (that route reads D1, so it proves the binding).
 5. **Go-ahead.** Report the SHA, the empty migration diff and the preview result, then wait for the user's explicit yes to deploy production. A yes for an earlier release does not carry over.

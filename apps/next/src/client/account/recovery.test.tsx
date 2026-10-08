@@ -60,6 +60,21 @@ it.each([
   expect(await screen.findByRole('status')).toHaveTextContent('Password saved.')
 })
 
+it('keeps focus on the password field while saving and after a retryable failure', async () => {
+  window.__kuukiResetToken = 'A'.repeat(43)
+  let rejectRequest!: (reason: unknown) => void
+  post.mockReturnValueOnce(new Promise((_, reject) => { rejectRequest = reject }))
+  render(<ResetPasswordForm locale="en" />)
+  const password = await screen.findByLabelText('New password', { exact: true })
+  await userEvent.type(password, 'personal-password{Enter}')
+  expect(post).toHaveBeenCalledOnce()
+  expect(password).toHaveFocus()
+
+  rejectRequest(new TypeError('offline'))
+  expect(await screen.findByRole('alert')).toHaveTextContent('Could not save your password.')
+  expect(password).toHaveFocus()
+})
+
 it('does not retire the credential or claim success for a malformed 2xx completion', async () => {
   window.__kuukiResetToken = 'A'.repeat(43)
   post.mockResolvedValueOnce({}).mockResolvedValueOnce({ ok: true })

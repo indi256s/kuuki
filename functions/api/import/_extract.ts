@@ -66,6 +66,18 @@ export const FLIGHT_RESPONSE_SCHEMA = {
             type: Type.STRING,
             description: 'Arrival time in HH:mm format',
           },
+          date_month_day: {
+            type: Type.STRING,
+            description: 'MM-DD when the day and month are printed but the year is not; otherwise empty string',
+          },
+          origin_hint: {
+            type: Type.STRING,
+            description: 'The city or airport name exactly as written when that code is left empty (for example a city with several airports); otherwise empty string',
+          },
+          destination_hint: {
+            type: Type.STRING,
+            description: 'The city or airport name exactly as written when that code is left empty (for example a city with several airports); otherwise empty string',
+          },
           confidence: {
             type: Type.NUMBER,
             description: 'Overall confidence score 0-1',
@@ -91,7 +103,7 @@ export const FLIGHT_RESPONSE_SCHEMA = {
             required: ['date', 'date_year_explicit', 'origin', 'destination', 'airline_iata'],
           },
         },
-        required: ['date', 'origin', 'destination', 'airline_iata', 'departure_time', 'arrival_time', 'confidence', 'field_confidence', 'review_required'],
+        required: ['date', 'origin', 'destination', 'airline_iata', 'departure_time', 'arrival_time', 'date_month_day', 'origin_hint', 'destination_hint', 'confidence', 'field_confidence', 'review_required'],
       },
     },
     raw_text: {
@@ -165,6 +177,18 @@ export function logValidation(valid: number, total: number, rejected: number) {
   console.log(JSON.stringify({ event: 'validation_complete', valid, total, rejected }))
 }
 
+const DAYS_IN_MONTH = [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
+
+/** "MM-DD" naming a real calendar day (02-29 allowed: the year is unknown), else undefined. */
+function validMonthDay(value: unknown): string | undefined {
+  const match = typeof value === 'string' ? /^(\d{2})-(\d{2})$/.exec(value) : null
+  if (!match) return undefined
+  const month = Number(match[1]); const day = Number(match[2])
+  return month >= 1 && month <= 12 && day >= 1 && day <= DAYS_IN_MONTH[month - 1] ? value as string : undefined
+}
+
+const cleanHint = (value: unknown) => typeof value === 'string' ? value.trim().slice(0, 60).trim() || undefined : undefined
+
 /** Shared normalization for complete streamed rows and the legacy envelope. */
 export function normalizeFlights(parsedResponse: { flights: ExtractedFlight[]; raw_text?: string }, ordinalStart = 0): ParseResponse {
   // Validate and normalize flights, collecting rejected ones for diagnostics
@@ -219,15 +243,24 @@ export function normalizeFlights(parsedResponse: { flights: ExtractedFlight[]; r
       const score = (value: unknown) => typeof value === 'number' && Number.isFinite(value)
         ? Math.min(1, Math.max(0, value)) : 0
       const fields = flight.field_confidence
+      const date = explicitYear && typeof flight.date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(flight.date) ? flight.date : ''
+      const origin = flight.origin.toUpperCase()
+      const destination = flight.destination.toUpperCase()
+      const monthDay = date === '' ? validMonthDay(flight.date_month_day) : undefined
+      const originHint = origin === '' ? cleanHint(flight.origin_hint) : undefined
+      const destinationHint = destination === '' ? cleanHint(flight.destination_hint) : undefined
       const normalizedFlight: ExtractedFlight = {
-        date: explicitYear && typeof flight.date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(flight.date) ? flight.date : '',
-        origin: flight.origin.toUpperCase(),
-        destination: flight.destination.toUpperCase(),
+        date,
+        origin,
+        destination,
         airline_iata: flight.airline_iata.toUpperCase(),
         flight_number: typeof flight.flight_number === 'string' ? flight.flight_number : undefined,
         aircraft_icao: typeof flight.aircraft_icao === 'string' ? flight.aircraft_icao.toUpperCase() : undefined,
         departure_time: typeof flight.departure_time === 'string' ? flight.departure_time || undefined : undefined,
         arrival_time: typeof flight.arrival_time === 'string' ? flight.arrival_time || undefined : undefined,
+        ...(monthDay ? { date_month_day: monthDay } : {}),
+        ...(originHint ? { origin_hint: originHint } : {}),
+        ...(destinationHint ? { destination_hint: destinationHint } : {}),
         confidence: flight.review_required === true ? Math.min(0.5, score(flight.confidence)) : score(flight.confidence),
         review_required: flight.review_required === true,
         airline_was_placeholder: flight.airline_was_placeholder === true,

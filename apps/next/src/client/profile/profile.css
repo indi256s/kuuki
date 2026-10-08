@@ -1,7 +1,8 @@
 .editorial-profile { max-width: 720px; margin-inline: auto; position: relative; isolation: isolate; }
 .editorial-profile section { margin-block: var(--space-12); }
-.profile-watermark { position: absolute; inset-inline-end: 0; top: 160px; writing-mode: vertical-rl; font: 600 80px var(--font-kana); color: var(--hairline); z-index: -1; pointer-events: none; }
+.profile-watermark { position: absolute; inset-inline-end: 0; inset-block-start: 160px; writing-mode: vertical-rl; font: 600 80px var(--font-kana); color: var(--hairline); z-index: -1; pointer-events: none; }
 .editorial-profile .profile-head { display: flex; align-items: center; gap: var(--space-6); }
+.editorial-profile .profile-head > div, .profile-hero dd { min-inline-size: 0; overflow-wrap: anywhere; }
 .profile-avatar { display: block; border-radius: var(--radius-full); overflow: hidden; outline: 1px solid var(--outline-media); flex-shrink: 0; }
 .editorial-profile .handle, .profile-hero dd, .profile-metrics dd { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
 .profile-meta { display: flex; flex-wrap: wrap; gap: var(--space-3); color: var(--text-muted); }
@@ -23,7 +24,7 @@
 .badge-shape[data-tier=gold] { color: var(--rank-gold); }
 .badge-shape[data-tier=silver] { color: var(--rank-silver); }
 .badge-shape[data-tier=bronze] { color: var(--rank-bronze); }
-.badge-notice { position: fixed; bottom: calc(var(--tabbar-offset, 0px) + var(--space-6)); inset-inline: var(--page-gutter); max-width: 520px; margin-inline: auto; z-index: 70; background: var(--surface-floating); box-shadow: var(--shadow-floating); padding: var(--space-4); border-radius: var(--radius-md); }
+.badge-notice { position: fixed; inset-block-end: calc(var(--tabbar-offset, 0px) + var(--space-6)); inset-inline: var(--page-gutter); max-width: 520px; margin-inline: auto; z-index: 70; background: var(--surface-floating); box-shadow: var(--shadow-floating); padding: var(--space-4); border-radius: var(--radius-md); }
 .badge-notice[data-first=true] { animation: first-achievement 600ms var(--ease-out); }
 @keyframes first-achievement { from { transform: perspective(500px) rotateY(-12deg); opacity: 0; } to { transform: none; opacity: 1; } }
 @media (prefers-reduced-motion: reduce) { .badge-notice[data-first=true] { animation: achievement-fade 150ms linear; } }

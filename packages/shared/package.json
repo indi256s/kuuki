@@ -12,7 +12,10 @@
     "./i18n/ru": "./src/i18n/ru.json",
     "./constants": "./src/constants.ts",
     "./calendar": "./src/calendar.ts",
-    "./overview": "./src/overview.ts"
+    "./overview": "./src/overview.ts",
+    "./overview/*": "./src/overview/*.ts",
+    "./geo": "./src/geo.ts",
+    "./timezones": "./src/timezones.ts"
   },
   "scripts": {
     "build": "tsc"

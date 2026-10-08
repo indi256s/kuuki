@@ -78,6 +78,32 @@ it('refetches derived readiness with one /api/flights request, even with equal r
   expect(vi.mocked(api.get).mock.calls.some(call => String(call[0]).includes('derived-state'))).toBe(false)
 })
 
+it('shows the alliance active on the flight date before the airline code', () => {
+  const rows = [
+    { ...flight({ id: 91, date: '2025-04-01', lifecycle_state: 'logged' }), airline_iata: 'TK' },
+    { ...flight({ id: 92, date: '2005-04-01', lifecycle_state: 'logged' }), airline_iata: 'QR' },
+    { ...flight({ id: 93, date: '2025-04-01', lifecycle_state: 'logged' }), airline_iata: 'QR' },
+  ]
+  const { container } = render(<JournalView ownerId="alliance-owner" locale="en" query="" page={1} filtered={false} initial={initialFor(rows)} />)
+  const entry = (id: number) => container.querySelector(`[data-flight-row="${id}"]`)!.closest('.journal-entry') as HTMLElement
+  expect(within(entry(91)).getByRole('img', { name: 'Star Alliance' })).toHaveTextContent('★')
+  expect(within(entry(92)).queryByRole('img')).toBeNull()
+  expect(within(entry(93)).getByRole('img', { name: 'oneworld' })).toHaveTextContent('○')
+})
+
+it.each(['en', 'ru'] as const)('marks estimated durations in visible text and the row name in %s', locale => {
+  const rows = [
+    { ...flight({ id: 91, date: '2025-04-01', lifecycle_state: 'logged', duration_minutes: 75 }), duration_source: 'estimate' as const },
+    { ...flight({ id: 92, date: '2025-04-02', lifecycle_state: 'logged', duration_minutes: 75 }), duration_source: 'times' as const },
+  ]
+  const { container } = render(<JournalView ownerId="duration-owner" locale={locale} query="" page={1} filtered={false} initial={initialFor(rows)} />)
+  const entries = container.querySelectorAll('.journal-entry')
+  expect(entries[0].querySelector('.flight-row-duration')).toHaveTextContent(/^≈ /)
+  expect(within(entries[0] as HTMLElement).getByRole('button', { name: /≈ / })).toBeTruthy()
+  expect(entries[1].querySelector('.flight-row-duration')).not.toHaveTextContent('≈')
+  expect(within(entries[1] as HTMLElement).getByRole('button')).not.toHaveAccessibleName(/≈ /)
+})
+
 it('groups upcoming flights first, then awaiting and logged history by year', () => {
   const flights = [flight({ id: 1, date: '2025-01-01', lifecycle_state: 'logged' }), flight({ id: 2, date: '2026-10-03', lifecycle_state: 'awaiting' }), flight({ id: 3, date: '2026-12-01', lifecycle_state: 'upcoming' })]
   render(<JournalView ownerId="group-owner" locale="en" query="" page={1} filtered={false} initial={initialFor(flights)} />)
@@ -120,6 +146,18 @@ function voidRouter() {
 }
 
 describe('filters', () => {
+  it('shows a pending Status choice immediately and restores it after a handled navigation failure', async () => {
+    const user = userEvent.setup()
+    const router = voidRouter()
+    render(<Suspense fallback={null}><Harness /></Suspense>)
+    const status = screen.getByRole('combobox', { name: 'Status' })
+    await act(async () => { await user.selectOptions(status, 'logged') })
+    expect(status).toHaveValue('logged')
+    expect(nav.push).toHaveBeenCalledWith('/journal?status=logged', { scroll: false })
+    await router.fail('')
+    expect(status).toHaveValue('')
+  })
+
   it('keeps the Status select (same element, still focused) after a keyboard change', async () => {
     const user = userEvent.setup()
     render(<Harness />)

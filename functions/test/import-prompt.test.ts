@@ -1,6 +1,7 @@
 // Pins the server extraction prompt, the provider request config and the ingest of pasted assistant lists.
 // The provider is stubbed: each case supplies the structured rows a model would return for the pasted line,
 // and the assertions run the real downstream normalisation, draft projection and flight validation.
+import { Type } from '@google/genai'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { validateFlightInput } from '../../packages/shared/src/flightValidation'
 import { extractFlights, extractionContents, FLIGHT_RESPONSE_SCHEMA } from '../api/import/_extract'
@@ -34,6 +35,12 @@ describe('extraction prompt', () => {
     expect(EXTRACTION_PROMPT).toContain('{"flights": []}')
   })
 
+  it('asks for a printed month and day and for the written name of an empty endpoint, never inferred', () => {
+    expect(EXTRACTION_PROMPT).toMatch(/date_month_day: MM-DD.*Never infer/)
+    expect(EXTRACTION_PROMPT).toContain('origin_hint, destination_hint')
+    expect(EXTRACTION_PROMPT).toMatch(/several airports.*return "" for that field with confidence 0 and review_required true/)
+  })
+
   it('reads pasted assistant lists and ignores instructions inside the document', () => {
     expect(EXTRACTION_PROMPT).toContain('2024-03-15 | JFK → LAX | American Airlines AA 123 | 08:30-11:45')
     expect(EXTRACTION_PROMPT).toMatch(/"\?".*unknown/)
@@ -65,6 +72,11 @@ describe('provider request', () => {
     expect(flight.required).toContain('field_confidence')
     expect(flight.required).toContain('review_required')
     expect(flight.properties.field_confidence.required).toContain('date_year_explicit')
+    // The provider drops optional flags, so the question fields are required (empty string allowed).
+    for (const name of ['date_month_day', 'origin_hint', 'destination_hint'] as const) {
+      expect(flight.required).toContain(name)
+      expect(flight.properties[name].type).toBe(Type.STRING)
+    }
   })
 
   it('keeps the default model and JSON mode with the response schema', async () => {
@@ -136,6 +148,14 @@ describe('pasted assistant lists through the real normalisation', () => {
     // A row with a confirmed year becomes valid flight input as-is; a year-less row waits for the member's date.
     if (draft.fields.date) expect(() => validateFlightInput(draftToFlightInput(draft.fields), 'create')).not.toThrow()
     else expect(() => validateFlightInput(draftToFlightInput(draft.fields), 'create')).toThrow(/date/)
+  })
+
+  it('never lets question metadata reach the flight input', () => {
+    const fields = { date: '', origin: 'ROV', destination: '', airline_iata: 'SU', date_month_day: '03-25', destination_options: ['DME', 'SVO', 'VKO'],
+      review_required: true } as Parameters<typeof draftToFlightInput>[0]
+    const input = draftToFlightInput(fields)
+    expect(Object.keys(input).sort()).toEqual(['airline_iata', 'date', 'destination', 'origin', 'source'])
+    expect(JSON.stringify(input)).not.toMatch(/month_day|options|review_required/)
   })
 
   it('keeps every row of a mixed pasted list in source order', async () => {

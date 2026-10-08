@@ -91,6 +91,7 @@ export function ImportClient({ ownerId, locale, initialBatchId = null, initialSo
   const [notice, setNotice] = useState<string | null>(null)
   const [cancelling, setCancelling] = useState(false)
   const [cancelError, setCancelError] = useState<string | null>(null)
+  const cancelOperation = useRef<symbol | null>(null)
   const [sourceName, setSourceName] = useState<string | null>(null)
   const [sourceMode, setSourceMode] = useState<'file' | 'text' | null>(initialSource)
   const [sourceKey, setSourceKey] = useState(0)
@@ -152,22 +153,29 @@ export function ImportClient({ ownerId, locale, initialBatchId = null, initialSo
     if (batchStatus && batchStatus !== 'processing' && lastSource.current) settledOperations.current.add(lastSource.current.operationId)
   }, [batchStatus])
 
+  const clearCancel = useCallback(() => {
+    cancelOperation.current = null
+    setCancelling(false); setCancelError(null)
+  }, [])
+
   const start = useCallback((source: ImportSource, requestedId: string) => {
+    clearCancel()
     const operationId = settledOperations.current.has(requestedId) ? crypto.randomUUID() : requestedId
     lastSource.current = { source, operationId }
     setSourceName(source.sourceLabel ?? null)
     setNotice(null)
     void batch.start(source, operationId)
-  }, [batch])
+  }, [batch, clearCancel])
 
   const reset = useCallback(() => {
+    clearCancel()
     batch.reset(); onBatchId(null); resetEdits()
     setRows(new Map()); setManualRows([]); setManualSaved([]); setCanonicalSaved([]); setManualOnly(false); setShowDone(false); setReviewing(false); setHoldDone(false); setRequestedKeys(new Set())
     setNewCodes(null); setUnfinished(null); setNotice(null); setCheckFailed(false); setAircraftSaved(new Set())
     baseline.current = undefined; stampsFor.current = -1; lastSource.current = null; settledOperations.current.clear()
     setSourceKey(key => key + 1)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [batch, saver])
+  }, [batch, saver, clearCancel])
 
   const onFailureAction = async (action: FailureAction) => {
     if (action === 'retry') {
@@ -177,7 +185,7 @@ export function ImportClient({ ownerId, locale, initialBatchId = null, initialSo
       const type = batch.batch?.sourceType
       reset(); setSourceMode(type === 'text' ? 'text' : 'file'); setNotice(S.sourceAgain[locale])
     } else if (action === 'manual') {
-      batch.reset(); onBatchId(null); resetEdits(); setManualOnly(true); setManualRows([newManualRow(emptyValues(), 'solo')])
+      clearCancel(); batch.reset(); onBatchId(null); resetEdits(); setManualOnly(true); setManualRows([newManualRow(emptyValues(), 'solo')])
     } else if (action === 'otherFile' || action === 'pasteText') {
       reset(); setSourceMode(action === 'otherFile' ? 'file' : 'text')
     } else if (action === 'newImport') reset()
@@ -195,12 +203,16 @@ export function ImportClient({ ownerId, locale, initialBatchId = null, initialSo
   const onCancelRun = async () => {
     const id = batch.batch?.id
     if (!id) { reset(); return }
+    const operation = Symbol()
+    cancelOperation.current = operation
+    const isCurrent = () => cancelOperation.current === operation
     setCancelling(true); setCancelError(null)
     try {
       await cancelBatch(id)
+      if (!isCurrent()) return
       // Cancelling keeps the rows already extracted: read them back and show them, and leave only when none remain.
-      try { const snapshot = await batch.reload(); if (!snapshot || snapshot.drafts.length === 0) reset() } catch { setCancelError(S.cancelReadFailed[locale]) }
-    } catch { setCancelError(S.cancelFailed[locale]) } finally { setCancelling(false) }
+      try { const snapshot = await batch.reload(); if (isCurrent() && snapshot && snapshot.drafts.length === 0) reset() } catch { if (isCurrent()) setCancelError(S.cancelReadFailed[locale]) }
+    } catch { if (isCurrent()) setCancelError(S.cancelFailed[locale]) } finally { if (isCurrent()) setCancelling(false) }
   }
   const onDiscardImport = async () => {
     const id = batch.batch?.id

@@ -91,6 +91,26 @@
 .import-snippet{grid-column:1/-1;display:grid;gap:var(--space-1);margin:0;padding:var(--space-3);border-left:3px solid var(--hairline);background:var(--surface-inset);color:var(--text-muted);font-size:13px;line-height:20px}
 .import-snippet span{font-family:var(--font-mono);overflow-wrap:anywhere}
 
+/* Questions: one answer for every row with the same cause */
+.import-questions{display:grid;gap:var(--space-3)}
+.import-questions-head{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:var(--space-1) var(--space-4)}
+.import-questions h3:focus-visible,.import-question h4:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.import-question-list{list-style:none;margin:0;padding:0;display:grid;gap:var(--space-3)}
+.import-question{display:grid;gap:var(--space-2);padding:var(--space-4);border:1px solid var(--hairline);border-left:3px solid var(--warning-fill);border-radius:var(--radius-md);background:var(--surface);min-width:0}
+.import-question h4{margin:0;font-size:15px;line-height:24px;font-weight:600;text-wrap:balance}
+.import-question-ask{font-weight:600}
+.import-question-flights{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:var(--space-1) var(--space-4);color:var(--text-muted);font-size:13px;line-height:20px}
+.import-question-items{list-style:none;margin:0;padding:0;display:grid;gap:var(--space-3)}
+.import-question-items>li{display:grid;gap:var(--space-2);padding-top:var(--space-3);border-top:1px solid var(--hairline);min-width:0}
+.import-question-items .ui-button{max-width:100%;overflow-wrap:anywhere;text-align:start}
+.import-question-year{display:flex;flex-wrap:wrap;align-items:flex-start;gap:var(--space-2)}
+.import-question-year .ui-field{width:8rem}
+.import-question-year .ui-field-label{line-height:24px}
+.import-question-year>.ui-button{margin-top:calc(24px + var(--space-1))}
+.import-question-done{list-style:none;margin:0;padding:0;display:grid;gap:var(--space-1);font-size:13px;line-height:20px;font-variant-numeric:tabular-nums}
+.import-question-done>li{display:flex;flex-wrap:wrap;align-items:center;gap:var(--space-1) var(--space-2)}
+.import-question-failed{color:var(--danger-text)}
+
 /* Done */
 .import-summary{display:flex;flex-wrap:wrap;font-size:22px;line-height:28px;font-variant-numeric:tabular-nums}
 .import-summary-chunk{animation:import-enter var(--dur-moment) var(--ease-out) both;animation-delay:var(--stagger,0ms)}

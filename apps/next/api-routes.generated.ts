@@ -214,6 +214,18 @@ export const apiRoutes = [
     ]
   },
   {
+    "route": "/api/flights/schedule-batch",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "route": "/api/flights/schedule-suggestions",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
     "route": "/api/flights/stats",
     "methods": [
       "GET"
@@ -293,12 +305,6 @@ export const apiRoutes = [
     ]
   },
   {
-    "route": "/api/me/advanced-stats",
-    "methods": [
-      "GET"
-    ]
-  },
-  {
     "route": "/api/me/awaiting",
     "methods": [
       "GET"
@@ -311,25 +317,26 @@ export const apiRoutes = [
     ]
   },
   {
-    "route": "/api/me/dashboard-stats",
-    "methods": [
-      "GET"
-    ]
-  },
-  {
     "route": "/api/me/derived-state",
     "methods": [
       "GET"
     ]
   },
   {
-    "route": "/api/me/overview",
+    "route": "/api/me/overview/data",
     "methods": [
       "GET"
     ]
   },
   {
-    "route": "/api/me/overview/missing-aircraft",
+    "route": "/api/me/overview/prefs",
+    "methods": [
+      "GET",
+      "PUT"
+    ]
+  },
+  {
+    "route": "/api/me/overview/share.png",
     "methods": [
       "GET"
     ]
@@ -417,6 +424,12 @@ export const apiRoutes = [
   },
   {
     "route": "/api/public/profiles/:username",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "route": "/api/public/profiles/:username/overview",
     "methods": [
       "GET"
     ]

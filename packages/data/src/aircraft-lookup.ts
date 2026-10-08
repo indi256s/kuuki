@@ -8,3 +8,7 @@ export function findAircraft(icao: string): Aircraft | undefined {
   byIcao ??= new Map(aircraft.map(item => [item.icao.toUpperCase(), item]))
   return byIcao.get(icao.toUpperCase())
 }
+
+export function familyOf(icao: string, ref?: { model: string | null }): string | null {
+  return findAircraft(icao)?.family ?? ref?.model ?? null
+}

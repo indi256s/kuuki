@@ -45,13 +45,13 @@ describe('AppearanceProvider accent normalisation', () => {
   })
   afterEach(() => { cleanup(); vi.unstubAllGlobals() })
 
-  it.each(['kincha', 'sumi'])('rewrites a stored %s to terracotta in the cookie and on <html> when mounted', removed => {
+  it.each(['terracotta', 'kincha', 'sumi', 'yellow'])('rewrites a stored %s to shu in the cookie and on <html> when mounted', removed => {
     document.cookie = `kuuki_accent=${removed}; Path=/`
     document.documentElement.dataset.accent = removed
     render(createElement(AppearanceProvider))
-    expect(document.cookie).toContain('kuuki_accent=terracotta')
+    expect(document.cookie).toContain('kuuki_accent=shu')
     expect(document.cookie).not.toContain(removed)
-    expect(document.documentElement.dataset.accent).toBe('terracotta')
+    expect(document.documentElement.dataset.accent).toBe('shu')
   })
 
   it('leaves a current accent alone', () => {

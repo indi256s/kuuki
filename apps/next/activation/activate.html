@@ -62,6 +62,8 @@
     :root[data-theme=dark] .horizon-sun{transform:translateY(16px)}
 
     .help-dialog{width:min(520px,calc(100vw - 32px));max-height:min(calc(100dvh - 48px),680px);padding:24px;border:0;border-radius:var(--radius-lg);background:var(--surface-floating);color:var(--text);box-shadow:var(--shadow-modal),var(--ring-floating)}
+    html{scrollbar-gutter:stable}
+    html:has(.help-dialog:modal){overflow:hidden}
     .help-dialog::backdrop{background:var(--scrim)}
     .help-header{display:flex;align-items:center;justify-content:space-between;gap:16px}
     .help-header h2{margin:0;font-size:22px;line-height:28px}
@@ -97,7 +99,7 @@
     @media(prefers-reduced-motion:reduce){
       .corner-control,.reveal,.primary,.horizon,.horizon-sun{transition:none}
       .primary:active:not([aria-disabled=true]){transform:none}
-      .plane{animation:none}
+      .plane,.spinner{animation:none}
     }
 
     /* Mobile: brand band above a bottom sheet (boards 3.2 and 3.3). */

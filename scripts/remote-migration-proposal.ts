@@ -1,12 +1,12 @@
 /** Read-only remote D1 inventory. Never accepts caller SQL or runs a mutation. */
-import { readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs'
-import { tmpdir } from 'node:os'
-import { dirname, isAbsolute, join, resolve, sep } from 'node:path'
+import { readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { assertSourceForeignKeyClosure, buildImportTables, sameProjectedRow, type ImportManifest } from './sb-to-d1'
 import { assessSchemaAdmission, expectedSchemaRows } from './migration-target'
 import { assertRemoteIds, openRemoteReader } from './migration-remote-reader'
-import { ROOT, SCHEMA_SQL, requiredArg } from './_cli'
+import { ROOT, SCHEMA_SQL, privateOutputPath, requiredArg } from './_cli'
+import { dirtyMarkerSql, sqlLiteral } from '../functions/api/_lib/sqlArtifact'
 
 type Bind = string | number | null
 interface MissingTable { table: string; columns: string[]; rows: Bind[][] }
@@ -14,16 +14,6 @@ interface MissingTable { table: string; columns: string[]; rows: Bind[][] }
 function sqlIdentifier(value: string): string {
   if (!/^[a-z_][a-z_0-9]*$/i.test(value)) throw new Error('Unsafe SQL identifier')
   return `"${value}"`
-}
-
-function sqlLiteral(value: Bind): string {
-  if (value === null) return 'NULL'
-  if (typeof value === 'number') {
-    if (!Number.isFinite(value)) throw new Error('Nonfinite SQL value')
-    return String(value)
-  }
-  if (value.includes('\0')) throw new Error('NUL in SQL artifact value')
-  return `'${value.replaceAll("'", "''")}'`
 }
 
 /** Deterministic, data-bearing draft; every INSERT is ordinary missing-only SQL. */
@@ -54,27 +44,10 @@ export function renderMissingSql(tables: MissingTable[], metadata: {
       statements.push(`INSERT INTO ${sqlIdentifier(table.table)} (${names}) VALUES (${row.map(sqlLiteral).join(', ')});`)
     }
     if (table.table === 'users') {
-      for (let i = 0; i < (metadata.dirtyUserIds?.length ?? 0); i += 100) {
-        const ids = metadata.dirtyUserIds!.slice(i, i + 100)
-        statements.push(`INSERT INTO user_derived_state (user_id, revision, published_revision)
-SELECT id, 1, 0 FROM users WHERE id IN (${ids.map(sqlLiteral).join(', ')})
-ON CONFLICT(user_id) DO UPDATE SET revision = user_derived_state.revision + 1,
-  last_error = NULL, updated_at = excluded.updated_at;`)
-      }
+      statements.push(...dirtyMarkerSql(metadata.dirtyUserIds ?? []))
     }
   }
   return [...header, ...statements, ''].join('\n')
-}
-
-function privateOutputPath(raw: string): string {
-  if (!isAbsolute(raw)) throw new Error('--output-sql must be an absolute path')
-  const path = resolve(raw)
-  const parent = realpathSync(dirname(path))
-  const allowed = [realpathSync(tmpdir()), realpathSync(join(ROOT, 'db', '_snapshot'))]
-  if (!allowed.some((base) => parent === base || parent.startsWith(base + sep))) {
-    throw new Error('--output-sql must be inside the temporary directory or gitignored db/_snapshot')
-  }
-  return path
 }
 
 export async function main(argv = process.argv.slice(2)): Promise<void> {

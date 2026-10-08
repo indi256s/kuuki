@@ -2,25 +2,25 @@
 
 Kuuki is a personal flight journal with a restrained editorial character. Typography, whitespace, and the details of stamps and tickets carry the design. This document is the single authoritative design reference for the Next experience and supersedes conflicting color, font, glass, grain, and motion guidance elsewhere. The [Redesign 2.0 UX brief](docs/plans/2026-10-04-redesign-2.0-ux-ui.md) explains the experience decisions.
 
-**Status labels.** Unmarked claims describe the current implementation, including the Redesign 2.0 work from PR #42; its branch, checkout and local verification are recorded in the [auth handoff](docs/plans/2026-10-06-auth-one-form-handoff.md). **Planned (Wn/Tnn)** is documented intent not yet built; Wn/Tnn is the wave and task in the [implementation plan](docs/plans/2026-10-04-redesign-2.0-implementation.md). **Superseded** is older guidance that Redesign 2.0 replaced; the line says by what. **Built (auth redesign)** follows the Paper file [Kuuki — Auth redesign](https://app.paper.design/file/01M48F4SHK61AZS2FH5P5JPRY7) and its spec, [`.scratch/auth-one-form/spec.md`](.scratch/auth-one-form/spec.md). **Proposed** is design work in that file that has not been approved. Where the brief and the code disagree, the code is recorded here and the brief's intent is noted.
+**Status labels.** Unmarked claims describe the current source implementation, not deployment or visual acceptance. The [Overview Release 3 section](#overview-redesign) records the implemented production route and its components. Earlier implementation includes the Redesign 2.0 work from PR #42; its branch, checkout and local verification are recorded in the [auth handoff](docs/plans/2026-10-06-auth-one-form-handoff.md). **Planned (Wn/Tnn)** is documented intent not yet built; Wn/Tnn is the wave and task in the [implementation plan](docs/plans/2026-10-04-redesign-2.0-implementation.md). **Superseded** is older guidance that Redesign 2.0 replaced; the line says by what. **Built (auth redesign)** follows the Paper file [Kuuki — Auth redesign](https://app.paper.design/file/01M48F4SHK61AZS2FH5P5JPRY7) and its spec, [`.scratch/auth-one-form/spec.md`](.scratch/auth-one-form/spec.md). **Proposed** is design work in that file that has not been approved. Where the brief and the code disagree, the code is recorded here and the brief's intent is noted.
 
 ## Color and surfaces
 
-Use semantic CSS variables from [`apps/next/src/app/styles.css`](apps/next/src/app/styles.css); do not place palette literals in components. Light uses paper (`#fbfaf8`) and charcoal text (`#302d2a`); dark uses ink (`#292827`) and warm white text (`#f1efeb`). Terracotta is the accent in both themes. Text colors are separate from fills. Muted text must meet 4.5:1 contrast, control borders and focus must meet 3:1; do not fade text with opacity. `apps/next/src/app/tokens.test.ts` parses `styles.css` and checks these pairs. Hairlines are for structure, control borders for inputs and controls. In-flow cards use one subtle boundary and no shadow. Floating surfaces use a solid background and elevation. No glass, backdrop blur, glow, gradient buttons, or decorative grain.
+Use semantic CSS variables from [`apps/next/src/app/styles.css`](apps/next/src/app/styles.css); do not place palette literals in components. Light uses paper (`#fbfaf8`) and charcoal text (`#302d2a`); dark uses ink (`#292827`) and warm white text (`#f1efeb`). Shu 朱 (vermilion) is the default accent in both themes. Text colors are separate from fills. Muted text must meet 4.5:1 contrast, control borders and focus must meet 3:1; do not fade text with opacity. `apps/next/src/app/tokens.test.ts` parses `styles.css` and checks these pairs. Hairlines may outline cards; control borders outline inputs and controls. Internal content and page chrome have no divider hairlines: none between rows or figures, under headers, around Next, above the narrator or Hidden sections, on the tab bar, or between sheet headers, bodies and footers. Full card/control outlines, the 2px active-tab and drag indicators, and sheet pager segments remain. The globe’s 1px limb is an explicit exception. In-flow cards use one subtle boundary and no shadow. Floating surfaces use a solid background and elevation. No glass, backdrop blur, glow, gradient buttons, or decorative grain.
 
-Map fills use a sequential accent ramp and a titled legend with fixed buckets 1, 2–3, 4–9, 10+. Flag colors may inform stamp ink, never map fill. Claims must have a text and shape cue. Unknown legacy accent values map to terracotta and never overwrite status colors. Accents are set on `<html data-accent>` and stored by name; the picker is `SwatchPicker`.
+Map fills use a sequential accent ramp and a titled legend with fixed buckets 1, 2–3, 4–9, 10+. Flag colors may inform stamp ink, never map fill. Claims must have a text and shape cue. Unknown legacy accent values map to shu and never overwrite status colors. Accents are set on `<html data-accent>` and stored by name; the picker is `SwatchPicker`.
 
-Five accents are built. Stored `kincha` and `sumi` names become `terracotta` in bootstrap and the appearance client. Legacy yellow maps to terracotta; teal and cyan map to asagi. Values follow Paper board "4.2 Spec — accent proposal":
+Five accents are built. Shu replaced Terracotta as the default on 2026-10-07. Bootstrap and the appearance client map stored `terracotta`, `kincha`, `sumi` and yellow to `shu`; bootstrap maps legacy teal and cyan to `asagi`. Values below match `styles.css`:
 
 | Accent | Light fill / text | Dark fill / text | Foreground (light / dark) | Distance from status hue |
 |---|---|---|---|---|
-| Terracotta (default) | `#a94e35` / `#97412a` | `#e6a184` / `#efae91` | `#fffaf6` / `#292827` | unchanged |
+| Shu 朱 (default) | `#c23417` | `#ea846f` | `#fff` / `#292827` | 21° from danger |
 | Ai | `#4e5ea2` | `#acbbef` | `#fff` / `#292827` | 22° from info |
 | Matcha | `#59702a` | `#b7ce92` | `#fff` / `#292827` | 25° from success |
 | Asagi (浅葱) | `#0c747d` | `#85cfd8` | `#fff` / `#292827` | 45° from info |
-| Sakura | `#964969` | `#e8a9c0` | `#fff` / `#292827` | 30° from danger |
+| Sakura | `#964969` | `#e8a9c0` | `#fff` / `#292827` | 17° from danger |
 
-The board gives one value per accent for fill and text. As now, `--accent-text` equals `--accent` for every accent except terracotta. `tokens.test.ts` checks the 4.5:1 and 3:1 pairs with these values; the boards do not prove contrast.
+The source uses one value per accent for fill and text, and `--accent-text` equals `--accent` for every accent, including shu. Measured shu pairs: light 5.30:1 on the background, 5.53:1 on the surface, 4.86:1 on the inset, white on the fill 5.53:1; dark 5.63:1 on the background, 4.81:1 on the surface, ink on the fill 5.63:1. Dark shu on the dark inset is 4.12:1, so accent text never sits on the dark inset. In OKLCH the warm end is crowded: shu 33°, danger 12°, Sakura 355°, about 20° apart each, so there is no room for another warm accent unless danger moves. `tokens.test.ts` checks the 4.5:1 and 3:1 pairs with these values; the boards do not prove contrast.
 
 ## Type and layout
 
@@ -28,7 +28,7 @@ Self-hosted Commissioner WOFF2 ([`apps/next/public/fonts`](apps/next/public/font
 
 | Style | Built value | Where |
 |---|---|---|
-| Display | No single token. Overview flight count `clamp(44px, 7vw, 84px)` / 1.1, −0.04em; other figures `clamp(32px, 5vw, 56px)` / 1.1, −0.03em | `client/overview/overview.css` |
+| Display | No single token. Overview flight count 80/80, −0.04em; other figures 32/36, −0.03em; mobile figures 40/44 | `client/overview/hero/hero.css` |
 | H1 | 30/36, 600, −0.02em | global `h1` |
 | H2 | 22/28 (panel titles 600) | global `h2`, `.ui-panel-title` |
 | H3 | 17 (line height inherits 24) | `.read-panel h3`, ticket prompt 17/24 600 |
@@ -50,18 +50,18 @@ System theme is the default for new users. Preserve an explicit light/dark choic
 
 ## Decisions
 
-Frozen by the Redesign 2.0 plan (D1–D12). Lifecycle and import details live in the ADR under `docs/adr/`.
+D1–D12 originate in the Redesign 2.0 plan; Overview Release 3 supersedes D8. Lifecycle and import details live in the ADR under `docs/adr/`.
 
 | ID | Decision |
 |---|---|
 | D1 | `/`, `/signin` and `/signup` render the one-form [auth card](#auth-card); members continue through the Overview/onboarding gate. The landing hero, sample flight cards and FAQ are removed. |
-| D2 | Five named accents: Terracotta (default), Ai, Matcha, Asagi and Sakura. Store the name, never an arbitrary color; kincha and sumi map to terracotta. |
+| D2 | Five named accents: Shu 朱 (default since 2026-10-07, replacing Terracotta), Ai, Matcha, Asagi and Sakura. Store the name, never an arbitrary color; terracotta, kincha and sumi map to shu. |
 | D3 | System theme by default; an explicit saved preference is preserved. |
 | D4 | Light neutrals are barely warm; dark uses charcoal. |
 | D5 | Commissioner selected by user request, superseding the earlier RU/EN specimen (see Typeface decision). |
 | D6 | Russian copy uses «вы» everywhere. |
 | D7 | Journey UI and navigation are removed; a bookmarked `/journey` redirects to `/overview` (built). |
-| D8 | Overview has a period control only; Journal owns all detailed filters. |
+| D8 | **Superseded** by the [Overview Release 3 contract](#overview-redesign): faceted filters scope the completed-flight Overview, with Next independent. Journal keeps its own filters. |
 | D9 | `/fly/:username` is preserved; previews and share URLs use the configured origin. |
 | D10 | Existing rank titles become localized achievement names; no new badge rules. |
 | D11 | Awaiting flights auto-confirm seven days after they become date-eligible, with automatic provenance and no celebration; the rule is explained in queue helper text. |
@@ -77,21 +77,32 @@ Names are fixed; values live only in `styles.css` (`:root`, `:root[data-theme=da
 |---|---|---|---|
 | `--background` / `--surface` / `--surface-inset` | `#fbfaf8` / `#fff` / `#f2f0ed` | `#292827` / `#353331` / `#403d3a` | Page; card and sheet; well and table header. One step apart. |
 | `--text` / `--text-muted` | `#302d2a` / `#66605b` | `#f1efeb` / `#c4beb7` | Body and headings; secondary text ≥4.5:1 on background and surface. Never fade with opacity. |
-| `--hairline` | `#dedad5` | `#554f4a` | Structural dividers and card edges only. |
+| `--hairline` | `#dedad5` | `#554f4a` | Card outlines and the explicit globe-limb exception; never internal content or page-chrome dividers. |
 | `--control-border` | `#837b74` | `#958b82` | Input, checkbox, select and switch borders; ≥3:1 on the surface. |
 | `--accent` / `--accent-text` / `--accent-foreground` / `--focus` | see accent table | | Fill; links and active nav ≥4.5:1; text on the fill ≥4.5:1; 2px ring, 2px offset, ≥3:1. |
 | `--accent-hover` | `color-mix(in oklch, accent 82%, text)` | same | Primary hover fill; derived. |
 | `--success-text` / `--success-fill` | `#146d34` / `#2a904b` | `#76c788` / `#4eb068` | Text grade ≥4.5:1; fill grade for backgrounds and icons, never text. |
 | `--warning-text` / `--warning-fill` | `#824c00` / `#ae6700` | `#e1a263` / `#cf8634` | Same rule. |
-| `--info-text` / `--info-fill` | `#175d9b` / `#2b7ec9` | `#73b6fa` / `#4c9deb` | Same rule; `--info-fill` also highlights search matches. |
-| `--danger-text` / `--danger-fill` | `#a43535` / `#c74b47` | `#ffaaa5` / `#ea6a64` | Same rule; danger buttons are outlined in `--danger-text`. |
+| `--info-text` / `--info-fill` | `#175d9b` / `#2b7ec9` | `#73b6fa` / `#4c9deb` | Same rule; search matches use `--info-text` on `--surface-inset` (≥4.5:1). |
+| `--danger-text` / `--danger-fill` | `#a02442` / `#ca3056` | `#f0a7af` / `#f25776` | Same rule; danger buttons are outlined in `--danger-text`. Built crimson separates errors from the shu accent. Text 7.12:1 light, 7.60:1 dark on the background. |
 | `--rank-gold` / `-silver` / `-bronze` | `#775800` / `#595e64` / `#8a4b24` | `#d5b36a` / `#b2b8bf` / `#eca57d` | Text grade ≥4.5:1; always paired with the rank number. |
 | `--surface-floating` | `--surface` | `#3c3a37` | Level 2 and 3 fill. |
 | `--shadow-floating` / `--shadow-modal` | two-layer black 8% / 10–12% | none | Dark theme drops the shadow. |
 | `--ring-floating` | none | `0 0 0 1px` white 8% | Dark replacement for the shadow. |
 | `--scrim` / `--outline-media` | black 40% / black 10% | black 60% / white 10% | Modal backdrop; 1px outline on images and avatars. |
-| `--map-land` / `--map-border` / `--map-route` | `--surface-inset` / `--hairline` / `--accent` | same | Map base layers; follow theme. |
-| `--map-bucket-1…4` | `color-mix(in oklch, accent 24 / 43 / 65 / 90%, map-land)` | same | Sequential ramp, bucket 1 lightest; thresholds 1, 2–3, 4–9, 10+ from one shared function. |
+| `--map-land` / `--map-border` / `--map-route` | `--surface-inset` / `--hairline` / `--accent` | same | Map base layers; follow theme. Static previews select generated light/dark outline assets from the same tokens. |
+| `--map-bucket-1…4` | `color-mix(in oklab, accent 24 / 43 / 65 / 90%, map-land)` | same | Sequential ramp, bucket 1 lightest; thresholds 1, 2–3, 4–9, 10+ from one shared function. Mix in oklab: in oklch the hue drifts toward the land color, so shu buckets would turn orange. Shu light `#ecc6bb` / `#e5a494` / `#da7d68` / `#c94c33`; dark `#674e47` / `#865c51` / `#ac6b5d` / `#d87d6a`. |
+| `--mark-1…4` / `--mark-ghost` | `--accent` / `#da6a53` / `#b28555` / `#66605b` / `#978c7f` | `--accent` / `#c85f49` / `#a17749` / `#c4beb7` / `#897e70` | Built chart palette; `--hairline` is never a data color. Mark-1 follows the chosen accent; mark-2…4 and ghost keep these fixed values. `--ts-chart-1…5` maps to these five tokens; maker charts use their category palette. |
+| `--heat-0…4` | `--surface-inset` / `#e6c8c1` / `#e4735c` / `#c23417` / `#892410` | same | Built Rhythm ramp. Heat-3 is exactly `#c23417` in both themes, independent of accent selection. |
+| `--cat-maker-airbus` / `-boeing` / `-embraer` / `-atr` | `#0f6390` / `#16a384` / `#8c6d08` / `#9a52cf` | `#0685b6` / `#04ac7b` / `#a4770f` / `#a36ffa` | Fixed maker slots, with text labels and tables. Every mark uses the same filled rounded square (20% radius). |
+| `--cat-maker-other` / `-unknown` | `#c2bab0` / `#ece9e5` | `#c9c1b7` / `#47433f` | Other is recognized aircraft outside the named slots; Unknown is absent or unrecognized aircraft. |
+| `--cat-alliance-star` / `-oneworld` / `-skyteam` | `#6b5a2e` / `#6a3f55` / `#3e5266` | `#cdb98a` / `#d3a6bc` / `#a9bbd0` | Separate dated-alliance palette: ★ Star, ○ Oneworld, △ SkyTeam. Never combine with maker categories. |
+| `--accent-tint` / `--accent-on-tint` | accent 10% over surface in srgb / `#b02f14` | same tint formula / `--accent-text` | Tinted labels such as Next; foreground text is distinct from fill. |
+| `--globe-rim` | accent 14% over transparent in srgb | accent 22% over transparent in srgb | Flat, static 8px rim; no glow or animated gradient. |
+
+The exact heat ramp (including dark steps 3–4), map buckets 1–3, and Other/Unknown swatches have consciously accepted sub-3:1 pairs. Visible text-ink counts or labels, tooltip values, tables and non-color cues carry meaning. This is not blanket 3:1 acceptance; see [palette contrast acceptance](.scratch/overview-redesign/issues/01-palette-contrast.md). Shu is not a maker or alliance category color.
+
+Regenerate static outlines with `python3 scripts/map-build-geometry.py --rebuild apps/next/public/maps/countries-110m-2.0.2.geojson`. The outline URLs are immutable: palette changes also require a new asset version in the preview and cache inventory.
 
 Radius and spacing: `--radius-xs` 6px, `--radius-sm` 10, `--radius-md` 14, `--radius-lg` 20, `--radius-full` 9999px; `--space-1` 4px, `-2` 8, `-3` 12, `-4` 16, `-5` 20, `-6` 24, `-8` 32, `-12` 48.
 
@@ -108,7 +119,7 @@ Shell and control tokens (all in `:root`):
 | `--badge-size` | 24px | Queue count pill. |
 | `--z-tabbar` | 30 | Tab bar; the only tokenized z-index. |
 | `--font-sans` / `--font-mono` | Commissioner, system-ui / JetBrains Mono, ui-monospace | Text; ticket data only. |
-| `--font-kana` | Hiragino Sans, Hiragino Kaku Gothic ProN, Noto Sans JP, Yu Gothic, then `--font-sans` | The 空 tile and the くうき watermarks; system stack, no webfont. |
+| `--font-kana` | Hiragino Sans, Hiragino Kaku Gothic ProN, Noto Sans JP, Yu Gothic, then `--font-sans` | The member くうき tile, loading 空 tile and くうき watermarks; system stack, no webfont. |
 
 Runtime variables set by the shell and primitives, not for authoring: `--tabbar-offset`, `--toast-bottom-offset`, `--action-bar-bottom` (mobile, derived from the tab bar and safe area; zeroed while the keyboard is open), `--sheet-drag`, `--sheet-kb`, `--n` (segmented option count).
 
@@ -137,11 +148,19 @@ Levels 2 and 3 are built on every ui-kit primitive. In dark, Ticket, read panels
 
 Tokens: `--ease-out` cubic-bezier(.23,1,.32,1) for enter/exit and press; `--ease-in-out` cubic-bezier(.77,0,.175,1) for on-screen movement (height, segmented thumb); `--ease-drawer` cubic-bezier(.32,.72,0,1) for sheets; `--ease-icon` cubic-bezier(.2,0,0,1) for icon crossfades (defined, no consumer yet). `--ease-horizon` cubic-bezier(0,0,.15,1) for the Horizon sun and the theme sweep it leads. Durations: `--dur-press` 120ms, `--dur-fast` 150ms, `--dur-base` 200ms, `--dur-sheet` 300ms, `--dur-moment` 450ms (rare delight only), `--dur-horizon` 500ms (Horizon sun and theme sweep).
 
+Built [Overview motion](#overview-redesign): replay shares one clock; the camera reframes over 600ms (its source uses an easing function); in-view charts use the TanStack native 1,100ms default, while Manufacturers reflows over 300ms. Reduced motion snaps charts and camera and shows static mid-arc planes. Figures, chips and text swap instantly.
+
 Rules: ease-in is banned; exits use ease-out and run about 20% faster than enters; never `transition: all`; animate transform, opacity and sparingly filter; height disclosure uses grid rows 0fr→1fr; no bounce on routine UI; content present on first render does not animate in; no count-up from zero.
 
 | Never animates | Built animation |
 |---|---|
-| Route and tab changes (focus moves to H1), except the two [route transitions](#route-transitions) below; keyboard actions, filter/sort/period changes, ambient loops (the auth plane field is the one exception), WindLoader, glow pulses | Press scale 0.96 120ms (`data-static` excluded); hover color 150ms on fine pointers; segmented thumb 200ms `--ease-in-out`; menu 150ms in (scale .97) and 120ms out; dialog 200ms in (scale .96) and 150ms out, scrim 200/150; sheet 300ms `--ease-drawer` with handle drag; disclosure 300ms rows plus 150ms opacity; toast 300ms in, 200ms out; switch 200ms; tab bar slide off for the keyboard 200ms; stamp press 450ms; the two route transitions |
+| Route and tab changes (focus moves to H1), except the two [route transitions](#route-transitions) below; ordinary keyboard actions and filter/sort text changes, WindLoader, glow pulses; Overview chart/camera exceptions are described above | Press scale 0.96 120ms (`data-static` excluded); hover color 150ms on fine pointers; segmented thumb 200ms `--ease-in-out`; menu 150ms in (scale .97) and 120ms out; dialog 200ms in (scale .96) and 150ms out, scrim 200/150; sheet 300ms `--ease-drawer` with handle drag; disclosure 300ms rows plus 150ms opacity; toast 300ms in, 200ms out; switch 200ms; tab bar slide off for the keyboard 200ms; stamp press 450ms; the two route transitions |
+
+### Scoped text feedback
+
+Torph 0.1.3 morphs only copy confirmations (profile link and import prompt), import found counts and stage status badges, and the pending labels for manual flight save, profile Settings save and accepting aircraft suggestions. Use `--dur-base` 200ms and `--ease-out`, or `--dur-fast` 150ms for stage badges, with scale off. Numeric matching is enabled only for actual found-count updates; render the current localized plural string immediately. Found-count bursts faster than one duration switch to static text until one quiet duration passes, without throttling values or speech. Short labels may wrap at constrained widths. First render stays static; no fabricated count-up and no delay before completing a request or leaving a screen.
+
+Keyboard-triggered copy and save feedback swaps instantly, including Enter, Space, implicit form submission and the manual-save shortcut. Pointer-triggered feedback may morph; subsequent asynchronous import progress may morph independently of the input that started the import. Selection-count changes stay instant. Under reduced motion these scoped text labels swap immediately, overriding the generic fade rule below. Kuuki wrappers retain accessible names and live regions; the existing import spoken-count throttle is unchanged. Reserve button width for both localized labels.
 
 ### Route transitions
 
@@ -157,7 +176,7 @@ Additional motion contracts:
 - **Planned (W3/T13):** arrival confirm: stamp press onto the ticket stub, then card collapse 250ms `--ease-in-out`.
 - **Built (T21):** three-step deletion uses a 250ms height transition where intrinsic-size interpolation is supported and a 150ms content fade; reduced motion keeps steps static.
 - **Built (T19/T23):** first-achievement notification enters once over 600ms (150ms fade under reduced motion). Onboarding Reveal caps newly published stamps at eight with 80ms stagger; reduced motion removes the delay.
-- **Built (auth redesign), replacing W5/T22's "at most 3 planes":** the auth brand panel's plane field. It is the one ambient loop allowed. The field has 30 planes on desktop (12 small, 10 medium and 8 large, with sizes shuffled across x) and 14 in the mobile brand band. Each plane moves along (+400, −800) with transform only. Each is rotated −18.4° (atan2(−800, 400) + 45°), so its nose points along the path. The field pauses when it is off screen (IntersectionObserver) or the tab is hidden. Planes stay clear of the wordmark, and the くうき watermark sits behind them. Under reduced motion the planes freeze in the frame the boards draw. The isolated activation page uses the same paused-motion contract.
+- **Built (auth redesign), replacing W5/T22's "at most 3 planes":** the auth brand panel's plane field. It is one of the permitted ambient loops, alongside the member kana crossfade and Overview replay. The field has 30 planes on desktop (12 small, 10 medium and 8 large, with sizes shuffled across x) and 14 in the mobile brand band. Each plane moves along (+400, −800) with transform only. Each is rotated −18.4° (atan2(−800, 400) + 45°), so its nose points along the path. The field pauses when it is off screen (IntersectionObserver) or the tab is hidden. Planes stay clear of the wordmark, and the くうき watermark sits behind them. Under reduced motion the planes freeze in the frame the boards draw. The isolated activation page uses the same paused-motion contract.
 - **Built (auth redesign):** the rotating tagline is picked once per page load and shown only on the form and create steps. Under reduced motion it swaps text without sliding.
 - **Built (auth redesign):** the Horizon theme toggle moves its sun 50% of the viewBox over 500ms with `cubic-bezier(0,0,0.15,1)`; see [Auth card](#auth-card).
 - **Built:** a theme change (any control, or the device flipping under `system`) sweeps the new theme over the old one, which stays still: dusk brings night down from the top, so the bottom changes last, and dawn raises day from the bottom up. It is a View Transition on the root whose new layer moves a feathered mask band about a third of the viewport tall, never a hard line. It runs with the Horizon sun at `--dur-horizon` 500ms and `--ease-horizon` `cubic-bezier(0,0,.15,1)`, and `html[data-theme-switching=dusk|dawn]` sets the direction. The browser bar (`meta theme-color`) changes when the sweep reaches the top of the viewport: at the start of dusk, at the end of dawn. Under reduced motion the sweep becomes a 150ms linear fade and the bar changes with it. While the switch runs, component transitions are off so no control tweens its colors behind the page; the Horizon sun keeps its move. The old page is a still snapshot, so the auth plane field gets its own layer: its old copy is dropped and the live one keeps flying in the new colors instead of freezing until the sweep reaches it. Without the API, or during a route transition, the theme and bar swap at once. A second toggle skips the first sweep; only the latest switch clears the attribute and settles the bar.
@@ -165,7 +184,7 @@ Additional motion contracts:
 
 Delight moments use `--dur-moment`. The built `Stamp` press starts from scale 1.06, opacity 0, blur 2px, with a one-frame brightness darkening, and plays once per immutable ID (module `Set` plus `sessionStorage`) so remounts and refetches never replay it. Onboarding applies the 80ms stagger and cap of eight to newly published country acknowledgments. Reveal shows at most eight stamps and links to Passport for the complete collection; refetches and historical evidence do not replay the first-save moment.
 
-Reduced motion means gentler, not none. Built in `ui.css`: no scale or translate, color and opacity at 150ms linear; dialog and menu fade; sheet and toast fade (drag still works); thumb, disclosure and chevron static; stamp press becomes a 200ms fade; the tab bar does not slide; the two route transitions swap instantly, like every other route change.
+Reduced motion means gentler, not none. Auth and activation pending spinners stay static; their status text remains visible. Built in `ui.css`: no scale or translate, color and opacity at 150ms linear; dialog and menu fade; sheet and toast fade (drag still works); thumb, disclosure and chevron static; stamp press becomes a 200ms fade; the tab bar does not slide; the two route transitions swap instantly, like every other route change.
 
 ## Iconography
 
@@ -173,25 +192,25 @@ Lucide only, one SVG per icon, `currentColor`. Stroke 1.5 beside regular text, 2
 
 Active state never relies on color alone: accent text, label weight 600, and a 2px accent bar (underline on desktop nav, top edge on the tab bar) plus `aria-current="page"`. **Superseded:** the brief's filled or heavier active icon; the bar replaced it.
 
-**Logo mark.** One stable mark: the kanji 空 (from 空気, *kuuki*) on a filled `--accent` tile with an `--accent-foreground` glyph, set in `--font-kana` (no webfont). The tile is 32px with radius `--radius-sm` and a 600 18px glyph. The loading screen scales it to 48px with a 24px glyph. It replaces the brief's suggested く, which reads as a back chevron in every Japanese face, so the mark is never a back button. The wordmark is the tile plus a lowercase "kuuki" (19px, 600) and links home. The vertical くうき word stays on the auth brand panel; the editorial profile includes its watermark. The brief's glyph crossfade for the boot screen is not built.
+**Logo mark.** The built member/navbar mark is a 32px tile with an 8px radius, `--accent-tint` fill and 700 18/18 kana. The design contract uses `--accent-on-tint` for the glyph; the source uses that foreground. It crossfades く → う → き on a 7.5s loop; reduced motion shows the first く. The wordmark contract is lowercase “kuuki”, Commissioner 18/24 600, with an 8px gap, and links home. The static loading mark is distinct: 空 on a filled accent tile, 48px with a 24px glyph. The vertical くうき watermark remains on auth and editorial profile surfaces. These are source contracts, not visual audit claims.
 
-**Built (auth redesign): text wordmark.** On auth surfaces, a wordmark with no tile replaces the 空 tile: "Ku" in `--accent-text` and "uki" in `--text`, so it follows the accent and the theme. It uses Commissioner 700 at −0.04em, with font size equal to line height: 36px on the desktop auth brand panel and 28px in the mobile auth header. It is one element with `aria-label="Kuuki"`; the two spans are visual only. The spec replaces the tile on auth surfaces. The accent-picker boards also draw it in the app header at 22px (Proposed). Member headers and loading screens retain the 空 tile. Board "1.1" sets the brand-panel wordmark at −0.05em; the build notes and the spec say −0.04em, and the spec wins.
+**Built (auth redesign): text wordmark.** On auth surfaces, a wordmark with no tile replaces the 空 tile: "Ku" in `--accent-text` and "uki" in `--text`, so it follows the accent and the theme. It uses Commissioner 700 at −0.04em, with font size equal to line height: 36px on the desktop auth brand panel and 28px in the mobile auth header. It is one element with `aria-label="Kuuki"`; the two spans are visual only. The spec replaces the tile on auth surfaces. The accent-picker boards also draw it in the app header at 22px (Proposed). Member headers use the kana tile; loading screens retain the static 空 tile. Board "1.1" sets the brand-panel wordmark at −0.05em; the build notes and the spec say −0.04em, and the spec wins.
 
 ## Shell and navigation
 
 One breakpoint at 700px switches between desktop and mobile. The header and tab bar sit outside the single `<main id="main" class="page-shell">`; a skip link precedes them. `BrandShell` (guests) shows the wordmark, sign-in and sign-up links, and the language/theme controls; `MemberShell` adds navigation.
 
-**Desktop (above 700px).** Header 56px, solid `--background`, hairline bottom border, content aligned to 1200px. Left: wordmark, then Overview, Journal, Passport, Leaderboard (Обзор, Журнал, Паспорт, Рейтинг). Links are 44px high, radius `--radius-sm`, hover `--surface-inset`; active is `--accent-text`, 600, with a 2px accent underline inset 12px. Right: queue slot, split Add, avatar menu.
+**Desktop (above 700px).** Header minimum height 56px, solid `--background`, no divider hairline, content aligned to 1200px. Spacing tightens fluidly and controls wrap when localized queue text needs another row; logical spacing supports wrapping without a fixed-height clipping rule. Left: wordmark, then Overview, Journal, Passport, Leaderboard (Обзор, Журнал, Паспорт, Рейтинг). Links are 44px high, radius `--radius-sm`, hover `--surface-inset`; active is `--accent-text`, 600, with a 2px accent underline inset 12px. Right: queue slot, split Add, avatar menu.
 - **Split Add.** Accent fill, `--control-h-sm` tall, radius `--radius-sm`. The main half is a link to `/add` (manual entry); the chevron half opens a Menu with Upload a boarding pass or PDF, Paste text, Enter manually. One shared list (`ADD_ACTIONS`) feeds this menu and the mobile sheet. The brief names two items; the built menu has three.
 - **Avatar menu.** A 40px circle button using the shared profile photo or reactive blob fallback, ringed by `--outline-media`. Menu: My profile (with Public or Hidden status), Public profile checkbox (turning it off also leaves leaderboards), Settings, Theme radios (Light, Dark, System), Language radios (EN, RU), Sign out. Accent selection is in Settings.
 
-**Mobile (700px and below).** Header 48px with the current page title and queue slot; the split Add and avatar menu are hidden. A fixed bottom tab bar replaces the nav (`<nav aria-label="Tabs">`):
-- **Layout.** `--tabbar-h` 56px plus the safe-area inset, `--background`, hairline top border, five equal columns: Overview, Journal, Add, Passport, Me (Я). Leaderboard is reached from Me and the desktop nav; Settings leaves the tab bar.
+**Mobile (700px and below).** Header minimum height 48px with the current page title and queue slot; the split Add and avatar menu are hidden. A fixed bottom tab bar replaces the nav (`<nav aria-label="Tabs">`):
+- **Layout.** `--tabbar-h` 56px plus the safe-area inset, `--background`, no top divider hairline, five equal columns: Overview, Journal, Add, Passport, Me (Я). Leaderboard is reached from Me and the desktop nav; Settings leaves the tab bar.
 - **Tabs.** Icon 22px stroke 2 above a 12/16 label (11px at 360px and below), `--text-muted`; press fills `--surface-inset`. Active is `--accent-text`, 600, with a 2px accent bar on the top edge.
 - **Add** is a button, not a link: it opens a bottom Sheet titled "Add a flight" holding the three `AddActions` as 52px (`--action-row-h`) rows with 20px icons. The sheet closes on any route change.
 - **Me** is active on `/me` and the viewer's own `/fly/<username>`, never another member's.
 - **Keyboard.** When the visual viewport is more than 120px shorter than the layout (and not pinch-zoomed) `html[data-keyboard=true]` slides the bar off-screen while it stays in the DOM and focus order, and resets the offsets below. With `resizes-content` viewports the flag may not fire; the bar then rides above the keyboard.
-- **Clearance.** `--tabbar-offset` (bar plus safe area) pads the page bottom (+24px); toasts lift by `--toast-bottom-offset`; the floating action bar sits at tab bar plus 16px.
+- **Clearance.** Fixed settings actions use the greater of `--tabbar-offset` and the safe-area inset, plus 12px, so the inset is counted once. `--tabbar-offset` (bar plus safe area) pads the page bottom (+24px); toasts lift by `--toast-bottom-offset`; the floating action bar sits at tab bar plus 16px.
 
 **Queue badge.** `QueueSummarySlot` reads the owner-scoped `AwaitingProvider` and links to `/journal?queue=awaiting`. Its localized accessible name separates flights awaiting confirmation from retained import rows needing review. A zero count is hidden; an initial transport failure says Queue unavailable rather than zero. The header and Add menu/sheet share this authority. Mobile headers display the current page title.
 
@@ -213,7 +232,7 @@ One breakpoint at 700px switches between desktop and mobile. The header and tab 
 - **Mobile (≤700px).** A brand band sits on top: dark `--background`, up to 302px tall after removing the board's device status bar, shrinking toward 160px on short viewports, holding a 52px header with the 28px wordmark and the utility controls, a horizontal くうき watermark at 104px and 14 planes. The form is in a bottom sheet: `--surface`, top corners `--radius-lg`, padding 28px top, 20px sides and 46px bottom. Its heading is 28/34, and inputs and the primary button are 48px tall with 16px text, so iOS does not zoom on focus. In light the sheet has a `--hairline` top edge; in dark, the white 6% inner highlight.
 - **Getting back in.** The Request, Check your inbox, Set password and Link expired states (boards "2.1" to "2.4") reuse the card with its wordmark and corner controls in place across states. They have no tagline. Mobile shows them in the same sheet.
 
-Dark brand-panel and input fills use the role tokens `--auth-brand-surface` and `--auth-input-surface` (`#2f2d2b`). The Next-owned isolated activation page retains system fonts under its restrictive CSP and has native help; it returns to the card after saving without signing in automatically.
+Dark brand-panel and input fills use the role tokens `--auth-brand-surface` and `--auth-input-surface` (`#2f2d2b`). The Next-owned isolated activation page retains system fonts under its restrictive CSP and has native help that locks background scrolling; it returns to the card after saving without signing in automatically.
 
 ### Accent picker
 
@@ -225,7 +244,7 @@ Shared controls live in [`apps/next/src/client/ui/`](apps/next/src/client/ui/) w
 
 | Primitive | Behavior |
 |---|---|
-| Button | Variants primary (flat accent), secondary, ghost, danger (outlined `--danger-text`). 44px min height, padding 10/18, radius `--radius-sm`, 600. `dense`: 32px visual, hit area to 40px (44px coarse); keep neighbors 8px apart (12px coarse). `loading`: static `loadingLabel` text, no spinner, width kept, `aria-busy`. `disabledReason`: uses `aria-disabled`, so the button stays focusable, and shows 13/20 helper text beneath. `static`: no press scale. |
+| Button | Variants primary (flat accent), secondary, ghost, danger (outlined `--danger-text`). 44px min height, padding 10/18, radius `--radius-sm`, 600. `dense`: 32px visual, hit area to 40px (44px coarse); keep neighbors 8px apart (12px coarse). `loading`: static `loadingLabel` text by default, no spinner, width kept, `aria-busy`; the scoped `morphText` opt-in keeps a persistent text-only label. `disabledReason`: uses `aria-disabled`, so the button stays focusable, and shows 13/20 helper text beneath. `static`: no press scale. |
 | Field | Label 600, optional marker, 13/20 hint, 44px input with `--control-border`, `aria-invalid` turns the border `--danger-text`. The error line reserves 20px so errors never shift layout. |
 | Dialog | Level 3, width `min(520px, 100vw − 32px)`, max height `min(100dvh − 48px, 680px)`, radius `--radius-lg`. Pinned header (22/28 title, 44px close) and footer (hairline top); the body scrolls. Focus lands on the title or `initialFocusRef` and returns to the trigger. `dismissible=false` blocks Escape, outside click and the close button while an action is pending. **Add dialog:** desktop manual add uses `.flight-add-dialog`, `min(560px, 100vw − 32px)`. |
 | Sheet | Radix dialog. `side="bottom"` on mobile, `"right"` (width `min(460px, 100vw)`) on desktop; radius `--radius-lg` on exposed corners. The handle is the only drag surface (bottom: 40×4 grip in a 28px strip; right: 20×64 tab on the left edge), so body scroll and text selection stay native. Release dismisses past 35% of the sheet size or faster than 0.11 px/ms (measured over about 100ms); dragging against the open direction rubber-bands to 80px. A visible close button is the keyboard alternative. **Keyboard inset:** the bottom sheet follows `visualViewport` (skipped while pinch-zoomed), setting `--sheet-kb` as its bottom offset and max height; past 80px it drops the footer's safe-area padding. Focus lands on the title or `initialFocusRef`. **Full-height variant** `.flight-full-sheet`: height `100dvh − --sheet-kb`, radius 0, used by mobile add, flight detail and combobox search. |
@@ -244,7 +263,7 @@ A typeable date field, not a picker-only control. The input is text with `inputM
 
 ### Combobox
 
-Used for airports, airlines and aircraft. Matches code, label, detail and verified search aliases; an exact code match ranks first; with an empty query per-account recents come first; at most 50 rows. A polite status announces the count with real plural forms. Options are 44px with `<mark>` highlights (`--info-fill`) and mono codes. Arrows move, Enter chooses, Escape closes.
+Used for airports, airlines and aircraft. Matches code, label, detail and verified search aliases; an exact code match ranks first; with an empty query per-account recents come first; at most 50 rows. A polite status announces the count with real plural forms. Options are 44px with `<mark>` highlights (`--info-text` on `--surface-inset`, ≥4.5:1) and mono codes. Arrows move, Enter chooses, Escape closes.
 - **Honest fallback labelling.** In Russian, aircraft and airline rows without a localized name show their English reference name with «Название на английском». English does not label its normal reference names as a translation fallback. Verified airport aliases remain searchable. Owner-scoped recents use local storage across tabs, with an in-memory fallback when storage is unavailable.
 - **Desktop.** A level 2 popover under the input, max height 360px.
 - **Mobile (≤700px).** A full-height search Sheet (`.flight-full-sheet`) with the search input pinned at the top (sticky) and focused on open; results scroll beneath. Close is labelled «Закрыть поиск». On close, focus returns to the origin field without reopening the list.
@@ -253,9 +272,47 @@ Used for airports, airlines and aircraft. Matches code, label, detail and verifi
 
 `Ticket` and `Stamp` live in `apps/next/src/client/signature/`. Ticket: level 1, radius `--radius-md`, route in mono 34/40 with a dashed perforation (stub beside the main block from 700px up), status pill, states upcoming, today, awaiting (accent border and 4px start rule) and logged. Lifecycle actions stay outside the decorative SVG, and essential labels are HTML at least 12px. Stamp: round for air, rectangular for land and sea, dashed ring for claims, an empty slot for pending, and rings by visits (1; 2–9; 10 or more); ink is normalized in OKLCH per theme (≥3:1 on the surface; neutral ink for black and near-white flags). Keep only Ticket and map code that has an actual consumer.
 
+## Overview redesign
+
+**Built.** [Overview Release 3](docs/plans/2026-10-07-overview-release-3-ui.md) replaces the older Overview design. The seven sections, FilterBar and OverviewGlobe are built; final page assembly is complete. The production `/overview` route uses the new page, route skeleton and error boundary. Retired summary and missing-aircraft endpoints are removed; the older summary service remains only for the offline parity script. The new route contract uses owner-scoped data and preferences, keeps unavailable distinct from empty, and accepts a valid legacy bookmark year as an initial server seed only. The URL is not a live filter authority. Pending country derivation is labelled, with the all-time country figure identified as the last published total; focus and lifecycle revalidation use the same data store. An account with archived, claim or ground geography keeps its real country total even with no canonical flights. This section records source decisions, not deployment or visual verification. The dev fixture route is guarded to return 404 in production.
+
+**Page and scope.** Next shows global upcoming flights independently of completed-flight filters. The globe and hero follow, then seven reorderable sections. Hero values are flights, kilometres, time in the air, countries and territories, and airports on desktop; mobile omits airports and shows four values. Estimated duration carries ≈ and an estimated-count caption. Comparable time periods show signed deltas against the previous equal-length period, preserving other facets; non-contiguous years have no fabricated comparison. With other facets and no period, figures show their share of the all-time baseline.
+
+**One filter authority.** The account store owns filters, layout and replay pause, with one 800ms preference saver. Values within a facet are ORed and facets are ANDed over canonical logged/awaiting rows, using weights in aggregate mode. Facets are period, country, airport, airline, alliance at flight date, undirected route, aircraft, family, maker, body type, haul, domestic/international, departure band, departure hour, arrival hour and region. Years select whole years; month ranges include both endpoints. Country/region filters respect suppressed transit evidence; airport filters retain both endpoints. Unknown facet values remain removable and may yield zero results.
+
+The globe’s top-left FilterBar measures actual wrapped controls into two rows, reserves the opposite corner and sends overflow to a +N control. A chip represents one facet, shows up to two values plus +N, and supports editing and removal. The searchable picker uses Popover on desktop and Sheet on mobile. The heading names the current scope. Chart actions and picker controls update the same store.
+
+**Globe.** First paint is static SSR SVG with real routes and the sphere; the atlas is fetched only after mounting. WebGL2 admission and idle loading bring in MapLibre lazily. Import, map or context errors permanently keep that mounted surface on SVG, with route data available as a table. The rim is a flat static 8px accent tint, with an explicit 1px hairline limb exception; it is neither glow nor an animated gradient. Filtered countries and routes retain ghost context and use the scoped map buckets.
+
+Card corners hold filters, Fullscreen, replay transport and legend. The card and Fullscreen share one replay clock, with at most 12 planes; excess launches add arcs only, and admitted planes retain four-second tails. The timeline spans calendar months, including gaps; aggregates replay monthly without private flight IDs. Replay pauses offscreen, in a hidden tab and on identity retirement. Reduced motion never plays and uses static mid-arc plane glyphs. Camera changes take 600ms; reduced motion cuts instantly.
+
+Fine-pointer wheel zoom is disabled on the card and enabled in Fullscreen. Coarse-pointer surfaces use `pan-y`; after a 10px axis decision, horizontal dragging spins longitude opposite the drag while vertical movement remains page scrolling. Two-finger gestures go to MapLibre. Corner controls preserve vertical page scrolling. These are source interaction contracts; no physical-device verification is implied.
+
+**Bento and sheets.** Default order is Rankings, Records, Manufacturers, Fleet, Clock, Rhythm, Crossings. Desktop adjacent narrow/wide pairs use a 392:792 ratio with a 16px gap; other cards span the lane. Tablet (701–1023px) stacks cards. Mobile (≤700px) uses whole-card tiles; Manufacturers stays full width. A tile opens the shared Sheet with an H2, previous/next controls and pager segments. Headers/tiles reorder through a 400ms coarse-pointer hold; 8px movement before activation cancels it, while a fine pointer activates at 4px. Escape, pointer cancellation and identity changes stop dragging. Menu Move up/Move down/Hide is the keyboard alternative; Hidden sections can be restored. No divider hairlines separate these surfaces.
+
+| Section | Built anatomy |
+|---|---|
+| Rankings | Actual airline/airport/route leaders, rank-by-year bump with matching dash cues, and Head to head comparative counts: Airbus/Boeing, shorter/long-haul and day/night; excluded evidence stays explicit. |
+| Records | A record cabinet with real distance/duration witnesses, route/date and provenance, northernmost airport, earliest departure and busiest year; route sketches support the evidence. |
+| Manufacturers | Six fixed maker slots and a rounded-square waffle, with Flights/Distance/Time controls, visible counts and Unknown coverage/review cues. |
+| Fleet | Narrow/wide body split plus family duration ridgelines using KDE in log-duration space; sparse observations keep their distinct treatment. |
+| Clock | Polar local-hour clock with Departures/Arrivals control, night band and explicit untimed coverage. |
+| Rhythm | Year/month heat grid, step odometer, date brush and From/To MonthRange controls. |
+| Crossings | Four counter tiles (clock shift, hourly endpoint UTC offsets, equator and Arctic Circle) plus a year-shift ledger; offsets are not zones actually overflown. |
+
+**Chart and data contract.** KuukiChart wraps TanStack section charts and their tooltip/actions/table path. Micro-visuals and segmented bars use HTML/SVG; interactive segments are native buttons. Click or keyboard selection adds the applicable filter; the first touch tap pins a tooltip with explicit Add filter/Open flight actions instead of filtering immediately. Visible values, legends, dashes and table rows provide alternatives to color. All chart data has a View as table path; record evidence also has a table. Aggregate mode (more than 5,000 rows) carries null private IDs, hides Open flight, and uses a waffle unit of at least five, stated in its legend. Public summaries omit private flight IDs.
+
+Threshold and coverage gates say how much evidence is present and what is needed, with applicable corrective actions. Missing reads never become fake data or confirmed zero. Charts below the fold mount behind fixed-height skeletons with a 200px observation margin. In-view charts use native TanStack 1,100ms motion; offscreen charts and reduced motion snap. Figures and chips remain instant. Captions are 15/24 Commissioner 600, normal case; mono is for routes/codes/times/ticks, and numbers are tabular. Dense controls are 32px visually with 44px coarse-pointer hit areas; browser-native controls and menus retain keyboard access.
+
+**Brush limit.** TanStack Charts 1.0.0 cannot expand brush handles to 44px independently of their drawing. The brush overlay also reserves touch movement, so a vertical swipe starting on it does not scroll the page. The built 44px From/To month controls are the accepted alternative.
+
+**States.** First run retains a still globe and Import/Add CTA with a narrator, without figures or sections. Filtered zero keeps chips and ghost context, shows em-dashes in figures, and replaces sections with one narrator/action line (Remove last filter and Clear all). Unavailable remains a separate failure state with retry, not an empty journal.
+
+**Narrator is a product pillar.** One deterministic, dry, data-backed EN/RU line at most per ready section foot or below-threshold placeholder, plus the dedicated first-run/zero/globe slots. It is Commissioner 15/24 400, `--text-muted`, max 60ch, without hairline, icon or quotes. Triggers respect coverage and thresholds; the same owner, scope and slot choose a stable variant. It never replaces facts, coverage or an instruction; tile captions stay factual. Russian uses «вы». The native Russian owner revision and narrator copy are approved; no visual audit is implied. Public narration must use summary evidence without exposing private IDs; the public presentation remains outside this release’s visual scope.
+
 ## Copy and trust
 
-Capture, auth, privacy, settings, errors, validation and destructive flows are calm and direct, with no humor. Wit is allowed only as a secondary line in non-critical empty states, achievements and insights, never replacing the instruction. Russian copy uses «вы»; no «ты» forms. Every string is written in RU and EN together with real plural forms (inline `{en, ru}` pairs or `locale-en` / `locale-ru` spans, plurals through the shared formatter), and checked at 320px and 200% text size.
+Capture, auth, privacy, settings, errors, validation and destructive flows are calm and direct, with no humor. Wit is allowed only as a secondary line in non-critical empty states, achievements and insights, never replacing the instruction. The built Overview narrator is the approved exception: it appears in ready section feet, threshold placeholders and dedicated empty/filter/globe slots, and never replaces an instruction. Russian copy uses «вы»; no «ты» forms. Every string is written in RU and EN together with real plural forms (inline `{en, ru}` pairs or `locale-en` / `locale-ru` spans, plurals through the shared formatter), and must be checked at 320px and 200% text size; this is a design requirement, not a claim of visual verification for Overview Release 3.
 
 "Nothing is stamped without you" is a precise rule, not an absolute promise: the one documented exception (D11) is that an awaiting flight is confirmed automatically seven days after it becomes date-eligible. Say so wherever the promise appears, for example in queue helper text. Never write "never" or "always" about stamping.
 
@@ -264,8 +321,9 @@ Capture, auth, privacy, settings, errors, validation and destructive flows are c
 | Superseded | Replaced by |
 |---|---|
 | Glass, blur, grain, gradient buttons, glow | Solid levels 0–3 and flat accent fill. |
+| Terracotta default accent (`#a94e35` / `#e6a184`) and red danger (`#a43535`) | Built Shu 朱 and crimson danger. |
 | Journey UI and navigation | Removed (D7); `/journey` redirects to `/overview`. |
-| く logo mark | 空 tile (see Logo mark). Auth surfaces use a text wordmark; member and loading surfaces retain the tile. |
+| Earlier single 空 navbar tile | Member くうき crossfade tile; loading retains static 空 and auth retains its text wordmark (see Logo mark). |
 | Filled or heavier active-tab icon | Accent text, 600 label and a 2px accent bar. |
 | Legacy `.button`, `.field`, and `.capture-confirm` | `Button`, `Field`, and `DestructiveConfirm`. Still used by unmigrated routes; new work uses the ui kit. Unused `.dialog-*`, `.period-switch`, and `.read-sheet` rules were removed. |
 

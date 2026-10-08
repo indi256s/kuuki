@@ -1,0 +1,5948 @@
+{
+  "phase": "before",
+  "count": 5000,
+  "generatedAt": "2026-10-07T19:00:20.917Z",
+  "commit": "2b5b3a4b317c8cb7f6dede6272baa32a48810423",
+  "buildId": "EQi_qGtAkEdHkILj16UUc",
+  "conditions": {
+    "viewport": "1280x800",
+    "cpu": "unthrottled",
+    "network": "localhost, unthrottled",
+    "cold": "State replay warmed common chunks; use before-cold-5000.json for cold loads",
+    "warm": "same hydrated browser, HTTP/router caches enabled"
+  },
+  "loads": [
+    {
+      "route": "journal",
+      "iteration": 0,
+      "cls": 0.014735128283500673,
+      "fcp": 128,
+      "lcp": 460,
+      "longtasks": [],
+      "readyMs": 216,
+      "resources": [
+        {
+          "bytes": 300,
+          "decodedBytes": 29439,
+          "endMs": 66.60000002384186,
+          "initiator": "link",
+          "path": "/_next/static/chunks/3qrcc0ph2gkvd.css",
+          "startMs": 62.60000002384186
+        },
+        {
+          "bytes": 1471,
+          "decodedBytes": 4384,
+          "endMs": 71,
+          "initiator": "link",
+          "path": "/_next/static/chunks/373lbhvpc1r1i.css",
+          "startMs": 62.70000004768371
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 16780,
+          "endMs": 71.10000002384186,
+          "initiator": "link",
+          "path": "/_next/static/chunks/1rbcwfa9zhejw.css",
+          "startMs": 62.70000004768371
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 3223,
+          "endMs": 71.20000004768372,
+          "initiator": "link",
+          "path": "/_next/static/chunks/2floqq6zn3wjt.css",
+          "startMs": 62.70000004768371
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 5232,
+          "endMs": 70.70000004768372,
+          "initiator": "link",
+          "path": "/_next/static/chunks/0bxr2y51-f9ef.css",
+          "startMs": 62.80000001192093
+        },
+        {
+          "bytes": 972,
+          "decodedBytes": 1858,
+          "endMs": 70.80000001192093,
+          "initiator": "link",
+          "path": "/_next/static/chunks/006nrbxnx-k09.css",
+          "startMs": 62.80000001192093
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 6645,
+          "endMs": 77.10000002384186,
+          "initiator": "link",
+          "path": "/_next/static/chunks/39dioubvbxly6.css",
+          "startMs": 62.80000001192093
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 8600,
+          "endMs": 79,
+          "initiator": "link",
+          "path": "/_next/static/chunks/3w5tu81mltute.js",
+          "startMs": 62.90000003576279
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 31485,
+          "endMs": 85.80000001192093,
+          "initiator": "script",
+          "path": "/_next/static/chunks/0c_9yyzf_6rpm.js",
+          "startMs": 62.90000003576279
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 9721,
+          "endMs": 85.90000003576279,
+          "initiator": "script",
+          "path": "/_next/static/chunks/turbopack-2lgxib3bx900x.js",
+          "startMs": 62.90000003576279
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 156262,
+          "endMs": 85.80000001192093,
+          "initiator": "script",
+          "path": "/_next/static/chunks/21-ownes04iw3.js",
+          "startMs": 62.90000003576279
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 233202,
+          "endMs": 86,
+          "initiator": "script",
+          "path": "/_next/static/chunks/03kfi98ln2-8l.js",
+          "startMs": 62.90000003576279
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 35653,
+          "endMs": 85.70000004768372,
+          "initiator": "script",
+          "path": "/_next/static/chunks/3q50e7cbysvhf.js",
+          "startMs": 63
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 93543,
+          "endMs": 88.5,
+          "initiator": "script",
+          "path": "/_next/static/chunks/1dre8c-f_56iy.js",
+          "startMs": 63
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 477,
+          "endMs": 98.60000002384186,
+          "initiator": "script",
+          "path": "/_next/static/chunks/0fcsjmfd1sp5s.js",
+          "startMs": 63
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 2437,
+          "endMs": 98.60000002384186,
+          "initiator": "script",
+          "path": "/_next/static/chunks/0hzkbsqwc5pnw.js",
+          "startMs": 63
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 39604,
+          "endMs": 115.5,
+          "initiator": "script",
+          "path": "/_next/static/chunks/1upm8nyf9ikis.js",
+          "startMs": 63
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 40633,
+          "endMs": 115.60000002384186,
+          "initiator": "script",
+          "path": "/_next/static/chunks/1xrt35eyi7yx4.js",
+          "startMs": 63
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 49873,
+          "endMs": 106.20000004768372,
+          "initiator": "script",
+          "path": "/_next/static/chunks/3sx36n8m13lsh.js",
+          "startMs": 63.10000002384186
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 33344,
+          "endMs": 106.4000000357628,
+          "initiator": "script",
+          "path": "/_next/static/chunks/04-zygmprjyq2.js",
+          "startMs": 63.10000002384186
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 110553,
+          "endMs": 106.5,
+          "initiator": "script",
+          "path": "/_next/static/chunks/2_dkcqutyjzlh.js",
+          "startMs": 63.10000002384186
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 1024,
+          "endMs": 134.9000000357628,
+          "initiator": "script",
+          "path": "/_next/static/chunks/2cz47oa_yrf33.js",
+          "startMs": 63.10000002384186
+        },
+        {
+          "bytes": 6985,
+          "decodedBytes": 16183,
+          "endMs": 135.4000000357628,
+          "initiator": "script",
+          "path": "/_next/static/chunks/2gviakv-oh5ky.js",
+          "startMs": 63.10000002384186
+        },
+        {
+          "bytes": 5806,
+          "decodedBytes": 42868,
+          "endMs": 137.80000001192093,
+          "initiator": "script",
+          "path": "/_next/static/chunks/0-n34y7sd7jqy.js",
+          "startMs": 63.20000004768371
+        },
+        {
+          "bytes": 11797,
+          "decodedBytes": 53951,
+          "endMs": 139.20000004768372,
+          "initiator": "script",
+          "path": "/_next/static/chunks/32pdcaoo31pic.js",
+          "startMs": 63.20000004768371
+        },
+        {
+          "bytes": 10956,
+          "decodedBytes": 62453,
+          "endMs": 140.9000000357628,
+          "initiator": "script",
+          "path": "/_next/static/chunks/3ah0s41o7us5n.js",
+          "startMs": 63.20000004768371
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 156554,
+          "endMs": 153.60000002384186,
+          "initiator": "script",
+          "path": "/_next/static/chunks/1ys7t0yr2ska6.js",
+          "startMs": 63.20000004768371
+        },
+        {
+          "bytes": 11395,
+          "decodedBytes": 35882,
+          "endMs": 145,
+          "initiator": "script",
+          "path": "/_next/static/chunks/02flxxga298f2.js",
+          "startMs": 63.30000001192093
+        },
+        {
+          "bytes": 14620,
+          "decodedBytes": 43789,
+          "endMs": 155.20000004768372,
+          "initiator": "script",
+          "path": "/_next/static/chunks/1yagfm8myqn5r.js",
+          "startMs": 63.30000001192093
+        },
+        {
+          "bytes": 143183,
+          "decodedBytes": 572388,
+          "endMs": 171.80000001192093,
+          "initiator": "script",
+          "path": "/_next/static/chunks/2wdlhgv0j1sq0.js",
+          "startMs": 63.30000001192093
+        },
+        {
+          "bytes": 2008,
+          "decodedBytes": 4655,
+          "endMs": 74.30000001192093,
+          "initiator": "link",
+          "path": "/bootstrap.js",
+          "startMs": 63.40000003576279
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 50556,
+          "endMs": 144.20000004768372,
+          "initiator": "script",
+          "path": "/_next/static/chunks/1_rm_d759cxcx.js",
+          "startMs": 63.40000003576279
+        },
+        {
+          "bytes": 69644,
+          "decodedBytes": 69344,
+          "endMs": 99.20000004768372,
+          "initiator": "css",
+          "path": "/fonts/Commissioner-Medium.woff2",
+          "startMs": 80
+        },
+        {
+          "bytes": 69540,
+          "decodedBytes": 69240,
+          "endMs": 99.4000000357628,
+          "initiator": "css",
+          "path": "/fonts/Commissioner-Regular.woff2",
+          "startMs": 80
+        },
+        {
+          "bytes": 68984,
+          "decodedBytes": 68684,
+          "endMs": 99.5,
+          "initiator": "css",
+          "path": "/fonts/Commissioner-SemiBold.woff2",
+          "startMs": 80
+        },
+        {
+          "bytes": 91626,
+          "decodedBytes": 187208,
+          "endMs": 124.60000002384186,
+          "initiator": "css",
+          "path": "/fonts/JetBrainsMono.ttf",
+          "startMs": 82.30000001192093
+        },
+        {
+          "bytes": 466,
+          "decodedBytes": 266,
+          "endMs": 208.60000002384183,
+          "initiator": "fetch",
+          "path": "/",
+          "startMs": 204.60000002384183
+        },
+        {
+          "bytes": 483,
+          "decodedBytes": 325,
+          "endMs": 214.20000004768372,
+          "initiator": "fetch",
+          "path": "/overview",
+          "startMs": 204.60000002384183
+        },
+        {
+          "bytes": 483,
+          "decodedBytes": 325,
+          "endMs": 214.10000002384183,
+          "initiator": "fetch",
+          "path": "/passport",
+          "startMs": 204.70000004768372
+        },
+        {
+          "bytes": 474,
+          "decodedBytes": 328,
+          "endMs": 214.20000004768372,
+          "initiator": "fetch",
+          "path": "/leaderboard",
+          "startMs": 204.70000004768372
+        },
+        {
+          "bytes": 471,
+          "decodedBytes": 320,
+          "endMs": 217.10000002384183,
+          "initiator": "fetch",
+          "path": "/add",
+          "startMs": 209.4000000357628
+        },
+        {
+          "bytes": 1001,
+          "decodedBytes": 1576,
+          "endMs": 227.30000001192093,
+          "initiator": "fetch",
+          "path": "/",
+          "startMs": 215
+        },
+        {
+          "bytes": 1261,
+          "decodedBytes": 2510,
+          "endMs": 227,
+          "initiator": "fetch",
+          "path": "/overview",
+          "startMs": 215.5
+        },
+        {
+          "bytes": 1007,
+          "decodedBytes": 1626,
+          "endMs": 227.20000004768372,
+          "initiator": "fetch",
+          "path": "/journal",
+          "startMs": 215.60000002384183
+        },
+        {
+          "bytes": 1257,
+          "decodedBytes": 2510,
+          "endMs": 230.60000002384183,
+          "initiator": "fetch",
+          "path": "/passport",
+          "startMs": 217.80000001192093
+        },
+        {
+          "bytes": 1005,
+          "decodedBytes": 1634,
+          "endMs": 235.70000004768372,
+          "initiator": "fetch",
+          "path": "/leaderboard",
+          "startMs": 227.70000004768372
+        },
+        {
+          "bytes": 1003,
+          "decodedBytes": 1627,
+          "endMs": 235.60000002384183,
+          "initiator": "fetch",
+          "path": "/add",
+          "startMs": 228
+        },
+        {
+          "bytes": 322,
+          "decodedBytes": 2,
+          "endMs": 305,
+          "initiator": "fetch",
+          "path": "/api/me/badges",
+          "startMs": 292.7000000476837
+        },
+        {
+          "bytes": 412,
+          "decodedBytes": 134,
+          "endMs": 437.2000000476837,
+          "initiator": "fetch",
+          "path": "/api/me/awaiting",
+          "startMs": 293.10000002384186
+        },
+        {
+          "bytes": 578,
+          "decodedBytes": 453,
+          "endMs": 437.300000011921,
+          "initiator": "fetch",
+          "path": "/api/auth/me",
+          "startMs": 293.30000001192093
+        },
+        {
+          "bytes": 401,
+          "decodedBytes": 91,
+          "endMs": 437.4000000357628,
+          "initiator": "fetch",
+          "path": "/api/me/transit-review",
+          "startMs": 293.30000001192093
+        }
+      ],
+      "ttfb": 25.30000001192093,
+      "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/151.0.0.0 Safari/537.36",
+      "jsGzipBytes": 519847
+    },
+    {
+      "route": "journal",
+      "iteration": 1,
+      "cls": 0.014735128283500673,
+      "fcp": 128,
+      "lcp": 444,
+      "longtasks": [],
+      "readyMs": 214,
+      "resources": [
+        {
+          "bytes": 300,
+          "decodedBytes": 29439,
+          "endMs": 67.30000001192093,
+          "initiator": "link",
+          "path": "/_next/static/chunks/3qrcc0ph2gkvd.css",
+          "startMs": 61.39999997615814
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 16780,
+          "endMs": 67.30000001192093,
+          "initiator": "link",
+          "path": "/_next/static/chunks/1rbcwfa9zhejw.css",
+          "startMs": 61.5
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 3223,
+          "endMs": 67.19999998807907,
+          "initiator": "link",
+          "path": "/_next/static/chunks/2floqq6zn3wjt.css",
+          "startMs": 61.60000002384186
+        },
+        {
+          "bytes": 1471,
+          "decodedBytes": 4384,
+          "endMs": 70.19999998807907,
+          "initiator": "link",
+          "path": "/_next/static/chunks/373lbhvpc1r1i.css",
+          "startMs": 61.60000002384186
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 5232,
+          "endMs": 70.39999997615814,
+          "initiator": "link",
+          "path": "/_next/static/chunks/0bxr2y51-f9ef.css",
+          "startMs": 61.60000002384186
+        },
+        {
+          "bytes": 972,
+          "decodedBytes": 1858,
+          "endMs": 70.19999998807907,
+          "initiator": "link",
+          "path": "/_next/static/chunks/006nrbxnx-k09.css",
+          "startMs": 61.69999998807907
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 6645,
+          "endMs": 73.80000001192093,
+          "initiator": "link",
+          "path": "/_next/static/chunks/39dioubvbxly6.css",
+          "startMs": 61.69999998807907
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 8600,
+          "endMs": 77.80000001192093,
+          "initiator": "link",
+          "path": "/_next/static/chunks/3w5tu81mltute.js",
+          "startMs": 61.69999998807907
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 9721,
+          "endMs": 85.30000001192093,
+          "initiator": "script",
+          "path": "/_next/static/chunks/turbopack-2lgxib3bx900x.js",
+          "startMs": 61.80000001192093
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 31485,
+          "endMs": 85.19999998807907,
+          "initiator": "script",
+          "path": "/_next/static/chunks/0c_9yyzf_6rpm.js",
+          "startMs": 61.80000001192093
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 156262,
+          "endMs": 85.19999998807907,
+          "initiator": "script",
+          "path": "/_next/static/chunks/21-ownes04iw3.js",
+          "startMs": 61.80000001192093
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 233202,
+          "endMs": 85.30000001192093,
+          "initiator": "script",
+          "path": "/_next/static/chunks/03kfi98ln2-8l.js",
+          "startMs": 61.80000001192093
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 35653,
+          "endMs": 85.10000002384186,
+          "initiator": "script",
+          "path": "/_next/static/chunks/3q50e7cbysvhf.js",
+          "startMs": 61.89999997615814
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 477,
+          "endMs": 98.39999997615814,
+          "initiator": "script",
+          "path": "/_next/static/chunks/0fcsjmfd1sp5s.js",
+          "startMs": 61.89999997615814
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 2437,
+          "endMs": 98.80000001192091,
+          "initiator": "script",
+          "path": "/_next/static/chunks/0hzkbsqwc5pnw.js",
+          "startMs": 61.89999997615814
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 93543,
+          "endMs": 98.5,
+          "initiator": "script",
+          "path": "/_next/static/chunks/1dre8c-f_56iy.js",
+          "startMs": 61.89999997615814
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 40633,
+          "endMs": 133.69999998807907,
+          "initiator": "script",
+          "path": "/_next/static/chunks/1xrt35eyi7yx4.js",
+          "startMs": 61.89999997615814
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 110553,
+          "endMs": 133.80000001192093,
+          "initiator": "script",
+          "path": "/_next/static/chunks/2_dkcqutyjzlh.js",
+          "startMs": 61.89999997615814
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 39604,
+          "endMs": 133.69999998807907,
+          "initiator": "script",
+          "path": "/_next/static/chunks/1upm8nyf9ikis.js",
+          "startMs": 61.89999997615814
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 33344,
+          "endMs": 112,
+          "initiator": "script",
+          "path": "/_next/static/chunks/04-zygmprjyq2.js",
+          "startMs": 62
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 49873,
+          "endMs": 111.80000001192091,
+          "initiator": "script",
+          "path": "/_next/static/chunks/3sx36n8m13lsh.js",
+          "startMs": 62
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 1024,
+          "endMs": 133.89999997615814,
+          "initiator": "script",
+          "path": "/_next/static/chunks/2cz47oa_yrf33.js",
+          "startMs": 62.10000002384186
+        },
+        {
+          "bytes": 6985,
+          "decodedBytes": 16183,
+          "endMs": 134.30000001192093,
+          "initiator": "script",
+          "path": "/_next/static/chunks/2gviakv-oh5ky.js",
+          "startMs": 62.10000002384186
+        },
+        {
+          "bytes": 5806,
+          "decodedBytes": 42868,
+          "endMs": 137.80000001192093,
+          "initiator": "script",
+          "path": "/_next/static/chunks/0-n34y7sd7jqy.js",
+          "startMs": 62.10000002384186
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 156554,
+          "endMs": 145.19999998807907,
+          "initiator": "script",
+          "path": "/_next/static/chunks/1ys7t0yr2ska6.js",
+          "startMs": 62.10000002384186
+        },
+        {
+          "bytes": 11797,
+          "decodedBytes": 53951,
+          "endMs": 153,
+          "initiator": "script",
+          "path": "/_next/static/chunks/32pdcaoo31pic.js",
+          "startMs": 62.10000002384186
+        },
+        {
+          "bytes": 10956,
+          "decodedBytes": 62453,
+          "endMs": 154.30000001192093,
+          "initiator": "script",
+          "path": "/_next/static/chunks/3ah0s41o7us5n.js",
+          "startMs": 62.10000002384186
+        },
+        {
+          "bytes": 14620,
+          "decodedBytes": 43789,
+          "endMs": 152,
+          "initiator": "script",
+          "path": "/_next/static/chunks/1yagfm8myqn5r.js",
+          "startMs": 62.19999998807907
+        },
+        {
+          "bytes": 143183,
+          "decodedBytes": 572388,
+          "endMs": 167.60000002384186,
+          "initiator": "script",
+          "path": "/_next/static/chunks/2wdlhgv0j1sq0.js",
+          "startMs": 62.19999998807907
+        },
+        {
+          "bytes": 2008,
+          "decodedBytes": 4655,
+          "endMs": 73.39999997615814,
+          "initiator": "link",
+          "path": "/bootstrap.js",
+          "startMs": 62.30000001192093
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 50556,
+          "endMs": 154.5,
+          "initiator": "script",
+          "path": "/_next/static/chunks/1_rm_d759cxcx.js",
+          "startMs": 62.30000001192093
+        },
+        {
+          "bytes": 11395,
+          "decodedBytes": 35882,
+          "endMs": 170.39999997615814,
+          "initiator": "script",
+          "path": "/_next/static/chunks/02flxxga298f2.js",
+          "startMs": 62.30000001192093
+        },
+        {
+          "bytes": 69540,
+          "decodedBytes": 69240,
+          "endMs": 90.39999997615814,
+          "initiator": "css",
+          "path": "/fonts/Commissioner-Regular.woff2",
+          "startMs": 76.5
+        },
+        {
+          "bytes": 68984,
+          "decodedBytes": 68684,
+          "endMs": 102.89999997615814,
+          "initiator": "css",
+          "path": "/fonts/Commissioner-SemiBold.woff2",
+          "startMs": 76.60000002384186
+        },
+        {
+          "bytes": 69644,
+          "decodedBytes": 69344,
+          "endMs": 103,
+          "initiator": "css",
+          "path": "/fonts/Commissioner-Medium.woff2",
+          "startMs": 76.60000002384186
+        },
+        {
+          "bytes": 91626,
+          "decodedBytes": 187208,
+          "endMs": 126.5,
+          "initiator": "css",
+          "path": "/fonts/JetBrainsMono.ttf",
+          "startMs": 81.60000002384186
+        },
+        {
+          "bytes": 466,
+          "decodedBytes": 266,
+          "endMs": 210.10000002384183,
+          "initiator": "fetch",
+          "path": "/",
+          "startMs": 205.10000002384183
+        },
+        {
+          "bytes": 483,
+          "decodedBytes": 325,
+          "endMs": 210,
+          "initiator": "fetch",
+          "path": "/overview",
+          "startMs": 205.10000002384183
+        },
+        {
+          "bytes": 483,
+          "decodedBytes": 325,
+          "endMs": 215.60000002384183,
+          "initiator": "fetch",
+          "path": "/passport",
+          "startMs": 205.10000002384183
+        },
+        {
+          "bytes": 474,
+          "decodedBytes": 328,
+          "endMs": 215.60000002384183,
+          "initiator": "fetch",
+          "path": "/leaderboard",
+          "startMs": 205.10000002384183
+        },
+        {
+          "bytes": 471,
+          "decodedBytes": 320,
+          "endMs": 220.69999998807907,
+          "initiator": "fetch",
+          "path": "/add",
+          "startMs": 211
+        },
+        {
+          "bytes": 1004,
+          "decodedBytes": 1576,
+          "endMs": 220.69999998807907,
+          "initiator": "fetch",
+          "path": "/",
+          "startMs": 211.30000001192093
+        },
+        {
+          "bytes": 1260,
+          "decodedBytes": 2510,
+          "endMs": 227,
+          "initiator": "fetch",
+          "path": "/overview",
+          "startMs": 216.10000002384183
+        },
+        {
+          "bytes": 1006,
+          "decodedBytes": 1626,
+          "endMs": 226.89999997615817,
+          "initiator": "fetch",
+          "path": "/journal",
+          "startMs": 216.39999997615817
+        },
+        {
+          "bytes": 1260,
+          "decodedBytes": 2510,
+          "endMs": 233.30000001192093,
+          "initiator": "fetch",
+          "path": "/passport",
+          "startMs": 221.39999997615817
+        },
+        {
+          "bytes": 1005,
+          "decodedBytes": 1634,
+          "endMs": 233.10000002384183,
+          "initiator": "fetch",
+          "path": "/leaderboard",
+          "startMs": 221.69999998807907
+        },
+        {
+          "bytes": 1005,
+          "decodedBytes": 1627,
+          "endMs": 236.39999997615817,
+          "initiator": "fetch",
+          "path": "/add",
+          "startMs": 227.80000001192093
+        },
+        {
+          "bytes": 322,
+          "decodedBytes": 2,
+          "endMs": 307.5,
+          "initiator": "fetch",
+          "path": "/api/me/badges",
+          "startMs": 295.19999998807907
+        },
+        {
+          "bytes": 412,
+          "decodedBytes": 134,
+          "endMs": 421.699999988079,
+          "initiator": "fetch",
+          "path": "/api/me/awaiting",
+          "startMs": 295.39999997615814
+        },
+        {
+          "bytes": 578,
+          "decodedBytes": 453,
+          "endMs": 421.800000011921,
+          "initiator": "fetch",
+          "path": "/api/auth/me",
+          "startMs": 295.39999997615814
+        },
+        {
+          "bytes": 401,
+          "decodedBytes": 91,
+          "endMs": 421.89999997615814,
+          "initiator": "fetch",
+          "path": "/api/me/transit-review",
+          "startMs": 295.5
+        }
+      ],
+      "ttfb": 25.19999998807907,
+      "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/151.0.0.0 Safari/537.36",
+      "jsGzipBytes": 519847
+    },
+    {
+      "route": "journal",
+      "iteration": 2,
+      "cls": 0.014735128283500673,
+      "fcp": 124,
+      "lcp": 448,
+      "longtasks": [],
+      "readyMs": 209.79999995231628,
+      "resources": [
+        {
+          "bytes": 300,
+          "decodedBytes": 29439,
+          "endMs": 64.59999996423721,
+          "initiator": "link",
+          "path": "/_next/static/chunks/3qrcc0ph2gkvd.css",
+          "startMs": 60.39999997615814
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 16780,
+          "endMs": 69.09999996423721,
+          "initiator": "link",
+          "path": "/_next/static/chunks/1rbcwfa9zhejw.css",
+          "startMs": 60.5
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 3223,
+          "endMs": 69.09999996423721,
+          "initiator": "link",
+          "path": "/_next/static/chunks/2floqq6zn3wjt.css",
+          "startMs": 60.59999996423721
+        },
+        {
+          "bytes": 1471,
+          "decodedBytes": 4384,
+          "endMs": 69.19999998807907,
+          "initiator": "link",
+          "path": "/_next/static/chunks/373lbhvpc1r1i.css",
+          "startMs": 60.59999996423721
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 5232,
+          "endMs": 69,
+          "initiator": "link",
+          "path": "/_next/static/chunks/0bxr2y51-f9ef.css",
+          "startMs": 60.69999998807907
+        },
+        {
+          "bytes": 972,
+          "decodedBytes": 1858,
+          "endMs": 69.29999995231628,
+          "initiator": "link",
+          "path": "/_next/static/chunks/006nrbxnx-k09.css",
+          "startMs": 60.69999998807907
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 6645,
+          "endMs": 72.09999996423721,
+          "initiator": "link",
+          "path": "/_next/static/chunks/39dioubvbxly6.css",
+          "startMs": 60.69999998807907
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 8600,
+          "endMs": 83.29999995231628,
+          "initiator": "link",
+          "path": "/_next/static/chunks/3w5tu81mltute.js",
+          "startMs": 60.79999995231629
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 31485,
+          "endMs": 83.29999995231628,
+          "initiator": "script",
+          "path": "/_next/static/chunks/0c_9yyzf_6rpm.js",
+          "startMs": 60.79999995231629
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 9721,
+          "endMs": 83.19999998807907,
+          "initiator": "script",
+          "path": "/_next/static/chunks/turbopack-2lgxib3bx900x.js",
+          "startMs": 60.79999995231629
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 156262,
+          "endMs": 83.5,
+          "initiator": "script",
+          "path": "/_next/static/chunks/21-ownes04iw3.js",
+          "startMs": 60.79999995231629
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 233202,
+          "endMs": 83.5,
+          "initiator": "script",
+          "path": "/_next/static/chunks/03kfi98ln2-8l.js",
+          "startMs": 60.79999995231629
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 35653,
+          "endMs": 88,
+          "initiator": "script",
+          "path": "/_next/static/chunks/3q50e7cbysvhf.js",
+          "startMs": 60.79999995231629
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 93543,
+          "endMs": 98.29999995231628,
+          "initiator": "script",
+          "path": "/_next/static/chunks/1dre8c-f_56iy.js",
+          "startMs": 60.79999995231629
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 477,
+          "endMs": 98.29999995231628,
+          "initiator": "script",
+          "path": "/_next/static/chunks/0fcsjmfd1sp5s.js",
+          "startMs": 60.89999997615814
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 2437,
+          "endMs": 102.0999999642372,
+          "initiator": "script",
+          "path": "/_next/static/chunks/0hzkbsqwc5pnw.js",
+          "startMs": 60.89999997615814
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 40633,
+          "endMs": 113.39999997615814,
+          "initiator": "script",
+          "path": "/_next/static/chunks/1xrt35eyi7yx4.js",
+          "startMs": 60.89999997615814
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 39604,
+          "endMs": 113,
+          "initiator": "script",
+          "path": "/_next/static/chunks/1upm8nyf9ikis.js",
+          "startMs": 60.89999997615814
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 33344,
+          "endMs": 111.89999997615814,
+          "initiator": "script",
+          "path": "/_next/static/chunks/04-zygmprjyq2.js",
+          "startMs": 61
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 110553,
+          "endMs": 113.39999997615814,
+          "initiator": "script",
+          "path": "/_next/static/chunks/2_dkcqutyjzlh.js",
+          "startMs": 61
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 1024,
+          "endMs": 134.39999997615814,
+          "initiator": "script",
+          "path": "/_next/static/chunks/2cz47oa_yrf33.js",
+          "startMs": 61
+        },
+        {
+          "bytes": 6985,
+          "decodedBytes": 16183,
+          "endMs": 135.19999998807907,
+          "initiator": "script",
+          "path": "/_next/static/chunks/2gviakv-oh5ky.js",
+          "startMs": 61
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 49873,
+          "endMs": 134.29999995231628,
+          "initiator": "script",
+          "path": "/_next/static/chunks/3sx36n8m13lsh.js",
+          "startMs": 61
+        },
+        {
+          "bytes": 5806,
+          "decodedBytes": 42868,
+          "endMs": 135.89999997615814,
+          "initiator": "script",
+          "path": "/_next/static/chunks/0-n34y7sd7jqy.js",
+          "startMs": 61.09999996423721
+        },
+        {
+          "bytes": 11797,
+          "decodedBytes": 53951,
+          "endMs": 136.29999995231628,
+          "initiator": "script",
+          "path": "/_next/static/chunks/32pdcaoo31pic.js",
+          "startMs": 61.09999996423721
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 156554,
+          "endMs": 144.29999995231628,
+          "initiator": "script",
+          "path": "/_next/static/chunks/1ys7t0yr2ska6.js",
+          "startMs": 61.09999996423721
+        },
+        {
+          "bytes": 10956,
+          "decodedBytes": 62453,
+          "endMs": 151.19999998807907,
+          "initiator": "script",
+          "path": "/_next/static/chunks/3ah0s41o7us5n.js",
+          "startMs": 61.09999996423721
+        },
+        {
+          "bytes": 143183,
+          "decodedBytes": 572388,
+          "endMs": 166,
+          "initiator": "script",
+          "path": "/_next/static/chunks/2wdlhgv0j1sq0.js",
+          "startMs": 61.09999996423721
+        },
+        {
+          "bytes": 2008,
+          "decodedBytes": 4655,
+          "endMs": 74.69999998807907,
+          "initiator": "link",
+          "path": "/bootstrap.js",
+          "startMs": 61.19999998807907
+        },
+        {
+          "bytes": 11395,
+          "decodedBytes": 35882,
+          "endMs": 149.39999997615814,
+          "initiator": "script",
+          "path": "/_next/static/chunks/02flxxga298f2.js",
+          "startMs": 61.19999998807907
+        },
+        {
+          "bytes": 14620,
+          "decodedBytes": 43789,
+          "endMs": 150,
+          "initiator": "script",
+          "path": "/_next/static/chunks/1yagfm8myqn5r.js",
+          "startMs": 61.19999998807907
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 50556,
+          "endMs": 167.5999999642372,
+          "initiator": "script",
+          "path": "/_next/static/chunks/1_rm_d759cxcx.js",
+          "startMs": 61.19999998807907
+        },
+        {
+          "bytes": 69540,
+          "decodedBytes": 69240,
+          "endMs": 97.29999995231628,
+          "initiator": "css",
+          "path": "/fonts/Commissioner-Regular.woff2",
+          "startMs": 74.89999997615814
+        },
+        {
+          "bytes": 68984,
+          "decodedBytes": 68684,
+          "endMs": 97.39999997615814,
+          "initiator": "css",
+          "path": "/fonts/Commissioner-SemiBold.woff2",
+          "startMs": 75
+        },
+        {
+          "bytes": 69644,
+          "decodedBytes": 69344,
+          "endMs": 97.5,
+          "initiator": "css",
+          "path": "/fonts/Commissioner-Medium.woff2",
+          "startMs": 75
+        },
+        {
+          "bytes": 91626,
+          "decodedBytes": 187208,
+          "endMs": 124,
+          "initiator": "css",
+          "path": "/fonts/JetBrainsMono.ttf",
+          "startMs": 79.39999997615814
+        },
+        {
+          "bytes": 466,
+          "decodedBytes": 266,
+          "endMs": 207.19999998807907,
+          "initiator": "fetch",
+          "path": "/",
+          "startMs": 199.5
+        },
+        {
+          "bytes": 483,
+          "decodedBytes": 325,
+          "endMs": 207.19999998807907,
+          "initiator": "fetch",
+          "path": "/overview",
+          "startMs": 199.5999999642372
+        },
+        {
+          "bytes": 483,
+          "decodedBytes": 325,
+          "endMs": 212.89999997615817,
+          "initiator": "fetch",
+          "path": "/passport",
+          "startMs": 199.5999999642372
+        },
+        {
+          "bytes": 474,
+          "decodedBytes": 328,
+          "endMs": 212.79999995231628,
+          "initiator": "fetch",
+          "path": "/leaderboard",
+          "startMs": 199.69999998807907
+        },
+        {
+          "bytes": 471,
+          "decodedBytes": 320,
+          "endMs": 217.19999998807907,
+          "initiator": "fetch",
+          "path": "/add",
+          "startMs": 208.0999999642372
+        },
+        {
+          "bytes": 1004,
+          "decodedBytes": 1576,
+          "endMs": 217.0999999642372,
+          "initiator": "fetch",
+          "path": "/",
+          "startMs": 208.39999997615817
+        },
+        {
+          "bytes": 1259,
+          "decodedBytes": 2510,
+          "endMs": 222.79999995231628,
+          "initiator": "fetch",
+          "path": "/overview",
+          "startMs": 213.5999999642372
+        },
+        {
+          "bytes": 1009,
+          "decodedBytes": 1626,
+          "endMs": 222.69999998807907,
+          "initiator": "fetch",
+          "path": "/journal",
+          "startMs": 213.79999995231628
+        },
+        {
+          "bytes": 1257,
+          "decodedBytes": 2510,
+          "endMs": 229.0999999642372,
+          "initiator": "fetch",
+          "path": "/passport",
+          "startMs": 217.69999998807907
+        },
+        {
+          "bytes": 1003,
+          "decodedBytes": 1634,
+          "endMs": 229,
+          "initiator": "fetch",
+          "path": "/leaderboard",
+          "startMs": 217.89999997615817
+        },
+        {
+          "bytes": 1004,
+          "decodedBytes": 1627,
+          "endMs": 232.5,
+          "initiator": "fetch",
+          "path": "/add",
+          "startMs": 223.5999999642372
+        },
+        {
+          "bytes": 322,
+          "decodedBytes": 2,
+          "endMs": 313.39999997615814,
+          "initiator": "fetch",
+          "path": "/api/me/badges",
+          "startMs": 297.7999999523163
+        },
+        {
+          "bytes": 412,
+          "decodedBytes": 134,
+          "endMs": 428.39999997615814,
+          "initiator": "fetch",
+          "path": "/api/me/awaiting",
+          "startMs": 298.89999997615814
+        },
+        {
+          "bytes": 578,
+          "decodedBytes": 453,
+          "endMs": 428.5,
+          "initiator": "fetch",
+          "path": "/api/auth/me",
+          "startMs": 299.0999999642372
+        },
+        {
+          "bytes": 401,
+          "decodedBytes": 91,
+          "endMs": 428.5999999642372,
+          "initiator": "fetch",
+          "path": "/api/me/transit-review",
+          "startMs": 299.0999999642372
+        }
+      ],
+      "ttfb": 23.5,
+      "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/151.0.0.0 Safari/537.36",
+      "jsGzipBytes": 519847
+    },
+    {
+      "route": "overview",
+      "iteration": 0,
+      "cls": 0.01228078022003174,
+      "fcp": 96,
+      "lcp": 160,
+      "longtasks": [],
+      "readyMs": 158.30000001192093,
+      "resources": [
+        {
+          "bytes": 300,
+          "decodedBytes": 29439,
+          "endMs": 65.89999997615814,
+          "initiator": "link",
+          "path": "/_next/static/chunks/3qrcc0ph2gkvd.css",
+          "startMs": 59.59999996423721
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 16780,
+          "endMs": 66,
+          "initiator": "link",
+          "path": "/_next/static/chunks/1rbcwfa9zhejw.css",
+          "startMs": 59.69999998807907
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 3223,
+          "endMs": 65.69999998807907,
+          "initiator": "link",
+          "path": "/_next/static/chunks/2floqq6zn3wjt.css",
+          "startMs": 59.80000001192093
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 4502,
+          "endMs": 68.80000001192093,
+          "initiator": "link",
+          "path": "/_next/static/chunks/0i4mxoc8-o-_d.css",
+          "startMs": 59.80000001192093
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 5232,
+          "endMs": 68.89999997615814,
+          "initiator": "link",
+          "path": "/_next/static/chunks/0bxr2y51-f9ef.css",
+          "startMs": 59.80000001192093
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 11063,
+          "endMs": 69,
+          "initiator": "link",
+          "path": "/_next/static/chunks/1k7uc3w8giqay.css",
+          "startMs": 59.80000001192093
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 6645,
+          "endMs": 72.80000001192093,
+          "initiator": "link",
+          "path": "/_next/static/chunks/39dioubvbxly6.css",
+          "startMs": 59.89999997615814
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 8600,
+          "endMs": 75.5,
+          "initiator": "link",
+          "path": "/_next/static/chunks/3w5tu81mltute.js",
+          "startMs": 59.89999997615814
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 31485,
+          "endMs": 83.69999998807907,
+          "initiator": "script",
+          "path": "/_next/static/chunks/0c_9yyzf_6rpm.js",
+          "startMs": 59.89999997615814
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 9721,
+          "endMs": 83.80000001192093,
+          "initiator": "script",
+          "path": "/_next/static/chunks/turbopack-2lgxib3bx900x.js",
+          "startMs": 59.89999997615814
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 35653,
+          "endMs": 83.59999996423721,
+          "initiator": "script",
+          "path": "/_next/static/chunks/3q50e7cbysvhf.js",
+          "startMs": 59.89999997615814
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 156262,
+          "endMs": 83.80000001192093,
+          "initiator": "script",
+          "path": "/_next/static/chunks/21-ownes04iw3.js",
+          "startMs": 59.89999997615814
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 233202,
+          "endMs": 83.89999997615814,
+          "initiator": "script",
+          "path": "/_next/static/chunks/03kfi98ln2-8l.js",
+          "startMs": 59.89999997615814
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 93543,
+          "endMs": 85.59999996423721,
+          "initiator": "script",
+          "path": "/_next/static/chunks/1dre8c-f_56iy.js",
+          "startMs": 60
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 2437,
+          "endMs": 91.5999999642372,
+          "initiator": "script",
+          "path": "/_next/static/chunks/0hzkbsqwc5pnw.js",
+          "startMs": 60
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 477,
+          "endMs": 91.80000001192091,
+          "initiator": "script",
+          "path": "/_next/static/chunks/0fcsjmfd1sp5s.js",
+          "startMs": 60
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 40633,
+          "endMs": 96.39999997615814,
+          "initiator": "script",
+          "path": "/_next/static/chunks/1xrt35eyi7yx4.js",
+          "startMs": 60.09999996423721
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 39604,
+          "endMs": 96.5999999642372,
+          "initiator": "script",
+          "path": "/_next/static/chunks/1upm8nyf9ikis.js",
+          "startMs": 60.09999996423721
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 110553,
+          "endMs": 96.30000001192091,
+          "initiator": "script",
+          "path": "/_next/static/chunks/2_dkcqutyjzlh.js",
+          "startMs": 60.09999996423721
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 1024,
+          "endMs": 104.5999999642372,
+          "initiator": "script",
+          "path": "/_next/static/chunks/2cz47oa_yrf33.js",
+          "startMs": 60.09999996423721
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 33344,
+          "endMs": 104.69999998807909,
+          "initiator": "script",
+          "path": "/_next/static/chunks/04-zygmprjyq2.js",
+          "startMs": 60.09999996423721
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 49873,
+          "endMs": 104.69999998807909,
+          "initiator": "script",
+          "path": "/_next/static/chunks/3sx36n8m13lsh.js",
+          "startMs": 60.09999996423721
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 56822,
+          "endMs": 110.80000001192091,
+          "initiator": "script",
+          "path": "/_next/static/chunks/0l_788ml94y-r.js",
+          "startMs": 60.19999998807907
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 37467,
+          "endMs": 110.80000001192091,
+          "initiator": "script",
+          "path": "/_next/static/chunks/0ya7tn3qt97f6.js",
+          "startMs": 60.19999998807907
+        },
+        {
+          "bytes": 2008,
+          "decodedBytes": 4655,
+          "endMs": 72.39999997615814,
+          "initiator": "link",
+          "path": "/bootstrap.js",
+          "startMs": 60.30000001192093
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 63034,
+          "endMs": 110.80000001192091,
+          "initiator": "script",
+          "path": "/_next/static/chunks/2ean80k9ej3ki.js",
+          "startMs": 60.30000001192093
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 50556,
+          "endMs": 120.69999998807909,
+          "initiator": "script",
+          "path": "/_next/static/chunks/1_rm_d759cxcx.js",
+          "startMs": 60.30000001192093
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 156554,
+          "endMs": 121.39999997615814,
+          "initiator": "script",
+          "path": "/_next/static/chunks/1ys7t0yr2ska6.js",
+          "startMs": 60.30000001192093
+        },
+        {
+          "bytes": 52437,
+          "decodedBytes": 143659,
+          "endMs": 132.5,
+          "initiator": "image",
+          "path": "/maps/world-outline-110m-2.0.2.svg",
+          "startMs": 74.09999996423721
+        },
+        {
+          "bytes": 69540,
+          "decodedBytes": 69240,
+          "endMs": 92.30000001192091,
+          "initiator": "css",
+          "path": "/fonts/Commissioner-Regular.woff2",
+          "startMs": 75.59999996423721
+        },
+        {
+          "bytes": 69644,
+          "decodedBytes": 69344,
+          "endMs": 92.19999998807909,
+          "initiator": "css",
+          "path": "/fonts/Commissioner-Medium.woff2",
+          "startMs": 76.5
+        },
+        {
+          "bytes": 68984,
+          "decodedBytes": 68684,
+          "endMs": 92.19999998807909,
+          "initiator": "css",
+          "path": "/fonts/Commissioner-SemiBold.woff2",
+          "startMs": 76.5
+        },
+        {
+          "bytes": 466,
+          "decodedBytes": 266,
+          "endMs": 143.89999997615814,
+          "initiator": "fetch",
+          "path": "/",
+          "startMs": 135.89999997615814
+        },
+        {
+          "bytes": 481,
+          "decodedBytes": 324,
+          "endMs": 143.69999998807907,
+          "initiator": "fetch",
+          "path": "/journal",
+          "startMs": 136
+        },
+        {
+          "bytes": 474,
+          "decodedBytes": 328,
+          "endMs": 148.39999997615814,
+          "initiator": "fetch",
+          "path": "/leaderboard",
+          "startMs": 136
+        },
+        {
+          "bytes": 483,
+          "decodedBytes": 325,
+          "endMs": 148.5,
+          "initiator": "fetch",
+          "path": "/passport",
+          "startMs": 136
+        },
+        {
+          "bytes": 471,
+          "decodedBytes": 320,
+          "endMs": 155.5999999642372,
+          "initiator": "fetch",
+          "path": "/add",
+          "startMs": 144.89999997615814
+        },
+        {
+          "bytes": 1003,
+          "decodedBytes": 1576,
+          "endMs": 155.5,
+          "initiator": "fetch",
+          "path": "/",
+          "startMs": 145.19999998807907
+        },
+        {
+          "bytes": 1009,
+          "decodedBytes": 1628,
+          "endMs": 161,
+          "initiator": "fetch",
+          "path": "/overview",
+          "startMs": 149.19999998807907
+        },
+        {
+          "bytes": 1260,
+          "decodedBytes": 2507,
+          "endMs": 161,
+          "initiator": "fetch",
+          "path": "/journal",
+          "startMs": 149.39999997615814
+        },
+        {
+          "bytes": 1259,
+          "decodedBytes": 2510,
+          "endMs": 166.30000001192093,
+          "initiator": "fetch",
+          "path": "/passport",
+          "startMs": 156.5
+        },
+        {
+          "bytes": 1009,
+          "decodedBytes": 1634,
+          "endMs": 166.19999998807907,
+          "initiator": "fetch",
+          "path": "/leaderboard",
+          "startMs": 156.89999997615814
+        },
+        {
+          "bytes": 1008,
+          "decodedBytes": 1627,
+          "endMs": 169,
+          "initiator": "fetch",
+          "path": "/add",
+          "startMs": 161.80000001192093
+        },
+        {
+          "bytes": 322,
+          "decodedBytes": 2,
+          "endMs": 296.39999997615814,
+          "initiator": "fetch",
+          "path": "/api/me/badges",
+          "startMs": 251.5
+        },
+        {
+          "bytes": 412,
+          "decodedBytes": 134,
+          "endMs": 296.39999997615814,
+          "initiator": "fetch",
+          "path": "/api/me/awaiting",
+          "startMs": 251.5999999642372
+        },
+        {
+          "bytes": 578,
+          "decodedBytes": 453,
+          "endMs": 319.89999997615814,
+          "initiator": "fetch",
+          "path": "/api/auth/me",
+          "startMs": 251.80000001192093
+        },
+        {
+          "bytes": 750,
+          "decodedBytes": 1069,
+          "endMs": 319.80000001192093,
+          "initiator": "fetch",
+          "path": "/api/flights/route-projection",
+          "startMs": 251.80000001192093
+        }
+      ],
+      "ttfb": 44.89999997615814,
+      "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/151.0.0.0 Safari/537.36",
+      "jsGzipBytes": 364510
+    },
+    {
+      "route": "overview",
+      "iteration": 1,
+      "cls": 0.01228078022003174,
+      "fcp": 88,
+      "lcp": 140,
+      "longtasks": [],
+      "readyMs": 141.80000001192093,
+      "resources": [
+        {
+          "bytes": 300,
+          "decodedBytes": 29439,
+          "endMs": 61.20000004768371,
+          "initiator": "link",
+          "path": "/_next/static/chunks/3qrcc0ph2gkvd.css",
+          "startMs": 56.40000003576279
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 16780,
+          "endMs": 61.30000001192093,
+          "initiator": "link",
+          "path": "/_next/static/chunks/1rbcwfa9zhejw.css",
+          "startMs": 56.40000003576279
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 3223,
+          "endMs": 61.10000002384186,
+          "initiator": "link",
+          "path": "/_next/static/chunks/2floqq6zn3wjt.css",
+          "startMs": 56.5
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 11063,
+          "endMs": 65,
+          "initiator": "link",
+          "path": "/_next/static/chunks/1k7uc3w8giqay.css",
+          "startMs": 56.5
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 5232,
+          "endMs": 65,
+          "initiator": "link",
+          "path": "/_next/static/chunks/0bxr2y51-f9ef.css",
+          "startMs": 56.5
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 4502,
+          "endMs": 64.90000003576279,
+          "initiator": "link",
+          "path": "/_next/static/chunks/0i4mxoc8-o-_d.css",
+          "startMs": 56.60000002384186
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 6645,
+          "endMs": 67,
+          "initiator": "link",
+          "path": "/_next/static/chunks/39dioubvbxly6.css",
+          "startMs": 56.60000002384186
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 8600,
+          "endMs": 69.90000003576279,
+          "initiator": "link",
+          "path": "/_next/static/chunks/3w5tu81mltute.js",
+          "startMs": 56.60000002384186
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 31485,
+          "endMs": 74.10000002384186,
+          "initiator": "script",
+          "path": "/_next/static/chunks/0c_9yyzf_6rpm.js",
+          "startMs": 56.60000002384186
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 35653,
+          "endMs": 74,
+          "initiator": "script",
+          "path": "/_next/static/chunks/3q50e7cbysvhf.js",
+          "startMs": 56.70000004768371
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 9721,
+          "endMs": 74.20000004768372,
+          "initiator": "script",
+          "path": "/_next/static/chunks/turbopack-2lgxib3bx900x.js",
+          "startMs": 56.70000004768371
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 156262,
+          "endMs": 74.10000002384186,
+          "initiator": "script",
+          "path": "/_next/static/chunks/21-ownes04iw3.js",
+          "startMs": 56.70000004768371
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 233202,
+          "endMs": 74.30000001192093,
+          "initiator": "script",
+          "path": "/_next/static/chunks/03kfi98ln2-8l.js",
+          "startMs": 56.70000004768371
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 93543,
+          "endMs": 77.5,
+          "initiator": "script",
+          "path": "/_next/static/chunks/1dre8c-f_56iy.js",
+          "startMs": 56.70000004768371
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 2437,
+          "endMs": 83.70000004768372,
+          "initiator": "script",
+          "path": "/_next/static/chunks/0hzkbsqwc5pnw.js",
+          "startMs": 56.80000001192093
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 40633,
+          "endMs": 83.5,
+          "initiator": "script",
+          "path": "/_next/static/chunks/1xrt35eyi7yx4.js",
+          "startMs": 56.80000001192093
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 477,
+          "endMs": 85.60000002384186,
+          "initiator": "script",
+          "path": "/_next/static/chunks/0fcsjmfd1sp5s.js",
+          "startMs": 56.80000001192093
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 39604,
+          "endMs": 90.5,
+          "initiator": "script",
+          "path": "/_next/static/chunks/1upm8nyf9ikis.js",
+          "startMs": 56.80000001192093
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 1024,
+          "endMs": 90.4000000357628,
+          "initiator": "script",
+          "path": "/_next/static/chunks/2cz47oa_yrf33.js",
+          "startMs": 56.90000003576279
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 33344,
+          "endMs": 90.60000002384186,
+          "initiator": "script",
+          "path": "/_next/static/chunks/04-zygmprjyq2.js",
+          "startMs": 56.90000003576279
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 110553,
+          "endMs": 90.60000002384186,
+          "initiator": "script",
+          "path": "/_next/static/chunks/2_dkcqutyjzlh.js",
+          "startMs": 56.90000003576279
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 49873,
+          "endMs": 90.70000004768372,
+          "initiator": "script",
+          "path": "/_next/static/chunks/3sx36n8m13lsh.js",
+          "startMs": 56.90000003576279
+        },
+        {
+          "bytes": 2008,
+          "decodedBytes": 4655,
+          "endMs": 66.90000003576279,
+          "initiator": "link",
+          "path": "/bootstrap.js",
+          "startMs": 57
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 56822,
+          "endMs": 93.70000004768372,
+          "initiator": "script",
+          "path": "/_next/static/chunks/0l_788ml94y-r.js",
+          "startMs": 57
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 37467,
+          "endMs": 101.20000004768372,
+          "initiator": "script",
+          "path": "/_next/static/chunks/0ya7tn3qt97f6.js",
+          "startMs": 57
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 156554,
+          "endMs": 101.4000000357628,
+          "initiator": "script",
+          "path": "/_next/static/chunks/1ys7t0yr2ska6.js",
+          "startMs": 57
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 50556,
+          "endMs": 101.30000001192091,
+          "initiator": "script",
+          "path": "/_next/static/chunks/1_rm_d759cxcx.js",
+          "startMs": 57
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 63034,
+          "endMs": 101.5,
+          "initiator": "script",
+          "path": "/_next/static/chunks/2ean80k9ej3ki.js",
+          "startMs": 57
+        },
+        {
+          "bytes": 52437,
+          "decodedBytes": 143659,
+          "endMs": 106.80000001192091,
+          "initiator": "image",
+          "path": "/maps/world-outline-110m-2.0.2.svg",
+          "startMs": 68
+        },
+        {
+          "bytes": 69540,
+          "decodedBytes": 69240,
+          "endMs": 84.10000002384186,
+          "initiator": "css",
+          "path": "/fonts/Commissioner-Regular.woff2",
+          "startMs": 69.5
+        },
+        {
+          "bytes": 69644,
+          "decodedBytes": 69344,
+          "endMs": 84,
+          "initiator": "css",
+          "path": "/fonts/Commissioner-Medium.woff2",
+          "startMs": 70.30000001192093
+        },
+        {
+          "bytes": 68984,
+          "decodedBytes": 68684,
+          "endMs": 83.90000003576279,
+          "initiator": "css",
+          "path": "/fonts/Commissioner-SemiBold.woff2",
+          "startMs": 70.30000001192093
+        },
+        {
+          "bytes": 466,
+          "decodedBytes": 266,
+          "endMs": 125.10000002384186,
+          "initiator": "fetch",
+          "path": "/",
+          "startMs": 117.4000000357628
+        },
+        {
+          "bytes": 481,
+          "decodedBytes": 324,
+          "endMs": 125.20000004768372,
+          "initiator": "fetch",
+          "path": "/journal",
+          "startMs": 117.4000000357628
+        },
+        {
+          "bytes": 483,
+          "decodedBytes": 325,
+          "endMs": 125.20000004768372,
+          "initiator": "fetch",
+          "path": "/passport",
+          "startMs": 117.5
+        },
+        {
+          "bytes": 474,
+          "decodedBytes": 328,
+          "endMs": 125.20000004768372,
+          "initiator": "fetch",
+          "path": "/leaderboard",
+          "startMs": 117.5
+        },
+        {
+          "bytes": 471,
+          "decodedBytes": 320,
+          "endMs": 128.80000001192093,
+          "initiator": "fetch",
+          "path": "/add",
+          "startMs": 125.9000000357628
+        },
+        {
+          "bytes": 1001,
+          "decodedBytes": 1576,
+          "endMs": 136.5,
+          "initiator": "fetch",
+          "path": "/",
+          "startMs": 126.5
+        },
+        {
+          "bytes": 1008,
+          "decodedBytes": 1628,
+          "endMs": 136.4000000357628,
+          "initiator": "fetch",
+          "path": "/overview",
+          "startMs": 126.70000004768372
+        },
+        {
+          "bytes": 1257,
+          "decodedBytes": 2507,
+          "endMs": 136.5,
+          "initiator": "fetch",
+          "path": "/journal",
+          "startMs": 126.9000000357628
+        },
+        {
+          "bytes": 1262,
+          "decodedBytes": 2510,
+          "endMs": 139.9000000357628,
+          "initiator": "fetch",
+          "path": "/passport",
+          "startMs": 129.30000001192093
+        },
+        {
+          "bytes": 1009,
+          "decodedBytes": 1634,
+          "endMs": 145.30000001192093,
+          "initiator": "fetch",
+          "path": "/leaderboard",
+          "startMs": 137.30000001192093
+        },
+        {
+          "bytes": 1004,
+          "decodedBytes": 1627,
+          "endMs": 145.30000001192093,
+          "initiator": "fetch",
+          "path": "/add",
+          "startMs": 137.5
+        },
+        {
+          "bytes": 322,
+          "decodedBytes": 2,
+          "endMs": 288,
+          "initiator": "fetch",
+          "path": "/api/me/badges",
+          "startMs": 219.20000004768372
+        },
+        {
+          "bytes": 412,
+          "decodedBytes": 134,
+          "endMs": 288,
+          "initiator": "fetch",
+          "path": "/api/me/awaiting",
+          "startMs": 219.30000001192093
+        },
+        {
+          "bytes": 578,
+          "decodedBytes": 453,
+          "endMs": 288.10000002384186,
+          "initiator": "fetch",
+          "path": "/api/auth/me",
+          "startMs": 219.4000000357628
+        },
+        {
+          "bytes": 750,
+          "decodedBytes": 1069,
+          "endMs": 288.2000000476837,
+          "initiator": "fetch",
+          "path": "/api/flights/route-projection",
+          "startMs": 219.60000002384183
+        }
+      ],
+      "ttfb": 45.60000002384186,
+      "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/151.0.0.0 Safari/537.36",
+      "jsGzipBytes": 364510
+    },
+    {
+      "route": "overview",
+      "iteration": 2,
+      "cls": 0.01228078022003174,
+      "fcp": 100,
+      "lcp": 148,
+      "longtasks": [],
+      "readyMs": 162.60000002384186,
+      "resources": [
+        {
+          "bytes": 300,
+          "decodedBytes": 29439,
+          "endMs": 71.10000002384186,
+          "initiator": "link",
+          "path": "/_next/static/chunks/3qrcc0ph2gkvd.css",
+          "startMs": 61.80000001192093
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 16780,
+          "endMs": 71.10000002384186,
+          "initiator": "link",
+          "path": "/_next/static/chunks/1rbcwfa9zhejw.css",
+          "startMs": 61.80000001192093
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 3223,
+          "endMs": 71.20000004768372,
+          "initiator": "link",
+          "path": "/_next/static/chunks/2floqq6zn3wjt.css",
+          "startMs": 61.90000003576279
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 4502,
+          "endMs": 71,
+          "initiator": "link",
+          "path": "/_next/static/chunks/0i4mxoc8-o-_d.css",
+          "startMs": 61.90000003576279
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 11063,
+          "endMs": 71.60000002384186,
+          "initiator": "link",
+          "path": "/_next/static/chunks/1k7uc3w8giqay.css",
+          "startMs": 61.90000003576279
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 5232,
+          "endMs": 71.90000003576279,
+          "initiator": "link",
+          "path": "/_next/static/chunks/0bxr2y51-f9ef.css",
+          "startMs": 61.90000003576279
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 6645,
+          "endMs": 72.80000001192093,
+          "initiator": "link",
+          "path": "/_next/static/chunks/39dioubvbxly6.css",
+          "startMs": 61.90000003576279
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 8600,
+          "endMs": 79.5,
+          "initiator": "link",
+          "path": "/_next/static/chunks/3w5tu81mltute.js",
+          "startMs": 62
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 31485,
+          "endMs": 79.60000002384186,
+          "initiator": "script",
+          "path": "/_next/static/chunks/0c_9yyzf_6rpm.js",
+          "startMs": 62
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 156262,
+          "endMs": 79.60000002384186,
+          "initiator": "script",
+          "path": "/_next/static/chunks/21-ownes04iw3.js",
+          "startMs": 62
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 233202,
+          "endMs": 79.80000001192093,
+          "initiator": "script",
+          "path": "/_next/static/chunks/03kfi98ln2-8l.js",
+          "startMs": 62
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 9721,
+          "endMs": 79.5,
+          "initiator": "script",
+          "path": "/_next/static/chunks/turbopack-2lgxib3bx900x.js",
+          "startMs": 62.10000002384186
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 35653,
+          "endMs": 82.20000004768372,
+          "initiator": "script",
+          "path": "/_next/static/chunks/3q50e7cbysvhf.js",
+          "startMs": 62.10000002384186
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 477,
+          "endMs": 87.80000001192093,
+          "initiator": "script",
+          "path": "/_next/static/chunks/0fcsjmfd1sp5s.js",
+          "startMs": 62.10000002384186
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 93543,
+          "endMs": 87.80000001192093,
+          "initiator": "script",
+          "path": "/_next/static/chunks/1dre8c-f_56iy.js",
+          "startMs": 62.10000002384186
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 2437,
+          "endMs": 100.10000002384186,
+          "initiator": "script",
+          "path": "/_next/static/chunks/0hzkbsqwc5pnw.js",
+          "startMs": 62.10000002384186
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 40633,
+          "endMs": 100,
+          "initiator": "script",
+          "path": "/_next/static/chunks/1xrt35eyi7yx4.js",
+          "startMs": 62.10000002384186
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 110553,
+          "endMs": 95.80000001192091,
+          "initiator": "script",
+          "path": "/_next/static/chunks/2_dkcqutyjzlh.js",
+          "startMs": 62.20000004768371
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 33344,
+          "endMs": 96,
+          "initiator": "script",
+          "path": "/_next/static/chunks/04-zygmprjyq2.js",
+          "startMs": 62.20000004768371
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 39604,
+          "endMs": 100.20000004768372,
+          "initiator": "script",
+          "path": "/_next/static/chunks/1upm8nyf9ikis.js",
+          "startMs": 62.20000004768371
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 49873,
+          "endMs": 95.80000001192091,
+          "initiator": "script",
+          "path": "/_next/static/chunks/3sx36n8m13lsh.js",
+          "startMs": 62.30000001192093
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 1024,
+          "endMs": 106.60000002384186,
+          "initiator": "script",
+          "path": "/_next/static/chunks/2cz47oa_yrf33.js",
+          "startMs": 62.30000001192093
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 56822,
+          "endMs": 106.60000002384186,
+          "initiator": "script",
+          "path": "/_next/static/chunks/0l_788ml94y-r.js",
+          "startMs": 62.30000001192093
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 37467,
+          "endMs": 106.5,
+          "initiator": "script",
+          "path": "/_next/static/chunks/0ya7tn3qt97f6.js",
+          "startMs": 62.30000001192093
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 156554,
+          "endMs": 111.60000002384186,
+          "initiator": "script",
+          "path": "/_next/static/chunks/1ys7t0yr2ska6.js",
+          "startMs": 62.30000001192093
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 50556,
+          "endMs": 111.80000001192091,
+          "initiator": "script",
+          "path": "/_next/static/chunks/1_rm_d759cxcx.js",
+          "startMs": 62.30000001192093
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 63034,
+          "endMs": 111.70000004768372,
+          "initiator": "script",
+          "path": "/_next/static/chunks/2ean80k9ej3ki.js",
+          "startMs": 62.30000001192093
+        },
+        {
+          "bytes": 2008,
+          "decodedBytes": 4655,
+          "endMs": 74.5,
+          "initiator": "link",
+          "path": "/bootstrap.js",
+          "startMs": 62.40000003576279
+        },
+        {
+          "bytes": 52437,
+          "decodedBytes": 143659,
+          "endMs": 121.70000004768372,
+          "initiator": "image",
+          "path": "/maps/world-outline-110m-2.0.2.svg",
+          "startMs": 74
+        },
+        {
+          "bytes": 68984,
+          "decodedBytes": 68684,
+          "endMs": 89.10000002384186,
+          "initiator": "css",
+          "path": "/fonts/Commissioner-SemiBold.woff2",
+          "startMs": 75.60000002384186
+        },
+        {
+          "bytes": 69540,
+          "decodedBytes": 69240,
+          "endMs": 89,
+          "initiator": "css",
+          "path": "/fonts/Commissioner-Regular.woff2",
+          "startMs": 75.60000002384186
+        },
+        {
+          "bytes": 69644,
+          "decodedBytes": 69344,
+          "endMs": 89.20000004768372,
+          "initiator": "css",
+          "path": "/fonts/Commissioner-Medium.woff2",
+          "startMs": 75.70000004768372
+        },
+        {
+          "bytes": 481,
+          "decodedBytes": 324,
+          "endMs": 136.10000002384186,
+          "initiator": "fetch",
+          "path": "/journal",
+          "startMs": 129.80000001192093
+        },
+        {
+          "bytes": 466,
+          "decodedBytes": 266,
+          "endMs": 136.10000002384186,
+          "initiator": "fetch",
+          "path": "/",
+          "startMs": 129.80000001192093
+        },
+        {
+          "bytes": 483,
+          "decodedBytes": 325,
+          "endMs": 136.30000001192093,
+          "initiator": "fetch",
+          "path": "/passport",
+          "startMs": 129.80000001192093
+        },
+        {
+          "bytes": 474,
+          "decodedBytes": 328,
+          "endMs": 139.10000002384186,
+          "initiator": "fetch",
+          "path": "/leaderboard",
+          "startMs": 129.9000000357628
+        },
+        {
+          "bytes": 471,
+          "decodedBytes": 320,
+          "endMs": 144.60000002384186,
+          "initiator": "fetch",
+          "path": "/add",
+          "startMs": 136.9000000357628
+        },
+        {
+          "bytes": 1002,
+          "decodedBytes": 1576,
+          "endMs": 144.5,
+          "initiator": "fetch",
+          "path": "/",
+          "startMs": 137.20000004768372
+        },
+        {
+          "bytes": 1009,
+          "decodedBytes": 1628,
+          "endMs": 144.5,
+          "initiator": "fetch",
+          "path": "/overview",
+          "startMs": 137.70000004768372
+        },
+        {
+          "bytes": 1256,
+          "decodedBytes": 2507,
+          "endMs": 147.4000000357628,
+          "initiator": "fetch",
+          "path": "/journal",
+          "startMs": 139.60000002384186
+        },
+        {
+          "bytes": 1260,
+          "decodedBytes": 2510,
+          "endMs": 152.9000000357628,
+          "initiator": "fetch",
+          "path": "/passport",
+          "startMs": 145.20000004768372
+        },
+        {
+          "bytes": 1004,
+          "decodedBytes": 1634,
+          "endMs": 152.80000001192093,
+          "initiator": "fetch",
+          "path": "/leaderboard",
+          "startMs": 145.5
+        },
+        {
+          "bytes": 1005,
+          "decodedBytes": 1627,
+          "endMs": 152.9000000357628,
+          "initiator": "fetch",
+          "path": "/add",
+          "startMs": 145.9000000357628
+        },
+        {
+          "bytes": 322,
+          "decodedBytes": 2,
+          "endMs": 246.30000001192093,
+          "initiator": "fetch",
+          "path": "/api/me/badges",
+          "startMs": 237.80000001192093
+        },
+        {
+          "bytes": 412,
+          "decodedBytes": 134,
+          "endMs": 293.80000001192093,
+          "initiator": "fetch",
+          "path": "/api/me/awaiting",
+          "startMs": 237.9000000357628
+        },
+        {
+          "bytes": 578,
+          "decodedBytes": 453,
+          "endMs": 294,
+          "initiator": "fetch",
+          "path": "/api/auth/me",
+          "startMs": 238
+        },
+        {
+          "bytes": 750,
+          "decodedBytes": 1069,
+          "endMs": 294,
+          "initiator": "fetch",
+          "path": "/api/flights/route-projection",
+          "startMs": 238.10000002384183
+        }
+      ],
+      "ttfb": 48.10000002384186,
+      "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/151.0.0.0 Safari/537.36",
+      "jsGzipBytes": 364510
+    },
+    {
+      "route": "passport",
+      "iteration": 0,
+      "cls": 0.0005732803344726562,
+      "fcp": 132,
+      "lcp": 132,
+      "longtasks": [],
+      "readyMs": 161.10000002384186,
+      "resources": [
+        {
+          "bytes": 300,
+          "decodedBytes": 29439,
+          "endMs": 57.60000002384186,
+          "initiator": "link",
+          "path": "/_next/static/chunks/3qrcc0ph2gkvd.css",
+          "startMs": 54.40000003576279
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 16780,
+          "endMs": 57.60000002384186,
+          "initiator": "link",
+          "path": "/_next/static/chunks/1rbcwfa9zhejw.css",
+          "startMs": 54.60000002384186
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 3223,
+          "endMs": 61.90000003576279,
+          "initiator": "link",
+          "path": "/_next/static/chunks/2floqq6zn3wjt.css",
+          "startMs": 54.60000002384186
+        },
+        {
+          "bytes": 2586,
+          "decodedBytes": 9598,
+          "endMs": 62,
+          "initiator": "link",
+          "path": "/_next/static/chunks/1gk1g8yfwdxhl.css",
+          "startMs": 54.60000002384186
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 6645,
+          "endMs": 61.90000003576279,
+          "initiator": "link",
+          "path": "/_next/static/chunks/39dioubvbxly6.css",
+          "startMs": 54.70000004768371
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 5232,
+          "endMs": 62,
+          "initiator": "link",
+          "path": "/_next/static/chunks/0bxr2y51-f9ef.css",
+          "startMs": 54.70000004768371
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 8600,
+          "endMs": 68.30000001192093,
+          "initiator": "link",
+          "path": "/_next/static/chunks/3w5tu81mltute.js",
+          "startMs": 54.70000004768371
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 31485,
+          "endMs": 68.30000001192093,
+          "initiator": "script",
+          "path": "/_next/static/chunks/0c_9yyzf_6rpm.js",
+          "startMs": 54.70000004768371
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 9721,
+          "endMs": 68.20000004768372,
+          "initiator": "script",
+          "path": "/_next/static/chunks/turbopack-2lgxib3bx900x.js",
+          "startMs": 54.80000001192093
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 156262,
+          "endMs": 68.5,
+          "initiator": "script",
+          "path": "/_next/static/chunks/21-ownes04iw3.js",
+          "startMs": 54.80000001192093
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 233202,
+          "endMs": 68.5,
+          "initiator": "script",
+          "path": "/_next/static/chunks/03kfi98ln2-8l.js",
+          "startMs": 54.80000001192093
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 35653,
+          "endMs": 71.20000004768372,
+          "initiator": "script",
+          "path": "/_next/static/chunks/3q50e7cbysvhf.js",
+          "startMs": 54.80000001192093
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 477,
+          "endMs": 78.80000001192093,
+          "initiator": "script",
+          "path": "/_next/static/chunks/0fcsjmfd1sp5s.js",
+          "startMs": 54.80000001192093
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 93543,
+          "endMs": 78.70000004768372,
+          "initiator": "script",
+          "path": "/_next/static/chunks/1dre8c-f_56iy.js",
+          "startMs": 54.80000001192093
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 2437,
+          "endMs": 78.70000004768372,
+          "initiator": "script",
+          "path": "/_next/static/chunks/0hzkbsqwc5pnw.js",
+          "startMs": 54.90000003576279
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 40633,
+          "endMs": 81.80000001192093,
+          "initiator": "script",
+          "path": "/_next/static/chunks/1xrt35eyi7yx4.js",
+          "startMs": 54.90000003576279
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 39604,
+          "endMs": 81.90000003576279,
+          "initiator": "script",
+          "path": "/_next/static/chunks/1upm8nyf9ikis.js",
+          "startMs": 54.90000003576279
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 110553,
+          "endMs": 81.80000001192093,
+          "initiator": "script",
+          "path": "/_next/static/chunks/2_dkcqutyjzlh.js",
+          "startMs": 54.90000003576279
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 1024,
+          "endMs": 84.80000001192093,
+          "initiator": "script",
+          "path": "/_next/static/chunks/2cz47oa_yrf33.js",
+          "startMs": 55
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 33344,
+          "endMs": 84.90000003576279,
+          "initiator": "script",
+          "path": "/_next/static/chunks/04-zygmprjyq2.js",
+          "startMs": 55
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 49873,
+          "endMs": 85,
+          "initiator": "script",
+          "path": "/_next/static/chunks/3sx36n8m13lsh.js",
+          "startMs": 55
+        },
+        {
+          "bytes": 514,
+          "decodedBytes": 248,
+          "endMs": 91.20000004768372,
+          "initiator": "script",
+          "path": "/_next/static/chunks/0ax1xhmi96_p-.js",
+          "startMs": 55
+        },
+        {
+          "bytes": 2008,
+          "decodedBytes": 4655,
+          "endMs": 64.10000002384186,
+          "initiator": "link",
+          "path": "/bootstrap.js",
+          "startMs": 55.10000002384186
+        },
+        {
+          "bytes": 11395,
+          "decodedBytes": 35882,
+          "endMs": 92.30000001192091,
+          "initiator": "script",
+          "path": "/_next/static/chunks/02flxxga298f2.js",
+          "startMs": 55.10000002384186
+        },
+        {
+          "bytes": 12339,
+          "decodedBytes": 37653,
+          "endMs": 92.4000000357628,
+          "initiator": "script",
+          "path": "/_next/static/chunks/0ts3c2kc3807z.js",
+          "startMs": 55.10000002384186
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 50556,
+          "endMs": 99.9000000357628,
+          "initiator": "script",
+          "path": "/_next/static/chunks/1_rm_d759cxcx.js",
+          "startMs": 55.10000002384186
+        },
+        {
+          "bytes": 14552,
+          "decodedBytes": 33152,
+          "endMs": 101.80000001192091,
+          "initiator": "script",
+          "path": "/_next/static/chunks/0iyt4sodypz3f.js",
+          "startMs": 55.10000002384186
+        },
+        {
+          "bytes": 10956,
+          "decodedBytes": 62453,
+          "endMs": 103.4000000357628,
+          "initiator": "script",
+          "path": "/_next/static/chunks/3ah0s41o7us5n.js",
+          "startMs": 55.10000002384186
+        },
+        {
+          "bytes": 69540,
+          "decodedBytes": 69240,
+          "endMs": 73.90000003576279,
+          "initiator": "css",
+          "path": "/fonts/Commissioner-Regular.woff2",
+          "startMs": 64.60000002384186
+        },
+        {
+          "bytes": 69644,
+          "decodedBytes": 69344,
+          "endMs": 73.80000001192093,
+          "initiator": "css",
+          "path": "/fonts/Commissioner-Medium.woff2",
+          "startMs": 64.70000004768372
+        },
+        {
+          "bytes": 68984,
+          "decodedBytes": 68684,
+          "endMs": 74,
+          "initiator": "css",
+          "path": "/fonts/Commissioner-SemiBold.woff2",
+          "startMs": 64.70000004768372
+        },
+        {
+          "bytes": 91626,
+          "decodedBytes": 187208,
+          "endMs": 107.60000002384186,
+          "initiator": "css",
+          "path": "/fonts/JetBrainsMono.ttf",
+          "startMs": 80.60000002384186
+        },
+        {
+          "bytes": 466,
+          "decodedBytes": 266,
+          "endMs": 241.60000002384183,
+          "initiator": "fetch",
+          "path": "/",
+          "startMs": 151.70000004768372
+        },
+        {
+          "bytes": 483,
+          "decodedBytes": 325,
+          "endMs": 241.4000000357628,
+          "initiator": "fetch",
+          "path": "/overview",
+          "startMs": 151.80000001192093
+        },
+        {
+          "bytes": 481,
+          "decodedBytes": 324,
+          "endMs": 241.5,
+          "initiator": "fetch",
+          "path": "/journal",
+          "startMs": 151.80000001192093
+        },
+        {
+          "bytes": 474,
+          "decodedBytes": 328,
+          "endMs": 241.5,
+          "initiator": "fetch",
+          "path": "/leaderboard",
+          "startMs": 151.80000001192093
+        },
+        {
+          "bytes": 471,
+          "decodedBytes": 320,
+          "endMs": 246.80000001192093,
+          "initiator": "fetch",
+          "path": "/add",
+          "startMs": 242.30000001192093
+        },
+        {
+          "bytes": 1003,
+          "decodedBytes": 1576,
+          "endMs": 252.20000004768372,
+          "initiator": "fetch",
+          "path": "/",
+          "startMs": 242.60000002384183
+        },
+        {
+          "bytes": 1262,
+          "decodedBytes": 2510,
+          "endMs": 252.30000001192093,
+          "initiator": "fetch",
+          "path": "/overview",
+          "startMs": 242.70000004768372
+        },
+        {
+          "bytes": 1260,
+          "decodedBytes": 2507,
+          "endMs": 252.30000001192093,
+          "initiator": "fetch",
+          "path": "/journal",
+          "startMs": 242.9000000357628
+        },
+        {
+          "bytes": 1009,
+          "decodedBytes": 1628,
+          "endMs": 255.80000001192093,
+          "initiator": "fetch",
+          "path": "/passport",
+          "startMs": 247.5
+        },
+        {
+          "bytes": 1005,
+          "decodedBytes": 1634,
+          "endMs": 259.7000000476837,
+          "initiator": "fetch",
+          "path": "/leaderboard",
+          "startMs": 253.10000002384183
+        },
+        {
+          "bytes": 1004,
+          "decodedBytes": 1627,
+          "endMs": 259.60000002384186,
+          "initiator": "fetch",
+          "path": "/add",
+          "startMs": 253.4000000357628
+        },
+        {
+          "bytes": 322,
+          "decodedBytes": 2,
+          "endMs": 307.9000000357628,
+          "initiator": "fetch",
+          "path": "/api/me/badges",
+          "startMs": 294.10000002384186
+        },
+        {
+          "bytes": 412,
+          "decodedBytes": 134,
+          "endMs": 340.7000000476837,
+          "initiator": "fetch",
+          "path": "/api/me/awaiting",
+          "startMs": 294.60000002384186
+        },
+        {
+          "bytes": 578,
+          "decodedBytes": 453,
+          "endMs": 340.60000002384186,
+          "initiator": "fetch",
+          "path": "/api/auth/me",
+          "startMs": 294.80000001192093
+        }
+      ],
+      "ttfb": 16.100000023841858,
+      "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/151.0.0.0 Safari/537.36",
+      "jsGzipBytes": 332618
+    },
+    {
+      "route": "passport",
+      "iteration": 1,
+      "cls": 0.0005732803344726562,
+      "fcp": 140,
+      "lcp": 140,
+      "longtasks": [],
+      "readyMs": 176.5,
+      "resources": [
+        {
+          "bytes": 300,
+          "decodedBytes": 29439,
+          "endMs": 67.69999998807907,
+          "initiator": "link",
+          "path": "/_next/static/chunks/3qrcc0ph2gkvd.css",
+          "startMs": 59.09999996423721
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 16780,
+          "endMs": 67.69999998807907,
+          "initiator": "link",
+          "path": "/_next/static/chunks/1rbcwfa9zhejw.css",
+          "startMs": 59.19999998807907
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 3223,
+          "endMs": 67.80000001192093,
+          "initiator": "link",
+          "path": "/_next/static/chunks/2floqq6zn3wjt.css",
+          "startMs": 59.19999998807907
+        },
+        {
+          "bytes": 2586,
+          "decodedBytes": 9598,
+          "endMs": 67.59999996423721,
+          "initiator": "link",
+          "path": "/_next/static/chunks/1gk1g8yfwdxhl.css",
+          "startMs": 59.30000001192093
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 5232,
+          "endMs": 67.89999997615814,
+          "initiator": "link",
+          "path": "/_next/static/chunks/0bxr2y51-f9ef.css",
+          "startMs": 59.39999997615814
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 6645,
+          "endMs": 70.09999996423721,
+          "initiator": "link",
+          "path": "/_next/static/chunks/39dioubvbxly6.css",
+          "startMs": 59.39999997615814
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 8600,
+          "endMs": 71.39999997615814,
+          "initiator": "link",
+          "path": "/_next/static/chunks/3w5tu81mltute.js",
+          "startMs": 59.39999997615814
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 31485,
+          "endMs": 79.30000001192093,
+          "initiator": "script",
+          "path": "/_next/static/chunks/0c_9yyzf_6rpm.js",
+          "startMs": 59.39999997615814
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 233202,
+          "endMs": 79.5,
+          "initiator": "script",
+          "path": "/_next/static/chunks/03kfi98ln2-8l.js",
+          "startMs": 59.5
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 35653,
+          "endMs": 79.09999996423721,
+          "initiator": "script",
+          "path": "/_next/static/chunks/3q50e7cbysvhf.js",
+          "startMs": 59.59999996423721
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 9721,
+          "endMs": 79.39999997615814,
+          "initiator": "script",
+          "path": "/_next/static/chunks/turbopack-2lgxib3bx900x.js",
+          "startMs": 59.59999996423721
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 156262,
+          "endMs": 79.30000001192093,
+          "initiator": "script",
+          "path": "/_next/static/chunks/21-ownes04iw3.js",
+          "startMs": 59.59999996423721
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 93543,
+          "endMs": 82.89999997615814,
+          "initiator": "script",
+          "path": "/_next/static/chunks/1dre8c-f_56iy.js",
+          "startMs": 59.59999996423721
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 477,
+          "endMs": 90.0999999642372,
+          "initiator": "script",
+          "path": "/_next/static/chunks/0fcsjmfd1sp5s.js",
+          "startMs": 59.59999996423721
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 2437,
+          "endMs": 90,
+          "initiator": "script",
+          "path": "/_next/static/chunks/0hzkbsqwc5pnw.js",
+          "startMs": 59.59999996423721
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 40633,
+          "endMs": 93.5,
+          "initiator": "script",
+          "path": "/_next/static/chunks/1xrt35eyi7yx4.js",
+          "startMs": 59.59999996423721
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 1024,
+          "endMs": 99.30000001192091,
+          "initiator": "script",
+          "path": "/_next/static/chunks/2cz47oa_yrf33.js",
+          "startMs": 59.69999998807907
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 39604,
+          "endMs": 99.39999997615814,
+          "initiator": "script",
+          "path": "/_next/static/chunks/1upm8nyf9ikis.js",
+          "startMs": 59.69999998807907
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 110553,
+          "endMs": 99.39999997615814,
+          "initiator": "script",
+          "path": "/_next/static/chunks/2_dkcqutyjzlh.js",
+          "startMs": 59.69999998807907
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 33344,
+          "endMs": 99.69999998807909,
+          "initiator": "script",
+          "path": "/_next/static/chunks/04-zygmprjyq2.js",
+          "startMs": 59.69999998807907
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 49873,
+          "endMs": 99.5,
+          "initiator": "script",
+          "path": "/_next/static/chunks/3sx36n8m13lsh.js",
+          "startMs": 59.69999998807907
+        },
+        {
+          "bytes": 514,
+          "decodedBytes": 248,
+          "endMs": 103.0999999642372,
+          "initiator": "script",
+          "path": "/_next/static/chunks/0ax1xhmi96_p-.js",
+          "startMs": 59.80000001192093
+        },
+        {
+          "bytes": 2008,
+          "decodedBytes": 4655,
+          "endMs": 67.5,
+          "initiator": "link",
+          "path": "/bootstrap.js",
+          "startMs": 59.89999997615814
+        },
+        {
+          "bytes": 11395,
+          "decodedBytes": 35882,
+          "endMs": 114.5999999642372,
+          "initiator": "script",
+          "path": "/_next/static/chunks/02flxxga298f2.js",
+          "startMs": 59.89999997615814
+        },
+        {
+          "bytes": 14552,
+          "decodedBytes": 33152,
+          "endMs": 114.69999998807909,
+          "initiator": "script",
+          "path": "/_next/static/chunks/0iyt4sodypz3f.js",
+          "startMs": 59.89999997615814
+        },
+        {
+          "bytes": 12339,
+          "decodedBytes": 37653,
+          "endMs": 115,
+          "initiator": "script",
+          "path": "/_next/static/chunks/0ts3c2kc3807z.js",
+          "startMs": 59.89999997615814
+        },
+        {
+          "bytes": 10956,
+          "decodedBytes": 62453,
+          "endMs": 116.39999997615814,
+          "initiator": "script",
+          "path": "/_next/static/chunks/3ah0s41o7us5n.js",
+          "startMs": 59.89999997615814
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 50556,
+          "endMs": 123.0999999642372,
+          "initiator": "script",
+          "path": "/_next/static/chunks/1_rm_d759cxcx.js",
+          "startMs": 59.89999997615814
+        },
+        {
+          "bytes": 68984,
+          "decodedBytes": 68684,
+          "endMs": 89.80000001192093,
+          "initiator": "css",
+          "path": "/fonts/Commissioner-SemiBold.woff2",
+          "startMs": 72.5
+        },
+        {
+          "bytes": 69540,
+          "decodedBytes": 69240,
+          "endMs": 89.59999996423721,
+          "initiator": "css",
+          "path": "/fonts/Commissioner-Regular.woff2",
+          "startMs": 72.5
+        },
+        {
+          "bytes": 69644,
+          "decodedBytes": 69344,
+          "endMs": 90.30000001192091,
+          "initiator": "css",
+          "path": "/fonts/Commissioner-Medium.woff2",
+          "startMs": 72.5
+        },
+        {
+          "bytes": 91626,
+          "decodedBytes": 187208,
+          "endMs": 121.30000001192091,
+          "initiator": "css",
+          "path": "/fonts/JetBrainsMono.ttf",
+          "startMs": 88.80000001192093
+        },
+        {
+          "bytes": 466,
+          "decodedBytes": 266,
+          "endMs": 205.69999998807907,
+          "initiator": "fetch",
+          "path": "/",
+          "startMs": 164.69999998807907
+        },
+        {
+          "bytes": 483,
+          "decodedBytes": 325,
+          "endMs": 205.5,
+          "initiator": "fetch",
+          "path": "/overview",
+          "startMs": 164.69999998807907
+        },
+        {
+          "bytes": 481,
+          "decodedBytes": 324,
+          "endMs": 205.5999999642372,
+          "initiator": "fetch",
+          "path": "/journal",
+          "startMs": 164.69999998807907
+        },
+        {
+          "bytes": 474,
+          "decodedBytes": 328,
+          "endMs": 205.69999998807907,
+          "initiator": "fetch",
+          "path": "/leaderboard",
+          "startMs": 164.69999998807907
+        },
+        {
+          "bytes": 471,
+          "decodedBytes": 320,
+          "endMs": 210.19999998807907,
+          "initiator": "fetch",
+          "path": "/add",
+          "startMs": 206.30000001192093
+        },
+        {
+          "bytes": 1002,
+          "decodedBytes": 1576,
+          "endMs": 217.30000001192093,
+          "initiator": "fetch",
+          "path": "/",
+          "startMs": 206.5999999642372
+        },
+        {
+          "bytes": 1260,
+          "decodedBytes": 2510,
+          "endMs": 217.19999998807907,
+          "initiator": "fetch",
+          "path": "/overview",
+          "startMs": 206.89999997615817
+        },
+        {
+          "bytes": 1259,
+          "decodedBytes": 2507,
+          "endMs": 217.30000001192093,
+          "initiator": "fetch",
+          "path": "/journal",
+          "startMs": 207
+        },
+        {
+          "bytes": 1010,
+          "decodedBytes": 1628,
+          "endMs": 220.39999997615817,
+          "initiator": "fetch",
+          "path": "/passport",
+          "startMs": 210.89999997615817
+        },
+        {
+          "bytes": 1006,
+          "decodedBytes": 1634,
+          "endMs": 224.69999998807907,
+          "initiator": "fetch",
+          "path": "/leaderboard",
+          "startMs": 217.89999997615817
+        },
+        {
+          "bytes": 1004,
+          "decodedBytes": 1627,
+          "endMs": 224.5999999642372,
+          "initiator": "fetch",
+          "path": "/add",
+          "startMs": 218.19999998807907
+        },
+        {
+          "bytes": 322,
+          "decodedBytes": 2,
+          "endMs": 354.0999999642372,
+          "initiator": "fetch",
+          "path": "/api/me/badges",
+          "startMs": 341.80000001192093
+        },
+        {
+          "bytes": 412,
+          "decodedBytes": 134,
+          "endMs": 391.199999988079,
+          "initiator": "fetch",
+          "path": "/api/me/awaiting",
+          "startMs": 342.0999999642372
+        },
+        {
+          "bytes": 578,
+          "decodedBytes": 453,
+          "endMs": 391.0999999642372,
+          "initiator": "fetch",
+          "path": "/api/auth/me",
+          "startMs": 342.19999998807907
+        }
+      ],
+      "ttfb": 16.30000001192093,
+      "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/151.0.0.0 Safari/537.36",
+      "jsGzipBytes": 332618
+    },
+    {
+      "route": "passport",
+      "iteration": 2,
+      "cls": 0.0005732803344726562,
+      "fcp": 144,
+      "lcp": 144,
+      "longtasks": [],
+      "readyMs": 181.19999998807907,
+      "resources": [
+        {
+          "bytes": 300,
+          "decodedBytes": 29439,
+          "endMs": 66.19999998807907,
+          "initiator": "link",
+          "path": "/_next/static/chunks/3qrcc0ph2gkvd.css",
+          "startMs": 60.59999996423721
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 16780,
+          "endMs": 66.09999996423721,
+          "initiator": "link",
+          "path": "/_next/static/chunks/1rbcwfa9zhejw.css",
+          "startMs": 60.69999998807907
+        },
+        {
+          "bytes": 2586,
+          "decodedBytes": 9598,
+          "endMs": 70.5,
+          "initiator": "link",
+          "path": "/_next/static/chunks/1gk1g8yfwdxhl.css",
+          "startMs": 60.69999998807907
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 6645,
+          "endMs": 70.29999995231628,
+          "initiator": "link",
+          "path": "/_next/static/chunks/39dioubvbxly6.css",
+          "startMs": 60.69999998807907
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 5232,
+          "endMs": 70.5,
+          "initiator": "link",
+          "path": "/_next/static/chunks/0bxr2y51-f9ef.css",
+          "startMs": 60.69999998807907
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 3223,
+          "endMs": 70.39999997615814,
+          "initiator": "link",
+          "path": "/_next/static/chunks/2floqq6zn3wjt.css",
+          "startMs": 60.69999998807907
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 8600,
+          "endMs": 73.79999995231628,
+          "initiator": "link",
+          "path": "/_next/static/chunks/3w5tu81mltute.js",
+          "startMs": 60.79999995231629
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 35653,
+          "endMs": 82.59999996423721,
+          "initiator": "script",
+          "path": "/_next/static/chunks/3q50e7cbysvhf.js",
+          "startMs": 60.89999997615814
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 9721,
+          "endMs": 82.89999997615814,
+          "initiator": "script",
+          "path": "/_next/static/chunks/turbopack-2lgxib3bx900x.js",
+          "startMs": 60.89999997615814
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 31485,
+          "endMs": 82.79999995231628,
+          "initiator": "script",
+          "path": "/_next/static/chunks/0c_9yyzf_6rpm.js",
+          "startMs": 60.89999997615814
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 156262,
+          "endMs": 83,
+          "initiator": "script",
+          "path": "/_next/static/chunks/21-ownes04iw3.js",
+          "startMs": 60.89999997615814
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 233202,
+          "endMs": 83.09999996423721,
+          "initiator": "script",
+          "path": "/_next/static/chunks/03kfi98ln2-8l.js",
+          "startMs": 60.89999997615814
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 93543,
+          "endMs": 85.59999996423721,
+          "initiator": "script",
+          "path": "/_next/static/chunks/1dre8c-f_56iy.js",
+          "startMs": 61
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 477,
+          "endMs": 90.5,
+          "initiator": "script",
+          "path": "/_next/static/chunks/0fcsjmfd1sp5s.js",
+          "startMs": 61
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 2437,
+          "endMs": 90.69999998807909,
+          "initiator": "script",
+          "path": "/_next/static/chunks/0hzkbsqwc5pnw.js",
+          "startMs": 61
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 39604,
+          "endMs": 95.29999995231628,
+          "initiator": "script",
+          "path": "/_next/static/chunks/1upm8nyf9ikis.js",
+          "startMs": 61.09999996423721
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 110553,
+          "endMs": 95.69999998807909,
+          "initiator": "script",
+          "path": "/_next/static/chunks/2_dkcqutyjzlh.js",
+          "startMs": 61.09999996423721
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 33344,
+          "endMs": 102.5,
+          "initiator": "script",
+          "path": "/_next/static/chunks/04-zygmprjyq2.js",
+          "startMs": 61.09999996423721
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 1024,
+          "endMs": 102.5999999642372,
+          "initiator": "script",
+          "path": "/_next/static/chunks/2cz47oa_yrf33.js",
+          "startMs": 61.09999996423721
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 49873,
+          "endMs": 102.69999998807909,
+          "initiator": "script",
+          "path": "/_next/static/chunks/3sx36n8m13lsh.js",
+          "startMs": 61.09999996423721
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 40633,
+          "endMs": 118.79999995231628,
+          "initiator": "script",
+          "path": "/_next/static/chunks/1xrt35eyi7yx4.js",
+          "startMs": 61.09999996423721
+        },
+        {
+          "bytes": 514,
+          "decodedBytes": 248,
+          "endMs": 118.29999995231628,
+          "initiator": "script",
+          "path": "/_next/static/chunks/0ax1xhmi96_p-.js",
+          "startMs": 61.19999998807907
+        },
+        {
+          "bytes": 11395,
+          "decodedBytes": 35882,
+          "endMs": 123,
+          "initiator": "script",
+          "path": "/_next/static/chunks/02flxxga298f2.js",
+          "startMs": 61.19999998807907
+        },
+        {
+          "bytes": 12339,
+          "decodedBytes": 37653,
+          "endMs": 123.29999995231628,
+          "initiator": "script",
+          "path": "/_next/static/chunks/0ts3c2kc3807z.js",
+          "startMs": 61.19999998807907
+        },
+        {
+          "bytes": 14552,
+          "decodedBytes": 33152,
+          "endMs": 123.29999995231628,
+          "initiator": "script",
+          "path": "/_next/static/chunks/0iyt4sodypz3f.js",
+          "startMs": 61.29999995231629
+        },
+        {
+          "bytes": 300,
+          "decodedBytes": 50556,
+          "endMs": 124.89999997615814,
+          "initiator": "script",
+          "path": "/_next/static/chunks/1_rm_d759cxcx.js",
+          "startMs": 61.29999995231629
+        },
+        {
+          "bytes": 10956,
+          "decodedBytes": 62453,
+          "endMs": 127.5,
+          "initiator": "script",
+          "path": "/_next/static/chunks/3ah0s41o7us5n.js",
+          "startMs": 61.29999995231629
+        },
+        {
+          "bytes": 2008,
+          "decodedBytes": 4655,
+          "endMs": 71.5,
+          "initiator": "link",
+          "path": "/bootstrap.js",
+          "startMs": 61.39999997615814
+        },
+        {
+          "bytes": 69540,
+          "decodedBytes": 69240,
+          "endMs": 94.0999999642372,
+          "initiator": "css",
+          "path": "/fonts/Commissioner-Regular.woff2",
+          "startMs": 73.5
+        },
+        {
+          "bytes": 69644,
+          "decodedBytes": 69344,
+          "endMs": 94.39999997615814,
+          "initiator": "css",
+          "path": "/fonts/Commissioner-Medium.woff2",
+          "startMs": 73.59999996423721
+        },
+        {
+          "bytes": 68984,
+          "decodedBytes": 68684,
+          "endMs": 94.39999997615814,
+          "initiator": "css",
+          "path": "/fonts/Commissioner-SemiBold.woff2",
+          "startMs": 73.59999996423721
+        },
+        {
+          "bytes": 91626,
+          "decodedBytes": 187208,
+          "endMs": 108.79999995231628,
+          "initiator": "css",
+          "path": "/fonts/JetBrainsMono.ttf",
+          "startMs": 86.39999997615814
+        },
+        {
+          "bytes": 466,
+          "decodedBytes": 266,
+          "endMs": 172.0999999642372,
+          "initiator": "fetch",
+          "path": "/",
+          "startMs": 163.39999997615814
+        },
+        {
+          "bytes": 483,
+          "decodedBytes": 325,
+          "endMs": 171.89999997615814,
+          "initiator": "fetch",
+          "path": "/overview",
+          "startMs": 163.39999997615814
+        },
+        {
+          "bytes": 481,
+          "decodedBytes": 324,
+          "endMs": 172.0999999642372,
+          "initiator": "fetch",
+          "path": "/journal",
+          "startMs": 163.39999997615814
+        },
+        {
+          "bytes": 474,
+          "decodedBytes": 328,
+          "endMs": 172.0999999642372,
+          "initiator": "fetch",
+          "path": "/leaderboard",
+          "startMs": 163.5
+        },
+        {
+          "bytes": 471,
+          "decodedBytes": 320,
+          "endMs": 176.19999998807907,
+          "initiator": "fetch",
+          "path": "/add",
+          "startMs": 173
+        },
+        {
+          "bytes": 1001,
+          "decodedBytes": 1576,
+          "endMs": 185.19999998807907,
+          "initiator": "fetch",
+          "path": "/",
+          "startMs": 173.19999998807907
+        },
+        {
+          "bytes": 1263,
+          "decodedBytes": 2510,
+          "endMs": 185.29999995231628,
+          "initiator": "fetch",
+          "path": "/overview",
+          "startMs": 173.39999997615814
+        },
+        {
+          "bytes": 1257,
+          "decodedBytes": 2507,
+          "endMs": 185.39999997615817,
+          "initiator": "fetch",
+          "path": "/journal",
+          "startMs": 173.5999999642372
+        },
+        {
+          "bytes": 1009,
+          "decodedBytes": 1628,
+          "endMs": 188.79999995231628,
+          "initiator": "fetch",
+          "path": "/passport",
+          "startMs": 177.0999999642372
+        },
+        {
+          "bytes": 1007,
+          "decodedBytes": 1634,
+          "endMs": 193.5,
+          "initiator": "fetch",
+          "path": "/leaderboard",
+          "startMs": 185.79999995231628
+        },
+        {
+          "bytes": 1004,
+          "decodedBytes": 1627,
+          "endMs": 193.5,
+          "initiator": "fetch",
+          "path": "/add",
+          "startMs": 186.19999998807907
+        },
+        {
+          "bytes": 322,
+          "decodedBytes": 2,
+          "endMs": 298.2999999523163,
+          "initiator": "fetch",
+          "path": "/api/me/badges",
+          "startMs": 285.7999999523163
+        },
+        {
+          "bytes": 412,
+          "decodedBytes": 134,
+          "endMs": 348.0999999642372,
+          "initiator": "fetch",
+          "path": "/api/me/awaiting",
+          "startMs": 286.19999998807907
+        },
+        {
+          "bytes": 578,
+          "decodedBytes": 453,
+          "endMs": 348.0999999642372,
+          "initiator": "fetch",
+          "path": "/api/auth/me",
+          "startMs": 286.19999998807907
+        }
+      ],
+      "ttfb": 16.099999964237213,
+      "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/151.0.0.0 Safari/537.36",
+      "jsGzipBytes": 332618
+    }
+  ],
+  "samples": [
+    {
+      "fallbackMs": null,
+      "feedbackMs": 14.300000011920927,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "journal:q=Tbilisi",
+      "readyMs": 89.59999996423721,
+      "requests": [
+        {
+          "bytes": 2642,
+          "endMs": 37.59999996423721,
+          "path": "/journal",
+          "startMs": 9.099999964237211
+        }
+      ]
+    },
+    {
+      "fallbackMs": null,
+      "feedbackMs": 17.5,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "journal:q=Tbilisi",
+      "readyMs": 93,
+      "requests": [
+        {
+          "bytes": 2643,
+          "endMs": 34.5,
+          "path": "/journal",
+          "startMs": 6.300000011920929
+        }
+      ]
+    },
+    {
+      "fallbackMs": null,
+      "feedbackMs": 21.19999998807907,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "journal:q=Tbilisi",
+      "readyMs": 87.59999996423721,
+      "requests": [
+        {
+          "bytes": 2640,
+          "endMs": 35.299999952316284,
+          "path": "/journal",
+          "startMs": 6.299999952316284
+        }
+      ]
+    },
+    {
+      "fallbackMs": null,
+      "feedbackMs": 13.100000023841858,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "journal:q=Tbilisi",
+      "readyMs": 82.19999998807907,
+      "requests": [
+        {
+          "bytes": 2642,
+          "endMs": 36.10000002384186,
+          "path": "/journal",
+          "startMs": 6
+        }
+      ]
+    },
+    {
+      "fallbackMs": null,
+      "feedbackMs": 14.399999976158142,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "journal:q=Tbilisi",
+      "readyMs": 80.69999998807907,
+      "requests": [
+        {
+          "bytes": 2640,
+          "endMs": 36.39999997615814,
+          "path": "/journal",
+          "startMs": 6.600000023841858
+        }
+      ]
+    },
+    {
+      "fallbackMs": null,
+      "feedbackMs": 27.80000001192093,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "journal:year=2025",
+      "readyMs": 71,
+      "requests": [
+        {
+          "bytes": 2644,
+          "endMs": 18.80000001192093,
+          "path": "/journal",
+          "startMs": 7
+        }
+      ]
+    },
+    {
+      "fallbackMs": null,
+      "feedbackMs": 28.5,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "journal:year=2025",
+      "readyMs": 74.09999996423721,
+      "requests": [
+        {
+          "bytes": 2648,
+          "endMs": 19.5,
+          "path": "/journal",
+          "startMs": 6
+        }
+      ]
+    },
+    {
+      "fallbackMs": null,
+      "feedbackMs": 33.30000001192093,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "journal:year=2025",
+      "readyMs": 76.19999998807907,
+      "requests": [
+        {
+          "bytes": 2647,
+          "endMs": 24.5,
+          "path": "/journal",
+          "startMs": 6.800000011920929
+        }
+      ]
+    },
+    {
+      "fallbackMs": null,
+      "feedbackMs": 29.100000023841854,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "journal:year=2025",
+      "readyMs": 72.5,
+      "requests": [
+        {
+          "bytes": 2645,
+          "endMs": 20.30000001192093,
+          "path": "/journal",
+          "startMs": 6.100000023841858
+        }
+      ]
+    },
+    {
+      "fallbackMs": null,
+      "feedbackMs": 26.5,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "journal:year=2025",
+      "readyMs": 73.39999997615814,
+      "requests": [
+        {
+          "bytes": 2646,
+          "endMs": 17.600000023841858,
+          "path": "/journal",
+          "startMs": 6.100000023841858
+        }
+      ]
+    },
+    {
+      "fallbackMs": null,
+      "feedbackMs": 21.099999964237213,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "journal:airline=TK",
+      "readyMs": 71.5,
+      "requests": [
+        {
+          "bytes": 2648,
+          "endMs": 20.19999998807907,
+          "path": "/journal",
+          "startMs": 6.199999988079071
+        }
+      ]
+    },
+    {
+      "fallbackMs": null,
+      "feedbackMs": 27.80000001192093,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "journal:airline=TK",
+      "readyMs": 73.90000003576279,
+      "requests": [
+        {
+          "bytes": 2644,
+          "endMs": 19.19999998807907,
+          "path": "/journal",
+          "startMs": 5.800000011920929
+        }
+      ]
+    },
+    {
+      "fallbackMs": null,
+      "feedbackMs": 34.10000002384186,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "journal:airline=TK",
+      "readyMs": 66.40000003576279,
+      "requests": [
+        {
+          "bytes": 2648,
+          "endMs": 22.80000001192093,
+          "path": "/journal",
+          "startMs": 6.100000023841858
+        }
+      ]
+    },
+    {
+      "fallbackMs": null,
+      "feedbackMs": 31.099999964237213,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "journal:airline=TK",
+      "readyMs": 63.69999998807907,
+      "requests": [
+        {
+          "bytes": 2646,
+          "endMs": 19.5,
+          "path": "/journal",
+          "startMs": 6.399999976158142
+        }
+      ]
+    },
+    {
+      "fallbackMs": null,
+      "feedbackMs": 32.09999996423721,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "journal:airline=TK",
+      "readyMs": 72.89999997615814,
+      "requests": [
+        {
+          "bytes": 2648,
+          "endMs": 23.099999964237213,
+          "path": "/journal",
+          "startMs": 6
+        }
+      ]
+    },
+    {
+      "fallbackMs": null,
+      "feedbackMs": 34.69999998807907,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "journal:aircraft=A320",
+      "readyMs": 76.89999997615814,
+      "requests": [
+        {
+          "bytes": 2628,
+          "endMs": 26,
+          "path": "/journal",
+          "startMs": 7.800000011920929
+        }
+      ]
+    },
+    {
+      "fallbackMs": null,
+      "feedbackMs": 24.200000047683716,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "journal:aircraft=A320",
+      "readyMs": 73.60000002384186,
+      "requests": [
+        {
+          "bytes": 2629,
+          "endMs": 29.700000047683716,
+          "path": "/journal",
+          "startMs": 6.200000047683716
+        }
+      ]
+    },
+    {
+      "fallbackMs": null,
+      "feedbackMs": 21.69999998807907,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "journal:aircraft=A320",
+      "readyMs": 72.5,
+      "requests": [
+        {
+          "bytes": 2631,
+          "endMs": 25.900000035762787,
+          "path": "/journal",
+          "startMs": 6.600000023841858
+        }
+      ]
+    },
+    {
+      "fallbackMs": null,
+      "feedbackMs": 20.100000023841854,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "journal:aircraft=A320",
+      "readyMs": 69.5,
+      "requests": [
+        {
+          "bytes": 2631,
+          "endMs": 24.80000001192093,
+          "path": "/journal",
+          "startMs": 6.5
+        }
+      ]
+    },
+    {
+      "fallbackMs": null,
+      "feedbackMs": 19.19999998807907,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "journal:aircraft=A320",
+      "readyMs": 69.59999996423721,
+      "requests": [
+        {
+          "bytes": 2633,
+          "endMs": 23.80000001192093,
+          "path": "/journal",
+          "startMs": 6.599999964237213
+        }
+      ]
+    },
+    {
+      "fallbackMs": null,
+      "feedbackMs": 28.69999998807907,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "journal:airport=IST",
+      "readyMs": 79.19999998807907,
+      "requests": [
+        {
+          "bytes": 2647,
+          "endMs": 19.899999976158146,
+          "path": "/journal",
+          "startMs": 6.299999952316284
+        }
+      ]
+    },
+    {
+      "fallbackMs": null,
+      "feedbackMs": 27.30000001192093,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "journal:airport=IST",
+      "readyMs": 70.70000004768372,
+      "requests": [
+        {
+          "bytes": 2646,
+          "endMs": 18.80000001192093,
+          "path": "/journal",
+          "startMs": 6.100000023841858
+        }
+      ]
+    },
+    {
+      "fallbackMs": null,
+      "feedbackMs": 22.299999952316284,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "journal:airport=IST",
+      "readyMs": 97.69999998807909,
+      "requests": [
+        {
+          "bytes": 2645,
+          "endMs": 32.5,
+          "path": "/journal",
+          "startMs": 6
+        }
+      ]
+    },
+    {
+      "fallbackMs": null,
+      "feedbackMs": 19.69999998807907,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "journal:airport=IST",
+      "readyMs": 72.19999998807907,
+      "requests": [
+        {
+          "bytes": 2645,
+          "endMs": 22.80000001192093,
+          "path": "/journal",
+          "startMs": 6.399999976158142
+        }
+      ]
+    },
+    {
+      "fallbackMs": null,
+      "feedbackMs": 30.30000001192093,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "journal:airport=IST",
+      "readyMs": 71.30000001192093,
+      "requests": [
+        {
+          "bytes": 2645,
+          "endMs": 21.30000001192093,
+          "path": "/journal",
+          "startMs": 6.300000011920929
+        }
+      ]
+    },
+    {
+      "fallbackMs": null,
+      "feedbackMs": 30.5,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "journal:origin=TBS",
+      "readyMs": 75.80000001192093,
+      "requests": [
+        {
+          "bytes": 2647,
+          "endMs": 21.5,
+          "path": "/journal",
+          "startMs": 6.099999964237213
+        }
+      ]
+    },
+    {
+      "fallbackMs": null,
+      "feedbackMs": 20.600000023841854,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "journal:origin=TBS",
+      "readyMs": 70.80000001192093,
+      "requests": [
+        {
+          "bytes": 2645,
+          "endMs": 22.30000001192093,
+          "path": "/journal",
+          "startMs": 6.300000011920929
+        }
+      ]
+    },
+    {
+      "fallbackMs": null,
+      "feedbackMs": 30.5,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "journal:origin=TBS",
+      "readyMs": 72.20000004768372,
+      "requests": [
+        {
+          "bytes": 2644,
+          "endMs": 21.80000001192093,
+          "path": "/journal",
+          "startMs": 6.100000023841858
+        }
+      ]
+    },
+    {
+      "fallbackMs": null,
+      "feedbackMs": 20.19999998807907,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "journal:origin=TBS",
+      "readyMs": 68.5,
+      "requests": [
+        {
+          "bytes": 2643,
+          "endMs": 25,
+          "path": "/journal",
+          "startMs": 6.699999988079071
+        }
+      ]
+    },
+    {
+      "fallbackMs": null,
+      "feedbackMs": 35.10000002384186,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "journal:origin=TBS",
+      "readyMs": 87,
+      "requests": [
+        {
+          "bytes": 2643,
+          "endMs": 35.30000001192093,
+          "path": "/journal",
+          "startMs": 6.400000035762787
+        }
+      ]
+    },
+    {
+      "fallbackMs": null,
+      "feedbackMs": 30.600000023841854,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "journal:destination=IST",
+      "readyMs": 61.10000002384186,
+      "requests": [
+        {
+          "bytes": 2647,
+          "endMs": 19.900000035762787,
+          "path": "/journal",
+          "startMs": 5.800000011920929
+        }
+      ]
+    },
+    {
+      "fallbackMs": null,
+      "feedbackMs": 28.200000047683716,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "journal:destination=IST",
+      "readyMs": 69.70000004768372,
+      "requests": [
+        {
+          "bytes": 2646,
+          "endMs": 19.5,
+          "path": "/journal",
+          "startMs": 6
+        }
+      ]
+    },
+    {
+      "fallbackMs": null,
+      "feedbackMs": 22.30000001192093,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "journal:destination=IST",
+      "readyMs": 80,
+      "requests": [
+        {
+          "bytes": 2649,
+          "endMs": 22,
+          "path": "/journal",
+          "startMs": 6.300000011920929
+        }
+      ]
+    },
+    {
+      "fallbackMs": null,
+      "feedbackMs": 29.099999964237213,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "journal:destination=IST",
+      "readyMs": 74.59999996423721,
+      "requests": [
+        {
+          "bytes": 2647,
+          "endMs": 20.899999976158146,
+          "path": "/journal",
+          "startMs": 6.199999988079071
+        }
+      ]
+    },
+    {
+      "fallbackMs": null,
+      "feedbackMs": 28.5,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "journal:destination=IST",
+      "readyMs": 71.39999997615814,
+      "requests": [
+        {
+          "bytes": 2650,
+          "endMs": 20.19999998807907,
+          "path": "/journal",
+          "startMs": 6
+        }
+      ]
+    },
+    {
+      "fallbackMs": null,
+      "feedbackMs": 84.89999997615814,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "journal:status=completed",
+      "readyMs": 84.89999997615814,
+      "requests": [
+        {
+          "bytes": 2652,
+          "endMs": 23,
+          "path": "/journal",
+          "startMs": 5.800000011920929
+        }
+      ]
+    },
+    {
+      "fallbackMs": null,
+      "feedbackMs": 68.30000001192093,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "journal:status=completed",
+      "readyMs": 68.30000001192093,
+      "requests": [
+        {
+          "bytes": 2649,
+          "endMs": 24.100000023841854,
+          "path": "/journal",
+          "startMs": 5.600000023841858
+        }
+      ]
+    },
+    {
+      "fallbackMs": null,
+      "feedbackMs": 77.10000002384186,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "journal:status=completed",
+      "readyMs": 77.10000002384186,
+      "requests": [
+        {
+          "bytes": 2648,
+          "endMs": 23.100000023841854,
+          "path": "/journal",
+          "startMs": 5.5
+        }
+      ]
+    },
+    {
+      "fallbackMs": null,
+      "feedbackMs": 71.69999998807907,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "journal:status=completed",
+      "readyMs": 71.80000001192093,
+      "requests": [
+        {
+          "bytes": 2648,
+          "endMs": 21,
+          "path": "/journal",
+          "startMs": 4.800000011920929
+        }
+      ]
+    },
+    {
+      "fallbackMs": null,
+      "feedbackMs": 74.90000003576279,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "journal:status=completed",
+      "readyMs": 74.90000003576279,
+      "requests": [
+        {
+          "bytes": 2650,
+          "endMs": 22.200000047683716,
+          "path": "/journal",
+          "startMs": 5
+        }
+      ]
+    },
+    {
+      "fallbackMs": null,
+      "feedbackMs": 71.69999998807907,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "journal:status=upcoming",
+      "readyMs": 71.69999998807907,
+      "requests": [
+        {
+          "bytes": 1862,
+          "endMs": 29.799999952316284,
+          "path": "/journal",
+          "startMs": 5.5
+        }
+      ]
+    },
+    {
+      "fallbackMs": null,
+      "feedbackMs": 58.5,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "journal:status=upcoming",
+      "readyMs": 58.5,
+      "requests": [
+        {
+          "bytes": 1862,
+          "endMs": 16.69999998807907,
+          "path": "/journal",
+          "startMs": 5
+        }
+      ]
+    },
+    {
+      "fallbackMs": null,
+      "feedbackMs": 56.89999997615814,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "journal:status=upcoming",
+      "readyMs": 57,
+      "requests": [
+        {
+          "bytes": 1861,
+          "endMs": 17.100000023841858,
+          "path": "/journal",
+          "startMs": 5.5
+        }
+      ]
+    },
+    {
+      "fallbackMs": null,
+      "feedbackMs": 58.69999998807907,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "journal:status=upcoming",
+      "readyMs": 58.69999998807907,
+      "requests": [
+        {
+          "bytes": 1861,
+          "endMs": 19.599999964237213,
+          "path": "/journal",
+          "startMs": 5.300000011920929
+        }
+      ]
+    },
+    {
+      "fallbackMs": null,
+      "feedbackMs": 55.69999998807907,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "journal:status=upcoming",
+      "readyMs": 55.69999998807907,
+      "requests": [
+        {
+          "bytes": 1861,
+          "endMs": 16.69999998807907,
+          "path": "/journal",
+          "startMs": 4.800000011920929
+        }
+      ]
+    },
+    {
+      "fallbackMs": null,
+      "feedbackMs": 91.10000002384186,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "journal:status=awaiting",
+      "readyMs": 91.20000004768372,
+      "requests": [
+        {
+          "bytes": 1860,
+          "endMs": 43.20000004768371,
+          "path": "/journal",
+          "startMs": 5.700000047683716
+        }
+      ]
+    },
+    {
+      "fallbackMs": null,
+      "feedbackMs": 57.20000004768371,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "journal:status=awaiting",
+      "readyMs": 57.20000004768371,
+      "requests": [
+        {
+          "bytes": 1859,
+          "endMs": 16.900000035762787,
+          "path": "/journal",
+          "startMs": 4.700000047683716
+        }
+      ]
+    },
+    {
+      "fallbackMs": null,
+      "feedbackMs": 59.19999998807907,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "journal:status=awaiting",
+      "readyMs": 59.19999998807907,
+      "requests": [
+        {
+          "bytes": 1859,
+          "endMs": 17.19999998807907,
+          "path": "/journal",
+          "startMs": 5.5
+        }
+      ]
+    },
+    {
+      "fallbackMs": null,
+      "feedbackMs": 59.20000004768371,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "journal:status=awaiting",
+      "readyMs": 59.20000004768371,
+      "requests": [
+        {
+          "bytes": 1858,
+          "endMs": 17.30000001192093,
+          "path": "/journal",
+          "startMs": 5.100000023841858
+        }
+      ]
+    },
+    {
+      "fallbackMs": null,
+      "feedbackMs": 55.80000001192093,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "journal:status=awaiting",
+      "readyMs": 55.80000001192093,
+      "requests": [
+        {
+          "bytes": 1860,
+          "endMs": 17.399999976158142,
+          "path": "/journal",
+          "startMs": 5.300000011920929
+        }
+      ]
+    },
+    {
+      "fallbackMs": null,
+      "feedbackMs": 67.5,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "journal:status=logged",
+      "readyMs": 67.5,
+      "requests": [
+        {
+          "bytes": 2647,
+          "endMs": 21.399999976158146,
+          "path": "/journal",
+          "startMs": 4.800000011920929
+        }
+      ]
+    },
+    {
+      "fallbackMs": null,
+      "feedbackMs": 76.59999996423721,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "journal:status=logged",
+      "readyMs": 76.69999998807907,
+      "requests": [
+        {
+          "bytes": 2647,
+          "endMs": 21.69999998807907,
+          "path": "/journal",
+          "startMs": 5.099999964237213
+        }
+      ]
+    },
+    {
+      "fallbackMs": null,
+      "feedbackMs": 74.80000001192093,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "journal:status=logged",
+      "readyMs": 74.80000001192093,
+      "requests": [
+        {
+          "bytes": 2647,
+          "endMs": 21.399999976158146,
+          "path": "/journal",
+          "startMs": 5
+        }
+      ]
+    },
+    {
+      "fallbackMs": null,
+      "feedbackMs": 75.90000003576279,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "journal:status=logged",
+      "readyMs": 75.90000003576279,
+      "requests": [
+        {
+          "bytes": 2648,
+          "endMs": 21.80000001192093,
+          "path": "/journal",
+          "startMs": 5.300000011920929
+        }
+      ]
+    },
+    {
+      "fallbackMs": null,
+      "feedbackMs": 67.89999997615814,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "journal:status=logged",
+      "readyMs": 67.89999997615814,
+      "requests": [
+        {
+          "bytes": 2643,
+          "endMs": 24.799999952316284,
+          "path": "/journal",
+          "startMs": 5.399999976158142
+        }
+      ]
+    },
+    {
+      "fallbackMs": null,
+      "feedbackMs": 31.900000035762787,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "journal:combined",
+      "readyMs": 71.90000003576279,
+      "requests": [
+        {
+          "bytes": 2706,
+          "endMs": 20.69999998807907,
+          "path": "/journal",
+          "startMs": 7.400000035762787
+        }
+      ]
+    },
+    {
+      "fallbackMs": null,
+      "feedbackMs": 67.80000001192093,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "journal:reset",
+      "readyMs": 67.90000003576279,
+      "requests": [
+        {
+          "bytes": 2617,
+          "endMs": 23.600000023841854,
+          "path": "/journal",
+          "startMs": 6.100000023841858
+        }
+      ]
+    },
+    {
+      "fallbackMs": null,
+      "feedbackMs": 108.70000004768372,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "journal:rapid",
+      "readyMs": 108.70000004768372,
+      "requests": [
+        {
+          "bytes": 2645,
+          "endMs": 51.40000003576279,
+          "path": "/journal",
+          "startMs": 18
+        },
+        {
+          "bytes": 2651,
+          "endMs": 51.5,
+          "path": "/journal",
+          "startMs": 18
+        },
+        {
+          "bytes": 2647,
+          "endMs": 51.5,
+          "path": "/journal",
+          "startMs": 18.100000023841854
+        }
+      ]
+    },
+    {
+      "fallbackMs": null,
+      "feedbackMs": 21.200000047683716,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "journal:combined",
+      "readyMs": 71.40000003576279,
+      "requests": [
+        {
+          "bytes": 2704,
+          "endMs": 21,
+          "path": "/journal",
+          "startMs": 7.400000035762787
+        }
+      ]
+    },
+    {
+      "fallbackMs": null,
+      "feedbackMs": 66.29999995231628,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "journal:reset",
+      "readyMs": 66.29999995231628,
+      "requests": [
+        {
+          "bytes": 2619,
+          "endMs": 18.899999976158146,
+          "path": "/journal",
+          "startMs": 5.5
+        }
+      ]
+    },
+    {
+      "fallbackMs": null,
+      "feedbackMs": 101.30000001192091,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "journal:rapid",
+      "readyMs": 101.30000001192091,
+      "requests": [
+        {
+          "bytes": 2642,
+          "endMs": 36,
+          "path": "/journal",
+          "startMs": 16.19999998807907
+        },
+        {
+          "bytes": 2651,
+          "endMs": 36.09999996423721,
+          "path": "/journal",
+          "startMs": 16.30000001192093
+        },
+        {
+          "bytes": 2646,
+          "endMs": 46.19999998807907,
+          "path": "/journal",
+          "startMs": 16.30000001192093
+        }
+      ]
+    },
+    {
+      "fallbackMs": null,
+      "feedbackMs": 27.599999964237213,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "journal:combined",
+      "readyMs": 73.39999997615814,
+      "requests": [
+        {
+          "bytes": 2706,
+          "endMs": 18.899999976158146,
+          "path": "/journal",
+          "startMs": 6.599999964237213
+        }
+      ]
+    },
+    {
+      "fallbackMs": null,
+      "feedbackMs": 66.30000001192093,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "journal:reset",
+      "readyMs": 66.30000001192093,
+      "requests": [
+        {
+          "bytes": 2620,
+          "endMs": 20.69999998807907,
+          "path": "/journal",
+          "startMs": 5.800000011920929
+        }
+      ]
+    },
+    {
+      "fallbackMs": null,
+      "feedbackMs": 100.80000001192091,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "journal:rapid",
+      "readyMs": 100.89999997615814,
+      "requests": [
+        {
+          "bytes": 2642,
+          "endMs": 35,
+          "path": "/journal",
+          "startMs": 15.699999988079073
+        },
+        {
+          "bytes": 2650,
+          "endMs": 35.09999996423721,
+          "path": "/journal",
+          "startMs": 15.699999988079073
+        },
+        {
+          "bytes": 2647,
+          "endMs": 47.30000001192093,
+          "path": "/journal",
+          "startMs": 15.800000011920927
+        }
+      ]
+    },
+    {
+      "fallbackMs": null,
+      "feedbackMs": 27,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "journal:combined",
+      "readyMs": 73.69999998807907,
+      "requests": [
+        {
+          "bytes": 2705,
+          "endMs": 18.5,
+          "path": "/journal",
+          "startMs": 7
+        }
+      ]
+    },
+    {
+      "fallbackMs": null,
+      "feedbackMs": 66.80000001192093,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "journal:reset",
+      "readyMs": 66.90000003576279,
+      "requests": [
+        {
+          "bytes": 2618,
+          "endMs": 19.30000001192093,
+          "path": "/journal",
+          "startMs": 5.900000035762787
+        }
+      ]
+    },
+    {
+      "fallbackMs": null,
+      "feedbackMs": 106.19999998807909,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "journal:rapid",
+      "readyMs": 106.19999998807909,
+      "requests": [
+        {
+          "bytes": 2644,
+          "endMs": 31.69999998807907,
+          "path": "/journal",
+          "startMs": 18.19999998807907
+        },
+        {
+          "bytes": 2652,
+          "endMs": 49.90000003576279,
+          "path": "/journal",
+          "startMs": 18.30000001192093
+        },
+        {
+          "bytes": 2645,
+          "endMs": 50,
+          "path": "/journal",
+          "startMs": 18.400000035762787
+        }
+      ]
+    },
+    {
+      "fallbackMs": null,
+      "feedbackMs": 28.5,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "journal:combined",
+      "readyMs": 76.69999998807907,
+      "requests": [
+        {
+          "bytes": 2703,
+          "endMs": 19.5,
+          "path": "/journal",
+          "startMs": 6.399999976158142
+        }
+      ]
+    },
+    {
+      "fallbackMs": null,
+      "feedbackMs": 75.19999998807907,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "journal:reset",
+      "readyMs": 75.19999998807907,
+      "requests": [
+        {
+          "bytes": 2619,
+          "endMs": 22.100000023841854,
+          "path": "/journal",
+          "startMs": 5.699999988079071
+        }
+      ]
+    },
+    {
+      "fallbackMs": null,
+      "feedbackMs": 104.80000001192091,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "journal:rapid",
+      "readyMs": 104.80000001192091,
+      "requests": [
+        {
+          "bytes": 2642,
+          "endMs": 29.30000001192093,
+          "path": "/journal",
+          "startMs": 16.600000023841858
+        },
+        {
+          "bytes": 2650,
+          "endMs": 47.40000003576279,
+          "path": "/journal",
+          "startMs": 16.69999998807907
+        },
+        {
+          "bytes": 2645,
+          "endMs": 47.5,
+          "path": "/journal",
+          "startMs": 16.69999998807907
+        }
+      ]
+    },
+    {
+      "fallbackMs": null,
+      "feedbackMs": 74.40000003576279,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "journal:sort-Origin",
+      "readyMs": 74.40000003576279,
+      "requests": [
+        {
+          "bytes": 2613,
+          "endMs": 19.100000023841854,
+          "path": "/journal",
+          "startMs": 5.300000011920929
+        }
+      ]
+    },
+    {
+      "fallbackMs": null,
+      "feedbackMs": 72.30000001192093,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "journal:sort-Origin",
+      "readyMs": 72.30000001192093,
+      "requests": [
+        {
+          "bytes": 2628,
+          "endMs": 20.69999998807907,
+          "path": "/journal",
+          "startMs": 5.400000035762787
+        }
+      ]
+    },
+    {
+      "fallbackMs": null,
+      "feedbackMs": 71.59999996423721,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "journal:sort-Origin",
+      "readyMs": 71.59999996423721,
+      "requests": [
+        {
+          "bytes": 2617,
+          "endMs": 19.19999998807907,
+          "path": "/journal",
+          "startMs": 5.599999964237213
+        }
+      ]
+    },
+    {
+      "fallbackMs": null,
+      "feedbackMs": 72.90000003576279,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "journal:sort-Origin",
+      "readyMs": 72.90000003576279,
+      "requests": [
+        {
+          "bytes": 2631,
+          "endMs": 19.100000023841854,
+          "path": "/journal",
+          "startMs": 4.900000035762787
+        }
+      ]
+    },
+    {
+      "fallbackMs": null,
+      "feedbackMs": 73.19999998807907,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "journal:sort-Origin",
+      "readyMs": 73.19999998807907,
+      "requests": [
+        {
+          "bytes": 2614,
+          "endMs": 17.399999976158142,
+          "path": "/journal",
+          "startMs": 4.699999988079071
+        }
+      ]
+    },
+    {
+      "fallbackMs": null,
+      "feedbackMs": 70.89999997615814,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "journal:sort-Destination",
+      "readyMs": 70.89999997615814,
+      "requests": [
+        {
+          "bytes": 2618,
+          "endMs": 17.099999964237213,
+          "path": "/journal",
+          "startMs": 4.899999976158142
+        }
+      ]
+    },
+    {
+      "fallbackMs": null,
+      "feedbackMs": 74.10000002384186,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "journal:sort-Destination",
+      "readyMs": 74.10000002384186,
+      "requests": [
+        {
+          "bytes": 2633,
+          "endMs": 16.5,
+          "path": "/journal",
+          "startMs": 4.900000035762787
+        }
+      ]
+    },
+    {
+      "fallbackMs": null,
+      "feedbackMs": 72.19999998807907,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "journal:sort-Destination",
+      "readyMs": 72.19999998807907,
+      "requests": [
+        {
+          "bytes": 2615,
+          "endMs": 16.599999964237213,
+          "path": "/journal",
+          "startMs": 5.099999964237213
+        }
+      ]
+    },
+    {
+      "fallbackMs": null,
+      "feedbackMs": 78.80000001192093,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "journal:sort-Destination",
+      "readyMs": 78.80000001192093,
+      "requests": [
+        {
+          "bytes": 2636,
+          "endMs": 17.5,
+          "path": "/journal",
+          "startMs": 4.900000035762787
+        }
+      ]
+    },
+    {
+      "fallbackMs": null,
+      "feedbackMs": 73.90000003576279,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "journal:sort-Destination",
+      "readyMs": 73.90000003576279,
+      "requests": [
+        {
+          "bytes": 2616,
+          "endMs": 24.69999998807907,
+          "path": "/journal",
+          "startMs": 4.699999988079071
+        }
+      ]
+    },
+    {
+      "fallbackMs": null,
+      "feedbackMs": 72,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "journal:sort-Airline",
+      "readyMs": 72,
+      "requests": [
+        {
+          "bytes": 2615,
+          "endMs": 19.69999998807907,
+          "path": "/journal",
+          "startMs": 4.799999952316284
+        }
+      ]
+    },
+    {
+      "fallbackMs": null,
+      "feedbackMs": 69.89999997615814,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "journal:sort-Airline",
+      "readyMs": 69.89999997615814,
+      "requests": [
+        {
+          "bytes": 2633,
+          "endMs": 19.600000023841854,
+          "path": "/journal",
+          "startMs": 5.600000023841858
+        }
+      ]
+    },
+    {
+      "fallbackMs": null,
+      "feedbackMs": 71.40000003576279,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "journal:sort-Airline",
+      "readyMs": 71.40000003576279,
+      "requests": [
+        {
+          "bytes": 2613,
+          "endMs": 18.100000023841854,
+          "path": "/journal",
+          "startMs": 5.100000023841858
+        }
+      ]
+    },
+    {
+      "fallbackMs": null,
+      "feedbackMs": 75.30000001192093,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "journal:sort-Airline",
+      "readyMs": 75.30000001192093,
+      "requests": [
+        {
+          "bytes": 2629,
+          "endMs": 17.69999998807907,
+          "path": "/journal",
+          "startMs": 5.199999988079071
+        }
+      ]
+    },
+    {
+      "fallbackMs": null,
+      "feedbackMs": 72.19999998807907,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "journal:sort-Airline",
+      "readyMs": 72.19999998807907,
+      "requests": [
+        {
+          "bytes": 2615,
+          "endMs": 18.19999998807907,
+          "path": "/journal",
+          "startMs": 5.699999988079071
+        }
+      ]
+    },
+    {
+      "fallbackMs": null,
+      "feedbackMs": 70.69999998807907,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "journal:sort-Aircraft",
+      "readyMs": 70.69999998807907,
+      "requests": [
+        {
+          "bytes": 2628,
+          "endMs": 18.19999998807907,
+          "path": "/journal",
+          "startMs": 5.399999976158142
+        }
+      ]
+    },
+    {
+      "fallbackMs": null,
+      "feedbackMs": 71.59999996423721,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "journal:sort-Aircraft",
+      "readyMs": 71.69999998807907,
+      "requests": [
+        {
+          "bytes": 2683,
+          "endMs": 18,
+          "path": "/journal",
+          "startMs": 5.299999952316284
+        }
+      ]
+    },
+    {
+      "fallbackMs": null,
+      "feedbackMs": 71.5,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "journal:sort-Aircraft",
+      "readyMs": 71.5,
+      "requests": [
+        {
+          "bytes": 2628,
+          "endMs": 18.899999976158146,
+          "path": "/journal",
+          "startMs": 6.099999964237213
+        }
+      ]
+    },
+    {
+      "fallbackMs": null,
+      "feedbackMs": 80.69999998807907,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "journal:sort-Aircraft",
+      "readyMs": 80.69999998807907,
+      "requests": [
+        {
+          "bytes": 2684,
+          "endMs": 17.099999964237213,
+          "path": "/journal",
+          "startMs": 5.199999988079071
+        }
+      ]
+    },
+    {
+      "fallbackMs": null,
+      "feedbackMs": 70.90000003576279,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "journal:sort-Aircraft",
+      "readyMs": 71,
+      "requests": [
+        {
+          "bytes": 2632,
+          "endMs": 18.200000047683716,
+          "path": "/journal",
+          "startMs": 5.600000023841858
+        }
+      ]
+    },
+    {
+      "fallbackMs": null,
+      "feedbackMs": 87.10000002384186,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "journal:sort-Duration",
+      "readyMs": 87.10000002384186,
+      "requests": [
+        {
+          "bytes": 2615,
+          "endMs": 18.19999998807907,
+          "path": "/journal",
+          "startMs": 5.100000023841858
+        }
+      ]
+    },
+    {
+      "fallbackMs": null,
+      "feedbackMs": 73.80000001192093,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "journal:sort-Duration",
+      "readyMs": 73.80000001192093,
+      "requests": [
+        {
+          "bytes": 2635,
+          "endMs": 17.399999976158142,
+          "path": "/journal",
+          "startMs": 4.800000011920929
+        }
+      ]
+    },
+    {
+      "fallbackMs": null,
+      "feedbackMs": 74.10000002384186,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "journal:sort-Duration",
+      "readyMs": 74.10000002384186,
+      "requests": [
+        {
+          "bytes": 2619,
+          "endMs": 17.600000023841858,
+          "path": "/journal",
+          "startMs": 4.800000011920929
+        }
+      ]
+    },
+    {
+      "fallbackMs": null,
+      "feedbackMs": 69.39999997615814,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "journal:sort-Duration",
+      "readyMs": 69.39999997615814,
+      "requests": [
+        {
+          "bytes": 2635,
+          "endMs": 18.80000001192093,
+          "path": "/journal",
+          "startMs": 5.399999976158142
+        }
+      ]
+    },
+    {
+      "fallbackMs": null,
+      "feedbackMs": 71.39999997615814,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "journal:sort-Duration",
+      "readyMs": 71.39999997615814,
+      "requests": [
+        {
+          "bytes": 2617,
+          "endMs": 18.899999976158146,
+          "path": "/journal",
+          "startMs": 5.800000011920929
+        }
+      ]
+    },
+    {
+      "fallbackMs": null,
+      "feedbackMs": 79.70000004768372,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "journal:sort-Distance",
+      "readyMs": 79.80000001192093,
+      "requests": [
+        {
+          "bytes": 2615,
+          "endMs": 17.100000023841858,
+          "path": "/journal",
+          "startMs": 5.100000023841858
+        }
+      ]
+    },
+    {
+      "fallbackMs": null,
+      "feedbackMs": 81.10000002384186,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "journal:sort-Distance",
+      "readyMs": 81.10000002384186,
+      "requests": [
+        {
+          "bytes": 2634,
+          "endMs": 16.100000023841858,
+          "path": "/journal",
+          "startMs": 4.5
+        }
+      ]
+    },
+    {
+      "fallbackMs": null,
+      "feedbackMs": 72.60000002384186,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "journal:sort-Distance",
+      "readyMs": 72.60000002384186,
+      "requests": [
+        {
+          "bytes": 2615,
+          "endMs": 26.399999976158146,
+          "path": "/journal",
+          "startMs": 5.300000011920929
+        }
+      ]
+    },
+    {
+      "fallbackMs": null,
+      "feedbackMs": 72.5,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "journal:sort-Distance",
+      "readyMs": 72.5,
+      "requests": [
+        {
+          "bytes": 2631,
+          "endMs": 20,
+          "path": "/journal",
+          "startMs": 4.899999976158142
+        }
+      ]
+    },
+    {
+      "fallbackMs": null,
+      "feedbackMs": 73.69999998807907,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "journal:sort-Distance",
+      "readyMs": 73.69999998807907,
+      "requests": [
+        {
+          "bytes": 2615,
+          "endMs": 17.899999976158142,
+          "path": "/journal",
+          "startMs": 5.599999964237213
+        }
+      ]
+    },
+    {
+      "fallbackMs": null,
+      "feedbackMs": 64,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "journal:sort-Date",
+      "readyMs": 64,
+      "requests": [
+        {
+          "bytes": 2617,
+          "endMs": 16.5,
+          "path": "/journal",
+          "startMs": 5
+        }
+      ]
+    },
+    {
+      "fallbackMs": null,
+      "feedbackMs": 71.09999996423721,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "journal:sort-Date",
+      "readyMs": 71.19999998807907,
+      "requests": [
+        {
+          "bytes": 2633,
+          "endMs": 15.399999976158142,
+          "path": "/journal",
+          "startMs": 5.099999964237213
+        }
+      ]
+    },
+    {
+      "fallbackMs": null,
+      "feedbackMs": 58.80000001192093,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "journal:sort-Date",
+      "readyMs": 58.80000001192093,
+      "requests": [
+        {
+          "bytes": 2619,
+          "endMs": 16.100000023841858,
+          "path": "/journal",
+          "startMs": 4.900000035762787
+        }
+      ]
+    },
+    {
+      "fallbackMs": null,
+      "feedbackMs": 67,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "journal:sort-Date",
+      "readyMs": 67,
+      "requests": [
+        {
+          "bytes": 2635,
+          "endMs": 14.699999988079073,
+          "path": "/journal",
+          "startMs": 4.800000011920929
+        }
+      ]
+    },
+    {
+      "fallbackMs": null,
+      "feedbackMs": 72.89999997615814,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "journal:sort-Date",
+      "readyMs": 72.89999997615814,
+      "requests": [
+        {
+          "bytes": 2619,
+          "endMs": 17.299999952316284,
+          "path": "/journal",
+          "startMs": 5
+        }
+      ]
+    },
+    {
+      "fallbackMs": 11.100000023841858,
+      "feedbackMs": 48.60000002384186,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "navigation:/journal→passport",
+      "readyMs": 358.10000002384186,
+      "requests": [
+        {
+          "bytes": 1999,
+          "endMs": 17.399999976158142,
+          "path": "/passport",
+          "startMs": 0.800000011920929
+        },
+        {
+          "bytes": 1258,
+          "endMs": 21.600000023841854,
+          "path": "/journal",
+          "startMs": 11.5
+        }
+      ]
+    },
+    {
+      "fallbackMs": 8.399999976158142,
+      "feedbackMs": 50.09999996423721,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "navigation:/passport→overview",
+      "readyMs": 359.39999997615814,
+      "requests": [
+        {
+          "bytes": 3787,
+          "endMs": 41.5,
+          "path": "/overview",
+          "startMs": 0.800000011920929
+        },
+        {
+          "bytes": 750,
+          "endMs": 340.30000001192093,
+          "path": "/api/flights/route-projection",
+          "startMs": 318.39999997615814
+        }
+      ]
+    },
+    {
+      "fallbackMs": 8.199999988079071,
+      "feedbackMs": 48,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "navigation:/overview→journal",
+      "readyMs": 348,
+      "requests": [
+        {
+          "bytes": 2616,
+          "endMs": 16.30000001192093,
+          "path": "/journal",
+          "startMs": 0.699999988079071
+        }
+      ]
+    },
+    {
+      "fallbackMs": null,
+      "feedbackMs": 57.5,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "history:back",
+      "readyMs": 57.5,
+      "requests": []
+    },
+    {
+      "fallbackMs": null,
+      "feedbackMs": 100.70000004768372,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "history:forward",
+      "readyMs": 100.70000004768372,
+      "requests": [
+        {
+          "bytes": 750,
+          "endMs": 17.100000023841858,
+          "path": "/api/flights/route-projection",
+          "startMs": 0.5
+        }
+      ]
+    },
+    {
+      "fallbackMs": 6.900000035762787,
+      "feedbackMs": 47.5,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "navigation:/journal→passport",
+      "readyMs": 339.10000002384186,
+      "requests": [
+        {
+          "bytes": 1997,
+          "endMs": 11.600000023841858,
+          "path": "/passport",
+          "startMs": 0.699999988079071
+        }
+      ]
+    },
+    {
+      "fallbackMs": 6,
+      "feedbackMs": 51.19999998807907,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "navigation:/passport→overview",
+      "readyMs": 358.5,
+      "requests": [
+        {
+          "bytes": 3786,
+          "endMs": 40.09999996423721,
+          "path": "/overview",
+          "startMs": 0.5999999642372131
+        },
+        {
+          "bytes": 750,
+          "endMs": 325.5999999642372,
+          "path": "/api/flights/route-projection",
+          "startMs": 310.19999998807907
+        }
+      ]
+    },
+    {
+      "fallbackMs": 6.5,
+      "feedbackMs": 50.89999997615814,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "navigation:/overview→journal",
+      "readyMs": 341,
+      "requests": [
+        {
+          "bytes": 2617,
+          "endMs": 13.699999988079073,
+          "path": "/journal",
+          "startMs": 0.800000011920929
+        }
+      ]
+    },
+    {
+      "fallbackMs": null,
+      "feedbackMs": 50.69999998807907,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "history:back",
+      "readyMs": 50.69999998807907,
+      "requests": []
+    },
+    {
+      "fallbackMs": null,
+      "feedbackMs": 49.60000002384186,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "history:forward",
+      "readyMs": 49.60000002384186,
+      "requests": [
+        {
+          "bytes": 0,
+          "endMs": 22.600000023841854,
+          "path": "/api/flights/route-projection",
+          "startMs": 6.600000023841858
+        }
+      ]
+    },
+    {
+      "fallbackMs": 6.5,
+      "feedbackMs": 51.5,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "navigation:/journal→passport",
+      "readyMs": 342.89999997615814,
+      "requests": [
+        {
+          "bytes": 1999,
+          "endMs": 13,
+          "path": "/passport",
+          "startMs": 0.699999988079071
+        }
+      ]
+    },
+    {
+      "fallbackMs": 6.300000011920929,
+      "feedbackMs": 49.90000003576279,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "navigation:/passport→overview",
+      "readyMs": 349.80000001192093,
+      "requests": [
+        {
+          "bytes": 3784,
+          "endMs": 42.60000002384186,
+          "path": "/overview",
+          "startMs": 0.6000000238418579
+        },
+        {
+          "bytes": 750,
+          "endMs": 327.60000002384186,
+          "path": "/api/flights/route-projection",
+          "startMs": 310.60000002384186
+        }
+      ]
+    },
+    {
+      "fallbackMs": 6.100000023841858,
+      "feedbackMs": 50.19999998807907,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "navigation:/overview→journal",
+      "readyMs": 356.30000001192093,
+      "requests": [
+        {
+          "bytes": 2619,
+          "endMs": 13.600000023841858,
+          "path": "/journal",
+          "startMs": 0.5
+        }
+      ]
+    },
+    {
+      "fallbackMs": null,
+      "feedbackMs": 51.69999998807907,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "history:back",
+      "readyMs": 51.69999998807907,
+      "requests": []
+    },
+    {
+      "fallbackMs": null,
+      "feedbackMs": 57.89999997615814,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "history:forward",
+      "readyMs": 57.89999997615814,
+      "requests": [
+        {
+          "bytes": 0,
+          "endMs": 20.100000023841854,
+          "path": "/api/flights/route-projection",
+          "startMs": 4.800000011920929
+        }
+      ]
+    },
+    {
+      "fallbackMs": 6.399999976158142,
+      "feedbackMs": 49.69999998807907,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "navigation:/journal→passport",
+      "readyMs": 340.60000002384186,
+      "requests": [
+        {
+          "bytes": 1997,
+          "endMs": 13.199999988079073,
+          "path": "/passport",
+          "startMs": 0.699999988079071
+        }
+      ]
+    },
+    {
+      "fallbackMs": 5.700000047683716,
+      "feedbackMs": 50.60000002384186,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "navigation:/passport→overview",
+      "readyMs": 350.4000000357628,
+      "requests": [
+        {
+          "bytes": 3787,
+          "endMs": 41,
+          "path": "/overview",
+          "startMs": 0.7000000476837158
+        },
+        {
+          "bytes": 750,
+          "endMs": 326.2000000476837,
+          "path": "/api/flights/route-projection",
+          "startMs": 309.7000000476837
+        }
+      ]
+    },
+    {
+      "fallbackMs": 5.900000035762787,
+      "feedbackMs": 51.80000001192093,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "navigation:/overview→journal",
+      "readyMs": 348.30000001192093,
+      "requests": [
+        {
+          "bytes": 2618,
+          "endMs": 14,
+          "path": "/journal",
+          "startMs": 0.6000000238418579
+        }
+      ]
+    },
+    {
+      "fallbackMs": null,
+      "feedbackMs": 50.90000003576279,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "history:back",
+      "readyMs": 51,
+      "requests": []
+    },
+    {
+      "fallbackMs": null,
+      "feedbackMs": 58.20000004768371,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "history:forward",
+      "readyMs": 58.20000004768371,
+      "requests": [
+        {
+          "bytes": 0,
+          "endMs": 20,
+          "path": "/api/flights/route-projection",
+          "startMs": 4.400000035762787
+        }
+      ]
+    },
+    {
+      "fallbackMs": 6.700000047683716,
+      "feedbackMs": 50.5,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "navigation:/journal→passport",
+      "readyMs": 351.4000000357628,
+      "requests": [
+        {
+          "bytes": 1996,
+          "endMs": 11.600000023841858,
+          "path": "/passport",
+          "startMs": 0.7000000476837158
+        }
+      ]
+    },
+    {
+      "fallbackMs": 6.199999988079071,
+      "feedbackMs": 58.89999997615814,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "navigation:/passport→overview",
+      "readyMs": 341.0999999642372,
+      "requests": [
+        {
+          "bytes": 3787,
+          "endMs": 42.29999995231629,
+          "path": "/overview",
+          "startMs": 0.5999999642372131
+        },
+        {
+          "bytes": 750,
+          "endMs": 327.2999999523163,
+          "path": "/api/flights/route-projection",
+          "startMs": 310.7999999523163
+        }
+      ]
+    },
+    {
+      "fallbackMs": 6.199999988079071,
+      "feedbackMs": 47.5,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "navigation:/overview→journal",
+      "readyMs": 348.5,
+      "requests": [
+        {
+          "bytes": 2619,
+          "endMs": 13.800000011920927,
+          "path": "/journal",
+          "startMs": 0.699999988079071
+        }
+      ]
+    },
+    {
+      "fallbackMs": null,
+      "feedbackMs": 60.69999998807907,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "history:back",
+      "readyMs": 60.69999998807907,
+      "requests": []
+    },
+    {
+      "fallbackMs": null,
+      "feedbackMs": 96.4000000357628,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "history:forward",
+      "readyMs": 96.4000000357628,
+      "requests": []
+    },
+    {
+      "fallbackMs": null,
+      "feedbackMs": 74.90000003576279,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "overview:year",
+      "readyMs": 74.90000003576279,
+      "requests": [
+        {
+          "bytes": 3788,
+          "endMs": 25.600000023841854,
+          "path": "/overview",
+          "startMs": 2.699999988079071
+        }
+      ]
+    },
+    {
+      "fallbackMs": null,
+      "feedbackMs": 83.59999996423721,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "overview:reset",
+      "readyMs": 83.59999996423721,
+      "requests": [
+        {
+          "bytes": 3786,
+          "endMs": 42.80000001192093,
+          "path": "/overview",
+          "startMs": 1.899999976158142
+        },
+        {
+          "bytes": 0,
+          "endMs": 54.69999998807907,
+          "path": "/api/flights/route-projection",
+          "startMs": 9.899999976158142
+        }
+      ]
+    },
+    {
+      "fallbackMs": null,
+      "feedbackMs": 67.69999998807907,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "overview:year",
+      "readyMs": 67.69999998807907,
+      "requests": [
+        {
+          "bytes": 3787,
+          "endMs": 21.799999952316284,
+          "path": "/overview",
+          "startMs": 1.399999976158142
+        },
+        {
+          "bytes": 0,
+          "endMs": 31.899999976158146,
+          "path": "/api/flights/route-projection",
+          "startMs": 17.099999964237213
+        }
+      ]
+    },
+    {
+      "fallbackMs": null,
+      "feedbackMs": 82,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "overview:reset",
+      "readyMs": 82,
+      "requests": [
+        {
+          "bytes": 3786,
+          "endMs": 43.19999998807907,
+          "path": "/overview",
+          "startMs": 1.300000011920929
+        },
+        {
+          "bytes": 0,
+          "endMs": 54.5,
+          "path": "/api/flights/route-projection",
+          "startMs": 16
+        }
+      ]
+    },
+    {
+      "fallbackMs": null,
+      "feedbackMs": 73.80000001192093,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "overview:year",
+      "readyMs": 73.80000001192093,
+      "requests": [
+        {
+          "bytes": 3787,
+          "endMs": 22.19999998807907,
+          "path": "/overview",
+          "startMs": 1.199999988079071
+        },
+        {
+          "bytes": 0,
+          "endMs": 32.19999998807907,
+          "path": "/api/flights/route-projection",
+          "startMs": 20.899999976158146
+        }
+      ]
+    },
+    {
+      "fallbackMs": null,
+      "feedbackMs": 84.19999998807907,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "overview:reset",
+      "readyMs": 84.19999998807907,
+      "requests": [
+        {
+          "bytes": 3786,
+          "endMs": 42.89999997615814,
+          "path": "/overview",
+          "startMs": 1.5
+        },
+        {
+          "bytes": 0,
+          "endMs": 54,
+          "path": "/api/flights/route-projection",
+          "startMs": 10.099999964237211
+        }
+      ]
+    },
+    {
+      "fallbackMs": null,
+      "feedbackMs": 64.5,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "overview:year",
+      "readyMs": 64.5,
+      "requests": [
+        {
+          "bytes": 3788,
+          "endMs": 22.600000023841854,
+          "path": "/overview",
+          "startMs": 1.4000000357627869
+        },
+        {
+          "bytes": 0,
+          "endMs": 32.19999998807907,
+          "path": "/api/flights/route-projection",
+          "startMs": 17.100000023841858
+        }
+      ]
+    },
+    {
+      "fallbackMs": null,
+      "feedbackMs": 88,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "overview:reset",
+      "readyMs": 88,
+      "requests": [
+        {
+          "bytes": 3786,
+          "endMs": 42.90000003576279,
+          "path": "/overview",
+          "startMs": 1.5
+        },
+        {
+          "bytes": 0,
+          "endMs": 54,
+          "path": "/api/flights/route-projection",
+          "startMs": 20.900000035762787
+        }
+      ]
+    },
+    {
+      "fallbackMs": null,
+      "feedbackMs": 62.90000003576279,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "overview:year",
+      "readyMs": 62.90000003576279,
+      "requests": [
+        {
+          "bytes": 3788,
+          "endMs": 27.5,
+          "path": "/overview",
+          "startMs": 1.600000023841858
+        },
+        {
+          "bytes": 0,
+          "endMs": 39.10000002384186,
+          "path": "/api/flights/route-projection",
+          "startMs": 19.400000035762787
+        }
+      ]
+    },
+    {
+      "fallbackMs": null,
+      "feedbackMs": 83.09999996423721,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "overview:reset",
+      "readyMs": 83.19999998807907,
+      "requests": [
+        {
+          "bytes": 3787,
+          "endMs": 44.09999996423721,
+          "path": "/overview",
+          "startMs": 1.5
+        },
+        {
+          "bytes": 0,
+          "endMs": 54.80000001192093,
+          "path": "/api/flights/route-projection",
+          "startMs": 25.19999998807907
+        }
+      ]
+    }
+  ]
+}

@@ -1,4 +1,4 @@
-export { findAircraft } from './aircraft-lookup'
+export { familyOf, findAircraft } from './aircraft-lookup'
 export { findAirport } from './airport-lookup'
 // Re-export data files
 import type { Aircraft, Airport, Airline } from '@kuuki/shared/types'

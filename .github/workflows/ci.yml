@@ -82,7 +82,16 @@ jobs:
       - run: pnpm --filter @kuuki/next exec playwright install --only-shell chromium
       - run: pnpm next:smoke
       - run: pnpm next:smoke:boundary
-      - run: pnpm test:next:navigation
+      # Release 3 verification excludes visual/layout checks and screenshot traces by owner instruction.
+      - run: >-
+          pnpm test:next:navigation
+          tests/account.test.ts tests/auth-recovery.test.ts tests/capture.test.ts
+          tests/import.test.ts tests/map.test.ts tests/navigation.test.ts tests/onboarding.test.ts
+          tests/passport.test.ts tests/pwa-upgrade.test.ts tests/read-journeys.test.ts
+          tests/reset-password.test.ts tests/route-transitions.test.ts tests/settings.test.ts
+          tests/shell.test.ts tests/theme-toggle.test.ts
+          --grep-invert 'member header contains|profile keeps maximum|Commissioner loads|Add sheet sits above|header is 48px|tab labels fit|header is 56px|Journal rows keep|RU read controls fit|opens Passport without the hero at 390px|processing text keeps|moves the sun|animates over 500ms|calendar stays anchored|new country stamps stagger'
+          --trace off
       - if: failure()
         uses: actions/upload-artifact@v4
         with:

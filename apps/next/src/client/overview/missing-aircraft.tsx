@@ -1,23 +1,35 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { useRef, useState } from 'react'
-import { api } from '@kuuki/client/apiClient'
+import { lazy, Suspense, useEffect, useRef, useState } from 'react'
+import type { OverviewRow } from '@kuuki/shared/overview/model'
 import type { MissingAircraftPage } from '@kuuki/shared/overview'
 import { formatCount, formatNumber, type Locale } from '../../lib/format'
 import { trackPrivateOperation } from '../activity'
-import { AircraftPanel, type AircraftApi } from '../import/aircraft-panel'
+import type { AircraftApi } from '../import/aircraft-panel'
 import type { AircraftRun } from '../import/aircraft-review'
 import { Button } from '../ui/button'
 import { Sheet } from '../ui/sheet'
 import { S, fill, forms, t } from './copy'
 import '../../app/(member)/import/import.css'
+import './missing-aircraft.css'
 
-type Read = (period: string, after: string | null, signal: AbortSignal) => Promise<MissingAircraftPage>
+const AircraftPanel = lazy(() => import('../import/aircraft-panel').then(module => ({ default: module.AircraftPanel })))
 
-/** Owner-scoped keyset page (at most 100, newest first) of the same set the summary counts: completed flights of the period with no aircraft. */
-export const readMissingAircraft: Read = (period, after, signal) =>
-  api.get<MissingAircraftPage>('/api/me/overview/missing-aircraft', { period, ...(after ? { after } : {}) }, { signal })
+type Read = (after: string | null, signal: AbortSignal) => Promise<MissingAircraftPage>
+
+/** Same missing-only keyset contract, backed by the admitted owner payload. */
+export function payloadMissingAircraft(rows: OverviewRow[], after: string | null, signal: AbortSignal): MissingAircraftPage {
+  signal.throwIfAborted()
+  const missing = rows.filter(row => row.state !== 'upcoming' && !row.aircraft && row.weight === 1 && Number.isSafeInteger(row.id) && row.id > 0)
+    .sort((a, b) => b.date.localeCompare(a.date) || b.id - a.id)
+  const boundary = after ? /^(.*):(\d+)$/.exec(after) : null
+  const candidates = boundary ? missing.filter(row => row.date < boundary[1] || (row.date === boundary[1] && row.id < Number(boundary[2]))) : missing
+  const page = candidates.slice(0, 100), last = page.at(-1)
+  return { period: 'all', total: missing.length, limit: 100, offset: missing.length - candidates.length,
+    flights: page.map(row => ({ id: row.id, flight_number: row.flightNumber, airline_iata: row.airline, date: row.date, origin: row.origin, destination: row.destination })),
+    nextCursor: candidates.length > page.length && last ? `${last.date}:${last.id}` : null }
+}
 
 type Load = { phase: 'idle' } | { phase: 'loading' } | { phase: 'failed' } | { phase: 'ready'; page: MissingAircraftPage; after: string | null; remaining: number }
 type Notice = 'more' | 'refresh' | null
@@ -28,11 +40,12 @@ type Notice = 'more' | 'refresh' | null
  * could be identified or saved, and a confirmed save re-reads the same page (the saved flights leave it, the next ones
  * fill it, the total follows) before the server summary is refreshed.
  */
-export function MissingAircraftReview({ locale, period, count, read = readMissingAircraft, aircraftApi }: {
+export function MissingAircraftReview({ locale, count, read, aircraftApi, actionLabel, onConfirmedSaved }: {
   locale: Locale
-  period: string
   count: number
-  read?: Read
+  read: Read
+  actionLabel?: string
+  onConfirmedSaved?: (run: AircraftRun) => void
   aircraftApi?: AircraftApi
 }) {
   const router = useRouter()
@@ -49,6 +62,11 @@ export function MissingAircraftReview({ locale, period, count, read = readMissin
   const pending = useRef<{ controller: AbortController; release: () => void } | null>(null)
 
   const stop = () => { pending.current?.controller.abort(); pending.current?.release(); pending.current = null }
+  useEffect(() => {
+    const reset = () => { pending.current?.controller.abort(); pending.current?.release(); pending.current = null }
+    window.addEventListener('kuuki:identity-reset', reset)
+    return () => { reset(); window.removeEventListener('kuuki:identity-reset', reset) }
+  }, [])
   /** Reads the page that starts after `after`; `mode` decides what a failure leaves on screen. */
   const fetchPage = (after: string | null, mode: 'open' | 'next' | 'refresh', preserveReview = false) => {
     stop()
@@ -56,7 +74,7 @@ export function MissingAircraftReview({ locale, period, count, read = readMissin
     pending.current = { controller, release: trackPrivateOperation(controller) }
     if (mode === 'open') setLoad({ phase: 'loading' }); else setBusy(true)
     setNotice(null)
-    read(period, after, controller.signal).then(page => {
+    read(after, controller.signal).then(page => {
       if (controller.signal.aborted) return
       current.current = after
       // Keep the reviewed boundary: the refreshed page may contain older targets not reviewed yet.
@@ -90,6 +108,7 @@ export function MissingAircraftReview({ locale, period, count, read = readMissin
   const onOpenChange = (next: boolean) => next ? changeOpen(true) : leaveReview(() => changeOpen(false))
   const onSaved = (run: AircraftRun, unresolved: boolean) => {
     setSaved(value => value + [...run.rows.values()].filter(row => row.status === 'saved').length)
+    onConfirmedSaved?.(run)
     fetchPage(current.current, 'refresh', unresolved) // the open targets, not just the summary behind the sheet
     router.refresh()
   }
@@ -104,7 +123,7 @@ export function MissingAircraftReview({ locale, period, count, read = readMissin
   if (count <= 0 && !open) return null
 
   return <div className="ov-missing">{count > 0 ? <><span>{formatCount(locale, count, forms.noAircraft)}</span>{' '}
-    <Button dense variant="ghost" onClick={() => onOpenChange(true)}>{t(S.reviewAircraft, locale)}</Button></> : null}
+    <Button dense variant="ghost" onClick={() => onOpenChange(true)}>{actionLabel ?? t(S.reviewAircraft, locale)}</Button></> : null}
     <Sheet open={open} onOpenChange={onOpenChange} title={t(S.reviewTitle, locale)} description={t(S.reviewDescription, locale)} closeLabel={t(S.close, locale)} side="bottom" className="ov-review-sheet">
       <div className="import-page ov-review">
         {load.phase === 'loading' ? <p role="status" className="muted">{t(S.reviewLoading, locale)}</p> : null}
@@ -114,8 +133,8 @@ export function MissingAircraftReview({ locale, period, count, read = readMissin
           {saved > 0 ? <p role="status" className="muted">{formatCount(locale, saved, forms.aircraftSaved)}</p> : null}
           {(!work.dirty || saved === 0) && (page.offset > 0 || page.nextCursor) ? <p className="muted">{fill(t(S.reviewRange, locale), { from: num(page.offset + (shown > 0 ? 1 : 0)), to: num(page.offset + shown), total: num(page.total) })}</p> : null}
           {notice === 'refresh' ? <div role="alert"><p>{t(S.reviewRefreshFailed, locale)}</p><Button dense disabled={busy || work.busy} onClick={() => fetchPage(current.current, 'refresh', work.dirty)}>{t(S.retry, locale)}</Button></div> : null}
-          {targets.length === 0 ? <p className="muted">{t(S.reviewEnd, locale)}</p> : <AircraftPanel key={generation} locale={locale} targets={targets}
-            api={aircraftApi} onSaved={onSaved} onWorkChange={setWork} />}
+          {targets.length === 0 ? <p className="muted">{t(S.reviewEnd, locale)}</p> : <Suspense fallback={<p role="status" className="muted">{t(S.reviewLoading, locale)}</p>}><AircraftPanel key={generation} locale={locale} targets={targets}
+            api={aircraftApi} onSaved={onSaved} onWorkChange={setWork} /></Suspense>}
           {work.busy ? <p role="status" className="muted">{t(S.reviewWorking, locale)}</p> : null}
           {discard ? <div role="alert"><p>{t(S.reviewDiscard, locale)}</p>
             <Button dense disabled={busy || work.busy} onClick={() => { setDiscard(null); discard() }}>{t(S.reviewDiscardContinue, locale)}</Button>

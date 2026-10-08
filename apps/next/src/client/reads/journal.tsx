@@ -1,5 +1,6 @@
 'use client'
 import { JOURNAL_PAGE_SIZE } from '@kuuki/shared/constants'
+import { allianceAt } from '@kuuki/data/alliance-membership'
 
 import { useCallback, useEffect, useId, useRef, useState, useTransition } from 'react'
 import Link from 'next/link'
@@ -13,12 +14,12 @@ import { useWriteFeedback } from '../write-feedback'
 import { LIFECYCLE_CHANGED_EVENT } from '../lifecycle-sync'
 import { ROUTE_LINK_EVENT } from '../navigation-link'
 import { useOnline } from '../awaiting'
-import { FlightDetailSheet } from '../capture/flight-panels'
 import { connectionChains } from '../../../../../functions/api/_services/connections'
 import { Disclosure } from '../ui/disclosure'
 import { JournalQueue } from './journal-queue'
 import { useDeferredDelete } from './deferred-delete'
 import { Button } from '../ui/button'
+import { AllianceMark } from '../ui/category-mark'
 import { DeleteUndo } from './delete-undo'
 import { ToastSlot } from '../ui/toast'
 import { announceShellNotice } from '../shell-notices'
@@ -195,6 +196,17 @@ function JournalInner({ ownerId, locale, initial, query, page, filtered }: Props
   const navigate = (key: string, value: string, mode: 'push' | 'replace' = 'push') => apply({ [key]: value }, mode)
   const open = (id: number, edit = false, field?: 'aircraft') => { setEditing(edit); setFocusField(field); navigate('flight', String(id)) }
   const sheetFlight = params.has('flight') ? Number(params.get('flight')) : null
+  const [DetailSheet, setDetailSheet] = useState<(typeof import('../capture/flight-panels'))['FlightDetailSheet'] | null>(null)
+  const [detailLoadError, setDetailLoadError] = useState<Error | null>(null)
+  useEffect(() => {
+    if (sheetFlight === null || DetailSheet) return
+    let active = true
+    void import('../capture/flight-panels').then(
+      mod => { if (active) setDetailSheet(() => mod.FlightDetailSheet) },
+      error => { if (active) setDetailLoadError(error instanceof Error ? error : new Error(String(error))) },
+    )
+    return () => { active = false }
+  }, [sheetFlight, DetailSheet])
   useEffect(() => { if (sheetFlight) lastFlight.current = sheetFlight }, [sheetFlight])
   const closeFocus = (event: Event) => {
     event.preventDefault()
@@ -221,21 +233,25 @@ function JournalInner({ ownerId, locale, initial, query, page, filtered }: Props
   const chains = new Map<number, number[]>()
   for (const decision of decisions.values()) if (decision.kind === 'link' && decision.chainIds.length >= 3) for (const id of decision.chainIds) chains.set(id, decision.chainIds)
   const route = (flight: Flight) => locale === 'ru' ? `из ${flight.origin} в ${flight.destination}` : `${flight.origin} to ${flight.destination}`
-  const rowName = (flight: Flight) => [route(flight), formatDateOnly(locale, flight.date, 'long'), flight.flight_number ?? flight.airline_iata, flight.aircraft_icao, flight.duration_minutes ? formatDuration(locale, flight.duration_minutes) : null, flight.distance_km ? formatDistanceKm(locale, flight.distance_km) : null].filter(Boolean).join(', ')
-  const row = (flight: Flight) => <div className="journal-entry" key={flight.id}>
+  const duration = (flight: Flight) => flight.duration_minutes ? `${flight.duration_source === 'estimate' ? '≈ ' : ''}${formatDuration(locale, flight.duration_minutes)}` : null
+  const rowName = (flight: Flight) => [route(flight), formatDateOnly(locale, flight.date, 'long'), flight.flight_number ?? flight.airline_iata, flight.aircraft_icao, duration(flight), flight.distance_km ? formatDistanceKm(locale, flight.distance_km) : null].filter(Boolean).join(', ')
+  const row = (flight: Flight) => {
+    const alliance = allianceAt(flight.airline_iata, flight.date)
+    return <div className="journal-entry" key={flight.id}>
             <label className="journal-checkbox"><input type="checkbox" aria-label={`${t.select}: ${route(flight)}, ${formatDateOnly(locale, flight.date, 'long')}`} checked={selected.includes(flight.id)} onChange={event => select(ids => event.target.checked ? [...ids, flight.id] : ids.filter(id => id !== flight.id))} /></label>
             <div className="flight-row">
               <button type="button" className="flight-row-open" data-flight-row={flight.id} aria-label={rowName(flight)} onClick={() => open(flight.id)} />
               <span className="flight-row-date mono" aria-hidden="true">{formatDateOnly(locale, flight.date, 'padded')}</span>
               <strong className="flight-row-route mono" aria-hidden="true">{flight.origin} → {flight.destination}</strong>
-              <span className="flight-row-number" aria-hidden="true">{flight.flight_number ?? flight.airline_iata ?? '—'}</span>
+              <span className="flight-row-number">{alliance ? <><AllianceMark alliance={alliance} size={12} />{' '}</> : null}<span aria-hidden="true">{flight.flight_number ?? flight.airline_iata ?? '—'}</span></span>
               {flight.aircraft_icao
                 ? <span className="journal-aircraft-cell" aria-hidden="true">{flight.aircraft_icao}</span>
                 : <span className="journal-aircraft-cell" data-action="add-aircraft"><Button dense aria-label={`${t.addAircraft}, ${route(flight)}, ${formatDateOnly(locale, flight.date, 'long')}`} disabled={!online} aria-describedby={!online ? offlineId : undefined} onClick={() => open(flight.id, true, 'aircraft')}>{t.addAircraft}</Button></span>}
-              <span className="flight-row-duration" aria-hidden="true">{flight.duration_minutes ? formatDuration(locale, flight.duration_minutes) : '—'}</span>
+              <span className="flight-row-duration" aria-hidden="true">{duration(flight) ?? '—'}</span>
               <span className="flight-row-distance mono" aria-hidden="true">{flight.distance_km ? formatDistanceKm(locale, flight.distance_km) : '—'}</span>
             </div>
           </div>
+  }
   const flightRows = (flights: Flight[]) => {
     const shown = new Set<number>()
     return flights.map(flight => {
@@ -256,6 +272,7 @@ function JournalInner({ ownerId, locale, initial, query, page, filtered }: Props
     return <Button key={key} dense aria-pressed={active} aria-label={active ? `${label}, ${t[direction]}` : undefined} onClick={() => active ? navigate('order', direction === 'asc' ? 'desc' : 'asc') : navigate('sort', key)}>{label}{active && (direction === 'asc' ? <ArrowUp size={14} strokeWidth={2} aria-hidden="true" /> : <ArrowDown size={14} strokeWidth={2} aria-hidden="true" />)}</Button>
   }
   const withoutPage = (() => { const next = new URLSearchParams(query); next.delete('page'); return next.toString() })()
+  if (detailLoadError) throw detailLoadError
   return <section ref={root} data-testid="journal-data" className="journal-data read-stack">
     <JournalQueue locale={locale} filtered={filtered} hiddenIds={hidden} onEdit={id => open(id, true)} onDelete={ids => scheduleDelete(ids, 'queue')} />
     <section className="read-section">
@@ -280,7 +297,8 @@ function JournalInner({ ownerId, locale, initial, query, page, filtered }: Props
         onConfirm={() => { if (online) { confirmed.current = true; scheduleDelete(selected); setDeleteOpen(false) } }} />
     </section>
     <ToastSlot><DeleteUndo ref={undoButton} locale={locale} pending={deletion.pending} submitting={deletion.submitting} onUndo={undo} /></ToastSlot>
-    {sheetFlight !== null && <FlightDetailSheet ownerId={ownerId} locale={locale} flightId={sheetFlight} initialEditing={editing} focusField={focusField} onDelete={id => scheduleDelete([id])} onCloseAutoFocus={closeFocus} onOpenChange={isOpen => { if (!isOpen) { navigate('flight', '', 'replace'); refresh() } }} />}
+    {sheetFlight !== null && (DetailSheet ? <DetailSheet ownerId={ownerId} locale={locale} flightId={sheetFlight} initialEditing={editing} focusField={focusField} onDelete={id => scheduleDelete([id])} onCloseAutoFocus={closeFocus} onOpenChange={isOpen => { if (!isOpen) { navigate('flight', '', 'replace'); refresh() } }} />
+      : <p role="status" className="loading">{locale === 'ru' ? 'Открываем перелёт…' : 'Opening flight…'}</p>)}
   </section>
 }
 

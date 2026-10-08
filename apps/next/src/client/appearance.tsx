@@ -69,10 +69,10 @@ export function setAccent(accent: Accent) {
   window.dispatchEvent(new Event('kuuki:appearance'))
 }
 
-/** Reads the stored accent; the removed kincha and sumi are rewritten to terracotta the first time they are seen. */
+/** Reads the stored accent; removed names are rewritten to shu the first time they are seen. */
 function normalizeAccent(): Accent | undefined {
   const saved = document.cookie.match(/(?:^|; )kuuki_accent=([^;]+)/)?.[1]
-  if (saved === 'kincha' || saved === 'sumi') { setAccent('terracotta'); return 'terracotta' }
+  if (['terracotta', 'kincha', 'sumi', 'yellow'].includes(saved ?? '')) { setAccent('shu'); return 'shu' }
   return isAccent(saved) ? saved : undefined
 }
 
