@@ -1,6 +1,6 @@
 # Narrator corpus — owner approved
 
-Owner approved the EN/RU copy on 2026-10-08 after source commit 8f9c604 and independent round2 approval. Task12 is accepted; no copy edits were requested. No runtime normal/sarcastic mode is added. Each trigger has three paired variants; all are secondary observations, and first-run/zero lines leave functional instructions to the page.
+Owner approved the EN/RU copy on 2026-10-08 after source commit 8f9c604 and independent round2 approval. Task12 is accepted. Owner revision 2026-10-08: RU lines shortened (average template length ~93 → ~59 characters) and «корпус» removed; EN is unchanged. No runtime normal/sarcastic mode is added. Each trigger has three paired variants; all are secondary observations, and first-run/zero lines leave functional instructions to the page.
 42 triggers: 26 factual observations, ten slot fallbacks, six actual below-gate fallbacks. Higher priority wins; equal priorities retain declaration order. All factual section triggers require their actual ready gate. Rankings/globe have no invented gate; firstRun and zero use semantic filter emptiness.
 Numbers are params from the current scope unless explicitly labelled all-time. Years/hours/dates are actual label params. Auckland hours and before-noon percentages are rounded to one decimal and described as approximate. Airport entries count both endpoints; routes combine directions; known-body denominators exclude unclassified types. No private flight identities appear in params or copy.
 ## Actual fixture selections
@@ -11,14 +11,14 @@ The board has an actual AKL duration witness of 965 minutes (about 16.1 h), actu
 
 | Slot | Selected id | Actual params | EN | RU |
 | --- | --- | --- | --- | --- |
-| records | records:auckland-duration | {"hours": 16.1} | Auckland takes the duration record: about 16.1 h. The clock has filed its report. | Окленду достался рекорд длительности: около 16,1 ч. Часы представили отчёт. |
-| crossings | crossings:no-date-line | {"count": 0} | Date-line crossings recorded in this view: 0. That boundary stayed out of the report. | Пересечений линии перемены дат в выборке: 0. Эта граница в отчёт не попала. |
-| manufacturers | manufacturers:airbus-boeing | {"airbus": 38, "boeing": 21} | Your Airbus count is 38, Boeing 21. Airbus has the larger file. | У вас на Airbus — 38, на Boeing — 21. Папка Airbus толще. |
-| fleet | fleet:narrow-majority | {"narrow": 46, "known": 64, "total": 69} | Narrowbodies hold the known-body majority: 46 of 64, from 69 total flights. The blanks abstained. | Большинство среди известных типов корпуса — узкофюзеляжные: 46 из 64, при общем числе перелётов 69. Пустые графы воздержались. |
-| clock | clock:unique-peak | {"hour": "07:00", "count": 9, "timed": 69} | The 07:00 hour leads departures outright: 9 of 69 timed flights. The schedule has a recurring appointment. | Час с 07:00 единолично лидирует по вылетам: 9 из 69 с известным временем. В расписании повторяется назначенный час. |
-| rhythm | rhythm:gap | {"months": 40, "from": "2014-04", "to": "2017-07"} | Longest empty run in this view: 2014-04–2017-07; months: 40. A gap in the selected calendar. | Самая длинная пустая серия в выборке: месяцев 40, 2014-04–2017-07. Пробел в выбранном календаре. |
-| rankings | rankings:airport-leader | {"code": "IST", "count": 29, "endpoints": 138} | IST heads the airport list: 29 of 138 endpoint entries. This denominator has both ends. | IST возглавляет список аэропортов: 29 из 138 отметок в конечных точках. В знаменателе оба конца маршрута. |
-| globe | globe:route-footprint | {"routes": 31, "airports": 18} | Your selected route footprint: 31 airport pairs across 18 airports. Directions combined for counting. | В вашей выборке пар аэропортов: 31, аэропортов: 18. Направления объединены для подсчёта. |
+| records | records:auckland-duration | {"hours": 16.1} | Auckland takes the duration record: about 16.1 h. The clock has filed its report. | Рекорд длительности — Окленд, около 16,1 ч. Часы отчитались. |
+| crossings | crossings:no-date-line | {"count": 0} | Date-line crossings recorded in this view: 0. That boundary stayed out of the report. | Пересечений линии перемены дат: 0. Граница в отчёт не попала. |
+| manufacturers | manufacturers:airbus-boeing | {"airbus": 38, "boeing": 21} | Your Airbus count is 38, Boeing 21. Airbus has the larger file. | На Airbus — 38, на Boeing — 21. Папка Airbus толще. |
+| fleet | fleet:narrow-majority | {"narrow": 46, "known": 64, "total": 69} | Narrowbodies hold the known-body majority: 46 of 64, from 69 total flights. The blanks abstained. | Большинство — узкофюзеляжные: 46 из 64, всего 69. |
+| clock | clock:unique-peak | {"hour": "07:00", "count": 9, "timed": 69} | The 07:00 hour leads departures outright: 9 of 69 timed flights. The schedule has a recurring appointment. | Чаще всего — час с 07:00: 9 из 69. Встреча по расписанию. |
+| rhythm | rhythm:gap | {"months": 40, "from": "2014-04", "to": "2017-07"} | Longest empty run in this view: 2014-04–2017-07; months: 40. A gap in the selected calendar. | Самый долгий перерыв — 2014-04–2017-07, месяцев 40. |
+| rankings | rankings:airport-leader | {"code": "IST", "count": 29, "endpoints": 138} | IST heads the airport list: 29 of 138 endpoint entries. This denominator has both ends. | IST лидирует: 29 из 138. В знаменателе оба конца. |
+| globe | globe:route-footprint | {"routes": 31, "airports": 18} | Your selected route footprint: 31 airport pairs across 18 airports. Directions combined for counting. | Маршрутов: 31, аэропортов: 18. Направления объединены. |
 | firstRun | — | — | — | — |
 | zero | — | — | — | — |
 
@@ -26,44 +26,44 @@ The board has an actual AKL duration witness of 965 minutes (about 16.1 h), actu
 
 | Slot | Selected id | Actual params | EN | RU |
 | --- | --- | --- | --- | --- |
-| records | below:records | {"have": 0, "need": 5} | Evidence in this view: 0. The section threshold is 5. | Данных в этой выборке: 0. Порог раздела: 5. |
-| crossings | below:crossings | {"have": 0, "need": 3} | Available evidence: 0; required for this section: 3. | Доступно данных: 0; для этого раздела нужно: 3. |
-| manufacturers | below:manufacturers | {"have": 0, "need": 5} | Evidence in this view: 0. The section threshold is 5. | Данных в этой выборке: 0. Порог раздела: 5. |
-| fleet | below:fleet | {"have": 0, "need": 5} | This section needs 5; the current view provides 0. | Для раздела нужно: 5; в текущей выборке доступно: 0. |
-| clock | below:clock | {"have": 0, "need": 10} | Evidence in this view: 0. The section threshold is 10. | Данных в этой выборке: 0. Порог раздела: 10. |
-| rhythm | below:rhythm | {"have": 0, "need": 2} | Available evidence: 0; required for this section: 2. | Доступно данных: 0; для этого раздела нужно: 2. |
-| rankings | rankings | {"flights": 0} | Flight total for this view: 0. | Всего перелётов в этом обзоре: 0. |
-| globe | globe | {"flights": 0} | Your current selection includes this many flights: 0. | В вашей текущей выборке столько перелётов: 0. |
-| firstRun | firstRun | {} | Your overview is waiting for its first completed flight. | Ваш обзор ждёт первого завершённого перелёта. |
+| records | below:records | {"have": 0, "need": 5} | Evidence in this view: 0. The section threshold is 5. | Данных: 0 из 5. |
+| crossings | below:crossings | {"have": 0, "need": 3} | Available evidence: 0; required for this section: 3. | Есть: 0; нужно: 3. |
+| manufacturers | below:manufacturers | {"have": 0, "need": 5} | Evidence in this view: 0. The section threshold is 5. | Данных: 0 из 5. |
+| fleet | below:fleet | {"have": 0, "need": 5} | This section needs 5; the current view provides 0. | Для раздела нужно: 5. Есть: 0. |
+| clock | below:clock | {"have": 0, "need": 10} | Evidence in this view: 0. The section threshold is 10. | Данных: 0 из 10. |
+| rhythm | below:rhythm | {"have": 0, "need": 2} | Available evidence: 0; required for this section: 2. | Есть: 0; нужно: 2. |
+| rankings | rankings | {"flights": 0} | Flight total for this view: 0. | В обзоре перелётов: 0. |
+| globe | globe | {"flights": 0} | Your current selection includes this many flights: 0. | Всего перелётов: 0. |
+| firstRun | firstRun | {} | Your overview is waiting for its first completed flight. | Обзор ждёт первого завершённого перелёта. |
 | zero | — | — | — | — |
 
 ### zero
 
 | Slot | Selected id | Actual params | EN | RU |
 | --- | --- | --- | --- | --- |
-| records | below:records | {"have": 0, "need": 5} | Available evidence: 0; required for this section: 5. | Доступно данных: 0; для этого раздела нужно: 5. |
-| crossings | below:crossings | {"have": 0, "need": 3} | Available evidence: 0; required for this section: 3. | Доступно данных: 0; для этого раздела нужно: 3. |
-| manufacturers | below:manufacturers | {"have": 0, "need": 5} | This section needs 5; the current view provides 0. | Для раздела нужно: 5; в текущей выборке доступно: 0. |
-| fleet | below:fleet | {"have": 0, "need": 5} | Evidence in this view: 0. The section threshold is 5. | Данных в этой выборке: 0. Порог раздела: 5. |
-| clock | below:clock | {"have": 0, "need": 10} | Evidence in this view: 0. The section threshold is 10. | Данных в этой выборке: 0. Порог раздела: 10. |
-| rhythm | below:rhythm | {"have": 0, "need": 2} | This section needs 2; the current view provides 0. | Для раздела нужно: 2; в текущей выборке доступно: 0. |
-| rankings | rankings | {"flights": 0} | Your current selection includes this many flights: 0. | В вашей текущей выборке столько перелётов: 0. |
-| globe | globe | {"flights": 0} | Your current selection includes this many flights: 0. | В вашей текущей выборке столько перелётов: 0. |
+| records | below:records | {"have": 0, "need": 5} | Available evidence: 0; required for this section: 5. | Есть: 0; нужно: 5. |
+| crossings | below:crossings | {"have": 0, "need": 3} | Available evidence: 0; required for this section: 3. | Есть: 0; нужно: 3. |
+| manufacturers | below:manufacturers | {"have": 0, "need": 5} | This section needs 5; the current view provides 0. | Для раздела нужно: 5. Есть: 0. |
+| fleet | below:fleet | {"have": 0, "need": 5} | Evidence in this view: 0. The section threshold is 5. | Данных: 0 из 5. |
+| clock | below:clock | {"have": 0, "need": 10} | Evidence in this view: 0. The section threshold is 10. | Данных: 0 из 10. |
+| rhythm | below:rhythm | {"have": 0, "need": 2} | This section needs 2; the current view provides 0. | Для раздела нужно: 2. Есть: 0. |
+| rankings | rankings | {"flights": 0} | Your current selection includes this many flights: 0. | Всего перелётов: 0. |
+| globe | globe | {"flights": 0} | Your current selection includes this many flights: 0. | Всего перелётов: 0. |
 | firstRun | — | — | — | — |
-| zero | zero | {} | There are no completed flights in this selection. | В этой выборке нет завершённых перелётов. |
+| zero | zero | {} | There are no completed flights in this selection. | Завершённых перелётов не найдено. |
 
 ### n1
 
 | Slot | Selected id | Actual params | EN | RU |
 | --- | --- | --- | --- | --- |
-| records | below:records | {"have": 1, "need": 5} | Evidence in this view: 1. The section threshold is 5. | Данных в этой выборке: 1. Порог раздела: 5. |
-| crossings | below:crossings | {"have": 1, "need": 3} | Available evidence: 1; required for this section: 3. | Доступно данных: 1; для этого раздела нужно: 3. |
-| manufacturers | below:manufacturers | {"have": 1, "need": 5} | Evidence in this view: 1. The section threshold is 5. | Данных в этой выборке: 1. Порог раздела: 5. |
-| fleet | below:fleet | {"have": 1, "need": 5} | This section needs 5; the current view provides 1. | Для раздела нужно: 5; в текущей выборке доступно: 1. |
-| clock | below:clock | {"have": 1, "need": 10} | Evidence in this view: 1. The section threshold is 10. | Данных в этой выборке: 1. Порог раздела: 10. |
-| rhythm | below:rhythm | {"have": 1, "need": 2} | Available evidence: 1; required for this section: 2. | Доступно данных: 1; для этого раздела нужно: 2. |
-| rankings | rankings:airline-leader | {"code": "TK", "count": 1, "known": 1} | Displayed airline leader: TK; flights: 1; recorded-airline total: 1. No membership inferred. | В списке авиакомпаний лидирует TK; перелётов: 1; всего с указанной авиакомпанией: 1. Членство не предполагается. |
-| globe | globe | {"flights": 1} | Your current selection includes this many flights: 1. | В вашей текущей выборке столько перелётов: 1. |
+| records | below:records | {"have": 1, "need": 5} | Evidence in this view: 1. The section threshold is 5. | Данных: 1 из 5. |
+| crossings | below:crossings | {"have": 1, "need": 3} | Available evidence: 1; required for this section: 3. | Есть: 1; нужно: 3. |
+| manufacturers | below:manufacturers | {"have": 1, "need": 5} | Evidence in this view: 1. The section threshold is 5. | Данных: 1 из 5. |
+| fleet | below:fleet | {"have": 1, "need": 5} | This section needs 5; the current view provides 1. | Для раздела нужно: 5. Есть: 1. |
+| clock | below:clock | {"have": 1, "need": 10} | Evidence in this view: 1. The section threshold is 10. | Данных: 1 из 10. |
+| rhythm | below:rhythm | {"have": 1, "need": 2} | Available evidence: 1; required for this section: 2. | Есть: 1; нужно: 2. |
+| rankings | rankings:airline-leader | {"code": "TK", "count": 1, "known": 1} | Displayed airline leader: TK; flights: 1; recorded-airline total: 1. No membership inferred. | Лидирует TK: 1 из 1. Членство не предполагается. |
+| globe | globe | {"flights": 1} | Your current selection includes this many flights: 1. | Всего перелётов: 1. |
 | firstRun | — | — | — | — |
 | zero | — | — | — | — |
 
@@ -71,14 +71,14 @@ The board has an actual AKL duration witness of 965 minutes (about 16.1 h), actu
 
 | Slot | Selected id | Actual params | EN | RU |
 | --- | --- | --- | --- | --- |
-| records | records:auckland-duration | {"hours": 16.1} | Auckland takes the duration record: about 16.1 h. The clock has filed its report. | Окленду достался рекорд длительности: около 16,1 ч. Часы представили отчёт. |
-| crossings | crossings:no-date-line | {"count": 0} | Date-line crossings recorded in this view: 0. That boundary stayed out of the report. | Пересечений линии перемены дат в выборке: 0. Эта граница в отчёт не попала. |
-| manufacturers | manufacturers:airbus-boeing | {"airbus": 38, "boeing": 21} | Your Airbus count is 38, Boeing 21. Airbus has the larger file. | У вас на Airbus — 38, на Boeing — 21. Папка Airbus толще. |
-| fleet | fleet:narrow-majority | {"narrow": 46, "known": 64, "total": 69} | Narrowbodies hold the known-body majority: 46 of 64, from 69 total flights. The blanks abstained. | Большинство среди известных типов корпуса — узкофюзеляжные: 46 из 64, при общем числе перелётов 69. Пустые графы воздержались. |
-| clock | clock:unique-peak | {"hour": "07:00", "count": 9, "timed": 69} | The 07:00 hour leads departures outright: 9 of 69 timed flights. The schedule has a recurring appointment. | Час с 07:00 единолично лидирует по вылетам: 9 из 69 с известным временем. В расписании повторяется назначенный час. |
-| rhythm | rhythm:gap | {"months": 40, "from": "2014-04", "to": "2017-07"} | Longest empty run in this view: 2014-04–2017-07; months: 40. A gap in the selected calendar. | Самая длинная пустая серия в выборке: месяцев 40, 2014-04–2017-07. Пробел в выбранном календаре. |
-| rankings | rankings:airport-leader | {"code": "IST", "count": 29, "endpoints": 138} | IST heads the airport list: 29 of 138 endpoint entries. This denominator has both ends. | IST возглавляет список аэропортов: 29 из 138 отметок в конечных точках. В знаменателе оба конца маршрута. |
-| globe | globe:route-footprint | {"routes": 31, "airports": 18} | Your selected route footprint: 31 airport pairs across 18 airports. Directions combined for counting. | В вашей выборке пар аэропортов: 31, аэропортов: 18. Направления объединены для подсчёта. |
+| records | records:auckland-duration | {"hours": 16.1} | Auckland takes the duration record: about 16.1 h. The clock has filed its report. | Рекорд длительности — Окленд, около 16,1 ч. Часы отчитались. |
+| crossings | crossings:no-date-line | {"count": 0} | Date-line crossings recorded in this view: 0. That boundary stayed out of the report. | Пересечений линии перемены дат: 0. Граница в отчёт не попала. |
+| manufacturers | manufacturers:airbus-boeing | {"airbus": 38, "boeing": 21} | Your Airbus count is 38, Boeing 21. Airbus has the larger file. | На Airbus — 38, на Boeing — 21. Папка Airbus толще. |
+| fleet | fleet:narrow-majority | {"narrow": 46, "known": 64, "total": 69} | Narrowbodies hold the known-body majority: 46 of 64, from 69 total flights. The blanks abstained. | Большинство — узкофюзеляжные: 46 из 64, всего 69. |
+| clock | clock:unique-peak | {"hour": "07:00", "count": 9, "timed": 69} | The 07:00 hour leads departures outright: 9 of 69 timed flights. The schedule has a recurring appointment. | Чаще всего — час с 07:00: 9 из 69. Встреча по расписанию. |
+| rhythm | rhythm:gap | {"months": 40, "from": "2014-04", "to": "2017-07"} | Longest empty run in this view: 2014-04–2017-07; months: 40. A gap in the selected calendar. | Самый долгий перерыв — 2014-04–2017-07, месяцев 40. |
+| rankings | rankings:airport-leader | {"code": "IST", "count": 29, "endpoints": 138} | IST heads the airport list: 29 of 138 endpoint entries. This denominator has both ends. | IST лидирует: 29 из 138. В знаменателе оба конца. |
+| globe | globe:route-footprint | {"routes": 31, "airports": 18} | Your selected route footprint: 31 airport pairs across 18 airports. Directions combined for counting. | Маршрутов: 31, аэропортов: 18. Направления объединены. |
 | firstRun | — | — | — | — |
 | zero | — | — | — | — |
 
@@ -86,14 +86,14 @@ The board has an actual AKL duration witness of 965 minutes (about 16.1 h), actu
 
 | Slot | Selected id | Actual params | EN | RU |
 | --- | --- | --- | --- | --- |
-| records | records:longest-distance | {"origin": "DOH", "destination": "IST", "km": 2709} | Your distance record: DOH–IST, 2,709 km. A long line on the map. | Ваш рекорд расстояния: DOH–IST, 2 709 км. Длинная линия на карте. |
-| crossings | crossings:no-date-line | {"count": 0} | Recorded date-line crossings: 0. No entry for that boundary here. | Зафиксированных пересечений линии перемены дат: 0. По этой границе записей нет. |
-| manufacturers | manufacturers:airbus-boeing | {"airbus": 16, "boeing": 8} | Your Airbus count is 16, Boeing 8. Airbus has the larger file. | У вас на Airbus — 16, на Boeing — 8. Папка Airbus толще. |
-| fleet | fleet:narrow-majority | {"narrow": 18, "known": 24, "total": 24} | Your narrowbody count is 18 out of 24 classified flights; view total 24. A majority with a stated denominator. | У вас узкофюзеляжных перелётов: 18 из 24 с известным типом корпуса; всего 24. Большинство с указанным знаменателем. |
-| clock | clock:night | {"count": 3, "timed": 24} | Night-band departures here: 3 of 24 known times. The clock did a late shift. | Вылетов в ночном диапазоне: 3 из 24 с известным временем. Часы отработали позднюю смену. |
-| rhythm | rhythm:gap | {"months": 22, "from": "2019-09", "to": "2021-06"} | Your current view’s longest monthly gap is 2019-09–2021-06; months: 22. Scope matters. | Самый длинный помесячный пробел в вашем обзоре — 2019-09–2021-06: месяцев 22. С учётом выборки. |
-| rankings | rankings:airline-leader | {"code": "TK", "count": 24, "known": 24} | TK tops your displayed airline list: flights 24; known-airline total 24. A count, not a loyalty programme. | В вашем списке авиакомпаний сверху TK: перелётов 24; всего с известной авиакомпанией 24. Подсчёт, не программа лояльности. |
-| globe | globe:filtered-total | {"selected": 24, "total": 69} | Selected flights: 24 out of 69 all-time. The filter has narrowed the report. | В выборке перелётов: 24 из 69 за всё время. Фильтр сократил отчёт. |
+| records | records:longest-distance | {"origin": "DOH", "destination": "IST", "km": 2709} | Your distance record: DOH–IST, 2,709 km. A long line on the map. | DOH–IST: 2 709 км. Самая длинная линия на карте. |
+| crossings | crossings:no-date-line | {"count": 0} | Recorded date-line crossings: 0. No entry for that boundary here. | По линии перемены дат: 0. Замечаний нет. |
+| manufacturers | manufacturers:airbus-boeing | {"airbus": 16, "boeing": 8} | Your Airbus count is 16, Boeing 8. Airbus has the larger file. | На Airbus — 16, на Boeing — 8. Папка Airbus толще. |
+| fleet | fleet:narrow-majority | {"narrow": 18, "known": 24, "total": 24} | Your narrowbody count is 18 out of 24 classified flights; view total 24. A majority with a stated denominator. | Один проход: 18 из 24, всего 24. Много локтей. |
+| clock | clock:night | {"count": 3, "timed": 24} | Night-band departures here: 3 of 24 known times. The clock did a late shift. | Ночных вылетов: 3 из 24. Часы отработали позднюю смену. |
+| rhythm | rhythm:gap | {"months": 22, "from": "2019-09", "to": "2021-06"} | Your current view’s longest monthly gap is 2019-09–2021-06; months: 22. Scope matters. | Пауза 2019-09–2021-06: месяцев 22. Чемодан ждал. |
+| rankings | rankings:airline-leader | {"code": "TK", "count": 24, "known": 24} | TK tops your displayed airline list: flights 24; known-airline total 24. A count, not a loyalty programme. | Вверху списка — TK: 24 из 24. Подсчёт, не программа лояльности. |
+| globe | globe:filtered-total | {"selected": 24, "total": 69} | Selected flights: 24 out of 69 all-time. The filter has narrowed the report. | Фильтр оставил 24 из 69 за всё время. Отчёт сокращён. |
 | firstRun | — | — | — | — |
 | zero | — | — | — | — |
 
@@ -123,15 +123,15 @@ Evidence / exact predicate and params:
 
 1. EN: Your longest duration ends in Auckland: about {hours} h. Noted.
 
-   RU: Самый долгий перелёт в выборке — до Окленда: около {hours} ч. Принято к сведению.
+   RU: Окленд: около {hours} ч в пути. Принято к сведению.
 
 2. EN: About {hours} h to Auckland in this view’s duration record. A substantial entry.
 
-   RU: До Окленда — около {hours} ч по рекорду длительности. Весомая запись.
+   RU: До Окленда — около {hours} ч. Весомая запись.
 
 3. EN: Auckland takes the duration record: about {hours} h. The clock has filed its report.
 
-   RU: Окленду достался рекорд длительности: около {hours} ч. Часы представили отчёт.
+   RU: Рекорд длительности — Окленд, около {hours} ч. Часы отчитались.
 
 Actual admitted params in the listed fixtures:
 - board: `{"hours": 16.1}`
@@ -159,15 +159,15 @@ Evidence / exact predicate and params:
 
 1. EN: Your distance record: {origin}–{destination}, {km} km. A long line on the map.
 
-   RU: Ваш рекорд расстояния: {origin}–{destination}, {km} км. Длинная линия на карте.
+   RU: {origin}–{destination}: {km} км. Самая длинная линия на карте.
 
 2. EN: {origin}–{destination} leads this view by distance: {km} km. Geography was thorough.
 
-   RU: По расстоянию в выборке лидирует {origin}–{destination}: {km} км. География подошла основательно.
+   RU: Дальше всего — {origin}–{destination}, {km} км. Основательно.
 
 3. EN: The longest route here is {origin}–{destination}: {km} km. Filed under distance.
 
-   RU: Самый длинный маршрут здесь — {origin}–{destination}: {km} км. Внесено в графу расстояний.
+   RU: Самый длинный маршрут — {origin}–{destination}, {km} км. Зафиксировано.
 
 Actual admitted params in the listed fixtures:
 - filtered: `{"origin": "DOH", "destination": "IST", "km": 2709}`
@@ -194,15 +194,15 @@ Evidence / exact predicate and params:
 
 1. EN: Your busiest year here is {year}: flights {count}, active months {months}. A full report.
 
-   RU: Самый насыщенный год в выборке — {year}: перелётов {count}, активных месяцев {months}. Отчёт содержательный.
+   RU: {year}: перелётов {count}, активных месяцев {months}. Отчёт плотный.
 
 2. EN: {year} leads this view: flights {count}, months with flights {months}. Calendar evidence attached.
 
-   RU: В выборке лидирует {year}: перелётов {count}, месяцев с перелётами {months}. Календарь прилагается.
+   RU: Лидирует {year}: перелётов {count}, активных месяцев {months}.
 
 3. EN: Busiest year: {year}; flights: {count}; active months: {months}. The calendar kept receipts.
 
-   RU: Самый насыщенный год: {year}; перелётов: {count}; активных месяцев: {months}. Календарь всё зафиксировал.
+   RU: В {year} — перелётов {count}, активных месяцев {months}. Год удался.
 
 Actual admitted params in the listed fixtures:
 - Not selected in these fixtures; condition is covered by the focused predicate/corpus checks.
@@ -229,15 +229,15 @@ Evidence / exact predicate and params:
 
 1. EN: Your busiest day in this view: {date}, flights {count}. The date did some work.
 
-   RU: Самый насыщенный день в выборке: {date}, перелётов {count}. Дата поработала.
+   RU: Рекорд дня — {date}: перелётов {count}. Дата поработала.
 
 2. EN: {date} holds the daily record here: flights {count}. A busy calendar cell.
 
-   RU: Рекорд за день здесь у {date}: перелётов {count}. Плотная ячейка календаря.
+   RU: {date}: перелётов {count} за день. Плотная ячейка календаря.
 
 3. EN: Daily maximum: {count} flights on {date}. All under the same date.
 
-   RU: Максимум за день: перелётов {count}, дата {date}. Всё оформлено одним числом.
+   RU: Больше всего за день — {date}: перелётов {count}.
 
 Actual admitted params in the listed fixtures:
 - Not selected in these fixtures; condition is covered by the focused predicate/corpus checks.
@@ -263,15 +263,15 @@ Evidence / exact predicate and params:
 
 1. EN: Your longest run of consecutive months with flights: {months}. The calendar found a pattern.
 
-   RU: Самая длинная серия месяцев с перелётами: {months}. Календарь обнаружил закономерность.
+   RU: Месяцев подряд с перелётами: {months}. Закономерность обнаружена.
 
 2. EN: Consecutive active months in this view: {months}. A documented streak.
 
-   RU: Месяцев с перелётами подряд в выборке: {months}. Серия документально подтверждена.
+   RU: Серия: {months} мес. подряд. Подтверждено документально.
 
 3. EN: Longest monthly streak: {months}. No empty month inside that run.
 
-   RU: Самая длинная серия активных месяцев: {months}. Внутри этой серии пустых месяцев нет.
+   RU: Самая длинная серия — {months} мес. Без пустых месяцев.
 
 Actual admitted params in the listed fixtures:
 - Not selected in these fixtures; condition is covered by the focused predicate/corpus checks.
@@ -297,15 +297,15 @@ Evidence / exact predicate and params:
 
 1. EN: Date-line crossings recorded in this view: {count}. That boundary stayed out of the report.
 
-   RU: Пересечений линии перемены дат в выборке: {count}. Эта граница в отчёт не попала.
+   RU: Пересечений линии перемены дат: {count}. Граница в отчёт не попала.
 
 2. EN: This view records {count} date-line crossings. The calendar kept its side of the line.
 
-   RU: В выборке зафиксировано пересечений линии перемены дат: {count}. Календарь остался по свою сторону.
+   RU: Линия перемены дат, пересечений: {count}. Календарь не пострадал.
 
 3. EN: Recorded date-line crossings: {count}. No entry for that boundary here.
 
-   RU: Зафиксированных пересечений линии перемены дат: {count}. По этой границе записей нет.
+   RU: По линии перемены дат: {count}. Замечаний нет.
 
 Actual admitted params in the listed fixtures:
 - board: `{"count": 0}`
@@ -333,15 +333,15 @@ Evidence / exact predicate and params:
 
 1. EN: Recorded date-line crossings here: {count}. The map has a calendar boundary.
 
-   RU: Зафиксированных пересечений линии перемены дат: {count}. У карты есть календарная граница.
+   RU: Пересечений линии перемены дат: {count}. Календарь подал жалобу.
 
 2. EN: Date-line crossing total in this view: {count}. A boundary with paperwork.
 
-   RU: Всего пересечений линии перемены дат в выборке: {count}. Граница с отчётностью.
+   RU: Линия перемены дат, пересечений: {count}. Календарь сверяет показания.
 
 3. EN: Your routes record date-line crossings: {count}. Filed separately from clock shifts.
 
-   RU: На ваших маршрутах отмечено пересечений линии перемены дат: {count}. Учтено отдельно от сдвигов часов.
+   RU: По линии перемены дат: {count}. Учтено отдельно от сдвигов часов.
 
 Actual admitted params in the listed fixtures:
 - Not selected in these fixtures; condition is covered by the focused predicate/corpus checks.
@@ -367,15 +367,15 @@ Evidence / exact predicate and params:
 
 1. EN: Clock shifts in this view: forward {forward} h, back {back} h. Forward wins the ledger.
 
-   RU: Сдвиги часов в выборке: вперёд {forward} ч, назад {back} ч. Ведомость в пользу движения вперёд.
+   RU: Часы: вперёд {forward} ч, назад {back} ч. Перевес вперёд.
 
 2. EN: Your clock-change totals favour forward: {forward} h against {back} h back. Arithmetic, not jet lag.
 
-   RU: В ваших сдвигах часов перевес вперёд: {forward} ч против {back} ч назад. Арифметика, не джетлаг.
+   RU: Перевес вперёд: {forward} ч против {back} ч. Арифметика, не джетлаг.
 
 3. EN: Forward shifts lead here: {forward} h; backward: {back} h. The clocks submitted totals.
 
-   RU: Здесь больше сдвигов вперёд: {forward} ч; назад: {back} ч. Часы сдали итоги.
+   RU: Вперёд — {forward} ч, назад — {back} ч. Часы сдали итоги.
 
 Actual admitted params in the listed fixtures:
 - Not selected in these fixtures; condition is covered by the focused predicate/corpus checks.
@@ -403,15 +403,15 @@ Evidence / exact predicate and params:
 
 1. EN: Airbus flights in this view: {airbus}; Boeing: {boeing}. Boeing is still auditioning.
 
-   RU: Перелётов на Airbus в выборке: {airbus}; на Boeing: {boeing}. Boeing пока на прослушивании.
+   RU: Airbus: {airbus}, Boeing: {boeing}. Boeing пока на прослушивании.
 
 2. EN: Airbus leads the known makers here: {airbus} flights; Boeing: {boeing}. The cast is uneven.
 
-   RU: Среди известных производителей здесь лидирует Airbus: перелётов {airbus}; Boeing: {boeing}. Состав неравномерный.
+   RU: Airbus впереди: {airbus} против {boeing}. Состав неравномерный.
 
 3. EN: Your Airbus count is {airbus}, Boeing {boeing}. Airbus has the larger file.
 
-   RU: У вас на Airbus — {airbus}, на Boeing — {boeing}. Папка Airbus толще.
+   RU: На Airbus — {airbus}, на Boeing — {boeing}. Папка Airbus толще.
 
 Actual admitted params in the listed fixtures:
 - board: `{"airbus": 38, "boeing": 21}`
@@ -440,15 +440,15 @@ Evidence / exact predicate and params:
 
 1. EN: Unknown-maker count: {unknown}; total flights here: {total}. The aircraft has left a blank field.
 
-   RU: Перелётов с неизвестным производителем: {unknown}; всего здесь: {total}. Самолёт оставил пустую графу.
+   RU: Производитель неизвестен: {unknown} из {total}. Графа пустует.
 
 2. EN: Unknown-maker flights: {unknown}; view total: {total}. A gap in the filing.
 
-   RU: Перелётов с неизвестным производителем: {unknown}; всего в выборке: {total}. Пробел в ведомости.
+   RU: Без производителя: {unknown} из {total}. Пробел в ведомости.
 
 3. EN: Unknown-maker count in this view: {unknown}; total flights: {total}. Classification is not established.
 
-   RU: В выборке перелётов без известного производителя: {unknown} из {total}. В данных классификация не установлена.
+   RU: Производитель не установлен: {unknown} из {total}. Выясняется.
 
 Actual admitted params in the listed fixtures:
 - Not selected in these fixtures; condition is covered by the focused predicate/corpus checks.
@@ -476,15 +476,15 @@ Evidence / exact predicate and params:
 
 1. EN: Boeing flights here: {boeing}; Airbus: {airbus}. Boeing has the larger attendance sheet.
 
-   RU: Перелётов на Boeing здесь: {boeing}; на Airbus: {airbus}. В списке Boeing больше отметок.
+   RU: Boeing: {boeing}, Airbus: {airbus}. В списке Boeing больше отметок.
 
 2. EN: Boeing is ahead of Airbus in this view: {boeing} to {airbus}. Counts, not endorsements.
 
-   RU: Boeing опережает Airbus в выборке: {boeing} против {airbus}. Подсчёт, не рекомендация.
+   RU: Boeing впереди: {boeing} против {airbus}. Подсчёт, не рекомендация.
 
 3. EN: Your Boeing count exceeds Airbus: {boeing} versus {airbus}. The ledger takes no sides.
 
-   RU: У вас на Boeing больше перелётов, чем на Airbus: {boeing} против {airbus}. Ведомость беспристрастна.
+   RU: На Boeing — {boeing}, на Airbus — {airbus}. Ведомость беспристрастна.
 
 Actual admitted params in the listed fixtures:
 - Not selected in these fixtures; condition is covered by the focused predicate/corpus checks.
@@ -512,15 +512,15 @@ Evidence / exact predicate and params:
 
 1. EN: Mostly narrowbodies among known body types: {narrow} of {known}; all flights here: {total}. Classification has limits.
 
-   RU: Среди известных типов корпуса преобладают узкофюзеляжные: {narrow} из {known}; всего перелётов: {total}. У классификации есть пределы.
+   RU: Узкофюзеляжные: {narrow} из {known}, всего {total}. Пустые графы воздержались.
 
 2. EN: Narrowbodies hold the known-body majority: {narrow} of {known}, from {total} total flights. The blanks abstained.
 
-   RU: Большинство среди известных типов корпуса — узкофюзеляжные: {narrow} из {known}, при общем числе перелётов {total}. Пустые графы воздержались.
+   RU: Большинство — узкофюзеляжные: {narrow} из {known}, всего {total}.
 
 3. EN: Your narrowbody count is {narrow} out of {known} classified flights; view total {total}. A majority with a stated denominator.
 
-   RU: У вас узкофюзеляжных перелётов: {narrow} из {known} с известным типом корпуса; всего {total}. Большинство с указанным знаменателем.
+   RU: Один проход: {narrow} из {known}, всего {total}. Много локтей.
 
 Actual admitted params in the listed fixtures:
 - board: `{"narrow": 46, "known": 64, "total": 69}`
@@ -549,15 +549,15 @@ Evidence / exact predicate and params:
 
 1. EN: A leading family in this view: {family}, flights {count}. Familiar equipment.
 
-   RU: Среди ведущих семейств в выборке — {family}, перелётов {count}. Знакомая техника.
+   RU: Среди лидеров — {family}: перелётов {count}. Знакомая техника.
 
 2. EN: {family} is the displayed top family: flights {count}. The family file is substantial.
 
-   RU: В плитке ведущего семейства — {family}: перелётов {count}. Папка семейства содержательная.
+   RU: Ведущее семейство — {family}: перелётов {count}. Внесено в записи.
 
 3. EN: Your top-family tile names {family}: flights {count}. A name entered in the records.
 
-   RU: Ваша плитка ведущего семейства показывает {family}: перелётов {count}. Название внесено в записи.
+   RU: {family}: перелётов {count}. Семейство на виду.
 
 Actual admitted params in the listed fixtures:
 - Not selected in these fixtures; condition is covered by the focused predicate/corpus checks.
@@ -583,15 +583,15 @@ Evidence / exact predicate and params:
 
 1. EN: Missing aircraft designations: {untyped}; total flights here: {total}. The fleet list has blanks.
 
-   RU: Перелётов без указанного типа самолёта: {untyped}; всего здесь: {total}. В списке флота есть пробелы.
+   RU: Без типа самолёта: {untyped} из {total}. В списке флота пробелы.
 
 2. EN: Flights without an aircraft designation: {untyped}; all flights: {total}. Unassigned seats in the data.
 
-   RU: Перелётов без указанного типа самолёта: {untyped}; всего: {total}. В данных остались свободные графы.
+   RU: Тип не указан: {untyped} из {total}. Свободные графы остались.
 
 3. EN: Your fleet view’s untyped count is {untyped} out of {total} flights. The missing field is still missing.
 
-   RU: В вашем флоте перелётов без типа самолёта: {untyped} из {total}. Пустая графа пока остаётся пустой.
+   RU: Перелётов без типа: {untyped} из {total}. Пустая графа пока пуста.
 
 Actual admitted params in the listed fixtures:
 - Not selected in these fixtures; condition is covered by the focused predicate/corpus checks.
@@ -618,15 +618,15 @@ Evidence / exact predicate and params:
 
 1. EN: More departures fall in the {hour} hour than any other here: {count} of {timed} timed departures. The clock has a preference.
 
-   RU: Больше всего вылетов здесь приходится на час с {hour}: {count} из {timed} с известным временем. У часов есть предпочтение.
+   RU: Пик вылетов — час с {hour}: {count} из {timed}. Часы определились.
 
 2. EN: Your unique departure peak is the {hour} hour: {count} of {timed} known departure times. A well-attended hour.
 
-   RU: Единственный пик ваших вылетов — час с {hour}: {count} из {timed} с известным временем. Посещаемый час.
+   RU: Час с {hour} — единоличный лидер: {count} из {timed}.
 
 3. EN: The {hour} hour leads departures outright: {count} of {timed} timed flights. The schedule has a recurring appointment.
 
-   RU: Час с {hour} единолично лидирует по вылетам: {count} из {timed} с известным временем. В расписании повторяется назначенный час.
+   RU: Чаще всего — час с {hour}: {count} из {timed}. Встреча по расписанию.
 
 Actual admitted params in the listed fixtures:
 - board: `{"hour": "07:00", "count": 9, "timed": 69}`
@@ -653,15 +653,15 @@ Evidence / exact predicate and params:
 
 1. EN: Before-noon departures: about {percent}% of {timed} known departure times. Before noon has the majority.
 
-   RU: Вылеты до полудня: около {percent}% из {timed} с известным временем. До полудня — большинство.
+   RU: Вылеты до полудня: около {percent}% из {timed}. Большинство.
 
 2. EN: Your known departures favour before noon: about {percent}% of {timed}. The before-noon report is larger.
 
-   RU: Среди ваших вылетов с известным временем больше вылетов до полудня: около {percent}% из {timed}. Ведомость до полудня объёмнее.
+   RU: До полудня — около {percent}% из {timed}. Перевес зафиксирован.
 
 3. EN: About {percent}% of {timed} timed departures are before noon. The clock counts, without asking why.
 
-   RU: До полудня — около {percent}% из {timed} вылетов с известным временем. Часы считают, не выясняя причин.
+   RU: Около {percent}% из {timed} — до полудня. Причины не выясняются.
 
 Actual admitted params in the listed fixtures:
 - Not selected in these fixtures; condition is covered by the focused predicate/corpus checks.
@@ -687,15 +687,15 @@ Evidence / exact predicate and params:
 
 1. EN: Night-band departures here: {count} of {timed} known times. The clock did a late shift.
 
-   RU: Вылетов в ночном диапазоне: {count} из {timed} с известным временем. Часы отработали позднюю смену.
+   RU: Ночных вылетов: {count} из {timed}. Часы отработали позднюю смену.
 
 2. EN: Your view’s night-departure count is {count} among {timed} timed flights. Night appears in the timetable.
 
-   RU: В вашей выборке ночных вылетов: {count} из {timed} с известным временем. Ночь присутствует в расписании.
+   RU: Ночь в расписании: {count} из {timed}. Принято к сведению.
 
 3. EN: Known departure times: {timed}; night-band count: {count}. Filed after hours.
 
-   RU: Вылетов с известным временем: {timed}; из них в ночном диапазоне: {count}. Учтено во внеурочные часы.
+   RU: Вылетов ночью: {count} из {timed}. Учтено во внеурочные часы.
 
 Actual admitted params in the listed fixtures:
 - filtered: `{"count": 3, "timed": 24}`
@@ -722,15 +722,15 @@ Evidence / exact predicate and params:
 
 1. EN: Flights every July from {from} through {to} in this view: {years} years. The calendar has a standing appointment.
 
-   RU: Перелёты есть в каждом июле с {from} по {to} в этой выборке: лет {years}. У календаря постоянная запись.
+   RU: Каждый июль {from}–{to} — с перелётами. Лет подряд: {years}.
 
 2. EN: Each July in the scoped {from}–{to} span has flights: {years} years. Recurrence documented.
 
-   RU: В каждом июле выбранного периода {from}–{to} есть перелёты: лет {years}. Повторяемость подтверждена.
+   RU: {from}–{to}: перелёты в каждом июле. Лет: {years}. Традиция.
 
 3. EN: Your July cells are active throughout {from}–{to}: {years} years. A pattern with annual evidence.
 
-   RU: У вас активны все июльские ячейки за {from}–{to}: лет {years}. Закономерность с ежегодным подтверждением.
+   RU: Июль без пропусков с {from} по {to}, лет: {years}. Календарь в курсе.
 
 Actual admitted params in the listed fixtures:
 - Not selected in these fixtures; condition is covered by the focused predicate/corpus checks.
@@ -757,15 +757,15 @@ Evidence / exact predicate and params:
 
 1. EN: Longest empty run in this view: {from}–{to}; months: {months}. A gap in the selected calendar.
 
-   RU: Самая длинная пустая серия в выборке: месяцев {months}, {from}–{to}. Пробел в выбранном календаре.
+   RU: Самый долгий перерыв — {from}–{to}, месяцев {months}.
 
 2. EN: No selected flights across {from}–{to}; consecutive months: {months}. The filter’s quiet interval.
 
-   RU: Перелётов в выборке за {from}–{to} нет: месяцев подряд {months}. Тихий интервал по этим фильтрам.
+   RU: Без перелётов: {from}–{to}, месяцев подряд {months}. Тихий интервал.
 
 3. EN: Your current view’s longest monthly gap is {from}–{to}; months: {months}. Scope matters.
 
-   RU: Самый длинный помесячный пробел в вашем обзоре — {from}–{to}: месяцев {months}. С учётом выборки.
+   RU: Пауза {from}–{to}: месяцев {months}. Чемодан ждал.
 
 Actual admitted params in the listed fixtures:
 - board: `{"months": 40, "from": "2014-04", "to": "2017-07"}`
@@ -794,15 +794,15 @@ Evidence / exact predicate and params:
 
 1. EN: A busiest month number here is {month}: flights {count} pooled across years. Recurrence is a separate question.
 
-   RU: Один из самых насыщенных месяцев здесь — номер {month}: перелётов {count} по всем годам выборки. Ежегодная повторяемость — отдельный вопрос.
+   RU: Месяц номер {month} — среди лидеров: перелётов {count} по всем годам.
 
 2. EN: Your pooled monthly peak is month {month}: flights {count} across this view’s years. Calendar totals, not an annual promise.
 
-   RU: Общий помесячный пик у вас — месяц номер {month}: перелётов {count} за годы выборки. Сумма по календарю, не ежегодное обещание.
+   RU: Месяц номер {month}: перелётов {count} за все годы. Сумма, не традиция.
 
 3. EN: Month number {month} tops the displayed pooled totals: flights {count}. Years combined for counting.
 
-   RU: В сводных итогах показан месяц номер {month}: перелётов {count}. Годы объединены для подсчёта.
+   RU: В сумме лидирует месяц номер {month}: перелётов {count}. Годы сложены.
 
 Actual admitted params in the listed fixtures:
 - Not selected in these fixtures; condition is covered by the focused predicate/corpus checks.
@@ -826,15 +826,15 @@ Evidence / exact predicate and params:
 
 1. EN: Tbilisi’s endpoint count is {count}, half your flight total of {flights} here. A prominent entry.
 
-   RU: У Тбилиси отметок в конечных точках: {count}, половина от {flights} перелётов в выборке. Заметная запись.
+   RU: Тбилиси: отметок {count}, перелётов {flights}. Ровно половина.
 
 2. EN: Tbilisi endpoint occurrences: {count}; flights in this view: {flights}. Exactly half the flight total.
 
-   RU: У Тбилиси отметок в конечных точках: {count}; в выборке перелётов: {flights}. Ровно половина от числа перелётов.
+   RU: С Тбилиси связан каждый второй перелёт: {count} из {flights}.
 
 3. EN: Your Tbilisi endpoint tally is {count} against {flights} flights. Half the flight total, with the denominator stated.
 
-   RU: У вас отметок Тбилиси в конечных точках: {count} при числе перелётов {flights}. Половина, со знаменателем.
+   RU: Тбилиси — в {count} из {flights}. Половина, со знаменателем.
 
 Actual admitted params in the listed fixtures:
 - Not selected in these fixtures; condition is covered by the focused predicate/corpus checks.
@@ -859,15 +859,15 @@ Evidence / exact predicate and params:
 
 1. EN: A leading airport here is {code}: {count} of {endpoints} endpoint entries. Both ends count.
 
-   RU: Среди ведущих аэропортов здесь — {code}: {count} из {endpoints} отметок в конечных точках. Считаются оба конца.
+   RU: Среди лидеров — {code}: {count} из {endpoints}. Оба конца маршрута.
 
 2. EN: Your displayed top airport is {code}: endpoint entries {count} out of {endpoints}. The ledger counts arrivals and departures.
 
-   RU: Вверху вашего списка аэропортов — {code}: отметок {count} из {endpoints} конечных точек. Учтены и прилёты, и вылеты.
+   RU: {code} вверху списка: {count} из {endpoints}. Учтены вылеты и прилёты.
 
 3. EN: {code} heads the airport list: {count} of {endpoints} endpoint entries. This denominator has both ends.
 
-   RU: {code} возглавляет список аэропортов: {count} из {endpoints} отметок в конечных точках. В знаменателе оба конца маршрута.
+   RU: {code} лидирует: {count} из {endpoints}. В знаменателе оба конца.
 
 Actual admitted params in the listed fixtures:
 - board: `{"code": "IST", "count": 29, "endpoints": 138}`
@@ -893,15 +893,15 @@ Evidence / exact predicate and params:
 
 1. EN: A leading airline here is {code}: flights {count}; recorded-airline total {known}. Blank fields abstain.
 
-   RU: Среди ведущих авиакомпаний здесь — {code}: перелётов {count}; всего с указанной авиакомпанией {known}. Пустые графы воздержались.
+   RU: Среди лидеров — {code}: {count} из {known}. Пустые графы воздержались.
 
 2. EN: {code} tops your displayed airline list: flights {count}; known-airline total {known}. A count, not a loyalty programme.
 
-   RU: В вашем списке авиакомпаний сверху {code}: перелётов {count}; всего с известной авиакомпанией {known}. Подсчёт, не программа лояльности.
+   RU: Вверху списка — {code}: {count} из {known}. Подсчёт, не программа лояльности.
 
 3. EN: Displayed airline leader: {code}; flights: {count}; recorded-airline total: {known}. No membership inferred.
 
-   RU: В списке авиакомпаний лидирует {code}; перелётов: {count}; всего с указанной авиакомпанией: {known}. Членство не предполагается.
+   RU: Лидирует {code}: {count} из {known}. Членство не предполагается.
 
 Actual admitted params in the listed fixtures:
 - n1: `{"code": "TK", "count": 1, "known": 1}`
@@ -927,15 +927,15 @@ Evidence / exact predicate and params:
 
 1. EN: A leading route here is {route}: flights {count}, both directions combined. A well-used line.
 
-   RU: Среди ведущих маршрутов здесь — {route}: перелётов {count} в обоих направлениях. Востребованная линия.
+   RU: {route}: перелётов {count} в обе стороны. Линия востребована.
 
 2. EN: Your displayed top route is {route}: flights {count} across both directions. Direction filed separately.
 
-   RU: В вашем списке маршрутов сверху {route}: перелётов {count} в обоих направлениях. Направление учтено отдельно.
+   RU: Вверху списка — {route}: перелётов {count}. Направления сложены.
 
 3. EN: {route} heads the route list: flights {count}, outbound and return counted together. A recurring connection.
 
-   RU: {route} возглавляет список маршрутов: перелётов {count}, оба направления вместе. Повторяющаяся связь.
+   RU: {route} возглавляет список: перелётов {count}, туда и обратно.
 
 Actual admitted params in the listed fixtures:
 - Not selected in these fixtures; condition is covered by the focused predicate/corpus checks.
@@ -958,15 +958,15 @@ Evidence / exact predicate and params:
 
 1. EN: Your filters show {selected} of {total} all-time flights. The map is reading the selected file.
 
-   RU: По вашим фильтрам показано {selected} из {total} перелётов за всё время. Карта читает выбранную папку.
+   RU: По фильтрам: {selected} из {total} за всё время. Карта читает выбранное.
 
 2. EN: Flights in this view: {selected}; all-time flights: {total}. A smaller file on the desk.
 
-   RU: Перелётов в выборке: {selected}; за всё время: {total}. На столе более тонкая папка.
+   RU: В выборке {selected} из {total}. Папка на столе потоньше.
 
 3. EN: Selected flights: {selected} out of {total} all-time. The filter has narrowed the report.
 
-   RU: В выборке перелётов: {selected} из {total} за всё время. Фильтр сократил отчёт.
+   RU: Фильтр оставил {selected} из {total} за всё время. Отчёт сокращён.
 
 Actual admitted params in the listed fixtures:
 - filtered: `{"selected": 24, "total": 69}`
@@ -989,15 +989,15 @@ Evidence / exact predicate and params:
 
 1. EN: This view connects airport pairs: {routes}; airports: {airports}. The map has enough lines to file.
 
-   RU: В выборке пар аэропортов: {routes}; аэропортов: {airports}. Карте есть что внести в отчёт.
+   RU: Пар аэропортов: {routes}, аэропортов: {airports}. Карте есть что внести.
 
 2. EN: Your selected route footprint: {routes} airport pairs across {airports} airports. Directions combined for counting.
 
-   RU: В вашей выборке пар аэропортов: {routes}, аэропортов: {airports}. Направления объединены для подсчёта.
+   RU: Маршрутов: {routes}, аэропортов: {airports}. Направления объединены.
 
 3. EN: Distinct airport pairs here: {routes}; airports involved: {airports}. Geography, reduced to entries.
 
-   RU: Различных пар аэропортов здесь: {routes}; задействовано аэропортов: {airports}. География в виде записей.
+   RU: Аэропортов: {airports}, пар между ними: {routes}. География в виде записей.
 
 Actual admitted params in the listed fixtures:
 - board: `{"routes": 31, "airports": 18}`
@@ -1020,15 +1020,15 @@ Evidence / exact predicate and params:
 
 1. EN: Flights in your selected view: {flights}.
 
-   RU: Перелётов в выбранном вами обзоре: {flights}.
+   RU: Перелётов в выборке: {flights}.
 
 2. EN: Your current selection includes this many flights: {flights}.
 
-   RU: В вашей текущей выборке столько перелётов: {flights}.
+   RU: Всего перелётов: {flights}.
 
 3. EN: Flight total for this view: {flights}.
 
-   RU: Всего перелётов в этом обзоре: {flights}.
+   RU: В обзоре перелётов: {flights}.
 
 Actual admitted params in the listed fixtures:
 - Not selected in these fixtures; condition is covered by the focused predicate/corpus checks.
@@ -1053,15 +1053,15 @@ Evidence / exact predicate and params:
 
 1. EN: Available evidence: {have}; required for this section: {need}.
 
-   RU: Доступно данных: {have}; для этого раздела нужно: {need}.
+   RU: Есть: {have}; нужно: {need}.
 
 2. EN: This section needs {need}; the current view provides {have}.
 
-   RU: Для раздела нужно: {need}; в текущей выборке доступно: {have}.
+   RU: Для раздела нужно: {need}. Есть: {have}.
 
 3. EN: Evidence in this view: {have}. The section threshold is {need}.
 
-   RU: Данных в этой выборке: {have}. Порог раздела: {need}.
+   RU: Данных: {have} из {need}.
 
 Actual admitted params in the listed fixtures:
 - firstRun: `{"have": 0, "need": 5}`
@@ -1085,15 +1085,15 @@ Evidence / exact predicate and params:
 
 1. EN: Flights in your selected view: {flights}.
 
-   RU: Перелётов в выбранном вами обзоре: {flights}.
+   RU: Перелётов в выборке: {flights}.
 
 2. EN: Your current selection includes this many flights: {flights}.
 
-   RU: В вашей текущей выборке столько перелётов: {flights}.
+   RU: Всего перелётов: {flights}.
 
 3. EN: Flight total for this view: {flights}.
 
-   RU: Всего перелётов в этом обзоре: {flights}.
+   RU: В обзоре перелётов: {flights}.
 
 Actual admitted params in the listed fixtures:
 - Not selected in these fixtures; condition is covered by the focused predicate/corpus checks.
@@ -1118,15 +1118,15 @@ Evidence / exact predicate and params:
 
 1. EN: Available evidence: {have}; required for this section: {need}.
 
-   RU: Доступно данных: {have}; для этого раздела нужно: {need}.
+   RU: Есть: {have}; нужно: {need}.
 
 2. EN: This section needs {need}; the current view provides {have}.
 
-   RU: Для раздела нужно: {need}; в текущей выборке доступно: {have}.
+   RU: Для раздела нужно: {need}. Есть: {have}.
 
 3. EN: Evidence in this view: {have}. The section threshold is {need}.
 
-   RU: Данных в этой выборке: {have}. Порог раздела: {need}.
+   RU: Данных: {have} из {need}.
 
 Actual admitted params in the listed fixtures:
 - firstRun: `{"have": 0, "need": 3}`
@@ -1150,15 +1150,15 @@ Evidence / exact predicate and params:
 
 1. EN: Flights in your selected view: {flights}.
 
-   RU: Перелётов в выбранном вами обзоре: {flights}.
+   RU: Перелётов в выборке: {flights}.
 
 2. EN: Your current selection includes this many flights: {flights}.
 
-   RU: В вашей текущей выборке столько перелётов: {flights}.
+   RU: Всего перелётов: {flights}.
 
 3. EN: Flight total for this view: {flights}.
 
-   RU: Всего перелётов в этом обзоре: {flights}.
+   RU: В обзоре перелётов: {flights}.
 
 Actual admitted params in the listed fixtures:
 - Not selected in these fixtures; condition is covered by the focused predicate/corpus checks.
@@ -1183,15 +1183,15 @@ Evidence / exact predicate and params:
 
 1. EN: Available evidence: {have}; required for this section: {need}.
 
-   RU: Доступно данных: {have}; для этого раздела нужно: {need}.
+   RU: Есть: {have}; нужно: {need}.
 
 2. EN: This section needs {need}; the current view provides {have}.
 
-   RU: Для раздела нужно: {need}; в текущей выборке доступно: {have}.
+   RU: Для раздела нужно: {need}. Есть: {have}.
 
 3. EN: Evidence in this view: {have}. The section threshold is {need}.
 
-   RU: Данных в этой выборке: {have}. Порог раздела: {need}.
+   RU: Данных: {have} из {need}.
 
 Actual admitted params in the listed fixtures:
 - firstRun: `{"have": 0, "need": 5}`
@@ -1215,15 +1215,15 @@ Evidence / exact predicate and params:
 
 1. EN: Flights in your selected view: {flights}.
 
-   RU: Перелётов в выбранном вами обзоре: {flights}.
+   RU: Перелётов в выборке: {flights}.
 
 2. EN: Your current selection includes this many flights: {flights}.
 
-   RU: В вашей текущей выборке столько перелётов: {flights}.
+   RU: Всего перелётов: {flights}.
 
 3. EN: Flight total for this view: {flights}.
 
-   RU: Всего перелётов в этом обзоре: {flights}.
+   RU: В обзоре перелётов: {flights}.
 
 Actual admitted params in the listed fixtures:
 - Not selected in these fixtures; condition is covered by the focused predicate/corpus checks.
@@ -1248,15 +1248,15 @@ Evidence / exact predicate and params:
 
 1. EN: Available evidence: {have}; required for this section: {need}.
 
-   RU: Доступно данных: {have}; для этого раздела нужно: {need}.
+   RU: Есть: {have}; нужно: {need}.
 
 2. EN: This section needs {need}; the current view provides {have}.
 
-   RU: Для раздела нужно: {need}; в текущей выборке доступно: {have}.
+   RU: Для раздела нужно: {need}. Есть: {have}.
 
 3. EN: Evidence in this view: {have}. The section threshold is {need}.
 
-   RU: Данных в этой выборке: {have}. Порог раздела: {need}.
+   RU: Данных: {have} из {need}.
 
 Actual admitted params in the listed fixtures:
 - firstRun: `{"have": 0, "need": 5}`
@@ -1280,15 +1280,15 @@ Evidence / exact predicate and params:
 
 1. EN: Flights in your selected view: {flights}.
 
-   RU: Перелётов в выбранном вами обзоре: {flights}.
+   RU: Перелётов в выборке: {flights}.
 
 2. EN: Your current selection includes this many flights: {flights}.
 
-   RU: В вашей текущей выборке столько перелётов: {flights}.
+   RU: Всего перелётов: {flights}.
 
 3. EN: Flight total for this view: {flights}.
 
-   RU: Всего перелётов в этом обзоре: {flights}.
+   RU: В обзоре перелётов: {flights}.
 
 Actual admitted params in the listed fixtures:
 - Not selected in these fixtures; condition is covered by the focused predicate/corpus checks.
@@ -1313,15 +1313,15 @@ Evidence / exact predicate and params:
 
 1. EN: Available evidence: {have}; required for this section: {need}.
 
-   RU: Доступно данных: {have}; для этого раздела нужно: {need}.
+   RU: Есть: {have}; нужно: {need}.
 
 2. EN: This section needs {need}; the current view provides {have}.
 
-   RU: Для раздела нужно: {need}; в текущей выборке доступно: {have}.
+   RU: Для раздела нужно: {need}. Есть: {have}.
 
 3. EN: Evidence in this view: {have}. The section threshold is {need}.
 
-   RU: Данных в этой выборке: {have}. Порог раздела: {need}.
+   RU: Данных: {have} из {need}.
 
 Actual admitted params in the listed fixtures:
 - firstRun: `{"have": 0, "need": 10}`
@@ -1345,15 +1345,15 @@ Evidence / exact predicate and params:
 
 1. EN: Flights in your selected view: {flights}.
 
-   RU: Перелётов в выбранном вами обзоре: {flights}.
+   RU: Перелётов в выборке: {flights}.
 
 2. EN: Your current selection includes this many flights: {flights}.
 
-   RU: В вашей текущей выборке столько перелётов: {flights}.
+   RU: Всего перелётов: {flights}.
 
 3. EN: Flight total for this view: {flights}.
 
-   RU: Всего перелётов в этом обзоре: {flights}.
+   RU: В обзоре перелётов: {flights}.
 
 Actual admitted params in the listed fixtures:
 - Not selected in these fixtures; condition is covered by the focused predicate/corpus checks.
@@ -1378,15 +1378,15 @@ Evidence / exact predicate and params:
 
 1. EN: Available evidence: {have}; required for this section: {need}.
 
-   RU: Доступно данных: {have}; для этого раздела нужно: {need}.
+   RU: Есть: {have}; нужно: {need}.
 
 2. EN: This section needs {need}; the current view provides {have}.
 
-   RU: Для раздела нужно: {need}; в текущей выборке доступно: {have}.
+   RU: Для раздела нужно: {need}. Есть: {have}.
 
 3. EN: Evidence in this view: {have}. The section threshold is {need}.
 
-   RU: Данных в этой выборке: {have}. Порог раздела: {need}.
+   RU: Данных: {have} из {need}.
 
 Actual admitted params in the listed fixtures:
 - firstRun: `{"have": 0, "need": 2}`
@@ -1409,15 +1409,15 @@ Evidence / exact predicate and params:
 
 1. EN: Flights in your selected view: {flights}.
 
-   RU: Перелётов в выбранном вами обзоре: {flights}.
+   RU: Перелётов в выборке: {flights}.
 
 2. EN: Your current selection includes this many flights: {flights}.
 
-   RU: В вашей текущей выборке столько перелётов: {flights}.
+   RU: Всего перелётов: {flights}.
 
 3. EN: Flight total for this view: {flights}.
 
-   RU: Всего перелётов в этом обзоре: {flights}.
+   RU: В обзоре перелётов: {flights}.
 
 Actual admitted params in the listed fixtures:
 - firstRun: `{"flights": 0}`
@@ -1439,15 +1439,15 @@ Evidence / exact predicate and params:
 
 1. EN: Flights in your selected view: {flights}.
 
-   RU: Перелётов в выбранном вами обзоре: {flights}.
+   RU: Перелётов в выборке: {flights}.
 
 2. EN: Your current selection includes this many flights: {flights}.
 
-   RU: В вашей текущей выборке столько перелётов: {flights}.
+   RU: Всего перелётов: {flights}.
 
 3. EN: Flight total for this view: {flights}.
 
-   RU: Всего перелётов в этом обзоре: {flights}.
+   RU: В обзоре перелётов: {flights}.
 
 Actual admitted params in the listed fixtures:
 - firstRun: `{"flights": 0}`
@@ -1470,15 +1470,15 @@ Evidence / exact predicate and params:
 
 1. EN: Your flight journal has no completed flights yet.
 
-   RU: В вашем журнале пока нет завершённых перелётов.
+   RU: В журнале пока нет завершённых перелётов.
 
 2. EN: There are no completed flights in your overview yet.
 
-   RU: В вашем обзоре пока нет завершённых перелётов.
+   RU: Завершённых перелётов пока нет.
 
 3. EN: Your overview is waiting for its first completed flight.
 
-   RU: Ваш обзор ждёт первого завершённого перелёта.
+   RU: Обзор ждёт первого завершённого перелёта.
 
 Actual admitted params in the listed fixtures:
 - firstRun: `{}`
@@ -1499,15 +1499,15 @@ Evidence / exact predicate and params:
 
 1. EN: No completed flights match your current filters.
 
-   RU: Завершённых перелётов по вашим фильтрам нет.
+   RU: По фильтрам завершённых перелётов нет.
 
 2. EN: Your selected view contains no completed flights.
 
-   RU: В выбранном вами обзоре нет завершённых перелётов.
+   RU: В выборке нет завершённых перелётов.
 
 3. EN: There are no completed flights in this selection.
 
-   RU: В этой выборке нет завершённых перелётов.
+   RU: Завершённых перелётов не найдено.
 
 Actual admitted params in the listed fixtures:
 - zero: `{}`
