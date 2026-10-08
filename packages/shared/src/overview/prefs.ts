@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { periodDays } from './range'
 import type { OverviewFilter } from './model'
 
 export const DEFAULT_ORDER = ['rankings', 'records', 'manufacturers', 'fleet', 'clock', 'rhythm', 'crossings'] as const
@@ -16,10 +17,9 @@ export const DEFAULT_PREFS: OverviewPrefs = { version: 1, filter: {},
   replayPaused: false, publicSections: { records: false, fleet: false } }
 
 const strings = z.array(z.string())
-const month = z.string().regex(/^\d{4}-(?:0[1-9]|1[0-2])$/)
 const filterSchema = z.strictObject({
   period: z.union([z.strictObject({ years: z.array(z.number().int().min(0).max(9999)) }),
-    z.strictObject({ from: month, to: month }).refine(value => value.from <= value.to)]).optional(),
+    z.strictObject({ from: z.string(), to: z.string() }).refine(value => periodDays(value) !== null)]).optional(),
   countries: strings.optional(), regions: strings.optional(), airlines: strings.optional(), aircraft: strings.optional(),
   routes: strings.optional(), airports: strings.optional(), families: strings.optional(),
   alliances: z.array(z.enum(['star', 'oneworld', 'skyteam'])).optional(),

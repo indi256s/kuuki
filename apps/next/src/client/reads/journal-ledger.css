@@ -1,0 +1,22 @@
+/* Journal ledger in Arc table presentation. Server sort, URL pagination and selection stay authoritative; these are presentation overrides of app/reads.css.
+   Specificity is raised with .journal-data instead of relying on stylesheet order. Rows are grouped by space, not by divider lines. */
+.journal-data .flight-list{display:grid;gap:var(--space-1);padding:var(--space-2);border:1px solid var(--hairline);border-radius:var(--radius-md);background:var(--surface)}
+:root[data-theme=dark] .journal-data .flight-list{border-color:transparent;box-shadow:inset 0 1px 0 var(--surface-highlight)}
+.journal-data .journal-entry{position:relative;grid-template-columns:44px minmax(0,1fr) 44px;align-items:center;border-radius:var(--radius-sm)}
+.journal-data .journal-entry .flight-row{border-bottom:0;border-radius:var(--radius-sm);transition:background-color var(--dur-fast) var(--ease-out)}
+.journal-data .journal-entry:has(.journal-checkbox input:checked) .flight-row{background:var(--accent-tint)}
+.journal-data .journal-entry-actions{align-self:center}
+.journal-data .journal-entry-confirm{grid-column:2 / -1}
+.journal-data .journal-entry:has(.arc-inline-editor),.journal-data .journal-entry:has(.arc-confirm){z-index:2}
+@media(max-width:700px){
+  .journal-data .journal-entry{align-items:start}
+  .journal-data .journal-entry-actions{align-self:start}
+}
+
+.journal-data .journal-aircraft-cell .arc-inline{position:static}
+.journal-data .journal-aircraft-cell .arc-inline-editor{left:0;right:0;width:auto;max-width:22rem}
+@media(max-width:900px){.journal-data .flight-row>.journal-aircraft-cell{display:block;grid-column:1 / -1;order:1;justify-self:stretch}}
+@media(max-width:700px){
+  .journal-data .flight-row>.journal-aircraft-cell{grid-row:3;order:0}
+  .journal-data .journal-aircraft-cell .arc-inline-editor{position:relative;top:auto;max-width:none}
+}

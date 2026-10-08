@@ -239,7 +239,10 @@ test('Journal stages mobile filters, preserves detail/reset state and maps legac
   await page.waitForURL(url => !url.searchParams.has('airport'))
   expect(Object.fromEntries(new URL(page.url()).searchParams)).toEqual({ queue: 'awaiting', order: 'asc' })
   await page.getByRole('button', { name: /^Add aircraft/ }).click()
-  // The editor opens on Optional details with the aircraft field focused; on a phone, focusing the field opens its picker.
+  await expect(page.getByRole('combobox', { name: 'Aircraft', exact: true })).toBeFocused()
+  await page.keyboard.press('Escape')
+  await page.getByRole('button', { name: 'All details', exact: true }).click()
+  // The full form keeps its existing optional aircraft picker.
   await expect(page.getByRole('combobox', { name: 'Aircraft (optional)' })).toBeFocused()
   await page.keyboard.press('Escape')
   await expect(page.getByRole('button', { name: 'Save flight' })).toBeVisible()

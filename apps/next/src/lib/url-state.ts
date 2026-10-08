@@ -1,3 +1,5 @@
+import { periodDays } from '../../../../packages/shared/src/overview/range'
+
 /**
  * Pure URL-state parsing for the route contract (C1). Each `normalize*` function validates the keys
  * its route owns, drops invalid values, omits defaults and keeps unrelated keys untouched. Output is a
@@ -137,7 +139,7 @@ export function normalizeOnboardingQuery(raw: RawQuery, progress: OnboardingProg
 
 export const withQuery = (path: string, query: string) => query ? `${path}?${query}` : path
 
-export const JOURNAL_FILTER_KEYS = ['q', 'year', 'status', 'airline', 'aircraft', 'airport', 'origin', 'destination'] as const
+export const JOURNAL_FILTER_KEYS = ['q', 'year', 'from', 'to', 'status', 'airline', 'aircraft', 'airport', 'origin', 'destination'] as const
 export const JOURNAL_SORTS = ['date', 'origin', 'destination', 'airline_iata', 'aircraft_icao', 'distance_km', 'duration_minutes'] as const
 export function normalizeJournalQuery(raw: RawQuery, now = new Date()): Normalized<Record<string, string>> {
   const entries = toEntries(raw)
@@ -153,8 +155,14 @@ export function normalizeJournalQuery(raw: RawQuery, now = new Date()): Normaliz
   const state: Record<string, string> = {}
   const q = params.get('q')?.trim().slice(0, 100)
   if (q) state.q = q
-  const year = readYear([...params], now)
-  if (year) state.year = year
+  if (params.has('from') || params.has('to')) {
+    const from = params.get('from') ?? '', to = params.get('to') ?? ''
+    const range = from.length === 10 && to.length === 10 ? periodDays({ from, to }) : null
+    if (range) Object.assign(state, range)
+  } else {
+    const year = readYear([...params], now)
+    if (year) state.year = year
+  }
   const status = params.get('status')
   if (status && ['upcoming', 'awaiting', 'logged', 'completed'].includes(status)) state.status = status
   for (const [key, pattern] of [['airline', /^[A-Z0-9]{2,3}$/], ['aircraft', /^[A-Z0-9]{2,4}$/], ['airport', /^[A-Z]{3}$/], ['origin', /^[A-Z]{3}$/], ['destination', /^[A-Z]{3}$/]] as const) {
@@ -180,7 +188,7 @@ export function resetJournalFilters(query: string): string {
   return params.toString()
 }
 
-export type JournalLink = { airport?: string; airline?: string; aircraft?: string; origin?: string; destination?: string; year?: string | number; sort?: (typeof JOURNAL_SORTS)[number]; order?: 'asc'; status?: 'completed'; flight?: string | number }
+export type JournalLink = { airport?: string; airline?: string; aircraft?: string; origin?: string; destination?: string; year?: string | number; from?: string; to?: string; sort?: (typeof JOURNAL_SORTS)[number]; order?: 'asc'; status?: 'completed'; flight?: string | number }
 /** Canonical `/journal` href for Overview category/route links and Passport flight details. Invalid values are dropped. */
 export function journalHref(link: JournalLink, now = new Date()): string {
   const params = new URLSearchParams()

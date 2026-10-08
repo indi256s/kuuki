@@ -1,5 +1,7 @@
 # Overview Release 3 UI — execution handoff
 
+Arc integration successor (2026-10-08): [implementation plan](2026-10-08-arc-integration.md) and [execution handoff](2026-10-08-arc-integration-handoff.md) track the local Arc/SVG replacement on `feat/arc-integration`, based on 4b4fe54. TanStack renderer/dependency descriptions below are historical Release 3 evidence; accepted calculations, seven sections, map/replay and actions carry forward. This successor does not extend deployment authorization.
+
 ## Current candidate — 2026-10-08
 
 Implementation Tasks 1–33 are integrated in `feat/overview-release-3-ui` at `/Users/indi256/.t3/worktrees/kuuki/feat-overview-release-3-ui`. Task34 DESIGN/GLOSSARY updates are integrated. The production `/overview` now mounts the composed owner-scoped page; the two legacy Overview GET endpoints and their unused frontend are retired. Pending derived country totals retain the last published value with an updating announcement; zero-flight accounts with ground-visit geography keep that history.

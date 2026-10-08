@@ -1,11 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useRef, useState } from 'react'
-import { scaleLinear } from 'd3-scale'
-import { Chart } from '@tanstack/charts/react'
-import type { StaticChartDefinition } from '@tanstack/charts'
-import { handleX, type HandleXChange } from '@tanstack/charts/interaction/handle'
-import { controlledSignal } from '@tanstack/charts/interaction/signal'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Pause, Play } from 'lucide-react'
 import { Button } from '../../ui/button'
 import type { Locale } from '../../../lib/format'
@@ -27,32 +22,47 @@ export function ReplayTransport({ timeline, durationMs, timeMs, paused, setPause
     return item ? new Intl.DateTimeFormat(locale, { month: 'short', year: 'numeric', timeZone: 'UTC' })
       .format(new Date(`${item.month}-01T00:00:00Z`)).toLocaleUpperCase(locale) : '—'
   }
-  const definition = useMemo<StaticChartDefinition<unknown, number, number, 'dom'>>(() => ({
-    margin: { top: 10, bottom: 20, left: 12, right: 12 }, motion: false, marks: [],
-    scales: { x: { scale: scaleLinear().domain([0, Math.max(1, candidates.at(-1)?.startMs ?? 1)]),
-      axis: { line: false, ticks: { values: yearTicks(timeline, durationMs).map(item => item.startMs),
-        format: (time: number) => candidates.find(item => item.startMs === time)?.month.slice(0, 4) ?? '' } } }, y: null },
-    controls: candidates.length ? [handleX({ id: 'replay-month', values: candidates.map(item => item.startMs),
-      value: controlledSignal<number, HandleXChange<number>>(value, (next, { reason }) => {
-        setCursor({ timeline, draft: reason.type === 'preview' ? next : null })
-        seek(reason.type === 'cancel' ? reason.origin : next, reason.type)
-      }), cross: { edge: 'top' }, hitSize: 44, ariaLabel: locale === 'ru' ? 'Месяц повтора' : 'Replay month',
-      format: time => candidates.find(item => item.startMs === time)?.month ?? '' })] : [],
-  }), [candidates, value, timeline, durationMs, locale, seek])
+  const drag = useRef<{ origin: number; value: number } | null>(null)
+  const change = (index: number, phase: 'preview' | 'commit') => {
+    const next = candidates[index]?.startMs
+    if (next === undefined) return
+    if (drag.current) drag.current.value = next
+    setCursor({ timeline, draft: phase === 'preview' ? next : null })
+    seek(next, phase)
+  }
+  const finish = useCallback((phase: 'commit' | 'cancel') => {
+    const current = drag.current
+    if (!current) return
+    drag.current = null
+    setCursor({ timeline, draft: null })
+    seek(phase === 'cancel' ? current.origin : current.value, phase)
+  }, [timeline, seek])
+  const index = Math.max(0, candidates.findIndex(item => item.startMs === value))
   useEffect(() => {
     if (!expanded) return
     const outside = (event: PointerEvent) => {
-      if (event.target instanceof Node && !host.current?.contains(event.target)) setExpanded(false)
+      if (event.target instanceof Node && !host.current?.contains(event.target)) { finish('cancel'); setExpanded(false) }
     }
     document.addEventListener('pointerdown', outside)
     return () => document.removeEventListener('pointerdown', outside)
-  }, [expanded])
+  }, [expanded, finish])
   if (reduced || !timeline.length) return null
   return <div ref={host} className="replay-transport" data-expanded={expanded} onPointerDown={event => event.stopPropagation()}
-    onKeyDown={event => { if (event.key === 'Escape') { event.stopPropagation(); setExpanded(false); label.current?.focus() } }}>
+    onKeyDown={event => { if (event.key === 'Escape') { event.stopPropagation(); finish('cancel'); setExpanded(false); label.current?.focus() } }}>
     <Button dense aria-label={paused ? locale === 'ru' ? 'Продолжить повтор' : 'Play replay' : locale === 'ru' ? 'Приостановить повтор' : 'Pause replay'}
       onClick={() => setPaused(!paused)}>{paused ? <Play size={16} aria-hidden="true" /> : <Pause size={16} aria-hidden="true" />}</Button>
     <Button ref={label} dense className="replay-month" aria-expanded={expanded} onClick={() => setExpanded(!expanded)}>{format(value)}</Button>
-    <div className="replay-scrubber"><Chart definition={definition} height={58} initialWidth={300} ariaLabel={locale === 'ru' ? 'Хронология перелётов' : 'Flight timeline'} /></div>
+    <div className="replay-scrubber">
+      <input type="range" min={0} max={Math.max(0, candidates.length - 1)} step={1} value={index}
+        aria-label={locale === 'ru' ? 'Месяц повтора' : 'Replay month'} aria-valuetext={candidates[index]?.month ?? ''}
+        onPointerDown={event => { drag.current = { origin: timeMs, value }; event.currentTarget.setPointerCapture?.(event.pointerId); seek(value, 'preview') }}
+        onChange={event => change(Number(event.currentTarget.value), drag.current ? 'preview' : 'commit')}
+        onPointerUp={() => finish('commit')} onPointerCancel={() => finish('cancel')} onBlur={() => finish('cancel')}
+        onKeyDown={event => {
+          const keys: Record<string, number> = { ArrowRight: index + 1, ArrowUp: index + 1, ArrowLeft: index - 1, ArrowDown: index - 1, Home: 0, End: candidates.length - 1 }
+          if (event.key in keys) { event.preventDefault(); change(Math.max(0, Math.min(candidates.length - 1, keys[event.key])), 'commit') }
+        }} />
+      <div className="replay-years" aria-hidden="true">{yearTicks(timeline, durationMs).map(item => <span key={item.year} style={{ left: `${Math.max(0, candidates.findIndex(candidate => candidate.month === item.month)) / Math.max(1, candidates.length - 1) * 100}%` }}>{item.year}</span>)}</div>
+    </div>
   </div>
 }

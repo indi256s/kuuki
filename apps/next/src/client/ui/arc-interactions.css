@@ -1,0 +1,38 @@
+/* Arc-derived interaction primitives: inline edit, context menu, confirm morph. Tokens only; no resets, no focus suppression. */
+.arc-sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+
+/* Inline edit */
+.arc-inline{position:relative;min-width:0}
+.arc-inline-trigger{position:relative;z-index:1;display:inline-flex;align-items:center;min-height:40px;max-width:100%;padding:0 var(--space-2);margin-inline:calc(var(--space-2) * -1);border:1px solid transparent;border-radius:var(--radius-sm);background:transparent;color:inherit;font:inherit;text-align:left;cursor:text;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;transition:background-color var(--dur-fast) var(--ease-out),border-color var(--dur-fast) var(--ease-out)}
+.arc-inline-trigger[aria-disabled=true]{cursor:not-allowed;color:var(--text-muted)}
+.arc-inline-trigger:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+@media (hover:hover) and (pointer:fine){.arc-inline-trigger:not([aria-disabled=true]):hover{background:var(--surface-inset);border-color:var(--control-border)}}
+@media (pointer:coarse){.arc-inline-trigger{min-height:44px}}
+.arc-inline-editor{position:absolute;z-index:20;top:calc(100% + var(--space-1));left:calc(var(--space-3) * -1);width:min(22rem,calc(100vw - 2 * var(--page-gutter)));display:grid;gap:var(--space-3);padding:var(--space-3);border:1px solid var(--hairline);border-radius:var(--radius-md);background:var(--surface-floating);color:var(--text);box-shadow:var(--shadow-floating),var(--ring-floating);white-space:normal;text-align:left;animation:arc-rise var(--dur-fast) var(--ease-out)}
+.arc-inline-editor[data-saving]{opacity:.8}
+.arc-inline-actions{display:flex;flex-wrap:wrap;align-items:center;gap:var(--space-2)}
+.arc-inline-icon{display:inline-grid;place-items:center;width:44px;height:44px;border:1px solid var(--control-border);border-radius:var(--radius-sm);background:var(--surface);color:var(--text);cursor:pointer}
+.arc-inline-icon[data-role=save]{background:var(--accent);border-color:var(--accent);color:var(--accent-foreground)}
+.arc-inline-icon[aria-disabled=true]{opacity:.55;cursor:not-allowed}
+.arc-inline-icon:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.arc-inline-status,.arc-inline-unknown{margin:0;font-size:13px;line-height:18px}
+.arc-inline-status{color:var(--text-muted)}
+.arc-inline-unknown{padding-inline-start:var(--space-3);border-inline-start:3px solid var(--warning-fill);color:var(--warning-text)}
+
+/* Context menu */
+.arc-context-anchor{position:fixed;width:0;height:0;pointer-events:none}
+.arc-context-menu{min-width:176px}
+.arc-context-reason{margin:var(--space-1) 0 0;padding:var(--space-2) var(--space-3);font-size:13px;line-height:18px;color:var(--text-muted)}
+.arc-context-button{position:relative;z-index:1;display:inline-grid;place-items:center;width:44px;height:44px;padding:0;border:0;border-radius:var(--radius-sm);background:transparent;color:var(--text-muted);cursor:pointer;transition:background-color var(--dur-fast) var(--ease-out),color var(--dur-fast) var(--ease-out)}
+.arc-context-button[aria-expanded=true]{background:var(--surface-inset);color:var(--text)}
+.arc-context-button:focus-visible{outline:2px solid var(--focus);outline-offset:-2px}
+@media (hover:hover) and (pointer:fine){.arc-context-button:hover{background:var(--surface-inset);color:var(--text)}}
+
+/* Confirm morph */
+.arc-confirm{position:relative;z-index:1;display:grid;gap:var(--space-2);padding:var(--space-3) var(--space-4);border:1px solid var(--danger-text);border-radius:var(--radius-md);background:var(--surface);color:var(--text);transform-origin:top left;animation:arc-rise var(--dur-base) var(--ease-out)}
+.arc-confirm-prompt{margin:0;font-weight:600;overflow-wrap:anywhere}
+.arc-confirm-consequence{margin:0;color:var(--text-muted);font-size:14px;line-height:20px}
+.arc-confirm-actions{display:flex;flex-wrap:wrap;gap:var(--space-2)}
+
+@keyframes arc-rise{from{opacity:0;transform:translateY(-4px) scale(.98)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.arc-inline-editor,.arc-confirm{animation:none}.arc-inline-trigger,.arc-context-button{transition:none}}

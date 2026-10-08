@@ -2,12 +2,14 @@
 
 import Link from 'next/link'
 import { useId, useRef, useState, type FormEvent, type ReactNode } from 'react'
+import { dayToEpoch, periodDays } from '@kuuki/shared/overview/range'
+import { DateRangePicker } from '../ui/date-range-picker'
 import { Button } from '../ui/button'
 import { Sheet } from '../ui/sheet'
 import type { Locale } from '../../server/locale'
 import { JOURNAL_SORTS, normalizeJournalQuery, resetJournalFilters, withQuery } from '../../lib/url-state'
 
-export const TEXT_KEYS = ['year', 'airline', 'aircraft', 'airport', 'origin', 'destination'] as const
+export const TEXT_KEYS = ['year', 'airline', 'aircraft', 'airport', 'origin', 'destination', 'from', 'to'] as const
 const SELECT_KEYS = ['status', 'sort', 'order'] as const
 type TextKey = (typeof TEXT_KEYS)[number]
 type Values = Record<string, string>
@@ -28,6 +30,7 @@ const text = {
 function problemText(locale: Locale, key: TextKey): string {
   const year = new Date().getUTCFullYear() + 1
   if (locale === 'ru') return ({
+    from: 'Укажите обе даты в правильном порядке.', to: 'Укажите обе даты в правильном порядке.',
     year: `Введите год от 1900 до ${year}, например 2025.`,
     airline: 'Введите 2–3 буквы или цифры кода авиакомпании, например TK.',
     aircraft: 'Введите 2–4 буквы или цифры кода самолёта, например B738.',
@@ -36,6 +39,7 @@ function problemText(locale: Locale, key: TextKey): string {
     destination: 'Введите трёхбуквенный код аэропорта, например IST.',
   })[key]
   return ({
+    from: 'Enter both dates in chronological order.', to: 'Enter both dates in chronological order.',
     year: `Enter a year from 1900 to ${year}, for example 2025.`,
     airline: 'Enter a 2 or 3 character airline code, for example TK.',
     aircraft: 'Enter a 2 to 4 character aircraft code, for example B738.',
@@ -49,6 +53,7 @@ function problemText(locale: Locale, key: TextKey): string {
 export function normalizeField(key: string, value: string): string | null {
   const trimmed = value.trim()
   if (!trimmed) return ''
+  if (key === 'from' || key === 'to') return dayToEpoch(trimmed) === null ? null : trimmed
   return normalizeJournalQuery(new URLSearchParams({ [key]: trimmed })).state[key] ?? null
 }
 
@@ -129,12 +134,14 @@ export function JournalFilters({ locale, query, filtered, apply, navigating, ext
   const knownParams = new URLSearchParams(known)
   const selectValues: Values = { status: sent.status ?? knownParams.get('status') ?? '', sort: sent.sort ?? knownParams.get('sort') ?? 'date', order: sent.order ?? knownParams.get('order') ?? 'desc' }
 
+  const rangeInvalid = (values: Values) => !!(values.from || values.to) && !periodDays({ from: values.from ?? '', to: values.to ?? '' })
   const problems = (values: Values, shown: Record<string, boolean>) => {
     const result: Record<string, string | undefined> = {}
     for (const key of TEXT_KEYS) if (shown[key] && normalizeField(key, values[key] ?? '') === null) result[key] = problemText(locale, key)
+    if (rangeInvalid(values) && (shown.from || shown.to)) result.from = problemText(locale, 'from')
     return result
   }
-  const invalidKeys = (values: Values) => TEXT_KEYS.filter(key => normalizeField(key, values[key] ?? '') === null)
+  const invalidKeys = (values: Values) => TEXT_KEYS.filter(key => normalizeField(key, values[key] ?? '') === null || (key === 'from' && rangeInvalid(values)))
 
   /** Only the fields whose normalized value differs from the URL. Nothing changed means nothing is sent. */
   const diff = (values: Values, keys: readonly string[]) => {
@@ -148,6 +155,8 @@ export function JournalFilters({ locale, query, filtered, apply, navigating, ext
   }
   const send = (changes: Change) => {
     if (!Object.keys(changes).length) return
+    if (changes.year) { changes.from = ''; changes.to = '' }
+    else if (changes.from || changes.to) changes.year = ''
     const keys = Object.keys(changes)
     // Recorded before the navigation starts, so a synchronous response is already known to be ours.
     setSent(old => ({ ...old, ...Object.fromEntries(keys.map(key => [key, changes[key]])) }))
@@ -169,7 +178,7 @@ export function JournalFilters({ locale, query, filtered, apply, navigating, ext
     const bad = invalidKeys(drafts)
     if (bad.length) {
       setTouched(old => ({ ...old, ...Object.fromEntries(bad.map(key => [key, true])) }))
-      formRef.current?.querySelector<HTMLElement>(`[data-filter="${bad[0]}"]`)?.focus()
+      formRef.current?.querySelector<HTMLElement>(bad[0] === 'from' || bad[0] === 'to' ? '.ui-date-range input' : `[data-filter="${bad[0]}"]`)?.focus()
       return
     }
     const clean: Values = { q: drafts.q.trim() }
@@ -186,7 +195,7 @@ export function JournalFilters({ locale, query, filtered, apply, navigating, ext
     const bad = invalidKeys(staged)
     if (bad.length) {
       setStagedTouched(old => ({ ...old, ...Object.fromEntries(bad.map(key => [key, true])) }))
-      sheetRef.current?.querySelector<HTMLElement>(`[data-filter="${bad[0]}"]`)?.focus()
+      sheetRef.current?.querySelector<HTMLElement>(bad[0] === 'from' || bad[0] === 'to' ? '.ui-date-range input' : `[data-filter="${bad[0]}"]`)?.focus()
       return
     }
     const changes: Change = {}
@@ -199,17 +208,17 @@ export function JournalFilters({ locale, query, filtered, apply, navigating, ext
     setOpen(false)
   }
 
-  const desktop = <Fields idBase={`${base}-d`} t={t} sortControls={false} values={{ ...drafts, ...selectValues }} problems={problems(drafts, touched)}
-    onChange={(key, value) => { if ((SELECT_KEYS as readonly string[]).includes(key)) send({ [key]: value }); else setDrafts(old => ({ ...old, [key]: value })) }}
+  const desktop = <Fields idBase={`${base}-d`} t={t} locale={locale} sortControls={false} values={{ ...drafts, ...selectValues }} problems={problems(drafts, touched)}
+    onChange={(key, value) => { if ((SELECT_KEYS as readonly string[]).includes(key)) send({ [key]: value }); else setDrafts(old => ({ ...old, ...(key === 'year' && value ? { from: '', to: '' } : key === 'from' || key === 'to' ? { year: '' } : {}), [key]: value })) }}
     onBlur={commitField} />
-  const mobile = <div ref={sheetRef} className="journal-filter-sheet"><Fields idBase={`${base}-m`} t={t} sortControls values={staged} problems={problems(staged, stagedTouched)}
-    onChange={(key, value) => setStaged(old => ({ ...old, [key]: value }))}
+  const mobile = <div ref={sheetRef} className="journal-filter-sheet"><Fields idBase={`${base}-m`} t={t} locale={locale} sortControls values={staged} problems={problems(staged, stagedTouched)}
+    onChange={(key, value) => setStaged(old => ({ ...old, ...(key === 'year' && value ? { from: '', to: '' } : key === 'from' || key === 'to' ? { year: '' } : {}), [key]: value }))}
     onBlur={key => setStagedTouched(old => ({ ...old, [key]: true }))} /></div>
 
   return <div className="journal-filters">
     <form ref={formRef} role="search" className="journal-search" onSubmit={submit} noValidate>
       <label className="sr-only" htmlFor={`${base}-q`}>{t.search}</label>
-      <input id={`${base}-q`} type="search" value={drafts.q} onChange={event => setDrafts(old => ({ ...old, q: event.target.value }))} placeholder={t.search} />
+      <input id={`${base}-q`} type="search" value={drafts.q} onChange={event => setDrafts(old => ({ ...old, q: event.target.value }))} placeholder={t.search} className="ui-field-input" />
       <Button type="submit">{t.submit}</Button>
       <div className="journal-filter-fields journal-filters-desktop">{desktop}</div>
     </form>
@@ -219,8 +228,8 @@ export function JournalFilters({ locale, query, filtered, apply, navigating, ext
 }
 
 /** `sortControls`: the Sort and Order selects. The desktop toolbar leaves them to the list's sort headers; the mobile sheet has no headers. */
-function Fields({ idBase, t, sortControls, values, problems, onChange, onBlur }: {
-  idBase: string; t: (typeof text)[Locale]; sortControls: boolean; values: Values; problems: Record<string, string | undefined>
+function Fields({ idBase, t, locale, sortControls, values, problems, onChange, onBlur }: {
+  idBase: string; t: (typeof text)[Locale]; locale: Locale; sortControls: boolean; values: Values; problems: Record<string, string | undefined>
   onChange: (key: string, value: string) => void; onBlur: (key: string) => void
 }) {
   const input = (key: TextKey, label: string, extra: { placeholder: string; maxLength: number; inputMode?: 'numeric' }): ReactNode => {
@@ -228,7 +237,7 @@ function Fields({ idBase, t, sortControls, values, problems, onChange, onBlur }:
     const id = `${idBase}-${key}`
     return <div className="journal-filter" key={key}>
       <label htmlFor={id}>{label}</label>
-      <input id={id} data-filter={key} autoComplete="off" spellCheck={false} value={values[key] ?? ''} maxLength={extra.maxLength} placeholder={extra.placeholder} inputMode={extra.inputMode}
+      <input className="ui-field-input" id={id} data-filter={key} autoComplete="off" spellCheck={false} value={values[key] ?? ''} maxLength={extra.maxLength} placeholder={extra.placeholder} inputMode={extra.inputMode}
         aria-invalid={problem ? true : undefined} aria-describedby={problem ? `${id}-error` : undefined}
         onChange={event => onChange(key, event.target.value)} onBlur={() => onBlur(key)} />
       {problem && <span id={`${id}-error`} className="journal-filter-error">{problem}</span>}
@@ -238,11 +247,12 @@ function Fields({ idBase, t, sortControls, values, problems, onChange, onBlur }:
     const id = `${idBase}-${key}`
     return <div className="journal-filter" key={key}>
       <label htmlFor={id}>{label}</label>
-      <select id={id} value={values[key] ?? ''} onChange={event => onChange(key, event.target.value)}>{options.map(([value, name]) => <option key={value} value={value}>{name}</option>)}</select>
+      <select className="ui-field-input" id={id} value={values[key] ?? ''} onChange={event => onChange(key, event.target.value)}>{options.map(([value, name]) => <option key={value} value={value}>{name}</option>)}</select>
     </div>
   }
   const sortNames: Record<(typeof JOURNAL_SORTS)[number], string> = { date: t.date, origin: t.origin, destination: t.destination, airline_iata: t.airline, aircraft_icao: t.aircraft, distance_km: t.distance, duration_minutes: t.duration }
   return <>
+    <DateRangePicker from={values.from ?? ''} to={values.to ?? ''} locale={locale} error={problems.from ?? problems.to} onChange={range => { onChange('from', range.from); onChange('to', range.to) }} />
     {input('year', t.year, { placeholder: t.all, maxLength: 4, inputMode: 'numeric' })}
     {select('status', t.status, [['', t.all], ['upcoming', t.upcoming], ['awaiting', t.awaiting], ['logged', t.logged], ['completed', t.completed]])}
     {input('airline', t.airline, { placeholder: 'IATA', maxLength: 3 })}

@@ -1,4 +1,6 @@
-/* Member shell: header, split Add, avatar menu, mobile tab bar. Tokens only; breakpoint matches styles.css (700px). */
+/* Arc split-button, user-menu and tabs presentation (MIT; client/ui/ARC-LICENSE.txt).
+   Current route links, Radix menus and Facehash keep their behavior.
+   Member shell: header, split Add, avatar menu, mobile tab bar. Tokens only; breakpoint matches styles.css (700px). */
 @media(min-width:701px){
   .member-header .site-header-inner{flex-wrap:wrap;column-gap:clamp(var(--space-2),calc(4vw - 1.25rem),var(--space-8));row-gap:var(--space-2)}
   .member-header .main-nav a{padding-inline:clamp(var(--space-2),calc(2vw - .375rem),14px)}
@@ -9,18 +11,24 @@
 .tab-bar{display:none}
 
 /* Active state: weight, colour and an underline bar, so it never relies on colour alone. */
-.main-nav a{position:relative}
+.main-nav a{position:relative;border-radius:var(--radius-sm);transition:background-color var(--dur-fast) var(--ease-out)}
+@media(hover:hover) and (pointer:fine){.main-nav a:hover{background:var(--surface-inset)}}
 .main-nav a[aria-current=page]::after{content:'';position:absolute;inset-inline:var(--space-3);inset-block-end:0;height:2px;border-radius:var(--radius-full);background:var(--accent)}
 
-.split-add{display:inline-flex;align-items:stretch;border-radius:var(--radius-sm);background:var(--accent);color:var(--accent-foreground)}
+.split-add{transition:transform var(--dur-press) var(--ease-out);display:inline-flex;align-items:stretch;border-radius:var(--radius-sm);background:var(--accent);color:var(--accent-foreground)}
 .split-add-main,.split-add-more{display:inline-flex;align-items:center;justify-content:center;gap:var(--space-2);min-height:var(--control-h-sm);border:0;background:transparent;color:inherit;font-weight:600;text-decoration:none;white-space:nowrap}
 .split-add-main{padding-block:0;padding-inline:var(--space-4) var(--space-3);border-radius:0;border-start-start-radius:var(--radius-sm);border-end-start-radius:var(--radius-sm)}
 .split-add-more{min-width:var(--control-h-sm);padding:0;border-radius:0;border-start-end-radius:var(--radius-sm);border-end-end-radius:var(--radius-sm);border-inline-start:1px solid color-mix(in oklch,var(--accent-foreground) 40%,transparent)}
 .split-add :focus-visible{outline-color:var(--focus);outline-offset:2px}
-.split-add-main:active,.split-add-more:active{transform:scale(.96)}
+.split-add:has(.split-add-main:active){transform:scale(.96)}
+.split-add-more:active,.split-add-more[data-state=open]{background:var(--accent-hover)}
+.split-add-more svg{transition:transform var(--dur-base) var(--ease-out)}
+.split-add-more[data-state=open] svg{transform:rotate(180deg)}
 @media(hover:hover) and (pointer:fine){.split-add-main:hover,.split-add-more:hover{background:var(--accent-hover)}}
 
-.avatar-button{display:inline-grid;place-items:center;width:var(--control-h-sm);height:var(--control-h-sm);padding:0;border:0;border-radius:var(--radius-full);background:var(--surface-inset);color:var(--text);font-weight:600;box-shadow:0 0 0 1px var(--outline-media)}
+.avatar-button{display:inline-grid;place-items:center;width:44px;height:44px;padding:2px;border:0;border-radius:var(--radius-full);background:var(--surface-inset);color:var(--text);font-weight:600;box-shadow:0 0 0 1px var(--outline-media)}
+@media(hover:hover) and (pointer:fine){.avatar-button:hover{background:var(--surface)}}
+.avatar-button[data-state=open]{background:var(--surface)}
 a.ui-menu-item{color:inherit;text-decoration:none}
 .avatar-profile-link{justify-content:space-between}
 .avatar-status{font-size:13px;color:var(--text-muted)}
@@ -40,7 +48,7 @@ a.ui-menu-item{color:inherit;text-decoration:none}
 
 @media(max-width:700px){
   .desktop-nav,.header-desktop-only{display:none}
-  .tab-bar{display:block;position:fixed;z-index:var(--z-tabbar);inset-inline:0;inset-block-end:0;padding-block-end:env(safe-area-inset-bottom);background:var(--background);border-block-start:1px solid var(--hairline);transition:transform var(--dur-base) var(--ease-out)}
+  .tab-bar{display:block;position:fixed;z-index:var(--z-tabbar);inset-inline:0;inset-block-end:0;padding-block-end:env(safe-area-inset-bottom);background:var(--background);transition:transform var(--dur-base) var(--ease-out)}
   .tab-bar ul{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));list-style:none;margin:0;padding:0}
   .tab{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;width:100%;min-width:0;min-height:var(--tabbar-h);padding:var(--space-1) 2px;border:0;background:transparent;color:var(--text-muted);text-decoration:none;font-size:12px;line-height:16px}
   .tab-label{max-width:100%;white-space:nowrap}
@@ -55,7 +63,7 @@ a.ui-menu-item{color:inherit;text-decoration:none}
   :root[data-keyboard=true] .tab-bar{transform:translateY(100%)}
 }
 @media(max-width:360px){.tab{font-size:11px}}
-@media(prefers-reduced-motion:reduce){.tab-bar{transition:none}.split-add-main:active,.split-add-more:active{transform:none}}
+@media(prefers-reduced-motion:reduce){.tab-bar{transition:none}.split-add:has(.split-add-main:active){transform:none}.split-add,.split-add-more svg{transition:none}}
 
 .mobile-page-title{display:none;margin:0;font-size:17px;line-height:24px;font-weight:600}
 @media(max-width:700px){.member-header .wordmark{display:none}.member-header .mobile-page-title{display:block}}

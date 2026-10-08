@@ -1,6 +1,8 @@
 'use client'
 
 import { useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { X } from 'lucide-react'
+import { Button } from '../ui/button'
 import { Sheet } from '../ui/sheet'
 import { Field } from '../ui/field'
 import { formatCount, type Locale } from '../../lib/format'
@@ -12,6 +14,7 @@ const RESULT_FORMS = {
   ru: { one: '{count} страна или территория', few: '{count} страны и территории', many: '{count} стран и территорий', other: '{count} страны и территории' },
 }
 
+// Arc search-field (uiarc.dev, MIT; docs/research/2026-10-08-arc-source-inventory.md): reserved clear slot and focus return, composed with Field.
 /**
  * Add a country: search pinned at the top, verified suggestions (recent visits and land neighbors of collected
  * countries) and the full catalog list with collected markers. Picking a country opens its detail sheet, where the
@@ -55,11 +58,13 @@ export function AddCountrySheet({ open, onOpenChange, locale, mobile, entries, n
   const choice = (code: string) => <li key={code}><button type="button" className="passport-choice" onClick={() => pick(code)}>{name(code)}</button></li>
 
   return <Sheet open={open} onOpenChange={next => { if (!next) setQuery(''); onOpenChange(next) }} side={mobile ? 'bottom' : 'right'}
-    title={ru ? 'Добавить страну' : 'Add country'} closeLabel={ru ? 'Закрыть' : 'Close'} initialFocusRef={search} onCloseAutoFocus={restoreFocus}>
+    className="passport-sheet-panel" title={ru ? 'Добавить страну' : 'Add country'} closeLabel={ru ? 'Закрыть' : 'Close'} initialFocusRef={search} onCloseAutoFocus={restoreFocus}>
     <div className="passport-sheet">
       <div className="passport-search">
         <Field ref={search} type="search" label={ru ? 'Найти страну' : 'Find a country'} value={query} autoComplete="off"
           onChange={event => setQuery(event.target.value)} hint={ru ? 'Название на любом языке или код страны' : 'Name in any language or country code'} />
+        <Button className="passport-search-clear" variant="ghost" aria-label={ru ? 'Очистить поиск' : 'Clear search'} disabled={!query}
+          onClick={() => { setQuery(''); search.current?.focus() }}><X size={18} aria-hidden="true" /></Button>
       </div>
       {!query.trim() && suggestions.recent.length ? <section aria-labelledby="add-recent">
         <h3 id="add-recent">{ru ? 'Недавние визиты' : 'Recent visits'}</h3>

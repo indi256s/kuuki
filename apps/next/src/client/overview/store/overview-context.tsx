@@ -100,7 +100,8 @@ function useController({ payload: initial, prefs: initialPrefs, ownerKey, locale
           const body: unknown = await read()
           if (!current()) throw new DOMException('Session changed', 'AbortError')
           const etag = body && typeof body === 'object' && 'etag' in body ? body.etag : null
-          const prefix = `W/"ov3-${encodeURIComponent(ownerKey)}-`
+          const prefix = typeof etag === 'string' && etag.startsWith(`W/"ov4-day-${encodeURIComponent(ownerKey)}-`)
+            ? `W/"ov4-day-${encodeURIComponent(ownerKey)}-` : `W/"ov3-${encodeURIComponent(ownerKey)}-`
           const revisions = typeof etag === 'string' && etag.startsWith(prefix)
             ? /^(0|[1-9]\d*)-(0|[1-9]\d*)"$/.exec(etag.slice(prefix.length)) : null
           if (!revisions || !revisions.slice(1).every(value => Number.isSafeInteger(Number(value)))) {
@@ -202,7 +203,10 @@ function useController({ payload: initial, prefs: initialPrefs, ownerKey, locale
       add: <K extends FacetKey>(facet: K, value: filters.FacetValue<K>) => updateFilter(filter => filters.addValue(filter, facet, value)),
       remove: <K extends FacetKey>(facet: K, value: filters.FacetValue<K>) => updateFilter(filter => filters.removeValue(filter, facet, value)),
       removeFacet: (facet: FacetKey) => updateFilter(filter => filters.removeFacet(filter, facet)),
-      setPeriod: (period: OverviewFilter['period'] | null) => updateFilter(filter => filters.setPeriod(filter, period)),
+      setPeriod: (period: OverviewFilter['period'] | null) => {
+        if (payload?.mode === 'aggregate' && payload.aggregateResolution !== 'day' && period && 'from' in period && period.from.length === 10) return
+        updateFilter(filter => filters.setPeriod(filter, period))
+      },
       clear: () => updateFilter(filters.clearAll),
       removeLast: () => updateFilter(filters.removeLast),
     },

@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { MoreHorizontal } from 'lucide-react'
+import { MoreHorizontal, PlaneLanding, PlaneTakeoff } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { api, getAuthGeneration } from '@kuuki/client/apiClient'
 import { addGroundVisit, claimCountry, deleteGroundVisit, unclaimCountry } from '@kuuki/client/passport'
@@ -147,12 +147,18 @@ export function CountrySheet({ ownerId, locale, code: selected, entry, published
 
         {flights.length || legacy.length || claim || ground.length || data.suppressed.length ? <section aria-labelledby="passport-visits">
           <h3 id="passport-visits">{ru ? 'Визиты' : 'Visits'} · {formatNumber(locale, data.totalVisits)}</h3>
-          <ul className="passport-list">
+          {/* Arc Timeline (uiarc.dev, MIT; docs/research/2026-10-08-arc-source-inventory.md): dated source rows with a marker column.
+              Static evidence, no activity-feed clock, connectors, expansion or fabricated dates for year-only visits and legacy counters. */}
+          {flights.length ? <ol className="passport-list passport-timeline" aria-label={ru ? 'Визиты по перелётам' : 'Flight visits'}>
             {flights.map(item => item.kind === 'flight' ? <li key={`${item.flightId}-${item.endpoint}`}>
-              <a href={journalHref({ flight: item.flightId })}>{formatDateOnly(locale, item.date.slice(0, 10))} · {item.endpoint === 'destination'
-                ? (ru ? `прилёт в ${item.airport}` : `arrived at ${item.airport}`) : (ru ? `вылет из ${item.airport}` : `departed ${item.airport}`)}</a>
+              <a href={journalHref({ flight: item.flightId })}>
+                {item.endpoint === 'destination' ? <PlaneLanding size={18} aria-hidden="true" /> : <PlaneTakeoff size={18} aria-hidden="true" />}
+                <span><time dateTime={item.date.slice(0, 10)}>{formatDateOnly(locale, item.date.slice(0, 10))}</time> · {item.endpoint === 'destination'
+                ? (ru ? `прилёт в ${item.airport}` : `arrived at ${item.airport}`) : (ru ? `вылет из ${item.airport}` : `departed ${item.airport}`)}</span></a>
               {item.state === 'awaiting' ? <span className="passport-note">{ru ? 'ждёт отметки' : 'waiting'}</span> : null}
             </li> : null)}
+          </ol> : null}
+          {legacy.length || claim || ground.length ? <ul className="passport-list">
             {legacy.map(item => item.kind === 'legacy' ? <li key={`legacy-${item.airport}`}>
               <span>{item.airport} · ×{formatNumber(locale, item.visitCount)} <span className="passport-note">{ru ? '— архивный счётчик из прежнего журнала' : '— archived counter from your earlier journal'}</span></span>
             </li> : null)}
@@ -168,7 +174,7 @@ export function CountrySheet({ ownerId, locale, code: selected, entry, published
                 </Menu>
               </li>
             })}
-          </ul>
+          </ul> : null}
           {data.suppressed.length ? <ul className="passport-list" aria-label={ru ? 'Пересадки, не засчитанные как визит' : 'Connections not counted as a visit'}>
             {data.suppressed.map(item => <li key={`${item.flightId}-${item.endpoint}`}>
               <a href={journalHref({ flight: item.flightId })}>{item.airport}</a>

@@ -38,6 +38,8 @@ it('304 on matching etag reads only the stamp; a new revision serves fresh data'
     expect(prepare).toHaveBeenCalledTimes(1)
     expect(prepare.mock.calls[0][0]).toContain('user_derived_state')
     expect(batch).not.toHaveBeenCalled()
+    const legacy = new Request('https://kuuki.test/api/me/overview/data', { headers: { 'If-None-Match': etag.replace('ov4-day-', 'ov3-') } })
+    expect((await getOverviewData({ ...apiContext(db, legacy), data: { user: USER } } as never)).status).toBe(200)
     await dirtyUserStatement(db, USER.id).run()
     const fresh = await getOverviewData({ ...apiContext(db, request), data: { user: USER } } as never)
     expect(fresh.status).toBe(200)
@@ -237,12 +239,13 @@ it('aggregate mode preserves totals above 5000 rows', async () => {
   try {
     const payload = await readOverviewData(db, USER.id)
     expect(payload.mode).toBe('aggregate')
-    expect(payload.rows.length).toBeLessThan(5001)
+    expect(payload.aggregateResolution).toBe('day')
+    expect(payload.rows).toHaveLength(5001)
     expect(payload.rows.reduce((sum, row) => sum + row.weight, 0)).toBe(5001)
     expect(payload.rows.reduce((sum, row) => sum + (row.distanceKm ?? 0), 0)).toBe(500100)
-    const sourceMonths = await db.prepare(`SELECT MIN(date) AS date FROM flights WHERE user_id = ?
-      GROUP BY substr(date, 1, 7) ORDER BY date`).bind(USER.id).all<{ date: string }>()
-    expect(payload.rows.map(row => row.date)).toEqual(sourceMonths.results.map(row => row.date))
+    const sourceDays = await db.prepare(`SELECT date FROM flights WHERE user_id = ?
+      GROUP BY date ORDER BY date`).bind(USER.id).all<{ date: string }>()
+    expect(payload.rows.map(row => row.date)).toEqual(sourceDays.results.map(row => row.date))
     expect(payload.rows.every(row => row.flightNumber === null && row.departureUtc === null)).toBe(true)
     // Exercise the real SELECT/map/aggregate/JSON boundary with a witness unlike the group representative.
     await db.batch([
@@ -254,10 +257,11 @@ it('aggregate mode preserves totals above 5000 rows', async () => {
       data: { user: USER } } as never)
     expect(response.status).toBe(200)
     const serialized = await response.json() as OverviewPayload
-    const group = serialized.rows.find(row => row.weight === 5000)!
-    expect(group).toMatchObject({ id: 1, date: '2026-03-28', distanceKm: 500000, durationMinutes: 300120,
+    const group = serialized.rows.find(row => row.weight === 4999)!
+    expect(group).toMatchObject({ id: 2, date: '2026-03-28', distanceKm: 499900, durationMinutes: 299940,
       depMinute: 420, flightNumber: null, departureUtc: null,
-      recordExtrema: { longest: { flightId: 1, date: '2026-03-30', flightNumber: 'ACTUAL-WINNER', durationMinutes: 180, clockShiftMinutes: 300 } } })
+      recordExtrema: { longest: { flightId: 2, date: '2026-03-28', durationMinutes: 60 } } })
+    expect(serialized.rows.find(row => row.date === '2026-03-30')).toMatchObject({ weight: 1, preciseDurationSamples: [180], recordExtrema: { longest: { flightId: 1, date: '2026-03-30', flightNumber: 'ACTUAL-WINNER', durationMinutes: 180, clockShiftMinutes: 300 } } })
     const cabinet = computeOverview(serialized, {}).records
     expect(cabinet).toMatchObject({ status: 'ready', value: {
       longest: { flightId: null, date: '2026-03-30', value: 100, flightNumber: 'ACTUAL-WINNER', durationMinutes: 180,
@@ -265,11 +269,11 @@ it('aggregate mode preserves totals above 5000 rows', async () => {
       earliestDeparture: { flightId: null, date: '2026-03-30', value: 425, depMinute: 425 },
       northernmost: { flight: { flightId: null, date: '2026-03-31', value: null } },
     } })
-    expect(aggregateRows(serialized.rows)).toEqual(serialized.rows)
+    expect(aggregateRows(serialized.rows, 'day')).toEqual(serialized.rows)
   } finally { await dispose() }
 })
 
-it('etag uses ov3 prefix, changes with either revision and exposes pending publication', async () => {
+it('etag uses ov3-day prefix, changes with either revision and exposes pending publication', async () => {
   const { db, dispose } = await overviewAccount([])
   try {
     const before = await readOverviewData(db, USER.id)
@@ -280,7 +284,7 @@ it('etag uses ov3 prefix, changes with either revision and exposes pending publi
     const after = await readOverviewData(db, USER.id)
     expect(after.etag).not.toBe(before.etag)
     expect(after.derivedReady).toBe(false)
-    expect(overviewEtag(USER.id, { revision: 2, evidence_revision: 1 })).toBe(`W/"ov3-${encodeURIComponent(USER.id)}-2-1"`)
+    expect(overviewEtag(USER.id, { revision: 2, evidence_revision: 1 })).toBe(`W/"ov4-day-${encodeURIComponent(USER.id)}-2-1"`)
     expect(overviewEtag(USER.id, { revision: 2, evidence_revision: 2 })).not.toBe(after.etag)
   } finally { await dispose() }
 })
@@ -371,10 +375,11 @@ it('aggregate mode preserves arrival-hour counts above 5000 flights', async () =
   try {
     const payload = await readOverviewData(db, USER.id)
     expect(payload.mode).toBe('aggregate')
+    expect(payload.aggregateResolution).toBe('day')
     expect(payload.rows).toHaveLength(2)
     expect(payload.rows.filter(row => row.arrMinute === 360).reduce((sum, row) => sum + row.weight, 0)).toBe(2500)
     expect(payload.rows.filter(row => row.arrMinute === 1080).reduce((sum, row) => sum + row.weight, 0)).toBe(2501)
-    expect(aggregateRows(payload.rows)).toEqual(payload.rows)
+    expect(aggregateRows(payload.rows, 'day')).toEqual(payload.rows)
   } finally { await dispose() }
 })
 

@@ -1,15 +1,16 @@
 // @vitest-environment jsdom
-import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { renderToString } from 'react-dom/server'
 import { hydrateRoot } from 'react-dom/client'
 import { LIFECYCLE_CHANGED_EVENT } from '../../lifecycle-sync'
-import { afterEach, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import type { OverviewPayload } from '@kuuki/shared/overview/model'
 import { DEFAULT_PREFS } from '@kuuki/shared/overview/prefs'
 import board from '../../../../../../packages/shared/src/overview/__fixtures__/board.json'
 import empty from '../../../../../../packages/shared/src/overview/__fixtures__/n0.json'
 import n1 from '../../../../../../packages/shared/src/overview/__fixtures__/n1.json'
 import aggregate from '../../../../../../packages/shared/src/overview/__fixtures__/n5001.json'
+import { aggregateRows } from '@kuuki/shared/overview/aggregate'
 import { computeOverview } from '@kuuki/shared/overview/compute'
 import { pickLine } from '../narrator/pick'
 import { OverviewPage } from './overview-page'
@@ -31,6 +32,8 @@ const saver = async (prefs: typeof DEFAULT_PREFS) => prefs
 function mount(data: OverviewPayload | null = payload, prefs = structuredClone(DEFAULT_PREFS), locale: 'en' | 'ru' = 'en') {
   return render(<OverviewPage payload={data} prefs={prefs} ownerKey="dev" name="" locale={locale} live={false} saver={saver} />)
 }
+// Layout tests leave charts outside the viewport; section tests exercise their actual marks.
+beforeEach(() => vi.stubGlobal('IntersectionObserver', class { observe() {} disconnect() {} }))
 afterEach(() => { cleanup(); vi.useRealTimers(); vi.restoreAllMocks(); vi.unstubAllGlobals(); vi.unstubAllEnvs(); transport.put.mockClear(); transport.getFlight.mockClear(); navigation.query = '' })
 it.each(['en', 'ru'] as const)('first run shows actual narrator and import/add links, no figures or sections (%s)', locale => {
   const data = empty as OverviewPayload
@@ -327,4 +330,25 @@ it.each(['Records', 'Show all'])('final Show restoration focuses the restored se
   await user.keyboard(choice === 'Records' ? '{Home}{Enter}' : '{End}{Enter}')
   expect(screen.queryByRole('button', { name: 'Show' })).toBeNull()
   expect(screen.getByRole('button', { name: 'Records options' })).toHaveFocus()
+})
+
+it('saved exact-day preferences show unavailable monthly detail and recover after a real day-payload refresh', async () => {
+  const rows = [{ ...payload.rows[0], id: 1, date: '2024-03-01', state: 'logged' as const },
+    { ...payload.rows[0], id: 2, date: '2024-03-02', state: 'logged' as const }]
+  const legacy: OverviewPayload = { ...payload, mode: 'aggregate', etag: 'W/"ov3-range-owner-1-0"', rows: aggregateRows(rows) }
+  const daily: OverviewPayload = { ...legacy, aggregateResolution: 'day', etag: 'W/"ov4-day-range-owner-1-0"', rows: aggregateRows(rows, 'day') }
+  const prefs = { ...structuredClone(DEFAULT_PREFS), filter: { period: { from: '2024-03-02', to: '2024-03-02' } } }
+  const save = vi.fn(saver), fetcher = vi.fn<typeof fetch>().mockResolvedValue(Response.json(daily))
+  vi.stubGlobal('fetch', fetcher)
+  render(<OverviewPage payload={legacy} prefs={prefs} ownerKey="range-owner" name="" locale="en" live={true} saver={save} />)
+  expect(screen.getByRole('alert')).toHaveTextContent('This older summary has no exact-day detail.')
+  expect(screen.queryByRole('region', { name: 'Totals for the period' })).toBeNull()
+  expect(screen.queryByText('Loading overview')).toBeNull()
+  expect(screen.queryByRole('link', { name: 'Import flights' })).toBeNull()
+  expect(save).not.toHaveBeenCalled()
+  await act(async () => fireEvent.click(screen.getByRole('button', { name: 'Try again' })))
+  await waitFor(() => expect(screen.queryByRole('alert')).toBeNull())
+  expect(within(screen.getByRole('region', { name: 'Totals for the period' })).getByLabelText('Flights')).toHaveTextContent('1')
+  expect(fetcher.mock.calls.filter(call => String(call[0]) === '/api/me/overview/data')).toHaveLength(1)
+  expect(save).not.toHaveBeenCalled()
 })

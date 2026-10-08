@@ -1,5 +1,5 @@
 import { expect, it } from 'vitest'
-import { DEFAULT_PREFS, normalizeLayout, parsePrefs } from './prefs'
+import { DEFAULT_PREFS, normalizeLayout, overviewPrefsSchema, parsePrefs } from './prefs'
 
 it('legacy prefs normalize without throwing', () => {
   const prefs = parsePrefs(JSON.stringify({ version: 1,
@@ -31,4 +31,17 @@ it('persisted filter insertion order survives tolerant parsing without admitting
     arrHours: [6], unknown: ['x'], airlines: ['TK'], makers: ['invalid'], countries: ['JP'], period: { years: [2026] },
   } }))
   expect(Object.keys(prefs.filter)).toEqual(['arrHours', 'airlines', 'countries', 'period'])
+})
+
+it('admits exact days and legacy month preferences without rewriting stored bounds', () => {
+  for (const period of [{ from: '2024-02', to: '2024-03' }, { from: '2024-02-29', to: '2024-03-01' }, { from: '0099-01-01', to: '0099-01-01' }]) {
+    const prefs = { ...DEFAULT_PREFS, filter: { period, countries: ['JP'] } }
+    expect(overviewPrefsSchema.safeParse(prefs).success).toBe(true)
+    expect(parsePrefs(JSON.stringify(prefs)).filter).toEqual(prefs.filter)
+  }
+  for (const period of [{ from: '2025-02-29', to: '2025-03-01' }, { from: '2024-03-01', to: '2024-02-29' }, { from: '2024-02', to: '2024-03-01' }]) {
+    const prefs = { ...DEFAULT_PREFS, filter: { period, countries: ['JP'] } }
+    expect(overviewPrefsSchema.safeParse(prefs).success).toBe(false)
+    expect(parsePrefs(JSON.stringify(prefs)).filter).toEqual({ countries: ['JP'] })
+  }
 })

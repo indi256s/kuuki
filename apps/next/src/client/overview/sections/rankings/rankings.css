@@ -23,5 +23,12 @@
 .ov3-rankings button:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
 
 .ov3-bump-dashes { display: flex; flex-wrap: wrap; gap: 8px 16px; font-size: 12px; }.ov3-bump-dashes span { display: inline-flex; gap: 6px; align-items: center; }
+.ov3-bump-dashes button { display: inline-flex; gap: 6px; align-items: center; min-height: 44px; border: 0; background: none; color: var(--text); cursor: pointer; }
+.ov3-bump-dashes button[aria-pressed="false"] { text-decoration: line-through; }
+.ov3-rankings .kc-svg:has([data-selected="true"]):not(:has([data-bump-highlight])) [data-bump-series]:not(:has([data-selected="true"])) { opacity: .22; }
+.ov3-share-legend { display: grid; gap: 4px; }
+.ov3-share-legend button { display: grid; grid-template-columns: 10px minmax(0, 1fr) auto; gap: 8px; align-items: center; min-height: 44px; padding: 4px 0; border: 0; background: none; color: var(--text); text-align: left; cursor: pointer; }
+.ov3-share-legend i { width: 8px; height: 8px; border-radius: 2px; }
+.ov3-share-legend strong { font-size: 13px; font-weight: 500; }
 
 .ov3-leader-legend { display: flex; flex-wrap: wrap; gap: 8px 16px; }.ov3-leader-legend span { display: inline-flex; align-items: center; gap: 6px; }.ov3-leader-legend i { width: 8px; height: 8px; background: var(--accent); border-radius: 2px; }.ov3-leader-legend span:last-child i { background: var(--map-bucket-2); }

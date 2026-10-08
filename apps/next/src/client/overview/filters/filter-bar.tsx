@@ -2,7 +2,7 @@
 
 import { useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { Plus } from 'lucide-react'
-import { formatMonthYear, formatNumber } from '../../../lib/format'
+import { formatPeriodDate, formatNumber } from '../../../lib/format'
 import { referenceLabels } from '../labels'
 import { scopeTitle } from '../page/scope-title'
 import { useOverview } from '../store/overview-context'
@@ -72,7 +72,7 @@ export function FilterBar() {
       {!facets.length ? <span className="ov-filter-all">{locale === 'ru' ? 'Все перелёты за всё время' : 'All flights, all time'}</span> : null}
       {facets.map((facet, position) => {
         const values = facet === 'period' ? filter.period && 'years' in filter.period ? filter.period.years
-          : filter.period && 'from' in filter.period ? [`${formatMonthYear(locale, filter.period.from)} – ${formatMonthYear(locale, filter.period.to)}`] : [] : filter[facet] ?? []
+          : filter.period && 'from' in filter.period ? [`${formatPeriodDate(locale, filter.period.from)} – ${formatPeriodDate(locale, filter.period.to)}`] : [] : filter[facet] ?? []
         const label = chipLabel(facet, values, labels, locale)
         const option = values.length === 1 ? index.find(option => option.facet === facet && option.value === String(values[0])) : undefined
         const mark = option?.mark?.kind === 'maker' ? <MakerSwatch maker={option.mark.key} /> : option?.mark?.kind === 'alliance' ? <AllianceMark alliance={option.mark.key} /> : undefined

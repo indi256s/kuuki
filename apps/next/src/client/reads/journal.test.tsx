@@ -101,7 +101,7 @@ it.each(['en', 'ru'] as const)('marks estimated durations in visible text and th
   expect(entries[0].querySelector('.flight-row-duration')).toHaveTextContent(/^≈ /)
   expect(within(entries[0] as HTMLElement).getByRole('button', { name: /≈ / })).toBeTruthy()
   expect(entries[1].querySelector('.flight-row-duration')).not.toHaveTextContent('≈')
-  expect(within(entries[1] as HTMLElement).getByRole('button')).not.toHaveAccessibleName(/≈ /)
+  expect(entries[1].querySelector('[data-flight-row]')).not.toHaveAccessibleName(/≈ /)
 })
 
 it('groups upcoming flights first, then awaiting and logged history by year', () => {
@@ -827,10 +827,12 @@ describe('detail sheet', () => {
     expect(screen.getByRole('button', { name: 'Undo' })).toHaveFocus()
   })
 
-  it('opens "Add aircraft" in the editor with the aircraft field requested', async () => {
+  it('keeps the full editor with the aircraft field requested one step behind "Add aircraft"', async () => {
     const user = userEvent.setup()
     render(<Harness flights={[flight({ id: 7, date: '2025-04-03', lifecycle_state: 'logged', aircraft_icao: null })]} />)
     await user.click(screen.getByRole('button', { name: /^Add aircraft/ }))
+    expect(nav.push).not.toHaveBeenCalled() // the inline editor opens first; the row is not activated
+    await user.click(screen.getByRole('button', { name: 'All details' }))
     expect(await screen.findByTestId('detail')).toHaveTextContent('editing:true field:aircraft')
     expect(nav.push).toHaveBeenCalledWith('/journal?flight=7', { scroll: false })
   })
@@ -861,10 +863,10 @@ describe('list', () => {
     expect(missing).toContainElement(cell as HTMLElement)
     expect(missing.querySelector('.flight-row-route')).toBeTruthy() // same row element as the other cells
     expect(document.querySelector('[data-flight-row="7"]')!.querySelector('button, a, input, select')).toBeNull()
-    expect(missing.nextElementSibling).toBeNull() // nothing follows the row as a separate grid row
+    expect(missing.nextElementSibling).toBe(missing.closest('.journal-entry')!.querySelector('.journal-entry-actions')) // only the row's actions button follows it, not a separate aircraft row
     const present = document.querySelector('[data-flight-row="8"]')!.closest('.flight-row')!
     expect(present.querySelector('.journal-aircraft-cell')).toHaveTextContent('B738')
-    expect(present.querySelector('.journal-aircraft-cell button')).toBeNull()
+    expect(present.querySelector('.journal-aircraft-cell button')).toHaveAccessibleName(/^Change aircraft B738, TBS to IST, April/)
   })
 
   it('renders the upcoming group in the order the server returned it, without re-sorting', () => {

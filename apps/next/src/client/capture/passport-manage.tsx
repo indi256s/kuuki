@@ -1,7 +1,10 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import aircraft from '@kuuki/data/aircraft'
+import { findAircraft } from '@kuuki/data/aircraft-lookup'
+import { Button } from '../ui/button'
+import { Combobox } from '../ui/combobox'
+import { aircraftChoices } from './reference-choices'
 import { getAuthGeneration } from '@kuuki/client/apiClient'
 import { getAllFlights, type Flight } from '@kuuki/client/flights'
 import { trackPrivateOperation } from '../activity'
@@ -12,6 +15,7 @@ import { acceptAircraftBatch } from '../import/import-api'
 import { formatDateOnly } from '../../lib/format'
 import type { Locale } from '../../server/locale'
 import './capture.css'
+import './passport-manage.css'
 
 export function PassportManage({ ownerId, locale }: { ownerId: string; locale: Locale }) {
   const ru = locale === 'ru', feedback = useWriteFeedback(ownerId)
@@ -63,6 +67,7 @@ export function PassportManage({ ownerId, locale }: { ownerId: string; locale: L
       loadFlights(true)
     } finally { if (current(controller, generation)) setBusy(false); release() }
   }
+  const validPlane = !!findAircraft(plane)
   const eligible = flights.filter(row => !row.aircraft_icao)
   const chosen = selected.filter(id => eligible.some(row => row.id === id))
   const retryIds = retryableAircraft({ rows: outcomes, acks: [], uncertain: false })
@@ -79,12 +84,24 @@ export function PassportManage({ ownerId, locale }: { ownerId: string; locale: L
   const summary = summarizeAircraftRun(locale, last)
   return <div className="capture-manage">
     <section className="capture-card"><p>{ru ? 'Выберите до 20 своих перелётов без самолёта и назначьте тип.' : 'Select up to 20 of your flights without aircraft and assign a type.'}</p>
-      {flightStatus === 'unloaded' && <button className="button secondary" onClick={() => loadFlights()}>{ru ? 'Загрузить перелёты' : 'Load flights'}</button>}
+      {flightStatus === 'unloaded' && <Button onClick={() => loadFlights()}>{ru ? 'Загрузить перелёты' : 'Load flights'}</Button>}
       {flightStatus === 'loading' && <p role="status">{ru ? 'Загружаем перелёты…' : 'Loading flights…'}</p>}
-      {flightStatus === 'error' && <p role="alert">{ru ? 'Не удалось загрузить перелёты.' : 'Could not load flights.'} <button type="button" onClick={() => loadFlights()}>{ru ? 'Повторить' : 'Retry'}</button></p>}
-      {flightStatus === 'ready' && <><fieldset disabled={busy}><legend>{ru ? 'Перелёты' : 'Flights'}</legend>{eligible.length === 0 ? <p>{ru ? 'Нет перелётов для обновления.' : 'No flights to update.'}</p> : eligible.map(row => <label key={row.id}><input type="checkbox" checked={chosen.includes(row.id)} disabled={!chosen.includes(row.id) && chosen.length >= AIRCRAFT_BATCH} onChange={event => setSelected(old => event.target.checked ? [...old, row.id] : old.filter(id => id !== row.id))} />{label(row.id)}</label>)}</fieldset><label>{ru ? 'Тип самолёта' : 'Aircraft type'}<select value={plane} disabled={busy} onChange={event => setPlane(event.target.value)}><option value="">{ru ? 'Выберите тип' : 'Select type'}</option>{aircraft.map(item => <option key={item.icao} value={item.icao}>{item.icao} · {item.name}</option>)}</select></label><button className="button primary" disabled={busy || !plane || chosen.length === 0} onClick={() => void accept(chosen.map(id => ({ id, aircraft_icao: plane })))}>{ru ? 'Применить к выбранным' : 'Apply to selected'}</button></>}
+      {flightStatus === 'error' && <p role="alert">{ru ? 'Не удалось загрузить перелёты.' : 'Could not load flights.'} <Button dense onClick={() => loadFlights()}>{ru ? 'Повторить' : 'Retry'}</Button></p>}
+      {flightStatus === 'ready' && <>
+        <fieldset disabled={busy}>
+          <legend>{ru ? 'Перелёты' : 'Flights'}</legend>
+          {eligible.length === 0 ? <p>{ru ? 'Нет перелётов для обновления.' : 'No flights to update.'}</p> : eligible.map(row => <label key={row.id}>
+            <input type="checkbox" checked={chosen.includes(row.id)} disabled={!chosen.includes(row.id) && chosen.length >= AIRCRAFT_BATCH}
+              onChange={event => setSelected(old => event.target.checked ? [...old, row.id] : old.filter(id => id !== row.id))} />{label(row.id)}
+          </label>)}
+        </fieldset>
+        <Combobox label={ru ? 'Тип самолёта' : 'Aircraft type'} value={plane} onChange={setPlane} choices={aircraftChoices} locale={locale} disabled={busy}
+          error={plane && !validPlane ? (ru ? 'Выберите самолёт из списка.' : 'Choose an aircraft from the list.') : undefined} />
+        <Button variant="primary" disabled={busy || !validPlane || chosen.length === 0}
+          onClick={() => void accept(chosen.map(id => ({ id, aircraft_icao: plane })))}>{ru ? 'Применить к выбранным' : 'Apply to selected'}</Button>
+      </>}
       {reported.length > 0 && <><ul className="capture-outcomes" aria-label={ru ? 'Результат' : 'Result'}>{reported.map(([id, outcome]) => <li key={id} data-state={outcome.status}>{label(id)} — {tag(outcome, id)}</li>)}</ul>
-        {retryIds.length > 0 && <button type="button" className="button secondary" disabled={busy} onClick={() => void accept(retryIds.flatMap(id => { const icao = sent.current.get(id); return icao ? [{ id, aircraft_icao: icao }] : [] }))}>{S.aircraftRetry[locale]}</button>}</>}
+        {retryIds.length > 0 && <Button disabled={busy} onClick={() => void accept(retryIds.flatMap(id => { const icao = sent.current.get(id); return icao ? [{ id, aircraft_icao: icao }] : [] }))}>{S.aircraftRetry[locale]}</Button>}</>}
     </section>
     <p role="status">{[savedN > 0 ? summary : '', message, message ? (feedback.status === 'ready' ? (ru ? 'Итоги обновлены.' : 'Totals updated.') : feedback.status === 'delayed' ? (ru ? 'Публикация итогов пока не подтверждена.' : 'Totals publication is not yet confirmed.') : '') : ''].filter(Boolean).join(' ')}</p>
     <p role="alert">{savedN === 0 ? summary : ''}</p>

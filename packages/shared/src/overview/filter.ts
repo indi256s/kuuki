@@ -1,3 +1,4 @@
+import { DAY_MS, dayToEpoch, epochToDay, periodDays } from './range'
 import { allianceAt } from '../../../data/src/alliance-membership'
 import { makerOf } from '../../../data/src/aircraft-makers'
 import { BAND_START_HOUR, HAUL_KM, type DepartureBand, type Haul,
@@ -38,8 +39,8 @@ export function matches(row: OverviewRow, filter: OverviewFilter, refs: Refs): b
     if ('years' in period) {
       if (period.years.length && (monthIndex(row.date.slice(0, 7)) === null || !period.years.includes(Number(row.date.slice(0, 4))))) return false
     } else {
-      const from = monthIndex(period.from), to = monthIndex(period.to), month = monthIndex(row.date.slice(0, 7))
-      if (from === null || to === null || month === null || month < from || month > to) return false
+      const days = periodDays(period)
+      if (!days || dayToEpoch(row.date) === null || row.date < days.from || row.date > days.to) return false
     }
   }
   const countries = filter.countries, regions = filter.regions
@@ -85,6 +86,13 @@ export function previousPeriod(filter: OverviewFilter): OverviewFilter | null {
     if (!years.length || years.some((year, i) => !Number.isInteger(year) || year < 0 || year > 9999 || (i > 0 && year !== years[i - 1] + 1))) return null
     if (years[0] < years.length) return null
     return { ...filter, period: { years: years.map(year => year - years.length) } }
+  }
+  if (period.from.length !== 7 || period.to.length !== 7) {
+    const days = periodDays(period)
+    if (!days) return null
+    const start = dayToEpoch(days.from)!, end = dayToEpoch(days.to)!
+    const from = epochToDay(start - (end - start + DAY_MS)), to = epochToDay(start - DAY_MS)
+    return from && to ? { ...filter, period: { from, to } } : null
   }
   const from = monthIndex(period.from), to = monthIndex(period.to)
   if (from === null || to === null || from > to) return null

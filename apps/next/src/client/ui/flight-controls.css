@@ -40,3 +40,17 @@
 .flight-detail dd{margin:0;font-family:var(--font-mono)}
 .flight-keyboard-hint{width:100%;text-align:end;color:var(--text-muted)}
 @media(max-width:700px){.flight-keyboard-hint{display:none}.flight-full-sheet .ui-panel-footer :is(.button,.ui-button,.ui-button-wrap){flex:1}.flight-full-sheet .ui-panel-footer .ui-button-wrap .ui-button{width:100%}.flight-calendar-week{gap:0}.flight-calendar-popover{inset-inline:calc(-1 * var(--space-6));width:auto;min-width:0;max-width:none;padding-inline:var(--space-1)}}
+/* Free Arc calendar/search presentation, retaining local typed input and mobile Sheet behavior. */
+.flight-combobox>label,.flight-calendar>label{font-weight:600}
+.flight-combobox input::placeholder,.flight-date-input input::placeholder{color:var(--text-muted);opacity:1}
+.flight-combobox input:disabled,.flight-date-input input:disabled{background:var(--surface-inset);color:var(--text-muted);cursor:not-allowed}
+.flight-combobox input:focus-visible,.flight-calendar :is(input,button):focus-visible,.flight-search-input input:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.flight-search-popover,.flight-calendar-popover{border:1px solid var(--hairline)}
+.flight-calendar-heading>button{display:grid;place-items:center;width:44px;flex:none;border:0}
+.flight-calendar-grid button{font-variant-numeric:tabular-nums;transition:background-color var(--dur-fast) var(--ease-out)}
+.ui-date-range{min-width:0;margin:0;padding:0;border:0;display:grid;gap:var(--space-3)}
+.ui-date-range legend{font-weight:600;margin-block-end:var(--space-2)}
+.ui-date-range-fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:var(--space-4)}
+.ui-date-range .flight-date-input input{min-width:0}
+@media(hover:hover) and (pointer:fine){.flight-combobox li:hover,.flight-search-sheet li:hover,.flight-calendar-grid [aria-selected=false] button:hover:not([aria-current=date]){background:var(--surface-inset)}}
+@media(prefers-reduced-motion:reduce){.flight-calendar-grid button{transition:none}}

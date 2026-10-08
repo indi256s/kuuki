@@ -1,13 +1,12 @@
 'use client'
 import { JOURNAL_PAGE_SIZE } from '@kuuki/shared/constants'
-import { allianceAt } from '@kuuki/data/alliance-membership'
 
 import { useCallback, useEffect, useId, useRef, useState, useTransition } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { ArrowDown, ArrowUp } from 'lucide-react'
 import { QueryClient, QueryClientProvider, useQuery, useQueryClient } from '@tanstack/react-query'
-import { api } from '@kuuki/client/apiClient'
+import { api, getAuthGeneration } from '@kuuki/client/apiClient'
 import { trackPrivateOperation } from '../activity'
 import { isPublicationPending } from '../freshness'
 import { useWriteFeedback } from '../write-feedback'
@@ -19,16 +18,17 @@ import { Disclosure } from '../ui/disclosure'
 import { JournalQueue } from './journal-queue'
 import { useDeferredDelete } from './deferred-delete'
 import { Button } from '../ui/button'
-import { AllianceMark } from '../ui/category-mark'
 import { DeleteUndo } from './delete-undo'
 import { ToastSlot } from '../ui/toast'
 import { announceShellNotice } from '../shell-notices'
 import { JournalFilters } from './journal-filters'
+import { JournalRow } from './journal-row'
+import type { InlineEditOutcome } from '../ui/inline-edit'
 import { FloatingActionBar } from '../ui/floating-action-bar'
 import { DestructiveConfirm } from '../ui/destructive-confirm'
 import type { JournalData } from '../../server/journal'
 import type { Locale } from '../../server/locale'
-import { formatCount, formatDateOnly, formatDistanceKm, formatDuration } from '../../lib/format'
+import { formatCount } from '../../lib/format'
 import { normalizeJournalQuery, resetJournalFilters, withQuery } from '../../lib/url-state'
 
 const countForms = { en: { one: '{count} flight', other: '{count} flights' }, ru: { one: '{count} перелёт', few: '{count} перелёта', many: '{count} перелётов', other: '{count} перелёта' } } as const
@@ -38,8 +38,8 @@ const consequenceForms = {
   ru: { one: 'Будет удалён {count} выбранный перелёт. Отменить удаление можно в течение шести секунд.', few: 'Будут удалены {count} выбранных перелёта. Отменить удаление можно в течение шести секунд.', many: 'Будут удалены {count} выбранных перелётов. Отменить удаление можно в течение шести секунд.', other: 'Будут удалены {count} выбранных перелёта. Отменить удаление можно в течение шести секунд.' },
 } as const
 const labels = {
-  en: { origin: 'Origin', destination: 'Destination', sort: 'Sort', asc: 'ascending', desc: 'descending', upcoming: 'Upcoming', awaiting: 'Awaiting', reset: 'Reset filters', empty: 'Your journal is empty.', filtered: 'Nothing matches these filters.', pageEmpty: 'There are no flights on this page.', firstPage: 'Back to the first page', importFlights: 'Import flights', retry: 'Try again', backgroundError: 'Could not refresh the list. Showing the last loaded flights.', pending: 'Recent changes are still being prepared.', previous: 'Previous', next: 'Next', page: 'Page', of: 'of', select: 'Select', selectAll: 'Select all matching flights', clear: 'Clear selection', delete: 'Delete selected flights', cancel: 'Cancel', offline: 'Offline. Connect to change flights.', deleteFailed: 'Delete failed. Your flights are restored.', deleteCancelled: 'Delete cancelled — you left the Journal. Nothing was removed.', retryDelete: 'Retry deletion', addAircraft: 'Add aircraft', historical: 'Logged', distance: 'Distance', date: 'Date', airline: 'Airline', aircraft: 'Aircraft', duration: 'Duration', selectionActions: 'Selection actions' },
-  ru: { origin: 'Откуда', destination: 'Куда', sort: 'Сортировка', asc: 'по возрастанию', desc: 'по убыванию', upcoming: 'Предстоящие', awaiting: 'Ждут подтверждения', reset: 'Сбросить фильтры', empty: 'Журнал пока пуст.', filtered: 'По этим фильтрам ничего не найдено.', pageEmpty: 'На этой странице нет перелётов.', firstPage: 'Вернуться на первую страницу', importFlights: 'Импортировать перелёты', retry: 'Повторить', backgroundError: 'Не удалось обновить список. Показаны последние загруженные перелёты.', pending: 'Последние изменения ещё обрабатываются.', previous: 'Назад', next: 'Далее', page: 'Страница', of: 'из', select: 'Выбрать', selectAll: 'Выбрать все найденные перелёты', clear: 'Снять выделение', delete: 'Удалить выбранные перелёты', cancel: 'Отмена', offline: 'Нет сети. Подключитесь, чтобы изменить перелёты.', deleteFailed: 'Не удалось удалить. Перелёты восстановлены.', deleteCancelled: 'Удаление отменено — вы ушли из журнала. Ничего не удалено.', retryDelete: 'Повторить удаление', addAircraft: 'Добавить самолёт', historical: 'В журнале', distance: 'Расстояние', date: 'Дата', airline: 'Авиакомпания', aircraft: 'Самолёт', duration: 'Длительность', selectionActions: 'Действия с выбранными' },
+  en: { origin: 'Origin', destination: 'Destination', sort: 'Sort', asc: 'ascending', desc: 'descending', upcoming: 'Upcoming', awaiting: 'Awaiting', reset: 'Reset filters', empty: 'Your journal is empty.', filtered: 'Nothing matches these filters.', pageEmpty: 'There are no flights on this page.', firstPage: 'Back to the first page', importFlights: 'Import flights', retry: 'Try again', backgroundError: 'Could not refresh the list. Showing the last loaded flights.', pending: 'Recent changes are still being prepared.', previous: 'Previous', next: 'Next', page: 'Page', of: 'of', select: 'Select', selectAll: 'Select all matching flights', clear: 'Clear selection', delete: 'Delete selected flights', cancel: 'Cancel', offline: 'Offline. Connect to change flights.', deleteFailed: 'Delete failed. Your flights are restored.', deleteCancelled: 'Delete cancelled — you left the Journal. Nothing was removed.', retryDelete: 'Retry deletion', editorLoadFailed: 'Could not load the aircraft editor. Try again.', sessionChanged: 'Your session changed. Reopen the Journal before editing.', historical: 'Logged', distance: 'Distance', date: 'Date', airline: 'Airline', aircraft: 'Aircraft', duration: 'Duration', selectionActions: 'Selection actions' },
+  ru: { origin: 'Откуда', destination: 'Куда', sort: 'Сортировка', asc: 'по возрастанию', desc: 'по убыванию', upcoming: 'Предстоящие', awaiting: 'Ждут подтверждения', reset: 'Сбросить фильтры', empty: 'Журнал пока пуст.', filtered: 'По этим фильтрам ничего не найдено.', pageEmpty: 'На этой странице нет перелётов.', firstPage: 'Вернуться на первую страницу', importFlights: 'Импортировать перелёты', retry: 'Повторить', backgroundError: 'Не удалось обновить список. Показаны последние загруженные перелёты.', pending: 'Последние изменения ещё обрабатываются.', previous: 'Назад', next: 'Далее', page: 'Страница', of: 'из', select: 'Выбрать', selectAll: 'Выбрать все найденные перелёты', clear: 'Снять выделение', delete: 'Удалить выбранные перелёты', cancel: 'Отмена', offline: 'Нет сети. Подключитесь, чтобы изменить перелёты.', deleteFailed: 'Не удалось удалить. Перелёты восстановлены.', deleteCancelled: 'Удаление отменено — вы ушли из журнала. Ничего не удалено.', retryDelete: 'Повторить удаление', editorLoadFailed: 'Не удалось загрузить редактор самолёта. Повторите.', sessionChanged: 'Сессия изменилась. Откройте журнал снова перед редактированием.', historical: 'В журнале', distance: 'Расстояние', date: 'Дата', airline: 'Авиакомпания', aircraft: 'Самолёт', duration: 'Длительность', selectionActions: 'Действия с выбранными' },
 } as const
 
 type Flight = JournalData['flights'][number]
@@ -54,8 +54,10 @@ function JournalInner({ ownerId, locale, initial, query, page, filtered }: Props
   const [selected, select] = useState<number[]>([])
   const selectionParams = new URLSearchParams(query)
   for (const key of ['flight', 'queue', 'batch']) selectionParams.delete(key)
+  const [aircraftId, setAircraftId] = useState<number | null>(null)
+  const [confirmId, setConfirmId] = useState<number | null>(null)
   const [selectionQuery, setSelectionQuery] = useState(selectionParams.toString())
-  if (selectionQuery !== selectionParams.toString()) { setSelectionQuery(selectionParams.toString()); select([]) }
+  if (selectionQuery !== selectionParams.toString()) { setSelectionQuery(selectionParams.toString()); select([]); setAircraftId(null); setConfirmId(null) }
   const [selectionError, setSelectionError] = useState(false)
   const [selecting, setSelecting] = useState(false)
   const [deleteOpen, setDeleteOpen] = useState(false)
@@ -114,6 +116,46 @@ function JournalInner({ ownerId, locale, initial, query, page, filtered }: Props
   // The Undo button leaves the page when the request starts, not when the network answers. A user resting on it (focus fell to the body) moves then; anyone elsewhere keeps their place.
   useEffect(() => { if (deletion.submitting) settleFocus() }, [deletion.submitting])
   const hidden = [...removed, ...(deletion.pending?.ids ?? [])]
+  const deleteBusy = deletion.pending !== null || deletion.submitting
+  // Single-flight delete question: one row at a time, answered through the same deferred delete (and its Undo) as every other deletion.
+  const askDelete = (id: number) => { setAircraftId(null); setConfirmId(id) }
+  const cancelDelete = (id: number) => { setConfirmId(null); focusRow(id) }
+  const confirmDelete = (id: number) => { if (!online || deleteBusy) return; setConfirmId(null); scheduleDelete([id]) }
+  // Inline aircraft edit: one editor at a time, never while another aircraft write is in flight. The write is the full form's update authority.
+  const aircraftWriting = useRef(false)
+  const savedAircraftFocus = useRef<HTMLElement | null>(null)
+  useEffect(() => {
+    const moved = () => { if (document.activeElement !== document.body && savedAircraftFocus.current && !savedAircraftFocus.current.contains(document.activeElement)) savedAircraftFocus.current = null }
+    document.addEventListener('focusin', moved)
+    return () => document.removeEventListener('focusin', moved)
+  }, [])
+  const setAircraftEditing = (id: number) => (editing: boolean) => {
+    if (!editing) { setAircraftId(current => current === id ? null : current); return }
+    if (aircraftWriting.current) return
+    setConfirmId(null); setAircraftId(id)
+  }
+  const saveAircraft = async (id: number, draft: string): Promise<InlineEditOutcome> => {
+    if (!online) return { status: 'rejected', message: t.offline }
+    if (identityReset.current) return { status: 'rejected', message: t.sessionChanged }
+    if (aircraftWriting.current) return { status: 'rejected', message: t.pending }
+    const generation = getAuthGeneration()
+    const entry = root.current?.querySelector(`[data-flight-row="${id}"]`)?.closest<HTMLElement>('.journal-entry')
+    savedAircraftFocus.current = entry?.contains(document.activeElement) ? entry : null
+    aircraftWriting.current = true
+    try {
+      let write: typeof import('./journal-aircraft') | undefined
+      try { write = await import('./journal-aircraft') } catch { return { status: 'rejected', message: t.editorLoadFailed } }
+      if (generation !== getAuthGeneration() || identityReset.current) return { status: 'rejected', message: t.sessionChanged }
+      const { outcome, row } = await write.saveAircraft(id, draft, locale, generation)
+      if (generation !== getAuthGeneration() || identityReset.current) return { status: 'unknown', message: t.sessionChanged }
+      if (outcome.status === 'saved' && row) {
+        // The server's row is the truth: show its aircraft now, then let the refetch bring the canonical order, counts and derived state.
+        queryClient.setQueryData<JournalData>(['journal', ownerId, query], current => current && { ...current, flights: current.flights.map(flight => flight.id === id ? { ...flight, aircraft_icao: row.aircraft_icao } : flight) })
+        feedback.acknowledge(row); refresh()
+      } else if (outcome.status === 'unknown') refresh()
+      return outcome
+    } finally { aircraftWriting.current = false }
+  }
   const list = useQuery({
     queryKey: ['journal', ownerId, query],
     queryFn: async ({ signal }) => {
@@ -140,6 +182,13 @@ function JournalInner({ ownerId, locale, initial, query, page, filtered }: Props
     return () => window.removeEventListener(LIFECYCLE_CHANGED_EVENT, refreshList)
   }, [queryClient, ownerId])
   const data = list.data
+  useEffect(() => {
+    const entry = savedAircraftFocus.current
+    if (entry && !entry.isConnected) {
+      savedAircraftFocus.current = null
+      if (document.activeElement === document.body) listHeading.current?.focus()
+    }
+  }, [data])
   /** One URL change. `refine` replaces the history entry when every changed field already had a value (editing within a field) and pushes otherwise. */
   // The URL prop lags a navigation by a server round trip. Changes made in that window build on the last requested URL, not the stale prop.
   const requested = useRef(query)
@@ -194,7 +243,7 @@ function JournalInner({ ownerId, locale, initial, query, page, filtered }: Props
     return () => { window.removeEventListener('popstate', traverse); window.removeEventListener(ROUTE_LINK_EVENT, follow) }
   }, [navigateExternally])
   const navigate = (key: string, value: string, mode: 'push' | 'replace' = 'push') => apply({ [key]: value }, mode)
-  const open = (id: number, edit = false, field?: 'aircraft') => { setEditing(edit); setFocusField(field); navigate('flight', String(id)) }
+  const open = (id: number, edit = false, field?: 'aircraft') => { setAircraftId(null); setEditing(edit); setFocusField(field); navigate('flight', String(id)) }
   const sheetFlight = params.has('flight') ? Number(params.get('flight')) : null
   const [DetailSheet, setDetailSheet] = useState<(typeof import('../capture/flight-panels'))['FlightDetailSheet'] | null>(null)
   const [detailLoadError, setDetailLoadError] = useState<Error | null>(null)
@@ -232,26 +281,10 @@ function JournalInner({ ownerId, locale, initial, query, page, filtered }: Props
   const decisions = connectionChains((data?.flights ?? []).map(flight => ({ ...flight, origin_country: null, destination_country: null })))
   const chains = new Map<number, number[]>()
   for (const decision of decisions.values()) if (decision.kind === 'link' && decision.chainIds.length >= 3) for (const id of decision.chainIds) chains.set(id, decision.chainIds)
-  const route = (flight: Flight) => locale === 'ru' ? `из ${flight.origin} в ${flight.destination}` : `${flight.origin} to ${flight.destination}`
-  const duration = (flight: Flight) => flight.duration_minutes ? `${flight.duration_source === 'estimate' ? '≈ ' : ''}${formatDuration(locale, flight.duration_minutes)}` : null
-  const rowName = (flight: Flight) => [route(flight), formatDateOnly(locale, flight.date, 'long'), flight.flight_number ?? flight.airline_iata, flight.aircraft_icao, duration(flight), flight.distance_km ? formatDistanceKm(locale, flight.distance_km) : null].filter(Boolean).join(', ')
-  const row = (flight: Flight) => {
-    const alliance = allianceAt(flight.airline_iata, flight.date)
-    return <div className="journal-entry" key={flight.id}>
-            <label className="journal-checkbox"><input type="checkbox" aria-label={`${t.select}: ${route(flight)}, ${formatDateOnly(locale, flight.date, 'long')}`} checked={selected.includes(flight.id)} onChange={event => select(ids => event.target.checked ? [...ids, flight.id] : ids.filter(id => id !== flight.id))} /></label>
-            <div className="flight-row">
-              <button type="button" className="flight-row-open" data-flight-row={flight.id} aria-label={rowName(flight)} onClick={() => open(flight.id)} />
-              <span className="flight-row-date mono" aria-hidden="true">{formatDateOnly(locale, flight.date, 'padded')}</span>
-              <strong className="flight-row-route mono" aria-hidden="true">{flight.origin} → {flight.destination}</strong>
-              <span className="flight-row-number">{alliance ? <><AllianceMark alliance={alliance} size={12} />{' '}</> : null}<span aria-hidden="true">{flight.flight_number ?? flight.airline_iata ?? '—'}</span></span>
-              {flight.aircraft_icao
-                ? <span className="journal-aircraft-cell" aria-hidden="true">{flight.aircraft_icao}</span>
-                : <span className="journal-aircraft-cell" data-action="add-aircraft"><Button dense aria-label={`${t.addAircraft}, ${route(flight)}, ${formatDateOnly(locale, flight.date, 'long')}`} disabled={!online} aria-describedby={!online ? offlineId : undefined} onClick={() => open(flight.id, true, 'aircraft')}>{t.addAircraft}</Button></span>}
-              <span className="flight-row-duration" aria-hidden="true">{duration(flight) ?? '—'}</span>
-              <span className="flight-row-distance mono" aria-hidden="true">{flight.distance_km ? formatDistanceKm(locale, flight.distance_km) : '—'}</span>
-            </div>
-          </div>
-  }
+  const journalRow = (flight: Flight) => <JournalRow key={flight.id} flight={flight} locale={locale} online={online} offlineId={offlineId}
+    selected={selected.includes(flight.id)} onSelectedChange={checked => select(ids => checked ? [...ids, flight.id] : ids.filter(id => id !== flight.id))} onOpen={open}
+    aircraftEditing={aircraftId === flight.id} onAircraftEditingChange={setAircraftEditing(flight.id)} onSaveAircraft={saveAircraft}
+    confirming={confirmId === flight.id} deleteBusy={deleteBusy} onDeleteAsk={() => askDelete(flight.id)} onDeleteCancel={() => cancelDelete(flight.id)} onDeleteConfirm={() => confirmDelete(flight.id)} />
   const flightRows = (flights: Flight[]) => {
     const shown = new Set<number>()
     return flights.map(flight => {
@@ -259,10 +292,10 @@ function JournalInner({ ownerId, locale, initial, query, page, filtered }: Props
       const chain = chains.get(flight.id)?.map(id => flights.find(item => item.id === id)).filter((item): item is Flight => !!item)
       if (chain && chain.length >= 3) {
         chain.forEach(item => shown.add(item.id))
-        return <Disclosure key={flight.id} defaultOpen summary={`${locale === 'ru' ? 'Цепочка перелётов' : 'Flight chain'}: ${chain.map(item => item.origin).join(' → ')} → ${chain.at(-1)!.destination}`}>{chain.map(row)}</Disclosure>
+        return <Disclosure key={flight.id} defaultOpen summary={`${locale === 'ru' ? 'Цепочка перелётов' : 'Flight chain'}: ${chain.map(item => item.origin).join(' → ')} → ${chain.at(-1)!.destination}`}>{chain.map(journalRow)}</Disclosure>
       }
       shown.add(flight.id)
-      return row(flight)
+      return journalRow(flight)
     })
   }
   const sortKey = params.get('sort') ?? 'date'

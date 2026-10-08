@@ -1,15 +1,16 @@
-/* Passport collection screen. Values are tokens from app/styles.css; layout follows DESIGN.md (no boxed figures). */
+/* Arc metric-card, progress, search-field and Timeline presentation (uiarc.dev, MIT; see docs/research/2026-10-08-arc-source-inventory.md).
+   House tokens, immediate figures and native dated evidence; no Arc global styles or activity animation. */
 
 .passport-data{display:grid;gap:var(--space-8);min-width:0}
 
 /* ---------- Cover: an unboxed figure strip ---------- */
-.passport-cover{display:grid;gap:var(--space-6);padding-block:var(--space-6);border-block:1px solid var(--hairline)}
+.passport-cover{display:grid;gap:var(--space-6);padding-block:var(--space-6)}
 .passport-figures{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,2fr) minmax(0,1fr) minmax(0,1.2fr);gap:var(--space-6);align-items:start}
 .passport-figure{display:grid;gap:var(--space-2);min-width:0}
-.passport-figure strong{font-size:40px;line-height:44px;font-weight:600;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.passport-figure strong{font-size:32px;line-height:36px;font-weight:600;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
 .passport-figure-of{font-size:15px;line-height:24px;color:var(--text-muted);font-weight:500}
 .passport-progress{height:4px;border-radius:var(--radius-full);background:var(--surface-inset);overflow:hidden}
-.passport-progress span{display:block;height:100%;min-width:2px;border-radius:inherit;background:var(--accent)}
+.passport-progress span{display:block;height:100%;border-radius:inherit;background:var(--accent)}
 .passport-caption{margin:0;font-size:13px;line-height:20px;color:var(--text-muted);overflow-wrap:break-word}
 .passport-caption a{color:var(--accent-text);font-weight:600}
 .passport-regions{display:flex;flex-wrap:wrap;gap:var(--space-2);margin:0;padding:0;list-style:none}
@@ -22,7 +23,9 @@
 .passport-cover-actions{display:flex;flex-wrap:wrap;gap:var(--space-3);align-items:center;justify-content:space-between}
 
 /* ---------- Toolbar: view switch, key and sort ---------- */
+/* Arc toolbar grouping; the accepted SegmentedControl supplies the view, sort and map-layer radio semantics. */
 .passport-toolbar{display:flex;flex-wrap:wrap;gap:var(--space-3) var(--space-6);align-items:center;justify-content:space-between}
+.passport-toolbar > *{min-width:0;max-width:100%}
 .passport-key{display:flex;flex-wrap:wrap;gap:var(--space-1) var(--space-4);margin:0;padding:0;list-style:none;font-size:13px;line-height:20px;color:var(--text-muted)}
 .passport-key li{display:inline-flex;align-items:center;gap:var(--space-2)}
 .passport-key-shape{display:inline-block;width:14px;height:14px;border:1.5px solid currentColor}
@@ -59,34 +62,44 @@
 .passport-empty p{margin:0;color:var(--text-muted)}
 
 /* ---------- Country and add-country sheets ---------- */
-.passport-sheet{display:grid;gap:var(--space-6)}
+.ui-sheet.passport-sheet-panel[data-side=right]{width:min(520px,100vw)}
+.passport-sheet{display:grid;gap:var(--space-6);min-width:0}
 .passport-sheet-stamp{width:min(168px,60%);justify-self:center}
 .passport-sheet section{display:grid;gap:var(--space-3)}
 .passport-sheet h3{margin:0;font-size:15px;line-height:24px;font-weight:600}
 .passport-sheet dl{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--space-3);margin:0}
 .passport-sheet dt{font-size:13px;line-height:20px;color:var(--text-muted)}
 .passport-sheet dd{margin:0;font-variant-numeric:tabular-nums}
-.passport-list{display:grid;margin:0;padding:0;list-style:none;border-top:1px solid var(--hairline)}
-.passport-list li{display:flex;align-items:center;justify-content:space-between;gap:var(--space-3);min-height:44px;padding-block:var(--space-2);border-bottom:1px solid var(--hairline);min-width:0}
+.passport-list{display:grid;margin:0;padding:0;list-style:none;gap:var(--space-1)}
+.passport-list li{display:flex;align-items:center;justify-content:space-between;gap:var(--space-3);min-height:44px;padding-block:var(--space-2);min-width:0}
 .passport-list li > :first-child{min-width:0;overflow-wrap:anywhere}
 .passport-list a{color:var(--accent-text);font-weight:600}
+.passport-timeline a{display:grid;grid-template-columns:28px minmax(0,1fr);align-items:start;gap:var(--space-2);min-height:44px;padding-block:var(--space-2)}
+.passport-timeline svg{align-self:start;margin-block-start:3px;color:var(--text-muted)}
+.passport-timeline time{color:var(--text);font-variant-numeric:tabular-nums}
+.passport-timeline li{align-items:baseline;flex-wrap:wrap}
+.passport-timeline .passport-note{margin-inline-start:calc(28px + var(--space-2))}
 .passport-note{margin:0;font-size:13px;line-height:20px;color:var(--text-muted)}
 .passport-form{display:grid;gap:var(--space-3)}
 .passport-form-row{display:flex;flex-wrap:wrap;gap:var(--space-3);align-items:end}
-.passport-danger{padding-top:var(--space-5);border-top:1px solid var(--hairline)}
+.passport-form-row .ui-field{flex:1 1 180px;min-width:0}
+.passport-danger{padding-top:var(--space-5)}
 .passport-danger h3{color:var(--danger-text)}
-.passport-search{position:sticky;top:0;z-index:1;padding-bottom:var(--space-2);background:var(--surface-floating)}
+.passport-search{display:grid;grid-template-columns:minmax(0,1fr) 44px;align-items:center;gap:var(--space-2);position:sticky;top:0;z-index:1;padding-bottom:var(--space-2);background:var(--surface-floating)}
+.passport-search-clear{width:44px;min-height:44px;padding:0}
+.passport-search input::-webkit-search-cancel-button{appearance:none}
 .passport-choices{display:flex;flex-wrap:wrap;gap:var(--space-2);margin:0;padding:0;list-style:none}
 .passport-choice{min-height:44px;padding:8px 14px;border:1px solid var(--control-border);border-radius:var(--radius-sm);background:var(--surface);color:var(--text);transition:background-color var(--dur-fast) var(--ease-out)}
 .passport-choice[aria-current=true]{border-color:var(--accent);font-weight:600}
 @media(hover:hover) and (pointer:fine){.passport-choice:hover{background:var(--surface-inset)}}
 .passport-country-list{max-height:min(48vh,420px);overflow:auto}
-.passport-country-list button{display:flex;justify-content:space-between;gap:var(--space-3);width:100%;min-height:44px;padding:8px 4px;border:0;background:transparent;color:var(--text);text-align:left}
+.passport-country-list button{display:flex;justify-content:space-between;gap:var(--space-3);width:100%;min-height:44px;padding:8px 12px;border:0;border-radius:var(--radius-sm);background:transparent;color:var(--text);text-align:left}
 .passport-country-list li{padding:0}
+@media(hover:hover) and (pointer:fine){.passport-country-list button:hover{background:var(--surface-inset)}}
 .passport-country-list [data-collected=true] span:last-child{color:var(--text-muted);font-size:13px}
 
 @media(max-width:700px){
   .passport-figures{grid-template-columns:repeat(2,minmax(0,1fr))}
   .passport-figure:first-child,.passport-figure-regions,.passport-figure-latest{grid-column:1 / -1}
-  .passport-figure strong{font-size:32px;line-height:36px}
+  .passport-figure strong{font-size:40px;line-height:44px}
 }

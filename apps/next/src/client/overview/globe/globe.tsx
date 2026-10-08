@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState, type ComponentType, type ReactNod
 import { matches, routeKey } from '@kuuki/shared/overview/filter'
 import { useOverview } from '../store/overview-context'
 import { GlobeCard } from './globe-card'
+import { CountryTreemap } from './country-treemap'
 import { SvgGlobe } from './svg-globe'
 import { buildTimeline, monthAt, replayDurationMs } from './replay'
 import { useReplay } from './use-replay'
@@ -80,7 +81,7 @@ function OwnedGlobe({ topLeft }: { topLeft?: ReactNode }) {
     }
     return new Map([...distances].map(([key, value]) => [key, value.missing || !value.weight ? null : Math.round(value.km / value.weight)]))
   }, [payload, filter])
-  return <div ref={host}><GlobeCard locale={locale} topLeft={topLeft} onFullscreenChange={setFullscreen}
+  return <div ref={host}><GlobeCard locale={locale} disclosure={<CountryTreemap />} topLeft={topLeft} onFullscreenChange={setFullscreen}
     bottomLeft={<ReplayTransport key={`${payload!.etag}:${JSON.stringify(filter)}`} timeline={timeline} durationMs={durationMs} timeMs={replay.timeMs} paused={replayPaused}
       setPaused={setReplayPaused} seek={replay.seek} reduced={reduced} locale={locale} />}>
     {({ fullscreen, active }) => <GlobeSurface globe={scope!.globe} all={all!.globe} airports={payload!.refs.airports}

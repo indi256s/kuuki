@@ -40,6 +40,7 @@
 .auth-field-label{font-size:13px;line-height:20px;font-weight:500}
 .auth-field-control{position:relative}
 .auth-input{width:100%;height:44px;padding-inline:14px;border:1px solid var(--control-border);border-radius:var(--radius-sm);background:var(--auth-input-surface);color:var(--text);font-size:15px;line-height:24px}
+.auth-input::placeholder{color:var(--text-muted);opacity:1}
 .auth-input[aria-invalid=true]{border-color:var(--danger-text)}
 .auth-field-control[data-reveal=true] .auth-input{padding-inline-end:41px}
 .auth-card-reveal{position:absolute;top:50%;right:1px;display:grid;place-items:center;width:40px;height:40px;padding:0;border:0;border-radius:8px;background:transparent;color:var(--text-muted);translate:0 -50%;transition:background-color var(--dur-fast) var(--ease-out)}
@@ -55,7 +56,7 @@
 @keyframes auth-spin{to{rotate:360deg}}
 /* While checking, the fields keep their values and focus but read as paused (board 1.3). */
 .auth-form[aria-busy=true] .auth-input{border-color:var(--hairline);color:var(--text-muted)}
-.auth-field-hint{font-size:13px;line-height:20px;color:var(--text-muted)}
+.auth-field-hint{margin:0;font-size:13px;line-height:20px;color:var(--text-muted)}
 .auth-form-message{display:flex;align-items:flex-start;gap:6px;margin:0;font-size:13px;line-height:20px;color:var(--text)}
 .auth-form-message[data-tone=error]{color:var(--danger-text)}
 .auth-form-message svg{flex-shrink:0;margin-block:2px}
@@ -89,6 +90,7 @@
 
 @media(hover:hover) and (pointer:fine){
   .auth-corner-control:hover,.auth-card-reveal:hover{background:var(--surface-inset)}
+  .auth-input:hover:not([aria-invalid=true],[readonly]){border-color:var(--text)}
   .auth-text-link:not([aria-disabled=true]):hover,.auth-status-change:hover,.auth-recovery-link:not(:disabled):hover{text-decoration:underline}
 }
 @media(prefers-reduced-motion:reduce){.auth-corner-control,.auth-card-reveal,.auth-horizon svg,.auth-horizon-sun{transition:none}.auth-step[data-step=create],.auth-spinner{animation:none}}
