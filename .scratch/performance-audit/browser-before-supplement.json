@@ -1,0 +1,53 @@
+{
+  "origin": "http://127.0.0.1:8817",
+  "environment": "Stable local production preview; isolated headless Chromium session; synthetic one-flight fixture; read-only interactions",
+  "passportView": {
+    "method": "Five Stamps-to-Map-to-Stamps cycles; performance.now() from click until selected radio and view content are present; Resource Timing for matching Next RSC request.",
+    "mapReadyMs": [33, 19, 18, 20, 19],
+    "stampsReadyMs": [32, 30, 30, 16, 29],
+    "mapRscDurationMs": [12, 13, 11, 14, 13],
+    "stampsRscDurationMs": [24, 18, 14, 11, 14],
+    "rscRequestsPerSwitch": 1,
+    "rscTransferBytesApprox": 1900
+  },
+  "passportLocalControls": {
+    "method": "Five cycles through Countries, Routes, Frequency on the real one-route projection; click until checked radio and route-list row count agree.",
+    "countriesMs": [18, 17, 17, 17, 17],
+    "routesMs": [17, 17, 17, 17, 17],
+    "frequencyMs": [17, 17, 16, 16, 17],
+    "resourcesPerChange": 0,
+    "mapCountryClickToSheetMs": 10,
+    "mapCountryClickResources": 0,
+    "sortControl": "Three stamp sort choices (Recent, Most visits, A–Z) were measured in browser-before.json. No separate catalog sort or type control is present in the add-country sheet."
+  },
+  "passportCatalog": {
+    "fullListRows": 246,
+    "openToSearchReadyMs": 17,
+    "searchFocusedOnOpen": true,
+    "queries": [
+      {"query": "", "rows": 246, "twoFrameMs": 17},
+      {"query": "United", "rows": 5, "twoFrameMs": 33},
+      {"query": "JP", "rows": 1, "twoFrameMs": 33},
+      {"query": "NO-MATCH-COUNTRY", "rows": 0, "twoFrameMs": 33},
+      {"query": "Iceland", "rows": 1, "twoFrameMs": 33},
+      {"query": "", "rows": 246, "twoFrameMs": 33}
+    ],
+    "collectedCountrySelectionToDetailMs": 328,
+    "selectionApiPath": "/api/passport/countries/US/stats",
+    "selectionApiDurationMs": 13,
+    "note": "Selection timing includes the add-sheet exit before the detail sheet appears; no country was added or changed."
+  },
+  "journalBoundary": {
+    "fixtureFlights": 1,
+    "directPage2": "Rendered 'There are no flights on this page.' with Back to the first page link.",
+    "firstPageLinkToFlightRowMs": 35,
+    "searchEnter": "Search submitted a no-match query while focus stayed on the input, not the H1.",
+    "clearEnter": "Filling the search with whitespace then pressing Enter normalized the URL to /journal. Empty-string fill did not clear the value in this agent-browser session, so direct keyboard-clear semantics remain unverified.",
+    "unmeasured": "Actual populated last-page Prev/Next behavior requires a multi-page fixture; none was used in this read-only supplement."
+  },
+  "cache": {
+    "documentedClearMechanism": "No cache-clear command found in agent-browser core docs or CLI help. Named sessions have independent caches; a fresh session is the supported cold-browser method.",
+    "resourceEvidence": "A fresh journal document navigation in this session transferred all 24 observed JavaScript chunks (188,091 transfer bytes; 729,179 decoded bytes), including a largest chunk of 143,183 transfer bytes. This confirms cold chunk transfer after direct navigation; it does not establish a 300 KB transfer in the root's different route/session.",
+    "stateLoad": "Core docs describe state load as restoring cookies/storage. No evidence that state load itself requests application chunks; opening the first authenticated page does."
+  }
+}

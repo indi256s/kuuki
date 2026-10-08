@@ -1,12 +1,12 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { useRef, useState } from 'react'
+import { lazy, Suspense, useRef, useState } from 'react'
 import { api } from '@kuuki/client/apiClient'
 import type { MissingAircraftPage } from '@kuuki/shared/overview'
 import { formatCount, formatNumber, type Locale } from '../../lib/format'
 import { trackPrivateOperation } from '../activity'
-import { AircraftPanel, type AircraftApi } from '../import/aircraft-panel'
+import type { AircraftApi } from '../import/aircraft-panel'
 import type { AircraftRun } from '../import/aircraft-review'
 import { Button } from '../ui/button'
 import { Sheet } from '../ui/sheet'
@@ -14,6 +14,7 @@ import { S, fill, forms, t } from './copy'
 import '../../app/(member)/import/import.css'
 
 type Read = (period: string, after: string | null, signal: AbortSignal) => Promise<MissingAircraftPage>
+const AircraftPanel = lazy(() => import('../import/aircraft-panel').then(mod => ({ default: mod.AircraftPanel })))
 
 /** Owner-scoped keyset page (at most 100, newest first) of the same set the summary counts: completed flights of the period with no aircraft. */
 export const readMissingAircraft: Read = (period, after, signal) =>
@@ -114,8 +115,8 @@ export function MissingAircraftReview({ locale, period, count, read = readMissin
           {saved > 0 ? <p role="status" className="muted">{formatCount(locale, saved, forms.aircraftSaved)}</p> : null}
           {(!work.dirty || saved === 0) && (page.offset > 0 || page.nextCursor) ? <p className="muted">{fill(t(S.reviewRange, locale), { from: num(page.offset + (shown > 0 ? 1 : 0)), to: num(page.offset + shown), total: num(page.total) })}</p> : null}
           {notice === 'refresh' ? <div role="alert"><p>{t(S.reviewRefreshFailed, locale)}</p><Button dense disabled={busy || work.busy} onClick={() => fetchPage(current.current, 'refresh', work.dirty)}>{t(S.retry, locale)}</Button></div> : null}
-          {targets.length === 0 ? <p className="muted">{t(S.reviewEnd, locale)}</p> : <AircraftPanel key={generation} locale={locale} targets={targets}
-            api={aircraftApi} onSaved={onSaved} onWorkChange={setWork} />}
+          {targets.length === 0 ? <p className="muted">{t(S.reviewEnd, locale)}</p> : <Suspense fallback={<p role="status" className="muted">{t(S.reviewLoading, locale)}</p>}><AircraftPanel key={generation} locale={locale} targets={targets}
+            api={aircraftApi} onSaved={onSaved} onWorkChange={setWork} /></Suspense>}
           {work.busy ? <p role="status" className="muted">{t(S.reviewWorking, locale)}</p> : null}
           {discard ? <div role="alert"><p>{t(S.reviewDiscard, locale)}</p>
             <Button dense disabled={busy || work.busy} onClick={() => { setDiscard(null); discard() }}>{t(S.reviewDiscardContinue, locale)}</Button>

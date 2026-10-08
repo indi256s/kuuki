@@ -243,6 +243,31 @@ async function main() {
       const conditional = await assertResponse(path, 304, { headers: { 'If-None-Match': tag } })
       if (conditional.headers.get('Cache-Control') !== 'no-store') throw new Error(`Conditional boundary lost no-store: ${path}`)
     }
+    for (const [cache, paths] of [
+      ['public, max-age=31536000, immutable', ['/maps/world-outline-110m-2.0.2.svg',
+      '/maps/world-outline-110m-2.0.2-light.svg', '/maps/world-outline-110m-2.0.2-dark.svg', '/maps/country-centers-110m-2.0.2.json',
+      '/maps/countries-110m-2.0.2.geojson',
+      '/maps/maplibre-6.12.0/maplibre-gl.css', '/maps/maplibre-6.12.0/maplibre-gl-worker.mjs',
+      '/maps/maplibre-6.12.0/maplibre-gl-shared.mjs']],
+      ['public, max-age=3600, must-revalidate', ['/fonts/Commissioner-Regular.woff2', '/fonts/JetBrainsMono.ttf']],
+    ] as const) for (const path of paths) {
+      const asset = await assertResponse(path, 200)
+      if (asset.headers.get('Cache-Control') !== cache) throw new Error(`Public asset cache mismatch: ${path}`)
+      const head = await assertResponse(path, 200, { method: 'HEAD' })
+      if (head.headers.get('Cache-Control') !== cache) throw new Error(`Public asset HEAD cache mismatch: ${path}`)
+      const tag = asset.headers.get('ETag')
+      if (tag) {
+        const conditional = await assertResponse(path, 304, { headers: { 'If-None-Match': tag } })
+        if (conditional.headers.get('Cache-Control') !== cache) throw new Error(`Public asset 304 cache mismatch: ${path}`)
+      }
+    }
+    for (const path of ['/bootstrap.js', '/maps/missing-110m-2.0.2.svg', '/maps/maplibre-6.12.0/LICENSE.txt', '/fonts/missing.woff2', '/fonts/Commissioner-OFL.txt']) {
+      const response = await request(path)
+      if (response.headers.get('Cache-Control') !== 'no-store') throw new Error(`Unversioned or missing asset became cacheable: ${path}`)
+      if (path.includes('/missing') && response.status < 400) throw new Error('Missing public asset did not fail')
+    }
+    const bootstrapHead = await assertResponse('/bootstrap.js', 200, { method: 'HEAD' })
+    if (bootstrapHead.headers.get('Cache-Control') !== 'no-store') throw new Error('Unversioned HEAD became cacheable')
     await maintenanceProbe()
     if (boundaryOnly) { console.log(JSON.stringify({ result: 'Next boundary smoke passed', artifact: artifact() })); return }
     const publicShell = await fetch(`http://127.0.0.1:${port}/`)

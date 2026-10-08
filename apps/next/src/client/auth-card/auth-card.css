@@ -91,7 +91,7 @@
   .auth-corner-control:hover,.auth-card-reveal:hover{background:var(--surface-inset)}
   .auth-text-link:not([aria-disabled=true]):hover,.auth-status-change:hover,.auth-recovery-link:not(:disabled):hover{text-decoration:underline}
 }
-@media(prefers-reduced-motion:reduce){.auth-corner-control,.auth-card-reveal,.auth-horizon svg,.auth-horizon-sun{transition:none}.auth-step[data-step=create]{animation:none}}
+@media(prefers-reduced-motion:reduce){.auth-corner-control,.auth-card-reveal,.auth-horizon svg,.auth-horizon-sun{transition:none}.auth-step[data-step=create],.auth-spinner{animation:none}}
 
 /* ---------- Mobile: brand band above a bottom sheet (boards 3.2 and 3.3) ---------- */
 @media(max-width:700px){

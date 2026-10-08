@@ -79,17 +79,17 @@ function Inner({ ownerId, locale, initial, period }: { ownerId: string; locale: 
     countryCode: entry.code, count: entry.visits, groundCount: entry.ground, claimed: entry.claimed || entry.ground > 0, pending: entry.status === 'pending',
   })), [entries])
 
-  // C1: view is a mode (a history entry and H1 focus, via the router); sort, layer and the detail sheet replace the
-  // entry in place. Native replaceState keeps useSearchParams in sync without a server round trip.
+  // View changes add a history entry and focus H1; sort, layer and the detail sheet replace the entry.
+  // Native history keeps useSearchParams in sync without refetching the same collection.
   const navigate = useCallback((patch: Patch, mode: 'push' | 'replace' = 'replace') => {
     arrivalIntent.current = null; setOpening(null)
     const params = new URLSearchParams(search.toString())
     for (const [key, value] of Object.entries(patch)) { if (value) params.set(key, value); else params.delete(key) }
     const href = withQuery('/passport', normalizePassportQuery(params, isCatalogCountry).query)
-    if (mode === 'push') router.push(href, { scroll: false })
+    if (mode === 'push') window.history.pushState(null, '', href)
     // Passing Next's own history state would mark the call as router-internal and skip the useSearchParams sync.
     else window.history.replaceState(null, '', href)
-  }, [router, search])
+  }, [search])
   const opener = useRef<HTMLElement | null>(null)
   const openCountry = useCallback((code: string) => {
     opener.current = document.activeElement instanceof HTMLElement && document.activeElement !== document.body ? document.activeElement : null

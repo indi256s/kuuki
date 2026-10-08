@@ -9,6 +9,15 @@ import { captureHandler } from './api-capture'
 type RuntimeEnv = Env & { ASSETS: Fetcher }
 
 const authRoute = '/api/auth/activation/complete'
+const cachedMapAssets = new Set([
+  '/maps/countries-110m-2.0.2.geojson',
+  '/maps/country-centers-110m-2.0.2.json',
+  '/maps/world-outline-110m-2.0.2.svg',
+  '/maps/world-outline-110m-2.0.2-light.svg', '/maps/world-outline-110m-2.0.2-dark.svg',
+  '/maps/maplibre-6.12.0/maplibre-gl.css',
+  '/maps/maplibre-6.12.0/maplibre-gl-shared.mjs',
+  '/maps/maplibre-6.12.0/maplibre-gl-worker.mjs',
+])
 const exactRoutes = new Map(apiRoutes.map(({ route, methods }): [string, readonly string[]] => [route, methods]))
 const dynamicRoutes = apiRoutes.filter(({ route }) => route.includes(':')).map(({ route, methods }) => ({
   pattern: new RegExp('^' + route.split('/').map(segment => segment.startsWith(':') ? '[^/]+' : segment).join('/') + '$'),
@@ -65,7 +74,15 @@ export default {
     headers.set('X-Frame-Options', 'DENY')
     headers.set('X-Content-Type-Options', 'nosniff')
     headers.set('Referrer-Policy', url.pathname === '/reset-password' ? 'no-referrer' : 'strict-origin-when-cross-origin')
-    if (!url.pathname.startsWith('/_next/static/')) headers.set('Cache-Control', 'no-store')
+    const contentType = headers.get('Content-Type')
+    const font = url.pathname.startsWith('/fonts/') && /\.(?:woff2|ttf)$/.test(url.pathname)
+    if ((request.method === 'GET' || request.method === 'HEAD') && (cachedMapAssets.has(url.pathname) || font) &&
+      (response.status === 200 || response.status === 304) && !headers.has('Set-Cookie') &&
+      (response.status === 304 || (contentType && !contentType.includes('text/html')))) {
+      headers.set('Cache-Control', font ? 'public, max-age=3600, must-revalidate' : 'public, max-age=31536000, immutable')
+    } else if (!url.pathname.startsWith('/_next/static/') || response.status >= 400) {
+      headers.set('Cache-Control', 'no-store')
+    }
     return new Response(response.body, { status: response.status, statusText: response.statusText, headers })
   },
 } satisfies ExportedHandler<RuntimeEnv>

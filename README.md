@@ -39,9 +39,10 @@ Configure server secrets in Cloudflare or a gitignored local `.dev.vars` for the
 | `GEMINI_API_KEY` | Server-side ticket parsing and aircraft enrichment |
 | `MAINTENANCE_MODE` | Request hold before private database access |
 | `ACTIVATION_ORIGIN` | Separate HTTPS origin for legacy account activation |
-| `ACTIVATION_MAIL_ACCOUNT_ID` | Cloudflare account with Email Sending enabled |
+| `ACTIVATION_MAIL` | Native Email Sending binding on each Next Worker, restricted to the verified sender |
+| `ACTIVATION_MAIL_ACCOUNT_ID` | Account ID for the REST fallback when the native binding is absent |
 | `ACTIVATION_MAIL_FROM` | Verified Email Sending sender address |
-| `ACTIVATION_MAIL_AUTH_TOKEN` | Server secret with Cloudflare Email Sending permission |
+| `ACTIVATION_MAIL_AUTH_TOKEN` | Email Sending server secret for the REST fallback; unused by the native binding |
 
 Better Auth uses the same origin as the app. The application supports migrated-account activation and password recovery; social login is not configured. Preserve user IDs, password pepper, signing secrets and compatible sessions during migration or frontend rollback. Follow the release runbooks for schema admission and additive migrations rather than applying SQL from setup instructions.
 

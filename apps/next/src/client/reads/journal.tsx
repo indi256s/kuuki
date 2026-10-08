@@ -14,7 +14,6 @@ import { useWriteFeedback } from '../write-feedback'
 import { LIFECYCLE_CHANGED_EVENT } from '../lifecycle-sync'
 import { ROUTE_LINK_EVENT } from '../navigation-link'
 import { useOnline } from '../awaiting'
-import { FlightDetailSheet } from '../capture/flight-panels'
 import { connectionChains } from '../../../../../functions/api/_services/connections'
 import { Disclosure } from '../ui/disclosure'
 import { JournalQueue } from './journal-queue'
@@ -197,6 +196,17 @@ function JournalInner({ ownerId, locale, initial, query, page, filtered }: Props
   const navigate = (key: string, value: string, mode: 'push' | 'replace' = 'push') => apply({ [key]: value }, mode)
   const open = (id: number, edit = false, field?: 'aircraft') => { setEditing(edit); setFocusField(field); navigate('flight', String(id)) }
   const sheetFlight = params.has('flight') ? Number(params.get('flight')) : null
+  const [DetailSheet, setDetailSheet] = useState<(typeof import('../capture/flight-panels'))['FlightDetailSheet'] | null>(null)
+  const [detailLoadError, setDetailLoadError] = useState<Error | null>(null)
+  useEffect(() => {
+    if (sheetFlight === null || DetailSheet) return
+    let active = true
+    void import('../capture/flight-panels').then(
+      mod => { if (active) setDetailSheet(() => mod.FlightDetailSheet) },
+      error => { if (active) setDetailLoadError(error instanceof Error ? error : new Error(String(error))) },
+    )
+    return () => { active = false }
+  }, [sheetFlight, DetailSheet])
   useEffect(() => { if (sheetFlight) lastFlight.current = sheetFlight }, [sheetFlight])
   const closeFocus = (event: Event) => {
     event.preventDefault()
@@ -262,6 +272,7 @@ function JournalInner({ ownerId, locale, initial, query, page, filtered }: Props
     return <Button key={key} dense aria-pressed={active} aria-label={active ? `${label}, ${t[direction]}` : undefined} onClick={() => active ? navigate('order', direction === 'asc' ? 'desc' : 'asc') : navigate('sort', key)}>{label}{active && (direction === 'asc' ? <ArrowUp size={14} strokeWidth={2} aria-hidden="true" /> : <ArrowDown size={14} strokeWidth={2} aria-hidden="true" />)}</Button>
   }
   const withoutPage = (() => { const next = new URLSearchParams(query); next.delete('page'); return next.toString() })()
+  if (detailLoadError) throw detailLoadError
   return <section ref={root} data-testid="journal-data" className="journal-data read-stack">
     <JournalQueue locale={locale} filtered={filtered} hiddenIds={hidden} onEdit={id => open(id, true)} onDelete={ids => scheduleDelete(ids, 'queue')} />
     <section className="read-section">
@@ -286,7 +297,8 @@ function JournalInner({ ownerId, locale, initial, query, page, filtered }: Props
         onConfirm={() => { if (online) { confirmed.current = true; scheduleDelete(selected); setDeleteOpen(false) } }} />
     </section>
     <ToastSlot><DeleteUndo ref={undoButton} locale={locale} pending={deletion.pending} submitting={deletion.submitting} onUndo={undo} /></ToastSlot>
-    {sheetFlight !== null && <FlightDetailSheet ownerId={ownerId} locale={locale} flightId={sheetFlight} initialEditing={editing} focusField={focusField} onDelete={id => scheduleDelete([id])} onCloseAutoFocus={closeFocus} onOpenChange={isOpen => { if (!isOpen) { navigate('flight', '', 'replace'); refresh() } }} />}
+    {sheetFlight !== null && (DetailSheet ? <DetailSheet ownerId={ownerId} locale={locale} flightId={sheetFlight} initialEditing={editing} focusField={focusField} onDelete={id => scheduleDelete([id])} onCloseAutoFocus={closeFocus} onOpenChange={isOpen => { if (!isOpen) { navigate('flight', '', 'replace'); refresh() } }} />
+      : <p role="status" className="loading">{locale === 'ru' ? 'Открываем перелёт…' : 'Opening flight…'}</p>)}
   </section>
 }
 

@@ -1,0 +1,225 @@
+{
+  "phase": "before-paging",
+  "count": 5000,
+  "generatedAt": "2026-10-07T19:16:07.156Z",
+  "commit": "2b5b3a4b317c8cb7f6dede6272baa32a48810423",
+  "buildId": "EQi_qGtAkEdHkILj16UUc",
+  "conditions": {
+    "viewport": "1280x800",
+    "cpu": "unthrottled",
+    "network": "localhost, unthrottled",
+    "cold": "fresh browser process, existing auth cookies, empty HTTP and router cache",
+    "warm": "same hydrated browser, HTTP/router caches enabled"
+  },
+  "loads": [],
+  "samples": [
+    {
+      "fallbackMs": null,
+      "feedbackMs": 82.5,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "journal:page2",
+      "readyMs": 82.5,
+      "requests": [
+        {
+          "bytes": 2639,
+          "endMs": 26.5,
+          "path": "/journal",
+          "startMs": 7.300000011920929
+        }
+      ]
+    },
+    {
+      "fallbackMs": null,
+      "feedbackMs": 66.40000003576279,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "journal:page1",
+      "readyMs": 66.40000003576279,
+      "requests": [
+        {
+          "bytes": 2620,
+          "endMs": 21.5,
+          "path": "/journal",
+          "startMs": 5.400000035762787
+        }
+      ]
+    },
+    {
+      "fallbackMs": null,
+      "feedbackMs": 66.5,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "journal:page2",
+      "readyMs": 66.5,
+      "requests": [
+        {
+          "bytes": 2638,
+          "endMs": 19.69999998807907,
+          "path": "/journal",
+          "startMs": 4.899999976158142
+        }
+      ]
+    },
+    {
+      "fallbackMs": null,
+      "feedbackMs": 66.39999997615814,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "journal:page1",
+      "readyMs": 66.39999997615814,
+      "requests": [
+        {
+          "bytes": 2618,
+          "endMs": 20.5,
+          "path": "/journal",
+          "startMs": 5.100000023841858
+        }
+      ]
+    },
+    {
+      "fallbackMs": null,
+      "feedbackMs": 66.5,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "journal:page2",
+      "readyMs": 66.59999996423721,
+      "requests": [
+        {
+          "bytes": 2638,
+          "endMs": 22.599999964237213,
+          "path": "/journal",
+          "startMs": 4.699999988079071
+        }
+      ]
+    },
+    {
+      "fallbackMs": null,
+      "feedbackMs": 66.19999998807907,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "journal:page1",
+      "readyMs": 66.19999998807907,
+      "requests": [
+        {
+          "bytes": 2620,
+          "endMs": 22.599999964237213,
+          "path": "/journal",
+          "startMs": 4.800000011920929
+        }
+      ]
+    },
+    {
+      "fallbackMs": null,
+      "feedbackMs": 82.5,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "journal:page2",
+      "readyMs": 82.5,
+      "requests": [
+        {
+          "bytes": 2636,
+          "endMs": 27.69999998807907,
+          "path": "/journal",
+          "startMs": 5.5
+        }
+      ]
+    },
+    {
+      "fallbackMs": null,
+      "feedbackMs": 67,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "journal:page1",
+      "readyMs": 67,
+      "requests": [
+        {
+          "bytes": 2617,
+          "endMs": 23.80000001192093,
+          "path": "/journal",
+          "startMs": 5
+        }
+      ]
+    },
+    {
+      "fallbackMs": null,
+      "feedbackMs": 79.80000001192093,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "journal:page2",
+      "readyMs": 79.80000001192093,
+      "requests": [
+        {
+          "bytes": 2637,
+          "endMs": 23,
+          "path": "/journal",
+          "startMs": 4.900000035762787
+        }
+      ]
+    },
+    {
+      "fallbackMs": null,
+      "feedbackMs": 71.39999997615814,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "journal:page1",
+      "readyMs": 71.39999997615814,
+      "requests": [
+        {
+          "bytes": 2620,
+          "endMs": 19.5,
+          "path": "/journal",
+          "startMs": 4.800000011920929
+        }
+      ]
+    },
+    {
+      "fallbackMs": null,
+      "feedbackMs": 82,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "journal:select-all",
+      "readyMs": 82,
+      "requests": [
+        {
+          "bytes": 11281,
+          "endMs": 35.80000001192093,
+          "path": "/api/flights/ids",
+          "startMs": 20.5
+        }
+      ]
+    },
+    {
+      "fallbackMs": null,
+      "feedbackMs": 66.59999996423721,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "journal:select-all",
+      "readyMs": 66.59999996423721,
+      "requests": [
+        {
+          "bytes": 11281,
+          "endMs": 26.599999964237213,
+          "path": "/api/flights/ids",
+          "startMs": 5.699999988079071
+        }
+      ]
+    },
+    {
+      "fallbackMs": null,
+      "feedbackMs": 66.69999998807907,
+      "longTaskCount": 0,
+      "maxLongTaskMs": 0,
+      "name": "journal:select-all",
+      "readyMs": 66.69999998807907,
+      "requests": [
+        {
+          "bytes": 11281,
+          "endMs": 19.899999976158146,
+          "path": "/api/flights/ids",
+          "startMs": 6.099999964237213
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,3568 @@
+{
+  "beforeBuild": "EQi_qGtAkEdHkILj16UUc",
+  "afterBuild": "xbg5FFLpzOMqAXuy19pzN",
+  "commit": "2b5b3a4b317c8cb7f6dede6272baa32a48810423",
+  "conditions": {
+    "viewport": "1280x800",
+    "cpu": "unthrottled",
+    "network": "localhost, unthrottled",
+    "cold": "fresh browser process, existing auth cookies, empty HTTP and router cache",
+    "warm": "same hydrated browser, HTTP/router caches enabled"
+  },
+  "sampleCounts": {
+    "before": 140,
+    "paging": 13,
+    "after": 176,
+    "coldBefore": 9,
+    "coldAfter": 9
+  },
+  "before": {
+    "journal:q=Tbilisi": {
+      "feedback": {
+        "n": 5,
+        "median": 14,
+        "min": 13,
+        "max": 21
+      },
+      "ready": {
+        "n": 5,
+        "median": 88,
+        "min": 81,
+        "max": 93
+      },
+      "longTaskCount": 0,
+      "requests": [
+        {
+          "bytes": 2642,
+          "endMs": 37.59999996423721,
+          "path": "/journal",
+          "startMs": 9.099999964237211
+        },
+        {
+          "bytes": 2643,
+          "endMs": 34.5,
+          "path": "/journal",
+          "startMs": 6.300000011920929
+        },
+        {
+          "bytes": 2640,
+          "endMs": 35.299999952316284,
+          "path": "/journal",
+          "startMs": 6.299999952316284
+        },
+        {
+          "bytes": 2642,
+          "endMs": 36.10000002384186,
+          "path": "/journal",
+          "startMs": 6
+        },
+        {
+          "bytes": 2640,
+          "endMs": 36.39999997615814,
+          "path": "/journal",
+          "startMs": 6.600000023841858
+        }
+      ]
+    },
+    "journal:year=2025": {
+      "feedback": {
+        "n": 5,
+        "median": 29,
+        "min": 27,
+        "max": 33
+      },
+      "ready": {
+        "n": 5,
+        "median": 73,
+        "min": 71,
+        "max": 76
+      },
+      "longTaskCount": 0,
+      "requests": [
+        {
+          "bytes": 2644,
+          "endMs": 18.80000001192093,
+          "path": "/journal",
+          "startMs": 7
+        },
+        {
+          "bytes": 2648,
+          "endMs": 19.5,
+          "path": "/journal",
+          "startMs": 6
+        },
+        {
+          "bytes": 2647,
+          "endMs": 24.5,
+          "path": "/journal",
+          "startMs": 6.800000011920929
+        },
+        {
+          "bytes": 2645,
+          "endMs": 20.30000001192093,
+          "path": "/journal",
+          "startMs": 6.100000023841858
+        },
+        {
+          "bytes": 2646,
+          "endMs": 17.600000023841858,
+          "path": "/journal",
+          "startMs": 6.100000023841858
+        }
+      ]
+    },
+    "journal:airline=TK": {
+      "feedback": {
+        "n": 5,
+        "median": 31,
+        "min": 21,
+        "max": 34
+      },
+      "ready": {
+        "n": 5,
+        "median": 72,
+        "min": 64,
+        "max": 74
+      },
+      "longTaskCount": 0,
+      "requests": [
+        {
+          "bytes": 2648,
+          "endMs": 20.19999998807907,
+          "path": "/journal",
+          "startMs": 6.199999988079071
+        },
+        {
+          "bytes": 2644,
+          "endMs": 19.19999998807907,
+          "path": "/journal",
+          "startMs": 5.800000011920929
+        },
+        {
+          "bytes": 2648,
+          "endMs": 22.80000001192093,
+          "path": "/journal",
+          "startMs": 6.100000023841858
+        },
+        {
+          "bytes": 2646,
+          "endMs": 19.5,
+          "path": "/journal",
+          "startMs": 6.399999976158142
+        },
+        {
+          "bytes": 2648,
+          "endMs": 23.099999964237213,
+          "path": "/journal",
+          "startMs": 6
+        }
+      ]
+    },
+    "journal:aircraft=A320": {
+      "feedback": {
+        "n": 5,
+        "median": 22,
+        "min": 19,
+        "max": 35
+      },
+      "ready": {
+        "n": 5,
+        "median": 73,
+        "min": 70,
+        "max": 77
+      },
+      "longTaskCount": 0,
+      "requests": [
+        {
+          "bytes": 2628,
+          "endMs": 26,
+          "path": "/journal",
+          "startMs": 7.800000011920929
+        },
+        {
+          "bytes": 2629,
+          "endMs": 29.700000047683716,
+          "path": "/journal",
+          "startMs": 6.200000047683716
+        },
+        {
+          "bytes": 2631,
+          "endMs": 25.900000035762787,
+          "path": "/journal",
+          "startMs": 6.600000023841858
+        },
+        {
+          "bytes": 2631,
+          "endMs": 24.80000001192093,
+          "path": "/journal",
+          "startMs": 6.5
+        },
+        {
+          "bytes": 2633,
+          "endMs": 23.80000001192093,
+          "path": "/journal",
+          "startMs": 6.599999964237213
+        }
+      ]
+    },
+    "journal:airport=IST": {
+      "feedback": {
+        "n": 5,
+        "median": 27,
+        "min": 20,
+        "max": 30
+      },
+      "ready": {
+        "n": 5,
+        "median": 72,
+        "min": 71,
+        "max": 98
+      },
+      "longTaskCount": 0,
+      "requests": [
+        {
+          "bytes": 2647,
+          "endMs": 19.899999976158146,
+          "path": "/journal",
+          "startMs": 6.299999952316284
+        },
+        {
+          "bytes": 2646,
+          "endMs": 18.80000001192093,
+          "path": "/journal",
+          "startMs": 6.100000023841858
+        },
+        {
+          "bytes": 2645,
+          "endMs": 32.5,
+          "path": "/journal",
+          "startMs": 6
+        },
+        {
+          "bytes": 2645,
+          "endMs": 22.80000001192093,
+          "path": "/journal",
+          "startMs": 6.399999976158142
+        },
+        {
+          "bytes": 2645,
+          "endMs": 21.30000001192093,
+          "path": "/journal",
+          "startMs": 6.300000011920929
+        }
+      ]
+    },
+    "journal:origin=TBS": {
+      "feedback": {
+        "n": 5,
+        "median": 31,
+        "min": 20,
+        "max": 35
+      },
+      "ready": {
+        "n": 5,
+        "median": 72,
+        "min": 69,
+        "max": 87
+      },
+      "longTaskCount": 0,
+      "requests": [
+        {
+          "bytes": 2647,
+          "endMs": 21.5,
+          "path": "/journal",
+          "startMs": 6.099999964237213
+        },
+        {
+          "bytes": 2645,
+          "endMs": 22.30000001192093,
+          "path": "/journal",
+          "startMs": 6.300000011920929
+        },
+        {
+          "bytes": 2644,
+          "endMs": 21.80000001192093,
+          "path": "/journal",
+          "startMs": 6.100000023841858
+        },
+        {
+          "bytes": 2643,
+          "endMs": 25,
+          "path": "/journal",
+          "startMs": 6.699999988079071
+        },
+        {
+          "bytes": 2643,
+          "endMs": 35.30000001192093,
+          "path": "/journal",
+          "startMs": 6.400000035762787
+        }
+      ]
+    },
+    "journal:destination=IST": {
+      "feedback": {
+        "n": 5,
+        "median": 29,
+        "min": 22,
+        "max": 31
+      },
+      "ready": {
+        "n": 5,
+        "median": 71,
+        "min": 61,
+        "max": 80
+      },
+      "longTaskCount": 0,
+      "requests": [
+        {
+          "bytes": 2647,
+          "endMs": 19.900000035762787,
+          "path": "/journal",
+          "startMs": 5.800000011920929
+        },
+        {
+          "bytes": 2646,
+          "endMs": 19.5,
+          "path": "/journal",
+          "startMs": 6
+        },
+        {
+          "bytes": 2649,
+          "endMs": 22,
+          "path": "/journal",
+          "startMs": 6.300000011920929
+        },
+        {
+          "bytes": 2647,
+          "endMs": 20.899999976158146,
+          "path": "/journal",
+          "startMs": 6.199999988079071
+        },
+        {
+          "bytes": 2650,
+          "endMs": 20.19999998807907,
+          "path": "/journal",
+          "startMs": 6
+        }
+      ]
+    },
+    "journal:status=completed": {
+      "feedback": {
+        "n": 5,
+        "median": 75,
+        "min": 68,
+        "max": 85
+      },
+      "ready": {
+        "n": 5,
+        "median": 75,
+        "min": 68,
+        "max": 85
+      },
+      "longTaskCount": 0,
+      "requests": [
+        {
+          "bytes": 2652,
+          "endMs": 23,
+          "path": "/journal",
+          "startMs": 5.800000011920929
+        },
+        {
+          "bytes": 2649,
+          "endMs": 24.100000023841854,
+          "path": "/journal",
+          "startMs": 5.600000023841858
+        },
+        {
+          "bytes": 2648,
+          "endMs": 23.100000023841854,
+          "path": "/journal",
+          "startMs": 5.5
+        },
+        {
+          "bytes": 2648,
+          "endMs": 21,
+          "path": "/journal",
+          "startMs": 4.800000011920929
+        },
+        {
+          "bytes": 2650,
+          "endMs": 22.200000047683716,
+          "path": "/journal",
+          "startMs": 5
+        }
+      ]
+    },
+    "journal:status=upcoming": {
+      "feedback": {
+        "n": 5,
+        "median": 59,
+        "min": 56,
+        "max": 72
+      },
+      "ready": {
+        "n": 5,
+        "median": 59,
+        "min": 56,
+        "max": 72
+      },
+      "longTaskCount": 0,
+      "requests": [
+        {
+          "bytes": 1862,
+          "endMs": 29.799999952316284,
+          "path": "/journal",
+          "startMs": 5.5
+        },
+        {
+          "bytes": 1862,
+          "endMs": 16.69999998807907,
+          "path": "/journal",
+          "startMs": 5
+        },
+        {
+          "bytes": 1861,
+          "endMs": 17.100000023841858,
+          "path": "/journal",
+          "startMs": 5.5
+        },
+        {
+          "bytes": 1861,
+          "endMs": 19.599999964237213,
+          "path": "/journal",
+          "startMs": 5.300000011920929
+        },
+        {
+          "bytes": 1861,
+          "endMs": 16.69999998807907,
+          "path": "/journal",
+          "startMs": 4.800000011920929
+        }
+      ]
+    },
+    "journal:status=awaiting": {
+      "feedback": {
+        "n": 5,
+        "median": 59,
+        "min": 56,
+        "max": 91
+      },
+      "ready": {
+        "n": 5,
+        "median": 59,
+        "min": 56,
+        "max": 91
+      },
+      "longTaskCount": 0,
+      "requests": [
+        {
+          "bytes": 1860,
+          "endMs": 43.20000004768371,
+          "path": "/journal",
+          "startMs": 5.700000047683716
+        },
+        {
+          "bytes": 1859,
+          "endMs": 16.900000035762787,
+          "path": "/journal",
+          "startMs": 4.700000047683716
+        },
+        {
+          "bytes": 1859,
+          "endMs": 17.19999998807907,
+          "path": "/journal",
+          "startMs": 5.5
+        },
+        {
+          "bytes": 1858,
+          "endMs": 17.30000001192093,
+          "path": "/journal",
+          "startMs": 5.100000023841858
+        },
+        {
+          "bytes": 1860,
+          "endMs": 17.399999976158142,
+          "path": "/journal",
+          "startMs": 5.300000011920929
+        }
+      ]
+    },
+    "journal:status=logged": {
+      "feedback": {
+        "n": 5,
+        "median": 75,
+        "min": 68,
+        "max": 77
+      },
+      "ready": {
+        "n": 5,
+        "median": 75,
+        "min": 68,
+        "max": 77
+      },
+      "longTaskCount": 0,
+      "requests": [
+        {
+          "bytes": 2647,
+          "endMs": 21.399999976158146,
+          "path": "/journal",
+          "startMs": 4.800000011920929
+        },
+        {
+          "bytes": 2647,
+          "endMs": 21.69999998807907,
+          "path": "/journal",
+          "startMs": 5.099999964237213
+        },
+        {
+          "bytes": 2647,
+          "endMs": 21.399999976158146,
+          "path": "/journal",
+          "startMs": 5
+        },
+        {
+          "bytes": 2648,
+          "endMs": 21.80000001192093,
+          "path": "/journal",
+          "startMs": 5.300000011920929
+        },
+        {
+          "bytes": 2643,
+          "endMs": 24.799999952316284,
+          "path": "/journal",
+          "startMs": 5.399999976158142
+        }
+      ]
+    },
+    "journal:combined": {
+      "feedback": {
+        "n": 5,
+        "median": 28,
+        "min": 21,
+        "max": 32
+      },
+      "ready": {
+        "n": 5,
+        "median": 73,
+        "min": 71,
+        "max": 77
+      },
+      "longTaskCount": 0,
+      "requests": [
+        {
+          "bytes": 2706,
+          "endMs": 20.69999998807907,
+          "path": "/journal",
+          "startMs": 7.400000035762787
+        },
+        {
+          "bytes": 2704,
+          "endMs": 21,
+          "path": "/journal",
+          "startMs": 7.400000035762787
+        },
+        {
+          "bytes": 2706,
+          "endMs": 18.899999976158146,
+          "path": "/journal",
+          "startMs": 6.599999964237213
+        },
+        {
+          "bytes": 2705,
+          "endMs": 18.5,
+          "path": "/journal",
+          "startMs": 7
+        },
+        {
+          "bytes": 2703,
+          "endMs": 19.5,
+          "path": "/journal",
+          "startMs": 6.399999976158142
+        }
+      ]
+    },
+    "journal:reset": {
+      "feedback": {
+        "n": 5,
+        "median": 67,
+        "min": 66,
+        "max": 75
+      },
+      "ready": {
+        "n": 5,
+        "median": 67,
+        "min": 66,
+        "max": 75
+      },
+      "longTaskCount": 0,
+      "requests": [
+        {
+          "bytes": 2617,
+          "endMs": 23.600000023841854,
+          "path": "/journal",
+          "startMs": 6.100000023841858
+        },
+        {
+          "bytes": 2619,
+          "endMs": 18.899999976158146,
+          "path": "/journal",
+          "startMs": 5.5
+        },
+        {
+          "bytes": 2620,
+          "endMs": 20.69999998807907,
+          "path": "/journal",
+          "startMs": 5.800000011920929
+        },
+        {
+          "bytes": 2618,
+          "endMs": 19.30000001192093,
+          "path": "/journal",
+          "startMs": 5.900000035762787
+        },
+        {
+          "bytes": 2619,
+          "endMs": 22.100000023841854,
+          "path": "/journal",
+          "startMs": 5.699999988079071
+        }
+      ]
+    },
+    "journal:rapid": {
+      "feedback": {
+        "n": 5,
+        "median": 105,
+        "min": 101,
+        "max": 109
+      },
+      "ready": {
+        "n": 5,
+        "median": 105,
+        "min": 101,
+        "max": 109
+      },
+      "longTaskCount": 0,
+      "requests": [
+        {
+          "bytes": 2645,
+          "endMs": 51.40000003576279,
+          "path": "/journal",
+          "startMs": 18
+        },
+        {
+          "bytes": 2651,
+          "endMs": 51.5,
+          "path": "/journal",
+          "startMs": 18
+        },
+        {
+          "bytes": 2647,
+          "endMs": 51.5,
+          "path": "/journal",
+          "startMs": 18.100000023841854
+        },
+        {
+          "bytes": 2642,
+          "endMs": 36,
+          "path": "/journal",
+          "startMs": 16.19999998807907
+        },
+        {
+          "bytes": 2651,
+          "endMs": 36.09999996423721,
+          "path": "/journal",
+          "startMs": 16.30000001192093
+        },
+        {
+          "bytes": 2646,
+          "endMs": 46.19999998807907,
+          "path": "/journal",
+          "startMs": 16.30000001192093
+        },
+        {
+          "bytes": 2642,
+          "endMs": 35,
+          "path": "/journal",
+          "startMs": 15.699999988079073
+        },
+        {
+          "bytes": 2650,
+          "endMs": 35.09999996423721,
+          "path": "/journal",
+          "startMs": 15.699999988079073
+        },
+        {
+          "bytes": 2647,
+          "endMs": 47.30000001192093,
+          "path": "/journal",
+          "startMs": 15.800000011920927
+        },
+        {
+          "bytes": 2644,
+          "endMs": 31.69999998807907,
+          "path": "/journal",
+          "startMs": 18.19999998807907
+        },
+        {
+          "bytes": 2652,
+          "endMs": 49.90000003576279,
+          "path": "/journal",
+          "startMs": 18.30000001192093
+        },
+        {
+          "bytes": 2645,
+          "endMs": 50,
+          "path": "/journal",
+          "startMs": 18.400000035762787
+        },
+        {
+          "bytes": 2642,
+          "endMs": 29.30000001192093,
+          "path": "/journal",
+          "startMs": 16.600000023841858
+        },
+        {
+          "bytes": 2650,
+          "endMs": 47.40000003576279,
+          "path": "/journal",
+          "startMs": 16.69999998807907
+        },
+        {
+          "bytes": 2645,
+          "endMs": 47.5,
+          "path": "/journal",
+          "startMs": 16.69999998807907
+        }
+      ]
+    },
+    "journal:sort-Origin": {
+      "feedback": {
+        "n": 5,
+        "median": 73,
+        "min": 72,
+        "max": 74
+      },
+      "ready": {
+        "n": 5,
+        "median": 73,
+        "min": 72,
+        "max": 74
+      },
+      "longTaskCount": 0,
+      "requests": [
+        {
+          "bytes": 2613,
+          "endMs": 19.100000023841854,
+          "path": "/journal",
+          "startMs": 5.300000011920929
+        },
+        {
+          "bytes": 2628,
+          "endMs": 20.69999998807907,
+          "path": "/journal",
+          "startMs": 5.400000035762787
+        },
+        {
+          "bytes": 2617,
+          "endMs": 19.19999998807907,
+          "path": "/journal",
+          "startMs": 5.599999964237213
+        },
+        {
+          "bytes": 2631,
+          "endMs": 19.100000023841854,
+          "path": "/journal",
+          "startMs": 4.900000035762787
+        },
+        {
+          "bytes": 2614,
+          "endMs": 17.399999976158142,
+          "path": "/journal",
+          "startMs": 4.699999988079071
+        }
+      ]
+    },
+    "journal:sort-Destination": {
+      "feedback": {
+        "n": 5,
+        "median": 74,
+        "min": 71,
+        "max": 79
+      },
+      "ready": {
+        "n": 5,
+        "median": 74,
+        "min": 71,
+        "max": 79
+      },
+      "longTaskCount": 0,
+      "requests": [
+        {
+          "bytes": 2618,
+          "endMs": 17.099999964237213,
+          "path": "/journal",
+          "startMs": 4.899999976158142
+        },
+        {
+          "bytes": 2633,
+          "endMs": 16.5,
+          "path": "/journal",
+          "startMs": 4.900000035762787
+        },
+        {
+          "bytes": 2615,
+          "endMs": 16.599999964237213,
+          "path": "/journal",
+          "startMs": 5.099999964237213
+        },
+        {
+          "bytes": 2636,
+          "endMs": 17.5,
+          "path": "/journal",
+          "startMs": 4.900000035762787
+        },
+        {
+          "bytes": 2616,
+          "endMs": 24.69999998807907,
+          "path": "/journal",
+          "startMs": 4.699999988079071
+        }
+      ]
+    },
+    "journal:sort-Airline": {
+      "feedback": {
+        "n": 5,
+        "median": 72,
+        "min": 70,
+        "max": 75
+      },
+      "ready": {
+        "n": 5,
+        "median": 72,
+        "min": 70,
+        "max": 75
+      },
+      "longTaskCount": 0,
+      "requests": [
+        {
+          "bytes": 2615,
+          "endMs": 19.69999998807907,
+          "path": "/journal",
+          "startMs": 4.799999952316284
+        },
+        {
+          "bytes": 2633,
+          "endMs": 19.600000023841854,
+          "path": "/journal",
+          "startMs": 5.600000023841858
+        },
+        {
+          "bytes": 2613,
+          "endMs": 18.100000023841854,
+          "path": "/journal",
+          "startMs": 5.100000023841858
+        },
+        {
+          "bytes": 2629,
+          "endMs": 17.69999998807907,
+          "path": "/journal",
+          "startMs": 5.199999988079071
+        },
+        {
+          "bytes": 2615,
+          "endMs": 18.19999998807907,
+          "path": "/journal",
+          "startMs": 5.699999988079071
+        }
+      ]
+    },
+    "journal:sort-Aircraft": {
+      "feedback": {
+        "n": 5,
+        "median": 72,
+        "min": 71,
+        "max": 81
+      },
+      "ready": {
+        "n": 5,
+        "median": 72,
+        "min": 71,
+        "max": 81
+      },
+      "longTaskCount": 0,
+      "requests": [
+        {
+          "bytes": 2628,
+          "endMs": 18.19999998807907,
+          "path": "/journal",
+          "startMs": 5.399999976158142
+        },
+        {
+          "bytes": 2683,
+          "endMs": 18,
+          "path": "/journal",
+          "startMs": 5.299999952316284
+        },
+        {
+          "bytes": 2628,
+          "endMs": 18.899999976158146,
+          "path": "/journal",
+          "startMs": 6.099999964237213
+        },
+        {
+          "bytes": 2684,
+          "endMs": 17.099999964237213,
+          "path": "/journal",
+          "startMs": 5.199999988079071
+        },
+        {
+          "bytes": 2632,
+          "endMs": 18.200000047683716,
+          "path": "/journal",
+          "startMs": 5.600000023841858
+        }
+      ]
+    },
+    "journal:sort-Duration": {
+      "feedback": {
+        "n": 5,
+        "median": 74,
+        "min": 69,
+        "max": 87
+      },
+      "ready": {
+        "n": 5,
+        "median": 74,
+        "min": 69,
+        "max": 87
+      },
+      "longTaskCount": 0,
+      "requests": [
+        {
+          "bytes": 2615,
+          "endMs": 18.19999998807907,
+          "path": "/journal",
+          "startMs": 5.100000023841858
+        },
+        {
+          "bytes": 2635,
+          "endMs": 17.399999976158142,
+          "path": "/journal",
+          "startMs": 4.800000011920929
+        },
+        {
+          "bytes": 2619,
+          "endMs": 17.600000023841858,
+          "path": "/journal",
+          "startMs": 4.800000011920929
+        },
+        {
+          "bytes": 2635,
+          "endMs": 18.80000001192093,
+          "path": "/journal",
+          "startMs": 5.399999976158142
+        },
+        {
+          "bytes": 2617,
+          "endMs": 18.899999976158146,
+          "path": "/journal",
+          "startMs": 5.800000011920929
+        }
+      ]
+    },
+    "journal:sort-Distance": {
+      "feedback": {
+        "n": 5,
+        "median": 74,
+        "min": 73,
+        "max": 81
+      },
+      "ready": {
+        "n": 5,
+        "median": 74,
+        "min": 73,
+        "max": 81
+      },
+      "longTaskCount": 0,
+      "requests": [
+        {
+          "bytes": 2615,
+          "endMs": 17.100000023841858,
+          "path": "/journal",
+          "startMs": 5.100000023841858
+        },
+        {
+          "bytes": 2634,
+          "endMs": 16.100000023841858,
+          "path": "/journal",
+          "startMs": 4.5
+        },
+        {
+          "bytes": 2615,
+          "endMs": 26.399999976158146,
+          "path": "/journal",
+          "startMs": 5.300000011920929
+        },
+        {
+          "bytes": 2631,
+          "endMs": 20,
+          "path": "/journal",
+          "startMs": 4.899999976158142
+        },
+        {
+          "bytes": 2615,
+          "endMs": 17.899999976158142,
+          "path": "/journal",
+          "startMs": 5.599999964237213
+        }
+      ]
+    },
+    "journal:sort-Date": {
+      "feedback": {
+        "n": 5,
+        "median": 67,
+        "min": 59,
+        "max": 73
+      },
+      "ready": {
+        "n": 5,
+        "median": 67,
+        "min": 59,
+        "max": 73
+      },
+      "longTaskCount": 0,
+      "requests": [
+        {
+          "bytes": 2617,
+          "endMs": 16.5,
+          "path": "/journal",
+          "startMs": 5
+        },
+        {
+          "bytes": 2633,
+          "endMs": 15.399999976158142,
+          "path": "/journal",
+          "startMs": 5.099999964237213
+        },
+        {
+          "bytes": 2619,
+          "endMs": 16.100000023841858,
+          "path": "/journal",
+          "startMs": 4.900000035762787
+        },
+        {
+          "bytes": 2635,
+          "endMs": 14.699999988079073,
+          "path": "/journal",
+          "startMs": 4.800000011920929
+        },
+        {
+          "bytes": 2619,
+          "endMs": 17.299999952316284,
+          "path": "/journal",
+          "startMs": 5
+        }
+      ]
+    },
+    "navigation:/journal→passport": {
+      "feedback": {
+        "n": 5,
+        "median": 50,
+        "min": 48,
+        "max": 52
+      },
+      "ready": {
+        "n": 5,
+        "median": 343,
+        "min": 339,
+        "max": 358
+      },
+      "longTaskCount": 0,
+      "requests": [
+        {
+          "bytes": 1999,
+          "endMs": 17.399999976158142,
+          "path": "/passport",
+          "startMs": 0.800000011920929
+        },
+        {
+          "bytes": 1258,
+          "endMs": 21.600000023841854,
+          "path": "/journal",
+          "startMs": 11.5
+        },
+        {
+          "bytes": 1997,
+          "endMs": 11.600000023841858,
+          "path": "/passport",
+          "startMs": 0.699999988079071
+        },
+        {
+          "bytes": 1999,
+          "endMs": 13,
+          "path": "/passport",
+          "startMs": 0.699999988079071
+        },
+        {
+          "bytes": 1997,
+          "endMs": 13.199999988079073,
+          "path": "/passport",
+          "startMs": 0.699999988079071
+        },
+        {
+          "bytes": 1996,
+          "endMs": 11.600000023841858,
+          "path": "/passport",
+          "startMs": 0.7000000476837158
+        }
+      ]
+    },
+    "navigation:/passport→overview": {
+      "feedback": {
+        "n": 5,
+        "median": 51,
+        "min": 50,
+        "max": 59
+      },
+      "ready": {
+        "n": 5,
+        "median": 350,
+        "min": 341,
+        "max": 359
+      },
+      "longTaskCount": 0,
+      "requests": [
+        {
+          "bytes": 3787,
+          "endMs": 41.5,
+          "path": "/overview",
+          "startMs": 0.800000011920929
+        },
+        {
+          "bytes": 750,
+          "endMs": 340.30000001192093,
+          "path": "/api/flights/route-projection",
+          "startMs": 318.39999997615814
+        },
+        {
+          "bytes": 3786,
+          "endMs": 40.09999996423721,
+          "path": "/overview",
+          "startMs": 0.5999999642372131
+        },
+        {
+          "bytes": 750,
+          "endMs": 325.5999999642372,
+          "path": "/api/flights/route-projection",
+          "startMs": 310.19999998807907
+        },
+        {
+          "bytes": 3784,
+          "endMs": 42.60000002384186,
+          "path": "/overview",
+          "startMs": 0.6000000238418579
+        },
+        {
+          "bytes": 750,
+          "endMs": 327.60000002384186,
+          "path": "/api/flights/route-projection",
+          "startMs": 310.60000002384186
+        },
+        {
+          "bytes": 3787,
+          "endMs": 41,
+          "path": "/overview",
+          "startMs": 0.7000000476837158
+        },
+        {
+          "bytes": 750,
+          "endMs": 326.2000000476837,
+          "path": "/api/flights/route-projection",
+          "startMs": 309.7000000476837
+        },
+        {
+          "bytes": 3787,
+          "endMs": 42.29999995231629,
+          "path": "/overview",
+          "startMs": 0.5999999642372131
+        },
+        {
+          "bytes": 750,
+          "endMs": 327.2999999523163,
+          "path": "/api/flights/route-projection",
+          "startMs": 310.7999999523163
+        }
+      ]
+    },
+    "navigation:/overview→journal": {
+      "feedback": {
+        "n": 5,
+        "median": 50,
+        "min": 48,
+        "max": 52
+      },
+      "ready": {
+        "n": 5,
+        "median": 348,
+        "min": 341,
+        "max": 356
+      },
+      "longTaskCount": 0,
+      "requests": [
+        {
+          "bytes": 2616,
+          "endMs": 16.30000001192093,
+          "path": "/journal",
+          "startMs": 0.699999988079071
+        },
+        {
+          "bytes": 2617,
+          "endMs": 13.699999988079073,
+          "path": "/journal",
+          "startMs": 0.800000011920929
+        },
+        {
+          "bytes": 2619,
+          "endMs": 13.600000023841858,
+          "path": "/journal",
+          "startMs": 0.5
+        },
+        {
+          "bytes": 2618,
+          "endMs": 14,
+          "path": "/journal",
+          "startMs": 0.6000000238418579
+        },
+        {
+          "bytes": 2619,
+          "endMs": 13.800000011920927,
+          "path": "/journal",
+          "startMs": 0.699999988079071
+        }
+      ]
+    },
+    "history:back": {
+      "feedback": {
+        "n": 5,
+        "median": 52,
+        "min": 51,
+        "max": 61
+      },
+      "ready": {
+        "n": 5,
+        "median": 52,
+        "min": 51,
+        "max": 61
+      },
+      "longTaskCount": 0,
+      "requests": []
+    },
+    "history:forward": {
+      "feedback": {
+        "n": 5,
+        "median": 58,
+        "min": 50,
+        "max": 101
+      },
+      "ready": {
+        "n": 5,
+        "median": 58,
+        "min": 50,
+        "max": 101
+      },
+      "longTaskCount": 0,
+      "requests": [
+        {
+          "bytes": 750,
+          "endMs": 17.100000023841858,
+          "path": "/api/flights/route-projection",
+          "startMs": 0.5
+        },
+        {
+          "bytes": 0,
+          "endMs": 22.600000023841854,
+          "path": "/api/flights/route-projection",
+          "startMs": 6.600000023841858
+        },
+        {
+          "bytes": 0,
+          "endMs": 20.100000023841854,
+          "path": "/api/flights/route-projection",
+          "startMs": 4.800000011920929
+        },
+        {
+          "bytes": 0,
+          "endMs": 20,
+          "path": "/api/flights/route-projection",
+          "startMs": 4.400000035762787
+        }
+      ]
+    },
+    "overview:year": {
+      "feedback": {
+        "n": 5,
+        "median": 68,
+        "min": 63,
+        "max": 75
+      },
+      "ready": {
+        "n": 5,
+        "median": 68,
+        "min": 63,
+        "max": 75
+      },
+      "longTaskCount": 0,
+      "requests": [
+        {
+          "bytes": 3788,
+          "endMs": 25.600000023841854,
+          "path": "/overview",
+          "startMs": 2.699999988079071
+        },
+        {
+          "bytes": 3787,
+          "endMs": 21.799999952316284,
+          "path": "/overview",
+          "startMs": 1.399999976158142
+        },
+        {
+          "bytes": 0,
+          "endMs": 31.899999976158146,
+          "path": "/api/flights/route-projection",
+          "startMs": 17.099999964237213
+        },
+        {
+          "bytes": 3787,
+          "endMs": 22.19999998807907,
+          "path": "/overview",
+          "startMs": 1.199999988079071
+        },
+        {
+          "bytes": 0,
+          "endMs": 32.19999998807907,
+          "path": "/api/flights/route-projection",
+          "startMs": 20.899999976158146
+        },
+        {
+          "bytes": 3788,
+          "endMs": 22.600000023841854,
+          "path": "/overview",
+          "startMs": 1.4000000357627869
+        },
+        {
+          "bytes": 0,
+          "endMs": 32.19999998807907,
+          "path": "/api/flights/route-projection",
+          "startMs": 17.100000023841858
+        },
+        {
+          "bytes": 3788,
+          "endMs": 27.5,
+          "path": "/overview",
+          "startMs": 1.600000023841858
+        },
+        {
+          "bytes": 0,
+          "endMs": 39.10000002384186,
+          "path": "/api/flights/route-projection",
+          "startMs": 19.400000035762787
+        }
+      ]
+    },
+    "overview:reset": {
+      "feedback": {
+        "n": 5,
+        "median": 84,
+        "min": 82,
+        "max": 88
+      },
+      "ready": {
+        "n": 5,
+        "median": 84,
+        "min": 82,
+        "max": 88
+      },
+      "longTaskCount": 0,
+      "requests": [
+        {
+          "bytes": 3786,
+          "endMs": 42.80000001192093,
+          "path": "/overview",
+          "startMs": 1.899999976158142
+        },
+        {
+          "bytes": 0,
+          "endMs": 54.69999998807907,
+          "path": "/api/flights/route-projection",
+          "startMs": 9.899999976158142
+        },
+        {
+          "bytes": 3786,
+          "endMs": 43.19999998807907,
+          "path": "/overview",
+          "startMs": 1.300000011920929
+        },
+        {
+          "bytes": 0,
+          "endMs": 54.5,
+          "path": "/api/flights/route-projection",
+          "startMs": 16
+        },
+        {
+          "bytes": 3786,
+          "endMs": 42.89999997615814,
+          "path": "/overview",
+          "startMs": 1.5
+        },
+        {
+          "bytes": 0,
+          "endMs": 54,
+          "path": "/api/flights/route-projection",
+          "startMs": 10.099999964237211
+        },
+        {
+          "bytes": 3786,
+          "endMs": 42.90000003576279,
+          "path": "/overview",
+          "startMs": 1.5
+        },
+        {
+          "bytes": 0,
+          "endMs": 54,
+          "path": "/api/flights/route-projection",
+          "startMs": 20.900000035762787
+        },
+        {
+          "bytes": 3787,
+          "endMs": 44.09999996423721,
+          "path": "/overview",
+          "startMs": 1.5
+        },
+        {
+          "bytes": 0,
+          "endMs": 54.80000001192093,
+          "path": "/api/flights/route-projection",
+          "startMs": 25.19999998807907
+        }
+      ]
+    },
+    "journal:page2": {
+      "feedback": {
+        "n": 5,
+        "median": 80,
+        "min": 67,
+        "max": 83
+      },
+      "ready": {
+        "n": 5,
+        "median": 80,
+        "min": 67,
+        "max": 83
+      },
+      "longTaskCount": 0,
+      "requests": [
+        {
+          "bytes": 2639,
+          "endMs": 26.5,
+          "path": "/journal",
+          "startMs": 7.300000011920929
+        },
+        {
+          "bytes": 2638,
+          "endMs": 19.69999998807907,
+          "path": "/journal",
+          "startMs": 4.899999976158142
+        },
+        {
+          "bytes": 2638,
+          "endMs": 22.599999964237213,
+          "path": "/journal",
+          "startMs": 4.699999988079071
+        },
+        {
+          "bytes": 2636,
+          "endMs": 27.69999998807907,
+          "path": "/journal",
+          "startMs": 5.5
+        },
+        {
+          "bytes": 2637,
+          "endMs": 23,
+          "path": "/journal",
+          "startMs": 4.900000035762787
+        }
+      ]
+    },
+    "journal:page1": {
+      "feedback": {
+        "n": 5,
+        "median": 66,
+        "min": 66,
+        "max": 71
+      },
+      "ready": {
+        "n": 5,
+        "median": 66,
+        "min": 66,
+        "max": 71
+      },
+      "longTaskCount": 0,
+      "requests": [
+        {
+          "bytes": 2620,
+          "endMs": 21.5,
+          "path": "/journal",
+          "startMs": 5.400000035762787
+        },
+        {
+          "bytes": 2618,
+          "endMs": 20.5,
+          "path": "/journal",
+          "startMs": 5.100000023841858
+        },
+        {
+          "bytes": 2620,
+          "endMs": 22.599999964237213,
+          "path": "/journal",
+          "startMs": 4.800000011920929
+        },
+        {
+          "bytes": 2617,
+          "endMs": 23.80000001192093,
+          "path": "/journal",
+          "startMs": 5
+        },
+        {
+          "bytes": 2620,
+          "endMs": 19.5,
+          "path": "/journal",
+          "startMs": 4.800000011920929
+        }
+      ]
+    },
+    "journal:select-all": {
+      "feedback": {
+        "n": 3,
+        "median": 67,
+        "min": 67,
+        "max": 82
+      },
+      "ready": {
+        "n": 3,
+        "median": 67,
+        "min": 67,
+        "max": 82
+      },
+      "longTaskCount": 0,
+      "requests": [
+        {
+          "bytes": 11281,
+          "endMs": 35.80000001192093,
+          "path": "/api/flights/ids",
+          "startMs": 20.5
+        },
+        {
+          "bytes": 11281,
+          "endMs": 26.599999964237213,
+          "path": "/api/flights/ids",
+          "startMs": 5.699999988079071
+        },
+        {
+          "bytes": 11281,
+          "endMs": 19.899999976158146,
+          "path": "/api/flights/ids",
+          "startMs": 6.099999964237213
+        }
+      ]
+    }
+  },
+  "after": {
+    "journal:page2": {
+      "feedback": {
+        "n": 5,
+        "median": 68,
+        "min": 65,
+        "max": 75
+      },
+      "ready": {
+        "n": 5,
+        "median": 68,
+        "min": 65,
+        "max": 75
+      },
+      "longTaskCount": 0,
+      "requests": [
+        {
+          "bytes": 2554,
+          "endMs": 20.399999976158146,
+          "path": "/journal",
+          "startMs": 7.799999952316284
+        },
+        {
+          "bytes": 2553,
+          "endMs": 20.899999976158146,
+          "path": "/journal",
+          "startMs": 5.399999976158142
+        },
+        {
+          "bytes": 2557,
+          "endMs": 18.599999964237213,
+          "path": "/journal",
+          "startMs": 5
+        },
+        {
+          "bytes": 2555,
+          "endMs": 18.30000001192093,
+          "path": "/journal",
+          "startMs": 4.699999988079071
+        },
+        {
+          "bytes": 2555,
+          "endMs": 17.30000001192093,
+          "path": "/journal",
+          "startMs": 4.600000023841858
+        }
+      ]
+    },
+    "journal:page1": {
+      "feedback": {
+        "n": 5,
+        "median": 50,
+        "min": 49,
+        "max": 51
+      },
+      "ready": {
+        "n": 5,
+        "median": 50,
+        "min": 49,
+        "max": 51
+      },
+      "longTaskCount": 0,
+      "requests": []
+    },
+    "journal:select-all": {
+      "feedback": {
+        "n": 3,
+        "median": 69,
+        "min": 52,
+        "max": 98
+      },
+      "ready": {
+        "n": 3,
+        "median": 69,
+        "min": 52,
+        "max": 98
+      },
+      "longTaskCount": 0,
+      "requests": [
+        {
+          "bytes": 11281,
+          "endMs": 36.69999998807907,
+          "path": "/api/flights/ids",
+          "startMs": 25.69999998807907
+        },
+        {
+          "bytes": 11281,
+          "endMs": 17.69999998807907,
+          "path": "/api/flights/ids",
+          "startMs": 6
+        },
+        {
+          "bytes": 11281,
+          "endMs": 16.69999998807907,
+          "path": "/api/flights/ids",
+          "startMs": 6
+        }
+      ]
+    },
+    "journal:q=Tbilisi": {
+      "feedback": {
+        "n": 5,
+        "median": 17,
+        "min": 13,
+        "max": 18
+      },
+      "ready": {
+        "n": 5,
+        "median": 92,
+        "min": 82,
+        "max": 101
+      },
+      "longTaskCount": 0,
+      "requests": [
+        {
+          "bytes": 2550,
+          "endMs": 35.40000003576279,
+          "path": "/journal",
+          "startMs": 7.699999988079071
+        },
+        {
+          "bytes": 2550,
+          "endMs": 35.19999998807907,
+          "path": "/journal",
+          "startMs": 6
+        },
+        {
+          "bytes": 2551,
+          "endMs": 34.30000001192093,
+          "path": "/journal",
+          "startMs": 6.100000023841858
+        },
+        {
+          "bytes": 2551,
+          "endMs": 34.10000002384186,
+          "path": "/journal",
+          "startMs": 5.600000023841858
+        },
+        {
+          "bytes": 2553,
+          "endMs": 44.20000004768371,
+          "path": "/journal",
+          "startMs": 6.200000047683716
+        }
+      ]
+    },
+    "journal:year=2025": {
+      "feedback": {
+        "n": 5,
+        "median": 26,
+        "min": 25,
+        "max": 26
+      },
+      "ready": {
+        "n": 5,
+        "median": 74,
+        "min": 71,
+        "max": 92
+      },
+      "longTaskCount": 0,
+      "requests": [
+        {
+          "bytes": 2548,
+          "endMs": 18.100000023841854,
+          "path": "/journal",
+          "startMs": 6.200000047683716
+        },
+        {
+          "bytes": 2550,
+          "endMs": 17.700000047683716,
+          "path": "/journal",
+          "startMs": 5.600000023841858
+        },
+        {
+          "bytes": 2550,
+          "endMs": 16.899999976158142,
+          "path": "/journal",
+          "startMs": 5.699999988079071
+        },
+        {
+          "bytes": 2548,
+          "endMs": 17.80000001192093,
+          "path": "/journal",
+          "startMs": 6
+        },
+        {
+          "bytes": 2548,
+          "endMs": 36.59999996423721,
+          "path": "/journal",
+          "startMs": 5.800000011920929
+        }
+      ]
+    },
+    "journal:airline=TK": {
+      "feedback": {
+        "n": 5,
+        "median": 27,
+        "min": 25,
+        "max": 29
+      },
+      "ready": {
+        "n": 5,
+        "median": 73,
+        "min": 70,
+        "max": 78
+      },
+      "longTaskCount": 0,
+      "requests": [
+        {
+          "bytes": 2555,
+          "endMs": 18.399999976158146,
+          "path": "/journal",
+          "startMs": 6.099999964237213
+        },
+        {
+          "bytes": 2558,
+          "endMs": 16.80000001192093,
+          "path": "/journal",
+          "startMs": 5.5
+        },
+        {
+          "bytes": 2556,
+          "endMs": 19.80000001192093,
+          "path": "/journal",
+          "startMs": 6.199999988079071
+        },
+        {
+          "bytes": 2556,
+          "endMs": 18,
+          "path": "/journal",
+          "startMs": 5.899999976158142
+        },
+        {
+          "bytes": 2557,
+          "endMs": 18.400000035762787,
+          "path": "/journal",
+          "startMs": 5.699999988079071
+        }
+      ]
+    },
+    "journal:aircraft=A320": {
+      "feedback": {
+        "n": 5,
+        "median": 27,
+        "min": 27,
+        "max": 35
+      },
+      "ready": {
+        "n": 5,
+        "median": 73,
+        "min": 63,
+        "max": 81
+      },
+      "longTaskCount": 0,
+      "requests": [
+        {
+          "bytes": 2526,
+          "endMs": 19.400000035762787,
+          "path": "/journal",
+          "startMs": 5.700000047683716
+        },
+        {
+          "bytes": 2524,
+          "endMs": 27.30000001192093,
+          "path": "/journal",
+          "startMs": 5.899999976158142
+        },
+        {
+          "bytes": 2523,
+          "endMs": 17.899999976158142,
+          "path": "/journal",
+          "startMs": 5.399999976158142
+        },
+        {
+          "bytes": 2523,
+          "endMs": 19.399999976158146,
+          "path": "/journal",
+          "startMs": 5.799999952316284
+        },
+        {
+          "bytes": 2527,
+          "endMs": 19.099999964237213,
+          "path": "/journal",
+          "startMs": 5.5
+        }
+      ]
+    },
+    "journal:airport=IST": {
+      "feedback": {
+        "n": 5,
+        "median": 28,
+        "min": 23,
+        "max": 88
+      },
+      "ready": {
+        "n": 5,
+        "median": 73,
+        "min": 62,
+        "max": 138
+      },
+      "longTaskCount": 0,
+      "requests": [
+        {
+          "bytes": 2557,
+          "endMs": 23.099999964237213,
+          "path": "/journal",
+          "startMs": 5.5
+        },
+        {
+          "bytes": 2557,
+          "endMs": 20.399999976158146,
+          "path": "/journal",
+          "startMs": 5.600000023841858
+        },
+        {
+          "bytes": 2556,
+          "endMs": 18.5,
+          "path": "/journal",
+          "startMs": 5.5
+        },
+        {
+          "bytes": 2555,
+          "endMs": 19,
+          "path": "/journal",
+          "startMs": 5.399999976158142
+        },
+        {
+          "bytes": 2556,
+          "endMs": 59.40000003576279,
+          "path": "/journal",
+          "startMs": 5.600000023841858
+        }
+      ]
+    },
+    "journal:origin=TBS": {
+      "feedback": {
+        "n": 5,
+        "median": 28,
+        "min": 26,
+        "max": 29
+      },
+      "ready": {
+        "n": 5,
+        "median": 73,
+        "min": 71,
+        "max": 81
+      },
+      "longTaskCount": 0,
+      "requests": [
+        {
+          "bytes": 2554,
+          "endMs": 18.19999998807907,
+          "path": "/journal",
+          "startMs": 5.800000011920929
+        },
+        {
+          "bytes": 2556,
+          "endMs": 19.099999964237213,
+          "path": "/journal",
+          "startMs": 5.699999988079071
+        },
+        {
+          "bytes": 2555,
+          "endMs": 19.399999976158146,
+          "path": "/journal",
+          "startMs": 6.199999988079071
+        },
+        {
+          "bytes": 2554,
+          "endMs": 20.599999964237213,
+          "path": "/journal",
+          "startMs": 5.5
+        },
+        {
+          "bytes": 2556,
+          "endMs": 18.399999976158146,
+          "path": "/journal",
+          "startMs": 5.599999964237213
+        }
+      ]
+    },
+    "journal:destination=IST": {
+      "feedback": {
+        "n": 5,
+        "median": 26,
+        "min": 21,
+        "max": 29
+      },
+      "ready": {
+        "n": 5,
+        "median": 71,
+        "min": 62,
+        "max": 72
+      },
+      "longTaskCount": 0,
+      "requests": [
+        {
+          "bytes": 2557,
+          "endMs": 25.30000001192093,
+          "path": "/journal",
+          "startMs": 6
+        },
+        {
+          "bytes": 2558,
+          "endMs": 19.5,
+          "path": "/journal",
+          "startMs": 5.699999988079071
+        },
+        {
+          "bytes": 2558,
+          "endMs": 17.900000035762787,
+          "path": "/journal",
+          "startMs": 5.600000023841858
+        },
+        {
+          "bytes": 2558,
+          "endMs": 17.799999952316284,
+          "path": "/journal",
+          "startMs": 5.5
+        },
+        {
+          "bytes": 2557,
+          "endMs": 26.599999964237213,
+          "path": "/journal",
+          "startMs": 6
+        }
+      ]
+    },
+    "journal:status=completed": {
+      "feedback": {
+        "n": 5,
+        "median": 19,
+        "min": 19,
+        "max": 21
+      },
+      "ready": {
+        "n": 5,
+        "median": 70,
+        "min": 67,
+        "max": 138
+      },
+      "longTaskCount": 0,
+      "requests": [
+        {
+          "bytes": 2563,
+          "endMs": 20.600000023841854,
+          "path": "/journal",
+          "startMs": 5.300000011920929
+        },
+        {
+          "bytes": 2563,
+          "endMs": 21.19999998807907,
+          "path": "/journal",
+          "startMs": 4.800000011920929
+        },
+        {
+          "bytes": 2563,
+          "endMs": 83.69999998807907,
+          "path": "/journal",
+          "startMs": 4.699999988079071
+        },
+        {
+          "bytes": 2559,
+          "endMs": 21.69999998807907,
+          "path": "/journal",
+          "startMs": 4.800000011920929
+        },
+        {
+          "bytes": 2559,
+          "endMs": 20.5,
+          "path": "/journal",
+          "startMs": 4.800000011920929
+        }
+      ]
+    },
+    "journal:status=upcoming": {
+      "feedback": {
+        "n": 5,
+        "median": 25,
+        "min": 24,
+        "max": 27
+      },
+      "ready": {
+        "n": 5,
+        "median": 58,
+        "min": 57,
+        "max": 60
+      },
+      "longTaskCount": 0,
+      "requests": [
+        {
+          "bytes": 1765,
+          "endMs": 15.599999964237211,
+          "path": "/journal",
+          "startMs": 5.300000011920929
+        },
+        {
+          "bytes": 1767,
+          "endMs": 16.19999998807907,
+          "path": "/journal",
+          "startMs": 4.800000011920929
+        },
+        {
+          "bytes": 1767,
+          "endMs": 15.199999988079073,
+          "path": "/journal",
+          "startMs": 4.899999976158142
+        },
+        {
+          "bytes": 1766,
+          "endMs": 14.899999976158142,
+          "path": "/journal",
+          "startMs": 4.599999964237213
+        },
+        {
+          "bytes": 1769,
+          "endMs": 15.899999976158142,
+          "path": "/journal",
+          "startMs": 4.600000023841858
+        }
+      ]
+    },
+    "journal:status=awaiting": {
+      "feedback": {
+        "n": 5,
+        "median": 28,
+        "min": 25,
+        "max": 72
+      },
+      "ready": {
+        "n": 5,
+        "median": 60,
+        "min": 58,
+        "max": 101
+      },
+      "longTaskCount": 0,
+      "requests": [
+        {
+          "bytes": 1765,
+          "endMs": 15.199999988079073,
+          "path": "/journal",
+          "startMs": 4.600000023841858
+        },
+        {
+          "bytes": 1765,
+          "endMs": 14.900000035762789,
+          "path": "/journal",
+          "startMs": 4.800000011920929
+        },
+        {
+          "bytes": 1765,
+          "endMs": 18.600000023841854,
+          "path": "/journal",
+          "startMs": 4.900000035762787
+        },
+        {
+          "bytes": 1767,
+          "endMs": 15.600000023841858,
+          "path": "/journal",
+          "startMs": 5
+        },
+        {
+          "bytes": 1769,
+          "endMs": 14.100000023841858,
+          "path": "/journal",
+          "startMs": 4.5
+        }
+      ]
+    },
+    "journal:status=logged": {
+      "feedback": {
+        "n": 5,
+        "median": 20,
+        "min": 19,
+        "max": 22
+      },
+      "ready": {
+        "n": 5,
+        "median": 70,
+        "min": 68,
+        "max": 78
+      },
+      "longTaskCount": 0,
+      "requests": [
+        {
+          "bytes": 2555,
+          "endMs": 20.200000047683716,
+          "path": "/journal",
+          "startMs": 4.800000011920929
+        },
+        {
+          "bytes": 2558,
+          "endMs": 21.19999998807907,
+          "path": "/journal",
+          "startMs": 4.599999964237213
+        },
+        {
+          "bytes": 2557,
+          "endMs": 20.19999998807907,
+          "path": "/journal",
+          "startMs": 4.699999988079071
+        },
+        {
+          "bytes": 2555,
+          "endMs": 21.30000001192093,
+          "path": "/journal",
+          "startMs": 4.699999988079071
+        },
+        {
+          "bytes": 2556,
+          "endMs": 23,
+          "path": "/journal",
+          "startMs": 4.899999976158142
+        }
+      ]
+    },
+    "journal:combined": {
+      "feedback": {
+        "n": 5,
+        "median": 28,
+        "min": 25,
+        "max": 29
+      },
+      "ready": {
+        "n": 5,
+        "median": 72,
+        "min": 58,
+        "max": 78
+      },
+      "longTaskCount": 0,
+      "requests": [
+        {
+          "bytes": 2610,
+          "endMs": 19.30000001192093,
+          "path": "/journal",
+          "startMs": 6.300000011920929
+        },
+        {
+          "bytes": 2613,
+          "endMs": 23.80000001192093,
+          "path": "/journal",
+          "startMs": 6.200000047683716
+        },
+        {
+          "bytes": 2613,
+          "endMs": 17.200000047683716,
+          "path": "/journal",
+          "startMs": 6.400000035762787
+        },
+        {
+          "bytes": 2610,
+          "endMs": 16.19999998807907,
+          "path": "/journal",
+          "startMs": 5.800000011920929
+        },
+        {
+          "bytes": 2613,
+          "endMs": 17.5,
+          "path": "/journal",
+          "startMs": 6.099999964237213
+        }
+      ]
+    },
+    "journal:reset": {
+      "feedback": {
+        "n": 5,
+        "median": 48,
+        "min": 47,
+        "max": 58
+      },
+      "ready": {
+        "n": 5,
+        "median": 48,
+        "min": 47,
+        "max": 58
+      },
+      "longTaskCount": 0,
+      "requests": []
+    },
+    "journal:rapid": {
+      "feedback": {
+        "n": 5,
+        "median": 35,
+        "min": 33,
+        "max": 35
+      },
+      "ready": {
+        "n": 5,
+        "median": 100,
+        "min": 84,
+        "max": 101
+      },
+      "longTaskCount": 0,
+      "requests": [
+        {
+          "bytes": 2558,
+          "endMs": 26.80000001192093,
+          "path": "/journal",
+          "startMs": 14.600000023841858
+        },
+        {
+          "bytes": 2571,
+          "endMs": 42.60000002384186,
+          "path": "/journal",
+          "startMs": 14.699999988079073
+        },
+        {
+          "bytes": 2548,
+          "endMs": 42.80000001192093,
+          "path": "/journal",
+          "startMs": 14.800000011920927
+        },
+        {
+          "bytes": 2555,
+          "endMs": 33.39999997615814,
+          "path": "/journal",
+          "startMs": 14.600000023841858
+        },
+        {
+          "bytes": 2570,
+          "endMs": 33.5,
+          "path": "/journal",
+          "startMs": 14.699999988079073
+        },
+        {
+          "bytes": 2550,
+          "endMs": 43.39999997615814,
+          "path": "/journal",
+          "startMs": 14.800000011920927
+        },
+        {
+          "bytes": 2558,
+          "endMs": 34.19999998807907,
+          "path": "/journal",
+          "startMs": 14.5
+        },
+        {
+          "bytes": 2569,
+          "endMs": 34.30000001192093,
+          "path": "/journal",
+          "startMs": 14.599999964237211
+        },
+        {
+          "bytes": 2548,
+          "endMs": 43.30000001192093,
+          "path": "/journal",
+          "startMs": 14.699999988079073
+        },
+        {
+          "bytes": 2559,
+          "endMs": 26.69999998807907,
+          "path": "/journal",
+          "startMs": 15
+        },
+        {
+          "bytes": 2570,
+          "endMs": 42,
+          "path": "/journal",
+          "startMs": 15
+        },
+        {
+          "bytes": 2552,
+          "endMs": 42.19999998807907,
+          "path": "/journal",
+          "startMs": 15.100000023841858
+        },
+        {
+          "bytes": 2557,
+          "endMs": 26,
+          "path": "/journal",
+          "startMs": 14.699999988079073
+        },
+        {
+          "bytes": 2567,
+          "endMs": 43.10000002384186,
+          "path": "/journal",
+          "startMs": 14.800000011920927
+        },
+        {
+          "bytes": 2549,
+          "endMs": 43.30000001192093,
+          "path": "/journal",
+          "startMs": 14.900000035762789
+        }
+      ]
+    },
+    "journal:sort-Origin": {
+      "feedback": {
+        "n": 5,
+        "median": 68,
+        "min": 58,
+        "max": 75
+      },
+      "ready": {
+        "n": 5,
+        "median": 68,
+        "min": 58,
+        "max": 75
+      },
+      "longTaskCount": 0,
+      "requests": [
+        {
+          "bytes": 2520,
+          "endMs": 16.80000001192093,
+          "path": "/journal",
+          "startMs": 4.700000047683716
+        },
+        {
+          "bytes": 2527,
+          "endMs": 15.599999964237211,
+          "path": "/journal",
+          "startMs": 4.399999976158142
+        },
+        {
+          "bytes": 2519,
+          "endMs": 17.30000001192093,
+          "path": "/journal",
+          "startMs": 5
+        },
+        {
+          "bytes": 2528,
+          "endMs": 17.099999964237213,
+          "path": "/journal",
+          "startMs": 4.699999988079071
+        },
+        {
+          "bytes": 2519,
+          "endMs": 16.900000035762787,
+          "path": "/journal",
+          "startMs": 4.5
+        }
+      ]
+    },
+    "journal:sort-Destination": {
+      "feedback": {
+        "n": 5,
+        "median": 73,
+        "min": 73,
+        "max": 79
+      },
+      "ready": {
+        "n": 5,
+        "median": 73,
+        "min": 73,
+        "max": 79
+      },
+      "longTaskCount": 0,
+      "requests": [
+        {
+          "bytes": 2523,
+          "endMs": 16.899999976158142,
+          "path": "/journal",
+          "startMs": 4.599999964237213
+        },
+        {
+          "bytes": 2528,
+          "endMs": 24.099999964237213,
+          "path": "/journal",
+          "startMs": 4.799999952316284
+        },
+        {
+          "bytes": 2520,
+          "endMs": 17.400000035762787,
+          "path": "/journal",
+          "startMs": 4.900000035762787
+        },
+        {
+          "bytes": 2530,
+          "endMs": 16.100000023841858,
+          "path": "/journal",
+          "startMs": 4.800000011920929
+        },
+        {
+          "bytes": 2525,
+          "endMs": 15.900000035762789,
+          "path": "/journal",
+          "startMs": 4.699999988079071
+        }
+      ]
+    },
+    "journal:sort-Airline": {
+      "feedback": {
+        "n": 5,
+        "median": 64,
+        "min": 57,
+        "max": 81
+      },
+      "ready": {
+        "n": 5,
+        "median": 64,
+        "min": 57,
+        "max": 81
+      },
+      "longTaskCount": 0,
+      "requests": [
+        {
+          "bytes": 2522,
+          "endMs": 15.800000011920927,
+          "path": "/journal",
+          "startMs": 4.600000023841858
+        },
+        {
+          "bytes": 2524,
+          "endMs": 16.100000023841858,
+          "path": "/journal",
+          "startMs": 4.600000023841858
+        },
+        {
+          "bytes": 2521,
+          "endMs": 15.399999976158142,
+          "path": "/journal",
+          "startMs": 4.299999952316284
+        },
+        {
+          "bytes": 2528,
+          "endMs": 15.700000047683716,
+          "path": "/journal",
+          "startMs": 4.400000035762787
+        },
+        {
+          "bytes": 2521,
+          "endMs": 15.799999952316284,
+          "path": "/journal",
+          "startMs": 4.599999964237213
+        }
+      ]
+    },
+    "journal:sort-Aircraft": {
+      "feedback": {
+        "n": 5,
+        "median": 74,
+        "min": 65,
+        "max": 88
+      },
+      "ready": {
+        "n": 5,
+        "median": 74,
+        "min": 65,
+        "max": 88
+      },
+      "longTaskCount": 0,
+      "requests": [
+        {
+          "bytes": 2546,
+          "endMs": 16.900000035762787,
+          "path": "/journal",
+          "startMs": 4.600000023841858
+        },
+        {
+          "bytes": 2579,
+          "endMs": 15.899999976158142,
+          "path": "/journal",
+          "startMs": 4.399999976158142
+        },
+        {
+          "bytes": 2543,
+          "endMs": 19.19999998807907,
+          "path": "/journal",
+          "startMs": 5.100000023841858
+        },
+        {
+          "bytes": 2580,
+          "endMs": 16.80000001192093,
+          "path": "/journal",
+          "startMs": 5
+        },
+        {
+          "bytes": 2544,
+          "endMs": 17.200000047683716,
+          "path": "/journal",
+          "startMs": 5.400000035762787
+        }
+      ]
+    },
+    "journal:sort-Duration": {
+      "feedback": {
+        "n": 5,
+        "median": 74,
+        "min": 65,
+        "max": 90
+      },
+      "ready": {
+        "n": 5,
+        "median": 74,
+        "min": 65,
+        "max": 90
+      },
+      "longTaskCount": 0,
+      "requests": [
+        {
+          "bytes": 2523,
+          "endMs": 15.900000035762789,
+          "path": "/journal",
+          "startMs": 4.5
+        },
+        {
+          "bytes": 2532,
+          "endMs": 18.700000047683716,
+          "path": "/journal",
+          "startMs": 4.900000035762787
+        },
+        {
+          "bytes": 2525,
+          "endMs": 23.80000001192093,
+          "path": "/journal",
+          "startMs": 4.899999976158142
+        },
+        {
+          "bytes": 2531,
+          "endMs": 16.099999964237213,
+          "path": "/journal",
+          "startMs": 4.899999976158142
+        },
+        {
+          "bytes": 2523,
+          "endMs": 15.900000035762789,
+          "path": "/journal",
+          "startMs": 4.700000047683716
+        }
+      ]
+    },
+    "journal:sort-Distance": {
+      "feedback": {
+        "n": 5,
+        "median": 72,
+        "min": 59,
+        "max": 75
+      },
+      "ready": {
+        "n": 5,
+        "median": 72,
+        "min": 59,
+        "max": 75
+      },
+      "longTaskCount": 0,
+      "requests": [
+        {
+          "bytes": 2522,
+          "endMs": 17,
+          "path": "/journal",
+          "startMs": 4.599999964237213
+        },
+        {
+          "bytes": 2527,
+          "endMs": 16.100000023841858,
+          "path": "/journal",
+          "startMs": 4.800000011920929
+        },
+        {
+          "bytes": 2523,
+          "endMs": 16,
+          "path": "/journal",
+          "startMs": 4.700000047683716
+        },
+        {
+          "bytes": 2529,
+          "endMs": 15.699999988079073,
+          "path": "/journal",
+          "startMs": 4.699999988079071
+        },
+        {
+          "bytes": 2522,
+          "endMs": 16.600000023841858,
+          "path": "/journal",
+          "startMs": 4.600000023841858
+        }
+      ]
+    },
+    "journal:sort-Date": {
+      "feedback": {
+        "n": 5,
+        "median": 58,
+        "min": 54,
+        "max": 72
+      },
+      "ready": {
+        "n": 5,
+        "median": 58,
+        "min": 54,
+        "max": 72
+      },
+      "longTaskCount": 0,
+      "requests": [
+        {
+          "bytes": 2539,
+          "endMs": 15.5,
+          "path": "/journal",
+          "startMs": 4.699999988079071
+        },
+        {
+          "bytes": 2540,
+          "endMs": 24.600000023841854,
+          "path": "/journal",
+          "startMs": 4.699999988079071
+        }
+      ]
+    },
+    "navigation:/journal→passport": {
+      "feedback": {
+        "n": 5,
+        "median": 51,
+        "min": 43,
+        "max": 62
+      },
+      "ready": {
+        "n": 5,
+        "median": 51,
+        "min": 43,
+        "max": 62
+      },
+      "longTaskCount": 0,
+      "requests": []
+    },
+    "navigation:/passport→overview": {
+      "feedback": {
+        "n": 5,
+        "median": 51,
+        "min": 50,
+        "max": 62
+      },
+      "ready": {
+        "n": 5,
+        "median": 51,
+        "min": 50,
+        "max": 62
+      },
+      "longTaskCount": 0,
+      "requests": [
+        {
+          "bytes": 750,
+          "endMs": 32.90000003576279,
+          "path": "/api/flights/route-projection",
+          "startMs": 13.900000035762789
+        },
+        {
+          "bytes": 750,
+          "endMs": 43,
+          "path": "/api/flights/route-projection",
+          "startMs": 26.900000035762787
+        }
+      ]
+    },
+    "navigation:/overview→journal": {
+      "feedback": {
+        "n": 5,
+        "median": 49,
+        "min": 46,
+        "max": 55
+      },
+      "ready": {
+        "n": 5,
+        "median": 49,
+        "min": 46,
+        "max": 55
+      },
+      "longTaskCount": 0,
+      "requests": []
+    },
+    "history:back": {
+      "feedback": {
+        "n": 5,
+        "median": 67,
+        "min": 64,
+        "max": 74
+      },
+      "ready": {
+        "n": 5,
+        "median": 67,
+        "min": 64,
+        "max": 74
+      },
+      "longTaskCount": 0,
+      "requests": []
+    },
+    "history:forward": {
+      "feedback": {
+        "n": 5,
+        "median": 52,
+        "min": 49,
+        "max": 78
+      },
+      "ready": {
+        "n": 5,
+        "median": 52,
+        "min": 49,
+        "max": 78
+      },
+      "longTaskCount": 0,
+      "requests": [
+        {
+          "bytes": 0,
+          "endMs": 31.799999952316284,
+          "path": "/api/flights/route-projection",
+          "startMs": 16
+        },
+        {
+          "bytes": 0,
+          "endMs": 38,
+          "path": "/api/flights/route-projection",
+          "startMs": 23.100000023841854
+        },
+        {
+          "bytes": 0,
+          "endMs": 29.600000023841854,
+          "path": "/api/flights/route-projection",
+          "startMs": 12.900000035762789
+        }
+      ]
+    },
+    "overview:year": {
+      "feedback": {
+        "n": 5,
+        "median": 66,
+        "min": 66,
+        "max": 67
+      },
+      "ready": {
+        "n": 5,
+        "median": 66,
+        "min": 66,
+        "max": 67
+      },
+      "longTaskCount": 0,
+      "requests": [
+        {
+          "bytes": 3767,
+          "endMs": 22.399999976158146,
+          "path": "/overview",
+          "startMs": 2.399999976158142
+        },
+        {
+          "bytes": 3765,
+          "endMs": 21.599999964237213,
+          "path": "/overview",
+          "startMs": 1.5
+        },
+        {
+          "bytes": 3766,
+          "endMs": 19.299999952316284,
+          "path": "/overview",
+          "startMs": 1.2999999523162842
+        },
+        {
+          "bytes": 3764,
+          "endMs": 21.5,
+          "path": "/overview",
+          "startMs": 1.4000000357627869
+        },
+        {
+          "bytes": 3767,
+          "endMs": 19.80000001192093,
+          "path": "/overview",
+          "startMs": 1.300000011920929
+        }
+      ]
+    },
+    "overview:reset": {
+      "feedback": {
+        "n": 5,
+        "median": 49,
+        "min": 48,
+        "max": 51
+      },
+      "ready": {
+        "n": 5,
+        "median": 49,
+        "min": 48,
+        "max": 51
+      },
+      "longTaskCount": 0,
+      "requests": [
+        {
+          "bytes": 750,
+          "endMs": 41.80000001192093,
+          "path": "/api/flights/route-projection",
+          "startMs": 23.900000035762787
+        },
+        {
+          "bytes": 750,
+          "endMs": 37.70000004768371,
+          "path": "/api/flights/route-projection",
+          "startMs": 21.100000023841854
+        },
+        {
+          "bytes": 750,
+          "endMs": 37,
+          "path": "/api/flights/route-projection",
+          "startMs": 18.5
+        },
+        {
+          "bytes": 750,
+          "endMs": 33.69999998807907,
+          "path": "/api/flights/route-projection",
+          "startMs": 17
+        },
+        {
+          "bytes": 750,
+          "endMs": 41.30000001192093,
+          "path": "/api/flights/route-projection",
+          "startMs": 18.30000001192093
+        }
+      ]
+    },
+    "overview:year-2026": {
+      "feedback": {
+        "n": 3,
+        "median": 67,
+        "min": 63,
+        "max": 68
+      },
+      "ready": {
+        "n": 3,
+        "median": 67,
+        "min": 63,
+        "max": 68
+      },
+      "longTaskCount": 0,
+      "requests": [
+        {
+          "bytes": 3765,
+          "endMs": 22.30000001192093,
+          "path": "/overview",
+          "startMs": 1.199999988079071
+        },
+        {
+          "bytes": 3766,
+          "endMs": 24.5,
+          "path": "/overview",
+          "startMs": 1.7000000476837158
+        },
+        {
+          "bytes": 0,
+          "endMs": 34.90000003576279,
+          "path": "/api/flights/route-projection",
+          "startMs": 4.400000035762787
+        },
+        {
+          "bytes": 3764,
+          "endMs": 20.899999976158146,
+          "path": "/overview",
+          "startMs": 1.5
+        },
+        {
+          "bytes": 749,
+          "endMs": 46,
+          "path": "/api/flights/route-projection",
+          "startMs": 34.89999997615814
+        }
+      ]
+    },
+    "overview:year-2024": {
+      "feedback": {
+        "n": 3,
+        "median": 66,
+        "min": 65,
+        "max": 69
+      },
+      "ready": {
+        "n": 3,
+        "median": 66,
+        "min": 65,
+        "max": 69
+      },
+      "longTaskCount": 0,
+      "requests": [
+        {
+          "bytes": 3764,
+          "endMs": 20.80000001192093,
+          "path": "/overview",
+          "startMs": 1.600000023841858
+        },
+        {
+          "bytes": 3766,
+          "endMs": 20.900000035762787,
+          "path": "/overview",
+          "startMs": 1.5
+        },
+        {
+          "bytes": 3765,
+          "endMs": 23.19999998807907,
+          "path": "/overview",
+          "startMs": 1.5
+        },
+        {
+          "bytes": 0,
+          "endMs": 32.09999996423721,
+          "path": "/api/flights/route-projection",
+          "startMs": 6.899999976158142
+        }
+      ]
+    },
+    "overview:year-2023": {
+      "feedback": {
+        "n": 3,
+        "median": 67,
+        "min": 66,
+        "max": 69
+      },
+      "ready": {
+        "n": 3,
+        "median": 67,
+        "min": 66,
+        "max": 69
+      },
+      "longTaskCount": 0,
+      "requests": [
+        {
+          "bytes": 3766,
+          "endMs": 22.600000023841854,
+          "path": "/overview",
+          "startMs": 1.699999988079071
+        },
+        {
+          "bytes": 3766,
+          "endMs": 22.30000001192093,
+          "path": "/overview",
+          "startMs": 1.800000011920929
+        },
+        {
+          "bytes": 0,
+          "endMs": 30.900000035762787,
+          "path": "/api/flights/route-projection",
+          "startMs": 3.900000035762787
+        },
+        {
+          "bytes": 3767,
+          "endMs": 20.299999952316284,
+          "path": "/overview",
+          "startMs": 1.5
+        }
+      ]
+    },
+    "overview:year-2022": {
+      "feedback": {
+        "n": 3,
+        "median": 67,
+        "min": 67,
+        "max": 68
+      },
+      "ready": {
+        "n": 3,
+        "median": 67,
+        "min": 67,
+        "max": 68
+      },
+      "longTaskCount": 0,
+      "requests": [
+        {
+          "bytes": 3766,
+          "endMs": 22.400000035762787,
+          "path": "/overview",
+          "startMs": 0.800000011920929
+        },
+        {
+          "bytes": 3766,
+          "endMs": 19.899999976158146,
+          "path": "/overview",
+          "startMs": 0.8999999761581421
+        },
+        {
+          "bytes": 3766,
+          "endMs": 20.900000035762787,
+          "path": "/overview",
+          "startMs": 0.800000011920929
+        }
+      ]
+    },
+    "overview:year-2021": {
+      "feedback": {
+        "n": 3,
+        "median": 67,
+        "min": 67,
+        "max": 67
+      },
+      "ready": {
+        "n": 3,
+        "median": 67,
+        "min": 67,
+        "max": 67
+      },
+      "longTaskCount": 0,
+      "requests": [
+        {
+          "bytes": 3752,
+          "endMs": 20.5,
+          "path": "/overview",
+          "startMs": 0.5999999642372131
+        },
+        {
+          "bytes": 3753,
+          "endMs": 19.80000001192093,
+          "path": "/overview",
+          "startMs": 0.800000011920929
+        },
+        {
+          "bytes": 3753,
+          "endMs": 21.399999976158146,
+          "path": "/overview",
+          "startMs": 0.699999988079071
+        }
+      ]
+    },
+    "overview:year-2020": {
+      "feedback": {
+        "n": 3,
+        "median": 66,
+        "min": 65,
+        "max": 68
+      },
+      "ready": {
+        "n": 3,
+        "median": 66,
+        "min": 65,
+        "max": 68
+      },
+      "longTaskCount": 0,
+      "requests": [
+        {
+          "bytes": 3801,
+          "endMs": 28.200000047683716,
+          "path": "/overview",
+          "startMs": 0.7000000476837158
+        },
+        {
+          "bytes": 3797,
+          "endMs": 19.30000001192093,
+          "path": "/overview",
+          "startMs": 0.9000000357627869
+        },
+        {
+          "bytes": 756,
+          "endMs": 63.60000002384186,
+          "path": "/api/flights/route-projection",
+          "startMs": 53.60000002384186
+        },
+        {
+          "bytes": 3799,
+          "endMs": 18.900000035762787,
+          "path": "/overview",
+          "startMs": 0.800000011920929
+        }
+      ]
+    },
+    "overview:rapid": {
+      "feedback": {
+        "n": 5,
+        "median": 101,
+        "min": 99,
+        "max": 183
+      },
+      "ready": {
+        "n": 5,
+        "median": 101,
+        "min": 99,
+        "max": 183
+      },
+      "longTaskCount": 0,
+      "requests": [
+        {
+          "bytes": 3767,
+          "endMs": 21.900000035762787,
+          "path": "/overview",
+          "startMs": 2.100000023841858
+        },
+        {
+          "bytes": 3766,
+          "endMs": 56.10000002384186,
+          "path": "/overview",
+          "startMs": 2.199999988079071
+        },
+        {
+          "bytes": 3764,
+          "endMs": 56.30000001192093,
+          "path": "/overview",
+          "startMs": 2.300000011920929
+        },
+        {
+          "bytes": 3767,
+          "endMs": 23.80000001192093,
+          "path": "/overview",
+          "startMs": 2.399999976158142
+        },
+        {
+          "bytes": 3766,
+          "endMs": 57.30000001192093,
+          "path": "/overview",
+          "startMs": 2.399999976158142
+        },
+        {
+          "bytes": 3766,
+          "endMs": 57.39999997615814,
+          "path": "/overview",
+          "startMs": 2.5
+        },
+        {
+          "bytes": 3768,
+          "endMs": 23.19999998807907,
+          "path": "/overview",
+          "startMs": 2.599999964237213
+        },
+        {
+          "bytes": 3765,
+          "endMs": 55.29999995231629,
+          "path": "/overview",
+          "startMs": 2.699999988079071
+        },
+        {
+          "bytes": 3766,
+          "endMs": 55.39999997615814,
+          "path": "/overview",
+          "startMs": 2.699999988079071
+        },
+        {
+          "bytes": 0,
+          "endMs": 64.79999995231628,
+          "path": "/api/flights/route-projection",
+          "startMs": 42.79999995231629
+        },
+        {
+          "bytes": 3766,
+          "endMs": 23.799999952316284,
+          "path": "/overview",
+          "startMs": 2.5
+        },
+        {
+          "bytes": 3767,
+          "endMs": 58.59999996423721,
+          "path": "/overview",
+          "startMs": 2.599999964237213
+        },
+        {
+          "bytes": 3767,
+          "endMs": 58.69999998807907,
+          "path": "/overview",
+          "startMs": 2.599999964237213
+        },
+        {
+          "bytes": 0,
+          "endMs": 67.89999997615814,
+          "path": "/api/flights/route-projection",
+          "startMs": 43.59999996423721
+        },
+        {
+          "bytes": 3768,
+          "endMs": 71,
+          "path": "/overview",
+          "startMs": 2.199999988079071
+        },
+        {
+          "bytes": 3767,
+          "endMs": 71.10000002384186,
+          "path": "/overview",
+          "startMs": 2.300000011920929
+        },
+        {
+          "bytes": 3764,
+          "endMs": 139.30000001192093,
+          "path": "/overview",
+          "startMs": 2.300000011920929
+        },
+        {
+          "bytes": 750,
+          "endMs": 136.19999998807907,
+          "path": "/api/flights/route-projection",
+          "startMs": 68.69999998807907
+        }
+      ]
+    }
+  },
+  "coldBefore": {
+    "journal": {
+      "readyMs": {
+        "n": 3,
+        "median": 328,
+        "min": 302,
+        "max": 385
+      },
+      "ttfb": {
+        "n": 3,
+        "median": 33,
+        "min": 33,
+        "max": 37
+      },
+      "fcp": {
+        "n": 3,
+        "median": 176,
+        "min": 164,
+        "max": 180
+      },
+      "lcp": {
+        "n": 3,
+        "median": 572,
+        "min": 492,
+        "max": 596
+      },
+      "cls": {
+        "n": 3,
+        "median": 0.0147,
+        "min": 0.0147,
+        "max": 0.0147
+      },
+      "jsGzipBytes": {
+        "n": 3,
+        "median": 519847,
+        "min": 519847,
+        "max": 519847
+      }
+    },
+    "overview": {
+      "readyMs": {
+        "n": 3,
+        "median": 319,
+        "min": 237,
+        "max": 381
+      },
+      "ttfb": {
+        "n": 3,
+        "median": 63,
+        "min": 62,
+        "max": 66
+      },
+      "fcp": {
+        "n": 3,
+        "median": 168,
+        "min": 164,
+        "max": 180
+      },
+      "lcp": {
+        "n": 3,
+        "median": 308,
+        "min": 216,
+        "max": 396
+      },
+      "cls": {
+        "n": 3,
+        "median": 0.0123,
+        "min": 0.0123,
+        "max": 0.0123
+      },
+      "jsGzipBytes": {
+        "n": 3,
+        "median": 364510,
+        "min": 364510,
+        "max": 364510
+      }
+    },
+    "passport": {
+      "readyMs": {
+        "n": 3,
+        "median": 285,
+        "min": 273,
+        "max": 341
+      },
+      "ttfb": {
+        "n": 3,
+        "median": 26,
+        "min": 22,
+        "max": 30
+      },
+      "fcp": {
+        "n": 3,
+        "median": 204,
+        "min": 180,
+        "max": 324
+      },
+      "lcp": {
+        "n": 3,
+        "median": 204,
+        "min": 180,
+        "max": 324
+      },
+      "cls": {
+        "n": 3,
+        "median": 0.0002,
+        "min": 0.0002,
+        "max": 0.0002
+      },
+      "jsGzipBytes": {
+        "n": 3,
+        "median": 332618,
+        "min": 332618,
+        "max": 332618
+      }
+    }
+  },
+  "coldAfter": {
+    "journal": {
+      "readyMs": {
+        "n": 3,
+        "median": 215,
+        "min": 207,
+        "max": 219
+      },
+      "ttfb": {
+        "n": 3,
+        "median": 26,
+        "min": 23,
+        "max": 33
+      },
+      "fcp": {
+        "n": 3,
+        "median": 144,
+        "min": 144,
+        "max": 148
+      },
+      "lcp": {
+        "n": 3,
+        "median": 436,
+        "min": 368,
+        "max": 464
+      },
+      "cls": {
+        "n": 3,
+        "median": 0.0147,
+        "min": 0.0147,
+        "max": 0.0147
+      },
+      "jsGzipBytes": {
+        "n": 3,
+        "median": 397555,
+        "min": 397555,
+        "max": 397555
+      }
+    },
+    "overview": {
+      "readyMs": {
+        "n": 3,
+        "median": 205,
+        "min": 204,
+        "max": 205
+      },
+      "ttfb": {
+        "n": 3,
+        "median": 49,
+        "min": 45,
+        "max": 49
+      },
+      "fcp": {
+        "n": 3,
+        "median": 144,
+        "min": 144,
+        "max": 148
+      },
+      "lcp": {
+        "n": 3,
+        "median": 180,
+        "min": 176,
+        "max": 184
+      },
+      "cls": {
+        "n": 3,
+        "median": 0.0123,
+        "min": 0.0123,
+        "max": 0.0123
+      },
+      "jsGzipBytes": {
+        "n": 3,
+        "median": 397555,
+        "min": 397555,
+        "max": 397555
+      }
+    },
+    "passport": {
+      "readyMs": {
+        "n": 3,
+        "median": 235,
+        "min": 219,
+        "max": 262
+      },
+      "ttfb": {
+        "n": 3,
+        "median": 17,
+        "min": 17,
+        "max": 20
+      },
+      "fcp": {
+        "n": 3,
+        "median": 172,
+        "min": 156,
+        "max": 184
+      },
+      "lcp": {
+        "n": 3,
+        "median": 172,
+        "min": 156,
+        "max": 184
+      },
+      "cls": {
+        "n": 3,
+        "median": 0.0006,
+        "min": 0.0006,
+        "max": 0.0006
+      },
+      "jsGzipBytes": {
+        "n": 3,
+        "median": 397555,
+        "min": 397555,
+        "max": 397555
+      }
+    }
+  },
+  "coldLongtasks": {
+    "before": [
+      {
+        "route": "journal",
+        "tasks": []
+      },
+      {
+        "route": "journal",
+        "tasks": []
+      },
+      {
+        "route": "journal",
+        "tasks": []
+      },
+      {
+        "route": "overview",
+        "tasks": []
+      },
+      {
+        "route": "overview",
+        "tasks": []
+      },
+      {
+        "route": "overview",
+        "tasks": []
+      },
+      {
+        "route": "passport",
+        "tasks": [
+          {
+            "duration": 50,
+            "start": 119.60000002384186
+          }
+        ]
+      },
+      {
+        "route": "passport",
+        "tasks": []
+      },
+      {
+        "route": "passport",
+        "tasks": []
+      }
+    ],
+    "after": [
+      {
+        "route": "journal",
+        "tasks": []
+      },
+      {
+        "route": "journal",
+        "tasks": []
+      },
+      {
+        "route": "journal",
+        "tasks": []
+      },
+      {
+        "route": "overview",
+        "tasks": []
+      },
+      {
+        "route": "overview",
+        "tasks": []
+      },
+      {
+        "route": "overview",
+        "tasks": []
+      },
+      {
+        "route": "passport",
+        "tasks": [
+          {
+            "duration": 57,
+            "start": 69.10000002384186
+          }
+        ]
+      },
+      {
+        "route": "passport",
+        "tasks": []
+      },
+      {
+        "route": "passport",
+        "tasks": []
+      }
+    ]
+  }
+}

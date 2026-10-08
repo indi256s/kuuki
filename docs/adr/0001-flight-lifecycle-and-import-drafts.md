@@ -191,7 +191,7 @@ In this table, `today` means `localToday(capturedTz, now)`. "Recompute" means re
 
 - **When it fires:** after `checkIdentity()` publishes a non-null member id, if `localStorage['kuuki:lifecycle-sync:<userId>']` is older than 10 minutes or absent. The timestamp is written before the request, so tabs share the throttle, and identity reset clears it.
 - **Follow-ups:** while `more` is true, at most 2 more calls.
-- **On changes:** when `synced > 0`, it calls `router.refresh()` for server-owned routes and dispatches `kuuki:lifecycle-changed` for Query-owned queue and badge reads.
+- **On changes:** when `synced > 0`, it immediately calls `router.refresh()` for server-owned routes and dispatches `kuuki:lifecycle-changed` for Query-owned queue and badge reads, even if derived publication is pending or has failed. If pending publication later becomes ready, it refreshes server-owned routes again without repeating the lifecycle event.
 - **On failure:** it does nothing visible and the next window retries.
 
 `GET /api/me/awaiting` stays read-only. When the cron is enabled it runs the same function for all accounts (§8).

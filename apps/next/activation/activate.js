@@ -76,7 +76,7 @@ function setup() {
     password.readOnly = busy
     form.setAttribute('aria-busy', String(busy))
     submit.setAttribute('aria-disabled', String(busy))
-    $('spinner').hidden = !busy
+    $('spinner').toggleAttribute('hidden', !busy)
     $('submit-label').textContent = t(busy ? 'saving' : 'save')
   }
   const expire = () => {
@@ -122,8 +122,8 @@ function setup() {
     password.type = password.type === 'password' ? 'text' : 'password'
     const shown = password.type === 'text'
     reveal.setAttribute('aria-pressed', String(shown))
-    $('eye').hidden = shown
-    $('eye-off').hidden = !shown
+    $('eye').toggleAttribute('hidden', shown)
+    $('eye-off').toggleAttribute('hidden', !shown)
   })
   password.addEventListener('input', () => { if (!errorKey) return; errorKey = ''; invalid = false; render() })
   form.addEventListener('submit', async event => {

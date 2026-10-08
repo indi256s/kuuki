@@ -68,7 +68,7 @@ function sharedStore(): Storage | null {
 
 /**
  * R1: move the owner's due flights (and repair a stale evidence stamp) once identity is confirmed, then refresh what
- * the page shows: immediately when the repair published, after the derived-publication poll when it is pending.
+ * the page shows: canonical changes immediately, then derived results once publication finishes.
  */
 async function syncOwnerFlights(ownerId: string, refresh: () => void, signal: AbortSignal) {
   const generation = getAuthGeneration()
@@ -86,9 +86,9 @@ async function syncOwnerFlights(ownerId: string, refresh: () => void, signal: Ab
     refresh()
     if (outcome.synced > 0) window.dispatchEvent(new Event(LIFECYCLE_CHANGED_EVENT))
   }
-  if (outcome.derivedState === 'ready') announce()
-  else if (outcome.derivedState === 'pending' && outcome.revision !== null) {
-    if (await awaitPublication(outcome.revision, signal, current) === 'ready') announce()
+  announce()
+  if (outcome.derivedState === 'pending' && outcome.revision !== null) {
+    if (await awaitPublication(outcome.revision, signal, current) === 'ready' && current()) refresh()
   }
 }
 

@@ -49,6 +49,21 @@ beforeEach(() => {
 
 const pendingLink = (country: string) => screen.getByRole('link', { name: `${country}: waiting for confirmation. Open the arrival card` })
 
+it('records a view change in browser history without a server navigation', () => {
+  const before = window.location.href
+  const push = vi.spyOn(window.history, 'pushState')
+  try {
+    render(<PassportView ownerId="owner" locale="en" initial={initial} />)
+    fireEvent.click(screen.getByRole('radio', { name: 'Map' }))
+    expect(push).toHaveBeenCalledWith(null, '', '/passport?view=map')
+    expect(mocks.push).not.toHaveBeenCalled()
+    expect(window.location.search).toBe('?view=map')
+  } finally {
+    push.mockRestore()
+    window.history.replaceState(null, '', before)
+  }
+})
+
 describe('pending slot navigation', () => {
   it('says it is opening the arrival card while the evidence loads and navigates once however often it is activated', async () => {
     render(<PassportView ownerId="owner" locale="en" initial={initial} />)

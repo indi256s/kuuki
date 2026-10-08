@@ -146,6 +146,18 @@ function voidRouter() {
 }
 
 describe('filters', () => {
+  it('shows a pending Status choice immediately and restores it after a handled navigation failure', async () => {
+    const user = userEvent.setup()
+    const router = voidRouter()
+    render(<Suspense fallback={null}><Harness /></Suspense>)
+    const status = screen.getByRole('combobox', { name: 'Status' })
+    await act(async () => { await user.selectOptions(status, 'logged') })
+    expect(status).toHaveValue('logged')
+    expect(nav.push).toHaveBeenCalledWith('/journal?status=logged', { scroll: false })
+    await router.fail('')
+    expect(status).toHaveValue('')
+  })
+
   it('keeps the Status select (same element, still focused) after a keyboard change', async () => {
     const user = userEvent.setup()
     render(<Harness />)

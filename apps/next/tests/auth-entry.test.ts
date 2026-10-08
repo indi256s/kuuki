@@ -212,9 +212,11 @@ test('activation page keeps isolation, erases the fragment and sends a saved pas
   await expect(page.getByRole('heading', { level: 1, name: 'This link has expired' })).toBeVisible()
   await expect(page.getByRole('link', { name: 'Send a new link' })).toHaveAttribute('href', `${baseURL}/activation-request`)
   await expect(page.getByRole('link', { name: 'Back to sign in' })).toHaveAttribute('href', `${baseURL}/signin`)
-  let attempt = 0
-  await page.route('**/api/auth/activation/complete', route => {
+  let attempt = 0, release!: () => void
+  const held = new Promise<void>(resolve => { release = resolve })
+  await page.route('**/api/auth/activation/complete', async route => {
     attempt++
+    if (attempt === 1) await held
     return route.fulfill(attempt === 1 ? { status: 429, json: { error: 'Limited', code: 'RATE_LIMITED' } } : { json: { ok: true } })
   })
   const response = await page.goto(`/activate.html#token=${'A'.repeat(43)}`)
@@ -228,12 +230,18 @@ test('activation page keeps isolation, erases the fragment and sends a saved pas
   await expect(page.getByRole('heading', { level: 1, name: 'Welcome back to Kuuki' })).toBeVisible()
   await expect(page.locator('input[autocomplete="username"]')).toBeHidden()
   const help = page.getByRole('button', { name: 'Help', exact: true })
+  await page.setViewportSize({ width: 768, height: 400 })
   await help.focus()
   await help.press('Enter')
   const dialog = page.getByRole('dialog', { name: 'About Kuuki' })
   await expect(dialog).toBeVisible()
   await expect(dialog.getByRole('heading', { name: 'About Kuuki' })).toBeFocused()
   await expect(dialog).toContainText('Kuuki is a private flight journal.')
+  const scrollBefore = await page.evaluate(() => window.scrollY)
+  await page.mouse.move(5, 5)
+  await page.mouse.wheel(0, 250)
+  await page.waitForTimeout(100) // Wheel scrolling is processed asynchronously.
+  expect(await page.evaluate(() => window.scrollY)).toBe(scrollBefore)
   await page.keyboard.press('Tab')
   await expect(dialog.getByRole('button', { name: 'Close', exact: true })).toBeFocused()
   await page.keyboard.press('Escape')
@@ -246,7 +254,19 @@ test('activation page keeps isolation, erases the fragment and sends a saved pas
     return style.animationName === 'none' && style.transform === 'none'
   }))).toBe(true)
   await page.getByLabel('New password', { exact: true }).fill('personal-password')
+  const reveal = page.getByRole('button', { name: 'Show password', exact: true })
+  await reveal.click()
+  await expect(page.locator('#eye')).toBeHidden()
+  await expect(page.locator('#eye-off')).toBeVisible()
+  await expect(page.getByLabel('New password', { exact: true })).toHaveAttribute('type', 'text')
+  await reveal.click()
+  await expect(page.locator('#eye')).toBeVisible()
+  await expect(page.locator('#eye-off')).toBeHidden()
+  await expect(page.getByLabel('New password', { exact: true })).toHaveAttribute('type', 'password')
   await page.getByRole('button', { name: 'Save password' }).click()
+  await expect(page.locator('#spinner')).toBeVisible()
+  expect(await page.locator('#spinner').evaluate(node => node.getAnimations().length)).toBe(0)
+  release()
   await expect(page.locator('main').getByRole('alert')).toContainText('Too many attempts.')
   await page.getByRole('button', { name: 'Save password' }).click()
   // No email, token or password travels in the URL.
@@ -312,27 +332,31 @@ test('Continue with known credentials lands in the journal, even when session bo
   await expect(page).toHaveURL(/\/overview$/)
 })
 
-test('Checking… shows a spinner at full opacity and ignores a second press', async ({ page }) => {
-  let calls = 0, release!: () => void
-  const held = new Promise<void>(resolve => { release = resolve })
-  await page.route('**/api/auth/continue', async route => { calls++; await held; await route.fulfill({ status: 401, json: { error: 'Invalid email or password', code: 'INVALID_CREDENTIALS' } }) })
-  await page.goto('/')
-  const c = card(page)
-  const idle = await c.continue.evaluate(element => getComputedStyle(element).backgroundColor)
-  await continueAs(page, 'a@example.test', 'held-password')
-  const checking = page.getByRole('button', { name: 'Checking…', exact: true })
-  await expect(checking).toBeVisible()
-  await expect(checking).toHaveAttribute('aria-busy', 'true')
-  await expect(checking.locator('svg')).toBeVisible()
-  await expect(c.heading).toBeFocused()
-  expect(await checking.evaluate(element => [getComputedStyle(element).opacity, getComputedStyle(element).backgroundColor])).toEqual(['1', idle])
-  await checking.click({ force: true })
-  await c.password.press('Enter')
-  release()
-  await expect(page.getByText('Email or password is incorrect.', { exact: true })).toBeVisible()
-  await expect(c.heading).toBeFocused()
-  expect(calls).toBe(1)
-})
+for (const reducedMotion of ['no-preference', 'reduce'] as const) {
+  test(`Checking… keeps progress visible and ignores a second press (${reducedMotion})`, async ({ page }) => {
+    await page.emulateMedia({ reducedMotion })
+    let calls = 0, release!: () => void
+    const held = new Promise<void>(resolve => { release = resolve })
+    await page.route('**/api/auth/continue', async route => { calls++; await held; await route.fulfill({ status: 401, json: { error: 'Invalid email or password', code: 'INVALID_CREDENTIALS' } }) })
+    await page.goto('/')
+    const c = card(page)
+    const idle = await c.continue.evaluate(element => getComputedStyle(element).backgroundColor)
+    await continueAs(page, 'a@example.test', 'held-password')
+    const checking = page.getByRole('button', { name: 'Checking…', exact: true })
+    await expect(checking).toBeVisible()
+    await expect(checking).toHaveAttribute('aria-busy', 'true')
+    await expect(checking.locator('svg')).toBeVisible()
+    if (reducedMotion === 'reduce') expect(await checking.locator('svg').evaluate(node => node.getAnimations().length)).toBe(0)
+    await expect(c.heading).toBeFocused()
+    expect(await checking.evaluate(element => [getComputedStyle(element).opacity, getComputedStyle(element).backgroundColor])).toEqual(['1', idle])
+    await checking.click({ force: true })
+    await c.password.press('Enter')
+    release()
+    await expect(page.getByText('Email or password is incorrect.', { exact: true })).toBeVisible()
+    await expect(c.heading).toBeFocused()
+    expect(calls).toBe(1)
+  })
+}
 
 test('a wrong password keeps the email, shows the error with an icon and offers a link to get back in', async ({ page, baseURL }) => {
   await ownIp(page, baseURL!)

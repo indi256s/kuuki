@@ -53,6 +53,7 @@ function fromSnapshot({ batch, drafts }: Snapshot): BatchState {
 export function useImportBatch({ api = defaultBatchApi, initialBatchId, onBatchId }: { api?: BatchApi; initialBatchId?: string | null; onBatchId?: (id: string) => void }) {
   const [state, setState] = useState<BatchState>(initialBatchId ? { ...IDLE, phase: 'starting' } : IDLE)
   const controller = useRef<AbortController | null>(null)
+  const activeBatchId = useRef(initialBatchId ?? null)
   const idCallback = useRef(onBatchId)
   useEffect(() => { idCallback.current = onBatchId })
   const apiRef = useRef(api)
@@ -62,6 +63,7 @@ export function useImportBatch({ api = defaultBatchApi, initialBatchId, onBatchI
     controller.current?.abort()
     const own = new AbortController()
     controller.current = own
+    activeBatchId.current = batchId
     const current = () => controller.current === own && !own.signal.aborted
     void watchBatch({
       load: () => apiRef.current.readBatch(batchId, own.signal),
@@ -92,6 +94,7 @@ export function useImportBatch({ api = defaultBatchApi, initialBatchId, onBatchI
 
   const start = useCallback(async (source: ImportSource, operationId: string) => {
     controller.current?.abort()
+    activeBatchId.current = null
     const own = new AbortController()
     controller.current = own
     setState({ ...IDLE, phase: 'starting' })
@@ -99,6 +102,7 @@ export function useImportBatch({ api = defaultBatchApi, initialBatchId, onBatchI
       const answer = await apiRef.current.submit(source, operationId, own.signal)
       if (own.signal.aborted) return
       if ('batchId' in answer) { idCallback.current?.(answer.batchId); watch(answer.batchId); return }
+      activeBatchId.current = answer.batch.id
       idCallback.current?.(answer.batch.id)
       if (answer.batch.status === 'processing') watch(answer.batch.id)
       else setState(fromSnapshot(answer))
@@ -111,8 +115,13 @@ export function useImportBatch({ api = defaultBatchApi, initialBatchId, onBatchI
   /** Re-read the stored snapshot (after a confirm, a conflict or a lost response). */
   const reload = useCallback(async (): Promise<Snapshot | null> => {
     const id = state.batch?.id ?? initialBatchId
-    if (!id) return null
-    const snapshot = await apiRef.current.readBatch(id)
+    const own = controller.current
+    if (!id || !own || own.signal.aborted || activeBatchId.current !== id) return null
+    const current = () => controller.current === own && !own.signal.aborted && activeBatchId.current === id
+    let snapshot: Snapshot
+    try { snapshot = await apiRef.current.readBatch(id, own.signal) }
+    catch (error) { if (!current()) return null; throw error }
+    if (!current() || snapshot.batch.id !== id) return null
     setState(fromSnapshot(snapshot))
     return snapshot
   }, [state.batch?.id, initialBatchId])
@@ -121,7 +130,7 @@ export function useImportBatch({ api = defaultBatchApi, initialBatchId, onBatchI
     setState(previous => ({ ...previous, drafts: previous.drafts.map(row => row.id === next.id && next.version >= row.version ? next : row) }))
   }, [])
 
-  const reset = useCallback(() => { controller.current?.abort(); setState(IDLE) }, [])
+  const reset = useCallback(() => { activeBatchId.current = null; controller.current?.abort(); setState(IDLE) }, [])
 
   return { ...state, start, reload, setDraft, reset }
 }

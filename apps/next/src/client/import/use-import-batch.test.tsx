@@ -126,6 +126,42 @@ describe('useImportBatch drafts', () => {
 void batch
 
 describe('useImportBatch cancelled batches', () => {
+  it('does not restore a discarded batch when an earlier reload answers late', async () => {
+    const processing = snapshot([], { id: 'b1', status: 'processing' })
+    const cancelled = snapshot([draft({ id: 'a' })], { id: 'b1', status: 'cancelled' })
+    let answerReload!: (value: Snapshot) => void
+    const readBatch = vi.fn<BatchApi['readBatch']>()
+      .mockResolvedValueOnce(processing)
+      .mockImplementationOnce(() => new Promise<Snapshot>(resolve => { answerReload = resolve }))
+    const { result } = renderHook(() => useImportBatch({ api: make({ readBatch, connect: () => new Promise<void>(() => {}) }), initialBatchId: 'b1' }))
+    await waitFor(() => expect(result.current.phase).toBe('processing'))
+
+    let reloaded!: Promise<Snapshot | null>
+    act(() => { reloaded = result.current.reload() })
+    act(() => result.current.reset())
+    await act(async () => { answerReload(cancelled); expect(await reloaded).toBeNull() })
+    expect(result.current.phase).toBe('idle')
+    expect(result.current.batch).toBeNull()
+    expect(result.current.drafts).toEqual([])
+  })
+
+  it('ignores an old batch reload callback after a new batch starts', async () => {
+    const old = snapshot([draft({ id: 'a' })], { id: 'b1' })
+    const next = snapshot([draft({ id: 'x' })], { id: 'b2' })
+    const readBatch = vi.fn<BatchApi['readBatch']>(async () => old)
+    const api = make({ readBatch, submit: vi.fn(async () => next) })
+    const { result } = renderHook(() => useImportBatch({ api, initialBatchId: 'b1' }))
+    await waitFor(() => expect(result.current.batch?.id).toBe('b1'))
+    const reloadOld = result.current.reload
+    act(() => result.current.reset())
+    await act(async () => { await result.current.start({ type: 'text', content: 'LHR CDG' }, 'op-12345678') })
+    expect(result.current.batch?.id).toBe('b2')
+
+    await act(async () => { expect(await reloadOld()).toBeNull() })
+    expect(result.current.batch?.id).toBe('b2')
+    expect(result.current.drafts.map(row => row.id)).toEqual(['x'])
+  })
+
   it('keeps the rows extracted before a cancel as a stopped, partial review and does not subscribe', async () => {
     const readBatch = vi.fn(async () => snapshot([draft({ id: 'a' })], { status: 'cancelled', stage: 'recognizing' }))
     const api = make({ readBatch })

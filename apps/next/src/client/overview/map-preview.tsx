@@ -35,9 +35,10 @@ export function OverviewMapPreview({ ownerId, locale, period, revision, publishe
   const agreed = current && current.routeCount === routeCount ? current : null
   const unavailable = failed || (!mismatched && loaded?.derivedState === 'error')
   const updating = !unavailable && !!loaded && !agreed
-  const unplaced = useMemo(() => agreed ? agreed.pairs.filter(pair => !previewArcPath(pair)).length : 0, [agreed])
+  const routes = useMemo(() => agreed?.pairs.map(pair => ({ a: pair.a, b: pair.b, d: previewArcPath(pair) })), [agreed])
+  const unplaced = routes?.filter(route => !route.d).length ?? 0
   return <>
-    <CountryPreview countryIds={countryIds} visits={visits} locale={locale} period={period} routes={agreed?.pairs} />
+    <CountryPreview countryIds={countryIds} visits={visits} locale={locale} period={period} routes={routes} />
     {unavailable ? <p role="status" className="status-note">{t(S.routesUnavailable, locale)}</p>
       : updating ? <p role="status" className="status-note">{t(S.routesUpdating, locale)}</p> : null}
     {agreed?.truncated ? <p className="muted">{fill(formatCount(locale, agreed.routeCount, forms.routesShown), { shown: formatNumber(locale, agreed.pairs.length) })}</p> : null}

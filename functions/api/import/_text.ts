@@ -43,7 +43,7 @@ export function parseStructuredText(content: string): ParseResponse | null {
     const segments = notes.split(';').map(note => note.trim())
     const uncertainStatus = /\?|\bnot\b|possible|unresolved|uncertain|disputed|conflict|outbound|return/i.test(notes)
     if (otherPassenger || segments.some(note => /^other passenger$/i.test(note))) continue
-    if (!uncertainStatus && segments.some(note => /^(?:cancel(?:led|ed)(?:\/refunded)?|refunded|unpaid(?: reservation)?|superseded)$/i.test(note))) continue
+    if (!uncertainStatus && segments.some(note => /^(?:cancel(?:led|ed)(?:\/refunded)?|refunded|unpaid(?: reservation)?|superseded|replaced by)\b/i.test(note))) continue
     const route = parts[1]?.match(/^(.+?)\s*(?:→|➝|->|\bto\b)\s*(.+)$/i)
     const toOnly = parts[1]?.match(/^to\s+(.+)$/i)
     if (!route && !toOnly) {
@@ -84,7 +84,7 @@ export function parseStructuredText(content: string): ParseResponse | null {
     const knownAirline = airlineCatalog.some(row => row.iata === airline)
     // Only status or evidence doubt blocks preselection; catalog and year gaps show in field_confidence and the empty fields.
     const review = contradictoryArrival
-      || /conflict|unresolved|unconfirmed|possible|partial booking|email says|cancel|refund|unpaid|supersed|passenger|\?/i.test(notes)
+      || /conflict|unresolved|unconfirmed|possible|partial booking|email says|cancel|refund|unpaid|supersed|replaced by|passenger|\?/i.test(notes)
     flights.push({ date: yearExplicit ? date : '', origin, destination, airline_iata: airline, flight_number: number,
       departure_time: departure, arrival_time: arrival, confidence: review ? 0.5 : 1, review_required: review,
       ...(originLabel && !origin ? { origin_hint: originLabel } : {}),

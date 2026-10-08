@@ -1,0 +1,14 @@
+{
+  "phase": "before",
+  "method": "Renderer-main RunTask durations >50ms over the complete warm capture, including intervals outside timed actions",
+  "longTasks": [
+    {
+      "durationMs": 74.38,
+      "startUs": 326311250726
+    },
+    {
+      "durationMs": 197.844,
+      "startUs": 326319515691
+    }
+  ]
+}

@@ -8,18 +8,8 @@
 .auth-shell-panel form{display:grid;gap:var(--space-2)}
 .auth-shell-panel .ui-field{min-width:0}
 .auth-shell-panel .ui-field-input{width:100%}
-.auth-password{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:var(--space-1)}
-.auth-password .ui-field{display:contents}
-.auth-password .ui-field-label{grid-column:1/-1;grid-row:1}
-.auth-password .ui-field-hint{grid-column:1/-1;grid-row:2}
-.auth-password .ui-field-input{grid-column:1/-1;grid-row:2;padding-inline-end:88px}
-.auth-password .ui-field-error{grid-column:1/-1;grid-row:3}
-.auth-reveal{grid-column:2;grid-row:2;align-self:center;justify-self:end;margin-inline-end:4px;min-height:44px;padding:8px;border:0;border-radius:var(--radius-sm);background:var(--surface);color:var(--text);font-weight:600}
-.auth-password[data-hint=true] .ui-field-input,.auth-password[data-hint=true] .auth-reveal{grid-row:3}
-.auth-password[data-hint=true] .ui-field-error{grid-row:4}
 .auth-message{min-height:40px;font-size:13px;line-height:20px;margin:0;color:var(--danger-text);overflow-wrap:anywhere}
 .auth-links{display:grid;gap:var(--space-2);margin-top:var(--space-6)}
 .auth-links a{display:flex;align-items:center;min-height:44px;color:var(--accent-text);text-underline-offset:3px}
 .auth-success{color:var(--text);margin:0}
 @media(max-width:700px){.auth-shell{grid-template-columns:1fr;margin:0 auto}.auth-shell-brand{min-height:120px;flex-direction:row;align-items:center;padding:var(--space-6);gap:var(--space-4)}.auth-kana{writing-mode:horizontal-tb;font-size:40px}.auth-shell-brand p{font-size:15px;line-height:24px}.auth-shell-panel{padding:var(--space-6)}}
-@media(hover:hover) and (pointer:fine){.auth-reveal:hover{background:var(--surface-inset)}}

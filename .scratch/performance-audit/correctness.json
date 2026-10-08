@@ -1,0 +1,18 @@
+{
+  "environment": "local production Worker, synthetic data only",
+  "buildId": "yLgI3n8ZcoCXZPyjI2y8n",
+  "sameOwnerPrefetchFreshness": {
+    "method": "Save through the real Add flight form after primary destinations have been prefetched, close its success dialog, navigate Overview→Journal→Passport→Overview through visible primary links",
+    "beforeFlightCount": 5000,
+    "afterFlightCount": 5001,
+    "overviewAndJournalShowUpdatedCount": true,
+    "passportUsable": true
+  },
+  "lastPage": {
+    "url": "/journal?page=251",
+    "total": 5001,
+    "visibleRowCount": 1,
+    "visibleIdsEqualOwnedApiOffset5000": true
+  },
+  "notes": "This supplementary fixture check precedes the final Status-feedback and dialog-loader rebuild. Final navigation suite also checks capture writes, owner isolation and sign-out."
+}

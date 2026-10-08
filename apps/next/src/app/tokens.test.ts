@@ -6,6 +6,12 @@ import { ACCENTS, NEUTRAL_INK, SURFACE_COLOR, THEME_COLOR } from '../lib/theme-c
 
 // The canonical palette is src/app/styles.css; this test parses it instead of keeping a second copy.
 const css = readFileSync(join(__dirname, 'styles.css'), 'utf8').replace(/\/\*[\s\S]*?\*\//g, '')
+const controlsCss = readFileSync(join(__dirname, '../client/ui/flight-controls.css'), 'utf8')
+const highlightBody = controlsCss.match(/(?:^|})[^{}]*\bmark\s*\{([^{}]*)\}/)?.[1] ?? ''
+const highlight = Object.fromEntries(highlightBody.split(';').filter(Boolean).map(part => {
+  const at = part.indexOf(':')
+  return [part.slice(0, at).trim(), part.slice(at + 1).trim()]
+}))
 const rules = new Map<string, Record<string, string>>()
 for (const [, selector, body] of css.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
   const key = selector.trim()
@@ -121,6 +127,11 @@ describe('design tokens', () => {
     }
   })
 
+  it.each(combos)('%s / %s: rendered search highlight colors reach 4.5:1', (theme, accent) => {
+    const vars = computed(theme, accent)
+    expect(contrast(parse(vars, highlight.color), parse(vars, highlight.background))).toBeGreaterThanOrEqual(4.5)
+  })
+
   it('accent blocks never override status, rank, text or surface tokens', () => {
     const allowed = new Set(['--accent', '--accent-text', '--accent-foreground', '--focus'])
     for (const [selector, declarations] of rules) {
@@ -198,5 +209,12 @@ describe('design tokens', () => {
       expect(parseHex(SURFACE_COLOR[theme])).toEqual(resolve(vars, '--surface'))
       expect(parseHex(NEUTRAL_INK[theme])).toEqual(resolve(vars, '--text-muted'))
     }
+  })
+
+  it.each(themes)('%s: cached map outline colors match the canonical palette', theme => {
+    const vars = computed(theme, 'terracotta')
+    const svg = readFileSync(join(__dirname, `../../public/maps/world-outline-110m-2.0.2-${theme}.svg`), 'utf8')
+    expect(parseHex(svg.match(/^<svg\b[^>]*\bfill="([^"]+)"/)?.[1] ?? '')).toEqual(resolve(vars, '--map-land'))
+    expect(parseHex(svg.match(/^<svg\b[^>]*\bstroke="([^"]+)"/)?.[1] ?? '')).toEqual(resolve(vars, '--map-border'))
   })
 })
