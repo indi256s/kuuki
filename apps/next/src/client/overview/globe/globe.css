@@ -24,6 +24,11 @@
 .globe-surface[data-webgl-ready=true] .globe-webgl-layer{opacity:1;pointer-events:auto}
 .maplibre-globe,.maplibre-globe .globe-map-canvas{position:absolute;inset:0;touch-action:pan-y}
 .globe-map-canvas .maplibregl-canvas-container,.globe-map-canvas .maplibregl-canvas{touch-action:pan-y}
+/* A zoomed sphere outgrows the rim; clipping to it keeps the globe a lens instead of a square map. At the fit zoom the clip is invisible. */
+.maplibre-globe .globe-map-canvas{clip-path:circle(calc(min(50cqw,50cqh) - 9px))}
+/* The clip hides the canvas's own focus outline, so keyboard focus rings the rim instead. */
+.globe-map-canvas .maplibregl-canvas:focus-visible{outline:none}
+.globe-webgl-layer:has(.maplibregl-canvas:focus-visible)::after{box-shadow:0 0 0 8px var(--globe-rim),0 0 0 10px var(--focus)}
 .globe-plane{--plane-fill:var(--text);--plane-halo:var(--background);color:var(--plane-fill);pointer-events:none}
 /* Land fills run up to 90% accent, so an accent plane vanished on it (1.2:1). Neutral fill plus a background-toned halo keeps one tone readable on any land bucket, in both themes and every accent. */
 .globe-plane path{stroke:var(--plane-halo);stroke-width:2;stroke-linejoin:round;paint-order:stroke}

@@ -19,7 +19,7 @@ import { PLANE_MS, type ReplayPlane, type TimelineItem } from './replay'
 import type { createUIBus } from '../store/ui-bus'
 import type { ChapterComparison } from '../comparison/compare-chapters'
 import { isLand, type GlobeLand } from './atlas'
-import { globeZoom } from './camera'
+import { GLOBE_ZOOM_RANGE, globeZoom } from './camera'
 
 export type MaplibreGlobeProps = {
   globe: GlobeData; all: GlobeData; airports: OverviewPayload['refs']['airports']; filter: OverviewFilter
@@ -183,10 +183,16 @@ function GlobeLayers({ props, host, select }: { props: MaplibreGlobeProps; host:
     const center = props.globe.centroid ? [props.globe.centroid.lon, props.globe.centroid.lat] as [number, number] : [0, 0] as [number, number]
     moveCamera(map, center, props.reduced)
     const resize = () => {
-      if (latest.current.isCurrent()) map.jumpTo({ zoom: globeZoom(map.getContainer().clientWidth, map.getContainer().clientHeight, map.getCenter().lat, map.getVerticalFieldOfView()) })
+      if (!latest.current.isCurrent()) return
+      map.setMaxZoom(fitZoom(map, 0) + GLOBE_ZOOM_RANGE); map.jumpTo({ zoom: fitZoom(map, map.getCenter().lat) })
     }
-    map.on('resize', resize)
-    return () => { map.off('resize', resize) }
+    // The fit depends on latitude, so a fixed minZoom would pin a dragged sphere too large or let it shrink; settle back to the fit instead.
+    const settle = () => {
+      const fit = fitZoom(map, map.getCenter().lat)
+      if (latest.current.isCurrent() && map.getZoom() < fit - .01) map.easeTo({ zoom: fit, duration: latest.current.reduced ? 0 : 200 })
+    }
+    map.on('resize', resize); map.on('moveend', settle)
+    return () => { map.off('resize', resize); map.off('moveend', settle) }
   }, [map, ready, props.active, props.globe.centroid, props.filter, props.reduced])
   useEffect(() => {
     if (!map || !ready || !host.current || !props.active) return
@@ -221,8 +227,10 @@ function GlobeLayers({ props, host, select }: { props: MaplibreGlobeProps; host:
     return from && to ? <FlightPlane key={plane.key} from={from} to={to} progress={plane.progress} /> : null
   }) : null
 }
+const fitZoom = (map: LibreMap, latitude: number) => globeZoom(map.getContainer().clientWidth, map.getContainer().clientHeight, latitude, map.getVerticalFieldOfView())
 function moveCamera(map: LibreMap, center: [number, number], reduced: boolean) {
-  const zoom = globeZoom(map.getContainer().clientWidth, map.getContainer().clientHeight, center[1], map.getVerticalFieldOfView())
+  const zoom = fitZoom(map, center[1])
+  map.setMaxZoom(fitZoom(map, 0) + GLOBE_ZOOM_RANGE)
   if (reduced) map.jumpTo({ center, zoom }); else map.flyTo({ center, zoom, duration: 600, easing: t => t < .5 ? 2 * t * t : 1 - (-2 * t + 2) ** 2 / 2 })
 }
 export function MaplibreGlobe(props: MaplibreGlobeProps) {
