@@ -59,8 +59,9 @@ describe.each(['en', 'ru'] as const)('manual flight (%s)', locale => {
     mocks.duplicate.mockResolvedValue(flight)
     render(<FlightForm ownerId="a" locale={locale} />)
     await fill(locale)
-    await userEvent.click(screen.getByRole('button', { name: words[locale].save }))
+    // The background lookup may already show this duplicate before the member saves.
     const override = await screen.findByRole('button', { name: words[locale].anyway })
+    await userEvent.click(screen.getByRole('button', { name: words[locale].save }))
     expect(mocks.create).not.toHaveBeenCalled()
     await waitFor(() => expect(document.activeElement).toBe(override.closest('[role=status]')))
     expect(screen.getByRole('link', { name: locale === 'ru' ? 'Открыть существующий' : 'Open existing' })).toHaveAttribute('href', '/journal/7/edit')

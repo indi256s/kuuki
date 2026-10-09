@@ -60,14 +60,14 @@ export function FlightForm({ ownerId, locale, editId, initialEditing = true, foc
   const [duplicate, setDuplicate] = useState<Flight | null>(null)
   const errorRef = useRef<HTMLParagraphElement>(null)
   const duplicateRef = useRef<HTMLDivElement>(null)
-  const focusBlockedSave = useRef(false)
+  const [focusBlockedSave, setFocusBlockedSave] = useState(false)
   useEffect(() => {
-    if (!busy && focusBlockedSave.current) {
-      focusBlockedSave.current = false
+    if (!busy && focusBlockedSave) {
+      setFocusBlockedSave(false)
       const notice = error ? errorRef.current : duplicateRef.current
       notice?.focus()
     }
-  }, [busy, error, duplicate])
+  }, [busy, error, duplicate, focusBlockedSave])
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [deleteError, setDeleteError] = useState('')
   const [saved, setSaved] = useState(false)
@@ -107,7 +107,7 @@ export function FlightForm({ ownerId, locale, editId, initialEditing = true, foc
         const existing = await checkDuplicateFlight(ownerId, values.date, values.origin, values.destination, editId, { signal: controller.signal })
         if (!current(generation, controller)) return
         setDuplicate(existing)
-        if (existing) { focusBlockedSave.current = true; return }
+        if (existing) { setFocusBlockedSave(true); return }
       }
       const from = findAirport(values.origin), to = findAirport(values.destination), plane = values.aircraft ? findAircraft(values.aircraft) : undefined
       const distance = from && to ? calculateFlightDistance(from.latitude, from.longitude, to.latitude, to.longitude) : null
@@ -119,7 +119,7 @@ export function FlightForm({ ownerId, locale, editId, initialEditing = true, foc
       const nextRecents = [...new Set([values.origin, values.destination, ...recents.airports])].filter(Boolean).slice(0, 8)
       setRecents(previous => ({ ...previous, airports: nextRecents })); writeCapturePreference(ownerId, 'airports', nextRecents)
       feedback.acknowledge(ack); setSavedFlight(ack); setSaved(true); router.refresh()
-    } catch (cause) { if (current(generation, controller)) { focusBlockedSave.current = true; setError(flightErrorMessage(cause, locale, 'save')) } }
+    } catch (cause) { if (current(generation, controller)) { setFocusBlockedSave(true); setError(flightErrorMessage(cause, locale, 'save')) } }
     finally { saving.current = false; if (current(generation, controller)) setBusy(false); release() }
   }
   async function remove() {
