@@ -65,7 +65,7 @@ export async function readJournalAll(db: D1Database, userId: string): Promise<Jo
       WHERE iata IN (SELECT origin FROM flights WHERE user_id = ? UNION SELECT destination FROM flights WHERE user_id = ?)`).bind(userId, userId),
     db.prepare(`SELECT icao, manufacturer, type, model, name FROM aircraft_reference
       WHERE icao IN (SELECT aircraft_icao FROM flights WHERE user_id = ?)`).bind(userId),
-    db.prepare('SELECT country_code, claimed_at FROM country_claims WHERE user_id = ?').bind(userId),
+    db.prepare('SELECT country_code FROM country_claims WHERE user_id = ?').bind(userId),
     db.prepare('SELECT country_code, visit_year FROM ground_visits WHERE user_id = ?').bind(userId),
     legacyEvidenceStatement(db, userId),
   ]

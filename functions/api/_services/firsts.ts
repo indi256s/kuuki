@@ -9,8 +9,8 @@ export type FirstsFlight = EvidenceFlight & { airline_iata: string | null; aircr
 export interface FirstsInput {
   /** Every owner flight in every lifecycle state; upcoming ones still matter as outgoing transit legs. */
   flights: FirstsFlight[]
-  /** `claimed_at` bounds the visit: the country was visited on or before the claim. */
-  claims: Array<{ country_code: string | null; claimed_at: string | null }>
+  /** A claim records when it was entered, not when the visit happened, so every claim counts as undated and blocks. */
+  claims: Array<{ country_code: string | null }>
   /** A ground visit is dated to the first day of `visit_year`, so it blocks every flight in that year or later. */
   ground: Array<{ country_code: string | null; visit_year: number | null }>
   /** Contributing legacy visit evidence (`legacyEvidenceStatement`); its own country wins over the airport's. */
@@ -51,7 +51,7 @@ export function journalFirsts(input: FirstsInput): Record<number, FlightFirsts> 
     if (prior === null) return
     if (prior === undefined || day === null || day < prior) evidence.set(country, day)
   }
-  for (const claim of input.claims) note(claim?.country_code, dayOf(claim?.claimed_at))
+  for (const claim of input.claims) note(claim?.country_code, null)
   for (const visit of input.ground) note(visit?.country_code, yearDay(visit?.visit_year))
   for (const row of input.legacy) note(row?.country_code ?? row?.reference_country_code, dayOf(row?.first_visit))
 

@@ -38,15 +38,14 @@ describe('journalFirsts', () => {
     expect(firsts([second])[2]).toEqual({ countries: ['GE', 'TR'], airline: true, aircraft: true, pending: false })
   })
 
-  it('lets a claim dated on or before the flight block its country, but not a later one', () => {
+  it('lets a claim block its country even when it was entered after the flight', () => {
     const flights = [flight(1, '2025-03-01', 'TBS', 'IST')]
-    expect(firsts(flights, { claims: [{ country_code: 'TR', claimed_at: '2025-03-01T09:00:00.000Z' }] })[1].countries).toEqual(['GE'])
-    expect(firsts(flights, { claims: [{ country_code: 'TR', claimed_at: '2025-03-02T09:00:00.000Z' }] })[1].countries).toEqual(['GE', 'TR'])
+    expect(firsts(flights, { claims: [{ country_code: 'TR' }] })[1].countries).toEqual(['GE'])
   })
 
   it('lets undated non-flight evidence block a country first', () => {
     const flights = [flight(1, '2025-03-01', 'TBS', 'IST')]
-    expect(firsts(flights, { claims: [{ country_code: 'TR', claimed_at: null }] })[1].countries).toEqual(['GE'])
+    expect(firsts(flights, { claims: [{ country_code: 'TR' }] })[1].countries).toEqual(['GE'])
     expect(firsts(flights, { ground: [{ country_code: 'GE', visit_year: null }] })[1].countries).toEqual(['TR'])
     expect(firsts(flights, { legacy: [{ country_code: null, reference_country_code: 'TR', first_visit: 'garbage' }] })[1].countries).toEqual(['GE'])
   })
@@ -86,7 +85,7 @@ describe('journalFirsts', () => {
 
   it('skips malformed rows instead of throwing', () => {
     const result = firsts([flight(1, 'not-a-date', 'TBS', 'IST', { airline_iata: 'TK' }), flight(2, '2025-02-01', 'TBS', 'LHR', { airline_iata: 'TK' })], {
-      claims: [{ country_code: null, claimed_at: null }], ground: [{ country_code: 'TOOLONG', visit_year: 2020 }],
+      claims: [{ country_code: null }], ground: [{ country_code: 'TOOLONG', visit_year: 2020 }],
       legacy: [{ country_code: null, reference_country_code: null, first_visit: null }],
     })
     expect(result[1]).toBeUndefined()
