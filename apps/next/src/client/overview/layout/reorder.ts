@@ -30,3 +30,15 @@ export function dropIndex(pointerY: number, rects: { id: string; top: number; bo
   const index = rects.findIndex(rect => pointerY < (rect.top + rect.bottom) / 2)
   return index < 0 ? rects.length : index
 }
+export type DropRect = { id: string; top: number; bottom: number; left: number; right: number }
+/** Two-lane flow: the lane under the pointer comes from x, the slot from y among that lane's cards. `rects` excludes the dragged card and follows the saved order (the others never change relative order while one is dragged); `bounds` spans every lane. Returns the dragged card's final index, or null when nothing else is on screen. */
+export function laneDrop(pointerX: number, pointerY: number, rects: DropRect[], bounds: { left: number; right: number }): number | null {
+  if (!rects.length) return null
+  const mid = (bounds.left + bounds.right) / 2, right = pointerX >= mid
+  const lane = rects.filter(rect => (rect.left + rect.right) / 2 >= mid === right)
+  const before = lane.find(rect => pointerY < (rect.top + rect.bottom) / 2)
+  if (before) return rects.indexOf(before)
+  const last = lane.at(-1)
+  // An empty lane: the card lands first or last.
+  return last ? rects.indexOf(last) + 1 : right ? rects.length : 0
+}

@@ -16,10 +16,12 @@ import { Section as clockSection } from './clock/section'
 import { Tile as clockTile } from './clock/tile'
 import { Section as rhythmSection } from './rhythm/section'
 import { Tile as rhythmTile } from './rhythm/tile'
+import { Section as timelineSection } from './timeline/section'
+import { Tile as timelineTile } from './timeline/tile'
 import { Section as crossingsSection } from './crossings/section'
 import { Tile as crossingsTile } from './crossings/tile'
 export type Copy = { en: string; ru: string }
-export type Span = 'narrow' | 'wide' | 'full' | 'sheet'
+export type Span = 'full' | 'sheet'
 type Entry = { title: Copy; Section: ComponentType<{ span: Span }>; Tile: ComponentType; gate: (scope: OverviewScope) => Gate<unknown> | null }
 export const SECTIONS: Record<SectionId, Entry> = {
   rankings: { title: { en: 'Rankings', ru: 'Рейтинги' }, Section: rankingsSection, Tile: rankingsTile, gate: () => null },
@@ -28,5 +30,6 @@ export const SECTIONS: Record<SectionId, Entry> = {
   fleet: { title: { en: 'Fleet', ru: 'Парк' }, Section: fleetSection, Tile: fleetTile, gate: scope => scope.fleet },
   clock: { title: { en: 'Clock', ru: 'Часы' }, Section: clockSection, Tile: clockTile, gate: scope => scope.clock },
   rhythm: { title: { en: 'Rhythm', ru: 'Ритм' }, Section: rhythmSection, Tile: rhythmTile, gate: scope => scope.rhythm },
+  timeline: { title: { en: 'Over time', ru: 'Со временем' }, Section: timelineSection, Tile: timelineTile, gate: scope => scope.rhythm },
   crossings: { title: { en: 'Crossings', ru: 'Пересечения' }, Section: crossingsSection, Tile: crossingsTile, gate: scope => scope.crossings },
 }

@@ -41,3 +41,20 @@ it('isolates a legend series on hover and focus, clears it on exit or category c
   expect(container.querySelector('[data-bump-highlight]')).toBeNull()
   expect(groups().every(group => group.style.opacity === '')).toBe(true)
 })
+
+it('caps the airline share legend at eight rows with a plural-aware toggle, and shows the comparison prompt as a status line', () => {
+  const { container } = render(<OverviewProvider payload={board as OverviewPayload} prefs={DEFAULT_PREFS} ownerKey="share-owner" locale="ru" live={false}><Section span="full" /></OverviewProvider>)
+  const legend = container.querySelector('.ov3-share-legend')!
+  const rows = () => legend.querySelectorAll('button').length
+  const toggle = container.querySelector<HTMLButtonElement>('.ov3-share-more')
+  expect(toggle).not.toBeNull()
+  if (toggle) {
+    expect(rows()).toBe(8)
+    expect(toggle.getAttribute('aria-expanded')).toBe('false')
+    expect(toggle.textContent).toMatch(/^Показать ещё \d+ авиакомпани/)
+    fireEvent.click(toggle)
+    expect(rows()).toBeGreaterThan(8)
+    expect(toggle.textContent).toBe('Показать меньше')
+  } else expect(rows()).toBeLessThanOrEqual(8)
+  expect(container.querySelector('.ov3-rankings-bottom[data-single="true"] .ov3-share-note[role="status"]')).not.toBeNull()
+})

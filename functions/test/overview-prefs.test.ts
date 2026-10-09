@@ -10,7 +10,7 @@ const valid: OverviewPrefs = { version: 1, filter: { airlines: ['NO_LONGER_FLOWN
   period: { from: '2025-11', to: '2026-02' }, haul: ['long'], departureBands: ['night'],
   airports: ['OBSOLETE'], alliances: ['oneworld'], families: ['obsolete'], makers: ['unknown'],
   bodies: ['narrow'], depHours: [0, 23], arrHours: [6] },
-  layout: { order: ['fleet', 'records', 'crossings', 'clock', 'rhythm', 'rankings', 'manufacturers'], hidden: ['rhythm'] },
+  layout: { order: ['fleet', 'records', 'crossings', 'clock', 'rhythm', 'rankings', 'manufacturers', 'timeline'], hidden: ['rhythm'] },
   replayPaused: true, publicSections: { records: true, fleet: false } }
 const call = (db: D1Database, request: Request) => (request.method === 'PUT' ? onRequestPut : onRequestGet)(
   { ...apiContext(db, request), data: { user: USER } } as never)
@@ -22,7 +22,7 @@ it('defaults when unset, with no-store', async () => {
     expect(response.status).toBe(200)
     expect(response.headers.get('Cache-Control')).toBe('no-store')
     expect(await response.json()).toEqual({ version: 1, filter: {},
-      layout: { order: ['rankings', 'records', 'manufacturers', 'fleet', 'clock', 'rhythm', 'crossings'], hidden: [] },
+      layout: { order: ['rankings', 'records', 'manufacturers', 'fleet', 'clock', 'rhythm', 'timeline', 'crossings'], hidden: [] },
       replayPaused: false, publicSections: { records: false, fleet: false } })
   } finally { await dispose() }
 })

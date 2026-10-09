@@ -52,11 +52,25 @@
   transition: d 1100ms var(--ease-in-out), cx 1100ms var(--ease-in-out), cy 1100ms var(--ease-in-out), x 1100ms var(--ease-in-out), y 1100ms var(--ease-in-out), width 1100ms var(--ease-in-out), height 1100ms var(--ease-in-out), transform 1100ms var(--ease-in-out);
 }
 .kc[data-in-view="true"] .arc-waffle-cell { transition: transform 300ms var(--ease-in-out); }
+/* Charts draw in CSS pixels, so a resize moves geometry; it must not animate. */
+.kc[data-resizing] .kc-svg :is(path, circle, rect), .kc[data-resizing] .arc-waffle-cell { transition: none; }
+/* Count-driven charts keep their natural width, left-aligned, and scroll when the host is narrower. */
+.kc[data-scroll] { overflow-x: auto; }
+.kc[data-more] { mask-image: linear-gradient(to right, #000 calc(100% - 24px), transparent); }
 .kc[data-in-view="true"] .arc-waffle-cell rect { transition-duration: 300ms; }
-.arc-brush svg { display: block; width: 100%; }
-.arc-brush-handles { display: flex; gap: var(--space-3); flex-wrap: wrap; }
-.arc-brush-handles label { display: grid; flex: 1; min-width: 120px; }
-.arc-brush input { min-height: 44px; width: 100%; accent-color: var(--accent); }
+.arc-brush { --brush-thumb: 22px; position: relative; }
+.arc-brush svg { display: block; width: 100%; height: var(--brush-height); }
+/* Handles cover the plot area; each input is widened by one thumb so the thumb centre lands exactly on its value. Only thumbs take pointer input. */
+.arc-brush-handles { position: absolute; inset: 0 var(--brush-right) 0 var(--brush-left); }
+.arc-brush input { position: absolute; inset-block: 0; inset-inline-start: calc(var(--brush-thumb) / -2); width: calc(100% + var(--brush-thumb)); height: 100%; margin: 0; padding: 0; background: transparent; appearance: none; pointer-events: none; touch-action: pan-y; }
+.arc-brush input::-webkit-slider-runnable-track { height: 100%; background: transparent; border: 0; }
+.arc-brush input::-moz-range-track { height: 100%; background: transparent; border: 0; }
+.arc-brush input::-webkit-slider-thumb { appearance: none; box-sizing: border-box; width: var(--brush-thumb); height: 100%; border: calc((var(--brush-thumb) - 10px) / 2) solid transparent; border-block-width: 0; border-radius: 10px; background: var(--accent); background-clip: padding-box; pointer-events: auto; cursor: ew-resize; }
+.arc-brush input::-moz-range-thumb { box-sizing: border-box; width: var(--brush-thumb); height: var(--brush-height); border: calc((var(--brush-thumb) - 10px) / 2) solid transparent; border-block-width: 0; border-radius: 10px; background: var(--accent); background-clip: padding-box; pointer-events: auto; cursor: ew-resize; }
+.arc-brush input:focus-visible { outline: none; }
+.arc-brush input:focus-visible::-webkit-slider-thumb { outline: 2px solid var(--focus); outline-offset: 1px; }
+.arc-brush input:focus-visible::-moz-range-thumb { outline: 2px solid var(--focus); outline-offset: 1px; }
+@media (pointer: coarse) { .arc-brush { --brush-thumb: 44px; } }
 @media (prefers-reduced-motion: reduce) {
   .kc[data-in-view="true"] .kc-svg :is(path, circle, rect),
   .kc[data-in-view="true"] .arc-waffle-cell { transition: none; }

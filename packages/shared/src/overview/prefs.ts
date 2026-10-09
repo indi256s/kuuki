@@ -2,7 +2,7 @@ import { z } from 'zod'
 import { periodDays } from './range'
 import type { OverviewFilter } from './model'
 
-export const DEFAULT_ORDER = ['rankings', 'records', 'manufacturers', 'fleet', 'clock', 'rhythm', 'crossings'] as const
+export const DEFAULT_ORDER = ['rankings', 'records', 'manufacturers', 'fleet', 'clock', 'rhythm', 'timeline', 'crossings'] as const
 const section = z.enum(DEFAULT_ORDER)
 export type SectionId = z.infer<typeof section>
 export interface OverviewPrefs {

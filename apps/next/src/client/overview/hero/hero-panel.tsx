@@ -9,6 +9,7 @@ import { formatCount, formatDistanceKm, formatDuration, formatDurationDays, form
 import { forms, S, t } from '../copy'
 import { useOverview } from '../store/overview-context'
 import { YearStrip } from './year-strip'
+import { OnThisDayLine } from './on-this-day-line'
 import { ArcSparkline } from '../charts/arc-sparkline'
 import './hero.css'
 
@@ -88,5 +89,6 @@ export function HeroPanel() {
       {metric.share !== undefined ? <p className="ov3-hero-share">{percent(metric.share)}</p> : null}
       {metric.key === 'km' && !zero && trend.length > 0 ? <ArcSparkline values={trend.map(row => row.km)} labels={trendLabels('km')} summary={`${t(copy.km, locale)} · ${trendLabel}`} /> : null}
     </div>)}</dl>
+    <OnThisDayLine />
   </section>
 }

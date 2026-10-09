@@ -1,5 +1,7 @@
 import type { MakerKey } from '@kuuki/data/aircraft-makers'
 
+// Cells stop growing at this size so a wide card keeps a compact waffle (pitch 32 with the widest gap).
+export const WAFFLE_MAX_CELL = 28
 export function waffleLayout(units: number, width: number) {
   const total = Number.isFinite(units) ? Math.max(0, units) : 0
   const available = Number.isFinite(width) ? Math.max(7, width) : 7
@@ -7,6 +9,7 @@ export function waffleLayout(units: number, width: number) {
   let columns = Math.max(10, Math.ceil(total / 10))
   let gap = Math.max(1, Math.min(4, Math.round(available / columns * 0.2)))
   let cell = (available - (columns - 1) * gap) / columns
+  if (cell > WAFFLE_MAX_CELL) cell = WAFFLE_MAX_CELL
   if (cell < 6) {
     cell = 6; gap = 1; columns = Math.max(1, Math.floor((available + 1) / 7))
     unit = 5

@@ -49,7 +49,7 @@ export function CountryTreemap() {
         table={{ caption: selected ? `${title} · ${regionName(selected.region)}` : title,
           columns: [{ key: 'region', label: locale === 'ru' ? 'Регион' : 'Region' }, { key: 'country', label: locale === 'ru' ? 'Страна' : 'Country' }, { key: 'value', label: countLabel, numeric: true }],
           rows: (selected ? [selected] : evidence).flatMap(item => item.countries.map(country => ({ region: regionName(item.region), country: names.of(country.code) ?? country.code, value: country.value }))) }}>
-        {mark => <ArcTreemap points={points} height={240} mark={mark} />}
+        {(mark, { width }) => <ArcTreemap points={points} height={240} width={width} mark={mark} />}
       </KuukiChart>}</LazyChart></div>}
     </Disclosure>
   </div>

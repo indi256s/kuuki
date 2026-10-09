@@ -51,7 +51,7 @@
 .flight-calendar-grid button{font-variant-numeric:tabular-nums;transition:background-color var(--dur-fast) var(--ease-out)}
 .ui-date-range{min-width:0;margin:0;padding:0;border:0;display:grid;gap:var(--space-3)}
 .ui-date-range legend{font-weight:600;margin-block-end:var(--space-2)}
-.ui-date-range-fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:var(--space-4)}
+.ui-date-range-fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,17.5rem),20rem));justify-content:start;gap:var(--space-4)}
 .ui-date-range .flight-date-input input{min-width:0}
 @media(hover:hover) and (pointer:fine){.flight-combobox li:hover,.flight-search-sheet li:hover,.flight-calendar-grid [aria-selected=false] button:hover:not([aria-current=date]){background:var(--surface-inset)}}
 @media(prefers-reduced-motion:reduce){.flight-calendar-grid button{transition:none}}
