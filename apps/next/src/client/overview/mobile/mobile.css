@@ -4,46 +4,56 @@
 .ov3-tile-heading h2 { min-width: 0; }
 .ov3-tile:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
 .ov3-tile[data-dragging=true] { cursor: grabbing; }
-/* Title and position follow each other and Torph tweens their width; the options button keeps its own corner so chapter names of any length never move it. */
+/* Title and position fill the row up to the options button, which keeps its own corner so chapter names of any length never move it. */
 .ov3-section-sheet .ui-panel-header > div { flex: 1; min-width: 0; }
-.ov3-sheet-heading { container-type: inline-size; display: flex; align-items: center; gap: 12px; }
-/* FeedbackText's root sets white-space: normal inline; a wrapped title or label would change the header or footer height. */
+.ov3-sheet-heading { container-type: inline-size; position: relative; display: flex; align-items: center; gap: 12px; }
+/* Title and position slide together with the chapter (chapter-motion.ts); the departing copy is positioned against the heading. */
+.ov3-sheet-title { flex: 1; min-width: 0; display: flex; align-items: center; gap: 12px; }
+/* A wrapped title or label would change the header or footer height. */
 .ov3-sheet-name, .ov3-sheet-position { flex: none; white-space: nowrap; }
 .ov3-sheet-name { flex-shrink: 1; min-width: 0; overflow: hidden; }
-.ov3-sheet-name > span, .ov3-sheet-position > span { white-space: nowrap !important; }
 /* Narrow phones: the pager already shows the position, so "3 of 7" stays for screen readers only and the title keeps one line. */
 @container (max-width: 270px) {
   .ov3-sheet-position { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 }
-.ov3-sheet-heading > .ov3-options { margin-inline-start: auto; }
 .ov3-sheet-position { color: var(--text-muted); font-size: 13px; font-weight: 400; }
-.ov3-sheet-pager { display: flex; gap: 4px; margin-bottom: 20px; }
-.ov3-sheet-pager span { flex: 1; height: 2px; background: var(--control-border); transition: background-color var(--dur-base) var(--ease-out); }
-.ov3-sheet-pager span[data-active=true] { background: var(--accent); }
+/* One accent bar travels over the slots. Where scroll-driven animations exist it is tied to the track's scroll position, so it moves
+   with the finger; elsewhere the inline transform moves it to the pending chapter (chapter-motion.ts). An animation outranks the inline style. */
+.ov3-sheet-pager { position: relative; flex: none; display: flex; gap: 4px; margin: 0 var(--space-6) 20px; }
+.ov3-sheet-pager span { flex: 1; height: 2px; background: var(--control-border); }
+.ov3-sheet-pager-indicator { position: absolute; top: 0; left: 0; width: calc((100% - (var(--count) - 1) * 4px) / var(--count)); height: 2px; background: var(--accent); transition: transform var(--dur-sheet) var(--ease-drawer); }
+@supports (animation-timeline: scroll()) and (timeline-scope: none) {
+  .ov3-section-sheet .ui-panel-body { timeline-scope: --ov3-chapters; }
+  .ov3-sheet-track { scroll-timeline: --ov3-chapters x; }
+  .ov3-sheet-pager-indicator { animation: ov3-pager-travel linear both; animation-timeline: --ov3-chapters; }
+}
+@keyframes ov3-pager-travel {
+  from { transform: translateX(0); }
+  to { transform: translateX(calc((var(--count) - 1) * (100% + 4px))); }
+}
 /* The footer is a right-aligned flex row; the grid pins Previous and Next to their own edges whatever the neighbours' names are. */
 .ov3-sheet-navigation { flex: 1 1 100%; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px; }
 .ov3-sheet-navigation .ui-button { min-height: 44px; min-width: 0; max-width: 100%; padding-inline: 12px; white-space: nowrap; }
 .ov3-sheet-navigation .ui-button:first-child { justify-self: start; }
 .ov3-sheet-navigation .ui-button:last-child { justify-self: end; }
-/* Labels stay on one line; a name too long for its half ends in an ellipsis. Torph's root is made inline so the ellipsis can cut between its letters. */
+/* Labels stay on one line; a name too long for its half ends in an ellipsis. The button positions the departing label's copy. */
+.ov3-sheet-navigation .ui-button { position: relative; }
 .ov3-sheet-nav-label { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.ov3-sheet-nav-label > span { display: inline !important; white-space: nowrap !important; }
 .ov3-sheet-navigation .ui-button[aria-disabled=true] { background: transparent; border-color: transparent; opacity: 0.4; }
-/* Chapter changes run in chapter-motion.ts (Web Animations from the on-screen position); CSS only settles a released swipe back. */
-.ov3-sheet-stage { touch-action: pan-y pinch-zoom; transition: transform var(--dur-sheet) var(--ease-drawer), opacity var(--dur-base) var(--ease-out); }
-.ov3-sheet-stage[data-swiping=true] { transition: none; }
-/* The departing chapter's copy, clipped to the visible body while it leaves. */
-.ov3-sheet-ghost { position: absolute; top: 0; left: 0; width: 100%; overflow: hidden; pointer-events: none; }
+/* Chapters are snap slides: the browser owns the swipe (finger tracking, momentum, edge bounce, axis lock).
+   snap-stop keeps a hard flick to one chapter. No sideways overscroll: an over-swipe must not become the browser's back gesture (Chrome on Android). */
+.ov3-sheet-track { flex: 1 1 auto; min-height: 0; display: flex; overflow-x: auto; overflow-y: hidden; scroll-snap-type: x mandatory; overscroll-behavior-x: none; scrollbar-width: none; }
+.ov3-sheet-track::-webkit-scrollbar { display: none; }
+/* Each chapter scrolls on its own; its vertical overscroll stays inside the sheet. */
+.ov3-sheet-slide { flex: 0 0 100%; min-width: 0; overflow-y: auto; overscroll-behavior-y: contain; scroll-snap-align: start; scroll-snap-stop: always; padding: 0 var(--space-6) var(--space-2); }
 @media (prefers-reduced-motion: reduce) {
-  .ov3-sheet-stage { transition: opacity var(--dur-fast) linear; }
-  .ov3-sheet-pager span { transition: none; }
+  .ov3-sheet-pager-indicator { transition: none; }
 }
 /* One fixed height for every chapter: header, pager and footer never move when a short chapter replaces a tall one. */
 .ov3-section-sheet.ui-sheet[data-side=bottom] { height: calc(100dvh - var(--sheet-kb) - max(16px, env(safe-area-inset-top))); max-height: none; }
 .ov3-section-sheet .ui-panel-header, .ov3-section-sheet .ui-panel-footer { border: 0; }
-/* Positions the departing copy. Paired with overflow-y: auto, clip computes to hidden: the sliding chapter never shows sideways scroll.
-   A horizontal over-swipe must not become the browser's back gesture (Chrome on Android). */
-.ov3-section-sheet .ui-panel-body { position: relative; overflow-x: clip; overscroll-behavior-x: none; }
+/* The body no longer scrolls: the pager stays put and each slide scrolls itself. */
+.ov3-section-sheet .ui-panel-body { display: flex; flex-direction: column; overflow: hidden; padding-inline: 0; }
 .ov3-section-sheet .narrator { max-width: 60ch; color: var(--text-muted); font-size: 15px; line-height: 24px; }
 /* Mini bars must not break the airline code into stacked letters inside a half-width tile. */
 .ov3-tile .ov3-mini-bars div { min-width: 0; }
