@@ -13,3 +13,10 @@ it('Journal exact-day bookmarks supersede years, normalize invalid periods and c
   expect(resetJournalFilters(normalized.query + '&page=2&order=asc')).toBe('order=asc')
   expect(journalHref({ from: '2024-02-29', to: '2024-03-01', year: 2025 })).toBe('/journal?from=2024-02-29&to=2024-03-01')
 })
+
+it('Journal paging bookmarks are dropped: the list is in memory', () => {
+  const normalized = normalizeJournalQuery(qs('page=3&airport=TBS'), now)
+  expect(normalized.state).toEqual({ airport: 'TBS' })
+  expect(normalized.query).toBe('airport=TBS')
+  expect(normalized.canonical).toBe(false)
+})

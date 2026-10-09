@@ -177,8 +177,7 @@ export function normalizeJournalQuery(raw: RawQuery, now = new Date()): Normaliz
   if (params.get('queue') === 'awaiting') state.queue = 'awaiting'
   const batch = params.get('batch')
   if (batch && UUID.test(batch)) state.batch = batch.toLowerCase()
-  const page = params.get('page')
-  if (page && /^[1-9]\d{0,5}$/.test(page) && Number(page) > 1) state.page = page
+  // `page` is owned so a legacy paging bookmark is dropped: the Journal list is in memory (spec D4).
   return finish(entries, [...JOURNAL_FILTER_KEYS, 'sort', 'order', 'flight', 'queue', 'batch', 'page', 'period', 'search', 'airlineIata', 'aircraftIcao', 'sortField', 'sortOrder', 'isUpcoming', 'originCodes', 'destinationCodes', 'airlineIataCodes'], Object.entries(state), state)
 }
 
