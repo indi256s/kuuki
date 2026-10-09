@@ -16,6 +16,9 @@
  *   these), `toggle(id)`, `selectAll(ids)`, `clear()`. Ticks survive filter changes; hidden ids can't be ticked.
  * - `hidden`, `hide(ids)`, `unhide(ids)`: rows a deferred delete has taken out of the ledger until it commits or undoes.
  * - `refresh()` (refetch the payload), `isFetching`, `isError` (a background refresh failed; rows stay), `online`.
+ * - `applyFlight(flight, refs?)`: puts a server-confirmed flight (a PATCH answer in the payload's shape) into the cached payload at once,
+ *   keeping the date DESC, id DESC order, and adds any missing reference names. A flight the payload does not hold is ignored. Callers
+ *   still `refresh()` so firsts, connections and refs are recomputed by the server.
  *
  * `useJournalSelection()` is a shortcut for `useJournalStore().selection`.
  */
@@ -28,7 +31,7 @@ import { LIFECYCLE_CHANGED_EVENT } from '../lifecycle-sync'
 import { ROUTE_LINK_EVENT } from '../navigation-link'
 import type { Locale } from '../../server/locale'
 import { selectJournal, type JournalSelection } from './filter'
-import { defaultSort, emptyFilters, type JournalFilters, type JournalFlight, type JournalPayload, type JournalSort, type JournalViewState } from './model'
+import { defaultSort, emptyFilters, type JournalFilters, type JournalFlight, type JournalPayload, type JournalRefs, type JournalSort, type JournalViewState } from './model'
 import { matchesJournalSearch, parseJournalSearch } from './search'
 import { journalSearch, parseJournalUrl } from './url'
 
@@ -50,6 +53,7 @@ export type JournalStore = {
   hide: (ids: Iterable<number>) => void
   unhide: (ids: Iterable<number>) => void
   refresh: () => Promise<void>
+  applyFlight: (flight: JournalFlight, refs?: Partial<JournalRefs>) => void
   isFetching: boolean
   isError: boolean
   online: boolean
@@ -144,6 +148,19 @@ function Store({ ownerId, locale, initial, initialQuery, children }: Props) {
   }, [queryClient, ownerId, initial])
 
   const refresh = useCallback(() => queryClient.invalidateQueries({ queryKey: journalKey(ownerId) }), [queryClient, ownerId])
+  const applyFlight = useCallback((flight: JournalFlight, refs?: Partial<JournalRefs>) => {
+    queryClient.setQueryData<JournalPayload>(journalKey(ownerId), current => {
+      if (!current || !current.flights.some(item => item.id === flight.id)) return current
+      const flights = current.flights.map(item => item.id === flight.id ? flight : item)
+        .sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0) || b.id - a.id)
+      const merged = refs ? {
+        airports: { ...current.refs.airports, ...refs.airports },
+        airlines: { ...current.refs.airlines, ...refs.airlines },
+        aircraft: { ...current.refs.aircraft, ...refs.aircraft },
+      } : current.refs
+      return { ...current, flights, refs: merged }
+    })
+  }, [queryClient, ownerId])
   useEffect(() => {
     const changed = () => { void refresh() }
     const reset = () => { identityReset.current = true; void queryClient.cancelQueries({ queryKey: journalKey(ownerId) }) }
@@ -314,8 +331,8 @@ function Store({ ownerId, locale, initial, initialQuery, children }: Props) {
   const store = useMemo<JournalStore>(() => ({
     payload, view, selection, setFilters, resetFilters, setSort, openFlight, closeSheet,
     selected, selectedVisible, toggle, selectAll, clear, hidden, hide, unhide,
-    refresh, isFetching: list.isFetching, isError: list.isError, online,
-  }), [payload, view, selection, setFilters, resetFilters, setSort, openFlight, closeSheet, selected, selectedVisible, toggle, selectAll, clear, hidden, hide, unhide, refresh, list.isFetching, list.isError, online])
+    refresh, applyFlight, isFetching: list.isFetching, isError: list.isError, online,
+  }), [payload, view, selection, setFilters, resetFilters, setSort, openFlight, closeSheet, selected, selectedVisible, toggle, selectAll, clear, hidden, hide, unhide, refresh, applyFlight, list.isFetching, list.isError, online])
   return <Context.Provider value={store}>{children}</Context.Provider>
 }
 

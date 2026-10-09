@@ -169,4 +169,19 @@ describe('Journal store payload', () => {
     act(() => store().unhide([2]))
     expect(screen.getAllByRole('listitem')).toHaveLength(3)
   })
+
+  it('applies a server-confirmed flight to the cached payload at once, re-ordering by date and adding missing refs', async () => {
+    mount(payloadOf([flight(3), flight(2), flight(1)]))
+    const before = store().payload
+    act(() => store().applyFlight(flight(1, { date: '2024-06-01', destination: 'AYT', destination_country: 'TR' }), { airports: { AYT: { city: 'Antalya', name: 'Antalya', country: 'TR' } } }))
+    await waitFor(() => expect(store().payload).not.toBe(before))
+    expect(store().payload.flights.map(item => item.id)).toEqual([1, 3, 2])
+    expect(store().payload.flights[0]).toMatchObject({ destination: 'AYT', date: '2024-06-01' })
+    expect(store().payload.refs.airports.AYT).toEqual({ city: 'Antalya', name: 'Antalya', country: 'TR' })
+    expect(screen.getAllByRole('listitem').map(item => item.textContent)).toEqual(['TBS-AYT', 'TBS-IST', 'TBS-IST'])
+    const applied = store().payload
+    act(() => store().applyFlight(flight(9)))
+    await act(async () => { await new Promise(resolve => setTimeout(resolve, 0)) })
+    expect(store().payload).toBe(applied)
+  })
 })

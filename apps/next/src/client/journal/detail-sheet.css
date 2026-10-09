@@ -1,0 +1,23 @@
+/* Journal detail sheet layout. Tokens only. No divider lines (DESIGN 10-07): space groups the header, body and footer. Weights 400/500. */
+.journal-detail{position:sticky;top:calc(var(--header-h) + var(--space-4));align-self:start;flex:none;width:460px;max-height:calc(100dvh - var(--header-h) - var(--space-8));display:flex;flex-direction:column;background:var(--surface);border:1px solid var(--hairline);border-radius:var(--radius-lg);overflow:hidden;animation:jd-pane-in var(--dur-base) var(--ease-out)}
+.jd-header{flex:none;display:flex;align-items:flex-start;justify-content:space-between;gap:var(--space-3);padding:var(--space-5) var(--space-6) var(--space-2)}
+.jd-title{margin:0;font-family:var(--font-mono);font-size:22px;line-height:28px;font-weight:500;letter-spacing:0;outline:none}
+.jd-body{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:var(--space-2) var(--space-6) var(--space-6)}
+.jd-body,.jd-body-inner{display:grid;gap:var(--space-4);align-content:start}
+.jd-body-inner{padding-bottom:var(--space-6)}
+.jd-footer{flex:none;display:flex;flex-wrap:wrap;justify-content:flex-end;gap:var(--space-2);padding:var(--space-4) var(--space-6) var(--space-5)}
+.jd-full-editor{justify-self:start;margin-block:calc(var(--space-2) * -1)}
+.jd-body .journal-note,.jd-body-inner .journal-note{margin:0}
+.jd-undo{display:flex;align-items:center;gap:var(--space-3);min-height:0}
+.jd-undo:empty{position:absolute}
+.jd-undo p{margin:0;flex:1;min-width:0;color:var(--text-muted)}
+.jd-missing{display:grid;gap:var(--space-3);justify-items:start}
+.jd-missing p{margin:0;color:var(--text-muted)}
+
+/* The overlay and phone sheet reuse Sheet; the Journal's rules drop its 600 title weight and its footer hairline. */
+.journal-detail-sheet .ui-panel-title{font-family:var(--font-mono);font-weight:500}
+.journal-detail-sheet .ui-panel-footer{border-top:0}
+
+/* Enter only: on close the ledger widens in the same frame, so a fading pane would overlap it. Opacity and transform only. */
+@keyframes jd-pane-in{from{opacity:0;transform:translateX(16px)}to{opacity:1;transform:none}}
+@media(prefers-reduced-motion:reduce){.journal-detail{animation:none}}
