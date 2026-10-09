@@ -13,6 +13,8 @@
  *   maps `field: 'aircraft'` to `'aircraft_icao'`).
  * - Review mode extension points (ticket 12): `top` renders above the read-first content ("Did you take this flight?"), `status`
  *   beside the title ("Review 2 of 3"), and `footer` in the sheet footer ("Next to review"). This component does not read `view.review`.
+ * - `placeholder`: `{ title, content }` shown while no flight is open. While it is set the sheet stays open with it, so review mode
+ *   can say "Nothing to confirm" or "All confirmed" in the same pane or overlay. Without it, no open flight means a closed sheet.
  *
  * Undo: the docked pane offers it in a "Saved" toast. The overlay is modal (focus trapped, a press outside dismisses it), so it
  * offers the same Undo in a status line inside the sheet instead, until the next edit or until the sheet closes.
@@ -216,9 +218,10 @@ export type JournalDetailProps = {
   top?: ReactNode
   status?: ReactNode
   footer?: ReactNode
+  placeholder?: { title: ReactNode; content: ReactNode } | null
 }
 
-export function JournalDetail({ ownerId, locale, docked, initialField, top, status, footer }: JournalDetailProps) {
+export function JournalDetail({ ownerId, locale, docked, initialField, top, status, footer, placeholder }: JournalDetailProps) {
   const t = copy[locale]
   const { payload, view, openFlight, closeSheet, refresh, applyFlight, online, hidden } = useJournalStore()
   const mounted = useMounted()
@@ -233,6 +236,7 @@ export function JournalDetail({ ownerId, locale, docked, initialField, top, stat
   const [shownId, setShownId] = useState(id)
   if (id !== null && id !== shownId) setShownId(id)
   const flight = shownId !== null && !hidden.has(shownId) ? payload.flights.find(item => item.id === shownId) : undefined
+  const idle = id === null ? placeholder ?? null : null
 
   const paneTitle = useRef<HTMLHeadingElement | null>(null)
   const body = useRef<HTMLDivElement | null>(null)
@@ -293,22 +297,22 @@ export function JournalDetail({ ownerId, locale, docked, initialField, top, stat
   </div>
 
   if (docked) {
-    if (id === null) return null
+    if (id === null && !idle) return null
     return <aside className="journal-detail" aria-label={t.region} onKeyDown={paneKeys}>
       <div className="jd-header">
-        <h2 ref={paneTitle} tabIndex={-1} className="jd-title">{title}</h2>
+        <h2 ref={paneTitle} tabIndex={-1} className="jd-title">{idle ? idle.title : title}</h2>
         <button type="button" className="ui-icon-button" aria-label={t.close} onClick={closeSheet}><X size={20} strokeWidth={2} aria-hidden="true" /></button>
       </div>
-      <div ref={body} className="jd-body">{lead}{content}</div>
-      {footer && flight && <div className="jd-footer">{footer}</div>}
+      <div ref={body} className="jd-body">{idle ? idle.content : <>{lead}{content}</>}</div>
+      {footer && flight && !idle && <div className="jd-footer">{footer}</div>}
     </aside>
   }
 
-  return <Sheet open={mounted && mobile !== null && id !== null} onOpenChange={open => { if (!open) closeSheet() }}
-    title={title} side={mobile ? 'bottom' : 'right'} className={mobile ? 'journal-detail-sheet flight-full-sheet' : 'journal-detail-sheet'}
-    closeLabel={t.close} footer={footer && flight ? footer : undefined}
+  return <Sheet open={mounted && mobile !== null && (id !== null || idle !== null)} onOpenChange={open => { if (!open) closeSheet() }}
+    title={idle ? idle.title : title} side={mobile ? 'bottom' : 'right'} className={mobile ? 'journal-detail-sheet flight-full-sheet' : 'journal-detail-sheet'}
+    closeLabel={t.close} footer={footer && flight && !idle ? footer : undefined}
     onCloseAutoFocus={event => { const row = shownId !== null ? rowFor(shownId) : null; if (row) { event.preventDefault(); row.focus() } }}>
-    <div ref={body} className="jd-body-inner">{lead}{content}{undoLine}</div>
+    <div ref={body} className="jd-body-inner">{idle ? idle.content : <>{lead}{content}{undoLine}</>}</div>
   </Sheet>
 }
 

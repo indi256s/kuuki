@@ -2,7 +2,11 @@
 // The Journal's composition root: reads the store and hands plain props to the presentational pieces
 // (header, Next up, toolbar, ledger, states). Callbacks passed to the ledger stay stable so memoised rows do not re-render.
 // It mounts the page's one deferred delete (`journal-delete.tsx`) around everything that removes flights.
-import { useCallback, useMemo, useState } from 'react'
+//
+// Review mode (ticket 12) opens from the header pill, `queue=awaiting` and `#arrival-<id>` (the store reads the last two from
+// the URL). The spec's "Status → To confirm" route: ticking that filter only filters; a row opened while the Status filter is
+// exactly To confirm opens in review mode, as does an awaiting row opened while review mode is already on.
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { Locale } from '../../server/locale'
 import { useAwaiting } from '../awaiting'
 import { useMobile } from '../ui/use-mobile'
@@ -15,6 +19,7 @@ import { JournalHeader } from './header'
 import { JournalDeleteProvider } from './journal-delete'
 import { JournalLedger } from './ledger'
 import { NextUp } from './next-up'
+import { useJournalReview } from './review-mode'
 import { EmptyJournal, NoMatches, OfflineNote, PublicationPending, RefreshFailed } from './states'
 import { useJournalStore } from './store'
 import { JournalToolbar } from './toolbar'
@@ -46,11 +51,18 @@ function JournalContent({ ownerId, locale }: { ownerId: string; locale: Locale }
 
   // The sheet: docked beside the ledger at 1280px and up (the ledger then drops Duration and Distance), an overlay below.
   const docked = useDockedDetail()
-  const split = docked && view.flight !== null
+  const review = useJournalReview({ locale, docked, queue, offlineNoteId: OFFLINE_NOTE_ID })
+  const split = docked && (view.flight !== null || review?.placeholder != null)
   const [initialField, setInitialField] = useState<{ flightId: number; field: EditableField } | null>(null)
+  // Read at click time, so `onOpen` stays stable for the memoised rows.
+  const opening = useRef({ flights: payload.flights, view })
+  useEffect(() => { opening.current = { flights: payload.flights, view } })
   const onOpen = useCallback((id: number, opts?: { field?: 'aircraft' }) => {
     setInitialField(opts?.field === 'aircraft' ? { flightId: id, field: 'aircraft_icao' } : null)
-    openFlight(id)
+    const { flights, view: now } = opening.current
+    const awaiting = flights.some(flight => flight.id === id && flight.lifecycle_state === 'awaiting')
+    const toConfirm = now.filters.status.length === 1 && now.filters.status[0] === 'awaiting'
+    openFlight(id, awaiting && (now.review || toConfirm) ? { review: true } : undefined)
   }, [openFlight])
   const onOpenNextUp = useCallback((id: number) => onOpen(id), [onOpen])
   const onReview = useCallback(() => openFlight(null, { review: true }), [openFlight])
@@ -85,7 +97,8 @@ function JournalContent({ ownerId, locale }: { ownerId: string; locale: Locale }
             activeId={view.flight} compact={split} selected={visibleSelected} selectable={selectable} onToggleSelect={onToggleSelect} onOpen={onOpen} hidden={hidden} />
         </Crossfade>}
     </div>
-    <JournalDetail ownerId={ownerId} locale={locale} docked={docked} initialField={initialField} />
+    <JournalDetail ownerId={ownerId} locale={locale} docked={docked} initialField={initialField}
+      top={review?.top} status={review?.status} footer={review?.footer} placeholder={review?.placeholder} />
     </div>
     <JournalBulkActions locale={locale} selected={selectedFlights} matching={selection.matching} refs={payload.refs} queue={queue} online={online} offlineNoteId={OFFLINE_NOTE_ID}
       onSelectAll={selectAll} onClear={clear} refresh={refresh} />
