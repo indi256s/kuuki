@@ -1,6 +1,6 @@
 # 02 Firsts over the whole journal
 
-Status: open
+Status: done
 Type: task
 Owner: Opus (same agent as 01)
 Blocked by: 01

@@ -1,6 +1,6 @@
 # 10 OpenFlights CSV export
 
-Status: open
+Status: done
 Type: task
 Owner: Sonnet
 Blocked by: —

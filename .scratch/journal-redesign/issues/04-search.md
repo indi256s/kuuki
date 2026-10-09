@@ -1,6 +1,6 @@
 # 04 Search parsing and matching
 
-Status: open
+Status: done
 Type: task
 Owner: Sonnet
 Blocked by: —

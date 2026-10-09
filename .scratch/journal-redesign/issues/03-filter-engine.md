@@ -1,6 +1,6 @@
 # 03 Client filter, sort and connections engine
 
-Status: open
+Status: done
 Type: task
 Owner: Opus
 Blocked by: — (codes against `client/journal/model.ts`; search matcher from 04 is injected)

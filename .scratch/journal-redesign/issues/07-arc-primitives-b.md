@@ -1,6 +1,6 @@
 # 07 Arc primitives B: filter-toolbar, chip-group, multi-select, swipe-actions, year presets
 
-Status: open
+Status: done
 Type: task
 Owner: Sonnet
 Blocked by: —

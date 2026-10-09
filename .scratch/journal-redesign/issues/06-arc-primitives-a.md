@@ -1,6 +1,6 @@
 # 06 Arc primitives A: tooltip, slot-text, checkbox, alert, empty-state, kbd
 
-Status: open
+Status: done
 Type: task
 Owner: Sonnet
 Blocked by: —

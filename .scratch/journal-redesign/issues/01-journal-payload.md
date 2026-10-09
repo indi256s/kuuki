@@ -1,6 +1,6 @@
 # 01 Whole-journal payload and endpoint
 
-Status: open
+Status: done
 Type: task
 Owner: Opus
 Blocked by: —
