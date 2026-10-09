@@ -2,7 +2,8 @@ import { JOURNAL_PAGE_SIZE } from '@kuuki/shared/constants'
 import 'server-only'
 import { normalizeJournalQuery } from '../lib/url-state'
 import { parseFlightFilters, parseSort } from '../../../../functions/api/_lib/flightQuery'
-import { readJournal, type JournalData } from '../../../../functions/api/_services/journal'
+import { readJournal, readJournalAll, type JournalData } from '../../../../functions/api/_services/journal'
+import type { JournalPayload } from '../../../../functions/api/_services/journalPayload'
 import { getRequestEnv, getRequestIdentity } from './identity'
 
 export type { JournalData } from '../../../../functions/api/_services/journal'
@@ -23,4 +24,13 @@ export async function getOwnJournal(input: Record<string, string | string[] | un
   const normalized = journalParams(input)
   const data: JournalData = await readJournal(env.DB, identity.id, normalized.filters, normalized.sort, journalPageSize, (normalized.page - 1) * journalPageSize)
   return { ownerId: identity.id, data, normalized }
+}
+
+/** The owner's whole journal (spec D3/D4): no filters or paging, the client filters in memory. */
+export async function getOwnJournalAll() {
+  const identity = await getRequestIdentity()
+  if (!identity) return null
+  const env = await getRequestEnv()
+  const data: JournalPayload = await readJournalAll(env.DB, identity.id)
+  return { ownerId: identity.id, data }
 }

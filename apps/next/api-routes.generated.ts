@@ -196,6 +196,12 @@ export const apiRoutes = [
     ]
   },
   {
+    "route": "/api/flights/journal",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
     "route": "/api/flights/recent",
     "methods": [
       "GET"

@@ -1,7 +1,10 @@
 import { expect, it } from 'vitest'
 import { apiContext, createApiDatabase } from './harness'
 import { onRequestGet as getFlights } from '../api/flights/index'
+import { onRequestGet as getJournal } from '../api/flights/journal'
 import { onRequestGet as getPassport } from '../api/passport/countries/index'
+import type { JournalPayload } from '../api/_services/journalPayload'
+import { accountWith, flightStatement, USER } from './country-fixture'
 
 const owner = { id: 'read-owner', email: 'owner@example.test' }
 const other = { id: 'read-other', email: 'other@example.test' }
@@ -52,5 +55,47 @@ it('returns owner passport collections including ground visit details and curren
     })
     expect(typeof body.updatedAt).toBe('number')
     expect(JSON.stringify(body)).not.toContain('US')
+  } finally { await dispose() }
+})
+
+it('returns the whole owner journal with countries, refs, firsts and revisions', async () => {
+  const { db, dispose } = await accountWith([
+    { id: 1, date: '2025-01-10', origin: 'TBS', destination: 'IST', state: 'logged' },
+    { id: 2, date: '2025-02-10', origin: 'IST', destination: 'LHR', state: 'awaiting' },
+    { id: 3, date: '2027-05-01', origin: 'LHR', destination: 'XXX', state: 'upcoming' },
+  ], d => [
+    d.prepare('INSERT INTO users (id,email,password_hash) VALUES (?,?,?)').bind(other.id, other.email, 'hash'),
+    flightStatement(d, { id: 4, date: '2024-01-01', origin: 'JFK', destination: 'DXB', state: 'logged', user: other.id }),
+    d.prepare("UPDATE flights SET airline_iata = 'TK', aircraft_icao = 'A321' WHERE id IN (1, 2)"),
+    d.prepare("INSERT INTO aircraft_reference (icao,name,manufacturer,model,type,engine_type,engine_count) VALUES ('A321','Airbus A321','Airbus','A321','jet','jet',2)"),
+  ])
+  try {
+    const request = new Request('https://kuuki.test/api/flights/journal')
+    const response = await getJournal({ ...apiContext(db, request), data: { user: USER } } as never)
+    expect(response.status).toBe(200)
+    const body = await response.json() as JournalPayload
+    expect(body.flights.map(flight => [flight.id, flight.lifecycle_state, flight.origin_country, flight.destination_country])).toEqual([
+      [3, 'upcoming', 'GB', null], [2, 'awaiting', 'TR', 'GB'], [1, 'logged', 'GE', 'TR'],
+    ])
+    expect(JSON.stringify(body)).not.toContain('DXB')
+    expect(body.refs).toEqual({
+      airports: {
+        IST: { city: 'IST city', name: 'IST', country: 'TR' }, LHR: { city: 'LHR city', name: 'LHR', country: 'GB' },
+        TBS: { city: 'TBS city', name: 'TBS', country: 'GE' }, XXX: { city: null, name: 'XXX', country: null },
+      },
+      airlines: { TK: { name: 'Turkish Airlines' } },
+      aircraft: { A321: { name: 'Airbus A321', family: expect.any(String), manufacturer: 'Airbus', type: 'jet' } },
+    })
+    expect(body.firsts).toEqual({
+      1: { countries: ['GE', 'TR'], airline: true, aircraft: true, pending: false },
+      2: { countries: ['GB'], airline: false, aircraft: false, pending: true },
+    })
+    const state = await db.prepare('SELECT revision, published_revision FROM user_derived_state WHERE user_id = ?').bind(USER.id).first<{ revision: number; published_revision: number }>()
+    expect(body).toMatchObject({ revision: state!.revision, publishedRevision: state!.published_revision, derivedState: 'ready' })
+    expect(state!.revision).toBeGreaterThan(0)
+    expect(typeof body.updatedAt).toBe('number')
+
+    const guest = await getJournal({ ...apiContext(db, request) } as never)
+    expect(guest.status).toBe(401)
   } finally { await dispose() }
 })
