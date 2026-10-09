@@ -218,7 +218,7 @@ export function MaplibreGlobe(props: MaplibreGlobeProps) {
   const selected = choice?.filter === props.filter ? choice.route : null
   return <div ref={host} className="maplibre-globe" data-reduced={props.reduced}>
     {/* eslint-disable-next-line @next/next/no-css-tags */}
-    <link rel="stylesheet" href="/maps/maplibre-6.12.0/maplibre-gl.css" />
+    <link rel="stylesheet" href="/maps/maplibre-6.13.0/maplibre-gl.css" />
     <MapCanvas projection={{ type: 'globe' }} locale={props.locale} className="globe-map-canvas" onError={props.onError}>
       <GlobeLayers props={props} host={host} select={route => setChoice(route ? { filter: props.filter, route } : null)} />
     </MapCanvas>

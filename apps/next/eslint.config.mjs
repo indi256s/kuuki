@@ -26,7 +26,7 @@ const config = [
       ],
     },
   },
-  { ignores: ['.next/**', '.open-next/**', 'public/maps/maplibre-6.12.0/**', 'api-routes.generated.ts', 'next-env.d.ts'] },
+  { ignores: ['.next/**', '.open-next/**', 'public/maps/maplibre-6.13.0/**', 'api-routes.generated.ts', 'next-env.d.ts'] },
 ]
 
 export default config

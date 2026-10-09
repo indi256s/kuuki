@@ -95,7 +95,7 @@ function artifact() {
   }
   walkAssets(assetsDir)
   return { node: process.version, workerModules: count, workerBytes: bytes, workerGzipBytes: gzipBytes, staticAssets: assets, staticBytes: assetBytes,
-    next: '16.3.8', openNext: '1.20.8', compatibilityDate: '2026-08-06' }
+    next: '16.3.8', openNext: '1.20.10', compatibilityDate: '2026-08-06' }
 }
 
 async function maintenanceProbe() {
@@ -318,8 +318,7 @@ async function main() {
       ['public, max-age=31536000, immutable', ['/maps/world-outline-110m-2.0.2.svg',
       '/maps/world-outline-110m-2.0.2-light.svg', '/maps/world-outline-110m-2.0.2-dark.svg', '/maps/country-centers-110m-2.0.2.json',
       '/maps/countries-110m-2.0.2.geojson',
-      '/maps/maplibre-6.12.0/maplibre-gl.css', '/maps/maplibre-6.12.0/maplibre-gl-worker.mjs',
-      '/maps/maplibre-6.12.0/maplibre-gl-shared.mjs']],
+      '/maps/maplibre-6.13.0/maplibre-gl.css', '/maps/maplibre-6.13.0/maplibre-gl-worker.mjs']],
       ['public, max-age=3600, must-revalidate', ['/fonts/Commissioner-Regular.woff2', '/fonts/JetBrainsMono.ttf']],
     ] as const) for (const path of paths) {
       const asset = await assertResponse(path, 200)
@@ -332,7 +331,7 @@ async function main() {
         if (conditional.headers.get('Cache-Control') !== cache) throw new Error(`Public asset 304 cache mismatch: ${path}`)
       }
     }
-    for (const path of ['/bootstrap.js', '/maps/missing-110m-2.0.2.svg', '/maps/maplibre-6.12.0/LICENSE.txt', '/fonts/missing.woff2', '/fonts/Commissioner-OFL.txt']) {
+    for (const path of ['/bootstrap.js', '/maps/missing-110m-2.0.2.svg', '/maps/maplibre-6.13.0/LICENSE.txt', '/fonts/missing.woff2', '/fonts/Commissioner-OFL.txt']) {
       const response = await request(path)
       if (response.headers.get('Cache-Control') !== 'no-store') throw new Error(`Unversioned or missing asset became cacheable: ${path}`)
       if (path.includes('/missing') && response.status < 400) throw new Error('Missing public asset did not fail')

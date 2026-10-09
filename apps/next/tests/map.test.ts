@@ -52,7 +52,6 @@ test('the opened map uses local assets, selectable routes and survives a theme c
   await expect(routes.getByRole('button').first()).toHaveAttribute('aria-pressed', 'true')
   await page.getByRole('button', { name: 'Fit routes' }).click()
   expect(assets.some(url => url.endsWith('maplibre-gl-worker.mjs'))).toBe(true)
-  expect(assets.some(url => url.endsWith('maplibre-gl-shared.mjs'))).toBe(true)
   expect(assets.some(url => url.endsWith('countries-110m-2.0.2.geojson'))).toBe(true)
   expect(assets.every(url => new URL(url).origin === baseURL)).toBe(true)
   await page.getByRole('button', { name: 'Close map', exact: true }).click()

@@ -24,7 +24,7 @@ export function Map({ children, onError, locale = 'en', className = 'route-map-c
   useEffect(() => {
     if (!host.current) return
     if (!document.createElement('canvas').getContext('webgl2')) { onErrorRef.current(); return }
-    MapLibreGL.setWorkerUrl('/maps/maplibre-6.12.0/maplibre-gl-worker.mjs')
+    MapLibreGL.setWorkerUrl('/maps/maplibre-6.13.0/maplibre-gl-worker.mjs')
     let instance: MapLibreGL.Map
     try {
       instance = new MapLibreGL.Map({ container: host.current, style: projection ? { ...blankStyle, projection } : blankStyle, ...mapOptions(locale) })
