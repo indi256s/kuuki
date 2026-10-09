@@ -23,7 +23,7 @@
  * `useJournalSelection()` is a shortcut for `useJournalStore().selection`.
  */
 import { createContext, useCallback, useContext, useDeferredValue, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
-import { QueryClient, QueryClientProvider, useQuery, useQueryClient } from '@tanstack/react-query'
+import { onlineManager, QueryClient, QueryClientProvider, useQuery, useQueryClient } from '@tanstack/react-query'
 import { ApiError, api, getAuthGeneration } from '@kuuki/client/apiClient'
 import { trackPrivateOperation } from '../activity'
 import { useOnline } from '../awaiting'
@@ -110,27 +110,33 @@ function Store({ ownerId, locale, initial, initialQuery, children }: Props) {
   const online = useOnline()
   const identityReset = useRef(false)
 
+  const requiredReads = useRef(new Set<AbortController>())
+  const readJournal = useCallback(async (signal: AbortSignal) => {
+    if (signal.aborted) throw new DOMException('Journal read cancelled', 'AbortError')
+    const generation = getAuthGeneration()
+    const controller = new AbortController()
+    const abort = () => controller.abort()
+    signal.addEventListener('abort', abort, { once: true })
+    const untrack = trackPrivateOperation(controller)
+    try {
+      const data = await api.get<JournalPayload>('/api/flights/journal', { owner: ownerId }, { signal: controller.signal })
+      if (controller.signal.aborted) throw new DOMException('Journal read cancelled', 'AbortError')
+      if (identityReset.current || generation !== getAuthGeneration()) throw new ApiError(409, 'The signed-in account changed', 'OWNER_CHANGED')
+      return data
+    } catch (error) {
+      if (error instanceof ApiError && error.code === 'OWNER_CHANGED') identityReset.current = true
+      throw error
+    } finally { signal.removeEventListener('abort', abort); untrack() }
+  }, [ownerId])
+
   const list = useQuery({
     queryKey: journalKey(ownerId),
     queryFn: async ({ signal }) => {
-      const generation = getAuthGeneration()
-      const controller = new AbortController()
-      const untrack = trackPrivateOperation(controller)
-      signal.addEventListener('abort', () => controller.abort(), { once: true })
-      try {
-        let data: JournalPayload
-        try {
-          data = await api.get<JournalPayload>('/api/flights/journal', { owner: ownerId }, { signal: controller.signal })
-        } catch (error) {
-          // The cookie now names another account (a cross-tab switch). The server refused before reading anything;
-          // keep showing this owner's data until the identity check navigates away.
-          if (error instanceof ApiError && error.code === 'OWNER_CHANGED') { identityReset.current = true; return queryClient.getQueryData<JournalPayload>(journalKey(ownerId)) ?? initial }
-          throw error
-        }
-        // A response that outlived the session it was asked for is never shown; the page is navigating away.
-        if (identityReset.current || generation !== getAuthGeneration()) return queryClient.getQueryData<JournalPayload>(journalKey(ownerId)) ?? initial
-        return data
-      } finally { untrack() }
+      try { return await readJournal(signal) } catch (error) {
+        // Keep this owner's rows until the identity check navigates away; required reads still reject.
+        if (error instanceof ApiError && error.code === 'OWNER_CHANGED') return queryClient.getQueryData<JournalPayload>(journalKey(ownerId)) ?? initial
+        throw error
+      }
     },
     initialData: initial, initialDataUpdatedAt: initial.updatedAt, staleTime: 60_000, refetchOnWindowFocus: true, retry: 1,
   })
@@ -141,6 +147,7 @@ function Store({ ownerId, locale, initial, initialQuery, children }: Props) {
     const key = journalKey(ownerId)
     if (!isNewer(initial, queryClient.getQueryData<JournalPayload>(key))) return
     let active = true
+    requiredReads.current.forEach(controller => controller.abort())
     void queryClient.cancelQueries({ queryKey: key, exact: true }).then(() => {
       if (active && isNewer(initial, queryClient.getQueryData<JournalPayload>(key))) queryClient.setQueryData(key, initial, { updatedAt: initial.updatedAt })
     })
@@ -148,12 +155,24 @@ function Store({ ownerId, locale, initial, initialQuery, children }: Props) {
   }, [queryClient, ownerId, initial])
 
   const refresh = useCallback(async (options?: { throwOnError?: boolean }) => {
-    const generation = getAuthGeneration()
-    if (options?.throwOnError && !online) throw new Error('Cannot refresh the Journal while offline')
-    await queryClient.invalidateQueries({ queryKey: journalKey(ownerId) }, options)
-    if (options?.throwOnError && (identityReset.current || generation !== getAuthGeneration())) throw new ApiError(409, 'The signed-in account changed', 'OWNER_CHANGED')
-    if (options?.throwOnError && queryClient.getQueryState(journalKey(ownerId))?.fetchStatus === 'paused') throw new Error('Cannot refresh the Journal while offline')
-  }, [queryClient, ownerId, online])
+    const key = journalKey(ownerId)
+    if (!options?.throwOnError) { await queryClient.invalidateQueries({ queryKey: key }); return }
+    if (!online || !onlineManager.isOnline()) throw new Error('Cannot refresh the Journal while offline')
+    // Query cancellation may resolve with reverted cached data. Reconciliation requires the actual owner-bound read.
+    const controller = new AbortController()
+    requiredReads.current.add(controller)
+    try {
+      await queryClient.cancelQueries({ queryKey: key, exact: true })
+      const data = await readJournal(controller.signal)
+      if (controller.signal.aborted) throw new DOMException('Journal read cancelled', 'AbortError')
+      if (!onlineManager.isOnline()) throw new Error('Cannot refresh the Journal while offline')
+      queryClient.setQueryData<JournalPayload>(key, current => current && isNewer(current, data) ? current : data)
+    } finally { requiredReads.current.delete(controller) }
+  }, [queryClient, ownerId, online, readJournal])
+  useEffect(() => {
+    const running = requiredReads.current
+    return () => { running.forEach(controller => controller.abort()) }
+  }, [])
   const applyFlight = useCallback((flight: JournalFlight, refs?: Partial<JournalRefs>) => {
     queryClient.setQueryData<JournalPayload>(journalKey(ownerId), current => {
       if (!current || !current.flights.some(item => item.id === flight.id)) return current
@@ -169,7 +188,7 @@ function Store({ ownerId, locale, initial, initialQuery, children }: Props) {
   }, [queryClient, ownerId])
   useEffect(() => {
     const changed = () => { void refresh() }
-    const reset = () => { identityReset.current = true; void queryClient.cancelQueries({ queryKey: journalKey(ownerId) }) }
+    const reset = () => { identityReset.current = true; requiredReads.current.forEach(controller => controller.abort()); void queryClient.cancelQueries({ queryKey: journalKey(ownerId) }) }
     window.addEventListener(LIFECYCLE_CHANGED_EVENT, changed)
     window.addEventListener('kuuki:identity-reset', reset)
     return () => { window.removeEventListener(LIFECYCLE_CHANGED_EVENT, changed); window.removeEventListener('kuuki:identity-reset', reset) }

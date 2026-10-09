@@ -164,6 +164,19 @@ describe('Journal store payload', () => {
     expect(store().payload.flights.map(item => item.id)).toEqual([1])
   })
 
+  it('rejects a required read cancelled by a newer server payload instead of accepting reverted cached rows', async () => {
+    const view = mount(payloadOf([flight(1)]))
+    vi.mocked(api.get).mockImplementation((_path, _params, options) => new Promise((_resolve, reject) => {
+      options?.signal?.addEventListener('abort', () => reject(new DOMException('Read cancelled', 'AbortError')), { once: true })
+    }))
+    let result!: Promise<unknown>
+    act(() => { result = store().refresh({ throwOnError: true }).catch(error => error) })
+    await waitFor(() => expect(api.get).toHaveBeenCalled())
+    view.rerender(<JournalStoreProvider ownerId="owner" locale="en" initial={payloadOf([flight(1), flight(2)], 2, 2)} initialQuery=""><Probe /></JournalStoreProvider>)
+    await act(async () => { expect(await result).toMatchObject({ name: 'AbortError' }) })
+    await waitFor(() => expect(store().payload.revision).toBe(2))
+  })
+
   it('keeps this owner\'s rows without an error when the server says the account changed', async () => {
     mount(payloadOf([flight(1)]))
     vi.mocked(api.get).mockRejectedValue(new ApiError(409, 'The signed-in account changed', 'OWNER_CHANGED'))

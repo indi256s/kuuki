@@ -85,10 +85,12 @@ describe('writes and outcomes', () => {
     expect(result.flight).toBeUndefined()
   })
 
-  it('undo sends the server snapshot token instead of a replacement value', async () => {
-    vi.mocked(api.patch).mockResolvedValue(dto({ origin: 'TBS' }))
-    const record: EditRecord = { flightId: 7, field: 'origin', previous: 'TBS', after: editableValues(flight({ origin: 'MUC' })), seq: 1, undoToken: 'signed-snapshot' }
-    expect((await undoWrite(record, 'en')).outcome).toEqual({ status: 'saved' })
+  it('undo sends the snapshot token and accepts the server previous value when the cached previous value was stale', async () => {
+    vi.mocked(api.patch).mockResolvedValue(dto({ aircraft_icao: 'B738' }))
+    const record: EditRecord = { flightId: 7, field: 'aircraft_icao', previous: null, after: editableValues(flight({ aircraft_icao: 'A320' })), seq: 1, undoToken: 'signed-snapshot' }
+    const result = await undoWrite(record, 'en')
+    expect(result.outcome).toEqual({ status: 'saved' })
+    expect(result.flight?.aircraft_icao).toBe('B738')
     const [path, body] = vi.mocked(api.patch).mock.calls[0]
     expect(path).toBe('/api/flights/7')
     expect(body).toMatchObject({ undo_token: 'signed-snapshot' })

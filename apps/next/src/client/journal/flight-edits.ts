@@ -137,7 +137,7 @@ export async function writeFlightField(flightId: number, field: EditableField, v
     const body = undoToken ? { undo_token: undoToken } : { [field]: value, offer_undo: true }
     const dto = await sendWithZone(zone => api.patch<FlightDto>(`/api/flights/${flightId}`, withZone(body, zone), { signal: controller.signal }))
     if (generation !== getAuthGeneration()) return { outcome: { status: 'unknown', message: sessionChangedMessage(locale) } }
-    if (!dto || dto.id !== flightId || (dto[field] ?? null) !== value) return { outcome: { status: 'unknown', message: unknownMessage(locale) } }
+    if (!dto || dto.id !== flightId || (!undoToken && (dto[field] ?? null) !== value)) return { outcome: { status: 'unknown', message: unknownMessage(locale) } }
     return { outcome: { status: 'saved' }, flight: dto }
   } catch (cause) {
     if (generation !== getAuthGeneration()) return { outcome: { status: 'unknown', message: sessionChangedMessage(locale) } }
