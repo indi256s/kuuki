@@ -291,7 +291,8 @@ function matchesAlt(flight: JournalFlight, alt: SearchAlt, index: Index, memo: M
     case 'flight': {
       if (!flight.flight_number) return false
       const number = normalizeFlightNumber(flight.flight_number)
-      return number === alt.number || (flight.airline_iata !== null && flight.airline_iata.toUpperCase() + number === alt.number)
+      // Prefix match, so the list narrows while the number is typed: "TK38" keeps TK381 and TK3810 until "TK381" is complete.
+      return number.startsWith(alt.number) || (flight.airline_iata !== null && (flight.airline_iata.toUpperCase() + number).startsWith(alt.number))
     }
     case 'period': return flight.date.startsWith(alt.prefix)
     case 'month': return flight.date.slice(5, 7) === alt.month

@@ -110,8 +110,13 @@ describe('route pairs', () => {
 })
 
 describe('flight numbers', () => {
-  it.each(['TK 381', 'TK381', 'tk381', 'tk 381', 'TK-381'])('%s is one exact flight number, spaces and case ignored', query => {
-    expect(run(query, library)).toEqual(ids(tbsIst, istTbs))
+  it.each(['TK 381', 'TK381', 'tk381', 'tk 381', 'TK-381'])('%s is one flight-number prefix, spaces and case ignored', query => {
+    expect(run(query, library)).toEqual(ids(tbsIst, istTbs, longer))
+  })
+
+  it('narrows while a flight number is typed', () => {
+    expect(run('TK38', library)).toEqual(ids(tbsIst, istTbs, longer))
+    expect(run('TK3810', library)).toEqual(ids(longer))
   })
 
   it('reads an airline code and digits as one term', () => {
