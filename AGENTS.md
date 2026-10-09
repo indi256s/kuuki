@@ -2,7 +2,7 @@
 
 Personal flight journal on Cloudflare.
 
-Use `gh-axi` for GitHub and `chrome-devtools-axi` for browser automation. Downscale screenshots before reading them: `sips -Z 1200 <file>.png`.
+Use `gh-axi` for GitHub. Browser work follows the global `agent-browser` policy. When screenshots are needed, downscale before reading: `sips -Z 1200 <file>.png`.
 
 ## Where things live
 

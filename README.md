@@ -96,7 +96,7 @@ Use the current [deploy procedure](docs/skills/deploy-kuuki/SKILL.md) for Worker
 
 Local preflight and dry-run builds do not authorize remote writes or cutover. Remote D1 operations require an explicit approved target, writer hold, backup/restore proof and schema admission. Production migration, cloud configuration, delivery and paid provider evaluation require their approved release change set. A frontend rollback does not roll back D1.
 
-Deployment gates are defined in the deploy procedure and runbooks, including preview isolation, an exact approved production SHA and maintenance readiness. The existence of configuration is not evidence that those gates have passed.
+Deployment gates are defined in the deploy procedure and runbooks, including a clean production SHA with successful CI, migration admission and maintenance readiness. Deployments go directly to production. The existence of configuration is not evidence that those gates have passed.
 
 See [the documentation index](docs/README.md) for product docs and [GLOSSARY.md](GLOSSARY.md) for domain terms. [TECH_STACK.md](docs/TECH_STACK.md) records the former Vite stack.
 
