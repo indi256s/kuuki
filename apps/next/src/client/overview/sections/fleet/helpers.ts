@@ -1,5 +1,6 @@
 export function ridgeProfile(minutes: number[], samples = 128): { x: number; height: number }[] {
   const values = minutes.filter(value => Number.isFinite(value) && value > 0).map(Math.log)
+  if (!values.length) return []
   const count = Math.max(2, Math.floor(Number.isFinite(samples) ? samples : 128))
   const dense = values.length >= 8, bandwidth = dense ? 0.18 : 0.035
   const low = Math.log(30), high = Math.log(1020)

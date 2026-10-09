@@ -51,7 +51,7 @@
 .ui-panel-title{margin:0;font-size:22px;line-height:28px;font-weight:600;outline:none}
 .ui-panel-description{margin:var(--space-1) 0 0;color:var(--text-muted);font-size:15px}
 .ui-panel-body{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:var(--space-2) var(--space-6)}
-.ui-panel-footer{flex:none;display:flex;flex-wrap:wrap;justify-content:flex-end;gap:var(--space-2);padding:var(--space-4) var(--space-6) var(--space-5);border-top:1px solid var(--hairline);background:var(--surface-floating)}
+.ui-panel-footer{flex:none;display:flex;flex-wrap:wrap;justify-content:flex-end;gap:var(--space-2);padding:var(--space-4) var(--space-6) var(--space-5);background:var(--surface-floating)}
 .ui-icon-button{flex:none;display:inline-grid;place-items:center;width:44px;height:44px;margin:-6px -10px 0 0;border:0;border-radius:var(--radius-sm);background:transparent;color:var(--text);cursor:pointer;transition:transform var(--dur-press) var(--ease-out),background-color var(--dur-fast) var(--ease-out)}
 .ui-icon-button:active{transform:scale(.96)}
 @media(hover:hover) and (pointer:fine){.ui-icon-button:hover{background:var(--surface-inset)}}
