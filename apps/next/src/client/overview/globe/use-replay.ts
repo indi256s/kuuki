@@ -9,7 +9,9 @@ function createClock(schedule: ReturnType<typeof createReplaySchedule>) {
     advance(delta: number) {
       if (seeking) return null
       elapsed += delta
-      return schedule.advance(elapsed)
+      const frame = schedule.advance(elapsed, true)
+      elapsed = frame.absoluteMs
+      return frame
     },
     seek(time: number, phase: 'preview' | 'commit' | 'cancel') {
       seeking = phase === 'preview'; elapsed = time

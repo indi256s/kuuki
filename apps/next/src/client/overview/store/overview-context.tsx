@@ -50,8 +50,6 @@ function useController({ payload: initial, prefs: initialPrefs, ownerKey, locale
   })
   const [retired, setRetired] = useState(false)
   const [serverPayload] = useState(initial)
-  // Session-only: a deep copy of the filter, never prefs, so it cannot follow later edits.
-  const [kept, setKept] = useState<OverviewFilter | null>(null)
   const [prefs, setPrefs] = useState(() => structuredClone(initialPrefs))
   const [runtime] = useState(() => ({
     lifetime: null as Lifetime | null,
@@ -169,7 +167,7 @@ function useController({ payload: initial, prefs: initialPrefs, ownerKey, locale
       runtime.pending = null; runtime.eligible = false; runtime.saving = false
       for (const controller of lifetime.controllers) controller.abort()
     }
-    const reset = () => { stop(); setKept(null); setRetired(true) }
+    const reset = () => { stop(); setRetired(true) }
     window.addEventListener('kuuki:identity-reset', reset)
     return () => {
       stop()
@@ -197,8 +195,6 @@ function useController({ payload: initial, prefs: initialPrefs, ownerKey, locale
     const filter = change(old.filter)
     return filter === old.filter ? old : { ...old, filter }
   })
-  const chapterScope = kept ? scopeFor(store, kept) : null
-  const chapter = kept && chapterScope ? { filter: kept, scope: chapterScope } : null
   return {
     payload, scope: scopeFor(store, prefs.filter), all: scopeFor(store, {}),
     filter: prefs.filter, layout: prefs.layout, replayPaused: prefs.replayPaused, locale, ownerKey,
@@ -218,13 +214,6 @@ function useController({ payload: initial, prefs: initialPrefs, ownerKey, locale
       setPrefs(old => ({ ...old, layout: typeof change === 'function' ? change(old.layout) : change })),
     setReplayPaused: (change: boolean | ((paused: boolean) => boolean)) =>
       setPrefs(old => ({ ...old, replayPaused: typeof change === 'function' ? change(old.replayPaused) : change })),
-    chapter,
-    keepChapter: () => {
-      if (!currentLifetime()) return
-      const scope = scopeFor(store, prefs.filter)
-      if (scope && scope.figures.flights > 0) setKept(structuredClone(prefs.filter))
-    },
-    clearChapter: () => { if (currentLifetime()) setKept(null) },
     bus, navigation, retired,
     isCurrent: () => currentLifetime() !== null,
     revalidate: () => live && currentLifetime()

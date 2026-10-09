@@ -209,7 +209,7 @@ export function FullRouteMap({ routes, visits, locale, viewportKey, selected, on
   return <div className="route-map-shell">
     {/* Local CSS is requested only when the heavy map island mounts. */}
     {/* eslint-disable-next-line @next/next/no-css-tags */}
-    <link rel="stylesheet" href="/maps/maplibre-6.12.0/maplibre-gl.css" />
+    <link rel="stylesheet" href="/maps/maplibre-6.13.0/maplibre-gl.css" />
     {failed ? <>
       <p role="status" className="route-map-note">{ru ? 'Карта недоступна. Маршруты и страны перечислены ниже.' : 'Map unavailable. Routes and countries are listed below.'}</p>
       {placeholder}

@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event'
 import { useState } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { Sheet, rubberBand, shouldDismiss } from './sheet'
+import { Menu, MenuItem } from './menu'
 
 function Harness({ onChange }: { onChange?: (open: boolean) => void }) {
   const [open, setOpen] = useState(false)
@@ -45,6 +46,31 @@ describe('Sheet', () => {
     await user.click(screen.getByRole('button', { name: 'Open sheet' }))
     await user.click(await screen.findByRole('button', { name: 'Close' }))
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+  })
+
+  it('keeps keyboard focus in a portalled menu until selection returns it to the sheet', async () => {
+    const user = userEvent.setup()
+    const selected = vi.fn()
+    render(<Sheet open onOpenChange={() => {}} title="Rankings">
+      <Menu trigger={<button type="button">Section options</button>}>
+        <MenuItem>Move up</MenuItem>
+        <MenuItem onSelect={selected}>Hide</MenuItem>
+      </Menu>
+    </Sheet>)
+    await waitFor(() => expect(screen.getByRole('heading', { name: 'Rankings' })).toHaveFocus())
+    await user.tab()
+    await user.tab()
+    const trigger = screen.getByRole('button', { name: 'Section options' })
+    expect(trigger).toHaveFocus()
+    await user.keyboard('{Enter}')
+    await waitFor(() => expect(screen.getByRole('menuitem', { name: 'Move up' })).toHaveFocus())
+    await user.keyboard('{ArrowDown}')
+    expect(screen.getByRole('menuitem', { name: 'Hide' })).toHaveFocus()
+    await user.keyboard('{Enter}')
+    expect(selected).toHaveBeenCalledOnce()
+    await waitFor(() => expect(screen.queryByRole('menu')).not.toBeInTheDocument())
+    expect(trigger).toHaveFocus()
+    expect(screen.getByRole('dialog', { name: 'Rankings' })).toBeInTheDocument()
   })
 
   it('dismisses on a fast drag of the handle', async () => {

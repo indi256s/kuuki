@@ -14,9 +14,8 @@ const cachedMapAssets = new Set([
   '/maps/country-centers-110m-2.0.2.json',
   '/maps/world-outline-110m-2.0.2.svg',
   '/maps/world-outline-110m-2.0.2-light.svg', '/maps/world-outline-110m-2.0.2-dark.svg',
-  '/maps/maplibre-6.12.0/maplibre-gl.css',
-  '/maps/maplibre-6.12.0/maplibre-gl-shared.mjs',
-  '/maps/maplibre-6.12.0/maplibre-gl-worker.mjs',
+  '/maps/maplibre-6.13.0/maplibre-gl.css',
+  '/maps/maplibre-6.13.0/maplibre-gl-worker.mjs',
 ])
 const exactRoutes = new Map(apiRoutes.map(({ route, methods }): [string, readonly string[]] => [route, methods]))
 const dynamicRoutes = apiRoutes.filter(({ route }) => route.includes(':')).map(({ route, methods }) => ({

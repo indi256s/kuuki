@@ -4,6 +4,8 @@ import { makerOf } from '@kuuki/data/aircraft-makers'
 import { ArrowUp } from 'lucide-react'
 import { memo, useMemo, useRef, type MouseEvent } from 'react'
 import { formatDateOnly, formatDuration, formatNumber, type Locale } from '../../lib/format'
+import { airlineIdentity } from '../../lib/airline'
+import { AirlineMark } from '../ui/airline-mark'
 import { Button } from '../ui/button'
 import { MakerSwatch } from '../ui/category-mark'
 import { Checkbox } from '../ui/checkbox'
@@ -88,14 +90,14 @@ const FlightRow = memo(function FlightRow({ flight, firsts, refs, locale, active
   const date = formatDateOnly(locale, flight.date, 'medium')
   const route = t.routeName(flight.origin, flight.destination)
   const status = flight.lifecycle_state === 'awaiting' ? t.toConfirm : flight.lifecycle_state === 'upcoming' ? t.upcoming : null
-  const airline = flight.airline_iata ? refs.airlines[flight.airline_iata]?.name ?? null : null
+  const airline = flight.airline_iata ? refs.airlines[flight.airline_iata]?.name ?? airlineIdentity(flight.airline_iata)?.name ?? null : null
   const aircraftRef = flight.aircraft_icao ? refs.aircraft[flight.aircraft_icao] : undefined
   const aircraftName = flight.aircraft_icao ? aircraftRef?.name ?? flight.aircraft_icao : null
   const origin = refs.airports[flight.origin], destination = refs.airports[flight.destination]
   const cities = [origin?.city ?? origin?.name ?? flight.origin, destination?.city ?? destination?.name ?? flight.destination]
   const duration = positive(flight.duration_minutes) ? `${flight.duration_source === 'estimate' ? '≈ ' : ''}${formatDuration(locale, flight.duration_minutes!)}` : null
   const distance = positive(flight.distance_km) ? formatNumber(locale, flight.distance_km!) : null
-  const name = [route, status, date, flight.flight_number ?? flight.airline_iata, aircraftName, duration, distance && `${distance} ${t.km}`].filter(Boolean).join(', ')
+  const name = [route, status, date, airline, flight.flight_number ?? flight.airline_iata, aircraftName, duration, distance && `${distance} ${t.km}`].filter(Boolean).join(', ')
   const items = rowMenu?.(flight)
   const actionLabel = `${t.actions}: ${route}, ${date}`
 
@@ -130,7 +132,7 @@ const FlightRow = memo(function FlightRow({ flight, firsts, refs, locale, active
     </Cell>
     <Cell role="cell" className="jr-airline">
       {flight.airline_iata
-        ? <span className="jr-airline-line"><span className="jr-code">{flight.airline_iata}</span>{airline && <span className="jr-airline-name">{airline}</span>}</span>
+        ? <span className="jr-airline-line"><AirlineMark iata={flight.airline_iata} /><span className="jr-code">{flight.airline_iata}</span>{airline && <span className="jr-airline-name">{airline}</span>}</span>
         : flight.flight_number ? null : <Unknown label={t.notRecorded} />}
       {flight.flight_number && <span className="jr-flightno">{flight.flight_number}</span>}
     </Cell>

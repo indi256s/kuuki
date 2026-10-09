@@ -39,7 +39,7 @@ export async function listUnfinished(signal?: AbortSignal): Promise<UnfinishedIm
 
 export interface EnrichFlight { id: string; flight_number: string | null; airline_iata: string | null; airline_name?: string | null; date: string; origin: string; destination: string }
 export const enrichAircraft = (flights: EnrichFlight[], signal?: AbortSignal) =>
-  api.post<{ results: EnrichResult[] }>('/api/enrich/aircraft', { flights }, { signal, timeoutMs: 40_000 })
+  api.post<{ results: EnrichResult[]; search_suggestions_html?: string }>('/api/enrich/aircraft', { flights }, { signal, timeoutMs: 40_000 })
 
 export const acceptAircraftBatch = (items: Array<{ id: number; aircraft_icao: string }>) =>
   api.post<AircraftAccept>('/api/flights/aircraft-batch', { items, replaceAll: true })

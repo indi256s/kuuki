@@ -58,8 +58,11 @@ export function createReplaySchedule(timeline: TimelineItem[], durationMs: numbe
   }
   return {
     seek(time: number) { reset(time) },
-    advance(time: number) {
+    advance(time: number, skipIdle = false) {
       if (time < cursor) reset(time)
+      if (skipIdle && timeline.length && !planes.some(plane => plane.launchMs + PLANE_MS > time)) {
+        time = Math.max(time, nextCycle * durationMs + timeline[nextIndex].startMs)
+      }
       let copied = false
       while (timeline.length) {
         const item = timeline[nextIndex], launchMs = nextCycle * durationMs + item.startMs

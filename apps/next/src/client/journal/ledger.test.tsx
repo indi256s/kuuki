@@ -49,13 +49,29 @@ it('renders flight rows with their status, the connector band and no per-row uni
   // Header row, two flights and the connector band.
   expect(screen.getAllByRole('row')).toHaveLength(4)
   expect(screen.getByRole('button', { name: /IST to AMS, To confirm, Mar 12, 2024/ })).toHaveAttribute('data-flight-row', '2')
-  expect(screen.getByRole('button', { name: /TBS to IST, Mar 12, 2024, TK381, Airbus A350-900, 2\s+h 5\s+min, 1,203 km/ })).toHaveAttribute('data-flight-row', '1')
+  expect(screen.getByRole('button', { name: /TBS to IST, Mar 12, 2024, Turkish Airlines, TK381, Airbus A350-900, 2\s+h 5\s+min, 1,203 km/ })).toHaveAttribute('data-flight-row', '1')
   expect(screen.getByText('To confirm')).toBeInTheDocument()
   expect(screen.getByRole('cell', { name: /IST · 2\s+h 45\s+min transfer/ })).toBeInTheDocument()
   expect(screen.getByText('Airbus A350-900')).toBeInTheDocument()
   expect(screen.getByRole('columnheader', { name: 'Distance, km' })).toBeInTheDocument()
   // The estimate carries the approximation sign.
   expect(screen.getByText(/≈ 3 h 20 min/)).toBeInTheDocument()
+})
+
+it('keeps airline identity and the flight number when a local logo fails to load', () => {
+  setup({ items: [{ kind: 'flight', flight: first, firsts: null, chain: null }], refs: { ...refs, airlines: {} } })
+  const open = screen.getByRole('button', { name: /Turkish Airlines, TK381/ })
+  const row = within(open.closest('[role=row]')!)
+  const logo = row.getByAltText('') as HTMLImageElement
+  const source = new URL(logo.src)
+  expect(source.origin).toBe(window.location.origin)
+  expect(source.pathname).toMatch(/^\/airlines\/TK\./)
+  fireEvent.error(logo)
+  expect(row.queryByAltText('')).toBeNull()
+  expect(row.getByText('TK')).toBeInTheDocument()
+  expect(row.getByText('Turkish Airlines')).toBeInTheDocument()
+  expect(row.getByText('TK381')).toBeInTheDocument()
+  expect(open).toHaveAccessibleName(/Turkish Airlines, TK381/)
 })
 
 it('sorts from the headers: the active column flips, another column starts descending, and aria-sort follows', async () => {

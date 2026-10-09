@@ -40,15 +40,15 @@ function spread(wanted: number[], gap: number, low: number, high: number): numbe
 
 /** Mount only with a known baseline and counts for the same stable identities in both periods. */
 export function ArcSlope<T>({ rows, mark, maxValue, startLabel, endLabel, formatValue, width = 600, height = 260, highlightKey }: ArcSlopeProps<T>) {
-  const x0 = 160, x1 = width - 100, top = 36, bottom = height - 24
+  const narrow = width < 400
+  const x0 = Math.min(160, width * 0.32), x1 = width - Math.min(100, width * 0.2), top = narrow ? 48 : 36, bottom = height - 24
   const yOf = (value: number) => bottom - value / Math.max(1, maxValue) * (bottom - top)
   const gap = Math.min(20, (bottom - top) / Math.max(1, rows.length - 1))
   const left = spread(rows.map(row => yOf(row.start)), gap, top, bottom)
   const right = spread(rows.map(row => yOf(row.end)), gap, top, bottom)
   return <g>
     <g aria-hidden="true" pointerEvents="none" fill="var(--text-muted)" fontSize={12}>
-      <text x={x0} y={18} textAnchor="middle">{startLabel}</text>
-      <text x={x1} y={18} textAnchor="middle">{endLabel}</text>
+      {[startLabel, endLabel].map((label, index) => <text key={index} x={index === 0 ? x0 : x1} y={18} textAnchor="middle">{narrow ? label.split(' ').map((word, line) => <tspan key={line} x={index === 0 ? x0 : x1} dy={line === 0 ? 0 : 16}>{word}{' '}</tspan>) : label}</text>)}
       <text x={(x0 + x1) / 2} y={height - 4} textAnchor="middle">0–{formatValue(maxValue)}</text>
     </g>
     {rows.map((row, index) => {

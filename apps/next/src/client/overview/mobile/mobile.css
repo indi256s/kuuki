@@ -2,6 +2,8 @@
 .ov3-tile[data-tile-span=full] { grid-column: 1 / -1; }
 .ov3-tile-heading { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .ov3-tile-heading h2 { min-width: 0; }
+/* Only there to name the preview as the tile's description; the preview keeps laying out as the tile's own children. */
+.ov3-tile-preview { display: contents; }
 .ov3-tile:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
 .ov3-tile[data-dragging=true] { cursor: grabbing; }
 /* Title and position fill the row up to the options button, which keeps its own corner so chapter names of any length never move it. */
@@ -60,3 +62,11 @@
 .ov3-tile .ov3-mini-bars span { flex: none; min-width: 3ch; white-space: nowrap; overflow-wrap: normal; }
 .ov3-tile .ov3-mini-bars i { flex: 0 1 auto; min-width: 2px; max-width: calc(100% - 3ch - 8px); }
 .ov3-tile strong { overflow-wrap: anywhere; }
+/* Scope line under the pager: present only while a filter is on, so an unfiltered sheet keeps its full height for the chapter. */
+.ov3-sheet-scope { flex: none; display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); margin: -12px var(--space-6) var(--space-2); font-size: 13px; color: var(--text-muted); }
+.ov3-sheet-scope:empty { display: none; }
+.ov3-sheet-scope-label { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ov3-sheet-scope-label b { margin-inline-start: 6px; color: var(--text); font-weight: 600; }
+.ov3-sheet-scope-clear.ui-button { flex: none; display: inline-flex; gap: 6px; min-height: 44px; padding-inline: 12px; margin-inline-end: -12px; font-size: 13px; }
+/* A route reads as one unit in a tile preview; it moves to the next line whole. */
+.ov3-tile-route { white-space: nowrap; }

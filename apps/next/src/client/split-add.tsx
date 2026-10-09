@@ -1,7 +1,8 @@
 'use client'
 
 import { NavigationLink as Link } from './navigation-link'
-import { ChevronDown, Plus } from 'lucide-react'
+import { ChevronDown } from 'lucide-react'
+import { Plus } from './ui/animated-icons'
 import { AddActions } from './add-actions'
 import { Menu } from './ui/menu'
 

@@ -336,6 +336,27 @@ it.each<Partial<OverviewRow>>([
   expect(aggregateRows([row(), row({ ...different, id: 10 })])).toHaveLength(2)
 })
 
+it('counts migrated second-precision times in Clock while excluding malformed times', async () => {
+  const times = ['00:00:00', '06:40:00', '23:59:59', '06:40', ...Array<string>(6).fill('12:30:15'),
+    '24:00:00', '06:60:00', '06:40:60', '06:40:00junk', null]
+  const { db, dispose } = await overviewAccount(times.map((_, index) => ({
+    id: index + 1, date: '2025-03-01', origin: 'TBS', destination: 'IST', state: 'logged',
+  })), d => times.map((time, index) =>
+    d.prepare('UPDATE flights SET departure_time = ?, arrival_time = ? WHERE id = ?').bind(time, time, index + 1)))
+  try {
+    const response = await getOverviewData({ ...apiContext(db, new Request('https://kuuki.test/api/me/overview/data')),
+      data: { user: USER } } as never)
+    expect(response.status).toBe(200)
+    const payload = await response.json() as OverviewPayload
+    const minutes = [0, 400, 1439, 400, ...Array<number>(6).fill(750), null, null, null, null, null]
+    expect(payload.rows.map(row => row.depMinute)).toEqual(minutes)
+    expect(payload.rows.map(row => row.arrMinute)).toEqual(minutes)
+    expect(computeOverview(payload, {}).clock).toMatchObject({ status: 'ready', value: {
+      total: 15, withDepartureTime: 10, withArrivalTime: 10, peakHour: { hour: 12, flights: 6 },
+    } })
+  } finally { await dispose() }
+})
+
 it('arrival minute prefers stored arrival time', async () => {
   const { db, dispose } = await overviewAccount([
     { id: 1, date: '2025-03-01', origin: 'TBS', destination: 'IST', state: 'logged', minutes: 240 },

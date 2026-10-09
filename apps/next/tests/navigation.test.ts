@@ -1,6 +1,21 @@
 import { test, expect } from '@playwright/test'
 import { signIn, fixtureHeaders } from './helpers'
 
+test('generated avatars blink unless reduced motion is requested', async ({ page, baseURL }) => {
+  await page.setViewportSize({ width: 1280, height: 800 })
+  await page.emulateMedia({ reducedMotion: 'no-preference' })
+  await signIn(page, baseURL!)
+  await page.goto('/overview')
+  const face = page.getByRole('button', { name: 'Account menu' }).locator('[data-facehash-face]')
+  await expect(face).toBeVisible()
+  const blinkingEyes = () => face.evaluate(element => element.getAnimations({ subtree: true })
+    .filter(animation => animation instanceof CSSAnimation && animation.animationName === 'facehash-blink' && animation.playState === 'running').length)
+  await expect.poll(blinkingEyes).toBe(2)
+  await page.emulateMedia({ reducedMotion: 'reduce' })
+  await expect.poll(blinkingEyes).toBe(0)
+  await expect(face).toHaveCSS('transform', 'none')
+})
+
 test('read-route navigation settles on authorized content', async ({ page, baseURL }) => {
   await signIn(page, baseURL!)
   await page.goto('/overview')

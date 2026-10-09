@@ -126,6 +126,7 @@
 .import-stamp-grid>.stamp{width:160px}
 .import-final-actions .ui-button{text-decoration:none}
 .import-aircraft{padding-top:var(--space-4);border-top:1px solid var(--hairline)}
+.import-search-suggestions{display:block;width:100%;height:96px;border:0}
 .import-aircraft-row[data-state=saved]{opacity:1}
 
 @keyframes import-enter{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}

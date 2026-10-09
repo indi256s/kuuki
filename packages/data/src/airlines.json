@@ -4,7 +4,7 @@
     "icao": "IBS",
     "name": "Star Peru",
     "country": "Peru",
-    "primaryColor": "#003876",
+    "primaryColor": null,
     "alliance": null,
     "callsign": "STAR UP",
     "logoUrl": null
@@ -14,7 +14,7 @@
     "icao": "TRF",
     "name": "TruJet",
     "country": "India",
-    "primaryColor": "#003876",
+    "primaryColor": null,
     "alliance": null,
     "callsign": "TURBOJET",
     "logoUrl": null
@@ -24,10 +24,10 @@
     "icao": "JSA",
     "name": "Jetstar Asia",
     "country": "Singapore",
-    "primaryColor": "#FF6600",
+    "primaryColor": "#FE5815",
     "alliance": null,
     "callsign": "JETSTAR ASIA",
-    "logoUrl": null
+    "logoUrl": "/airlines/3K.png"
   },
   {
     "iata": "3U",
@@ -44,10 +44,10 @@
     "icao": "DSM",
     "name": "LATAM Argentina",
     "country": "Argentina",
-    "primaryColor": "#10004F",
+    "primaryColor": "#2A0088",
     "alliance": null,
     "callsign": "LANG",
-    "logoUrl": null
+    "logoUrl": "/airlines/4M.png"
   },
   {
     "iata": "4N",
@@ -64,7 +64,7 @@
     "icao": "LNK",
     "name": "Airlink",
     "country": "South Africa",
-    "primaryColor": "#003876",
+    "primaryColor": null,
     "alliance": null,
     "callsign": "LINK",
     "logoUrl": null
@@ -74,7 +74,7 @@
     "icao": "SLI",
     "name": "FlyOne",
     "country": "Moldova",
-    "primaryColor": "#003876",
+    "primaryColor": null,
     "alliance": null,
     "callsign": "SKY LION",
     "logoUrl": null
@@ -87,14 +87,14 @@
     "primaryColor": "#FDB913",
     "alliance": null,
     "callsign": "CEBU AIR",
-    "logoUrl": null
+    "logoUrl": "/airlines/5J.png"
   },
   {
     "iata": "5O",
     "icao": "FPO",
     "name": "Europe Airpost",
     "country": "France",
-    "primaryColor": "#003876",
+    "primaryColor": null,
     "alliance": null,
     "callsign": "STAR WING",
     "logoUrl": null
@@ -104,7 +104,7 @@
     "icao": "CWW",
     "name": "Canadian North",
     "country": "Canada",
-    "primaryColor": "#003876",
+    "primaryColor": null,
     "alliance": null,
     "callsign": "EMPRESS",
     "logoUrl": null
@@ -114,7 +114,7 @@
     "icao": "TAB",
     "name": "Transportes Aéreos Bolivianos",
     "country": "Bolivia",
-    "primaryColor": "#003876",
+    "primaryColor": null,
     "alliance": null,
     "callsign": "TRANSBOL",
     "logoUrl": null
@@ -124,27 +124,27 @@
     "icao": "IGO",
     "name": "IndiGo",
     "country": "India",
-    "primaryColor": "#3F51B5",
+    "primaryColor": "#001B94",
     "alliance": null,
     "callsign": "IFLY",
-    "logoUrl": null
+    "logoUrl": "/airlines/6E.png"
   },
   {
     "iata": "6H",
     "icao": "ISR",
     "name": "Israir",
     "country": "Israel",
-    "primaryColor": "#003876",
+    "primaryColor": "#18549C",
     "alliance": null,
     "callsign": "ISRAIR",
-    "logoUrl": null
+    "logoUrl": "/airlines/6H.png"
   },
   {
     "iata": "6R",
     "icao": "AUB",
     "name": "Alrosa",
     "country": "Russia",
-    "primaryColor": "#003876",
+    "primaryColor": null,
     "alliance": null,
     "callsign": "ALROSA",
     "logoUrl": null
@@ -154,7 +154,7 @@
     "icao": "BLV",
     "name": "Saratov Airlines",
     "country": "Russia",
-    "primaryColor": "#003876",
+    "primaryColor": null,
     "alliance": null,
     "callsign": "SARAVIA",
     "logoUrl": null
@@ -177,14 +177,14 @@
     "primaryColor": "#000000",
     "alliance": null,
     "callsign": "STARFLYER",
-    "logoUrl": null
+    "logoUrl": "/airlines/7G.png"
   },
   {
     "iata": "7L",
     "icao": "ERG",
     "name": "Silk Way West Airlines",
     "country": "Azerbaijan",
-    "primaryColor": "#003876",
+    "primaryColor": null,
     "alliance": null,
     "callsign": "SILK WEST",
     "logoUrl": null
@@ -194,7 +194,7 @@
     "icao": "BRX",
     "name": "RusLine",
     "country": "Russia",
-    "primaryColor": "#003876",
+    "primaryColor": null,
     "alliance": null,
     "callsign": "AIR BRIDGE",
     "logoUrl": null
@@ -204,10 +204,10 @@
     "icao": "WRC",
     "name": "Windrose Airlines",
     "country": "Ukraine",
-    "primaryColor": "#003876",
+    "primaryColor": "#FF180F",
     "alliance": null,
     "callsign": "WINDROSE",
-    "logoUrl": null
+    "logoUrl": "/airlines/7W.png"
   },
   {
     "iata": "8L",
@@ -224,7 +224,7 @@
     "icao": "MXD",
     "name": "Myanmar Airways International",
     "country": "Myanmar",
-    "primaryColor": "#003876",
+    "primaryColor": null,
     "alliance": null,
     "callsign": "MYANMAR WING",
     "logoUrl": null
@@ -234,10 +234,10 @@
     "icao": "FLG",
     "name": "Endeavor Air",
     "country": "United States",
-    "primaryColor": "#003366",
+    "primaryColor": "#E51937",
     "alliance": null,
     "callsign": "ENDEAVOR",
-    "logoUrl": null
+    "logoUrl": "/airlines/9E.png"
   },
   {
     "iata": "9W",
@@ -254,7 +254,7 @@
     "icao": "TKA",
     "name": "Flytant",
     "country": "Kazakhstan",
-    "primaryColor": "#003876",
+    "primaryColor": null,
     "alliance": null,
     "callsign": "TANKA",
     "logoUrl": null
@@ -274,7 +274,7 @@
     "icao": "GNT",
     "name": "Azimut",
     "country": "Russia",
-    "primaryColor": "#003876",
+    "primaryColor": null,
     "alliance": null,
     "callsign": "AZIMUT",
     "logoUrl": null
@@ -304,10 +304,10 @@
     "icao": "AAL",
     "name": "American Airlines",
     "country": "United States",
-    "primaryColor": "#0078D2",
+    "primaryColor": "#0D72AE",
     "alliance": "oneworld",
     "callsign": "AMERICAN",
-    "logoUrl": null
+    "logoUrl": "/airlines/AA.png"
   },
   {
     "iata": "AC",
@@ -324,17 +324,17 @@
     "icao": "AZU",
     "name": "Azul Brazilian Airlines",
     "country": "Brazil",
-    "primaryColor": "#003087",
+    "primaryColor": "#041E42",
     "alliance": null,
     "callsign": "AZUL",
-    "logoUrl": null
+    "logoUrl": "/airlines/AD.png"
   },
   {
     "iata": "AE",
     "icao": "MDA",
     "name": "Mandarin Airlines",
     "country": "Taiwan",
-    "primaryColor": "#003876",
+    "primaryColor": null,
     "alliance": null,
     "callsign": "MANDARIN",
     "logoUrl": null
@@ -344,10 +344,10 @@
     "icao": "AFR",
     "name": "Air France",
     "country": "France",
-    "primaryColor": "#002157",
+    "primaryColor": "#051039",
     "alliance": "skyteam",
     "callsign": "AIRFRANS",
-    "logoUrl": null
+    "logoUrl": "/airlines/AF.png"
   },
   {
     "iata": "AH",
@@ -364,10 +364,10 @@
     "icao": "AIC",
     "name": "Air India",
     "country": "India",
-    "primaryColor": "#FF8C00",
+    "primaryColor": "#DA0E29",
     "alliance": "star_alliance",
     "callsign": "AIRINDIA",
-    "logoUrl": null
+    "logoUrl": "/airlines/AI.png"
   },
   {
     "iata": "AK",
@@ -394,7 +394,7 @@
     "icao": "ADH",
     "name": "Air One",
     "country": "Italy",
-    "primaryColor": "#003876",
+    "primaryColor": null,
     "alliance": null,
     "callsign": "HERON",
     "logoUrl": null
@@ -424,10 +424,10 @@
     "icao": "RAM",
     "name": "Royal Air Maroc",
     "country": "Morocco",
-    "primaryColor": "#C4122E",
+    "primaryColor": "#C20831",
     "alliance": null,
     "callsign": "ROYALAIR MAROC",
-    "logoUrl": null
+    "logoUrl": "/airlines/AT.png"
   },
   {
     "iata": "AV",
@@ -444,7 +444,7 @@
     "icao": "AWI",
     "name": "Africa World Airlines",
     "country": "Ghana",
-    "primaryColor": "#003876",
+    "primaryColor": null,
     "alliance": null,
     "callsign": "WORLD GHANA",
     "logoUrl": null
@@ -487,7 +487,7 @@
     "primaryColor": "#003876",
     "alliance": null,
     "callsign": "JETBLUE",
-    "logoUrl": null
+    "logoUrl": "/airlines/B6.png"
   },
   {
     "iata": "BA",
@@ -497,14 +497,14 @@
     "primaryColor": "#2E5C99",
     "alliance": "oneworld",
     "callsign": "SPEEDBIRD",
-    "logoUrl": null
+    "logoUrl": "/airlines/BA.png"
   },
   {
     "iata": "BB",
     "icao": "SBS",
     "name": "Seaborne Airlines",
     "country": "Puerto Rico",
-    "primaryColor": "#003876",
+    "primaryColor": null,
     "alliance": null,
     "callsign": "SEABORNE",
     "logoUrl": null
@@ -524,7 +524,7 @@
     "icao": "RSU",
     "name": "Bluebird Nordic",
     "country": "Iceland",
-    "primaryColor": "#003876",
+    "primaryColor": null,
     "alliance": null,
     "callsign": "BLUEBIRD",
     "logoUrl": null
@@ -534,47 +534,47 @@
     "icao": "BBC",
     "name": "Biman Bangladesh Airlines",
     "country": "Bangladesh",
-    "primaryColor": "#006633",
+    "primaryColor": "#00803E",
     "alliance": null,
     "callsign": "BANGLADESH",
-    "logoUrl": null
+    "logoUrl": "/airlines/BG.png"
   },
   {
     "iata": "BI",
     "icao": "RBA",
     "name": "Royal Brunei Airlines",
     "country": "Brunei",
-    "primaryColor": "#FFD700",
+    "primaryColor": "#FFE600",
     "alliance": null,
     "callsign": "BRUNEI",
-    "logoUrl": null
+    "logoUrl": "/airlines/BI.png"
   },
   {
     "iata": "BJ",
     "icao": "LBT",
     "name": "Nouvelair",
     "country": "Tunisia",
-    "primaryColor": "#FF6600",
+    "primaryColor": "#0054A5",
     "alliance": null,
     "callsign": "NOUVELAIR",
-    "logoUrl": null
+    "logoUrl": "/airlines/BJ.png"
   },
   {
     "iata": "BL",
     "icao": "PIC",
     "name": "Jetstar Pacific",
     "country": "Vietnam",
-    "primaryColor": "#FF6600",
+    "primaryColor": "#FE5815",
     "alliance": null,
     "callsign": "PACIFIC AIRLINES",
-    "logoUrl": null
+    "logoUrl": "/airlines/BL.png"
   },
   {
     "iata": "BP",
     "icao": "BOT",
     "name": "Air Botswana",
     "country": "Botswana",
-    "primaryColor": "#003876",
+    "primaryColor": "#10ADE4",
     "alliance": null,
     "callsign": "BOTSWANA",
     "logoUrl": null
@@ -584,7 +584,7 @@
     "icao": "EVA",
     "name": "EVA Air",
     "country": "Taiwan",
-    "primaryColor": "#00A84F",
+    "primaryColor": "#00A64F",
     "alliance": "star_alliance",
     "callsign": "EVA",
     "logoUrl": null
@@ -594,7 +594,7 @@
     "icao": "BIH",
     "name": "US-Bangla Airlines",
     "country": "Bangladesh",
-    "primaryColor": "#E4002B",
+    "primaryColor": "#1F4696",
     "alliance": null,
     "callsign": "BANGLA STAR",
     "logoUrl": null
@@ -604,37 +604,37 @@
     "icao": "BTI",
     "name": "airBaltic",
     "country": "Latvia",
-    "primaryColor": "#00A651",
+    "primaryColor": "#152649",
     "alliance": null,
     "callsign": "AIRBALTIC",
-    "logoUrl": null
+    "logoUrl": "/airlines/BT.png"
   },
   {
     "iata": "BX",
     "icao": "ABL",
     "name": "Air Busan",
     "country": "South Korea",
-    "primaryColor": "#003876",
+    "primaryColor": "#1E409A",
     "alliance": null,
     "callsign": "AIR BUSAN",
-    "logoUrl": null
+    "logoUrl": "/airlines/BX.png"
   },
   {
     "iata": "BY",
     "icao": "TOM",
     "name": "TUI Airways",
     "country": "United Kingdom",
-    "primaryColor": "#003876",
+    "primaryColor": "#D40E14",
     "alliance": null,
     "callsign": "TOMJET",
-    "logoUrl": null
+    "logoUrl": "/airlines/BY.png"
   },
   {
     "iata": "C3",
     "icao": "IPR",
     "name": "Trade Air",
     "country": "Croatia",
-    "primaryColor": "#003876",
+    "primaryColor": "#082838",
     "alliance": null,
     "callsign": "TRADEAIR",
     "logoUrl": null
@@ -644,17 +644,17 @@
     "icao": "CCA",
     "name": "Air China",
     "country": "China",
-    "primaryColor": "#C70037",
+    "primaryColor": "#E60012",
     "alliance": "star_alliance",
     "callsign": "AIR CHINA",
-    "logoUrl": null
+    "logoUrl": "/airlines/CA.png"
   },
   {
     "iata": "CI",
     "icao": "CAL",
     "name": "China Airlines",
     "country": "Taiwan",
-    "primaryColor": "#D31145",
+    "primaryColor": "#CA5767",
     "alliance": "skyteam",
     "callsign": "DYNASTY",
     "logoUrl": null
@@ -664,7 +664,7 @@
     "icao": "CMP",
     "name": "Copa Airlines",
     "country": "Panama",
-    "primaryColor": "#003F87",
+    "primaryColor": "#0060A9",
     "alliance": "star_alliance",
     "callsign": "COPA",
     "logoUrl": null
@@ -674,7 +674,7 @@
     "icao": "CPA",
     "name": "Cathay Pacific",
     "country": "Hong Kong",
-    "primaryColor": "#005F3E",
+    "primaryColor": "#006B6E",
     "alliance": "oneworld",
     "callsign": "CATHAY",
     "logoUrl": null
@@ -684,7 +684,7 @@
     "icao": "CSN",
     "name": "China Southern Airlines",
     "country": "China",
-    "primaryColor": "#008AC5",
+    "primaryColor": "#0093D0",
     "alliance": "skyteam",
     "callsign": "CHINA SOUTHERN",
     "logoUrl": null
@@ -694,7 +694,7 @@
     "icao": "SDR",
     "name": "Severstal Air Company",
     "country": "Russia",
-    "primaryColor": "#003876",
+    "primaryColor": "#002F6C",
     "alliance": null,
     "callsign": "SEVERSTAL",
     "logoUrl": null
@@ -704,7 +704,7 @@
     "icao": "LIS",
     "name": "Inter Air",
     "country": "South Africa",
-    "primaryColor": "#003876",
+    "primaryColor": null,
     "alliance": null,
     "callsign": "INTER",
     "logoUrl": null
@@ -724,7 +724,7 @@
     "icao": "DNV",
     "name": "Donavia",
     "country": "Russia",
-    "primaryColor": "#003876",
+    "primaryColor": "#254997",
     "alliance": null,
     "callsign": "DONAVIA",
     "logoUrl": null
@@ -734,7 +734,7 @@
     "icao": "NOK",
     "name": "Nok Air",
     "country": "Thailand",
-    "primaryColor": "#8B4789",
+    "primaryColor": "#FFCC08",
     "alliance": null,
     "callsign": "NOK AIR",
     "logoUrl": null
@@ -744,7 +744,7 @@
     "icao": "VKG",
     "name": "Sunclass Airlines",
     "country": "Denmark",
-    "primaryColor": "#FF6600",
+    "primaryColor": "#FE8C00",
     "alliance": null,
     "callsign": "VIKING",
     "logoUrl": null
@@ -754,17 +754,17 @@
     "icao": "DAL",
     "name": "Delta Air Lines",
     "country": "United States",
-    "primaryColor": "#003366",
+    "primaryColor": "#003D79",
     "alliance": "skyteam",
     "callsign": "DELTA",
-    "logoUrl": null
+    "logoUrl": "/airlines/DL.png"
   },
   {
     "iata": "DM",
     "icao": "MDA",
     "name": "Aerolineas Mas",
     "country": "Dominican Republic",
-    "primaryColor": "#003876",
+    "primaryColor": null,
     "alliance": null,
     "callsign": "AIR MAS",
     "logoUrl": null
@@ -794,7 +794,7 @@
     "icao": "RLH",
     "name": "Ruili Airlines",
     "country": "China",
-    "primaryColor": "#C41E3A",
+    "primaryColor": "#E82828",
     "alliance": null,
     "callsign": "RUILI",
     "logoUrl": null
@@ -804,7 +804,7 @@
     "icao": "NAX",
     "name": "Norwegian Air Shuttle",
     "country": "Norway",
-    "primaryColor": "#D81939",
+    "primaryColor": "#E6222E",
     "alliance": null,
     "callsign": "NOR SHUTTLE",
     "logoUrl": null
@@ -814,7 +814,7 @@
     "icao": "EPA",
     "name": "Donghai Airlines",
     "country": "China",
-    "primaryColor": "#003876",
+    "primaryColor": "#08B8F8",
     "alliance": null,
     "callsign": "DONGHAI",
     "logoUrl": null
@@ -834,7 +834,7 @@
     "icao": "ESW",
     "name": "European Executive Express",
     "country": "Germany",
-    "primaryColor": "#003876",
+    "primaryColor": null,
     "alliance": null,
     "callsign": "EUREX",
     "logoUrl": null
@@ -844,7 +844,7 @@
     "icao": "ELJ",
     "name": "Ellinair",
     "country": "Greece",
-    "primaryColor": "#003876",
+    "primaryColor": "#0868A8",
     "alliance": null,
     "callsign": "ELLINAIR",
     "logoUrl": null
@@ -854,7 +854,7 @@
     "icao": "IOE",
     "name": "Evelop Airlines",
     "country": "Spain",
-    "primaryColor": "#003876",
+    "primaryColor": null,
     "alliance": null,
     "callsign": "EVELOP",
     "logoUrl": null
@@ -864,7 +864,7 @@
     "icao": "BCS",
     "name": "BCS Travel",
     "country": "Italy",
-    "primaryColor": "#003876",
+    "primaryColor": null,
     "alliance": null,
     "callsign": "BACI",
     "logoUrl": null
@@ -874,7 +874,7 @@
     "icao": "UPA",
     "name": "Aero Airlines",
     "country": "Ukraine",
-    "primaryColor": "#003876",
+    "primaryColor": null,
     "alliance": null,
     "callsign": "AERO UKRAINE",
     "logoUrl": null
@@ -884,10 +884,10 @@
     "icao": "EIN",
     "name": "Aer Lingus",
     "country": "Ireland",
-    "primaryColor": "#006853",
+    "primaryColor": "#006472",
     "alliance": null,
     "callsign": "SHAMROCK",
-    "logoUrl": null
+    "logoUrl": "/airlines/EI.png"
   },
   {
     "iata": "EK",
@@ -897,7 +897,7 @@
     "primaryColor": "#D71A21",
     "alliance": null,
     "callsign": "EMIRATES",
-    "logoUrl": null
+    "logoUrl": "/airlines/EK.png"
   },
   {
     "iata": "EN",
@@ -914,7 +914,7 @@
     "icao": "SRV",
     "name": "Serene Air",
     "country": "Pakistan",
-    "primaryColor": "#003876",
+    "primaryColor": null,
     "alliance": null,
     "callsign": "SERENE AIR",
     "logoUrl": null
@@ -924,17 +924,17 @@
     "icao": "ETH",
     "name": "Ethiopian Airlines",
     "country": "Ethiopia",
-    "primaryColor": "#078930",
+    "primaryColor": "#C52528",
     "alliance": "star_alliance",
     "callsign": "ETHIOPIAN",
-    "logoUrl": null
+    "logoUrl": "/airlines/ET.png"
   },
   {
     "iata": "EU",
     "icao": "UEA",
     "name": "Chengdu Airlines",
     "country": "China",
-    "primaryColor": "#003876",
+    "primaryColor": "#D82828",
     "alliance": null,
     "callsign": "UNITED EAGLE",
     "logoUrl": null
@@ -957,7 +957,7 @@
     "primaryColor": "#BD8B13",
     "alliance": null,
     "callsign": "ETIHAD",
-    "logoUrl": null
+    "logoUrl": "/airlines/EY.png"
   },
   {
     "iata": "F3",
@@ -994,7 +994,7 @@
     "icao": "SFR",
     "name": "FlySafair",
     "country": "South Africa",
-    "primaryColor": "#FF6600",
+    "primaryColor": "#0888C8",
     "alliance": null,
     "callsign": "SAFAIR",
     "logoUrl": null
@@ -1004,7 +1004,7 @@
     "icao": "LZB",
     "name": "Bulgaria Air",
     "country": "Bulgaria",
-    "primaryColor": "#00A3E0",
+    "primaryColor": "#AC1F24",
     "alliance": null,
     "callsign": "FLYING BULGARIA",
     "logoUrl": null
@@ -1014,17 +1014,17 @@
     "icao": "AIQ",
     "name": "Thai AirAsia",
     "country": "Thailand",
-    "primaryColor": "#FF0000",
+    "primaryColor": "#E32526",
     "alliance": null,
     "callsign": "THAI ASIA",
-    "logoUrl": null
+    "logoUrl": "/airlines/FD.png"
   },
   {
     "iata": "FH",
     "icao": "FHY",
     "name": "Freebird Airlines",
     "country": "Turkey",
-    "primaryColor": "#003876",
+    "primaryColor": null,
     "alliance": null,
     "callsign": "FREEBIRD",
     "logoUrl": null
@@ -1034,7 +1034,7 @@
     "icao": "ICE",
     "name": "Icelandair",
     "country": "Iceland",
-    "primaryColor": "#003876",
+    "primaryColor": null,
     "alliance": null,
     "callsign": "ICEAIR",
     "logoUrl": null
@@ -1054,7 +1054,7 @@
     "icao": "CSH",
     "name": "Shanghai Airlines",
     "country": "China",
-    "primaryColor": "#E31837",
+    "primaryColor": "#DE0038",
     "alliance": "skyteam",
     "callsign": "SHANGHAI AIR",
     "logoUrl": null
@@ -1074,7 +1074,7 @@
     "icao": "THO",
     "name": "Thomas Cook Airlines",
     "country": "Belgium",
-    "primaryColor": "#003876",
+    "primaryColor": "#F8B808",
     "alliance": null,
     "callsign": "THOMAS",
     "logoUrl": null
@@ -1087,7 +1087,7 @@
     "primaryColor": "#073590",
     "alliance": null,
     "callsign": "RYANAIR",
-    "logoUrl": null
+    "logoUrl": "/airlines/FR.png"
   },
   {
     "iata": "FT",
@@ -1104,30 +1104,30 @@
     "icao": "SDM",
     "name": "Rossiya",
     "country": "Russia",
-    "primaryColor": "#E4002B",
+    "primaryColor": "#E3132C",
     "alliance": null,
     "callsign": "STATE",
-    "logoUrl": null
+    "logoUrl": "/airlines/FV.png"
   },
   {
     "iata": "G3",
     "icao": "GLO",
     "name": "GOL Linhas Aéreas",
     "country": "Brazil",
-    "primaryColor": "#FF7300",
+    "primaryColor": "#FF7020",
     "alliance": null,
     "callsign": "GOL",
-    "logoUrl": null
+    "logoUrl": "/airlines/G3.png"
   },
   {
     "iata": "G4",
     "icao": "AAY",
     "name": "Allegiant Air",
     "country": "United States",
-    "primaryColor": "#003E7E",
+    "primaryColor": "#01579B",
     "alliance": null,
     "callsign": "ALLEGIANT",
-    "logoUrl": null
+    "logoUrl": "/airlines/G4.png"
   },
   {
     "iata": "G7",
@@ -1154,7 +1154,7 @@
     "icao": "GIA",
     "name": "Garuda Indonesia",
     "country": "Indonesia",
-    "primaryColor": "#009A44",
+    "primaryColor": "#358E9D",
     "alliance": "skyteam",
     "callsign": "INDONESIA",
     "logoUrl": null
@@ -1174,7 +1174,7 @@
     "icao": "GFA",
     "name": "Gulf Air",
     "country": "Bahrain",
-    "primaryColor": "#B30838",
+    "primaryColor": "#A38E5D",
     "alliance": null,
     "callsign": "GULF BAHRAIN",
     "logoUrl": null
@@ -1184,7 +1184,7 @@
     "icao": "GHT",
     "name": "Globus",
     "country": "Russia",
-    "primaryColor": "#003876",
+    "primaryColor": null,
     "alliance": null,
     "callsign": "GLOBUS",
     "logoUrl": null
@@ -1194,7 +1194,7 @@
     "icao": "SKY",
     "name": "Sky Express",
     "country": "Greece",
-    "primaryColor": "#003876",
+    "primaryColor": "#2B4077",
     "alliance": null,
     "callsign": "SKYEXPRESS",
     "logoUrl": null
@@ -1204,7 +1204,7 @@
     "icao": "GBL",
     "name": "GB Airways",
     "country": "United Kingdom",
-    "primaryColor": "#003876",
+    "primaryColor": "#ED1639",
     "alliance": null,
     "callsign": "GEEBEE",
     "logoUrl": null
@@ -1214,7 +1214,7 @@
     "icao": "GCO",
     "name": "GX Airlines",
     "country": "China",
-    "primaryColor": "#003876",
+    "primaryColor": "#DA3731",
     "alliance": null,
     "callsign": "GALAXY",
     "logoUrl": null
@@ -1224,7 +1224,7 @@
     "icao": "HHI",
     "name": "Hahn Air",
     "country": "Germany",
-    "primaryColor": "#003876",
+    "primaryColor": null,
     "alliance": null,
     "callsign": "ROOSTER",
     "logoUrl": null
@@ -1234,7 +1234,7 @@
     "icao": "SKU",
     "name": "Sky Airline",
     "country": "Chile",
-    "primaryColor": "#003876",
+    "primaryColor": null,
     "alliance": null,
     "callsign": "AEROSKY",
     "logoUrl": null
@@ -1244,7 +1244,7 @@
     "icao": "HAL",
     "name": "Hawaiian Airlines",
     "country": "United States",
-    "primaryColor": "#8B2346",
+    "primaryColor": "#413691",
     "alliance": null,
     "callsign": "HAWAIIAN",
     "logoUrl": null
@@ -1254,7 +1254,7 @@
     "icao": "HCA",
     "name": "Air Senegal",
     "country": "Senegal",
-    "primaryColor": "#006633",
+    "primaryColor": "#D41219",
     "alliance": null,
     "callsign": "AIR SENEGAL",
     "logoUrl": null
@@ -1264,7 +1264,7 @@
     "icao": "ADO",
     "name": "Air Do",
     "country": "Japan",
-    "primaryColor": "#003876",
+    "primaryColor": null,
     "alliance": null,
     "callsign": "AIR DO",
     "logoUrl": null
@@ -1274,7 +1274,7 @@
     "icao": "HLF",
     "name": "Air Côte d'Ivoire",
     "country": "Côte d'Ivoire",
-    "primaryColor": "#FF6600",
+    "primaryColor": "#E77A31",
     "alliance": null,
     "callsign": "AIRCOTEDIVOIRE",
     "logoUrl": null
@@ -1284,7 +1284,7 @@
     "icao": "NLY",
     "name": "Niki",
     "country": "Austria",
-    "primaryColor": "#C8102E",
+    "primaryColor": "#C20437",
     "alliance": null,
     "callsign": "NIKI LINE",
     "logoUrl": null
@@ -1294,7 +1294,7 @@
     "icao": "SEY",
     "name": "Air Seychelles",
     "country": "Seychelles",
-    "primaryColor": "#003876",
+    "primaryColor": "#D93722",
     "alliance": null,
     "callsign": "SEYCHELLES",
     "logoUrl": null
@@ -1304,7 +1304,7 @@
     "icao": "DKH",
     "name": "Juneyao Airlines",
     "country": "China",
-    "primaryColor": "#E31837",
+    "primaryColor": "#AE8262",
     "alliance": null,
     "callsign": "JUNEYAO AIRLINES",
     "logoUrl": null
@@ -1314,7 +1314,7 @@
     "icao": "CHH",
     "name": "Hainan Airlines",
     "country": "China",
-    "primaryColor": "#C8102E",
+    "primaryColor": "#E60012",
     "alliance": null,
     "callsign": "HAINAN",
     "logoUrl": null
@@ -1324,10 +1324,10 @@
     "icao": "TRA",
     "name": "Transavia",
     "country": "Netherlands",
-    "primaryColor": "#00A651",
+    "primaryColor": "#05CE78",
     "alliance": null,
     "callsign": "TRANSAVIA",
-    "logoUrl": null
+    "logoUrl": "/airlines/HV.png"
   },
   {
     "iata": "HW",
@@ -1344,7 +1344,7 @@
     "icao": "CRK",
     "name": "Hong Kong Airlines",
     "country": "Hong Kong",
-    "primaryColor": "#C8102E",
+    "primaryColor": "#E60012",
     "alliance": null,
     "callsign": "BAUHINIA",
     "logoUrl": null
@@ -1354,7 +1354,7 @@
     "icao": "UZB",
     "name": "Uzbekistan Airways",
     "country": "Uzbekistan",
-    "primaryColor": "#00529B",
+    "primaryColor": "#06408C",
     "alliance": null,
     "callsign": "UZBEK",
     "logoUrl": null
@@ -1364,10 +1364,10 @@
     "icao": "IAD",
     "name": "AirAsia India",
     "country": "India",
-    "primaryColor": "#FF0000",
+    "primaryColor": "#E32526",
     "alliance": null,
     "callsign": "ICE",
-    "logoUrl": null
+    "logoUrl": "/airlines/I5.png"
   },
   {
     "iata": "I7",
@@ -1384,7 +1384,7 @@
     "icao": "AUB",
     "name": "Indigo Airlines",
     "country": "Moldova",
-    "primaryColor": "#003876",
+    "primaryColor": null,
     "alliance": null,
     "callsign": "INDIGO",
     "logoUrl": null
@@ -1394,27 +1394,27 @@
     "icao": "IAW",
     "name": "Iraqi Airways",
     "country": "Iraq",
-    "primaryColor": "#006633",
+    "primaryColor": "#12470D",
     "alliance": null,
     "callsign": "IRAQI",
-    "logoUrl": null
+    "logoUrl": "/airlines/IA.png"
   },
   {
     "iata": "IB",
     "icao": "IBE",
     "name": "Iberia",
     "country": "Spain",
-    "primaryColor": "#D81E05",
+    "primaryColor": "#DA1C2D",
     "alliance": "oneworld",
     "callsign": "IBERIA",
-    "logoUrl": null
+    "logoUrl": "/airlines/IB.png"
   },
   {
     "iata": "IF",
     "icao": "IFY",
     "name": "Fly Baghdad",
     "country": "Iraq",
-    "primaryColor": "#003876",
+    "primaryColor": null,
     "alliance": null,
     "callsign": "BAGHDAD",
     "logoUrl": null
@@ -1434,7 +1434,7 @@
     "icao": "ITK",
     "name": "Pegas Fly",
     "country": "Russia",
-    "primaryColor": "#003876",
+    "primaryColor": null,
     "alliance": null,
     "callsign": "KAR AIR",
     "logoUrl": null
@@ -1454,7 +1454,7 @@
     "icao": "JOS",
     "name": "Jordan Aviation",
     "country": "Jordan",
-    "primaryColor": "#003876",
+    "primaryColor": null,
     "alliance": null,
     "callsign": "JORDAN AVIATION",
     "logoUrl": null
@@ -1464,17 +1464,17 @@
     "icao": "AXB",
     "name": "Air India Express",
     "country": "India",
-    "primaryColor": "#FF6600",
+    "primaryColor": "#FF6423",
     "alliance": null,
     "callsign": "EXPRESS INDIA",
-    "logoUrl": null
+    "logoUrl": "/airlines/IX.png"
   },
   {
     "iata": "IZ",
     "icao": "AIZ",
     "name": "Arkia Israeli Airlines",
     "country": "Israel",
-    "primaryColor": "#003876",
+    "primaryColor": "#D40E8C",
     "alliance": null,
     "callsign": "ARKIA",
     "logoUrl": null
@@ -1484,17 +1484,17 @@
     "icao": "AHY",
     "name": "Azerbaijan Airlines",
     "country": "Azerbaijan",
-    "primaryColor": "#0066CC",
+    "primaryColor": "#003366",
     "alliance": null,
     "callsign": "AZAL",
-    "logoUrl": null
+    "logoUrl": "/airlines/J2.png"
   },
   {
     "iata": "J9",
     "icao": "JKK",
     "name": "Jazeera Airways",
     "country": "Kuwait",
-    "primaryColor": "#FFD700",
+    "primaryColor": "#0D89CB",
     "alliance": null,
     "callsign": "JAZEERA",
     "logoUrl": null
@@ -1514,17 +1514,17 @@
     "icao": "TAM",
     "name": "LATAM Brasil",
     "country": "Brazil",
-    "primaryColor": "#10004F",
+    "primaryColor": "#2A0088",
     "alliance": null,
     "callsign": "TAM",
-    "logoUrl": null
+    "logoUrl": "/airlines/JJ.png"
   },
   {
     "iata": "JL",
     "icao": "JAL",
     "name": "Japan Airlines",
     "country": "Japan",
-    "primaryColor": "#C8102E",
+    "primaryColor": "#E60012",
     "alliance": "oneworld",
     "callsign": "JAPANAIR",
     "logoUrl": null
@@ -1544,17 +1544,17 @@
     "icao": "JST",
     "name": "Jetstar Airways",
     "country": "Australia",
-    "primaryColor": "#FF6600",
+    "primaryColor": "#FE5815",
     "alliance": null,
     "callsign": "JETSTAR",
-    "logoUrl": null
+    "logoUrl": "/airlines/JQ.png"
   },
   {
     "iata": "JT",
     "icao": "LNI",
     "name": "Lion Air",
     "country": "Indonesia",
-    "primaryColor": "#ED1C24",
+    "primaryColor": "#FB0102",
     "alliance": null,
     "callsign": "LION INTER",
     "logoUrl": null
@@ -1564,7 +1564,7 @@
     "icao": "JAT",
     "name": "Air Serbia",
     "country": "Serbia",
-    "primaryColor": "#E4002B",
+    "primaryColor": "#0F2D53",
     "alliance": null,
     "callsign": "AIR SERBIA",
     "logoUrl": null
@@ -1574,7 +1574,7 @@
     "icao": "SKX",
     "name": "Skyways Express",
     "country": "Sweden",
-    "primaryColor": "#003876",
+    "primaryColor": null,
     "alliance": null,
     "callsign": "SKY EXPRESS",
     "logoUrl": null
@@ -1584,7 +1584,7 @@
     "icao": "KHV",
     "name": "Cambodia Angkor Air",
     "country": "Cambodia",
-    "primaryColor": "#003876",
+    "primaryColor": null,
     "alliance": null,
     "callsign": "ANGKOR AIR",
     "logoUrl": null
@@ -1594,20 +1594,20 @@
     "icao": "KZR",
     "name": "Air Astana",
     "country": "Kazakhstan",
-    "primaryColor": "#0066B3",
+    "primaryColor": "#2E498E",
     "alliance": null,
     "callsign": "ASTANALINE",
-    "logoUrl": null
+    "logoUrl": "/airlines/KC.png"
   },
   {
     "iata": "KE",
     "icao": "KAL",
     "name": "Korean Air",
     "country": "South Korea",
-    "primaryColor": "#0063AF",
+    "primaryColor": "#051766",
     "alliance": "skyteam",
     "callsign": "KOREANAIR",
-    "logoUrl": null
+    "logoUrl": "/airlines/KE.png"
   },
   {
     "iata": "KL",
@@ -1617,14 +1617,14 @@
     "primaryColor": "#00A1E4",
     "alliance": "skyteam",
     "callsign": "KLM",
-    "logoUrl": null
+    "logoUrl": "/airlines/KL.png"
   },
   {
     "iata": "KP",
     "icao": "SKK",
     "name": "ASKY Airlines",
     "country": "Togo",
-    "primaryColor": "#003876",
+    "primaryColor": null,
     "alliance": null,
     "callsign": "ASKY",
     "logoUrl": null
@@ -1634,40 +1634,40 @@
     "icao": "KQA",
     "name": "Kenya Airways",
     "country": "Kenya",
-    "primaryColor": "#C8102E",
+    "primaryColor": "#EC2227",
     "alliance": "skyteam",
     "callsign": "KENYA",
-    "logoUrl": null
+    "logoUrl": "/airlines/KQ.png"
   },
   {
     "iata": "KU",
     "icao": "KAC",
     "name": "Kuwait Airways",
     "country": "Kuwait",
-    "primaryColor": "#00539F",
+    "primaryColor": "#20285C",
     "alliance": null,
     "callsign": "KUWAITI",
-    "logoUrl": null
+    "logoUrl": "/airlines/KU.png"
   },
   {
     "iata": "LA",
     "icao": "LAN",
     "name": "LATAM Airlines",
     "country": "Chile",
-    "primaryColor": "#10004F",
+    "primaryColor": "#2A0088",
     "alliance": "oneworld",
     "callsign": "LAN",
-    "logoUrl": null
+    "logoUrl": "/airlines/LA.png"
   },
   {
     "iata": "LH",
     "icao": "DLH",
     "name": "Lufthansa",
     "country": "Germany",
-    "primaryColor": "#05164D",
+    "primaryColor": "#0A1D3D",
     "alliance": "star_alliance",
     "callsign": "LUFTHANSA",
-    "logoUrl": null
+    "logoUrl": "/airlines/LH.png"
   },
   {
     "iata": "LJ",
@@ -1684,50 +1684,50 @@
     "icao": "LOT",
     "name": "LOT Polish Airlines",
     "country": "Poland",
-    "primaryColor": "#003A70",
+    "primaryColor": "#252668",
     "alliance": "star_alliance",
     "callsign": "POLLOT",
-    "logoUrl": null
+    "logoUrl": "/airlines/LO.png"
   },
   {
     "iata": "LP",
     "icao": "LPE",
     "name": "LATAM Peru",
     "country": "Peru",
-    "primaryColor": "#10004F",
+    "primaryColor": "#2A0088",
     "alliance": null,
     "callsign": "LANPERU",
-    "logoUrl": null
+    "logoUrl": "/airlines/LP.png"
   },
   {
     "iata": "LS",
     "icao": "EXS",
     "name": "Jet2.com",
     "country": "United Kingdom",
-    "primaryColor": "#ED1C24",
+    "primaryColor": "#E2231A",
     "alliance": null,
     "callsign": "CHANNEX",
-    "logoUrl": null
+    "logoUrl": "/airlines/LS.png"
   },
   {
     "iata": "LX",
     "icao": "SWR",
     "name": "Swiss International Air Lines",
     "country": "Switzerland",
-    "primaryColor": "#DC0019",
+    "primaryColor": "#E60005",
     "alliance": "star_alliance",
     "callsign": "SWISS",
-    "logoUrl": null
+    "logoUrl": "/airlines/LX.png"
   },
   {
     "iata": "LY",
     "icao": "ELY",
     "name": "El Al Israel Airlines",
     "country": "Israel",
-    "primaryColor": "#003DA5",
+    "primaryColor": "#001246",
     "alliance": null,
     "callsign": "ELAL",
-    "logoUrl": null
+    "logoUrl": "/airlines/LY.png"
   },
   {
     "iata": "MD",
@@ -1754,10 +1754,10 @@
     "icao": "CXA",
     "name": "Xiamen Airlines",
     "country": "China",
-    "primaryColor": "#003399",
+    "primaryColor": "#004384",
     "alliance": "skyteam",
     "callsign": "XIAMEN AIR",
-    "logoUrl": null
+    "logoUrl": "/airlines/MF.png"
   },
   {
     "iata": "MH",
@@ -1794,7 +1794,7 @@
     "icao": "CAW",
     "name": "Comair",
     "country": "South Africa",
-    "primaryColor": "#003876",
+    "primaryColor": null,
     "alliance": null,
     "callsign": "COMMERCIAL",
     "logoUrl": null
@@ -1824,7 +1824,7 @@
     "icao": "TCX",
     "name": "Thomas Cook Airlines",
     "country": "United Kingdom",
-    "primaryColor": "#003876",
+    "primaryColor": null,
     "alliance": null,
     "callsign": "KESTREL",
     "logoUrl": null
@@ -1834,17 +1834,17 @@
     "icao": "CES",
     "name": "China Eastern Airlines",
     "country": "China",
-    "primaryColor": "#003876",
+    "primaryColor": "#192577",
     "alliance": "skyteam",
     "callsign": "CHINA EASTERN",
-    "logoUrl": null
+    "logoUrl": "/airlines/MU.png"
   },
   {
     "iata": "N3",
     "icao": "ANK",
     "name": "Omni Air International",
     "country": "United States",
-    "primaryColor": "#003876",
+    "primaryColor": null,
     "alliance": null,
     "callsign": "OMNI",
     "logoUrl": null
@@ -1864,7 +1864,7 @@
     "icao": "NRC",
     "name": "Nordic Regional Airlines",
     "country": "Norway",
-    "primaryColor": "#003876",
+    "primaryColor": null,
     "alliance": null,
     "callsign": "NORTH FLYING",
     "logoUrl": null
@@ -1874,7 +1874,7 @@
     "icao": "HGT",
     "name": "Horizon Airlines",
     "country": "United States",
-    "primaryColor": "#003876",
+    "primaryColor": null,
     "alliance": null,
     "callsign": "HUACHUCA",
     "logoUrl": null
@@ -1884,10 +1884,10 @@
     "icao": "ANA",
     "name": "All Nippon Airways",
     "country": "Japan",
-    "primaryColor": "#003087",
+    "primaryColor": "#00146E",
     "alliance": "star_alliance",
     "callsign": "ALL NIPPON",
-    "logoUrl": null
+    "logoUrl": "/airlines/NH.png"
   },
   {
     "iata": "NK",
@@ -1904,17 +1904,17 @@
     "icao": "NIA",
     "name": "Nile Air",
     "country": "Egypt",
-    "primaryColor": "#003876",
+    "primaryColor": "#AE9C6E",
     "alliance": null,
     "callsign": "NILEBIRD",
-    "logoUrl": null
+    "logoUrl": "/airlines/NP.png"
   },
   {
     "iata": "NS",
     "icao": "HBH",
     "name": "Hebei Airlines",
     "country": "China",
-    "primaryColor": "#003876",
+    "primaryColor": null,
     "alliance": null,
     "callsign": "HEBEI AIR",
     "logoUrl": null
@@ -1924,10 +1924,10 @@
     "icao": "IBX",
     "name": "Binter Canarias",
     "country": "Spain",
-    "primaryColor": "#003876",
+    "primaryColor": "#3DAF29",
     "alliance": null,
     "callsign": "BINTER",
-    "logoUrl": null
+    "logoUrl": "/airlines/NT.png"
   },
   {
     "iata": "NU",
@@ -1944,7 +1944,7 @@
     "icao": "FXI",
     "name": "Air Iceland Connect",
     "country": "Iceland",
-    "primaryColor": "#003876",
+    "primaryColor": null,
     "alliance": null,
     "callsign": "FAXI",
     "logoUrl": null
@@ -1964,7 +1964,7 @@
     "icao": "OAL",
     "name": "Olympic Air",
     "country": "Greece",
-    "primaryColor": "#003876",
+    "primaryColor": null,
     "alliance": null,
     "callsign": "OLYMPIC",
     "logoUrl": null
@@ -1984,7 +1984,7 @@
     "icao": "OLT",
     "name": "OLT Express",
     "country": "Poland",
-    "primaryColor": "#003876",
+    "primaryColor": null,
     "alliance": null,
     "callsign": "SPRINT",
     "logoUrl": null
@@ -1994,7 +1994,7 @@
     "icao": "MGL",
     "name": "MIAT Mongolian Airlines",
     "country": "Mongolia",
-    "primaryColor": "#003876",
+    "primaryColor": null,
     "alliance": null,
     "callsign": "MONGOL AIR",
     "logoUrl": null
@@ -2004,7 +2004,7 @@
     "icao": "SKW",
     "name": "SkyWest Airlines",
     "country": "United States",
-    "primaryColor": "#003876",
+    "primaryColor": null,
     "alliance": null,
     "callsign": "SKYWEST",
     "logoUrl": null
@@ -2014,20 +2014,20 @@
     "icao": "AUA",
     "name": "Austrian Airlines",
     "country": "Austria",
-    "primaryColor": "#E20A16",
+    "primaryColor": "#D81E05",
     "alliance": "star_alliance",
     "callsign": "AUSTRIAN",
-    "logoUrl": null
+    "logoUrl": "/airlines/OS.png"
   },
   {
     "iata": "OU",
     "icao": "CTN",
     "name": "Croatia Airlines",
     "country": "Croatia",
-    "primaryColor": "#003087",
+    "primaryColor": "#19386E",
     "alliance": "star_alliance",
     "callsign": "CROATIA",
-    "logoUrl": null
+    "logoUrl": "/airlines/OU.png"
   },
   {
     "iata": "OV",
@@ -2077,7 +2077,7 @@
     "primaryColor": "#FCBB23",
     "alliance": null,
     "callsign": "SUNTURK",
-    "logoUrl": null
+    "logoUrl": "/airlines/PC.png"
   },
   {
     "iata": "PD",
@@ -2094,10 +2094,10 @@
     "icao": "BKP",
     "name": "Bangkok Airways",
     "country": "Thailand",
-    "primaryColor": "#1E3A8A",
+    "primaryColor": "#254AA5",
     "alliance": null,
     "callsign": "BANGKOK AIR",
-    "logoUrl": null
+    "logoUrl": "/airlines/PG.png"
   },
   {
     "iata": "PK",
@@ -2124,10 +2124,10 @@
     "icao": "PAL",
     "name": "Philippine Airlines",
     "country": "Philippines",
-    "primaryColor": "#00205B",
+    "primaryColor": "#2F3B8D",
     "alliance": null,
     "callsign": "PHILIPPINE",
-    "logoUrl": null
+    "logoUrl": "/airlines/PR.png"
   },
   {
     "iata": "PS",
@@ -2144,7 +2144,7 @@
     "icao": "PRF",
     "name": "Precision Air",
     "country": "Tanzania",
-    "primaryColor": "#003876",
+    "primaryColor": null,
     "alliance": null,
     "callsign": "PRECISION",
     "logoUrl": null
@@ -2174,60 +2174,60 @@
     "icao": "CYH",
     "name": "Click Mexicana",
     "country": "Mexico",
-    "primaryColor": "#FF6600",
+    "primaryColor": "#003A62",
     "alliance": null,
     "callsign": "CLICK",
-    "logoUrl": null
+    "logoUrl": "/airlines/QA.png"
   },
   {
     "iata": "QC",
     "icao": "CRN",
     "name": "Camair-Co",
     "country": "Cameroon",
-    "primaryColor": "#006633",
+    "primaryColor": "#25A601",
     "alliance": null,
     "callsign": "CAMAIRCO",
-    "logoUrl": null
+    "logoUrl": "/airlines/QC.png"
   },
   {
     "iata": "QF",
     "icao": "QFA",
     "name": "Qantas",
     "country": "Australia",
-    "primaryColor": "#E20A16",
+    "primaryColor": "#CC0000",
     "alliance": "oneworld",
     "callsign": "QANTAS",
-    "logoUrl": null
+    "logoUrl": "/airlines/QF.png"
   },
   {
     "iata": "QG",
     "icao": "CTV",
     "name": "Citilink",
     "country": "Indonesia",
-    "primaryColor": "#8CC63F",
+    "primaryColor": "#0C803D",
     "alliance": null,
     "callsign": "SUPERGREEN",
-    "logoUrl": null
+    "logoUrl": "/airlines/QG.png"
   },
   {
     "iata": "QJ",
     "icao": "JET",
     "name": "Jet Airways",
     "country": "India",
-    "primaryColor": "#FFD700",
+    "primaryColor": "#10193F",
     "alliance": null,
     "callsign": "JET AIRWAYS",
-    "logoUrl": null
+    "logoUrl": "/airlines/QJ.png"
   },
   {
     "iata": "QP",
     "icao": "AKA",
     "name": "Akasa Air",
     "country": "India",
-    "primaryColor": "#FF6600",
+    "primaryColor": "#FF6300",
     "alliance": null,
     "callsign": "AKASA",
-    "logoUrl": null
+    "logoUrl": "/airlines/QP.png"
   },
   {
     "iata": "QR",
@@ -2237,124 +2237,124 @@
     "primaryColor": "#5C0632",
     "alliance": "oneworld",
     "callsign": "QATARI",
-    "logoUrl": null
+    "logoUrl": "/airlines/QR.png"
   },
   {
     "iata": "QS",
     "icao": "TVS",
     "name": "Travel Service",
     "country": "Czech Republic",
-    "primaryColor": "#003876",
+    "primaryColor": "#004289",
     "alliance": null,
     "callsign": "SKYTRAVEL",
-    "logoUrl": null
+    "logoUrl": "/airlines/QS.png"
   },
   {
     "iata": "QX",
     "icao": "QXE",
     "name": "Horizon Air",
     "country": "United States",
-    "primaryColor": "#00205B",
+    "primaryColor": "#37ABCD",
     "alliance": null,
     "callsign": "HORIZON AIR",
-    "logoUrl": null
+    "logoUrl": "/airlines/QX.png"
   },
   {
     "iata": "QZ",
     "icao": "AWQ",
     "name": "Indonesia AirAsia",
     "country": "Indonesia",
-    "primaryColor": "#FF0000",
+    "primaryColor": "#E32526",
     "alliance": null,
     "callsign": "WAGON AIR",
-    "logoUrl": null
+    "logoUrl": "/airlines/QZ.png"
   },
   {
     "iata": "R3",
     "icao": "SYL",
     "name": "Yakutia Airlines",
     "country": "Russia",
-    "primaryColor": "#005E8B",
+    "primaryColor": "#264796",
     "alliance": null,
     "callsign": "AIR YAKUTIA",
-    "logoUrl": null
+    "logoUrl": "/airlines/R3.png"
   },
   {
     "iata": "RA",
     "icao": "RNA",
     "name": "Nepal Airlines",
     "country": "Nepal",
-    "primaryColor": "#C8102E",
+    "primaryColor": "#03124D",
     "alliance": null,
     "callsign": "ROYAL NEPAL",
-    "logoUrl": null
+    "logoUrl": "/airlines/RA.png"
   },
   {
     "iata": "RB",
     "icao": "SYR",
     "name": "Syrian Air",
     "country": "Syria",
-    "primaryColor": "#C8102E",
+    "primaryColor": "#032F24",
     "alliance": null,
     "callsign": "SYRIANAIR",
-    "logoUrl": null
+    "logoUrl": "/airlines/RB.png"
   },
   {
     "iata": "RJ",
     "icao": "RJA",
     "name": "Royal Jordanian",
     "country": "Jordan",
-    "primaryColor": "#8B1A1A",
+    "primaryColor": "#A6844B",
     "alliance": "oneworld",
     "callsign": "JORDANIAN",
-    "logoUrl": null
+    "logoUrl": "/airlines/RJ.png"
   },
   {
     "iata": "RL",
     "icao": "RLU",
     "name": "Royal Flight",
     "country": "Russia",
-    "primaryColor": "#003876",
+    "primaryColor": "#D11D26",
     "alliance": null,
     "callsign": "ROYAL FLIGHT",
-    "logoUrl": null
+    "logoUrl": "/airlines/RL.png"
   },
   {
     "iata": "RO",
     "icao": "ROT",
     "name": "TAROM",
     "country": "Romania",
-    "primaryColor": "#003087",
+    "primaryColor": "#18488B",
     "alliance": "skyteam",
     "callsign": "TAROM",
-    "logoUrl": null
+    "logoUrl": "/airlines/RO.png"
   },
   {
     "iata": "RQ",
     "icao": "KMF",
     "name": "Kam Air",
     "country": "Afghanistan",
-    "primaryColor": "#003876",
+    "primaryColor": "#005EA8",
     "alliance": null,
     "callsign": "KAMGAR",
-    "logoUrl": null
+    "logoUrl": "/airlines/RQ.png"
   },
   {
     "iata": "RS",
     "icao": "ASV",
     "name": "Air Seoul",
     "country": "South Korea",
-    "primaryColor": "#FF6600",
+    "primaryColor": "#1DB898",
     "alliance": null,
     "callsign": "AIR SEOUL",
-    "logoUrl": null
+    "logoUrl": "/airlines/RS.png"
   },
   {
     "iata": "RZ",
     "icao": "SAW",
     "name": "Sansa",
     "country": "Costa Rica",
-    "primaryColor": "#003876",
+    "primaryColor": null,
     "alliance": null,
     "callsign": "SANSA",
     "logoUrl": null
@@ -2364,10 +2364,10 @@
     "icao": "RZO",
     "name": "SATA International",
     "country": "Portugal",
-    "primaryColor": "#003876",
+    "primaryColor": "#003568",
     "alliance": null,
     "callsign": "AIR AZORES",
-    "logoUrl": null
+    "logoUrl": "/airlines/S4.png"
   },
   {
     "iata": "S7",
@@ -2384,120 +2384,120 @@
     "icao": "SAA",
     "name": "South African Airways",
     "country": "South Africa",
-    "primaryColor": "#FF7F00",
+    "primaryColor": "#163683",
     "alliance": "star_alliance",
     "callsign": "SPRINGBOK",
-    "logoUrl": null
+    "logoUrl": "/airlines/SA.png"
   },
   {
     "iata": "SC",
     "icao": "CDG",
     "name": "Shandong Airlines",
     "country": "China",
-    "primaryColor": "#00529B",
+    "primaryColor": "#1E406C",
     "alliance": null,
     "callsign": "SHANDONG",
-    "logoUrl": null
+    "logoUrl": "/airlines/SC.png"
   },
   {
     "iata": "SG",
     "icao": "SEJ",
     "name": "SpiceJet",
     "country": "India",
-    "primaryColor": "#E4002B",
+    "primaryColor": "#EB1C23",
     "alliance": null,
     "callsign": "SPICEJET",
-    "logoUrl": null
+    "logoUrl": "/airlines/SG.png"
   },
   {
     "iata": "SK",
     "icao": "SAS",
     "name": "Scandinavian Airlines",
     "country": "Sweden",
-    "primaryColor": "#000080",
+    "primaryColor": "#0002BE",
     "alliance": "star_alliance",
     "callsign": "SCANDINAVIAN",
-    "logoUrl": null
+    "logoUrl": "/airlines/SK.png"
   },
   {
     "iata": "SL",
     "icao": "TLM",
     "name": "Thai Lion Air",
     "country": "Thailand",
-    "primaryColor": "#ED1C24",
+    "primaryColor": "#ED4022",
     "alliance": null,
     "callsign": "MENTARI",
-    "logoUrl": null
+    "logoUrl": "/airlines/SL.png"
   },
   {
     "iata": "SM",
     "icao": "RCH",
     "name": "Air Cairo",
     "country": "Egypt",
-    "primaryColor": "#003876",
+    "primaryColor": "#3D1063",
     "alliance": null,
     "callsign": "CARBON",
-    "logoUrl": null
+    "logoUrl": "/airlines/SM.png"
   },
   {
     "iata": "SN",
     "icao": "BEL",
     "name": "Brussels Airlines",
     "country": "Belgium",
-    "primaryColor": "#CC092F",
+    "primaryColor": "#051446",
     "alliance": "star_alliance",
     "callsign": "BEE-LINE",
-    "logoUrl": null
+    "logoUrl": "/airlines/SN.png"
   },
   {
     "iata": "SP",
     "icao": "SAT",
     "name": "SATA Air Açores",
     "country": "Portugal",
-    "primaryColor": "#003876",
+    "primaryColor": "#003568",
     "alliance": null,
     "callsign": "SATA",
-    "logoUrl": null
+    "logoUrl": "/airlines/SP.png"
   },
   {
     "iata": "SQ",
     "icao": "SIA",
     "name": "Singapore Airlines",
     "country": "Singapore",
-    "primaryColor": "#F8A81D",
+    "primaryColor": "#00266B",
     "alliance": "star_alliance",
     "callsign": "SINGAPORE",
-    "logoUrl": null
+    "logoUrl": "/airlines/SQ.png"
   },
   {
     "iata": "SS",
     "icao": "CRL",
     "name": "Corsair",
     "country": "France",
-    "primaryColor": "#003876",
+    "primaryColor": "#020862",
     "alliance": null,
     "callsign": "CORSAIR",
-    "logoUrl": null
+    "logoUrl": "/airlines/SS.png"
   },
   {
     "iata": "SU",
     "icao": "AFL",
     "name": "Aeroflot",
     "country": "Russia",
-    "primaryColor": "#FF6600",
+    "primaryColor": "#1C4E9D",
     "alliance": "skyteam",
     "callsign": "AEROFLOT",
-    "logoUrl": null
+    "logoUrl": "/airlines/SU.png"
   },
   {
     "iata": "SV",
     "icao": "SVA",
     "name": "Saudia",
     "country": "Saudi Arabia",
-    "primaryColor": "#006633",
+    "primaryColor": "#006631",
     "alliance": "skyteam",
     "callsign": "SAUDIA",
-    "logoUrl": null
+    "logoUrl": "/airlines/SV.png"
   },
   {
     "iata": "SW",
@@ -2514,37 +2514,37 @@
     "icao": "SKV",
     "name": "SkyWork Airlines",
     "country": "Switzerland",
-    "primaryColor": "#003876",
+    "primaryColor": "#002557",
     "alliance": null,
     "callsign": "SKYHIGH",
-    "logoUrl": null
+    "logoUrl": "/airlines/SX.png"
   },
   {
     "iata": "SY",
     "icao": "SCX",
     "name": "Sun Country Airlines",
     "country": "United States",
-    "primaryColor": "#FFD700",
+    "primaryColor": "#F68235",
     "alliance": null,
     "callsign": "SUN COUNTRY",
-    "logoUrl": null
+    "logoUrl": "/airlines/SY.png"
   },
   {
     "iata": "T5",
     "icao": "TUA",
     "name": "Turkmenistan Airlines",
     "country": "Turkmenistan",
-    "primaryColor": "#006633",
+    "primaryColor": "#009D3F",
     "alliance": null,
     "callsign": "TURKMENISTAN",
-    "logoUrl": null
+    "logoUrl": "/airlines/T5.png"
   },
   {
     "iata": "TA",
     "icao": "TAI",
     "name": "TACA",
     "country": "El Salvador",
-    "primaryColor": "#003876",
+    "primaryColor": null,
     "alliance": null,
     "callsign": "TACA",
     "logoUrl": null
@@ -2554,50 +2554,50 @@
     "icao": "JAF",
     "name": "TUI fly Belgium",
     "country": "Belgium",
-    "primaryColor": "#003876",
+    "primaryColor": "#E41917",
     "alliance": null,
     "callsign": "BEAUTY",
-    "logoUrl": null
+    "logoUrl": "/airlines/TB.png"
   },
   {
     "iata": "TG",
     "icao": "THA",
     "name": "Thai Airways",
     "country": "Thailand",
-    "primaryColor": "#582C83",
+    "primaryColor": "#370E62",
     "alliance": "star_alliance",
     "callsign": "THAI",
-    "logoUrl": null
+    "logoUrl": "/airlines/TG.png"
   },
   {
     "iata": "TK",
     "icao": "THY",
     "name": "Turkish Airlines",
     "country": "Turkey",
-    "primaryColor": "#C8102E",
+    "primaryColor": "#C70A0C",
     "alliance": "star_alliance",
     "callsign": "TURKAIR",
-    "logoUrl": null
+    "logoUrl": "/airlines/TK.png"
   },
   {
     "iata": "TL",
     "icao": "ANO",
     "name": "Airnorth",
     "country": "Australia",
-    "primaryColor": "#003876",
+    "primaryColor": "#04396F",
     "alliance": null,
     "callsign": "TOPEND",
-    "logoUrl": null
+    "logoUrl": "/airlines/TL.png"
   },
   {
     "iata": "TO",
     "icao": "TVF",
     "name": "Transavia France",
     "country": "France",
-    "primaryColor": "#00A651",
+    "primaryColor": "#00D66C",
     "alliance": null,
     "callsign": "FRENCH SUN",
-    "logoUrl": null
+    "logoUrl": "/airlines/TO.png"
   },
   {
     "iata": "TP",
@@ -2624,7 +2624,7 @@
     "icao": "TSC",
     "name": "Air Transat",
     "country": "Canada",
-    "primaryColor": "#003876",
+    "primaryColor": null,
     "alliance": null,
     "callsign": "AIR TRANSAT",
     "logoUrl": null
@@ -2657,7 +2657,7 @@
     "primaryColor": "#FF6600",
     "alliance": null,
     "callsign": "EASY",
-    "logoUrl": null
+    "logoUrl": "/airlines/U2.png"
   },
   {
     "iata": "U5",
@@ -2674,37 +2674,37 @@
     "icao": "SVR",
     "name": "Ural Airlines",
     "country": "Russia",
-    "primaryColor": "#FF6B00",
+    "primaryColor": "#BA0C2F",
     "alliance": null,
     "callsign": "SVERDLOVSK AIR",
-    "logoUrl": null
+    "logoUrl": "/airlines/U6.png"
   },
   {
     "iata": "U8",
     "icao": "RUS",
     "name": "Armavia",
     "country": "Armenia",
-    "primaryColor": "#003876",
+    "primaryColor": "#143B9A",
     "alliance": null,
     "callsign": "ARMAVIA",
-    "logoUrl": null
+    "logoUrl": "/airlines/U8.png"
   },
   {
     "iata": "UA",
     "icao": "UAL",
     "name": "United Airlines",
     "country": "United States",
-    "primaryColor": "#002244",
+    "primaryColor": "#0C2340",
     "alliance": "star_alliance",
     "callsign": "UNITED",
-    "logoUrl": null
+    "logoUrl": "/airlines/UA.png"
   },
   {
     "iata": "UB",
     "icao": "UBA",
     "name": "Myanmar National Airlines",
     "country": "Myanmar",
-    "primaryColor": "#C41E3A",
+    "primaryColor": "#FDB515",
     "alliance": null,
     "callsign": "UNIONAIR",
     "logoUrl": null
@@ -2724,27 +2724,27 @@
     "icao": "ALM",
     "name": "AlMasria Universal Airlines",
     "country": "Egypt",
-    "primaryColor": "#003876",
+    "primaryColor": "#0E3C6F",
     "alliance": null,
     "callsign": "ALMASRIA",
-    "logoUrl": null
+    "logoUrl": "/airlines/UJ.png"
   },
   {
     "iata": "UK",
     "icao": "VTI",
     "name": "Vistara",
     "country": "India",
-    "primaryColor": "#522D81",
+    "primaryColor": "#511D4B",
     "alliance": null,
     "callsign": "VISTARA",
-    "logoUrl": null
+    "logoUrl": "/airlines/UK.png"
   },
   {
     "iata": "UL",
     "icao": "ALK",
     "name": "SriLankan Airlines",
     "country": "Sri Lanka",
-    "primaryColor": "#004990",
+    "primaryColor": "#DC001C",
     "alliance": "oneworld",
     "callsign": "SRILANKAN",
     "logoUrl": null
@@ -2754,7 +2754,7 @@
     "icao": "HKE",
     "name": "Hong Kong Express Airways",
     "country": "Hong Kong",
-    "primaryColor": "#C41E3A",
+    "primaryColor": "#702B91",
     "alliance": null,
     "callsign": "HONGKONG SHUTTLE",
     "logoUrl": null
@@ -2764,17 +2764,17 @@
     "icao": "BHS",
     "name": "Bahamasair",
     "country": "Bahamas",
-    "primaryColor": "#003876",
+    "primaryColor": "#1F6BA6",
     "alliance": null,
     "callsign": "BAHAMAS",
-    "logoUrl": null
+    "logoUrl": "/airlines/UP.png"
   },
   {
     "iata": "UT",
     "icao": "UTA",
     "name": "UTair",
     "country": "Russia",
-    "primaryColor": "#003399",
+    "primaryColor": "#003594",
     "alliance": null,
     "callsign": "UTAIR",
     "logoUrl": null
@@ -2784,7 +2784,7 @@
     "icao": "REU",
     "name": "Air Austral",
     "country": "Réunion",
-    "primaryColor": "#003876",
+    "primaryColor": "#20294E",
     "alliance": null,
     "callsign": "REUNION",
     "logoUrl": null
@@ -2794,17 +2794,17 @@
     "icao": "AEA",
     "name": "Air Europa",
     "country": "Spain",
-    "primaryColor": "#FF6600",
+    "primaryColor": "#0970CB",
     "alliance": "skyteam",
     "callsign": "EUROPA",
-    "logoUrl": null
+    "logoUrl": "/airlines/UX.png"
   },
   {
     "iata": "V3",
     "icao": "KRP",
     "name": "Carpatair",
     "country": "Romania",
-    "primaryColor": "#003876",
+    "primaryColor": "#00A583",
     "alliance": null,
     "callsign": "CARPAT",
     "logoUrl": null
@@ -2814,17 +2814,17 @@
     "icao": "VRI",
     "name": "Vieques Air Link",
     "country": "Puerto Rico",
-    "primaryColor": "#003876",
+    "primaryColor": "#19335E",
     "alliance": null,
     "callsign": "VIEQUES",
-    "logoUrl": null
+    "logoUrl": "/airlines/V5.png"
   },
   {
     "iata": "V7",
     "icao": "VOE",
     "name": "Volotea",
     "country": "Spain",
-    "primaryColor": "#8BC34A",
+    "primaryColor": "#ED164A",
     "alliance": null,
     "callsign": "VOLOTEA",
     "logoUrl": null
@@ -2834,7 +2834,7 @@
     "icao": "VOZ",
     "name": "Virgin Australia",
     "country": "Australia",
-    "primaryColor": "#E4002B",
+    "primaryColor": "#E10A0A",
     "alliance": null,
     "callsign": "VIRGIN",
     "logoUrl": null
@@ -2854,7 +2854,7 @@
     "icao": "AJT",
     "name": "AJet",
     "country": "Turkey",
-    "primaryColor": "#E31E24",
+    "primaryColor": "#008FDA",
     "alliance": null,
     "callsign": "AJET",
     "logoUrl": null
@@ -2864,10 +2864,10 @@
     "icao": "VVC",
     "name": "Viva Air",
     "country": "Colombia",
-    "primaryColor": "#E4002B",
+    "primaryColor": "#028EAA",
     "alliance": null,
     "callsign": "VIVA",
-    "logoUrl": null
+    "logoUrl": "/airlines/VH.png"
   },
   {
     "iata": "VJ",
@@ -2884,7 +2884,7 @@
     "icao": "HVN",
     "name": "Vietnam Airlines",
     "country": "Vietnam",
-    "primaryColor": "#08528F",
+    "primaryColor": "#005E80",
     "alliance": "skyteam",
     "callsign": "VIET NAM AIRLINES",
     "logoUrl": null
@@ -2894,7 +2894,7 @@
     "icao": "NOV",
     "name": "Novoair",
     "country": "Bangladesh",
-    "primaryColor": "#C8102E",
+    "primaryColor": "#15467A",
     "alliance": null,
     "callsign": "NOVO AIR",
     "logoUrl": null
@@ -2914,7 +2914,7 @@
     "icao": "VUN",
     "name": "Vietravel Airlines",
     "country": "Vietnam",
-    "primaryColor": "#003876",
+    "primaryColor": null,
     "alliance": null,
     "callsign": "VIETRAVEL",
     "logoUrl": null
@@ -2944,17 +2944,17 @@
     "icao": "FWI",
     "name": "FlexFlight",
     "country": "Denmark",
-    "primaryColor": "#003876",
+    "primaryColor": "#C29C45",
     "alliance": null,
     "callsign": "FLEXFLIGHT",
-    "logoUrl": null
+    "logoUrl": "/airlines/W2.png"
   },
   {
     "iata": "W3",
     "icao": "AXE",
     "name": "Arik Air",
     "country": "Nigeria",
-    "primaryColor": "#C8102E",
+    "primaryColor": "#0D3F84",
     "alliance": null,
     "callsign": "AEROLINE",
     "logoUrl": null
@@ -2977,14 +2977,14 @@
     "primaryColor": "#C6007E",
     "alliance": null,
     "callsign": "WIZZAIR",
-    "logoUrl": null
+    "logoUrl": "/airlines/W6.png"
   },
   {
     "iata": "W9",
     "icao": "JAB",
     "name": "Air Bagan",
     "country": "Myanmar",
-    "primaryColor": "#003876",
+    "primaryColor": null,
     "alliance": null,
     "callsign": "AIR BAGAN",
     "logoUrl": null
@@ -2994,7 +2994,7 @@
     "icao": "RWD",
     "name": "RwandAir",
     "country": "Rwanda",
-    "primaryColor": "#003876",
+    "primaryColor": "#1C4E9D",
     "alliance": null,
     "callsign": "RWANDAIR",
     "logoUrl": null
@@ -3004,17 +3004,17 @@
     "icao": "THD",
     "name": "Thai Smile",
     "country": "Thailand",
-    "primaryColor": "#F47920",
+    "primaryColor": "#F58024",
     "alliance": null,
     "callsign": "THAI SMILE",
-    "logoUrl": null
+    "logoUrl": "/airlines/WE.png"
   },
   {
     "iata": "WK",
     "icao": "EDW",
     "name": "Edelweiss Air",
     "country": "Switzerland",
-    "primaryColor": "#003876",
+    "primaryColor": "#CF0A2C",
     "alliance": null,
     "callsign": "EDELWEISS",
     "logoUrl": null
@@ -3034,7 +3034,7 @@
     "icao": "WJA",
     "name": "WestJet",
     "country": "Canada",
-    "primaryColor": "#00A6A6",
+    "primaryColor": "#00AC9D",
     "alliance": null,
     "callsign": "WESTJET",
     "logoUrl": null
@@ -3044,7 +3044,7 @@
     "icao": "WOW",
     "name": "WOW air",
     "country": "Iceland",
-    "primaryColor": "#C8102E",
+    "primaryColor": "#991782",
     "alliance": null,
     "callsign": "WOW AIR",
     "logoUrl": null
@@ -3054,7 +3054,7 @@
     "icao": "OMA",
     "name": "Oman Air",
     "country": "Oman",
-    "primaryColor": "#932A61",
+    "primaryColor": "#B5985A",
     "alliance": null,
     "callsign": "OMAN AIR",
     "logoUrl": null
@@ -3064,7 +3064,7 @@
     "icao": "RWZ",
     "name": "Red Wings",
     "country": "Russia",
-    "primaryColor": "#CD252B",
+    "primaryColor": "#CC252B",
     "alliance": null,
     "callsign": "AIR RED",
     "logoUrl": null
@@ -3074,27 +3074,27 @@
     "icao": "TUI",
     "name": "TUI fly",
     "country": "Germany",
-    "primaryColor": "#003876",
+    "primaryColor": "#E41917",
     "alliance": null,
     "callsign": "ORANGE",
-    "logoUrl": null
+    "logoUrl": "/airlines/X3.png"
   },
   {
     "iata": "XL",
     "icao": "LNE",
     "name": "LATAM Ecuador",
     "country": "Ecuador",
-    "primaryColor": "#10004F",
+    "primaryColor": "#2A0088",
     "alliance": null,
     "callsign": "LANECUADOR",
-    "logoUrl": null
+    "logoUrl": "/airlines/XL.png"
   },
   {
     "iata": "XQ",
     "icao": "SXS",
     "name": "SunExpress",
     "country": "Turkey",
-    "primaryColor": "#FFD700",
+    "primaryColor": "#1A428A",
     "alliance": null,
     "callsign": "SUNEXPRESS",
     "logoUrl": null
@@ -3104,7 +3104,7 @@
     "icao": "KNE",
     "name": "flynas",
     "country": "Saudi Arabia",
-    "primaryColor": "#78BE20",
+    "primaryColor": "#00BBB4",
     "alliance": null,
     "callsign": "NAS EXPRESS",
     "logoUrl": null
@@ -3114,7 +3114,7 @@
     "icao": "VOI",
     "name": "Volaris",
     "country": "Mexico",
-    "primaryColor": "#780D4A",
+    "primaryColor": "#91268F",
     "alliance": null,
     "callsign": "VOLARIS",
     "logoUrl": null
@@ -3124,7 +3124,7 @@
     "icao": "MNB",
     "name": "Montenegro Airlines",
     "country": "Montenegro",
-    "primaryColor": "#C8102E",
+    "primaryColor": "#2056AE",
     "alliance": null,
     "callsign": "MONTAIR",
     "logoUrl": null
@@ -3134,7 +3134,7 @@
     "icao": "ASH",
     "name": "Mesa Airlines",
     "country": "United States",
-    "primaryColor": "#003876",
+    "primaryColor": null,
     "alliance": null,
     "callsign": "MESA",
     "logoUrl": null
@@ -3144,7 +3144,7 @@
     "icao": "ANE",
     "name": "Air Nostrum",
     "country": "Spain",
-    "primaryColor": "#003876",
+    "primaryColor": "#0090D0",
     "alliance": null,
     "callsign": "AIR NOSTRUM",
     "logoUrl": null
@@ -3154,7 +3154,7 @@
     "icao": "RPA",
     "name": "Republic Airways",
     "country": "United States",
-    "primaryColor": "#003876",
+    "primaryColor": "#00263A",
     "alliance": null,
     "callsign": "BRICKYARD",
     "logoUrl": null
@@ -3164,7 +3164,7 @@
     "icao": "MON",
     "name": "Monarch Airlines",
     "country": "United Kingdom",
-    "primaryColor": "#C8102E",
+    "primaryColor": "#731472",
     "alliance": null,
     "callsign": "MONARCH",
     "logoUrl": null
@@ -3174,7 +3174,7 @@
     "icao": "ESR",
     "name": "Eastar Jet",
     "country": "South Korea",
-    "primaryColor": "#FFD700",
+    "primaryColor": "#D12149",
     "alliance": null,
     "callsign": "EASTSTAR",
     "logoUrl": null
@@ -3184,17 +3184,17 @@
     "icao": "ALK",
     "name": "Azur Air",
     "country": "Russia",
-    "primaryColor": "#003876",
+    "primaryColor": "#003D68",
     "alliance": null,
     "callsign": "KATEKAVIA",
-    "logoUrl": null
+    "logoUrl": "/airlines/ZF.png"
   },
   {
     "iata": "ZH",
     "icao": "CSZ",
     "name": "Shenzhen Airlines",
     "country": "China",
-    "primaryColor": "#00529B",
+    "primaryColor": "#CC0327",
     "alliance": "star_alliance",
     "callsign": "SHENZHEN AIR",
     "logoUrl": null
@@ -3204,7 +3204,7 @@
     "icao": "AAF",
     "name": "Aigle Azur",
     "country": "France",
-    "primaryColor": "#003876",
+    "primaryColor": "#002C5A",
     "alliance": null,
     "callsign": "AIGLE AZUR",
     "logoUrl": null

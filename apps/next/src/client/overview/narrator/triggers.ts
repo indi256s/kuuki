@@ -51,7 +51,8 @@ export const TRIGGERS: Trigger[] = [
     return v.longestStreakMonths > 1 ? { months: v.longestStreakMonths } : null
   } },
   // Ready Crossings; dateLine exactly zero. Claim limited to crossings recorded by this card in the current view.
-  { id: 'crossings:no-date-line', slot: 'crossings', priority: 100, when: scope => {
+  // A fallback: Crossings often ends the page, and an absence is a weak last line when the clocks did move.
+  { id: 'crossings:no-date-line', slot: 'crossings', priority: 70, when: scope => {
     if (scope.crossings.status !== 'ready') return null
     const v = scope.crossings.value
     return v.dateLine === 0 ? { count: v.dateLine } : null

@@ -1,6 +1,6 @@
 'use client'
 
-import { Plus } from 'lucide-react'
+import { Plus } from '../ui/animated-icons'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { formatInstantDate, type Locale } from '../../lib/format'
 import { Button } from '../ui/button'

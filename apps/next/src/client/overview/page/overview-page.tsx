@@ -8,7 +8,6 @@ import { OverviewFlightSheet } from '../store/open-flight'
 import { HeroPanel } from '../hero/hero-panel'
 import { NextStrip } from '../hero/next-strip'
 import { OverviewGlobe } from '../globe/globe'
-import { ComparisonControl, ComparisonPanel } from '../comparison/comparison-panel'
 import { referenceLabels } from '../labels'
 import { S, t } from '../copy'
 import { Button } from '../../ui/button'
@@ -22,6 +21,7 @@ import { SectionSheet } from '../mobile/section-sheet'
 import { moveSection } from '../layout/reorder'
 import { useReorder } from '../layout/use-reorder'
 import { useLanes } from '../layout/use-lanes'
+import { CountryList } from '../globe/country-list'
 import { SectionFrame } from '../layout/section-frame'
 import { HiddenFooter } from '../layout/hidden-footer'
 import { Narrator } from '../narrator/narrator'
@@ -35,7 +35,7 @@ export function OverviewPage({ name, ...provider }: Props) {
   return <OverviewProvider {...provider}><PageContent name={name} /><OverviewFlightSheet /></OverviewProvider>
 }
 function PageContent({ name }: { name: string }) {
-  const { scope, all, payload, filter, layout, locale, setLayout, isCurrent, actions, revalidate, chapter } = useOverview()
+  const { scope, all, payload, filter, layout, locale, setLayout, isCurrent, actions, revalidate } = useOverview()
   const mobile = useMobile()
   const labels = useMemo(() => referenceLabels(locale), [locale])
   const firstRun = scope?.figures.flights === 0 && isEmptyFilter(filter) && payload?.derivedReady === true &&
@@ -103,11 +103,11 @@ function PageContent({ name }: { name: string }) {
       onMove={(section, index) => { if (move(section, index)) { restoreMenuFocus(section); announce(section, index, visible.length) } }} onHide={hide}
       drag={reorder.bindings(id)} gated={below} narrator={scope && !below ? <Narrator slot={id} /> : null}><Section span="full" /></SectionFrame>
   }
-  const greeting = t({ en: name ? `Hi, ${name}` : 'Hi', ru: name ? `Здравствуйте, ${name}` : 'Здравствуйте' }, locale)
+  // Display name, else the username (as on the public profile); a bare "Hi" read as unfinished, so an unnamed account gets a full greeting.
+  const greeting = t({ en: name ? `Hi, ${name}` : 'Welcome back', ru: name ? `Здравствуйте, ${name}` : 'С возвращением' }, locale)
   return <div ref={page} className="ov3-page" lang={locale}>
     <div className="ov3-page-heading">
       <h1 tabIndex={-1}>{greeting}<span className="ov3-scope">{scopeTitle(filter, labels, locale)}</span></h1>
-      {!firstRun || chapter ? <ComparisonControl /> : null}
     </div>
     {payload?.mode === 'aggregate' && payload.aggregateResolution !== 'day' && filter.period && 'from' in filter.period && filter.period.from.length === 10 ? <div role="alert">
       <p>{locale === 'ru' ? 'В этой старой сводке нет точных дат. Обновите данные или сбросьте диапазон.' : 'This older summary has no exact-day detail. Refresh the data or clear the range.'}</p>
@@ -115,14 +115,14 @@ function PageContent({ name }: { name: string }) {
     </div> : !scope || !all || !payload ? <><p role="status">{t(S.loading, locale)}</p><Skeleton height={520} label={t(S.loading, locale)} /></> : <>
       <div data-region="next"><NextStrip /></div>
       {!payload.derivedReady ? <p role="status" className="status-note">{t(S.countriesUpdating, locale)}</p> : null}
-      <div className="ov3-overview-workspace" data-comparing={chapter ? 'true' : undefined}>
+      <div className="ov3-overview-workspace">
+        {/* On very wide screens CSS docks the country list as a third card (page.css); both it and the disclosure render, so the server's first paint is already final. */}
         <div className="ov3-globe-band">
           <section className="ov3-globe-region ov-globe" aria-label={t(S.map, locale)} data-globe={firstRun ? 'blank' : zero ? 'ghost' : 'ready'}>
             <OverviewGlobe topLeft={<FilterBar />} />{firstRun ? <FirstRun /> : null}
           </section>
-          {!firstRun ? <div data-region="figures"><HeroPanel /></div> : null}
+          {!firstRun ? <><div data-region="figures"><HeroPanel /></div><CountryList /></> : null}
         </div>
-        <ComparisonPanel />
       </div>
       {zero ? <ZeroResult /> : !firstRun && mobile !== null ? mobile ? <div className="ov3-sections" data-surface="tiles">
         {packTiles(layout.order, layout.hidden).map(({ id, span }) => {

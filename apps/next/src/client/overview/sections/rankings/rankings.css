@@ -47,3 +47,7 @@
 .ov3-share-legend strong { font-size: 13px; font-weight: 500; }
 
 .ov3-leader-legend { display: flex; flex-wrap: wrap; gap: 8px 16px; }.ov3-leader-legend span { display: inline-flex; align-items: center; gap: 6px; }.ov3-leader-legend i { width: 8px; height: 8px; background: var(--accent); border-radius: 2px; }.ov3-leader-legend span:last-child i { background: var(--map-bucket-2); }
+.ov3-rankings > .ui-disclosure { margin-top: 32px; }
+.ov3-rankings > .ui-disclosure + .ui-disclosure { margin-top: var(--space-2); }
+.ov3-rankings > .ui-disclosure .ov3-rankings-bottom { margin-top: var(--space-4); }
+.ov3-bump-hint { margin: var(--space-3) 0 0; color: var(--text-muted); font-size: 13px; }

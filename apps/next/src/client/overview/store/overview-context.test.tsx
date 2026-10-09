@@ -195,12 +195,9 @@ it('data revalidation publishes a new scope, preserves 304/errors and detaches o
     .mockResolvedValueOnce(new Response(null, { status: 304 })).mockRejectedValueOnce(new Error('offline'))
   vi.stubGlobal('fetch', fetcher)
   mount(undefined, true)
-  act(() => current.keepChapter())
-  expect(current.chapter!.scope.figures.flights).toBe(10)
   const all = current.all
   await act(async () => { await current.revalidate() })
   expect(current.scope?.figures.flights).toBe(1)
-  expect(current.chapter!.scope.figures.flights).toBe(1)
   expect(current.all).not.toBe(all)
   const updated = current.all
   await act(async () => { await current.revalidate(); await current.revalidate() })
@@ -386,30 +383,6 @@ it('identity reset retires an open sheet and cannot admit a later private read',
   expect(screen.queryByRole('dialog')).toBeNull()
   await act(async () => result.reject(new Error('old account')))
   expect(announceShellNotice).not.toHaveBeenCalled()
-})
-
-it('a kept chapter keeps its own filter, refuses an empty replacement and dies with the owner', () => {
-  const view = mount()
-  act(() => current.keepChapter())
-  expect(current.chapter!.filter).toEqual({})
-  act(() => current.actions.add('airlines', 'TK'))
-  act(() => current.keepChapter())
-  expect(current.chapter!.filter).toEqual({ airlines: ['TK'] })
-  expect(current.chapter!.scope.figures.flights).toBeGreaterThan(0)
-  act(() => current.actions.add('airlines', 'BA'))
-  expect(current.filter).toEqual({ airlines: ['TK', 'BA'] })
-  expect(current.chapter!.filter).toEqual({ airlines: ['TK'] })
-  act(() => current.actions.clear())
-  act(() => current.actions.add('airlines', 'ZZ'))
-  act(() => current.keepChapter())
-  expect(current.chapter!.filter).toEqual({ airlines: ['TK'] })
-  act(() => current.clearChapter())
-  expect(current.chapter).toBeNull()
-  act(() => current.actions.clear())
-  act(() => current.keepChapter())
-  expect(current.chapter).not.toBeNull()
-  view.rerender(<OverviewProvider payload={payload} prefs={DEFAULT_PREFS} ownerKey="other" locale="en" live={false}><Capture /></OverviewProvider>)
-  expect(current.chapter).toBeNull()
 })
 
 it('invalid opener IDs do not navigate', () => {

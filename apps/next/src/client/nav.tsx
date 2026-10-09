@@ -2,8 +2,9 @@
 
 import { NavigationLink as Link } from './navigation-link'
 import { usePathname } from 'next/navigation'
-import { useEffect, useState, type ReactNode } from 'react'
-import { BookOpen, CircleUser, LayoutGrid, Plus, Stamp } from 'lucide-react'
+import { useEffect, useState, type ComponentType, type ReactNode, type SVGProps } from 'react'
+import { BookOpen, CircleUser } from 'lucide-react'
+import { LayoutGrid, Plus, Stamp } from './ui/animated-icons'
 import { AddActions } from './add-actions'
 import { Sheet } from './ui/sheet'
 
@@ -83,7 +84,7 @@ export function TabBar({ locale = 'en', username }: { locale?: Locale; username?
   // The sheet must not outlive a route change (back/forward, link taps).
   const [sheetPath, setSheetPath] = useState(pathname)
   if (sheetPath !== pathname) { setSheetPath(pathname); setAddOpen(false) }
-  const icon = (Icon: typeof Plus) => <Icon size={22} strokeWidth={2} aria-hidden="true" />
+  const icon = (Icon: ComponentType<SVGProps<SVGSVGElement> & { size?: number }>) => <Icon size={22} strokeWidth={2} aria-hidden="true" />
   return <nav aria-label={ru ? 'Вкладки' : 'Tabs'} className="tab-bar"><ul>
     <Tab href="/overview" prefetch active={isActive(pathname, '/overview')} icon={icon(LayoutGrid)} en="Overview" ru="Обзор" />
     <Tab href="/journal" prefetch active={isActive(pathname, '/journal')} icon={icon(BookOpen)} en="Journal" ru="Журнал" />

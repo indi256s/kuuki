@@ -95,7 +95,7 @@ function artifact() {
   }
   walkAssets(assetsDir)
   return { node: process.version, workerModules: count, workerBytes: bytes, workerGzipBytes: gzipBytes, staticAssets: assets, staticBytes: assetBytes,
-    next: '16.3.8', openNext: '1.20.8', compatibilityDate: '2026-08-06' }
+    next: '16.3.8', openNext: '1.20.10', compatibilityDate: '2026-08-06' }
 }
 
 async function maintenanceProbe() {
@@ -113,6 +113,76 @@ async function maintenanceProbe() {
       }
     }
   } finally { await hold.dispose() }
+}
+
+// Preview journal for a@example.test. Flights go through the bulk endpoint, so the API derives distance, duration and
+// zones from these airports as it does for a member. Playwright and the bench set KUUKI_NEXT_FIXTURE=minimal.
+const JOURNAL_AIRPORTS = [
+  ['LHR', 'London Heathrow Airport', 'London', 'United Kingdom', 'GB', 51.47, -0.4543],
+  ['ORD', "O'Hare International Airport", 'Chicago', 'United States', 'US', 41.9742, -87.9073],
+  ['SFO', 'San Francisco International Airport', 'San Francisco', 'United States', 'US', 37.6213, -122.379],
+  ['LAX', 'Los Angeles International Airport', 'Los Angeles', 'United States', 'US', 33.9425, -118.4081],
+  ['CDG', 'Charles de Gaulle Airport', 'Paris', 'France', 'FR', 49.0097, 2.5479],
+  ['FRA', 'Frankfurt Airport', 'Frankfurt', 'Germany', 'DE', 50.0379, 8.5622],
+  ['DXB', 'Dubai International Airport', 'Dubai', 'United Arab Emirates', 'AE', 25.2532, 55.3657],
+  ['NRT', 'Narita International Airport', 'Tokyo', 'Japan', 'JP', 35.772, 140.3929],
+]
+const JOURNAL_AIRCRAFT = [
+  ['B738', 'Boeing 737-800', 'Boeing', '737-800', 'narrowbody'],
+  ['B789', 'Boeing 787-9', 'Boeing', '787-9', 'widebody'],
+  ['A359', 'Airbus A350-900', 'Airbus', 'A350-900', 'widebody'],
+]
+// [date, origin, destination, airline, flight number, aircraft]; the aircraft is optional.
+const JOURNAL_FLIGHTS: Array<[date: string, origin: string, destination: string, airline: string, number: string, aircraft?: string]> = [
+  ['2024-02-10', 'JFK', 'LHR', 'BA', '112', 'B789'],
+  ['2024-02-17', 'LHR', 'JFK', 'BA', '117', 'B789'],
+  ['2024-04-06', 'BOS', 'ORD', 'UA', '1376', 'A320'],
+  ['2024-04-08', 'ORD', 'SFO', 'UA', '1502', 'B738'],
+  ['2024-04-11', 'SFO', 'LAX', 'UA', '1181', 'A320'],
+  ['2024-04-14', 'LAX', 'JFK', 'AA', '17'],
+  ['2024-07-19', 'JFK', 'CDG', 'AF', '22', 'A359'],
+  ['2024-07-27', 'CDG', 'JFK', 'AF', '23', 'A359'],
+  ['2024-08-02', 'CDG', 'FRA', 'LH', '1218'],
+  ['2024-08-05', 'FRA', 'BOS', 'LH', '400', 'B789'],
+  ['2024-10-12', 'BOS', 'JFK', 'DL', '5260', 'A320'],
+  ['2024-12-22', 'JFK', 'IST', 'TK', '1', 'A359'],
+  ['2024-12-24', 'IST', 'TBS', 'TK', '1822', 'A320'],
+  ['2025-01-02', 'TBS', 'IST', 'TK', '1823'],
+  ['2025-01-03', 'IST', 'JFK', 'TK', '2', 'B789'],
+  ['2025-05-17', 'JFK', 'DXB', 'EK', '201', 'B789'],
+  ['2025-05-19', 'DXB', 'NRT', 'EK', '318', 'A359'],
+  ['2025-05-25', 'NRT', 'SFO', 'UA', '837', 'B789'],
+  ['2025-05-27', 'SFO', 'BOS', 'UA', '2155', 'B738'],
+  ['2025-09-14', 'BOS', 'ORD', 'AA', '3311', 'A320'],
+  ['2026-02-14', 'ORD', 'LAX', 'AA', '2216', 'B738'],
+  ['2026-03-21', 'LAX', 'SFO', 'UA', '1192', 'A320'],
+  ['2026-05-10', 'SFO', 'JFK', 'B6', '512', 'A320'],
+  ['2026-06-18', 'JFK', 'LHR', 'BA', '112', 'B789'],
+  ['2026-06-25', 'LHR', 'CDG', 'AF', '1080'],
+  ['2026-07-04', 'CDG', 'BOS', 'AF', '338', 'A359'],
+]
+
+async function seedJournal(db: D1Database, cookie: string, csrf: string) {
+  await db.batch([
+    ...JOURNAL_AIRPORTS.map(([iata, name, city, country, countryCode, latitude, longitude]) =>
+      db.prepare('INSERT INTO airports_reference(iata,name,city,country,country_code,latitude,longitude) VALUES(?,?,?,?,?,?,?)')
+        .bind(iata, name, city, country, countryCode, latitude, longitude)),
+    ...JOURNAL_AIRCRAFT.map(([icao, name, manufacturer, model, type]) =>
+      db.prepare("INSERT INTO aircraft_reference(icao,name,manufacturer,model,type,engine_type,engine_count) VALUES(?,?,?,?,?,'jet',2)")
+        .bind(icao, name, manufacturer, model, type)),
+  ])
+  const response = await request('/api/flights/bulk', {
+    method: 'POST', headers: { Origin: origin, Cookie: cookie, 'X-CSRF-Token': csrf, 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      items: JOURNAL_FLIGHTS.map(([date, from, to, airline_iata, flight_number, aircraft_icao], index) => ({
+        key: `next-fixture-flight-${String(index + 2).padStart(3, '0')}`,
+        flight: { date, origin: from, destination: to, airline_iata, flight_number, aircraft_icao },
+      })),
+    }),
+  })
+  const body = await response.json() as { results?: Array<{ status: string }> }
+  const created = body.results?.filter(result => result.status === 'created').length
+  if (!response.ok || created !== JOURNAL_FLIGHTS.length) throw new Error(`Synthetic journal create failed: ${response.status} ${JSON.stringify(body)}`)
 }
 
 async function main() {
@@ -194,6 +264,7 @@ async function main() {
     if (created.status !== 201) throw new Error(`Synthetic flight create failed: ${created.status} ${await created.text()}`)
     await mf.ready
     if (!check) {
+      if (process.env.KUUKI_NEXT_FIXTURE !== 'minimal') await seedJournal(db, seedCookie, csrf)
       // A dedicated account and one-use token exercise browser resets without mutating other journeys' credentials.
       const recoveryHash = await sha256Hex('R'.repeat(43))
       const recoveryNow = new Date().toISOString()
@@ -247,8 +318,7 @@ async function main() {
       ['public, max-age=31536000, immutable', ['/maps/world-outline-110m-2.0.2.svg',
       '/maps/world-outline-110m-2.0.2-light.svg', '/maps/world-outline-110m-2.0.2-dark.svg', '/maps/country-centers-110m-2.0.2.json',
       '/maps/countries-110m-2.0.2.geojson',
-      '/maps/maplibre-6.12.0/maplibre-gl.css', '/maps/maplibre-6.12.0/maplibre-gl-worker.mjs',
-      '/maps/maplibre-6.12.0/maplibre-gl-shared.mjs']],
+      '/maps/maplibre-6.13.0/maplibre-gl.css', '/maps/maplibre-6.13.0/maplibre-gl-worker.mjs']],
       ['public, max-age=3600, must-revalidate', ['/fonts/Commissioner-Regular.woff2', '/fonts/JetBrainsMono.ttf']],
     ] as const) for (const path of paths) {
       const asset = await assertResponse(path, 200)
@@ -261,10 +331,15 @@ async function main() {
         if (conditional.headers.get('Cache-Control') !== cache) throw new Error(`Public asset 304 cache mismatch: ${path}`)
       }
     }
-    for (const path of ['/bootstrap.js', '/maps/missing-110m-2.0.2.svg', '/maps/maplibre-6.12.0/LICENSE.txt', '/fonts/missing.woff2', '/fonts/Commissioner-OFL.txt']) {
+    for (const path of ['/bootstrap.js', '/maps/missing-110m-2.0.2.svg', '/maps/maplibre-6.13.0/LICENSE.txt', '/fonts/missing.woff2', '/fonts/Commissioner-OFL.txt']) {
       const response = await request(path)
       if (response.headers.get('Cache-Control') !== 'no-store') throw new Error(`Unversioned or missing asset became cacheable: ${path}`)
       if (path.includes('/missing') && response.status < 400) throw new Error('Missing public asset did not fail')
+    }
+    const airlineLogo = await assertResponse('/airlines/TK.png', 200)
+    const logoBytes = new Uint8Array(await airlineLogo.arrayBuffer())
+    if (airlineLogo.headers.get('Content-Type') !== 'image/png' || logoBytes[0] !== 137 || logoBytes[1] !== 80 || logoBytes[2] !== 78 || logoBytes[3] !== 71) {
+      throw new Error('Airline logo was not served as a local PNG asset')
     }
     const bootstrapHead = await assertResponse('/bootstrap.js', 200, { method: 'HEAD' })
     if (bootstrapHead.headers.get('Cache-Control') !== 'no-store') throw new Error('Unversioned HEAD became cacheable')

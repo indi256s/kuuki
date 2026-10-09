@@ -1,7 +1,7 @@
 'use client'
 
 import { useLayoutEffect, useMemo, useRef, useState } from 'react'
-import { Plus } from 'lucide-react'
+import { Plus } from '../../ui/animated-icons'
 import { formatPeriodDate, formatNumber } from '../../../lib/format'
 import { referenceLabels } from '../labels'
 import { scopeTitle } from '../page/scope-title'

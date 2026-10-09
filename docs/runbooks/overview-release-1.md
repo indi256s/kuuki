@@ -307,12 +307,12 @@ authorized by application deployment approval.
 10. **Separate authorization — delete the temporary operator.** Remove only
     `kuuki-overview-release-operator` after accepted verification. Deleting it
     neither deploys the app nor releases the hold. Retain private evidence.
-11. **Separate authorization — deploy Release 1.** Follow every deploy-kuuki
-    gate for the accepted main SHA, including separate preview/production
-    approvals and remote ledger checks on both D1 targets. Preview migrations
-    need their own isolated authorization; production success does not admit
-    preview. Require both `0008` and `0009` ledger rows before either current app deploy. Record the
-    previous and new versions for both `kuuki-next` and `kuuki-activation`.
+11. **Separate authorization — deploy Release 1.** A deployment request authorizes
+    production for the accepted main SHA. Follow deploy-kuuki directly to
+    production, without a preview deployment or a second production approval.
+    Check the production D1 ledger and require both `0008` and `0009` rows before
+    either app deploy; pending migrations still need separate authorization.
+    Record the previous and new versions for both `kuuki-next` and `kuuki-activation`.
 12. **Separate authorization — release hold, then smoke.** Reopen writers only
     after preservation and release identity are accepted. Separately authorize
     a verification-account flight creation; verify server distance, duration

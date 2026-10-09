@@ -1,0 +1,32 @@
+{
+ "api": {
+  "status": 200,
+  "contentEncoding": null,
+  "raw": 751504,
+  "gzip": 41444,
+  "brotli": 23276
+ },
+ "html": {
+  "status": 200,
+  "contentEncoding": null,
+  "raw": 1056660,
+  "gzip": 58887,
+  "brotli": 34492
+ },
+ "rsc": {
+  "scriptBytes": 895870,
+  "decodedBytes": 791560,
+  "chunks": 1
+ },
+ "journalInRsc": {
+  "chunks": 1,
+  "decodedBytes": 791560,
+  "gzip": 45682,
+  "brotli": 26135
+ },
+ "htmlWithoutFlightScripts": {
+  "raw": 160730,
+  "gzip": 11462
+ },
+ "journalScriptTagBytesInHtml": 895930
+}

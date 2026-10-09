@@ -1,7 +1,7 @@
 import { AIRCRAFT_BATCH_SIZE } from '@kuuki/shared/constants'
 // Aircraft review after a save: suggestions come from `/api/enrich/aircraft`, accepting goes through
-// `/api/flights/aircraft-batch`. The legacy rules are kept: only suggestions at or above 0.7 are offered, all of them
-// start selected, and select-all doubles as deselect-all. Every flight keeps its own outcome, and the requests run
+// `/api/flights/aircraft-batch`. Only suggestions at or above 0.7 are offered; older responses without a basis
+// start selected. Select-all doubles as deselect-all. Every flight keeps its own outcome, and the requests run
 // one after another (no parallel fan-out).
 import { formatNumber, type Locale } from '../../lib/format'
 import { S } from './copy'
@@ -11,8 +11,8 @@ export const AIRCRAFT_BATCH = AIRCRAFT_BATCH_SIZE
 export const RELIABLE = 0.7
 
 export interface AircraftTarget { id: number; flight_number: string | null; airline_iata: string | null; date: string; origin: string; destination: string }
-export interface EnrichResult { flight_id: string; aircraft_icao: string | null; aircraft_name: string | null; confidence: number; evidence?: string | null; uncertainty?: string | null }
-export interface Suggested { flightId: number; icao: string; name: string | null; confidence: number; evidence: string | null; uncertainty: string | null }
+export interface EnrichResult { flight_id: string; aircraft_icao: string | null; aircraft_name: string | null; confidence: number; evidence?: string | null; uncertainty?: string | null; sources?: Array<{ url: string; title: string }>; equipment_basis?: 'actual' | 'scheduled' | 'unknown'; evidence_date?: string | null; registration?: string | null; operating_airline?: string | null }
+export interface Suggested { flightId: number; icao: string; name: string | null; confidence: number; evidence: string | null; uncertainty: string | null; sources: Array<{ url: string; title: string }>; equipmentBasis?: 'actual' | 'scheduled' | 'unknown'; evidenceDate: string | null; registration: string | null; operatingAirline: string | null }
 /** Why a flight has no offer: the service named nothing, named something it was not sure of, or did not answer for it. */
 export interface Unidentified { flightId: number; reason: 'none' | 'low' | 'missing'; confidence: number | null; icao: string | null }
 
@@ -25,7 +25,7 @@ export function diagnose(flightIds: number[], results: EnrichResult[]): { sugges
     if (!result) unidentified.push({ flightId, reason: 'missing', confidence: null, icao: null })
     else if (!result.aircraft_icao) unidentified.push({ flightId, reason: 'none', confidence: result.confidence, icao: null })
     else if (result.confidence < RELIABLE) unidentified.push({ flightId, reason: 'low', confidence: result.confidence, icao: result.aircraft_icao })
-    else suggested.push({ flightId, icao: result.aircraft_icao, name: result.aircraft_name, confidence: result.confidence, evidence: result.evidence ?? null, uncertainty: result.uncertainty ?? null })
+    else suggested.push({ flightId, icao: result.aircraft_icao, name: result.aircraft_name, confidence: result.confidence, evidence: result.evidence ?? null, uncertainty: result.uncertainty ?? null, sources: result.sources ?? [], equipmentBasis: result.equipment_basis, evidenceDate: result.evidence_date ?? null, registration: result.registration ?? null, operatingAirline: result.operating_airline ?? null })
   }
   return { suggested, unidentified }
 }

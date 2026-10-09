@@ -1,0 +1,27 @@
+diff --git a/dist/internal.js b/dist/internal.js
+--- a/dist/internal.js
++++ b/dist/internal.js
+@@ -481,6 +481,8 @@
+     },
+     initializeContext: (E, D, _) => {
+       b = !0;
++      // kuuki: the first boundary is the page the document loaded with, so the browser's restored scroll stays.
++      const kuukiInitial = !e;
+       const N = L === D ? C : ++C;
+       p = E, e || (e = Ft(E), h = v(), a = !0, typeof ResizeObserver < "u" && (s = new ResizeObserver(() => {
+         h = v();
+@@ -490,12 +492,12 @@
+       const I = d(D), H = w.get(I), F = T, B = (j, Q) => {
+         N === C && (r = N, Q !== void 0 && w.set(d(Q), F), j === "shared" ? w.set(I, F) : j && H && w.set(I, H), y(D, j !== !1, N));
+       };
+-      _ !== void 0 ? B(_) : requestAnimationFrame(() => {
++      _ !== void 0 ? B(_) : kuukiInitial || requestAnimationFrame(() => {
+         r !== N && N === C && B(!1);
+       });
+       let J = 0;
+       const Y = () => {
+-        N === C && (J++, J >= Xt ? b = !1 : requestAnimationFrame(Y));
++        N === C && (J++, J >= Xt ? (b = !1, i()) : requestAnimationFrame(Y));
+       };
+       return requestAnimationFrame(Y), B;
+     },

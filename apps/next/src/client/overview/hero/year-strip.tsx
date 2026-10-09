@@ -1,6 +1,7 @@
 'use client'
 
-import { formatCount } from '../../../lib/format'
+import type { CSSProperties } from 'react'
+import { formatCount, formatNumber } from '../../../lib/format'
 import { forms, S, t } from '../copy'
 import { useOverview } from '../store/overview-context'
 import './hero.css'
@@ -16,8 +17,9 @@ export function YearStrip() {
       aria-label={`${row.year} · ${formatCount(locale, row.flights, forms.flights)} · ${t(S.period, locale)}`}
       aria-pressed={!!filter.period && 'years' in filter.period && filter.period.years.includes(row.year)}
       onClick={() => actions.setPeriod({ years: [row.year] })}>
+      {row.flights > 0 ? <span className="ov3-year-count" aria-hidden="true">{formatNumber(locale, row.flights)}</span> : null}
       <span className={`ov3-year-mark${row.flights === 0 ? ' empty' : row.flights === peak ? ' peak' : ''}`}
-        style={{ height: row.flights === 0 ? 2 : Math.max(2, row.flights / peak * 96) }} aria-hidden="true" />
+        style={{ '--bar': row.flights === 0 ? 0 : row.flights / peak } as CSSProperties} aria-hidden="true" />
       <span className="ov3-year-label">{"'"}{String(row.year).slice(-2)}</span>
     </button>)}</div>
   </div>

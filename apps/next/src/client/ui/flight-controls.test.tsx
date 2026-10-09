@@ -119,6 +119,22 @@ function Probe({ locale, initial = '' }: { locale: Locale; initial?: string }) {
   return <><Combobox label="Airport" locale={locale} choices={airportChoices(locale)} value={value} onChange={setValue} /><output>{value}</output></>
 }
 describe('combobox free text', () => {
+  it.each([{ isComposing: true }, { keyCode: 229 }])('leaves IME navigation and confirmation keys to composition (%j)', async composition => {
+    render(<Probe locale="en" initial="JFK" />)
+    const input = screen.getByRole('combobox', { name: 'Airport' })
+    await userEvent.click(input)
+    fireEvent.change(input, { target: { value: 'Moscow' } })
+    const active = input.getAttribute('aria-activedescendant')
+    for (const key of ['ArrowDown', 'ArrowUp', 'Escape', 'Enter']) {
+      fireEvent.keyDown(input, { key, ...composition })
+      expect(input).toHaveValue('Moscow')
+      expect(input).toHaveAttribute('aria-expanded', 'true')
+      expect(input).toHaveAttribute('aria-activedescendant', active)
+    }
+    fireEvent.keyDown(input, { key: 'Enter' })
+    expect(input).toHaveValue('DME')
+    expect(input).toHaveAttribute('aria-expanded', 'false')
+  })
   it('shows the query as typed and settles on the single match when focus leaves', async () => {
     render(<Probe locale="en" />)
     const input = screen.getByRole('combobox', { name: 'Airport' })

@@ -3,13 +3,14 @@
 import type { CSSProperties } from 'react'
 import { MAKER_SLOTS } from '@kuuki/data/aircraft-makers'
 import { MakerSwatch } from '../../../ui/category-mark'
+import { Button } from '../../../ui/button'
 import { ArcRidgeline, type ArcRidgeRow } from '../../charts/arc-ridgeline'
 import { KuukiChart, type ChartPoint } from '../../charts/kuuki-chart'
 import { LazyChart } from '../../charts/lazy-chart'
 import { MAKER_PALETTE } from '../../charts/palettes'
 import { useOverview } from '../../store/overview-context'
 import type { Span } from '../registry'
-import { Below, copy, filterLabel, flights, types } from '../rankings/display'
+import { Below, copy, filterLabel, flights, number, types } from '../rankings/display'
 import { PayloadAircraftReview } from '../manufacturers/aircraft-review'
 import { ridgeProfile } from './helpers'
 import './fleet.css'
@@ -29,6 +30,14 @@ export function Section({ span }: { span: Span }) {
     x: sample.x,
     point: { key: `${row.key}:${i}`, datum: { ...row, x: sample.x }, label: `${row.family} · ${flights(locale, row.flights)} · ${Math.round(sample.x)} ${copy(locale, 'min', 'мин')}` },
   }))]))
+  // Keyboard steps one family at a time, at the sample nearest its median, labelled with that typical length; hover still reads every sample.
+  const stops = [...live.values()].map(({ row }) => {
+    const samples = sampleOf.get(row.key) ?? [], sorted = [...row.minutes].filter(value => value > 0).sort((a, b) => a - b)
+    const median = sorted.length ? sorted[Math.floor((sorted.length - 1) / 2)]! : null
+    const stop = median === null ? samples[0] : samples.reduce((best, sample) => Math.abs(sample.x - median) < Math.abs(best.x - median) ? sample : best)
+    if (stop && median !== null) stop.point = { ...stop.point, label: `${row.family} · ${flights(locale, row.flights)} · ${copy(locale, 'typically', 'обычно')} ${Math.round(median)} ${copy(locale, 'min', 'мин')}` }
+    return stop?.point.key
+  }).filter((key): key is string => !!key)
   const points = [...sampleOf.values()].flatMap(samples => samples.map(sample => sample.point))
   const ridges: ArcRidgeRow<Sample>[] = []
   for (const body of ['narrow', 'wide']) {
@@ -46,10 +55,12 @@ export function Section({ span }: { span: Span }) {
     <div className="ov3-body-split">{(['narrow', 'wide'] as const).map(body => { const rows = data.bodies.filter(row => row.body === body), total = rows.reduce((sum, row) => sum + row.flights, 0); return <div key={body} style={{ '--n': total } as CSSProperties}><div className="ov3-body-bands">{rows.map(row => <button key={row.key} style={{ flexGrow: row.flights, background: `var(--cat-maker-${row.maker})` }} aria-label={`${copy(locale, body === 'narrow' ? 'Narrowbody' : 'Widebody', body === 'narrow' ? 'Узкофюзеляжные' : 'Широкофюзеляжные')} · ${row.maker} · ${flights(locale, row.flights)}`} onClick={() => { if (isCurrent()) { actions.add('bodies', body); actions.add('makers', row.maker) } }} />)}</div><p>{copy(locale, body === 'narrow' ? 'Narrowbody' : 'Widebody', body === 'narrow' ? 'Узкофюзеляжные' : 'Широкофюзеляжные')} {total}</p></div> })}</div>
     <PayloadAircraftReview />
     <h3 className="ov3-chart-caption">{copy(locale, 'Flight length by type', 'Длительность по типам')}</h3>
-    <LazyChart height={height + 64} label={copy(locale, 'Flight length by type', 'Длительность по типам')}>{inView => <KuukiChart points={points} height={height} inView={inView} palette={MAKER_PALETTE} ariaLabel={copy(locale, 'Flight length by type', 'Длительность по типам')}
+    {points.length === 0 && <p>{data.familyRows.some(row => row.minutes.length > 0) ? copy(locale, 'Flight duration distribution is unavailable.', 'Распределение длительности перелётов недоступно.') : copy(locale, 'Exact flight durations are unavailable.', 'Точная длительность перелётов неизвестна.')}</p>}
+    {data.familyRows.filter(row => row.minutes.length < row.flights || !sampleOf.get(row.key)?.length).map(row => <div key={row.key}><Button variant="ghost" onClick={() => pick(row.family)} aria-label={`${filterLabel(locale)} · ${row.family}`}>{row.family} · {flights(locale, row.flights)}</Button><p>{copy(locale, 'Exact duration recorded:', 'Точная длительность указана:')} {number(locale, row.minutes.length)} {copy(locale, 'of', 'из')} {locale === 'ru' ? number(locale, row.flights) : flights(locale, row.flights)}</p></div>)}
+    {points.length > 0 && <LazyChart height={height + 64} label={copy(locale, 'Flight length by type', 'Длительность по типам')}>{inView => <KuukiChart points={points} height={height} inView={inView} palette={MAKER_PALETTE} ariaLabel={copy(locale, 'Flight length by type', 'Длительность по типам')} keyStops={stops}
       onPick={point => pick(point.datum.family)} actions={point => [{ label: filterLabel(locale), run: () => pick(point.datum.family) }]}
       tip={points => <span>{points[0].datum.family} · {flights(locale, points[0].datum.flights)} · {Math.round(points[0].datum.x)} {copy(locale, 'min', 'мин')}</span>}
-      table={{ caption: copy(locale, 'Flight length by type', 'Длительность по типам'), columns: [{ key: 'family', label: copy(locale, 'Type', 'Тип') }, { key: 'flights', label: copy(locale, 'Flights', 'Перелёты'), numeric: true }, { key: 'minutes', label: copy(locale, 'Recorded minutes', 'Известное время, мин') }], rows: data.familyRows.map(row => ({ family: row.family, flights: row.flights, minutes: row.minutes.join(', ') || '—' })) }}>{(mark, { width }) => <ArcRidgeline rows={ridges} mark={mark} width={width} height={height} formatTick={minutes => `${minutes / 60}${copy(locale, 'h', 'ч')}`} />}</KuukiChart>}</LazyChart>
+      table={{ caption: copy(locale, 'Flight length by type', 'Длительность по типам'), columns: [{ key: 'family', label: copy(locale, 'Type', 'Тип') }, { key: 'flights', label: copy(locale, 'Flights', 'Перелёты'), numeric: true }, { key: 'minutes', label: copy(locale, 'Recorded minutes', 'Известное время, мин') }], rows: data.familyRows.map(row => ({ family: row.family, flights: row.flights, minutes: row.minutes.join(', ') || '—' })) }}>{(mark, { width }) => <ArcRidgeline rows={ridges} mark={mark} width={width} height={height} formatTick={minutes => `${minutes / 60}${copy(locale, 'h', 'ч')}`} />}</KuukiChart>}</LazyChart>}
     <div className="ov3-fleet-legend">{MAKER_SLOTS.filter(maker => data.familyRows.some(row => row.maker === maker)).map(maker => <span key={maker}><MakerSwatch maker={maker} /> {maker === 'other' ? copy(locale, 'Other', 'Другие') : maker === 'atr' ? 'ATR' : maker[0].toUpperCase() + maker.slice(1)}</span>)}</div>
   </div>
 }

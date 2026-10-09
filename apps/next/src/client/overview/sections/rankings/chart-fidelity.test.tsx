@@ -1,6 +1,12 @@
 import { renderToStaticMarkup } from 'react-dom/server'
 import { expect, it } from 'vitest'
 import { ArcDonut } from '../../charts/arc-donut'
+import { airlineBrand, airlineColor } from '../../../../lib/airline'
+
+it('keeps JetBlue navy even though the seed reused it for unknown airline colors', () => {
+  expect(airlineBrand('b6')).toBe('#003876')
+  expect(airlineColor('B6')).not.toBe('var(--mark-ghost)')
+})
 
 it('keeps every airline identity, including tiny shares beyond the upstream grouping limit', () => {
   const values = [10000000, 1, 1, 1, 1, 1, 1, 1]

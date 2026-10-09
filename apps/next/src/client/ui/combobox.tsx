@@ -47,7 +47,7 @@ export function Combobox({ label, value, onChange, onBlur, inputRef, choices, lo
     if (found) { onChange(found.code); onSelect?.(found.code); setQuery(null) } else revert()
   }
   const keydown = (event: KeyboardEvent<HTMLInputElement>) => {
-    if (event.ctrlKey || event.metaKey) return
+    if (event.nativeEvent.isComposing || event.nativeEvent.keyCode === 229 || event.ctrlKey || event.metaKey) return
     if (event.key === 'Escape' && open) { event.preventDefault(); event.stopPropagation(); setOpen(false); revert() }
     if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
       event.preventDefault()

@@ -25,6 +25,62 @@ describe('AircraftPanel', () => {
     expect(screen.getByText(/gave no answer for this flight/i)).toBeInTheDocument()
   })
 
+  it('starts schedule and unknown suggestions unchecked while select all still includes them', async () => {
+    const user = userEvent.setup()
+    const accept = vi.fn(async (): Promise<AircraftAccept> => ({ results: [] }))
+    const enrich: AircraftApi['enrich'] = vi.fn(async () => ({ results: [
+      { ...found(1, 'B738', 0.9), equipment_basis: 'actual' as const },
+      { ...found(2, 'A320', 0.9), equipment_basis: 'scheduled' as const },
+      { ...found(3, 'B77W', 0.9), equipment_basis: 'unknown' as const },
+    ] }))
+    render(<AircraftPanel locale="en" targets={targets} onSaved={vi.fn()} api={{ enrich, accept }} />)
+    await user.click(screen.getByRole('button', { name: /identify aircraft/i }))
+    const rows = await screen.findAllByRole('listitem')
+    expect(within(rows[0]).getByRole('checkbox')).toBeChecked()
+    expect(within(rows[1]).getByRole('checkbox')).not.toBeChecked()
+    expect(within(rows[2]).getByRole('checkbox')).not.toBeChecked()
+    expect(screen.getByRole('button', { name: /save 1 aircraft/i })).toBeInTheDocument()
+    await user.click(screen.getByRole('checkbox', { name: /select all/i }))
+    expect(screen.getByRole('button', { name: /save 3 aircraft/i })).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: /save 3 aircraft/i }))
+    expect(accept).toHaveBeenCalledWith([{ id: 1, aircraft_icao: 'B738' }, { id: 2, aircraft_icao: 'A320' }, { id: 3, aircraft_icao: 'B77W' }])
+  })
+
+  it('shows search context and only links to HTTP sources', async () => {
+    const user = userEvent.setup()
+    const enrich: AircraftApi['enrich'] = vi.fn(async () => ({ results: [{
+      ...found(1, 'B738', 0.9), equipment_basis: 'actual' as const, evidence_date: '2026-03-01', registration: 'N123AA', operating_airline: 'Example Air',
+      sources: [{ url: 'https://example.com/flight', title: 'Flight record' }, { url: 'javascript:alert(1)', title: 'Unsafe' }],
+    }] }))
+    render(<AircraftPanel locale="en" targets={[target(1)]} onSaved={vi.fn()} api={{ enrich, accept: vi.fn() }} />)
+    await user.click(screen.getByRole('button', { name: /identify aircraft/i }))
+    const row = within((await screen.findAllByRole('listitem'))[0])
+    expect(row.getByText(/search suggests an actual-flight record/i)).toBeInTheDocument()
+    expect(row.getByText('Flight date in source:')).toBeInTheDocument()
+    expect(row.getByText('Mar 1, 2026')).toBeInTheDocument()
+    expect(row.getByText('N123AA')).toBeInTheDocument()
+    expect(row.getByText('Example Air')).toBeInTheDocument()
+    expect(row.getByRole('link', { name: 'Flight record' })).toHaveAttribute('href', 'https://example.com/flight')
+    expect(row.getByRole('link', { name: 'Flight record' })).toHaveAttribute('target', '_blank')
+    expect(row.getByRole('link', { name: 'Flight record' })).toHaveAttribute('rel', 'noopener noreferrer')
+    expect(row.queryByRole('link', { name: 'Unsafe' })).not.toBeInTheDocument()
+  })
+
+  it('isolates Search Suggestions HTML in restricted iframes across batches', async () => {
+    const user = userEvent.setup()
+    const html = '<div id="injected-host-node">Search Suggestions</div><script>window.injected = true</script>'
+    const enrich: AircraftApi['enrich'] = vi.fn()
+      .mockResolvedValueOnce({ results: [], search_suggestions_html: html })
+      .mockResolvedValueOnce({ results: [], search_suggestions_html: '<a href="https://example.com">Search</a>' })
+    render(<AircraftPanel locale="en" targets={Array.from({ length: 21 }, (_, index) => target(index + 1))} onSaved={vi.fn()} api={{ enrich, accept: vi.fn() }} />)
+    await user.click(screen.getByRole('button', { name: /identify aircraft/i }))
+    const frames = await screen.findAllByTitle('Google Search Suggestions for aircraft research')
+    expect(frames).toHaveLength(2)
+    expect(frames[0]).toHaveAttribute('srcdoc', html)
+    expect(frames[0]).toHaveAttribute('sandbox', 'allow-popups allow-popups-to-escape-sandbox')
+    expect(document.getElementById('injected-host-node')).toBeNull()
+  })
+
   it('deselect-all clears the selection and disables saving with a reason', async () => {
     const user = userEvent.setup()
     render(<AircraftPanel locale="en" targets={targets} onSaved={vi.fn()} api={api(vi.fn())} />)

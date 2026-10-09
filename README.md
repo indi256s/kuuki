@@ -19,7 +19,7 @@ pnpm next:build
 pnpm next:preview
 ```
 
-Open `http://127.0.0.1:8800`. The preview runs the compiled composed Worker in local workerd with disposable D1 data and synthetic accounts. It supplies synthetic secrets and blocks outbound requests; it does not require live credentials. The console prints fixture credentials. Ctrl-C discards the fixture. Set `KUUKI_NEXT_PORT` to use another port.
+Open `http://127.0.0.1:8800`. The preview runs the compiled composed Worker in local workerd with disposable D1 data and synthetic accounts. It supplies synthetic secrets and blocks outbound requests; it does not require live credentials. The console prints fixture credentials. Ctrl-C discards the fixture. Set `KUUKI_NEXT_PORT` to use another port. Set `KUUKI_NEXT_FIXTURE=minimal` for the one-flight journal that the Playwright suites assume.
 
 For Next hot reload, use `pnpm --filter @kuuki/next dev`; this does not wire the composed Worker's API or D1 bindings. Use the compiled preview for authenticated pages and cookie, API, D1 and Worker integration checks. Rebuild with `pnpm next:build` after source changes before checking compiled behavior. Run builds and browser/runtime fixtures serially because they share build output and a port.
 
@@ -96,7 +96,7 @@ Use the current [deploy procedure](docs/skills/deploy-kuuki/SKILL.md) for Worker
 
 Local preflight and dry-run builds do not authorize remote writes or cutover. Remote D1 operations require an explicit approved target, writer hold, backup/restore proof and schema admission. Production migration, cloud configuration, delivery and paid provider evaluation require their approved release change set. A frontend rollback does not roll back D1.
 
-Deployment gates are defined in the deploy procedure and runbooks, including preview isolation, an exact approved production SHA and maintenance readiness. The existence of configuration is not evidence that those gates have passed.
+Deployment gates are defined in the deploy procedure and runbooks, including a clean production SHA with successful CI, migration admission and maintenance readiness. Deployments go directly to production. The existence of configuration is not evidence that those gates have passed.
 
 See [the documentation index](docs/README.md) for product docs and [GLOSSARY.md](GLOSSARY.md) for domain terms. [TECH_STACK.md](docs/TECH_STACK.md) records the former Vite stack.
 
