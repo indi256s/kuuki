@@ -6,10 +6,13 @@ import { Button } from './button'
 import './flight-controls.css'
 
 export type DateRangeValue = { from: string; to: string }
+export type DateRangePreset = { label: string; from: string; to: string }
 
 // Arc's paired-calendar/Apply composition uses Kuuki's typed calendar and date-label authority.
-export function DateRangePicker({ from, to, onChange, onApply, onClear, locale, error, disabled }: DateRangeValue & {
+// `presets` (for example whole years) fill the two dates through `onChange` like typing would; committing stays with Apply.
+export function DateRangePicker({ from, to, onChange, onApply, onClear, locale, error, disabled, presets }: DateRangeValue & {
   onChange: (value: DateRangeValue) => void
+  presets?: DateRangePreset[]
   onApply?: () => void
   onClear?: () => void
   locale: Locale
@@ -18,6 +21,9 @@ export function DateRangePicker({ from, to, onChange, onApply, onClear, locale, 
 }) {
   return <fieldset className="ui-date-range" disabled={disabled}>
     <legend>{locale === 'ru' ? 'Диапазон дат' : 'Date range'}</legend>
+    {presets?.length ? <div className="ui-button-group" role="group" aria-label={locale === 'ru' ? 'Быстрый выбор' : 'Quick ranges'}>
+      {presets.map(preset => <Button key={preset.label} dense onClick={() => onChange({ from: preset.from, to: preset.to })} disabled={disabled}>{preset.label}</Button>)}
+    </div> : null}
     <div className="ui-date-range-fields">
       <Calendar label={locale === 'ru' ? 'С даты' : 'From date'} value={from} onChange={from => onChange({ from, to })} locale={locale} disabled={disabled} error={error} />
       <Calendar label={locale === 'ru' ? 'По дату' : 'To date'} value={to} onChange={to => onChange({ from, to })} locale={locale} disabled={disabled} />
