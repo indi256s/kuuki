@@ -200,6 +200,7 @@ export type JournalToolbarProps = {
 export function JournalToolbar({ filters, onFiltersChange, facetValues, statusCounts, refs, locale, matchingCount, onExport, searchRef }: JournalToolbarProps) {
   const t = copy[locale]
   const [drawerOpen, setDrawerOpen] = useState(false)
+  const mobile = useMobile() === true
   const moreRef = useRef<HTMLButtonElement>(null)
   const drawerFacets = activeDrawerFacets(filters)
   const facet = { filters, onFiltersChange, facetValues, locale }
@@ -213,9 +214,13 @@ export function JournalToolbar({ filters, onFiltersChange, facetValues, statusCo
       }} />
     {filters.q === '' ? <Kbd className="journal-search-kbd" aria-hidden="true">/</Kbd> : null}
   </div>
+  const chips = <ChipGroup label={t.chips} className="journal-chips">
+    <PeriodChip {...facet} /><PlaceChip {...facet} refs={refs} /><AirlineChip {...facet} refs={refs} /><AircraftChip {...facet} refs={refs} />
+  </ChipGroup>
   const actions = <>
+    {mobile && <Button ref={moreRef} dense variant="secondary" onClick={() => setDrawerOpen(true)}><SlidersHorizontal size={16} aria-hidden="true" />{t.chips}</Button>}
     {isFiltered(filters) ? <Button dense variant="ghost" onClick={() => onFiltersChange(emptyFilters())}>{t.clearAll}</Button> : null}
-    <Menu align="end" trigger={<Button ref={moreRef} dense variant="ghost" className="journal-more" aria-label={t.more}><Ellipsis size={20} strokeWidth={2} aria-hidden="true" /></Button>}>
+    <Menu align="end" trigger={<Button ref={mobile ? undefined : moreRef} dense variant="ghost" className="journal-more" aria-label={t.more}><Ellipsis size={20} strokeWidth={2} aria-hidden="true" /></Button>}>
       <MenuItem onSelect={() => setDrawerOpen(true)}>
         <SlidersHorizontal size={16} strokeWidth={1.5} aria-hidden="true" />
         <span>{t.moreFilters}</span>
@@ -232,13 +237,8 @@ export function JournalToolbar({ filters, onFiltersChange, facetValues, statusCo
   </>
   return <>
     <FilterToolbar label={t.toolbar} className="journal-toolbar" search={search} actions={actions}>
-      <ChipGroup label={t.chips} className="journal-chips">
-        <PeriodChip {...facet} />
-        <PlaceChip {...facet} refs={refs} />
-        <AirlineChip {...facet} refs={refs} />
-        <AircraftChip {...facet} refs={refs} />
-      </ChipGroup>
+      {!mobile && chips}
     </FilterToolbar>
-    <MoreFiltersDrawer open={drawerOpen} onOpenChange={setDrawerOpen} filters={filters} onFiltersChange={onFiltersChange} statusCounts={statusCounts} locale={locale} returnFocusRef={moreRef} />
+    <MoreFiltersDrawer open={drawerOpen} onOpenChange={setDrawerOpen} filters={filters} onFiltersChange={onFiltersChange} statusCounts={statusCounts} locale={locale} returnFocusRef={moreRef} primaryFacets={mobile ? chips : undefined} />
   </>
 }

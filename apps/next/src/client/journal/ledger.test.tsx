@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { render, screen, within } from '@testing-library/react'
+import { fireEvent, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, expect, it, vi } from 'vitest'
 import type { LedgerItem } from './filter'
@@ -157,4 +157,35 @@ it('keeps one column header per row cell when selection is on, so cells announce
   const [head, ...rows] = screen.getAllByRole('row')
   const flightRow = rows.find(row => row.querySelector('[data-flight-row]'))!
   expect(within(head!).getAllByRole('columnheader')).toHaveLength(within(flightRow).getAllByRole('cell').length)
+})
+
+
+it('mobile card swipes and the accessible menu invoke the same actions, and the menu starts selection', async () => {
+  const user = userEvent.setup()
+  const confirm = vi.fn(), remove = vi.fn(), select = vi.fn()
+  const pending = { kind: 'flight' as const, flight: second, firsts: null, chain: null }
+  setup({ mobile: true, items: [pending], rowMenu: () => [
+    { id: 'confirm', label: 'I flew', onSelect: confirm }, { id: 'delete', label: 'Delete flight', danger: true, onSelect: remove },
+    { id: 'select', label: 'Select', onSelect: select },
+  ], swipeActions: () => ({ leading: [{ label: 'I flew', icon: null, onSelect: confirm }], trailing: [{ label: 'Delete flight', icon: null, onSelect: remove }] }) })
+  const actionButton = screen.getByRole('button', { name: /Actions:/ })
+  await user.click(actionButton)
+  await user.click(await screen.findByRole('menuitem', { name: 'I flew' }))
+  expect(confirm).toHaveBeenCalledTimes(1)
+  await user.click(actionButton)
+  await user.click(await screen.findByRole('menuitem', { name: 'Delete flight' }))
+  expect(remove).toHaveBeenCalledTimes(1)
+  await user.click(actionButton)
+  await user.click(await screen.findByRole('menuitem', { name: 'Select' }))
+  expect(select).toHaveBeenCalledTimes(1)
+  const card = screen.getByRole('button', { name: /^IST to AMS/ }).closest('.ui-swipe-content')!
+  const touch = { pointerId: 1, isPrimary: true, pointerType: 'touch', button: 0, clientY: 10 }
+  for (const direction of [1, -1]) {
+    fireEvent.pointerDown(card, { ...touch, clientX: 300 })
+    fireEvent.pointerMove(card, { ...touch, clientX: 300 + direction * 20 })
+    fireEvent.pointerMove(card, { ...touch, clientX: 300 + direction * 240 })
+    fireEvent.pointerUp(card, { ...touch, clientX: 300 + direction * 240 })
+  }
+  expect(confirm).toHaveBeenCalledTimes(2)
+  expect(remove).toHaveBeenCalledTimes(2)
 })

@@ -8,6 +8,7 @@ import { Button } from '../ui/button'
 import { MakerSwatch } from '../ui/category-mark'
 import { Checkbox } from '../ui/checkbox'
 import { ContextMenu, ContextMenuButton, type ContextMenuItem } from '../ui/context-menu'
+import { SwipeActions, SwipeActionsRow, type SwipeAction } from '../ui/swipe-actions'
 import { FirstsGlyph } from './firsts-glyph'
 import { useProgressiveCount } from './progressive'
 import type { LedgerItem } from './filter'
@@ -48,6 +49,9 @@ export type JournalLedgerProps = {
   onToggleSelect: (id: number, checked: boolean) => void
   onOpen: (id: number, opts?: { field?: 'aircraft' }) => void
   rowMenu?: (flight: JournalFlight) => ContextMenuItem[]
+  rowMenuReason?: string
+  mobile?: boolean
+  swipeActions?: (flight: JournalFlight) => { leading?: SwipeAction[]; trailing?: SwipeAction[] }
   /** Rows pending deletion are not rendered (nor a connector that touched them). */
   hidden?: ReadonlySet<number>
 }
@@ -70,11 +74,15 @@ type RowProps = {
   onOpen: JournalLedgerProps['onOpen']
   onToggleSelect: JournalLedgerProps['onToggleSelect']
   rowMenu: JournalLedgerProps['rowMenu']
+  rowMenuReason?: string
+  mobile?: boolean
 }
 
 // Memo compares flight identity and the booleans (plus the stable props), so a selection or a sort cue elsewhere re-renders only the rows it touches. Callers pass stable callbacks.
 // "Any row is selected" reaches the checkboxes through `data-selecting` on the table, not through a prop.
-const FlightRow = memo(function FlightRow({ flight, firsts, refs, locale, active, compact, selected, selectable, onOpen, onToggleSelect, rowMenu }: RowProps) {
+const FlightRow = memo(function FlightRow({ flight, firsts, refs, locale, active, compact, selected, selectable, onOpen, onToggleSelect, rowMenu, rowMenuReason, mobile }: RowProps) {
+  const Row = mobile ? 'div' : 'tr'
+  const Cell = mobile ? 'div' : 'td'
   const t = copy[locale]
   const openButton = useRef<HTMLButtonElement>(null)
   const date = formatDateOnly(locale, flight.date, 'medium')
@@ -91,7 +99,7 @@ const FlightRow = memo(function FlightRow({ flight, firsts, refs, locale, active
   const items = rowMenu?.(flight)
   const actionLabel = `${t.actions}: ${route}, ${date}`
 
-  const onRowClick = (event: MouseEvent<HTMLTableRowElement>) => {
+  const onRowClick = (event: MouseEvent<HTMLElement>) => {
     const target = event.target as Element
     // Menu items render in a portal: React bubbles their clicks here, the DOM does not contain them.
     if (!event.currentTarget.contains(target) || target.closest('[data-no-open]')) return
@@ -107,33 +115,33 @@ const FlightRow = memo(function FlightRow({ flight, firsts, refs, locale, active
     {items && <span className="jr-more-slot" data-no-open><ContextMenuButton label={actionLabel} className="jr-more" /></span>}
   </>
 
-  return <tr role="row" className="jr-row" data-kind="flight" data-active={active || undefined} data-selected={selected || undefined} aria-current={active ? 'true' : undefined} onClick={onRowClick}>
-    {selectable && <td role="cell" className="jr-select" data-no-open>
+  return <Row role="row" className="jr-row" data-kind="flight" data-active={active || undefined} data-selected={selected || undefined} aria-current={active ? 'true' : undefined} onClick={onRowClick}>
+    {selectable && <Cell role="cell" className="jr-select" data-no-open>
       <Checkbox checked={selected} aria-label={`${t.select}: ${route}, ${date}`} onChange={event => onToggleSelect(flight.id, event.target.checked)} />
-    </td>}
-    <td role="cell" className="jr-date">
+    </Cell>}
+    <Cell role="cell" className="jr-date">
       <span className="jr-date-text">{date}</span>
       {status && <span className="jr-badge" data-state={flight.lifecycle_state}>{status}</span>}
-    </td>
-    <td role="cell" className="jr-route">
+    </Cell>
+    <Cell role="cell" className="jr-route">
       {items
-        ? <ContextMenu className="jr-route-inner jr-menu" label={actionLabel} items={items} returnFocus={() => openButton.current}>{routeCell}</ContextMenu>
+        ? <ContextMenu className="jr-route-inner jr-menu" label={actionLabel} items={items} reason={rowMenuReason} returnFocus={() => openButton.current}>{routeCell}</ContextMenu>
         : <div className="jr-route-inner">{routeCell}</div>}
-    </td>
-    <td role="cell" className="jr-airline">
+    </Cell>
+    <Cell role="cell" className="jr-airline">
       {flight.airline_iata
         ? <span className="jr-airline-line"><span className="jr-code">{flight.airline_iata}</span>{airline && <span className="jr-airline-name">{airline}</span>}</span>
         : flight.flight_number ? null : <Unknown label={t.notRecorded} />}
       {flight.flight_number && <span className="jr-flightno">{flight.flight_number}</span>}
-    </td>
-    <td role="cell" className="jr-aircraft">
+    </Cell>
+    <Cell role="cell" className="jr-aircraft">
       {aircraftName
         ? <span className="jr-aircraft-line"><MakerSwatch maker={makerOf(flight.aircraft_icao)} size={10} /><span className="jr-aircraft-name" title={aircraftName}>{aircraftName}</span></span>
         : <Button variant="ghost" dense static data-no-open aria-label={`${t.addAircraft}, ${route}, ${date}`} onClick={() => onOpen(flight.id, { field: 'aircraft' })}>{t.addAircraft}</Button>}
-    </td>
-    {!compact && <td role="cell" className="jr-duration">{duration ?? <Unknown label={t.notRecorded} />}</td>}
-    {!compact && <td role="cell" className="jr-distance">{distance ? <>{distance}<span className="jr-km"> {t.km}</span></> : <Unknown label={t.notRecorded} />}</td>}
-  </tr>
+    </Cell>
+    {!compact && <Cell role="cell" className="jr-duration">{duration ?? <Unknown label={t.notRecorded} />}</Cell>}
+    {!compact && <Cell role="cell" className="jr-distance">{distance ? <>{distance}<span className="jr-km"> {t.km}</span></> : <Unknown label={t.notRecorded} />}</Cell>}
+  </Row>
 })
 
 function ConnectorRow({ item, locale, columns }: { item: Extract<LedgerItem, { kind: 'connector' }>; locale: Locale; columns: number }) {
@@ -143,7 +151,7 @@ function ConnectorRow({ item, locale, columns }: { item: Extract<LedgerItem, { k
   </tr>
 }
 
-export function JournalLedger({ items, refs, locale, sort, onSortChange, activeId, compact, selected, selectable, onToggleSelect, onOpen, rowMenu, hidden }: JournalLedgerProps) {
+export function JournalLedger({ items, refs, locale, sort, onSortChange, activeId, compact, selected, selectable, onToggleSelect, onOpen, rowMenu, rowMenuReason, mobile, swipeActions, hidden }: JournalLedgerProps) {
   const t = copy[locale]
   const selecting = selected.size > 0
   const visible = useMemo(() => {
@@ -168,6 +176,19 @@ export function JournalLedger({ items, refs, locale, sort, onSortChange, activeI
     </th>
   }
 
+  const renderFlight = (item: Extract<LedgerItem, { kind: 'flight' }>) => <FlightRow flight={item.flight} firsts={item.firsts} refs={refs} locale={locale}
+    active={activeId === item.flight.id} compact={compact} selected={selected.has(item.flight.id)} selectable={selectable}
+    onOpen={onOpen} onToggleSelect={onToggleSelect} rowMenu={rowMenu} rowMenuReason={rowMenuReason} mobile={mobile} />
+  if (mobile) return <div role="table" aria-label={t.caption} className="journal-ledger" data-menu={rowMenu ? 'true' : undefined} data-selecting={selecting || undefined}>
+    <SwipeActions className="jr-body">
+      <div role="rowgroup" className="jr-mobile-rows" aria-busy={mounted < visible.length || undefined}>
+        {rows.map(item => item.kind === 'connector'
+          ? <div role="row" key={item.key} className="jr-row" data-kind="connector"><div role="cell" className="jr-connector">{t.connection(item.airport, item.minutes === null ? null : formatDuration(locale, Math.max(0, item.minutes)), item.estimated)}</div></div>
+          : <SwipeActionsRow key={item.flight.id} {...swipeActions?.(item.flight)}>{renderFlight(item)}</SwipeActionsRow>)}
+      </div>
+    </SwipeActions>
+  </div>
+
   return <table role="table" className="journal-ledger" data-compact={compact || undefined} data-menu={rowMenu ? 'true' : undefined} data-selectable={selectable || undefined} data-selecting={selecting || undefined}>
     <caption className="sr-only">{t.caption}</caption>
     <thead role="rowgroup" className="jr-head">
@@ -187,7 +208,7 @@ export function JournalLedger({ items, refs, locale, sort, onSortChange, activeI
         ? <ConnectorRow key={item.key} item={item} locale={locale} columns={columns} />
         : <FlightRow key={item.flight.id} flight={item.flight} firsts={item.firsts} refs={refs} locale={locale}
           active={activeId === item.flight.id} compact={compact} selected={selected.has(item.flight.id)} selectable={selectable}
-          onOpen={onOpen} onToggleSelect={onToggleSelect} rowMenu={rowMenu} />)}
+          onOpen={onOpen} onToggleSelect={onToggleSelect} rowMenu={rowMenu} rowMenuReason={rowMenuReason} />)}
     </tbody>
   </table>
 }

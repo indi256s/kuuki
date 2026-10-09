@@ -48,3 +48,5 @@
   .journal-chips::-webkit-scrollbar{display:none}
   .journal-chips .ui-chip{flex:none}
 }
+
+@media(max-width:700px){.journal-drawer .journal-chips{display:flex;flex-wrap:wrap;overflow:visible;flex:none}.journal-drawer .journal-chips .ui-chip{max-width:100%}}

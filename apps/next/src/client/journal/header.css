@@ -13,4 +13,4 @@
 @media (hover:hover) and (pointer:fine){.journal-import-link:hover{color:var(--text)}}
 
 /* Phones: title and pill share the row. */
-@media (max-width:700px){.journal-header-row{flex-wrap:nowrap}.journal-header-actions{flex:none}}
+@media (max-width:700px){.journal-header-row{display:grid;grid-template-columns:minmax(0,1fr) auto}.journal-header-actions{display:contents}.journal-review-pill{grid-column:2;grid-row:1}.journal-import-link{grid-column:1 / -1;grid-row:2}}

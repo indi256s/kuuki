@@ -1,12 +1,12 @@
 'use client'
 
-import { useId, type RefObject } from 'react'
+import { useId, type ReactNode, type RefObject } from 'react'
 import { formatNumber, type Locale } from '../../lib/format'
 import { Button } from '../ui/button'
 import { Checkbox } from '../ui/checkbox'
 import { Sheet } from '../ui/sheet'
 import { useMobile } from '../ui/use-mobile'
-import type { JournalAlliance, JournalFilters, JournalMissing, JournalStatus } from './model'
+import { emptyFilters, type JournalAlliance, type JournalFilters, type JournalMissing, type JournalStatus } from './model'
 import './toolbar.css'
 
 // The drawer behind the toolbar's "More filters": Status, Missing details and Alliance. Changes apply immediately; there is no Apply step.
@@ -54,11 +54,12 @@ export type MoreFiltersDrawerProps = {
   onFiltersChange: (next: JournalFilters) => void
   statusCounts: Record<JournalStatus, number>
   locale: Locale
+  primaryFacets?: ReactNode
   /** Where focus goes when the drawer closes (the control that opened it). */
   returnFocusRef?: RefObject<HTMLElement | null>
 }
 
-export function MoreFiltersDrawer({ open, onOpenChange, filters, onFiltersChange, statusCounts, locale, returnFocusRef }: MoreFiltersDrawerProps) {
+export function MoreFiltersDrawer({ open, onOpenChange, filters, onFiltersChange, statusCounts, locale, returnFocusRef, primaryFacets }: MoreFiltersDrawerProps) {
   const t = copy[locale]
   const base = useId()
   const mobile = useMobile() === true
@@ -69,14 +70,15 @@ export function MoreFiltersDrawer({ open, onOpenChange, filters, onFiltersChange
     const isDefault = next.length === DEFAULT_STATUS.length && next.every((item, index) => item === DEFAULT_STATUS[index])
     onFiltersChange({ ...filters, status: next.length === 0 || isDefault ? [] : next })
   }
-  return <Sheet open={open} onOpenChange={onOpenChange} side={mobile ? 'bottom' : 'right'} title={t.title} closeLabel={t.close}
+  return <Sheet open={open} onOpenChange={onOpenChange} side={mobile ? 'bottom' : 'right'} title={primaryFacets ? (locale === 'ru' ? 'Фильтры' : 'Filters') : t.title} closeLabel={t.close}
     className="journal-drawer"
     onCloseAutoFocus={event => { if (returnFocusRef?.current) { event.preventDefault(); returnFocusRef.current.focus() } }}
     footer={<>
-      <Button onClick={() => onFiltersChange({ ...filters, status: [], missing: [], alliances: [] })}>{t.reset}</Button>
+      <Button onClick={() => onFiltersChange(primaryFacets ? emptyFilters() : { ...filters, status: [], missing: [], alliances: [] })}>{t.reset}</Button>
       <Button variant="primary" onClick={() => onOpenChange(false)}>{t.done}</Button>
     </>}>
     <div className="journal-facets">
+      {primaryFacets}
       <fieldset className="journal-facet-group">
         <legend>{t.status}</legend>
         {STATUS_ROWS.map(row => {

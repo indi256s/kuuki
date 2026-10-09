@@ -94,3 +94,6 @@
 }
 
 @media (prefers-reduced-motion:reduce){.jr-sort-cue,.journal-ledger .jr-row,.journal-ledger .jr-select{transition:none}}
+
+.jr-mobile-rows{display:grid;gap:var(--space-3)}
+.jr-mobile-rows .ui-swipe-row{border-radius:var(--radius-md)}

@@ -64,6 +64,8 @@ export function useJournalKeys(options: JournalKeyOptions): void {
       const target = event.target instanceof Element ? event.target : document.body
       const o = latest.current
       const editable = isEditable(target)
+      // Other modal widgets own all their keys; the flight sheet keeps its edit/close shortcuts.
+      if (isOverlay(target) && !target.closest('.journal-detail-sheet')) return
 
       if (event.key === 'Escape') {
         // Editable fields keep their own Escape. The search field passes an empty-field Escape through so the sheet can still close.

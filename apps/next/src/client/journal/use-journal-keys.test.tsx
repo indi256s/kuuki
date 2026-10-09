@@ -265,3 +265,16 @@ describe('ShortcutsPopover', () => {
     expect(await screen.findByRole('dialog', { name: 'Keyboard shortcuts' })).toBeInTheDocument()
   })
 })
+
+
+it('does not move focus out of another modal with search, help or Escape', () => {
+  const on = handlers()
+  render(<Harness on={on} sheetOpen hasSearch />)
+  const target = screen.getByRole('button', { name: 'In dialog' })
+  target.focus()
+  for (const key of ['/', '?', 'Escape']) fireEvent.keyDown(target, { key })
+  expect(target).toHaveFocus()
+  expect(on.onShowShortcuts).not.toHaveBeenCalled()
+  expect(on.onCloseSheet).not.toHaveBeenCalled()
+  expect(on.onClearSearch).not.toHaveBeenCalled()
+})
