@@ -4,12 +4,14 @@ import { useEffect, useRef, useState } from 'react'
 import { Button } from '../ui/button'
 import { allianceAt } from '@kuuki/data/alliance-membership'
 import { AllianceMark } from '../ui/category-mark'
+import { AirlineMark } from '../ui/airline-mark'
 import { ConfirmMorph } from '../ui/confirm-morph'
 import { ContextMenu, ContextMenuButton, type ContextMenuItem } from '../ui/context-menu'
 import { InlineEdit, type InlineEditOutcome } from '../ui/inline-edit'
 import type { JournalData } from '../../server/journal'
 import type { Locale } from '../../server/locale'
 import { formatDateOnly, formatDistanceKm, formatDuration } from '../../lib/format'
+import { airlineIdentity } from '../../lib/airline'
 import './journal-ledger.css'
 
 type Flight = JournalData['flights'][number]
@@ -58,11 +60,12 @@ export function JournalRow({ flight, locale, online, offlineId, selected, onSele
     return () => { active = false }
   }, [aircraftEditing, editor, loadAttempt])
   const alliance = allianceAt(flight.airline_iata, flight.date)
+  const airline = airlineIdentity(flight.airline_iata ?? '')
   const route = locale === 'ru' ? `из ${flight.origin} в ${flight.destination}` : `${flight.origin} to ${flight.destination}`
   const date = formatDateOnly(locale, flight.date, 'long')
   const duration = flight.duration_minutes ? `${flight.duration_source === 'estimate' ? '≈ ' : ''}${formatDuration(locale, flight.duration_minutes)}` : null
   const distance = flight.distance_km ? formatDistanceKm(locale, flight.distance_km) : null
-  const name = [route, date, flight.flight_number ?? flight.airline_iata, flight.aircraft_icao, duration, distance].filter(Boolean).join(', ')
+  const name = [route, date, airline?.name, flight.flight_number ?? flight.airline_iata, flight.aircraft_icao, duration, distance].filter(Boolean).join(', ')
   const aircraft = flight.aircraft_icao ?? ''
   const deleteReason = !online ? t.offline : deleteBusy ? t.busy : null
   const items: ContextMenuItem[] = [
@@ -76,7 +79,7 @@ export function JournalRow({ flight, locale, online, offlineId, selected, onSele
       <button ref={openButton} type="button" className="flight-row-open" data-flight-row={flight.id} aria-label={name} onClick={() => onOpen(flight.id)} />
       <span className="flight-row-date mono" aria-hidden="true">{formatDateOnly(locale, flight.date, 'padded')}</span>
       <strong className="flight-row-route mono" aria-hidden="true">{flight.origin} → {flight.destination}</strong>
-      <span className="flight-row-number">{alliance ? <><AllianceMark alliance={alliance} size={12} />{' '}</> : null}<span aria-hidden="true">{flight.flight_number ?? flight.airline_iata ?? '—'}</span></span>
+      <span className="flight-row-number"><AirlineMark iata={flight.airline_iata} />{alliance ? <AllianceMark alliance={alliance} size={12} /> : null}<span className="flight-row-code" aria-hidden="true">{flight.flight_number ?? flight.airline_iata ?? '—'}</span></span>
       <div className="journal-aircraft-cell" data-action={aircraft ? undefined : 'add-aircraft'} data-editing={aircraftEditing || undefined}>
         <InlineEdit value={aircraft} empty={!aircraft} display={aircraft || t.addAircraft} disabled={!online} disabledReasonId={!online ? offlineId : undefined}
           triggerLabel={aircraft ? `${t.changeAircraft} ${aircraft}, ${route}, ${date}` : `${t.addAircraft}, ${route}, ${date}`}

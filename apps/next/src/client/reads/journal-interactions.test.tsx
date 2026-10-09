@@ -35,6 +35,21 @@ beforeEach(() => {
 })
 afterEach(() => { vi.restoreAllMocks() })
 
+it('keeps airline identity and the flight number when a local logo fails to load', () => {
+  rows = [{ ...flight(7, null), airline_iata: 'TK', flight_number: 'TK123' }]
+  mount()
+  const open = screen.getByRole('button', { name: /TBS to IST, .*Turkish Airlines, TK123/ })
+  const content = within(open.parentElement!)
+  const logo = content.getByAltText('')
+  const source = new URL((logo as HTMLImageElement).src)
+  expect(source.origin).toBe(window.location.origin)
+  expect(source.pathname).toMatch(/^\/airlines\/TK\./)
+  fireEvent.error(logo)
+  expect(content.queryByAltText('')).toBeNull()
+  expect(content.getByText('TK123')).toBeInTheDocument()
+  expect(open).toHaveAccessibleName(/Turkish Airlines, TK123/)
+})
+
 describe('inline aircraft edit', () => {
   it('sends nothing for an untouched Enter, Escape or blur, and keeps the draft when focus leaves', async () => {
     const user = userEvent.setup()

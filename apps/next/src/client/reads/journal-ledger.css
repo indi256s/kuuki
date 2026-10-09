@@ -6,17 +6,21 @@
 .journal-data .journal-entry .flight-row{border-bottom:0;border-radius:var(--radius-sm);transition:background-color var(--dur-fast) var(--ease-out)}
 .journal-data .journal-entry:has(.journal-checkbox input:checked) .flight-row{background:var(--accent-tint)}
 .journal-data .journal-entry-actions{align-self:center}
+.journal-data .flight-row-number{display:flex;align-items:center;gap:var(--space-2)}
+.journal-data .flight-row-code{min-width:0;overflow:hidden;text-overflow:ellipsis}
+.journal-data .flight-row-number .ui-alliance-mark{flex-shrink:0}
 .journal-data .journal-entry-confirm{grid-column:2 / -1}
 .journal-data .journal-entry:has(.arc-inline-editor),.journal-data .journal-entry:has(.arc-confirm){z-index:2}
 @media(max-width:700px){
   .journal-data .journal-entry{align-items:start}
   .journal-data .journal-entry-actions{align-self:start}
+  .journal-data .journal-entry .flight-row>.flight-row-number{grid-column:1 / -1;grid-row:3;justify-content:flex-start}
 }
 
 .journal-data .journal-aircraft-cell .arc-inline{position:static}
 .journal-data .journal-aircraft-cell .arc-inline-editor{left:0;right:0;width:auto;max-width:22rem}
 @media(max-width:900px){.journal-data .flight-row>.journal-aircraft-cell{display:block;grid-column:1 / -1;order:1;justify-self:stretch}}
 @media(max-width:700px){
-  .journal-data .flight-row>.journal-aircraft-cell{grid-row:3;order:0}
+  .journal-data .flight-row>.journal-aircraft-cell{grid-row:4;order:0}
   .journal-data .journal-aircraft-cell .arc-inline-editor{position:relative;top:auto;max-width:none}
 }

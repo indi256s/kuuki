@@ -337,6 +337,11 @@ async function main() {
       if (response.headers.get('Cache-Control') !== 'no-store') throw new Error(`Unversioned or missing asset became cacheable: ${path}`)
       if (path.includes('/missing') && response.status < 400) throw new Error('Missing public asset did not fail')
     }
+    const airlineLogo = await assertResponse('/airlines/TK.png', 200)
+    const logoBytes = new Uint8Array(await airlineLogo.arrayBuffer())
+    if (airlineLogo.headers.get('Content-Type') !== 'image/png' || logoBytes[0] !== 137 || logoBytes[1] !== 80 || logoBytes[2] !== 78 || logoBytes[3] !== 71) {
+      throw new Error('Airline logo was not served as a local PNG asset')
+    }
     const bootstrapHead = await assertResponse('/bootstrap.js', 200, { method: 'HEAD' })
     if (bootstrapHead.headers.get('Cache-Control') !== 'no-store') throw new Error('Unversioned HEAD became cacheable')
     await maintenanceProbe()

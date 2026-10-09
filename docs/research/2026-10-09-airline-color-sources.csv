@@ -1,0 +1,322 @@
+iata,icao,name,color,status,basis,source,note
+2I,IBS,Star Peru,,unresolved,,,Seed placeholder removed; no reliable color source matched to this catalog identity.
+2T,TRF,TruJet,,unresolved,,,Seed placeholder removed; no reliable color source matched to this catalog identity.
+3K,JSA,Jetstar Asia,#FE5815,observed_logo,logo,https://commons.wikimedia.org/wiki/Special:FilePath/Jetstar%20Logo.svg,Selected identifying color from the logo rather than a neutral wordmark.
+3U,CSC,Sichuan Airlines,#E31837,legacy_unverified,,,Existing color retained without source confirmation in this pass.
+4M,DSM,LATAM Argentina,#2A0088,observed_logo,logo,https://commons.wikimedia.org/wiki/Special:FilePath/Latam-logo%20-v%20%28Indigo%29.svg,Dominant non-white logo area; exact rendered pixel sample.
+4N,ANT,Air North,#C8102E,legacy_unverified,,,Existing color retained without source confirmation in this pass.
+4Z,LNK,Airlink,,unresolved,,,Seed placeholder removed; no reliable color source matched to this catalog identity.
+5F,SLI,FlyOne,,unresolved,,,Seed placeholder removed; no reliable color source matched to this catalog identity.
+5J,CEB,Cebu Pacific,#FDB913,legacy_unverified,,,Existing yellow retained: logo area alone does not establish the tail color.
+5O,FPO,Europe Airpost,,unresolved,,,Seed placeholder removed; no reliable color source matched to this catalog identity.
+5T,CWW,Canadian North,,unresolved,,,Seed placeholder removed; no reliable color source matched to this catalog identity.
+5U,TAB,Transportes Aéreos Bolivianos,,unresolved,,,Seed placeholder removed; no reliable color source matched to this catalog identity.
+6E,IGO,IndiGo,#001B94,observed_logo,logo,https://commons.wikimedia.org/wiki/Special:FilePath/IndiGo%20Airlines%20logo.svg,Dominant non-white logo area; exact rendered pixel sample.
+6H,ISR,Israir,#18549C,observed_logo,logo,https://commons.wikimedia.org/wiki/Special:FilePath/Israir%20Airlines%20Logo.svg,Dominant non-white logo area; exact rendered pixel sample.
+6R,AUB,Alrosa,,unresolved,,,Seed placeholder removed; no reliable color source matched to this catalog identity.
+6W,BLV,Saratov Airlines,,unresolved,,,Seed placeholder removed; no reliable color source matched to this catalog identity.
+7C,JJA,Jeju Air,#FF6600,legacy_unverified,,,Existing color retained without source confirmation in this pass.
+7G,SFJ,Star Flyer,#000000,observed_logo,logo,https://commons.wikimedia.org/wiki/Special:FilePath/StarFlyer%20logo.svg,Dominant non-white logo area; exact rendered pixel sample.
+7L,ERG,Silk Way West Airlines,,unresolved,,,Seed placeholder removed; no reliable color source matched to this catalog identity.
+7R,BRX,RusLine,,unresolved,,,Seed placeholder removed; no reliable color source matched to this catalog identity.
+7W,WRC,Windrose Airlines,#FF180F,observed_logo,logo,https://commons.wikimedia.org/wiki/Special:FilePath/WINDROSE%20reliable%20wings.png,Dominant non-white logo area; exact rendered pixel sample.
+8L,LKE,Lucky Air,#FF6600,legacy_unverified,,,Existing color retained without source confirmation in this pass.
+8M,MXD,Myanmar Airways International,,unresolved,,,Seed placeholder removed; no reliable color source matched to this catalog identity.
+9E,FLG,Endeavor Air,#E51937,observed_logo,logo,https://www.endeavorair.com/content/dam/endeavor-air/scripts/css/clientlibs-app/images/logo.png,Official website logo; sampled identifying red emblem.
+9W,JAI,Jet Airways,#FFD700,legacy_unverified,,,Existing color retained without source confirmation in this pass.
+9Y,TKA,Flytant,,unresolved,,,Seed placeholder removed; no reliable color source matched to this catalog identity.
+A3,AEE,Aegean Airlines,#083C6E,legacy_unverified,,,Existing color retained without source confirmation in this pass.
+A4,GNT,Azimut,,unresolved,,,Seed placeholder removed; no reliable color source matched to this catalog identity.
+A5,HOP,HOP!,#C8102E,legacy_unverified,,,Existing color retained without source confirmation in this pass.
+A9,TGZ,Georgian Airways,#DA291C,legacy_unverified,,,Existing color retained without source confirmation in this pass.
+AA,AAL,American Airlines,#0D72AE,observed_logo,observed_logo,https://s202.q4cdn.com/986123435/files/design/logo.svg,"Official American Airlines newsroom linked standard (not centennial) logo. Selected representative interior blue stop offset=.4 of blue symbol gradient g; gradient also contains dark blue #1C2F72 and intermediate hues. This is one exact identifying symbol gradient stop, not an official primary-color specification. Newsroom now shows centennial art but retains the standard-logo source in its commented header."
+AC,ACA,Air Canada,#F01428,published_spec,published_spec,https://www.aircanada.com/content/dam/aircanada/portal/Legacy/foundation/ACF_Guidelines_en.pdf,"Official Air Canada Foundation guideline explicitly names AC Red: HEX F01428, RGB 240.20.40, PMS1795C/2035U. Historical foundation context confirms the Air Canada red palette value; not a current dominant-tail specification. The airline logo asset is still absent."
+AD,AZU,Azul Brazilian Airlines,#041E42,observed_logo,logo,https://commons.wikimedia.org/wiki/Special:FilePath/Logo%20da%20Azul%20Linhas%20A%C3%A9reas%20Brasileiras.svg,Dominant non-white logo area; exact rendered pixel sample.
+AE,MDA,Mandarin Airlines,,unresolved,,,Seed placeholder removed; no reliable color source matched to this catalog identity.
+AF,AFR,Air France,#051039,observed_logo,logo,https://commons.wikimedia.org/wiki/Special:FilePath/Air%20France%20Logo.svg,Dominant non-white logo area; exact rendered pixel sample.
+AH,DAH,Air Algérie,#006633,legacy_unverified,,,Existing color retained without source confirmation in this pass.
+AI,AIC,Air India,#DA0E29,observed_logo,logo,https://commons.wikimedia.org/wiki/Special:FilePath/Air%20India%202023.svg,Dominant non-white logo area; exact rendered pixel sample.
+AK,AXM,AirAsia,#FF0000,legacy_unverified,,,Existing color retained without source confirmation in this pass.
+AM,AMX,Aeroméxico,#00205B,legacy_unverified,,,Existing color retained without source confirmation in this pass.
+AP,ADH,Air One,,unresolved,,,Seed placeholder removed; no reliable color source matched to this catalog identity.
+AR,ARG,Aerolíneas Argentinas,#0072CE,legacy_unverified,,,Existing color retained without source confirmation in this pass.
+AS,ASA,Alaska Airlines,#00205B,legacy_unverified,,,Existing color retained without source confirmation in this pass.
+AT,RAM,Royal Air Maroc,#C20831,observed_logo,logo,https://commons.wikimedia.org/wiki/Special:FilePath/Logo%20Royal%20Air%20Maroc.svg,Dominant non-white logo area; exact rendered pixel sample.
+AV,AVA,Avianca,#E4002B,legacy_unverified,,,Existing color retained without source confirmation in this pass.
+AW,AWI,Africa World Airlines,,unresolved,,,Seed placeholder removed; no reliable color source matched to this catalog identity.
+AY,FIN,Finnair,#0B1560,legacy_unverified,,,Existing color retained without source confirmation in this pass.
+AZA,AZR,Alitalia Express,#008C45,legacy_unverified,,,Existing color retained without source confirmation in this pass.
+B2,BRU,Belavia,#00A651,legacy_unverified,,,Existing color retained without source confirmation in this pass.
+B6,JBU,JetBlue Airways,#003876,observed_logo,logo,https://commons.wikimedia.org/wiki/Special:FilePath/JetBlue%20Airways%20Logo.svg,Dominant non-white logo area; exact rendered pixel sample.
+BA,BAW,British Airways,#2E5C99,observed_logo,observed_logo,https://mediacentre.britishairways.com/assets/britishairways__site_v2/images/logo.svg,Official British Airways Media Centre named header logo. SVG has flat blue #2E5C99 fills and same stop at offset .9 in symbol gradient; red #CE210F is also present. Existing selected blue numerically confirmed; no dominant-tail or official primary spec claim.
+BB,SBS,Seaborne Airlines,,unresolved,,,Seed placeholder removed; no reliable color source matched to this catalog identity.
+BC,SKY,Skymark Airlines,#FFD700,legacy_unverified,,,Existing color retained without source confirmation in this pass.
+BF,RSU,Bluebird Nordic,,unresolved,,,Seed placeholder removed; no reliable color source matched to this catalog identity.
+BG,BBC,Biman Bangladesh Airlines,#00803E,observed_logo,logo,https://commons.wikimedia.org/wiki/Special:FilePath/Biman%20Airlines%20logo.svg,Dominant non-white logo area; exact rendered pixel sample.
+BI,RBA,Royal Brunei Airlines,#FFE600,observed_logo,logo,https://commons.wikimedia.org/wiki/Special:FilePath/Royal%20Brunei%20Airlines%20logo.svg,Dominant non-white logo area; exact rendered pixel sample.
+BJ,LBT,Nouvelair,#0054A5,observed_logo,logo,https://commons.wikimedia.org/wiki/Special:FilePath/Nouvelair%20Logo.svg,Dominant non-white logo area; exact rendered pixel sample.
+BL,PIC,Jetstar Pacific,#FE5815,shared_brand,logo,https://commons.wikimedia.org/wiki/Special:FilePath/Jetstar%20logo.svg,Jetstar Pacific shared the Jetstar brand; catalog identity retained.
+BP,BOT,Air Botswana,#10ADE4,observed_logo,logo,https://upload.wikimedia.org/wikipedia/en/e/e5/Air_Botswana_logo.svg,
+BR,EVA,EVA Air,#00A64F,observed_logo,logo,https://upload.wikimedia.org/wikipedia/en/e/ed/EVA_Air_logo.svg,
+BS,BIH,US-Bangla Airlines,#1F4696,observed_logo,logo,https://upload.wikimedia.org/wikipedia/en/9/93/Logo_of_US-Bangla_Airlines.svg,
+BT,BTI,airBaltic,#152649,observed_logo,logo,https://commons.wikimedia.org/wiki/Special:FilePath/AirBaltic%20logo.svg,Selected identifying color from the logo rather than a neutral wordmark.
+BX,ABL,Air Busan,#1E409A,observed_logo,logo,https://commons.wikimedia.org/wiki/Special:FilePath/Air%20Busan%20logo.svg,Dominant non-white logo area; exact rendered pixel sample.
+BY,TOM,TUI Airways,#D40E14,observed_logo,logo,https://commons.wikimedia.org/wiki/Special:FilePath/TUI%20Logo%202016.svg,Dominant non-white logo area; exact rendered pixel sample.
+C3,IPR,Trade Air,#082838,observed_logo,logo,https://upload.wikimedia.org/wikipedia/commons/5/5d/Tradeaircroatialogo.png,Raster color sampled and quantized to 16-level bins.
+CA,CCA,Air China,#E60012,observed_logo,logo,https://upload.wikimedia.org/wikipedia/en/a/a4/Air_China_logo.svg,
+CI,CAL,China Airlines,#CA5767,observed_logo,logo,https://upload.wikimedia.org/wikipedia/en/a/a7/China_Airlines.svg,
+CM,CMP,Copa Airlines,#0060A9,observed_logo,logo,https://upload.wikimedia.org/wikipedia/en/5/5a/Copa_airlines_logo.svg,
+CX,CPA,Cathay Pacific,#006B6E,observed_logo,logo,https://upload.wikimedia.org/wikipedia/en/1/17/Cathay_Pacific_logo.svg,
+CZ,CSN,China Southern Airlines,#0093D0,observed_logo,logo,https://upload.wikimedia.org/wikipedia/en/b/b4/China_Southern_Airlines_logo.svg,
+D2,SDR,Severstal Air Company,#002F6C,observed_logo,logo,https://upload.wikimedia.org/wikipedia/en/0/01/Severstal_Avia_logo.svg,
+D6,LIS,Inter Air,,unresolved,,,Seed placeholder removed; no reliable color source matched to this catalog identity.
+D7,XAX,AirAsia X,#FF0000,legacy_unverified,,,Existing color retained without source confirmation in this pass.
+D9,DNV,Donavia,#254997,observed_logo,logo,https://upload.wikimedia.org/wikipedia/en/9/94/Donavia_logo.svg,
+DD,NOK,Nok Air,#FFCC08,observed_logo,logo,https://upload.wikimedia.org/wikipedia/en/0/0d/Nok_Air_logo.svg,
+DK,VKG,Sunclass Airlines,#FE8C00,observed_logo,logo,https://upload.wikimedia.org/wikipedia/en/1/15/Sunclass_Airlines_logo.svg,
+DL,DAL,Delta Air Lines,#003D79,observed_logo,logo,https://commons.wikimedia.org/wiki/Special:FilePath/Delta%20logo.svg,Dominant non-white logo area; exact rendered pixel sample.
+DM,MDA,Aerolineas Mas,,unresolved,,,Seed placeholder removed; no reliable color source matched to this catalog identity.
+DO,AJK,Air Arabia Jordan,#C8102E,legacy_unverified,,,Existing color retained without source confirmation in this pass.
+DP,PBD,Pobeda,#FF0000,legacy_unverified,,,Existing color retained without source confirmation in this pass.
+DR,RLH,Ruili Airlines,#E82828,observed_logo,logo,https://upload.wikimedia.org/wikipedia/en/8/8f/Ruili_Airlines_logo.png,Raster color sampled and quantized to 16-level bins.
+DY,NAX,Norwegian Air Shuttle,#E6222E,observed_logo,logo,https://upload.wikimedia.org/wikipedia/commons/b/b6/Norwegian_Logo_2024.svg,
+DZ,EPA,Donghai Airlines,#08B8F8,observed_logo,logo,https://upload.wikimedia.org/wikipedia/en/1/1c/Donghai_airlines_comlogo.png,Raster color sampled and quantized to 16-level bins.
+E5,DLA,Air Dolomiti,#1E3264,legacy_unverified,,,Existing color retained without source confirmation in this pass.
+E7,ESW,European Executive Express,,unresolved,,,Seed placeholder removed; no reliable color source matched to this catalog identity.
+E8,ELJ,Ellinair,#0868A8,observed_logo,logo,https://upload.wikimedia.org/wikipedia/en/9/97/Ellinair_logo.png,Raster color sampled and quantized to 16-level bins.
+E9,IOE,Evelop Airlines,,unresolved,,,Seed placeholder removed; no reliable color source matched to this catalog identity.
+EC,BCS,BCS Travel,,unresolved,,,Seed placeholder removed; no reliable color source matched to this catalog identity.
+EE,UPA,Aero Airlines,,unresolved,,,Seed placeholder removed; no reliable color source matched to this catalog identity.
+EI,EIN,Aer Lingus,#006472,observed_logo,logo,https://commons.wikimedia.org/wiki/Special:FilePath/Aer%20Lingus%202022%20logo.svg,Dominant non-white logo area; exact rendered pixel sample.
+EK,UAE,Emirates,#D71A21,observed_logo,logo,https://commons.wikimedia.org/wiki/Special:FilePath/Emirates%20banner%20logo.svg,Dominant non-white logo area; exact rendered pixel sample.
+EN,DLA,Air Dolomiti,#1E3264,legacy_unverified,,,Existing color retained without source confirmation in this pass.
+ER,SRV,Serene Air,,unresolved,,,Seed placeholder removed; no reliable color source matched to this catalog identity.
+ET,ETH,Ethiopian Airlines,#C52528,observed_logo,logo,https://commons.wikimedia.org/wiki/Special:FilePath/Ethiopian%20Airlines%20Logo.svg,Dominant non-white logo area; exact rendered pixel sample.
+EU,UEA,Chengdu Airlines,#D82828,observed_logo,logo,https://upload.wikimedia.org/wikipedia/en/c/c1/Chengdu_Airlines_logo.png,Raster color sampled and quantized to 16-level bins.
+EW,EWG,Eurowings,#A4005E,legacy_unverified,,,Existing color retained without source confirmation in this pass.
+EY,ETD,Etihad Airways,#BD8B13,observed_logo,logo,https://commons.wikimedia.org/wiki/Special:FilePath/Etihad-airways-logo.svg,Dominant non-white logo area; exact rendered pixel sample.
+F3,FEA,Flyadeal,#00A651,legacy_unverified,,,Existing color retained without source confirmation in this pass.
+F8,FLE,Flair Airlines,#00A651,legacy_unverified,,,Existing color retained without source confirmation in this pass.
+F9,FFT,Frontier Airlines,#00AA00,legacy_unverified,,,Existing color retained without source confirmation in this pass.
+FA,SFR,FlySafair,#0888C8,observed_logo,logo,https://upload.wikimedia.org/wikipedia/en/b/bd/FlySafair_logo.png,Raster color sampled and quantized to 16-level bins.
+FB,LZB,Bulgaria Air,#AC1F24,observed_logo,logo,https://upload.wikimedia.org/wikipedia/en/3/35/Bulgaria_Air_logo-en.svg,
+FD,AIQ,Thai AirAsia,#E32526,observed_logo,logo,https://commons.wikimedia.org/wiki/Special:FilePath/AirAsia%20New%20Logo.svg,Dominant non-white logo area; exact rendered pixel sample.
+FH,FHY,Freebird Airlines,,unresolved,,,Seed placeholder removed; no reliable color source matched to this catalog identity.
+FI,ICE,Icelandair,,unresolved,,,Seed placeholder removed; no reliable color source matched to this catalog identity.
+FJ,FJI,Fiji Airways,#003E7E,legacy_unverified,,,Existing color retained without source confirmation in this pass.
+FM,CSH,Shanghai Airlines,#DE0038,observed_logo,logo,https://upload.wikimedia.org/wikipedia/en/4/4e/Shanghai_Airlines.svg,
+FN,RSR,Fastjet,#FF6600,legacy_unverified,,,Existing color retained without source confirmation in this pass.
+FQ,THO,Thomas Cook Airlines,#F8B808,observed_logo,logo,https://upload.wikimedia.org/wikipedia/en/0/0e/Thomas_Cook_Airlines_logo.png,Raster color sampled and quantized to 16-level bins.
+FR,RYR,Ryanair,#073590,observed_logo,logo,https://commons.wikimedia.org/wiki/Special:FilePath/Ryanair%20wordmark.svg,Dominant non-white logo area; exact rendered pixel sample.
+FT,SWN,Salam Air,#E4002B,legacy_unverified,,,Existing color retained without source confirmation in this pass.
+FV,SDM,Rossiya,#E3132C,observed_logo,logo,https://commons.wikimedia.org/wiki/Special:FilePath/Rossiya%20airlines%20logo%202016.png,Dominant non-white logo area; exact rendered pixel sample.
+G3,GLO,GOL Linhas Aéreas,#FF7020,observed_logo,logo,https://commons.wikimedia.org/wiki/Special:FilePath/Gol%20Linhas%20A%C3%A9reas%20Inteligentes%20logo%20%282015%2C%20without%20the%20slogan%29.svg,Dominant non-white logo area; exact rendered pixel sample.
+G4,AAY,Allegiant Air,#01579B,observed_logo,logo,https://commons.wikimedia.org/wiki/Special:FilePath/Allegiant%20Air%20logo.svg,Dominant non-white logo area; exact rendered pixel sample.
+G7,AAA,Allegiant Travel Company,#003E7E,legacy_unverified,,,Existing color retained without source confirmation in this pass.
+G8,GOW,Go First,#FF6600,legacy_unverified,,,Existing color retained without source confirmation in this pass.
+GA,GIA,Garuda Indonesia,#358E9D,observed_logo,logo,https://upload.wikimedia.org/wikipedia/en/f/fe/Garuda_Indonesia_Logo.svg,
+GE,TNA,TransAsia Airways,#FF6600,legacy_unverified,,,Existing color retained without source confirmation in this pass.
+GF,GFA,Gulf Air,#A38E5D,observed_logo,logo,https://upload.wikimedia.org/wikipedia/en/9/90/Gulf_Air_Logo_2018.svg,
+GH,GHT,Globus,,unresolved,,,Seed placeholder removed; no reliable color source matched to this catalog identity.
+GQ,SKY,Sky Express,#2B4077,observed_logo,logo,https://upload.wikimedia.org/wikipedia/en/b/ba/Sky_Express_Logo.svg,
+GT,GBL,GB Airways,#ED1639,observed_logo,logo,https://upload.wikimedia.org/wikipedia/en/b/b0/GB_Airways_logo.svg,
+GX,GCO,GX Airlines,#DA3731,observed_logo,logo,https://upload.wikimedia.org/wikipedia/en/7/78/GX_Airlines_logo.svg,
+H1,HHI,Hahn Air,,unresolved,,,Seed placeholder removed; no reliable color source matched to this catalog identity.
+H2,SKU,Sky Airline,,unresolved,,,Seed placeholder removed; no reliable color source matched to this catalog identity.
+HA,HAL,Hawaiian Airlines,#413691,observed_logo,logo,https://upload.wikimedia.org/wikipedia/en/3/3b/Hawaiian_Airlines_logo_2017.svg,
+HC,HCA,Air Senegal,#D41219,observed_logo,logo,https://upload.wikimedia.org/wikipedia/en/0/01/Air_Senegal_Logo.svg,
+HD,ADO,Air Do,,unresolved,,,Seed placeholder removed; no reliable color source matched to this catalog identity.
+HF,HLF,Air Côte d'Ivoire,#E77A31,observed_logo,logo,https://upload.wikimedia.org/wikipedia/en/5/51/Air_C%C3%B4te_d%27Ivoire_logo.svg,
+HG,NLY,Niki,#C20437,observed_logo,logo,https://upload.wikimedia.org/wikipedia/en/4/49/Niki_%28airline%29_logo.svg,
+HM,SEY,Air Seychelles,#D93722,observed_logo,logo,https://upload.wikimedia.org/wikipedia/en/b/b1/Air_Seychelles_logo.svg,
+HO,DKH,Juneyao Airlines,#AE8262,observed_logo,logo,https://upload.wikimedia.org/wikipedia/en/d/db/Juneyao_Air_logo.svg,
+HU,CHH,Hainan Airlines,#E60012,observed_logo,logo,https://upload.wikimedia.org/wikipedia/en/c/cd/Hainan_Airlines_Logo.svg,
+HV,TRA,Transavia,#05CE78,observed_logo,logo,https://commons.wikimedia.org/wiki/Special:FilePath/Transavia%202025%20logo.svg,Dominant non-white logo area; exact rendered pixel sample.
+HW,HWY,Hello,#E4002B,legacy_unverified,,,Existing color retained without source confirmation in this pass.
+HX,CRK,Hong Kong Airlines,#E60012,observed_logo,logo,https://upload.wikimedia.org/wikipedia/en/d/d6/Hong_Kong_Airlines_Logo.svg,
+HY,UZB,Uzbekistan Airways,#06408C,observed_logo,logo,https://upload.wikimedia.org/wikipedia/en/e/ef/Uzbekistan_Airways_logo.svg,
+I5,IAD,AirAsia India,#E32526,observed_logo,logo,https://commons.wikimedia.org/wiki/Special:FilePath/AirAsia%20New%20Logo.svg,Dominant non-white logo area; exact rendered pixel sample.
+I7,IGA,IndiGo Airlines,#3F51B5,legacy_unverified,,,Existing color retained without source confirmation in this pass.
+I9,AUB,Indigo Airlines,,unresolved,,,Seed placeholder removed; no reliable color source matched to this catalog identity.
+IA,IAW,Iraqi Airways,#12470D,observed_logo,logo,https://commons.wikimedia.org/wiki/Special:FilePath/Iraqi%20Airways%20Logo.svg,Dominant non-white logo area; exact rendered pixel sample.
+IB,IBE,Iberia,#DA1C2D,observed_logo,logo,https://commons.wikimedia.org/wiki/Special:FilePath/Logotipo%20de%20Iberia.svg,Dominant non-white logo area; exact rendered pixel sample.
+IF,IFY,Fly Baghdad,,unresolved,,,Seed placeholder removed; no reliable color source matched to this catalog identity.
+IG,ISS,Meridiana,#FFD700,legacy_unverified,,,Existing color retained without source confirmation in this pass.
+IK,ITK,Pegas Fly,,unresolved,,,Seed placeholder removed; no reliable color source matched to this catalog identity.
+IT,KFR,Kingfisher Airlines,#E4002B,legacy_unverified,,,Existing color retained without source confirmation in this pass.
+IV,JOS,Jordan Aviation,,unresolved,,,Seed placeholder removed; no reliable color source matched to this catalog identity.
+IX,AXB,Air India Express,#FF6423,observed_logo,logo,https://commons.wikimedia.org/wiki/Special:FilePath/Air%20India%20Express%20logo.svg,Dominant non-white logo area; exact rendered pixel sample.
+IZ,AIZ,Arkia Israeli Airlines,#D40E8C,observed_logo,logo,https://upload.wikimedia.org/wikipedia/en/7/7b/Arkia_logo.svg,
+J2,AHY,Azerbaijan Airlines,#003366,observed_logo,logo,https://commons.wikimedia.org/wiki/Special:FilePath/Azerbaijan%20Airlines%20logo.svg,Dominant non-white logo area; exact rendered pixel sample.
+J9,JKK,Jazeera Airways,#0D89CB,observed_logo,logo,https://upload.wikimedia.org/wikipedia/commons/6/6d/Jazeera_Airways_logo.svg,
+JA,BOV,JetSMART,#FF6600,legacy_unverified,,,Existing color retained without source confirmation in this pass.
+JJ,TAM,LATAM Brasil,#2A0088,observed_logo,logo,https://commons.wikimedia.org/wiki/Special:FilePath/Latam-logo%20-v%20%28Indigo%29.svg,Dominant non-white logo area; exact rendered pixel sample.
+JL,JAL,Japan Airlines,#E60012,observed_logo,logo,https://upload.wikimedia.org/wikipedia/en/d/dd/Japan_Airlines_Logo_%282011%29.svg,
+JO,JAZ,JALways,#C8102E,legacy_unverified,,,Existing color retained without source confirmation in this pass.
+JQ,JST,Jetstar Airways,#FE5815,observed_logo,logo,https://commons.wikimedia.org/wiki/Special:FilePath/Jetstar%20logo.svg,Selected identifying color from the logo rather than a neutral wordmark.
+JT,LNI,Lion Air,#FB0102,observed_logo,logo,https://upload.wikimedia.org/wikipedia/en/5/59/Lion_Air.svg,
+JU,JAT,Air Serbia,#0F2D53,observed_logo,logo,https://upload.wikimedia.org/wikipedia/en/a/af/Air_Serbia_logo-en.svg,
+JZ,SKX,Skyways Express,,unresolved,,,Seed placeholder removed; no reliable color source matched to this catalog identity.
+K6,KHV,Cambodia Angkor Air,,unresolved,,,Seed placeholder removed; no reliable color source matched to this catalog identity.
+KC,KZR,Air Astana,#2E498E,observed_logo,logo,https://commons.wikimedia.org/wiki/Special:FilePath/AirAstanaNewLogo.png,Dominant non-white logo area; exact rendered pixel sample.
+KE,KAL,Korean Air,#051766,observed_logo,logo,https://commons.wikimedia.org/wiki/Special:FilePath/Korean%20Air%202025.svg,Dominant non-white logo area; exact rendered pixel sample.
+KL,KLM,KLM Royal Dutch Airlines,#00A1E4,observed_logo,logo,https://commons.wikimedia.org/wiki/Special:FilePath/KLM%20logo.svg,Dominant non-white logo area; exact rendered pixel sample.
+KP,SKK,ASKY Airlines,,unresolved,,,Seed placeholder removed; no reliable color source matched to this catalog identity.
+KQ,KQA,Kenya Airways,#EC2227,observed_logo,logo,https://commons.wikimedia.org/wiki/Special:FilePath/Kenya%20Airways%20logo.svg,Dominant non-white logo area; exact rendered pixel sample.
+KU,KAC,Kuwait Airways,#20285C,observed_logo,logo,https://commons.wikimedia.org/wiki/Special:FilePath/Kuwait%20Airways%20wordmark.svg,Dominant non-white logo area; exact rendered pixel sample.
+LA,LAN,LATAM Airlines,#2A0088,observed_logo,logo,https://commons.wikimedia.org/wiki/Special:FilePath/Latam-logo%20-v%20%28Indigo%29.svg,Dominant non-white logo area; exact rendered pixel sample.
+LH,DLH,Lufthansa,#0A1D3D,observed_logo,logo,https://commons.wikimedia.org/wiki/Special:FilePath/Lufthansa%20Logo%202018.svg,Dominant non-white logo area; exact rendered pixel sample.
+LJ,JNA,Jin Air,#00529B,legacy_unverified,,,Existing color retained without source confirmation in this pass.
+LO,LOT,LOT Polish Airlines,#252668,observed_logo,logo,https://commons.wikimedia.org/wiki/Special:FilePath/LOT%20Polish%20Airlines%20wordmark.svg,Dominant non-white logo area; exact rendered pixel sample.
+LP,LPE,LATAM Peru,#2A0088,observed_logo,logo,https://commons.wikimedia.org/wiki/Special:FilePath/Latam-logo%20-v%20%28Indigo%29.svg,Dominant non-white logo area; exact rendered pixel sample.
+LS,EXS,Jet2.com,#E2231A,observed_logo,logo,https://commons.wikimedia.org/wiki/Special:FilePath/Jet2Logo.svg,Dominant non-white logo area; exact rendered pixel sample.
+LX,SWR,Swiss International Air Lines,#E60005,observed_logo,logo,https://commons.wikimedia.org/wiki/Special:FilePath/Swiss%20International%20Air%20Lines%20Logo%202011.svg,Dominant non-white logo area; exact rendered pixel sample.
+LY,ELY,El Al Israel Airlines,#001246,observed_logo,logo,https://upload.wikimedia.org/wikipedia/commons/d/d6/Logo_of_El_Al_Israel_Airlines.svg,Selected identifying symbol or navy logo hue rather than the largest wordmark area.
+MD,MDG,Air Madagascar,#C8102E,legacy_unverified,,,Existing color retained without source confirmation in this pass.
+ME,MEA,Middle East Airlines,#C8102E,legacy_unverified,,,Existing color retained without source confirmation in this pass.
+MF,CXA,Xiamen Airlines,#004384,observed_logo,logo,https://upload.wikimedia.org/wikipedia/commons/a/a2/Xiamen_Air_Logo.svg,Dominant non-white logo area; exact rendered pixel sample.
+MH,MAS,Malaysia Airlines,#C90632,legacy_unverified,,,Existing color retained without source confirmation in this pass.
+MI,SLK,SilkAir,#F8A81D,legacy_unverified,,,Existing color retained without source confirmation in this pass.
+MM,APJ,Peach Aviation,#FF69B4,legacy_unverified,,,Existing color retained without source confirmation in this pass.
+MN,CAW,Comair,,unresolved,,,Seed placeholder removed; no reliable color source matched to this catalog identity.
+MQ,EGF,Envoy Air,#0078D2,legacy_unverified,,,Existing color retained without source confirmation in this pass.
+MS,MSR,EgyptAir,#003A70,legacy_unverified,,,Existing color retained without source confirmation in this pass.
+MT,TCX,Thomas Cook Airlines,,unresolved,,,Seed placeholder removed; no reliable color source matched to this catalog identity.
+MU,CES,China Eastern Airlines,#192577,observed_logo,logo,https://www.ceair.com/global/en_static/AboutChinaEasternAirlines/intoEasternAirlines/InvestorRelations/mediaReleaseHome/mediaReleaseHome/ShanghaiStockExchangeReleased2024_2/202409/P020240902577876779303.pdf,Navy English wordmark sampled from the logo on page 1 of the official 2024 interim results PDF; red Chinese wordmark also present.
+N3,ANK,Omni Air International,,unresolved,,,Seed placeholder removed; no reliable color source matched to this catalog identity.
+N4,NWS,Nordwind Airlines,#1E3A8A,legacy_unverified,,,Existing color retained without source confirmation in this pass.
+N7,NRC,Nordic Regional Airlines,,unresolved,,,Seed placeholder removed; no reliable color source matched to this catalog identity.
+N8,HGT,Horizon Airlines,,unresolved,,,Seed placeholder removed; no reliable color source matched to this catalog identity.
+NH,ANA,All Nippon Airways,#00146E,observed_logo,observed_logo,https://www.ana.co.jp/common-layout2/images/www2/logo_ana_tagline.svg,Official ANA homepage named ANA Inspiration of JAPAN header SVG. CSS st1 fill #00146E applies to ANA letter paths as well as tagline; st0 #00AFF0 fills narrow accent stripe. ANA wordmark letters use path coordinates x<=44 and same st1 class. No formal primary-color or tail-dominance claim.
+NK,NKS,Spirit Airlines,#FFE600,legacy_unverified,,,Existing color retained without source confirmation in this pass.
+NP,NIA,Nile Air,#AE9C6E,observed_logo,logo,https://commons.wikimedia.org/wiki/Special:FilePath/Nile%20air.png,Dominant non-white logo area; exact rendered pixel sample.
+NS,HBH,Hebei Airlines,,unresolved,,,Seed placeholder removed; no reliable color source matched to this catalog identity.
+NT,IBX,Binter Canarias,#3DAF29,observed_logo,logo,https://upload.wikimedia.org/wikipedia/commons/0/0f/Binter_logo.svg,Dominant non-white logo area; exact rendered pixel sample.
+NU,JTA,Japan Transocean Air,#00529B,legacy_unverified,,,Existing color retained without source confirmation in this pass.
+NY,FXI,Air Iceland Connect,,unresolved,,,Seed placeholder removed; no reliable color source matched to this catalog identity.
+NZ,ANZ,Air New Zealand,#221F1F,legacy_unverified,,,Existing color retained without source confirmation in this pass.
+OA,OAL,Olympic Air,,unresolved,,,Seed placeholder removed; no reliable color source matched to this catalog identity.
+OK,CSA,Czech Airlines,#003A70,legacy_unverified,,,Existing color retained without source confirmation in this pass.
+OL,OLT,OLT Express,,unresolved,,,Seed placeholder removed; no reliable color source matched to this catalog identity.
+OM,MGL,MIAT Mongolian Airlines,,unresolved,,,Seed placeholder removed; no reliable color source matched to this catalog identity.
+OO,SKW,SkyWest Airlines,,unresolved,,,Seed placeholder removed; no reliable color source matched to this catalog identity.
+OS,AUA,Austrian Airlines,#D81E05,observed_logo,logo,https://commons.wikimedia.org/wiki/Special:FilePath/Austrian%20Airlines%20Logo%202018.svg,Dominant non-white logo area; exact rendered pixel sample.
+OU,CTN,Croatia Airlines,#19386E,observed_logo,logo,https://commons.wikimedia.org/wiki/Special:FilePath/Croatia%20Airlines%202024%20logo.svg,Dominant non-white logo area; exact rendered pixel sample.
+OV,LVP,SalamAir,#E4002B,legacy_unverified,,,Existing color retained without source confirmation in this pass.
+P4,PRL,Air Peace,#00A651,legacy_unverified,,,Existing color retained without source confirmation in this pass.
+P5,CPA,Copa Airlines Colombia,#003F87,legacy_unverified,,,Existing color retained without source confirmation in this pass.
+PA,AUB,Airblue,#0047AB,legacy_unverified,,,Existing color retained without source confirmation in this pass.
+PC,PGT,Pegasus Airlines,#FCBB23,legacy_unverified,,,Existing yellow retained: logo area alone does not establish the tail color.
+PD,POE,Porter Airlines,#00549F,legacy_unverified,,,Existing color retained without source confirmation in this pass.
+PG,BKP,Bangkok Airways,#254AA5,observed_logo,logo,https://commons.wikimedia.org/wiki/Special:FilePath/Bangkok%20Airways%20Logo.svg,Dominant non-white logo area; exact rendered pixel sample.
+PK,PIA,Pakistan International Airlines,#00843D,legacy_unverified,,,Existing color retained without source confirmation in this pass.
+PN,CHB,West Air,#003A70,legacy_unverified,,,Existing color retained without source confirmation in this pass.
+PR,PAL,Philippine Airlines,#2F3B8D,observed_logo,logo,https://commons.wikimedia.org/wiki/Special:FilePath/Philippine%20Airlines%20logo.svg,Dominant non-white logo area; exact rendered pixel sample.
+PS,AUI,Ukraine International Airlines,#0057B8,legacy_unverified,,,Existing color retained without source confirmation in this pass.
+PW,PRF,Precision Air,,unresolved,,,Seed placeholder removed; no reliable color source matched to this catalog identity.
+PZ,LAO,Lao Airlines,#C8102E,legacy_unverified,,,Existing color retained without source confirmation in this pass.
+Q6,VOL,Volaris El Salvador,#780D4A,legacy_unverified,,,Existing color retained without source confirmation in this pass.
+QA,CYH,Click Mexicana,#003A62,observed_logo,logo,https://upload.wikimedia.org/wikipedia/en/5/59/Logo-mexicanaclick.png,Dominant non-white logo area; exact rendered pixel sample.
+QC,CRN,Camair-Co,#25A601,observed_logo,logo,https://upload.wikimedia.org/wikipedia/en/d/df/Camair-Co_logo.png,Dominant non-white logo area; exact rendered pixel sample.
+QF,QFA,Qantas,#CC0000,observed_logo,logo,https://upload.wikimedia.org/wikipedia/en/0/02/Qantas_Airways_logo_2016.svg,Selected identifying color from the logo rather than a neutral wordmark.
+QG,CTV,Citilink,#0C803D,observed_logo,logo,https://commons.wikimedia.org/wiki/Special:FilePath/2012%20Citilink%20Logo.svg,Dominant non-white logo area; exact rendered pixel sample.
+QJ,JET,Jet Airways,#10193F,observed_logo,logo,https://upload.wikimedia.org/wikipedia/en/e/e4/Jet_Airways_Logo.svg,Dominant non-white logo area; exact rendered pixel sample.
+QP,AKA,Akasa Air,#FF6300,observed_logo,logo,https://upload.wikimedia.org/wikipedia/commons/6/69/Akasa_Air_logo.svg,Selected identifying symbol or navy logo hue rather than the largest wordmark area.
+QR,QTR,Qatar Airways,#5C0632,observed_logo,logo,https://commons.wikimedia.org/wiki/Special:FilePath/Qatar%20Airways%20logo.svg,Dominant non-white logo area; exact rendered pixel sample.
+QS,TVS,Travel Service,#004289,observed_logo,logo,https://commons.wikimedia.org/wiki/Special:FilePath/Smartwings%20logo.svg,Dominant non-white logo area; exact rendered pixel sample. Catalog Travel Service uses its successor Smartwings brand.
+QX,QXE,Horizon Air,#37ABCD,observed_logo,logo,https://commons.wikimedia.org/wiki/Special:FilePath/Horizon%20Air%20Logo.svg,Dominant non-white logo area; exact rendered pixel sample.
+QZ,AWQ,Indonesia AirAsia,#E32526,observed_logo,logo,https://commons.wikimedia.org/wiki/Special:FilePath/AirAsia%20New%20Logo.svg,Dominant non-white logo area; exact rendered pixel sample.
+R3,SYL,Yakutia Airlines,#264796,observed_logo,logo,https://upload.wikimedia.org/wikipedia/en/d/d9/Yakutia_Airlines_Eng_Logo.png,Dominant non-white logo area; exact rendered pixel sample.
+RA,RNA,Nepal Airlines,#03124D,observed_logo,logo,https://upload.wikimedia.org/wikipedia/en/d/d2/Nepal_Airlines_logo.svg,Dominant non-white logo area; exact rendered pixel sample.
+RB,SYR,Syrian Air,#032F24,observed_logo,logo,https://upload.wikimedia.org/wikipedia/en/b/b4/Syrian_Airlines_logo_2026.svg,Dominant non-white logo area; exact rendered pixel sample.
+RJ,RJA,Royal Jordanian,#A6844B,observed_logo,logo,https://upload.wikimedia.org/wikipedia/en/b/b4/Royal_Jordanian_Logo.svg,Selected identifying color from the logo rather than a neutral wordmark.
+RL,RLU,Royal Flight,#D11D26,observed_logo,logo,https://upload.wikimedia.org/wikipedia/en/e/e8/Royal_Flight_logo.png,Selected identifying symbol or navy logo hue rather than the largest wordmark area.
+RO,ROT,TAROM,#18488B,observed_logo,logo,https://commons.wikimedia.org/wiki/Special:FilePath/TAROM%20Logo%20tail%20%28blue%29.svg,Dominant non-white logo area; exact rendered pixel sample.
+RQ,KMF,Kam Air,#005EA8,observed_logo,logo,https://upload.wikimedia.org/wikipedia/en/4/47/Logo_Kam_Air_%28Afghanistan%29.png,Dominant non-white logo area; exact rendered pixel sample.
+RS,ASV,Air Seoul,#1DB898,observed_logo,logo,https://commons.wikimedia.org/wiki/Special:FilePath/Logo%20of%20Air%20Seoul.svg,Dominant non-white logo area; exact rendered pixel sample.
+RZ,SAW,Sansa,,unresolved,,,Seed placeholder removed; no reliable color source matched to this catalog identity.
+S4,RZO,SATA International,#003568,observed_logo,logo,https://upload.wikimedia.org/wikipedia/en/f/f6/Azores_Airlines_logo.svg,Dominant non-white logo area; exact rendered pixel sample. Catalog SATA International uses its successor Azores Airlines brand.
+S7,SBI,S7 Airlines,#8CC43C,legacy_unverified,,,Existing color retained without source confirmation in this pass.
+SA,SAA,South African Airways,#163683,observed_logo,logo,https://upload.wikimedia.org/wikipedia/en/7/7c/SAA_logo_%282019%29.svg,Dominant non-white logo area; exact rendered pixel sample.
+SC,CDG,Shandong Airlines,#1E406C,observed_logo,logo,https://upload.wikimedia.org/wikipedia/en/b/be/ShandongAirlines.svg,Selected identifying color from the logo rather than a neutral wordmark.
+SG,SEJ,SpiceJet,#EB1C23,observed_logo,logo,https://upload.wikimedia.org/wikipedia/en/9/9c/SpiceJet_logo.svg,Dominant non-white logo area; exact rendered pixel sample.
+SK,SAS,Scandinavian Airlines,#0002BE,observed_logo,logo,https://commons.wikimedia.org/wiki/Special:FilePath/Scandinavian%20Airlines%20logo.svg,Dominant non-white logo area; exact rendered pixel sample.
+SL,TLM,Thai Lion Air,#ED4022,observed_logo,logo,https://upload.wikimedia.org/wikipedia/en/2/23/Thai_Lion_Air_logo.png,Dominant non-white logo area; exact rendered pixel sample.
+SM,RCH,Air Cairo,#3D1063,observed_logo,logo,https://upload.wikimedia.org/wikipedia/commons/6/60/Air_Cairo_logo.svg,Dominant non-white logo area; exact rendered pixel sample.
+SN,BEL,Brussels Airlines,#051446,observed_logo,logo,https://commons.wikimedia.org/wiki/Special:FilePath/Brussels%20airlines%20logo%202021.svg,Dominant non-white logo area; exact rendered pixel sample.
+SP,SAT,SATA Air Açores,#003568,observed_logo,logo,https://upload.wikimedia.org/wikipedia/en/b/b0/SATA_Air_A%C3%A7ores_logo.svg,Dominant non-white logo area; exact rendered pixel sample.
+SQ,SIA,Singapore Airlines,#00266B,observed_logo,logo,https://commons.wikimedia.org/wiki/Special:FilePath/Singapore%20Airlines%20wordmark.svg,Dominant non-white logo area; exact rendered pixel sample.
+SS,CRL,Corsair,#020862,observed_logo,logo,https://upload.wikimedia.org/wikipedia/en/3/30/Corsair_International_logo.png,Dominant non-white logo area; exact rendered pixel sample.
+SU,AFL,Aeroflot,#1C4E9D,observed_logo,logo,https://upload.wikimedia.org/wikipedia/en/7/73/Aeroflot_Logo_en.svg,Dominant non-white logo area; exact rendered pixel sample.
+SV,SVA,Saudia,#006631,observed_logo,logo,https://upload.wikimedia.org/wikipedia/en/4/48/Logo_of_Saudia.svg,Dominant non-white logo area; exact rendered pixel sample.
+SW,NMB,Air Namibia,#C8102E,legacy_unverified,,,Existing color retained without source confirmation in this pass.
+SX,SKV,SkyWork Airlines,#002557,observed_logo,logo,https://upload.wikimedia.org/wikipedia/en/e/ec/Sky_Work_Airlines_logo.svg,Dominant non-white logo area; exact rendered pixel sample.
+SY,SCX,Sun Country Airlines,#F68235,observed_logo,logo,https://upload.wikimedia.org/wikipedia/en/1/16/Sun_Country_Airlines_logo.svg,Selected identifying color from the logo rather than a neutral wordmark.
+T5,TUA,Turkmenistan Airlines,#009D3F,observed_logo,logo,https://upload.wikimedia.org/wikipedia/en/0/06/Turkmenistan_Airlines_logo.svg,Dominant non-white logo area; exact rendered pixel sample.
+TA,TAI,TACA,,unresolved,,,Seed placeholder removed; no reliable color source matched to this catalog identity.
+TB,JAF,TUI fly Belgium,#E41917,observed_logo,logo,https://commons.wikimedia.org/wiki/Special:FilePath/TUIfly%20Logo%202016.svg,Dominant non-white logo area; exact rendered pixel sample.
+TG,THA,Thai Airways,#370E62,observed_logo,logo,https://upload.wikimedia.org/wikipedia/commons/3/3e/Thai_Airways_logo.svg,Dominant non-white logo area; exact rendered pixel sample.
+TK,THY,Turkish Airlines,#C70A0C,observed_logo,logo,https://upload.wikimedia.org/wikipedia/commons/0/00/Turkish_Airlines_logo_2019_compact.svg,Selected identifying color from the logo rather than a neutral wordmark.
+TL,ANO,Airnorth,#04396F,observed_logo,logo,https://upload.wikimedia.org/wikipedia/en/2/21/Airnorth_logo.svg,Dominant non-white logo area; exact rendered pixel sample.
+TO,TVF,Transavia France,#00D66C,observed_logo,logo,https://commons.wikimedia.org/wiki/Special:FilePath/Transavia%20logo.svg,Dominant non-white logo area; exact rendered pixel sample.
+TP,TAP,TAP Air Portugal,#009639,legacy_unverified,,,Existing color retained without source confirmation in this pass.
+TR,TGW,Scoot,#FFFF00,legacy_unverified,,,Existing color retained without source confirmation in this pass.
+TS,TSC,Air Transat,,unresolved,,,Seed placeholder removed; no reliable color source matched to this catalog identity.
+TT,TGG,Tiger Airways Australia,#FF6600,legacy_unverified,,,Existing color retained without source confirmation in this pass.
+TW,TWB,T'way Air,#E31837,legacy_unverified,,,Existing color retained without source confirmation in this pass.
+U2,EZY,easyJet,#FF6600,observed_logo,logo,https://commons.wikimedia.org/wiki/Special:FilePath/EasyJet%20logo.svg,Dominant non-white logo area; exact rendered pixel sample.
+U5,GWY,AirAsia,#FF0000,legacy_unverified,,,Existing color retained without source confirmation in this pass.
+U6,SVR,Ural Airlines,#BA0C2F,observed_logo,logo,https://commons.wikimedia.org/wiki/Special:FilePath/Logo%20of%20the%20Ural%20Airlines.svg,Dominant non-white logo area; exact rendered pixel sample.
+U8,RUS,Armavia,#143B9A,observed_logo,logo,https://upload.wikimedia.org/wikipedia/en/4/40/Armavia.svg,Selected identifying color from the logo rather than a neutral wordmark.
+UA,UAL,United Airlines,#0C2340,observed_site,official_site_css,https://united.mediaroom.com/css/wdcontent.css,"Official United newsroom #wd_header_blue background is exactly 0c2340 and holds the linked white United logo. Selected identifying navy from the official header, not a formal primary-color or dominant-livery specification. The separate Her Art Here PDF names several core/extended blues; Pantone values were not converted to guessed hex."
+UB,UBA,Myanmar National Airlines,#FDB515,observed_logo,logo,https://en.wikipedia.org/wiki/Special:FilePath/Myanmar_National_Airlines_Logo.svg,Selected identifying logo hue from cached SVG fills.
+UG,TUN,Tunisair,#C8102E,legacy_unverified,,,Existing color retained without source confirmation in this pass.
+UJ,ALM,AlMasria Universal Airlines,#0E3C6F,observed_logo,logo,https://en.wikipedia.org/wiki/Special:FilePath/AlMasria_Airlines_logo.png,Sampled cached raster logo; exact pixel color.
+UK,VTI,Vistara,#511D4B,observed_logo,logo,https://en.wikipedia.org/wiki/Special:FilePath/Vistara_Logo.svg,Selected identifying logo hue from cached SVG fills.
+UL,ALK,SriLankan Airlines,#DC001C,observed_logo,logo,https://en.wikipedia.org/wiki/Special:FilePath/SriLankan_Airlines_Logo.svg,Selected identifying logo hue from cached SVG fills.
+UO,HKE,Hong Kong Express Airways,#702B91,observed_logo,logo,https://en.wikipedia.org/wiki/Special:FilePath/HK_Express_logo_%282023%29.svg,Selected identifying logo hue from cached SVG fills.
+UP,BHS,Bahamasair,#1F6BA6,observed_logo,logo,https://en.wikipedia.org/wiki/Special:FilePath/Bahamasair_Logo.svg,Selected identifying logo hue from cached SVG fills.
+UT,UTA,UTair,#003594,observed_logo,logo,https://en.wikipedia.org/wiki/Special:FilePath/Utair_logo_gradient.svg,Selected identifying logo hue from cached SVG fills.
+UU,REU,Air Austral,#20294E,observed_logo,logo,https://en.wikipedia.org/wiki/Special:FilePath/Air_Austral_logo_%282015%29.svg,Selected identifying logo hue from cached SVG fills.
+UX,AEA,Air Europa,#0970CB,observed_logo,logo,https://en.wikipedia.org/wiki/Special:FilePath/Air_Europa_Logo_%282015%29.svg,Selected identifying logo hue from cached SVG fills.
+V3,KRP,Carpatair,#00A583,observed_logo,logo,https://en.wikipedia.org/wiki/Special:FilePath/Carpatair_logo.svg,Selected identifying logo hue from cached SVG fills.
+V5,VRI,Vieques Air Link,#19335E,observed_logo,logo,https://www.viequesairlink.com/logo_val_nobackground.png,Sampled cached raster logo; exact pixel color.
+V7,VOE,Volotea,#ED164A,observed_logo,logo,https://en.wikipedia.org/wiki/Special:FilePath/Volotea.svg,Selected identifying logo hue from cached SVG fills.
+VA,VOZ,Virgin Australia,#E10A0A,observed_logo,logo,https://en.wikipedia.org/wiki/Special:FilePath/Virgin_Australia_Logo_2022.svg,Selected identifying logo hue from cached SVG fills.
+VB,VIV,VivaAerobus,#00A651,legacy_unverified,,,Existing color retained without source confirmation in this pass.
+VF,AJT,AJet,#008FDA,observed_logo,logo,https://en.wikipedia.org/wiki/Special:FilePath/AJet_logo.svg,Selected identifying logo hue from cached SVG fills.
+VH,VVC,Viva Air,#028EAA,observed_logo,logo,https://en.wikipedia.org/wiki/Special:FilePath/Viva_Air_logo.svg,Selected identifying logo hue from cached SVG fills.
+VJ,VJC,VietJet Air,#E50019,legacy_unverified,,,Existing color retained without source confirmation in this pass.
+VN,HVN,Vietnam Airlines,#005E80,observed_logo,logo,https://en.wikipedia.org/wiki/Special:FilePath/Vietnam_Airlines_logo_2015.svg,Selected identifying logo hue from cached SVG fills.
+VQ,NOV,Novoair,#15467A,observed_logo,logo,https://en.wikipedia.org/wiki/Special:FilePath/Novoair_logo.svg,Selected identifying logo hue from cached SVG fills.
+VS,VIR,Virgin Atlantic,#DC143C,legacy_unverified,,,Existing color retained without source confirmation in this pass.
+VU,VUN,Vietravel Airlines,,unresolved,,,Seed placeholder removed; no reliable color source matched to this catalog identity.
+VY,VLG,Vueling,#FFCE00,legacy_unverified,,,Existing color retained without source confirmation in this pass.
+VZ,THA,Thai Vietjet Air,#E50019,legacy_unverified,,,Existing color retained without source confirmation in this pass.
+W2,FWI,FlexFlight,#C29C45,observed_logo,logo,https://en.wikipedia.org/wiki/Special:FilePath/Logo_FlexFlight_%28Denmark%29.png,Sampled cached raster logo; identifying gold accent.
+W3,AXE,Arik Air,#0D3F84,observed_logo,logo,https://en.wikipedia.org/wiki/Special:FilePath/Arik_Air_logo.svg,Selected identifying logo hue from cached SVG fills.
+W4,WRA,Wizz Air Abu Dhabi,#C6007E,legacy_unverified,,,Existing color retained without source confirmation in this pass.
+W6,WZZ,Wizz Air,#C6007E,observed_site,official_site_css,https://wizzair.com/en-gb,"Observed official website palette: .button-root.button__color--primary background-color #C6007E; same value in primary outline/link and CTA fills. Confirms retained hex as primary-action CSS, not a formal corporate brand specification or sampled logo color. Independent corporate footer logo is tiny 92x41 gradient raster; no exact #C6007E pixel exists."
+W9,JAB,Air Bagan,,unresolved,,,Seed placeholder removed; no reliable color source matched to this catalog identity.
+WB,RWD,RwandAir,#1C4E9D,observed_logo,logo,https://en.wikipedia.org/wiki/Special:FilePath/RwandAir_logo.svg,Selected identifying logo hue from cached SVG fills.
+WE,THD,Thai Smile,#F58024,observed_logo,logo,https://en.wikipedia.org/wiki/Special:FilePath/THAI_Smile.png,Sampled cached raster logo; exact pixel color.
+WK,EDW,Edelweiss Air,#CF0A2C,observed_logo,logo,https://en.wikipedia.org/wiki/Special:FilePath/Edelweiss_Air_logo.svg,Selected identifying logo hue from cached SVG fills.
+WN,SWA,Southwest Airlines,#304CB2,legacy_unverified,,,Existing color retained without source confirmation in this pass.
+WS,WJA,WestJet,#00AC9D,observed_logo,logo,https://en.wikipedia.org/wiki/Special:FilePath/WestJetLogo2018.svg,Selected identifying logo hue from cached SVG fills.
+WW,WOW,WOW air,#991782,observed_logo,logo,https://en.wikipedia.org/wiki/Special:FilePath/WOW_air_logo.svg,Selected identifying logo hue from cached SVG fills.
+WY,OMA,Oman Air,#B5985A,observed_logo,logo,https://en.wikipedia.org/wiki/Special:FilePath/Oman_Air_logo.svg,Selected identifying logo hue from cached SVG fills.
+WZ,RWZ,Red Wings,#CC252B,observed_logo,logo,https://en.wikipedia.org/wiki/Special:FilePath/RedWings_Airlines_Logo.svg,Selected identifying logo hue from cached SVG fills.
+X3,TUI,TUI fly,#E41917,observed_logo,logo,https://en.wikipedia.org/wiki/Special:FilePath/TUIfly_Logo_2016.svg,Selected identifying logo hue from cached SVG fills.
+XL,LNE,LATAM Ecuador,#2A0088,observed_logo,logo,https://en.wikipedia.org/wiki/Special:FilePath/Latam-logo_-v_%28Indigo%29.svg,Selected identifying logo hue from cached SVG fills.
+XQ,SXS,SunExpress,#1A428A,observed_logo,logo,https://en.wikipedia.org/wiki/Special:FilePath/SunExpress_Logo.svg,Selected identifying logo hue from cached SVG fills.
+XY,KNE,flynas,#00BBB4,observed_logo,logo,https://en.wikipedia.org/wiki/Special:FilePath/Flynas_Logo.svg,Selected identifying logo hue from cached SVG fills.
+Y4,VOI,Volaris,#91268F,observed_logo,logo,https://en.wikipedia.org/wiki/Special:FilePath/Volaris-logo.svg,Selected identifying logo hue from cached SVG fills.
+YM,MNB,Montenegro Airlines,#2056AE,observed_logo,logo,https://en.wikipedia.org/wiki/Special:FilePath/Montenegro_Airlines_logo.svg,Selected identifying logo hue from cached SVG fills.
+YV,ASH,Mesa Airlines,,unresolved,,,Seed placeholder removed; no reliable color source matched to this catalog identity.
+YW,ANE,Air Nostrum,#0090D0,observed_logo,logo,https://en.wikipedia.org/wiki/Special:FilePath/Logo_Air_Nostrum_%28Spain%29.svg,Selected identifying logo hue from cached SVG fills.
+YX,RPA,Republic Airways,#00263A,observed_logo,logo,https://en.wikipedia.org/wiki/Special:FilePath/Republic_Airways_2019_Logo.svg,Selected identifying logo hue from cached SVG fills.
+ZB,MON,Monarch Airlines,#731472,observed_logo,logo,https://en.wikipedia.org/wiki/Special:FilePath/MonarchAirlinesNew.svg,Selected identifying logo hue from cached SVG fills.
+ZE,ESR,Eastar Jet,#D12149,observed_logo,logo,https://en.wikipedia.org/wiki/Special:FilePath/Eastar_Jet_Logo.svg,Selected identifying logo hue from cached SVG fills.
+ZF,ALK,Azur Air,#003D68,observed_logo,logo,https://en.wikipedia.org/wiki/Special:FilePath/Azur_Air_logo.png,Sampled cached raster logo; exact pixel color.
+ZH,CSZ,Shenzhen Airlines,#CC0327,observed_logo,logo,https://en.wikipedia.org/wiki/Special:FilePath/Shenzhen_Airlines_logo.svg,Selected identifying logo hue from cached SVG fills.
+ZI,AAF,Aigle Azur,#002C5A,observed_logo,logo,https://en.wikipedia.org/wiki/Special:FilePath/Aigle_Azur_logo.svg,Selected identifying logo hue from cached SVG fills.
