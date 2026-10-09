@@ -4,15 +4,46 @@
 .ov3-tile-heading h2 { min-width: 0; }
 .ov3-tile:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
 .ov3-tile[data-dragging=true] { cursor: grabbing; }
-.ov3-sheet-heading { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+/* Title and position follow each other and Torph tweens their width; the options button keeps its own corner so chapter names of any length never move it. */
+.ov3-section-sheet .ui-panel-header > div { flex: 1; min-width: 0; }
+.ov3-sheet-heading { container-type: inline-size; display: flex; align-items: center; gap: 12px; }
+/* FeedbackText's root sets white-space: normal inline; a wrapped title or label would change the header or footer height. */
+.ov3-sheet-name, .ov3-sheet-position { flex: none; white-space: nowrap; }
+.ov3-sheet-name { flex-shrink: 1; min-width: 0; overflow: hidden; }
+.ov3-sheet-name > span, .ov3-sheet-position > span { white-space: nowrap !important; }
+/* Narrow phones: the pager already shows the position, so "3 of 7" stays for screen readers only and the title keeps one line. */
+@container (max-width: 270px) {
+  .ov3-sheet-position { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+}
+.ov3-sheet-heading > .ov3-options { margin-inline-start: auto; }
 .ov3-sheet-position { color: var(--text-muted); font-size: 13px; font-weight: 400; }
 .ov3-sheet-pager { display: flex; gap: 4px; margin-bottom: 20px; }
-.ov3-sheet-pager span { flex: 1; height: 2px; background: var(--control-border); }
+.ov3-sheet-pager span { flex: 1; height: 2px; background: var(--control-border); transition: background-color var(--dur-base) var(--ease-out); }
 .ov3-sheet-pager span[data-active=true] { background: var(--accent); }
-.ov3-sheet-navigation { display: flex; justify-content: space-between; gap: 8px; }
-.ov3-sheet-navigation .ui-button { min-height: 44px; white-space: normal; }
-.ov3-section-sheet.ui-sheet[data-side=bottom] { max-height: calc(100dvh - var(--sheet-kb) - max(16px, env(safe-area-inset-top))); }
+/* The footer is a right-aligned flex row; the grid pins Previous and Next to their own edges whatever the neighbours' names are. */
+.ov3-sheet-navigation { flex: 1 1 100%; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px; }
+.ov3-sheet-navigation .ui-button { min-height: 44px; min-width: 0; max-width: 100%; padding-inline: 12px; white-space: nowrap; }
+.ov3-sheet-navigation .ui-button:first-child { justify-self: start; }
+.ov3-sheet-navigation .ui-button:last-child { justify-self: end; }
+/* Labels stay on one line; a name too long for its half ends in an ellipsis. Torph's root is made inline so the ellipsis can cut between its letters. */
+.ov3-sheet-nav-label { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ov3-sheet-nav-label > span { display: inline !important; white-space: nowrap !important; }
+.ov3-sheet-navigation .ui-button[aria-disabled=true] { background: transparent; border-color: transparent; opacity: 0.4; }
+/* Chapter changes run in chapter-motion.ts (Web Animations from the on-screen position); CSS only settles a released swipe back. */
+.ov3-sheet-stage { touch-action: pan-y pinch-zoom; transition: transform var(--dur-sheet) var(--ease-drawer), opacity var(--dur-base) var(--ease-out); }
+.ov3-sheet-stage[data-swiping=true] { transition: none; }
+/* The departing chapter's copy, clipped to the visible body while it leaves. */
+.ov3-sheet-ghost { position: absolute; top: 0; left: 0; width: 100%; overflow: hidden; pointer-events: none; }
+@media (prefers-reduced-motion: reduce) {
+  .ov3-sheet-stage { transition: opacity var(--dur-fast) linear; }
+  .ov3-sheet-pager span { transition: none; }
+}
+/* One fixed height for every chapter: header, pager and footer never move when a short chapter replaces a tall one. */
+.ov3-section-sheet.ui-sheet[data-side=bottom] { height: calc(100dvh - var(--sheet-kb) - max(16px, env(safe-area-inset-top))); max-height: none; }
 .ov3-section-sheet .ui-panel-header, .ov3-section-sheet .ui-panel-footer { border: 0; }
+/* Positions the departing copy. Paired with overflow-y: auto, clip computes to hidden: the sliding chapter never shows sideways scroll.
+   A horizontal over-swipe must not become the browser's back gesture (Chrome on Android). */
+.ov3-section-sheet .ui-panel-body { position: relative; overflow-x: clip; overscroll-behavior-x: none; }
 .ov3-section-sheet .narrator { max-width: 60ch; color: var(--text-muted); font-size: 15px; line-height: 24px; }
 /* Mini bars must not break the airline code into stacked letters inside a half-width tile. */
 .ov3-tile .ov3-mini-bars div { min-width: 0; }
