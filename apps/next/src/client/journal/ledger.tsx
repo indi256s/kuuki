@@ -9,6 +9,7 @@ import { MakerSwatch } from '../ui/category-mark'
 import { Checkbox } from '../ui/checkbox'
 import { ContextMenu, ContextMenuButton, type ContextMenuItem } from '../ui/context-menu'
 import { FirstsGlyph } from './firsts-glyph'
+import { useProgressiveCount } from './progressive'
 import type { LedgerItem } from './filter'
 import type { FlightFirsts, JournalFlight, JournalRefs, JournalSort, JournalSortKey } from './model'
 import './ledger.css'
@@ -150,6 +151,9 @@ export function JournalLedger({ items, refs, locale, sort, onSortChange, activeI
     const shown = (item: LedgerItem | undefined) => item?.kind === 'flight' && !hidden.has(item.flight.id)
     return items.filter((item, index) => item.kind === 'flight' ? !hidden.has(item.flight.id) : shown(items[index - 1]) && shown(items[index + 1]))
   }, [items, hidden])
+  // D3: the server and the hydrating render show the first rows; the rest mount right after in interruptible chunks.
+  const mounted = useProgressiveCount(visible.length)
+  const rows = mounted < visible.length ? visible.slice(0, mounted) : visible
   const columns = 4 + (compact ? 0 : 2) + (selectable ? 1 : 0)
 
   const sortBy = (key: JournalSortKey) => onSortChange(sort.key === key ? { key, order: sort.order === 'desc' ? 'asc' : 'desc' } : { key, order: 'desc' })
@@ -178,8 +182,8 @@ export function JournalLedger({ items, refs, locale, sort, onSortChange, activeI
         {!compact && header('distance', t.distance, 'jr-distance')}
       </tr>
     </thead>
-    <tbody role="rowgroup" className="jr-body">
-      {visible.map(item => item.kind === 'connector'
+    <tbody role="rowgroup" className="jr-body" aria-busy={mounted < visible.length || undefined}>
+      {rows.map(item => item.kind === 'connector'
         ? <ConnectorRow key={item.key} item={item} locale={locale} columns={columns} />
         : <FlightRow key={item.flight.id} flight={item.flight} firsts={item.firsts} refs={refs} locale={locale}
           active={activeId === item.flight.id} compact={compact} selected={selected.has(item.flight.id)} selectable={selectable}
