@@ -1,6 +1,6 @@
 # 08 Ledger, title, live summary, review pill, Next up
 
-Status: open
+Status: done
 Type: task
 Owner: Sonnet
 Blocked by: 03, 05, 06

@@ -1,6 +1,6 @@
 # 09 Toolbar, chips and More filters drawer
 
-Status: open
+Status: done
 Type: task
 Owner: Sonnet
 Blocked by: 05, 07
