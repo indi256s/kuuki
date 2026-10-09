@@ -33,4 +33,4 @@
 @keyframes achievement-fade { from { opacity: 0; } to { opacity: 1; } }
 @media (max-width: 700px) { .editorial-profile section { margin-block: var(--space-8); } .profile-metrics { grid-template-columns: repeat(2, minmax(0,1fr)); } .profile-badges { grid-template-columns: 1fr; } .editorial-profile .profile-head { gap: var(--space-4); } .profile-watermark { font-size: 64px; } }
 .profile-avatar [data-facehash-face] { transition: transform var(--dur-base) var(--ease-out) !important; }
-@media (prefers-reduced-motion: reduce) { .profile-avatar [data-facehash-face] { transform: none !important; transition: none !important; } }
+@media (prefers-reduced-motion: reduce) { .profile-avatar [data-facehash-face] { transform: none !important; transition: none !important; } .profile-avatar [data-facehash-face] svg * { animation: none !important; } }

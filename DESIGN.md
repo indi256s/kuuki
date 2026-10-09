@@ -147,6 +147,8 @@ Levels 2 and 3 are built on every ui-kit primitive. In dark, Ticket, read panels
 
 ## Motion
 
+Generated Facehash avatars blink at the library's per-avatar intervals and retain their subtle hover rotation. Uploaded photos stay static. Reduced motion disables blinking and rotation.
+
 Tokens: `--ease-out` cubic-bezier(.23,1,.32,1) for enter/exit and press; `--ease-in-out` cubic-bezier(.77,0,.175,1) for on-screen movement (height, segmented thumb); `--ease-drawer` cubic-bezier(.32,.72,0,1) for sheets; `--ease-icon` cubic-bezier(.2,0,0,1) for icon crossfades (defined, no consumer yet). `--ease-horizon` cubic-bezier(0,0,.15,1) for the Horizon sun and the theme sweep it leads. Durations: `--dur-press` 120ms, `--dur-fast` 150ms, `--dur-base` 200ms, `--dur-sheet` 300ms, `--dur-moment` 450ms (rare delight only), `--dur-horizon` 500ms (Horizon sun and theme sweep).
 
 Built [Overview motion](#overview-redesign): replay shares one clock; the camera reframes over 600ms (its source uses an easing function); in-view local Arc SVG geometry updates use 1,100ms, while Manufacturers reflows over 300ms. Reduced motion snaps charts and camera and shows static mid-arc planes. Figures, chips and text swap instantly.
