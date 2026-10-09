@@ -7,7 +7,13 @@ import { MAKER_SLOTS } from '@kuuki/data/aircraft-makers'
 import { ALLIANCES } from '@kuuki/data/alliance-membership'
 import { setTheme } from '../../../client/appearance'
 import { AllianceMark, MakerSwatch } from '../../../client/ui/category-mark'
+import { Alert } from '../../../client/ui/alert'
+import { Checkbox } from '../../../client/ui/checkbox'
 import { Chip } from '../../../client/ui/chip'
+import { EmptyState } from '../../../client/ui/empty-state'
+import { Kbd } from '../../../client/ui/kbd'
+import { SlotText } from '../../../client/ui/slot-text'
+import { Tooltip } from '../../../client/ui/tooltip'
 import { MonthRange, type MonthRangeValue } from '../../../client/ui/month-range'
 import { PopoverContent, PopoverRoot, PopoverTrigger } from '../../../client/ui/popover'
 import { Skeleton } from '../../../client/ui/skeleton'
@@ -65,6 +71,10 @@ function Sections({ locale, theme, t }: { locale: Locale; theme: Theme; t: (en: 
   const [sort, setSort] = useState('recent')
   const [selected, setSelected] = useState(3)
   const [email, setEmail] = useState('')
+  const [flights, setFlights] = useState(74)
+  const [aircraftOnly, setAircraftOnly] = useState(true)
+  const [checkedRows, setCheckedRows] = useState([true, false, false])
+  const allRows = checkedRows.every(Boolean), someRows = checkedRows.some(Boolean)
   const origin = { iata: 'JFK', city: 'New York' }, destination = { iata: 'BOS', city: 'Boston' }
   const ru = locale === 'ru'
   const ticket = { locale, origin, destination, date: '2026-10-12', flightNumber: 'B6 618', airline: 'JetBlue', distanceKm: 300 } as const
@@ -144,6 +154,43 @@ function Sections({ locale, theme, t }: { locale: Locale; theme: Theme; t: (en: 
       </section>
       <section><h2>Disclosure</h2>
         <Disclosure summary={t('More details', 'Подробнее')}><div className="gallery-fields" style={{ paddingBlock: 8 }}><Field label={t('Seat', 'Место')} /><Field label={t('Aircraft', 'Самолёт')} /></div></Disclosure>
+      </section>
+      <section><h2>Tooltip</h2>
+        <div className="gallery-row">
+          <Tooltip content={t('First visit to Japan (pending confirmation)', 'Первый визит в Японию (ждёт подтверждения)')}><Button dense>{t('Hover or focus me', 'Наведите или сфокусируйтесь')}</Button></Tooltip>
+          <Tooltip content={t('Opens below when there is no room above.', 'Откроется снизу, если сверху нет места.')} side="bottom"><Button dense>{t('Below', 'Снизу')}</Button></Tooltip>
+        </div>
+        <p>{t('Opens on keyboard focus and on hover with a mouse, closes on Escape. Never the only place for essential information.', 'Открывается при фокусе с клавиатуры и при наведении мыши, закрывается по Escape. Никогда не единственное место для важного.')}</p>
+      </section>
+      <section><h2>SlotText</h2>
+        <div className="gallery-row">
+          <span style={{ fontSize: 22, lineHeight: '28px' }}><SlotText value={flights} format={value => value.toLocaleString(ru ? 'ru-RU' : 'en-US')} /> {t('flights', 'перелётов')}</span>
+          <Button dense onClick={() => setFlights(value => value + 1)}>+1</Button>
+          <Button dense onClick={() => setFlights(value => value + 130)}>+130</Button>
+          <Button dense onClick={() => setFlights(value => Math.max(0, value - 7))}>−7</Button>
+        </div>
+      </section>
+      <section><h2>Checkbox</h2>
+        <div className="gallery-fields">
+          <Checkbox label={t('Only flights without aircraft', 'Только перелёты без самолёта')} description={t('Flights that already have one keep it.', 'У перелётов с самолётом он сохранится.')} checked={aircraftOnly} onChange={event => setAircraftOnly(event.target.checked)} />
+          <Checkbox label={t('Select all', 'Выбрать все')} checked={allRows} indeterminate={someRows && !allRows} onChange={event => setCheckedRows(checkedRows.map(() => event.target.checked))} />
+          <div className="gallery-row">{checkedRows.map((checked, index) => <Checkbox key={index} aria-label={`${t('Flight', 'Перелёт')} ${index + 1}`} checked={checked} onChange={event => setCheckedRows(checkedRows.map((value, i) => i === index ? event.target.checked : value))} />)}</div>
+          <Checkbox label={t('Not available offline', 'Недоступно без сети')} disabled />
+        </div>
+      </section>
+      <section><h2>Alert</h2>
+        <div className="gallery-fields">
+          <Alert variant="info" title={t('Next flight in 12 days', 'Следующий перелёт через 12 дней')}>{t('TBS to IST on 21 October.', 'TBS в IST 21 октября.')}</Alert>
+          <Alert variant="success" title={t('3 flights confirmed', 'Подтверждено 3 перелёта')} />
+          <Alert variant="warning" title={t('Could not refresh the journal', 'Не удалось обновить журнал')} action={<Button dense>{t('Try again', 'Повторить')}</Button>}>{t('Showing the flights from earlier.', 'Показаны перелёты, загруженные ранее.')}</Alert>
+          <Alert variant="danger" urgent title={t('Could not save the flight', 'Не удалось сохранить перелёт')}>{t('Check your connection and try again.', 'Проверьте соединение и повторите.')}</Alert>
+        </div>
+      </section>
+      <section><h2>EmptyState</h2>
+        <EmptyState title={t('No flights match', 'Нет подходящих перелётов')} description={t('Clear the filters to see all 74 flights.', 'Сбросьте фильтры, чтобы увидеть все 74 перелёта.')} action={<Button dense>{t('Clear filters', 'Сбросить фильтры')}</Button>} />
+      </section>
+      <section><h2>Kbd</h2>
+        <div className="gallery-row"><span><Kbd>/</Kbd> {t('search', 'поиск')}</span><span><Kbd>j</Kbd> <Kbd>k</Kbd> {t('move', 'перемещение')}</span><span><Kbd>Esc</Kbd> {t('close', 'закрыть')}</span></div>
       </section>
       <section><h2>Toast</h2>
         <div className="gallery-row">

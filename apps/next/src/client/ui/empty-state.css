@@ -1,0 +1,5 @@
+/* Arc-derived empty state: copy and one action, no icon tile, no motion. */
+.ui-empty{display:flex;width:100%;flex-direction:column;align-items:center;padding:clamp(var(--space-8),8vw,var(--space-12)) var(--space-5);text-align:center}
+.ui-empty-title{margin:0;font-size:17px;line-height:24px;font-weight:500;color:var(--text);text-wrap:balance}
+.ui-empty-description{max-width:24rem;margin:var(--space-1) 0 0;font-size:15px;line-height:24px;color:var(--text-muted);text-wrap:balance}
+.ui-empty-action{display:flex;flex-wrap:wrap;justify-content:center;margin-top:var(--space-5)}

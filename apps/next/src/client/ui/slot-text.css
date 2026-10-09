@@ -1,0 +1,14 @@
+/* Arc-derived slot text. Transform and opacity only; the real text is the visually hidden span. */
+.ui-slot-text{position:relative;display:inline-block;white-space:pre;font-variant-numeric:tabular-nums}
+.ui-slot-text-value{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.ui-slot-char{position:relative;display:inline-block}
+.ui-slot-out{position:absolute;top:0;left:0}
+.ui-slot-in[data-roll=up]{animation:ui-slot-enter-up var(--dur-base) var(--ease-out) both}
+.ui-slot-in[data-roll=down]{animation:ui-slot-enter-down var(--dur-base) var(--ease-out) both}
+.ui-slot-out[data-roll=up]{animation:ui-slot-leave-up var(--dur-base) var(--ease-out) both}
+.ui-slot-out[data-roll=down]{animation:ui-slot-leave-down var(--dur-base) var(--ease-out) both}
+@keyframes ui-slot-enter-up{from{opacity:0;transform:translateY(.6em)}}
+@keyframes ui-slot-enter-down{from{opacity:0;transform:translateY(-.6em)}}
+@keyframes ui-slot-leave-up{to{opacity:0;transform:translateY(-.6em)}}
+@keyframes ui-slot-leave-down{to{opacity:0;transform:translateY(.6em)}}
+@media (prefers-reduced-motion:reduce){.ui-slot-in[data-roll],.ui-slot-out[data-roll]{animation:none}.ui-slot-out{display:none}}
