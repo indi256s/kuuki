@@ -1,56 +1,17 @@
-import { GoogleGenAI, Type } from '@google/genai'
+import { lookupAircraft } from './_lookup'
+import { isCalendarDate } from '../../../packages/shared/src/flightValidation'
 import {
   type EnrichmentRequest,
   type EnrichmentResponse,
-  type EnrichmentResult,
-  buildBatchPrompt,
   MAX_BATCH_SIZE,
 } from './_shared'
 import { corsHeaders, corsPreflight } from '../_lib/cors'
 import { requireCsrf, requireUser, type RequestData } from '../_lib/auth'
 import { HttpError, readJson, runHandler } from '../_lib/http'
 import { rateLimit } from '../_lib/ratelimit'
-import { DEFAULT_MODEL, ProviderResponseError, providerFailure, usageBucket } from '../import/_provider'
+import { DEFAULT_MODEL, providerFailure, usageBucket } from '../import/_provider'
 
-// Below the 30s web client deadline; cancellation stops local work even if the provider stalls.
-export const ENRICHMENT_DEADLINE_MS = 20_000
-
-// JSON schema for structured output from Gemini
-const ENRICHMENT_RESPONSE_SCHEMA = {
-  type: Type.OBJECT,
-  properties: {
-    results: {
-      type: Type.ARRAY,
-      items: {
-        type: Type.OBJECT,
-        properties: {
-          index: {
-            type: Type.NUMBER,
-            description: 'Flight index from the input list (1-based)',
-          },
-          icao: {
-            type: Type.STRING,
-            description: '4-letter ICAO aircraft type code (e.g., B77W, A388)',
-            nullable: true,
-          },
-          name: {
-            type: Type.STRING,
-            description: 'Full aircraft name (e.g., Boeing 777-300ER)',
-            nullable: true,
-          },
-          confidence: {
-            type: Type.NUMBER,
-            description: 'Confidence score between 0 and 1',
-          },
-          evidence: { type: Type.STRING, nullable: true },
-          uncertainty: { type: Type.STRING, nullable: true },
-        },
-        required: ['index', 'confidence'],
-      },
-    },
-  },
-  required: ['results'],
-}
+export { ENRICHMENT_DEADLINE_MS } from './_lookup'
 
 export const onRequestPost: PagesFunction<Env, string, RequestData> = async (context) => {
   const { request, env, data } = context
@@ -84,10 +45,14 @@ export const onRequestPost: PagesFunction<Env, string, RequestData> = async (con
     // Validate each flight has required fields
     for (const flight of flights) {
       if (!flight || typeof flight.id !== 'string' || !flight.id ||
-          typeof flight.date !== 'string' || !flight.date ||
-          typeof flight.origin !== 'string' || !flight.origin ||
-          typeof flight.destination !== 'string' || !flight.destination) {
-        throw new HttpError(400, 'Each flight must have id, date, origin, and destination')
+          typeof flight.date !== 'string' || !isCalendarDate(flight.date) ||
+          typeof flight.origin !== 'string' || !/^[A-Z]{3}$/.test(flight.origin) ||
+          typeof flight.destination !== 'string' || !/^[A-Z]{3}$/.test(flight.destination) ||
+          [flight.flight_number, flight.airline_iata, flight.airline_name].some(value => value != null && typeof value !== 'string') ||
+          (flight.airline_iata != null && !/^[A-Z0-9]{2}$/.test(flight.airline_iata)) ||
+          (flight.flight_number != null && flight.flight_number.length > 20) ||
+          (flight.airline_name != null && flight.airline_name.length > 200)) {
+        throw new HttpError(400, 'Each flight must have an id, calendar date, IATA endpoints and valid optional flight details')
       }
     }
     if (new Set(flights.map(flight => flight.id)).size !== flights.length) {
@@ -97,94 +62,14 @@ export const onRequestPost: PagesFunction<Env, string, RequestData> = async (con
     const model = context.env.GEMINI_ENRICH_MODEL?.trim() || DEFAULT_MODEL
     const started = Date.now()
     try {
-      // --- Gemini enrichment (grounded web search) ---
-      const geminiResults = new Map<string, EnrichmentResult>()
-
-      const ai = new GoogleGenAI({ apiKey: context.env.GEMINI_API_KEY })
-      const prompt = buildBatchPrompt(flights)
-      const controller = new AbortController()
-      let deadlineExpired = false
-      const deadline = setTimeout(() => {
-        deadlineExpired = true
-        controller.abort()
-      }, ENRICHMENT_DEADLINE_MS)
-
       console.log(JSON.stringify({ event: 'gemini_enrichment_start', model, flight_count: flights.length }))
-
-      let response: Awaited<ReturnType<typeof ai.models.generateContent>>
-      try {
-        response = await ai.models.generateContent({
-        model,
-        contents: prompt,
-        config: {
-          tools: [
-            { googleSearch: {} },
-          ],
-          responseMimeType: 'application/json',
-          responseSchema: ENRICHMENT_RESPONSE_SCHEMA,
-          httpOptions: { timeout: ENRICHMENT_DEADLINE_MS },
-          abortSignal: controller.signal,
-        },
-        })
-      } catch (error) {
-        if (deadlineExpired) throw new HttpError(504, 'The AI service timed out. Please try again.', 'PROVIDER_TIMEOUT')
-        throw error
-      } finally {
-        clearTimeout(deadline)
-      }
-
-      if (!response.text) throw new ProviderResponseError('Empty enrichment response')
-      let parsedResponse: { results: Array<{ index: number; icao: string | null; name: string | null; confidence: number; evidence?: string | null; uncertainty?: string | null }> }
-      try {
-        parsedResponse = JSON.parse(response.text)
-      } catch {
-        throw new ProviderResponseError('Invalid enrichment JSON')
-      }
-      if (!parsedResponse || !Array.isArray(parsedResponse.results) ||
-          parsedResponse.results.length !== flights.length ||
-          new Set(parsedResponse.results.map(r => r?.index)).size !== flights.length ||
-          parsedResponse.results.some(r => !r || !Number.isInteger(r.index) ||
-            r.index < 1 || r.index > flights.length ||
-            (r.icao != null && typeof r.icao !== 'string') ||
-            (r.name != null && typeof r.name !== 'string') ||
-            (r.evidence != null && typeof r.evidence !== 'string') ||
-            (r.uncertainty != null && typeof r.uncertainty !== 'string') ||
-            !Number.isFinite(r.confidence))) {
-        throw new ProviderResponseError('Invalid enrichment response shape')
-      }
-      for (const [index, flight] of flights.entries()) {
-        const geminiResult = parsedResponse.results.find(r => r.index === index + 1)
-        if (geminiResult) {
-          geminiResults.set(flight.id, {
-            flight_id: flight.id,
-            aircraft_icao: geminiResult.confidence >= 0.7 && geminiResult.evidence?.trim() ? geminiResult.icao?.toUpperCase() || null : null,
-            aircraft_name: geminiResult.name || null,
-            confidence: geminiResult.evidence?.trim() ? Math.min(1, Math.max(0, geminiResult.confidence)) : 0,
-            evidence: geminiResult.evidence ?? null,
-            uncertainty: geminiResult.uncertainty ?? null,
-            source: 'gemini',
-          })
-        }
-      }
-
-      // --- Merge results (Gemini-only) ---
-      const results: EnrichmentResult[] = flights.map((flight) => {
-        const geminiResult = geminiResults.get(flight.id)
-        if (geminiResult) return geminiResult
-
-        return {
-          flight_id: flight.id,
-          aircraft_icao: null,
-          aircraft_name: null,
-          confidence: 0,
-        }
-      })
+      const { results, tokenCount, searchSuggestionsHtml } = await lookupAircraft(context.env.GEMINI_API_KEY, model, flights)
 
       console.log(JSON.stringify({ event: 'enrichment_complete', model, outcome: 'success', duration_ms: Date.now() - started,
-        usage_bucket: usageBucket(response.usageMetadata?.totalTokenCount), identified: results.filter(r => r.aircraft_icao).length, total: flights.length }))
+        usage_bucket: usageBucket(tokenCount), identified: results.filter(r => r.aircraft_icao).length, total: flights.length }))
 
       return Response.json(
-        { results } as EnrichmentResponse,
+        { results, ...(searchSuggestionsHtml ? { search_suggestions_html: searchSuggestionsHtml } : {}) } as EnrichmentResponse,
         { headers: cors }
       )
     } catch (error) {

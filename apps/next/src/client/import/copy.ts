@@ -190,7 +190,7 @@ export const S = {
   checkFailed: p('Could not confirm what was saved. Reload to check.', 'Не удалось проверить, что сохранилось. Обновите страницу.'),
 
   aircraftTitle: p('Aircraft suggestions', 'Предложения по самолётам'),
-  aircraftIntro: p('Suggestions are a starting point, not confirmed facts. Only ones with 70% confidence or more are offered.', 'Предложения — отправная точка, а не подтверждённые факты. Показаны только те, где уверенность не ниже 70%.'),
+  aircraftIntro: p('AI classifies search results; these suggestions are not independently verified. Only ones with 70% confidence or more are offered. Schedule-based and unclear suggestions start unselected.', 'ИИ классифицирует результаты поиска; эти предложения не проверены независимо. Показаны только те, где уверенность не ниже 70%. Предложения по расписанию и с неясным источником изначально не выбраны.'),
   aircraftSearching: p('Looking for aircraft…', 'Ищем самолёты…'),
   aircraftSelectAll: p('Select all', 'Выбрать все'),
   aircraftDeselectAll: p('Deselect all', 'Снять выбор'),
@@ -211,6 +211,14 @@ export const S = {
   aircraftClose: p('Close', 'Закрыть'),
   aircraftEvidence: p('Evidence', 'Основание'),
   aircraftUnsure: p('Unconfirmed', 'Не подтверждено'),
+  aircraftActual: p('Search suggests an actual-flight record', 'Поиск указывает на запись о выполненном рейсе'),
+  aircraftScheduled: p('Based on a schedule; check before saving', 'По расписанию; проверьте перед сохранением'),
+  aircraftBasisUnknown: p('Source type unclear; check before saving', 'Тип источника неясен; проверьте перед сохранением'),
+  aircraftRecordDate: p('Flight date in source', 'Дата рейса в источнике'),
+  aircraftRegistration: p('Registration', 'Бортовой номер'),
+  aircraftOperator: p('Operator', 'Эксплуатант'),
+  aircraftSources: p('Sources to check', 'Источники для проверки'),
+  aircraftSearchSuggestions: p('Google Search Suggestions for aircraft research', 'Поисковые подсказки Google для поиска самолёта'),
 
   failureTitle: p('This import did not finish', 'Импорт не завершён'),
   retryAt: p('You can try again after', 'Попробовать снова можно после'),

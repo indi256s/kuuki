@@ -92,8 +92,29 @@ while publication is still pending; clients refetch status instead of replaying
 the mutation.
 
 ### Enrichment
-Background filling of flight details (aircraft, distance, duration) from
-reference data after a flight is saved; tracked by `enrichment_status`.
+Filling missing details of a saved flight from reference data or evidence tied
+to that flight. Enrichment preserves recorded values and leaves a detail
+unknown when the available evidence does not support it.
+
+### Scheduled times
+Departure and arrival times published for the dated flight, distinct from
+times observed when it was performed. Accepted scheduled times remain
+identified as scheduled rather than becoming evidence of actual timing.
+
+### Flight time event
+The event to which a departure or arrival time refers: departure from or
+arrival at the gate, takeoff, or landing. Its planned or observed timing is
+distinct from the first or last recorded observation of an aircraft.
+
+### Flight occurrence
+A specific performance of an airline service on a dated directional leg,
+which may appear in several travelers' journals. Matching a date and marketed
+flight number alone does not establish the same occurrence.
+
+### Independent flight sources
+Sources of flight evidence with demonstrably separate primary data origins.
+Different websites reproducing the same upstream data do not constitute
+independent confirmation; an unknown origin does not establish independence.
 
 ## Flight metrics vocabulary
 

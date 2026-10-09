@@ -39,6 +39,7 @@
 | [SITEMAP.md](./SITEMAP.md) | Route inventory |
 | [tasks/](./tasks/) | Historical MVP implementation tasks per phase |
 | [plans/](./plans/) | Ad-hoc design documents |
+| [Flight enrichment sources](./research/2026-10-07-flight-enrichment-sources.md) | Historical aircraft sources, storage limits and local Gemini source audit |
 
 ## Current Status
 
