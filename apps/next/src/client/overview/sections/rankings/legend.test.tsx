@@ -11,6 +11,7 @@ vi.mock('next/navigation', () => ({ usePathname: () => '/overview', useSearchPar
 
 it('isolates a legend series on hover and focus, clears it on exit or category change, and keeps hidden marks hidden', () => {
   const { container } = render(<OverviewProvider payload={board as OverviewPayload} prefs={DEFAULT_PREFS} ownerKey="legend-owner" locale="en" live={false}><Section span="full" /></OverviewProvider>)
+  fireEvent.click(screen.getByRole('button', { name: 'Rank by year and head to head' }))
   const legend = container.querySelector('.ov3-bump-dashes')!
   const buttons = within(legend as HTMLElement).getAllByRole('button')
   const groups = () => Array.from(container.querySelectorAll<SVGGElement>('[data-bump-series]'))

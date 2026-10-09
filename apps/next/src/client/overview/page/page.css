@@ -59,6 +59,32 @@
 @media (min-width: 1280px) {
   .ov3-globe-band { --ov-globe-h: clamp(520px, 30vw, 720px); }
 }
+/* Very wide screens: the globe card had spare space at its sides, so the globe key (Visits per country) docks as a third card after the figures, and the row grows taller (up to the viewport less the header) so the round globe fills more of its card; height, not width, limits its size.
+   2176px is where the band reaches ~2080px: the shell caps at 2560px with a gutter that reaches 48px. A media query, not measurement, so the server's first paint already has the final layout. */
+@media (min-width: 2176px) {
+  .ov3-overview-workspace > .ov3-globe-band:has(> [data-region=figures]) {
+    --ov-globe-h: max(720px, min(42vw, 100svh - 260px));
+    grid-template-columns: minmax(0, 1fr) clamp(360px, 20%, 480px) clamp(320px, 15%, 380px);
+    & > .globe-country-card { display: flex; }
+    & .ov3-globe-region .globe-country-evidence { display: none; }
+    & > [data-region=figures] { display: grid; }
+    /* The tall figures card fills with data instead of spreading three groups apart: each sparkline becomes a full-width row under its figure, and the year strip takes the remaining height (a size container, so its bars scale to it) with each year's count above its bar. */
+    & .ov3-hero-panel { justify-content: flex-start; gap: 32px; }
+    & .ov3-sparkline[data-place=inline] { display: none; }
+    & .ov3-sparkline[data-place=row] { display: block; }
+    & .ov3-hero-panel > .ov3-sparkline { margin-top: -16px; }
+    & .ov3-hero-measures { gap: 16px; }
+    & .ov3-hero-measures > .ov3-sparkline { margin: 0 0 8px; }
+    & .ov3-sparkline svg { width: 100%; height: 72px; aspect-ratio: auto; }
+    & .ov3-years { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+    & .ov3-years-bars { flex: 1; min-height: 120px; container-type: size; }
+    & .ov3-years-bars > button { min-height: 0; gap: 4px; }
+    & .ov3-year-label { margin-top: 4px; }
+    & .ov3-year-mark { width: min(12px, 100%); height: max(2px, calc(var(--bar, 0) * (100cqh - 44px))); }
+    & .ov3-year-mark.empty { height: 2px; }
+    & .ov3-year-count { display: block; color: var(--text-muted); font: 12px/16px var(--font-mono); font-variant-numeric: tabular-nums; }
+  }
+}
 @media (min-width: 701px) and (max-width: 1023px) {
   .ov3-globe-band { grid-template-columns: minmax(0, 1fr); }
   .ov3-hero .ui-skeleton { height: 240px !important; }
@@ -68,7 +94,8 @@
   .ov3-page h1 { font-size: 24px; line-height: 30px; }
   .ov3-globe-band { grid-template-columns: minmax(0, 1fr); }
   .ov3-globe { min-height: 360px; padding: 16px; }
-  .ov3-globe-region .globe-top-left { inline-size: calc(100% - 2 * var(--space-4) - var(--ov-filter-reserve, 120px)); }
+  /* The phone globe card is a grid (globe.css): the filter corner gets its own column beside Fullscreen, so it reserves nothing. */
+  .ov3-globe-region .globe-top-left { inline-size: auto; min-inline-size: 0; }
   .ov3-blank-globe { width: min(240px, 80%); }
   .ov3-hero .ui-skeleton { height: 200px !important; }
   .ov3-sections[data-surface=tiles] { grid-template-columns: repeat(2, minmax(0, 1fr)); }

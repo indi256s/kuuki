@@ -1,4 +1,4 @@
-import { useId } from 'react'
+import { useId, type ReactNode } from 'react'
 
 // Adapted from Arc Sparkline, MIT; upstream hashes in docs/research/2026-10-08-arc-source-inventory.md.
 // Keep its monotone geometry; Kuuki's metric stays immediate rather than rolling digits.
@@ -20,16 +20,18 @@ function curveFor(data: number[]): [number, number][] {
   return points
 }
 
-export function ArcSparkline({ values, labels, summary }: { values: readonly number[]; labels: readonly string[]; summary: string }) {
+/** `place` marks the hero's inline and full-width copies so CSS can show one of them. */
+/** `caption` replaces the visible caption (the accessible name stays `summary`). */
+export function ArcSparkline({ values, labels, summary, place, caption }: { values: readonly number[]; labels: readonly string[]; summary: string; place?: 'inline' | 'row'; caption?: ReactNode }) {
   const id = useId()
   const data = values.length > 1 ? [...values] : [values[0] ?? 0, values[0] ?? 0]
   const path = curveFor(data).map(([x, y]) => `${(x * 150 + 5).toFixed(2)},${(5 + (1 - y) * 42).toFixed(2)}`).join('L')
-  return <figure className="ov3-sparkline">
-    <svg width="160" height="52" viewBox="0 0 160 52" role="img" aria-label={summary} aria-describedby={id}>
+  return <figure className="ov3-sparkline" data-place={place}>
+    <svg width="160" height="52" viewBox="0 0 160 52" preserveAspectRatio="none" role="img" aria-label={summary} aria-describedby={id}>
       <desc id={id}>{labels.join('; ')}</desc>
       <path d={`M${path}L155,52L5,52Z`} fill="var(--mark-1)" opacity=".08" />
-      <path d={`M${path}`} fill="none" stroke="var(--mark-1)" strokeWidth="2" strokeLinecap="round" />
+      <path d={`M${path}`} fill="none" stroke="var(--mark-1)" strokeWidth="2" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
     </svg>
-    <figcaption>{summary}</figcaption>
+    <figcaption>{caption ?? summary}</figcaption>
   </figure>
 }

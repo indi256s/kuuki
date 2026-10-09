@@ -54,11 +54,14 @@ function switchTheme(theme: Theme) {
     return
   }
   const barAtStart = direction === 'dusk' || window.matchMedia('(prefers-reduced-motion: reduce)').matches
-  document.startViewTransition(() => {
+  const transition = document.startViewTransition(() => {
     // A skipped switch still paints its theme; the next switch captures that page, so the bar follows it.
     paintTheme(effective)
     if (barAtStart) setBrowserBar(effective)
-  }).finished.finally(done)
+  })
+  // `ready` rejects with "Transition was skipped" when a later switch or a hidden tab skips this one; that is expected, not an error.
+  transition.ready.catch(() => {})
+  transition.finished.finally(done)
 }
 
 /** Same cookie and `data-accent` contract as public/bootstrap.js; unknown names are ignored. */

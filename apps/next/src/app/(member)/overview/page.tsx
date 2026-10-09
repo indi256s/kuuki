@@ -27,5 +27,5 @@ export default async function Overview({ searchParams }: { searchParams: Promise
   const normalized = normalizeOverviewQuery(await searchParams)
   if (!normalized.canonical) redirect(withQuery('/overview', normalized.query))
   return <Suspense fallback={<Loading />}><OverviewData year={normalized.state.year} locale={locale}
-    ownerId={own.ownerId} name={own.profile.display_name ?? ''} /></Suspense>
+    ownerId={own.ownerId} name={own.profile.display_name?.trim() || own.profile.username || ''} /></Suspense>
 }

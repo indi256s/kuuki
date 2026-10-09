@@ -3,6 +3,8 @@
 import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState, type ReactNode, type SVGProps } from 'react'
 import { createPortal } from 'react-dom'
 import { Button } from '../../ui/button'
+import { useAppearance } from '../../preferences'
+import { t } from '../copy'
 import { DEFAULT_PALETTE, type ChartPalette } from './palettes'
 import { TableView, type ChartTable } from './table-view'
 import { useMeasuredWidth } from './use-width'
@@ -30,14 +32,17 @@ export type KuukiChartProps<T> = {
   scrollEnd?: boolean
   /** Legacy fixed coordinate system, scaled to the host width. Prefer the pixel-sized default. */
   viewBox?: string
+  /** Keys the arrow keys stop on, when the drawn marks are finer than what a reader steps through (Fleet's ridge samples: one stop per family). Default: every point. */
+  keyStops?: readonly string[]
   children: (mark: (point: ChartPoint<T>) => SVGProps<SVGGElement>, size: ChartSize) => ReactNode
 }
 
 type Selection = { key: string; pinned: boolean; left: number; top: number }
 
 /** Shared interaction/table host for the locally adapted Arc SVG charts. Geometry stays with each chart, drawn in CSS pixels from `size`. */
-export function KuukiChart<T>({ points, height, ariaLabel, ariaDescription, palette = DEFAULT_PALETTE, inView, onPick, tip, actions, table, fit, scrollEnd, viewBox, children }: KuukiChartProps<T>) {
+export function KuukiChart<T>({ points, height, ariaLabel, ariaDescription, palette = DEFAULT_PALETTE, inView, onPick, tip, actions, table, fit, scrollEnd, viewBox, keyStops, children }: KuukiChartProps<T>) {
   const id = useId(), host = useRef<SVGSVGElement>(null), portal = useRef<HTMLDivElement>(null)
+  const { locale } = useAppearance()
   const [measure, available] = useMeasuredWidth<HTMLDivElement>()
   const root = useRef<HTMLDivElement | null>(null)
   const bindRoot = useCallback((node: HTMLDivElement | null) => { root.current = node; measure(node) }, [measure])
@@ -60,7 +65,8 @@ export function KuukiChart<T>({ points, height, ariaLabel, ariaDescription, pale
   // A selection whose point left the data (filter change) reads as dismissed.
   const selection = picked && points.some(item => item.key === picked.key) ? picked : null
   const point = selection && points.find(item => item.key === selection.key)
-  const activeKey = points.some(item => item.key === active) ? active : points[0]?.key
+  const stops = keyStops ? points.filter(item => keyStops.includes(item.key)) : points
+  const activeKey = points.some(item => item.key === active) ? active : stops[0]?.key
   const selectedKey = selection?.key
   // The tooltip portals into the dialog that holds the mark (so it stays above a sheet), else the body; chosen when a mark is shown.
   const [portalOwner, setPortalOwner] = useState<Element | null>(null)
@@ -104,7 +110,7 @@ export function KuukiChart<T>({ points, height, ariaLabel, ariaDescription, pale
     setSelection({ key, pinned, left: Math.max(16, box.left), top: box.bottom + 8 })
   }
   const focus = (index: number) => {
-    const target = points[Math.max(0, Math.min(points.length - 1, index))]
+    const target = stops[Math.max(0, Math.min(stops.length - 1, index))]
     if (target) { setActive(target.key); marks.current.get(target.key)?.focus() }
   }
   const mark = (item: ChartPoint<T>): SVGProps<SVGGElement> & { 'data-chart-key': string; 'data-kc-key': string; 'data-selected'?: string } => ({
@@ -139,11 +145,15 @@ export function KuukiChart<T>({ points, height, ariaLabel, ariaDescription, pale
     return () => node.removeEventListener('scroll', update)
   }, [scrolls, scrollEnd, width])
   return <div ref={bindRoot} className="kc" style={palette} data-in-view={inView} data-resizing={resizing || undefined} data-scroll={scrolls || undefined} data-more={scrolls && more || undefined}>
-    <svg ref={host} className="kc-svg" role="group" tabIndex={0} aria-label={ariaLabel} aria-describedby={ariaDescription ? `${id}-description` : undefined} viewBox={viewBox ?? `0 0 ${width} ${svgHeight}`} preserveAspectRatio={viewBox ? undefined : 'xMinYMin meet'} style={fixed ? { height: svgHeight, width, maxWidth: 'none' } : { height: svgHeight }} onKeyDown={event => {
-      const index = Math.max(0, points.findIndex(item => item.key === activeKey))
+    <svg ref={host} className="kc-svg" role="group" tabIndex={0} aria-label={ariaLabel} aria-describedby={[ariaDescription ? `${id}-description` : '', `${id}-keys`].filter(Boolean).join(' ')} viewBox={viewBox ?? `0 0 ${width} ${svgHeight}`} preserveAspectRatio={viewBox ? undefined : 'xMinYMin meet'} style={fixed ? { height: svgHeight, width, maxWidth: 'none' } : { height: svgHeight }} onKeyDown={event => {
+      const back = event.key === 'ArrowLeft' || event.key === 'ArrowUp'
+      const at = stops.findIndex(item => item.key === activeKey)
+      // From a hovered mark that is not a stop, the arrows go to the nearest stop on that side.
+      const passed = stops.filter(item => points.indexOf(item) < points.findIndex(point => point.key === activeKey)).length
+      const next = at >= 0 ? at + (back ? -1 : 1) : back ? passed - 1 : passed
       if (['ArrowRight', 'ArrowDown', 'ArrowLeft', 'ArrowUp', 'Home', 'End'].includes(event.key)) {
         event.preventDefault(); pointer.current = 'keyboard'
-        focus(event.key === 'Home' ? 0 : event.key === 'End' ? points.length - 1 : index + (event.key === 'ArrowLeft' || event.key === 'ArrowUp' ? -1 : 1))
+        focus(event.key === 'Home' ? 0 : event.key === 'End' ? stops.length - 1 : next)
       } else if (event.key === 'Enter' || event.key === ' ') {
         event.preventDefault(); pointer.current = 'keyboard'; dismiss()
         const target = points.find(item => item.key === activeKey)
@@ -153,6 +163,10 @@ export function KuukiChart<T>({ points, height, ariaLabel, ariaDescription, pale
       {ariaDescription ? <desc id={`${id}-description`}>{ariaDescription}</desc> : null}
       {children(mark, size)}
     </svg>
+    {/* The keys are otherwise undiscoverable: the group is one tab stop and its points are reached with arrows. */}
+    <span id={`${id}-keys`} className="sr-only">{t(onPick
+      ? { en: 'Arrow keys move between points. Enter filters the page by the focused point.', ru: 'Стрелки переключают точки. Enter фильтрует страницу по выбранной точке.' }
+      : { en: 'Arrow keys move between points.', ru: 'Стрелки переключают точки.' }, locale)}</span>
     {point && selection && portalOwner ? createPortal(<div ref={portal} popover={nativePopover ? 'manual' : undefined} className="kc-tooltip" style={{ ...palette, left: selection.left - (ownerBox?.left ?? 0), top: selection.top - (ownerBox?.top ?? 0) }} role={selection.pinned ? 'dialog' : 'tooltip'} aria-label={point.label}
       onPointerDown={event => event.stopPropagation()} onClick={event => event.stopPropagation()} onKeyDown={event => { if (event.key !== 'Escape') event.stopPropagation() }}>
       {tip ? tip([point]) : <span>{point.label}</span>}

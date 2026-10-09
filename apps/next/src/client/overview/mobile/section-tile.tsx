@@ -1,6 +1,6 @@
 'use client'
 
-import type { MouseEventHandler, PointerEventHandler, ReactNode, Ref } from 'react'
+import { useId, type MouseEventHandler, type PointerEventHandler, type ReactNode, type Ref } from 'react'
 import { ChevronRight } from 'lucide-react'
 import type { SectionId } from '@kuuki/shared/overview/prefs'
 import { SECTIONS } from '../sections/registry'
@@ -15,11 +15,13 @@ type Props = {
 export function SectionTile({ id, span, onOpen, children, drag: { ref, onPointerDown, onClickCapture, active } }: Props) {
   const { locale } = useOverview()
   const title = t(SECTIONS[id].title, locale)
+  // The name stays the short title; the preview the tile shows ("14,535 km · Longest · DOH → AKL") is its description.
+  const preview = useId()
   return <button ref={ref} type="button" className="ov3-section ov3-tile" data-section={id} data-section-tile={id}
-    data-tile-span={span} data-dragging={active || undefined} aria-label={title}
+    data-tile-span={span} data-dragging={active || undefined} aria-label={title} aria-describedby={preview}
     onPointerDown={event => { if (event.pointerType === 'touch' || window.matchMedia('(pointer: coarse)').matches) onPointerDown?.(event) }}
     onClickCapture={onClickCapture} onClick={event => onOpen(id, event.currentTarget)}>
     <span className="ov3-tile-heading"><h2>{title}</h2><ChevronRight size={18} aria-hidden="true" /></span>
-    {children}
+    <span id={preview} className="ov3-tile-preview">{children}</span>
   </button>
 }

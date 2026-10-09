@@ -2,7 +2,8 @@
 
 import type { CSSProperties } from 'react'
 import type { SectionId } from '@kuuki/shared/overview/prefs'
-import { ChevronLeft, ChevronRight, MoreHorizontal } from 'lucide-react'
+import { ChevronLeft, ChevronRight, MoreHorizontal, X } from 'lucide-react'
+import { isEmptyFilter } from '@kuuki/shared/overview/filter'
 import { Sheet } from '../../ui/sheet'
 import { Button } from '../../ui/button'
 import { Menu, MenuItem } from '../../ui/menu'
@@ -11,6 +12,8 @@ import { Narrator } from '../narrator/narrator'
 import { useOverview } from '../store/overview-context'
 import { formatNumber } from '../../../lib/format'
 import { t } from '../copy'
+import { referenceLabels } from '../labels'
+import { scopeTitle } from '../page/scope-title'
 import { useChapterTrack } from './chapter-motion'
 import './mobile.css'
 
@@ -20,7 +23,7 @@ type Props = {
   onCloseAutoFocus: (event: Event) => void
 }
 export function SectionSheet({ openId, order, onNavigate, onClose, onMove, onHide, onCloseAutoFocus }: Props) {
-  const { locale, scope } = useOverview()
+  const { locale, scope, filter, actions, isCurrent } = useOverview()
   const { track, heading, previousLabel, nextLabel, shown, go } = useChapterTrack({ openId, order, onNavigate })
   // Heading, labels and pager follow the chapter a release would land on; the menu acts on the open one.
   const index = shown ? order.indexOf(shown) : -1
@@ -49,6 +52,11 @@ export function SectionSheet({ openId, order, onNavigate, onClose, onMove, onHid
         {order.map(id => <span key={id} />)}
         <i className="ov3-sheet-pager-indicator" style={{ transform: `translateX(calc(${index} * (100% + 4px)))` }} />
       </div>
+      {/* A filter picked inside a chapter changes every chapter; the sheet covers the page's filter bar, so it says so here and can undo it. */}
+      <div className="ov3-sheet-scope" role="status">{isEmptyFilter(filter) ? null : <>
+        <span className="ov3-sheet-scope-label">{t({ en: 'Filtered', ru: 'Фильтр' }, locale)}<b>{scopeTitle(filter, referenceLabels(locale), locale).slice(3)}</b></span>
+        <Button variant="ghost" className="ov3-sheet-scope-clear" onClick={() => { if (isCurrent()) actions.clear() }}><X size={16} aria-hidden="true" />{t({ en: 'Show all', ru: 'Показать все' }, locale)}</Button>
+      </>}</div>
       {/* Every chapter is a snap slide; only the open one and its neighbours render content, the rest keep their width. */}
       <div ref={track} className="ov3-sheet-track">
         {order.map((id, at) => {

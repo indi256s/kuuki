@@ -23,6 +23,9 @@
 .ov3-hero-flight > .ov3-hero-caption { font-size: 14px; line-height: 20px; }
 .ov3-hero-review, .ov3-next-review { min-height: 44px; display: inline-flex; align-items: center; color: var(--accent-text); font-size: 13px; font-weight: 600; }
 .ov3-hero-metrics { margin: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; }
+/* Two figure lists with room for the kilometres sparkline row between them; that row and the flights one only show in the docked wide band (page.css). */
+.ov3-hero-measures { display: flex; flex-direction: column; gap: 24px; }
+.ov3-sparkline[data-place=row] { display: none; }
 .ov3-hero-metric { min-width: 0; display: flex; flex-direction: column; }
 .ov3-hero-metric > dd { order: -1; }
 .ov3-hero-delta, .ov3-hero-share { margin: 4px 0 0; font-size: 13px; line-height: 20px; }
@@ -38,10 +41,12 @@
   background: transparent; color: var(--text-muted); cursor: pointer;
   display: flex; flex-direction: column; justify-content: flex-end; align-items: center; gap: 8px;
 }
-.ov3-year-mark { display: block; width: min(20px, 100%); border-radius: 3px; background: var(--mark-2); }
+/* --bar is the year's share of the peak year; the tallest bar is 96px unless the docked band lets the strip fill its card. */
+.ov3-year-mark { display: block; width: min(20px, 100%); height: max(2px, calc(var(--bar, 0) * 96px)); border-radius: 3px; background: var(--mark-2); }
 .ov3-year-mark.peak { background: var(--accent); }
-.ov3-year-mark.empty { background: var(--mark-ghost); border-radius: 1px; }
+.ov3-year-mark.empty { height: 2px; background: var(--mark-ghost); border-radius: 1px; }
 .ov3-year-label { font: 12px/16px var(--font-mono); }
+.ov3-year-count { display: none; }
 .ov3-years-bars > button[aria-pressed="true"] .ov3-year-label { color: var(--text); font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
 .ov3-years-bars > button:focus-visible, .ov3-next-flight:focus-visible, .ov3-hero-review:focus-visible, .ov3-next-review:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .ov3-next-strip { display: flex; align-items: center; gap: 14px; min-height: 44px; min-width: 0; }
@@ -62,23 +67,32 @@
 @media (max-width: 700px) {
   .ov3-hero-panel { min-height: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px 16px; padding: 0; background: transparent; border: 0; box-shadow: none; }
   :root[data-theme="dark"] .ov3-hero-panel { box-shadow: none; }
-  .ov3-hero-lead, .ov3-hero-metrics { display: contents; }
+  .ov3-hero-lead, .ov3-hero-metrics, .ov3-hero-measures { display: contents; }
   .ov3-hero-flight { order: 0; }
   .ov3-hero-km { order: 1; }
   .ov3-hero-countries { order: 2; }
   .ov3-hero-duration { order: 3; }
+  /* The four totals come first as one group; the two trends follow side by side under a single period note. */
+  .ov3-hero-panel .ov3-sparkline[data-place=inline] { display: none; }
+  .ov3-hero-panel .ov3-sparkline[data-place=row] { display: block; order: 4; margin: 0; }
+  .ov3-spark-period { display: none; }
+  .ov3-hero-panel .ov3-hero-trend-note { display: block; order: 5; grid-column: 1 / -1; margin: -12px 0 0; color: var(--text-muted); font-size: 12px; line-height: 16px; }
   .ov3-hero-flight > .ov3-hero-value { font-size: 40px; line-height: 44px; }
   .ov3-hero-metric > .ov3-hero-value { font-size: clamp(24px, calc(100cqi / 5.2), 40px); line-height: 1.1; }
   .ov3-hero-caption, .ov3-hero-flight > .ov3-hero-caption { font-size: 13px; line-height: 20px; }
   .ov3-desktop-caption, .ov3-hero-review, .ov3-years, .ov3-hero-airports { display: none; }
   .ov3-mobile-caption { display: inline; }
   p.ov3-mobile-caption { display: block; }
+  /* 44px tall hit area around the inline count without moving the caption's line. */
+  .ov3-mobile-review { display: inline-block; padding-block: 12px; margin-block: -12px; color: var(--accent-text); font-weight: 600; text-decoration: none; }
+  .ov3-mobile-review:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: var(--radius-xs); }
   .ov3-next-strip { flex-wrap: wrap; gap: 4px 12px; }
   .ov3-next-flight, .ov3-next-flight.ui-button > span { gap: 4px 8px; }
 }
 
 .ov3-sparkline { margin: 8px 0 0; max-width: 100%; }
-.ov3-sparkline svg { display: block; max-width: 100%; }
+.ov3-sparkline svg { display: block; max-width: 100%; height: auto; aspect-ratio: 160 / 52; }
+.ov3-hero-trend-note { display: none; }
 .ov3-sparkline figcaption { color: var(--text-muted); font: 12px/16px var(--font-sans); }
 
 /* "On this day": one quiet line, present on first paint, no motion. */
