@@ -1,0 +1,19 @@
+/* Journal selection bar on the shared FloatingActionBar (Arc floating-button-group, adapted in ui/). The wrapper adds no box,
+   so the bar stays a sticky item of the page grid: it sits above the tab bar on phones (--action-bar-bottom) and, being in
+   flow, never covers the last row at the end of the list. Weights 400 and 500 only; space groups, no rules between items. */
+.journal-bulk{display:contents}
+.journal-bulk .ui-action-bar-count{font-weight:500}
+.journal-bulk .ui-action-bar-actions{flex:1 1 auto;justify-content:flex-end;row-gap:var(--space-1)}
+.journal-bulk-toolbar{display:flex;flex-wrap:wrap;align-items:flex-start;justify-content:flex-end;gap:var(--space-2) var(--space-4)}
+.journal-bulk-group{display:flex;flex-wrap:wrap;align-items:flex-start;gap:var(--space-2)}
+.journal-bulk-note,.journal-bulk-status{margin:0;font-size:13px;line-height:20px;text-wrap:pretty}
+.journal-bulk-note{color:var(--text-muted)}
+.journal-bulk .journal-bulk-note,.journal-bulk .journal-bulk-status{flex-basis:100%;text-align:end}
+
+.journal-bulk-form{display:grid;gap:var(--space-4)}
+.journal-bulk-dialog-actions{display:flex;flex-wrap:wrap;justify-content:flex-end;align-items:flex-start;gap:var(--space-2)}
+
+@media (max-width:700px){
+  .journal-bulk-toolbar,.journal-bulk-group{justify-content:flex-start}
+  .journal-bulk .journal-bulk-note,.journal-bulk .journal-bulk-status{text-align:start}
+}
