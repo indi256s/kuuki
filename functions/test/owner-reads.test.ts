@@ -70,7 +70,7 @@ it('returns the whole owner journal with countries, refs, firsts and revisions',
     d.prepare("INSERT INTO aircraft_reference (icao,name,manufacturer,model,type,engine_type,engine_count) VALUES ('A321','Airbus A321','Airbus','A321','jet','jet',2)"),
   ])
   try {
-    const request = new Request('https://kuuki.test/api/flights/journal')
+    const request = new Request(`https://kuuki.test/api/flights/journal?owner=${USER.id}`)
     const response = await getJournal({ ...apiContext(db, request), data: { user: USER } } as never)
     expect(response.status).toBe(200)
     const body = await response.json() as JournalPayload
@@ -97,5 +97,14 @@ it('returns the whole owner journal with countries, refs, firsts and revisions',
 
     const guest = await getJournal({ ...apiContext(db, request) } as never)
     expect(guest.status).toBe(401)
+
+    // A page rendered for another account (cross-tab switch) is refused before its read, and so is an unbound read.
+    const switched = await getJournal({ ...apiContext(db, new Request(`https://kuuki.test/api/flights/journal?owner=${other.id}`)), data: { user: USER } } as never)
+    expect(switched.status).toBe(409)
+    const refused = await switched.json()
+    expect(refused).toMatchObject({ code: 'OWNER_CHANGED' })
+    expect(JSON.stringify(refused)).not.toContain('TBS')
+    const unbound = await getJournal({ ...apiContext(db, new Request('https://kuuki.test/api/flights/journal')), data: { user: USER } } as never)
+    expect(unbound.status).toBe(400)
   } finally { await dispose() }
 })

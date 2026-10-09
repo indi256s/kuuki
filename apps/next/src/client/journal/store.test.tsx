@@ -2,7 +2,8 @@
 import { act, render, screen, waitFor } from '@testing-library/react'
 import { useEffect } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { api } from '@kuuki/client/apiClient'
+import { ApiError, api } from '@kuuki/client/apiClient'
+import { ROUTE_LINK_EVENT } from '../navigation-link'
 import type { JournalFlight, JournalPayload } from './model'
 import { JournalStoreProvider, useJournalStore, type JournalStore } from './store'
 
@@ -25,7 +26,9 @@ function Probe() {
 }
 const mount = (initial: JournalPayload, initialQuery = '') => render(<JournalStoreProvider ownerId="owner" locale="en" initial={initial} initialQuery={initialQuery}><Probe /></JournalStoreProvider>)
 const href = () => window.location.pathname + window.location.search + window.location.hash
-const back = async () => { await act(async () => { window.history.back(); await new Promise(resolve => window.addEventListener('popstate', resolve, { once: true })) }) }
+const traverse = (step: () => void) => act(async () => { const popped = new Promise(resolve => window.addEventListener('popstate', resolve, { once: true })); step(); await popped })
+const back = () => traverse(() => window.history.back())
+const forward = () => traverse(() => window.history.forward())
 
 beforeEach(() => {
   window.history.replaceState(null, '', '/journal')
@@ -95,6 +98,20 @@ describe('Journal store URL mirror', () => {
     expect(store().view.filters.airlines).toEqual(['TK'])
   })
 
+  it('keeps filters only on Back to the sheet\'s own parent entry, not on Forward to a later one', async () => {
+    window.history.replaceState(null, '', '/journal?airline=TK')
+    mount(payloadOf([flight(1), flight(2, { airline_iata: 'PC' })]), 'airline=TK')
+    act(() => store().openFlight(1))
+    // A shell link to the bare Journal: Next pushes the entry, the store follows the link's view.
+    act(() => { window.history.pushState({}, '', '/journal'); window.dispatchEvent(new CustomEvent(ROUTE_LINK_EVENT, { detail: '/journal' })) })
+    expect(store().view.filters.airlines).toEqual([])
+    await back()
+    expect(store().view).toMatchObject({ flight: 1, filters: { airlines: ['TK'] } })
+    await forward()
+    expect(store().view).toMatchObject({ flight: null, filters: { airlines: [] } })
+    expect(href()).toBe('/journal')
+  })
+
   it('closes a deep-linked sheet with replaceState', () => {
     window.history.replaceState(null, '', '/journal?flight=1')
     mount(payloadOf([flight(1)]), 'flight=1')
@@ -110,7 +127,7 @@ describe('Journal store payload', () => {
     const view = mount(payloadOf([flight(1)], 2, 2))
     vi.mocked(api.get).mockResolvedValue(payloadOf([flight(1), flight(2)], 3, 3))
     await act(async () => { await store().refresh() })
-    expect(api.get).toHaveBeenCalledWith('/api/flights/journal', undefined, expect.objectContaining({ signal: expect.any(AbortSignal) }))
+    expect(api.get).toHaveBeenCalledWith('/api/flights/journal', { owner: 'owner' }, expect.objectContaining({ signal: expect.any(AbortSignal) }))
     await waitFor(() => expect(store().payload.revision).toBe(3))
 
     view.rerender(<JournalStoreProvider ownerId="owner" locale="en" initial={payloadOf([flight(1)], 1, 9)} initialQuery=""><Probe /></JournalStoreProvider>)
@@ -128,6 +145,15 @@ describe('Journal store payload', () => {
     await act(async () => { await store().refresh() })
     await waitFor(() => expect(store().isError).toBe(true), { timeout: 3000 })
     expect(screen.getAllByRole('listitem')).toHaveLength(1)
+  })
+
+  it('keeps this owner\'s rows without an error when the server says the account changed', async () => {
+    mount(payloadOf([flight(1)]))
+    vi.mocked(api.get).mockRejectedValue(new ApiError(409, 'The signed-in account changed', 'OWNER_CHANGED'))
+    await act(async () => { await store().refresh() })
+    await act(async () => {})
+    expect(store().isError).toBe(false)
+    expect(store().payload.flights.map(item => item.id)).toEqual([1])
   })
 
   it('hides rows optimistically and keeps hidden rows out of the visible selection', () => {

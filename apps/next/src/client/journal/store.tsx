@@ -21,7 +21,7 @@
  */
 import { createContext, useCallback, useContext, useDeferredValue, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { QueryClient, QueryClientProvider, useQuery, useQueryClient } from '@tanstack/react-query'
-import { api, getAuthGeneration } from '@kuuki/client/apiClient'
+import { ApiError, api, getAuthGeneration } from '@kuuki/client/apiClient'
 import { trackPrivateOperation } from '../activity'
 import { useOnline } from '../awaiting'
 import { LIFECYCLE_CHANGED_EVENT } from '../lifecycle-sync'
@@ -56,8 +56,11 @@ export type JournalStore = {
 }
 
 const JOURNAL_PATH = '/journal'
-/** Marks a history entry this store pushed for the sheet, so closing it can step Back instead of adding history. */
+/** Marks a history entry this store pushed for the sheet; its value is the id of the entry it was pushed from, so
+ * closing it can step Back instead of adding history, and only a return to that exact entry keeps the current filters. */
 const SHEET_ENTRY = 'kuukiJournalSheet'
+/** Identifies each history entry the store writes, so a traversal can tell the sheet's parent from any other entry. */
+const ENTRY_KEY = 'kuukiJournalEntry'
 const ARRIVAL_HASH = /^#arrival-/
 const NEXT_HISTORY_KEYS = new Set(['__NA', '_N', '__PRIVATE_NEXTJS_INTERNALS_TREE'])
 const LIST_KEYS = ['years', 'airports', 'countries', 'airlines', 'aircraft', 'families', 'status', 'missing', 'alliances'] as const
@@ -76,7 +79,11 @@ function ownHistoryState(extra?: Record<string, unknown>): Record<string, unknow
   if (current && typeof current === 'object') for (const [key, value] of Object.entries(current)) if (!NEXT_HISTORY_KEYS.has(key)) state[key] = value
   return { ...state, ...extra }
 }
-const onSheetEntry = () => !!(window.history.state as Record<string, unknown> | null)?.[SHEET_ENTRY]
+const historyValue = (key: string): string | null => {
+  const value = (window.history.state as Record<string, unknown> | null)?.[key]
+  return typeof value === 'string' ? value : null
+}
+const newEntryId = () => Math.random().toString(36).slice(2)
 
 function normalizeFilters(filters: JournalFilters): JournalFilters {
   const out = { ...filters }
@@ -107,7 +114,15 @@ function Store({ ownerId, locale, initial, initialQuery, children }: Props) {
       const untrack = trackPrivateOperation(controller)
       signal.addEventListener('abort', () => controller.abort(), { once: true })
       try {
-        const data = await api.get<JournalPayload>('/api/flights/journal', undefined, { signal: controller.signal })
+        let data: JournalPayload
+        try {
+          data = await api.get<JournalPayload>('/api/flights/journal', { owner: ownerId }, { signal: controller.signal })
+        } catch (error) {
+          // The cookie now names another account (a cross-tab switch). The server refused before reading anything;
+          // keep showing this owner's data until the identity check navigates away.
+          if (error instanceof ApiError && error.code === 'OWNER_CHANGED') return queryClient.getQueryData<JournalPayload>(journalKey(ownerId)) ?? initial
+          throw error
+        }
         // A response that outlived the session it was asked for is never shown; the page is navigating away.
         if (identityReset.current || generation !== getAuthGeneration()) return queryClient.getQueryData<JournalPayload>(journalKey(ownerId)) ?? initial
         return data
@@ -140,24 +155,36 @@ function Store({ ownerId, locale, initial, initialQuery, children }: Props) {
   // View state. `viewRef` is the latest committed view, so handlers that run between renders build on it.
   const [view, setView] = useState(() => parseJournalUrl(initialQuery))
   const viewRef = useRef(view)
-  /** Whether the current history entry is one this store pushed for the sheet. */
-  const sheetEntry = useRef(false)
+  /** When the current history entry is one this store pushed for the sheet: the id of the entry it was pushed from. */
+  const sheetParent = useRef<string | null>(null)
 
   const writeUrl = useCallback((next: JournalViewState, mode: 'push' | 'replace') => {
     const query = journalSearch(next)
     const hash = ARRIVAL_HASH.test(window.location.hash) ? '' : window.location.hash
     const url = `${JOURNAL_PATH}${query ? `?${query}` : ''}${hash}`
-    const sheet = mode === 'push' || (sheetEntry.current && isOpen(next))
     const state = ownHistoryState()
-    delete state[SHEET_ENTRY]
-    if (sheet) state[SHEET_ENTRY] = true
+    const currentEntry = historyValue(ENTRY_KEY)
+    let parent: string | null
+    if (mode === 'push') {
+      // Name the entry the sheet is pushed from (lazily, so a plain visit never rewrites its URL).
+      parent = currentEntry ?? newEntryId()
+      if (!currentEntry) {
+        try { window.history.replaceState({ ...ownHistoryState(), [ENTRY_KEY]: parent }, '', window.location.href) } catch { /* throttled: Back then adopts the parent's URL */ }
+      }
+      state[ENTRY_KEY] = newEntryId()
+    } else {
+      parent = sheetParent.current !== null && isOpen(next) ? sheetParent.current : null
+      state[ENTRY_KEY] = currentEntry ?? newEntryId()
+    }
+    if (parent === null) delete state[SHEET_ENTRY]
+    else state[SHEET_ENTRY] = parent
     try {
       if (mode === 'push') window.history.pushState(state, '', url)
-      else if (url !== window.location.pathname + window.location.search + window.location.hash || sheet !== onSheetEntry()) window.history.replaceState(state, '', url)
+      else if (url !== window.location.pathname + window.location.search + window.location.hash || parent !== historyValue(SHEET_ENTRY)) window.history.replaceState(state, '', url)
     } catch {
       // Browsers throttle history writes (Safari: 100 per 30 s). The view state stays right; the next write catches the URL up.
     }
-    sheetEntry.current = sheet
+    sheetParent.current = parent
   }, [])
 
   const commit = useCallback((next: JournalViewState, mode: 'push' | 'replace' = 'replace') => {
@@ -174,7 +201,7 @@ function Store({ ownerId, locale, initial, initialQuery, children }: Props) {
     if (mounted.current) { writeUrl(viewRef.current, 'replace'); return }
     mounted.current = true
     const fromLocation = parseJournalUrl(window.location.search, window.location.hash)
-    sheetEntry.current = onSheetEntry() && isOpen(fromLocation)
+    sheetParent.current = isOpen(fromLocation) ? historyValue(SHEET_ENTRY) : null
     if (journalSearch(fromLocation) !== journalSearch(viewRef.current)) {
       viewRef.current = fromLocation
       // The location hash cannot be read during the server render.
@@ -186,12 +213,13 @@ function Store({ ownerId, locale, initial, initialQuery, children }: Props) {
   // Back/Forward and shell links to /journal replace the view from their URL.
   useEffect(() => {
     const traverse = () => {
-      const wasSheetEntry = sheetEntry.current
+      const parent = sheetParent.current
       if (window.location.pathname !== JOURNAL_PATH) return
       let next = parseJournalUrl(window.location.search, window.location.hash)
-      sheetEntry.current = onSheetEntry() && isOpen(next)
-      if (wasSheetEntry && !isOpen(next)) {
-        // Back from the sheet's own entry only closes it: filters changed while it was open stay.
+      sheetParent.current = isOpen(next) ? historyValue(SHEET_ENTRY) : null
+      if (parent && !isOpen(next) && historyValue(ENTRY_KEY) === parent) {
+        // Back from the sheet's entry to the entry it was pushed from only closes it: filters changed while it was open
+        // stay. Any other traversal (Forward, or Back past a different entry) adopts that entry's own URL.
         next = closed(viewRef.current)
         viewRef.current = next
         setView(next)
@@ -206,7 +234,7 @@ function Store({ ownerId, locale, initial, initialQuery, children }: Props) {
       if (url.pathname !== JOURNAL_PATH) return
       // The link's own navigation writes the URL; only the view follows it here.
       const next = parseJournalUrl(url.search, url.hash)
-      sheetEntry.current = false
+      sheetParent.current = null
       viewRef.current = next
       setView(next)
     }
@@ -224,7 +252,7 @@ function Store({ ownerId, locale, initial, initialQuery, children }: Props) {
   const closeSheet = useCallback(() => {
     const current = viewRef.current
     if (!isOpen(current)) return
-    if (sheetEntry.current) {
+    if (sheetParent.current !== null) {
       // Step Back over the entry the sheet pushed; `traverse` then keeps the current filters on the entry below.
       viewRef.current = closed(current)
       setView(viewRef.current)
