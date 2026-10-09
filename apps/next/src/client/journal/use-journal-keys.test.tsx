@@ -6,7 +6,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { ShortcutsButton, ShortcutsPopover } from './shortcuts-popover'
 import { useJournalKeys, type JournalKeyOptions } from './use-journal-keys'
 
-type Handlers = Pick<JournalKeyOptions, 'onCloseSheet' | 'onToggleSelect' | 'onClearSearch' | 'onShowShortcuts'>
+type Handlers = Pick<JournalKeyOptions, 'onCloseSheet' | 'onToggleSelect' | 'onClearSearch' | 'onShowShortcuts' | 'onMove'>
 const handlers = (): Handlers => ({ onCloseSheet: vi.fn(), onToggleSelect: vi.fn(), onClearSearch: vi.fn(), onShowShortcuts: vi.fn() })
 
 function Harness({ enabled = true, sheetOpen = false, hasSearch = false, on }: { enabled?: boolean; sheetOpen?: boolean; hasSearch?: boolean; on: Handlers }) {
@@ -60,6 +60,15 @@ describe('useJournalKeys', () => {
     press(row(3), 'j')
     expect(row(3)).toHaveFocus()
     expect(Element.prototype.scrollIntoView).toHaveBeenCalledWith({ block: 'nearest' })
+  })
+
+  it('reports the row it moved to, so the docked sheet can follow', () => {
+    const on = { ...handlers(), onMove: vi.fn() }
+    render(<Harness on={on} />)
+    press(document.body, 'j')
+    press(row(1), 'ArrowDown')
+    expect(on.onMove).toHaveBeenNthCalledWith(1, 1)
+    expect(on.onMove).toHaveBeenNthCalledWith(2, 2)
   })
 
   it('k from outside the ledger starts at the last row; j works from an unrelated button', () => {

@@ -15,6 +15,8 @@ export type JournalKeyOptions = {
   onClearSearch: () => void
   hasSearch: boolean
   onShowShortcuts: () => void
+  /** Called with the row's flight id after j/k or an arrow moves focus to it (the docked sheet follows it). */
+  onMove?: (id: number) => void
 }
 
 // Inputs that take no typed text; shortcuts keep working while one has focus.
@@ -30,7 +32,7 @@ function isEditable(target: Element): boolean {
 /** Other widgets own the arrow keys and typing inside these, so j/k stay out of them. */
 const isOverlay = (target: Element) => target.closest('[role="dialog"], [role="menu"], [role="listbox"]') !== null
 
-function moveRowFocus(ledger: HTMLElement | null, target: Element, direction: 1 | -1): boolean {
+function moveRowFocus(ledger: HTMLElement | null, target: Element, direction: 1 | -1, onMove?: (id: number) => void): boolean {
   if (!ledger) return false
   const rows = Array.from(ledger.querySelectorAll<HTMLElement>(ROW))
   if (rows.length === 0) return false
@@ -39,6 +41,8 @@ function moveRowFocus(ledger: HTMLElement | null, target: Element, direction: 1 
   const row = rows[next]
   row.focus()
   row.scrollIntoView({ block: 'nearest' })
+  const id = Number(row.dataset.flightRow)
+  if (onMove && Number.isFinite(id)) onMove(id)
   return true
 }
 
@@ -80,12 +84,12 @@ export function useJournalKeys(options: JournalKeyOptions): void {
         }
         case 'j': case 'k':
           if (isOverlay(target)) return
-          if (moveRowFocus(o.ledgerRef.current, target, event.key === 'j' ? 1 : -1)) event.preventDefault()
+          if (moveRowFocus(o.ledgerRef.current, target, event.key === 'j' ? 1 : -1, o.onMove)) event.preventDefault()
           return
         case 'ArrowDown': case 'ArrowUp': {
           const inLedger = o.ledgerRef.current?.contains(target) ?? false
           if (!inLedger && target !== document.body && target !== document.documentElement) return
-          if (moveRowFocus(o.ledgerRef.current, target, event.key === 'ArrowDown' ? 1 : -1)) event.preventDefault()
+          if (moveRowFocus(o.ledgerRef.current, target, event.key === 'ArrowDown' ? 1 : -1, o.onMove)) event.preventDefault()
           return
         }
         case 'x': {
