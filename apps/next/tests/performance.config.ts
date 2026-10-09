@@ -14,6 +14,6 @@ export default defineConfig({
     command: 'pnpm next:preview', cwd: root,
     wait: { stdout: /Next synthetic fixture ready:/ }, timeout: 120_000,
     reuseExistingServer: false,
-    env: { KUUKI_NEXT_PORT: port, WRANGLER_SEND_METRICS: 'false' },
+    env: { KUUKI_NEXT_PORT: port, KUUKI_NEXT_FIXTURE: 'minimal', WRANGLER_SEND_METRICS: 'false' },
   },
 })

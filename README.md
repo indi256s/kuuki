@@ -19,7 +19,7 @@ pnpm next:build
 pnpm next:preview
 ```
 
-Open `http://127.0.0.1:8800`. The preview runs the compiled composed Worker in local workerd with disposable D1 data and synthetic accounts. It supplies synthetic secrets and blocks outbound requests; it does not require live credentials. The console prints fixture credentials. Ctrl-C discards the fixture. Set `KUUKI_NEXT_PORT` to use another port.
+Open `http://127.0.0.1:8800`. The preview runs the compiled composed Worker in local workerd with disposable D1 data and synthetic accounts. It supplies synthetic secrets and blocks outbound requests; it does not require live credentials. The console prints fixture credentials. Ctrl-C discards the fixture. Set `KUUKI_NEXT_PORT` to use another port. Set `KUUKI_NEXT_FIXTURE=minimal` for the one-flight journal that the Playwright suites assume.
 
 For Next hot reload, use `pnpm --filter @kuuki/next dev`; this does not wire the composed Worker's API or D1 bindings. Use the compiled preview for authenticated pages and cookie, API, D1 and Worker integration checks. Rebuild with `pnpm next:build` after source changes before checking compiled behavior. Run builds and browser/runtime fixtures serially because they share build output and a port.
 
