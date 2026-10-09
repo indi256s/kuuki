@@ -55,12 +55,9 @@
 .ov3-sections { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; }
 .ov3-sections[data-surface=tiles] h2 { margin: 0 0 16px; }
 .ov3-hidden { color: var(--text-muted); font-size: 13px; }
-/* Wide screens: the map card grows with the viewport (capped), and a comparison chapter docks beside the band instead of below it. */
+/* Wide screens: the map card grows with the viewport (capped). */
 @media (min-width: 1280px) {
   .ov3-globe-band { --ov-globe-h: clamp(520px, 30vw, 720px); }
-}
-@media (min-width: 1600px) {
-  .ov3-overview-workspace[data-comparing=true] { grid-template-columns: minmax(0, 1fr) clamp(400px, 28vw, 560px); }
 }
 @media (min-width: 701px) and (max-width: 1023px) {
   .ov3-globe-band { grid-template-columns: minmax(0, 1fr); }

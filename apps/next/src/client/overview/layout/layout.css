@@ -1,4 +1,4 @@
-/* One column by default; at 1280px+ (set by useLanes from the rail's own width, so a docked comparison counts) two lanes. Each card spans its height in 4px rows and auto-placement fills the lane that frees up first, left on ties. Cards keep their own height. */
+/* One column by default; at 1280px+ (set by useLanes from the rail's own width) two lanes. Each card spans its height in 4px rows and auto-placement fills the lane that frees up first, left on ties. Cards keep their own height. */
 .ov3-bento { display: flex; flex-direction: column; gap: 16px; }
 .ov3-bento[data-lanes='2'] { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); grid-auto-rows: 4px; column-gap: 16px; row-gap: 0; align-items: start; }
 .ov3-bento[data-lanes='2'] > .ov3-frame { grid-row: span var(--ov-span, 1); }

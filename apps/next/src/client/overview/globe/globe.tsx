@@ -2,9 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState, type ComponentType, type ReactNode } from 'react'
 import { matches, routeKey } from '@kuuki/shared/overview/filter'
-import { globe as buildGlobe } from '@kuuki/shared/overview/globe'
 import { useOverview } from '../store/overview-context'
-import { ComparisonGlobeLegend, useChapterComparison } from '../comparison/comparison-panel'
 import { GlobeCard } from './globe-card'
 import { CountryTreemap } from './country-treemap'
 import { S, t } from '../copy'
@@ -48,7 +46,7 @@ export function OverviewGlobe({ topLeft }: { topLeft?: ReactNode }) {
   return <OwnedGlobe key={overview.ownerKey} topLeft={topLeft} />
 }
 function OwnedGlobe({ topLeft }: { topLeft?: ReactNode }) {
-  const { payload, scope, all, filter, chapter, locale, replayPaused, setReplayPaused, bus, actions, isCurrent } = useOverview()
+  const { payload, scope, all, filter, locale, replayPaused, setReplayPaused, bus, actions, isCurrent } = useOverview()
   const host = useRef<HTMLDivElement>(null)
   const [fullscreen, setFullscreen] = useState(false)
   const [reduced, setReduced] = useState(true)
@@ -59,20 +57,9 @@ function OwnedGlobe({ topLeft }: { topLeft?: ReactNode }) {
     change(); query.addEventListener('change', change)
     return () => query.removeEventListener('change', change)
   }, [])
-  const comparison = useChapterComparison()
-  // `chapter` is a new object each render; its filter is stable state, so memos key on that.
-  const held = chapter?.filter
   const items = scope!.replay
   const durationMs = replayDurationMs(scope!.figures.flights)
-  // A kept reference makes the map static: an empty timeline means no replay, so every compared route is drawn at once.
-  const timeline = useMemo(() => comparison ? [] : buildTimeline(items, durationMs), [items, durationMs, comparison])
-  // The map has to show both selections, so airports, countries and the camera follow their union.
-  const combined = useMemo(() => {
-    if (!comparison || !held) return null
-    const rows = payload!.rows.filter(row => (row.state === 'logged' || row.state === 'awaiting') &&
-      (matches(row, filter, payload!.refs) || matches(row, held, payload!.refs)))
-    return buildGlobe(payload!.rows, rows, payload!.refs)
-  }, [comparison, held, payload, filter])
+  const timeline = useMemo(() => buildTimeline(items, durationMs), [items, durationMs])
   const replay = useReplay(timeline, durationMs, replayPaused, reduced, fullscreen, host, isCurrent)
   const month = monthAt(timeline, replay.timeMs, durationMs)
   const nightDate = useMemo(() => {
@@ -83,18 +70,18 @@ function OwnedGlobe({ topLeft }: { topLeft?: ReactNode }) {
   const routeDistances = useMemo(() => {
     const distances = new Map<string, { km: number; weight: number; missing: boolean }>()
     for (const row of payload!.rows) {
-      if (row.state === 'upcoming' || !(matches(row, filter, payload!.refs) || (held && matches(row, held, payload!.refs)))) continue
+      if (row.state === 'upcoming' || !matches(row, filter, payload!.refs)) continue
       const key = routeKey(row.origin, row.destination), value = distances.get(key) ?? { km: 0, weight: 0, missing: false }
       if (row.distanceKm === null || !Number.isFinite(row.distanceKm) || row.distanceKm < 0) value.missing = true
       else { value.km += row.distanceKm; value.weight += row.weight }
       distances.set(key, value)
     }
     return new Map([...distances].map(([key, value]) => [key, value.missing || !value.weight ? null : Math.round(value.km / value.weight)]))
-  }, [payload, filter, held])
+  }, [payload, filter])
   return <div ref={host}><GlobeCard locale={locale} disclosure={<CountryTreemap />} topLeft={topLeft} onFullscreenChange={setFullscreen}
-    bottomLeft={comparison ? <ComparisonGlobeLegend locale={locale} /> : <ReplayTransport key={`${payload!.etag}:${JSON.stringify(filter)}`} timeline={timeline} durationMs={durationMs} timeMs={replay.timeMs} paused={replayPaused}
+    bottomLeft={<ReplayTransport key={`${payload!.etag}:${JSON.stringify(filter)}`} timeline={timeline} durationMs={durationMs} timeMs={replay.timeMs} paused={replayPaused}
       setPaused={setReplayPaused} seek={replay.seek} reduced={reduced} locale={locale} />}>
-    {({ fullscreen, active }) => <GlobeSurface globe={combined ?? scope!.globe} comparison={comparison} all={all!.globe} airports={payload!.refs.airports}
+    {({ fullscreen, active }) => <GlobeSurface globe={scope!.globe} all={all!.globe} airports={payload!.refs.airports}
       filter={filter} locale={locale} fullscreen={fullscreen} active={active} reduced={reduced} bus={bus} isCurrent={isCurrent}
       onScope={key => actions.add('routes', key)} routeDistances={routeDistances} replay={replay} timeline={timeline}
       absoluteMs={replay.absoluteMs} nightDate={nightDate} />}
