@@ -14,7 +14,7 @@ type AirportRow = { iata: string; latitude: number | null; longitude: number | n
 type AircraftRow = { icao: string; manufacturer: string | null; type: string | null; model: string | null; name: string | null }
 
 function localMinute(time: string | null): number | null {
-  if (!time || !/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(time)) return null
+  if (!time || !/^(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d)?$/.test(time)) return null
   return Number(time.slice(0, 2)) * 60 + Number(time.slice(3, 5))
 }
 
