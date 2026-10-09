@@ -20,6 +20,8 @@ const HOVER_DELAY = 250
 const SKIP_WINDOW = 300
 /** Matches `--dur-fast`; the bubble stays mounted this long so it can fade out. */
 const EXIT_MS = 150
+/** Time to cross the gap from the trigger onto the bubble before a pointer leave closes it (WCAG 1.4.13: hoverable). */
+const LEAVE_GRACE = 120
 const GAP = 8
 const MARGIN = 8
 
@@ -37,6 +39,7 @@ export function Tooltip({ content, children, side = 'top' }: TooltipProps) {
   const anchor = useRef<HTMLSpanElement>(null)
   const bubble = useRef<HTMLDivElement>(null)
   const showTimer = useRef(0)
+  const hideTimer = useRef(0)
 
   const show = (delay: number) => {
     window.clearTimeout(showTimer.current)
@@ -46,11 +49,11 @@ export function Tooltip({ content, children, side = 'top' }: TooltipProps) {
   }
   const hide = () => {
     window.clearTimeout(showTimer.current)
-    if (open) closedAt = Date.now()
-    setOpen(false)
+    window.clearTimeout(hideTimer.current)
+    setOpen(wasOpen => { if (wasOpen) closedAt = Date.now(); return false })
   }
 
-  useEffect(() => () => window.clearTimeout(showTimer.current), [])
+  useEffect(() => () => { window.clearTimeout(showTimer.current); window.clearTimeout(hideTimer.current) }, [])
   useEffect(() => {
     if (open) return
     const timer = window.setTimeout(() => setPresent(false), EXIT_MS)
@@ -90,17 +93,25 @@ export function Tooltip({ content, children, side = 'top' }: TooltipProps) {
 
   const onPointerEnter = (event: PointerEvent) => {
     if (event.pointerType === 'touch' || !finePointer()) return
+    window.clearTimeout(hideTimer.current)
+    if (open) return
     show(Date.now() - closedAt < SKIP_WINDOW ? 0 : HOVER_DELAY)
+  }
+  const onPointerLeave = () => {
+    window.clearTimeout(showTimer.current)
+    window.clearTimeout(hideTimer.current)
+    hideTimer.current = window.setTimeout(hide, LEAVE_GRACE)
   }
   const onFocus = (event: FocusEvent) => { if (keyboardFocus(event.target as Element)) show(0) }
   const describedBy = [children.props['aria-describedby'], open ? id : undefined].filter(Boolean).join(' ') || undefined
 
   return <>
     {/* The wrapper only listens: it generates no box, so the trigger keeps its place in the surrounding layout. */}
-    <span ref={anchor} className="ui-tooltip-anchor" onPointerEnter={onPointerEnter} onPointerLeave={hide} onFocus={onFocus} onBlur={hide}>
+    <span ref={anchor} className="ui-tooltip-anchor" onPointerEnter={onPointerEnter} onPointerLeave={onPointerLeave} onFocus={onFocus} onBlur={hide}>
       {cloneElement(children, { 'aria-describedby': describedBy })}
+      {/* The portal sits inside the wrapper in the React tree, so React counts the bubble as part of it for pointer enter
+          and leave: the pointer can cross the gap (within LEAVE_GRACE) and rest on the bubble without closing it. */}
+      {present && createPortal(<div ref={bubble} id={id} role="tooltip" className="ui-tooltip" data-state={open ? 'open' : 'closed'}>{content}</div>, document.body)}
     </span>
-    {/* A portal child counts as inside the wrapper for enter and leave, so the pointer can move onto the bubble without closing it. */}
-    {present && createPortal(<div ref={bubble} id={id} role="tooltip" className="ui-tooltip" data-state={open ? 'open' : 'closed'}>{content}</div>, document.body)}
   </>
 }
