@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { render, screen, waitFor, within } from '@testing-library/react'
+import { act, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { api, ApiError } from '@kuuki/client/apiClient'
@@ -48,10 +48,10 @@ const confirmed = async (_path: string, body: unknown) => {
 let pageQueue: AwaitingQueue | null = null
 function Content() {
   const docked = useDockedDetail()
-  const { payload, hidden, online } = useJournalStore()
+  const { payload, hidden, online, openFlight: open } = useJournalStore()
   const review = useJournalReview({ locale: 'en', docked, queue: pageQueue, offlineNoteId: 'offline-note' })
   return <main>
-    <h1>Journal</h1>
+    <h1>Journal</h1><button onClick={() => open(null, { review: true })}>Review flights</button>
     {!online && <p id="offline-note">Offline. Connect to change flights.</p>}
     {payload.flights.filter(item => !hidden.has(item.id)).map(item => <button key={item.id} type="button" data-flight-row={item.id}>Row {item.id}</button>)}
     <JournalDetail ownerId="owner" locale="en" docked={docked} top={review?.top} status={review?.status} footer={review?.footer} placeholder={review?.placeholder} />
@@ -109,6 +109,24 @@ describe('Review mode', () => {
     expect((confirm[1] as { items: unknown[] }).items).toEqual([{ flightId: 3, candidateToken: 't3' }])
     expect(within(dialog).getByText(/^Confirmed TBS → IST\. New stamp: /)).toHaveAttribute('role', 'status')
     await waitFor(() => expect(vi.mocked(api.get).mock.calls.some(([path]) => path === '/api/flights/journal')).toBe(true))
+  })
+
+  it('does not carry an unfinished confirmation outcome into a reopened review session', async () => {
+    const user = userEvent.setup()
+    let finish!: () => void
+    vi.mocked(api.post).mockImplementationOnce((async () => {
+      await new Promise<void>(resolve => { finish = resolve })
+      return { results: [{ flightId: 3 }], derivedState: 'ready', revision: 2, newlyStampedCountries: ['GB'], pendingCountryCount: 0 }
+    }) as typeof api.post)
+    mount(journal(), 'review=1')
+    await user.click(within(await screen.findByRole('dialog')).getByRole('button', { name: 'I flew' }))
+    await waitFor(() => expect(finish).toBeTypeOf('function'))
+    await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Close flight details' }))
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+    await user.click(screen.getByRole('button', { name: 'Review flights' }))
+    await screen.findByRole('dialog')
+    await act(async () => { finish() })
+    expect(screen.queryByText(/^Confirmed TBS/)).not.toBeInTheDocument()
   })
 
   it('says all confirmed after the last one', async () => {

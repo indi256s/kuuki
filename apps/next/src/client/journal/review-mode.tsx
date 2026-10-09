@@ -162,9 +162,11 @@ export function useJournalReview({ locale, docked, queue, offlineNoteId }: Journ
   const [focusKey, setFocusKey] = useState(0)
 
   // Leaving review mode ends the session: its outcome line and ending do not follow the member into the next one.
+  const [reviewSession, setReviewSession] = useState(0)
   const [wasReview, setWasReview] = useState(view.review)
   if (wasReview !== view.review) {
     setWasReview(view.review)
+    setReviewSession(reviewSession + 1)
     if (!view.review) { setNote(null); setEnding('empty'); setFocusKey(0) }
   }
 
@@ -180,8 +182,8 @@ export function useJournalReview({ locale, docked, queue, offlineNoteId }: Journ
     if (view.review && view.flight !== target) openFlight(target, { review: true })
   }, [view.review, view.flight, target, openFlight])
 
-  const latest = useRef({ view, set })
-  useEffect(() => { latest.current = { view, set } })
+  const latest = useRef({ view, set, reviewSession })
+  useEffect(() => { latest.current = { view, set, reviewSession } })
   const operations = useRef(new Set<AbortController>())
   useEffect(() => { const running = operations.current; return () => running.forEach(controller => controller.abort()) }, [])
 
@@ -195,6 +197,8 @@ export function useJournalReview({ locale, docked, queue, offlineNoteId }: Journ
     const controller = new AbortController()
     operations.current.add(controller)
     const generation = getAuthGeneration()
+    // A completed request may refresh data after closing, but its feedback belongs to the original review session.
+    const report = (next: Note) => latest.current.view.review && latest.current.reviewSession === reviewSession ? say(next) : -1
     const receipts = receiptTransport()
     const transit = decisions.get(flight.id)
     const result = await confirmFlights({
@@ -209,7 +213,7 @@ export function useJournalReview({ locale, docked, queue, offlineNoteId }: Journ
         setResolved(old => new Set(old).add(flight.id))
         const { view: now, set: shown } = latest.current
         // Advance only when the sheet is still on this flight in review mode (the member may have closed it meanwhile).
-        if (now.review && now.flight === flight.id) {
+        if (now.review && latest.current.reviewSession === reviewSession && now.flight === flight.id) {
           const next = nextAfter(shown, flight.id)
           openFlight(next?.id ?? null, { review: true })
           if (!next) setEnding('confirmed')
@@ -220,11 +224,11 @@ export function useJournalReview({ locale, docked, queue, offlineNoteId }: Journ
         const last = receipts.last()
         if (result.derivedState !== 'pending' || !last) {
           operations.current.delete(controller)
-          say({ text: confirmed + stampText(locale, result.newlyStampedCountries), alert: false })
+          report({ text: confirmed + stampText(locale, result.newlyStampedCountries), alert: false })
           return
         }
         // Publication is pending: wait for it, then read this operation's receipt again for the stamps.
-        const seq = say({ text: `${confirmed} ${t.publishing}`, alert: false })
+        const seq = report({ text: `${confirmed} ${t.publishing}`, alert: false })
         const isCurrent = () => !controller.signal.aborted && generation === getAuthGeneration()
         const release = trackPrivateOperation(controller)
         let text = `${confirmed} ${t.publishDelayed}`
@@ -234,28 +238,28 @@ export function useJournalReview({ locale, docked, queue, offlineNoteId }: Journ
             if (receipt.derivedState === 'ready') text = confirmed + stampText(locale, receipt.newlyStampedCountries)
           }
         } catch { /* the delayed line stays */ } finally { release(); operations.current.delete(controller) }
-        if (isCurrent() && noteSeq.current === seq) say({ text, alert: false })
+        if (isCurrent() && noteSeq.current === seq) report({ text, alert: false })
         return
       }
       case 'stale':
         operations.current.delete(controller)
-        say({ text: t.sessionChanged, alert: true })
+        report({ text: t.sessionChanged, alert: true })
         return
       case 'nothing':
         operations.current.delete(controller)
         // No token: the flight is beyond the queue's first 100 or the queue could not be read. Otherwise it already left the queue.
-        say({ text: result.skipped.noToken.length ? t.noToken : t.notAwaiting, alert: true })
+        report({ text: result.skipped.noToken.length ? t.noToken : t.notAwaiting, alert: true })
         if (!result.skipped.noToken.length) void refresh()
         return
       case 'rejected':
         operations.current.delete(controller)
-        say({ text: t.rejected, alert: true })
+        report({ text: t.rejected, alert: true })
         void refresh()
         return
       default:
         // `unknown` (and `partial`, which one flight cannot reach): it may have committed.
         operations.current.delete(controller)
-        say({ text: t.unknown, alert: true })
+        report({ text: t.unknown, alert: true })
         void refresh()
         announce()
     }
