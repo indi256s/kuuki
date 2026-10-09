@@ -6,3 +6,6 @@ export function globeZoom(width: number, height: number, latitude: number, field
   const radius = visibleRadius * (visibleRadius / distance + Math.sqrt(1 + (visibleRadius / distance) ** 2))
   return Math.log2(2 * Math.PI * radius * Math.cos(latitude * Math.PI / 180) / 512)
 }
+
+/** How far the reader may zoom: never smaller than the rim fit, up to a few cities' worth of detail. */
+export const GLOBE_ZOOM_RANGE = 5
