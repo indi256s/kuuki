@@ -1,6 +1,6 @@
 # 05 In-memory store, URL mirror and server page
 
-Status: open
+Status: done
 Type: task
 Owner: Opus
 Blocked by: 01, 03

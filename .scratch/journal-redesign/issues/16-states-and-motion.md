@@ -1,6 +1,6 @@
 # 16 States and motion
 
-Status: open
+Status: done
 Type: task
 Owner: Sonnet
 Blocked by: 08

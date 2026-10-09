@@ -8,6 +8,7 @@ import { IdentitySnapshot } from '../../../client/activity'
 import { ReadFreshness } from '../../../client/freshness'
 import { JournalStoreProvider } from '../../../client/journal/store'
 import { JournalShell } from '../../../client/journal/journal-page'
+import { LedgerSkeleton } from '../../../client/journal/ledger-skeleton'
 import '../../reads.css'
 
 type SearchParams = Record<string, string | string[] | undefined>
@@ -30,5 +31,5 @@ export const generateMetadata = () => pageMetadata('Journal', 'Журнал')
 export default async function Journal({ searchParams }: { searchParams: Promise<SearchParams> }) {
   await requireOnboardedMember()
   const [params, locale] = await Promise.all([searchParams, getRequestLocale()])
-  return <Suspense fallback={<p className="loading" role="status">{locale === 'ru' ? 'Загружаем журнал…' : 'Loading journal…'}</p>}><JournalData initialQuery={rawQuery(params)} /></Suspense>
+  return <Suspense fallback={<LedgerSkeleton locale={locale} />}><JournalData initialQuery={rawQuery(params)} /></Suspense>
 }
