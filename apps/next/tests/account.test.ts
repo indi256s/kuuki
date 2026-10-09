@@ -15,8 +15,9 @@ test('settings saves owned profile and privacy on a fresh account', async ({ pag
   }
   await page.goto('/settings')
   await expect(page.getByRole('heading', { name: 'Settings' })).toBeVisible()
-  await page.getByLabel('Display name').fill('Account test name')
-  await page.getByLabel('Bio').fill('A private test bio')
+  // Role locators exclude the inert outgoing copy retained during the route transition.
+  await page.getByRole('textbox', { name: 'Display name', exact: true }).fill('Account test name')
+  await page.getByRole('textbox', { name: 'Bio' }).fill('A private test bio')
   await page.getByRole('switch', { name: 'Public profile' }).click()
   await page.getByRole('switch', { name: 'Show on leaderboards when eligible' }).click()
   await page.getByRole('button', { name: 'Save changes' }).click()

@@ -32,7 +32,7 @@ async function account(page: Page, origin: string) {
   return { create, awaiting, published, day, write }
 }
 
-test('stamps open by keyboard and deep link, sort in the URL, and a pending slot reaches its arrival card', async ({ page, baseURL }) => {
+test('stamps open by keyboard and deep link, sort in the URL, and a pending slot opens its flight in review mode', async ({ page, baseURL }) => {
   test.setTimeout(60_000)
   const { awaiting, published, write } = await account(page, baseURL!)
   // The fixture references only JFK and BOS, so the awaiting-only country is the United States.
@@ -82,8 +82,10 @@ test('stamps open by keyboard and deep link, sort in the URL, and a pending slot
   await expect(data.getByRole('link', { name: 'Aircraft in journal' })).toHaveAttribute('href', '/passport/manage')
 
   await data.getByRole('link', { name: 'United States: waiting for confirmation. Open the arrival card' }).click()
-  await page.waitForURL(url => url.pathname === '/journal' && url.hash === `#arrival-${pending}`)
-  await expect(page.locator(`#awaiting-queue [data-confirm-flight="${pending}"]`)).toBeFocused()
+  await page.waitForURL(url => url.pathname === '/journal' && url.searchParams.get('flight') === String(pending))
+  const review = page.getByRole('dialog').or(page.getByRole('complementary', { name: 'Flight details' }))
+  await expect(review).toContainText('Did you take this flight?')
+  await expect(review.getByRole('button', { name: 'I flew', exact: true })).toBeVisible()
 })
 
 test('a country is added from search, claimed, visited by sea, and removed with its exact consequence', async ({ page, baseURL }) => {
