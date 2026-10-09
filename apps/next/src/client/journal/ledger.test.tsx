@@ -151,3 +151,10 @@ it('speaks Russian: caption, status, plural-free labels and the connector', () =
   expect(screen.getByRole('cell', { name: /IST · пересадка 2\s+ч 45\s+мин/ })).toBeInTheDocument()
   expect(screen.getByRole('columnheader', { name: 'Расстояние, км' })).toBeInTheDocument()
 })
+
+it('keeps one column header per row cell when selection is on, so cells announce the right header', () => {
+  setup({ selectable: true })
+  const [head, ...rows] = screen.getAllByRole('row')
+  const flightRow = rows.find(row => row.querySelector('[data-flight-row]'))!
+  expect(within(head!).getAllByRole('columnheader')).toHaveLength(within(flightRow).getAllByRole('cell').length)
+})

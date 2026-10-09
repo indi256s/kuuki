@@ -168,6 +168,8 @@ export function JournalLedger({ items, refs, locale, sort, onSortChange, activeI
     <caption className="sr-only">{t.caption}</caption>
     <thead role="rowgroup" className="jr-head">
       <tr role="row" className="jr-headrow">
+        {/* Matches the rows' leading checkbox cell, so every cell keeps its column header. */}
+        {selectable && <th role="columnheader" scope="col" className="jr-select-head"><span className="sr-only">{t.select}</span></th>}
         {header('date', t.date, 'jr-date')}
         {header(null, t.route, 'jr-route')}
         {header(null, t.airline, 'jr-airline')}

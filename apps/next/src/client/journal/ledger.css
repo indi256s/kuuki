@@ -16,6 +16,7 @@
 .journal-ledger .jr-head{position:sticky;top:var(--ledger-sticky-top,0px);z-index:3;padding-block-end:var(--space-1);background:var(--background)}
 .journal-ledger .jr-headrow{min-height:40px;border-radius:var(--radius-sm);background:var(--surface-inset);color:var(--text-muted)}
 .journal-ledger .jr-headrow th{font-weight:500;white-space:nowrap}
+.journal-ledger .jr-select-head{position:absolute;width:1px;height:1px;overflow:hidden}
 .journal-ledger .jr-headrow :is(.jr-duration,.jr-distance){text-align:end}
 .jr-sort{display:inline-flex;align-items:center;gap:var(--space-1);max-width:100%;min-height:40px;padding:0;border:0;background:transparent;color:inherit;font:inherit;font-weight:500;cursor:pointer}
 .jr-sort>span{overflow:hidden;text-overflow:ellipsis}
