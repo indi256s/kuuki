@@ -23,7 +23,7 @@ function sector(outer: number, inner: number, start: number, end: number) {
 }
 
 /** Inputs are confirmed counts; unavailable data is handled by the caller before mounting. */
-export function ArcDonut<T>({ rows, mark, width = 600, height = 220, totalLabel, formatValue }: ArcDonutProps<T>) {
+export function ArcDonut<T>({ rows, mark, width = 240, height = 240, totalLabel, formatValue }: ArcDonutProps<T>) {
   const total = rows.reduce((sum, row) => sum + row.value, 0)
   const outer = Math.min(width, height) / 2 - 12, inner = outer - 24
   let at = 0

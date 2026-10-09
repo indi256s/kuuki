@@ -54,8 +54,6 @@
 .ov3-zero-figures dd { margin: 0; font-size: 40px; line-height: 1.1; font-weight: 600; }
 .ov3-sections { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; }
 .ov3-sections[data-surface=tiles] h2 { margin: 0 0 16px; }
-/* Cards fit their content: the shorter card of a pair (Clock beside Rhythm) stays its own height instead of stretching into an empty panel. */
-.ov3-bento-row[data-pair=true] { align-items: start; }
 .ov3-hidden { color: var(--text-muted); font-size: 13px; }
 /* Wide screens: the map card grows with the viewport (capped), and a comparison chapter docks beside the band instead of below it. */
 @media (min-width: 1280px) {

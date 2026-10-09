@@ -19,13 +19,13 @@ import { formatNumber } from '../../../lib/format'
 import { packTiles } from '../mobile/tiles'
 import { SectionTile } from '../mobile/section-tile'
 import { SectionSheet } from '../mobile/section-sheet'
-import { packBento } from '../layout/bento'
 import { moveSection } from '../layout/reorder'
 import { useReorder } from '../layout/use-reorder'
+import { useLanes } from '../layout/use-lanes'
 import { SectionFrame } from '../layout/section-frame'
 import { HiddenFooter } from '../layout/hidden-footer'
 import { Narrator } from '../narrator/narrator'
-import { SECTIONS, type Span } from '../sections/registry'
+import { SECTIONS } from '../sections/registry'
 import { scopeTitle } from './scope-title'
 import { FirstRun, ZeroResult } from './page-states'
 import './page.css'
@@ -95,11 +95,13 @@ function PageContent({ name }: { name: string }) {
     }
     setLayout(old => ({ ...old, hidden: id === 'all' ? [] : old.hidden.filter(section => section !== id) }))
   }
-  const frame = (id: SectionId, span: Span) => {
+  const lanes = useLanes(visible.join(','))
+  const frame = (id: SectionId) => {
     const { Section, title, gate } = SECTIONS[id]
+    const below = scope ? gate(scope)?.status === 'below' : false
     return <SectionFrame key={id} id={id} title={t(title, locale)} index={visible.indexOf(id)} count={visible.length}
       onMove={(section, index) => { if (move(section, index)) { restoreMenuFocus(section); announce(section, index, visible.length) } }} onHide={hide}
-      drag={reorder.bindings(id)} narrator={scope && gate(scope)?.status !== 'below' ? <Narrator slot={id} /> : null}><Section span={span} /></SectionFrame>
+      drag={reorder.bindings(id)} gated={below} narrator={scope && !below ? <Narrator slot={id} /> : null}><Section span="full" /></SectionFrame>
   }
   const greeting = t({ en: name ? `Hi, ${name}` : 'Hi', ru: name ? `Здравствуйте, ${name}` : 'Здравствуйте' }, locale)
   return <div ref={page} className="ov3-page" lang={locale}>
@@ -127,12 +129,7 @@ function PageContent({ name }: { name: string }) {
           const { Tile } = SECTIONS[id]
           return <SectionTile key={id} id={id} span={span} drag={reorder.bindings(id)} onOpen={(section, trigger) => { if (isCurrent()) { opener.current = trigger; setOpenId(section) } }}><Tile /></SectionTile>
         })}
-      </div> : <div className="ov3-bento" data-surface="sections">
-        {packBento(layout.order, layout.hidden).map(row => row.kind === 'full'
-          ? <div className="ov3-bento-row" key={row.id}>{frame(row.id, 'full')}</div>
-          : <div className="ov3-bento-row" data-pair="true" data-narrow-first={row.narrowFirst} key={`${row.narrow}-${row.wide}`}>
-            {row.narrowFirst ? <>{frame(row.narrow, 'narrow')}{frame(row.wide, 'wide')}</> : <>{frame(row.wide, 'wide')}{frame(row.narrow, 'narrow')}</>}
-          </div>)}
+      </div> : <div ref={lanes} className="ov3-bento" data-surface="sections">{visible.map(frame)}
       </div> : null}
       {mobile === true ? <SectionSheet openId={openId} order={visible} onNavigate={id => { if (isCurrent() && visible.includes(id)) setOpenId(id) }} onClose={() => setOpenId(null)}
         onMove={(id, index) => { if (move(id, index)) announce(id, index, visible.length) }} onHide={hide}
@@ -140,7 +137,6 @@ function PageContent({ name }: { name: string }) {
           event.preventDefault()
           if (isCurrent() && page.current?.isConnected) (opener.current?.isConnected ? opener.current : page.current.querySelector<HTMLElement>('h1'))?.focus()
         }} /> : null}
-      {reorder.indicator ? <div className="ov3-insertion" aria-hidden="true" style={reorder.indicator} /> : null}
       <div className="ov3-layout-status" role="status" aria-live="polite" aria-atomic="true">{announcement}</div>
       {!firstRun && !zero ? <HiddenFooter hidden={layout.order.filter(id => layout.hidden.includes(id))} onShow={show} /> : null}
     </>}

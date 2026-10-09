@@ -1,0 +1,8 @@
+.ov3-timeline { min-width: 0; }
+.ov3-timeline > .ov3-chart-caption { margin: var(--space-4) 0 var(--space-3); }
+.ov3-timeline > .ov3-timeline-key { margin: calc(-1 * var(--space-2)) 0 var(--space-3); color: var(--text-muted); font-size: 13px; line-height: 20px; text-wrap: pretty; }
+.ov3-odometer { touch-action: pan-y; }
+.ov3-timeline-landmarks { margin: 8px 0 0; color: var(--text-muted); font-size: 13px; line-height: 20px; text-wrap: pretty; }
+.ov3-timeline-range { margin-top: 12px; }
+.ov3-timeline-period { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; margin-top: 8px; color: var(--text-muted); font: 13px/20px var(--font-mono); }
+.ov3-line-mini { display: block; width: 100%; height: 40px; margin-bottom: 12px; overflow: visible; }

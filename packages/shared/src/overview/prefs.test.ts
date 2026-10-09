@@ -7,17 +7,25 @@ it('legacy prefs normalize without throwing', () => {
     layout: { order: ['records', 'rankings', 'bogus', 'records'], hidden: ['fleet', 'bogus', 'fleet'] },
     replayPaused: false, publicSections: { records: true, fleet: false } }))
   expect(prefs).toEqual({ version: 1, filter: { airlines: ['TK'] },
-    layout: { order: ['records', 'rankings', 'manufacturers', 'fleet', 'clock', 'rhythm', 'crossings'], hidden: ['fleet'] },
+    layout: { order: ['records', 'rankings', 'manufacturers', 'fleet', 'clock', 'rhythm', 'timeline', 'crossings'], hidden: ['fleet'] },
     replayPaused: false, publicSections: { records: true, fleet: false } })
 })
 
 it('raw layouts drop malformed ids and append missing sections without sharing defaults', () => {
   expect(normalizeLayout({ order: [null, 'clock', 42, 'clock'], hidden: ['rhythm', null, 'rhythm'] }))
-    .toEqual({ order: ['clock', 'rankings', 'records', 'manufacturers', 'fleet', 'rhythm', 'crossings'], hidden: ['rhythm'] })
+    .toEqual({ order: ['clock', 'rankings', 'records', 'manufacturers', 'fleet', 'rhythm', 'timeline', 'crossings'], hidden: ['rhythm'] })
   expect(normalizeLayout({ order: 'records', hidden: {} })).toEqual(DEFAULT_PREFS.layout)
   const prefs = parsePrefs(null)
   prefs.layout.order.reverse()
   expect(parsePrefs(null).layout.order[0]).toBe('rankings')
+})
+
+it('stored layouts from before the timeline section keep their order and gain it at the end', () => {
+  const stored = { version: 1, filter: {}, layout: { order: ['crossings', 'rhythm', 'rankings', 'records', 'manufacturers', 'fleet', 'clock'], hidden: ['clock'] },
+    replayPaused: false, publicSections: { records: false, fleet: false } }
+  expect(overviewPrefsSchema.safeParse(stored).success).toBe(true)
+  expect(parsePrefs(JSON.stringify(stored)).layout)
+    .toEqual({ order: ['crossings', 'rhythm', 'rankings', 'records', 'manufacturers', 'fleet', 'clock', 'timeline'], hidden: ['clock'] })
 })
 
 it('stored invalid known facets default independently and stale string values survive', () => {

@@ -16,7 +16,7 @@ export const CORPUS: Record<string, [Line, Line, Line]> = {
   records: flights, crossings: flights, manufacturers: flights, fleet: flights,
   clock: flights, rhythm: flights, rankings: flights, globe: flights,
   'below:records': below, 'below:crossings': below, 'below:manufacturers': below,
-  'below:fleet': below, 'below:clock': below, 'below:rhythm': below,
+  'below:fleet': below, 'below:clock': below, 'below:rhythm': below, 'below:timeline': below,
   firstRun: [
     { en: 'Your flight journal has no completed flights yet.', ru: 'В журнале пока нет завершённых перелётов.' },
     { en: 'There are no completed flights in your overview yet.', ru: 'Завершённых перелётов пока нет.' },

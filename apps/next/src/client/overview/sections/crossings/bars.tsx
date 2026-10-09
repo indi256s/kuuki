@@ -7,14 +7,19 @@ type Props = {
   /** Unscoped years in baseline order: they define the columns, the zero axis scale and the ghost outlines. */
   ghosts: readonly ShiftYear[]
   height: number
-  width?: number
+  /** SVG width in CSS pixels, from `barsWidth`. */
+  width: number
   format: (value: number) => string
   mark: (point: ChartPoint<ShiftYear>) => SVGProps<SVGGElement>
 }
 
 export const BAR_MARGIN = { top: 20, bottom: 30 }
+// One band per year: it grows with the card up to BAND_MAX and stops at BAND_MIN (the host scrolls instead), so few years never smear across a wide card.
+const BAND_MIN = 36, BAND_MAX = 64
+/** Natural SVG width for `years` bands inside `available` pixels. */
+export const barsWidth = (years: number, available: number) => Math.max(1, years) * Math.min(BAND_MAX, Math.max(BAND_MIN, available / Math.max(1, years)))
 // Forward shifts rise above the zero axis, back shifts hang below it; both share one scale sized from the unscoped maxima.
-export function CrossingBars({ points, ghosts, height, width = 600, format, mark }: Props) {
+export function CrossingBars({ points, ghosts, height, width, format, mark }: Props) {
   const plot = height - BAR_MARGIN.top - BAR_MARGIN.bottom
   const up = Math.max(1, ...ghosts.map(row => row.forward)) * 1.3, down = Math.max(1, ...ghosts.map(row => row.back)) * 1.3
   const zero = BAR_MARGIN.top + plot * up / (up + down), unit = plot / (up + down)

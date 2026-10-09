@@ -25,11 +25,11 @@ function squarify(items: { id: string; value: number }[], rect: Rect, out: Map<s
   for (const item of items) if (!out.has(item.id)) out.set(item.id, { x: rect.x, y: rect.y, w: 0, h: 0 });
 }
 
-export function ArcTreemap<T extends { value: number }>({ points, height, mark }: {
-  points: readonly ChartPoint<T>[]; height: number; mark: (point: ChartPoint<T>) => SVGProps<SVGGElement>
+export function ArcTreemap<T extends { value: number }>({ points, height, width = 600, mark }: {
+  points: readonly ChartPoint<T>[]; height: number; width?: number; mark: (point: ChartPoint<T>) => SVGProps<SVGGElement>
 }) {
   const rects = new Map<string, Rect>()
-  squarify(points.map(point => ({ id: point.key, value: point.datum.value })), { x: 0, y: 0, w: 600, h: height }, rects)
+  squarify(points.map(point => ({ id: point.key, value: point.datum.value })), { x: 0, y: 0, w: width, h: height }, rects)
   return <>{points.map(point => {
     const rect = rects.get(point.key)!
     return <g key={point.key} {...mark(point)}>

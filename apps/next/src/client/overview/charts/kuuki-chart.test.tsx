@@ -200,3 +200,21 @@ it('mounts a visible chart when IntersectionObserver is unavailable', () => {
   expect(screen.getByText('Ready')).toBeInTheDocument()
   expect(screen.queryByRole('region')).not.toBeInTheDocument()
 })
+
+it('draws in CSS pixels: the viewBox follows the measured host, count-driven charts keep their natural width and scroll when it overflows', () => {
+  let host = 1200
+  vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockImplementation(() => host)
+  const sizes: number[] = []
+  const view = render(<Chart height={width => width / 10} />)
+  const svg = () => screen.getByRole('group', { name: 'Routes' })
+  expect(svg()).toHaveAttribute('viewBox', '0 0 1200 120')
+  expect(svg().closest('.kc')).not.toHaveAttribute('data-scroll')
+  view.rerender(<KuukiChart points={points} height={240} ariaLabel="Routes" table={table} inView fit={available => Math.min(300, available)}>{(mark, size) => { sizes.push(size.width); return null }}</KuukiChart>)
+  expect(svg()).toHaveAttribute('viewBox', '0 0 300 240')
+  expect(svg().style.width).toBe('300px')
+  expect(sizes.at(-1)).toBe(300)
+  host = 200
+  view.unmount()
+  render(<KuukiChart points={points} height={240} ariaLabel="Routes" table={table} inView fit={() => 300}>{() => null}</KuukiChart>)
+  expect(svg().closest('.kc')).toHaveAttribute('data-scroll')
+})

@@ -201,6 +201,11 @@ export const TRIGGERS: Trigger[] = [
       return gate.status === 'below' ? { have: gate.have, need: gate.need } : null
     } },
   ]),
+  // Timeline shares the Rhythm gate; only its below-threshold explanation needs a line.
+  { id: 'below:timeline', slot: 'timeline', priority: 10, when: scope => {
+    const gate = scope.rhythm
+    return gate.status === 'below' ? { have: gate.have, need: gate.need } : null
+  } },
   ...(['rankings', 'globe'] as const).map(slot => ({
     id: slot, slot, priority: 0, when: (scope: OverviewScope) => ({ flights: scope.figures.flights }),
   })),
