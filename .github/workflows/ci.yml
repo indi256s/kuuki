@@ -30,19 +30,26 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
       - run: pnpm turbo run build --filter='./packages/*'
       - run: pnpm lint
-      - run: pnpm typecheck
+      - name: Check api-routes.generated.ts is current (run node scripts/build-next.mjs --inventory-only and commit the file)
+        run: node scripts/build-next.mjs --inventory-only && git diff --exit-code apps/next/api-routes.generated.ts
+      # Two typecheck lanes keep CPU and memory use bounded on hosted runners.
+      - run: pnpm typecheck --concurrency=1
+        id: workspace-types
+        background: true
       - run: pnpm typecheck:api
       - run: pnpm typecheck:scripts
       - run: pnpm typecheck:maintenance
       - run: pnpm typecheck:import
-      - name: Check api-routes.generated.ts is current (run node scripts/build-next.mjs --inventory-only and commit the file)
-        run: node scripts/build-next.mjs --inventory-only && git diff --exit-code apps/next/api-routes.generated.ts
+      - wait: workspace-types
       # Match the API job: use two isolated workers on the hosted runner.
       - run: pnpm --filter @kuuki/next run test --maxWorkers=2
+        id: next-tests
+        background: true
       - run: node --test scripts/check-preview-config.test.mjs scripts/dependency-patches.test.mjs
       - run: pnpm exec tsx scripts/map-geometry.test.ts
       - run: node scripts/check-preview-config.mjs --config apps/next/wrangler.toml --maintenance-config workers/maintenance/wrangler.toml
       - run: WRANGLER_SEND_METRICS=false pnpm build:import
+      - wait: next-tests
 
   api:
     runs-on: ubuntu-latest
