@@ -160,7 +160,7 @@ function calculateMarkerRotation(
 
 
 /** One externally controlled marker; camera moves refresh heading even while paused. */
-export function FlightPlane({ from, to, progress, color }: { from: [number, number]; to: [number, number]; progress: number; color: string }) {
+export function FlightPlane({ from, to, progress }: { from: [number, number]; to: [number, number]; progress: number }) {
   const { map, ready } = useMap();
   const current = useRef(progress);
   useEffect(() => { current.current = progress; }, [progress]);
@@ -175,7 +175,6 @@ export function FlightPlane({ from, to, progress, color }: { from: [number, numb
     const element = document.createElement("div");
     element.className = "globe-plane";
     element.setAttribute("aria-hidden", "true");
-    element.style.color = color;
     element.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z" fill="currentColor"/></svg>';
     // Screen tangent is viewport-relative; map alignment would subtract bearing twice.
     const marker = new Marker({ element, anchor: "center", rotationAlignment: "viewport", pitchAlignment: "viewport", opacityWhenCovered: 0 })
@@ -197,7 +196,7 @@ export function FlightPlane({ from, to, progress, color }: { from: [number, numb
       map.off("move", update); map.off("projectiontransition", update); refresh.current = null;
       marker.remove();
     };
-  }, [map, ready, path, color]);
+  }, [map, ready, path]);
   useEffect(() => { refresh.current?.(); }, [progress]);
   return null;
 }

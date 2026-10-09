@@ -213,13 +213,12 @@ function GlobeLayers({ props, host, select }: { props: MaplibreGlobeProps; host:
     }
     update(); return props.bus.subscribe(update)
   }, [map, land, props.bus, props.active])
-  const color = props.filter.makers?.length === 1 ? `var(--cat-maker-${props.filter.makers[0]})` : 'var(--mark-1)'
   // A held reference makes the map static: no replay planes, so no route is ever shown only part of the time.
   const planes = comparing ? [] : props.reduced ? props.globe.routes.map(route => ({ key: route.key, origin: route.a, destination: route.b, progress: .5 }))
     : props.replay.planes.map(plane => ({ key: plane.key, origin: plane.item.origin, destination: plane.item.destination, progress: (props.absoluteMs - plane.launchMs) / PLANE_MS }))
   return props.active ? planes.map(plane => {
     const from = point(plane.origin), to = point(plane.destination)
-    return from && to ? <FlightPlane key={plane.key} from={from} to={to} progress={plane.progress} color={color} /> : null
+    return from && to ? <FlightPlane key={plane.key} from={from} to={to} progress={plane.progress} /> : null
   }) : null
 }
 function moveCamera(map: LibreMap, center: [number, number], reduced: boolean) {

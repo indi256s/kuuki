@@ -80,7 +80,4 @@ test('WebGL failure keeps a keyboard usable route and country list', async ({ pa
   await page.goto('/overview')
   await expect(page.getByRole('status').filter({ hasText: 'Globe unavailable.' })).toBeVisible()
   await expect(page.locator('.globe-viewport svg')).toHaveCount(0)
-  await page.locator('.globe-data summary').focus()
-  await page.keyboard.press('Enter')
-  await expect(page.getByRole('table', { name: 'Globe data' })).toContainText('US')
 })

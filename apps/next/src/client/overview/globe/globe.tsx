@@ -7,7 +7,6 @@ import { useOverview } from '../store/overview-context'
 import { ComparisonGlobeLegend, useChapterComparison } from '../comparison/comparison-panel'
 import { GlobeCard } from './globe-card'
 import { CountryTreemap } from './country-treemap'
-import { GlobeDataTable } from './globe-data'
 import { S, t } from '../copy'
 import { buildTimeline, monthAt, replayDurationMs } from './replay'
 import { useReplay } from './use-replay'
@@ -39,7 +38,6 @@ function GlobeSurface(props: Omit<MaplibreGlobeProps, 'onReady' | 'onError'>) {
       {!ready || failed ? <p className="globe-status" role="status">{t(failed ? S.globeUnavailable : S.globeLoading, props.locale)}</p> : null}
       {Renderer && !failed && <div className="globe-webgl-layer"><Renderer {...props} onReady={() => setReady(true)} onError={() => setFailed(true)} /></div>}
     </div>
-    <GlobeDataTable globe={props.globe} all={props.all} locale={props.locale} comparison={props.comparison} />
   </div>
 }
 

@@ -4,19 +4,24 @@ export function gestureAxis(dx: number, dy: number, threshold = 10): 'x' | 'y' |
   return Math.max(Math.abs(dx), Math.abs(dy)) < threshold ? null : Math.abs(dx) > Math.abs(dy) ? 'x' : 'y'
 }
 
-/** Leave vertical scrolling and all two-finger events to the browser/MapLibre. */
+/**
+ * The globe never tilts or rolls: `globeZoom` fits the sphere at pitch 0, so any pitch or bearing pushes it off-centre inside its circle.
+ * On touch, the card sits in a scrolling page, so only a horizontal one-finger drag turns it; vertical and two-finger gestures belong to the page.
+ * Fullscreen has nothing to scroll, so there the globe takes one-finger drag and pinch.
+ */
 export function attachGlobeGestures(map: Map, host: HTMLElement, fullscreen: boolean, coarse: boolean) {
   map.cooperativeGestures.disable()
   if (fullscreen) map.scrollZoom.enable(); else map.scrollZoom.disable()
-  map.dragRotate.enable()
-  map.touchZoomRotate.enable()
-  map.touchZoomRotate.enableRotation()
-  map.touchPitch.enable()
-  if (coarse) map.dragPan.disable(); else map.dragPan.enable()
+  map.dragRotate.disable()
+  map.touchPitch.disable()
+  map.touchZoomRotate.disableRotation()
+  const pageScrolls = coarse && !fullscreen
+  if (pageScrolls) { map.dragPan.disable(); map.touchZoomRotate.disable() } else { map.dragPan.enable(); map.touchZoomRotate.enable(); map.touchZoomRotate.disableRotation() }
+  if (!pageScrolls) return undefined
   const pointers = new Set<number>()
   let start: { x: number; y: number; lng: number; axis: 'x' | 'y' | null } | null = null
   const down = (event: PointerEvent) => {
-    if (!coarse || event.pointerType !== 'touch') return
+    if (event.pointerType !== 'touch') return
     pointers.add(event.pointerId)
     start = pointers.size === 1 ? { x: event.clientX, y: event.clientY, lng: map.getCenter().lng, axis: null } : null
   }
