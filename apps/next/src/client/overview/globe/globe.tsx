@@ -6,7 +6,7 @@ import { useOverview } from '../store/overview-context'
 import { GlobeCard } from './globe-card'
 import { CountryTreemap } from './country-treemap'
 import { S, t } from '../copy'
-import { buildTimeline, monthAt, replayDurationMs } from './replay'
+import { buildTimeline, replayDurationMs } from './replay'
 import { useReplay } from './use-replay'
 import { ReplayTransport } from './replay-transport'
 import type { MaplibreGlobeProps } from './maplibre-globe'
@@ -50,7 +50,7 @@ function OwnedGlobe({ topLeft }: { topLeft?: ReactNode }) {
   const host = useRef<HTMLDivElement>(null)
   const [fullscreen, setFullscreen] = useState(false)
   const [reduced, setReduced] = useState(true)
-  const [loadTime] = useState(() => new Date())
+  const disclosure = useMemo(() => <CountryTreemap />, [])
   useEffect(() => {
     const query = window.matchMedia('(prefers-reduced-motion: reduce)')
     const change = () => setReduced(query.matches)
@@ -61,12 +61,6 @@ function OwnedGlobe({ topLeft }: { topLeft?: ReactNode }) {
   const durationMs = replayDurationMs(scope!.figures.flights)
   const timeline = useMemo(() => buildTimeline(items, durationMs), [items, durationMs])
   const replay = useReplay(timeline, durationMs, replayPaused, reduced, fullscreen, host, isCurrent)
-  const month = monthAt(timeline, replay.timeMs, durationMs)
-  const nightDate = useMemo(() => {
-    const date = month ? new Date(`${month}-15T00:00:00Z`) : new Date(loadTime)
-    date.setUTCHours(loadTime.getUTCHours(), loadTime.getUTCMinutes(), loadTime.getUTCSeconds(), 0)
-    return date
-  }, [month, loadTime])
   const routeDistances = useMemo(() => {
     const distances = new Map<string, { km: number; weight: number; missing: boolean }>()
     for (const row of payload!.rows) {
@@ -78,12 +72,12 @@ function OwnedGlobe({ topLeft }: { topLeft?: ReactNode }) {
     }
     return new Map([...distances].map(([key, value]) => [key, value.missing || !value.weight ? null : Math.round(value.km / value.weight)]))
   }, [payload, filter])
-  return <div ref={host}><GlobeCard locale={locale} disclosure={<CountryTreemap />} topLeft={topLeft} onFullscreenChange={setFullscreen}
+  return <div ref={host}><GlobeCard locale={locale} disclosure={disclosure} topLeft={topLeft} onFullscreenChange={setFullscreen}
     bottomLeft={<ReplayTransport key={`${payload!.etag}:${JSON.stringify(filter)}`} timeline={timeline} durationMs={durationMs} timeMs={replay.timeMs} paused={replayPaused}
       setPaused={setReplayPaused} seek={replay.seek} reduced={reduced} locale={locale} />}>
     {({ fullscreen, active }) => <GlobeSurface globe={scope!.globe} all={all!.globe} airports={payload!.refs.airports}
       filter={filter} locale={locale} fullscreen={fullscreen} active={active} reduced={reduced} bus={bus} isCurrent={isCurrent}
       onScope={key => actions.add('routes', key)} routeDistances={routeDistances} replay={replay} timeline={timeline}
-      absoluteMs={replay.absoluteMs} nightDate={nightDate} />}
+      absoluteMs={replay.absoluteMs} />}
   </GlobeCard></div>
 }

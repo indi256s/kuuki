@@ -13,7 +13,6 @@ import { routeGeometry } from '../../maps/geometry'
 import { FlightPlane, interpolatePosition, unwrapArcCoordinates } from '../../maps/flightcn'
 import { resolveColor } from '../../maps/resolve-color'
 import { attachGlobeGestures } from './gestures'
-import { nightPolygon } from './night'
 import { RouteCard, type GlobeRouteCard } from './route-card'
 import { PLANE_MS, type ReplayPlane, type TimelineItem } from './replay'
 import type { createUIBus } from '../store/ui-bus'
@@ -25,7 +24,7 @@ export type MaplibreGlobeProps = {
   locale: Locale; fullscreen: boolean; active: boolean; reduced: boolean; bus: ReturnType<typeof createUIBus>
   isCurrent: () => boolean; onScope: (key: string) => void; routeDistances: ReadonlyMap<string, number | null>
   replay: { planes: ReplayPlane[]; arcs: Set<string>; timeMs: number }; timeline: TimelineItem[]
-  absoluteMs: number; nightDate: Date; onReady: () => void; onError: () => void
+  absoluteMs: number; onReady: () => void; onError: () => void
 }
 const token = (name: string) => resolveColor(getComputedStyle(document.documentElement).getPropertyValue(name).trim())
 const empty = (): GeoJSON.FeatureCollection => ({ type: 'FeatureCollection', features: [] })
@@ -35,8 +34,8 @@ const MICROSTATES: Record<string, [number, number]> = {
   MC: [7.398449, 43.746141], VA: [12.453364, 41.903327], SM: [12.442237, 43.936454],
   LI: [9.540900, 47.138206], AD: [1.560756, 42.541327], SG: [103.813465, 1.358924],
 }
-const sources = ['globe-countries', 'globe-routes', 'globe-airports', 'globe-microstates', 'globe-night']
-const layers = ['globe-land', 'globe-ghost-countries', 'globe-route-lines', 'globe-upcoming', 'globe-airport-dots', 'globe-microstate-dots', 'globe-night-fill']
+const sources = ['globe-countries', 'globe-routes', 'globe-airports', 'globe-microstates']
+const layers = ['globe-land', 'globe-ghost-countries', 'globe-route-lines', 'globe-upcoming', 'globe-airport-dots', 'globe-microstate-dots']
 
 function GlobeLayers({ props, host, select }: { props: MaplibreGlobeProps; host: RefObject<HTMLDivElement | null>; select: (route: GlobeRouteCard | null) => void }) {
   const { map, ready, themeRevision } = useMap()
@@ -51,12 +50,12 @@ function GlobeLayers({ props, host, select }: { props: MaplibreGlobeProps; host:
   const data = useMemo(() => {
     const point = (iata: string): [number, number] | null => { const ref = coordinates(props.airports[iata]); return ref ? [ref.lon, ref.lat] : null }
     const selected = new Set(props.globe.routes.map(route => route.key))
-    const revealed = new Set(props.timeline.filter(item => props.replay.arcs.has(item.key)).map(item => routeKey(item.origin, item.destination)))
+    const scopedRoutes = new Map(props.globe.routes.map(route => [route.key, route]))
     const routes = props.all.routes.flatMap(route => {
       const geometry = routeGeometry({ from: point(route.a), to: point(route.b) })
-      const scoped = props.globe.routes.find(item => item.key === route.key)
+      const scoped = scopedRoutes.get(route.key)
       return geometry ? [{ type: 'Feature' as const, id: route.key, properties: { key: route.key, selected: selected.has(route.key),
-        bucket: visitBucket(scoped?.count ?? route.count), opacity: !selected.has(route.key) ? .15 : props.reduced || !props.timeline.length || revealed.has(route.key) ? 1 : .15, upcoming: false },
+        bucket: visitBucket(scoped?.count ?? route.count), upcoming: false },
         geometry: { type: 'LineString' as const, coordinates: unwrapArcCoordinates(geometry) } }] : []
     })
     const ghosts = props.all.ghosts.flatMap(ghost => {
@@ -73,8 +72,8 @@ function GlobeLayers({ props, host, select }: { props: MaplibreGlobeProps; host:
       return position && !present.has(code) ? [{ type: 'Feature' as const, properties: { bucket: visitBucket(visits.get(code) ?? 0), opacity: visits.has(code) ? 1 : .15 }, geometry: { type: 'Point' as const, coordinates: position } }] : []
     })
     return { routes: { type: 'FeatureCollection' as const, features: [...routes, ...ghosts] }, airports: { type: 'FeatureCollection' as const, features: airports },
-      microstates: { type: 'FeatureCollection' as const, features: microstates }, night: { type: 'FeatureCollection' as const, features: [{ type: 'Feature' as const, properties: {}, geometry: nightPolygon(props.nightDate) }] } }
-  }, [props.all, props.globe, props.airports, props.timeline, props.replay.arcs, props.reduced, props.nightDate, land])
+      microstates: { type: 'FeatureCollection' as const, features: microstates } }
+  }, [props.all, props.globe, props.airports, land])
   const latestData = useRef(data)
   useEffect(() => { latestData.current = data }, [data])
   useEffect(() => {
@@ -98,15 +97,13 @@ function GlobeLayers({ props, host, select }: { props: MaplibreGlobeProps; host:
       for (const id of sources.slice(1)) map.addSource(id, { type: 'geojson', data: empty() })
       map.addLayer({ id: layers[0], type: 'fill', source: sources[0], paint: { 'fill-color': token('--map-land'), 'fill-outline-color': token('--map-border') } })
       map.addLayer({ id: layers[1], type: 'fill', source: sources[0], paint: { 'fill-opacity': ['case', ['boolean', ['feature-state', 'ghost'], false], 1, 0] } })
-      map.addLayer({ id: layers[2], type: 'line', source: sources[1], filter: ['!', ['get', 'upcoming']], paint: { 'line-width': ['min', 3, ['get', 'bucket']], 'line-opacity': ['get', 'opacity'] } })
+      map.addLayer({ id: layers[2], type: 'line', source: sources[1], filter: ['!', ['get', 'upcoming']], paint: { 'line-width': ['min', 3, ['get', 'bucket']], 'line-opacity': .15 } })
       map.addLayer({ id: layers[3], type: 'line', source: sources[1], filter: ['get', 'upcoming'], paint: { 'line-width': 1, 'line-dasharray': [3, 3], 'line-opacity': .15 } })
       map.addLayer({ id: layers[4], type: 'circle', source: sources[2], paint: { 'circle-radius': 2.5 } })
       map.addLayer({ id: layers[5], type: 'circle', source: sources[3], paint: { 'circle-radius': 3, 'circle-opacity': ['get', 'opacity'] } })
-      map.addLayer({ id: layers[6], type: 'fill', source: sources[4], paint: { 'fill-opacity': .15 } })
       ;(map.getSource(sources[1]) as GeoJSONSource).setData(latestData.current.routes)
       ;(map.getSource(sources[2]) as GeoJSONSource).setData(latestData.current.airports)
       ;(map.getSource(sources[3]) as GeoJSONSource).setData(latestData.current.microstates)
-      ;(map.getSource(sources[4]) as GeoJSONSource).setData(latestData.current.night)
     } catch { latest.current.onError() }
     const idle = () => { if (!disposed && latest.current.isCurrent()) latest.current.onReady() }
     map.once('idle', idle)
@@ -151,15 +148,19 @@ function GlobeLayers({ props, host, select }: { props: MaplibreGlobeProps; host:
     map.setPaintProperty(layers[3], 'line-color', token('--mark-ghost'))
     map.setPaintProperty(layers[4], 'circle-color', token('--mark-1'))
     map.setPaintProperty(layers[5], 'circle-color', bucket(['get', 'bucket']))
-    map.setPaintProperty(layers[6], 'fill-color', token('--text'))
   }, [map, land, props.globe.countries, props.globe.ghostCountries, props.filter.makers, themeRevision])
   useEffect(() => {
     if (!map || !land || !map.getSource(sources[1])) return
     ;(map.getSource(sources[1]) as GeoJSONSource).setData(data.routes)
     ;(map.getSource(sources[2]) as GeoJSONSource).setData(data.airports)
     ;(map.getSource(sources[3]) as GeoJSONSource).setData(data.microstates)
-    ;(map.getSource(sources[4]) as GeoJSONSource).setData(data.night)
   }, [map, land, data])
+  useEffect(() => {
+    if (!map || !land || !map.getLayer(layers[2])) return
+    const revealed = [...new Set(props.timeline.filter(item => props.replay.arcs.has(item.key)).map(item => routeKey(item.origin, item.destination)))]
+    map.setPaintProperty(layers[2], 'line-opacity', ['case', ['!', ['get', 'selected']], .15,
+      props.reduced || !props.timeline.length ? true : ['in', ['get', 'key'], ['literal', revealed]], 1, .15])
+  }, [map, land, props.timeline, props.replay.arcs, props.reduced])
   useEffect(() => {
     if (!map || !ready || !props.active) return
     const center = props.globe.centroid ? [props.globe.centroid.lon, props.globe.centroid.lat] as [number, number] : [0, 0] as [number, number]
@@ -201,7 +202,7 @@ function GlobeLayers({ props, host, select }: { props: MaplibreGlobeProps; host:
   }, [map, land, props.bus, props.active])
   const planes = props.reduced ? props.globe.routes.map(route => ({ key: route.key, origin: route.a, destination: route.b, progress: .5 }))
     : props.replay.planes.map(plane => ({ key: plane.key, origin: plane.item.origin, destination: plane.item.destination, progress: (props.absoluteMs - plane.launchMs) / PLANE_MS }))
-  return props.active ? planes.map(plane => {
+  return props.active && land ? planes.map(plane => {
     const from = point(plane.origin), to = point(plane.destination)
     return from && to ? <FlightPlane key={plane.key} from={from} to={to} progress={plane.progress} /> : null
   }) : null
