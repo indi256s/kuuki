@@ -3,7 +3,7 @@ import { JOURNAL_PAGE_SIZE } from '@kuuki/shared/constants'
 
 import { useCallback, useEffect, useId, useRef, useState, useTransition } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { ArrowDown, ArrowUp } from 'lucide-react'
 import { QueryClient, QueryClientProvider, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api, getAuthGeneration } from '@kuuki/client/apiClient'
@@ -217,8 +217,15 @@ function JournalInner({ ownerId, locale, initial, query, page, filtered }: Props
     if (target === normalizeJournalQuery(base).query) return false
     if (listChanged) select([])
     requested.current = target
+    const push = !(mode === 'replace' || (mode === 'refine' && refine))
+    // The server list ignores `flight`, so the sheet opens and closes through native history (synced into useSearchParams) instead of re-reading
+    // the journal. While a list navigation is pending, the router keeps ordering both changes.
+    if (Object.keys(changes).every(key => key === 'flight') && !navigating) {
+      window.history[push ? 'pushState' : 'replaceState'](null, '', withQuery('/journal', target))
+      return true
+    }
     ownRequest.current = true
-    startNavigation(() => router[mode === 'replace' || (mode === 'refine' && refine) ? 'replace' : 'push'](withQuery('/journal', target), { scroll: false }))
+    startNavigation(() => router[push ? 'push' : 'replace'](withQuery('/journal', target), { scroll: false }))
     return true
   }
   // Reset links, Back/Forward and shell links to /journal (`ROUTE_LINK_EVENT`) are the member's explicit navigations. Their destination replaces the
@@ -244,7 +251,8 @@ function JournalInner({ ownerId, locale, initial, query, page, filtered }: Props
   }, [navigateExternally])
   const navigate = (key: string, value: string, mode: 'push' | 'replace' = 'push') => apply({ [key]: value }, mode)
   const open = (id: number, edit = false, field?: 'aircraft') => { setAircraftId(null); setEditing(edit); setFocusField(field); navigate('flight', String(id)) }
-  const sheetFlight = params.has('flight') ? Number(params.get('flight')) : null
+  const search = useSearchParams()
+  const sheetFlight = search.has('flight') ? Number(search.get('flight')) : null
   const [DetailSheet, setDetailSheet] = useState<(typeof import('../capture/flight-panels'))['FlightDetailSheet'] | null>(null)
   const [detailLoadError, setDetailLoadError] = useState<Error | null>(null)
   useEffect(() => {

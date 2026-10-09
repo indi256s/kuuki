@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef } from 'react'
-import { usePathname, useRouter, useSearchParams } from 'next/navigation'
+import { usePathname, useSearchParams } from 'next/navigation'
 import { FlightDetailSheet } from '../../capture/flight-panels'
 import { useOverview } from './overview-context'
 
@@ -12,7 +12,7 @@ function flightId(raw: string | null): number | null {
   return Number.isSafeInteger(id) ? id : null
 }
 function useOverviewURL() {
-  const pathname = usePathname(), params = useSearchParams(), router = useRouter()
+  const pathname = usePathname(), params = useSearchParams()
   const { navigation, isCurrent } = useOverview()
   const query = params.toString()
   const url = pathname + (query ? `?${query}` : '')
@@ -33,7 +33,8 @@ function useOverviewURL() {
     const target = base.pathname + base.search + base.hash
     if (target === (requested ?? url + window.location.hash)) return
     navigation.request(target)
-    router[mode](target, { scroll: false })
+    // The server page reads only `year`; native history syncs useSearchParams without refetching it.
+    window.history[mode === 'push' ? 'pushState' : 'replaceState'](null, '', target)
   }
   return { params, pathname, change }
 }

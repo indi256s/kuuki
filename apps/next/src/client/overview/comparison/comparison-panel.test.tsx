@@ -7,9 +7,8 @@ import fixture from '../../../../../../packages/shared/src/overview/__fixtures__
 import { OverviewProvider, useOverview } from '../store/overview-context'
 import { ComparisonControl, ComparisonPanel } from './comparison-panel'
 
-const push = vi.hoisted(() => vi.fn())
-vi.mock('next/navigation', () => ({ usePathname: () => '/overview', useSearchParams: () => new URLSearchParams(), useRouter: () => ({ push }) }))
-afterEach(() => { cleanup(); push.mockReset() })
+vi.mock('next/navigation', () => ({ usePathname: () => '/overview', useSearchParams: () => new URLSearchParams() }))
+afterEach(() => { cleanup(); vi.restoreAllMocks(); window.history.replaceState(null, '', '/') })
 const base = fixture as OverviewPayload
 const payload: OverviewPayload = { ...base, rows: [
   { ...base.rows[0], id: 1, date: '2019-03-01', origin: 'JFK', destination: 'LHR', airline: 'BA', state: 'logged' },
@@ -33,8 +32,9 @@ it('keeps the reference while the current period changes and opens its supportin
   const reference = within(panel).getByRole('region', { name: /Only in reference/ })
   expect(within(reference).getByRole('button', { name: /JFK–LHR/ })).toBeVisible()
   fireEvent.click(within(reference).getByRole('button', { name: 'Show flights' }))
+  const push = vi.spyOn(window.history, 'pushState')
   fireEvent.click(within(reference).getByRole('button', { name: /Open flight:/ }))
-  expect(push).toHaveBeenCalledWith('/overview?flight=1', { scroll: false })
+  expect(push).toHaveBeenCalledWith(null, '', '/overview?flight=1')
   expect(within(panel).getByText('Period 2019')).toBeVisible()
   screen.getByRole('button', { name: 'Clear comparison' }).focus()
   act(() => fireEvent.click(screen.getByRole('button', { name: 'Clear comparison' })))

@@ -7,7 +7,7 @@ import { JournalView } from './journal'
 import type { JournalData } from '../../server/journal'
 
 const nav = vi.hoisted(() => ({ push: vi.fn(), replace: vi.fn(), refresh: vi.fn() }))
-vi.mock('next/navigation', () => ({ useRouter: () => nav, usePathname: () => '/journal' }))
+vi.mock('next/navigation', () => ({ useRouter: () => nav, usePathname: () => '/journal', useSearchParams: () => new URLSearchParams(window.location.search) }))
 vi.mock('next/link', async () => ({ default: (await import('../../test/next-link')).linkStandIn(() => {}) }))
 vi.mock('../activity', () => ({ trackPrivateOperation: () => () => {} }))
 vi.mock('../ui/use-mobile', () => ({ useMobile: () => false }))
@@ -28,6 +28,7 @@ const addAircraft = async (user: ReturnType<typeof userEvent.setup>) => { await 
 beforeEach(() => {
   rows = [flight(7, null), flight(8, 'B738')]
   nav.push.mockReset(); nav.replace.mockReset(); nav.refresh.mockReset()
+  window.history.replaceState(null, '', '/journal'); vi.spyOn(window.history, 'pushState'); vi.spyOn(window.history, 'replaceState')
   vi.mocked(api.get).mockReset().mockImplementation((async (path: string) => { if (path === '/api/flights') return dataFor(rows); throw new Error(`unstubbed GET ${path}`) }) as typeof api.get)
   vi.mocked(api.delete).mockReset().mockResolvedValue({ derived_state: 'ready' })
   vi.mocked(api.post).mockReset().mockResolvedValue({ derived_state: 'ready' })
@@ -189,7 +190,7 @@ describe('row actions menu and single delete question', () => {
 
     await user.keyboard('{Shift>}{F10}{/Shift}')
     await user.click(await screen.findByRole('menuitem', { name: 'Edit flight' }))
-    expect(nav.push).toHaveBeenCalledWith('/journal?flight=7', { scroll: false })
+    expect(window.history.pushState).toHaveBeenCalledWith(null, '', '/journal?flight=7')
   })
 
   it('asks in place, hands the answer to the one deferred delete, and disables a second deletion while it waits', async () => {
