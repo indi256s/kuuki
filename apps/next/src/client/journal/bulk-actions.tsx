@@ -1,11 +1,11 @@
 'use client'
 // Selection and bulk actions on the Journal (spec "Selection and bulk actions", D1, D5). The floating bar shows while
 // any ticked flight passes the filters and acts only on those (`selected`, the store's `selectedVisible`), never on
-// ticks the filters hide. The component stays mounted without a selection: it owns the deferred delete and its Undo.
+// ticks the filters hide.
 //
-// - Delete and Did not fly: no confirm dialog. Rows are hidden at once, the selection clears and the 6 s deferred
-//   delete starts with Undo in the toast region; focus moves to Undo. Undo brings the rows back and focuses the first.
-//   A failed delete brings them back and says so.
+// - Delete and Did not fly: no confirm dialog. The selection clears and the rows go to the page's one deferred delete
+//   (`journal-delete.tsx`): hidden at once, 6 s Undo in the toast region with focus on it. Undo brings the rows back and
+//   focuses the first; a failed delete brings them back and says so. A new delete commits a pending one first.
 // - Set aircraft: fills only flights without an aircraft unless "Replace all" is ticked, through `aircraft-batch` in
 //   sequential chunks of 20.
 // - I flew: `confirmFlights` over the awaiting flights; upcoming and flown ones are skipped and counted.
@@ -18,16 +18,14 @@ import { trackPrivateOperation } from '../activity'
 import type { AwaitingQueue } from '../awaiting'
 import { acceptAircraft, countAircraftRun, type AircraftAccept } from '../import/aircraft-review'
 import { LIFECYCLE_CHANGED_EVENT } from '../lifecycle-sync'
-import { useDeferredDelete } from '../reads/deferred-delete'
-import { DeleteUndo } from '../reads/delete-undo'
 import { Button } from '../ui/button'
 import { Checkbox } from '../ui/checkbox'
 import { Combobox, type Choice } from '../ui/combobox'
 import { Dialog } from '../ui/dialog'
 import { FloatingActionBar } from '../ui/floating-action-bar'
-import { ToastSlot, useToast } from '../ui/toast'
 import { confirmFlights, partitionPending, type ConfirmFlightsResult } from './confirm-flights'
 import { downloadCsv, exportFileName, openFlightsCsv } from './export-csv'
+import { focusRowOrHeading, useJournalDelete } from './journal-delete'
 import type { JournalFlight, JournalRefs } from './model'
 import './bulk-actions.css'
 
@@ -44,7 +42,6 @@ const plural = {
   setFor: forms({ one: 'Set for {count} flight', other: 'Set for {count} flights' }, { one: 'Указать для {count} перелёта', few: 'Указать для {count} перелётов', many: 'Указать для {count} перелётов', other: 'Указать для {count} перелёта' }),
   setForAll: forms({ one: 'Set for {count} flight', other: 'Set for all {count}' }, { one: 'Указать для {count} перелёта', few: 'Указать для всех {count}', many: 'Указать для всех {count}', other: 'Указать для всех {count}' }),
   replaceAll: forms({ one: 'Replace on {count} flight', other: 'Replace all {count}' }, { one: 'Заменить у {count} перелёта', few: 'Заменить у всех {count}', many: 'Заменить у всех {count}', other: 'Заменить у всех {count}' }),
-  deleteFailed: forms({ one: 'Could not delete {count} flight. It is back in the list.', other: 'Could not delete {count} flights. They are back in the list.' }, { one: 'Не удалось удалить {count} перелёт. Он снова в списке.', few: 'Не удалось удалить {count} перелёта. Они снова в списке.', many: 'Не удалось удалить {count} перелётов. Они снова в списке.', other: 'Не удалось удалить {count} перелёта. Они снова в списке.' }),
 }
 
 const copy = {
@@ -55,8 +52,6 @@ const copy = {
     export: 'Export CSV', delete: 'Delete', retry: 'Try again',
     skipped: (parts: string) => `Skipped: ${parts}.`,
     noneAwaiting: 'None of the selected flights are waiting for confirmation.',
-    deleteBusy: 'Wait for the current delete to finish.',
-    deleteCancelled: 'Delete cancelled because you left the Journal. Nothing was removed.',
     notConfirmedRest: 'The rest could not be confirmed.',
     noToken: (count: string) => `${count} could not be confirmed right now. Try again later.`,
     rejected: 'Could not confirm the flights. The list is refreshing.',
@@ -80,8 +75,6 @@ const copy = {
     export: 'Экспорт CSV', delete: 'Удалить', retry: 'Повторить',
     skipped: (parts: string) => `Пропущены: ${parts}.`,
     noneAwaiting: 'Среди выбранных нет перелётов, которые ждут подтверждения.',
-    deleteBusy: 'Дождитесь окончания текущего удаления.',
-    deleteCancelled: 'Удаление отменено, потому что вы ушли из журнала. Ничего не удалено.',
     notConfirmedRest: 'Остальные подтвердить не удалось.',
     noToken: (count: string) => `Не удалось подтвердить сейчас: ${count}. Повторите позже.`,
     rejected: 'Не удалось подтвердить перелёты. Список обновляется.',
@@ -116,93 +109,32 @@ export type JournalBulkActionsProps = {
   offlineNoteId: string
   onSelectAll: (ids: number[]) => void
   onClear: () => void
-  hide: (ids: number[]) => void
-  unhide: (ids: number[]) => void
   refresh: () => Promise<unknown>
 }
 
 const describe = (...ids: (string | false | null | undefined)[]) => ids.filter(Boolean).join(' ') || undefined
 const announceChange = () => window.dispatchEvent(new Event(LIFECYCLE_CHANGED_EVENT))
 
-/** Focus the first of `ids` still in the ledger, else the page heading. Used when the bar or Undo leaves. */
-function focusRowOrHeading(ids: readonly number[]) {
-  for (const id of ids) {
-    const row = document.querySelector<HTMLElement>(`[data-flight-row="${id}"]`)
-    if (row) { row.focus(); return }
-  }
-  const heading = document.querySelector<HTMLElement>('main h1')
-  if (!heading) return
-  if (!heading.hasAttribute('tabindex')) heading.tabIndex = -1
-  heading.focus()
-}
-
-export function JournalBulkActions({ locale, selected, matching, refs, queue, online, offlineNoteId, onSelectAll, onClear, hide, unhide, refresh }: JournalBulkActionsProps) {
+export function JournalBulkActions({ locale, selected, matching, refs, queue, online, offlineNoteId, onSelectAll, onClear, refresh }: JournalBulkActionsProps) {
   const t = copy[locale]
-  const toast = useToast()
+  const { scheduleDelete } = useJournalDelete()
   const noteId = useId()
-  const busyNoteId = useId()
   const [confirming, setConfirming] = useState(false)
   const [status, setStatus] = useState<Status | null>(null)
   const [aircraftOpen, setAircraftOpen] = useState(false)
-  const undoButton = useRef<HTMLButtonElement>(null)
   const operations = useRef(new Set<AbortController>())
   useEffect(() => { const running = operations.current; return () => running.forEach(controller => controller.abort()) }, [])
-
-  // Sign-out and owner switches reset identity before the Journal unmounts; their dropped delete is not announced.
-  const identityReset = useRef(false)
-  useEffect(() => {
-    const reset = () => { identityReset.current = true }
-    window.addEventListener('kuuki:identity-reset', reset)
-    return () => window.removeEventListener('kuuki:identity-reset', reset)
-  }, [])
 
   const ids = useMemo(() => selected.map(flight => flight.id), [selected])
   const key = ids.join(',')
   const parts = useMemo(() => partitionPending(selected), [selected])
 
-  // Deferred delete (spec D1): Delete and Did not fly both end here. Focus moves when the member acts, never on the network answer.
-  const deletion = useDeferredDelete(() => { void refresh(); announceChange() },
-    () => { if (!identityReset.current) toast.show({ message: t.deleteCancelled }) })
-  const deleteBusy = deletion.pending !== null || deletion.submitting
-  const restore = useRef<number[]>([])
-  const undoing = useRef(false)
-  const scheduleDelete = (target: number[]) => {
-    if (!online || deleteBusy || !target.length) return
-    restore.current = target
-    hide(target)
+  // Deferred delete (spec D1): Delete and Did not fly both end in the page's one deferred delete.
+  const remove = (target: number[]) => {
+    if (!online || !target.length) return
     onClear()
-    deletion.schedule(target)
+    scheduleDelete(target)
   }
-  const undo = () => {
-    const pending = deletion.pending
-    if (!pending) return
-    undoing.current = true
-    deletion.undo()
-    unhide(pending.ids)
-  }
-  const isPending = deletion.pending !== null
-  const wasPending = useRef(false)
-  useEffect(() => {
-    const was = wasPending.current
-    wasPending.current = isPending
-    if (isPending) { undoButton.current?.focus(); return }
-    if (!was) return
-    if (undoing.current) { undoing.current = false; focusRowOrHeading(restore.current); return }
-    if (document.activeElement === document.body || document.activeElement === null) focusRowOrHeading([])
-  }, [isPending])
-  // The Undo button leaves when the request starts; a member resting on it (focus fell to the body) moves to the heading.
-  useEffect(() => { if (deletion.submitting && (document.activeElement === document.body || document.activeElement === null)) focusRowOrHeading([]) }, [deletion.submitting])
-  const retryDelete = useRef(scheduleDelete)
-  useEffect(() => { retryDelete.current = scheduleDelete })
-  // Each failure is handled once, whatever else re-renders (callers need not pass a stable `unhide`).
-  const handledFailure = useRef<number[] | null>(null)
-  useEffect(() => {
-    const failed = deletion.failed
-    if (!failed || handledFailure.current === failed) return
-    handledFailure.current = failed
-    unhide(failed)
-    toast.show({ kind: 'error', message: formatCount(locale, failed.length, plural.deleteFailed), actionLabel: copy[locale].retry, onAction: () => retryDelete.current(failed) })
-  }, [deletion.failed, unhide, toast, locale])
 
   const confirmAwaiting = async () => {
     if (!online || confirming || !parts.awaiting.length) return
@@ -238,36 +170,33 @@ export function JournalBulkActions({ locale, selected, matching, refs, queue, on
   const writeBlocked = !online || confirming
   const shownStatus = status?.key === key ? status : null
 
-  return <>
-    {selected.length > 0 && <div className="journal-bulk" onKeyDown={onKeyDown}>
-      <FloatingActionBar label={t.region} countLabel={formatCount(locale, selected.length, plural.selected)}>
-        <div role="toolbar" aria-label={t.toolbar} className="journal-bulk-toolbar">
-          <div className="journal-bulk-group">
-            {selected.length < matching.length && <Button dense variant="ghost" onClick={() => onSelectAll(matching.map(flight => flight.id))}>{t.selectAll(formatNumber(locale, matching.length))}</Button>}
-            <Button dense variant="ghost" onClick={clearAndFocus}>{t.clear}</Button>
-          </div>
-          <div className="journal-bulk-group">
-            <SetAircraft locale={locale} flights={selected} online={online} offlineNoteId={offlineNoteId} blocked={writeBlocked} open={aircraftOpen} onOpenChange={setAircraftOpen} refresh={refresh}
-              onSaved={text => setStatus({ key, text, alert: false })} operations={operations} />
-            <Button dense disabled={writeBlocked || !parts.awaiting.length} loading={confirming} loadingLabel={t.confirming}
-              aria-describedby={describe(offline, pendingNote && noteId)} onClick={() => void confirmAwaiting()}>
-              {parts.awaiting.length ? t.iFlew(formatNumber(locale, parts.awaiting.length)) : t.iFlewIdle}
-            </Button>
-            <Button dense disabled={writeBlocked || deleteBusy || !parts.awaiting.length} aria-describedby={describe(offline, pendingNote && noteId, deleteBusy && busyNoteId)}
-              onClick={() => scheduleDelete(parts.awaiting)}>
-              {parts.awaiting.length ? formatCount(locale, parts.awaiting.length, plural.didNotFly) : t.didNotFlyIdle}
-            </Button>
-            <Button dense onClick={exportSelection}>{t.export}</Button>
-            <Button dense variant="danger" disabled={writeBlocked || deleteBusy} aria-describedby={describe(offline, deleteBusy && busyNoteId)} onClick={() => scheduleDelete(ids)}>{t.delete}</Button>
-          </div>
+  if (!selected.length) return null
+  return <div className="journal-bulk" onKeyDown={onKeyDown}>
+    <FloatingActionBar label={t.region} countLabel={formatCount(locale, selected.length, plural.selected)}>
+      <div role="toolbar" aria-label={t.toolbar} className="journal-bulk-toolbar">
+        <div className="journal-bulk-group">
+          {selected.length < matching.length && <Button dense variant="ghost" onClick={() => onSelectAll(matching.map(flight => flight.id))}>{t.selectAll(formatNumber(locale, matching.length))}</Button>}
+          <Button dense variant="ghost" onClick={clearAndFocus}>{t.clear}</Button>
         </div>
-        {pendingNote && <p id={noteId} className="journal-bulk-note">{pendingNote}</p>}
-        {deleteBusy && <p id={busyNoteId} className="journal-bulk-note">{t.deleteBusy}</p>}
-        <p className="journal-bulk-status" role={shownStatus?.alert ? 'alert' : 'status'}>{shownStatus?.text ?? ''}</p>
-      </FloatingActionBar>
-    </div>}
-    <ToastSlot><DeleteUndo ref={undoButton} locale={locale} pending={deletion.pending} submitting={deletion.submitting} onUndo={undo} /></ToastSlot>
-  </>
+        <div className="journal-bulk-group">
+          <SetAircraft locale={locale} flights={selected} online={online} offlineNoteId={offlineNoteId} blocked={writeBlocked} open={aircraftOpen} onOpenChange={setAircraftOpen} refresh={refresh}
+            onSaved={text => setStatus({ key, text, alert: false })} operations={operations} />
+          <Button dense disabled={writeBlocked || !parts.awaiting.length} loading={confirming} loadingLabel={t.confirming}
+            aria-describedby={describe(offline, pendingNote && noteId)} onClick={() => void confirmAwaiting()}>
+            {parts.awaiting.length ? t.iFlew(formatNumber(locale, parts.awaiting.length)) : t.iFlewIdle}
+          </Button>
+          <Button dense disabled={writeBlocked || !parts.awaiting.length} aria-describedby={describe(offline, pendingNote && noteId)}
+            onClick={() => remove(parts.awaiting)}>
+            {parts.awaiting.length ? formatCount(locale, parts.awaiting.length, plural.didNotFly) : t.didNotFlyIdle}
+          </Button>
+          <Button dense onClick={exportSelection}>{t.export}</Button>
+          <Button dense variant="danger" disabled={writeBlocked} aria-describedby={describe(offline)} onClick={() => remove(ids)}>{t.delete}</Button>
+        </div>
+      </div>
+      {pendingNote && <p id={noteId} className="journal-bulk-note">{pendingNote}</p>}
+      <p className="journal-bulk-status" role={shownStatus?.alert ? 'alert' : 'status'}>{shownStatus?.text ?? ''}</p>
+    </FloatingActionBar>
+  </div>
 }
 
 function confirmMessage(locale: Locale, result: ConfirmFlightsResult): { text: string; alert: boolean } {

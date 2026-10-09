@@ -7,6 +7,7 @@ import type { AwaitingQueue } from '../awaiting'
 import { ToastProvider } from '../ui/toast'
 import { JournalBulkActions } from './bulk-actions'
 import { downloadCsv } from './export-csv'
+import { JournalDeleteProvider } from './journal-delete'
 import type { JournalFlight, JournalRefs } from './model'
 
 vi.mock('@kuuki/client/apiClient', async importOriginal => ({ ...(await importOriginal<typeof import('@kuuki/client/apiClient')>()), api: { get: vi.fn(), post: vi.fn(), delete: vi.fn() } }))
@@ -25,15 +26,15 @@ function Harness({ flights, ticked = flights.map(f => f.id), online = true, queu
   const [selected, setSelected] = useState(() => new Set(ticked))
   const [hidden, setHidden] = useState<ReadonlySet<number>>(() => new Set())
   const visible = flights.filter(f => !hidden.has(f.id))
-  return <ToastProvider><main>
+  return <ToastProvider><JournalDeleteProvider locale="en" refresh={refresh}
+    hide={ids => { setHidden(old => new Set([...old, ...ids])); setSelected(old => new Set([...old].filter(id => !ids.includes(id)))) }}
+    unhide={ids => setHidden(old => new Set([...old].filter(id => !ids.includes(id))))}><main>
     <h1>Journal</h1>
     {!online && <p id="offline-note">Offline. Connect to change flights.</p>}
     {visible.map(f => <button key={f.id} type="button" data-flight-row={f.id}>Row {f.id}</button>)}
     <JournalBulkActions locale="en" selected={visible.filter(f => selected.has(f.id))} matching={visible} refs={refs} queue={queue} online={online} offlineNoteId="offline-note"
-      onSelectAll={ids => setSelected(new Set(ids))} onClear={() => setSelected(new Set())} refresh={refresh}
-      hide={ids => { setHidden(old => new Set([...old, ...ids])); setSelected(old => new Set([...old].filter(id => !ids.includes(id)))) }}
-      unhide={ids => setHidden(old => new Set([...old].filter(id => !ids.includes(id))))} />
-  </main></ToastProvider>
+      onSelectAll={ids => setSelected(new Set(ids))} onClear={() => setSelected(new Set())} refresh={refresh} />
+  </main></JournalDeleteProvider></ToastProvider>
 }
 
 const bar = () => screen.getByRole('toolbar', { name: 'Selection actions' })

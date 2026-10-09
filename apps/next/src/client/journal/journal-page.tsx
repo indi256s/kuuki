@@ -1,6 +1,7 @@
 'use client'
 // The Journal's composition root: reads the store and hands plain props to the presentational pieces
 // (header, Next up, toolbar, ledger, states). Callbacks passed to the ledger stay stable so memoised rows do not re-render.
+// It mounts the page's one deferred delete (`journal-delete.tsx`) around everything that removes flights.
 import { useCallback, useMemo, useState } from 'react'
 import type { Locale } from '../../server/locale'
 import { useAwaiting } from '../awaiting'
@@ -11,6 +12,7 @@ import { JournalDetail, useDockedDetail } from './detail-sheet'
 import { downloadCsv, exportFileName, openFlightsCsv } from './export-csv'
 import type { EditableField } from './flight-edits'
 import { JournalHeader } from './header'
+import { JournalDeleteProvider } from './journal-delete'
 import { JournalLedger } from './ledger'
 import { NextUp } from './next-up'
 import { EmptyJournal, NoMatches, OfflineNote, PublicationPending, RefreshFailed } from './states'
@@ -22,8 +24,15 @@ const NEXT_UP = 3
 const OFFLINE_NOTE_ID = 'journal-offline-note'
 
 export function JournalShell({ ownerId, locale }: { ownerId: string; locale: Locale }) {
+  const { hide, unhide, refresh } = useJournalStore()
+  return <JournalDeleteProvider locale={locale} hide={hide} unhide={unhide} refresh={refresh}>
+    <JournalContent ownerId={ownerId} locale={locale} />
+  </JournalDeleteProvider>
+}
+
+function JournalContent({ ownerId, locale }: { ownerId: string; locale: Locale }) {
   const { payload, view, selection, setFilters, setSort, openFlight, resetFilters, refresh, isError, online, hidden,
-    selectedVisible, toggle, selectAll, clear, hide, unhide } = useJournalStore()
+    selectedVisible, toggle, selectAll, clear } = useJournalStore()
   const { data: queue } = useAwaiting()
 
   // D6: Next up and the review pill ignore filters.
@@ -79,7 +88,7 @@ export function JournalShell({ ownerId, locale }: { ownerId: string; locale: Loc
     <JournalDetail ownerId={ownerId} locale={locale} docked={docked} initialField={initialField} />
     </div>
     <JournalBulkActions locale={locale} selected={selectedFlights} matching={selection.matching} refs={payload.refs} queue={queue} online={online} offlineNoteId={OFFLINE_NOTE_ID}
-      onSelectAll={selectAll} onClear={clear} hide={hide} unhide={unhide} refresh={refresh} />
+      onSelectAll={selectAll} onClear={clear} refresh={refresh} />
   </section>
 }
 
