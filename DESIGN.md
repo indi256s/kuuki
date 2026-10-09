@@ -219,7 +219,7 @@ One breakpoint at 700px switches between desktop and mobile. The header and tab 
 
 ### Loading screen
 
-`LoadingScreen` is the route loading state for Overview, Journal, Passport and Import: the 48px logo mark, a localized status line («Загрузка…» / "Loading…") in `--text-muted`, 48px vertical padding, `role="status"`. One stable mark, no spinner, no motion, so reduced motion needs no variant. The older `.loading` and `.placeholder` blocks in `styles.css` remain on unmigrated pages.
+`LoadingScreen` is the route loading state for Overview, Passport and Import: the 48px logo mark, a localized status line («Загрузка…» / "Loading…") in `--text-muted`, 48px vertical padding, `role="status"`. Journal uses the final-layout ledger skeleton described below. One stable mark, no spinner, no motion, so reduced motion needs no variant. The older `.loading` and `.placeholder` blocks in `styles.css` remain on unmigrated pages.
 
 ### Auth card
 
@@ -315,6 +315,21 @@ Threshold and coverage gates say how much evidence is present and what is needed
 **States.** First run retains a still globe and Import/Add CTA with a narrator, without figures or sections. Filtered zero keeps chips and ghost context, shows em-dashes in figures, and replaces sections with one narrator/action line (Remove last filter and Clear all). Unavailable remains a separate failure state with retry, not an empty journal.
 
 **Narrator is a product pillar.** One deterministic, dry, data-backed EN/RU line at most per ready section foot or below-threshold placeholder, plus the dedicated first-run/zero/globe slots. It is Commissioner 15/24 400, `--text-muted`, max 60ch, without hairline, icon or quotes. Triggers respect coverage and thresholds; the same owner, scope and slot choose a stable variant. It never replaces facts, coverage or an instruction; tile captions stay factual. Russian uses «вы». The native Russian owner revision and narrator copy are approved; no visual audit is implied. Public narration must use summary evidence without exposing private IDs; the public presentation remains outside this release’s visual scope.
+
+## Journal redesign
+
+**Built (Journal redesign, source only):** the owner’s whole journal is loaded once; local filters and selection have their own store, and the URL mirrors the view. Default contents are logged and awaiting flights. Next up and the review pill ignore filters. Did not fly removes a flight through the shared six-second deferred delete with Undo; it is not a stored lifecycle state.
+
+The approved [Journal spec](.scratch/journal-redesign/spec.md) takes precedence over older Journal styling and records these scoped exceptions:
+
+- Only weights 400 and 500 inside Journal content, including titles and sheet headings. Size, spacing and mono route codes carry hierarchy. No eyebrow or lead paragraph, uppercase labels, airline tiles or row divider lines.
+- Summary figures use the adapted Arc SlotText, extending the narrow text-feedback scope above. Facet and sort changes crossfade the result set over 150ms, using opacity only; search responds without a fade. Reduced motion swaps immediately. No row layout animation.
+- A detail sheet docks as a 460px non-modal pane at 1280px and above, leaving the ledger interactive and hiding its Duration and Distance columns. Below that it reuses Sheet as a modal overlay; mobile uses the full-height flight sheet. Inline fields save independently and confirm in place, with Undo as secondary feedback.
+- Firsts use a small Shu glyph with a named tooltip; the sheet spells out each first and its pending-confirmation status. Server computation uses the same country-evidence rules as Passport and ignores Journal filters.
+- Journal loading uses a static skeleton in the final header, toolbar and ledger layout rather than LoadingScreen. Empty, no matches, offline, failed refresh and pending publication remain distinct states; failed refresh preserves loaded rows.
+- Selection uses hover/focus checkboxes on desktop and a menu on mobile. The floating action bar supports all matching flights, export, protected aircraft filling, confirmation and deferred deletion without DestructiveConfirm. Manual flight and Passport deletion retain their existing mechanics.
+
+Rows remain real DOM with `content-visibility: auto`. The server renders the first 60 rows; the remainder mount in transitions in batches of 150 under the measured performance fallback in the spec. This is progressive mounting, with no virtualizer or offline persistence.
 
 ## Copy and trust
 

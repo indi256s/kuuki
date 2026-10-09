@@ -1,16 +1,20 @@
 import { readFileSync, writeFileSync } from 'node:fs'
 import { gzipSync, brotliCompressSync, constants } from 'node:zlib'
-const base = 'http://127.0.0.1:8800'
-const st = JSON.parse(readFileSync('/tmp/jr1k/state.json', 'utf8'))
+const auditDir = process.env.KUUKI_JOURNAL_AUDIT_DIR ?? '/tmp/jr1k'
+const base = process.env.KUUKI_JOURNAL_ORIGIN ?? 'http://127.0.0.1:8800'
+const st = JSON.parse(readFileSync(`${auditDir}/state.json`, 'utf8'))
 const cookie = st.cookies.map(c => `${c.name}=${c.value}`).join('; ')
-const owner = JSON.parse(readFileSync('/tmp/jr1k/me.json', 'utf8')).user.id
+const owner = JSON.parse(readFileSync(`${auditDir}/me.json`, 'utf8')).user.id
 const gz = b => gzipSync(b, { level: 9 }).length
 const br = b => brotliCompressSync(b, { params: { [constants.BROTLI_PARAM_QUALITY]: 11 } }).length
 const out = {}
 const apiRes = await fetch(`${base}/api/flights/journal?owner=${owner}`, { headers: { Cookie: cookie, 'Accept-Encoding': 'identity' } })
+if (apiRes.status !== 200) throw new Error(`Journal payload read failed: ${apiRes.status}`)
 const api = Buffer.from(await apiRes.arrayBuffer())
+if (JSON.parse(api).flights.length !== 1000) throw new Error('Journal payload does not contain 1000 flights')
 out.api = { status: apiRes.status, contentEncoding: apiRes.headers.get('content-encoding'), raw: api.length, gzip: gz(api), brotli: br(api) }
 const res = await fetch(`${base}/journal`, { headers: { Cookie: cookie, 'Accept-Encoding': 'identity' } })
+if (res.status !== 200) throw new Error(`Journal document read failed: ${res.status}`)
 const html = Buffer.from(await res.arrayBuffer())
 out.html = { status: res.status, contentEncoding: res.headers.get('content-encoding'), raw: html.length, gzip: gz(html), brotli: br(html) }
 const text = html.toString('utf8')
@@ -33,4 +37,4 @@ re.lastIndex = 0
 while ((m = re.exec(text))) { if (m[0].includes('lifecycle_state')) journalScriptBytes += Buffer.byteLength(m[0]) }
 out.journalScriptTagBytesInHtml = journalScriptBytes
 console.log(JSON.stringify(out, null, 1))
-writeFileSync('/tmp/jr1k/sizes.json', JSON.stringify(out, null, 1))
+writeFileSync(`${auditDir}/sizes.json`, JSON.stringify(out, null, 1))

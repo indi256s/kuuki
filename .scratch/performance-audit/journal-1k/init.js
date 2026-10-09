@@ -46,8 +46,8 @@
   };
   p.run = async () => {
     const sortBtn = label => th(label).querySelector('button');
-    // 1. hydrated + 1000 rows present
-    await waitFor(() => rows() >= 993 && hydrated(sortBtn('Distance, km')) && hydrated(document.querySelector('input[type=search]')));
+    // 1. Initial rows hydrated; probe while progressive mounting is still interruptible.
+    await waitFor(() => rows() > 0 && hydrated(sortBtn('Distance, km')) && hydrated(document.querySelector('input[type=search]')));
     p.hydratedAt = performance.now();
     p.rowsAtHydration = rows();
     // 2. TTI probe: click Distance header immediately on hydration
@@ -63,7 +63,10 @@
     // order flip visible?
     const t1 = performance.now();
     await waitFor(() => firstRowId() !== idBefore, 10000).then(() => { p.probe.rowsReorderedMs = performance.now() - probeStart; }).catch(() => {});
-    // 3. wait idle: 1s with no new longtask (max 20s)
+    // 3. Verify the complete matching list mounts, then wait for idle.
+    await waitFor(() => rows() >= 993);
+    p.allRowsAt = performance.now();
+    // Wait idle: 1s with no new longtask (max 20s)
     const idleStart = performance.now();
     while (performance.now() - idleStart < 20000) {
       const last = p.longtasks.length ? p.longtasks[p.longtasks.length - 1] : null;
