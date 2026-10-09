@@ -1,6 +1,6 @@
 # 11 Detail sheet: split pane, read-first content, inline edits
 
-Status: open
+Status: done
 Type: task
 Owner: Opus
 Blocked by: 05, 08
