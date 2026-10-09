@@ -1,7 +1,7 @@
 'use client'
 
 import './gallery.css'
-import { Archive, Plane, Trash2 } from 'lucide-react'
+import { Archive, CircleCheck, Plane, Trash2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { MAKER_SLOTS } from '@kuuki/data/aircraft-makers'
 import { ALLIANCES } from '@kuuki/data/alliance-membership'
@@ -9,7 +9,10 @@ import { setTheme } from '../../../client/appearance'
 import { AllianceMark, MakerSwatch } from '../../../client/ui/category-mark'
 import { Alert } from '../../../client/ui/alert'
 import { Checkbox } from '../../../client/ui/checkbox'
+import { ChipGroup, FacetChip } from '../../../client/ui/chip-group'
 import { Chip } from '../../../client/ui/chip'
+import { DateRangePicker, type DateRangeValue } from '../../../client/ui/date-range-picker'
+import { FilterToolbar } from '../../../client/ui/filter-toolbar'
 import { EmptyState } from '../../../client/ui/empty-state'
 import { Kbd } from '../../../client/ui/kbd'
 import { SlotText } from '../../../client/ui/slot-text'
@@ -24,9 +27,11 @@ import { Disclosure } from '../../../client/ui/disclosure'
 import { Field } from '../../../client/ui/field'
 import { FloatingActionBar } from '../../../client/ui/floating-action-bar'
 import { Menu, MenuItem, MenuLabel, MenuRadioGroup, MenuRadioItem, MenuSeparator } from '../../../client/ui/menu'
+import { MultiSelect } from '../../../client/ui/multi-select'
 import { SegmentedControl } from '../../../client/ui/segmented-control'
 import { Sheet } from '../../../client/ui/sheet'
 import { SwatchPicker } from '../../../client/ui/swatch-picker'
+import { SwipeActions, SwipeActionsRow } from '../../../client/ui/swipe-actions'
 import { SwitchRow } from '../../../client/ui/switch-row'
 import { ToastProvider, useToast } from '../../../client/ui/toast'
 import { Stamp } from '../../../client/signature/stamp'
@@ -34,6 +39,14 @@ import { Ticket } from '../../../client/signature/ticket'
 import type { Locale } from '../../../lib/format'
 
 type Theme = 'light' | 'dark'
+
+const AIRLINE_OPTIONS = [
+  { value: 'TK', label: 'Turkish Airlines', detail: 'TK', count: 14 },
+  { value: 'PC', label: 'Pegasus', detail: 'PC', count: 6 },
+  { value: 'LH', label: 'Lufthansa', detail: 'LH', count: 3 },
+  { value: 'A3', label: 'Aegean Airlines', detail: 'A3' },
+]
+const YEAR_PRESETS = [2023, 2024, 2025, 2026].map(year => ({ label: String(year), from: `${year}-01-01`, to: `${year}-12-31` }))
 
 export function Gallery({ initialTheme, initialLocale }: { initialTheme: Theme; initialLocale: Locale }) {
   const [theme, setThemeState] = useState<Theme>(initialTheme)
@@ -73,6 +86,10 @@ function Sections({ locale, theme, t }: { locale: Locale; theme: Theme; t: (en: 
   const [email, setEmail] = useState('')
   const [flights, setFlights] = useState(74)
   const [aircraftOnly, setAircraftOnly] = useState(true)
+  const [airlines, setAirlines] = useState<string[]>(['TK'])
+  const [dateRange, setDateRange] = useState<DateRangeValue>({ from: '', to: '' })
+  const [applied, setApplied] = useState('')
+  const [swiped, setSwiped] = useState('')
   const [checkedRows, setCheckedRows] = useState([true, false, false])
   const allRows = checkedRows.every(Boolean), someRows = checkedRows.some(Boolean)
   const origin = { iata: 'JFK', city: 'New York' }, destination = { iata: 'BOS', city: 'Boston' }
@@ -99,6 +116,49 @@ function Sections({ locale, theme, t }: { locale: Locale; theme: Theme; t: (en: 
           </PopoverRoot>
         </div>
         <MonthRange from={range?.from ?? ''} to={range?.to ?? ''} min="2000-01" max="2026-12" locale={locale} onChange={setRange} onClear={() => {}} />
+      </section>
+      <section><h2>FilterToolbar, ChipGroup, FacetChip</h2>
+        <div style={{ width: '100%' }}>
+          <FilterToolbar label={t('Example filters', 'Пример фильтров')}
+            search={<input className="ui-field-input" type="search" aria-label={t('Search flights', 'Поиск по перелётам')} placeholder={t('Search places, flights, airlines, dates', 'Города, рейсы, авиакомпании, даты')} />}
+            actions={<Button dense variant="ghost" onClick={() => setAirlines([])}>{t('Clear all', 'Сбросить всё')}</Button>}>
+            <ChipGroup label={t('Filters', 'Фильтры')}>
+              {airlines.length
+                ? <FacetChip facet={t('Airline', 'Авиакомпания')} values={airlines.map(code => AIRLINE_OPTIONS.find(option => option.value === code)?.label ?? code)} locale={locale}
+                  onRemove={() => setAirlines([])} removeLabel={t('Remove Airline filter', 'Убрать фильтр «Авиакомпания»')}>
+                  {body => <MultiSelect label={t('Airline', 'Авиакомпания')} options={AIRLINE_OPTIONS} value={airlines} onValueChange={setAirlines} locale={locale} trigger={body} />}
+                </FacetChip>
+                : <MultiSelect label={t('Airline', 'Авиакомпания')} options={AIRLINE_OPTIONS} value={airlines} onValueChange={setAirlines} locale={locale}
+                  trigger={<Button dense>{t('Airline', 'Авиакомпания')}</Button>} />}
+              <FacetChip facet={t('Place', 'Место')} values={['Istanbul', 'Tbilisi', 'Berlin']} locale={locale} onOpen={() => {}} onRemove={() => {}} removeLabel={t('Remove Place filter', 'Убрать фильтр «Место»')} />
+            </ChipGroup>
+          </FilterToolbar>
+        </div>
+      </section>
+      <section><h2>MultiSelect</h2>
+        <MultiSelect label={t('Airline', 'Авиакомпания')} options={AIRLINE_OPTIONS} value={airlines} onValueChange={setAirlines} locale={locale} />
+      </section>
+      <section><h2>SwipeActionsRow</h2>
+        <p>{t('Drag a row sideways with touch. Every action also needs a menu path; this demo has none.', 'Потяните строку вбок пальцем. У каждого действия должен быть путь через меню; в этом примере его нет.')}</p>
+        <div style={{ width: 'min(100%, 420px)' }}>
+          <SwipeActions>
+            <SwipeActionsRow
+              leading={[{ label: t('I flew', 'Я летел'), icon: <CircleCheck size={20} strokeWidth={2} aria-hidden="true" />, tone: 'accent', onSelect: () => setSwiped(t('I flew', 'Я летел')) }]}
+              trailing={[{ label: t('Delete flight', 'Удалить перелёт'), icon: <Trash2 size={20} strokeWidth={2} aria-hidden="true" />, tone: 'danger', onSelect: () => setSwiped(t('Delete flight', 'Удалить перелёт')) }]}>
+              <p style={{ margin: 0, padding: 'var(--space-4)' }}>IST to TBS, 12 Mar 2024</p>
+            </SwipeActionsRow>
+            <SwipeActionsRow
+              trailing={[{ label: t('Delete flight', 'Удалить перелёт'), icon: <Trash2 size={20} strokeWidth={2} aria-hidden="true" />, tone: 'danger', onSelect: () => setSwiped(t('Delete flight', 'Удалить перелёт')) }]}>
+              <p style={{ margin: 0, padding: 'var(--space-4)' }}>TBS to IST, 3 Apr 2024</p>
+            </SwipeActionsRow>
+          </SwipeActions>
+        </div>
+        <p role="status">{swiped ? t(`Last action: ${swiped}`, `Последнее действие: ${swiped}`) : ''}</p>
+      </section>
+      <section><h2>DateRangePicker</h2>
+        <DateRangePicker from={dateRange.from} to={dateRange.to} onChange={setDateRange} locale={locale} presets={YEAR_PRESETS}
+          onApply={() => setApplied(`${dateRange.from} / ${dateRange.to}`)} onClear={() => { setDateRange({ from: '', to: '' }); setApplied('') }} />
+        <p role="status">{applied ? t(`Applied: ${applied}`, `Применено: ${applied}`) : ''}</p>
       </section>
       <section><h2>{t('Loading placeholder', 'Заглушка загрузки')}</h2><Skeleton height={180} label={t('Loading chart', 'Загрузка диаграммы')} /></section>
       <section><h2>{t('Manufacturers', 'Производители')}</h2>

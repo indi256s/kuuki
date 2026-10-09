@@ -1,0 +1,50 @@
+/* Journal toolbar and More filters drawer. Tokens only; chip surfaces come from .ui-chip in ui.css and the row from filter-toolbar.css. No hairlines, weights 400 and 500. */
+
+/* Search */
+.journal-search{position:relative;display:flex;align-items:center}
+.journal-search-icon{position:absolute;inset-inline-start:var(--space-3);color:var(--text-muted);pointer-events:none}
+.journal-search .ui-field-input{padding-inline:calc(var(--space-3) + 16px + var(--space-2)) var(--space-3)}
+.journal-search[data-hint=true] .ui-field-input{padding-inline-end:calc(var(--space-3) + 24px + var(--space-3))}
+.journal-search-kbd{position:absolute;inset-inline-end:var(--space-3);pointer-events:none}
+@media(pointer:coarse){
+  .journal-search[data-hint=true] .ui-field-input{padding-inline-end:var(--space-3)}
+  .journal-search-kbd{display:none}
+}
+
+/* Chips. An empty facet is the same FacetChip drawn as a ghost: no fill, no shadow, no remove button. */
+.journal-chip{display:contents}
+.journal-chip[data-empty] .ui-chip{background:transparent;box-shadow:none}
+.journal-chip[data-empty] .ui-chip-remove{display:none}
+.journal-chip[data-empty] .ui-chip-body{padding-inline-end:12px}
+.journal-chip[data-empty] .ui-facet-name{font-weight:400}
+.journal-chips{flex:0 1 auto}
+
+/* Actions */
+.journal-more{padding-inline:0;min-width:32px}
+.journal-menu-text{display:grid;min-width:0}
+.journal-menu-hint{color:var(--text-muted);font-size:13px;line-height:20px}
+.journal-menu-count{margin-inline-start:auto;min-width:20px;padding:0 6px;border-radius:var(--radius-full);background:var(--surface-inset);color:var(--text);font-size:13px;line-height:20px;text-align:center;font-variant-numeric:tabular-nums}
+
+/* Period picker */
+.ui-popover.journal-period-popover{width:min(26rem,calc(100vw - 16px))}
+.journal-period{display:grid;gap:var(--space-4)}
+.journal-period-label{margin:0 0 var(--space-2);font-weight:500}
+.journal-period-years{display:flex;flex-wrap:wrap;gap:var(--space-2)}
+.journal-period .ui-date-range legend{font-weight:500}
+
+/* More filters drawer */
+.journal-facets{display:grid;gap:var(--space-8);padding-block:var(--space-2)}
+.journal-facet-group{display:grid;gap:var(--space-1);min-width:0;margin:0;padding:0;border:0}
+.journal-facet-group legend{padding:0;margin-block-end:var(--space-2);font-size:15px;line-height:24px;font-weight:500}
+.journal-facet-row{display:flex;align-items:center;justify-content:space-between;gap:var(--space-4);min-height:44px}
+.journal-facet-count{color:var(--text-muted);font-size:13px;line-height:20px;font-variant-numeric:tabular-nums}
+
+/* Up to the shell breakpoint: search on its own line, chips scroll sideways, the menu stays at the end of the row. */
+@media(max-width:700px){
+  .journal-toolbar .ui-filter-toolbar-search{flex-basis:100%}
+  .journal-toolbar .ui-filter-toolbar-actions{flex:none;flex-wrap:nowrap;margin-inline-start:0}
+  /* Padding and the matching negative margin keep focus rings and chip shadows inside the scroll box. */
+  .journal-chips{flex:1 1 0;flex-wrap:nowrap;overflow-x:auto;padding:var(--space-1);margin:calc(-1 * var(--space-1));overscroll-behavior-x:contain;scrollbar-width:none}
+  .journal-chips::-webkit-scrollbar{display:none}
+  .journal-chips .ui-chip{flex:none}
+}
